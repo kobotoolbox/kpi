@@ -38,11 +38,14 @@ class AccessTypeFieldExtension(OpenApiSerializerFieldExtension):
         return GENERIC_ARRAY_SCHEMA
 
 
-class AdvancedFeatureFieldExtension(OpenApiSerializerFieldExtension):
-    target_class = 'kpi.schema_extensions.v2.assets.fields.AdvancedFeatureField'
+class AdvancedFeaturesLinkFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.assets.fields.AdvancedFeaturesLinkField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return GENERIC_OBJECT_SCHEMA
+        return build_url_type(
+            'api_v2:advanced-features-list',
+            parent_lookup_asset='aBeA23YCYjkGTFvYVHuAyU',
+        )
 
 
 class AdvancedSubmissionSchemaFieldExtension(OpenApiSerializerFieldExtension):

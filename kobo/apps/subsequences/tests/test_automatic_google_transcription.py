@@ -336,3 +336,21 @@ def test_latest_version_is_first():
     assert mock_sup_det['_versions'][0]['_data']['value'] == 'trois'
     assert mock_sup_det['_versions'][1]['_data']['value'] == 'deux'
     assert mock_sup_det['_versions'][2]['_data']['value'] == 'un'
+
+
+def test_update_params_only_adds_new_languages():
+    xpath = 'group_name/question_name'
+    params = [{'language': 'fr'}, {'language': 'en'}]
+    action = AutomaticGoogleTranscriptionAction(xpath, params)
+    incoming_params = [{'language': 'en'}, {'language': 'es'}]
+    action.update_params(incoming_params)
+    assert sorted(action.languages) == ['en', 'es', 'fr']
+
+
+def test_update_params_fails_if_new_params_invalid():
+    xpath = 'group_name/question_name'
+    params = [{'language': 'fr'}, {'language': 'en'}]
+    action = AutomaticGoogleTranscriptionAction(xpath, params)
+    incoming_params = [{'bad': 'things'}]
+    with pytest.raises(jsonschema.exceptions.ValidationError):
+        action.update_params(incoming_params)

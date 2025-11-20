@@ -4,9 +4,9 @@ from django.apps import apps
 from kobo.celery import celery_app
 from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
 from kobo.apps.subsequences.exceptions import SubsequenceTimeoutError
-from .constants import SUBMISSION_UUID_FIELD
+from .constants import SUBMISSION_UUID_FIELD, set_version
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
-from .utils.versioning import set_version
+
 
 # With retry_backoff=5 and retry_backoff_max=60, each retry waits:
 #   min(5 * 2^(n-1), 60) seconds.

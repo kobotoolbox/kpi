@@ -1,5 +1,4 @@
 import uuid
-from copy import deepcopy
 from datetime import datetime
 from unittest.mock import patch
 from zoneinfo import ZoneInfo
@@ -12,7 +11,7 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kpi.models import Asset
 from ..constants import SUBMISSION_UUID_FIELD
 from ..exceptions import InvalidAction, InvalidXPath
-from ..models import SubmissionSupplement
+from ..models import QuestionAdvancedAction, SubmissionSupplement
 from .constants import EMPTY_SUPPLEMENT
 
 
@@ -21,15 +20,6 @@ class SubmissionSupplementTestCase(TestCase):
     # Asset-level config.
     #   - Allow manual transcription for Arabic
     #   - Allow manual translation for English and Spanish
-    ADVANCED_FEATURES = {
-        '_version': '20250820',
-        '_actionConfigs': {
-            'group_name/question_name': {
-                'manual_transcription': [{'language': 'ar'}],
-                'manual_translation': [{'language': 'en'}, {'language': 'es'}],
-            }
-        },
-    }
 
     EXPECTED_SUBMISSION_SUPPLEMENT = {
         '_version': '20250820',
@@ -124,7 +114,18 @@ class SubmissionSupplementTestCase(TestCase):
         self.asset = Asset.objects.create(
             owner=self.owner,
             name='Test Asset',
-            advanced_features=self.ADVANCED_FEATURES,
+        )
+        QuestionAdvancedAction.objects.create(
+            asset=self.asset,
+            question_xpath='group_name/question_name',
+            action='manual_transcription',
+            params=[{'language': 'ar'}],
+        )
+        QuestionAdvancedAction.objects.create(
+            asset=self.asset,
+            question_xpath='group_name/question_name',
+            action='manual_translation',
+            params=[{'language': 'en'}, {'language': 'es'}],
         )
 
         # Mock submission with minimal info needed for subsequence actions
@@ -145,20 +146,6 @@ class SubmissionSupplementTestCase(TestCase):
             SubmissionSupplement.retrieve_data(
                 self.asset, submission_root_uuid=None, prefetched_supplement=None
             )
-
-    def test_retrieve_data_with_stale_questions(self):
-        SubmissionSupplement.objects.create(
-            asset=self.asset,
-            submission_uuid=self.submission_root_uuid,
-            content=self.EXPECTED_SUBMISSION_SUPPLEMENT,
-        )
-        advanced_features = deepcopy(self.ADVANCED_FEATURES)
-        config = advanced_features['_actionConfigs'].pop('group_name/question_name')
-        advanced_features['_actionConfigs']['group_name/renamed_question_name'] = config
-        submission_supplement = SubmissionSupplement.retrieve_data(
-            self.asset, self.submission_root_uuid
-        )
-        assert submission_supplement == EMPTY_SUPPLEMENT
 
     def test_retrieve_data_from_migrated_data(self):
         submission_supplement = {

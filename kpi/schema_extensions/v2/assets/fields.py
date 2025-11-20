@@ -5,7 +5,7 @@ class AccessTypeField(serializers.ListField):
     pass
 
 
-class AdvancedFeatureField(serializers.JSONField):
+class AdvancedFeaturesLinkField(serializers.URLField):
     pass
 
 

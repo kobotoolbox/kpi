@@ -62,7 +62,7 @@ from kpi.utils.schema_extensions.fields import (
 )
 from ...schema_extensions.v2.assets.fields import (
     AccessTypeField,
-    AdvancedFeatureField,
+    AdvancedFeaturesLinkField,
     AdvancedSubmissionSchemaField,
     AnalysisFormJsonField,
     AssetHyperlinkedURLField,
@@ -91,7 +91,7 @@ from ...schema_extensions.v2.assets.fields import (
     SummaryField,
     UserURLRelativeHyperlinkedRelatedField,
     XFormLinkField,
-    XLSLinkField,
+    XLSLinkField, AdvancedFeaturesLinkField,
 )
 from .asset_export_settings import AssetExportSettingsSerializer
 from .asset_file import AssetFileSerializer
@@ -343,9 +343,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     map_custom = WriteableJsonWithSchemaField(
         schema_field=MapCustomField, required=False
     )
-    advanced_features = WriteableJsonWithSchemaField(
-        schema_field=AdvancedFeatureField, required=False
-    )
     files = serializers.SerializerMethodField()
     xls_link = serializers.SerializerMethodField()
     summary = ReadOnlyFieldWithSchemaField(schema_field=SummaryField)
@@ -403,6 +400,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     paired_data = serializers.SerializerMethodField()
     project_ownership = serializers.SerializerMethodField()
     kind = serializers.SerializerMethodField()
+    advanced_features = serializers.SerializerMethodField()
 
     class Meta:
         model = Asset
@@ -435,7 +433,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             'deployment_status',
             'report_styles',
             'report_custom',
-            'advanced_features',
             'supplemental_output_fields',
             'map_styles',
             'map_custom',
@@ -464,7 +461,8 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             'paired_data',
             'project_ownership',
             'owner_label',
-            'last_modified_by'
+            'last_modified_by',
+            'advanced_features',
         )
         read_only_fields = ('last_modified_by', 'uid')
         extra_kwargs = {
@@ -943,6 +941,12 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         ):
             return organization.name
         return asset.owner.username
+
+    @extend_schema_field(AdvancedFeaturesLinkField)
+    def get_advanced_features(self, obj):
+        return reverse('advanced-features-list',
+                       args=(obj.uid,),
+                       request=self.context.get('request', None))
 
     def validate_data_sharing(self, data_sharing: dict) -> dict:
         """
