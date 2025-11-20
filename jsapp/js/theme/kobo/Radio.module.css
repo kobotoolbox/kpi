@@ -1,6 +1,8 @@
 .label {
-  background-color: red;
+  padding-left: 6px;
+  font-size: var(--mantine-font-size-md);
 }
+
 .radio {
   cursor: pointer;
 }
