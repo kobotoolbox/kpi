@@ -10,7 +10,6 @@ from django.db import transaction
 from django.db.models import F
 from django.utils.translation import gettext as t
 from django.utils.translation import ngettext as nt
-from django_request_cache import cache_for_request
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import exceptions, serializers

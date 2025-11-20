@@ -13,9 +13,9 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kobo.apps.audit_log.base_views import AuditLoggedModelViewSet
 from kobo.apps.audit_log.models import AuditType
+from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kpi.constants import (
     ASSET_TYPE_ARG_NAME,
     ASSET_TYPE_SURVEY,
@@ -373,7 +373,6 @@ class AssetViewSet(
     ]
     log_type = AuditType.PROJECT_HISTORY
 
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._serializer_context = {}
@@ -703,7 +702,6 @@ class AssetViewSet(
         context_ = super().get_serializer_context()
         context_.update(self._serializer_context)
 
-
         if self.action == 'list':
             # To avoid making a triple join-query for each asset in the list
             # to retrieve related objects, we populated dicts key-ed by asset
@@ -932,17 +930,21 @@ class AssetViewSet(
         """
 
         asset_uids = self._serializer_context['asset_uids_cache']
-        xform_qs = XForm.all_objects.filter(kpi_asset_uid__in=asset_uids).only(
-            'id_string',
-            'num_of_submissions',
-            'attachment_storage_bytes',
-            'require_auth',
-            'uuid',
-            'mongo_uuid',
-            'encrypted',
-            'last_submission_time',
-            'kpi_asset_uid',
-        ).order_by()
+        xform_qs = (
+            XForm.all_objects.filter(kpi_asset_uid__in=asset_uids)
+            .only(
+                'id_string',
+                'num_of_submissions',
+                'attachment_storage_bytes',
+                'require_auth',
+                'uuid',
+                'mongo_uuid',
+                'encrypted',
+                'last_submission_time',
+                'kpi_asset_uid',
+            )
+            .order_by()
+        )
 
         xforms_by_uid = {xf.kpi_asset_uid: xf for xf in xform_qs}
 
