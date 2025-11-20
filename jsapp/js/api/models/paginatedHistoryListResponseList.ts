@@ -12,7 +12,6 @@ The endpoints are grouped by area of intended use. Each category contains relate
 import type { HistoryListResponse } from './historyListResponse'
 
 export interface PaginatedHistoryListResponseList {
-  count: number
   /** @nullable */
   next?: string | null
   /** @nullable */

@@ -11942,9 +11942,6 @@ components:
       - count
       - results
       properties:
-        count:
-          type: integer
-          example: 123
         next:
           type: string
           nullable: true
@@ -12106,9 +12103,6 @@ components:
       - count
       - results
       properties:
-        count:
-          type: integer
-          example: 123
         next:
           type: string
           nullable: true
@@ -12244,9 +12238,6 @@ components:
       - count
       - results
       properties:
-        count:
-          type: integer
-          example: 123
         next:
           type: string
           nullable: true
@@ -12543,9 +12534,6 @@ components:
       - count
       - results
       properties:
-        count:
-          type: integer
-          example: 123
         next:
           type: string
           nullable: true

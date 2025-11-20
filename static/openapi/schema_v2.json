@@ -16539,10 +16539,6 @@
                     "results"
                 ],
                 "properties": {
-                    "count": {
-                        "type": "integer",
-                        "example": 123
-                    },
                     "next": {
                         "type": "string",
                         "nullable": true,
@@ -16770,10 +16766,6 @@
                     "results"
                 ],
                 "properties": {
-                    "count": {
-                        "type": "integer",
-                        "example": 123
-                    },
                     "next": {
                         "type": "string",
                         "nullable": true,
@@ -16956,10 +16948,6 @@
                     "results"
                 ],
                 "properties": {
-                    "count": {
-                        "type": "integer",
-                        "example": 123
-                    },
                     "next": {
                         "type": "string",
                         "nullable": true,
@@ -17359,10 +17347,6 @@
                     "results"
                 ],
                 "properties": {
-                    "count": {
-                        "type": "integer",
-                        "example": 123
-                    },
                     "next": {
                         "type": "string",
                         "nullable": true,

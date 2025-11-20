@@ -12,7 +12,6 @@ The endpoints are grouped by area of intended use. Each category contains relate
 import type { ProjectHistoryLogResponse } from './projectHistoryLogResponse'
 
 export interface PaginatedProjectHistoryLogResponseList {
-  count: number
   /** @nullable */
   next?: string | null
   /** @nullable */
