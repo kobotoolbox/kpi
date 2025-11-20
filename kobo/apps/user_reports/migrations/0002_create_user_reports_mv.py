@@ -54,7 +54,8 @@ CREATE_MV_BASE_SQL = f"""
             bus.mt_characters_limit,
             COALESCE(bus.total_storage_bytes, 0) as total_storage_bytes,
             COALESCE(bus.total_submission_count_all_time, 0) as total_submission_count_all_time,
-            COALESCE(bus.total_submission_count_current_period, 0) as total_submission_count_current_period
+            COALESCE(bus.total_submission_count_current_period, 0) as total_submission_count_current_period,
+            bus.date_modified
         FROM auth_user au
         LEFT JOIN organizations_organizationuser ou ON au.id = ou.user_id
         LEFT JOIN user_reports_billingandusagesnapshot bus ON ou.organization_id = bus.organization_id
@@ -87,9 +88,9 @@ CREATE_MV_BASE_SQL = f"""
     )
     SELECT
         CONCAT(au.id::text, '-', COALESCE(org.id::text, 'orgnone')) AS id,
+        ued.uid AS user_uid,
         au.id AS user_id,
         org.id AS organization_id,
-        ued.uid AS extra_details_uid,
         au.username,
         au.first_name,
         au.last_name,
@@ -98,6 +99,7 @@ CREATE_MV_BASE_SQL = f"""
         au.is_staff,
         au.is_active,
         TO_CHAR(au.date_joined AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS date_joined,
+        TO_CHAR(ubau.date_modified AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS last_updated,
         CASE
             WHEN au.last_login IS NOT NULL THEN TO_CHAR(au.last_login AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
             ELSE NULL
@@ -109,7 +111,6 @@ CREATE_MV_BASE_SQL = f"""
             AND aea.primary = true
             AND aea.verified = true
         ) AS validated_email,
-        ued.validated_password,
         EXISTS (
             SELECT 1
             FROM trench_mfamethod mfa
@@ -141,11 +142,37 @@ CREATE_MV_BASE_SQL = f"""
             WHEN org.id IS NOT NULL THEN jsonb_build_object(
                 'name', org.name,
                 'uid', org.id::text,
-                'role', ur.user_role
+                'role', ur.user_role,
+                'website', org.website
             )
             ELSE NULL
         END AS organization,
-        ued.data::jsonb AS metadata,
+        jsonb_build_object(
+            'data',
+                CASE
+                    WHEN ued.data IS NULL THEN NULL
+                    ELSE (ued.data::jsonb - 'done_storage_limits_check')
+                END,
+            'date_removed',
+                CASE
+                    WHEN ued.date_removed IS NOT NULL
+                    THEN TO_CHAR(ued.date_removed AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
+                    ELSE NULL
+                END,
+            'validated_password', COALESCE(ued.validated_password, FALSE),
+            'password_date_changed',
+                CASE
+                    WHEN ued.password_date_changed IS NOT NULL
+                    THEN TO_CHAR(ued.password_date_changed AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
+                    ELSE NULL
+                END,
+            'date_removal_requested',
+                CASE
+                    WHEN ued.date_removal_requested IS NOT NULL
+                    THEN TO_CHAR(ued.date_removal_requested AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
+                    ELSE NULL
+                END
+        ) AS extra_details,
         COALESCE(ua.total_assets, 0) AS asset_count,
         COALESCE(ua.deployed_assets, 0) AS deployed_asset_count,
         ucpu.current_period_start,
@@ -232,8 +259,11 @@ CREATE_MV_BASE_SQL = f"""
         au.is_staff,
         au.is_active,
         ued.uid,
-        ued.validated_password,
         ued.data,
+        ued.date_removed,
+        ued.validated_password,
+        ued.password_date_changed,
+        ued.date_removal_requested,
         org.id,
         org.name,
         au.date_joined,
@@ -253,7 +283,8 @@ CREATE_MV_BASE_SQL = f"""
         ubau.mt_characters_limit,
         ubau.total_storage_bytes,
         ubau.total_submission_count_all_time,
-        ubau.total_submission_count_current_period;
+        ubau.total_submission_count_current_period,
+        ubau.date_modified;
     """
 
 STRIPE_SUBSCRIPTIONS = """
@@ -447,7 +478,7 @@ class Migration(migrations.Migration):
     dependencies = [
         ('user_reports', '0001_initial'),
         ('trackers', '0005_remove_year_and_month'),
-        ('mfa', '0004_alter_mfamethod_date_created_and_more'),
+        ('accounts_mfa', '0001_squashed_0004_alter_mfamethod_date_created_and_more'),
     ]
 
     if settings.SKIP_HEAVY_MIGRATIONS:

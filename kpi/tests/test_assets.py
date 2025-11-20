@@ -27,6 +27,7 @@ from kobo.apps.project_ownership.models.transfer import Transfer
 from kpi.constants import (
     ASSET_TYPE_COLLECTION,
     ASSET_TYPE_SURVEY,
+    PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_ASSET,
     PERM_MANAGE_ASSET,
     PERM_VIEW_ASSET,
@@ -790,8 +791,13 @@ class ShareAssetsTest(AssetsTestCase):
         self.asset.assign_perm(AnonymousUser(), PERM_VIEW_ASSET)
         # Check that both anonymous and `anotheruser` can view
         for user_obj in AnonymousUser(), self.anotheruser:
-            self.assertTrue(user_obj.has_perm(
-                PERM_VIEW_ASSET, self.asset))
+            self.assertTrue(user_obj.has_perm(PERM_VIEW_ASSET, self.asset))
+
+    def test_first_deployment_allows_anonymous_access(self):
+        asset = Asset.objects.create(asset_type=ASSET_TYPE_SURVEY, owner=self.user)
+        asset.assign_perm(AnonymousUser(), PERM_ADD_SUBMISSIONS)
+        asset.deploy(backend='mock', active=True)
+        assert asset.deployment.xform.require_auth is False
 
 
 class TestAssetNameSettingHandling(AssetsTestCase):

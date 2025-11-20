@@ -201,7 +201,8 @@ export default function AnalysisQuestionEditor(props: AnalysisQuestionEditorProp
 
       {qaDefinition.additionalFieldNames && (
         // Hard coded left padding to account for the 32px icon size + 8px gap
-        <Stack pl={'40px'}>
+        // 0px gap because the children still did not get a mantine refactor so we must respect existing styles
+        <Stack pl={'40px'} gap={'0px'}>
           {question.type === 'qual_auto_keyword_count' && (
             <KeywordSearchFieldsEditor
               questionUuid={question.uuid}

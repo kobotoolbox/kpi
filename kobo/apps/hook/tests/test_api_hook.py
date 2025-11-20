@@ -63,6 +63,9 @@ class ApiHookTestCase(HookTestCase):
     def test_create_hook(self):
         self._create_hook()
 
+    def test_create_minimal_hook(self):
+        self._create_hook(minimal=True)
+
     def test_editor_access(self):
         hook = self._create_hook()
 

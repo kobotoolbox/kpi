@@ -22,6 +22,8 @@ import type { AnalysisQuestionInternal } from '../constants'
 
 interface ResponseWrapperProps {
   uuid: string
+  /** Adds a clear button with the given logic */
+  onClear?: () => unknown
   children?: React.ReactNode
 }
 
@@ -109,7 +111,7 @@ export default function ResponseWrapper(props: ResponseWrapperProps) {
               </ButtonNew>
 
               <ButtonNew size='md' onClick={deleteQuestion} variant='danger'>
-                {t('Delete account')}
+                {t('Delete')}
               </ButtonNew>
             </Group>
           </Stack>
@@ -136,7 +138,6 @@ export default function ResponseWrapper(props: ResponseWrapperProps) {
 
         <ActionIcon
           variant='light'
-          color=''
           size='sm'
           iconName='edit'
           onClick={openQuestionInEditor}
@@ -148,6 +149,8 @@ export default function ResponseWrapper(props: ResponseWrapperProps) {
             analysisQuestions.state.isPending
           }
         />
+
+        {props.onClear && <ActionIcon variant='light' size='sm' iconName='close' onClick={props.onClear} />}
 
         <ActionIcon
           variant='danger-secondary'
