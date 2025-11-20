@@ -13,7 +13,7 @@ from kpi.models.import_export_task import (
     ImportExportStatusChoices,
     ProjectHistoryLogExportTask,
 )
-from kpi.paginators import NoCountPagination, Paginated
+from kpi.paginators import NoCountPagination, Paginated, FastPagination
 from kpi.permissions import IsAuthenticated
 from kpi.renderers import BasicHTMLRenderer
 from kpi.tasks import export_task_in_background
@@ -30,6 +30,7 @@ from .schema_extensions.v2.access_logs.serializers import (
     AccessLogResponse,
     ExportCreateResponse,
     ExportListResponse,
+    SuperUserAccessLogResponse,
 )
 from .schema_extensions.v2.audit_logs.serializers import (
     AuditLogResponse,
@@ -97,7 +98,7 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         tags=['Server logs (superusers)'],
         description=read_md('audit_log', 'access_logs/list'),
         responses=open_api_200_ok_response(
-            AccessLogResponse,
+            SuperUserAccessLogResponse,
             require_auth=False,
             validate_payload=False,
             raise_not_found=False,
@@ -116,7 +117,6 @@ class AllAccessLogViewSet(AuditLogViewSet):
     """
     queryset = AccessLog.objects.with_submissions_grouped().order_by('-date_created')
     serializer_class = AccessLogSerializer
-    pagination_class = NoCountPagination
 
 
 @extend_schema_view(
@@ -286,9 +286,9 @@ class ProjectHistoryLogViewSet(
     ViewSet for managing the current project's history
 
     Available actions:
-    - action        → GET   /api/v2/asset/{uid_asset}/history/action/
-    - export        → POST  /api/v2/asset/{uid_asset}/history/
-    - list          → GET   /api/v2/asset/{uid_asset}/history/
+    - action        → GET   /api/v2/assets/{uid_asset}/history/action/
+    - export        → POST  /api/v2/assets/{uid_asset}/history/
+    - list          → GET   /api/v2/assets/{uid_asset}/history/
 
     Documentation:
     - docs/api/v2/history/action.md
@@ -300,6 +300,7 @@ class ProjectHistoryLogViewSet(
     model = ProjectHistoryLog
     permission_classes = (ViewProjectHistoryLogsPermission,)
     lookup_field = 'uid'
+    pagination_class = FastPagination
 
     def get_queryset(self):
         return self.model.objects.filter(metadata__asset_uid=self.asset_uid).order_by(

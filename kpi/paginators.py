@@ -160,6 +160,7 @@ class NoCountPagination(Paginated):
 
     def get_paginated_response_schema(self, schema):
         response_schema = super().get_paginated_response_schema(schema)
+        response_schema['required'].remove('count')
         del response_schema['properties']['count']
         return response_schema
 
