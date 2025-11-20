@@ -738,16 +738,16 @@ paths:
       description: |
         ## Get user's asset usage
       parameters:
-      - name: page
-        required: false
-        in: query
-        description: A page number within the paginated result set.
-        schema:
-          type: integer
-      - name: page_size
+      - name: limit
         required: false
         in: query
         description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
         schema:
           type: integer
       tags:
@@ -6016,12 +6016,27 @@ paths:
           description: ''
   /api/v2/organizations/{uid_organization}/asset_usage/:
     get:
-      operationId: api_v2_organizations_asset_usage_retrieve
+      operationId: api_v2_organizations_asset_usage_list
       description: |
         ## Retrieve organization asset usage tracker
 
         Tracks the total usage of each asset for the user in the given organization
       parameters:
+      - in: query
+        name: limit
+        schema:
+          type: integer
+        description: Paginate results with limit parameter
+      - in: query
+        name: offset
+        schema:
+          type: integer
+        description: Paginate results with offset parameter
+      - in: query
+        name: ordering
+        schema:
+          type: string
+        description: Which field to use when ordering the results.
       - in: path
         name: uid_organization
         schema:
@@ -6038,7 +6053,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedOrganizationAssetUsageResponseList'
+                $ref: '#/components/schemas/PaginatedCustomAssetUsageList'
           description: null
         '404':
           content:
@@ -10232,6 +10247,47 @@ components:
         - file_type
         - metadata
         - user
+    CustomAssetUsage:
+      type: object
+      properties:
+        asset:
+          type: string
+          format: uri
+          example: https://kf.kobotoolbox.org/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/
+          readOnly: true
+        asset__name:
+          type: string
+          readOnly: true
+        nlp_usage_current_period:
+          allOf:
+          - $ref: '#/components/schemas/NlpUsage'
+          readOnly: true
+        nlp_usage_all_time:
+          allOf:
+          - $ref: '#/components/schemas/NlpUsage'
+          readOnly: true
+        storage_bytes:
+          type: integer
+          readOnly: true
+        submission_count_current_period:
+          type: integer
+          readOnly: true
+        submission_count_all_time:
+          type: integer
+          readOnly: true
+        deployment_status:
+          allOf:
+          - $ref: '#/components/schemas/DeploymentStatusEnum'
+          readOnly: true
+      required:
+      - asset
+      - asset__name
+      - deployment_status
+      - nlp_usage_all_time
+      - nlp_usage_current_period
+      - storage_bytes
+      - submission_count_all_time
+      - submission_count_current_period
     CustomerPortal:
       type: object
       properties:
@@ -10435,6 +10491,16 @@ components:
       - asset
       - backend
       - version_id
+    DeploymentStatusEnum:
+      enum:
+      - archived
+      - deployed
+      - draft
+      type: string
+      description: |-
+        * `archived` - archived
+        * `deployed` - deployed
+        * `draft` - draft
     EmailAddress:
       type: object
       properties:
@@ -11674,6 +11740,19 @@ components:
         * `admin` - admin
         * `member` - member
         * `owner` - owner
+    NlpUsage:
+      type: object
+      properties:
+        total_nlp_asr_seconds:
+          type: integer
+        total_nlp_llm_requests:
+          type: integer
+        total_nlp_mt_characters:
+          type: integer
+      required:
+      - total_nlp_asr_seconds
+      - total_nlp_llm_requests
+      - total_nlp_mt_characters
     NullableServiceUsageBalanceData:
       oneOf:
       - $ref: '#/components/schemas/ServiceUsageBalanceData'
@@ -11756,58 +11835,6 @@ components:
                       type: string
       required:
       - html
-    OrganizationAssetUsageResponse:
-      type: object
-      properties:
-        asset:
-          type: string
-          format: uri
-          example: https://kf.kobotoolbox.org/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/assets/
-        asset__name:
-          type: string
-        nlp_usage_current_period:
-          type: object
-          properties:
-            total_nlp_asr_seconds:
-              type: integer
-            total_nlp_mt_characters:
-              type: integer
-            total_nlp_llm_requests:
-              type: integer
-          required:
-          - total_nlp_asr_seconds
-          - total_nlp_llm_requests
-          - total_nlp_mt_characters
-        nlp_usage_all_time:
-          type: object
-          properties:
-            total_nlp_asr_seconds:
-              type: integer
-            total_nlp_mt_characters:
-              type: integer
-            total_nlp_llm_requests:
-              type: integer
-          required:
-          - total_nlp_asr_seconds
-          - total_nlp_llm_requests
-          - total_nlp_mt_characters
-        storage_bytes:
-          type: integer
-        submission_count_current_period:
-          type: integer
-        submission_count_all_time:
-          type: integer
-        deployment_status:
-          type: string
-      required:
-      - asset
-      - asset__name
-      - deployment_status
-      - nlp_usage_all_time
-      - nlp_usage_current_period
-      - storage_bytes
-      - submission_count_all_time
-      - submission_count_current_period
     OrganizationResponse:
       type: object
       properties:
@@ -12108,12 +12135,12 @@ components:
           type: string
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?page=4
+          example: http://api.example.org/accounts/?offset=400&limit=100
         previous:
           type: string
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?page=2
+          example: http://api.example.org/accounts/?offset=200&limit=100
         results:
           type: array
           items:
@@ -12137,6 +12164,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AuditLogResponse'
+    PaginatedCustomAssetUsageList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/CustomAssetUsage'
     PaginatedDataResponseList:
       type: object
       required:
@@ -12436,29 +12486,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/OneTimeAddOn'
-    PaginatedOrganizationAssetUsageResponseList:
-      type: object
-      required:
-      - count
-      - results
-      properties:
-        count:
-          type: integer
-          example: 123
-        next:
-          type: string
-          nullable: true
-          format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
-        previous:
-          type: string
-          nullable: true
-          format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/OrganizationAssetUsageResponse'
     PaginatedOrganizationResponseList:
       type: object
       required:

@@ -10,8 +10,8 @@ The endpoints are grouped by area of intended use. Each category contains relate
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 
-export type OrganizationAssetUsageResponseNlpUsageCurrentPeriod = {
+export interface NlpUsage {
   total_nlp_asr_seconds: number
-  total_nlp_mt_characters: number
   total_nlp_llm_requests: number
+  total_nlp_mt_characters: number
 }

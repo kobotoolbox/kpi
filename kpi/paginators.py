@@ -121,14 +121,6 @@ class AssetPagination(Paginated):
         }
 
 
-class AssetUsagePagination(PageNumberPagination):
-    """
-    Pagination class for usage project breakdown table.
-    """
-    page_size = 8
-    page_size_query_param = 'page_size'
-
-
 class DataPagination(LimitOffsetPagination):
     """
     Pagination class for submissions.
