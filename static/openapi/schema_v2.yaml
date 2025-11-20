@@ -65,7 +65,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedAccessLogResponseList'
+                $ref: '#/components/schemas/PaginatedSuperUserAccessLogResponseList'
           description: null
         '403':
           content:
@@ -11942,6 +11942,9 @@ components:
       - count
       - results
       properties:
+        count:
+          type: integer
+          example: 123
         next:
           type: string
           nullable: true
@@ -12100,7 +12103,6 @@ components:
     PaginatedAuditLogResponseList:
       type: object
       required:
-      - count
       - results
       properties:
         next:
@@ -12238,6 +12240,9 @@ components:
       - count
       - results
       properties:
+        count:
+          type: integer
+          example: 123
         next:
           type: string
           nullable: true
@@ -12531,7 +12536,6 @@ components:
     PaginatedProjectHistoryLogResponseList:
       type: object
       required:
-      - count
       - results
       properties:
         next:
@@ -12686,6 +12690,25 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Subscription'
+    PaginatedSuperUserAccessLogResponseList:
+      type: object
+      required:
+      - results
+      properties:
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SuperUserAccessLogResponse'
     PaginatedTagListResponseList:
       type: object
       required:
@@ -14509,6 +14532,44 @@ components:
         * `past_due` - Past due
         * `trialing` - Trialing
         * `unpaid` - Unpaid
+    SuperUserAccessLogResponse:
+      type: object
+      properties:
+        user:
+          type: string
+          format: uri
+          example: https://kf.kobotoolbox.org/api/v2/users/bob/
+        date_created:
+          type: string
+          format: date-time
+        username:
+          type: string
+        metadata:
+          type: object
+          properties:
+            source:
+              type: string
+            auth_type:
+              type: string
+            ip_address:
+              type: string
+            initial_user_uid:
+              type: string
+            initial_user_username:
+              type: string
+            authorized_app_name:
+              type: string
+        user_uid:
+          type: string
+        count:
+          type: integer
+      required:
+      - count
+      - date_created
+      - metadata
+      - user
+      - user_uid
+      - username
     TagListResponse:
       type: object
       properties:
