@@ -13,7 +13,7 @@ from kpi.models.import_export_task import (
     ImportExportStatusChoices,
     ProjectHistoryLogExportTask,
 )
-from kpi.paginators import NoCountPagination, Paginated, FastPagination
+from kpi.paginators import FastPagination, NoCountPagination, Paginated
 from kpi.permissions import IsAuthenticated
 from kpi.renderers import BasicHTMLRenderer
 from kpi.tasks import export_task_in_background
