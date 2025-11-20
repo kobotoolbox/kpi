@@ -13,7 +13,7 @@ from kpi.models.import_export_task import (
     ImportExportStatusChoices,
     ProjectHistoryLogExportTask,
 )
-from kpi.paginators import FastPagination, Paginated
+from kpi.paginators import NoCountPagination, Paginated
 from kpi.permissions import IsAuthenticated
 from kpi.renderers import BasicHTMLRenderer
 from kpi.tasks import export_task_in_background
@@ -89,7 +89,7 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         'model_name__icontains',
         'metadata__icontains',
     ]
-    pagination_class = FastPagination
+    pagination_class = NoCountPagination
 
 
 @extend_schema_view(
@@ -116,7 +116,7 @@ class AllAccessLogViewSet(AuditLogViewSet):
     """
     queryset = AccessLog.objects.with_submissions_grouped().order_by('-date_created')
     serializer_class = AccessLogSerializer
-    pagination_class = Paginated
+    pagination_class = NoCountPagination
 
 
 @extend_schema_view(
@@ -165,9 +165,9 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
     ViewSet for managing the all projects history
 
     Available actions:
-    - list        → GET  /api/v2/asset/project-history-logs/
-    - export        → GET  /api/v2/asset/project-history-logs/export/
-    - export        → POST /api/v2/asset/project-history-logs/export/
+    - list        → GET  /api/v2/project-history-logs/
+    - export        → GET  /api/v2/project-history-logs/export/
+    - export        → POST /api/v2/project-history-logs/export/
 
     Documentation:
     - docs/api/v2/project-history-log/list.md
