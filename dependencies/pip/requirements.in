@@ -28,7 +28,8 @@ dict2xml
 defusedxml
 dj-static
 dj-stripe
-django-allauth
+django-allauth>=65.11.2
+django-allauth[mfa]
 django-braces
 django-celery-beat
 django-constance
@@ -74,6 +75,7 @@ oauthlib
 objgraph
 openpyxl
 #py-gfm # Incompatible with markdown 3.x
+pillow-heif
 psycopg
 pymongo
 python-dateutil

@@ -32,7 +32,6 @@ from kpi.schema_extensions.v2.members.serializers import (
     MemberPatchRequest,
 )
 from kpi.schema_extensions.v2.organizations.serializers import (
-    OrganizationAssetUsageResponse,
     OrganizationPatchPayload,
     OrganizationServiceUsageResponse,
 )
@@ -50,7 +49,7 @@ from kpi.utils.schema_extensions.response import (
     open_api_204_empty_response,
 )
 from kpi.views.v2.asset import AssetViewSet
-from ..accounts.mfa.models import MfaMethod
+from ..accounts.mfa.models import MfaMethodsWrapper
 from .models import (
     Organization,
     OrganizationInvitation,
@@ -144,11 +143,35 @@ class OrganizationAssetViewSet(AssetViewSet):
     asset_usage=extend_schema(
         description=read_md('kpi', 'organizations/org_asset_usage.md'),
         responses=open_api_200_ok_response(
-            OrganizationAssetUsageResponse(many=True),
+            CustomAssetUsageSerializer(many=True),
             require_auth=False,
             raise_access_forbidden=False,
             validate_payload=False,
         ),
+        parameters=[
+            OpenApiParameter(
+                name='offset',
+                type=int,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description='Paginate results with offset parameter',
+            ),
+            OpenApiParameter(
+                name='limit',
+                type=int,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description='Paginate results with limit parameter',
+            ),
+            OpenApiParameter(
+                name='ordering',
+                type=str,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description='Which field to use when ordering the results.',
+            ),
+        ],
+        operation_id='api_v2_organizations_asset_usage_list',
     ),
     assets=extend_schema(
         description=read_md('kpi', 'organizations/org_assets.md'),
@@ -407,7 +430,7 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
         organization_id = self.kwargs['uid_organization']
 
         # Subquery to check if the user has an active MFA method
-        mfa_subquery = MfaMethod.objects.filter(
+        mfa_subquery = MfaMethodsWrapper.objects.filter(
             user=OuterRef('user_id'),
             is_active=True
         ).values('pk')

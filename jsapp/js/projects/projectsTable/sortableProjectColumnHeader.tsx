@@ -17,6 +17,11 @@ interface SortableProjectColumnHeaderProps {
   order: ProjectsTableOrder
   onChangeOrderRequested: (order: ProjectsTableOrder) => void
   onHideFieldRequested?: (fieldName: ProjectFieldName) => void
+  /**
+   * For compatibility with react-table set `fixedWidth` because we don't need a resizer header, if you are not using
+   * react-table leave this false. See DEV-1255.
+   */
+  fixedWidth?: boolean
 }
 
 export default function SortableProjectColumnHeader(props: SortableProjectColumnHeaderProps) {
@@ -117,7 +122,7 @@ export default function SortableProjectColumnHeader(props: SortableProjectColumn
           </div>
         }
       />
-      <div className={styles.resizer} data-resize-fieldname={props.field.name} />
+      {!props.fixedWidth && <div className={styles.resizer} data-resize-fieldname={props.field.name} />}
     </div>
   )
 }
