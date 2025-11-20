@@ -111,6 +111,8 @@ class QuestionAdvancedActionViewSet(
             migrate_advanced_features(self.asset)
         return QuestionAdvancedAction.objects.filter(asset=self.asset)
     def perform_create_override(self, serializer):
+        if self.asset.advanced_features != {}:
+            raise Exception('Migrate advanced features before creating new actions')
         serializer.save(asset=self.asset)
     def get_serializer_class(self):
         if self.action in ['update', 'partial_update']:

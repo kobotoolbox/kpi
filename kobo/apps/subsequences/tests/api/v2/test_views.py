@@ -111,3 +111,18 @@ class QuestionAdvancedActionViewSetTestCase(BaseTestCase):
                 'uid': action.uid,
             }
         ]
+
+    def test_cannot_post_to_unmigrated_asset(self):
+        self.action.delete()
+        self.asset.advanced_features = {'transcript': {'languages': ['en']}}
+        self.asset.known_cols = ['q1']
+        self.asset.save()
+        res = self.client.post(
+            self.list_actions_url,
+            data={
+                'action': 'manual_translation',
+                'params': json.dumps([{'language': 'de'}]),
+                'question_xpath': 'q1',
+            },
+        )
+        assert res.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
