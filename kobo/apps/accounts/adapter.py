@@ -2,14 +2,8 @@ from allauth.account.adapter import DefaultAccountAdapter
 from allauth.account.forms import SignupForm
 from constance import config
 from django.conf import settings
-from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.db import transaction
 from django.utils import timezone
-
-from .mfa.forms import MfaTokenForm
-from .mfa.permissions import mfa_allowed_for_user
-from .mfa.views import MfaTokenView
-from .utils import user_has_inactive_paid_subscription
 
 
 class AccountAdapter(DefaultAccountAdapter):
