@@ -921,6 +921,40 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
                     f'http://testserver/collector/{dc.token}/submission',
                 )
 
+    def test_digest_auth_allows_submission_on_username_endpoint(self):
+        """
+        Test that Digest authentication works correctly on the
+        `/<username>/submission` endpoint when the xform requires auth
+        """
+        username = self.user.username
+
+        # Ensure that POST to `/<username>/submission` fails without auth
+        request = self.factory.post(f'/{username}/submission')
+        response = self.view(request, username=username)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        # Ensure that POST to `/<username>/submission` with Digest auth
+        s = self.surveys[0]
+        submission_path = os.path.join(
+            self.main_directory, 'fixtures',
+            'transportation', 'instances', s, s + '.xml'
+        )
+        with open(submission_path) as sf:
+            request = self.factory.post(f'/{username}/submission', data={})
+            response = self.view(request, username=username)
+            self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+            data = {'xml_submission_file': sf}
+
+            request = self.factory.post(f'/{username}/submission', data)
+            auth = DigestAuth('bob', 'bobbob')
+            request.META.update(auth(request.META, response))
+
+            response = self.view(request, username=username)
+            self.assertContains(
+                response, 'Successful submission', status_code=status.HTTP_201_CREATED
+            )
+
 
 class ConcurrentSubmissionTestCase(RequestMixin, LiveServerTestCase):
     """
