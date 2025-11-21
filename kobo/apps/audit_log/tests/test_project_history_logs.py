@@ -5,7 +5,6 @@ import uuid
 from unittest.mock import patch
 from xml.etree import ElementTree as ET
 
-import jsonschema.exceptions
 import responses
 from ddt import data, ddt, unpack
 from django.conf import settings
@@ -562,19 +561,17 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
     def test_update_qa_creates_log(self):
         request_data = {
             'advanced_features': {
-                'qual': {
-                    'qual_survey': [
-                        {
-                            'type': 'qual_note',
-                            'uuid': '12345',
-                            'scope': 'by_question#survey',
-                            'xpath': 'q1',
-                            'labels': {'_default': 'QA Question'},
-                            # requests to remove a question just add this
-                            # option rather than actually deleting anything
-                            'options': {'deleted': True},
-                        }
-                    ]
+                '_version': '20250820',
+                '_actionConfigs': {
+                    'q1': {
+                        'qual': [
+                            {
+                                'type': 'qualText',
+                                'uuid': '12345',
+                                'labels': {'_default': 'Why?'},
+                            },
+                        ]
+                    }
                 }
             }
         }
@@ -590,18 +587,6 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             log_metadata['qa'][PROJECT_HISTORY_LOG_METADATA_FIELD_NEW],
             request_data['advanced_features']['qual']['qual_survey'],
         )
-
-    def test_failed_qa_update_does_not_create_log(self):
-        # badly formatted QA dict should result in an error before update
-        request_data = {'advanced_features': {'qual': {'qual_survey': ['bad']}}}
-        with self.assertRaises(jsonschema.exceptions.ValidationError):
-            self.client.patch(
-                reverse('api_v2:asset-detail', kwargs={'uid': self.asset.uid}),
-                data=request_data,
-                format='json',
-            )
-
-        self.assertEqual(ProjectHistoryLog.objects.count(), 0)
 
     @data(True, False)
     def test_register_service_creates_log(self, use_v2):
@@ -1871,11 +1856,11 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         log_metadata = self._base_project_history_log_test(
             method=self.client.post,
             url=reverse(
-                'advanced-submission-post',
-                kwargs={'asset_uid': self.asset.uid},
+                'api_v2:submission-supplement',
+                args=[self.asset.uid, submission['_uuid']],
             ),
             request_data={
-                'submission': submission['_uuid'],
+                '_version': '20250820',
                 'q1': {
                     'qual': [
                         {
@@ -1917,13 +1902,13 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         instance.uuid = new_uuid
         instance.save()
         log_metadata = self._base_project_history_log_test(
-            method=self.client.post,
+            method=self.client.patch,
             url=reverse(
-                'advanced-submission-post',
-                kwargs={'asset_uid': self.asset.uid},
+                'api_v2:submission-supplement',
+                args=[self.asset.uid, submission['_uuid']],
             ),
             request_data={
-                'submission': submission['_uuid'],
+                '_version': '20250820',
                 'q1': {
                     'qual': [
                         {

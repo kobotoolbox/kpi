@@ -403,7 +403,7 @@ class ProjectHistoryLog(AuditLog):
             'submissions': cls._create_from_submission_request,
             'submissions-list': cls._create_from_submission_request,
             'submission-detail': cls._create_from_submission_request,
-            'advanced-submission-post': cls._create_from_submission_extra_request,
+            'submission-supplement': cls._create_from_submission_extra_request,
         }
         url_name = request.resolver_match.url_name
         method = url_name_to_action.get(url_name, None)
@@ -572,7 +572,7 @@ class ProjectHistoryLog(AuditLog):
             'settings': cls._handle_settings_change,
             'data_sharing': cls._handle_sharing_change,
             'content': cls._handle_content_change,
-            'advanced_features.qual.qual_survey': cls._handle_qa_change,
+            'advanced_features._actionConfigs': cls._handle_qa_change,
         }
 
         # additional metadata should generally follow the pattern

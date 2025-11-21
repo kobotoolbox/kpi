@@ -24,8 +24,8 @@ jobs:
       matrix:
         python-version: ['3.10']
         extra-pytest-options:
-          - --ds kobo.settings.testing
-          - --ds kobo.settings.testing_no_stripe --ignore kobo/apps/stripe
+          - --ds kobo.settings.testing --ignore kobo/apps/subsequences__old
+          - --ds kobo.settings.testing_no_stripe --ignore kobo/apps/stripe --ignore kobo/apps/subsequences__old
     services:
       postgres:
         image: postgis/postgis:14-3.4
