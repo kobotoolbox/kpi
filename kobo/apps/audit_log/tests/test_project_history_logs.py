@@ -28,6 +28,8 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     remove_uuid_prefix,
 )
 from kobo.apps.openrosa.libs.utils.logger_tools import dict2xform
+from kobo.apps.subsequences.constants import Action
+from kobo.apps.subsequences.models import QuestionAdvancedAction
 from kpi.constants import (
     ASSET_TYPE_TEMPLATE,
     CLONE_ARG_NAME,
@@ -601,6 +603,102 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                 format='json',
             )
 
+        self.assertEqual(ProjectHistoryLog.objects.count(), 0)
+
+    def test_add_qa_creates_log(self):
+        request_data = {
+            'action': 'qual',
+            'question_xpath': 'Audio',
+            'params': [
+                {
+                    'labels': {'_default': 'wherefore?'},
+                    'uuid': '12345',
+                    'type': 'qualText',
+                }
+            ],
+        }
+        metadata = self._base_project_history_log_test(
+            self.client.post,
+            reverse('api_v2:advanced-features-list', args=[self.asset.uid]),
+            request_data=request_data,
+            expected_action=AuditAction.UPDATE_QA,
+            expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+        )
+        self.assertEqual(metadata['qa']['new'], request_data['params'])
+
+    def test_failed_add_qa_does_not_create_log(self):
+        request_data = {
+            'action': 'qual',
+            'question_xpath': 'Audio',
+            'params': [{'bad': 'params'}],
+        }
+        self.client.post(
+            reverse('api_v2:advanced-features-list', args=[self.asset.uid]),
+            data=request_data,
+        )
+        self.assertEqual(ProjectHistoryLog.objects.count(), 0)
+
+    def test_add_other_advanced_feature_does_not_create_log(self):
+        request_data = {
+            'action': 'manual_transcription',
+            'question_xpath': 'Audio',
+            'params': [{'language': 'en'}],
+        }
+        self.client.post(
+            reverse('api_v2:advanced-features-list', args=[self.asset.uid]),
+            data=request_data,
+        )
+        self.assertEqual(ProjectHistoryLog.objects.count(), 0)
+
+    def test_modify_qa_creates_log(self):
+        question_qual_action = QuestionAdvancedAction.objects.create(
+            asset=self.asset,
+            action=Action.QUAL,
+            question_xpath='q1',
+            params=[
+                {'labels': {'_default': 'why?'}, 'uuid': '12345', 'type': 'qualText'}
+            ],
+        )
+        request_data = {
+            'params': [
+                {
+                    'labels': {'_default': 'wherefore?'},
+                    'uuid': '12345',
+                    'type': 'qualText',
+                }
+            ]
+        }
+        metadata = self._base_project_history_log_test(
+            self.client.patch,
+            reverse(
+                'api_v2:advanced-features-detail',
+                args=[self.asset.uid, question_qual_action.uid],
+            ),
+            request_data=request_data,
+            expected_action=AuditAction.UPDATE_QA,
+            expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+        )
+        self.assertEqual(metadata['qa']['new'], request_data['params'])
+
+    def test_failed_modify_qa_does_not_create_log(self):
+        question_qual_action = QuestionAdvancedAction.objects.create(
+            asset=self.asset,
+            action=Action.QUAL,
+            question_xpath='q1',
+            params=[
+                {'labels': {'_default': 'why?'}, 'uuid': '12345', 'type': 'qualText'}
+            ],
+        )
+        request_data = {'params': [{'bad': 'params'}]}
+        self.client.patch(
+            reverse(
+                'api_v2:advanced-features-detail',
+                args=[self.asset.uid, question_qual_action.uid],
+            ),
+            request_data=request_data,
+            expected_action=AuditAction.UPDATE_QA,
+            expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+        )
         self.assertEqual(ProjectHistoryLog.objects.count(), 0)
 
     @data(True, False)

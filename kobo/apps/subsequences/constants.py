@@ -1,3 +1,5 @@
+from django.db import models
+
 SUBMISSION_UUID_FIELD = 'meta/rootUuid'  # FIXME: import from elsewhere
 SUPPLEMENT_KEY = '_supplementalDetails'  # leave unchanged for backwards compatibility
 
@@ -20,3 +22,10 @@ SCHEMA_VERSIONS = [
     '20250820',
     None
 ]
+
+class Action(models.TextChoices):
+    MANUAL_TRANSCRIPTION = 'manual_transcription'
+    MANUAL_TRANSLATION = 'manual_translation'
+    AUTOMATIC_GOOGLE_TRANSLATION = 'automatic_google_translation'
+    AUTOMATIC_GOOGLE_TRANSCRIPTION = 'automatic_google_transcription'
+    QUAL = 'qual'
