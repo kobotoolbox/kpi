@@ -15,4 +15,4 @@ def run():
         deleted = queryset.delete()
         # log at debug level so we don't flood the logs
         logging.debug(f'Deleted {deleted[0]} version objects with pk < {min_id}')
-        time.sleep(10)
+        time.sleep(2)
