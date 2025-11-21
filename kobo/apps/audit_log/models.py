@@ -655,7 +655,7 @@ class ProjectHistoryLog(AuditLog):
 
     @classmethod
     def _create_from_submission_extra_request(cls, request):
-        s_uuid = request._data['submission']
+        s_uuid = request.resolver_match.kwargs['submission_id_or_root_uuid']
         # have to fetch the instance here because we don't have access to it
         # anywhere else in the request
         instance = Instance.objects.filter(
