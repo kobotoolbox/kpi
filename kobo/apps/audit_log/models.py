@@ -19,6 +19,7 @@ from kobo.apps.openrosa.libs.utils.viewer_tools import (
     get_client_ip,
     get_human_readable_client_user_agent,
 )
+from kobo.apps.subsequences.constants import Action
 from kpi.constants import (
     ACCESS_LOG_LOGINAS_AUTH_TYPE,
     ACCESS_LOG_SUBMISSION_AUTH_TYPE,
@@ -404,6 +405,9 @@ class ProjectHistoryLog(AuditLog):
             'submissions-list': cls._create_from_submission_request,
             'submission-detail': cls._create_from_submission_request,
             'submission-supplement': cls._create_from_submission_extra_request,
+            'advanced-submission-post': cls._create_from_submission_extra_request,
+            'advanced-features-list': cls._create_from_question_advanced_action_request,
+            'advanced-features-detail': cls._create_from_question_advanced_action_request,  # noqa
         }
         url_name = request.resolver_match.url_name
         method = url_name_to_action.get(url_name, None)
@@ -786,6 +790,32 @@ class ProjectHistoryLog(AuditLog):
                 )
             )
         ProjectHistoryLog.objects.bulk_create(logs)
+
+    @classmethod
+    def _create_from_question_advanced_action_request(cls, request):
+        initial_data = getattr(request, 'initial_data', None)
+        updated_data = getattr(request, 'updated_data', None)
+        source_data = updated_data if updated_data else initial_data
+        asset_uid = request.resolver_match.kwargs['parent_lookup_asset']
+        if not source_data:
+            return
+        if source_data.get('action') != Action.QUAL:
+            return
+        owner = source_data.pop('asset.owner.username')
+        object_id = source_data.pop('object_id')
+        metadata = {
+            'asset_uid': asset_uid,
+            'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            'ip_address': get_client_ip(request),
+            'source': get_human_readable_client_user_agent(request),
+            'project_owner': owner,
+        }
+        action = AuditAction.UPDATE_QA
+        metadata['qa'] = {PROJECT_HISTORY_LOG_METADATA_FIELD_NEW: source_data['params']}
+        user = get_database_user(request.user)
+        ProjectHistoryLog.objects.create(
+            user=user, object_id=object_id, action=action, metadata=metadata
+        )
 
     @classmethod
     def _create_from_v1_export(cls, request):

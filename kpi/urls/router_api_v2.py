@@ -14,6 +14,7 @@ from kobo.apps.organizations.views import (
 )
 from kobo.apps.project_ownership.urls import router as project_ownership_router
 from kobo.apps.project_views.views import ProjectViewViewSet
+from kobo.apps.subsequences.views import QuestionAdvancedActionViewSet
 from kpi.views.v2.asset import AssetViewSet
 from kpi.views.v2.asset_counts import AssetCountsViewSet
 from kpi.views.v2.asset_export_settings import AssetExportSettingsViewSet
@@ -135,6 +136,13 @@ asset_routes.register(
     r'attachments',
     AttachmentDeleteViewSet,
     basename='asset-attachments',
+    parents_query_lookups=['asset'],
+)
+
+asset_routes.register(
+    r'advanced-features',
+    QuestionAdvancedActionViewSet,
+    basename='advanced-features',
     parents_query_lookups=['asset'],
 )
 
