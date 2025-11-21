@@ -32,6 +32,7 @@ from kobo.apps.openrosa.apps.main.models.user_profile import UserProfile
 from kobo.apps.openrosa.libs.utils.common_tags import META_ROOT_UUID
 from kobo.apps.openrosa.libs.utils.logger_tools import dict2xform
 from kobo.apps.project_ownership.utils import create_invite
+from kobo.apps.subsequences.models import SubmissionSupplement
 from kpi.constants import (
     ASSET_TYPE_SURVEY,
     PERM_ADD_SUBMISSIONS,
@@ -2328,33 +2329,63 @@ class SubmissionDuplicateApiTests(
 
     def test_duplicate_submission_with_extras(self):
         dummy_extra = {
+            '_version': '20250820',
             'q1': {
-                'transcript': {
-                    'value': 'dummy transcription',
-                    'languageCode': 'en',
+                'manual_transcription': {
+                    '_dateCreated': '',
+                    '_dateModified': '',
+                    '_versions': [
+                        {
+                            '_dateCreated': '2025-01-01T00:00:00Z',
+                            '_dateAccepted': '2025-01-01T00:00:00Z',
+                            '_data': {
+                                'value': 'dummy transcription',
+                                'langaugeCode': 'en',
+                            },
+                            '_uuid': '12345',
+                        }
+                    ],
                 },
-                'translation': {
-                    'tx1': {
-                        'value': 'dummy translation',
-                        'languageCode': 'xx',
-                    }
+                'manual_translation': {
+                    '_dateCreated': '',
+                    '_dateModified': '',
+                    '_versions': [
+                        {
+                            '_dateCreated': '2025-01-01T00:00:00Z',
+                            '_dateAccepted': '2025-01-01T00:00:00Z',
+                            '_data': {
+                                'value': 'dummy translation',
+                                'langaugeCode': 'xx',
+                            },
+                            '_uuid': '678910',
+                        }
+                    ],
                 },
             },
-            'submission': self.submission['_uuid']
         }
-        self.asset.update_submission_extra(dummy_extra)
+        SubmissionSupplement.objects.create(
+            submission_uuid=self.submission['_uuid'],
+            asset=self.asset,
+            content=dummy_extra,
+        )
         response = self.client.post(self.submission_url, {'format': 'json'})
         duplicated_submission = response.data
         duplicated_extra = self.asset.submission_extras.filter(
             submission_uuid=duplicated_submission['_uuid']
         ).first()
         assert (
-            duplicated_extra.content['q1']['translation']['tx1']['value']
-            == dummy_extra['q1']['translation']['tx1']['value']
+            duplicated_extra.content['q1']['manual_translation']['_versions'][0][
+                '_data'
+            ]['value']
+            == dummy_extra['q1']['manual_translation']['_versions'][0]['_data']['value']
         )
         assert (
-            duplicated_extra.content['q1']['transcript']['value']
-            == dummy_extra['q1']['transcript']['value']
+            duplicated_extra.content['q1']['manual_transcription']['_versions'][0][
+                '_data'
+            ]['value']
+            == dummy_extra['q1']['manual_transcription']['_versions'][0]['_data'][
+                'value'
+            ]
         )
 
     def test_duplicate_edited_submission(self):
