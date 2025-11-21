@@ -25,6 +25,7 @@ from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import add_uuid_prefix
 from kobo.apps.openrosa.libs.utils.common_tags import META_INSTANCE_ID, META_ROOT_UUID
 from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_handler
+from kobo.apps.subsequences.models import SubmissionSupplement
 from kpi.constants import (
     PERM_CHANGE_SUBMISSIONS,
     PERM_PARTIAL_SUBMISSIONS,
@@ -226,8 +227,11 @@ class BaseDeploymentBackend(abc.ABC):
         ).first()
         if original_extras is not None:
             duplicated_extras = copy.deepcopy(original_extras.content)
-            duplicated_extras['submission'] = dest_uuid
-            self.asset.update_submission_extra(duplicated_extras)
+            SubmissionSupplement.objects.create(
+                asset=self.asset,
+                submission_uuid=dest_uuid,
+                content=duplicated_extras,
+            )
 
     def create_enketo_survey_links_for_data_collectors(self):
         data_collector_tokens = list(

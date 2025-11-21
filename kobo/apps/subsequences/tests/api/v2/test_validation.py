@@ -20,12 +20,12 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
             },
         }
 
-        # No actions activated at the asset level
+        # No actions activated for q1
         response = self.client.patch(
             self.supplement_details_url, data=payload, format='json'
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert 'Invalid action' in str(response.data)
+        assert 'Invalid question' in str(response.data)
 
         # Activate manual transcription (even if payload asks for translation)
         self.set_asset_advanced_features(

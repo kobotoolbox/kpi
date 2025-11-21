@@ -172,10 +172,12 @@ class SubsequencePermissionTestCase(SubsequenceBaseTestCase):
                         '_dateModified': '2024-04-08T15:27:00Z',
                         '_versions': [
                             {
+                                '_data': {
+                                    'language': 'es',
+                                    'value': 'buenas noches',
+                                },
                                 '_dateCreated': '2024-04-08T15:27:00Z',
                                 '_dateAccepted': '2024-04-08T15:27:00Z',
-                                'language': 'es',
-                                'value': 'buenas noches',
                                 '_uuid': '11111111-2222-3333-4444-555555555555',
                             }
                         ],

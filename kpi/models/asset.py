@@ -1160,7 +1160,6 @@ class Asset(
             # We should save the new schema, but for debugging purposes,
             # we don't yet!
             # self.save(update_fields=['advanced_features'])
-
         jsonschema.validate(
             instance=self.advanced_features,
             schema=ACTION_PARAMS_SCHEMA,

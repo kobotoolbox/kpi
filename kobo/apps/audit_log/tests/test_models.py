@@ -759,7 +759,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
         ('settings', '_handle_settings_change'),
         ('data_sharing', '_handle_sharing_change'),
         ('content', '_handle_content_change'),
-        ('advanced_features.qual.qual_survey', '_handle_qa_change'),
+        ('advanced_features._actionConfigs', '_handle_qa_change'),
     )
     @unpack
     def test_create_from_detail_request_plumbing(self, field, expected_method):
@@ -770,9 +770,9 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
             'settings': 'settings',
             'data_sharing': 'sharing',
             'content': 'content',
-            'advanced_features.qual.qual_survey': 'survey',
             'latest_version.uid': 'v12345',
             'owner.username': 'someuser',
+            'advanced_features._actionConfigs': {'some': 'stuff'},
         }
         request.updated_data = {**request.initial_data, field: 'new'}
         with patch(
@@ -790,7 +790,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
             'settings': 'settings',
             'data_sharing': 'sharing',
             'content': 'content',
-            'advanced_features.qual.qual_survey': 'survey',
+            'advanced_features._actionConfigs': {'some': 'stuff'},
             'latest_version.uid': 'v12345',
             'something_new': 'new',
             'owner.username': 'someuser',

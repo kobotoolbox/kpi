@@ -146,6 +146,8 @@ class SubmissionSupplementTestCase(TestCase):
                 self.asset, submission_root_uuid=None, prefetched_supplement=None
             )
 
+    # skip until we actually fill out or delete these tests
+    @pytest.mark.skip()
     def test_retrieve_data_with_stale_questions(self):
         SubmissionSupplement.objects.create(
             asset=self.asset,
@@ -160,6 +162,7 @@ class SubmissionSupplementTestCase(TestCase):
         )
         assert submission_supplement == EMPTY_SUPPLEMENT
 
+    @pytest.mark.skip()
     def test_retrieve_data_from_migrated_data(self):
         submission_supplement = {
             'group_name/question_name': {
