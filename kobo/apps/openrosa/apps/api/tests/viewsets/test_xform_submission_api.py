@@ -940,17 +940,20 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
             'transportation', 'instances', s, s + '.xml'
         )
         with open(submission_path) as sf:
-            data = {'xml_submission_file': sf}
             request = self.factory.post(f'/{username}/submission', data={})
             response = self.view(request, username=username)
             self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-            sf.seek(0)
+            data = {'xml_submission_file': sf}
+
             request = self.factory.post(f'/{username}/submission', data)
             auth = DigestAuth('bob', 'bobbob')
             request.META.update(auth(request.META, response))
+
             response = self.view(request, username=username)
-            self.assertContains(response, 'Successful submission', status_code=201)
+            self.assertContains(
+                response, 'Successful submission', status_code=status.HTTP_201_CREATED
+            )
 
 
 class ConcurrentSubmissionTestCase(RequestMixin, LiveServerTestCase):
