@@ -2,8 +2,7 @@ from typing import Generator
 
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
 from kobo.apps.subsequences.actions import ACTION_IDS_TO_CLASSES
-from kobo.apps.subsequences.constants import SUBMISSION_UUID_FIELD, SUPPLEMENT_KEY, \
-    SCHEMA_VERSIONS
+from kobo.apps.subsequences.constants import SUBMISSION_UUID_FIELD, SUPPLEMENT_KEY
 from kobo.apps.subsequences.models import SubmissionSupplement
 from kobo.apps.subsequences.utils.versioning import migrate_advanced_features
 
@@ -91,7 +90,10 @@ def stream_with_supplements(
     )
 
     for submission in submission_stream:
-        submission_uuid = remove_uuid_prefix(submission[SUBMISSION_UUID_FIELD])
+        if SUBMISSION_UUID_FIELD in submission:
+            submission_uuid = remove_uuid_prefix(submission[SUBMISSION_UUID_FIELD])
+        else:
+            submission_uuid = submission['_uuid']
         submission[SUPPLEMENT_KEY] = SubmissionSupplement.retrieve_data(
             asset,
             for_output=for_output,
