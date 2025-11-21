@@ -247,7 +247,7 @@ def attachment_url(request, size='medium'):
 
         # Checks whether users are allowed to see the media file before giving them
         # the url
-        xform = attachment.instance.xform
+        xform = attachment.xform
 
         helper_auth_helper(request)
 
