@@ -50,18 +50,42 @@ if [[ -z $frontend || -z $backend ]]; then
 if [[ "$frontend" == "$backend" ]]; then
     echo "frontend and backend directory should not be the same"; exit 1; fi
 
+echo ""
 echo "  backend:  $backend"
 echo "  frontend: $frontend"
+echo ""
+
+set -euo pipefail
 
 
 ##
 ## Copy once
 ##
-
 copy_cmd="cp ${frontend}/webpack-stats.json ${backend}/webpack-stats.json"
+
 if [[ ! -f "${frontend}/webpack-stats.json" ]]
 then echo "! Make sure to start the frontend ($frontend) with \`npm run watch\`"
-else $copy_cmd; fi
+else
+
+    echo "+ $copy_cmd"
+    echo ""
+
+    # Warn if we encounter permissions problem
+    set +e
+    { error_output=$($copy_cmd 2>&1 >&3 3>&-); } 3>&1
+    if [[ $? -ne 0 ]]; then
+        echo "  !   Problem copying webpack-stats.json"
+        if [[ $error_output =~ "denied" ]]; then
+            echo "  !   You may need to change ownership if these files are owned by 'root'."
+            echo "   "
+            echo "          sudo chown -Rv $(id -un):$(id -gn) ${backend}"
+            echo "   "
+            echo "$(ls -al $backend | grep 'root')"
+            exit 1
+        fi
+    fi
+    set -e
+fi
 
 ##
 ## Watch & copy until ^C
@@ -70,9 +94,10 @@ else $copy_cmd; fi
 pattern='webpack-stats.json'
 cd "$frontend" || exit 1
 
-# Watcher: if uvx is available, use 'watchdog'
+## Watcher: if uvx is available, use 'watchdog'
 if command -v uvx >/dev/null 2>&1; then
-    echo 'Watching "webpack-stats.json" ..'; set -x
+    echo 'Watching "webpack-stats.json" ..'
+    set -x
     uvx --from watchdog@6.0.0 \
         watchmedo \
             shell-command -w \
@@ -81,15 +106,15 @@ if command -v uvx >/dev/null 2>&1; then
     exit 0
 fi
 
-# Watcher: if npx is available, use 'chokidar-cli'
-npx() {
-    if   command -v bunx >/dev/null 2>&1; then echo "bunx"
-    elif command -v npx  >/dev/null 2>&1; then echo "npx"
-    else echo "$help_deps"; exit 1; fi # last strategy; exit if unavailable
-}
-set -x
-$(npx) --package=chokidar-cli@3.0.0 \
-    chokidar \
-        "$pattern" \
-        --command="$copy_cmd"
-exit 0
+## Watcher: if npx is available, use 'chokidar-cli'
+if command -v npx >/dev/null 2>&1; then
+    set -x
+    npx --package=chokidar-cli@3.0.0 -- \
+        chokidar \
+            "${pattern}" \
+            --command="${copy_cmd}"
+    exit 0
+fi
+
+# Fallback: If none of the above watchers are available, print a warning.
+echo "$help_deps"; exit 1
