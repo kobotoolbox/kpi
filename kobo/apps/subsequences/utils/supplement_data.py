@@ -90,10 +90,7 @@ def stream_with_supplements(
     )
 
     for submission in submission_stream:
-        if SUBMISSION_UUID_FIELD in submission:
-            submission_uuid = remove_uuid_prefix(submission[SUBMISSION_UUID_FIELD])
-        else:
-            submission_uuid = submission['_uuid']
+        submission_uuid = remove_uuid_prefix(submission[SUBMISSION_UUID_FIELD])
         submission[SUPPLEMENT_KEY] = SubmissionSupplement.retrieve_data(
             asset,
             for_output=for_output,

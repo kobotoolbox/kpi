@@ -2332,8 +2332,8 @@ class SubmissionDuplicateApiTests(
             '_version': '20250820',
             'q1': {
                 'manual_transcription': {
-                    '_dateCreated': '',
-                    '_dateModified': '',
+                    '_dateCreated': '2025-01-01T00:00:00Z',
+                    '_dateModified': '2025-01-01T00:00:00Z',
                     '_versions': [
                         {
                             '_dateCreated': '2025-01-01T00:00:00Z',
@@ -2347,8 +2347,8 @@ class SubmissionDuplicateApiTests(
                     ],
                 },
                 'manual_translation': {
-                    '_dateCreated': '',
-                    '_dateModified': '',
+                    '_dateCreated': '2025-01-01T00:00:00Z',
+                    '_dateModified': '2025-01-01T00:00:00Z',
                     '_versions': [
                         {
                             '_dateCreated': '2025-01-01T00:00:00Z',

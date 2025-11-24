@@ -61,6 +61,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
     """
 
     fixtures = ['test_data', 'asset_with_settings_and_qa']
+    URL_NAMESPACE = 'api_v2'
 
     def setUp(self):
         super().setUp()
@@ -1554,7 +1555,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         edit_submission_xml(xml_parsed, 'Q1', 'new answer')
         edited_submission = xml_tostring(xml_parsed)
         url = reverse(
-            self._get_endpoint('api_v2:assetsnapshot-submission-openrosa'),
+            self._get_endpoint('assetsnapshot-submission-openrosa'),
             args=(self.asset.snapshot().uid,),
         )
         data = {
@@ -1733,7 +1734,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         endpoint = 'submissions-list' if v1 else 'submissions'
         kwargs = {'username': self.user.username} if not v1 else {}
         url = reverse(
-            self._get_endpoint(endpoint),
+            endpoint,
             kwargs=kwargs,
         )
         data = {'xml_submission_file': SimpleUploadedFile('name.txt', ET.tostring(xml))}
@@ -1859,7 +1860,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         log_metadata = self._base_project_history_log_test(
             method=self.client.patch,
             url=reverse(
-                'api_v2:submission-supplement',
+                self._get_endpoint('submission-supplement'),
                 args=[self.asset.uid, submission['_uuid']],
             ),
             request_data={
@@ -1907,7 +1908,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         log_metadata = self._base_project_history_log_test(
             method=self.client.patch,
             url=reverse(
-                'api_v2:submission-supplement',
+                self._get_endpoint('submission-supplement'),
                 args=[self.asset.uid, submission['_uuid']],
             ),
             request_data={

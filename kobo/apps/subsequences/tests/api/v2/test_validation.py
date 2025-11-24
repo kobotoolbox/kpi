@@ -25,7 +25,7 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
             self.supplement_details_url, data=payload, format='json'
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert 'Invalid question' in str(response.data)
+        assert 'Invalid action' in str(response.data)
 
         # Activate manual transcription (even if payload asks for translation)
         self.set_asset_advanced_features(
