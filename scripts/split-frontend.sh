@@ -8,7 +8,7 @@
 #
 # Run this script with two parameters:
 #
-#   disjoint.sh  -b <backend_dir>  -f <frontend_dir>
+#   split-frontend.sh  -b <backend_dir>  -f <frontend_dir>
 #
 # This will:
 #
