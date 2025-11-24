@@ -43,11 +43,3 @@ class SubsequenceBaseTestCase(KpiTestCase):
             self._get_endpoint('submission-supplement'),
             args=[self.asset.uid, self.submission_uuid],
         )
-
-    def set_asset_advanced_features(self, features):
-        self.asset.advanced_features = features
-        self.asset.save(
-            adjust_content=False,
-            create_version=False,
-            update_fields=['advanced_features'],
-        )

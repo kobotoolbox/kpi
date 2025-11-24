@@ -2,12 +2,35 @@ from unittest.mock import MagicMock, patch
 
 from rest_framework import status
 
-from kobo.apps.subsequences.models import SubmissionSupplement
+from kobo.apps.subsequences.models import QuestionAdvancedAction, SubmissionSupplement
 from kobo.apps.subsequences.tests.api.v2.base import SubsequenceBaseTestCase
 from kobo.apps.subsequences.tests.constants import QUESTION_SUPPLEMENT
 
 
 class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
+
+    def _simulate_completed_transcripts(self):
+        QuestionAdvancedAction.objects.create(
+            asset=self.asset,
+            question_xpath='q1',
+            action='automatic_google_transcription',
+            params=[{'language': 'en'}],
+        )
+        QuestionAdvancedAction.objects.create(
+            asset=self.asset,
+            question_xpath='q1',
+            action='manual_transcription',
+            params=[{'language': 'en'}],
+        )
+
+        # Simulate a completed transcription, first.
+        mock_submission_supplement = {'_version': '20250820', 'q1': QUESTION_SUPPLEMENT}
+
+        SubmissionSupplement.objects.create(
+            submission_uuid=self.submission_uuid,
+            content=mock_submission_supplement,
+            asset=self.asset,
+        )
 
     def test_cannot_patch_if_action_is_invalid(self):
         payload = {
@@ -28,17 +51,11 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
         assert 'Invalid action' in str(response.data)
 
         # Activate manual transcription (even if payload asks for translation)
-        self.set_asset_advanced_features(
-            {
-                '_version': '20250820',
-                '_actionConfigs': {
-                    'q1': {
-                        'manual_transcription': [
-                            {'language': 'es'},
-                        ]
-                    }
-                },
-            }
+        QuestionAdvancedAction.objects.create(
+            asset=self.asset,
+            question_xpath='q1',
+            action='manual_transcription',
+            params=[{'language': 'es'}],
         )
         response = self.client.patch(
             self.supplement_details_url, data=payload, format='json'
@@ -47,17 +64,11 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
         assert 'Invalid action' in str(response.data)
 
     def test_cannot_patch_with_invalid_payload(self):
-        self.set_asset_advanced_features(
-            {
-                '_version': '20250820',
-                '_actionConfigs': {
-                    'q1': {
-                        'manual_transcription': [
-                            {'language': 'es'},
-                        ]
-                    }
-                },
-            }
+        QuestionAdvancedAction.objects.create(
+            asset=self.asset,
+            question_xpath='q1',
+            action='manual_transcription',
+            params=[{'language': 'es'}],
         )
 
         payload = {
@@ -78,34 +89,18 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
         assert 'Invalid action' in str(response.data)
 
     def test_cannot_set_value_with_automatic_actions(self):
-        # First, set up the asset to allow automatic actions
-        advanced_features = {
-            '_version': '20250820',
-            '_actionConfigs': {
-                'q1': {
-                    'automatic_google_transcription': [
-                        {'language': 'en'},
-                    ],
-                    'automatic_google_translation': [
-                        {'language': 'fr'},
-                    ]
-                }
-            },
-        }
-        self.set_asset_advanced_features(advanced_features)
-
-        # Simulate a completed transcription, first.
-        mock_submission_supplement = {
-            '_version': '20250820',
-            'q1': QUESTION_SUPPLEMENT
-        }
-
-        SubmissionSupplement.objects.create(
-            submission_uuid=self.submission_uuid,
-            content=mock_submission_supplement,
+        self._simulate_completed_transcripts()
+        # Set up the asset to allow automatic actions
+        QuestionAdvancedAction.objects.create(
             asset=self.asset,
+            question_xpath='q1',
+            action='automatic_google_translation',
+            params=[{'language': 'fr'}],
         )
-        automatic_actions = advanced_features['_actionConfigs']['q1'].keys()
+
+        automatic_actions = self.asset.advanced_features_set.filter(
+            question_xpath='q1'
+        ).values_list('action', flat=True)
         for automatic_action in automatic_actions:
             payload = {
                 '_version': '20250820',
@@ -125,17 +120,11 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
 
     def test_cannot_accept_incomplete_automatic_transcription(self):
         # Set up the asset to allow automatic google transcription
-        self.set_asset_advanced_features(
-            {
-                '_version': '20250820',
-                '_actionConfigs': {
-                    'q1': {
-                        'automatic_google_transcription': [
-                            {'language': 'es'},
-                        ]
-                    }
-                },
-            }
+        QuestionAdvancedAction.objects.create(
+            asset=self.asset,
+            question_xpath='q1',
+            action='automatic_google_transcription',
+            params=[{'language': 'es'}],
         )
 
         # Try to set 'accepted' status when translation is not complete
@@ -164,32 +153,14 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
             assert 'Invalid payload' in str(response.data)
 
     def test_cannot_accept_incomplete_automatic_translation(self):
-        # Set up the asset to allow automatic google actions
-        self.set_asset_advanced_features(
-            {
-                '_version': '20250820',
-                '_actionConfigs': {
-                    'q1': {
-                        'automatic_google_transcription': [
-                            {'language': 'en'},
-                        ],
-                        'automatic_google_translation': [
-                            {'language': 'fr'},
-                        ]
-                    }
-                },
-            }
-        )
+        self._simulate_completed_transcripts()
+        # Set up the asset to allow automatic google translation
 
-        # Simulate a completed transcription, first.
-        mock_submission_supplement = {
-            '_version': '20250820',
-            'q1': QUESTION_SUPPLEMENT
-        }
-        SubmissionSupplement.objects.create(
-            submission_uuid=self.submission_uuid,
-            content=mock_submission_supplement,
+        QuestionAdvancedAction.objects.create(
             asset=self.asset,
+            question_xpath='q1',
+            action='automatic_google_translation',
+            params=[{'language': 'fr'}],
         )
 
         # Try to set 'accepted' status when translation is not complete
@@ -219,22 +190,18 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
 
     def test_cannot_request_translation_without_transcription(self):
         # Set up the asset to allow automatic google actions
-        self.set_asset_advanced_features(
-            {
-                '_version': '20250820',
-                '_actionConfigs': {
-                    'q1': {
-                        'automatic_google_transcription': [
-                            {'language': 'en'},
-                        ],
-                        'automatic_google_translation': [
-                            {'language': 'fr'},
-                        ]
-                    }
-                },
-            }
+        QuestionAdvancedAction.objects.create(
+            asset=self.asset,
+            question_xpath='q1',
+            action='automatic_google_transcription',
+            params=[{'language': 'en'}],
         )
-
+        QuestionAdvancedAction.objects.create(
+            asset=self.asset,
+            question_xpath='q1',
+            action='automatic_google_translation',
+            params=[{'language': 'fr'}],
+        )
         # Try to ask for translation
         payload = {
             '_version': '20250820',
