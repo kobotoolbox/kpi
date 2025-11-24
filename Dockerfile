@@ -150,6 +150,8 @@ COPY --from=build-python "$VIRTUAL_ENV" "$VIRTUAL_ENV"
 # Install `npm` packages. #
 ###########################
 
+# TODO: copy from npm build stage
+
 WORKDIR ${KPI_SRC_DIR}/
 
 RUN rm -rf ${KPI_NODE_PATH} && \
@@ -167,6 +169,8 @@ ENV PATH=$PATH:${KPI_NODE_PATH}/.bin
 ######################
 # Build client code. #
 ######################
+
+# TODO: copy from npm build stage
 
 RUN npm run build:app
 
