@@ -50,10 +50,11 @@ def get_analysis_form_json(asset: 'kpi.models.Asset') -> list[dict]:
     return additional_fields
 
 
+
 def stream_with_supplements(
     asset: 'kpi.models.Asset', submission_stream: Generator, for_output: bool = False
 ) -> Generator:
-    if not asset.advanced_features:
+    if not asset.advanced_features_set.exists():
         yield from submission_stream
         return
 
