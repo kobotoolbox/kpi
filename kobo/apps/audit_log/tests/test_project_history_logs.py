@@ -585,7 +585,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
 
         self.assertEqual(
             log_metadata['qa'][PROJECT_HISTORY_LOG_METADATA_FIELD_NEW],
-            request_data['advanced_features']['qual']['qual_survey'],
+            request_data['advanced_features']['_actionConfigs'],
         )
 
     @data(True, False)
@@ -1853,8 +1853,11 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         instance, submission = self._add_submission(
             'adminuser' if not is_anonymous else None
         )
+        question_uuid = self.asset.advanced_features['_actionConfigs']['q1']['qual'][0][
+            'uuid'
+        ]
         log_metadata = self._base_project_history_log_test(
-            method=self.client.post,
+            method=self.client.patch,
             url=reverse(
                 'api_v2:submission-supplement',
                 args=[self.asset.uid, submission['_uuid']],
@@ -1862,13 +1865,10 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             request_data={
                 '_version': '20250820',
                 'q1': {
-                    'qual': [
-                        {
-                            'type': 'qual_text',
-                            'uuid': '12345',
-                            'val': 'someval',
-                        }
-                    ]
+                    'qual': {
+                        'uuid': question_uuid,
+                        'value': 1,
+                    }
                 },
             },
             expected_action=AuditAction.MODIFY_QA_DATA,
@@ -1883,6 +1883,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         deployment = self.asset.deployment
         new_uuid = str(uuid.uuid4())
         xml_parsed = fromstring_preserve_root_xmlns(instance.xml)
+        question_uuid = self.asset.advanced_features['_actionConfigs']['q1']['qual'][0][
+            'uuid'
+        ]
         edit_submission_xml(
             xml_parsed,
             deployment.SUBMISSION_DEPRECATED_UUID_XPATH,
@@ -1910,13 +1913,10 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             request_data={
                 '_version': '20250820',
                 'q1': {
-                    'qual': [
-                        {
-                            'type': 'qual_text',
-                            'uuid': '12345',
-                            'val': 'someval',
-                        }
-                    ]
+                    'qual': {
+                        'uuid': question_uuid,
+                        'value': 1,
+                    }
                 },
             },
             expected_action=AuditAction.MODIFY_QA_DATA,
