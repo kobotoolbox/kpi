@@ -45,6 +45,9 @@ if public_request_scheme == 'https' or SECURE_PROXY_SSL_HEADER:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 
+# Attention: these HSTS application-level settings are often overridden by
+# production infrastructure; see
+# https://github.com/kobotoolbox/kobo-helm-chart/pull/91
 SECURE_HSTS_INCLUDE_SUBDOMAINS = env.bool('SECURE_HSTS_INCLUDE_SUBDOMAINS', False)
 SECURE_HSTS_PRELOAD = env.bool('SECURE_HSTS_PRELOAD', False)
 SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', 0)
