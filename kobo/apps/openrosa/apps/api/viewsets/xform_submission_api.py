@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as t
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import mixins, permissions, status
+from rest_framework.authentication import get_authorization_header
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotAuthenticated
 from rest_framework.parsers import FormParser, JSONParser
@@ -248,6 +249,12 @@ class XFormSubmissionApi(
             # get the username from the user if not set
             user = get_database_user(request.user)
             username = user.username
+
+        # Return 401 if no authentication provided and there are no files,
+        # for digest authentication to work properly
+        has_auth = bool(get_authorization_header(request))
+        if not has_auth and not (bool(request.FILES) or bool(request.data)):
+            raise NotAuthenticated
 
         if request.method.upper() == 'HEAD':
             return Response(
