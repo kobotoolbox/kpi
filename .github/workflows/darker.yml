@@ -6,7 +6,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           # In addition to checking out the 'merge commit', we also want to
           # fetch enough commits to find the most recent commit in the base
@@ -19,7 +19,7 @@ jobs:
           python-version: '3.10'
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@v7
         with: { enable-cache: 'false' }
 
       - name: Install pip dependencies
