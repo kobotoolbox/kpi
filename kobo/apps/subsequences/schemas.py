@@ -1,3 +1,4 @@
+from copy import deepcopy
 import jsonschema
 
 from .actions import ACTION_IDS_TO_CLASSES, ACTIONS
@@ -8,7 +9,14 @@ from .utils.versioning import migrate_advanced_features
 # names to convey group hierarchy
 QUESTION_XPATH_PATTERN = '^([A-Za-z_][A-Za-z0-9_-]*)(/[A-Za-z_][A-Za-z0-9_-]*)*$'
 
+_action_params_schemas = {}
+_action_params_defs = {}
+for a in ACTIONS:
+    _action_params_schemas[a.ID] = deepcopy(a.params_schema)
+    _action_params_defs.update(_action_params_schemas[a.ID].pop('$defs', {}))
+
 ACTION_PARAMS_SCHEMA = {
+    '$defs': _action_params_defs,
     'additionalProperties': False,
     'properties': {
         '_actionConfigs': {
@@ -16,7 +24,7 @@ ACTION_PARAMS_SCHEMA = {
             'patternProperties': {
                 QUESTION_XPATH_PATTERN: {
                     'additionalProperties': False,
-                    'properties': {a.ID: a.params_schema for a in ACTIONS},
+                    'properties': _action_params_schemas,
                     'type': 'object',
                 }
             },

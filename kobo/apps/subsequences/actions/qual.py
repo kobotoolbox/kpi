@@ -255,9 +255,9 @@ class QualAction(BaseAction):
         return schema
 
     def get_output_fields(self):
-        raise NotImplementedError('Sorry!')
+        return []
 
     def transform_data_for_output(
         self, action_data: list[dict]
     ) -> dict[str, dict[str, Any]]:
-        raise NotImplementedError('Sorry!')
+        return []

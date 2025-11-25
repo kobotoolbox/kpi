@@ -33,9 +33,6 @@ def migrate_advanced_features(advanced_features: dict) -> dict | None:
                 {'language': language} for language in value['languages']
             ]
 
-        if key == 'qual':
-            raise NotImplementedError
-
     return migrated_advanced_features
 
 
