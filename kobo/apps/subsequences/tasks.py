@@ -54,7 +54,6 @@ def poll_run_external_process(
 def poll_run_external_process_failure(sender=None, **kwargs):
 
     # Avoid circular import
-    from .actions import ACTION_IDS_TO_CLASSES
     Asset = apps.get_model('kpi', 'Asset')  # noqa: N806
     SubmissionSupplement = apps.get_model('subsequences', 'SubmissionSupplement')  # noqa: N806
 

@@ -2,7 +2,7 @@ from copy import deepcopy
 
 import jsonschema
 
-from .actions import ACTION_IDS_TO_CLASSES, ACTIONS
+from .actions import ACTIONS
 from .constants import SCHEMA_VERSIONS
 
 # not the full complexity of XPath, but a slash-delimited path of valid XML tag
