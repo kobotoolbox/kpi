@@ -3,7 +3,7 @@ from django.db import models
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
 from kpi.models.abstract_models import AbstractTimeStampedModel
 from .actions import ACTION_IDS_TO_CLASSES
-from .constants import SUBMISSION_UUID_FIELD, SCHEMA_VERSIONS
+from .constants import SCHEMA_VERSIONS, SUBMISSION_UUID_FIELD
 from .exceptions import InvalidAction, InvalidXPath
 from .schemas import validate_submission_supplement
 
@@ -34,7 +34,9 @@ class SubmissionSupplement(SubmissionExtras):
     @staticmethod
     def revise_data(asset: 'kpi.Asset', submission: dict, incoming_data: dict) -> dict:
 
-        if not asset.advanced_features:
+        if not asset.advanced_features or not asset.advanced_features.get(
+            '_actionConfigs'
+        ):
             raise InvalidAction
 
         schema_version = incoming_data.get('_version')

@@ -20,7 +20,7 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
             },
         }
 
-        # No actions activated at the asset level
+        # No actions activated for q1
         response = self.client.patch(
             self.supplement_details_url, data=payload, format='json'
         )

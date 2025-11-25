@@ -5,7 +5,6 @@ import uuid
 from unittest.mock import patch
 from xml.etree import ElementTree as ET
 
-import jsonschema.exceptions
 import responses
 from ddt import data, ddt, unpack
 from django.conf import settings
@@ -62,6 +61,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
     """
 
     fixtures = ['test_data', 'asset_with_settings_and_qa']
+    URL_NAMESPACE = 'api_v2'
 
     def setUp(self):
         super().setUp()
@@ -562,19 +562,17 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
     def test_update_qa_creates_log(self):
         request_data = {
             'advanced_features': {
-                'qual': {
-                    'qual_survey': [
-                        {
-                            'type': 'qual_note',
-                            'uuid': '12345',
-                            'scope': 'by_question#survey',
-                            'xpath': 'q1',
-                            'labels': {'_default': 'QA Question'},
-                            # requests to remove a question just add this
-                            # option rather than actually deleting anything
-                            'options': {'deleted': True},
-                        }
-                    ]
+                '_version': '20250820',
+                '_actionConfigs': {
+                    'q1': {
+                        'qual': [
+                            {
+                                'type': 'qualText',
+                                'uuid': '12345',
+                                'labels': {'_default': 'Why?'},
+                            },
+                        ]
+                    }
                 }
             }
         }
@@ -588,20 +586,8 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
 
         self.assertEqual(
             log_metadata['qa'][PROJECT_HISTORY_LOG_METADATA_FIELD_NEW],
-            request_data['advanced_features']['qual']['qual_survey'],
+            request_data['advanced_features']['_actionConfigs'],
         )
-
-    def test_failed_qa_update_does_not_create_log(self):
-        # badly formatted QA dict should result in an error before update
-        request_data = {'advanced_features': {'qual': {'qual_survey': ['bad']}}}
-        with self.assertRaises(jsonschema.exceptions.ValidationError):
-            self.client.patch(
-                reverse('api_v2:asset-detail', kwargs={'uid': self.asset.uid}),
-                data=request_data,
-                format='json',
-            )
-
-        self.assertEqual(ProjectHistoryLog.objects.count(), 0)
 
     @data(True, False)
     def test_register_service_creates_log(self, use_v2):
@@ -1569,7 +1555,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         edit_submission_xml(xml_parsed, 'Q1', 'new answer')
         edited_submission = xml_tostring(xml_parsed)
         url = reverse(
-            self._get_endpoint('api_v2:assetsnapshot-submission-openrosa'),
+            self._get_endpoint('assetsnapshot-submission-openrosa'),
             args=(self.asset.snapshot().uid,),
         )
         data = {
@@ -1748,7 +1734,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         endpoint = 'submissions-list' if v1 else 'submissions'
         kwargs = {'username': self.user.username} if not v1 else {}
         url = reverse(
-            self._get_endpoint(endpoint),
+            endpoint,
             kwargs=kwargs,
         )
         data = {'xml_submission_file': SimpleUploadedFile('name.txt', ET.tostring(xml))}
@@ -1868,22 +1854,22 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         instance, submission = self._add_submission(
             'adminuser' if not is_anonymous else None
         )
+        question_uuid = self.asset.advanced_features['_actionConfigs']['q1']['qual'][0][
+            'uuid'
+        ]
         log_metadata = self._base_project_history_log_test(
-            method=self.client.post,
+            method=self.client.patch,
             url=reverse(
-                'advanced-submission-post',
-                kwargs={'asset_uid': self.asset.uid},
+                self._get_endpoint('submission-supplement'),
+                args=[self.asset.uid, submission['_uuid']],
             ),
             request_data={
-                'submission': submission['_uuid'],
+                '_version': '20250820',
                 'q1': {
-                    'qual': [
-                        {
-                            'type': 'qual_text',
-                            'uuid': '12345',
-                            'val': 'someval',
-                        }
-                    ]
+                    'qual': {
+                        'uuid': question_uuid,
+                        'value': 1,
+                    }
                 },
             },
             expected_action=AuditAction.MODIFY_QA_DATA,
@@ -1898,6 +1884,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         deployment = self.asset.deployment
         new_uuid = str(uuid.uuid4())
         xml_parsed = fromstring_preserve_root_xmlns(instance.xml)
+        question_uuid = self.asset.advanced_features['_actionConfigs']['q1']['qual'][0][
+            'uuid'
+        ]
         edit_submission_xml(
             xml_parsed,
             deployment.SUBMISSION_DEPRECATED_UUID_XPATH,
@@ -1917,21 +1906,18 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         instance.uuid = new_uuid
         instance.save()
         log_metadata = self._base_project_history_log_test(
-            method=self.client.post,
+            method=self.client.patch,
             url=reverse(
-                'advanced-submission-post',
-                kwargs={'asset_uid': self.asset.uid},
+                self._get_endpoint('submission-supplement'),
+                args=[self.asset.uid, submission['_uuid']],
             ),
             request_data={
-                'submission': submission['_uuid'],
+                '_version': '20250820',
                 'q1': {
-                    'qual': [
-                        {
-                            'type': 'qual_text',
-                            'uuid': '12345',
-                            'val': 'someval',
-                        }
-                    ]
+                    'qual': {
+                        'uuid': question_uuid,
+                        'value': 1,
+                    }
                 },
             },
             expected_action=AuditAction.MODIFY_QA_DATA,

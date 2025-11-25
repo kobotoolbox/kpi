@@ -1523,11 +1523,18 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         if len(fields) > 0 and self.SUBMISSION_ROOT_UUID_XPATH not in fields:
             # skip the query if submission '_uuid' is not even q'd from mongo
             add_supplements_to_query = False
+        all_attachment_xpaths = self.asset.get_all_attachment_xpaths()
 
+        mongo_cursor = (
+            self._inject_properties(
+                MongoHelper.to_readable_dict(submission),
+                request,
+                all_attachment_xpaths,
+            )
+            for submission in mongo_cursor
+        )
         if add_supplements_to_query:
             mongo_cursor = stream_with_supplements(self.asset, mongo_cursor)
-
-        all_attachment_xpaths = self.asset.get_all_attachment_xpaths()
 
         return (
             self._inject_properties(
