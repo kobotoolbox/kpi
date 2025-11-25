@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, patch
 
 from rest_framework import status
 
-from kobo.apps.subsequences.models import QuestionAdvancedAction, SubmissionSupplement
+from kobo.apps.subsequences.models import QuestionAdvancedFeature, SubmissionSupplement
 from kobo.apps.subsequences.tests.api.v2.base import SubsequenceBaseTestCase
 from kobo.apps.subsequences.tests.constants import QUESTION_SUPPLEMENT
 
@@ -10,13 +10,13 @@ from kobo.apps.subsequences.tests.constants import QUESTION_SUPPLEMENT
 class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
 
     def _simulate_completed_transcripts(self):
-        QuestionAdvancedAction.objects.create(
+        QuestionAdvancedFeature.objects.create(
             asset=self.asset,
             question_xpath='q1',
             action='automatic_google_transcription',
             params=[{'language': 'en'}],
         )
-        QuestionAdvancedAction.objects.create(
+        QuestionAdvancedFeature.objects.create(
             asset=self.asset,
             question_xpath='q1',
             action='manual_transcription',
@@ -31,6 +31,18 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
             content=mock_submission_supplement,
             asset=self.asset,
         )
+
+    def test_valid_patch(self):
+        payload = {
+            '_version': '20250820',
+            'q1': {
+                'manual_translation': {
+                    'language': 'es',
+                    'value': 'buenas noches',
+                }
+            },
+        }
+
 
     def test_cannot_patch_if_action_is_invalid(self):
         payload = {
@@ -51,7 +63,7 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
         assert 'Invalid action' in str(response.data)
 
         # Activate manual transcription (even if payload asks for translation)
-        QuestionAdvancedAction.objects.create(
+        QuestionAdvancedFeature.objects.create(
             asset=self.asset,
             question_xpath='q1',
             action='manual_transcription',
@@ -64,7 +76,7 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
         assert 'Invalid action' in str(response.data)
 
     def test_cannot_patch_with_invalid_payload(self):
-        QuestionAdvancedAction.objects.create(
+        QuestionAdvancedFeature.objects.create(
             asset=self.asset,
             question_xpath='q1',
             action='manual_transcription',
@@ -91,7 +103,7 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
     def test_cannot_set_value_with_automatic_actions(self):
         self._simulate_completed_transcripts()
         # Set up the asset to allow automatic actions
-        QuestionAdvancedAction.objects.create(
+        QuestionAdvancedFeature.objects.create(
             asset=self.asset,
             question_xpath='q1',
             action='automatic_google_translation',
@@ -120,7 +132,7 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
 
     def test_cannot_accept_incomplete_automatic_transcription(self):
         # Set up the asset to allow automatic google transcription
-        QuestionAdvancedAction.objects.create(
+        QuestionAdvancedFeature.objects.create(
             asset=self.asset,
             question_xpath='q1',
             action='automatic_google_transcription',
@@ -156,7 +168,7 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
         self._simulate_completed_transcripts()
         # Set up the asset to allow automatic google translation
 
-        QuestionAdvancedAction.objects.create(
+        QuestionAdvancedFeature.objects.create(
             asset=self.asset,
             question_xpath='q1',
             action='automatic_google_translation',
@@ -190,13 +202,13 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
 
     def test_cannot_request_translation_without_transcription(self):
         # Set up the asset to allow automatic google actions
-        QuestionAdvancedAction.objects.create(
+        QuestionAdvancedFeature.objects.create(
             asset=self.asset,
             question_xpath='q1',
             action='automatic_google_transcription',
             params=[{'language': 'en'}],
         )
-        QuestionAdvancedAction.objects.create(
+        QuestionAdvancedFeature.objects.create(
             asset=self.asset,
             question_xpath='q1',
             action='automatic_google_translation',
