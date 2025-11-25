@@ -12,7 +12,6 @@ The endpoints are grouped by area of intended use. Each category contains relate
 import type { UserReportsListResponse } from './userReportsListResponse'
 
 export interface PaginatedUserReportsListResponseList {
-  count: number
   /** @nullable */
   next?: string | null
   /** @nullable */
