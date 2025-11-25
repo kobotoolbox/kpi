@@ -321,7 +321,7 @@ class QualAction(BaseAction):
             if not version_data:
                 continue
 
-            field_name = f"{self.source_question_xpath}/{qual_uuid}"
+            field_name = f'{self.source_question_xpath}/{qual_uuid}'
             value = version_data.get('value')
             question_type = qual_question['type']
             if question_type == 'qualSelectOne':

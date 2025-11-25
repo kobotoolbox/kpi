@@ -720,7 +720,7 @@ class TestQualActionMethods(TestCase):
             assert 'type' in field
             assert field['source'] == self.source_xpath
             # Name should follow pattern: source_xpath/qual_uuid
-            assert field['name'].startswith(f"{self.source_xpath}/")
+            assert field['name'].startswith(f'{self.source_xpath}/')
 
         # Test integer question (no choices)
         integer_field = next(f for f in output_fields if f['type'] == 'qualInteger')
@@ -738,7 +738,9 @@ class TestQualActionMethods(TestCase):
         assert 'choices' not in text_field
 
         # Test select one (with choices)
-        select_one_field = next(f for f in output_fields if f['type'] == 'qualSelectOne')
+        select_one_field = next(
+            f for f in output_fields if f['type'] == 'qualSelectOne'
+        )
         assert select_one_field['labels'] == {
             '_default': 'Urgency Level',
             'es': 'Nivel de Urgencia'
