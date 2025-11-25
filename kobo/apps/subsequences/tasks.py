@@ -77,11 +77,10 @@ def poll_run_external_process_failure(sender=None, **kwargs):
     if 'is still in progress for submission' in error:
         error = 'Maximum retries exceeded.'
 
-    action_class = ACTION_IDS_TO_CLASSES[action_id]
-    action_params = asset.advanced_features_set.get(
+    feature = asset.advanced_features_set.get(
         question_xpath=question_xpath, action=action_id
-    ).params
-    action = action_class(question_xpath, action_params, asset=asset)
+    )
+    action = feature.to_action()
     action.get_action_dependencies(supplemental_data[question_xpath])
 
     action_supplemental_data = supplemental_data[question_xpath][action_id]

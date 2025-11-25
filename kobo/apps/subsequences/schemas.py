@@ -49,9 +49,7 @@ def get_submission_supplement_schema(asset: 'kpi.models.Asset') -> dict:
     }
 
     for action_config in asset.advanced_features_set.all():
-        action = ACTION_IDS_TO_CLASSES[action_config.action](
-            action_config.question_xpath, action_config.params
-        )
+        action = action_config.to_action()
         submission_supplement_schema['properties'].setdefault(
             action_config.question_xpath, {}
         )[action_config.action] = action.result_schema
