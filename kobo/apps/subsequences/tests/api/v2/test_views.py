@@ -5,12 +5,12 @@ from django.urls import reverse
 from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.subsequences.models import QuestionAdvancedAction
+from kobo.apps.subsequences.models import QuestionAdvancedFeature
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
 
 
-class QuestionAdvancedActionViewSetTestCase(BaseTestCase):
+class QuestionAdvancedFeatureViewSetTestCase(BaseTestCase):
     fixtures = ['test_data']
 
     def setUp(self):
@@ -19,7 +19,7 @@ class QuestionAdvancedActionViewSetTestCase(BaseTestCase):
             owner=user,
             content={'survey': [{'type': 'audio', 'label': 'q1', 'name': 'q1'}]},
         )
-        self.action = QuestionAdvancedAction.objects.create(
+        self.action = QuestionAdvancedFeature.objects.create(
             asset=self.asset,
             question_xpath='q1',
             action='manual_transcription',
@@ -48,7 +48,7 @@ class QuestionAdvancedActionViewSetTestCase(BaseTestCase):
             }
         ]
 
-    def test_update_action(self):
+    def test_update_feature(self):
         res = self.client.patch(
             self.action_detail_url,
             content_type='application/json',
@@ -58,7 +58,7 @@ class QuestionAdvancedActionViewSetTestCase(BaseTestCase):
         self.action.refresh_from_db()
         assert self.action.params == [{'language': 'en'}, {'language': 'es'}]
 
-    def test_cannot_update_action_with_invalid_params(self):
+    def test_cannot_update_feature_with_invalid_params(self):
         res = self.client.patch(
             self.action_detail_url,
             content_type='application/json',
@@ -68,7 +68,7 @@ class QuestionAdvancedActionViewSetTestCase(BaseTestCase):
         self.action.refresh_from_db()
         assert self.action.params == [{'language': 'en'}]
 
-    def test_create_action(self):
+    def test_create_feature(self):
         res = self.client.post(
             self.list_actions_url,
             data={
@@ -78,15 +78,15 @@ class QuestionAdvancedActionViewSetTestCase(BaseTestCase):
             },
         )
         assert res.status_code == status.HTTP_201_CREATED
-        new_action = QuestionAdvancedAction.objects.get(
+        new_action = QuestionAdvancedFeature.objects.get(
             asset=self.asset, action='manual_translation'
         )
         assert new_action.params == [{'language': 'de'}]
         assert new_action.question_xpath == 'q1'
 
-    def test_cannot_delete_actions(self):
+    def test_cannot_delete_features(self):
         res = self.client.delete(self.action_detail_url)
         assert res.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
-        assert QuestionAdvancedAction.objects.filter(
+        assert QuestionAdvancedFeature.objects.filter(
             asset=self.asset, action=self.action.action
         ).exists()

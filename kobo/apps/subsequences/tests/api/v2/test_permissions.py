@@ -9,7 +9,7 @@ from freezegun import freeze_time
 from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.subsequences.models import QuestionAdvancedAction
+from kobo.apps.subsequences.models import QuestionAdvancedFeature
 from kobo.apps.subsequences.tests.api.v2.base import SubsequenceBaseTestCase
 from kpi.constants import (
     PERM_CHANGE_SUBMISSIONS,
@@ -245,7 +245,7 @@ class AdvancedFeaturesPermissionTestCase(SubsequenceBaseTestCase):
             'kobo.apps.subsequences.models.KpiUidField.generate_uid',
             return_value='12345',
         ):
-            QuestionAdvancedAction.objects.create(
+            QuestionAdvancedFeature.objects.create(
                 asset=self.asset,
                 action='manual_transcription',
                 question_xpath='q1',
@@ -382,6 +382,6 @@ class AdvancedFeaturesPermissionTestCase(SubsequenceBaseTestCase):
 
         assert response.status_code == status_code
         if response.status_code == status.HTTP_201_CREATED:
-            assert QuestionAdvancedAction.objects.filter(
+            assert QuestionAdvancedFeature.objects.filter(
                 asset=self.asset, action='manual_translation'
             ).exists()

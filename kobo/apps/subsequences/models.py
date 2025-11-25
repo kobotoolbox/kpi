@@ -242,8 +242,8 @@ class SubmissionSupplement(SubmissionExtras):
         return retrieved_supplemental_data
 
 
-class QuestionAdvancedAction(models.Model):
-    uid = KpiUidField(uid_prefix='qaa', primary_key=True)
+class QuestionAdvancedFeature(models.Model):
+    uid = KpiUidField(uid_prefix='qaf', primary_key=True)
     asset = models.ForeignKey(
         'kpi.Asset',
         related_name='advanced_features_set',

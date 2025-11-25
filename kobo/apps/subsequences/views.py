@@ -4,10 +4,10 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kobo.apps.audit_log.base_views import AuditLoggedViewSet
 from kobo.apps.audit_log.models import AuditType
-from kobo.apps.subsequences.models import QuestionAdvancedAction
+from kobo.apps.subsequences.models import QuestionAdvancedFeature
 from kobo.apps.subsequences.serializers import (
-    QuestionAdvancedActionSerializer,
-    QuestionAdvancedActionUpdateSerializer,
+    QuestionAdvancedFeatureSerializer,
+    QuestionAdvancedFeatureUpdateSerializer,
 )
 from kpi.permissions import AssetAdvancedFeaturesPermission
 from kpi.schema_extensions.v2.subsequences.serializers import (
@@ -94,7 +94,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
         exclude=True,
     ),
 )
-class QuestionAdvancedActionViewSet(
+class QuestionAdvancedFeatureViewSet(
     AuditLoggedViewSet,
     mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,
@@ -114,13 +114,13 @@ class QuestionAdvancedActionViewSet(
     permission_classes = (AssetAdvancedFeaturesPermission,)
 
     def get_queryset(self):
-        return QuestionAdvancedAction.objects.filter(asset=self.asset)
+        return QuestionAdvancedFeature.objects.filter(asset=self.asset)
 
     def perform_create_override(self, serializer):
         serializer.save(asset=self.asset)
 
     def get_serializer_class(self):
         if self.action in ['update', 'partial_update']:
-            return QuestionAdvancedActionUpdateSerializer
+            return QuestionAdvancedFeatureUpdateSerializer
         else:
-            return QuestionAdvancedActionSerializer
+            return QuestionAdvancedFeatureSerializer

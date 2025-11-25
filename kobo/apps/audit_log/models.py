@@ -405,8 +405,8 @@ class ProjectHistoryLog(AuditLog):
             'submissions-list': cls._create_from_submission_request,
             'submission-detail': cls._create_from_submission_request,
             'submission-supplement': cls._create_from_submission_extra_request,
-            'advanced-features-list': cls._create_from_question_advanced_action_request,
-            'advanced-features-detail': cls._create_from_question_advanced_action_request,  # noqa
+            'advanced-features-list': cls._create_from_question_advanced_feature_request,
+            'advanced-features-detail': cls._create_from_question_advanced_feature_request,  # noqa
         }
         url_name = request.resolver_match.url_name
         method = url_name_to_action.get(url_name, None)
@@ -791,7 +791,7 @@ class ProjectHistoryLog(AuditLog):
         ProjectHistoryLog.objects.bulk_create(logs)
 
     @classmethod
-    def _create_from_question_advanced_action_request(cls, request):
+    def _create_from_question_advanced_feature_request(cls, request):
         initial_data = getattr(request, 'initial_data', None)
         updated_data = getattr(request, 'updated_data', None)
         source_data = updated_data if updated_data else initial_data

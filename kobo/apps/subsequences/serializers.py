@@ -1,12 +1,12 @@
 import jsonschema.exceptions
 from rest_framework import serializers
 
-from kobo.apps.subsequences.models import QuestionAdvancedAction
+from kobo.apps.subsequences.models import QuestionAdvancedFeature
 
 
-class QuestionAdvancedActionUpdateSerializer(serializers.ModelSerializer):
+class QuestionAdvancedFeatureUpdateSerializer(serializers.ModelSerializer):
     class Meta:
-        model = QuestionAdvancedAction
+        model = QuestionAdvancedFeature
         fields = ['params', 'question_xpath', 'action', 'asset', 'uid']
         read_only_fields = ['question_xpath', 'action', 'asset', 'uid']
 
@@ -27,8 +27,8 @@ class QuestionAdvancedActionUpdateSerializer(serializers.ModelSerializer):
         return instance
 
 
-class QuestionAdvancedActionSerializer(serializers.ModelSerializer):
+class QuestionAdvancedFeatureSerializer(serializers.ModelSerializer):
     class Meta:
-        model = QuestionAdvancedAction
+        model = QuestionAdvancedFeature
         fields = ['question_xpath', 'action', 'params', 'uid']
         read_only_fields = ['uid']
