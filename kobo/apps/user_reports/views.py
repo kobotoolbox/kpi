@@ -9,7 +9,7 @@ from kobo.apps.audit_log.permissions import SuperUserPermission
 from kobo.apps.user_reports.models import UserReports
 from kobo.apps.user_reports.seralizers import UserReportsSerializer
 from kpi.filters import SearchFilter
-from kpi.paginators import LimitOffsetPagination, NoCountPagination
+from kpi.paginators import NoCountPagination
 from kpi.permissions import IsAuthenticated
 from kpi.schema_extensions.v2.user_reports.serializers import UserReportsListResponse
 from kpi.utils.schema_extensions.markdown import read_md
