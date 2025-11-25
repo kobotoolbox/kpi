@@ -254,10 +254,103 @@ class QualAction(BaseAction):
         }
         return schema
 
-    def get_output_fields(self):
-        raise NotImplementedError('Sorry!')
+    def get_output_fields(self) -> list[dict]:
+        output_fields = []
+        for qual_item in self.params:
+            field = {
+                'labels': qual_item['labels'],
+                'source': self.source_question_xpath,
+                'name': f"{self.source_question_xpath}/{qual_item['uuid']}",
+                'type': qual_item['type'],
+            }
+
+            if qual_item['type'] in ('qualSelectOne', 'qualSelectMultiple'):
+                field['choices'] = [
+                    {
+                        'uuid': choice['uuid'],
+                        'labels': choice['labels'],
+                    }
+                    for choice in qual_item.get('choices', [])
+                ]
+            output_fields.append(field)
+        return output_fields
 
     def transform_data_for_output(
-        self, action_data: list[dict]
+        self, action_data: dict
     ) -> dict[str, dict[str, Any]]:
-        raise NotImplementedError('Sorry!')
+        output_data = {}
+
+        qual_questions_by_uuid = {q['uuid']: q for q in self.params}
+
+        # Choice lookup tables for select questions
+        choices_by_uuid = {}
+        for qual_question in self.params:
+            if qual_question['type'] in ('qualSelectOne', 'qualSelectMultiple'):
+                choices_by_uuid[qual_question['uuid']] = {
+                    choice['uuid']: choice
+                    for choice in qual_question.get('choices', [])
+                }
+
+        for qual_uuid, qual_data in action_data.items():
+            if qual_uuid not in qual_questions_by_uuid:
+                continue
+
+            qual_question = qual_questions_by_uuid[qual_uuid]
+
+            # Get the most recent accepted version
+            versions = qual_data.get(self.VERSION_FIELD, [])
+            if not versions:
+                continue
+
+            # Find most recent accepted version
+            accepted_version = None
+            for version in versions:
+                if self.DATE_ACCEPTED_FIELD in version:
+                    accepted_version = version
+                    break
+
+            # Skip if no accepted version exists
+            if not accepted_version:
+                continue
+
+            # Extract the data and metadata
+            version_data = accepted_version.get(self.VERSION_DATA_FIELD, {})
+            date_accepted = accepted_version.get(self.DATE_ACCEPTED_FIELD)
+
+            # Skip if no actual data
+            if not version_data:
+                continue
+
+            field_name = f"{self.source_question_xpath}/{qual_uuid}"
+            value = version_data.get('value')
+            question_type = qual_question['type']
+            if question_type == 'qualSelectOne':
+                if value and qual_uuid in choices_by_uuid:
+                    choice = choices_by_uuid[qual_uuid].get(value)
+                    output_value = {
+                        'uuid': value,
+                        'labels': choice.get('labels') if choice else {}
+                    }
+                else:
+                    output_value = None
+            elif question_type == 'qualSelectMultiple':
+                if value and isinstance(value, list) and qual_uuid in choices_by_uuid:
+                    output_value = []
+                    for choice_uuid in value:
+                        choice = choices_by_uuid[qual_uuid].get(choice_uuid)
+                        output_value.append({
+                            'uuid': choice_uuid,
+                            'labels': choice.get('labels') if choice else {}
+                        })
+                else:
+                    output_value = []
+            else:
+                # Unchanged value for other types
+                output_value = value
+
+            output_data[field_name] = {
+                'value': output_value,
+                '_dateAccepted': date_accepted,
+            }
+
+        return output_data
