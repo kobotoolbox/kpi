@@ -250,18 +250,18 @@ class XFormSubmissionApi(
             user = get_database_user(request.user)
             username = user.username
 
-        # Return 401 if no authentication provided and there are no files,
-        # for digest authentication to work properly
-        has_auth = bool(get_authorization_header(request))
-        if not has_auth and not (bool(request.FILES) or bool(request.data)):
-            raise NotAuthenticated
-
         if request.method.upper() == 'HEAD':
             return Response(
                 status=status.HTTP_204_NO_CONTENT,
                 headers=self.get_openrosa_headers(request),
                 template_name=self.template_name,
             )
+
+        # Return 401 if no authentication provided and there are no files,
+        # for digest authentication to work properly
+        has_auth = bool(get_authorization_header(request))
+        if not has_auth and not (bool(request.FILES) or bool(request.data)):
+            raise NotAuthenticated
 
         is_json_request = is_json(request)
 
