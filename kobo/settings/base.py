@@ -45,8 +45,9 @@ if public_request_scheme == 'https' or SECURE_PROXY_SSL_HEADER:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 
-# These HSTS settings are sometimes overriden via nginx like in the `kobo-helm-chart` repository or by the AWS ALB/Azure app gateway
-# If you see the header returned with other values, check these places first
+# These HSTS settings are sometimes overriden via nginx like in the `kobo-helm-chart`
+# repository or by the AWS ALB/Azure app gateway. If you see the header returned
+# with other values, check these places first
 SECURE_HSTS_INCLUDE_SUBDOMAINS = env.bool('SECURE_HSTS_INCLUDE_SUBDOMAINS', False)
 SECURE_HSTS_PRELOAD = env.bool('SECURE_HSTS_PRELOAD', False)
 SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', 0)
