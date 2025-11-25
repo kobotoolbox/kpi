@@ -32,17 +32,118 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
             asset=self.asset,
         )
 
-    def test_valid_patch(self):
+    def test_valid_manual_transcription(self):
+        payload = {
+            '_version': '20250820',
+            'q1': {
+                'manual_transcription': {
+                    'language': 'en',
+                    'value': 'hello world',
+                }
+            },
+        }
+        QuestionAdvancedFeature.objects.create(
+            asset=self.asset,
+            question_xpath='q1',
+            action='manual_transcription',
+            params=[{'language': 'en'}],
+        )
+        response = self.client.patch(
+            self.supplement_details_url, data=payload, format='json'
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_valid_manual_translation(self):
+        self._simulate_completed_transcripts()
+        QuestionAdvancedFeature.objects.create(
+            asset=self.asset,
+            question_xpath='q1',
+            action='manual_translation',
+            params=[{'language': 'es'}],
+        )
         payload = {
             '_version': '20250820',
             'q1': {
                 'manual_translation': {
                     'language': 'es',
-                    'value': 'buenas noches',
+                    'value': 'hola el mundo',
                 }
             },
         }
 
+        response = self.client.patch(
+            self.supplement_details_url, data=payload, format='json'
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_valid_automatic_transcription(self):
+        # Set up the asset to allow automatic google transcription
+        QuestionAdvancedFeature.objects.create(
+            asset=self.asset,
+            question_xpath='q1',
+            action='automatic_google_transcription',
+            params=[{'language': 'en'}],
+        )
+
+        payload = {
+            '_version': '20250820',
+            'q1': {
+                'automatic_google_transcription': {
+                    'language': 'en',
+                }
+            },
+        }
+
+        # Mock GoogleTranscriptionService and simulate completed transcription
+        mock_service = MagicMock()
+        mock_service.process_data.return_value = {
+            'status': 'complete',
+            'value': 'hello world',
+        }
+
+        with patch(
+            'kobo.apps.subsequences.actions.automatic_google_transcription.GoogleTranscriptionService',  # noqa
+            return_value=mock_service,
+        ):
+            response = self.client.patch(
+                self.supplement_details_url, data=payload, format='json'
+            )
+            assert response.status_code == status.HTTP_200_OK
+
+    def test_valid_automatic_translation(self):
+        self._simulate_completed_transcripts()
+        # Set up the asset to allow automatic google translation
+        QuestionAdvancedFeature.objects.create(
+            asset=self.asset,
+            question_xpath='q1',
+            action='automatic_google_translation',
+            params=[{'language': 'es'}],
+        )
+
+        payload = {
+            '_version': '20250820',
+            'q1': {
+                'automatic_google_translation': {
+                    'language': 'es',
+                }
+            },
+        }
+
+        # Mock GoogleTranslationService and simulate in progress translation
+        mock_service = MagicMock()
+        mock_service.process_data.return_value = {
+            'status': 'complete',
+            'value': 'hola el mundo',
+        }
+
+        with patch(
+            'kobo.apps.subsequences.actions.automatic_google_translation.GoogleTranslationService',  # noqa
+            return_value=mock_service,
+        ):
+            response = self.client.patch(
+                self.supplement_details_url, data=payload, format='json'
+            )
+            assert response.status_code == status.HTTP_200_OK
 
     def test_cannot_patch_if_action_is_invalid(self):
         payload = {
