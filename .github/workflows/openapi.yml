@@ -39,7 +39,7 @@ jobs:
           - 6379:6379
     steps:
 
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Set up Python 3.10
         uses: actions/setup-python@v6
@@ -47,7 +47,7 @@ jobs:
           python-version: '3.10'
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@v7
         with: { cache-suffix: 'dev_requirements' }
 
       - name: Update Debian package lists
@@ -86,7 +86,7 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
           node-version: 20.18.1  # version that's pinned in Dockerfile for kpi release. FYI v22 doesn't work out of box.
