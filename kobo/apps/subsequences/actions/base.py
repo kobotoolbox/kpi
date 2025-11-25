@@ -824,7 +824,6 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
 
         # Otherwise, trigger the external service.
         NLPService = self.get_nlp_service_class()  # noqa
-
         service = NLPService(submission, asset=self.asset)
         service_data = service.process_data(self.source_question_xpath, action_data)
 
