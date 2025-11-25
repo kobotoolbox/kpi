@@ -405,7 +405,7 @@ class ProjectHistoryLog(AuditLog):
             'submissions-list': cls._create_from_submission_request,
             'submission-detail': cls._create_from_submission_request,
             'submission-supplement': cls._create_from_submission_extra_request,
-            'advanced-features-list': cls._create_from_question_advanced_feature_request,
+            'advanced-features-list': cls._create_from_question_advanced_feature_request, # noqa
             'advanced-features-detail': cls._create_from_question_advanced_feature_request,  # noqa
         }
         url_name = request.resolver_match.url_name
