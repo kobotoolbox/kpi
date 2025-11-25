@@ -35,7 +35,7 @@ jobs:
     runs-on: ubuntu-24.04
     permissions: { pull-requests: read }
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - id:   filter
         uses: dorny/paths-filter@v3
         name: Detect changed files
@@ -96,7 +96,7 @@ jobs:
       CURRENT_PATCH: ${{ needs.version.outputs.current_patch }}
     steps:
 
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - uses: ./.github/actions/checkout-with-github-app-token
       with:
         app-id: ${{ secrets.KOBO_BOT_APP_ID }}
@@ -132,7 +132,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
 
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - uses: ./.github/actions/checkout-with-github-app-token
       with:
         app-id: ${{ secrets.KOBO_BOT_APP_ID }}
@@ -159,7 +159,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
 
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - uses: ./.github/actions/checkout-with-github-app-token
       with:
         app-id: ${{ secrets.KOBO_BOT_APP_ID }}
