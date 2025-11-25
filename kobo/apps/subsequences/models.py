@@ -35,9 +35,7 @@ class SubmissionSupplement(SubmissionExtras):
     @staticmethod
     def revise_data(asset: 'kpi.Asset', submission: dict, incoming_data: dict) -> dict:
 
-        if not asset.advanced_features or not asset.advanced_features.get(
-            '_actionConfigs'
-        ):
+        if not asset.advanced_features_set.exists():
             raise InvalidAction
 
         schema_version = incoming_data.get('_version')
@@ -64,24 +62,21 @@ class SubmissionSupplement(SubmissionExtras):
                 # FIXME: what's a better way? skip all leading underscore keys?
                 # pop off the known special keys first?
                 continue
-            action_configs_for_this_question = asset.advanced_features_set.filter(
+            feature_configs_for_this_question = asset.advanced_features_set.filter(
                 question_xpath=question_xpath
             )
-            if not action_configs_for_this_question.exists():
+            if not feature_configs_for_this_question.exists():
                 raise InvalidXPath
 
             for action_id, action_data in data_for_this_question.items():
+                if not ACTION_IDS_TO_CLASSES.get(action_id):
+                    raise InvalidAction
                 try:
-                    action_class = ACTION_IDS_TO_CLASSES[action_id]
-                except KeyError as e:
-                    raise InvalidAction from e
-                try:
-                    action = action_configs_for_this_question.get(action=action_id)
-                    action_params = action.params
-                except QuestionAdvancedAction.DoesNotExist as e:
+                    feature = feature_configs_for_this_question.get(action=action_id)
+                except QuestionAdvancedFeature.DoesNotExist as e:
                     raise InvalidAction from e
 
-                action = action_class(question_xpath, action_params, asset)
+                action = feature.to_action()
                 action.check_limits(asset.owner)
 
                 question_supplemental_data = supplemental_data.setdefault(
@@ -167,25 +162,22 @@ class SubmissionSupplement(SubmissionExtras):
             processed_data_for_this_question = retrieved_supplemental_data.setdefault(
                 question_xpath, {}
             )
-            action_configs_for_this_question = asset.advanced_features_set.filter(
+            advanced_features_for_this_question = asset.advanced_features_set.filter(
                 question_xpath=question_xpath
             )
 
             for action_id, action_data in data_for_this_question.items():
-                try:
-                    action_class = ACTION_IDS_TO_CLASSES[action_id]
-                except KeyError:
+                if not ACTION_IDS_TO_CLASSES.get(action_id):
                     # An action class present in the submission data no longer
                     # exists in the application code
                     # TODO: log an error
                     continue
                 try:
-                    action = action_configs_for_this_question.get(action=action_id)
-                    action_params = action.params
-                except QuestionAdvancedAction.DoesNotExist as e:
+                    feature = advanced_features_for_this_question.get(action=action_id)
+                except QuestionAdvancedFeature.DoesNotExist as e:
                     raise InvalidAction from e
 
-                action = action_class(question_xpath, action_params)
+                action = feature.to_action()
 
                 retrieved_data = action.retrieve_data(action_data)
                 processed_data_for_this_question[action_id] = retrieved_data
