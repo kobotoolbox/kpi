@@ -21,14 +21,17 @@ from kobo.apps.user_reports.utils.snapshot_refresh_helpers import (
     refresh_user_reports_materialized_view,
 )
 from kpi.tests.base_test_case import BaseTestCase
+from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 
 
 class UserReportsViewSetAPITestCase(BaseTestCase):
+
     fixtures = ['test_data']
+    URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
     def setUp(self):
         self.client.login(username='adminuser', password='pass')
-        self.url = reverse(self._get_endpoint('api_v2:user-reports-list'))
+        self.url = reverse(self._get_endpoint('user-reports-list'))
 
         self.someuser = User.objects.get(username='someuser')
         self.organization = self.someuser.organization
@@ -261,7 +264,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         self.assertEqual(results[0]['accepted_tos'], False)
 
         # POST to the tos endpoint to accept the terms of service
-        tos_url = reverse(self._get_endpoint('tos'))
+        tos_url = reverse('tos')
         response = self.client.post(tos_url)
         assert response.status_code == status.HTTP_204_NO_CONTENT
 
@@ -311,11 +314,13 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
 
 
 class UserReportsFilterAndOrderingTestCase(BaseTestCase):
+
     fixtures = ['test_data']
+    URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
     def setUp(self):
         self.client.login(username='adminuser', password='pass')
-        self.url = reverse(self._get_endpoint('api_v2:user-reports-list'))
+        self.url = reverse(self._get_endpoint('user-reports-list'))
 
         self.someuser = User.objects.get(username='someuser')
         self.organization = self.someuser.organization
@@ -332,21 +337,23 @@ class UserReportsFilterAndOrderingTestCase(BaseTestCase):
 
     def test_username_prefix_filter(self):
         res = self._get_results({'q': 'username__icontains:some'})
-        self.assertEqual(res['count'], 1)
+        self.assertEqual(len(res['results']), 1)
         self.assertEqual(res['results'][0]['username'], 'someuser')
 
     def test_email_prefix_filter(self):
         res = self._get_results({'q': 'email__icontains:some@user'})
-        self.assertEqual(res['count'], 1)
+        self.assertEqual(len(res['results']), 1)
         self.assertEqual(res['results'][0]['email'], 'some@user.com')
 
     def test_date_joined_gte_and_lte_filters(self):
-        all_res = self._get_results()
-        res_all = self._get_results({'q': 'date_joined__gte:2012-01-01'})
-        self.assertLessEqual(res_all['count'], all_res['count'])
+        all_results = self._get_results()
+        filtered_results = self._get_results({'q': 'date_joined__gte:2012-01-01'})
+        self.assertLessEqual(
+            len(filtered_results['results']), len(all_results['results'])
+        )
 
-        res_none = self._get_results({'q': 'date_joined__gte:3020-01-01'})
-        self.assertEqual(res_none['count'], 0)
+        no_results = self._get_results({'q': 'date_joined__gte:3020-01-01'})
+        self.assertEqual(len(no_results['results']), 0)
 
     def test_storage_bytes_gte_and_lte_filters(self):
         # Update someuser's storage to simulate storage usage
