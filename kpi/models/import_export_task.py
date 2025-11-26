@@ -497,6 +497,8 @@ def export_upload_to(self, filename):
     more information, see
     https://docs.djangoproject.com/en/1.8/topics/migrations/#serializing-values
     """
+    if isinstance(self, SubmissionExportTask) and self.user.pk == -1:
+        return posixpath.join(self.user.username, 'exports', self.asset.uid, filename)
     return posixpath.join(self.user.username, 'exports', filename)
 
 

@@ -1,7 +1,11 @@
 # coding: utf-8
+import re
+
 from rest_framework.request import Request as DRFRequest
 from rest_framework.settings import api_settings
 
+from kpi.constants import PERM_VIEW_SUBMISSIONS
+from kpi.models import Asset
 from kpi.utils.object_permission import get_database_user
 
 
@@ -40,6 +44,13 @@ def superuser_or_username_matches_prefix(private_file):
     if private_file.relative_name.startswith(
         '{}/'.format(user.username)
     ):
+        if user.pk == -1:
+            filename_regex = r'AnonymousUser/exports/(a[^/]*)/.*'
+            match = re.search(filename_regex, private_file.relative_name)
+            if match:
+                uid = match.groups()[0]
+                a = Asset.objects.get(uid=uid)
+                return a.has_perm(user_obj=user, perm=PERM_VIEW_SUBMISSIONS)
         return True
 
     return False
