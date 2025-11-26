@@ -12,7 +12,6 @@ from zoneinfo import ZoneInfo
 
 import constance
 import dateutil.parser
-import formpack
 import requests
 from django.conf import settings
 from django.contrib.postgres.indexes import BTreeIndex, HashIndex
@@ -23,6 +22,13 @@ from django.db.models.functions import Concat
 from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext as t
+from openpyxl.utils.exceptions import InvalidFileException
+from private_storage.fields import PrivateFileField
+from rest_framework import exceptions
+from rest_framework.reverse import reverse
+from werkzeug.http import parse_options_header
+
+import formpack
 from formpack.constants import KOBO_LOCK_SHEET
 from formpack.schema.fields import (
     IdCopyField,
@@ -33,13 +39,6 @@ from formpack.schema.fields import (
 )
 from formpack.utils.kobo_locking import get_kobo_locking_profiles
 from formpack.utils.string import ellipsize
-from openpyxl.utils.exceptions import InvalidFileException
-from private_storage.fields import PrivateFileField
-from pyxform.xls2json_backends import xls_to_dict, xlsx_to_dict
-from rest_framework import exceptions
-from rest_framework.reverse import reverse
-from werkzeug.http import parse_options_header
-
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import (
     ASSET_TYPE_COLLECTION,
@@ -74,6 +73,7 @@ from kpi.utils.rename_xls_sheet import (
 )
 from kpi.utils.strings import to_str
 from kpi.zip_importer import HttpContentParse
+from pyxform.xls2json_backends import xls_to_dict, xlsx_to_dict
 
 
 def utcnow(*args, **kwargs):
@@ -497,7 +497,7 @@ def export_upload_to(self, filename):
     more information, see
     https://docs.djangoproject.com/en/1.8/topics/migrations/#serializing-values
     """
-    if isinstance(self, SubmissionExportTask) and self.user.pk == -1:
+    if isinstance(self, SubmissionExportTask):
         return posixpath.join(self.user.username, 'exports', self.asset.uid, filename)
     return posixpath.join(self.user.username, 'exports', filename)
 

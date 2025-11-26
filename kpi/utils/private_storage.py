@@ -44,13 +44,12 @@ def superuser_or_username_matches_prefix(private_file):
     if private_file.relative_name.startswith(
         '{}/'.format(user.username)
     ):
-        if user.pk == -1:
-            filename_regex = r'AnonymousUser/exports/(a[^/]*)/.*'
-            match = re.search(filename_regex, private_file.relative_name)
-            if match:
-                uid = match.groups()[0]
-                a = Asset.objects.get(uid=uid)
-                return a.has_perm(user_obj=user, perm=PERM_VIEW_SUBMISSIONS)
+        filename_regex = rf'{user.username}/exports/(a[^/]*)/.*'
+        match = re.search(filename_regex, private_file.relative_name)
+        if match:
+            uid = match.groups()[0]
+            a = Asset.objects.defer('content').get(uid=uid)
+            return a.has_perm(user_obj=user, perm=PERM_VIEW_SUBMISSIONS)
         return True
 
     return False
