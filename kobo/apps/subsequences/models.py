@@ -1,9 +1,10 @@
 from django.db import models
 
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
+from kpi.fields import KpiUidField, LazyDefaultJSONBField
 from kpi.models.abstract_models import AbstractTimeStampedModel
 from .actions import ACTION_IDS_TO_CLASSES
-from .constants import SCHEMA_VERSIONS, SUBMISSION_UUID_FIELD
+from .constants import SCHEMA_VERSIONS, SUBMISSION_UUID_FIELD, Action
 from .exceptions import InvalidAction, InvalidXPath
 from .schemas import validate_submission_supplement
 
@@ -239,3 +240,34 @@ class SubmissionSupplement(SubmissionExtras):
             return data_for_output
 
         return retrieved_supplemental_data
+
+
+class QuestionAdvancedFeature(models.Model):
+    uid = KpiUidField(uid_prefix='qaf', primary_key=True)
+    asset = models.ForeignKey(
+        'kpi.Asset',
+        related_name='advanced_features_set',
+        null=False,
+        blank=False,
+        on_delete=models.CASCADE,
+    )
+    action = models.CharField(
+        max_length=60,
+        choices=Action.choices,
+        db_index=True,
+        null=False,
+        blank=False,
+    )
+    question_xpath = models.CharField(null=False, blank=False, max_length=2000)
+    params = LazyDefaultJSONBField(default=dict)
+
+    class Meta:
+        unique_together = ('asset_id', 'question_xpath', 'action')
+
+    def to_action(self):
+        action_class = ACTION_IDS_TO_CLASSES[self.action]
+        return action_class(
+            source_question_xpath=self.question_xpath,
+            params=self.params,
+            asset=self.asset,
+        )
