@@ -75,6 +75,7 @@ export default function Usage() {
       let limits: AccountLimitDetail
       if (envStore.data.stripe_public_key) {
         limits = await getAccountLimits(products.products, oneTimeAddOnsContext.oneTimeAddOns)
+        console.log('000000000000', limits)
       } else {
         setLimits((prevState) => {
           return {
@@ -232,6 +233,21 @@ export default function Usage() {
             </span>
             <UsageContainer
               usage={usageQuery.data.data.translationChars}
+              remainingLimit={limits.nlpCharacterRemainingLimit}
+              recurringLimit={limits.nlpCharacterRecurringLimit}
+              oneTimeAddOns={filterAddOns(USAGE_TYPE.TRANSLATION)}
+              hasAddOnsLayout={hasAddOnsLayout}
+              period={billingPeriod}
+              type={USAGE_TYPE.TRANSLATION}
+            />
+          </div>
+          <div className={styles.box}>
+            <span>
+              <strong className={styles.title}>{t('LLM requests')}</strong>
+              <time className={styles.date}>{dateRange}</time>
+            </span>
+            <UsageContainer
+              usage={usageQuery.data.data.llm_requests.llm_requests_current_period}
               remainingLimit={limits.nlpCharacterRemainingLimit}
               recurringLimit={limits.nlpCharacterRecurringLimit}
               oneTimeAddOns={filterAddOns(USAGE_TYPE.TRANSLATION)}
