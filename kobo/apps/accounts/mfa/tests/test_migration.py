@@ -1,6 +1,7 @@
 from allauth.account.models import EmailAddress
 from allauth.mfa.adapter import get_adapter
 from django.conf import settings
+from django.test import override_settings
 from django.urls import reverse
 from rest_framework import status
 from trench.command.replace_mfa_method_backup_codes import (
@@ -13,6 +14,7 @@ from kpi.tests.kpi_test_case import BaseTestCase
 from .utils import get_mfa_code_for_user
 
 
+@override_settings(ACCOUNT_RATE_LIMITS=False)
 class MfaMigrationTestCase(BaseTestCase):
     """
     Test the migration scripts
