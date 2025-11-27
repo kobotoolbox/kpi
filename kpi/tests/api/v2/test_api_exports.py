@@ -147,6 +147,10 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         download_response = self.client.get(download_url)
         assert download_response.status_code == status.HTTP_200_OK
 
+        self.asset.remove_perm(anon, PERM_VIEW_SUBMISSIONS)
+        download_response = self.client.get(download_url)
+        assert download_response.status_code == status.HTTP_403_FORBIDDEN
+
     def test_export_task_list_anotheruser(self):
         for _type in ['csv', 'xls', 'spss_labels']:
             self._create_export_task(_type=_type)
