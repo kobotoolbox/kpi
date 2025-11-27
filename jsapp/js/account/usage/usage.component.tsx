@@ -32,6 +32,8 @@ interface LimitState {
   nlpMinuteRecurringLimit: LimitAmount
   submissionsRemainingLimit: LimitAmount
   submissionsRecurringLimit: LimitAmount
+  llmRequestsRemainingLimit: LimitAmount
+  llmRequestsRecurringLimit: LimitAmount
   isLoaded: boolean
   stripeEnabled: boolean
 }
@@ -39,6 +41,7 @@ interface LimitState {
 export default function Usage() {
   const [products] = useContext(ProductsContext)
   const oneTimeAddOnsContext = useContext(OneTimeAddOnsContext)
+  console.log('000000000000', oneTimeAddOnsContext)
 
   const [limits, setLimits] = useState<LimitState>({
     storageByteRemainingLimit: Limits.unlimited,
@@ -49,6 +52,8 @@ export default function Usage() {
     nlpMinuteRecurringLimit: Limits.unlimited,
     submissionsRemainingLimit: Limits.unlimited,
     submissionsRecurringLimit: Limits.unlimited,
+    llmRequestsRemainingLimit: Limits.unlimited,
+    llmRequestsRecurringLimit: Limits.unlimited,
     isLoaded: false,
     stripeEnabled: false,
   })
@@ -75,7 +80,6 @@ export default function Usage() {
       let limits: AccountLimitDetail
       if (envStore.data.stripe_public_key) {
         limits = await getAccountLimits(products.products, oneTimeAddOnsContext.oneTimeAddOns)
-        console.log('000000000000', limits)
       } else {
         setLimits((prevState) => {
           return {
@@ -248,12 +252,12 @@ export default function Usage() {
             </span>
             <UsageContainer
               usage={usageQuery.data.data.llm_requests.llm_requests_current_period}
-              remainingLimit={limits.nlpCharacterRemainingLimit}
-              recurringLimit={limits.nlpCharacterRecurringLimit}
-              oneTimeAddOns={filterAddOns(USAGE_TYPE.TRANSLATION)}
+              remainingLimit={limits.llmRequestsRecurringLimit}
+              recurringLimit={limits.llmRequestsRemainingLimit}
+              oneTimeAddOns={filterAddOns(USAGE_TYPE.LLM)}
               hasAddOnsLayout={hasAddOnsLayout}
               period={billingPeriod}
-              type={USAGE_TYPE.TRANSLATION}
+              type={USAGE_TYPE.LLM}
             />
           </div>
         </div>
