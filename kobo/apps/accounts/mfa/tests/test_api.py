@@ -1,4 +1,5 @@
 from constance.test import override_config
+from django.test import override_settings
 from django.urls import reverse
 from rest_framework import status
 
@@ -10,6 +11,7 @@ from .utils import activate_mfa_for_user, get_mfa_code_for_user
 METHOD = 'app'
 
 
+@override_settings(ACCOUNT_RATE_LIMITS=False)
 class MfaApiTestCase(BaseTestCase):
 
     fixtures = ['test_data']
