@@ -195,10 +195,6 @@ $side-tabs-width-mobile: 70px;
   &.historyExpanded .form-view__cell--history-table {
     max-height: 99999px;
   }
-
-  &.historyExpanded .form-view__cell--history-table + .form-view__cell {
-    padding-top: 20px;
-  }
 }
 
 .form-view__cell-label {
