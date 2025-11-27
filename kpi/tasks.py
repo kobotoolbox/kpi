@@ -1,11 +1,15 @@
 import time
+from datetime import timedelta
 
 import requests
+from constance import config
 from django.apps import apps
 from django.conf import settings
 from django.core import mail
+from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.management import call_command
+from django.utils import timezone
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.markdownx_uploader.tasks import remove_unused_markdown_files
@@ -13,7 +17,13 @@ from kobo.celery import celery_app
 from kpi.constants import LIMIT_HOURS_23
 from kpi.maintenance_tasks import remove_old_asset_snapshots, remove_old_import_tasks
 from kpi.models.asset import Asset
-from kpi.models.import_export_task import ImportTask, SubmissionExportTask
+from kpi.models.import_export_task import (
+    ImportExportStatusChoices,
+    ImportTask,
+    SubmissionExportTask,
+)
+from kpi.utils.log import logging
+from kpi.utils.object_permission import get_anonymous_user
 
 
 @celery_app.task(
@@ -66,6 +76,56 @@ def export_task_in_background(
             recipient_list=[user.email],
             fail_silently=False,
         )
+
+
+@celery_app.task
+def cleanup_anonymous_exports(**kwargs):
+    """
+    Task to clean up export tasks created by the AnonymousUser that are older
+    than `ANON_EXPORTS_CLEANUP_AGE`, excluding those that are still processing
+    """
+    BATCH_SIZE = 50
+    lock_timeout = 15*60
+    cache_key = 'cleanup_anonymous_exports:lock'
+    lock = cache.lock(cache_key, timeout=lock_timeout + 60)
+    if not lock.acquire(blocking=False, blocking_timeout=0):
+        logging.info('Nothing to do, task is already running!')
+        return
+
+    try:
+        cutoff_time = timezone.now() - timedelta(
+            minutes=config.ANON_EXPORTS_CLEANUP_AGE
+        )
+
+        old_exports = SubmissionExportTask.objects.filter(
+            user=get_anonymous_user(),
+            date_created__lt=cutoff_time,
+        ).exclude(
+            status=ImportExportStatusChoices.PROCESSING
+        ).order_by('date_created')[:BATCH_SIZE]
+
+        if not old_exports.exists():
+            logging.info('No old anonymous exports to clean up.')
+            return
+
+        deleted_count = 0
+        for export in old_exports:
+            try:
+                if export.result:
+                    try:
+                        export.result.delete(save=False)
+                    except Exception as e:
+                        logging.error(
+                            f'Error deleting file for export {export.uid}: {e}'
+                        )
+                export.delete()
+                deleted_count += 1
+            except Exception as e:
+                logging.error(f'Error deleting export {export.uid}: {e}')
+
+        logging.info(f'Cleaned up {deleted_count} old anonymous exports.')
+    finally:
+        lock.release()
 
 
 @celery_app.task
