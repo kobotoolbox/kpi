@@ -6,9 +6,9 @@ from constance import config
 from django.apps import apps
 from django.conf import settings
 from django.core import mail
-from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.management import call_command
+from django.db import DatabaseError, transaction
 from django.utils import timezone
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -82,35 +82,35 @@ def export_task_in_background(
 def cleanup_anonymous_exports(**kwargs):
     """
     Task to clean up export tasks created by the AnonymousUser that are older
-    than `ANON_EXPORTS_CLEANUP_AGE`, excluding those that are still processing
+    than `ANONYMOUS_EXPORTS_GRACE_PERIOD`, excluding those that are still processing
     """
-    BATCH_SIZE = 50
-    lock_timeout = 15*60
-    cache_key = 'cleanup_anonymous_exports:lock'
-    lock = cache.lock(cache_key, timeout=lock_timeout + 60)
-    if not lock.acquire(blocking=False, blocking_timeout=0):
-        logging.info('Nothing to do, task is already running!')
+    BATCH_SIZE = 200
+    cutoff_time = timezone.now() - timedelta(
+        minutes=config.ANONYMOUS_EXPORTS_GRACE_PERIOD
+    )
+
+    old_export_ids = SubmissionExportTask.objects.filter(
+        user=get_anonymous_user(),
+        date_created__lt=cutoff_time,
+    ).exclude(
+        status=ImportExportStatusChoices.PROCESSING
+    ).order_by('id').values_list('pk', flat=True)[:BATCH_SIZE]
+
+    if not old_export_ids:
+        logging.info('No old anonymous exports to clean up.')
         return
 
-    try:
-        cutoff_time = timezone.now() - timedelta(
-            minutes=config.ANON_EXPORTS_CLEANUP_AGE
-        )
+    deleted_count = 0
+    for export_id in old_export_ids:
+        try:
+            with transaction.atomic():
+                # Acquire a row level lock without waiting
+                export = (
+                    SubmissionExportTask.objects.only('pk', 'uid', 'result')
+                    .select_for_update(nowait=True)
+                    .get(pk=export_id)
+                )
 
-        old_exports = SubmissionExportTask.objects.filter(
-            user=get_anonymous_user(),
-            date_created__lt=cutoff_time,
-        ).exclude(
-            status=ImportExportStatusChoices.PROCESSING
-        ).order_by('date_created')[:BATCH_SIZE]
-
-        if not old_exports.exists():
-            logging.info('No old anonymous exports to clean up.')
-            return
-
-        deleted_count = 0
-        for export in old_exports:
-            try:
                 if export.result:
                     try:
                         export.result.delete(save=False)
@@ -120,12 +120,11 @@ def cleanup_anonymous_exports(**kwargs):
                         )
                 export.delete()
                 deleted_count += 1
-            except Exception as e:
-                logging.error(f'Error deleting export {export.uid}: {e}')
-
-        logging.info(f'Cleaned up {deleted_count} old anonymous exports.')
-    finally:
-        lock.release()
+        except DatabaseError:
+            logging.info(
+                f'Export {export_id} is currently being processed. Skipping.'
+            )
+    logging.info(f'Cleaned up {deleted_count} old anonymous exports.')
 
 
 @celery_app.task

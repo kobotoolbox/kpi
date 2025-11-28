@@ -475,7 +475,7 @@ CONSTANCE_CONFIG = {
         'Enable automatic deletion of attachments for users who have exceeded '
         'their storage limits.'
     ),
-    'ANON_EXPORTS_CLEANUP_AGE': (
+    'ANONYMOUS_EXPORTS_GRACE_PERIOD': (
         30,
         'Number of minutes after which anonymous export tasks are cleaned up.'
     ),
@@ -733,7 +733,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'MASS_EMAIL_ENQUEUED_RECORD_EXPIRY',
         'MASS_EMAIL_TEST_EMAILS',
         'USAGE_LIMIT_ENFORCEMENT',
-        'ANON_EXPORTS_CLEANUP_AGE',
+        'ANONYMOUS_EXPORTS_GRACE_PERIOD',
     ),
     'Rest Services': (
         'ALLOW_UNSECURED_HOOK_ENDPOINTS',
@@ -1452,7 +1452,7 @@ CELERY_BEAT_SCHEDULE = {
     # Schedule every 15 minutes
     'cleanup-anonymous-exports': {
         'task': 'kpi.tasks.cleanup_anonymous_exports',
-        'schedule': crontab(minute='*/15'),
+        'schedule': crontab(minute='*/5'),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
     # Schedule every 15 minutes

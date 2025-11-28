@@ -1,7 +1,6 @@
 import os
 from datetime import timedelta
 
-from django.core.cache import cache
 from django.core.files.base import ContentFile
 from django.utils import timezone
 from django.test import TestCase
@@ -87,30 +86,3 @@ class AnonymousExportCleanupTestCase(TestCase):
                 uid=processing_export.uid
             ).exists()
         )
-
-    def test_cache_lock_prevents_concurrent_execution(self):
-        """
-        Test that cache lock prevents concurrent task execution
-        """
-        for i in range(5):
-            self._create_export_task(minutes_old=60)
-
-        cache_key = 'cleanup_anonymous_exports:lock'
-        lock_timeout = 15 * 60
-
-        # Acquire lock manually (simulate first task running)
-        lock = cache.lock(cache_key, timeout=lock_timeout + 60)
-        lock.acquire(blocking=False)
-
-        try:
-            # Task should return early without deleting
-            cleanup_anonymous_exports()
-
-            # Verify no exports were deleted
-            remaining = SubmissionExportTask.objects.filter(
-                user__username='AnonymousUser'
-            ).count()
-            self.assertEqual(remaining, 5)
-
-        finally:
-            lock.release()
