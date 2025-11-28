@@ -89,12 +89,15 @@ def cleanup_anonymous_exports(**kwargs):
         minutes=config.ANONYMOUS_EXPORTS_GRACE_PERIOD
     )
 
-    old_export_ids = SubmissionExportTask.objects.filter(
-        user=get_anonymous_user(),
-        date_created__lt=cutoff_time,
-    ).exclude(
-        status=ImportExportStatusChoices.PROCESSING
-    ).order_by('date_created').values_list('pk', flat=True)[:BATCH_SIZE]
+    old_export_ids = (
+        SubmissionExportTask.objects.filter(
+            user=get_anonymous_user(),
+            date_created__lt=cutoff_time,
+        )
+        .exclude(status=ImportExportStatusChoices.PROCESSING)
+        .order_by('date_created')
+        .values_list('pk', flat=True)[:BATCH_SIZE]
+    )
 
     if not old_export_ids:
         logging.info('No old anonymous exports to clean up.')
@@ -104,7 +107,7 @@ def cleanup_anonymous_exports(**kwargs):
     for export_id in old_export_ids:
         try:
             with transaction.atomic():
-                # Acquire a row level lock without waiting
+                # Acquire a row-level lock without waiting
                 export = (
                     SubmissionExportTask.objects.only('pk', 'uid', 'result')
                     .select_for_update(nowait=True)
@@ -121,9 +124,7 @@ def cleanup_anonymous_exports(**kwargs):
                 export.delete()
                 deleted_count += 1
         except DatabaseError:
-            logging.info(
-                f'Export {export_id} is currently being processed. Skipping.'
-            )
+            logging.info(f'Export {export_id} is currently being processed. Skipping.')
     logging.info(f'Cleaned up {deleted_count} old anonymous exports.')
 
 

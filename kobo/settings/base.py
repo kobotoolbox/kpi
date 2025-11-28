@@ -477,7 +477,7 @@ CONSTANCE_CONFIG = {
     ),
     'ANONYMOUS_EXPORTS_GRACE_PERIOD': (
         30,
-        'Number of minutes after which anonymous export tasks are cleaned up.'
+        'Number of minutes after which anonymous export tasks are cleaned up.',
     ),
     'LIMIT_ATTACHMENT_REMOVAL_GRACE_PERIOD': (
         90,
@@ -1453,7 +1453,7 @@ CELERY_BEAT_SCHEDULE = {
     'cleanup-anonymous-exports': {
         'task': 'kpi.tasks.cleanup_anonymous_exports',
         'schedule': crontab(minute='*/5'),
-        'options': {'queue': 'kpi_low_priority_queue'}
+        'options': {'queue': 'kpi_low_priority_queue'},
     },
     # Schedule every 15 minutes
     'refresh-user-report-snapshot': {
