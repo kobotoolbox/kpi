@@ -41,21 +41,6 @@
   width: 100%;
 }
 
-.box {
-  // TODO: Should we add this size or try some flex magic to make the width work?
-  min-width: 250px;
-  width: 100%;
-  border: 1px solid;
-  border-color: colors.$kobo-gray-300;
-  border-radius: 6px;
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 2px;
-  overflow-wrap: break-word;
-}
-
 .usageType {
   display: flex;
   align-items: center;
@@ -69,12 +54,6 @@
 .date {
   display: block;
   font-size: 14px;
-}
-
-@include breakpoints.breakpoint(narrowAndUp) {
-  .subrow {
-    flex-wrap: nowrap;
-  }
 }
 
 @include breakpoints.breakpoint(veryWide) {

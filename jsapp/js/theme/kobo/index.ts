@@ -13,6 +13,7 @@ import { TableThemeKobo } from './Table'
 import { TagsInputThemeKobo } from './TagsInput'
 import { ThemeIconThemeKobo } from './ThemeIcon'
 import { TooltipThemeKobo } from './Tooltip'
+import {PaperThemeKobo} from './Paper'
 
 export const themeKobo = createTheme({
   primaryColor: 'blue',
@@ -123,5 +124,6 @@ export const themeKobo = createTheme({
     TagsInput: TagsInputThemeKobo,
     ThemeIcon: ThemeIconThemeKobo,
     NumberInput: NumberInputThemeKobo,
+    Paper: PaperThemeKobo,
   },
 })

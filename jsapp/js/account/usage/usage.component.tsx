@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useMemo, useState } from 'react'
 
-import { LoadingOverlay } from '@mantine/core'
-import cx from 'classnames'
+import { Group, LoadingOverlay } from '@mantine/core'
+import { Paper } from '@mantine/core'
 import { when } from 'mobx'
 import { useLocation } from 'react-router-dom'
 import { getAccountLimits } from '#/account/stripe.api'
@@ -12,6 +12,7 @@ import UsageContainer from '#/account/usage/usageContainer'
 import { YourPlan } from '#/account/usage/yourPlan.component'
 import LimitNotifications from '#/components/usageLimits/limitNotifications.component'
 import envStore from '#/envStore'
+import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 import useWhenStripeIsEnabled from '#/hooks/useWhenStripeIsEnabled.hook'
 import { convertSecondsToMinutes, formatDate } from '#/utils'
 import { OneTimeAddOnsContext } from '../useOneTimeAddonList.hook'
@@ -32,6 +33,8 @@ interface LimitState {
   nlpMinuteRecurringLimit: LimitAmount
   submissionsRemainingLimit: LimitAmount
   submissionsRecurringLimit: LimitAmount
+  llmRequestsRemainingLimit: LimitAmount
+  llmRequestsRecurringLimit: LimitAmount
   isLoaded: boolean
   stripeEnabled: boolean
 }
@@ -39,6 +42,7 @@ interface LimitState {
 export default function Usage() {
   const [products] = useContext(ProductsContext)
   const oneTimeAddOnsContext = useContext(OneTimeAddOnsContext)
+  console.log('000000000000', oneTimeAddOnsContext)
 
   const [limits, setLimits] = useState<LimitState>({
     storageByteRemainingLimit: Limits.unlimited,
@@ -49,6 +53,8 @@ export default function Usage() {
     nlpMinuteRecurringLimit: Limits.unlimited,
     submissionsRemainingLimit: Limits.unlimited,
     submissionsRecurringLimit: Limits.unlimited,
+    llmRequestsRemainingLimit: Limits.unlimited,
+    llmRequestsRecurringLimit: Limits.unlimited,
     isLoaded: false,
     stripeEnabled: false,
   })
@@ -134,20 +140,6 @@ export default function Usage() {
     }
   }
 
-  // Find out if any usage type has one-time addons so we can
-  // adjust the formatting of the usage containers to accommodate
-  // a detail link.
-  const hasAddOnsLayout = useMemo(() => {
-    let result = false
-    for (const type of [USAGE_TYPE.STORAGE, USAGE_TYPE.SUBMISSIONS, USAGE_TYPE.TRANSCRIPTION, USAGE_TYPE.TRANSLATION]) {
-      const relevantAddons = filterAddOns(type)
-      if (relevantAddons.length > 0) {
-        result = true
-      }
-    }
-    return result
-  }, [oneTimeAddOnsContext.isLoaded, limits.isLoaded])
-
   // if stripe is enabled, load fresh subscription info whenever we navigate to this route
   useWhenStripeIsEnabled(() => {
     subscriptionStore.fetchSubscriptionInfo()
@@ -175,73 +167,82 @@ export default function Usage() {
         )}
       </header>
       {limits.stripeEnabled && <YourPlan />}
-      <div className={styles.row}>
-        <div className={cx(styles.row, styles.subrow)}>
-          <div className={styles.box}>
+      <Group align='stretch'>
+        {/* Hard coded width from the figma designs */}
+        <Paper withBorder p={'md'} w={268}>
+          <span>
+            <strong className={styles.title}>{t('Submissions')}</strong>
+            <time className={styles.date}>{dateRange}</time>
+          </span>
+          <UsageContainer
+            usage={usageQuery.data.data.submissions}
+            remainingLimit={limits.submissionsRemainingLimit}
+            recurringLimit={limits.submissionsRecurringLimit}
+            oneTimeAddOns={filterAddOns(USAGE_TYPE.SUBMISSIONS)}
+            period={billingPeriod}
+            type={USAGE_TYPE.SUBMISSIONS}
+          />
+        </Paper>
+        <Paper withBorder p={'md'} w={268}>
+          <span>
+            <strong className={styles.title}>{t('Storage')}</strong>
+            <div className={styles.date}>{t('per account')}</div>
+          </span>
+          <UsageContainer
+            usage={usageQuery.data.data.storage}
+            remainingLimit={limits.storageByteRemainingLimit}
+            recurringLimit={limits.storageByteRecurringLimit}
+            oneTimeAddOns={filterAddOns(USAGE_TYPE.STORAGE)}
+            period={billingPeriod}
+            label={t('Total')}
+            type={USAGE_TYPE.STORAGE}
+          />
+        </Paper>
+        <Paper withBorder p={'md'} w={268}>
+          <span>
+            <strong className={styles.title}>{t('Transcription minutes')}</strong>
+            <time className={styles.date}>{dateRange}</time>
+          </span>
+          <UsageContainer
+            usage={usageQuery.data.data.transcriptionMinutes}
+            remainingLimit={limits.nlpMinuteRemainingLimit}
+            recurringLimit={limits.nlpMinuteRecurringLimit}
+            oneTimeAddOns={filterAddOns(USAGE_TYPE.TRANSCRIPTION)}
+            period={billingPeriod}
+            type={USAGE_TYPE.TRANSCRIPTION}
+          />
+        </Paper>
+        <Paper withBorder p={'md'} w={268}>
+          <span>
+            <strong className={styles.title}>{t('Translation characters')}</strong>
+            <time className={styles.date}>{dateRange}</time>
+          </span>
+          <UsageContainer
+            usage={usageQuery.data.data.translationChars}
+            remainingLimit={limits.nlpCharacterRemainingLimit}
+            recurringLimit={limits.nlpCharacterRecurringLimit}
+            oneTimeAddOns={filterAddOns(USAGE_TYPE.TRANSLATION)}
+            period={billingPeriod}
+            type={USAGE_TYPE.TRANSLATION}
+          />
+        </Paper>
+        {useFeatureFlag(FeatureFlag.llmUsageCardEnabled) && (
+          <Paper withBorder p={'md'} w={268}>
             <span>
-              <strong className={styles.title}>{t('Submissions')}</strong>
+              <strong className={styles.title}>{t('LLM requests')}</strong>
               <time className={styles.date}>{dateRange}</time>
             </span>
             <UsageContainer
-              usage={usageQuery.data.data.submissions}
-              remainingLimit={limits.submissionsRemainingLimit}
-              recurringLimit={limits.submissionsRecurringLimit}
-              oneTimeAddOns={filterAddOns(USAGE_TYPE.SUBMISSIONS)}
-              hasAddOnsLayout={hasAddOnsLayout}
+              usage={usageQuery.data.data.llm_requests.llm_requests_current_period}
+              remainingLimit={limits.llmRequestsRecurringLimit}
+              recurringLimit={limits.llmRequestsRemainingLimit}
+              oneTimeAddOns={filterAddOns(USAGE_TYPE.LLM)}
               period={billingPeriod}
-              type={USAGE_TYPE.SUBMISSIONS}
+              type={USAGE_TYPE.LLM}
             />
-          </div>
-          <div className={styles.box}>
-            <span>
-              <strong className={styles.title}>{t('Storage')}</strong>
-              <div className={styles.date}>{t('per account')}</div>
-            </span>
-            <UsageContainer
-              usage={usageQuery.data.data.storage}
-              remainingLimit={limits.storageByteRemainingLimit}
-              recurringLimit={limits.storageByteRecurringLimit}
-              oneTimeAddOns={filterAddOns(USAGE_TYPE.STORAGE)}
-              hasAddOnsLayout={hasAddOnsLayout}
-              period={billingPeriod}
-              label={t('Total')}
-              type={USAGE_TYPE.STORAGE}
-            />
-          </div>
-        </div>
-        <div className={cx(styles.row, styles.subrow)}>
-          <div className={styles.box}>
-            <span>
-              <strong className={styles.title}>{t('Transcription minutes')}</strong>
-              <time className={styles.date}>{dateRange}</time>
-            </span>
-            <UsageContainer
-              usage={usageQuery.data.data.transcriptionMinutes}
-              remainingLimit={limits.nlpMinuteRemainingLimit}
-              recurringLimit={limits.nlpMinuteRecurringLimit}
-              oneTimeAddOns={filterAddOns(USAGE_TYPE.TRANSCRIPTION)}
-              hasAddOnsLayout={hasAddOnsLayout}
-              period={billingPeriod}
-              type={USAGE_TYPE.TRANSCRIPTION}
-            />
-          </div>
-          <div className={styles.box}>
-            <span>
-              <strong className={styles.title}>{t('Translation characters')}</strong>
-              <time className={styles.date}>{dateRange}</time>
-            </span>
-            <UsageContainer
-              usage={usageQuery.data.data.translationChars}
-              remainingLimit={limits.nlpCharacterRemainingLimit}
-              recurringLimit={limits.nlpCharacterRecurringLimit}
-              oneTimeAddOns={filterAddOns(USAGE_TYPE.TRANSLATION)}
-              hasAddOnsLayout={hasAddOnsLayout}
-              period={billingPeriod}
-              type={USAGE_TYPE.TRANSLATION}
-            />
-          </div>
-        </div>
-      </div>
+          </Paper>
+        )}
+      </Group>
     </div>
   )
 }
