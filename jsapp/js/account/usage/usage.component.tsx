@@ -42,7 +42,6 @@ interface LimitState {
 export default function Usage() {
   const [products] = useContext(ProductsContext)
   const oneTimeAddOnsContext = useContext(OneTimeAddOnsContext)
-  console.log('000000000000', oneTimeAddOnsContext)
 
   const [limits, setLimits] = useState<LimitState>({
     storageByteRemainingLimit: Limits.unlimited,
