@@ -388,7 +388,8 @@ class AssetExportTaskTest(BaseTestCase):
                 "inline; filename*=utf-8''", ''
             )
         )
-        file_path = export_upload_to(self, file_name)
+        export = SubmissionExportTask.objects.get(uid=detail_response.data['uid'])
+        file_path = export_upload_to(export, file_name)
 
         detail_url = reverse('submissionexporttask-detail', kwargs={
             'uid': detail_response.data['uid']
