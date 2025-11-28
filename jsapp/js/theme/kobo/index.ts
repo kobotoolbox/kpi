@@ -8,12 +8,12 @@ import { LoaderThemeKobo } from './Loader'
 import { MenuThemeKobo } from './Menu'
 import { ModalThemeKobo } from './Modal'
 import { NumberInputThemeKobo } from './NumberInput'
+import { PaperThemeKobo } from './Paper'
 import { SelectThemeKobo } from './Select'
 import { TableThemeKobo } from './Table'
 import { TagsInputThemeKobo } from './TagsInput'
 import { ThemeIconThemeKobo } from './ThemeIcon'
 import { TooltipThemeKobo } from './Tooltip'
-import {PaperThemeKobo} from './Paper'
 
 export const themeKobo = createTheme({
   primaryColor: 'blue',
