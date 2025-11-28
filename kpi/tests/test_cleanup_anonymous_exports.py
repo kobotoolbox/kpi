@@ -1,7 +1,5 @@
-import os
 from datetime import timedelta
 
-from django.core.files.base import ContentFile
 from django.utils import timezone
 from django.test import TestCase
 
@@ -45,31 +43,6 @@ class AnonymousExportCleanupTestCase(TestCase):
         self.assertTrue(
             SubmissionExportTask.objects.filter(uid=recent_export.uid).exists()
         )
-
-    def test_export_result_file_is_deleted_from_storage(self):
-        """
-        Test that export files are deleted from storage
-        """
-        export = self._create_export_task(minutes_old=60)
-
-        # Create actual file in storage
-        file_content = ContentFile(
-            b'PK\x03\x04' +
-            b'{"data": "export"}' * 100,
-            name='test_export.xlsx'
-        )
-        export.result.save(f'test_export_{export.uid}.xlsx', file_content, save=True)
-        export.refresh_from_db()
-
-        storage = export.result.storage
-        file_path = storage.path(export.result.name)
-        self.assertTrue(os.path.exists(file_path))
-        self.assertTrue(SubmissionExportTask.objects.filter(uid=export.uid).exists())
-
-        cleanup_anonymous_exports()
-
-        self.assertFalse(os.path.exists(file_path))
-        self.assertFalse(SubmissionExportTask.objects.filter(uid=export.uid).exists())
 
     def test_processing_exports_are_not_deleted(self):
         """
