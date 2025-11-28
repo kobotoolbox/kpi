@@ -94,7 +94,7 @@ def cleanup_anonymous_exports(**kwargs):
         date_created__lt=cutoff_time,
     ).exclude(
         status=ImportExportStatusChoices.PROCESSING
-    ).order_by('id').values_list('pk', flat=True)[:BATCH_SIZE]
+    ).order_by('date_created').values_list('pk', flat=True)[:BATCH_SIZE]
 
     if not old_export_ids:
         logging.info('No old anonymous exports to clean up.')
