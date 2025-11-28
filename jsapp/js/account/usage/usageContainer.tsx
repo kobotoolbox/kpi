@@ -17,7 +17,6 @@ interface UsageContainerProps {
   remainingLimit: LimitAmount
   recurringLimit: LimitAmount
   oneTimeAddOns: OneTimeAddOn[]
-  hasAddOnsLayout: boolean
   period: RecurringInterval
   label?: string
   type: USAGE_TYPE
@@ -28,7 +27,6 @@ const UsageContainer = ({
   remainingLimit,
   recurringLimit,
   oneTimeAddOns,
-  hasAddOnsLayout,
   period,
   type,
   label = undefined,
@@ -50,11 +48,7 @@ const UsageContainer = ({
   const isNearingLimit = !isOverLimit && limitRatio > USAGE_WARNING_RATIO
 
   return (
-    <ul
-      className={cx(styles.usage, {
-        [styles.hasAddon]: hasRecurringAddOn || hasAddOnsLayout,
-      })}
-    >
+    <ul className={cx(styles.usage)}>
       {isStripeEnabled && (
         <li>
           <label>{t('Available')}</label>
