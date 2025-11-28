@@ -5,7 +5,8 @@ import { recordValues } from './utils'
  * For our sanity, use camel case and match key with value.
  */
 export enum FeatureFlag {
-  exampleFeatureEnabled = 'exampleFeatureEnabled', //Comment out when we have active FFs
+  //exampleFeatureEnabled = 'exampleFeatureEnabled', //Comment out when we have active FFs
+  llmUsageCardEnabled = 'llmUsageCardEnabled', //Comment out when we have active FFs
 }
 
 /**

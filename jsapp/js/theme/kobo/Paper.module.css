@@ -1,0 +1,4 @@
+.root {
+  border: 1px solid;
+  border-color: var(--mantine-color-gray-6);
+}

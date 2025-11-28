@@ -22,6 +22,7 @@ export interface OrganizationsServiceUsageSummary {
   balances: ServiceUsageBalances
   limitWarningList: UsageLimitTypes[]
   limitExceedList: UsageLimitTypes[]
+  llm_requests: { llm_requests_all_time: number; llm_requests_current_period: number }
 }
 export type OrganizationsServiceUsageSummaryResponse200 = {
   data: OrganizationsServiceUsageSummary
@@ -85,6 +86,10 @@ const transformOrganizationsService = (
       balances: data.balances,
       limitWarningList,
       limitExceedList,
+      llm_requests: {
+        llm_requests_all_time: data.total_nlp_usage.llm_requests_all_time,
+        llm_requests_current_period: data.total_nlp_usage.llm_requests_current_period,
+      },
     },
   }
 }
