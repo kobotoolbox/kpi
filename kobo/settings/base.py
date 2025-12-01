@@ -479,6 +479,10 @@ CONSTANCE_CONFIG = {
         'Enable automatic deletion of attachments for users who have exceeded '
         'their storage limits.'
     ),
+    'ANONYMOUS_EXPORTS_GRACE_PERIOD': (
+        30,
+        'Number of minutes after which anonymous export tasks are cleaned up.',
+    ),
     'LIMIT_ATTACHMENT_REMOVAL_GRACE_PERIOD': (
         90,
         'Number of days to keep attachments after the user has exceeded their '
@@ -733,6 +737,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'MASS_EMAIL_ENQUEUED_RECORD_EXPIRY',
         'MASS_EMAIL_TEST_EMAILS',
         'USAGE_LIMIT_ENFORCEMENT',
+        'ANONYMOUS_EXPORTS_GRACE_PERIOD',
     ),
     'Rest Services': (
         'ALLOW_UNSECURED_HOOK_ENDPOINTS',
@@ -1447,6 +1452,12 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'kobo.apps.trash_bin.tasks.attachment.schedule_auto_attachment_cleanup_for_users',  # noqa
         'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'}
+    },
+    # Schedule every 15 minutes
+    'cleanup-anonymous-exports': {
+        'task': 'kpi.tasks.cleanup_anonymous_exports',
+        'schedule': crontab(minute='*/5'),
+        'options': {'queue': 'kpi_low_priority_queue'},
     },
     # Schedule every 15 minutes
     'refresh-user-report-snapshot': {
