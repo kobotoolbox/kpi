@@ -7,8 +7,11 @@ import { InputBaseThemeKobo } from './InputBase'
 import { LoaderThemeKobo } from './Loader'
 import { MenuThemeKobo } from './Menu'
 import { ModalThemeKobo } from './Modal'
+import { NumberInputThemeKobo } from './NumberInput'
 import { SelectThemeKobo } from './Select'
 import { TableThemeKobo } from './Table'
+import { TagsInputThemeKobo } from './TagsInput'
+import { ThemeIconThemeKobo } from './ThemeIcon'
 import { TooltipThemeKobo } from './Tooltip'
 
 export const themeKobo = createTheme({
@@ -117,5 +120,8 @@ export const themeKobo = createTheme({
     Tooltip: TooltipThemeKobo,
     Table: TableThemeKobo,
     Divider: DividerThemeKobo,
+    TagsInput: TagsInputThemeKobo,
+    ThemeIcon: ThemeIconThemeKobo,
+    NumberInput: NumberInputThemeKobo,
   },
 })

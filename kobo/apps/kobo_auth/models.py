@@ -49,9 +49,9 @@ class User(AbstractUser):
 
     @property
     @cache_for_request
-    def organization(self):
+    def organization(self) -> Organization | None:
         if is_user_anonymous(self):
-            return
+            return None
 
         # Database allows multiple organizations per user, but we restrict it to one.
         if (
@@ -60,6 +60,14 @@ class User(AbstractUser):
             .first()
         ):
             return organization
+
+        try:
+            date_removed = self.extra_details.date_removed
+        except self.__class__.extra_details.RelatedObjectDoesNotExist:
+            date_removed = None
+
+        if not self.is_active or date_removed:
+            return None
 
         return create_organization(
             self, f"{self.username}'s organization"

@@ -21,6 +21,7 @@ from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
 from django_redis import get_redis_connection
+from pyxform.builder import create_survey_from_xls
 from rest_framework import exceptions, status
 
 from kobo.apps.data_collectors.utils import (
@@ -52,6 +53,7 @@ from kobo.apps.openrosa.libs.utils.viewer_tools import get_mongo_userform_id
 from kobo.apps.subsequences.utils.supplement_data import stream_with_supplements
 from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.constants import (
+    PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_SUBMISSIONS,
     PERM_DELETE_SUBMISSIONS,
     PERM_PARTIAL_SUBMISSIONS,
@@ -76,9 +78,8 @@ from kpi.models.paired_data import PairedData
 from kpi.utils.files import ExtendedContentFile
 from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
-from kpi.utils.object_permission import get_database_user
+from kpi.utils.object_permission import get_anonymous_user, get_database_user
 from kpi.utils.xml import fromstring_preserve_root_xmlns, xml_tostring
-from pyxform.builder import create_survey_from_xls
 from ..exceptions import AttachmentUidMismatchException, BadFormatException
 from .base_backend import BaseDeploymentBackend
 from .kc_access.utils import kc_transaction_atomic
@@ -134,8 +135,16 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         self._xform = publish_xls_form(xlsx_file, self.asset.owner)
         self._xform.downloadable = active
         self._xform.kpi_asset_uid = self.asset.uid
+        self._xform.require_auth = not self.asset.has_perm(
+            get_anonymous_user(), PERM_ADD_SUBMISSIONS
+        )
         self._xform.save(
-            update_fields=['downloadable', 'kpi_asset_uid', 'date_modified']
+            update_fields=[
+                'downloadable',
+                'kpi_asset_uid',
+                'date_modified',
+                'require_auth',
+            ]
         )
 
         self.store_data(
@@ -374,7 +383,6 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         all_attachment_xpaths = self.asset.get_all_attachment_xpaths()
         return self._rewrite_json_attachment_urls(
             self.get_submission(submission_id=instance.pk, user=user),
-            request,
             all_attachment_xpaths,
         )
 
@@ -472,6 +480,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             xml_file=xml_submission_file,
             media_files=attachments,
             request=request,
+            check_usage_limits=False,
         )
 
     @property
@@ -782,7 +791,6 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         user: settings.AUTH_USER_MODEL,
         format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
         submission_ids: list = None,
-        request: Optional['rest_framework.request.Request'] = None,
         **mongo_query_params,
     ) -> Union[Generator[dict, None, None], list]:
         """
@@ -812,7 +820,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         )
 
         if format_type == SUBMISSION_FORMAT_TYPE_JSON:
-            submissions = self.__get_submissions_in_json(request, **params)
+            submissions = self.__get_submissions_in_json(**params)
         elif format_type == SUBMISSION_FORMAT_TYPE_XML:
             submissions = self.__get_submissions_in_xml(**params)
         else:
@@ -872,12 +880,14 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                 .aggregate(
                     total_nlp_asr_seconds=Coalesce(Sum('total_asr_seconds'), 0),
                     total_nlp_mt_characters=Coalesce(Sum('total_mt_characters'), 0),
+                    total_nlp_llm_requests=Coalesce(Sum('total_llm_requests'), 0),
                 )
             )
         except NLPUsageCounter.DoesNotExist:
             return {
                 'total_nlp_asr_seconds': 0,
                 'total_nlp_mt_characters': 0,
+                'total_nlp_llm_requests': 0,
             }
         else:
             return nlp_tracking
@@ -1000,7 +1010,9 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             results.append(
                 {
                     'uuid': uuid,
-                    'root_uuid': backend_result['result'].root_uuid,
+                    'root_uuid': getattr(
+                        backend_result.get('result'), 'root_uuid', None
+                    ),
                     'status_code': status_code,
                     'message': message,
                 }
@@ -1208,6 +1220,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             media_files=media_files,
             uuid=submission_uuid,
             request=kwargs.get('request'),
+            check_usage_limits=False,
         )
 
     @property
@@ -1500,9 +1513,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         file_.synced_with_backend = True
         file_.save(update_fields=['synced_with_backend'])
 
-    def __get_submissions_in_json(
-        self, request: Optional['rest_framework.request.Request'] = None, **params
-    ) -> Generator[dict, None, None]:
+    def __get_submissions_in_json(self, **params) -> Generator[dict, None, None]:
         """
         Retrieve submissions directly from Mongo.
         Submissions can be filtered with `params`.
@@ -1539,7 +1550,6 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         return (
             self._inject_properties(
                 MongoHelper.to_readable_dict(submission),
-                request,
                 all_attachment_xpaths,
             )
             for submission in mongo_cursor

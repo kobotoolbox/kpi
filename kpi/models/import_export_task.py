@@ -498,6 +498,13 @@ def export_upload_to(self, filename):
     more information, see
     https://docs.djangoproject.com/en/1.8/topics/migrations/#serializing-values
     """
+
+    if hasattr(self, 'asset'):
+        return posixpath.join(self.user.username, 'exports', self.asset.uid, filename)
+
+    if getattr(self, 'asset_uid', None):
+        return posixpath.join(self.user.username, 'exports', self.asset_uid, filename)
+
     return posixpath.join(self.user.username, 'exports', filename)
 
 
@@ -1046,9 +1053,6 @@ class SubmissionExportTaskBase(ImportExportTask):
             source, submission_stream, self._fields_from_all_versions
         )
 
-        if source.has_advanced_features:
-            pack.extend_survey(source.supplemental_output_fields)
-            # FIXME: (when rebuilding support for qual) omit_question_types=['qual_note']
 
         # Wrap the submission stream in a generator that records the most
         # recent timestamp

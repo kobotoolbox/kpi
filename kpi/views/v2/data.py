@@ -56,7 +56,11 @@ from kobo.apps.subsequences.exceptions import (
     InvalidXPath,
     TranscriptionNotFound,
 )
-from kpi.renderers import SubmissionGeoJsonRenderer, SubmissionXMLRenderer
+from kpi.renderers import (
+    BasicHTMLRenderer,
+    SubmissionGeoJsonRenderer,
+    SubmissionXMLRenderer,
+)
 from kpi.schema_extensions.v2.data.serializers import (
     DataBulkDelete,
     DataBulkUpdate,
@@ -87,10 +91,10 @@ from kpi.utils.xml import (
 
 
 @extend_schema(
-    tags=['Data'],
+    tags=['Survey data'],
     parameters=[
         OpenApiParameter(
-            name='parent_lookup_asset',
+            name='uid_asset',
             type=str,
             location=OpenApiParameter.PATH,
             required=True,
@@ -173,6 +177,7 @@ class DataViewSet(
     Available actions:
     - bulk                  → DELETE /api/v2/assets/
     - bulk                  → PATCH /api/v2/asset_usage/
+<<<<<<< HEAD
     - delete                → DELETE /api/v2/asset_usage/{parent_lookup_asset}/data/{submission_id_or_root_uuid}/
     - duplicate             → POST /api/v2/asset_usage/{parent_lookup_asset}/data/duplicate/  # noqa
     - list                  → GET /api/v2/asset_usage/{parent_lookup_asset}/data/
@@ -189,6 +194,22 @@ class DataViewSet(
     - enketo_view           → GET /api/v2/assets/{parent_lookup_asset}/data/{submission_id_or_root_uuid}/enketo/redirect/view/
     - supplement            → GET /api/v2/assets/{parent_lookup_asset}/data/{submission_id_or_root_uuid}/supplement/
     - supplement            → PATCH /api/v2/assets/{parent_lookup_asset}/data/{submission_id_or_root_uuid}/supplement/
+=======
+    - delete                → DELETE /api/v2/asset_usage/{uid_asset}/data/{id}
+    - duplicate             → POST /api/v2/asset_usage/{uid_asset}/data/duplicate  # noqa
+    - list                  → GET /api/v2/asset_usage/{uid_asset}/data
+    - retrieve              → GET /api/v2/asset_usage/{uid_asset}/data/{id}
+    - validation_status     → GET /api/v2/asset_usage/{uid_asset}/data/{id}/validation_status  # noqa
+    - validation_status     → DELETE /api/v2/asset_usage/{uid_asset}/data/{id}/validation_status  # noqa
+    - validation_status     → PATCH /api/v2/asset_usage/{uid_asset}/data/{id}/validation_status  # noqa
+    - validation_statuses   → DELETE /api/v2/asset_usage/{uid_asset}/data/{id}/validation_statuses  # noqa
+    - validation_statuses   → PATCH /api/v2/asset_usage/{uid_asset}/data/{id}/validation_statuses  # noqa
+    - enketo_edit           → GET /api/v2/assets/{uid_asset}/data/{id}/edit/
+    - enketo_edit           → GET /api/v2/assets/{uid_asset}/data/{id}/enketo/edit/
+    - enketo_edit           → GET /api/v2/assets/{uid_asset}/data/{id}/enketo/redirect/edit/
+    - enketo_view           → GET /api/v2/assets/{uid_asset}/data/{id}/enketo/view/
+    - enketo_view           → GET /api/v2/assets/{uid_asset}/data/{id}/enketo/redirect/view/
+>>>>>>> origin/main
 
     Documentation:
     - docs/api/v2/data/bulk_delete.md
@@ -211,6 +232,7 @@ class DataViewSet(
     parent_model = Asset
     renderer_classes = (
         renderers.JSONRenderer,
+        BasicHTMLRenderer,
         SubmissionGeoJsonRenderer,
         SubmissionXMLRenderer,
     )
@@ -882,7 +904,7 @@ class DataViewSet(
         data = {
             'server_url': reverse(
                 viewname='assetsnapshot-detail',
-                kwargs={'uid': snapshot.uid},
+                kwargs={'uid_asset_snapshot': snapshot.uid},
                 request=request,
             ),
             'instance': xml_tostring(submission_xml_root),

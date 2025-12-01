@@ -19,10 +19,10 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
 @extend_schema(
-    tags=['Versions'],
+    tags=['Manage projects and library content'],
     parameters=[
         OpenApiParameter(
-            name='parent_lookup_asset',
+            name='uid_asset',
             type=str,
             location=OpenApiParameter.PATH,
             required=True,
@@ -68,8 +68,8 @@ class AssetVersionViewSet(AssetNestedObjectViewsetMixin,
     ViewSet for managing the versions of the current asset
 
     Available actions:
-    - list           → GET /api/v2/assets/{uid}/versions/
-    - retrieve       → GET /api/v2/assets/{parent_lookup_asset}/versions/{uid}/
+    - list           → GET /api/v2/assets/{uid_asset}/versions/
+    - retrieve       → GET /api/v2/assets/{uid_asset}/versions/{uid_version}/
 
     Documentation:
     - docs/api/v2/versions/list.md
@@ -78,6 +78,7 @@ class AssetVersionViewSet(AssetNestedObjectViewsetMixin,
 
     model = AssetVersion
     lookup_field = 'uid'
+    lookup_url_kwarg = 'uid_version'
     permission_classes = (AssetVersionReadOnlyPermission,)
 
     def get_serializer_class(self):

@@ -34,10 +34,10 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
 @extend_schema(
-    tags=['Export Settings'],
+    tags=['Survey data'],
     parameters=[
         OpenApiParameter(
-            name='parent_lookup_asset',
+            name='uid_asset',
             type=str,
             location=OpenApiParameter.PATH,
             required=True,
@@ -66,7 +66,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
                 location=OpenApiParameter.QUERY,
             ),
             OpenApiParameter(
-                name='uid',
+                name='uid_export_setting',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
@@ -88,7 +88,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
         ),
         parameters=[
             OpenApiParameter(
-                name='uid',
+                name='uid_export_setting',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
@@ -115,7 +115,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
         ),
         parameters=[
             OpenApiParameter(
-                name='uid',
+                name='uid_export_setting',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
@@ -133,7 +133,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
         ),
         parameters=[
             OpenApiParameter(
-                name='uid',
+                name='uid_export_setting',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
@@ -154,10 +154,10 @@ class AssetExportSettingsViewSet(
     Available actions:
     - list           → GET /api/v2/export_settings/
     - create         → POST /api/v2/export_settings/
-    - retrieve       → GET /api/v2/export_settings/{uid}/
-    - patch          → PATCH /api/v2/export_settings/{uid}/
-    - delete         → DELETE /api/v2/export_settings/{uid}/
-    - data           → GET /api/v2/export_settings/{uid}/data/
+    - retrieve       → GET /api/v2/export_settings/{uid_export_setting}/
+    - patch          → PATCH /api/v2/export_settings/{uid_export_setting}/
+    - delete         → DELETE /api/v2/export_settings/{uid_export_setting}/
+    - data           → GET /api/v2/export_settings/{uid_export_setting}/data/
 
     Documentation:
     - docs/api/v2/export_settings/list.md
@@ -170,6 +170,7 @@ class AssetExportSettingsViewSet(
 
     model = AssetExportSettings
     lookup_field = 'uid'
+    lookup_url_kwarg = 'uid_export_setting'
     serializer_class = AssetExportSettingsSerializer
     permission_classes = (AssetExportSettingsPermission,)
 

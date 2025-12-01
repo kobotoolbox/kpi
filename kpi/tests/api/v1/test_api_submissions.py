@@ -62,7 +62,7 @@ class SubmissionApiTests(test_api_submissions.SubmissionApiTests):
         # Server-wide limit should apply if no limit specified
         url = reverse(
             self._get_endpoint('submission-list'),
-            kwargs={'format': 'json', 'parent_lookup_asset': asset.uid},
+            kwargs={'format': 'json', 'uid_asset': asset.uid},
         )
         response = self.client.get(url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -71,7 +71,7 @@ class SubmissionApiTests(test_api_submissions.SubmissionApiTests):
         # server-wide limit
         url = reverse(
             self._get_endpoint('submission-list'),
-            kwargs={'parent_lookup_asset': asset.uid, 'format': 'json'},
+            kwargs={'uid_asset': asset.uid, 'format': 'json'},
         )
         response = self.client.get(url, {'limit': limit + excess, 'format': 'json'})
 
@@ -103,8 +103,8 @@ class SubmissionApiTests(test_api_submissions.SubmissionApiTests):
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'submission_id_or_root_uuid': submission['_id'],
+                'uid_asset': self.asset.uid,
+                'pk': submission['_id'],
             },
         )
 
@@ -121,8 +121,8 @@ class SubmissionApiTests(test_api_submissions.SubmissionApiTests):
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'submission_id_or_root_uuid': submission['_id'],
+                'uid_asset': self.asset.uid,
+                'pk': submission['_id'],
             },
         )
         response = self.client.delete(url, HTTP_ACCEPT='application/json')
@@ -196,6 +196,18 @@ class SubmissionEditApiTests(test_api_submissions.SubmissionEditApiTests):
 
     @pytest.mark.skip(reason='Only usable in v2')
     def test_get_multiple_edit_links_and_attempt_submit_edits(self):
+        pass
+
+    @pytest.mark.skip(reason='Only usable in v2')
+    def test_edit_submission_ignores_usage_limit_enforcement(self):
+        pass
+
+    @pytest.mark.skip(reason='Only usable in v2')
+    def test_submitted_by_persist_after_edit(self):
+        pass
+
+    @pytest.mark.skip(reason='Only usable in v2')
+    def test_submitted_by_persists_for_shared_submitter(self):
         pass
 
 

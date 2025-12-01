@@ -2,6 +2,7 @@ import copy
 
 import jsonschema
 from django.conf import settings
+from django.contrib.auth.models import AnonymousUser
 from django.core.handlers.wsgi import WSGIRequest
 from django.db import models
 from django.db.models import Case, Count, F, Min, Q, Value, When
@@ -13,6 +14,7 @@ from kobo.apps.audit_log.audit_log_metadata_schemas import (
     PROJECT_HISTORY_LOG_METADATA_SCHEMA,
 )
 from kobo.apps.audit_log.utils import SubmissionUpdate
+from kobo.apps.data_collectors.authentication import DataCollectorUser
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.openrosa.libs.utils.viewer_tools import (
@@ -391,7 +393,7 @@ class ProjectHistoryLog(AuditLog):
             'asset-export-list': cls._create_from_export_request,
             'submissionexporttask-list': cls._create_from_v1_export,
             'asset-bulk': cls._create_from_bulk_request,
-            'asset-permission-assignment-bulk-assignments': cls._create_from_permissions_request,  # noqa
+            'asset-permission-assignment-bulk-actions': cls._create_from_permissions_request,  # noqa
             'asset-permission-assignment-detail': cls._create_from_permissions_request,
             'asset-permission-assignment-list': cls._create_from_permissions_request,
             'asset-permission-assignment-clone': cls._create_from_clone_permission_request,  # noqa
@@ -478,7 +480,7 @@ class ProjectHistoryLog(AuditLog):
         initial_data = getattr(request, 'initial_data', None)
         if initial_data is None:
             return
-        asset_uid = request.resolver_match.kwargs['parent_lookup_asset']
+        asset_uid = request.resolver_match.kwargs['uid_asset']
         asset_id = initial_data['asset.id']
         ProjectHistoryLog.objects.create(
             object_id=asset_id,
@@ -503,7 +505,7 @@ class ProjectHistoryLog(AuditLog):
             return
 
         initial_data = request.initial_data
-        asset_uid = request.resolver_match.kwargs['uid']
+        asset_uid = request.resolver_match.kwargs['uid_asset']
         object_id = request.initial_data['id']
         metadata = {
             'asset_uid': asset_uid,
@@ -558,7 +560,7 @@ class ProjectHistoryLog(AuditLog):
             # Something went wrong with the request, don't try to create a log
             return
 
-        asset_uid = request.resolver_match.kwargs['uid']
+        asset_uid = request.resolver_match.kwargs['uid_asset']
         object_id = initial_data['id']
 
         common_metadata = {
@@ -623,7 +625,9 @@ class ProjectHistoryLog(AuditLog):
         instances: dict[int:SubmissionUpdate] = getattr(request, 'instances', {})
         logs = []
         url_name = request.resolver_match.url_name
-        user = get_database_user(request.user)
+        is_data_collector = isinstance(request.user, DataCollectorUser)
+        request_user = request.user if not is_data_collector else AnonymousUser()
+        user = get_database_user(request_user)
         for instance in instances.values():
             if instance.action == 'add':
                 action = AuditAction.ADD_SUBMISSION
@@ -644,6 +648,15 @@ class ProjectHistoryLog(AuditLog):
             }
             if 'validation-status' in url_name:
                 metadata['submission']['status'] = instance.status
+            if is_data_collector:
+                metadata['submission']['data_collector_uid'] = request.user.uid
+                metadata['submission']['data_collector_name'] = request.user.name
+                metadata['submission'][
+                    'data_collector_group_uid'
+                ] = request.user.group_uid
+                metadata['submission'][
+                    'data_collector_group_name'
+                ] = request.user.group_name
 
             logs.append(
                 ProjectHistoryLog(
@@ -728,7 +741,7 @@ class ProjectHistoryLog(AuditLog):
         logs = []
         initial_data = getattr(request, 'initial_data', None)
         updated_data = getattr(request, 'updated_data', None)
-        asset_uid = request.resolver_match.kwargs['parent_lookup_asset']
+        asset_uid = request.resolver_match.kwargs['uid_asset']
         source_data = updated_data if updated_data else initial_data
         if source_data is None:
             # there was an error on the request, ignore
@@ -969,7 +982,7 @@ class ProjectHistoryLog(AuditLog):
     def _related_request_base(request, label, add_action, delete_action, modify_action):
         initial_data = getattr(request, 'initial_data', None)
         updated_data = getattr(request, 'updated_data', None)
-        asset_uid = request.resolver_match.kwargs['parent_lookup_asset']
+        asset_uid = request.resolver_match.kwargs['uid_asset']
         source_data = updated_data if updated_data else initial_data
         if not source_data:
             # request failed, don't try to log

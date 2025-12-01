@@ -7,7 +7,7 @@ from drf_spectacular.utils import (
     extend_schema,
     extend_schema_view,
 )
-from rest_framework import exceptions, status
+from rest_framework import exceptions, serializers, status
 from rest_framework.decorators import action
 from rest_framework.mixins import (
     CreateModelMixin,
@@ -20,13 +20,8 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kobo.apps.audit_log.base_views import AuditLoggedViewSet
 from kobo.apps.audit_log.models import AuditType
-from kpi.constants import (
-    CLONE_ARG_NAME,
-    PERM_ADD_SUBMISSIONS,
-    PERM_MANAGE_ASSET,
-    PERM_VIEW_ASSET,
-)
-from kpi.models.asset import Asset
+from kpi.constants import CLONE_ARG_NAME, PERM_MANAGE_ASSET, PERM_VIEW_ASSET
+from kpi.models.asset import Asset, AssetUserPartialPermission
 from kpi.models.object_permission import ObjectPermission
 from kpi.permissions import AssetPermissionAssignmentPermission
 from kpi.schema_extensions.v2.asset_permission_assignments.schema import (
@@ -34,6 +29,7 @@ from kpi.schema_extensions.v2.asset_permission_assignments.schema import (
     PERMISSION_URL_SCHEMA,
 )
 from kpi.schema_extensions.v2.asset_permission_assignments.serializers import (
+    PermissionAssignmentBulkDeleteRequest,
     PermissionAssignmentBulkRequest,
     PermissionAssignmentCloneRequest,
     PermissionAssignmentCreateRequest,
@@ -44,7 +40,10 @@ from kpi.serializers.v2.asset_permission_assignment import (
     AssetBulkInsertPermissionSerializer,
     AssetPermissionAssignmentSerializer,
 )
-from kpi.utils.object_permission import get_user_permission_assignments_queryset
+from kpi.utils.object_permission import (
+    get_database_user,
+    get_user_permission_assignments_queryset,
+)
 from kpi.utils.schema_extensions.examples import generate_example_from_schema
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import (
@@ -55,10 +54,10 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 
 
 @extend_schema(
-    tags=['Asset Permission Assignments'],
+    tags=['Manage permissions'],
     parameters=[
         OpenApiParameter(
-            name='parent_lookup_asset',
+            name='uid_asset',
             type=str,
             location=OpenApiParameter.PATH,
             required=True,
@@ -67,14 +66,6 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
     ],
 )
 @extend_schema_view(
-    bulk_assignments=extend_schema(
-        description=read_md('kpi', 'asset_permission_assignments/bulk.md'),
-        request={'application/json': PermissionAssignmentBulkRequest(many=True)},
-        responses=open_api_200_ok_response(
-            PermissionAssignmentResponse(many=True),
-            require_auth=False,
-        ),
-    ),
     clone=extend_schema(
         description=read_md('kpi', 'asset_permission_assignments/clone.md'),
         request={'application/json': PermissionAssignmentCloneRequest},
@@ -112,22 +103,6 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
             ),
         ],
     ),
-    delete_all=extend_schema(
-        description=read_md('kpi', 'asset_permission_assignments/delete_all.md'),
-        responses=open_api_204_empty_response(
-            require_auth=False,
-            validate_payload=False,
-        ),
-        parameters=[
-            OpenApiParameter(
-                name='uid',
-                type=str,
-                location=OpenApiParameter.PATH,
-                required=True,
-                description='UID of the permission',
-            ),
-        ],
-    ),
     destroy=extend_schema(
         description=read_md('kpi', 'asset_permission_assignments/delete.md'),
         responses=open_api_204_empty_response(
@@ -136,7 +111,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
         ),
         parameters=[
             OpenApiParameter(
-                name='uid',
+                name='uid_permission_assignment',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
@@ -161,7 +136,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
         ),
         parameters=[
             OpenApiParameter(
-                name='uid',
+                name='uid_permission_assignment',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
@@ -183,20 +158,20 @@ class AssetPermissionAssignmentViewSet(
     Viewset for managing the assignment permission for current project
 
     Available actions:
-    - bulk            → DELETE /api/v2/assets/{parent_lookup_asset}/permission-assignments/bulk/  # noqa
-    - clone           → PATCH /api/v2/assets/{parent_lookup_asset}/permission-assignments/clone/  # noqa
-    - create          → DELETE /api/v2/assets/{parent_lookup_asset}/permission-assignments/  # noqa
-    - delete          → POST /api/v2/assets/{parent_lookup_asset}/permission-assignments/{uid}/  # noqa
-    - delete_all      → GET /api/v2/assets/{parent_lookup_asset}/permission-assignments/delete-all/  # noqa
-    - list            → GET /api/v2/assets/{parent_lookup_asset}/permission-assignments/
-    - retrieve        → GET /api/v2/assets/{parent_lookup_asset}/permission-assignments/{uid}/  # noqa
+    - bulk            → DELETE /api/v2/assets/{uid_asset}/permission-assignments/bulk/  # noqa
+    - bulk            → POST /api/v2/assets/{uid_asset}/permission-assignments/bulk/  # noqa
+    - clone           → PATCH /api/v2/assets/{uid_asset}/permission-assignments/clone/  # noqa
+    - create          → DELETE /api/v2/assets/{uid_asset}/permission-assignments/  # noqa
+    - delete          → POST /api/v2/assets/{uid_asset}/permission-assignments/{uid_permission_assignment}/  # noqa
+    - list            → GET /api/v2/assets/{uid_asset}/permission-assignments/
+    - retrieve        → GET /api/v2/assets/{uid_asset}/permission-assignments/{uid_permission_assignment}/  # noqa
 
     Documentation:
-    - docs/api/v2/asset_permission_assignments/bulk.md
+    - docs/api/v2/asset_permission_assignments/bulk_delete.md
+    - docs/api/v2/asset_permission_assignments/bulk_update.md
     - docs/api/v2/asset_permission_assignments/clone.md
     - docs/api/v2/asset_permission_assignments/create.md
     - docs/api/v2/asset_permission_assignments/delete.md
-    - docs/api/v2/asset_permission_assignments/delete_all.md
     - docs/api/v2/asset_permission_assignments/list.md
     - docs/api/v2/asset_permission_assignments/retrieve.md
     - docs/api/v2/asset_permission_assignments/update.md
@@ -204,6 +179,7 @@ class AssetPermissionAssignmentViewSet(
 
     model = ObjectPermission
     lookup_field = 'uid'
+    lookup_url_kwarg = 'uid_permission_assignment'
     serializer_class = AssetPermissionAssignmentSerializer
     permission_classes = (AssetPermissionAssignmentPermission,)
     pagination_class = None
@@ -212,18 +188,39 @@ class AssetPermissionAssignmentViewSet(
     # filter_backends = Just kidding! Look at this instead:
     #     kpi.utils.object_permission.get_user_permission_assignments_queryset
 
+    @extend_schema(
+        methods=['POST'],
+        description=read_md('kpi', 'asset_permission_assignments/bulk_update.md'),
+        request={'application/json': PermissionAssignmentBulkRequest(many=True)},
+        responses=open_api_200_ok_response(
+            PermissionAssignmentResponse(many=True),
+            require_auth=False,
+        ),
+    )
+    @extend_schema(
+        methods=['DELETE'],
+        description=read_md('kpi', 'asset_permission_assignments/bulk_delete.md'),
+        request={'application/json': PermissionAssignmentBulkDeleteRequest},
+        responses=open_api_204_empty_response(require_auth=False),
+    )
     @action(
         detail=False,
-        methods=['POST'],
+        methods=['POST', 'DELETE'],
         url_path='bulk',
     )
+    def bulk_actions(self, request, *args, **kwargs):
+        if request.method == 'POST':
+            return self.bulk_assignments(request, *args, **kwargs)
+        elif request.method == 'DELETE':
+            return self.bulk_delete(request, *args, **kwargs)
+        else:
+            raise exceptions.MethodNotAllowed(request.method)
+
     def bulk_assignments(self, request, *args, **kwargs):
         """
         Assigns all permissions at once for the same asset.
-
-        :param request:
-        :return: JSON
         """
+
         request._request.updated_data = {
             'asset.id': self.asset.id,
             'asset.owner.username': self.asset.owner.username,
@@ -235,6 +232,43 @@ class AssetPermissionAssignmentViewSet(
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return self.list(request, *args, **kwargs)
+
+    def bulk_delete(self, request, *args, **kwargs):
+        """
+        Bulk delete permissions for a specific username related to an asset.
+
+        This method allows an authorized user to delete all permissions associated
+        with a specified username for a given asset. It ensures that the user requesting
+        the deletion has the necessary permissions, and performs validation to prevent
+        deletion of owner's permissions.
+        """
+
+        user = get_database_user(request.user)
+        username = request.data.get('username')
+
+        if (
+            not user.has_perm(PERM_MANAGE_ASSET, self.asset)
+            and user.username != username
+        ):
+            raise exceptions.PermissionDenied()
+
+        if not username:
+            raise serializers.ValidationError({'username': t('This field is required')})
+
+        if user == self.asset.owner and username == self.asset.owner.username:
+            return Response(
+                {'detail': t("Owner's permissions cannot be deleted")},
+                status=status.HTTP_409_CONFLICT,
+            )
+
+        with transaction.atomic():
+            ObjectPermission.objects.filter(
+                asset=self.asset, user__username=username
+            ).delete()
+            AssetUserPartialPermission.objects.filter(
+                asset=self.asset, user__username=username
+            ).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
         detail=False,
@@ -268,19 +302,6 @@ class AssetPermissionAssignmentViewSet(
         # see all permissions.
         return self.list(request, *args, **kwargs)
 
-    @action(
-        detail=True,
-        methods=['DELETE'],
-        url_path='delete-all',
-    )
-    def delete_all(self, request, *args, **kwargs):
-        object_permission = self.get_object()
-        user = object_permission.user
-        with transaction.atomic():
-            response = self.destroy(request, *args, **kwargs)
-            if response.status_code == status.HTTP_204_NO_CONTENT:
-                self.asset.remove_perm(user, PERM_ADD_SUBMISSIONS)
-        return response
 
     def destroy(self, request, *args, **kwargs):
         object_permission = self.get_object()

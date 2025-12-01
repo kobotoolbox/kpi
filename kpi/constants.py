@@ -149,3 +149,58 @@ PROJECT_HISTORY_LOG_METADATA_FIELD_NEW = 'new'
 PROJECT_HISTORY_LOG_METADATA_FIELD_OLD = 'old'
 PROJECT_HISTORY_LOG_METADATA_FIELD_ADDED = 'added'
 PROJECT_HISTORY_LOG_METADATA_FIELD_REMOVED = 'removed'
+
+API_NAMESPACES = {
+    'v1': None,
+    'v2': 'api_v2',
+    'default': 'api_v2',
+}
+
+SAFE_INLINE_MIMETYPES = {
+    # images (no svg)
+    'image/png',
+    'image/jpeg',
+    'image/webp',
+    'image/avif',
+    'image/gif',
+    'image/bmp',
+    'image/x-ms-bmp',
+    'image/tiff',
+    'image/jp2',
+    'image/x-icon',
+    'image/vnd.wap.wbmp',
+    # audio
+    'audio/mpeg',
+    'audio/mp3',
+    'audio/mp4',
+    'audio/aac',
+    'audio/aac-adts',
+    'audio/m4a',
+    'audio/wav',
+    'audio/x-wav',
+    'audio/aiff',
+    'audio/x-aiff',
+    'audio/ogg',
+    'audio/flac',
+    'audio/webm',
+    'audio/amr',
+    'audio/amr-wb',
+    'audio/vnd.wave',
+    # video
+    'video/mp4',
+    'video/webm',
+    'video/ogg',
+    'video/quicktime',
+    'video/mov',
+    'video/x-m4v',
+    'video/mpeg',
+    'video/3gpp',
+    'video/x-msvideo',
+    'video/x-ms-wmv',
+}
+
+# MIME types not supported inline by browsers, fallback to JPEG conversion
+UNSUPPORTED_INLINE_MIMETYPES = [
+    'image/heic',
+    'image/heif',
+]

@@ -11,6 +11,7 @@ import LibrarySidebar from '#/components/library/librarySidebar'
 import HelpBubble from '#/components/support/helpBubble'
 import envStore from '#/envStore'
 import pageState from '#/pageState.store'
+import RequireAuth from '#/router/requireAuth'
 import { PROJECTS_ROUTES, ROUTES } from '#/router/routerConstants'
 import { COMMON_QUERIES, MODAL_TYPES } from '../constants'
 import SidebarFormsList from '../lists/sidebarForms'
@@ -160,7 +161,9 @@ const Drawer = observer(
 
             {this.isAccount() && (
               <Suspense fallback={null}>
-                <AccountSidebar />
+                <RequireAuth>
+                  <AccountSidebar />
+                </RequireAuth>
               </Suspense>
             )}
 

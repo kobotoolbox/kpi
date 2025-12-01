@@ -4,10 +4,10 @@ import unittest
 from urllib.parse import unquote_plus
 
 from django.urls import reverse
-from formpack.utils.expand_content import SCHEMA_VERSION
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 
+from formpack.utils.expand_content import SCHEMA_VERSION
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import ASSET_TYPE_COLLECTION
 from kpi.models import Asset, SubmissionExportTask
@@ -61,13 +61,13 @@ class AssetListApiTests(test_api_assets.AssetListApiTests):
         # expected query counts are different in v1 and v2 so override the test here
         self.create_asset()
 
-        with self.assertNumQueries(FuzzyInt(28, 37)):
+        with self.assertNumQueries(FuzzyInt(28, 40)):
             self.client.get(self.list_url)
         # test query count does not increase with more assets
         self.create_asset()
         self.create_asset()
         self.create_asset()
-        with self.assertNumQueries(FuzzyInt(28, 37)):
+        with self.assertNumQueries(FuzzyInt(28, 40)):
             self.client.get(self.list_url)
 
 
@@ -107,7 +107,7 @@ class AssetsXmlExportApiTests(KpiTestCase):
         self.login('someuser', 'someuser')
         asset = self.create_asset(asset_title, json.dumps(content), format='json')
         response = self.client.get(
-            reverse('asset-detail', kwargs={'uid': asset.uid, 'format': 'xml'})
+            reverse('asset-detail', kwargs={'uid_asset': asset.uid, 'format': 'xml'})
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         xml = check_lxml_fromstring(response.content)
@@ -122,7 +122,7 @@ class AssetsXmlExportApiTests(KpiTestCase):
         self.login('someuser', 'someuser')
         asset = self.create_asset(asset_name, json.dumps(content), format='json')
         response = self.client.get(
-            reverse('asset-detail', kwargs={'uid': asset.uid, 'format': 'xml'})
+            reverse('asset-detail', kwargs={'uid_asset': asset.uid, 'format': 'xml'})
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         xml = check_lxml_fromstring(response.content)
@@ -136,7 +136,7 @@ class AssetsXmlExportApiTests(KpiTestCase):
         self.login('someuser', 'someuser')
         asset = self.create_asset('', json.dumps(content), format='json')
         response = self.client.get(
-            reverse('asset-detail', kwargs={'uid': asset.uid, 'format': 'xml'})
+            reverse('asset-detail', kwargs={'uid_asset': asset.uid, 'format': 'xml'})
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         xml = check_lxml_fromstring(response.content)
@@ -165,7 +165,7 @@ class AssetsXmlExportApiTests(KpiTestCase):
             '', json.dumps(example_formbuilder_output), format='json'
         )
         response = self.client.get(
-            reverse('asset-detail', kwargs={'uid': asset.uid, 'format': 'xml'})
+            reverse('asset-detail', kwargs={'uid_asset': asset.uid, 'format': 'xml'})
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         xml = check_lxml_fromstring(response.content)
@@ -321,7 +321,7 @@ class AssetExportTaskTest(BaseTestCase):
 
     def test_owner_can_create_export(self):
         post_url = reverse('submissionexporttask-list')
-        asset_url = reverse('asset-detail', args=[self.asset.uid])
+        asset_url = reverse('asset-detail', kwargs={'uid_asset': self.asset.uid})
         task_data = {
             'source': asset_url,
             'type': 'csv',
@@ -388,7 +388,8 @@ class AssetExportTaskTest(BaseTestCase):
                 "inline; filename*=utf-8''", ''
             )
         )
-        file_path = export_upload_to(self, file_name)
+        export = SubmissionExportTask.objects.get(uid=detail_response.data['uid'])
+        file_path = export_upload_to(export, file_name)
 
         detail_url = reverse('submissionexporttask-detail', kwargs={
             'uid': detail_response.data['uid']

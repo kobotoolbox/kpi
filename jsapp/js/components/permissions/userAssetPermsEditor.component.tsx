@@ -16,7 +16,7 @@ import { KEY_CODES } from '#/constants'
 import type { AssetResponse, PermissionBase, PermissionResponse } from '#/dataInterface'
 import userExistence from '#/users/userExistence.store'
 import { ANON_USERNAME, buildUserUrl } from '#/users/utils'
-import { notify } from '#/utils'
+import { notify, recordEntries } from '#/utils'
 import { CHECKBOX_DISABLED_SUFFIX, CHECKBOX_NAMES, CHECKBOX_PERM_PAIRS } from './permConstants'
 import type {
   CheckboxNameAll,
@@ -255,7 +255,7 @@ export default class UserAssetPermsEditor extends React.Component<
    */
   isSubmitEnabled() {
     let isAnyCheckboxChecked = false
-    for (const [, checkboxName] of Object.entries(CHECKBOX_NAMES)) {
+    for (const [, checkboxName] of recordEntries(CHECKBOX_NAMES)) {
       if (this.state[checkboxName] === true) {
         isAnyCheckboxChecked = true
       }
@@ -360,7 +360,7 @@ export default class UserAssetPermsEditor extends React.Component<
     const foundAsset = assetStore.getAsset(this.props.asset.uid)
     if (foundAsset?.content?.survey) {
       const flatPaths = getSurveyFlatPaths(foundAsset.content?.survey, false, true)
-      for (const [, path] of Object.entries(flatPaths)) {
+      for (const [, path] of recordEntries(flatPaths)) {
         output.push({
           value: path,
           label: path,

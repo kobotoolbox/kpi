@@ -161,7 +161,6 @@ document.addEventListener('DOMContentLoaded', () => {
     requestInterceptor,
     responseInterceptor,
     ...swaggerSettings,
-    filter: true,
   })
 
   if (oauth2Config && Object.keys(oauth2Config).length > 0) {

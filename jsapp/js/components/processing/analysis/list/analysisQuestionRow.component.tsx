@@ -14,9 +14,9 @@ import type { FailResponse } from '#/dataInterface'
 import AnalysisQuestionsContext from '../analysisQuestions.context'
 import type { AnalysisQuestionBase } from '../constants'
 import AnalysisQuestionEditor from '../editors/analysisQuestionEditor.component'
-import CommonHeader from '../responseForms/commonHeader.component'
 import IntegerResponseForm from '../responseForms/integerResponseForm.component'
 import KeywordSearchResponseForm from '../responseForms/keywordSearchResponseForm.component'
+import ResponseWrapper from '../responseForms/responseWrapper.component'
 import SelectMultipleResponseForm from '../responseForms/selectMultipleResponseForm.component'
 import SelectOneResponseForm from '../responseForms/selectOneResponseForm.component'
 import TagsResponseForm from '../responseForms/tagsResponseForm.component'
@@ -190,7 +190,7 @@ export default function AnalysisQuestionRow(props: AnalysisQuestionRowProps) {
           case 'qual_note': {
             // This question type doesn't have any response, so we display just
             // the header
-            return <CommonHeader uuid={item.uuid} />
+            return <ResponseWrapper uuid={item.uuid} />
           }
           case 'qual_select_multiple': {
             return <SelectMultipleResponseForm uuid={item.uuid} canEdit={hasEditSubmissionsPermissions} />

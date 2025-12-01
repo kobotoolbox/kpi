@@ -1,10 +1,10 @@
 import React from 'react'
 
 import { Navigate, Route } from 'react-router-dom'
+import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
 import { RequireOrgPermissions } from '#/router/RequireOrgPermissions.component'
 import RequireAuth from '#/router/requireAuth'
 import { PROJECTS_ROUTES } from '#/router/routerConstants'
-import { OrganizationUserRole } from '../account/organization/organizationQuery'
 
 const MyProjectsRoute = React.lazy(() => import(/* webpackPrefetch: true */ './myProjectsRoute'))
 const MyOrgProjectsRoute = React.lazy(() => import(/* webpackPrefetch: true */ './myOrgProjectsRoute'))
@@ -27,7 +27,7 @@ export default function routes() {
         element={
           <RequireAuth>
             <RequireOrgPermissions
-              validRoles={[OrganizationUserRole.owner, OrganizationUserRole.admin]}
+              validRoles={[MemberRoleEnum.owner, MemberRoleEnum.admin]}
               mmoOnly
               redirectRoute={PROJECTS_ROUTES.MY_PROJECTS}
             >

@@ -3,6 +3,7 @@ from __future__ import annotations
 from constance import config
 from django.conf import settings
 from django.contrib import admin, messages
+from django.contrib.admin import SimpleListFilter
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import UserChangeForm as DjangoUserChangeForm
 from django.contrib.auth.forms import UserCreationForm as DjangoUserCreationForm
@@ -13,19 +14,19 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 
-from kobo.apps.accounts.mfa.models import MfaMethod
+from kobo.apps.accounts.mfa.models import MfaMethodsWrapper
 from kobo.apps.accounts.validators import (
     USERNAME_INVALID_MESSAGE,
     USERNAME_MAX_LENGTH,
     username_validators,
 )
+from kobo.apps.mass_emails.user_queries import get_inactive_users
 from kobo.apps.openrosa.apps.logger.models import MonthlyXFormSubmissionCounter
 from kobo.apps.organizations.models import OrganizationUser
 from kobo.apps.trash_bin.exceptions import TrashIntegrityError
 from kobo.apps.trash_bin.models.account import AccountTrash
 from kobo.apps.trash_bin.utils import move_to_trash
 from kpi.models.asset import AssetDeploymentStatus
-
 from .filters import UserAdvancedSearchFilter
 from .mixins import AdvancedSearchMixin
 
@@ -35,7 +36,7 @@ def validate_superuser_auth(obj) -> bool:
         obj.is_superuser
         and config.SUPERUSER_AUTH_ENFORCEMENT
         and obj.has_usable_password()
-        and not MfaMethod.objects.filter(user=obj, is_active=True).exists()
+        and not MfaMethodsWrapper.objects.filter(user=obj, is_active=True).exists()
     ):
         return False
     return True
@@ -113,6 +114,35 @@ class OrgInline(admin.StackedInline):
     active_subscription_status.short_description = 'Active Subscription'
 
 
+class InactiveUsersAsOfFilter(SimpleListFilter):
+    title = 'Inactive since'
+    parameter_name = 'inactive_preset'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('90', 'Inactive > 90 days'),
+            ('180', 'Inactive > 180 days'),
+            ('365', 'Inactive > 365 days'),
+            ('730', 'Inactive > 730 days'),
+        )
+
+    def queryset(self, request, queryset):
+        if not request.user.is_superuser:
+            return queryset
+
+        val = self.value()
+        if not val:
+            return queryset
+
+        try:
+            days = int(val)
+        except (TypeError, ValueError):
+            return queryset
+
+        inactive_qs = get_inactive_users(days)
+        return queryset.filter(pk__in=inactive_qs.values_list('pk', flat=True))
+
+
 class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
     """
     Deleting users used to a two-step process since KPI and KoBoCAT
@@ -145,6 +175,7 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
     )
     list_filter = (
         UserAdvancedSearchFilter,
+        InactiveUsersAsOfFilter,
         'is_active',
         'is_superuser',
         'date_joined',
@@ -165,7 +196,7 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
             {'fields': ('deployed_forms_count', 'monthly_submission_count')},
         ),
     )
-    actions = ['remove', 'delete']
+    actions = ['remove', 'delete', 'mark_inactive']
 
     class Media:
         css = {'all': ('admin/css/inline_as_fieldset.css',)}
@@ -197,6 +228,18 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
         users = list(queryset.values('pk', 'username'))
         self._remove_or_delete(
             request, users=users, grace_period=0, retain_placeholder=False
+        )
+
+    @admin.action(description='Mark selected users inactive')
+    def mark_inactive(self, request, queryset, **kwargs):
+        """
+        Mark selected users as inactive
+        """
+        updated_count = queryset.update(is_active=False)
+        self.message_user(
+            request,
+            f'{updated_count} user(s) marked inactive.',
+            level=messages.SUCCESS,
         )
 
     def deployed_forms_count(self, obj):

@@ -4,8 +4,6 @@ import { when } from 'mobx'
 import prettyBytes from 'pretty-bytes'
 import {
   type BaseProduct,
-  type ChangePlan,
-  ChangePlanStatus,
   type Checkout,
   type LimitAmount,
   Limits,
@@ -13,7 +11,6 @@ import {
   type Product,
   SubscriptionChangeType,
   type SubscriptionInfo,
-  type TransformQuantity,
   USAGE_TYPE,
 } from '#/account/stripe.types'
 import subscriptionStore from '#/account/subscriptionStore'
@@ -67,26 +64,6 @@ export function processCheckoutResponse(data: Checkout) {
   }
 }
 
-export async function processChangePlanResponse(data: ChangePlan) {
-  switch (data.status) {
-    case ChangePlanStatus.success:
-    case ChangePlanStatus.scheduled:
-      notify.success(t('Success! Your subscription will change at the end of the current billing period.'), {
-        duration: 10000,
-      })
-      /**
-        Wait a bit for the Stripe webhook to (hopefully) complete and the subscription list to update.
-        We do this for 90% of use cases, since we can't tell on the frontend when the webhook has completed.
-      */
-      await new Promise((resolve) => setTimeout(resolve, 3000))
-      window.location.reload()
-      break
-    default:
-      break
-  }
-  return data.status
-}
-
 /**
  * Check if any of a list of subscriptions are scheduled to change to a given price at some point.
  */
@@ -135,11 +112,7 @@ export const getSubscriptionChangeDetails = (currentPlan: SubscriptionInfo | nul
         nextProduct = product
         date = convertUnixTimestampToUtc(currentPlan.schedule.phases[0].end_date!)
         if (nextProduct.id === currentPlan.items[0].price.product.id) {
-          if (currentPlan.quantity !== nextPhaseItem.quantity) {
-            type = SubscriptionChangeType.QUANTITY_CHANGE
-          } else {
-            type = SubscriptionChangeType.PRICE_CHANGE
-          }
+          type = SubscriptionChangeType.PRICE_CHANGE
         } else {
           type = SubscriptionChangeType.PRODUCT_CHANGE
         }
@@ -154,38 +127,14 @@ export const getSubscriptionChangeDetails = (currentPlan: SubscriptionInfo | nul
 }
 
 /**
- * Takes a Stripe quantity (representing a total number of submissions included with a plan)
- * and returns the transformed quantity. The total price of the transaction can be
- * found by (transformed quantity x price unit amount).
- * @param baseQuantity - the `quantity` field of the subscription in Stripe (total submission limit)
- * @param transform - the `transform_quantity` field of the price
+ * Tests whether a new price would cost less than the user's current subscription.
  */
-export const getAdjustedQuantityForPrice = (baseQuantity: number, transform: TransformQuantity | null) => {
-  let adjustedQuantity = baseQuantity
-  if (transform?.divide_by) {
-    adjustedQuantity /= transform.divide_by
-  }
-  if (transform?.round === 'up') {
-    adjustedQuantity = Math.ceil(adjustedQuantity)
-  }
-  if (transform?.round === 'down') {
-    adjustedQuantity = Math.floor(adjustedQuantity)
-  }
-  return adjustedQuantity
-}
-
-/**
- * Tests whether a new price/quantity would cost less than the user's current subscription.
- */
-export const isDowngrade = (currentSubscriptions: SubscriptionInfo[], price: Price, newQuantity: number) => {
+export const isDowngrade = (currentSubscriptions: SubscriptionInfo[], newPrice: Price) => {
   if (!currentSubscriptions.length) {
     return false
   }
-  const subscriptionItem = currentSubscriptions[0].items[0]
-  const currentTotalPrice =
-    subscriptionItem.price.unit_amount *
-    getAdjustedQuantityForPrice(subscriptionItem.quantity, subscriptionItem.price.transform_quantity)
-  const newTotalPrice = price.unit_amount * getAdjustedQuantityForPrice(newQuantity, price.transform_quantity)
+  const currentTotalPrice = currentSubscriptions[0].items[0].price.unit_amount
+  const newTotalPrice = newPrice.unit_amount
   return currentTotalPrice > newTotalPrice
 }
 

@@ -10,6 +10,10 @@ from kpi.utils.log import logging
 
 class ExtendedFieldFile(FieldFile):
 
+    def __init__(self, instance, field, name):
+        super().__init__(instance, field, name)
+        self._raw_filename = os.path.basename(name) if name else None
+
     def move(self, target_folder: str, reraise_errors: bool = False) -> bool:
 
         old_path = self.name

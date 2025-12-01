@@ -24,13 +24,11 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4.3.1
+        uses: aws-actions/configure-aws-credentials@v5.1.0
         with:
-          aws-access-key-id: ${{ secrets.GHA_ALL_REPOS_ACCESS_KEY }}
-          aws-secret-access-key: ${{ secrets.GHA_ALL_REPOS_SECRET_KEY }}
           aws-region: us-east-1
           role-to-assume: "arn:aws:iam::917503078660:role/gha_all_repos"
           role-duration-seconds: 2200
@@ -38,8 +36,8 @@ jobs:
 
       - uses: alexellis/arkade-get@master # https://github.com/alexellis/arkade-get?tab=readme-ov-file#why-do-we-use-use-master
         with:
-          kubectl: latest
-          helm: latest
+          kubectl: ${{ vars.KUBECTL_VERSION }}
+          helm: ${{ vars.HELM_VERSION }}
 
       - name: Update kubeconfig
         run: |

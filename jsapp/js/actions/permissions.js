@@ -94,12 +94,13 @@ permissionsActions.assignAssetPermission.listen((assetUid, perm) => {
  * @param {string} assetUid
  * @param {string} perm - permission url
  * @param {boolean} removeAll - set to true to remove all permissions. Defaults to removing a single permission.
+ * @param {boolean} isNonOwner
  */
-permissionsActions.removeAssetPermission.listen((assetUid, perm, removeAll, isNonOwner) => {
+permissionsActions.removeAssetPermission.listen((assetUid, perm, removeAll, isNonOwner, username) => {
   let removalPromise
 
   if (removeAll) {
-    removalPromise = dataInterface.removeAllPermissions(perm)
+    removalPromise = dataInterface.removeAllPermissions(assetUid, username)
   } else {
     removalPromise = dataInterface.removePermission(perm)
   }

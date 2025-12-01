@@ -13,8 +13,9 @@ from kpi.models.import_export_task import (
     ImportExportStatusChoices,
     ProjectHistoryLogExportTask,
 )
-from kpi.paginators import FastPagination, Paginated
+from kpi.paginators import FastPagination, NoCountPagination, Paginated
 from kpi.permissions import IsAuthenticated
+from kpi.renderers import BasicHTMLRenderer
 from kpi.tasks import export_task_in_background
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import (
@@ -29,6 +30,7 @@ from .schema_extensions.v2.access_logs.serializers import (
     AccessLogResponse,
     ExportCreateResponse,
     ExportListResponse,
+    SuperUserAccessLogResponse,
 )
 from .schema_extensions.v2.audit_logs.serializers import (
     AuditLogResponse,
@@ -48,7 +50,7 @@ from .serializers import (
 
 
 @extend_schema(
-    tags=['Audit Logs'],
+    tags=['Server logs (superusers)'],
 )
 @extend_schema_view(
     list=extend_schema(
@@ -88,15 +90,15 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         'model_name__icontains',
         'metadata__icontains',
     ]
-    pagination_class = FastPagination
+    pagination_class = NoCountPagination
 
 
 @extend_schema_view(
     list=extend_schema(
-        tags=['Access Logs'],
+        tags=['Server logs (superusers)'],
         description=read_md('audit_log', 'access_logs/list'),
         responses=open_api_200_ok_response(
-            AccessLogResponse,
+            SuperUserAccessLogResponse,
             require_auth=False,
             validate_payload=False,
             raise_not_found=False,
@@ -115,12 +117,11 @@ class AllAccessLogViewSet(AuditLogViewSet):
     """
     queryset = AccessLog.objects.with_submissions_grouped().order_by('-date_created')
     serializer_class = AccessLogSerializer
-    pagination_class = Paginated
 
 
 @extend_schema_view(
     list=extend_schema(
-        tags=['Access Logs'],
+        tags=['Logging'],
         description=read_md('audit_log', 'access_logs/me/list'),
         responses=open_api_200_ok_response(
             AccessLogResponse,
@@ -156,7 +157,7 @@ class AccessLogViewSet(AuditLogViewSet):
             require_auth=False,
             validate_payload=False,
         ),
-        tags=['Project History Logs'],
+        tags=['Server logs (superusers)'],
     )
 )
 class AllProjectHistoryLogViewSet(AuditLogViewSet):
@@ -164,9 +165,9 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
     ViewSet for managing the all projects history
 
     Available actions:
-    - list        → GET  /api/v2/asset/project-history-logs/
-    - export        → GET  /api/v2/asset/project-history-logs/export/
-    - export        → POST /api/v2/asset/project-history-logs/export/
+    - list        → GET  /api/v2/project-history-logs/
+    - export        → GET  /api/v2/project-history-logs/export/
+    - export        → POST /api/v2/project-history-logs/export/
 
     Documentation:
     - docs/api/v2/project-history-log/list.md
@@ -187,7 +188,7 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
             require_auth=False,
             validate_payload=False,
         ),
-        tags=['Project History Logs'],
+        tags=['Server logs (superusers)'],
     )
     @extend_schema(
         methods=['POST'],
@@ -200,7 +201,7 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
             require_auth=False,
             validate_payload=False,
         ),
-        tags=['Project History Logs'],
+        tags=['Server logs (superusers)'],
     )
     @action(detail=False, methods=['GET', 'POST'])
     def export(self, request, *args, **kwargs):
@@ -240,10 +241,10 @@ class AllProjectHistoryLogViewSet(AuditLogViewSet):
 
 
 @extend_schema(
-    tags=['History'],
+    tags=['Logging'],
     parameters=[
         OpenApiParameter(
-            name='parent_lookup_asset',
+            name='uid_asset',
             type=str,
             location=OpenApiParameter.PATH,
             required=True,
@@ -285,9 +286,9 @@ class ProjectHistoryLogViewSet(
     ViewSet for managing the current project's history
 
     Available actions:
-    - action        → GET   /api/v2/asset/{parent_lookup_asset}/history/action/
-    - export        → POST  /api/v2/asset/{parent_lookup_asset}/history/
-    - list          → GET   /api/v2/asset/{parent_lookup_asset}/history/
+    - action        → GET   /api/v2/assets/{uid_asset}/history/action/
+    - export        → POST  /api/v2/assets/{uid_asset}/history/
+    - list          → GET   /api/v2/assets/{uid_asset}/history/
 
     Documentation:
     - docs/api/v2/history/action.md
@@ -299,6 +300,7 @@ class ProjectHistoryLogViewSet(
     model = ProjectHistoryLog
     permission_classes = (ViewProjectHistoryLogsPermission,)
     lookup_field = 'uid'
+    pagination_class = FastPagination
 
     def get_queryset(self):
         return self.model.objects.filter(metadata__asset_uid=self.asset_uid).order_by(
@@ -368,7 +370,10 @@ class BaseAccessLogsExportViewSet(viewsets.ViewSet):
     # the schema, even if the viewset doesn’t override the renderers or return content
     # that would need them. Without this, it falls back to the default DRF settings,
     # which may not reflect the actual behavior of the viewset.
-    renderer_classes = (JSONRenderer,)
+    renderer_classes = (
+        JSONRenderer,
+        BasicHTMLRenderer,
+    )
 
     def create_task(self, request, get_all_logs):
 
@@ -407,7 +412,7 @@ class BaseAccessLogsExportViewSet(viewsets.ViewSet):
 
 
 @extend_schema(
-    tags=['Access Logs'],
+    tags=['Logging'],
 )
 @extend_schema_view(
     list=extend_schema(
@@ -465,7 +470,7 @@ class AccessLogsExportViewSet(BaseAccessLogsExportViewSet):
 
 
 @extend_schema(
-    tags=['Access Logs'],
+    tags=['Server logs (superusers)'],
 )
 @extend_schema_view(
     list=extend_schema(

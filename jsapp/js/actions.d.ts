@@ -184,10 +184,25 @@ interface SetAssetPublicDefinition extends Function {
   completed: SetAssetPublicCompletedDefinition
   failed: GenericFailedDefinition
 }
-
 interface SetAssetPublicCompletedDefinition extends Function {
   (assetUid: string, shouldSetAnonPerms: boolean): void
   listen: (callback: (assetUid: string, shouldSetAnonPerms: boolean) => void) => Function
+}
+
+interface RemoveAssetPermissionDefinition extends Function {
+  (
+    assetUid: string,
+    perm: string | undefined,
+    removeAll: boolean | undefined,
+    isNonOwner: boolean | undefined,
+    username: string | undefined,
+  ): void
+  completed: RemoveAssetPermissionCompletedDefinition
+  failed: GenericFailedDefinition
+}
+interface RemoveAssetPermissionCompletedDefinition extends Function {
+  (assetUid: string, isNonOwner: boolean | undefined): void
+  listen: (callback: (assetUid: string, isNonOwner: boolean | undefined) => void) => Function
 }
 
 interface ReportsSetStyleDefinition extends Function {
@@ -317,7 +332,7 @@ export namespace actions {
   const permissions: {
     getConfig: GenericDefinition
     copyPermissionsFrom: GenericDefinition
-    removeAssetPermission: GenericDefinition
+    removeAssetPermission: RemoveAssetPermissionDefinition
     assignAssetPermission: GenericDefinition
     bulkSetAssetPermissions: GenericDefinition
     getAssetPermissions: GenericDefinition
@@ -350,5 +365,13 @@ export namespace actions {
     createExportSetting: GenericDefinition
     deleteExportSetting: GenericDefinition
   }
-  const dataShare: object
+  const dataShare: {
+    attachToSource: GenericDefinition
+    detachSource: GenericDefinition
+    getAttachedSources: GenericDefinition
+    getSharingEnabledAssets: GenericDefinition
+    patchSource: GenericDefinition
+    toggleDataSharing: GenericDefinition
+    updateColumnFilters: GenericDefinition
+  }
 }

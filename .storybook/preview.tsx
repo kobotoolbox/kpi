@@ -7,10 +7,12 @@ import * as mswAddon from 'msw-storybook-addon'
 import { useEffect } from 'react'
 import { DARK_MODE_EVENT_NAME } from 'storybook-dark-mode'
 import { addons } from 'storybook/preview-api'
+import environmentMock from '#/endpoints/environment.mocks'
+import meMock from '#/endpoints/me.mocks'
 import { themeKobo } from '../jsapp/js/theme'
 
 // Imported with `as` to avoid having confusing `initialize` (i.e. what does it initialize?)
-mswAddon.initialize()
+const worker = mswAddon.initialize({}, [meMock, environmentMock])
 
 const channel = addons.getChannel()
 

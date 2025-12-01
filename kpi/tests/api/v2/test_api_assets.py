@@ -419,18 +419,18 @@ class AssetListApiTests(BaseAssetTestCase):
     def test_query_counts(self):
         self.create_asset()
         # 45 when stripe is disabled, 46 when enabled
-        with self.assertNumQueries(FuzzyInt(42, 51)):
+        with self.assertNumQueries(FuzzyInt(36, 45)):
             self.client.get(self.list_url)
         # test query count does not increase with more assets
         # add several assets so the fuzziness of the count doesn't hide an O(n) addition
         self.create_asset()
         self.create_asset()
         self.create_asset()
-        with self.assertNumQueries(FuzzyInt(42, 51)):
+        with self.assertNumQueries(FuzzyInt(36, 45)):
             self.client.get(self.list_url)
 
         # test query counts with search filter
-        with self.assertNumQueries(FuzzyInt(42, 51)):
+        with self.assertNumQueries(FuzzyInt(36, 45)):
             self.client.get(self.list_url, data={'q': 'asset_type:survey'})
 
 
@@ -869,6 +869,30 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         response = self.client.get(reports_url)
         assert response.status_code == status.HTTP_200_OK
 
+    def test_shared_user_can_modify_advanced_features(self):
+        creation_response = self.create_asset()
+        asset_detail_url = creation_response.data['url']
+        asset = Asset.objects.get(uid=creation_response.data['uid'])
+        asset.assign_perm(self.anotheruser, PERM_VIEW_ASSET)
+        self.client.force_login(self.anotheruser)
+        data = {
+            'advanced_features': {
+                'transcript': {'languages': ['en']},
+                'translation': {'languages': []},
+            },
+        }
+
+        response = self.client.patch(asset_detail_url, data, format='json')
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+        asset.assign_perm(self.anotheruser, PERM_CHANGE_SUBMISSIONS)
+        response = self.client.patch(asset_detail_url, data, format='json')
+        assert response.status_code == status.HTTP_200_OK
+
+        data['name'] = 'new name'
+        response = self.client.patch(asset_detail_url, data, format='json')
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
     def _sorted_dict(self, dict_):
         """
         Ensure that nested lists inside a dictionary are always sorted
@@ -1165,7 +1189,7 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
     def test_report_submissions(self):
         # Prepare the mock data
         report_url = reverse(
-            self._get_endpoint('asset-reports'), kwargs={'uid': self.asset_uid}
+            self._get_endpoint('asset-reports'), kwargs={'uid_asset': self.asset_uid}
         )
         anotheruser = User.objects.get(username='anotheruser')
         self.asset.content = {
@@ -1855,8 +1879,9 @@ class AssetFileTest(AssetFileTestCaseMixin, BaseTestCase):
 class AssetDeploymentTest(BaseAssetDetailTestCase):
 
     def test_asset_deployment(self):
-        deployment_url = reverse(self._get_endpoint('asset-deployment'),
-                                 kwargs={'uid': self.asset_uid})
+        deployment_url = reverse(
+            self._get_endpoint('asset-deployment'), kwargs={'uid_asset': self.asset_uid}
+        )
 
         response1 = self.client.post(deployment_url, {
             'backend': 'mock',
@@ -1908,7 +1933,7 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
         asset_uid = asset_response.data.get('uid')
 
         deployment_url = reverse(
-            self._get_endpoint('asset-deployment'), kwargs={'uid': asset_uid}
+            self._get_endpoint('asset-deployment'), kwargs={'uid_asset': asset_uid}
         )
 
         deploy_response = self.client.post(
@@ -1959,7 +1984,7 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
         asset_uid = asset_response.data.get('uid')
 
         deployment_url = reverse(
-            self._get_endpoint('asset-deployment'), kwargs={'uid': asset_uid}
+            self._get_endpoint('asset-deployment'), kwargs={'uid_asset': asset_uid}
         )
 
         deploy_response = self.client.post(
@@ -2021,7 +2046,7 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
         asset = Asset.objects.get(uid=asset_response.data.get('uid'))
 
         deployment_url = reverse(
-            self._get_endpoint('asset-deployment'), kwargs={'uid': asset.uid}
+            self._get_endpoint('asset-deployment'), kwargs={'uid_asset': asset.uid}
         )
 
         deploy_response = self.client.post(
@@ -2053,8 +2078,9 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
         self.asset.refresh_from_db()
         version_id = asset_response.data['version_id']
 
-        deployment_url = reverse(self._get_endpoint('asset-deployment'),
-                                 kwargs={'uid': self.asset_uid})
+        deployment_url = reverse(
+            self._get_endpoint('asset-deployment'), kwargs={'uid_asset': self.asset_uid}
+        )
 
         # We cannot `POST` to redeploy...
         redeploy_response = self.client.post(deployment_url, {
@@ -2129,7 +2155,7 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
         # without creating a new `AssetVersion`
         deployment_url = reverse(
             self._get_endpoint('asset-deployment'),
-            kwargs={'uid': self.asset_uid},
+            kwargs={'uid_asset': self.asset_uid},
         )
         before = timezone.now()
         redeploy_response = self.client.patch(
@@ -2162,8 +2188,9 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
     def test_archive_asset(self):
         self.test_asset_deployment()
 
-        deployment_url = reverse(self._get_endpoint('asset-deployment'),
-                                 kwargs={'uid': self.asset_uid})
+        deployment_url = reverse(
+            self._get_endpoint('asset-deployment'), kwargs={'uid_asset': self.asset_uid}
+        )
 
         response1 = self.client.patch(deployment_url, {
             'backend': 'mock',
@@ -2188,9 +2215,9 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
         self.asset.refresh_from_db()
         original_date_deployed = self.asset.date_deployed
 
-        deployment_url = reverse(self._get_endpoint('asset-deployment'),
-                                 kwargs={'uid': self.asset_uid})
-
+        deployment_url = reverse(
+            self._get_endpoint('asset-deployment'), kwargs={'uid_asset': self.asset_uid}
+        )
 
         # archive
         response = self.client.patch(deployment_url, {
