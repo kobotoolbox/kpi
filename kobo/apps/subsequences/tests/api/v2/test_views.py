@@ -27,11 +27,11 @@ class QuestionAdvancedFeatureViewSetTestCase(BaseTestCase):
         )
         self.list_actions_url = reverse(
             'api_v2:advanced-features-list',
-            kwargs={'parent_lookup_asset': self.asset.uid},
+            kwargs={'uid_asset': self.asset.uid},
         )
         self.action_detail_url = reverse(
             'api_v2:advanced-features-detail',
-            kwargs={'parent_lookup_asset': self.asset.uid, 'pk': self.action.uid},
+            kwargs={'uid_asset': self.asset.uid, 'pk': self.action.uid},
         )
         self.client = Client(raise_request_exception=False)
         self.client.force_login(user)

@@ -98,7 +98,7 @@ from kpi.utils.xml import (
             type=str,
             location=OpenApiParameter.PATH,
             required=True,
-            description='Asset identifier',
+            description='UID of the parent asset',
         ),
     ],
 )
@@ -111,11 +111,11 @@ from kpi.utils.xml import (
         ),
         parameters=[
             OpenApiParameter(
-                name='submission_id_or_root_uuid',
-                type=str,
+                name='id',
+                type=int,
                 location=OpenApiParameter.PATH,
                 required=True,
-                description='Submission identifier',
+                description='ID of the data',
             ),
         ],
     ),
@@ -130,11 +130,11 @@ from kpi.utils.xml import (
         ),
         parameters=[
             OpenApiParameter(
-                name='submission_id_or_root_uuid',
-                type=str,
+                name='id',
+                type=int,
                 location=OpenApiParameter.PATH,
                 required=True,
-                description='Submission identifier',
+                description='ID of the data',
             ),
         ],
     ),
@@ -159,11 +159,11 @@ from kpi.utils.xml import (
         ),
         parameters=[
             OpenApiParameter(
-                name='submission_id_or_root_uuid',
-                type=str,
+                name='id',
+                type=int,
                 location=OpenApiParameter.PATH,
                 required=True,
-                description='Submission identifier',
+                description='ID of the data',
             ),
         ],
     ),
@@ -177,24 +177,6 @@ class DataViewSet(
     Available actions:
     - bulk                  → DELETE /api/v2/assets/
     - bulk                  → PATCH /api/v2/asset_usage/
-<<<<<<< HEAD
-    - delete                → DELETE /api/v2/asset_usage/{parent_lookup_asset}/data/{submission_id_or_root_uuid}/
-    - duplicate             → POST /api/v2/asset_usage/{parent_lookup_asset}/data/duplicate/  # noqa
-    - list                  → GET /api/v2/asset_usage/{parent_lookup_asset}/data/
-    - retrieve              → GET /api/v2/asset_usage/{parent_lookup_asset}/data/{submission_id_or_root_uuid}/
-    - validation_status     → GET /api/v2/asset_usage/{parent_lookup_asset}/data/{submission_id_or_root_uuid}/validation_status/  # noqa
-    - validation_status     → DELETE /api/v2/asset_usage/{parent_lookup_asset}/data/{submission_id_or_root_uuid}/validation_status/  # noqa
-    - validation_status     → PATCH /api/v2/asset_usage/{parent_lookup_asset}/data/{submission_id_or_root_uuid}/validation_status/  # noqa
-    - validation_statuses   → DELETE /api/v2/asset_usage/{parent_lookup_asset}/data/{submission_id_or_root_uuid}/validation_statuses/  # noqa
-    - validation_statuses   → PATCH /api/v2/asset_usage/{parent_lookup_asset}/data/{submission_id_or_root_uuid}/validation_statuses/  # noqa
-    - enketo_edit           → GET /api/v2/assets/{parent_lookup_asset}/data/{submission_id_or_root_uuid}/edit/
-    - enketo_edit           → GET /api/v2/assets/{parent_lookup_asset}/data/{submission_id_or_root_uuid}/enketo/edit/
-    - enketo_edit           → GET /api/v2/assets/{parent_lookup_asset}/data/{submission_id_or_root_uuid}/enketo/redirect/edit/
-    - enketo_view           → GET /api/v2/assets/{parent_lookup_asset}/data/{submission_id_or_root_uuid}/enketo/view/
-    - enketo_view           → GET /api/v2/assets/{parent_lookup_asset}/data/{submission_id_or_root_uuid}/enketo/redirect/view/
-    - supplement            → GET /api/v2/assets/{parent_lookup_asset}/data/{submission_id_or_root_uuid}/supplement/
-    - supplement            → PATCH /api/v2/assets/{parent_lookup_asset}/data/{submission_id_or_root_uuid}/supplement/
-=======
     - delete                → DELETE /api/v2/asset_usage/{uid_asset}/data/{id}
     - duplicate             → POST /api/v2/asset_usage/{uid_asset}/data/duplicate  # noqa
     - list                  → GET /api/v2/asset_usage/{uid_asset}/data
@@ -209,7 +191,6 @@ class DataViewSet(
     - enketo_edit           → GET /api/v2/assets/{uid_asset}/data/{id}/enketo/redirect/edit/
     - enketo_view           → GET /api/v2/assets/{uid_asset}/data/{id}/enketo/view/
     - enketo_view           → GET /api/v2/assets/{uid_asset}/data/{id}/enketo/redirect/view/
->>>>>>> origin/main
 
     Documentation:
     - docs/api/v2/data/bulk_delete.md
@@ -240,7 +221,6 @@ class DataViewSet(
     pagination_class = DataPagination
     log_type = AuditType.PROJECT_HISTORY
     logged_fields = []
-    lookup_field = 'submission_id_or_root_uuid'
 
     @extend_schema(
         methods=['PATCH'],
@@ -274,10 +254,10 @@ class DataViewSet(
 
         return Response(**response)
 
-    def destroy(self, request, submission_id_or_root_uuid: int, *args, **kwargs):
+    def destroy(self, request, pk, *args, **kwargs):
         deployment = self._get_deployment()
-        # Coerce to int because the back-end only finds matches with the same type
-        submission_id = positive_int(submission_id_or_root_uuid)
+        # Coerce to int because back end only finds matches with the same type
+        submission_id = positive_int(pk)
 
         if deployment.delete_submission(submission_id, user=request.user):
             response = {
@@ -298,17 +278,15 @@ class DataViewSet(
         permission_classes=[DuplicateSubmissionPermission],
         renderer_classes=[renderers.JSONRenderer],
     )
-    def duplicate(self, request, submission_id_or_root_uuid: int, *args, **kwargs):
+    def duplicate(self, request, pk, *args, **kwargs):
         """
-        Creates a duplicate of the submission with a given `submission_id_or_root_uuid`
+        Creates a duplicate of the submission with a given `pk`
         """
         deployment = self._get_deployment()
-        # Coerce to int because the back-end only finds matches with the same type
-        submission_id = positive_int(submission_id_or_root_uuid)
+        # Coerce to int because the back end only finds matches with the same type
+        submission_id = positive_int(pk)
         original_submission = deployment.get_submission(
-            submission_id=submission_id,
-            user=request.user,
-            fields=['_id', '_uuid', 'meta/rootUuid'],
+            submission_id=submission_id, user=request.user, fields=['_id', '_uuid'],
         )
 
         with http_open_rosa_error_handler(
@@ -344,11 +322,11 @@ class DataViewSet(
         ),
         parameters=[
             OpenApiParameter(
-                name='submission_id_or_root_uuid',
-                type=str,
+                name='id',
+                type=int,
                 location=OpenApiParameter.PATH,
                 required=True,
-                description='Submission identifier',
+                description='ID of the data',
             ),
         ],
     )
@@ -359,8 +337,8 @@ class DataViewSet(
         url_path='enketo/edit',
         renderer_classes=[renderers.JSONRenderer],
     )
-    def enketo_edit(self, request, submission_id_or_root_uuid: int, *args, **kwargs):
-        submission_id = positive_int(submission_id_or_root_uuid)
+    def enketo_edit(self, request, pk, *args, **kwargs):
+        submission_id = positive_int(pk)
         enketo_response = self._get_enketo_link(request, submission_id, 'edit')
         if enketo_response.status_code in (
             status.HTTP_201_CREATED, status.HTTP_200_OK
@@ -380,11 +358,11 @@ class DataViewSet(
         ),
         parameters=[
             OpenApiParameter(
-                name='submission_id_or_root_uuid',
-                type=str,
+                name='id',
+                type=int,
                 location=OpenApiParameter.PATH,
                 required=True,
-                description='Submission `id` or `rootUuid`',
+                description='ID of the data',
             ),
         ],
     )
@@ -395,8 +373,8 @@ class DataViewSet(
         url_path='enketo/view',
         renderer_classes=[renderers.JSONRenderer],
     )
-    def enketo_view(self, request, submission_id_or_root_uuid: int, *args, **kwargs):
-        submission_id = positive_int(submission_id_or_root_uuid)
+    def enketo_view(self, request, pk, *args, **kwargs):
+        submission_id = positive_int(pk)
         enketo_response = self._get_enketo_link(request, submission_id, 'view')
         return self._handle_enketo_redirect(request, enketo_response, *args, **kwargs)
 
@@ -451,9 +429,7 @@ class DataViewSet(
 
         return Response(list(submissions))
 
-    def retrieve(
-        self, request, submission_id_or_root_uuid: Union[int, str], *args, **kwargs
-    ):
+    def retrieve(self, request, pk, *args, **kwargs):
         """
         Retrieve a submission by its primary key or its UUID.
 
@@ -470,11 +446,14 @@ class DataViewSet(
         }
         filters = self._filter_mongo_query(request)
 
+        # Unfortunately, Django expects that the URL parameter is `pk`,
+        # its name cannot be changed (easily).
+        submission_id_or_uuid = pk
         try:
-            submission_id_or_root_uuid = positive_int(submission_id_or_root_uuid)
+            submission_id_or_uuid = positive_int(pk)
         except ValueError:
             if not re.match(
-                r'[a-z\d]{8}-([a-z\d]{4}-){3}[a-z\d]{12}', submission_id_or_root_uuid
+                r'[a-z\d]{8}-([a-z\d]{4}-){3}[a-z\d]{12}', submission_id_or_uuid
             ):
                 raise Http404
 
@@ -484,10 +463,10 @@ class DataViewSet(
                 raise serializers.ValidationError(
                     {'query': t('Value must be valid JSON.')}
                 )
-            query['_uuid'] = submission_id_or_root_uuid
+            query['_uuid'] = submission_id_or_uuid
             filters['query'] = query
         else:
-            params['submission_ids'] = [submission_id_or_root_uuid]
+            params['submission_ids'] = [submission_id_or_uuid]
 
         # Join all parameters to be passed to `deployment.get_submissions()`
         params.update(filters)
@@ -505,7 +484,7 @@ class DataViewSet(
         responses=open_api_200_ok_response(DataSupplementResponse),  # TODO CHANGEME
         parameters=[
             OpenApiParameter(
-                name='submission_id_or_root_uuid',
+                name='pk',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
@@ -520,7 +499,7 @@ class DataViewSet(
         responses=open_api_200_ok_response(DataSupplementResponse),
         parameters=[
             OpenApiParameter(
-                name='submission_id_or_root_uuid',
+                name='pk',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
@@ -534,10 +513,10 @@ class DataViewSet(
         renderer_classes=[renderers.JSONRenderer],
         permission_classes=[AdvancedSubmissionPermission],
     )
-    def supplement(self, request, submission_id_or_root_uuid: str, *args, **kwargs):
+    def supplement(self, request, pk, *args, **kwargs):
 
         # make it clear, a root uuid is expected here
-        submission_root_uuid = submission_id_or_root_uuid
+        submission_root_uuid = pk
 
         deployment = self._get_deployment()
         try:
@@ -605,11 +584,11 @@ class DataViewSet(
         ),
         parameters=[
             OpenApiParameter(
-                name='submission_id_or_root_uuid',
-                type=str,
+                name='id',
+                type=int,
                 location=OpenApiParameter.PATH,
                 required=True,
-                description='Submission identifier',
+                description='ID of the data',
             ),
         ],
     )
@@ -625,11 +604,11 @@ class DataViewSet(
         ),
         parameters=[
             OpenApiParameter(
-                name='submission_id_or_root_uuid',
-                type=str,
+                name='id',
+                type=int,
                 location=OpenApiParameter.PATH,
                 required=True,
-                description='Submission identifier',
+                description='ID of the data',
             ),
         ],
     )
@@ -639,12 +618,10 @@ class DataViewSet(
         permission_classes=[SubmissionValidationStatusPermission],
         renderer_classes=[renderers.JSONRenderer],
     )
-    def validation_status(
-        self, request, submission_id_or_root_uuid: int, *args, **kwargs
-    ):
+    def validation_status(self, request, pk, *args, **kwargs):
         deployment = self._get_deployment()
-        # Coerce to int because the back-end only finds matches with the same type
-        submission_id = positive_int(submission_id_or_root_uuid)
+        # Coerce to int because the back end only finds matches with the same type
+        submission_id = positive_int(pk)
         if request.method == 'GET':
             json_response = deployment.get_validation_status(
                 submission_id=submission_id,

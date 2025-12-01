@@ -671,7 +671,7 @@ class ProjectHistoryLog(AuditLog):
 
     @classmethod
     def _create_from_submission_extra_request(cls, request):
-        s_uuid = request.resolver_match.kwargs['submission_id_or_root_uuid']
+        s_uuid = request.resolver_match.kwargs['pk']
         # have to fetch the instance here because we don't have access to it
         # anywhere else in the request
         instance = Instance.objects.filter(
@@ -808,7 +808,7 @@ class ProjectHistoryLog(AuditLog):
         initial_data = getattr(request, 'initial_data', None)
         updated_data = getattr(request, 'updated_data', None)
         source_data = updated_data if updated_data else initial_data
-        asset_uid = request.resolver_match.kwargs['parent_lookup_asset']
+        asset_uid = request.resolver_match.kwargs['uid_asset']
         if not source_data:
             return
         if source_data.get('action') != Action.QUAL:
