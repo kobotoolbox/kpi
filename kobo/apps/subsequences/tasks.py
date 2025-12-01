@@ -1,12 +1,13 @@
 from celery.signals import task_failure
-
 from django.apps import apps
+
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
+from kobo.apps.subsequences.exceptions import SubsequenceTimeoutError
 from kobo.celery import celery_app
 from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
-from kobo.apps.subsequences.exceptions import SubsequenceTimeoutError
 from .constants import SUBMISSION_UUID_FIELD
-from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
 from .utils.versioning import set_version
+
 
 # With retry_backoff=5 and retry_backoff_max=60, each retry waits:
 #   min(5 * 2^(n-1), 60) seconds.
@@ -53,7 +54,6 @@ def poll_run_external_process(
 def poll_run_external_process_failure(sender=None, **kwargs):
 
     # Avoid circular import
-    from .actions import ACTION_IDS_TO_CLASSES
     Asset = apps.get_model('kpi', 'Asset')  # noqa: N806
     SubmissionSupplement = apps.get_model('subsequences', 'SubmissionSupplement')  # noqa: N806
 
@@ -76,11 +76,10 @@ def poll_run_external_process_failure(sender=None, **kwargs):
     if 'is still in progress for submission' in error:
         error = 'Maximum retries exceeded.'
 
-    action_class = ACTION_IDS_TO_CLASSES[action_id]
-    action_configs = asset.advanced_features['_actionConfigs']
-    action_configs_for_this_question = action_configs[question_xpath]
-    action_params = action_configs_for_this_question[action_id]
-    action = action_class(question_xpath, action_params, asset=asset)
+    feature = asset.advanced_features_set.get(
+        question_xpath=question_xpath, action=action_id
+    )
+    action = feature.to_action()
     action.get_action_dependencies(supplemental_data[question_xpath])
 
     action_supplemental_data = supplemental_data[question_xpath][action_id]

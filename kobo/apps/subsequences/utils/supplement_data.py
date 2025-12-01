@@ -1,10 +1,8 @@
 from typing import Generator
 
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
-from kobo.apps.subsequences.actions import ACTION_IDS_TO_CLASSES
 from kobo.apps.subsequences.constants import SUBMISSION_UUID_FIELD, SUPPLEMENT_KEY
 from kobo.apps.subsequences.models import SubmissionSupplement
-from kobo.apps.subsequences.utils.versioning import migrate_advanced_features
 
 
 def get_supplemental_output_fields(asset: 'kpi.models.Asset') -> list[dict]:
@@ -36,30 +34,20 @@ def get_supplemental_output_fields(asset: 'kpi.models.Asset') -> list[dict]:
     submission. We'll do that by looking at the acceptance dates and letting
     the most recent win
     """
-    advanced_features = asset.advanced_features
-
-    if migrated_schema := migrate_advanced_features(advanced_features):
-        asset.advanced_features = migrated_schema
 
     output_fields_by_name = {}
-    # FIXME: `_actionConfigs` is 👎 and should be dropped in favor of top-level configs, eh?
     # data already exists at the top level alongisde leading-underscore metadata like _version
-    for source_question_xpath, per_question_actions in advanced_features[
-        '_actionConfigs'
-    ].items():
-        for action_id, action_config in per_question_actions.items():
-            action = ACTION_IDS_TO_CLASSES[action_id](
-                source_question_xpath, action_config
-            )
-            for field in action.get_output_fields():
-                try:
-                    existing = output_fields_by_name[field['name']]
-                except KeyError:
-                    output_fields_by_name[field['name']] = field
-                else:
-                    # It's normal for multiple actions to contribute the same
-                    # field, but they'd better be exactly the same!
-                    assert field == existing
+    for advanced_action in asset.advanced_features_set.all():
+        action = advanced_action.to_action()
+        for field in action.get_output_fields():
+            try:
+                existing = output_fields_by_name[field['name']]
+            except KeyError:
+                output_fields_by_name[field['name']] = field
+            else:
+                # It's normal for multiple actions to contribute the same
+                # field, but they'd better be exactly the same!
+                assert field == existing
 
     # since we want transcripts always to come before translations, à la
     #    <source field> <transcript fr> <translation en> <translation es>
@@ -70,7 +58,7 @@ def get_supplemental_output_fields(asset: 'kpi.models.Asset') -> list[dict]:
 def stream_with_supplements(
     asset: 'kpi.models.Asset', submission_stream: Generator, for_output: bool = False
 ) -> Generator:
-    if not asset.advanced_features:
+    if not asset.advanced_features_set.exists():
         yield from submission_stream
         return
 
