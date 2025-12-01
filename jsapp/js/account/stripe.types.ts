@@ -158,7 +158,7 @@ export interface AccountLimit {
   asr_seconds_limit: LimitAmount
   mt_characters_limit: LimitAmount
   storage_bytes_limit: LimitAmount
-  llp_requests_limit: LimitAmount
+  llm_requests_limit: LimitAmount
 }
 
 export interface AccountLimitDetail {

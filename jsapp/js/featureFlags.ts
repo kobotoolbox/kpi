@@ -6,7 +6,7 @@ import { recordValues } from './utils'
  */
 export enum FeatureFlag {
   //exampleFeatureEnabled = 'exampleFeatureEnabled', //Comment out when we have active FFs
-  llmUsageCardEnabled = 'llmUsageCardEnabled', //Comment out when we have active FFs
+  autoQAEnabled = 'autoQAEnabled', //Comment out when we have active FFs
 }
 
 /**

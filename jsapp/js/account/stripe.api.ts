@@ -14,7 +14,7 @@ const DEFAULT_LIMITS: AccountLimit = Object.freeze({
   asr_seconds_limit: Limits.unlimited,
   mt_characters_limit: Limits.unlimited,
   storage_bytes_limit: Limits.unlimited,
-  llp_requests_limit: Limits.unlimited,
+  llm_requests_limit: Limits.unlimited,
 })
 
 export async function getProducts() {
