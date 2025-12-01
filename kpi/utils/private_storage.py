@@ -1,7 +1,11 @@
 # coding: utf-8
+import re
+
 from rest_framework.request import Request as DRFRequest
 from rest_framework.settings import api_settings
 
+from kpi.constants import PERM_VIEW_SUBMISSIONS, PERM_PARTIAL_SUBMISSIONS
+from kpi.models import Asset
 from kpi.utils.object_permission import get_database_user
 
 
@@ -37,9 +41,21 @@ def superuser_or_username_matches_prefix(private_file):
     if user.is_superuser:
         return True
 
-    if private_file.relative_name.startswith(
-        '{}/'.format(user.username)
-    ):
+    if private_file.relative_name.startswith(f'{user.username}/'):
+        filename_regex = rf'{user.username}/exports/(a[^/]*)/.*'
+        match = re.search(filename_regex, private_file.relative_name)
+        if match:
+            uid = match.groups()[0]
+            # Only loads what's needed for a permission check
+            a = (
+                Asset.objects.only('pk', 'owner_id', 'uid')
+                .select_related('owner')
+                .get(uid=uid)
+            )
+            return (
+                a.has_perm(user_obj=user, perm=PERM_VIEW_SUBMISSIONS)
+                or a.has_perm(user_obj=user, perm=PERM_PARTIAL_SUBMISSIONS)
+            )
         return True
 
     return False

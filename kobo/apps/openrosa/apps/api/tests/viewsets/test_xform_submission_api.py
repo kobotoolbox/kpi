@@ -955,6 +955,39 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
                 response, 'Successful submission', status_code=status.HTTP_201_CREATED
             )
 
+    def test_head_and_post_behavior_for_username_endpoint(self):
+        """
+        Test that HEAD requests to `/<username>/submission` return 204 and that
+        anonymous POSTs work when the xform does not require auth.
+
+        KoboCollect performs an initial HEAD probe to confirm the endpoint is
+        reachable. This HEAD request must return 204. After that, an anonymous
+        POST containing the XML payload should succeed with a 201 response.
+        """
+        username = self.user.username
+        self.xform.require_auth = False
+        self.xform.save(update_fields=['require_auth'])
+
+        # HEAD request to `/<username>/submission` must return 204
+        head_req = self.factory.head(f'/{username}/submission')
+        head_resp = self.view(head_req, username=username)
+        self.assertEqual(head_resp.status_code, status.HTTP_204_NO_CONTENT)
+
+        # Anonymous POST with actual xml payload must succeed
+        s = self.surveys[0]
+        submission_path = os.path.join(
+            self.main_directory, 'fixtures',
+            'transportation', 'instances', s, s + '.xml'
+        )
+        with open(submission_path, 'rb') as sf:
+            data = {'xml_submission_file': sf}
+            request = self.factory.post(f'/{username}/submission', data)
+            request.user = AnonymousUser()
+            response = self.view(request, username=username)
+            self.assertContains(
+                response, 'Successful submission', status_code=201
+            )
+
 
 class ConcurrentSubmissionTestCase(RequestMixin, LiveServerTestCase):
     """
