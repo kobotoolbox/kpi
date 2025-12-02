@@ -924,7 +924,7 @@ CAN_LOGIN_AS = lambda request, target_user: request.user.is_superuser
 
 # Impose a limit on the number of records returned by the submission list
 # endpoint. This overrides any `?limit=` query parameter sent by a client
-SUBMISSION_LIST_LIMIT = 30000
+SUBMISSION_LIST_LIMIT = 1000
 
 # uWSGI, NGINX, etc. allow only a limited amount of time to process a request.
 # Set this value to match their limits
