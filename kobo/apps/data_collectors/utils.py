@@ -12,6 +12,11 @@ URL_REGEX = re.compile(r'https?://(www\.)?(.*)/?')
 
 
 def get_url_for_enketo_key(initial_url):
+    # citrus: if we don't use URL_REGEX anywhere else, just put it inside here.
+    #   otherwise, move the comment about mimicing Enketo to the definition of
+    #   the regex constant
+    # alternatively, get `id:XXXXXXXX` → `openRosaServer` and avoid regex?
+
     # mimic the regex processing enketo does to urls to make them work as keys
     match = URL_REGEX.match(initial_url)
     stripped_url = match.groups()[1]
@@ -31,6 +36,10 @@ def get_redis_key_for_enketo_id(enketo_id):
 def get_all_redis_entries_for_token(redis_client, token):
     initial_url = DC_ENKETO_URL_TEMPLATE.format(token)
     url_for_key = get_url_for_enketo_key(initial_url)
+    # citrus: is there an alternative to `keys()` here?
+    # https://redis.io/docs/latest/commands/keys/ warns: "Don't use KEYS in
+    # your regular application code."
+    # maybe `scan()`?
     keys = redis_client.keys(f'or:{url_for_key},*')
     return [key.decode('utf-8') for key in keys]
 
@@ -54,12 +63,15 @@ def set_data_collector_enketo_links(token: str, xform_ids: list[str]):
         try:
             redis_client.rename(old_id_key, get_redis_key_for_enketo_id(new_id))
         except redis.exceptions.ResponseError:
+            # citrus: stronger error or continue loop?
             logging.warning(f'Attempt to rename non-existent key {old_id_key}')
             return
 
 
 def remove_data_collector_enketo_links(token:str, xform_ids: list[str] = None):
     redis_client = get_redis_connection('enketo_redis_main')
+    # citrus: is it conventional that `None` means "everything" and `[]` means
+    # nothing? it probably merits a docstring
     if xform_ids == []:
         return
     if xform_ids is not None:
@@ -70,6 +82,7 @@ def remove_data_collector_enketo_links(token:str, xform_ids: list[str] = None):
         # get all enketo redis entries for this token
         all_keys = get_all_redis_entries_for_token(redis_client, token)
         if not all_keys:
+            # citrus: in this case, no renaming, only deleting?
             # no entries to rename, nothing to do
             logging.warning(f'No redis entries found for data collector token {token}')
             return
@@ -104,4 +117,5 @@ def rename_data_collector_enketo_links(old_token: str, new_token: str):
             # update the server urls to use the new token
             redis_client.hset(enketo_key, 'openRosaServer', new_server_url)
         except redis.exceptions.ResponseError:
+            # citrus: contrast with set_data_collector_enketo_links()
             logging.warning(f'Attempt to rename non-existent key {key}')

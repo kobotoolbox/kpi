@@ -317,6 +317,8 @@ class ObjectPermissionMixin:
             existing_objs = self.permissions.filter(inherited=True)
             for perm in objects_to_return:
                 existing_objs = existing_objs.exclude(
+                    # citrus: why is `deny` not in the criteria?
+                    # https://github.com/kobotoolbox/kpi/pull/6357/files#r2439565026
                     permission_id=perm.permission_id, user_id=perm.user_id
                 )
             existing_objs.delete()

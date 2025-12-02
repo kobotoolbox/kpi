@@ -13,6 +13,7 @@ from kpi.models import ObjectPermission
 
 @receiver(post_save, sender=DataCollector)
 def update_enketo_links(sender, instance, **kwargs):
+    # citrus: walk through logic, coercion, discuss redis performance
     group_changed = instance._initial_group_id != instance.group_id
     token_changed = (
         bool(instance._initial_token) and instance._initial_token != instance.token
@@ -31,6 +32,7 @@ def update_enketo_links(sender, instance, **kwargs):
     # now that we may have enketo links, keep track of the token we used to create
     # them so we can remove later if necessary
     instance._initial_token = instance.token
+    # citrus: why not update the _initial_group_id?
 
 
 @receiver(pre_delete, sender=DataCollector)
@@ -40,6 +42,7 @@ def remove_enketo_links_on_delete(sender, instance, **kwargs):
 
 @receiver(post_delete, sender=ObjectPermission)
 def remove_enketo_links_on_permission_removed(sender, instance, *args, **kwargs):
+    # citrus: how does this actually remove enketo links?
     if instance.permission.codename != PERM_MANAGE_ASSET:
         return
     asset = instance.asset

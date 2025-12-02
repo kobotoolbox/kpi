@@ -9,6 +9,8 @@ from kpi.models.abstract_models import AbstractTimeStampedModel
 
 
 class DataCollectorGroup(AbstractTimeStampedModel):
+    # citrus: attach to a user instead of an organization because organizations
+    # can't yet receive permissions?
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL
     )
@@ -23,6 +25,7 @@ class DataCollector(AbstractTimeStampedModel):
     uid = KpiUidField(uid_prefix='dc', primary_key=True)
     name = fields.CharField(null=True, blank=True, max_length=200)
     token = fields.CharField(max_length=40)
+    # citrus: why allow null?
     group = models.ForeignKey(
         DataCollectorGroup,
         on_delete=models.SET_NULL,
@@ -47,4 +50,5 @@ class DataCollector(AbstractTimeStampedModel):
 
     @classmethod
     def generate_key(cls):
+        # citrus: why hex?
         return secrets.token_hex(20)

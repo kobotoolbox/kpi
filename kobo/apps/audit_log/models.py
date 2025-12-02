@@ -623,6 +623,8 @@ class ProjectHistoryLog(AuditLog):
         logs = []
         url_name = request.resolver_match.url_name
         is_data_collector = isinstance(request.user, DataCollectorUser)
+        # citrus: so we end up with `ProjectHistoryLog(user=-1, …)`? should we
+        # make a second fake `User` in the database to represent DCs?
         request_user = request.user if not is_data_collector else AnonymousUser()
         user = get_database_user(request_user)
         for instance in instances.values():

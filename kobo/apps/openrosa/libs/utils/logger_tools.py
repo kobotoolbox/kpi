@@ -968,6 +968,8 @@ def _get_instance(
             and request.user.is_authenticated
             and not isinstance(request.user, DataCollectorUser)
         )
+        # citrus: need to figure this out before the feature gets any
+        # production use
         submitted_by = get_database_user(request.user) if get_user else None
 
         if not date_created_override:

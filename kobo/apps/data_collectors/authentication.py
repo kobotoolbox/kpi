@@ -29,6 +29,7 @@ class DataCollectorUser(AnonymousUser):
         if perm != PERM_ADD_SUBMISSIONS:
             return False
         if isinstance(obj, XForm):
+            # citrus: `kpi_asset_uid` is a nullable field
             return obj.kpi_asset_uid in self.assets
         if isinstance(obj, Asset):
             return obj.uid in self.assets
