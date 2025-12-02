@@ -21,6 +21,7 @@ from kpi.models.import_export_task import (
     ImportExportStatusChoices,
     ImportTask,
     SubmissionExportTask,
+    SubmissionSynchronousExport,
 )
 from kpi.utils.log import logging
 from kpi.utils.object_permission import get_anonymous_user
@@ -131,6 +132,63 @@ def cleanup_anonymous_exports(**kwargs):
                 deleted_count += 1
         except DatabaseError:
             logging.info(f'Export {export.uid} is currently being processed. Skipping.')
+    logging.info(f'Cleaned up {deleted_count} old anonymous exports.')
+
+
+@celery_app.task
+def cleanup_synchronous_exports(**kwargs):
+    """
+    Task to clean up old synchronous exports that are older than
+    `EXPORT_CLEANUP_GRACE_PERIOD`, excluding those that are still processing
+    """
+    BATCH_SIZE = 200
+    export_cleanup_grace_period = config.EXPORT_CLEANUP_GRACE_PERIOD
+
+    # Do not proceed if grace period is less than cache max age
+    if export_cleanup_grace_period * 60 < config.SYNCHRONOUS_EXPORT_CACHE_MAX_AGE:
+        logging.warning(
+            'Synchronous export cleanup skipped because '
+            'EXPORT_CLEANUP_GRACE_PERIOD is less than '
+            'SYNCHRONOUS_EXPORT_CACHE_MAX_AGE.'
+        )
+        return
+
+    cutoff_time = timezone.now() - timedelta(minutes=export_cleanup_grace_period)
+    old_sync_export_ids = (
+        SubmissionSynchronousExport.objects.filter(
+            date_created__lt=cutoff_time,
+        )
+        .exclude(status=ImportExportStatusChoices.PROCESSING)
+        .order_by('date_created')
+        .values_list('pk', flat=True)[:BATCH_SIZE]
+    )
+
+    if not old_sync_export_ids:
+        logging.info('No old synchronous exports to clean up.')
+        return
+
+    deleted_count = 0
+    for export_id in old_sync_export_ids:
+        try:
+            with transaction.atomic():
+                # Acquire a row-level lock without waiting
+                export = (
+                    SubmissionSynchronousExport.objects.only('pk', 'uid', 'result')
+                    .select_for_update(nowait=True)
+                    .get(pk=export_id)
+                )
+
+                if export.result:
+                    try:
+                        export.result.delete(save=False)
+                    except Exception as e:
+                        logging.error(
+                            f'Error deleting file for export {export.uid}: {e}'
+                        )
+                export.delete()
+                deleted_count += 1
+        except DatabaseError:
+            logging.info(f'Export {export_id} is currently being processed. Skipping.')
     logging.info(f'Cleaned up {deleted_count} old anonymous exports.')
 
 
