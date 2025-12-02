@@ -85,33 +85,39 @@ def cleanup_anonymous_exports(**kwargs):
     than `EXPORT_CLEANUP_GRACE_PERIOD`, excluding those that are still processing
     """
     BATCH_SIZE = 200
-    cutoff_time = timezone.now() - timedelta(
-        minutes=config.EXPORT_CLEANUP_GRACE_PERIOD
-    )
-
-    old_export_ids = (
+    exports = (
         SubmissionExportTask.objects.filter(
-            user=get_anonymous_user(),
-            date_created__lt=cutoff_time,
+            user=get_anonymous_user()
         )
         .exclude(status=ImportExportStatusChoices.PROCESSING)
-        .order_by('date_created')
-        .values_list('pk', flat=True)[:BATCH_SIZE]
+        .only('pk', 'uid', 'date_created', 'data')
+        .order_by('date_created')[:BATCH_SIZE]
     )
 
-    if not old_export_ids:
+    if not exports:
         logging.info('No old anonymous exports to clean up.')
         return
 
     deleted_count = 0
-    for export_id in old_export_ids:
+    for export in exports:
         try:
+            expiry_time = export.date_created + timedelta(
+                seconds=export.data.get('processing_time_seconds', 0)
+            ) + timedelta(minutes=config.EXPORT_CLEANUP_GRACE_PERIOD)
+
+            if timezone.now() < expiry_time:
+                logging.info(
+                    f'Export {export.uid} is still within the grace period. '
+                    f'Skipping.'
+                )
+                continue
+
             with transaction.atomic():
                 # Acquire a row-level lock without waiting
                 export = (
                     SubmissionExportTask.objects.only('pk', 'uid', 'result')
                     .select_for_update(nowait=True)
-                    .get(pk=export_id)
+                    .get(pk=export.pk)
                 )
 
                 if export.result:
@@ -124,7 +130,7 @@ def cleanup_anonymous_exports(**kwargs):
                 export.delete()
                 deleted_count += 1
         except DatabaseError:
-            logging.info(f'Export {export_id} is currently being processed. Skipping.')
+            logging.info(f'Export {export.uid} is currently being processed. Skipping.')
     logging.info(f'Cleaned up {deleted_count} old anonymous exports.')
 
 

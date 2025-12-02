@@ -1,6 +1,7 @@
 import threading
 from datetime import timedelta
 
+from constance.test import override_config
 from django.db import transaction
 from django.test import TransactionTestCase
 from django.utils import timezone
@@ -15,12 +16,19 @@ from kpi.utils.object_permission import get_anonymous_user
 
 class AnonymousExportCleanupTestCase(TransactionTestCase):
     def _create_export_task(
-        self, status=ImportExportStatusChoices.COMPLETE, minutes_old=60
+        self,
+        status=ImportExportStatusChoices.COMPLETE,
+        minutes_old=60,
+        processing_time_seconds=60
     ):
         export = SubmissionExportTask()
         export.user = get_anonymous_user()
         export.status = status
-        export.data = {'type': 'xls', 'source': 'test'}
+        export.data = {
+            'type': 'xls',
+            'source': 'test',
+            'processing_time_seconds': processing_time_seconds
+        }
         export.save()
 
         if minutes_old > 0:
@@ -31,6 +39,7 @@ class AnonymousExportCleanupTestCase(TransactionTestCase):
             export.refresh_from_db()
         return export
 
+    @override_config(EXPORT_CLEANUP_GRACE_PERIOD=30)
     def test_exports_older_than_30_minutes_are_deleted(self):
         # Export older than 30 min - should be deleted
         old_export = self._create_export_task(minutes_old=31)
@@ -46,6 +55,36 @@ class AnonymousExportCleanupTestCase(TransactionTestCase):
             SubmissionExportTask.objects.filter(uid=recent_export.uid).exists()
         )
 
+    @override_config(EXPORT_CLEANUP_GRACE_PERIOD=30)
+    def test_exports_with_processing_time_deleted_correctly(self):
+        """
+        Test that exports are deleted correctly considering their processing time
+        """
+        # Export created 45 min ago, processing took 10 min
+        old_export = self._create_export_task(
+            minutes_old=45,
+            processing_time_seconds=600,
+        )
+
+        # Export created 35 min ago, processing took 10 min
+        recent_export = self._create_export_task(
+            minutes_old=35,
+            processing_time_seconds=600,
+        )
+
+        cleanup_anonymous_exports()
+
+        # Old export should be deleted
+        self.assertFalse(
+            SubmissionExportTask.objects.filter(uid=old_export.uid).exists()
+        )
+
+        # Recent export should be kept
+        self.assertTrue(
+            SubmissionExportTask.objects.filter(uid=recent_export.uid).exists()
+        )
+
+    @override_config(EXPORT_CLEANUP_GRACE_PERIOD=30)
     def test_processing_exports_are_not_deleted(self):
         """
         Test that exports with PROCESSING status are never deleted
@@ -59,6 +98,7 @@ class AnonymousExportCleanupTestCase(TransactionTestCase):
             SubmissionExportTask.objects.filter(uid=processing_export.uid).exists()
         )
 
+    @override_config(EXPORT_CLEANUP_GRACE_PERIOD=30)
     def test_concurrency_locked_rows_are_skipped(self):
         exports = [self._create_export_task(minutes_old=120) for _ in range(5)]
         locked_export = exports[0]
