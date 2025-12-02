@@ -42,7 +42,7 @@ def get_active_users(days: int = 365) -> QuerySet:
     )
     active_users = get_users_with_recent_activity(days=days)
     return User.objects.filter(recent_login_filter | Q(id__in=active_users)).exclude(
-        pk=-1
+        pk=settings.ANONYMOUS_USER_ID
     )
 
 
@@ -74,6 +74,18 @@ def get_inactive_users(days: int = 365) -> QuerySet:
 
 
 def get_users_with_recent_activity(days: int = 365) -> set[int]:
+    """
+    Retrieve ids of users with recent activity.
+
+    Recent activity includes:
+    - An asset they owned being modified
+    - An asset they own having submissions added or modified
+
+    :param days: int: Number of days to determine inactivity (default: 365 days)
+
+    :return: A set of user ids
+    """
+    # Find created/modified assets
     inactivity_threshold = now() - timedelta(days=days)
     active_asset_owners = Asset.objects.filter(
         Q(date_modified__gt=inactivity_threshold)
