@@ -187,7 +187,11 @@ class ExportTaskViewSet(
                 int((expected_latest_finish - timezone.now()).total_seconds()),
             )
             return Response(
-                data={'error': f'Another export is already in progress. Please retry in {retry_after} seconds'}, status=status.HTTP_503_SERVICE_UNAVAILABLE,
+                data={
+                    'error': f'Another export is already in progress. Please retry in'
+                    f' {retry_after} seconds'
+                },
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
                 headers={'Retry-After': retry_after}
             )
         return super().create(request, *args, **kwargs)
