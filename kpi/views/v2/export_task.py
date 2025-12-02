@@ -1,12 +1,19 @@
 # coding: utf-8
+import datetime
+
+from django.conf import settings
+from django.utils import timezone
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
-from rest_framework import filters
+from rest_framework import filters, status
+from rest_framework.response import Response
+from rest_framework.reverse import reverse
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kobo.apps.audit_log.base_views import AuditLoggedNoUpdateModelViewSet
 from kobo.apps.audit_log.models import AuditType
 from kpi.filters import SearchFilter
 from kpi.models import SubmissionExportTask
+from kpi.models.import_export_task import ImportExportStatusChoices
 from kpi.permissions import ExportTaskPermission
 from kpi.schema_extensions.v2.export_tasks.serializers import (
     ExportCreatePayload,
@@ -14,6 +21,7 @@ from kpi.schema_extensions.v2.export_tasks.serializers import (
 )
 from kpi.serializers.v2.export_task import ExportTaskSerializer
 from kpi.utils.object_permission import get_database_user
+from kpi.utils.permissions import is_user_anonymous
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import (
     open_api_200_ok_response,
@@ -136,3 +144,42 @@ class ExportTaskViewSet(
             user=user,
             data__source__icontains=self.kwargs['uid_asset'],
         )
+
+    def create(self, request, *args, **kwargs):
+        user = get_database_user(request.user)
+        if not is_user_anonymous(user):
+            return super().create(request, *args, **kwargs)
+        # only allow one anonymous export task to run at a time
+        source = reverse(
+            'asset-detail', kwargs={'uid_asset': self.asset.uid}, request=request
+        )
+        SubmissionExportTask.log_and_mark_stuck_as_errored(user, source)
+        # to be super sure we don't get stuck on a hanging task, use the same logic as
+        # log_and_mark_stuck_as_errored to determine a cutoff date for the oldest
+        # running export
+        max_export_run_time = getattr(settings, 'CELERY_TASK_TIME_LIMIT', 2100)
+        max_allowed_export_age = datetime.timedelta(seconds=max_export_run_time * 4)
+        this_moment = timezone.now()
+        oldest_allowed_timestamp = this_moment - max_allowed_export_age
+        existing_tasks = (
+            SubmissionExportTask.objects.filter(
+                data__source=source,
+                user=user,
+                date_created__gt=oldest_allowed_timestamp,
+            )
+            .exclude(
+                status__in=(
+                    ImportExportStatusChoices.COMPLETE,
+                    ImportExportStatusChoices.ERROR,
+                )
+            )
+            .order_by('-date_created')
+        )
+        if existing_tasks.exists():
+            # take the most recent if there are multiples
+            existing_task = existing_tasks.first()
+            # pretend it was created for API consistency
+            return Response(
+                self.get_serializer(existing_task).data, status=status.HTTP_201_CREATED
+            )
+        return super().create(request, *args, **kwargs)

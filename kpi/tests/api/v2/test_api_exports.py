@@ -1,7 +1,10 @@
 # coding: utf-8
 import os
 from collections import defaultdict
+from datetime import timedelta
 
+from django.test import RequestFactory
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.reverse import reverse
 
@@ -29,17 +32,24 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
 
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
-    def _create_export_task(self, asset=None, user=None, _type='csv'):
+    def _create_export_task(self, asset=None, user=None, _type='csv', request=None):
         uid = self.asset.uid if asset is None else asset.uid
         user = self.user if user is None else user
+        if request is not None:
+            source = reverse(
+                self._get_endpoint('asset-detail'),
+                kwargs={'uid_asset': uid},
+                request=request,
+            )
+        else:
+            source = reverse(
+                self._get_endpoint('asset-detail'), kwargs={'uid_asset': uid}
+            )
 
         export_task = SubmissionExportTask()
         export_task.user = user
         export_task.data = {
-            'source': reverse(
-                self._get_endpoint('asset-detail'),
-                kwargs={'uid_asset': uid},
-            ),
+            'source': source,
             'type': _type,
         }
         messages = defaultdict(list)
@@ -150,6 +160,65 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         self.asset.remove_perm(anon, PERM_VIEW_SUBMISSIONS)
         download_response = self.client.get(download_url)
         assert download_response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_create_export_anon_already_running(self):
+        self.client.logout()
+        anon = get_anonymous_user()
+        self.asset.assign_perm(anon, PERM_VIEW_SUBMISSIONS)
+        request = RequestFactory().get('/')
+        task = self._create_export_task(_type='xls', user=anon, request=request)
+        # pretend the task is still in progress
+        task.status = 'processing'
+        task.save()
+        list_url = reverse(
+            self._get_endpoint('asset-export-list'),
+            kwargs={'format': 'json', 'uid_asset': self.asset.uid},
+        )
+        export_settings = {
+            'fields_from_all_versions': 'true',
+            'group_sep': '/',
+            'hierarchy_in_labels': 'true',
+            'lang': '_default',
+            'multiple_select': 'both',
+            'type': 'csv',
+        }
+        response = self.client.post(list_url, data=export_settings)
+        assert response.status_code == status.HTTP_201_CREATED
+        data = response.json()
+        # the POST should return the already in-progress task
+        assert data['uid'] == task.uid
+
+    def test_create_export_anon_already_running_too_old(self):
+        self.client.logout()
+        anon = get_anonymous_user()
+        self.asset.assign_perm(anon, PERM_VIEW_SUBMISSIONS)
+        request = RequestFactory().get('/')
+        task = self._create_export_task(_type='xls', user=anon, request=request)
+        three_days_ago = timezone.now() - timedelta(days=3)
+        # pretend the task is stuck
+        task.status = ImportExportStatusChoices.PROCESSING
+        task.date_created = three_days_ago
+        task.save()
+        list_url = reverse(
+            self._get_endpoint('asset-export-list'),
+            kwargs={'format': 'json', 'uid_asset': self.asset.uid},
+        )
+        export_settings = {
+            'fields_from_all_versions': 'true',
+            'group_sep': '/',
+            'hierarchy_in_labels': 'true',
+            'lang': '_default',
+            'multiple_select': 'both',
+            'type': 'csv',
+        }
+        response = self.client.post(list_url, data=export_settings)
+        assert response.status_code == status.HTTP_201_CREATED
+        data = response.json()
+        # we should have created a new task and the old task should be marked as errored
+        assert SubmissionExportTask.objects.count() == 2
+        assert data['uid'] != task.uid
+        task.refresh_from_db()
+        assert task.status == ImportExportStatusChoices.ERROR
 
     def test_export_task_list_anotheruser(self):
         for _type in ['csv', 'xls', 'spss_labels']:
