@@ -165,7 +165,7 @@ class ExportTaskViewSet(
             SubmissionExportTask.objects.filter(
                 data__source=source,
                 user=user,
-                date_created__gt=oldest_allowed_timestamp,
+                date_created__gt=oldest_allowed_timestamp
             )
             .exclude(
                 status__in=(
@@ -178,8 +178,17 @@ class ExportTaskViewSet(
         if existing_tasks.exists():
             # take the most recent if there are multiples
             existing_task = existing_tasks.first()
+            expected_latest_finish = existing_task.date_created + datetime.timedelta(
+                seconds=settings.CELERY_TASK_TIME_LIMIT
+            )
+
+            retry_after = max(
+                5,
+                int((expected_latest_finish - timezone.now()).total_seconds()),
+            )
             # pretend it was created for API consistency
             return Response(
-                self.get_serializer(existing_task).data, status=status.HTTP_201_CREATED
+                data={'error': f'Another export is already in progress. Please retry in {retry_after} seconds'}, status=status.HTTP_503_SERVICE_UNAVAILABLE,
+                headers={'Retry-After': retry_after}
             )
         return super().create(request, *args, **kwargs)

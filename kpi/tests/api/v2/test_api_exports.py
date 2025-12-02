@@ -183,10 +183,9 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
             'type': 'csv',
         }
         response = self.client.post(list_url, data=export_settings)
-        assert response.status_code == status.HTTP_201_CREATED
-        data = response.json()
-        # the POST should return the already in-progress task
-        assert data['uid'] == task.uid
+        assert response.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
+        error_message = response.json().get('error')
+        assert 'Please retry' in error_message
 
     def test_create_export_anon_already_running_too_old(self):
         self.client.logout()
