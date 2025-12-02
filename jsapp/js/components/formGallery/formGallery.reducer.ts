@@ -9,6 +9,8 @@ interface State {
   filterQuestion: string | null
   startDate: string
   endDate: string
+  isModalOpen: boolean
+  currentModalImageIndex: number
 }
 
 export const initialState: State = {
@@ -20,6 +22,8 @@ export const initialState: State = {
   filterQuestion: null,
   startDate: '',
   endDate: '',
+  isModalOpen: false,
+  currentModalImageIndex: 0,
 }
 
 export function reducer(state: State, action: FormGalleryAction): State {
@@ -30,6 +34,7 @@ export function reducer(state: State, action: FormGalleryAction): State {
         isLoading: true,
         submissions: [],
         next: null,
+        isModalOpen: false,
       }
     case 'getSubmissionsCompleted':
       return {
@@ -64,16 +69,35 @@ export function reducer(state: State, action: FormGalleryAction): State {
       return {
         ...state,
         filterQuestion: action.question,
+        isModalOpen: false,
       }
     case 'setStartDate':
       return {
         ...state,
         startDate: action.value,
+        isModalOpen: false,
       }
     case 'setEndDate':
       return {
         ...state,
         endDate: action.value,
+        isModalOpen: false,
+      }
+    case 'openModal':
+      return {
+        ...state,
+        isModalOpen: true,
+        currentModalImageIndex: action.index,
+      }
+    case 'closeModal':
+      return {
+        ...state,
+        isModalOpen: false,
+      }
+    case 'setModalImageIndex':
+      return {
+        ...state,
+        currentModalImageIndex: action.index,
       }
   }
   return state
