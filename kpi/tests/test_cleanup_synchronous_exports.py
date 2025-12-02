@@ -3,7 +3,7 @@ from datetime import timedelta
 
 from constance.test import override_config
 from django.test import TransactionTestCase
-from django.db import DatabaseError, transaction
+from django.db import transaction
 from django.utils import timezone
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -38,7 +38,7 @@ class SynchronousExportCleanupTestCase(TransactionTestCase):
 
     @override_config(EXPORT_CLEANUP_GRACE_PERIOD=5)
     @override_config(SYNCHRONOUS_EXPORT_CACHE_MAX_AGE=600)
-    def test_synchronous_exports_are_kept_when_grace_period_is_less_than_cache_age(self):
+    def test_synchronous_export_cleanup_respects_cache_age(self):
         """
         Test that synchronous exports are not deleted if the grace period
         (`EXPORT_CLEANUP_GRACE_PERIOD`) is less than the synchronous export
