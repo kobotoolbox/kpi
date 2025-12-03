@@ -110,24 +110,6 @@ def cleanup_synchronous_exports(**kwargs):
 
 
 @celery_app.task
-def cleanup_access_log_exports(**kwargs):
-    """
-    Task to clean up export tasks created by access logs that are older
-    than `EXPORT_CLEANUP_GRACE_PERIOD`, excluding those that are still processing
-    """
-    delete_expired_exports(AccessLogExportTask)
-
-
-@celery_app.task
-def cleanup_project_history_log_exports(**kwargs):
-    """
-    Task to clean up export tasks created by project history logs that are older
-    than `EXPORT_CLEANUP_GRACE_PERIOD`, excluding those that are still processing
-    """
-    delete_expired_exports(ProjectHistoryLogExportTask)
-
-
-@celery_app.task
 def sync_kobocat_xforms(
     username=None,
     quiet=True,
