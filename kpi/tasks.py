@@ -20,8 +20,10 @@ from kpi.constants import LIMIT_HOURS_23
 from kpi.maintenance_tasks import remove_old_asset_snapshots, remove_old_import_tasks
 from kpi.models.asset import Asset
 from kpi.models.import_export_task import (
+    AccessLogExportTask,
     ImportExportStatusChoices,
     ImportTask,
+    ProjectHistoryLogExportTask,
     ProjectViewExportTask,
     SubmissionExportTask,
     SubmissionSynchronousExport,
@@ -175,6 +177,24 @@ def cleanup_project_view_exports(**kwargs):
     than `EXPORT_CLEANUP_GRACE_PERIOD`, excluding those that are still processing
     """
     cleanup_exports_helper(ProjectViewExportTask)
+
+
+@celery_app.task
+def cleanup_access_log_exports(**kwargs):
+    """
+    Task to clean up export tasks created by access logs that are older
+    than `EXPORT_CLEANUP_GRACE_PERIOD`, excluding those that are still processing
+    """
+    cleanup_exports_helper(AccessLogExportTask)
+
+
+@celery_app.task
+def cleanup_project_history_log_exports(**kwargs):
+    """
+    Task to clean up export tasks created by project history logs that are older
+    than `EXPORT_CLEANUP_GRACE_PERIOD`, excluding those that are still processing
+    """
+    cleanup_exports_helper(ProjectHistoryLogExportTask)
 
 
 @celery_app.task

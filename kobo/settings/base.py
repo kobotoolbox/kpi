@@ -1467,6 +1467,18 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute='*/5'),
         'options': {'queue': 'kpi_low_priority_queue'},
     },
+    # Schedule every 5 minutes
+    'cleanup-access-log-exports': {
+        'task': 'kpi.tasks.cleanup_access_log_exports',
+        'schedule': crontab(minute='*/5'),
+        'options': {'queue': 'kpi_low_priority_queue'},
+    },
+    # Schedule every 5 minutes
+    'cleanup-project-history-log-exports': {
+        'task': 'kpi.tasks.cleanup_project_history_log_exports',
+        'schedule': crontab(minute='*/5'),
+        'options': {'queue': 'kpi_low_priority_queue'},
+    },
     # Schedule every 15 minutes
     'refresh-user-report-snapshot': {
         'task': 'kobo.apps.user_reports.tasks.refresh_user_report_snapshots',
