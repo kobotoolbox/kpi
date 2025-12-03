@@ -3,6 +3,8 @@ import type { FormGalleryAction } from './formGallery.actions'
 
 interface State {
   submissions: SubmissionResponse[]
+  /** Total count of submissions (from API), not total count of currently loaded submissions */
+  totalSubmissions: number
   isLoading: boolean
   next: string | null
   isFullscreen: boolean
@@ -15,6 +17,7 @@ interface State {
 
 export const initialState: State = {
   submissions: [],
+  totalSubmissions: 0,
   isLoading: false,
   next: null,
   isFullscreen: false,
@@ -33,6 +36,7 @@ export function reducer(state: State, action: FormGalleryAction): State {
         ...state,
         isLoading: true,
         submissions: [],
+        totalSubmissions: 0,
         next: null,
         isModalOpen: false,
       }
@@ -41,6 +45,7 @@ export function reducer(state: State, action: FormGalleryAction): State {
         ...state,
         isLoading: false,
         submissions: action.resp.results,
+        totalSubmissions: action.resp.count,
         next: action.resp.next,
       }
     case 'getSubmissionsFailed':
