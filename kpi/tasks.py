@@ -81,16 +81,18 @@ def export_task_in_background(
         )
 
 
-@celery_app.task
-def cleanup_anonymous_exports(**kwargs):
+def cleanup_exports_helper(export_model, extra_params=None):
     """
-    Task to clean up export tasks created by the AnonymousUser that are older
-    than `EXPORT_CLEANUP_GRACE_PERIOD`, excluding those that are still processing
+    Helper to clean up old export tasks of a given model type
     """
     BATCH_SIZE = 200
+
+    if not extra_params:
+        extra_params = {}
+
     cut_off = timezone.now() - timedelta(minutes=config.EXPORT_CLEANUP_GRACE_PERIOD)
     old_export_ids = (
-        SubmissionExportTask.objects.annotate(
+        export_model.objects.annotate(
             processing_seconds=Coalesce(
                 Cast(F('data__processing_time_seconds'), FloatField()), 0.0
             ),
@@ -100,14 +102,14 @@ def cleanup_anonymous_exports(**kwargs):
                 output_field=DateTimeField(),
             )
         )
-        .filter(user=get_anonymous_user(), date_modified__lt=cut_off)
+        .filter(date_modified__lt=cut_off, **extra_params)
         .exclude(status=ImportExportStatusChoices.PROCESSING)
         .order_by('pk')
         .values_list('pk', flat=True)[:BATCH_SIZE]
     )
 
     if not old_export_ids:
-        logging.info('No old anonymous exports to clean up.')
+        logging.info('No old exports to clean up.')
         return
 
     deleted_count = 0
@@ -116,7 +118,7 @@ def cleanup_anonymous_exports(**kwargs):
             with transaction.atomic():
                 # Acquire a row-level lock without waiting
                 export = (
-                    SubmissionExportTask.objects.only('pk', 'uid', 'result')
+                    export_model.objects.only('pk', 'uid', 'result')
                     .select_for_update(nowait=True)
                     .get(pk=export_id)
                 )
@@ -132,7 +134,17 @@ def cleanup_anonymous_exports(**kwargs):
                 deleted_count += 1
         except DatabaseError:
             logging.info(f'Export {export_id} is currently being processed. Skipping.')
-    logging.info(f'Cleaned up {deleted_count} old anonymous exports.')
+    logging.info(f'Cleaned up {deleted_count} old exports.')
+
+
+@celery_app.task
+def cleanup_anonymous_exports(**kwargs):
+    """
+    Task to clean up export tasks created by the AnonymousUser that are older
+    than `EXPORT_CLEANUP_GRACE_PERIOD`, excluding those that are still processing
+    """
+    anon_user = get_anonymous_user()
+    cleanup_exports_helper(SubmissionExportTask, extra_params={'user': anon_user})
 
 
 @celery_app.task
@@ -141,55 +153,18 @@ def cleanup_synchronous_exports(**kwargs):
     Task to clean up old synchronous exports that are older than
     `EXPORT_CLEANUP_GRACE_PERIOD`, excluding those that are still processing
     """
-    BATCH_SIZE = 200
-    export_cleanup_grace_period = config.EXPORT_CLEANUP_GRACE_PERIOD
-
     # Do not proceed if grace period is less than cache max age
-    if export_cleanup_grace_period * 60 < config.SYNCHRONOUS_EXPORT_CACHE_MAX_AGE:
+    if (
+        config.EXPORT_CLEANUP_GRACE_PERIOD * 60
+        < config.SYNCHRONOUS_EXPORT_CACHE_MAX_AGE
+    ):
         logging.warning(
             'Synchronous export cleanup skipped because '
             'EXPORT_CLEANUP_GRACE_PERIOD is less than '
             'SYNCHRONOUS_EXPORT_CACHE_MAX_AGE.'
         )
         return
-
-    cutoff_time = timezone.now() - timedelta(minutes=export_cleanup_grace_period)
-    old_sync_export_ids = (
-        SubmissionSynchronousExport.objects.filter(
-            date_created__lt=cutoff_time,
-        )
-        .exclude(status=ImportExportStatusChoices.PROCESSING)
-        .order_by('date_created')
-        .values_list('pk', flat=True)[:BATCH_SIZE]
-    )
-
-    if not old_sync_export_ids:
-        logging.info('No old synchronous exports to clean up.')
-        return
-
-    deleted_count = 0
-    for export_id in old_sync_export_ids:
-        try:
-            with transaction.atomic():
-                # Acquire a row-level lock without waiting
-                export = (
-                    SubmissionSynchronousExport.objects.only('pk', 'uid', 'result')
-                    .select_for_update(nowait=True)
-                    .get(pk=export_id)
-                )
-
-                if export.result:
-                    try:
-                        export.result.delete(save=False)
-                    except Exception as e:
-                        logging.error(
-                            f'Error deleting file for export {export.uid}: {e}'
-                        )
-                export.delete()
-                deleted_count += 1
-        except DatabaseError:
-            logging.info(f'Export {export_id} is currently being processed. Skipping.')
-    logging.info(f'Cleaned up {deleted_count} old anonymous exports.')
+    cleanup_exports_helper(SubmissionSynchronousExport)
 
 
 @celery_app.task

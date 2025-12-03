@@ -1449,7 +1449,7 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
-    # Schedule every 15 minutes
+    # Schedule every 5 minutes
     'cleanup-anonymous-exports': {
         'task': 'kpi.tasks.cleanup_anonymous_exports',
         'schedule': crontab(minute='*/5'),
