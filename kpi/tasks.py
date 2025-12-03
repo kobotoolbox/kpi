@@ -82,11 +82,11 @@ def export_task_in_background(
 def cleanup_anonymous_exports(**kwargs):
     """
     Task to clean up export tasks created by the AnonymousUser that are older
-    than `ANONYMOUS_EXPORTS_GRACE_PERIOD`, excluding those that are still processing
+    than `EXPORT_CLEANUP_GRACE_PERIOD`, excluding those that are still processing
     """
     BATCH_SIZE = 200
     cutoff_time = timezone.now() - timedelta(
-        minutes=config.ANONYMOUS_EXPORTS_GRACE_PERIOD
+        minutes=config.EXPORT_CLEANUP_GRACE_PERIOD
     )
 
     old_export_ids = (
