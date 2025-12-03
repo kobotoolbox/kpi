@@ -80,7 +80,7 @@ export const selectFilterQuery = (
   }
 
   // Always include image filter - to only get submissions which have actual images in the responses
-  const imageFilter: MongoQuery<string> = {
+  const imageFilter: MongoQuery = {
     _attachments: {
       $elemMatch: { mimetype: { $regex: '^image/' } },
     },
