@@ -598,6 +598,29 @@ class BaseManualNLPAction(BaseAction):
             },
         }
 
+    def _get_output_field_name(self, language: str) -> str:
+        language = language.split('-')[0]  # ignore region if any
+        return f'{self.source_question_xpath}/{self.col_type}__{language}'
+
+    @property
+    def col_type(self):
+        raise NotImplementedError
+
+    def get_output_fields(self):
+        fields = []
+        for params in self.params:
+            language = params['language']
+            col_type = self.col_type
+            column = {
+                'language': language,
+                'name': self._get_output_field_name(language),
+                'source': self.source_question_xpath,
+                'type': col_type,
+                'dtpath': f'{self.source_question_xpath}/{col_type}_{language}',
+            }
+            fields.append(column)
+        return fields
+
     @property
     def languages(self) -> list[str]:
         languages = []
