@@ -1,6 +1,6 @@
 import type { FlatQuestion } from '#/assetUtils'
 import type { Json } from '#/components/common/common.interfaces'
-import type { SubmissionAttachment, SubmissionResponse } from '#/dataInterface'
+import type { MongoQuery, SubmissionAttachment, SubmissionResponse } from '#/dataInterface'
 import { createDateQuery } from '#/utils'
 
 const IMAGE_MIMETYPES = ['image/png', 'image/gif', 'image/jpeg', 'image/svg+xml']
@@ -34,10 +34,8 @@ export const selectFilterQuery = (
   startDate: string,
   endDate: string,
 ) => {
-  if (!filterQuestion && !startDate && !endDate) {
-    return
-  }
   let query: Json = {}
+
   if (filterQuestion) {
     const flatQuestion = flatQuestionsList.find((flatQuestion) => flatQuestion.path === filterQuestion)
 
@@ -79,10 +77,25 @@ export const selectFilterQuery = (
         [currentValue]: { $elemMatch: previousValue },
       }
     }, initialValue)
-    // Whew, thanks to initial value this works even with 0 repeating groups
   }
+
+  // Always include image filter - to only get submissions which have actual images in the responses
+  const imageFilter: MongoQuery<string> = {
+    _attachments: {
+      $elemMatch: { mimetype: { $regex: '^image/' } },
+    },
+  }
+
+  const andFilters: MongoQuery[] = [imageFilter]
+
+  // Append date queries if they exist
   if (startDate || endDate) {
-    query['$and'] = createDateQuery(startDate, endDate)
+    const dateQueries = createDateQuery(startDate, endDate)
+    andFilters.push(...dateQueries)
   }
+
+  // Assign the combined list to the query
+  query['$and'] = andFilters
+
   return '&query=' + JSON.stringify(query)
 }
