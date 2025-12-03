@@ -476,9 +476,9 @@ CONSTANCE_CONFIG = {
         'Enable automatic deletion of attachments for users who have exceeded '
         'their storage limits.'
     ),
-    'ANONYMOUS_EXPORTS_GRACE_PERIOD': (
+    'EXPORT_CLEANUP_GRACE_PERIOD': (
         30,
-        'Number of minutes after which anonymous export tasks are cleaned up.',
+        'Number of minutes after which export tasks are cleaned up.',
     ),
     'LIMIT_ATTACHMENT_REMOVAL_GRACE_PERIOD': (
         90,
@@ -734,7 +734,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'MASS_EMAIL_ENQUEUED_RECORD_EXPIRY',
         'MASS_EMAIL_TEST_EMAILS',
         'USAGE_LIMIT_ENFORCEMENT',
-        'ANONYMOUS_EXPORTS_GRACE_PERIOD',
+        'EXPORT_CLEANUP_GRACE_PERIOD',
     ),
     'Rest Services': (
         'ALLOW_UNSECURED_HOOK_ENDPOINTS',
