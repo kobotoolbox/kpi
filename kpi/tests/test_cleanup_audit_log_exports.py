@@ -7,13 +7,16 @@ from django.db import transaction
 from django.test import TransactionTestCase
 from django.utils import timezone
 
+from kobo.apps.audit_log.tasks import (
+    cleanup_access_log_exports,
+    cleanup_project_history_log_exports
+)
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.models.import_export_task import (
     AccessLogExportTask,
     ImportExportStatusChoices,
     ProjectHistoryLogExportTask,
 )
-from kpi.tasks import cleanup_access_log_exports, cleanup_project_history_log_exports
 
 
 @ddt
