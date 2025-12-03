@@ -9,6 +9,8 @@ from django.core import mail
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.management import call_command
 from django.db import DatabaseError, transaction
+from django.db.models import DateTimeField, ExpressionWrapper, F, FloatField
+from django.db.models.functions import Coalesce, Cast
 from django.utils import timezone
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -85,17 +87,21 @@ def cleanup_anonymous_exports(**kwargs):
     than `EXPORT_CLEANUP_GRACE_PERIOD`, excluding those that are still processing
     """
     BATCH_SIZE = 200
-    cutoff_time = timezone.now() - timedelta(
-        minutes=config.EXPORT_CLEANUP_GRACE_PERIOD
-    )
-
+    cut_off = timezone.now() - timedelta(minutes=config.EXPORT_CLEANUP_GRACE_PERIOD)
     old_export_ids = (
-        SubmissionExportTask.objects.filter(
-            user=get_anonymous_user(),
-            date_created__lt=cutoff_time,
+        SubmissionExportTask.objects.annotate(
+            processing_seconds=Coalesce(
+                Cast(F('data__processing_time_seconds'), FloatField()), 0.0
+            ),
+            date_modified=ExpressionWrapper(
+                F('date_created') +
+                (F('processing_seconds') * 1000) * timedelta(milliseconds=1),
+                output_field=DateTimeField(),
+            )
         )
+        .filter(user=get_anonymous_user(), date_modified__lt=cut_off)
         .exclude(status=ImportExportStatusChoices.PROCESSING)
-        .order_by('date_created')
+        .order_by('pk')
         .values_list('pk', flat=True)[:BATCH_SIZE]
     )
 
