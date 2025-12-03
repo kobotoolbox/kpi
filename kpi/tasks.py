@@ -9,6 +9,8 @@ from django.core import mail
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.management import call_command
 from django.db import DatabaseError, transaction
+from django.db.models import DateTimeField, ExpressionWrapper, F, FloatField
+from django.db.models.functions import Coalesce, Cast
 from django.utils import timezone
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -85,39 +87,37 @@ def cleanup_anonymous_exports(**kwargs):
     than `EXPORT_CLEANUP_GRACE_PERIOD`, excluding those that are still processing
     """
     BATCH_SIZE = 200
-    exports = (
-        SubmissionExportTask.objects.filter(
-            user=get_anonymous_user()
+    cut_off = timezone.now() - timedelta(minutes=config.EXPORT_CLEANUP_GRACE_PERIOD)
+    old_export_ids = (
+        SubmissionExportTask.objects.annotate(
+            processing_seconds=Coalesce(
+                Cast(F('data__processing_time_seconds'), FloatField()), 0.0
+            ),
+            date_modified=ExpressionWrapper(
+                F('date_created') +
+                (F('processing_seconds') * 1000) * timedelta(milliseconds=1),
+                output_field=DateTimeField(),
+            )
         )
+        .filter(user=get_anonymous_user(), date_modified__lt=cut_off)
         .exclude(status=ImportExportStatusChoices.PROCESSING)
-        .only('pk', 'uid', 'date_created', 'data')
-        .order_by('date_created')[:BATCH_SIZE]
+        .order_by('pk')
+        .values_list('pk', flat=True)[:BATCH_SIZE]
     )
 
-    if not exports:
+    if not old_export_ids:
         logging.info('No old anonymous exports to clean up.')
         return
 
     deleted_count = 0
-    for export in exports:
+    for export_id in old_export_ids:
         try:
-            expiry_time = export.date_created + timedelta(
-                seconds=export.data.get('processing_time_seconds', 0)
-            ) + timedelta(minutes=config.EXPORT_CLEANUP_GRACE_PERIOD)
-
-            if timezone.now() < expiry_time:
-                logging.info(
-                    f'Export {export.uid} is still within the grace period. '
-                    f'Skipping.'
-                )
-                continue
-
             with transaction.atomic():
                 # Acquire a row-level lock without waiting
                 export = (
                     SubmissionExportTask.objects.only('pk', 'uid', 'result')
                     .select_for_update(nowait=True)
-                    .get(pk=export.pk)
+                    .get(pk=export_id)
                 )
 
                 if export.result:
@@ -130,7 +130,7 @@ def cleanup_anonymous_exports(**kwargs):
                 export.delete()
                 deleted_count += 1
         except DatabaseError:
-            logging.info(f'Export {export.uid} is currently being processed. Skipping.')
+            logging.info(f'Export {export_id} is currently being processed. Skipping.')
     logging.info(f'Cleaned up {deleted_count} old anonymous exports.')
 
 
