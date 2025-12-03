@@ -49,6 +49,7 @@ def get_analysis_form_json(asset: 'kpi.models.Asset') -> list[dict]:
     additional_fields = sorted(additional_fields, key=lambda x: x['name'])
     return additional_fields
 
+
 def stream_with_supplements(
     asset: 'kpi.models.Asset', submission_stream: Generator, for_output: bool = False
 ) -> Generator:
