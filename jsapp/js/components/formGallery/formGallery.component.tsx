@@ -45,6 +45,7 @@ export default function FormGallery(props: FormGalleryProps) {
   const [
     {
       submissions,
+      totalSubmissions,
       isLoading,
       next,
       isFullscreen,
@@ -106,15 +107,15 @@ export default function FormGallery(props: FormGalleryProps) {
   }
 
   const navigateImage = (direction: 'next' | 'prev') => {
-    const totalAttachments = attachments.length
+    const totalLoadedAttachments = attachments.length
 
     if (direction === 'prev') {
-      const newIndex = (currentModalImageIndex - 1 + totalAttachments) % totalAttachments
+      const newIndex = (currentModalImageIndex - 1 + totalLoadedAttachments) % totalLoadedAttachments
       dispatch({ type: 'setModalImageIndex', index: newIndex })
     }
 
     if (direction === 'next') {
-      const isLastImage = currentModalImageIndex === totalAttachments - 1
+      const isLastImage = currentModalImageIndex === totalLoadedAttachments - 1
 
       if (isLastImage && showLoadMore && !isLoading) {
         // Condition: On last image AND 'Load More' is visible AND not already loading
@@ -122,7 +123,7 @@ export default function FormGallery(props: FormGalleryProps) {
         loadMoreSubmissions(true)
       } else if (!isLastImage) {
         // Standard navigation
-        const newIndex = (currentModalImageIndex + 1) % totalAttachments
+        const newIndex = (currentModalImageIndex + 1) % totalLoadedAttachments
         dispatch({ type: 'setModalImageIndex', index: newIndex })
       }
       // If it's the last image and showLoadMore is false (no more pages), do nothing.
@@ -210,7 +211,7 @@ export default function FormGallery(props: FormGalleryProps) {
         <Modal
           opened={isModalOpen}
           onClose={closeModal}
-          title={`Image ${currentModalImageIndex + 1} of ${attachments.length}`}
+          title={`Image ${currentModalImageIndex + 1} of ${totalSubmissions}`}
           size='lg'
           centered
           overlayProps={{ backgroundOpacity: 0.55, blur: 3 }}
