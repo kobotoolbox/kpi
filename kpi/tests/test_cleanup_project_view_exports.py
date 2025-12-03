@@ -7,11 +7,11 @@ from django.test import TransactionTestCase
 from django.utils import timezone
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.project_views.tasks import cleanup_project_view_exports
 from kpi.models.import_export_task import (
     ImportExportStatusChoices,
     ProjectViewExportTask,
 )
-from kpi.tasks import cleanup_project_view_exports
 
 
 class ProjectViewExportCleanupTestCase(TransactionTestCase):
