@@ -22,6 +22,7 @@ from kpi.models.asset import Asset
 from kpi.models.import_export_task import (
     ImportExportStatusChoices,
     ImportTask,
+    ProjectViewExportTask,
     SubmissionExportTask,
     SubmissionSynchronousExport,
 )
@@ -165,6 +166,15 @@ def cleanup_synchronous_exports(**kwargs):
         )
         return
     cleanup_exports_helper(SubmissionSynchronousExport)
+
+
+@celery_app.task
+def cleanup_project_view_exports(**kwargs):
+    """
+    Task to clean up export tasks created by Project Views that are older
+    than `EXPORT_CLEANUP_GRACE_PERIOD`, excluding those that are still processing
+    """
+    cleanup_exports_helper(ProjectViewExportTask)
 
 
 @celery_app.task
