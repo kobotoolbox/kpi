@@ -20,7 +20,6 @@ from kpi.models.import_export_task import (
     SubmissionSynchronousExport,
 )
 from kpi.utils.export_cleanup import delete_expired_exports
-from kpi.utils.log import logging
 from kpi.utils.object_permission import get_anonymous_user
 
 
@@ -92,18 +91,12 @@ def cleanup_synchronous_exports(**kwargs):
     Task to clean up old synchronous exports that are older than
     `EXPORT_CLEANUP_GRACE_PERIOD`, excluding those that are still processing
     """
-    # Do not proceed if grace period is less than cache max age
-    if (
-        config.EXPORT_CLEANUP_GRACE_PERIOD * 60
-        < config.SYNCHRONOUS_EXPORT_CACHE_MAX_AGE
-    ):
-        logging.warning(
-            'Synchronous export cleanup skipped because '
-            'EXPORT_CLEANUP_GRACE_PERIOD is less than '
-            'SYNCHRONOUS_EXPORT_CACHE_MAX_AGE.'
-        )
-        return
-    delete_expired_exports(SubmissionSynchronousExport)
+
+    grace_period = max(
+        config.EXPORT_CLEANUP_GRACE_PERIOD,
+        config.SYNCHRONOUS_EXPORT_CACHE_MAX_AGE,
+    )
+    delete_expired_exports(SubmissionSynchronousExport, grace_period=grace_period)
 
 
 @celery_app.task
