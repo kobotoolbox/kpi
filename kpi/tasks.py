@@ -15,10 +15,7 @@ from kpi.constants import LIMIT_HOURS_23
 from kpi.maintenance_tasks import remove_old_asset_snapshots, remove_old_import_tasks
 from kpi.models.asset import Asset
 from kpi.models.import_export_task import (
-    AccessLogExportTask,
     ImportTask,
-    ProjectHistoryLogExportTask,
-    ProjectViewExportTask,
     SubmissionExportTask,
     SubmissionSynchronousExport,
 )
