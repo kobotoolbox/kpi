@@ -66,6 +66,7 @@ if [[ ! -d "${KPI_SRC_DIR}/staticfiles" ]] || ! python "${KPI_SRC_DIR}/docker/ch
         # Create folder to be sure following `rsync` command does not fail
         mkdir -p "${KPI_SRC_DIR}/staticfiles"
     else
+        # TODO - revisit this in context of separate node build stage
         echo "Cleaning old build…"
         rm -rf "${KPI_SRC_DIR}/jsapp/fonts" && \
         rm -rf "${KPI_SRC_DIR}/jsapp/compiled"
