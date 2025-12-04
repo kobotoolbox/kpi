@@ -236,7 +236,7 @@ class AccountTrashTestCase(TestCase):
         A freshly created task should not be restarted if it is in grace period.
         """
         someuser = get_user_model().objects.get(username='someuser')
-        grace_period = config.ACCOUNT_TRASH_GRACE_PERIOD
+        grace_period = config.ACCOUNT_TRASH_RETENTION
         admin = get_user_model().objects.get(username='adminuser')
 
         if is_time_frozen:
@@ -465,7 +465,7 @@ class ProjectTrashTestCase(TestCase, AssetSubmissionTestMixin):
         """
         someuser = get_user_model().objects.get(username='someuser')
         asset = someuser.assets.first()
-        grace_period = config.PROJECT_TRASH_GRACE_PERIOD
+        grace_period = config.PROJECT_TRASH_RETENTION
 
         if is_time_frozen:
             frozen_time = '2024-12-10'
@@ -860,7 +860,7 @@ class AttachmentTrashTestCase(TestCase, AssetSubmissionTestMixin):
                 'attachment_uid': attachment.uid,
                 'attachment_basename': attachment.media_file_basename,
             }],
-            grace_period=config.ATTACHMENT_TRASH_GRACE_PERIOD,
+            grace_period=config.ATTACHMENT_TRASH_RETENTION,
             trash_type='attachment',
             retain_placeholder=False,
         )

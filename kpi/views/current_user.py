@@ -97,7 +97,7 @@ class CurrentUserViewSet(viewsets.ModelViewSet):
             # but it should never happen since no non-active/trashed users should be
             # able to call this endpoint. A 403 should occur before.
             move_to_trash(
-                request.user, [user], config.ACCOUNT_TRASH_GRACE_PERIOD, 'user'
+                request.user, [user], config.ACCOUNT_TRASH_RETENTION, 'user'
             )
             request.user.is_active = False
             request.user.save(update_fields=['is_active'])

@@ -79,7 +79,7 @@ def export_task_in_background(
 def cleanup_anonymous_exports(**kwargs):
     """
     Task to clean up export tasks created by the AnonymousUser that are older
-    than `EXPORT_CLEANUP_GRACE_PERIOD`, excluding those that are still processing
+    than `EXPORT_RETENTION`, excluding those that are still processing
     """
     anon_user = get_anonymous_user()
     delete_expired_exports(SubmissionExportTask, extra_params={'user': anon_user})
@@ -89,11 +89,11 @@ def cleanup_anonymous_exports(**kwargs):
 def cleanup_synchronous_exports(**kwargs):
     """
     Task to clean up old synchronous exports that are older than
-    `EXPORT_CLEANUP_GRACE_PERIOD`, excluding those that are still processing
+    `EXPORT_RETENTION`, excluding those that are still processing
     """
 
     grace_period = max(
-        config.EXPORT_CLEANUP_GRACE_PERIOD,
+        config.EXPORT_RETENTION,
         config.SYNCHRONOUS_EXPORT_CACHE_MAX_AGE,
     )
     delete_expired_exports(SubmissionSynchronousExport, grace_period=grace_period)
