@@ -20,6 +20,7 @@ from kobo.apps.organizations.constants import ORG_ADMIN_ROLE
 from kobo.apps.organizations.utils import get_real_owner
 from kobo.apps.reports.constants import FUZZY_VERSION_PATTERN
 from kobo.apps.reports.report_data import build_formpack
+from kobo.apps.subsequences.utils.supplement_data import get_analysis_form_json
 from kobo.apps.trash_bin.exceptions import TrashIntegrityError, TrashTaskInProgressError
 from kobo.apps.trash_bin.models.project import ProjectTrash
 from kobo.apps.trash_bin.utils import move_to_trash, put_back
@@ -62,7 +63,6 @@ from kpi.utils.schema_extensions.fields import (
 from ...schema_extensions.v2.assets.fields import (
     AccessTypeField,
     AdvancedFeatureField,
-    AdvancedSubmissionSchemaField,
     AnalysisFormJsonField,
     AssetHyperlinkedURLField,
     AssignablePermissionField,
@@ -347,6 +347,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         schema_field=AdvancedFeatureField, required=False
     )
     files = serializers.SerializerMethodField()
+    analysis_form_json = serializers.SerializerMethodField()
     xls_link = serializers.SerializerMethodField()
     summary = ReadOnlyFieldWithSchemaField(schema_field=SummaryField)
     xform_link = serializers.SerializerMethodField()
@@ -437,12 +438,12 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             'report_styles',
             'report_custom',
             'advanced_features',
-            'supplemental_output_fields',
             'map_styles',
             'map_custom',
             'content',
             'downloads',
             'embeds',
+            'analysis_form_json',
             'xform_link',
             'hooks_link',
             'tag_string',
@@ -541,6 +542,10 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             asset.assign_perm(user, PERM_MANAGE_ASSET)
 
         return asset
+
+    @extend_schema_field(AnalysisFormJsonField)
+    def get_analysis_form_json(self, obj):
+        return {'additional_fields': get_analysis_form_json(obj)}
 
     def get_fields(self, *args, **kwargs):
         fields = super().get_fields(*args, **kwargs)

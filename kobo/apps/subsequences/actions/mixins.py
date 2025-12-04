@@ -14,6 +14,10 @@ class TranscriptionActionMixin:
     """
 
     @property
+    def col_type(self):
+        return 'transcript'
+
+    @property
     def result_schema(self):
 
         # Move localized_value_schema definitions to main schema
@@ -141,6 +145,10 @@ class TranslationActionMixin:
 
         return action_data
 
+    @property
+    def col_type(self):
+        return 'translation'
+
     def get_action_dependencies(self, question_supplemental_data: dict) -> dict:
         """
         Return only the supplemental data required by this action.
@@ -154,7 +162,7 @@ class TranslationActionMixin:
         """
 
         from ..actions.automatic_google_transcription import (
-            AutomaticGoogleTranscriptionAction
+            AutomaticGoogleTranscriptionAction,
         )
         from ..actions.manual_transcription import ManualTranscriptionAction
 

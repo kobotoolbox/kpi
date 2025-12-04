@@ -311,9 +311,9 @@ class BaseAction:
             [
                 {
                     'language': 'fr',
-                    'name': 'group_name/question_name/transcript__fr',
                     'source': 'group_name/question_name',
                     'type': 'transcript',
+                    'dtpath': f'group_name/question_name/transcript_fr',
                 }
             ]
 
@@ -597,6 +597,28 @@ class BaseManualNLPAction(BaseAction):
                 'locale': {'type': ['string', 'null']},
             },
         }
+
+    def _get_output_field_dtpath(self, language: str) -> str:
+        language = language.split('-')[0]  # ignore region if any
+        return f'{self.source_question_xpath}/{self.col_type}_{language}'
+
+    @property
+    def col_type(self):
+        raise NotImplementedError
+
+    def get_output_fields(self):
+        fields = []
+        for params in self.params:
+            language = params['language']
+            col_type = self.col_type
+            column = {
+                'language': language,
+                'source': self.source_question_xpath,
+                'type': col_type,
+                'dtpath': self._get_output_field_dtpath(language),
+            }
+            fields.append(column)
+        return fields
 
     @property
     def languages(self) -> list[str]:
