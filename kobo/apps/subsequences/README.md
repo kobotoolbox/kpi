@@ -1,197 +1,426 @@
-# `subsequences` app
+# Subsequence Actions – Supplement Processing Flow
 
-### Purpose:
+This document explains the full flow when a client submits a **supplement** payload to the API.
+It covers how the payload is validated through the various schemas (`params_schema`, `data_schema`, `external_data_schema`, `result_schema`), how external NLP services are invoked for automatic actions, and how versions are created and persisted.
 
-* Allow pluggable python code to handle and process submission data
-* Pass this data through to front end views and exports
-* Allow targeting of specific users/groups/forms (not all code is sitewide)
+---
 
+## Table of Contents
 
-### The name
+1. [Class Overview](#1-class-overview)
+2. [Subsequence Workflow](#2-subsequence-workflow)
+   1. [Enabling an Action](#21-enabling-an-action)
+   2. [Add Submission Supplement](#22-add-submission-supplement)
+   3. [Sequence Diagram (End-to-End Flow)](#23-sequence-diagram-end-to-end-flow)
+   4. [Flowchart (Logic inside revise_data per Action)](#24-flowchart-logic-inside-revise_data-per-action)
+3. [Where Schemas Apply](#3-where-schemas-apply)
 
-* The name `subsequences` reflects the way the data is handled sequentially after submission or after another "action" has handled the data
+---
 
+## 1. Class Overview
 
-## The code
+> The following diagram shows the inheritance tree and how mixins provide `result_schema`.
 
-### All actions must have the following components
+```mermaid
+classDiagram
+direction TB
 
-* an identifier
-* a method that decides if a given submission needs to be handled
-* a handler that receives a submission (and other metadata) and processes it
-* a jsonschema to validate that a response is valid
-
-## An example
-
-* A one question survey and we want to round down the decimal on the survey
-  * `{
-      "type": "decimal",
-      "name": "fuel_cost"
-    }`
-
-#### step 1. subclass the "BaseAction"
-
-We will define a class `DecimalRounder` that inherits from `subsequences.actions.BaseAction`
-
-#### step 2. pick an identifier for the metadata
-
-```python
-from kobo.apps.subsequences import BaseAction
-class DecimalRounder(BaseAction):
-    ID = 'decimal_rounder'
-```
-
-#### step 3: when should a record should be modified or handled
-
-In this example, we would probably want to handle any submission that has a non-null value in the `fuel_cost` field of the submission. We would define that like this:
-
-```python
-from subsequences.status ACTION_NEEDED, PASSES
-
-class DecimalRounder(BaseAction):
-    ID = 'decimal_rounder'
-    def check_submission_status(self, submission):
-        if submission.get('fuel_cost') != None:
-            return ACTION_NEEDED
-        return PASSES
-
-## STEP 4: define the handler
-
-    def run_change(self, submission):
-        _data = submission.get(self._destination_field, {})
-        fuel_cost = submission.get('fuel_cost')
-        _data['rounded'] = round(fuel_cost * 100) / 100
-        return {**submission, self._destination_field: _data}
-
-```
-
-#### Step 5: specify which surveys (`Asset`) should be passed to this handler
-
-Somewhere, either through the API or elsewhere, add relevant details to the asset's `advanced_features` field:
-
-```python
-for asset in Asset.objects.filter(name__contains='fuel'):
-    asset.advanced_features = {
-        # 'decimal_rounder' is the ID of the action, defined above
-        'decimal_rounder': {
-            'decimal_rounder_fields': ['fuel_cost']
-        }
-    }
-    asset.save()
-```
-
-#### Step 6: modify the `DecimalRounder` class to receive these params from `asset.advanced_features`
-
-```python
-from subsequences.status ACTION_NEEDED, PASSES
-
-class DecimalRounder(BaseAction):
-    ID = 'decimal_rounder'
-
-    def load_params(self, params):
-        # `params` is loaded from the asset
-        self.fields_to_round = params['decimal_rounder_fields']
-
-## STEP 7: modify `run_change` to use the params
-
-    def run_change(self, submission):
-        _data = submission.get(self._destination_field, {})
-        for field in self.fields_to_round:
-            fuel_cost = submission.get(field_name)
-            _data[field_name] = round(fuel_cost * 100) / 100
-        return {**submission, self._destination_field: _data}
-```
-
-#### Step 8: After a submission has come in, POST metadata to the `/advanced_submission_post/` API endpoint
-
-```
-POST to "/advanced_submission_post/aSsEtUiD"
-
-{
-  "submission": "submission-uuid",
-  "fuel_cost": 1.23456
+%% ==== Bases ====
+class BaseAction {
+  <<abstract>>
+  +external_data_schema [abstract][property]
+  +data_schema [abstract][property]
+  +result_schema [abstract][property]
+  +retrieve_data()
+  +revise_data()
+  +run_external_process() [abstract]
 }
-```
 
-This will create a record in the `submission_extras` table with the following values:
-
-```
-GET "/advanced_submission_post/aSsEtUiD?submission=<submissionUuid>"
-
-{
-  "submission": "submissionUuid",
-  "_supplementalDetails": {
-    "rounded": {
-      "fuel_cost": 1.23
-    }
-  }
+class BaseManualNLPAction {
+  +params_schema [class-level attribute]
+  +data_schema [property]
 }
+
+class BaseAutomaticNLPAction {
+  +attach_action_dependency() [abstract]
+  +external_data_schema [property]
+  +data_schema [property]
+  +get_action_dependencies() [abstract]
+  +run_external_process()
+  +get_nlp_service_class() [abstract]
+}
+
+%% ==== Concrete ====
+class ManualTranscription
+class ManualTranslation
+class AutomaticGoogleTranscription
+class AutomaticGoogleTranslation
+
+%% ==== Mixins (provide result_schema) ====
+class TranscriptionActionMixin {
+  +result_schema [property]
+}
+class TranslationActionMixin {
+  +attach_action_dependency()
+  +get_action_dependencies()
+  +result_schema [property]
+}
+
+%% ==== Inheritance (bases) ====
+BaseAction <|-- BaseManualNLPAction
+BaseManualNLPAction <|-- BaseAutomaticNLPAction
+
+%% ==== Inheritance (concretes) ====
+BaseManualNLPAction <|-- ManualTranscription
+BaseManualNLPAction <|-- ManualTranslation
+BaseAutomaticNLPAction <|-- AutomaticGoogleTranscription
+BaseAutomaticNLPAction <|-- AutomaticGoogleTranslation
+
+%% ==== Mixins -> Concretes ====
+TranscriptionActionMixin <.. ManualTranscription : mixin
+TranscriptionActionMixin <.. AutomaticGoogleTranscription : mixin
+TranslationActionMixin  <.. ManualTranslation : mixin
+TranslationActionMixin  <.. AutomaticGoogleTranslation : mixin
 ```
 
-#### Step 9 (optional): Define a validator
+---
 
-Because `advanced_submission_post` data can be sourced from anywhere, it should be validated. The prominent way to do this is with a jsonschema defined in the action class.
+## 2. Subsequence Workflow
 
-```python
-class DecimalRounder(BaseAction):
-    ID = 'decimal_rounder'
-    # ...
-    # `modify_jsonschema` appended to the class above
-    def modify_jsonschema(self, schema):
-        defs = schema.get('definitions', {})
-        props = schema.get('properties', {})
-        defs['roundedschemadef'] = {
-            'type': 'number',
-        }
+### 2.1 Enabling an Action
 
-        for field_name in self.fields_to_round:
-            props[field_name] = {'$ref': '#/defs/roundedschemadef'}
-```
+To enable an action on an Asset, its configuration must be added under
+`Asset.advanced_features`. This configuration is used to **instantiate the
+action** with its parameters and is validated against the action's
+`params_schema`.
 
-#### Step 10: Test the module
+**Example: Enable Manual Transcription**
 
-There is a utility to help "kick the tires" of your action subclass.
-
-`python manage.py runscript subsequences_action_test < params_plus_submission.json`
-
-where `params_plus_submission.json` looks like this:
+PATCH the asset with:
 
 ```json
 {
-  "advanced_features": {
-      "decimal_rounder": {
-          "decimal_rounder_fields": ["fuel_cost"]
-      }
-  },
-  "submission": {
-      "fuel_cost": 5.678901
+  "_version": "20250820",
+  "_actionConfigs": {
+    "question_name_xpath": {
+      "action_id": <params>,
+      "other_action_id": <params>
+    }
   }
 }
 ```
 
-this should print out the resulting submission:
+**Example: Manual transcription in English and Spanish**
 
-```
+```json
 {
-    "fuel_cost": 5.678901,
-    "_supplementalDetails": {
-        "fuel_cost": {
-            "rounded": 5.68
-        }
+  "_version": "20250820",
+  "_actionConfigs": {
+    "audio_question": {
+      "manual_transcription": [{"language": "en"}, {"language": "es"}]
     }
+  }
 }
 ```
 
-## Further development
+---
 
-These modules can be used in sequence to allow connection to external services or pulling data from other forms.
+### 2.2 Add Submission Supplement
 
-It can be used to store large amounts of unstructured data so be sure to test the jsonschema to make sure that POSTed values pass narrowly.
+You need to PATCH the submission supplement with this payload:
 
-jsonschema resources:
-* [json-schema.org](https://json-schema.org/)
-* [json-schema-validator](https://www.jsonschemavalidator.net/)
+#### Generic request
 
-## Further development
+```
+PATCH /api/v2/assets/<asset_uid>/data/<submission_root_uuid>/supplement/
+```
 
-The changes are triggered with a POST to `/advanced_submission_post/`, but in the future could be triggered automatically by a hook when a submission is first received into the system.
+```json
+{
+  "_version": "20250820",
+  "question_name_xpath": {
+    "action_id": <params>
+  }
+}
+```
+
+#### Example: Manual transcription in English
+
+```json
+{
+  "_version": "20250820",
+  "audio_question": {
+    "manual_transcription": { "language": "en", "value": "My transcript" }
+  }
+}
+```
+
+---
+
+### 2.3 Sequence Diagram (End-to-End Flow)
+
+This section explains how the system handles a supplement from the initial
+client request, through validation and optional background retries.
+
+#### 2.3.1 Sequence Diagram – End-to-End
+
+> The diagram shows the synchronous request until the first response.
+
+```mermaid
+sequenceDiagram
+autonumber
+actor Client
+participant API as KPI API
+participant SS as SubmissionSupplement
+participant Action as Action (Manual/Automatic)
+participant Ext as NLP Service (if automatic)
+participant Celery as Celery Worker
+participant DB as Database
+
+Client->>API: POST /assets/<asset_uid>/data/<submission_root_uuid>/supplement
+Note right of API: Parse payload & route
+
+API->>SS: SubmissionSupplement.revise_data(payload)
+
+loop For each action in _actionConfigs
+  SS->>Action: action.revise_data(one_action_payload)
+  Note right of Action: Validate with data_schema
+
+  alt Action is automatic (BaseAutomaticNLPAction)
+    Action->>Action: run_external_process()
+    Action->>Ext: Call external NLP service
+    Ext-->>Action: Response (augmented payload)
+    alt status == "in_progress"
+      Action->>Celery: enqueue poll_external_process task
+    end
+    Action->>Action: Validate with external_data_schema
+  end
+
+  Action->>Action: Build new version
+  Action->>Action: Validate with result_schema
+  Action->>DB: Save version JSON
+end
+
+SS-->>API: Aggregated result / status
+API-->>Client: 200 OK (or error)
+```
+
+---
+
+#### 2.3.2 Background Polling with Celery
+
+If run_external_process receives a response like:
+
+```json
+{"status": "in_progress"}
+```
+
+
+a Celery task (e.g. poll_external_process) is queued.
+This task will periodically re-invoke the external service until the action’s
+status becomes complete or a maximum retry limit is reached.
+The task uses the same validation chain (external_data_schema → result_schema)
+before persisting the final revision.
+
+---
+
+#### 2.3.3 Flowchart (Logic inside `revise_data` per Action)
+
+> This diagram shows the decision tree when validating and processing a single action payload.
+
+```mermaid
+flowchart TB
+  A[Incoming action payload]
+  B[Attach action dependency]
+  C{Is automatic action?}
+  D[Add dependency supplemental data if any]
+  E[Build version]
+  F[Validate with result schema]
+  G[Save to DB]
+  H[Done]
+  I[Run external process]
+  J[Sanitize dependency supplemental data]
+  K[Validate with external data schema]
+  L[Enqueue Celery task poll_external_process]
+  M[Return 4xx error]
+  N{Status in_progress?}
+
+  A --> B
+  B --> C
+  C -->|no| D
+  D --> E
+  E --> F
+  F --> G
+  G --> H
+
+  C -->|yes| I
+  I --> N
+  N -->|yes| L
+  N -->|no| J
+  J --> K
+  K -->|fail| M
+  K -->|ok| E
+
+  B -->|invalid dependency| M
+```
+
+---
+
+## 3. Where Schemas Apply
+
+Every action relies on a set of schemas to validate its lifecycle:
+- **`params_schema`** – defines how the action is instantiated and configured on the Asset.
+- **`data_schema`** – validates the client payload sent in supplements.
+- **`external_data_schema`** – extends `data_schema` for automatic actions by adding status and system-generated fields.
+- **`result_schema`** – validates the persisted revision format, including metadata and version history.
+
+---
+
+### 3.1 `params_schema`
+
+Defined on all classes inheriting from `BaseAction`.
+It describes the configuration stored in `Asset.advanced_features` when an action is enabled.
+
+**Example: enabling Manual Transcription in English and Spanish**
+
+```json
+{
+  "audio_question": {
+    "manual_transcription": [
+      { "language": "en" },
+      { "language": "es" }
+    ]
+  }
+}
+```
+
+---
+
+### 3.2 `data_schema`
+
+Validates the **client payload** sent for a supplement.
+Each action has its own expected format:
+
+- **Manual Transcription**
+  ```json
+  { "language": "en", "value": "My transcript" }
+  ```
+
+- **Manual Translation**
+  ```json
+  { "language": "en", "value": "My translation" }
+  ```
+
+- **Automatic Transcription / Automatic Translation**
+  ```json
+  { "language": "en" }
+  ```
+
+- **All actions – delete request**
+  ```json
+  { "language": "en", "value": null }
+  ```
+
+---
+
+### 3.3 `external_data_schema`
+
+Used only for **automatic actions** (`BaseAutomaticNLPAction`).
+It validates the **augmented payload** returned by the external service.
+
+- **Example (complete)**
+  ```json
+  { "language": "en", "value": "My automatic result", "status": "complete" }
+  ```
+
+- **Example (in progress)**
+  ```json
+  { "language": "en", "status": "in_progress" }
+  ```
+
+- **Example (deleted)**
+  ```json
+  { "language": "en", "status": "deleted", "value": null }
+  ```
+
+- **Example (failed)**
+  ```json
+  { "language": "en", "status": "failed", "error": "Could not process action" }
+  ```
+
+---
+
+### 3.4 `result_schema`
+
+Validates the **revision JSON** persisted in the database.
+The structure is the same for both manual and automatic actions:
+
+- Metadata about the action itself (`_dateCreated`, `_dateModified`).
+- A list of versions under `_versions`, each containing:
+  - The properties defined by `data_schema` (manual) or `external_data_schema` (automatic).
+  - Audit fields (`_dateCreated`, `_dateAccepted`, `_uuid`).
+
+**Generic Example**
+
+```json
+{
+  "_dateCreated": "2025-08-21T20:55:42Z",
+  "_dateModified": "2025-08-21T20:57:28Z",
+  "_versions": [
+    {
+      "language": "en",
+      "value": "My automatic result",
+      "status": "complete",
+      "_dateCreated": "2025-08-21T20:57:28Z",
+      "_dateAccepted": "2025-08-21T20:57:28Z",
+      "_uuid": "4dcf9c9f-e503-4e5c-81f5-74250b295001"
+    },
+    {
+      "language": "en",
+      "value": "Previous revision",
+      "status": "complete",
+      "_dateCreated": "2025-08-21T20:55:42Z",
+      "_dateAccepted": "2025-08-21T20:55:42Z",
+      "_uuid": "850e6359-50e8-4252-9895-e9669a27b1ea"
+    }
+  ]
+}
+```
+
+> For manual actions, the inner version objects correspond to `data_schema`.
+>
+> For automatic actions, they correspond to `external_data_schema`.
+
+---
+
+### 3.5 `result_schema` with dependencies
+
+Some actions depend on the result of other actions.
+For example, a **translation** action requires an existing **transcription**.
+In this case, a `_dependency` property is added to the persisted JSON.
+
+**Example: Automatic Translation result depending on an Automatic Transcription**
+
+```json
+{
+  "_dateCreated": "2025-09-01T12:15:42Z",
+  "_dateModified": "2025-09-01T12:17:28Z",
+  "_versions": [
+    {
+      "language": "fr",
+      "value": "Mon audio a été traduit automatiquement",
+      "status": "complete",
+      "_dateCreated": "2025-09-01T12:17:28Z",
+      "_uuid": "91ab5f30-0f73-4e2e-b91f-8ad2f67a4729",
+      "_dependency": {
+        "_uuid": "4dcf9c9f-e503-4e5c-81f5-74250b295001",
+        "_actionId": "automatic_google_transcription"
+      }
+    }
+  ]
+}
+```
+
+- The `_dependency` object references the transcription result that the translation was built upon.
+- It reuses the UUID and action ID from the transcription’s persisted result, ensuring referential integrity.
+- This allows clients to trace back a translation to the exact transcription version it relied on.
