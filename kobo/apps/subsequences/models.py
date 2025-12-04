@@ -3,6 +3,7 @@ from django.db import models
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
 from kpi.fields import KpiUidField, LazyDefaultJSONBField
 from kpi.models.abstract_models import AbstractTimeStampedModel
+from kpi.utils.log import logging
 from .actions import ACTION_IDS_TO_CLASSES
 from .constants import SCHEMA_VERSIONS, SUBMISSION_UUID_FIELD, Action
 from .exceptions import InvalidAction, InvalidXPath
@@ -215,25 +216,53 @@ class SubmissionSupplement(SubmissionExtras):
 
                 retrieved_data = action.retrieve_data(action_data)
                 processed_data_for_this_question[action_id] = retrieved_data
+                # {
+                #   'transcript': {'language':'en', 'value':'hi'}
+                #   'translation': {
+                #       'es': {'language':'es', 'value':'hola'},
+                #       'fr': {'language': 'fr', 'value': 'bonjour'}
+                #   }
+                # }
                 if for_output:
                     # Arbitrate the output data so that each column is only
                     # represented once, and that the most recently accepted
                     # action result is used as the value
+
+                    # Columns may be represented by a string or a tuple of strings
+                    # for when the frontend expects something like
+                    # {'translation': {'lang1': {value...}, 'lang2': {value...}}}
+                    max_date_accepted_by_field_key = {}
                     transformed_data = action.transform_data_for_output(retrieved_data)
-                    for field_name, field_data in transformed_data.items():
+                    for field_key, field_data in transformed_data.items():
                         # Omit `_dateAccepted` from the output data
                         new_acceptance_date = field_data.pop('_dateAccepted', None)
                         if not new_acceptance_date:
                             # Never return unaccepted data
                             continue
-                        existing_acceptance_date = data_for_output.get(
-                            field_name, {}
-                        ).get('_dateAccepted')
+                        existing_acceptance_date = max_date_accepted_by_field_key.get(
+                            field_key, ''
+                        )
                         if (
                             not existing_acceptance_date
                             or existing_acceptance_date < new_acceptance_date
                         ):
-                            output_data_for_question[field_name] = field_data
+                            max_date_accepted_by_field_key[field_key] = (
+                                new_acceptance_date
+                            )
+                            if isinstance(field_key, str):
+                                output_data_for_question[field_key] = field_data
+                            else:
+                                the_thing = output_data_for_question
+                                for index, key_str in enumerate(field_key):
+                                    if index == len(field_key) - 1:
+                                        the_thing[key_str] = field_data
+                                    else:
+                                        current = the_thing.get(key_str)
+                                        if current:
+                                            the_thing = current
+                                        else:
+                                            the_thing[key_str] = {}
+                                            the_thing = the_thing[key_str]
             data_for_output[question_xpath] = output_data_for_question
 
         retrieved_supplemental_data['_version'] = schema_version

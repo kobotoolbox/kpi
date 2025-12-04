@@ -21,8 +21,10 @@ class TranscriptionActionMixin:
     def transform_data_for_output(self, action_data: dict) -> dict[str, dict[str, Any]]:
         # get the most recently accepted transcript
         versions = action_data.get('_versions', [])
+        # they should already be in order but there's no way to guarantee it, so
+        # sort just in case
         versions_sorted = sorted(
-            versions, key=lambda x: x['_dateAccepted'], reverse=True
+            versions, key=lambda x: x.get('_dateAccepted'), reverse=True
         )
         version_data = versions_sorted[0]
 
@@ -31,7 +33,7 @@ class TranscriptionActionMixin:
             self.col_type: {
                 'languageCode': version_data['_data']['language'],
                 'value': version_data['_data']['value'],
-                self.DATE_ACCEPTED_FIELD: version_data[self.DATE_ACCEPTED_FIELD],
+                self.DATE_ACCEPTED_FIELD: version_data.get(self.DATE_ACCEPTED_FIELD),
             }
         }
 
@@ -292,3 +294,26 @@ class TranslationActionMixin:
         }
 
         return schema
+
+    def transform_data_for_output(
+        self, action_data: list[dict]
+    ) -> dict[str, dict[str, Any]]:
+        result = {}
+        for language, language_data in action_data.items():
+            versions = language_data.get('_versions', [])
+            # they should already be in order but there's no way to guarantee it, so
+            # sort just in case
+            versions_sorted = sorted(
+                versions, key=lambda x: x.get('_dateAccepted'), reverse=True
+            )
+            version_data = versions_sorted[0]
+            key = ('translation', language)
+
+            # return a simplified representation
+            thing = {
+                'languageCode': version_data['_data']['language'],
+                'value': version_data['_data']['value'],
+                self.DATE_ACCEPTED_FIELD: version_data.get(self.DATE_ACCEPTED_FIELD),
+            }
+            result[key] = thing
+        return result

@@ -791,6 +791,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         user: settings.AUTH_USER_MODEL,
         format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
         submission_ids: list = None,
+        for_output: bool = False,
         **mongo_query_params,
     ) -> Union[Generator[dict, None, None], list]:
         """
@@ -818,6 +819,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         params = self.validate_submission_list_params(
             user, format_type=format_type, **mongo_query_params
         )
+        params['for_output'] = for_output
 
         if format_type == SUBMISSION_FORMAT_TYPE_JSON:
             submissions = self.__get_submissions_in_json(**params)
@@ -1521,6 +1523,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         # Apply a default sort of _id to prevent unpredictable natural sort
         if not params.get('sort'):
             params['sort'] = {'_id': 1}
+        for_output = params.pop('for_output', False)
         mongo_cursor, total_count = MongoHelper.get_instances(
             self.mongo_userform_id, **params
         )
@@ -1546,7 +1549,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         )
         if add_supplements_to_query:
             mongo_cursor = stream_with_supplements(
-                self.asset, mongo_cursor, for_output=True
+                self.asset, mongo_cursor, for_output=for_output
             )
 
         return (
