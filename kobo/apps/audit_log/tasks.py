@@ -61,7 +61,7 @@ def spawn_logs_cleaning_tasks():
 def cleanup_access_log_exports(**kwargs):
     """
     Task to clean up export tasks created by access logs that are older
-    than `EXPORT_CLEANUP_GRACE_PERIOD`, excluding those that are still processing
+    than `EXPORT_RETENTION`, excluding those that are still processing
     """
     delete_expired_exports(AccessLogExportTask)
 
@@ -70,6 +70,6 @@ def cleanup_access_log_exports(**kwargs):
 def cleanup_project_history_log_exports(**kwargs):
     """
     Task to clean up export tasks created by project history logs that are older
-    than `EXPORT_CLEANUP_GRACE_PERIOD`, excluding those that are still processing
+    than `EXPORT_RETENTION`, excluding those that are still processing
     """
     delete_expired_exports(ProjectHistoryLogExportTask)

@@ -7,6 +7,6 @@ from kpi.utils.export_cleanup import delete_expired_exports
 def cleanup_project_view_exports(**kwargs):
     """
     Task to clean up export tasks created by Project Views that are older
-    than `EXPORT_CLEANUP_GRACE_PERIOD`, excluding those that are still processing
+    than `EXPORT_RETENTION`, excluding those that are still processing
     """
     delete_expired_exports(ProjectViewExportTask)

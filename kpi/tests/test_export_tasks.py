@@ -133,7 +133,7 @@ def to_snake(name: str) -> str:
 
 
 @ddt
-@override_config(EXPORT_CLEANUP_GRACE_PERIOD=30)
+@override_config(EXPORT_RETENTION=30)
 @override_config(SYNCHRONOUS_EXPORT_CACHE_MAX_AGE=30)
 class ExportCleanupTestCase(TransactionTestCase):
     """
@@ -167,7 +167,7 @@ class ExportCleanupTestCase(TransactionTestCase):
     @unpack
     def test_exports_older_than_grace_period_are_deleted(self, model, cleanup_task):
         """
-        Exports older than EXPORT_CLEANUP_GRACE_PERIOD should be deleted.
+        Exports older than EXPORT_RETENTION should be deleted.
         """
 
         old_export = self._create_export(model=model, minutes_old=31)
@@ -250,13 +250,13 @@ class ExportCleanupTestCase(TransactionTestCase):
             model.objects.filter(pk__in=[e.pk for e in unlocked_exports]).exists()
         )
 
-    @override_config(EXPORT_CLEANUP_GRACE_PERIOD=5)
+    @override_config(EXPORT_RETENTION=5)
     @override_config(SYNCHRONOUS_EXPORT_CACHE_MAX_AGE=600)
     def test_synchronous_export_cleanup_respects_cache_age(self):
         """
         Verify that synchronous exports are kept as long as they remain within
         SYNCHRONOUS_EXPORT_CACHE_MAX_AGE, even if they exceed
-        EXPORT_CLEANUP_GRACE_PERIOD.
+        EXPORT_RETENTION.
 
         Once older than the cache max age, they must be deleted.
         """

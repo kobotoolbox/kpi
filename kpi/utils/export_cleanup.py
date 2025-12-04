@@ -25,7 +25,7 @@ def delete_expired_exports(
         extra_params = {}
 
     if not grace_period:
-        grace_period = config.EXPORT_CLEANUP_GRACE_PERIOD
+        grace_period = config.EXPORT_RETENTION
 
     cut_off = timezone.now() - timedelta(minutes=grace_period)
     old_export_ids = (
