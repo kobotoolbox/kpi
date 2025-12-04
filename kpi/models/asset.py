@@ -20,6 +20,7 @@ from formpack.utils.kobo_locking import strip_kobo_locking_profile
 from kobo.apps.data_collectors.models import DataCollectorGroup
 from kobo.apps.reports.constants import DEFAULT_REPORTS_KEY, SPECIFIC_REPORTS_KEY
 from kobo.apps.subsequences.schemas import ACTION_PARAMS_SCHEMA
+from kobo.apps.subsequences.utils.supplement_data import get_analysis_form_json
 from kobo.apps.subsequences.utils.versioning import migrate_advanced_features
 from kpi.constants import (
     ASSET_TYPE_BLOCK,
@@ -524,17 +525,7 @@ class Asset(
             self.name = re.sub(r'[\n\t]+', '', _title)
 
     def analysis_form_json(self, omit_question_types=None):
-        additional_fields = []
-        dt_paths_seen = set()
-        for advanced_feature in self.advanced_features_set.all():
-            action = advanced_feature.to_action()
-            output_fields = action.get_output_fields()
-            for field in output_fields:
-                if field['dtpath'] in dt_paths_seen:
-                    continue
-                additional_fields.append(field)
-                dt_paths_seen.add(field['dtpath'])
-        return {'additional_fields': additional_fields}
+        return get_analysis_form_json(self)
 
     def clone(self, version_uid=None):
         # not currently used, but this is how "to_clone_dict" should work
