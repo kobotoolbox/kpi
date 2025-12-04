@@ -146,6 +146,38 @@ class SubmissionSupplementTestCase(TestCase):
                 self.asset, submission_root_uuid=None, prefetched_supplement=None
             )
 
+    def test_retrieve_data_for_output_does_not_return_unaccepted_answer(self):
+        supplement = {
+            '_version': '20250820',
+            'group_name/question_name': {
+                'automatic_google_transcription': {
+                    '_dateCreated': '2024-04-08T15:27:00Z',
+                    '_dateModified': '2024-04-08T15:31:00Z',
+                    '_versions': [
+                        {
+                            '_data': {
+                                'language': 'ar',
+                                'value': 'مجنون',
+                            },
+                            '_dateCreated': '2024-04-08T15:31:00Z',
+                            '_dateAccepted': None,
+                            '_uuid': '51ff33a5-62d6-48ec-94b2-2dfb406e1dee',
+                        },
+                    ],
+                },
+            },
+        }
+
+        SubmissionSupplement.objects.create(
+            asset=self.asset,
+            submission_uuid=self.submission_root_uuid,
+            content=supplement,
+        )
+        output = SubmissionSupplement.retrieve_data(
+            self.asset, self.submission_root_uuid
+        )
+        transcription_data = output['group_name/question_name'].get('transcript')
+        assert transcription_data is None
     # skip until we actually fill out or delete this test
     @pytest.mark.skip()
     def test_retrieve_data_with_stale_questions(self):

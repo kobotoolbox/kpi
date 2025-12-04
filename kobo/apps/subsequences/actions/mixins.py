@@ -307,13 +307,14 @@ class TranslationActionMixin:
                 versions, key=lambda x: x.get('_dateAccepted'), reverse=True
             )
             version_data = versions_sorted[0]
+
+            # a translation column is identified by 'translation' + language
             key = ('translation', language)
 
             # return a simplified representation
-            thing = {
+            result[key] = {
                 'languageCode': version_data['_data']['language'],
                 'value': version_data['_data']['value'],
                 self.DATE_ACCEPTED_FIELD: version_data.get(self.DATE_ACCEPTED_FIELD),
             }
-            result[key] = thing
         return result
