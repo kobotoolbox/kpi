@@ -17,3 +17,6 @@ export type FormGalleryAction =
   | { type: 'setFilterQuestion'; question: string }
   | { type: 'setStartDate'; value: string }
   | { type: 'toggleFullscreen' }
+  | { type: 'openModal'; index: number }
+  | { type: 'closeModal' }
+  | { type: 'setModalImageIndex'; index: number }
