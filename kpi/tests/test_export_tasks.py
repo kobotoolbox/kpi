@@ -255,7 +255,9 @@ class ExportCleanupTestCase(TransactionTestCase):
     def test_synchronous_export_cleanup_respects_cache_age(self):
         """
         Verify that synchronous exports are kept as long as they remain within
-        SYNCHRONOUS_EXPORT_CACHE_MAX_AGE, even if they exceed EXPORT_CLEANUP_GRACE_PERIOD.
+        SYNCHRONOUS_EXPORT_CACHE_MAX_AGE, even if they exceed
+        EXPORT_CLEANUP_GRACE_PERIOD.
+
         Once older than the cache max age, they must be deleted.
         """
 

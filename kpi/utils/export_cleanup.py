@@ -12,7 +12,7 @@ from kpi.utils.log import logging
 
 def delete_expired_exports(
     export_model,
-    grace_period=config.EXPORT_CLEANUP_GRACE_PERIOD,
+    grace_period=None,
     extra_params=None,
 ):
     """
@@ -23,6 +23,9 @@ def delete_expired_exports(
 
     if not extra_params:
         extra_params = {}
+
+    if not grace_period:
+        grace_period = config.EXPORT_CLEANUP_GRACE_PERIOD
 
     cut_off = timezone.now() - timedelta(minutes=grace_period)
     old_export_ids = (
