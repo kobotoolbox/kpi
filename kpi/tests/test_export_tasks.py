@@ -18,8 +18,6 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.project_views.tasks import cleanup_project_view_exports
 from kpi.constants import ASSET_TYPE_SURVEY
 from kpi.models import Asset, AssetExportSettings
-
-# Models
 from kpi.models.import_export_task import (
     AccessLogExportTask,
     ImportExportStatusChoices,
@@ -28,8 +26,6 @@ from kpi.models.import_export_task import (
     SubmissionExportTask,
     SubmissionSynchronousExport,
 )
-
-# Cleanup tasks
 from kpi.tasks import (
     cleanup_anonymous_exports,
     cleanup_synchronous_exports,
@@ -154,9 +150,7 @@ class ExportCleanupTestCase(TransactionTestCase):
     def setUp(self):
         self.user = User.objects.get(username='someuser')
 
-    # ----------------------------------------------------------------------
     # List of (Model, cleanup_task) tuples used by all tests
-    # ----------------------------------------------------------------------
     CASES = [
         (SubmissionExportTask, cleanup_anonymous_exports),
         (SubmissionSynchronousExport, cleanup_synchronous_exports),
