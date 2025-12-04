@@ -232,8 +232,11 @@ CONSTANCE_CONFIG = {
     ),
     'SYNCHRONOUS_EXPORT_CACHE_MAX_AGE': (
         300,
-        'A synchronous export request will return the last export generated '
-        'with the same settings unless it is older than this value (seconds)'
+        (
+            'A synchronous export request will return the last export generated '
+            'with the same settings unless it is older than this value (seconds)'
+        ),
+        'positive_int',
     ),
     'ALLOW_UNSECURED_HOOK_ENDPOINTS': (
         True,
@@ -477,7 +480,11 @@ CONSTANCE_CONFIG = {
     ),
     'EXPORT_CLEANUP_GRACE_PERIOD': (
         30,
-        'Number of minutes after which export tasks are cleaned up.',
+        (
+            'Number of minutes after which export tasks are cleaned up.\n'
+            'Cannot be less than `SYNCHRONOUS_EXPORT_CACHE_MAX_AGE`.'
+        ),
+        'positive_int',
     ),
     'LIMIT_ATTACHMENT_REMOVAL_GRACE_PERIOD': (
         90,
@@ -723,6 +730,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'ACADEMY_URL',
         'COMMUNITY_URL',
         'SYNCHRONOUS_EXPORT_CACHE_MAX_AGE',
+        'EXPORT_CLEANUP_GRACE_PERIOD',
         'EXPOSE_GIT_REV',
         'FRONTEND_MIN_RETRY_TIME',
         'FRONTEND_MAX_RETRY_TIME',
@@ -733,7 +741,6 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'MASS_EMAIL_ENQUEUED_RECORD_EXPIRY',
         'MASS_EMAIL_TEST_EMAILS',
         'USAGE_LIMIT_ENFORCEMENT',
-        'EXPORT_CLEANUP_GRACE_PERIOD',
     ),
     'Rest Services': (
         'ALLOW_UNSECURED_HOOK_ENDPOINTS',
