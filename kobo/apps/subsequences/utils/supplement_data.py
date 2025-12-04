@@ -46,7 +46,7 @@ def get_analysis_form_json(asset: 'kpi.models.Asset') -> list[dict]:
             additional_fields.append(field)
             dt_paths_seen.add(field['dtpath'])
     # sort so transcriptions come before translations for every source question
-    additional_fields = sorted(additional_fields, key=lambda x: x['name'])
+    additional_fields = sorted(additional_fields, key=lambda x: x['dtpath'])
     return additional_fields
 
 

@@ -311,9 +311,9 @@ class BaseAction:
             [
                 {
                     'language': 'fr',
-                    'name': 'group_name/question_name/transcript__fr',
                     'source': 'group_name/question_name',
                     'type': 'transcript',
+                    'dtpath': f'group_name/question_name/transcript_fr',
                 }
             ]
 
@@ -598,9 +598,9 @@ class BaseManualNLPAction(BaseAction):
             },
         }
 
-    def _get_output_field_name(self, language: str) -> str:
+    def _get_output_field_dtpath(self, language: str) -> str:
         language = language.split('-')[0]  # ignore region if any
-        return f'{self.source_question_xpath}/{self.col_type}__{language}'
+        return f'{self.source_question_xpath}/{self.col_type}_{language}'
 
     @property
     def col_type(self):
@@ -613,10 +613,9 @@ class BaseManualNLPAction(BaseAction):
             col_type = self.col_type
             column = {
                 'language': language,
-                'name': self._get_output_field_name(language),
                 'source': self.source_question_xpath,
                 'type': col_type,
-                'dtpath': f'{self.source_question_xpath}/{col_type}_{language}',
+                'dtpath': self._get_output_field_dtpath(language),
             }
             fields.append(column)
         return fields
