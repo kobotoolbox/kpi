@@ -35,7 +35,7 @@ class TestLoggerTasks(TestBase):
 
         chunk_size = 5
         max_records = 20
-        days_threshold = config.SUBMISSION_HISTORY_GRACE_PERIOD
+        days_threshold = config.SUBMISSION_HISTORY_RETENTION
         with patch(
             'django.utils.timezone.now',
             return_value=d0 + timedelta(days=days_threshold - 1),

@@ -187,7 +187,7 @@ class AssetBulkActionsSerializer(serializers.Serializer):
     def _create_tasks(self, assets: list[dict]):
         try:
             return move_to_trash(
-                self.__user, assets, config.PROJECT_TRASH_GRACE_PERIOD, 'asset'
+                self.__user, assets, config.PROJECT_TRASH_RETENTION, 'asset'
             )
         except TrashIntegrityError:
             # We do not want to ignore conflicts. If so, something went wrong.
