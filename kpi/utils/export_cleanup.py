@@ -3,18 +3,13 @@ from datetime import timedelta
 from constance import config
 from django.db import DatabaseError, transaction
 from django.db.models import DateTimeField, ExpressionWrapper, F, FloatField
-<<<<<<< HEAD
-from django.db.models.functions import Cast, Coalesce
-=======
 from django.db.models.functions import Coalesce, Cast
->>>>>>> a908a667c8c7f2dae14d7b9271490d7078df36a2
 from django.utils import timezone
 
 from kpi.models.import_export_task import ImportExportStatusChoices
 from kpi.utils.log import logging
 
 
-<<<<<<< HEAD
 def delete_expired_exports(
     export_model,
     grace_period=None,
@@ -24,25 +19,15 @@ def delete_expired_exports(
     Helper to clean up old export tasks of a given model type
     """
 
-=======
-def delete_expired_exports(export_model, extra_params=None):
-    """
-    Helper to clean up old export tasks of a given model type
-    """
->>>>>>> a908a667c8c7f2dae14d7b9271490d7078df36a2
     BATCH_SIZE = 200
 
     if not extra_params:
         extra_params = {}
 
-<<<<<<< HEAD
     if not grace_period:
         grace_period = config.EXPORT_CLEANUP_GRACE_PERIOD
 
     cut_off = timezone.now() - timedelta(minutes=grace_period)
-=======
-    cut_off = timezone.now() - timedelta(minutes=config.EXPORT_CLEANUP_GRACE_PERIOD)
->>>>>>> a908a667c8c7f2dae14d7b9271490d7078df36a2
     old_export_ids = (
         export_model.objects.annotate(
             processing_seconds=Coalesce(
