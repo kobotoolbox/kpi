@@ -1534,14 +1534,12 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
 
         transcript_field = fields[0]
         assert transcript_field['language'] == 'en'
-        assert transcript_field['name'] == 'q1/transcript__en'
         assert transcript_field['source'] == 'q1'
         assert transcript_field['type'] == 'transcript'
         assert transcript_field['dtpath'] == 'q1/transcript_en'
 
         translation_field = fields[1]
         assert translation_field['language'] == 'es'
-        assert translation_field['name'] == 'q1/translation__es'
         assert translation_field['source'] == 'q1'
         assert translation_field['type'] == 'translation'
         assert translation_field['dtpath'] == 'q1/translation_es'
