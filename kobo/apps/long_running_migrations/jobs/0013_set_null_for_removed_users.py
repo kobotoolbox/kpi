@@ -1,9 +1,7 @@
-from django.conf import settings
 from django.db.models.query import QuerySet
 
 from kobo.apps.audit_log.models import AuditLog
 from kobo.apps.kobo_auth.shortcuts import User
-
 
 CHUNK_SIZE = 1000
 
@@ -34,7 +32,6 @@ def run():
 
     migrated_users = 0
     last_pk = 0
-    adapter = get_adapter()
     while True:
         users = get_queryset(last_pk)
         if not users:
@@ -43,6 +40,5 @@ def run():
         users_count = len(users)
         last_pk = users[len(users) - 1]['id']
         print(f'Processing chunk of {users_count} users ...')
-        # Let concurrent library automatically decide the number of workers
-        for user in users
+        for user in users:
             process_user(user['id'])
