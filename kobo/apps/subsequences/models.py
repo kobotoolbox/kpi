@@ -176,6 +176,7 @@ class SubmissionSupplement(SubmissionExtras):
                 question_xpath, {}
             )
             action_configs = asset.advanced_features['_actionConfigs']
+            output_data_for_question = {}
             try:
                 action_configs_for_this_question = action_configs[question_xpath]
             except KeyError:
@@ -232,7 +233,8 @@ class SubmissionSupplement(SubmissionExtras):
                             not existing_acceptance_date
                             or existing_acceptance_date < new_acceptance_date
                         ):
-                            data_for_output[field_name] = field_data
+                            output_data_for_question[field_name] = field_data
+            data_for_output[question_xpath] = output_data_for_question
 
         retrieved_supplemental_data['_version'] = schema_version
 

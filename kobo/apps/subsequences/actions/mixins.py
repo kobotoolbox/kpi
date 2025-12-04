@@ -1,4 +1,5 @@
 from copy import deepcopy
+from typing import Any
 
 from dateutil import parser
 
@@ -16,6 +17,23 @@ class TranscriptionActionMixin:
     @property
     def col_type(self):
         return 'transcript'
+
+    def transform_data_for_output(self, action_data: dict) -> dict[str, dict[str, Any]]:
+        # get the most recently accepted transcript
+        versions = action_data.get('_versions', [])
+        versions_sorted = sorted(
+            versions, key=lambda x: x['_dateAccepted'], reverse=True
+        )
+        version_data = versions_sorted[0]
+
+        # return a simplified representation
+        return {
+            self.col_type: {
+                'languageCode': version_data['_data']['language'],
+                'value': version_data['_data']['value'],
+                self.DATE_ACCEPTED_FIELD: version_data[self.DATE_ACCEPTED_FIELD],
+            }
+        }
 
     @property
     def result_schema(self):
