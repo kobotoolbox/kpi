@@ -10,16 +10,24 @@ from kpi.models.import_export_task import ImportExportStatusChoices
 from kpi.utils.log import logging
 
 
-def delete_expired_exports(export_model, extra_params=None):
+def delete_expired_exports(
+    export_model,
+    grace_period=None,
+    extra_params=None,
+):
     """
     Helper to clean up old export tasks of a given model type
     """
+
     BATCH_SIZE = 200
 
     if not extra_params:
         extra_params = {}
 
-    cut_off = timezone.now() - timedelta(minutes=config.EXPORT_CLEANUP_GRACE_PERIOD)
+    if not grace_period:
+        grace_period = config.EXPORT_CLEANUP_GRACE_PERIOD
+
+    cut_off = timezone.now() - timedelta(minutes=grace_period)
     old_export_ids = (
         export_model.objects.annotate(
             processing_seconds=Coalesce(
