@@ -1565,7 +1565,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         Retrieve submissions directly from PostgreSQL.
         Submissions can be filtered with `params`.
         """
-
+        params.pop('for_output', False)
         mongo_filters = ['query', 'permission_filters']
         use_mongo = any(
             mongo_filter in mongo_filters
