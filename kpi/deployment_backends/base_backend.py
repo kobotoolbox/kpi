@@ -390,6 +390,7 @@ class BaseDeploymentBackend(abc.ABC):
         user: settings.AUTH_USER_MODEL,
         format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
         submission_ids: list = [],
+        for_output: bool = False,
         **mongo_query_params
     ) -> Union[Iterator[dict], Iterator[str]]:
         """

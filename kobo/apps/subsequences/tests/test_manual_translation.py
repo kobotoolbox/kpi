@@ -2,8 +2,8 @@ import dateutil
 import jsonschema
 import pytest
 
-from ..exceptions import TranscriptionNotFound
 from ..actions.manual_translation import ManualTranslationAction
+from ..exceptions import TranscriptionNotFound
 from .constants import EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, QUESTION_SUPPLEMENT
 
 
@@ -177,6 +177,29 @@ def test_cannot_revise_data_without_transcription():
         )
 
 
+def test_transform_data_for_output():
+    action = _get_action()
+    first = {'language': 'en', 'value': 'hello'}
+    second = {'language': 'en', 'value': 'hello again'}
+    third = {'language': 'fr', 'value': 'bonjour'}
+    mock_sup_det = EMPTY_SUPPLEMENT
+    for data in first, second, third:
+        mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, data)
+
+    retrieved_data = action.retrieve_data(mock_sup_det)
+    result = action.transform_data_for_output(retrieved_data)
+    assert result == {
+        ('translation', 'en'): {
+            'value': 'hello again',
+            'languageCode': 'en',
+            '_dateAccepted': retrieved_data['en']['_versions'][0]['_dateAccepted'],
+        },
+        ('translation', 'fr'): {
+            'value': 'bonjour',
+            'languageCode': 'fr',
+            '_dateAccepted': retrieved_data['fr']['_versions'][0]['_dateAccepted'],
+        },
+    }
 
 
 def _get_action(fetch_action_dependencies=True):

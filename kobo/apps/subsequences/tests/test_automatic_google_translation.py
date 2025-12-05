@@ -6,8 +6,8 @@ import jsonschema
 import pytest
 
 from ..actions.automatic_google_translation import AutomaticGoogleTranslationAction
-from .constants import EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, QUESTION_SUPPLEMENT
 from ..exceptions import TranscriptionNotFound
+from .constants import EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, QUESTION_SUPPLEMENT
 
 
 def test_valid_params_pass_validation():
@@ -412,6 +412,41 @@ def test_action_is_updated_in_background_if_in_progress():
             )
 
         task_mock.apply_async.assert_called_once()
+
+
+def test_transform_data_for_output():
+    action = _get_action()
+    first = {'language': 'es', 'value': 'Hola'}
+    second = {'language': 'es', 'value': 'Hola otra vez'}
+    third = {'language': 'fr', 'value': 'bonjour'}
+    mock_sup_det = EMPTY_SUPPLEMENT
+    mock_service = MagicMock()
+    with patch(
+        'kobo.apps.subsequences.actions.automatic_google_translation.GoogleTranslationService',  # noqa
+        return_value=mock_service,
+    ):
+        for data in first, second, third:
+            value = data.pop('value')
+            mock_service.process_data.return_value = {
+                'value': value,
+                'status': 'complete',
+            }
+            mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, data)
+
+    retrieved_data = action.retrieve_data(mock_sup_det)
+    result = action.transform_data_for_output(retrieved_data)
+    assert result == {
+        ('translation', 'es'): {
+            'value': 'Hola otra vez',
+            'languageCode': 'es',
+            '_dateAccepted': None,
+        },
+        ('translation', 'fr'): {
+            'value': 'bonjour',
+            'languageCode': 'fr',
+            '_dateAccepted': None,
+        },
+    }
 
 
 def _get_action(fetch_action_dependencies=True):

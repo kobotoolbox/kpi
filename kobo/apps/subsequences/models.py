@@ -176,6 +176,8 @@ class SubmissionSupplement(SubmissionExtras):
                 question_xpath, {}
             )
             action_configs = asset.advanced_features['_actionConfigs']
+            output_data_for_question = {}
+            max_date_accepted_by_field_key = {}
             try:
                 action_configs_for_this_question = action_configs[question_xpath]
             except KeyError:
@@ -218,21 +220,38 @@ class SubmissionSupplement(SubmissionExtras):
                     # Arbitrate the output data so that each column is only
                     # represented once, and that the most recently accepted
                     # action result is used as the value
+
+                    # Columns may be represented by a string or a tuple of strings
+                    # for when the API expects something like
+                    # {'translation': {'lang1': {value...}, 'lang2': {value...}}}
+                    # where ('translation','lang1') would be one key and
+                    # ('translation', 'lang2') would be the other
                     transformed_data = action.transform_data_for_output(retrieved_data)
-                    for field_name, field_data in transformed_data.items():
+                    for field_key, field_data in transformed_data.items():
                         # Omit `_dateAccepted` from the output data
                         new_acceptance_date = field_data.pop('_dateAccepted', None)
                         if not new_acceptance_date:
                             # Never return unaccepted data
                             continue
-                        existing_acceptance_date = data_for_output.get(
-                            field_name, {}
-                        ).get('_dateAccepted')
+                        existing_acceptance_date = max_date_accepted_by_field_key.get(
+                            field_key, ''
+                        )
                         if (
                             not existing_acceptance_date
                             or existing_acceptance_date < new_acceptance_date
                         ):
-                            data_for_output[field_name] = field_data
+                            max_date_accepted_by_field_key[field_key] = (
+                                new_acceptance_date
+                            )
+                            if isinstance(field_key, str):
+                                output_data_for_question[field_key] = field_data
+                            else:
+                                # see https://stackoverflow.com/questions/13687924/setting-a-value-in-a-nested-python-dictionary-given-a-list-of-indices-and-value  # noqa
+                                current = output_data_for_question
+                                for key_str in field_key[:-1]:
+                                    current = current.setdefault(key_str, {})
+                                current[field_key[-1]] = field_data
+            data_for_output[question_xpath] = output_data_for_question
 
         retrieved_supplemental_data['_version'] = schema_version
 

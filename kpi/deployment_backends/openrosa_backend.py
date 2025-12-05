@@ -21,7 +21,6 @@ from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
 from django_redis import get_redis_connection
-from pyxform.builder import create_survey_from_xls
 from rest_framework import exceptions, status
 
 from kobo.apps.data_collectors.utils import (
@@ -80,6 +79,7 @@ from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_anonymous_user, get_database_user
 from kpi.utils.xml import fromstring_preserve_root_xmlns, xml_tostring
+from pyxform.builder import create_survey_from_xls
 from ..exceptions import AttachmentUidMismatchException, BadFormatException
 from .base_backend import BaseDeploymentBackend
 from .kc_access.utils import kc_transaction_atomic
@@ -791,6 +791,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         user: settings.AUTH_USER_MODEL,
         format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
         submission_ids: list = None,
+        for_output: bool = False,
         **mongo_query_params,
     ) -> Union[Generator[dict, None, None], list]:
         """
@@ -818,6 +819,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         params = self.validate_submission_list_params(
             user, format_type=format_type, **mongo_query_params
         )
+        params['for_output'] = for_output
 
         if format_type == SUBMISSION_FORMAT_TYPE_JSON:
             submissions = self.__get_submissions_in_json(**params)
@@ -1521,6 +1523,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         # Apply a default sort of _id to prevent unpredictable natural sort
         if not params.get('sort'):
             params['sort'] = {'_id': 1}
+        for_output = params.pop('for_output', False)
         mongo_cursor, total_count = MongoHelper.get_instances(
             self.mongo_userform_id, **params
         )
@@ -1545,7 +1548,9 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             for submission in mongo_cursor
         )
         if add_supplements_to_query:
-            mongo_cursor = stream_with_supplements(self.asset, mongo_cursor)
+            mongo_cursor = stream_with_supplements(
+                self.asset, mongo_cursor, for_output=for_output
+            )
 
         return (
             self._inject_properties(
@@ -1560,7 +1565,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         Retrieve submissions directly from PostgreSQL.
         Submissions can be filtered with `params`.
         """
-
+        params.pop('for_output', False)
         mongo_filters = ['query', 'permission_filters']
         use_mongo = any(
             mongo_filter in mongo_filters
