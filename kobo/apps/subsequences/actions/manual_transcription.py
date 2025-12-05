@@ -7,4 +7,3 @@ class ManualTranscriptionAction(TranscriptionActionMixin, BaseManualNLPAction):
 
     ID = 'manual_transcription'
     action_class_config = ActionClassConfig(allow_multiple=False, automatic=False)
-
