@@ -18,13 +18,15 @@ class TranscriptionActionMixin:
     def col_type(self):
         return 'transcript'
 
-    def transform_data_for_output(self, action_data: dict) -> dict[str, dict[str, Any]]:
+    def transform_data_for_output(
+        self, action_data: dict
+    ) -> dict[str | tuple, dict[str, Any]]:
         # get the most recently accepted transcript
         versions = action_data.get('_versions', [])
         # they should already be in order but there's no way to guarantee it, so
         # sort just in case
         versions_sorted = sorted(
-            versions, key=lambda x: x.get('_dateAccepted'), reverse=True
+            versions, key=lambda x: x.get('_dateAccepted', ''), reverse=True
         )
         version_data = versions_sorted[0]
 
@@ -296,15 +298,14 @@ class TranslationActionMixin:
         return schema
 
     def transform_data_for_output(
-        self, action_data: list[dict]
-    ) -> dict[str, dict[str, Any]]:
+        self, action_data: dict
+    ) -> dict[str | tuple, dict[str, Any]]:
         result = {}
         for language, language_data in action_data.items():
             versions = language_data.get('_versions', [])
-            # they should already be in order but there's no way to guarantee it, so
-            # sort just in case
+            # order by date accepted
             versions_sorted = sorted(
-                versions, key=lambda x: x.get('_dateAccepted'), reverse=True
+                versions, key=lambda x: x.get('_dateAccepted', ''), reverse=True
             )
             version_data = versions_sorted[0]
 

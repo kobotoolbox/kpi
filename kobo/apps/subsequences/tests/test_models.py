@@ -10,10 +10,23 @@ from freezegun import freeze_time
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.models import Asset
+from ..actions import (
+    AutomaticGoogleTranscriptionAction,
+    AutomaticGoogleTranslationAction,
+)
 from ..constants import SUBMISSION_UUID_FIELD
 from ..exceptions import InvalidAction, InvalidXPath
 from ..models import SubmissionSupplement
 from .constants import EMPTY_SUPPLEMENT
+
+
+class MockNLPService:
+    def __init__(self, submission, asset, *args, **kwargs):
+        self.submission = submission
+        self.asset = asset
+
+    def process_data(self, *args, **kwargs):
+        pass
 
 
 class SubmissionSupplementTestCase(TestCase):
@@ -134,6 +147,66 @@ class SubmissionSupplementTestCase(TestCase):
             'group_name/question_name': 'audio.m4a',
         }
 
+    def _add_manual_nlp_action(
+        self,
+        nlp_action: str,
+        language: str,
+        value: str,
+        date_created=None,
+        date_accepted=None,
+    ):
+        SubmissionSupplement.revise_data(
+            self.asset,
+            self.submission,
+            incoming_data={
+                '_version': '20250820',
+                'group_name/question_name': {
+                    f'manual_{nlp_action}': {'language': language, 'value': value}
+                },
+            },
+        )
+
+    def _add_automatic_nlp_action(
+        self, nlp_action: str, language: str, value: str, accept=False
+    ):
+        service = (
+            AutomaticGoogleTranscriptionAction
+            if nlp_action == 'transcription'
+            else AutomaticGoogleTranslationAction
+        )
+        with patch.object(
+            MockNLPService,
+            'process_data',
+            return_value={'value': value, 'status': 'complete'},
+        ):
+            with patch.object(
+                service, 'get_nlp_service_class', return_value=MockNLPService
+            ):
+                SubmissionSupplement.revise_data(
+                    self.asset,
+                    self.submission,
+                    incoming_data={
+                        '_version': '20250820',
+                        'group_name/question_name': {
+                            f'automatic_google_{nlp_action}': {'language': language}
+                        },
+                    },
+                )
+                if accept:
+                    SubmissionSupplement.revise_data(
+                        self.asset,
+                        self.submission,
+                        incoming_data={
+                            '_version': '20250820',
+                            'group_name/question_name': {
+                                f'automatic_google_{nlp_action}': {
+                                    'language': language,
+                                    'accepted': True,
+                                }
+                            },
+                        },
+                    )
+
     def test_retrieve_empty_data(self):
         assert (
             SubmissionSupplement.retrieve_data(self.asset, self.submission_root_uuid)
@@ -147,37 +220,100 @@ class SubmissionSupplementTestCase(TestCase):
             )
 
     def test_retrieve_data_for_output_does_not_return_unaccepted_answer(self):
-        supplement = {
+        advanced_features = {
             '_version': '20250820',
-            'group_name/question_name': {
-                'automatic_google_transcription': {
-                    '_dateCreated': '2024-04-08T15:27:00Z',
-                    '_dateModified': '2024-04-08T15:31:00Z',
-                    '_versions': [
-                        {
-                            '_data': {
-                                'language': 'ar',
-                                'value': 'مجنون',
-                            },
-                            '_dateCreated': '2024-04-08T15:31:00Z',
-                            '_dateAccepted': None,
-                            '_uuid': '51ff33a5-62d6-48ec-94b2-2dfb406e1dee',
-                        },
+            '_actionConfigs': {
+                'group_name/question_name': {
+                    'manual_transcription': [{'language': 'en'}],
+                    'manual_translation': [
+                        {'language': 'es'},
                     ],
-                },
+                }
             },
         }
-
-        SubmissionSupplement.objects.create(
-            asset=self.asset,
-            submission_uuid=self.submission_root_uuid,
-            content=supplement,
+        self.asset.advanced_features = advanced_features
+        self.asset.save()
+        self._add_manual_nlp_action('transcription', 'en', 'Hello')
+        self._add_manual_nlp_action('translation', 'es', 'Hola')
+        ss = SubmissionSupplement.objects.get(
+            asset=self.asset, submission_uuid=self.submission_root_uuid
         )
+        # clear date accepted
+        ss.content['group_name/question_name']['manual_transcription']['_versions'][0][
+            '_dateAccepted'
+        ] = None
+        ss.content['group_name/question_name']['manual_translation']['es']['_versions'][
+            0
+        ]['_dateAccepted'] = None
+        ss.save()
+
         output = SubmissionSupplement.retrieve_data(
-            self.asset, self.submission_root_uuid
+            self.asset, self.submission_root_uuid, for_output=True
         )
         transcription_data = output['group_name/question_name'].get('transcript')
+        translation_data = output['group_name/question_name'].get('translation')
         assert transcription_data is None
+        assert translation_data is None
+
+    def test_retrieve_data_for_output_selects_most_recent_transcript(self):
+        advanced_features = {
+            '_version': '20250820',
+            '_actionConfigs': {
+                'group_name/question_name': {
+                    'manual_transcription': [{'language': 'en'}, {'language': 'fr'}],
+                    'automatic_google_transcription': [
+                        {'language': 'en'},
+                        {'language': 'es'},
+                    ],
+                }
+            },
+        }
+        self.asset.advanced_features = advanced_features
+        self.asset.save()
+        self._add_manual_nlp_action('transcription', 'en', 'Hello')
+        self._add_automatic_nlp_action('transcription', 'en', 'Hello automatic', True)
+        self._add_automatic_nlp_action('transcription', 'es', 'Hola', True)
+        self._add_manual_nlp_action('transcription', 'fr', 'Bonjour')
+
+        output = SubmissionSupplement.retrieve_data(
+            self.asset, self.submission_root_uuid, for_output=True
+        )
+        transcription_data = output['group_name/question_name'].get('transcript')
+        assert transcription_data == {'value': 'Bonjour', 'languageCode': 'fr'}
+
+    def test_retrieve_data_for_output_selects_most_recent_translation_by_language(self):
+        advanced_features = {
+            '_version': '20250820',
+            '_actionConfigs': {
+                'group_name/question_name': {
+                    'manual_transcription': [{'language': 'en'}],
+                    'manual_translation': [{'language': 'es'}, {'language': 'fr'}],
+                    'automatic_google_translation': [
+                        {'language': 'es'},
+                        {'language': 'de'},
+                    ],
+                }
+            },
+        }
+        self.asset.advanced_features = advanced_features
+        self.asset.save()
+        # translations require a transcription
+        self._add_manual_nlp_action('transcription', 'en', 'Hi')
+
+        self._add_manual_nlp_action('translation', 'es', 'Hola')
+        self._add_manual_nlp_action('translation', 'fr', 'Bonjour')
+        self._add_automatic_nlp_action('translation', 'es', 'Hola automatico', True)
+        self._add_automatic_nlp_action('translation', 'de', 'Guten tag', True)
+
+        output = SubmissionSupplement.retrieve_data(
+            self.asset, self.submission_root_uuid, for_output=True
+        )
+        translations = output['group_name/question_name']['translation']
+        # most recent Spanish translation
+        assert translations['es']['value'] == 'Hola automatico'
+        assert translations['fr']['value'] == 'Bonjour'
+        assert translations['de']['value'] == 'Guten tag'
+
     # skip until we actually fill out or delete this test
     @pytest.mark.skip()
     def test_retrieve_data_with_stale_questions(self):

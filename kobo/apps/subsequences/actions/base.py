@@ -1,7 +1,7 @@
 import uuid
 from copy import deepcopy
 from dataclasses import dataclass
-from typing import Optional
+from typing import Any, Optional
 
 import jsonschema
 from django.conf import settings
@@ -319,8 +319,29 @@ class BaseAction:
 
         Must be implemented by subclasses.
         """
-        # raise NotImplementedError()
         return []
+
+    def transform_data_for_output(
+        self, action_data: dict
+    ) -> dict[str | tuple, dict[str, Any]]:
+        """
+        Given data retrieved by the action (eg the result of action.retrieve_data()),
+        returns a dict of {data_key: formatted_value}
+
+        data_key is a string or tuple representing the path to the value for a row,
+        starting at the question level, in the eventual /data response
+        e.g. 'transcript' for myquestion['transcript'], or ('translation','en') for
+        myquestion['translation']['en']
+
+        formatted_value is the simplified representation of the value along with the
+        date accepted
+        eg {
+            'value': 'my transcribed string',
+            'languageCode': 'en',
+            '_dateAccepted': 2025-01-01T00:00:00Z}
+        }
+        """
+        return {}
 
     def validate_external_data(self, data):
         jsonschema.validate(data, self.external_data_schema)

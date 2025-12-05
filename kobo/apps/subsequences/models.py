@@ -177,6 +177,7 @@ class SubmissionSupplement(SubmissionExtras):
             )
             action_configs = asset.advanced_features['_actionConfigs']
             output_data_for_question = {}
+            max_date_accepted_by_field_key = {}
             try:
                 action_configs_for_this_question = action_configs[question_xpath]
             except KeyError:
@@ -225,7 +226,6 @@ class SubmissionSupplement(SubmissionExtras):
                     # {'translation': {'lang1': {value...}, 'lang2': {value...}}}
                     # where ('translation','lang1') would be one key and
                     # ('translation', 'lang2') would be the other
-                    max_date_accepted_by_field_key = {}
                     transformed_data = action.transform_data_for_output(retrieved_data)
                     for field_key, field_data in transformed_data.items():
                         # Omit `_dateAccepted` from the output data
