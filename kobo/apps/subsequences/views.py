@@ -27,7 +27,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
     tags=['Advanced Features'],
     parameters=[
         OpenApiParameter(
-            name='parent_lookup_asset',
+            name='uid_asset',
             type=str,
             location=OpenApiParameter.PATH,
             required=True,
@@ -64,7 +64,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
         ),
         parameters=[
             OpenApiParameter(
-                name='uid',
+                name='id',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
@@ -82,7 +82,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
         ),
         parameters=[
             OpenApiParameter(
-                name='uid',
+                name='id',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,

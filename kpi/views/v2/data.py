@@ -99,6 +99,13 @@ from kpi.utils.xml import (
             required=True,
             description='UID of the parent asset',
         ),
+        OpenApiParameter(
+            name='id',
+            type=int,
+            location=OpenApiParameter.PATH,
+            required=False,
+            description='ID of the data (when applicable)',
+        ),
     ],
 )
 @extend_schema_view(
