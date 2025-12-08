@@ -282,7 +282,10 @@ class QuestionAdvancedFeature(models.Model):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['asset_id', 'question_xpath', 'action'], name='unique_advanced_feature')
+            models.UniqueConstraint(
+                fields=['asset_id', 'question_xpath', 'action'],
+                name='unique_advanced_feature',
+            )
         ]
 
     def to_action(self):
