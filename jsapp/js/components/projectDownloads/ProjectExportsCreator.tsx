@@ -4,6 +4,7 @@ import alertify from 'alertifyjs'
 import cx from 'classnames'
 import Select from 'react-select'
 import { actions } from '#/actions'
+import { handleApiFail } from '#/api'
 import { getFlatQuestionsList, getSurveyFlatPaths, injectSupplementalRowsIntoListOfRows } from '#/assetUtils'
 import bem from '#/bem'
 import Button from '#/components/common/button'
@@ -30,7 +31,14 @@ import {
 } from '#/components/projectDownloads/exportsUtils'
 import { getColumnLabel } from '#/components/submissions/tableUtils'
 import { ADDITIONAL_SUBMISSION_PROPS, SUPPLEMENTAL_DETAILS_PROP } from '#/constants'
-import type { AssetResponse, ExportSetting, ExportSettingRequest, MongoQuery, PaginatedResponse } from '#/dataInterface'
+import type {
+  AssetResponse,
+  ExportSetting,
+  ExportSettingRequest,
+  FailResponse,
+  MongoQuery,
+  PaginatedResponse,
+} from '#/dataInterface'
 import { createDateQuery, formatTimeDate, recordEntries, recordKeys, recordValues } from '#/utils'
 
 const NAMELESS_EXPORT_NAME = t('Latest unsaved settings')
@@ -134,6 +142,7 @@ export default class ProjectExportsCreator extends React.Component<
     this.unlisteners.push(
       exportsStore.listen(this.onExportsStoreChange.bind(this), this),
       actions.exports.createExport.completed.listen(this.onCreateExportCompleted.bind(this)),
+      actions.exports.createExport.failed.listen(this.onCreateExportFailed.bind(this)),
       actions.exports.getExportSettings.completed.listen(this.onGetExportSettingsCompleted.bind(this)),
       actions.exports.updateExportSetting.completed.listen(this.fetchExportSettings.bind(this, true)),
       actions.exports.createExportSetting.completed.listen(this.fetchExportSettings.bind(this, true)),
@@ -185,6 +194,11 @@ export default class ProjectExportsCreator extends React.Component<
 
   onCreateExportCompleted() {
     this.setState({ isPending: false })
+  }
+
+  onCreateExportFailed(errorResponse: FailResponse) {
+    this.setState({ isPending: false })
+    handleApiFail(errorResponse)
   }
 
   onGetExportSettingsCompleted(
