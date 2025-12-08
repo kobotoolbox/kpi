@@ -16,7 +16,7 @@ from ..actions import (
 )
 from ..constants import SUBMISSION_UUID_FIELD
 from ..exceptions import InvalidAction, InvalidXPath
-from ..models import SubmissionSupplement
+from ..models import QuestionAdvancedFeature, SubmissionSupplement
 from .constants import EMPTY_SUPPLEMENT
 
 
@@ -30,19 +30,6 @@ class MockNLPService:
 
 
 class SubmissionSupplementTestCase(TestCase):
-
-    # Asset-level config.
-    #   - Allow manual transcription for Arabic
-    #   - Allow manual translation for English and Spanish
-    ADVANCED_FEATURES = {
-        '_version': '20250820',
-        '_actionConfigs': {
-            'group_name/question_name': {
-                'manual_transcription': [{'language': 'ar'}],
-                'manual_translation': [{'language': 'en'}, {'language': 'es'}],
-            }
-        },
-    }
 
     EXPECTED_SUBMISSION_SUPPLEMENT = {
         '_version': '20250820',
@@ -137,14 +124,26 @@ class SubmissionSupplementTestCase(TestCase):
         self.asset = Asset.objects.create(
             owner=self.owner,
             name='Test Asset',
-            advanced_features=self.ADVANCED_FEATURES,
+        )
+        self.xpath = 'group_name/question_name'
+        QuestionAdvancedFeature.objects.create(
+            question_xpath=self.xpath,
+            action='manual_transcription',
+            params=[{'language': 'en'}],
+            asset=self.asset,
+        )
+        QuestionAdvancedFeature.objects.create(
+            question_xpath=self.xpath,
+            action='manual_translation',
+            params=[{'language': 'fr'}, {'language': 'es'}],
+            asset=self.asset,
         )
 
         # Mock submission with minimal info needed for subsequence actions
         self.submission_root_uuid = '123e4567-e89b-12d3-a456-426614174000'
         self.submission = {
             SUBMISSION_UUID_FIELD: self.submission_root_uuid,
-            'group_name/question_name': 'audio.m4a',
+            self.xpath: 'audio.m4a',
         }
 
     def _add_manual_nlp_action(
@@ -152,15 +151,13 @@ class SubmissionSupplementTestCase(TestCase):
         nlp_action: str,
         language: str,
         value: str,
-        date_created=None,
-        date_accepted=None,
     ):
         SubmissionSupplement.revise_data(
             self.asset,
             self.submission,
             incoming_data={
                 '_version': '20250820',
-                'group_name/question_name': {
+                self.xpath: {
                     f'manual_{nlp_action}': {'language': language, 'value': value}
                 },
             },
@@ -187,7 +184,7 @@ class SubmissionSupplementTestCase(TestCase):
                     self.submission,
                     incoming_data={
                         '_version': '20250820',
-                        'group_name/question_name': {
+                        self.xpath: {
                             f'automatic_google_{nlp_action}': {'language': language}
                         },
                     },
@@ -198,7 +195,7 @@ class SubmissionSupplementTestCase(TestCase):
                         self.submission,
                         incoming_data={
                             '_version': '20250820',
-                            'group_name/question_name': {
+                            self.xpath: {
                                 f'automatic_google_{nlp_action}': {
                                     'language': language,
                                     'accepted': True,
@@ -206,6 +203,18 @@ class SubmissionSupplementTestCase(TestCase):
                             },
                         },
                     )
+
+    def _enable_nlp_action(self, action: str, languages: list[str]):
+        feature, _ = QuestionAdvancedFeature.objects.get_or_create(
+            asset=self.asset,
+            action=action,
+            question_xpath=self.xpath,
+            defaults={'params': []},
+        )
+        for lang in languages:
+            if {'language': lang} not in feature.params:
+                feature.params.append({'language': lang})
+        feature.save()
 
     def test_retrieve_empty_data(self):
         assert (
@@ -220,56 +229,33 @@ class SubmissionSupplementTestCase(TestCase):
             )
 
     def test_retrieve_data_for_output_does_not_return_unaccepted_answer(self):
-        advanced_features = {
-            '_version': '20250820',
-            '_actionConfigs': {
-                'group_name/question_name': {
-                    'manual_transcription': [{'language': 'en'}],
-                    'manual_translation': [
-                        {'language': 'es'},
-                    ],
-                }
-            },
-        }
-        self.asset.advanced_features = advanced_features
-        self.asset.save()
         self._add_manual_nlp_action('transcription', 'en', 'Hello')
         self._add_manual_nlp_action('translation', 'es', 'Hola')
         ss = SubmissionSupplement.objects.get(
             asset=self.asset, submission_uuid=self.submission_root_uuid
         )
         # clear date accepted
-        ss.content['group_name/question_name']['manual_transcription']['_versions'][0][
+        ss.content[self.xpath]['manual_transcription']['_versions'][0][
             '_dateAccepted'
         ] = None
-        ss.content['group_name/question_name']['manual_translation']['es']['_versions'][
-            0
-        ]['_dateAccepted'] = None
+        ss.content[self.xpath]['manual_translation']['es']['_versions'][0][
+            '_dateAccepted'
+        ] = None
         ss.save()
 
         output = SubmissionSupplement.retrieve_data(
             self.asset, self.submission_root_uuid, for_output=True
         )
-        transcription_data = output['group_name/question_name'].get('transcript')
-        translation_data = output['group_name/question_name'].get('translation')
+        transcription_data = output[self.xpath].get('transcript')
+        translation_data = output[self.xpath].get('translation')
         assert transcription_data is None
         assert translation_data is None
 
     def test_retrieve_data_for_output_selects_most_recent_transcript(self):
-        advanced_features = {
-            '_version': '20250820',
-            '_actionConfigs': {
-                'group_name/question_name': {
-                    'manual_transcription': [{'language': 'en'}, {'language': 'fr'}],
-                    'automatic_google_transcription': [
-                        {'language': 'en'},
-                        {'language': 'es'},
-                    ],
-                }
-            },
-        }
-        self.asset.advanced_features = advanced_features
-        self.asset.save()
+        # Enable manual transcriptions in French
+        self._enable_nlp_action('manual_transcription', ['fr'])
+        self._enable_nlp_action('automatic_google_transcription', ['en', 'es'])
+
         self._add_manual_nlp_action('transcription', 'en', 'Hello')
         self._add_automatic_nlp_action('transcription', 'en', 'Hello automatic', True)
         self._add_automatic_nlp_action('transcription', 'es', 'Hola', True)
@@ -278,25 +264,12 @@ class SubmissionSupplementTestCase(TestCase):
         output = SubmissionSupplement.retrieve_data(
             self.asset, self.submission_root_uuid, for_output=True
         )
-        transcription_data = output['group_name/question_name'].get('transcript')
+        transcription_data = output[self.xpath].get('transcript')
         assert transcription_data == {'value': 'Bonjour', 'languageCode': 'fr'}
 
     def test_retrieve_data_for_output_selects_most_recent_translation_by_language(self):
-        advanced_features = {
-            '_version': '20250820',
-            '_actionConfigs': {
-                'group_name/question_name': {
-                    'manual_transcription': [{'language': 'en'}],
-                    'manual_translation': [{'language': 'es'}, {'language': 'fr'}],
-                    'automatic_google_translation': [
-                        {'language': 'es'},
-                        {'language': 'de'},
-                    ],
-                }
-            },
-        }
-        self.asset.advanced_features = advanced_features
-        self.asset.save()
+        # Enable automatic translations in Spanish and German
+        self._enable_nlp_action('automatic_google_translation', ['es', 'de'])
         # translations require a transcription
         self._add_manual_nlp_action('transcription', 'en', 'Hi')
 
@@ -308,7 +281,7 @@ class SubmissionSupplementTestCase(TestCase):
         output = SubmissionSupplement.retrieve_data(
             self.asset, self.submission_root_uuid, for_output=True
         )
-        translations = output['group_name/question_name']['translation']
+        translations = output[self.xpath]['translation']
         # most recent Spanish translation
         assert translations['es']['value'] == 'Hola automatico'
         assert translations['fr']['value'] == 'Bonjour'
@@ -323,7 +296,7 @@ class SubmissionSupplementTestCase(TestCase):
             content=self.EXPECTED_SUBMISSION_SUPPLEMENT,
         )
         advanced_features = deepcopy(self.ADVANCED_FEATURES)
-        config = advanced_features['_actionConfigs'].pop('group_name/question_name')
+        config = advanced_features['_actionConfigs'].pop(self.xpath)
         advanced_features['_actionConfigs']['group_name/renamed_question_name'] = config
         submission_supplement = SubmissionSupplement.retrieve_data(
             self.asset, self.submission_root_uuid
@@ -334,7 +307,7 @@ class SubmissionSupplementTestCase(TestCase):
     @pytest.mark.skip()
     def test_retrieve_data_from_migrated_data(self):
         submission_supplement = {
-            'group_name/question_name': {
+            self.xpath: {
                 'transcript': {
                     'languageCode': 'ar',
                     'value': 'فارغ',
@@ -402,6 +375,9 @@ class SubmissionSupplementTestCase(TestCase):
             uuid.UUID('d69b9263-04fd-45b4-b011-2e166cfefd4a'),
         ]
 
+        self._enable_nlp_action('manual_transcription', ['ar'])
+        self._enable_nlp_action('manual_translation', ['en'])
+
         with patch('uuid.uuid4', side_effect=fake_uuids):
 
             frozen_datetime_now = datetime(2024, 4, 8, 15, 27, 0, tzinfo=ZoneInfo('UTC'))
@@ -413,7 +389,7 @@ class SubmissionSupplementTestCase(TestCase):
                     self.submission,
                     {
                         '_version': '20250820',
-                        'group_name/question_name': {
+                        self.xpath: {
                             'manual_transcription': {
                                 'language': 'ar',
                                 'value': 'هائج',
@@ -439,7 +415,7 @@ class SubmissionSupplementTestCase(TestCase):
                     self.submission,
                     {
                         '_version': '20250820',
-                        'group_name/question_name': {
+                        self.xpath: {
                             'manual_translation': {
                                 'language': 'es',
                                 'value': 'loco',
@@ -463,7 +439,7 @@ class SubmissionSupplementTestCase(TestCase):
                     self.submission,
                     {
                         '_version': '20250820',
-                        'group_name/question_name': {
+                        self.xpath: {
                             'manual_transcription': {
                                 'language': 'ar',
                                 'value': 'مجنون',
@@ -480,7 +456,7 @@ class SubmissionSupplementTestCase(TestCase):
                     self.submission,
                     {
                         '_version': '20250820',
-                        'group_name/question_name': {
+                        self.xpath: {
                             'manual_translation': {
                                 'language': 'es',
                                 'value': 'enloquecido',
@@ -499,7 +475,7 @@ class SubmissionSupplementTestCase(TestCase):
                 self.submission,
                 {
                     '_version': '20250820',
-                    'group_name/question_name': {'my_other_action': {'param': 'foo'}},
+                    self.xpath: {'my_other_action': {'param': 'foo'}},
                 },
             )
 

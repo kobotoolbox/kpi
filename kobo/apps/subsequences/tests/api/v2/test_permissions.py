@@ -140,17 +140,11 @@ class SubsequencePermissionTestCase(SubsequenceBaseTestCase):
             self.client.force_login(user)
 
         # Activate advanced features for the project
-        self.set_asset_advanced_features(
-            {
-                '_version': '20250820',
-                '_actionConfigs': {
-                    'q1': {
-                        'manual_transcription': [
-                            {'language': 'es'},
-                        ]
-                    }
-                },
-            }
+        QuestionAdvancedFeature.objects.create(
+            asset=self.asset,
+            question_xpath='q1',
+            action='manual_transcription',
+            params=[{'language': 'es'}],
         )
 
         if shared:

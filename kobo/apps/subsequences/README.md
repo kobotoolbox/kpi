@@ -89,24 +89,21 @@ TranslationActionMixin  <.. AutomaticGoogleTranslation : mixin
 
 ### 2.1 Enabling an Action
 
-To enable an action on an Asset, its configuration must be added under
-`Asset.advanced_features`. This configuration is used to **instantiate the
+To enable an action on an Asset, its configuration must be added to the
+`advanced_features_set` on the Asset by creating a new `QuestionAdvancedFeature` object.
+This configuration is used to **instantiate the
 action** with its parameters and is validated against the action's
 `params_schema`.
 
 **Example: Enable Manual Transcription**
 
-PATCH the asset with:
+POST to `/api/v2/assets/{uid_asset}/advanced-features/` with:
 
 ```json
 {
-  "_version": "20250820",
-  "_actionConfigs": {
-    "question_name_xpath": {
-      "action_id": <params>,
-      "other_action_id": <params>
-    }
-  }
+    "question_xpath": <question_xpath>,
+    "action": <action_id>,
+    "params": <params>
 }
 ```
 
@@ -114,12 +111,9 @@ PATCH the asset with:
 
 ```json
 {
-  "_version": "20250820",
-  "_actionConfigs": {
-    "audio_question": {
-      "manual_transcription": [{"language": "en"}, {"language": "es"}]
-    }
-  }
+  "question_xpath": "audio_question",
+  "action": "manual_transcription",
+  "params": [{"language": "en"}, {"language": "es"}]
 }
 ```
 
@@ -279,18 +273,15 @@ Every action relies on a set of schemas to validate its lifecycle:
 ### 3.1 `params_schema`
 
 Defined on all classes inheriting from `BaseAction`.
-It describes the configuration stored in `Asset.advanced_features` when an action is enabled.
+It describes the configuration stored on a `QuestionAdvancedFeature` when an action is enabled.
 
 **Example: enabling Manual Transcription in English and Spanish**
 
 ```json
 {
-  "audio_question": {
-    "manual_transcription": [
-      { "language": "en" },
-      { "language": "es" }
-    ]
-  }
+  "question_xpath": "audio_question",
+  "action": "manual_transcription",
+  "params": [{"language": "en"}, {"language":  "es"}]
 }
 ```
 
