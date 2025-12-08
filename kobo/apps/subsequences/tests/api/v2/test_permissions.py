@@ -140,7 +140,7 @@ class SubsequencePermissionTestCase(SubsequenceBaseTestCase):
             self.client.force_login(user)
 
         # Activate advanced features for the project
-        QuestionAdvancedAction.objects.create(
+        QuestionAdvancedFeature.objects.create(
             asset=self.asset,
             question_xpath='q1',
             action='manual_transcription',
