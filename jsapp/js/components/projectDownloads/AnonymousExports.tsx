@@ -1,5 +1,6 @@
 import React from 'react'
 import { actions } from '#/actions'
+import { handleApiFail } from '#/api'
 import bem from '#/bem'
 import Button from '#/components/common/button'
 import ExportTypeSelector from '#/components/projectDownloads/ExportTypeSelector'
@@ -11,7 +12,7 @@ import {
 } from '#/components/projectDownloads/exportsConstants'
 import exportsStore from '#/components/projectDownloads/exportsStore'
 import { getContextualDefaultExportFormat } from '#/components/projectDownloads/exportsUtils'
-import type { AssetResponse, ExportDataResponse } from '#/dataInterface'
+import type { AssetResponse, ExportDataResponse, FailResponse } from '#/dataInterface'
 import { downloadUrl } from '#/utils'
 
 interface AnonymousExportsProps {
@@ -25,7 +26,7 @@ interface AnonymousExportsState {
 }
 
 /**
- * A compontent that ROUTES.FORM_DOWNLOADS route is displayint for not logged in
+ * A compontent that ROUTES.FORM_DOWNLOADS route is displaying for a not logged in
  * users. It allows to select an export type and download a file.
  * @prop {object} asset
  */
@@ -46,6 +47,7 @@ export default class AnonymousExports extends React.Component<AnonymousExportsPr
     this.unlisteners.push(
       exportsStore.listen(this.onExportsStoreChange.bind(this), this),
       actions.exports.createExport.completed.listen(this.onCreateExportCompleted.bind(this)),
+      actions.exports.createExport.failed.listen(this.onCreateExportFailed.bind(this)),
       actions.exports.getExport.completed.listen(this.onGetExportCompleted.bind(this)),
     )
   }
@@ -65,6 +67,11 @@ export default class AnonymousExports extends React.Component<AnonymousExportsPr
 
   onCreateExportCompleted(exportData: ExportDataResponse) {
     this.fetchExport(exportData.uid)
+  }
+
+  onCreateExportFailed(errorResponse: FailResponse) {
+    this.setState({ isPending: false })
+    handleApiFail(errorResponse)
   }
 
   onGetExportCompleted(exportData: ExportDataResponse) {
