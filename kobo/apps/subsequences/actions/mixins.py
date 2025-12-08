@@ -310,7 +310,7 @@ class TranslationActionMixin:
             version_data = versions_sorted[0]
 
             # a translation column is identified by 'translation' + language
-            key = ('translation', language)
+            key = (self.col_type, language)
 
             # return a simplified representation
             result[key] = {
