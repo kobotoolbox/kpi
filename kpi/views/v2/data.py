@@ -2,6 +2,7 @@ import copy
 import json
 import re
 
+import jsonschema
 import requests
 from django.conf import settings
 from django.http import Http404, HttpResponseRedirect
@@ -548,8 +549,8 @@ class DataViewSet(
             raise serializers.ValidationError({'detail': 'Invalid action'})
         except InvalidXPath:
             raise serializers.ValidationError({'detail': 'Invalid question name'})
-        # except jsonschema.exceptions.ValidationError:
-        #     raise serializers.ValidationError({'detail': 'Invalid payload'})
+        except jsonschema.exceptions.ValidationError:
+             raise serializers.ValidationError({'detail': 'Invalid payload'})
         except TranscriptionNotFound:
             raise serializers.ValidationError(
                 {'detail': 'Cannot translate without transcription'}
