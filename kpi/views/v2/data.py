@@ -760,17 +760,22 @@ class DataViewSet(
 
         # Remove `format` from filters. No need to use it
         filters.pop('format', None)
-        # Do not allow requests to retrieve more than `SUBMISSION_LIST_LIMIT`
-        # submissions at one time
-        limit = filters.get('limit', settings.SUBMISSION_LIST_LIMIT)
-        try:
-            filters['limit'] = positive_int(
-                limit, strict=True, cutoff=settings.SUBMISSION_LIST_LIMIT
-            )
-        except ValueError:
-            raise serializers.ValidationError(
-                {'limit': t('A positive integer is required')}
-            )
+        # Do not allow requests to retrieve more than `max_limit`
+        # submissions at one time only if a limit is explicitly defined.
+        if 'limit' in filters:
+            try:
+                filters['limit'] = positive_int(
+                    filters['limit'],
+                    strict=True,
+                    cutoff=self.pagination_class.max_limit,
+                )
+            except ValueError:
+                raise serializers.ValidationError(
+                    {'limit': t('A positive integer is required')}
+                )
+        else:
+            # If no limit is specified, use the default limit (100)
+            filters['limit'] = self.pagination_class.default_limit
 
         return filters
 

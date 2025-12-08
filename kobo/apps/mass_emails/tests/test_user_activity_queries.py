@@ -7,32 +7,33 @@ from django.utils.timezone import now
 from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.mass_emails.user_queries import get_inactive_users
+from kobo.apps.mass_emails.user_queries import get_active_users, get_inactive_users
 from kobo.apps.openrosa.apps.logger.models import Instance
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
+from kpi.utils.object_permission import get_anonymous_user
 
 
 @ddt
-class InactiveUserTest(BaseTestCase):
+class UserActivityQueryTests(BaseTestCase):
     """
-    Tests for identifying inactive users based on login, asset modifications,
+    Tests for identifying in/active users based on login, asset modifications,
     and submissions
     """
+
     @classmethod
     def setUpTestData(cls):
         cls.old_date = now() - timedelta(days=400)
         cls.recent_date = now()
         cls.null_last_login = None
 
-    def _create_user(self, username, last_login):
+    def _create_user(self, username, last_login, date_joined=None):
         """
         Helper function to create a user
         """
+        date_joined = date_joined or last_login or self.recent_date
         return User.objects.create(
-            username=username,
-            last_login=last_login,
-            date_joined=self.recent_date if last_login is None else last_login
+            username=username, last_login=last_login, date_joined=date_joined
         )
 
     def _create_asset(self, user, created_at, modified_at):
@@ -88,20 +89,33 @@ class InactiveUserTest(BaseTestCase):
         return instance
 
     @data(
-        ('user_old_login', 'old_date', True),
-        ('user_recent_login', 'recent_date', False),
-        ('user_no_login', 'null_last_login', False),
+        ('user_old_login', 'old_date', 'old_date', True, False),
+        ('user_recent_login', 'recent_date', 'recent_date', False, True),
+        ('user_no_login', 'recent_date', 'null_last_login', False, True),
+        ('user_no_login', 'old_date', 'null_last_login', True, False),
+        ('AnonymousUser', 'old_date', 'old_date', False, False),
     )
     @unpack
-    def test_inactive_users_based_on_login(self, username, last_login, expected):
+    def test_users_based_on_login(
+        self, username, last_login, date_joined, expected_inactive, expected_active
+    ):
         """
         Test users with last login older/newer than 1 year, and no login
         """
-        user = self._create_user(username, getattr(self, last_login))
+        if username == 'AnonymousUser':
+            user = get_anonymous_user()
+        else:
+            user = self._create_user(
+                username,
+                getattr(self, last_login),
+                date_joined=getattr(self, date_joined),
+            )
         inactive_users = get_inactive_users()
-        self.assertEqual(expected, user in inactive_users)
+        active_users = get_active_users()
+        self.assertEqual(expected_inactive, user in inactive_users)
+        self.assertEqual(expected_active, user in active_users)
 
-    def test_inactive_users_based_on_form_activity(self):
+    def test_users_based_on_form_activity(self):
         """
         Test that a user initially marked as inactive due to old assets and
         submissions becomes active after updating an asset
@@ -109,12 +123,16 @@ class InactiveUserTest(BaseTestCase):
         user = self._create_user('active_asset', self.old_date)
         asset = self._create_asset(user, self.old_date, self.old_date)
         inactive_users = get_inactive_users()
+        active_users = get_active_users()
         self.assertTrue(user in inactive_users)
+        self.assertFalse(user in active_users)
 
         # Update the asset and ensure the user is no longer inactive
         self._update_asset(asset, {'name': 'Updated asset'}, user)
         inactive_users = get_inactive_users()
+        active_users = get_active_users()
         self.assertFalse(user in inactive_users)
+        self.assertTrue(user in active_users)
 
     def test_user_becomes_active_after_submission_update(self):
         """
@@ -125,11 +143,11 @@ class InactiveUserTest(BaseTestCase):
 
         # Ensure the user is inactive with an old asset and submission
         asset = self._create_asset(user, self.old_date, self.old_date)
-        instance = self._create_submission(
-            user, asset, self.old_date, self.old_date
-        )
+        instance = self._create_submission(user, asset, self.old_date, self.old_date)
         inactive_users = get_inactive_users()
+        active_users = get_active_users()
         self.assertTrue(user in inactive_users)
+        self.assertFalse(user in active_users)
 
         # Update the submission and ensure the user is no longer inactive
         submission_data = {
@@ -140,7 +158,9 @@ class InactiveUserTest(BaseTestCase):
         }
         asset.deployment.mock_submissions([submission_data], create_uuids=False)
         inactive_users = get_inactive_users()
+        active_users = get_active_users()
         self.assertFalse(user in inactive_users)
+        self.assertTrue(user in active_users)
 
     def test_user_becomes_active_after_new_submission(self):
         """
@@ -151,13 +171,15 @@ class InactiveUserTest(BaseTestCase):
 
         # Ensure the user is inactive with an old asset and submission
         asset = self._create_asset(user, self.old_date, self.old_date)
-        self._create_submission(
-            user, asset, self.old_date, self.old_date
-        )
+        self._create_submission(user, asset, self.old_date, self.old_date)
         inactive_users = get_inactive_users()
+        active_users = get_active_users()
         self.assertTrue(user in inactive_users)
+        self.assertFalse(user in active_users)
 
         # Create a new submission and ensure the user is no longer inactive
         self._create_submission(user, asset, self.recent_date, self.recent_date)
         inactive_users = get_inactive_users()
+        active_users = get_active_users()
         self.assertFalse(user in inactive_users)
+        self.assertTrue(user in active_users)

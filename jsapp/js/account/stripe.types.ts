@@ -158,6 +158,7 @@ export interface AccountLimit {
   asr_seconds_limit: LimitAmount
   mt_characters_limit: LimitAmount
   storage_bytes_limit: LimitAmount
+  llm_requests_limit: LimitAmount
 }
 
 export interface AccountLimitDetail {
@@ -199,4 +200,5 @@ export enum USAGE_TYPE {
   TRANSCRIPTION = 1,
   TRANSLATION = 2,
   STORAGE = 3,
+  LLM = 4,
 }
