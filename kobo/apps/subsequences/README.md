@@ -90,7 +90,7 @@ TranslationActionMixin  <.. AutomaticGoogleTranslation : mixin
 ### 2.1 Enabling an Action
 
 To enable an action on an Asset, its configuration must be added to the
-`advanced_feature_set` on the Asset by creating a new `QuestionAdvancedFeature` object.
+`advanced_features_set` on the Asset by creating a new `QuestionAdvancedFeature` object.
 This configuration is used to **instantiate the
 action** with its parameters and is validated against the action's
 `params_schema`.
