@@ -3,6 +3,7 @@ from copy import deepcopy
 from dateutil import parser
 
 from ..exceptions import TranscriptionNotFound
+from ..type_aliases import SimplifiedOutputCandidatesByColumnKey
 
 
 class TranscriptionActionMixin:
@@ -16,6 +17,27 @@ class TranscriptionActionMixin:
     @property
     def col_type(self):
         return 'transcript'
+
+    def transform_data_for_output(
+        self, action_data: dict
+    ) -> SimplifiedOutputCandidatesByColumnKey:
+        # get the most recently accepted transcript
+        versions = action_data.get('_versions', [])
+        # they should already be in order but there's no way to guarantee it, so
+        # sort just in case
+        versions_sorted = sorted(
+            versions, key=lambda x: x.get('_dateAccepted', ''), reverse=True
+        )
+        version_data = versions_sorted[0]
+
+        # return a simplified representation
+        return {
+            self.col_type: {
+                'languageCode': version_data['_data']['language'],
+                'value': version_data['_data']['value'],
+                self.DATE_ACCEPTED_FIELD: version_data.get(self.DATE_ACCEPTED_FIELD),
+            }
+        }
 
     @property
     def result_schema(self):
@@ -274,3 +296,26 @@ class TranslationActionMixin:
         }
 
         return schema
+
+    def transform_data_for_output(
+        self, action_data: dict
+    ) -> SimplifiedOutputCandidatesByColumnKey:
+        result = {}
+        for language, language_data in action_data.items():
+            versions = language_data.get('_versions', [])
+            # order by date accepted
+            versions_sorted = sorted(
+                versions, key=lambda x: x.get('_dateAccepted', ''), reverse=True
+            )
+            version_data = versions_sorted[0]
+
+            # a translation column is identified by 'translation' + language
+            key = (self.col_type, language)
+
+            # return a simplified representation
+            result[key] = {
+                'languageCode': version_data['_data']['language'],
+                'value': version_data['_data']['value'],
+                self.DATE_ACCEPTED_FIELD: version_data.get(self.DATE_ACCEPTED_FIELD),
+            }
+        return result

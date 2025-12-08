@@ -13,7 +13,10 @@ from kobo.celery import celery_app
 from kpi.exceptions import UsageLimitExceededException
 from kpi.utils.usage_calculator import ServiceUsageCalculator
 from ..tasks import poll_run_external_process
-from ..type_aliases import NLPExternalServiceClass
+from ..type_aliases import (
+    NLPExternalServiceClass,
+    SimplifiedOutputCandidatesByColumnKey,
+)
 
 """
 ### All actions must have the following components
@@ -319,8 +322,29 @@ class BaseAction:
 
         Must be implemented by subclasses.
         """
-        # raise NotImplementedError()
         return []
+
+    def transform_data_for_output(
+        self, action_data: dict
+    ) -> SimplifiedOutputCandidatesByColumnKey:
+        """
+        Given data retrieved by the action (eg the result of action.retrieve_data()),
+        returns a dict of {data_key: formatted_value}
+
+        data_key is a string or tuple representing the path to the value for a row,
+        starting at the question level, in the eventual /data response
+        e.g. 'transcript' for myquestion['transcript'], or ('translation','en') for
+        myquestion['translation']['en']
+
+        formatted_value is the simplified representation of the value along with the
+        date accepted
+        eg {
+            'value': 'my transcribed string',
+            'languageCode': 'en',
+            '_dateAccepted': 2025-01-01T00:00:00Z}
+        }
+        """
+        return {}
 
     def validate_external_data(self, data):
         jsonschema.validate(data, self.external_data_schema)

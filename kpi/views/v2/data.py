@@ -1,10 +1,9 @@
 import copy
 import json
 import re
-from typing import Union
 
-import requests
 import jsonschema
+import requests
 from django.conf import settings
 from django.http import Http404, HttpResponseRedirect
 from django.utils.translation import gettext_lazy as t
@@ -26,6 +25,11 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     remove_uuid_prefix,
 )
 from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_handler
+from kobo.apps.subsequences.exceptions import (
+    InvalidAction,
+    InvalidXPath,
+    TranscriptionNotFound,
+)
 from kobo.apps.subsequences.models import SubmissionSupplement
 from kpi.authentication import EnketoSessionAuthentication
 from kpi.constants import (
@@ -50,11 +54,6 @@ from kpi.permissions import (
     SubmissionPermission,
     SubmissionValidationStatusPermission,
     ViewSubmissionPermission,
-)
-from kobo.apps.subsequences.exceptions import (
-    InvalidAction,
-    InvalidXPath,
-    TranscriptionNotFound,
 )
 from kpi.renderers import (
     BasicHTMLRenderer,
@@ -410,7 +409,11 @@ class DataViewSet(
 
         try:
             submissions = deployment.get_submissions(
-                request.user, format_type=format_type, request=request, **filters
+                request.user,
+                format_type=format_type,
+                request=request,
+                for_output=True,
+                **filters,
             )
         except OperationFailure as err:
             message = str(err)

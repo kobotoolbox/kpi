@@ -173,3 +173,26 @@ def test_latest_revision_is_first():
     assert mock_sup_det['_versions'][0]['_data']['value'] == 'trois'
     assert mock_sup_det['_versions'][1]['_data']['value'] == 'deux'
     assert mock_sup_det['_versions'][2]['_data']['value'] == 'un'
+
+
+def test_transform_data_for_output():
+    xpath = 'group_name/question_name'  # irrelevant for this test
+    params = [{'language': 'fr'}, {'language': 'en'}]
+    action = ManualTranscriptionAction(xpath, params)
+
+    first = {'language': 'en', 'value': 'hello'}
+    second = {'language': 'en', 'value': 'hello again'}
+    third = {'language': 'fr', 'value': 'bonjour'}
+
+    mock_sup_det = EMPTY_SUPPLEMENT
+    for data in first, second, third:
+        mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, data)
+    retrieved_data = action.retrieve_data(mock_sup_det)
+    result = action.transform_data_for_output(retrieved_data)
+    assert result == {
+        'transcript': {
+            'value': 'bonjour',
+            'languageCode': 'fr',
+            '_dateAccepted': retrieved_data['_versions'][0]['_dateAccepted'],
+        },
+    }
