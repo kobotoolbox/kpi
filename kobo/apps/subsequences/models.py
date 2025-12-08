@@ -281,7 +281,9 @@ class QuestionAdvancedFeature(models.Model):
     params = LazyDefaultJSONBField(default=dict)
 
     class Meta:
-        unique_together = ('asset_id', 'question_xpath', 'action')
+        constraints = [
+            models.UniqueConstraint(fields=['asset_id', 'question_xpath', 'action'], name='unique_advanced_feature')
+        ]
 
     def to_action(self):
         action_class = ACTION_IDS_TO_CLASSES[self.action]
