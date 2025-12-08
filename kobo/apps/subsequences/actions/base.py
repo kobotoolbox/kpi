@@ -1,7 +1,7 @@
 import uuid
 from copy import deepcopy
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Optional
 
 import jsonschema
 from django.conf import settings
@@ -13,7 +13,10 @@ from kobo.celery import celery_app
 from kpi.exceptions import UsageLimitExceededException
 from kpi.utils.usage_calculator import ServiceUsageCalculator
 from ..tasks import poll_run_external_process
-from ..type_aliases import NLPExternalServiceClass
+from ..type_aliases import (
+    NLPExternalServiceClass,
+    SimplifiedOutputCandidatesByColumnKey,
+)
 
 """
 ### All actions must have the following components
@@ -323,7 +326,7 @@ class BaseAction:
 
     def transform_data_for_output(
         self, action_data: dict
-    ) -> dict[str | tuple, dict[str, Any]]:
+    ) -> SimplifiedOutputCandidatesByColumnKey:
         """
         Given data retrieved by the action (eg the result of action.retrieve_data()),
         returns a dict of {data_key: formatted_value}

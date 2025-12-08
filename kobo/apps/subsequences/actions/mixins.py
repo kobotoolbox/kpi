@@ -1,9 +1,9 @@
 from copy import deepcopy
-from typing import Any
 
 from dateutil import parser
 
 from ..exceptions import TranscriptionNotFound
+from ..type_aliases import SimplifiedOutputCandidatesByColumnKey
 
 
 class TranscriptionActionMixin:
@@ -20,7 +20,7 @@ class TranscriptionActionMixin:
 
     def transform_data_for_output(
         self, action_data: dict
-    ) -> dict[str | tuple, dict[str, Any]]:
+    ) -> SimplifiedOutputCandidatesByColumnKey:
         # get the most recently accepted transcript
         versions = action_data.get('_versions', [])
         # they should already be in order but there's no way to guarantee it, so
@@ -299,7 +299,7 @@ class TranslationActionMixin:
 
     def transform_data_for_output(
         self, action_data: dict
-    ) -> dict[str | tuple, dict[str, Any]]:
+    ) -> SimplifiedOutputCandidatesByColumnKey:
         result = {}
         for language, language_data in action_data.items():
             versions = language_data.get('_versions', [])
