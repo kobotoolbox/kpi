@@ -97,7 +97,7 @@ action** with its parameters and is validated against the action's
 
 **Example: Enable Manual Transcription**
 
-POST to `/api/v2/assets/{uid_asset}/advanced-features` with:
+POST to `/api/v2/assets/{uid_asset}/advanced-features/` with:
 
 ```json
 {
