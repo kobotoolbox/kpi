@@ -1,5 +1,7 @@
 from allauth.mfa.adapter import get_adapter
 from allauth.mfa.base.forms import AuthenticateForm, ReauthenticateForm
+from django import forms
+from django.utils.translation import gettext_lazy as t
 
 from .serializers import MfaCodeSerializer
 
@@ -20,8 +22,24 @@ class MfaAuthenticateMixin:
 
 
 class MfaAuthenticateForm(MfaAuthenticateMixin, AuthenticateForm):
-    pass
+    code = forms.CharField(
+        label=t('Code'),
+        widget=forms.TextInput(
+            attrs={
+                'placeholder': t('Enter token or backup code'),
+                'autocomplete': 'one-time-code',
+            },
+        ),
+    )
 
 
 class MfaReauthenticateForm(MfaAuthenticateMixin, ReauthenticateForm):
-    pass
+    code = forms.CharField(
+        label=t('Code'),
+        widget=forms.TextInput(
+            attrs={
+                'placeholder': t('Enter token or backup code'),
+                'autocomplete': 'one-time-code',
+            },
+        ),
+    )
