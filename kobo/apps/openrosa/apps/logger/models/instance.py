@@ -71,10 +71,18 @@ class Instance(AbstractTimeStampedModel):
 
     json = JSONField(default={}, null=False)
     xml = models.TextField()
-    xml_hash = models.CharField(max_length=XML_HASH_LENGTH, db_index=True, null=True,
-                                default=DEFAULT_XML_HASH)
-    user = models.ForeignKey(User, related_name='instances', null=True, on_delete=models.CASCADE)
-    xform = models.ForeignKey(XForm, null=True, related_name='instances', on_delete=models.CASCADE)
+    xml_hash = models.CharField(
+        max_length=XML_HASH_LENGTH,
+        db_index=True,
+        null=True,
+        default=DEFAULT_XML_HASH,
+    )
+    user = models.ForeignKey(
+        User, related_name='instances', null=True, blank=True, on_delete=models.SET_NULL
+    )
+    xform = models.ForeignKey(
+        XForm, null=True, related_name='instances', on_delete=models.CASCADE
+    )
     survey_type = models.ForeignKey(SurveyType, on_delete=models.CASCADE)
 
     # this formerly represented "date instance was deleted".
@@ -139,6 +147,17 @@ class Instance(AbstractTimeStampedModel):
         if not self.xform.user.is_active:
             raise AccountInactiveError()
 
+    def _get_submitted_by(self):
+        try:
+            parsed_instance = self.parsed_instance
+        except Instance.parsed_instance.RelatedObjectDoesNotExist:
+            pass
+        else:
+            parsed_instance.set_submitted_by(save=True)
+            return parsed_instance.submitted_by
+
+        return self.user.username if self.user is not None else None
+
     def _set_geom(self):
         xform = self.xform
         data_dictionary = xform.data_dictionary()
@@ -172,7 +191,7 @@ class Instance(AbstractTimeStampedModel):
 
         doc[SUBMISSION_TIME] = self.date_created.strftime(MONGO_STRFTIME)
         doc[XFORM_ID_STRING] = self._parser.get_xform_id_string()
-        doc[SUBMITTED_BY] = self.user.username if self.user is not None else None
+        doc[SUBMITTED_BY] = self._get_submitted_by()
         self.json = doc
 
     def _set_parser(self):
@@ -181,8 +200,9 @@ class Instance(AbstractTimeStampedModel):
                 self.xml, self.xform.data_dictionary())
 
     def _set_survey_type(self):
-        self.survey_type, created = \
-            SurveyType.objects.get_or_create(slug=self.get_root_node_name())
+        self.survey_type, created = SurveyType.objects.get_or_create(
+            slug=self.get_root_node_name()
+        )
 
     def _set_uuid(self):
         if self.xml and not self.uuid:
@@ -271,8 +291,11 @@ class Instance(AbstractTimeStampedModel):
         """Return a python object representation of this instance's XML."""
         self._set_parser()
 
-        return self._parser.get_flat_dict_with_attributes() if flat else\
-            self._parser.to_dict()
+        return (
+            self._parser.get_flat_dict_with_attributes()
+            if flat
+            else self._parser.to_dict()
+        )
 
     def get_full_dict(self):
         # TODO should we store all of these in the JSON no matter what?
@@ -345,7 +368,7 @@ class Instance(AbstractTimeStampedModel):
         # For example:
         # if not self.validation_status:
         #    self.validation_status = self.asset.settings.get("validation_statuses")[0]
-        return self.validation_status
+        return self.validation_status or {}
 
 
 if Instance.XML_HASH_LENGTH / 2 != sha256().digest_size:

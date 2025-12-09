@@ -1,7 +1,7 @@
-# coding: utf-8
 from django.urls import reverse
 from rest_framework import status
 
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 
@@ -67,3 +67,32 @@ class UserListTests(BaseTestCase):
         url = reverse(self._get_endpoint('user-kpi-detail'), args=['nonexistentuser'])
         response = self.client.get(url, format='json')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_invalid_user_detail_page_not_found_as_regular_user(self):
+        self.client.logout()
+        self.client.login(username='someuser', password='someuser')
+
+        anotheruser = User.objects.get(username='anotheruser')
+        anotheruser.is_active = False
+        anotheruser.save()
+
+        url = reverse(self._get_endpoint('user-kpi-detail'), args=['anotheruser'])
+        response = self.client.get(url, format='json')
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_invalid_user_found_as_superuser(self):
+        anotheruser = User.objects.get(username='anotheruser')
+        anotheruser.is_active = False
+        anotheruser.save()
+
+        q = '?q=anotheruser'
+        url = reverse(self._get_endpoint('user-kpi-list'))
+        response = self.client.get(url + q, format='json')
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['results'][0]['username'] == 'anotheruser'
+        assert response.data['results'][0]['is_active'] is False
+
+
+        url = reverse(self._get_endpoint('user-kpi-detail'), args=['anotheruser'])
+        response = self.client.get(url, format='json')
+        assert response.status_code == status.HTTP_200_OK

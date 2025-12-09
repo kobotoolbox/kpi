@@ -57,8 +57,12 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={
-                'unique_together': {('asset_id', 'question_xpath', 'action')},
-            },
+        ),
+        migrations.AddConstraint(
+            model_name='questionadvancedfeature',
+            constraint=models.UniqueConstraint(
+                fields=('asset_id', 'question_xpath', 'action'),
+                name='unique_advanced_feature',
+            ),
         ),
     ]

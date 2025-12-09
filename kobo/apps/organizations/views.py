@@ -10,7 +10,6 @@ from drf_spectacular.utils import (
 )
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.renderers import JSONRenderer
 from rest_framework.request import Request
 from rest_framework.response import Response
 
@@ -33,7 +32,6 @@ from kpi.schema_extensions.v2.members.serializers import (
     MemberPatchRequest,
 )
 from kpi.schema_extensions.v2.organizations.serializers import (
-    OrganizationAssetUsageResponse,
     OrganizationPatchPayload,
     OrganizationServiceUsageResponse,
 )
@@ -51,7 +49,7 @@ from kpi.utils.schema_extensions.response import (
     open_api_204_empty_response,
 )
 from kpi.views.v2.asset import AssetViewSet
-from ..accounts.mfa.models import MfaMethod
+from ..accounts.mfa.models import MfaMethodsWrapper
 from .models import (
     Organization,
     OrganizationInvitation,
@@ -67,6 +65,7 @@ from .permissions import (
     OrgMembershipInvitePermission,
 )
 from .serializers import (
+    OrganizationResponseSerializer,
     OrganizationSerializer,
     OrganizationUserSerializer,
     OrgMembershipInviteSerializer,
@@ -112,14 +111,12 @@ class OrganizationAssetViewSet(AssetViewSet):
             raise NotImplementedError
 
 
-@extend_schema(
-    tags=['Organizations'],
-)
+@extend_schema(tags=['User / team / organization / usage'])
 @extend_schema_view(
     list=extend_schema(
         description=read_md('kpi', 'organizations/org_list.md'),
         responses=open_api_200_ok_response(
-            OrganizationSerializer,
+            OrganizationResponseSerializer,
             require_auth=False,
             raise_access_forbidden=False,
             validate_payload=False,
@@ -128,7 +125,7 @@ class OrganizationAssetViewSet(AssetViewSet):
     retrieve=extend_schema(
         description=read_md('kpi', 'organizations/org_retrieve.md'),
         responses=open_api_200_ok_response(
-            OrganizationSerializer,
+            OrganizationResponseSerializer,
             require_auth=False,
             raise_access_forbidden=False,
             validate_payload=False,
@@ -138,7 +135,7 @@ class OrganizationAssetViewSet(AssetViewSet):
         description=read_md('kpi', 'organizations/org_update.md'),
         request={'application/json': OrganizationPatchPayload},
         responses=open_api_200_ok_response(
-            OrganizationSerializer,
+            OrganizationResponseSerializer,
             require_auth=False,
             raise_access_forbidden=False,
         ),
@@ -146,11 +143,35 @@ class OrganizationAssetViewSet(AssetViewSet):
     asset_usage=extend_schema(
         description=read_md('kpi', 'organizations/org_asset_usage.md'),
         responses=open_api_200_ok_response(
-            OrganizationAssetUsageResponse(many=True),
+            CustomAssetUsageSerializer(many=True),
             require_auth=False,
             raise_access_forbidden=False,
             validate_payload=False,
         ),
+        parameters=[
+            OpenApiParameter(
+                name='offset',
+                type=int,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description='Paginate results with offset parameter',
+            ),
+            OpenApiParameter(
+                name='limit',
+                type=int,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description='Paginate results with limit parameter',
+            ),
+            OpenApiParameter(
+                name='ordering',
+                type=str,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description='Which field to use when ordering the results.',
+            ),
+        ],
+        operation_id='api_v2_organizations_asset_usage_list',
     ),
     assets=extend_schema(
         description=read_md('kpi', 'organizations/org_assets.md'),
@@ -184,11 +205,11 @@ class OrganizationViewSet(viewsets.ModelViewSet):
 
     Available actions:
     - list              → GET       /api/v2/organizations/
-    - retrieve          → GET       /api/v2/organizations/{id}/
-    - partial_update    → PATCH     /api/v2/organizations/{id}/
-    - asset_usage       → GET       /api/v2/organizations/{id}/asset_usage/
-    - assets            → GET       /api/v2/organizations/{id}/assets/
-    - service_usage     → PATCH     /api/v2/organizations/{id}/service_usage/
+    - retrieve          → GET       /api/v2/organizations/{uid_organization}/
+    - partial_update    → PATCH     /api/v2/organizations/{uid_organization}/
+    - asset_usage       → GET       /api/v2/organizations/{uid_organization}/asset_usage/
+    - assets            → GET       /api/v2/organizations/{uid_organization}/assets/
+    - service_usage     → PATCH     /api/v2/organizations/{uid_organization}/service_usage/
 
     Documentation:
     - docs/api/v2/organizations/org_list.md
@@ -202,11 +223,9 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     queryset = Organization.objects.all()
     serializer_class = OrganizationSerializer
     lookup_field = 'id'
+    lookup_url_kwarg = 'uid_organization'
     permission_classes = [HasOrgRolePermission]
     http_method_names = ['get', 'patch']
-    renderer_classes = [
-        JSONRenderer,
-    ]
 
     @action(
         detail=True, methods=['GET'], permission_classes=[IsOrgAdminPermission]
@@ -289,14 +308,14 @@ class OrganizationViewSet(viewsets.ModelViewSet):
 
 
 @extend_schema(
-    tags=['Organization Members'],
+    tags=['User / team / organization / usage'],
     parameters=[
         OpenApiParameter(
-            name='organization_id',
+            name='uid_organization',
             type=str,
             location=OpenApiParameter.PATH,
             required=True,
-            description='ID of the organization',
+            description='UID of the organization',
         )
     ],
 )
@@ -309,7 +328,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         ),
         parameters=[
             OpenApiParameter(
-                name='user__username',
+                name='username',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
@@ -336,7 +355,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         ),
         parameters=[
             OpenApiParameter(
-                name='user__username',
+                name='username',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
@@ -353,7 +372,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         ),
         parameters=[
             OpenApiParameter(
-                name='user__username',
+                name='username',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
@@ -386,15 +405,14 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
     serializer_class = OrganizationUserSerializer
     permission_classes = [OrganizationNestedHasOrgRolePermission]
     http_method_names = ['get', 'patch', 'delete']
+    parent_lookup_field = 'uid_organization'
     lookup_field = 'user__username'
-    renderer_classes = [
-        JSONRenderer,
-    ]
+    lookup_url_kwarg = 'username'
 
     def paginate_queryset(self, queryset):
         page = super().paginate_queryset(queryset)
         members_user_ids = []
-        organization_id = self.kwargs['organization_id']
+        organization_id = self.kwargs['uid_organization']
 
         for obj in page:
             if obj.model_type != '0_organization_user':
@@ -409,10 +427,10 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
         return page
 
     def get_queryset(self):
-        organization_id = self.kwargs['organization_id']
+        organization_id = self.kwargs['uid_organization']
 
         # Subquery to check if the user has an active MFA method
-        mfa_subquery = MfaMethod.objects.filter(
+        mfa_subquery = MfaMethodsWrapper.objects.filter(
             user=OuterRef('user_id'),
             is_active=True
         ).values('pk')
@@ -425,7 +443,9 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
 
         # Annotate with the role based on organization ownership and admin status
         queryset = (
-            OrganizationUser.objects.filter(organization_id=organization_id)
+            OrganizationUser.objects.filter(
+                organization_id=organization_id, user__is_active=True
+            )
             .select_related('user__extra_details')
             .annotate(
                 role=Case(
@@ -486,14 +506,14 @@ class OrganizationMemberViewSet(viewsets.ModelViewSet):
 
 
 @extend_schema(
-    tags=['Organization Invites'],
+    tags=['User / team / organization / usage'],
     parameters=[
         OpenApiParameter(
-            name='organization_id',
+            name='uid_organization',
             type=str,
             location=OpenApiParameter.PATH,
             required=True,
-            description='ID of the organization asset',
+            description='UID of the organization asset',
         )
     ],
 )
@@ -589,11 +609,11 @@ class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
     Viewset for managing organization invites
 
     Available actions:
-    - create            → CREATE    /api/v2/organization/{parent_lookup_organization}/invites/  # noqa
-    - destroy           → DELETE    /api/v2/organization/{parent_lookup_organization}/invites/{guid}/  # noqa
-    - list              → LIST      /api/v2/organization/{parent_lookup_organization}/invites/  # noqa
-    - retrieve          → RETRIEVE  /api/v2/organization/{parent_lookup_organization}/invites/{guid}/   # noqa
-    - partial_update    → PATCH     /api/v2/organization/{parent_lookup_organization}/invites/{guid}/   # noqa
+    - create            → CREATE    /api/v2/organization/{uid_organization}/invites/  # noqa
+    - destroy           → DELETE    /api/v2/organization/{uid_organization}/invites/{guid}/  # noqa
+    - list              → LIST      /api/v2/organization/{uid_organization}/invites/  # noqa
+    - retrieve          → RETRIEVE  /api/v2/organization/{uid_organization}/invites/{guid}/   # noqa
+    - partial_update    → PATCH     /api/v2/organization/{uid_organization}/invites/{guid}/   # noqa
 
     Documentation:
     - docs/api/v2/invites/create.md
@@ -606,7 +626,7 @@ class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
     serializer_class = OrgMembershipInviteSerializer
     http_method_names = ['get', 'post', 'patch', 'delete']
     lookup_field = 'guid'
-    renderer_classes = (JSONRenderer,)
+    parent_lookup_field = 'uid_organization'
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -620,7 +640,7 @@ class OrgMembershipInviteViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def get_queryset(self):
-        organization_id = self.kwargs['organization_id']
+        organization_id = self.kwargs['uid_organization']
 
         query_filter = {'organization_id': organization_id}
         base_queryset = OrganizationInvitation.objects.select_related(

@@ -13,7 +13,10 @@ from kobo.celery import celery_app
 from kpi.exceptions import UsageLimitExceededException
 from kpi.utils.usage_calculator import ServiceUsageCalculator
 from ..tasks import poll_run_external_process
-from ..type_aliases import NLPExternalServiceClass
+from ..type_aliases import (
+    NLPExternalServiceClass,
+    SimplifiedOutputCandidatesByColumnKey,
+)
 
 """
 ### All actions must have the following components
@@ -311,16 +314,37 @@ class BaseAction:
             [
                 {
                     'language': 'fr',
-                    'name': 'group_name/question_name/transcript__fr',
                     'source': 'group_name/question_name',
                     'type': 'transcript',
+                    'dtpath': f'group_name/question_name/transcript_fr',
                 }
             ]
 
         Must be implemented by subclasses.
         """
-        # raise NotImplementedError()
         return []
+
+    def transform_data_for_output(
+        self, action_data: dict
+    ) -> SimplifiedOutputCandidatesByColumnKey:
+        """
+        Given data retrieved by the action (eg the result of action.retrieve_data()),
+        returns a dict of {data_key: formatted_value}
+
+        data_key is a string or tuple representing the path to the value for a row,
+        starting at the question level, in the eventual /data response
+        e.g. 'transcript' for myquestion['transcript'], or ('translation','en') for
+        myquestion['translation']['en']
+
+        formatted_value is the simplified representation of the value along with the
+        date accepted
+        eg {
+            'value': 'my transcribed string',
+            'languageCode': 'en',
+            '_dateAccepted': 2025-01-01T00:00:00Z}
+        }
+        """
+        return {}
 
     def validate_external_data(self, data):
         jsonschema.validate(data, self.external_data_schema)
@@ -597,6 +621,28 @@ class BaseManualNLPAction(BaseAction):
                 'locale': {'type': ['string', 'null']},
             },
         }
+
+    def _get_output_field_dtpath(self, language: str) -> str:
+        language = language.split('-')[0]  # ignore region if any
+        return f'{self.source_question_xpath}/{self.col_type}_{language}'
+
+    @property
+    def col_type(self):
+        raise NotImplementedError
+
+    def get_output_fields(self):
+        fields = []
+        for params in self.params:
+            language = params['language']
+            col_type = self.col_type
+            column = {
+                'language': language,
+                'source': self.source_question_xpath,
+                'type': col_type,
+                'dtpath': self._get_output_field_dtpath(language),
+            }
+            fields.append(column)
+        return fields
 
     @property
     def languages(self) -> list[str]:

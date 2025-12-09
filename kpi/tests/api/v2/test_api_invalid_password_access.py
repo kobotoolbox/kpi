@@ -105,7 +105,7 @@ class InvalidPasswordAccessAPITestCase(BaseTestCase):
         response = self.client.get(
             reverse(
                 self._get_endpoint('asset-detail'),
-                kwargs={'format': 'json', 'uid': self.asset.uid},
+                kwargs={'format': 'json', 'uid_asset': self.asset.uid},
             ),
             **headers,
         )
@@ -115,7 +115,7 @@ class InvalidPasswordAccessAPITestCase(BaseTestCase):
         response = self.client.get(
             reverse(
                 self._get_endpoint('submission-list'),
-                kwargs={'format': 'json', 'parent_lookup_asset': self.asset.uid},
+                kwargs={'format': 'json', 'uid_asset': self.asset.uid},
             ),
             **headers,
         )
@@ -127,8 +127,8 @@ class InvalidPasswordAccessAPITestCase(BaseTestCase):
                 self._get_endpoint('submission-detail'),
                 kwargs={
                     'format': 'json',
-                    'parent_lookup_asset': self.asset.uid,
-                    'submission_id_or_root_uuid': submission_id,
+                    'uid_asset': self.asset.uid,
+                    'pk': submission_id,
                 },
             ),
             **headers,
@@ -141,7 +141,7 @@ class InvalidPasswordAccessAPITestCase(BaseTestCase):
                 self._get_endpoint('hook-list'),
                 kwargs={
                     'format': 'json',
-                    'parent_lookup_asset': self.asset.uid,
+                    'uid_asset': self.asset.uid,
                 },
             ),
             **headers,
@@ -154,8 +154,8 @@ class InvalidPasswordAccessAPITestCase(BaseTestCase):
                 self._get_endpoint('hook-log-list'),
                 kwargs={
                     'format': 'json',
-                    'parent_lookup_asset': self.asset.uid,
-                    'parent_lookup_hook': self.hook.uid,
+                    'uid_asset': self.asset.uid,
+                    'uid_hook': self.hook.uid,
                 },
             ),
             **headers,
@@ -168,7 +168,7 @@ class InvalidPasswordAccessAPITestCase(BaseTestCase):
                 self._get_endpoint('asset-export-list'),
                 kwargs={
                     'format': 'json',
-                    'parent_lookup_asset': self.asset.uid,
+                    'uid_asset': self.asset.uid,
                 },
             ),
             **headers,

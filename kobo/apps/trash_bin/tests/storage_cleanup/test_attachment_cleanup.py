@@ -43,7 +43,7 @@ class AttachmentCleanupTestCase(BaseTestCase, AssetSubmissionTestMixin):
         ExceededLimitCounter.objects.create(
             user=self.owner,
             limit_type=UsageType.STORAGE_BYTES,
-            days=config.LIMIT_ATTACHMENT_REMOVAL_GRACE_PERIOD + 1,
+            days=config.OVER_LIMIT_ATTACHMENT_RETENTION + 1,
         )
 
         with patch(
@@ -104,8 +104,8 @@ class AttachmentCleanupTestCase(BaseTestCase, AssetSubmissionTestMixin):
         submission_detail_url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'submission_id_or_root_uuid': self.instance.pk,
+                'uid_asset': self.asset.uid,
+                'pk': self.instance.pk,
             },
         )
         response = self.client.get(submission_detail_url)
@@ -190,14 +190,14 @@ class AttachmentCleanupTestCase(BaseTestCase, AssetSubmissionTestMixin):
         ExceededLimitCounter.objects.create(
             user=self.owner,
             limit_type=UsageType.STORAGE_BYTES,
-            days=config.LIMIT_ATTACHMENT_REMOVAL_GRACE_PERIOD + 1
+            days=config.OVER_LIMIT_ATTACHMENT_RETENTION + 1
         )
 
         # Non-qualifying user (within grace period)
         ExceededLimitCounter.objects.create(
             user=anotheruser,
             limit_type=UsageType.STORAGE_BYTES,
-            days=config.LIMIT_ATTACHMENT_REMOVAL_GRACE_PERIOD - 1
+            days=config.OVER_LIMIT_ATTACHMENT_RETENTION - 1
         )
 
         with patch(
@@ -278,7 +278,7 @@ class AttachmentCleanupTestCase(BaseTestCase, AssetSubmissionTestMixin):
         counter = ExceededLimitCounter.objects.create(
             user=self.owner,
             limit_type=UsageType.STORAGE_BYTES,
-            days=config.LIMIT_ATTACHMENT_REMOVAL_GRACE_PERIOD + 1,
+            days=config.OVER_LIMIT_ATTACHMENT_RETENTION + 1,
         )
         self.assertTrue(Attachment.objects.filter(pk=self.attachment.pk).exists())
 

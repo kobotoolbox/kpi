@@ -41,7 +41,7 @@ class AttachmentApiTests(BaseAssetTestCase):
         self.asset.deployment.set_namespace(self.URL_NAMESPACE)
         self.submission_list_url = reverse(
             self._get_endpoint('submission-list'),
-            kwargs={'format': 'json', 'parent_lookup_asset': self.asset.uid},
+            kwargs={'format': 'json', 'uid_asset': self.asset.uid},
         )
         self._deployment = self.asset.deployment
         self.submission_id = self.submissions[0]['_id']
@@ -91,8 +91,8 @@ class AttachmentApiTests(BaseAssetTestCase):
             baseurl=reverse(
                 self._get_endpoint('attachment-list'),
                 kwargs={
-                    'parent_lookup_asset': self.asset.uid,
-                    'parent_lookup_data': self.submission_id,
+                    'uid_asset': self.asset.uid,
+                    'uid_data': self.submission_id,
                 },
             ),
             querystring=query_dict.urlencode()
@@ -114,8 +114,8 @@ class AttachmentApiTests(BaseAssetTestCase):
             baseurl=reverse(
                 self._get_endpoint('attachment-list'),
                 kwargs={
-                    'parent_lookup_asset': self.asset.uid,
-                    'parent_lookup_data': self.submission_id,
+                    'uid_asset': self.asset.uid,
+                    'uid_data': self.submission_id,
                 },
             ),
             querystring=query_dict.urlencode()
@@ -138,8 +138,8 @@ class AttachmentApiTests(BaseAssetTestCase):
             baseurl=reverse(
                 self._get_endpoint('attachment-list'),
                 kwargs={
-                    'parent_lookup_asset': self.asset.uid,
-                    'parent_lookup_data': self.submission_id,
+                    'uid_asset': self.asset.uid,
+                    'uid_data': self.submission_id,
                 },
             ),
             querystring=query_dict.urlencode()
@@ -154,8 +154,8 @@ class AttachmentApiTests(BaseAssetTestCase):
         url = reverse(
             self._get_endpoint('attachment-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'parent_lookup_data': self.submission_id,
+                'uid_asset': self.asset.uid,
+                'uid_data': self.submission_id,
                 'pk': attachment_id,
             },
         )
@@ -170,8 +170,8 @@ class AttachmentApiTests(BaseAssetTestCase):
         url = reverse(
             self._get_endpoint('attachment-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'parent_lookup_data': submission['_id'],
+                'uid_asset': self.asset.uid,
+                'uid_data': submission['_id'],
                 'pk': submission['_attachments'][0]['id'],
             },
         )
@@ -186,8 +186,8 @@ class AttachmentApiTests(BaseAssetTestCase):
             duplicate_url = reverse(
                 self._get_endpoint('submission-duplicate'),
                 kwargs={
-                    'parent_lookup_asset': self.asset.uid,
-                    'submission_id_or_root_uuid': submission['_id'],
+                    'uid_asset': self.asset.uid,
+                    'pk': submission['_id'],
                 },
             )
             response = self.client.post(duplicate_url, {'format': 'json'})
@@ -199,8 +199,8 @@ class AttachmentApiTests(BaseAssetTestCase):
         url = reverse(
             self._get_endpoint('attachment-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'parent_lookup_data': duplicate_submission['_id'],
+                'uid_asset': self.asset.uid,
+                'uid_data': duplicate_submission['_id'],
                 'pk': max_attachment_id + 1,
             },
         )
@@ -227,8 +227,8 @@ class AttachmentApiTests(BaseAssetTestCase):
             baseurl=reverse(
                 self._get_endpoint('attachment-list'),
                 kwargs={
-                    'parent_lookup_asset': self.asset.uid,
-                    'parent_lookup_data': self.submission_id,
+                    'uid_asset': self.asset.uid,
+                    'uid_data': self.submission_id,
                 },
             ),
             querystring=query_dict.urlencode()
@@ -251,8 +251,8 @@ class AttachmentApiTests(BaseAssetTestCase):
             baseurl=reverse(
                 self._get_endpoint('attachment-list'),
                 kwargs={
-                    'parent_lookup_asset': self.asset.uid,
-                    'parent_lookup_data': self.submission_id,
+                    'uid_asset': self.asset.uid,
+                    'uid_data': self.submission_id,
                 },
             ),
             querystring=query_dict.urlencode()
@@ -268,8 +268,8 @@ class AttachmentApiTests(BaseAssetTestCase):
         url = reverse(
             self._get_endpoint('attachment-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'parent_lookup_data': submission['_uuid'],
+                'uid_asset': self.asset.uid,
+                'uid_data': submission['_uuid'],
                 'pk': submission['_attachments'][0]['id'],
             },
         )
@@ -283,8 +283,8 @@ class AttachmentApiTests(BaseAssetTestCase):
         url = reverse(
             self._get_endpoint('attachment-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'parent_lookup_data': submission['_id'],
+                'uid_asset': self.asset.uid,
+                'uid_data': submission['_id'],
                 'pk': submission['_attachments'][1]['id'],
             },
         )

@@ -98,7 +98,7 @@ export interface BaseProduct {
   name: string
   description: string
   type: string
-  metadata: { [p: string]: string }
+  metadata: Record<string, string>
 }
 
 export type RecurringInterval = 'year' | 'month'
@@ -126,11 +126,6 @@ export interface PriceWithProduct extends Omit<Price, 'product'> {
   product: BaseProduct
 }
 
-export type PriceMetadata = Record<string, string | TransformQuantity | null> & {
-  quantity: string
-  transform_quantity: null | TransformQuantity
-}
-
 export interface TransformQuantity {
   divide_by: number
   round: 'up' | 'down'
@@ -149,6 +144,7 @@ export enum UsageLimitTypes {
   SUBMISSION = 'submission',
   TRANSCRIPTION = 'automated transcription',
   TRANSLATION = 'machine translation',
+  LLM_REQUEST = 'LLM request',
 }
 
 export enum Limits {
@@ -162,6 +158,7 @@ export interface AccountLimit {
   asr_seconds_limit: LimitAmount
   mt_characters_limit: LimitAmount
   storage_bytes_limit: LimitAmount
+  llm_requests_limit: LimitAmount
 }
 
 export interface AccountLimitDetail {
@@ -173,34 +170,13 @@ export interface Checkout {
   url: string
 }
 
-export enum ChangePlanStatus {
-  success = 'success',
-  scheduled = 'scheduled',
-  pending = 'pending',
-  error = 'error',
-}
-
 export enum SubscriptionChangeType {
   CANCELLATION = 0,
   RENEWAL = 1,
   PRODUCT_CHANGE = 2,
   PRICE_CHANGE = 3,
-  QUANTITY_CHANGE = 4,
   NO_CHANGE = 5,
 }
-
-export type ChangePlan =
-  | {
-      status: ChangePlanStatus.success | ChangePlanStatus.pending
-      url: string
-      stripe_object: Record<string, string>
-    }
-  | {
-      status: ChangePlanStatus.scheduled
-    }
-  | {
-      status: ChangePlanStatus.error
-    }
 
 export interface OneTimeAddOn {
   id: string
@@ -224,4 +200,5 @@ export enum USAGE_TYPE {
   TRANSCRIPTION = 1,
   TRANSLATION = 2,
   STORAGE = 3,
+  LLM = 4,
 }

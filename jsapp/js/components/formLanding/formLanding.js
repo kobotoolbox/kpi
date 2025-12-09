@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { Stack } from '@mantine/core'
+import { Group, Stack } from '@mantine/core'
 import autoBind from 'react-autobind'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import DocumentTitle from 'react-document-title'
@@ -10,6 +10,7 @@ import Reflux from 'reflux'
 import { actions } from '#/actions'
 import bem from '#/bem'
 import AnonymousSubmission from '#/components/anonymousSubmission.component'
+import ButtonNew from '#/components/common/ButtonNew'
 import AssetStatusBadge from '#/components/common/assetStatusBadge'
 import Button from '#/components/common/button'
 import InlineMessage from '#/components/common/inlineMessage'
@@ -30,7 +31,7 @@ import { withRouter } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
 import sessionStore from '#/stores/session'
 import { ANON_USERNAME, buildUserUrl } from '#/users/utils'
-import { formatTime, notify } from '#/utils'
+import { formatTime, notify, recordKeys, recordValues } from '#/utils'
 import ActionIcon from '../common/ActionIcon'
 import LimitNotifications from '../usageLimits/limitNotifications.component'
 
@@ -76,7 +77,7 @@ class FormLanding extends React.Component {
       (perm) => perm.permission === permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.add_submissions).url,
     )
     if (this.state.anonymousSubmissions) {
-      actions.permissions.removeAssetPermission(this.props.params.uid, permission.url)
+      actions.permissions.removeAssetPermission(this.props.params.uid, permission.url, undefined, undefined, undefined)
     } else {
       actions.permissions.assignAssetPermission(this.props.params.uid, {
         user: buildUserUrl(ANON_USERNAME),
@@ -206,7 +207,7 @@ class FormLanding extends React.Component {
       dataInterface.loadNextPageUrl(urlToLoad).done((data) => {
         this.setState({ nextPageUrl: data.deployed_versions.next })
         const newNextPagesVersions = this.state.nextPagesVersions
-        Object.values(data.deployed_versions.results).forEach((item) => {
+        recordValues(data.deployed_versions.results).forEach((item) => {
           newNextPagesVersions.push(item)
         })
         this.setState({ nextPagesVersions: newNextPagesVersions })
@@ -246,6 +247,9 @@ class FormLanding extends React.Component {
                       <bem.FormView__label>
                         <ActionIcon
                           variant='transparent'
+                          onClick={() => {
+                            this.saveCloneAs(item.uid)
+                          }}
                           tooltip={t('Clone this version as a new project')}
                           iconName='duplicate'
                           size='md'
@@ -259,26 +263,29 @@ class FormLanding extends React.Component {
           </bem.FormView__group>
         </bem.FormView__cell>
         {this.state.deployed_versions.count > 1 && (
-          <bem.FormView__cell m={['centered']}>
-            <Button
-              type='text'
-              size='m'
-              startIcon={this.state.historyExpanded ? 'angle-up' : 'angle-down'}
+          <Group justify='center' gap='md' pt={this.state.historyExpanded ? 'md' : 0}>
+            <ButtonNew
+              size='md'
               onClick={this.toggleDeploymentHistory.bind(this)}
-              label={this.state.historyExpanded ? t('Hide full history') : t('Show full history')}
-            />
+              leftIcon={this.state.historyExpanded ? 'angle-up' : 'angle-down'}
+              variant='transparent'
+            >
+              {this.state.historyExpanded ? t('Hide full history') : t('Show full history')}
+            </ButtonNew>
 
             {this.state.historyExpanded && this.state.DVCOUNT_LIMIT < dvcount && (
-              <Button type='text' size='m' onClick={this.loadMoreVersions.bind(this)} label={t('Load more')} />
+              <ButtonNew size='md' onClick={this.loadMoreVersions.bind(this)} variant='transparent'>
+                {t('Load more')}
+              </ButtonNew>
             )}
-          </bem.FormView__cell>
+          </Group>
         )}
       </bem.FormView__row>
     )
   }
   renderCollectData() {
     const deployment__links_list = []
-    Object.keys(COLLECTION_METHODS).forEach((methodId) => {
+    recordKeys(COLLECTION_METHODS).forEach((methodId) => {
       const methodDef = COLLECTION_METHODS[methodId]
       deployment__links_list.push({
         key: methodDef.id,

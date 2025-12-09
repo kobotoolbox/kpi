@@ -10,12 +10,32 @@ on:
 jobs:
 
 
-  changes:
+  version:
     if: ${{ startsWith(github.ref, 'refs/heads/release/') }}
+    secrets: inherit
+    uses: './.github/workflows/find-releases.yml'
+
+
+  notify-start:
+    needs:
+      - version
+    uses: './.github/workflows/zulip.yml'
+    secrets: inherit
+    with:
+      topic: "${{ needs.version.outputs.current_minor }} release"
+      content: |
+        :catspinq: `${{ needs.version.outputs.current_branch }}` branch workflow is [running #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) for [diff](${{ github.event.compare }}), see the next message in 1-40min. Last commit:
+        - $COMMIT_TITLE
+
+
+  changes:
+    needs:
+      - version
+    if: ${{ !cancelled() && !failure() && needs.version.result == 'success' }}
     runs-on: ubuntu-24.04
     permissions: { pull-requests: read }
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - id:   filter
         uses: dorny/paths-filter@v3
         name: Detect changed files
@@ -59,22 +79,15 @@ jobs:
     uses: ./.github/workflows/npm-test.yml
 
 
-  version:
+  changelog:
     needs:
+      - version
       - changes
       - darker
       - biome
       - openapi
       - pytest
       - npm-test
-    if: ${{ !cancelled() && !failure() && needs.changes.result == 'success' }}
-    secrets: inherit
-    uses: './.github/workflows/find-releases.yml'
-
-
-  changelog:
-    needs:
-      - version
     if: ${{ !cancelled() && !failure() && needs.version.result == 'success' }}
     runs-on: ubuntu-24.04
     env:
@@ -83,52 +96,48 @@ jobs:
       CURRENT_PATCH: ${{ needs.version.outputs.current_patch }}
     steps:
 
-      # TODO: extract as separate workflow_call.
-      - name: Generate a token to trigger a workflow from a workflow
-        id: app-token
-        uses: actions/create-github-app-token@v2
-        with:
-          app-id: ${{ secrets.KOBO_BOT_APP_ID }}
-          private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
-      - name: Get GitHub App user id
-        id: get-user-id
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-        run: |
-          echo "user-id=$(gh api "/users/${{ steps.app-token.outputs.app-slug }}[bot]" --jq .id)" >> "$GITHUB_OUTPUT"
-      - name: Set git name and email for the bot
-        run: |
-          git config --global user.name '${{ steps.app-token.outputs.app-slug }}[bot]'
-          git config --global user.email '${{ steps.get-user-id.outputs.user-id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com'
+    - uses: actions/checkout@v6
+    - uses: ./.github/actions/checkout-with-github-app-token
+      with:
+        app-id: ${{ secrets.KOBO_BOT_APP_ID }}
+        private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
 
-      - uses: actions/checkout@v4
-        with:
-          token: ${{ steps.app-token.outputs.token }}
-          fetch-depth: "0"
+    - name: draft a changelog
+      run: |
+        set -xe
+        npx git-cliff -u $(git log --format=format:%H origin/$PREV_BRANCH..origin/$CURRENT_BRANCH | tail -1)..origin/$CURRENT_BRANCH --tag $CURRENT_PATCH
 
-      - name: draft a changelog
-        run: |
-          set -xe
-          npx git-cliff -u $(git log --format=format:%H origin/$PREV_BRANCH..origin/$CURRENT_BRANCH | tail -1)..origin/$CURRENT_BRANCH --tag $CURRENT_PATCH
-
-      - name: commit the changelog to a dedicated branch
-        run: |
-          set -xe
-          git config user.name '${{ steps.app-token.outputs.app-slug }}[bot]'
-          git config user.email '${{ steps.get-user-id.outputs.user-id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com'
-          git checkout -B changelog/$CURRENT_PATCH
-          git add -f CHANGELOG.md
-          git commit -m "chore(releases): generate CHANGELOG.md for $CURRENT_PATCH"
-          git push -f --set-upstream origin changelog/$CURRENT_PATCH
+    - name: commit the changelog to a dedicated branch
+      run: |
+        set -xe
+        git config user.name '${{ steps.app-token.outputs.app-slug }}[bot]'
+        git config user.email '${{ steps.get-user-id.outputs.user-id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com'
+        git checkout -B changelog/$CURRENT_PATCH
+        git add -f CHANGELOG.md
+        git commit -m "chore(releases): generate CHANGELOG.md for $CURRENT_PATCH"
+        git push -f --set-upstream origin changelog/$CURRENT_PATCH
 
 
+  # Note: deploy only the latest release branch instead of all cascading release branches.
   deploy-to-beta:
     needs:
       - version
-    if: ${{ !cancelled() && !failure() && needs.version.result == 'success' }}
+      - changes
+      - darker
+      - biome
+      - openapi
+      - pytest
+      - npm-test
+    if: ${{ !cancelled() && !failure() && needs.version.result == 'success' && needs.version.outputs.next_branch == 'main' }}
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v4
+
+    - uses: actions/checkout@v6
+    - uses: ./.github/actions/checkout-with-github-app-token
+      with:
+        app-id: ${{ secrets.KOBO_BOT_APP_ID }}
+        private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
+
     - name: deploy to beta
       run: |
         set -xe
@@ -140,59 +149,34 @@ jobs:
     name: Merge forward
     needs:
       - version
+      - changes
+      - darker
+      - biome
+      - openapi
+      - pytest
+      - npm-test
     if: ${{ !cancelled() && !failure() && needs.version.result == 'success' }}
     runs-on: ubuntu-24.04
     steps:
 
-      # TODO: extract as separate workflow_call.
-      - name: Generate a token to trigger a workflow from a workflow
-        id: app-token
-        uses: actions/create-github-app-token@v2
-        with:
-          app-id: ${{ secrets.KOBO_BOT_APP_ID }}
-          private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
-      - name: Get GitHub App user id
-        id: get-user-id
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-        run: |
-          echo "user-id=$(gh api "/users/${{ steps.app-token.outputs.app-slug }}[bot]" --jq .id)" >> "$GITHUB_OUTPUT"
-      - name: Set git name and email for the bot
-        run: |
-          git config --global user.name '${{ steps.app-token.outputs.app-slug }}[bot]'
-          git config --global user.email '${{ steps.get-user-id.outputs.user-id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com'
+    - uses: actions/checkout@v6
+    - uses: ./.github/actions/checkout-with-github-app-token
+      with:
+        app-id: ${{ secrets.KOBO_BOT_APP_ID }}
+        private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
 
-      - uses: actions/checkout@v4
-        with:
-          token: ${{ steps.app-token.outputs.token }}
-          fetch-depth: "0"
-
-      - name: Merge
-        env:
-          current_branch: ${{ needs.version.outputs.current_branch }}
-          next_branch: ${{ needs.version.outputs.next_branch }}
-        run: |
-          git checkout "$next_branch"
-          echo 'TODO: squash migrations, if any'
-          git merge --no-ff "$current_branch"
-          git push
+    - name: Merge
+      env:
+        current_branch: ${{ needs.version.outputs.current_branch }}
+        next_branch: ${{ needs.version.outputs.next_branch }}
+      run: |
+        git checkout "$next_branch"
+        echo 'TODO: squash migrations, if any'
+        git merge --no-ff "$current_branch"
+        git push
 
 
-  notify:
-    needs:
-      - version
-      - changelog
-      - deploy-to-beta
-      - merge-forward
-    if: ${{ !cancelled() && !failure() && needs.version.result == 'success' }}
-    uses: './.github/workflows/zulip.yml'
-    secrets: inherit
-    with:
-      topic: "${{ needs.version.outputs.current_minor }} release"
-      content: ":working_on_it: Release branch updated, passed CI, deployed to beta, and merged forward. Please update release notes (TODO: automate)"
-
-
-  on-failure:
+  notify-success:
     needs:
       - version
       - darker
@@ -203,9 +187,57 @@ jobs:
       - changelog
       - deploy-to-beta
       - merge-forward
+    if: ${{ !cancelled() && needs.version.result == 'success' }}
+    uses: './.github/workflows/zulip.yml'
+    secrets: inherit
+    with:
+      topic: "${{ needs.version.outputs.current_minor }} release"
+      content: |
+        :working_on_it: `${{ needs.version.outputs.current_branch }}` branch workflow has been completed:
+        - ${{ (
+              needs.darker.result == 'failure' || needs.darker.result == 'timed_out' ||
+              needs.openapi.result == 'failure' || needs.openapi.result == 'timed_out' ||
+              needs.pytest.result == 'failure' || needs.pytest.result == 'timed_out' )
+            && format(':warning: failed to pass backend automated tests: @*backend* please investigate [run #{0}]({1}/{2}/actions/runs/{3})!', github.run_number, github.server_url, github.repository, github.run_id)
+            || (needs.darker.result == 'skipped' && needs.openapi.result == 'skipped' && needs.pytest.result == 'skipped')
+              && ':skip_forward: all backend jobs skipped due no changes in backend relates files.'
+              || format(':check: passed backend automated tests ({0} darker, {1} openapi, {2} pytest)', needs.darker.result, needs.openapi.result, needs.pytest.result)
+          }}
+        - ${{ (
+              needs.biome.result == 'failure' || needs.biome.result == 'timed_out' ||
+              needs.npm-test.result == 'failure' || needs.npm-test.result == 'timed_out' )
+            && format(':warning: failed to pass automated tests: @*frontend* please investigate [run #{0}]({1}/{2}/actions/runs/{3})!', github.run_number, github.server_url, github.repository, github.run_id)
+            || (needs.biome.result == 'skipped' && needs.npm-test.result == 'skipped')
+              && ':skip_forward: all frontend jobs skipped due no changes in frontend relates files.'
+              || format(':check: passed frontend automated tests ({0} biome, {1} npm-test)', needs.biome.result, needs.npm-test.result)
+          }}
+        - ${{ (needs.merge-forward.result == 'failure' || needs.merge-forward.result == 'timed_out')
+            && format(':warning: failed to merge forward: @*devs* please investigate [run #{0}]({1}/{2}/actions/runs/{3}), it likely requires a manual merge to `{4}`!', github.run_number, github.server_url, github.repository, github.run_id, needs.version.outputs.next_branch)
+            || needs.merge-forward.result == 'skipped'
+              && ':skip_forward: merged forward skipped due failed automated tests.'
+              || format(':check: merged forward into `{0}`', needs.version.outputs.next_branch)
+          }}
+        - ${{ (needs.changelog.result == 'failure' || needs.changelog.result == 'timed_out')
+            && format(':warning: failed to update changelog: @*devs* please investigate [run #{0}]({1}/{2}/actions/runs/{3})!', github.run_number, github.server_url, github.repository, github.run_id)
+            || needs.changelog.result == 'skipped'
+              && ':skip_forward: changelog update skipped due failed automated tests.'
+              || format(':check: updated [changelog](https://github.com/kobotoolbox/kpi/blob/changelog/{0}/CHANGELOG.md)', needs.version.outputs.current_patch)
+          }}
+        - ${{ (needs.deploy-to-beta.result == 'failure' || needs.deploy-to-beta.result == 'timed_out')
+            && format(':warning: failed to queue to deploy to beta: @*devs* please investigate [run #{0}]({1}/{2}/actions/runs/{3})!', github.run_number, github.server_url, github.repository, github.run_id)
+            || needs.deploy-to-beta.result == 'skipped'
+              && ':skip_forward: deploy to beta skipped due failed automated tests or due not being the latest release.'
+              || ':check: triggered a deploy to [beta](kf.beta.kbtdev.org), see #**Kobo Dev>deployments to public-beta** for deployment status'
+          }}
+
+
+  notify-failure:
+    needs:
+      - version
+      - changes
     if: ${{ !cancelled() && failure() }}
     secrets: inherit
     uses: './.github/workflows/zulip.yml'
     with:
       topic: "${{ needs.version.outputs.current_minor }} release"
-      content: ":warning: @*devs*, [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed on `${{ github.head_ref || github.ref_name }}` at [\"$COMMIT_TITLE\"](${{ github.event.compare }})"
+      content: ":warning: `${{ needs.version.outputs.current_branch }}` branch workflow [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed `${{ github.head_ref || github.ref_name }}`, @*devs* please investigate!"

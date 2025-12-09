@@ -19,7 +19,7 @@ from ..serializers import InviteSerializer
 
 
 @extend_schema(
-    tags=['Project Ownership Invites'],
+    tags=['Manage projects and library content'],
 )
 @extend_schema_view(
     create=extend_schema(
@@ -98,6 +98,7 @@ class InviteViewSet(AuditLoggedModelViewSet):
 
     model = Invite
     lookup_field = 'uid'
+    lookup_url_kwarg = 'uid_invite'
     serializer_class = InviteSerializer
     permission_classes = (IsAuthenticated,)
     filter_backends = (InviteFilter, )

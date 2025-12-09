@@ -34,6 +34,7 @@ def get_default_add_on_limits():
         f'{UsageType.SUBMISSION}_limit': 0,
         f'{UsageType.ASR_SECONDS}_limit': 0,
         f'{UsageType.MT_CHARACTERS}_limit': 0,
+        f'{UsageType.LLM_REQUESTS}_limit': 0,
     }
 
 
@@ -124,6 +125,7 @@ def get_organizations_subscription_limits(
     submission_limit = _get_limit_key(UsageType.SUBMISSION)
     characters_limit = _get_limit_key(UsageType.MT_CHARACTERS)
     seconds_limit = _get_limit_key(UsageType.ASR_SECONDS)
+    requests_limit = _get_limit_key(UsageType.LLM_REQUESTS)
     # Anyone who does not have a subscription is on the free tier plan by default
     default_plan = (
         Product.objects.filter(metadata__default_free_plan='true')
@@ -132,6 +134,7 @@ def get_organizations_subscription_limits(
             submission_limit=F(f'metadata__{submission_limit}'),
             mt_characters_limit=F(f'metadata__{characters_limit}'),
             asr_seconds_limit=F(f'metadata__{seconds_limit}'),
+            llm_requests_limit=F(f'metadata__{requests_limit}'),
         )
         .first()
     ) or {}
@@ -235,6 +238,9 @@ def get_paid_subscription_limits(organization_ids: list[str], **kwargs) -> Query
     price_seconds_key, product_seconds_key = (
         _get_subscription_metadata_fields_for_usage_type(UsageType.ASR_SECONDS)
     )
+    price_requests_key, product_requests_key = (
+        _get_subscription_metadata_fields_for_usage_type(UsageType.LLM_REQUESTS)
+    )
 
     # Get organizations we care about (either those in the 'organizations' param or all)
     org_filter = Q(customer__subscriber_id__in=[org_id for org_id in organization_ids])
@@ -256,6 +262,7 @@ def get_paid_subscription_limits(organization_ids: list[str], **kwargs) -> Query
             mt_characters_limit=Coalesce(
                 F(price_characters_key), F(product_characters_key)
             ),
+            llm_requests_limit=Coalesce(F(price_requests_key), F(product_requests_key)),
             sub_start_date=F('start_date'),
             product_type=F('items__price__product__metadata__product_type'),
         )

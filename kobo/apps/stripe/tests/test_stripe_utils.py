@@ -67,75 +67,57 @@ class OrganizationsUtilsTestCase(BaseTestCase):
 
     def test_get_organization_subscription_limits(self):
         free_plan = generate_free_plan()
+        first_paid_plan_limits = {
+            f'{UsageType.MT_CHARACTERS}_limit': '100',
+            f'{UsageType.ASR_SECONDS}_limit': '200',
+            f'{UsageType.LLM_REQUESTS}_limit': '300',
+            f'{UsageType.SUBMISSION}_limit': '400',
+            f'{UsageType.STORAGE_BYTES}_limit': '500',
+        }
+        # second plan for org2 where we append (not add) 1 to all the limits
+        second_paid_plan_limits = {
+            key: f'{value}1' for key, value in first_paid_plan_limits.items()
+        }
         product_metadata = {
-            f'{UsageType.MT_CHARACTERS}_limit': '1234',
-            f'{UsageType.ASR_SECONDS}_limit': '5678',
-            f'{UsageType.SUBMISSION}_limit': '91011',
-            f'{UsageType.STORAGE_BYTES}_limit': '121314',
             'product_type': 'plan',
             'plan_type': 'enterprise',
         }
-        # create a second plan for org2 where we append (not add) 1 to all the limits
-        second_product_metadata = {
-            key: f'{value}1' if key.endswith('limit') else value
-            for key, value in product_metadata.items()
+        first_product_metadata = {
+            **first_paid_plan_limits,
+            **product_metadata,
         }
-        generate_plan_subscription(self.organization, metadata=product_metadata)
+        second_product_metadata = {
+            **second_paid_plan_limits,
+            **product_metadata,
+        }
+
+        generate_plan_subscription(self.organization, metadata=first_product_metadata)
         generate_plan_subscription(
             self.second_organization, metadata=second_product_metadata
         )
         all_limits = get_organizations_subscription_limits()
-        assert (
-            all_limits[self.organization.id][f'{UsageType.MT_CHARACTERS}_limit'] == 1234
-        )
-        assert (
-            all_limits[self.second_organization.id][f'{UsageType.MT_CHARACTERS}_limit']
-            == 12341
-        )
-        assert (
-            all_limits[self.organization.id][f'{UsageType.ASR_SECONDS}_limit'] == 5678
-        )
-        assert (
-            all_limits[self.second_organization.id][f'{UsageType.ASR_SECONDS}_limit']
-            == 56781
-        )
-        assert (
-            all_limits[self.organization.id][f'{UsageType.SUBMISSION}_limit'] == 91011
-        )
-        assert (
-            all_limits[self.second_organization.id][f'{UsageType.SUBMISSION}_limit']
-            == 910111
-        )
-        assert (
-            all_limits[self.organization.id][f'{UsageType.STORAGE_BYTES}_limit']
-            == 121314
-        )
-        assert (
-            all_limits[self.second_organization.id][f'{UsageType.STORAGE_BYTES}_limit']
-            == 1213141
-        )
 
         other_orgs = Organization.objects.exclude(
             id__in=[self.organization.id, self.second_organization.id]
         )
-        for org in other_orgs:
-            assert all_limits[org.id][f'{UsageType.MT_CHARACTERS}_limit'] == int(
-                free_plan.metadata[f'{UsageType.MT_CHARACTERS}_limit']
+        for usage_type, _ in UsageType.choices:
+            assert all_limits[self.organization.id][f'{usage_type}_limit'] == float(
+                first_paid_plan_limits[f'{usage_type}_limit']
             )
-            assert all_limits[org.id][f'{UsageType.ASR_SECONDS}_limit'] == int(
-                free_plan.metadata[f'{UsageType.ASR_SECONDS}_limit']
-            )
-            assert all_limits[org.id][f'{UsageType.SUBMISSION}_limit'] == int(
-                free_plan.metadata[f'{UsageType.SUBMISSION}_limit']
-            )
-            assert all_limits[org.id][f'{UsageType.STORAGE_BYTES}_limit'] == int(
-                free_plan.metadata[f'{UsageType.STORAGE_BYTES}_limit']
-            )
+            assert all_limits[self.second_organization.id][
+                f'{usage_type}_limit'
+            ] == float(second_paid_plan_limits[f'{usage_type}_limit'])
+
+            for org in other_orgs:
+                assert all_limits[org.id][f'{usage_type}_limit'] == float(
+                    free_plan.metadata[f'{usage_type}_limit']
+                )
 
     def test__prioritizes_price_metadata(self):
         product_metadata = {
             f'{UsageType.MT_CHARACTERS}_limit': '1',
             f'{UsageType.ASR_SECONDS}_limit': '1',
+            f'{UsageType.LLM_REQUESTS}_limit': '1',
             f'{UsageType.SUBMISSION}_limit': '1',
             f'{UsageType.STORAGE_BYTES}_limit': '1',
             'product_type': 'plan',
@@ -144,6 +126,7 @@ class OrganizationsUtilsTestCase(BaseTestCase):
         price_metadata = {
             f'{UsageType.MT_CHARACTERS}_limit': '2',
             f'{UsageType.ASR_SECONDS}_limit': '2',
+            f'{UsageType.LLM_REQUESTS}_limit': '2',
             f'{UsageType.SUBMISSION}_limit': '2',
             f'{UsageType.STORAGE_BYTES}_limit': '2',
         }
@@ -477,6 +460,7 @@ class OrganizationsUtilsTestCase(BaseTestCase):
         plan_product_metadata = {
             f'{UsageType.MT_CHARACTERS}_limit': '1',
             f'{UsageType.ASR_SECONDS}_limit': '1',
+            f'{UsageType.LLM_REQUESTS}_limit': '1',
             f'{UsageType.SUBMISSION}_limit': '1',
             f'{UsageType.STORAGE_BYTES}_limit': '1',
             'product_type': 'plan',
@@ -485,6 +469,7 @@ class OrganizationsUtilsTestCase(BaseTestCase):
         product_metadata = {
             f'{UsageType.MT_CHARACTERS}_limit': '2',
             f'{UsageType.ASR_SECONDS}_limit': '2',
+            f'{UsageType.LLM_REQUESTS}_limit': '2',
             f'{UsageType.SUBMISSION}_limit': '2',
             f'{UsageType.STORAGE_BYTES}_limit': '2',
             'product_type': 'plan',
@@ -497,6 +482,7 @@ class OrganizationsUtilsTestCase(BaseTestCase):
         one_time_nlp_addon_metadata = {
             f'{UsageType.MT_CHARACTERS}_limit': '15',
             f'{UsageType.ASR_SECONDS}_limit': '20',
+            f'{UsageType.LLM_REQUESTS}_limit': '20',
         }
         nlp_addon = _create_one_time_addon_product(one_time_nlp_addon_metadata)
         customer = baker.make(Customer, subscriber=self.organization)
@@ -526,11 +512,17 @@ class OrganizationsUtilsTestCase(BaseTestCase):
         assert (
             results[self.second_organization.id][f'{UsageType.ASR_SECONDS}_limit'] == 2
         )
+        assert (
+            results[self.second_organization.id][f'{UsageType.LLM_REQUESTS}_limit'] == 2
+        )
         if include_onetime_addons:
             assert (
                 results[self.organization.id][f'{UsageType.MT_CHARACTERS}_limit'] == 16
             )
             assert results[self.organization.id][f'{UsageType.ASR_SECONDS}_limit'] == 21
+            assert (
+                results[self.organization.id][f'{UsageType.LLM_REQUESTS}_limit'] == 21
+            )
             assert (
                 results[self.second_organization.id][f'{UsageType.SUBMISSION}_limit']
                 == 12
@@ -540,6 +532,7 @@ class OrganizationsUtilsTestCase(BaseTestCase):
                 results[self.organization.id][f'{UsageType.MT_CHARACTERS}_limit'] == 1
             )
             assert results[self.organization.id][f'{UsageType.ASR_SECONDS}_limit'] == 1
+            assert results[self.organization.id][f'{UsageType.LLM_REQUESTS}_limit'] == 1
             assert (
                 results[self.second_organization.id][f'{UsageType.SUBMISSION}_limit']
                 == 2
@@ -603,6 +596,7 @@ class ExceededLimitsTestCase(BaseServiceUsageTestCase):
         product_metadata = {
             f'{UsageType.MT_CHARACTERS}_limit': '1',
             f'{UsageType.ASR_SECONDS}_limit': '1',
+            f'{UsageType.LLM_REQUESTS}_limit': '1',
             f'{UsageType.SUBMISSION}_limit': '1',
             f'{UsageType.STORAGE_BYTES}_limit': '1',
             'product_type': 'plan',
@@ -622,7 +616,7 @@ class ExceededLimitsTestCase(BaseServiceUsageTestCase):
         # We want to test this function directly here, so we patch it out when
         # it is called on submission to avoid cache restrictions
         with patch(
-            'kobo.apps.stripe.utils.limit_enforcement.check_exceeded_limit',
+            'kobo.apps.openrosa.libs.utils.logger_tools.check_exceeded_limit',
             return_value=None,
         ):
             self.add_submissions(count=2, asset=self.asset, username='someuser')
@@ -650,7 +644,7 @@ class ExceededLimitsTestCase(BaseServiceUsageTestCase):
         # We want to test this function directly here, so we patch it out when
         # is called on submission to avoid cache restrictions
         with patch(
-            'kobo.apps.stripe.utils.limit_enforcement.check_exceeded_limit',
+            'kobo.apps.openrosa.libs.utils.logger_tools.check_exceeded_limit',
             return_value=None,
         ):
             self.add_submissions(count=2, asset=self.asset, username='someuser')

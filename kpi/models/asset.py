@@ -11,16 +11,16 @@ from django.contrib.postgres.indexes import BTreeIndex, GinIndex
 from django.db import models, transaction
 from django.db.models import F, Prefetch, Q
 from django.utils.translation import gettext_lazy as t
-from formpack.utils.flatten_content import flatten_content
-from formpack.utils.json_hash import json_hash
-from formpack.utils.kobo_locking import strip_kobo_locking_profile
 from taggit.managers import TaggableManager, _TaggableManager
 from taggit.utils import require_instance_manager
 
+from formpack.utils.flatten_content import flatten_content
+from formpack.utils.json_hash import json_hash
+from formpack.utils.kobo_locking import strip_kobo_locking_profile
 from kobo.apps.data_collectors.models import DataCollectorGroup
 from kobo.apps.reports.constants import DEFAULT_REPORTS_KEY, SPECIFIC_REPORTS_KEY
 from kobo.apps.subsequences.schemas import ACTION_PARAMS_SCHEMA
-from kobo.apps.subsequences.utils.supplement_data import get_supplemental_output_fields
+from kobo.apps.subsequences.utils.supplement_data import get_analysis_form_json
 from kobo.apps.subsequences.utils.versioning import migrate_advanced_features
 from kpi.constants import (
     ASSET_TYPE_BLOCK,
@@ -523,6 +523,9 @@ class Asset(
         if _title is not None:
             # Remove newlines and tabs (they are stripped in front end anyway)
             self.name = re.sub(r'[\n\t]+', '', _title)
+
+    def analysis_form_json(self, omit_question_types=None):
+        return get_analysis_form_json(self)
 
     def clone(self, version_uid=None):
         # not currently used, but this is how "to_clone_dict" should work
@@ -1044,10 +1047,6 @@ class Asset(
                 self._deployment_status = AssetDeploymentStatus.ARCHIVED
         else:
             self._deployment_status = AssetDeploymentStatus.DRAFT
-
-    @property
-    def supplemental_output_fields(self):
-        return get_supplemental_output_fields(self)
 
     @property
     def tag_string(self):

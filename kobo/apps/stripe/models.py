@@ -176,6 +176,26 @@ class PlanAddOn(models.Model):
                     ),
                     0,
                 ),
+                llm_requests_remaining=Coalesce(
+                    Sum(
+                        Cast(
+                            PlanAddOn.get_limits_remaining_field(
+                                UsageType.LLM_REQUESTS
+                            ),
+                            output_field=IntegerField(),
+                        )
+                    ),
+                    0,
+                ),
+                total_llm_requests_limit=Coalesce(
+                    Sum(
+                        Cast(
+                            PlanAddOn.get_usage_limits_field(UsageType.LLM_REQUESTS),
+                            output_field=IntegerField(),
+                        )
+                    ),
+                    0,
+                ),
                 submission_remaining=Coalesce(
                     Sum(
                         Cast(
@@ -224,7 +244,7 @@ class PlanAddOn(models.Model):
         return True
 
     @admin.display(boolean=True, description='available')
-    def is_available(self):
+    def is_available(self) -> bool:
         return not (self.is_expended or self.charge.refunded) and bool(
             self.organization
         )
@@ -286,7 +306,7 @@ class PlanAddOn(models.Model):
         return remaining
 
     @property
-    def total_usage_limits(self):
+    def total_usage_limits(self) -> dict:
         """
         The total usage limits for this add-on, based on the usage_limits for a single
         add-on.

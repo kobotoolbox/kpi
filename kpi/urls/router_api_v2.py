@@ -15,6 +15,9 @@ from kobo.apps.organizations.views import (
 from kobo.apps.project_ownership.urls import router as project_ownership_router
 from kobo.apps.project_views.views import ProjectViewViewSet
 from kobo.apps.subsequences.views import QuestionAdvancedFeatureViewSet
+from kobo.apps.user_reports.views import UserReportsViewSet
+from kpi.constants import API_NAMESPACES
+from kpi.renderers import BasicHTMLRenderer
 from kpi.views.v2.asset import AssetViewSet
 from kpi.views.v2.asset_counts import AssetCountsViewSet
 from kpi.views.v2.asset_export_settings import AssetExportSettingsViewSet
@@ -55,9 +58,9 @@ class OpenRosaCompatibleExtendedRouter(ExtendedDefaultRouter):
     def get_urls(self, *args, **kwargs):
         urls = super().get_urls(*args, **kwargs)
         names_to_alias_paths = {
-            'assetsnapshot-form-list': 'asset_snapshots/<uid>/formList',
-            'assetsnapshot-manifest': 'asset_snapshots/<uid>/manifest',
-            'assetsnapshot-submission': 'asset_snapshots/<uid>/submission',
+            'assetsnapshot-form-list': 'asset_snapshots/<uid_asset_snapshot>/formList',
+            'assetsnapshot-manifest': 'asset_snapshots/<uid_asset_snapshot>/manifest',
+            'assetsnapshot-submission': 'asset_snapshots/<uid_asset_snapshot>/submission',
         }
 
         # Remove the original urls matching the names
@@ -77,7 +80,7 @@ class OpenRosaCompatibleExtendedRouter(ExtendedDefaultRouter):
         return original_urls
 
 
-URL_NAMESPACE = 'api_v2'
+URL_NAMESPACE = API_NAMESPACES['v2']
 
 router_api_v2 = OpenRosaCompatibleExtendedRouter()
 asset_routes = router_api_v2.register(r'assets', AssetViewSet, basename='asset')
@@ -178,12 +181,12 @@ router_api_v2.register(r'imports', ImportTaskViewSet)
 router_api_v2.register(r'organizations',
                        OrganizationViewSet, basename='organizations',)
 router_api_v2.register(
-    r'organizations/(?P<organization_id>[^/.]+)/members',
+    r'organizations/(?P<uid_organization>[^/.]+)/members',
     OrganizationMemberViewSet,
     basename='organization-members',
 )
 router_api_v2.register(
-    r'organizations/(?P<organization_id>[^/.]+)/invites',
+    r'organizations/(?P<uid_organization>[^/.]+)/invites',
     OrgMembershipInviteViewSet,
     basename='organization-invites',
 )
@@ -193,7 +196,7 @@ router_api_v2.register(r'project-views', ProjectViewViewSet)
 router_api_v2.register(r'service_usage',
                        ServiceUsageViewSet, basename='service-usage')
 router_api_v2.register(r'users', UserViewSet, basename='user-kpi')
-
+router_api_v2.register(r'user-reports', UserReportsViewSet, basename='user-reports')
 router_api_v2.register(r'tags', TagViewSet, basename='tags')
 router_api_v2.register(
     r'terms-of-service', TermsOfServiceViewSet, basename='terms-of-service'
@@ -218,17 +221,19 @@ router_api_v2.register(
 # them correctly, often resulting in broken routes and schema generation errors.
 enketo_url_aliases = [
     path(
-        'assets/<parent_lookup_asset>/data/<submission_id_or_root_uuid>/edit/',
-        DataViewSet.as_view({'get': 'enketo_edit'}, renderer_classes=[JSONRenderer]),
+        'assets/<uid_asset>/data/<pk>/edit/',
+        DataViewSet.as_view(
+            {'get': 'enketo_edit'}, renderer_classes=[JSONRenderer, BasicHTMLRenderer]
+        ),
         name='submission-enketo-edit-legacy',
     ),
     path(
-        'assets/<parent_lookup_asset>/data/<submission_id_or_root_uuid>/enketo/redirect/edit/',
+        'assets/<uid_asset>/data/<pk>/enketo/redirect/edit/',
         DataViewSet.as_view({'get': 'enketo_edit'}, renderer_classes=[JSONRenderer]),
         name='submission-enketo-edit-redirect',
     ),
     path(
-        'assets/<parent_lookup_asset>/data/<submission_id_or_root_uuid>/enketo/redirect/view/',
+        'assets/<uid_asset>/data/<pk>/enketo/redirect/view/',
         DataViewSet.as_view({'get': 'enketo_view'}, renderer_classes=[JSONRenderer]),
         name='submission-enketo-view-redirect',
     ),

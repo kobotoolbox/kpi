@@ -3,6 +3,7 @@ import os
 import traceback
 import zipfile
 from datetime import datetime
+from mimetypes import guess_type
 from tempfile import NamedTemporaryFile
 
 import requests
@@ -13,6 +14,7 @@ from django.core.mail import mail_admins
 from django.utils.translation import gettext as t
 from ua_parser import user_agent_parser as ua_parse
 
+from kpi.constants import UNSUPPORTED_INLINE_MIMETYPES
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
@@ -46,6 +48,9 @@ def get_mongo_userform_id(xform: 'logger.XForm', username: str = None) -> str:
 
 def get_optimized_image_path(path: str, suffix: str) -> str:
     file_name, ext = os.path.splitext(path)
+    mimetype, _ = guess_type(path)
+    if mimetype in UNSUPPORTED_INLINE_MIMETYPES:
+        ext = '.jpg'
     return f'{file_name}-{suffix}{ext}'
 
 
