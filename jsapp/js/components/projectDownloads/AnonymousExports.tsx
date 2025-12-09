@@ -1,6 +1,5 @@
 import React from 'react'
 import { actions } from '#/actions'
-import { handleApiFail } from '#/api'
 import bem from '#/bem'
 import Button from '#/components/common/button'
 import ExportTypeSelector from '#/components/projectDownloads/ExportTypeSelector'
@@ -12,7 +11,7 @@ import {
 } from '#/components/projectDownloads/exportsConstants'
 import exportsStore from '#/components/projectDownloads/exportsStore'
 import { getContextualDefaultExportFormat } from '#/components/projectDownloads/exportsUtils'
-import type { AssetResponse, ExportDataResponse, FailResponse } from '#/dataInterface'
+import type { AssetResponse, ExportDataResponse } from '#/dataInterface'
 import { downloadUrl } from '#/utils'
 
 interface AnonymousExportsProps {
@@ -69,9 +68,9 @@ export default class AnonymousExports extends React.Component<AnonymousExportsPr
     this.fetchExport(exportData.uid)
   }
 
-  onCreateExportFailed(errorResponse: FailResponse) {
+  onCreateExportFailed() {
     this.setState({ isPending: false })
-    handleApiFail(errorResponse)
+    // Error handling happens in `exportsActions.js`
   }
 
   onGetExportCompleted(exportData: ExportDataResponse) {
