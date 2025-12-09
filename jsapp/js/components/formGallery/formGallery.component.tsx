@@ -3,13 +3,13 @@ import './formGallery.component.scss'
 import { Box, Center, Flex, Image, Modal } from '@mantine/core'
 import React, { useEffect, useMemo, useReducer } from 'react'
 import ReactSelect from 'react-select'
+import { fetchGet, fetchGetUrl } from '#/api'
 import { getFlatQuestionsList } from '#/assetUtils'
 import DeletedAttachment from '#/attachments/deletedAttachment.component'
 import bem, { makeBem } from '#/bem'
 import ActionIcon from '#/components/common/ActionIcon'
 import Button from '#/components/common/button'
 import type { AssetResponse, PaginatedResponse, SubmissionResponse } from '#/dataInterface'
-import { dataInterface } from '#/dataInterface'
 import { initialState, reducer } from './formGallery.reducer'
 import { selectFilterQuery, selectImageAttachments, selectShowLoadMore } from './formGallery.selectors'
 
@@ -64,37 +64,38 @@ export default function FormGallery(props: FormGalleryProps) {
     () => selectFilterQuery(filterQuestion, flatQuestionsList, startDate, endDate),
     [filterQuestion, startDate, endDate],
   )
+  const apiUrl = useMemo(() => {
+    // TODO: we should migrate this component to use Orval. But first we need to actually plan and design Data Gallery.
+    // For now the url is using some clever filters to only get submissions that have images in the responses. Given the
+    // hacky character of this, there might be some edge cases when this doesn't work, but since this is a big step up
+    // from previously broken "empty pages on Load more button" issue, we are grateful and happy :peace:
+    return `/api/v2/assets/${props.asset.uid}/data?limit=${PAGE_SIZE}${filterQuery}`
+  }, [filterQuery, props.asset.uid])
 
   useEffect(() => {
     dispatch({ type: 'getSubmissions' })
-    dataInterface
-      .getSubmissions(props.asset.uid, PAGE_SIZE, 0, [], [], filterQuery)
-      .done((resp: PaginatedResponse<SubmissionResponse>) => dispatch({ type: 'getSubmissionsCompleted', resp }))
+
+    fetchGet<PaginatedResponse<SubmissionResponse>>(apiUrl).then((response) => {
+      dispatch({ type: 'getSubmissionsCompleted', resp: response })
+    })
   }, [filterQuestion, startDate, endDate])
 
   const loadMoreSubmissions = (isModalLoad = false) => {
     if (next) {
-      const start = new URL(next).searchParams.get('start')
-      if (start) {
-        dispatch({ type: 'loadMoreSubmissions' })
+      dispatch({ type: 'loadMoreSubmissions' })
 
-        // Store the current length before loading new data.
-        const previousLength = attachments.length
+      // Store the current length before loading new data.
+      const previousLength = attachments.length
 
-        // Let;s try using
-        // /api/v2/assets/{uid_asset}/data.json?query={"_attachments":{"$elemMatch":{"mimetype": {"$regex":"^image/"}}}}
+      // Not `fetchGet`, because we get full url from API (in `next`)
+      fetchGetUrl<PaginatedResponse<SubmissionResponse>>(next).then((response) => {
+        dispatch({ type: 'loadMoreSubmissionsCompleted', resp: response })
 
-        dataInterface
-          .getSubmissions(props.asset.uid, PAGE_SIZE, start, [], [], filterQuery)
-          .done((resp: PaginatedResponse<SubmissionResponse>) => {
-            dispatch({ type: 'loadMoreSubmissionsCompleted', resp })
-
-            // If triggered from the modal, jump to the first new item
-            if (isModalLoad && resp.results.length > 0) {
-              dispatch({ type: 'setModalImageIndex', index: previousLength })
-            }
-          })
-      }
+        // If triggered from the modal, jump to the first new item
+        if (isModalLoad && response.results.length > 0) {
+          dispatch({ type: 'setModalImageIndex', index: previousLength })
+        }
+      })
     }
   }
 
@@ -194,6 +195,7 @@ export default function FormGallery(props: FormGalleryProps) {
               </Box>
             ),
           )}
+          {attachments.length === 0 && !isLoading && t('No results')}
         </bem.GalleryGrid>
         {showLoadMore && (
           <bem.GalleryFooter>
