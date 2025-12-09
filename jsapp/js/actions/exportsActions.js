@@ -51,9 +51,8 @@ exportsActions.createExport.listen((assetUid, data) => {
     .done(exportsActions.createExport.completed)
     .fail(exportsActions.createExport.failed)
 })
-exportsActions.createExport.failed.listen(() => {
-  notify(t('Failed to create export'), 'error')
-})
+// We are handling errors in `ProjectExportsCreator.tsx` and `AnonymousExports.tsx` so that is why we don't have
+// `exportsActions.createExport.failed.listen` here.
 
 /**
  * @param {string} assetUid
