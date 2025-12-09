@@ -11,6 +11,11 @@ from kobo.apps.audit_log.models import (
     ProjectHistoryLog,
 )
 from kobo.celery import celery_app
+from kpi.models.import_export_task import (
+    AccessLogExportTask,
+    ProjectHistoryLogExportTask
+)
+from kpi.utils.export_cleanup import delete_expired_exports
 from kpi.utils.log import logging
 
 
@@ -50,3 +55,21 @@ def spawn_logs_cleaning_tasks():
     """
     enqueue_logs_for_deletion(AccessLog, config.ACCESS_LOG_LIFESPAN)
     enqueue_logs_for_deletion(ProjectHistoryLog, config.PROJECT_HISTORY_LOG_LIFESPAN)
+
+
+@celery_app.task
+def cleanup_access_log_exports(**kwargs):
+    """
+    Task to clean up export tasks created by access logs that are older
+    than `EXPORT_CLEANUP_GRACE_PERIOD`, excluding those that are still processing
+    """
+    delete_expired_exports(AccessLogExportTask)
+
+
+@celery_app.task
+def cleanup_project_history_log_exports(**kwargs):
+    """
+    Task to clean up export tasks created by project history logs that are older
+    than `EXPORT_CLEANUP_GRACE_PERIOD`, excluding those that are still processing
+    """
+    delete_expired_exports(ProjectHistoryLogExportTask)

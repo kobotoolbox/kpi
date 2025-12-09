@@ -46,24 +46,26 @@ module.exports = do ->
 
   class validationLogicHelpers.ValidationLogicHelperContext extends $skipLogicHelpers.SkipLogicHelperContext
     use_mode_selector_helper: () ->
-      @state = new validationLogicHelpers.ValidationLogicModeSelectorHelper @view_factory, @
-      @render @destination
+      if !@questionTypeHasResponseType()
+        @use_hand_code_helper()
+      else
+        @state = new validationLogicHelpers.ValidationLogicModeSelectorHelper @view_factory, @
+        @render @destination
+      return
     use_hand_code_helper: () ->
       @state = new validationLogicHelpers.ValidationLogicHandCodeHelper(@state.serialize(), @builder, @view_factory, @)
-      if @questionTypeHasNoValidationOperators()
+      if !@questionTypeHasResponseType()
         @state.button = @view_factory.create_empty()
       @render @destination
       return
 
-    questionTypeHasNoValidationOperators: () ->
+    questionTypeHasResponseType: () ->
       typeId = @helper_factory.current_question.get('type').get('typeId')
       # Note: Leszek: seems like a dead code, can't figure out how to setup a test to trigger it.
       if !typeId
         return console.error('no type id found for question', @helper_factory.current_question)
-      operators = $skipLogicHelpers.question_types[typeId]?.operators
-      if !operators
-        operators = $skipLogicHelpers.question_types['default'].operators
-      operators.length == operators[0]
+      question_type = $skipLogicHelpers.question_types[typeId] || $skipLogicHelpers.question_types['default']
+      return question_type.response_type?
 
   class validationLogicHelpers.ValidationLogicModeSelectorHelper extends $skipLogicHelpers.SkipLogicModeSelectorHelper
     constructor: (view_factory, context) ->

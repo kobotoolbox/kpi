@@ -33,11 +33,11 @@ import type { ExportHistoryResponse } from '../models/exportHistoryResponse'
 
 import type { ExportListResponse } from '../models/exportListResponse'
 
-import type { PaginatedAccessLogResponseList } from '../models/paginatedAccessLogResponseList'
-
 import type { PaginatedAuditLogResponseList } from '../models/paginatedAuditLogResponseList'
 
 import type { PaginatedProjectHistoryLogResponseList } from '../models/paginatedProjectHistoryLogResponseList'
+
+import type { PaginatedSuperUserAccessLogResponseList } from '../models/paginatedSuperUserAccessLogResponseList'
 
 import type { PaginatedUserReportsListResponseList } from '../models/paginatedUserReportsListResponseList'
 
@@ -78,7 +78,7 @@ Submissions will be grouped together by user by hour
 
  */
 export type accessLogsListResponse200 = {
-  data: PaginatedAccessLogResponseList
+  data: PaginatedSuperUserAccessLogResponseList
   status: 200
 }
 

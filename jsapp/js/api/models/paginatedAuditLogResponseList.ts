@@ -12,7 +12,6 @@ The endpoints are grouped by area of intended use. Each category contains relate
 import type { AuditLogResponse } from './auditLogResponse'
 
 export interface PaginatedAuditLogResponseList {
-  count: number
   /** @nullable */
   next?: string | null
   /** @nullable */

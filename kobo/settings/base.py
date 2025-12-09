@@ -232,8 +232,11 @@ CONSTANCE_CONFIG = {
     ),
     'SYNCHRONOUS_EXPORT_CACHE_MAX_AGE': (
         300,
-        'A synchronous export request will return the last export generated '
-        'with the same settings unless it is older than this value (seconds)'
+        (
+            'A synchronous export request will return the last export generated '
+            'with the same settings unless it is older than this value (seconds)'
+        ),
+        'positive_int',
     ),
     'ALLOW_UNSECURED_HOOK_ENDPOINTS': (
         True,
@@ -474,6 +477,14 @@ CONSTANCE_CONFIG = {
         False,
         'Enable automatic deletion of attachments for users who have exceeded '
         'their storage limits.'
+    ),
+    'EXPORT_CLEANUP_GRACE_PERIOD': (
+        30,
+        (
+            'Number of minutes after which export tasks are cleaned up.\n'
+            'Cannot be less than `SYNCHRONOUS_EXPORT_CACHE_MAX_AGE`.'
+        ),
+        'positive_int',
     ),
     'LIMIT_ATTACHMENT_REMOVAL_GRACE_PERIOD': (
         90,
@@ -719,6 +730,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'ACADEMY_URL',
         'COMMUNITY_URL',
         'SYNCHRONOUS_EXPORT_CACHE_MAX_AGE',
+        'EXPORT_CLEANUP_GRACE_PERIOD',
         'EXPOSE_GIT_REV',
         'FRONTEND_MIN_RETRY_TIME',
         'FRONTEND_MAX_RETRY_TIME',
@@ -1444,6 +1456,36 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
+    # Schedule every 5 minutes
+    'cleanup-anonymous-exports': {
+        'task': 'kpi.tasks.cleanup_anonymous_exports',
+        'schedule': crontab(minute='*/5'),
+        'options': {'queue': 'kpi_low_priority_queue'},
+    },
+    # Schedule every 5 minutes
+    'cleanup-synchronous-exports': {
+        'task': 'kpi.tasks.cleanup_synchronous_exports',
+        'schedule': crontab(minute='*/5'),
+        'options': {'queue': 'kpi_low_priority_queue'},
+    },
+    # Schedule every 5 minutes
+    'cleanup-project-view-exports': {
+        'task': 'kobo.apps.project_views.tasks.cleanup_project_view_exports',
+        'schedule': crontab(minute='*/5'),
+        'options': {'queue': 'kpi_low_priority_queue'},
+    },
+    # Schedule every 5 minutes
+    'cleanup-access-log-exports': {
+        'task': 'kobo.apps.audit_log.tasks.cleanup_access_log_exports',
+        'schedule': crontab(minute='*/5'),
+        'options': {'queue': 'kpi_low_priority_queue'},
+    },
+    # Schedule every 5 minutes
+    'cleanup-project-history-log-exports': {
+        'task': 'kobo.apps.audit_log.tasks.cleanup_project_history_log_exports',
+        'schedule': crontab(minute='*/5'),
+        'options': {'queue': 'kpi_low_priority_queue'},
+    },
     # Schedule every 15 minutes
     'refresh-user-report-snapshot': {
         'task': 'kobo.apps.user_reports.tasks.refresh_user_report_snapshots',
@@ -1582,6 +1624,9 @@ if EMAIL_BACKEND == 'django.core.mail.backends.filebased.EmailBackend':
     if not os.path.isdir(EMAIL_FILE_PATH):
         os.mkdir(EMAIL_FILE_PATH)
 
+if EMAIL_BACKEND == 'django.core.mail.backends.smtp.EmailBackend':
+    EMAIL_BACKEND = 'kpi.utils.mailer.EmailBackend'
+
 if os.environ.get('EMAIL_HOST'):
     EMAIL_HOST = os.environ.get('EMAIL_HOST')
 
@@ -1625,6 +1670,8 @@ if env.str('AWS_ACCESS_KEY_ID', False):
     # Only set the region if it is present in environment.
     if region := env.str('AWS_S3_REGION_NAME', False):
         AWS_S3_REGION_NAME = region
+
+AWS_SES_CONFIGURATION_SET = env.str('AWS_SES_CONFIGURATION_SET', None)
 
 # Storage configuration
 STORAGES = global_settings.STORAGES
@@ -2100,7 +2147,7 @@ LOG_DELETION_BATCH_SIZE = 1000
 USER_ASSET_ORG_TRANSFER_BATCH_SIZE = 1000
 SUBMISSION_DELETION_BATCH_SIZE = 1000
 LONG_RUNNING_MIGRATION_BATCH_SIZE = 2000
-VERSION_DELETION_BATCH_SIZE = 1000
+VERSION_DELETION_BATCH_SIZE = 2000
 
 # Number of stuck tasks should be restarted at a time
 MAX_RESTARTED_TASKS = 100

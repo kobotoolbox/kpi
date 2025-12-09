@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as t
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import mixins, permissions, status
+from rest_framework.authentication import get_authorization_header
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotAuthenticated
 from rest_framework.parsers import FormParser, JSONParser
@@ -255,6 +256,12 @@ class XFormSubmissionApi(
                 headers=self.get_openrosa_headers(request),
                 template_name=self.template_name,
             )
+
+        # Return 401 if no authentication provided and there are no files,
+        # for digest authentication to work properly
+        has_auth = bool(get_authorization_header(request))
+        if not has_auth and not (bool(request.FILES) or bool(request.data)):
+            raise NotAuthenticated
 
         is_json_request = is_json(request)
 

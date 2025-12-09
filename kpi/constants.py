@@ -169,8 +169,6 @@ SAFE_INLINE_MIMETYPES = {
     'image/jp2',
     'image/x-icon',
     'image/vnd.wap.wbmp',
-    'image/heic',
-    'image/heif',
     # audio
     'audio/mpeg',
     'audio/mp3',
@@ -200,3 +198,9 @@ SAFE_INLINE_MIMETYPES = {
     'video/x-msvideo',
     'video/x-ms-wmv',
 }
+
+# MIME types not supported inline by browsers, fallback to JPEG conversion
+UNSUPPORTED_INLINE_MIMETYPES = [
+    'image/heic',
+    'image/heif',
+]

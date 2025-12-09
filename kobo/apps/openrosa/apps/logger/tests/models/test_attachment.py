@@ -55,6 +55,33 @@ class TestAttachment(TestBase):
                 thumbnail = f'{filename}-{size}.jpg'
                 self.assertFalse(default_storage.exists(thumbnail))
 
+    def test_heic_named_file_generates_jpg_thumbnails(self):
+        media_file_name = 'test_image.heic'
+        media_file = os.path.join(
+            os.path.dirname(os.path.dirname(__file__)),
+            'fixtures',
+            'images',
+            media_file_name
+        )
+        with open(media_file, 'rb') as f:
+            attachment = Attachment.objects.create(
+                instance=self.instance,
+                media_file=ContentFile(f.read(), name=media_file_name),
+            )
+
+        image_url(attachment, 'small')
+        for size in ['small', 'medium', 'large']:
+            filename = attachment.media_file.name.replace('.heic', '')
+            thumbnail = f'{filename}-{size}.jpg'
+            self.assertTrue(default_storage.exists(thumbnail))
+
+        # Ensure clean up of thumbnails
+        attachment.delete()
+        for size in ['small', 'medium', 'large']:
+            filename = attachment.media_file.name.replace('.heic', '')
+            thumbnail = f'{filename}-{size}.jpg'
+            self.assertFalse(default_storage.exists(thumbnail))
+
     def test_create_thumbnails_command(self):
         call_command('create_image_thumbnails')
         created_times = {}

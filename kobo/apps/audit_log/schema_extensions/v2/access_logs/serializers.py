@@ -28,6 +28,11 @@ AccessLogResponse = inline_serializer_class(
     },
 )
 
+SuperUserAccessLogResponse = inline_serializer_class(
+    name='SuperUserAccessLogResponse',
+    fields=AccessLogResponse().get_fields(),
+)
+
 
 ExportListResponse = inline_serializer_class(
     name='ExportListResponse',

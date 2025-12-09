@@ -754,10 +754,11 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
           // Detect supplemental details column and put it after its source column.
           if (q === undefined && key.startsWith(SUPPLEMENTAL_DETAILS_PROP)) {
-            const supplementalColumnSource = key.split('/')[1]
-            // Add extra step for grouped items
-            const sourceCleaned = supplementalColumnSource.replace(/-/g, '/').split('/').at(-1) || ''
-            const sourceColumn = columnsToRender.find((column) => column.id === flatPaths[sourceCleaned])
+            const keyArray = key.split('/')
+            const relatedKey = keyArray.at(-2)
+            const sourceColumn = relatedKey
+              ? columnsToRender.find((column) => column.id === flatPaths[relatedKey])
+              : undefined
             if (sourceColumn) {
               // This way if we have a source column with index `2`, and
               // the supplemental column with index `5`, we will set
