@@ -1,5 +1,5 @@
+import { Radio, Stack } from '@mantine/core'
 import React, { useContext, useState } from 'react'
-import Radio from '#/components/common/radio'
 import type { RadioOption } from '#/components/common/radio'
 import AnalysisQuestionsContext from '#/components/processing/analysis/analysisQuestions.context'
 import {
@@ -71,15 +71,19 @@ export default function SelectOneResponseForm(props: SelectOneResponseFormProps)
   }
 
   return (
-    <ResponseWrapper uuid={props.uuid} onClear={() => onRadioChange('')}>
-      <Radio
-        options={getOptions()}
-        name={question.labels._default}
-        onChange={onRadioChange}
-        selected={response}
-        isClearable
-        isDisabled={!props.canEdit}
-      />
+    <ResponseWrapper uuid={props.uuid} onClear={() => setResponse('')}>
+      <Radio.Group>
+        <Stack gap={'xs'}>
+          {getOptions().map((option) => (
+            <Radio
+              value={option.value}
+              label={option.label}
+              onChange={(newResponse) => onRadioChange(newResponse.currentTarget.value)}
+              checked={response === option.value}
+            />
+          ))}
+        </Stack>
+      </Radio.Group>
     </ResponseWrapper>
   )
 }

@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { Stack } from '@mantine/core'
+import { Group, Stack } from '@mantine/core'
 import autoBind from 'react-autobind'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import DocumentTitle from 'react-document-title'
@@ -10,6 +10,7 @@ import Reflux from 'reflux'
 import { actions } from '#/actions'
 import bem from '#/bem'
 import AnonymousSubmission from '#/components/anonymousSubmission.component'
+import ButtonNew from '#/components/common/ButtonNew'
 import AssetStatusBadge from '#/components/common/assetStatusBadge'
 import Button from '#/components/common/button'
 import InlineMessage from '#/components/common/inlineMessage'
@@ -262,19 +263,22 @@ class FormLanding extends React.Component {
           </bem.FormView__group>
         </bem.FormView__cell>
         {this.state.deployed_versions.count > 1 && (
-          <bem.FormView__cell m={['centered']}>
-            <Button
-              type='text'
-              size='m'
-              startIcon={this.state.historyExpanded ? 'angle-up' : 'angle-down'}
+          <Group justify='center' gap='md' pt={this.state.historyExpanded ? 'md' : 0}>
+            <ButtonNew
+              size='md'
               onClick={this.toggleDeploymentHistory.bind(this)}
-              label={this.state.historyExpanded ? t('Hide full history') : t('Show full history')}
-            />
+              leftIcon={this.state.historyExpanded ? 'angle-up' : 'angle-down'}
+              variant='transparent'
+            >
+              {this.state.historyExpanded ? t('Hide full history') : t('Show full history')}
+            </ButtonNew>
 
             {this.state.historyExpanded && this.state.DVCOUNT_LIMIT < dvcount && (
-              <Button type='text' size='m' onClick={this.loadMoreVersions.bind(this)} label={t('Load more')} />
+              <ButtonNew size='md' onClick={this.loadMoreVersions.bind(this)} variant='transparent'>
+                {t('Load more')}
+              </ButtonNew>
             )}
-          </bem.FormView__cell>
+          </Group>
         )}
       </bem.FormView__row>
     )

@@ -28,6 +28,7 @@ function OneTimeAddOnUsageModal(props: OneTimeAddOnUsageModalProps) {
     [USAGE_TYPE.SUBMISSIONS]: 'Submissions',
     [USAGE_TYPE.TRANSCRIPTION]: 'Transcription minutes',
     [USAGE_TYPE.TRANSLATION]: 'Translation characters',
+    [USAGE_TYPE.LLM]: 'LLM requests',
   }
 
   const periodAdjectiveDisplay: { [key in RecurringInterval]: string } = {

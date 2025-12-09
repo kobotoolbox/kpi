@@ -45,6 +45,9 @@ if public_request_scheme == 'https' or SECURE_PROXY_SSL_HEADER:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
 
+# These HSTS settings are sometimes overriden via nginx like in the `kobo-helm-chart`
+# repository or by the AWS ALB/Azure app gateway. If you see the header returned
+# with other values, check these places first
 SECURE_HSTS_INCLUDE_SUBDOMAINS = env.bool('SECURE_HSTS_INCLUDE_SUBDOMAINS', False)
 SECURE_HSTS_PRELOAD = env.bool('SECURE_HSTS_PRELOAD', False)
 SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', 0)
@@ -233,8 +236,11 @@ CONSTANCE_CONFIG = {
     ),
     'SYNCHRONOUS_EXPORT_CACHE_MAX_AGE': (
         300,
-        'A synchronous export request will return the last export generated '
-        'with the same settings unless it is older than this value (seconds)'
+        (
+            'A synchronous export request will return the last export generated '
+            'with the same settings unless it is older than this value (seconds)'
+        ),
+        'positive_int',
     ),
     'ALLOW_UNSECURED_HOOK_ENDPOINTS': (
         True,
@@ -426,7 +432,7 @@ CONSTANCE_CONFIG = {
         'Number of days to keep import tasks',
         'positive_int',
     ),
-    'SUBMISSION_HISTORY_GRACE_PERIOD': (
+    'SUBMISSION_HISTORY_RETENTION': (
         180,
         'Number of days to keep submission history',
         'positive_int',
@@ -451,13 +457,13 @@ CONSTANCE_CONFIG = {
         'Users on the free tier who registered before this date will\n'
         'use the custom plan defined by FREE_TIER_DISPLAY and FREE_TIER_LIMITS.',
     ),
-    'PROJECT_TRASH_GRACE_PERIOD': (
+    'PROJECT_TRASH_RETENTION': (
         7,
         'Number of days to keep projects in trash after users (soft-)deleted '
         'them and before automatically hard-deleting them by the system',
         'positive_int',
     ),
-    'ACCOUNT_TRASH_GRACE_PERIOD': (
+    'ACCOUNT_TRASH_RETENTION': (
         30 * 6,
         'Number of days to keep deactivated accounts in trash before '
         'automatically hard-deleting all their projects and data.\n'
@@ -465,7 +471,7 @@ CONSTANCE_CONFIG = {
         'having the system empty it automatically.',
         'positive_int_minus_one',
     ),
-    'ATTACHMENT_TRASH_GRACE_PERIOD': (
+    'ATTACHMENT_TRASH_RETENTION': (
         7,
         'Number of days to keep attachments in trash after users (soft-)deleted '
         'them and before automatically hard-deleting them by the system',
@@ -476,7 +482,15 @@ CONSTANCE_CONFIG = {
         'Enable automatic deletion of attachments for users who have exceeded '
         'their storage limits.'
     ),
-    'LIMIT_ATTACHMENT_REMOVAL_GRACE_PERIOD': (
+    'EXPORT_RETENTION': (
+        30,
+        (
+            'Number of minutes after which export tasks are cleaned up.\n'
+            'Cannot be less than `SYNCHRONOUS_EXPORT_CACHE_MAX_AGE`.'
+        ),
+        'positive_int',
+    ),
+    'OVER_LIMIT_ATTACHMENT_RETENTION': (
         90,
         'Number of days to keep attachments after the user has exceeded their '
         'storage limits.'
@@ -720,6 +734,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'ACADEMY_URL',
         'COMMUNITY_URL',
         'SYNCHRONOUS_EXPORT_CACHE_MAX_AGE',
+        'EXPORT_RETENTION',
         'EXPOSE_GIT_REV',
         'FRONTEND_MIN_RETRY_TIME',
         'FRONTEND_MAX_RETRY_TIME',
@@ -783,17 +798,17 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES',
     ),
     'Trash bin': (
-        'ACCOUNT_TRASH_GRACE_PERIOD',
-        'ATTACHMENT_TRASH_GRACE_PERIOD',
-        'PROJECT_TRASH_GRACE_PERIOD',
-        'LIMIT_ATTACHMENT_REMOVAL_GRACE_PERIOD',
+        'ACCOUNT_TRASH_RETENTION',
+        'ATTACHMENT_TRASH_RETENTION',
+        'PROJECT_TRASH_RETENTION',
+        'OVER_LIMIT_ATTACHMENT_RETENTION',
         'AUTO_DELETE_ATTACHMENTS',
         'ALLOW_SELF_ACCOUNT_DELETION',
     ),
     'Regular maintenance settings': (
         'ASSET_SNAPSHOT_DAYS_RETENTION',
         'IMPORT_TASK_DAYS_RETENTION',
-        'SUBMISSION_HISTORY_GRACE_PERIOD',
+        'SUBMISSION_HISTORY_RETENTION',
     ),
     'Tier settings': (
         'FREE_TIER_THRESHOLDS',
@@ -916,7 +931,7 @@ CAN_LOGIN_AS = lambda request, target_user: request.user.is_superuser
 
 # Impose a limit on the number of records returned by the submission list
 # endpoint. This overrides any `?limit=` query parameter sent by a client
-SUBMISSION_LIST_LIMIT = 30000
+SUBMISSION_LIST_LIMIT = 1000
 
 # uWSGI, NGINX, etc. allow only a limited amount of time to process a request.
 # Set this value to match their limits
@@ -1444,6 +1459,36 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'kobo.apps.trash_bin.tasks.attachment.schedule_auto_attachment_cleanup_for_users',  # noqa
         'schedule': crontab(minute='*/30'),
         'options': {'queue': 'kpi_low_priority_queue'}
+    },
+    # Schedule every 5 minutes
+    'cleanup-anonymous-exports': {
+        'task': 'kpi.tasks.cleanup_anonymous_exports',
+        'schedule': crontab(minute='*/5'),
+        'options': {'queue': 'kpi_low_priority_queue'},
+    },
+    # Schedule every 5 minutes
+    'cleanup-synchronous-exports': {
+        'task': 'kpi.tasks.cleanup_synchronous_exports',
+        'schedule': crontab(minute='*/5'),
+        'options': {'queue': 'kpi_low_priority_queue'},
+    },
+    # Schedule every 5 minutes
+    'cleanup-project-view-exports': {
+        'task': 'kobo.apps.project_views.tasks.cleanup_project_view_exports',
+        'schedule': crontab(minute='*/5'),
+        'options': {'queue': 'kpi_low_priority_queue'},
+    },
+    # Schedule every 5 minutes
+    'cleanup-access-log-exports': {
+        'task': 'kobo.apps.audit_log.tasks.cleanup_access_log_exports',
+        'schedule': crontab(minute='*/5'),
+        'options': {'queue': 'kpi_low_priority_queue'},
+    },
+    # Schedule every 5 minutes
+    'cleanup-project-history-log-exports': {
+        'task': 'kobo.apps.audit_log.tasks.cleanup_project_history_log_exports',
+        'schedule': crontab(minute='*/5'),
+        'options': {'queue': 'kpi_low_priority_queue'},
     },
     # Schedule every 15 minutes
     'refresh-user-report-snapshot': {

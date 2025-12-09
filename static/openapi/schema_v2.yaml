@@ -1341,7 +1341,7 @@ paths:
         Two parameters can be used to control pagination.
 
         * `start`: Index (zero-based) from which the results start
-        * `limit`: Number of results per page <span class='label label-warning'>Maximum results per page is **30000**</span>
+        * `limit`: Number of results per page <span class='label label-warning'>Maximum results per page is **1000**</span>
 
         ```shell
         curl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid}/data/?start=0&limit=10
@@ -12849,12 +12849,8 @@ components:
     PaginatedUserReportsListResponseList:
       type: object
       required:
-      - count
       - results
       properties:
-        count:
-          type: integer
-          example: 123
         next:
           type: string
           nullable: true

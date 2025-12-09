@@ -16,7 +16,7 @@ from ..forms import LoginForm
 from .flows import activate_totp, deactivate_totp, regenerate_codes
 from .models import MfaMethodsWrapper
 from .permissions import IsMfaEnabled
-from .serializers import TOTPCodeSerializer, UserMfaMethodSerializer
+from .serializers import MfaCodeSerializer, UserMfaMethodSerializer
 
 
 class MfaLoginView(LoginView):
@@ -111,7 +111,7 @@ class MfaMethodDeactivateView(APIView):
 
     @staticmethod
     def post(request: Request, method: str) -> Response:
-        serializer = TOTPCodeSerializer(
+        serializer = MfaCodeSerializer(
             data=request.data, context={'user': request.user, 'method': method}
         )
         serializer.is_valid(raise_exception=True)
@@ -124,7 +124,7 @@ class MfaMethodRegenerateCodesView(APIView):
 
     @staticmethod
     def post(request: Request, method: str) -> Response:
-        serializer = TOTPCodeSerializer(
+        serializer = MfaCodeSerializer(
             data=request.data, context={'user': request.user, 'method': method}
         )
         serializer.is_valid(raise_exception=True)
