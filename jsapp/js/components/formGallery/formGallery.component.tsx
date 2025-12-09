@@ -224,7 +224,7 @@ export default function FormGallery(props: FormGalleryProps) {
               size='md'
               aria-label='Previous image'
               onClick={() => navigateImage('prev')}
-              disabled={isLoading}
+              disabled={isLoading || currentModalImageIndex === 0}
               iconName='angle-left'
             />
 
