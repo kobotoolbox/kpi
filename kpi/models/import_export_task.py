@@ -497,6 +497,13 @@ def export_upload_to(self, filename):
     more information, see
     https://docs.djangoproject.com/en/1.8/topics/migrations/#serializing-values
     """
+
+    if hasattr(self, 'asset'):
+        return posixpath.join(self.user.username, 'exports', self.asset.uid, filename)
+
+    if getattr(self, 'asset_uid', None):
+        return posixpath.join(self.user.username, 'exports', self.asset_uid, filename)
+
     return posixpath.join(self.user.username, 'exports', filename)
 
 

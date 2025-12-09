@@ -205,7 +205,7 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
     def remove(self, request, queryset, **kwargs):
         """
         Put users in trash and schedule their data deletion according to
-        constance setting `ACCOUNT_TRASH_GRACE_PERIOD`. Keep only their
+        constance setting `ACCOUNT_TRASH_RETENTION`. Keep only their
         username.
         """
         if not request.user.is_superuser:
@@ -213,14 +213,14 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
 
         users = list(queryset.values('pk', 'username'))
         self._remove_or_delete(
-            request, users=users, grace_period=config.ACCOUNT_TRASH_GRACE_PERIOD
+            request, users=users, grace_period=config.ACCOUNT_TRASH_RETENTION
         )
 
     @admin.action(description='Delete selected users (keep nothing)')
     def delete(self, request, queryset, **kwargs):
         """
         Put users in trash and schedule their account deletion according to
-        constance setting `ACCOUNT_TRASH_GRACE_PERIOD`. Remove everything.
+        constance setting `ACCOUNT_TRASH_RETENTION`. Remove everything.
         """
         if not request.user.is_superuser:
             return

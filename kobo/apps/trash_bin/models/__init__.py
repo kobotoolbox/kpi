@@ -32,7 +32,7 @@ class BaseTrash(AbstractTimeStampedModel):
     request_author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     metadata = models.JSONField(default=dict)
     # Celery will run a task at a specific moment - according to the Constance
-    # setting `ACCOUNT_TRASH_GRACE_PERIOD` - to delete (or remove) the object.
+    # setting `ACCOUNT_TRASH_RETENTION` - to delete (or remove) the object.
     # Because this setting can be changed at any time, its value can be
     # different when the celery task runs later than the object creation. Therefore,
     # this field helps to know whether a periodic task will run automatically or
