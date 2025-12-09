@@ -134,6 +134,7 @@ export default class ProjectExportsCreator extends React.Component<
     this.unlisteners.push(
       exportsStore.listen(this.onExportsStoreChange.bind(this), this),
       actions.exports.createExport.completed.listen(this.onCreateExportCompleted.bind(this)),
+      actions.exports.createExport.failed.listen(this.onCreateExportFailed.bind(this)),
       actions.exports.getExportSettings.completed.listen(this.onGetExportSettingsCompleted.bind(this)),
       actions.exports.updateExportSetting.completed.listen(this.fetchExportSettings.bind(this, true)),
       actions.exports.createExportSetting.completed.listen(this.fetchExportSettings.bind(this, true)),
@@ -185,6 +186,11 @@ export default class ProjectExportsCreator extends React.Component<
 
   onCreateExportCompleted() {
     this.setState({ isPending: false })
+  }
+
+  onCreateExportFailed() {
+    this.setState({ isPending: false })
+    // Error handling happens in `exportsActions.js`
   }
 
   onGetExportSettingsCompleted(
