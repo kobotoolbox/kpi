@@ -5,8 +5,7 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_pre
 from kobo.apps.subsequences.exceptions import SubsequenceTimeoutError
 from kobo.celery import celery_app
 from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
-from .constants import SUBMISSION_UUID_FIELD
-from .utils.versioning import set_version
+from .constants import SUBMISSION_UUID_FIELD, SCHEMA_VERSIONS
 
 
 # With retry_backoff=5 and retry_backoff_max=60, each retry waits:
@@ -35,9 +34,10 @@ def poll_run_external_process(
 ):
     Asset = apps.get_model('kpi', 'Asset')  # noqa: N806
     SubmissionSupplement = apps.get_model('subsequences', 'SubmissionSupplement')  # noqa: N806
-    incoming_data = set_version({
+    incoming_data = {
+        '_version': SCHEMA_VERSIONS[0],
         question_xpath: {action_id: action_data},
-    })
+    }
     asset = Asset.objects.only('pk', 'owner_id').get(id=asset_id)
     supplement_data = SubmissionSupplement.revise_data(asset, submission, incoming_data)
 

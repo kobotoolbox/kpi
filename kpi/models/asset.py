@@ -19,9 +19,7 @@ from formpack.utils.json_hash import json_hash
 from formpack.utils.kobo_locking import strip_kobo_locking_profile
 from kobo.apps.data_collectors.models import DataCollectorGroup
 from kobo.apps.reports.constants import DEFAULT_REPORTS_KEY, SPECIFIC_REPORTS_KEY
-from kobo.apps.subsequences.schemas import ACTION_PARAMS_SCHEMA
 from kobo.apps.subsequences.utils.supplement_data import get_analysis_form_json
-from kobo.apps.subsequences.utils.versioning import migrate_advanced_features
 from kpi.constants import (
     ASSET_TYPE_BLOCK,
     ASSET_TYPE_COLLECTION,
@@ -932,12 +930,6 @@ class Asset(
         if adjust_content:
             self.adjust_content_on_save()
 
-        if (
-            not update_fields
-            or update_fields and 'advanced_features' in update_fields
-        ):
-            self.validate_advanced_features()
-
         # standardize settings (only when required)
         if (
             (not update_fields or update_fields and 'settings' in update_fields)
@@ -1149,21 +1141,6 @@ class Asset(
 
         self.summary['languages'] = languages
         self.save(update_fields=['summary'])
-
-    def validate_advanced_features(self):
-        if self.advanced_features is None:
-            self.advanced_features = {}
-
-        if migrated_schema := migrate_advanced_features(self.advanced_features):
-            self.advanced_features = migrated_schema
-            # We should save the new schema, but for debugging purposes,
-            # we don't yet!
-            # self.save(update_fields=['advanced_features'])
-
-        jsonschema.validate(
-            instance=self.advanced_features,
-            schema=ACTION_PARAMS_SCHEMA,
-        )
 
     @property
     def version__content_hash(self):
