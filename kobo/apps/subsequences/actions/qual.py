@@ -258,10 +258,11 @@ class QualAction(BaseAction):
         output_fields = []
         for qual_item in self.params:
             field = {
-                'labels': qual_item['labels'],
+                'label': qual_item['labels']['_default'],
                 'source': self.source_question_xpath,
                 'name': f"{self.source_question_xpath}/{qual_item['uuid']}",
                 'type': qual_item['type'],
+                'dtpath': f"{self.source_question_xpath}/{qual_item['uuid']}",
             }
 
             if qual_item['type'] in ('qualSelectOne', 'qualSelectMultiple'):
@@ -277,8 +278,7 @@ class QualAction(BaseAction):
 
     def transform_data_for_output(
         self, action_data: dict
-    ) -> dict[str, dict[str, Any]]:
-        output_data = {}
+    ) -> dict[str, Any]:
 
         qual_questions_by_uuid = {q['uuid']: q for q in self.params}
 
@@ -291,6 +291,7 @@ class QualAction(BaseAction):
                     for choice in qual_question.get('choices', [])
                 }
 
+        results_list = []
         for qual_uuid, qual_data in action_data.items():
             if qual_uuid not in qual_questions_by_uuid:
                 continue
@@ -302,10 +303,10 @@ class QualAction(BaseAction):
             if not versions:
                 continue
 
-            # Find most recent accepted version
+            # Get most recent accepted version
             accepted_version = None
             for version in versions:
-                if self.DATE_ACCEPTED_FIELD in version:
+                if version.get(self.DATE_ACCEPTED_FIELD):
                     accepted_version = version
                     break
 
@@ -315,13 +316,9 @@ class QualAction(BaseAction):
 
             # Extract the data and metadata
             version_data = accepted_version.get(self.VERSION_DATA_FIELD, {})
-            date_accepted = accepted_version.get(self.DATE_ACCEPTED_FIELD)
-
-            # Skip if no actual data
             if not version_data:
                 continue
 
-            field_name = f'{self.source_question_xpath}/{qual_uuid}'
             value = version_data.get('value')
             question_type = qual_question['type']
             if question_type == 'qualSelectOne':
@@ -345,12 +342,22 @@ class QualAction(BaseAction):
                 else:
                     output_value = []
             else:
-                # Unchanged value for other types
+                # Unchanged value for other types (integer, text, tags)
                 output_value = value
 
-            output_data[field_name] = {
-                'value': output_value,
-                '_dateAccepted': date_accepted,
-            }
+            results_list.append({
+                'val': output_value,
+                'type': qual_question['type'],
+                'uuid': qual_uuid,
+                'xpath': self.source_question_xpath,
+                'labels': qual_question.get('labels', {}),
+            })
+        return {'qual': results_list}
 
-        return output_data
+    def returns_structured_output(self) -> bool:
+        """
+        Qualitative analysis returns multiple items for a single question,
+        so its output is grouped under {'qual': [...]} instead of per-column
+        fields. Mark this action as structured.
+        """
+        return True

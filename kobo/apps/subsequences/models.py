@@ -194,6 +194,12 @@ class SubmissionSupplement(SubmissionExtras):
                     # where ('translation','lang1') would be one key and
                     # ('translation', 'lang2') would be the other
                     transformed_data = action.transform_data_for_output(retrieved_data)
+                    if action.returns_structured_output():
+                        qual_items = transformed_data.get('qual', [])
+                        if qual_items:
+                            output_data_for_question['qual'] = qual_items
+                        continue
+
                     for field_key, field_data in transformed_data.items():
                         # Omit `_dateAccepted` from the output data
                         new_acceptance_date = field_data.pop('_dateAccepted', None)

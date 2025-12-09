@@ -714,7 +714,7 @@ class TestQualActionMethods(TestCase):
 
         # All fields should have required keys
         for field in output_fields:
-            assert 'labels' in field
+            assert 'label' in field
             assert 'source' in field
             assert 'name' in field
             assert 'type' in field
@@ -724,16 +724,13 @@ class TestQualActionMethods(TestCase):
 
         # Test integer question (no choices)
         integer_field = next(f for f in output_fields if f['type'] == 'qualInteger')
-        assert integer_field['labels'] == {
-            '_default': 'Number of themes',
-            'fr': 'Nombre de thèmes'
-        }
+        assert integer_field['label'] == 'Number of themes'
         assert integer_field['name'] == f'{self.source_xpath}/qual-integer-uuid'
         assert 'choices' not in integer_field
 
         # Test text question (no choices)
         text_field = next(f for f in output_fields if f['type'] == 'qualText')
-        assert text_field['labels'] == {'_default': 'Summary Notes'}
+        assert text_field['label'] == 'Summary Notes'
         assert text_field['name'] == f'{self.source_xpath}/qual-text-uuid'
         assert 'choices' not in text_field
 
@@ -741,10 +738,7 @@ class TestQualActionMethods(TestCase):
         select_one_field = next(
             f for f in output_fields if f['type'] == 'qualSelectOne'
         )
-        assert select_one_field['labels'] == {
-            '_default': 'Urgency Level',
-            'es': 'Nivel de Urgencia'
-        }
+        assert select_one_field['label'] == 'Urgency Level'
         assert select_one_field['name'] == f'{self.source_xpath}/qual-select-one-uuid'
         assert 'choices' in select_one_field
         assert len(select_one_field['choices']) == 3
@@ -783,7 +777,7 @@ class TestQualActionMethods(TestCase):
         - Select one (UUID → object with labels)
         - Select multiple (UUID array → object array with labels)
         - Multiple questions processed together
-        - Field naming and structure
+        - Field naming and structure (returns {'qual': [...]})
         """
         action = QualAction(self.source_xpath, self.action_params)
 
@@ -844,47 +838,51 @@ class TestQualActionMethods(TestCase):
         }
 
         output = action.transform_data_for_output(action_data)
+        assert isinstance(output, dict)
+        qual_list = output.get('qual', [])
+        assert isinstance(qual_list, list)
 
-        # Should have 4 fields in output
-        assert len(output) == 4
+        # Should have 4 items in output
+        assert len(qual_list) == 4
 
-        # Test integer question - direct value
-        integer_field = f'{self.source_xpath}/qual-integer-uuid'
-        assert integer_field in output
-        assert output[integer_field]['value'] == 5
-        assert output[integer_field]['_dateAccepted'] == '2025-11-24T10:00:00Z'
+        def find_item(q_uuid):
+            return next((it for it in qual_list if it.get('uuid') == q_uuid), None)
 
-        # Test text question - direct value
-        text_field = f'{self.source_xpath}/qual-text-uuid'
-        assert text_field in output
-        assert (
-            output[text_field]['value']
-            == 'Family needs immediate shelter and medical care'
-        )
-        assert output[text_field]['_dateAccepted'] == '2025-11-24T10:05:00Z'
+        # Test integer question
+        int_item = find_item('qual-integer-uuid')
+        assert int_item is not None
+        assert int_item['val'] == 5
+        assert int_item['type'] == 'qualInteger'
+        assert int_item['xpath'] == self.source_xpath
+
+        # Test text question
+        text_item = find_item('qual-text-uuid')
+        assert text_item is not None
+        assert text_item['val'] == 'Family needs immediate shelter and medical care'
+        assert text_item['type'] == 'qualText'
 
         # Test select one - UUID transformed to object with labels
-        select_one_field = f'{self.source_xpath}/qual-select-one-uuid'
-        assert select_one_field in output
-        select_one_value = output[select_one_field]['value']
+        select_one_item = find_item('qual-select-one-uuid')
+        assert select_one_item is not None
+        select_one_value = select_one_item['val']
+        assert isinstance(select_one_value, dict)
         assert select_one_value['uuid'] == 'choice-high-uuid'
         assert select_one_value['labels'] == {
             '_default': 'High',
             'fr': 'Élevé',
             'es': 'Alto'
         }
-        assert output[select_one_field]['_dateAccepted'] == '2025-11-24T10:10:00Z'
 
         # Test select multiple - array of UUIDs transformed to array of objects
-        select_multi_field = f'{self.source_xpath}/qual-select-multi-uuid'
-        assert select_multi_field in output
-        select_multi_value = output[select_multi_field]['value']
+        select_multi_item = find_item('qual-select-multi-uuid')
+        assert select_multi_item is not None
+        select_multi_value = select_multi_item['val']
+        assert isinstance(select_multi_value, list)
         assert len(select_multi_value) == 2
 
         # Verify first choice
         shelter_item = next(
-            item for item in select_multi_value
-            if item['uuid'] == 'tag-shelter-uuid'
+            i for i in select_multi_value if i['uuid'] == 'tag-shelter-uuid'
         )
         assert shelter_item['labels'] == {
             '_default': 'Shelter',
@@ -893,11 +891,9 @@ class TestQualActionMethods(TestCase):
 
         # Verify second choice
         medical_item = next(
-            item for item in select_multi_value
-            if item['uuid'] == 'tag-medical-uuid'
+            i for i in select_multi_value if i['uuid'] == 'tag-medical-uuid'
         )
         assert medical_item['labels'] == {
             '_default': 'Medical',
             'ar': 'طبي'
         }
-        assert output[select_multi_field]['_dateAccepted'] == '2025-11-24T10:15:00Z'

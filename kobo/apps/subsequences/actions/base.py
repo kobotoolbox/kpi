@@ -346,6 +346,13 @@ class BaseAction:
         """
         return {}
 
+    def returns_structured_output(self) -> bool:
+        """
+        Whether this action returns a structured block (e.g., a list)
+        instead of per-field/column output. Defaults to False.
+        """
+        return False
+
     def validate_external_data(self, data):
         jsonschema.validate(data, self.external_data_schema)
 
