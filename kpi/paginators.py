@@ -157,7 +157,7 @@ class DefaultPagination(LimitOffsetPagination):
         return list(queryset[self.offset : self.offset + self.limit])
 
 
-class AssetPagination(Pagination):
+class AssetPagination(DefaultPagination):
 
     def get_paginated_response(self, data, metadata):
 
