@@ -18,6 +18,7 @@ from kobo.apps.subsequences.views import QuestionAdvancedFeatureViewSet
 from kobo.apps.user_reports.views import UserReportsViewSet
 from kpi.constants import API_NAMESPACES
 from kpi.renderers import BasicHTMLRenderer
+from kpi.permissions import AdvancedSubmissionPermission
 from kpi.views.v2.asset import AssetViewSet
 from kpi.views.v2.asset_counts import AssetCountsViewSet
 from kpi.views.v2.asset_export_settings import AssetExportSettingsViewSet
@@ -239,4 +240,18 @@ enketo_url_aliases = [
     ),
 ]
 
-urls_patterns = router_api_v2.urls + enketo_url_aliases
+# Declared here instead of using `@action` on the ViewSet because it requires a
+# custom lookup field (`root_uuid`), which is not supported by DRF Spectacular.
+supplement_url_pattern = [
+    path(
+        'assets/<uid_asset>/data/<root_uuid>/supplement/',
+        DataViewSet.as_view(
+            {'get': 'supplement', 'patch': 'supplement'},
+            renderer_classes=[JSONRenderer],
+            permission_classes=[AdvancedSubmissionPermission],
+        ),
+        name='submission-supplement',
+    ),
+]
+
+urls_patterns = router_api_v2.urls + enketo_url_aliases + supplement_url_pattern

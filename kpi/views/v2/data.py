@@ -494,11 +494,10 @@ class DataViewSet(
         responses=open_api_200_ok_response(DataSupplementResponse),  # TODO CHANGEME
         parameters=[
             OpenApiParameter(
-                name='pk',
+                name='id',
                 type=str,
                 location=OpenApiParameter.PATH,
-                required=True,
-                description='Submission identifier',
+                exclude=True,
             ),
         ],
     )
@@ -509,24 +508,17 @@ class DataViewSet(
         responses=open_api_200_ok_response(DataSupplementResponse),
         parameters=[
             OpenApiParameter(
-                name='pk',
+                name='id',
                 type=str,
                 location=OpenApiParameter.PATH,
-                required=True,
-                description='Submission identifier',
+                exclude=True,
             ),
         ],
     )
-    @action(
-        detail=True,
-        methods=['GET', 'PATCH'],
-        renderer_classes=[renderers.JSONRenderer],
-        permission_classes=[AdvancedSubmissionPermission],
-    )
-    def supplement(self, request, pk, *args, **kwargs):
+    def supplement(self, request, root_uuid, *args, **kwargs):
 
         # make it clear, a root uuid is expected here
-        submission_root_uuid = pk
+        submission_root_uuid = root_uuid
 
         deployment = self._get_deployment()
         try:
