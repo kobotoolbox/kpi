@@ -251,7 +251,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         move_to_trash(
             request_author=user,
             objects_list=attachments,
-            grace_period=config.ATTACHMENT_TRASH_GRACE_PERIOD,
+            grace_period=config.ATTACHMENT_TRASH_RETENTION,
             trash_type='attachment',
         )
         ParsedInstance.bulk_update_attachments(list(submission_ids))

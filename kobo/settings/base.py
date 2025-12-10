@@ -432,7 +432,7 @@ CONSTANCE_CONFIG = {
         'Number of days to keep import tasks',
         'positive_int',
     ),
-    'SUBMISSION_HISTORY_GRACE_PERIOD': (
+    'SUBMISSION_HISTORY_RETENTION': (
         180,
         'Number of days to keep submission history',
         'positive_int',
@@ -457,13 +457,13 @@ CONSTANCE_CONFIG = {
         'Users on the free tier who registered before this date will\n'
         'use the custom plan defined by FREE_TIER_DISPLAY and FREE_TIER_LIMITS.',
     ),
-    'PROJECT_TRASH_GRACE_PERIOD': (
+    'PROJECT_TRASH_RETENTION': (
         7,
         'Number of days to keep projects in trash after users (soft-)deleted '
         'them and before automatically hard-deleting them by the system',
         'positive_int',
     ),
-    'ACCOUNT_TRASH_GRACE_PERIOD': (
+    'ACCOUNT_TRASH_RETENTION': (
         30 * 6,
         'Number of days to keep deactivated accounts in trash before '
         'automatically hard-deleting all their projects and data.\n'
@@ -471,7 +471,7 @@ CONSTANCE_CONFIG = {
         'having the system empty it automatically.',
         'positive_int_minus_one',
     ),
-    'ATTACHMENT_TRASH_GRACE_PERIOD': (
+    'ATTACHMENT_TRASH_RETENTION': (
         7,
         'Number of days to keep attachments in trash after users (soft-)deleted '
         'them and before automatically hard-deleting them by the system',
@@ -482,7 +482,7 @@ CONSTANCE_CONFIG = {
         'Enable automatic deletion of attachments for users who have exceeded '
         'their storage limits.'
     ),
-    'EXPORT_CLEANUP_GRACE_PERIOD': (
+    'EXPORT_RETENTION': (
         30,
         (
             'Number of minutes after which export tasks are cleaned up.\n'
@@ -490,7 +490,7 @@ CONSTANCE_CONFIG = {
         ),
         'positive_int',
     ),
-    'LIMIT_ATTACHMENT_REMOVAL_GRACE_PERIOD': (
+    'OVER_LIMIT_ATTACHMENT_RETENTION': (
         90,
         'Number of days to keep attachments after the user has exceeded their '
         'storage limits.'
@@ -734,7 +734,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'ACADEMY_URL',
         'COMMUNITY_URL',
         'SYNCHRONOUS_EXPORT_CACHE_MAX_AGE',
-        'EXPORT_CLEANUP_GRACE_PERIOD',
+        'EXPORT_RETENTION',
         'EXPOSE_GIT_REV',
         'FRONTEND_MIN_RETRY_TIME',
         'FRONTEND_MAX_RETRY_TIME',
@@ -798,17 +798,17 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'PROJECT_OWNERSHIP_AUTO_ACCEPT_INVITES',
     ),
     'Trash bin': (
-        'ACCOUNT_TRASH_GRACE_PERIOD',
-        'ATTACHMENT_TRASH_GRACE_PERIOD',
-        'PROJECT_TRASH_GRACE_PERIOD',
-        'LIMIT_ATTACHMENT_REMOVAL_GRACE_PERIOD',
+        'ACCOUNT_TRASH_RETENTION',
+        'ATTACHMENT_TRASH_RETENTION',
+        'PROJECT_TRASH_RETENTION',
+        'OVER_LIMIT_ATTACHMENT_RETENTION',
         'AUTO_DELETE_ATTACHMENTS',
         'ALLOW_SELF_ACCOUNT_DELETION',
     ),
     'Regular maintenance settings': (
         'ASSET_SNAPSHOT_DAYS_RETENTION',
         'IMPORT_TASK_DAYS_RETENTION',
-        'SUBMISSION_HISTORY_GRACE_PERIOD',
+        'SUBMISSION_HISTORY_RETENTION',
     ),
     'Tier settings': (
         'FREE_TIER_THRESHOLDS',
@@ -1474,19 +1474,19 @@ CELERY_BEAT_SCHEDULE = {
     },
     # Schedule every 5 minutes
     'cleanup-project-view-exports': {
-        'task': 'kpi.tasks.cleanup_project_view_exports',
+        'task': 'kobo.apps.project_views.tasks.cleanup_project_view_exports',
         'schedule': crontab(minute='*/5'),
         'options': {'queue': 'kpi_low_priority_queue'},
     },
     # Schedule every 5 minutes
     'cleanup-access-log-exports': {
-        'task': 'kpi.tasks.cleanup_access_log_exports',
+        'task': 'kobo.apps.audit_log.tasks.cleanup_access_log_exports',
         'schedule': crontab(minute='*/5'),
         'options': {'queue': 'kpi_low_priority_queue'},
     },
     # Schedule every 5 minutes
     'cleanup-project-history-log-exports': {
-        'task': 'kpi.tasks.cleanup_project_history_log_exports',
+        'task': 'kobo.apps.audit_log.tasks.cleanup_project_history_log_exports',
         'schedule': crontab(minute='*/5'),
         'options': {'queue': 'kpi_low_priority_queue'},
     },
@@ -1628,6 +1628,9 @@ if EMAIL_BACKEND == 'django.core.mail.backends.filebased.EmailBackend':
     if not os.path.isdir(EMAIL_FILE_PATH):
         os.mkdir(EMAIL_FILE_PATH)
 
+if EMAIL_BACKEND == 'django.core.mail.backends.smtp.EmailBackend':
+    EMAIL_BACKEND = 'kpi.utils.mailer.EmailBackend'
+
 if os.environ.get('EMAIL_HOST'):
     EMAIL_HOST = os.environ.get('EMAIL_HOST')
 
@@ -1671,6 +1674,8 @@ if env.str('AWS_ACCESS_KEY_ID', False):
     # Only set the region if it is present in environment.
     if region := env.str('AWS_S3_REGION_NAME', False):
         AWS_S3_REGION_NAME = region
+
+AWS_SES_CONFIGURATION_SET = env.str('AWS_SES_CONFIGURATION_SET', None)
 
 # Storage configuration
 STORAGES = global_settings.STORAGES

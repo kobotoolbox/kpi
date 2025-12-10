@@ -27,7 +27,7 @@ export default function StepConfig() {
       serviceUsageData?.data.limitExceedList.includes(UsageLimitTypes.TRANSCRIPTION) &&
       envStore.data.usage_limit_enforcement,
     [
-      (serviceUsageData?.data as OrganizationsServiceUsageSummary).limitExceedList,
+      (serviceUsageData?.data as OrganizationsServiceUsageSummary)?.limitExceedList,
       envStore.data.usage_limit_enforcement,
     ],
   )
