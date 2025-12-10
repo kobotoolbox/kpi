@@ -17,8 +17,8 @@ from kobo.apps.project_views.views import ProjectViewViewSet
 from kobo.apps.subsequences.views import QuestionAdvancedFeatureViewSet
 from kobo.apps.user_reports.views import UserReportsViewSet
 from kpi.constants import API_NAMESPACES
-from kpi.renderers import BasicHTMLRenderer
 from kpi.permissions import AdvancedSubmissionPermission
+from kpi.renderers import BasicHTMLRenderer
 from kpi.views.v2.asset import AssetViewSet
 from kpi.views.v2.asset_counts import AssetCountsViewSet
 from kpi.views.v2.asset_export_settings import AssetExportSettingsViewSet

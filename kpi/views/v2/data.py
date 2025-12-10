@@ -48,7 +48,6 @@ from kpi.exceptions import (
 from kpi.models import Asset
 from kpi.paginators import DataPagination
 from kpi.permissions import (
-    AdvancedSubmissionPermission,
     DuplicateSubmissionPermission,
     EditLinkSubmissionPermission,
     SubmissionPermission,
