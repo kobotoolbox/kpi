@@ -25,7 +25,7 @@ interface AnonymousExportsState {
 }
 
 /**
- * A compontent that ROUTES.FORM_DOWNLOADS route is displayint for not logged in
+ * A compontent that ROUTES.FORM_DOWNLOADS route is displaying for a not logged in
  * users. It allows to select an export type and download a file.
  * @prop {object} asset
  */
@@ -46,6 +46,7 @@ export default class AnonymousExports extends React.Component<AnonymousExportsPr
     this.unlisteners.push(
       exportsStore.listen(this.onExportsStoreChange.bind(this), this),
       actions.exports.createExport.completed.listen(this.onCreateExportCompleted.bind(this)),
+      actions.exports.createExport.failed.listen(this.onCreateExportFailed.bind(this)),
       actions.exports.getExport.completed.listen(this.onGetExportCompleted.bind(this)),
     )
   }
@@ -65,6 +66,11 @@ export default class AnonymousExports extends React.Component<AnonymousExportsPr
 
   onCreateExportCompleted(exportData: ExportDataResponse) {
     this.fetchExport(exportData.uid)
+  }
+
+  onCreateExportFailed() {
+    this.setState({ isPending: false })
+    // Error handling happens in `exportsActions.js`
   }
 
   onGetExportCompleted(exportData: ExportDataResponse) {
