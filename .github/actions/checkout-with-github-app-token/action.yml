@@ -6,6 +6,8 @@ inputs:
     required: true
   private-key:
     required: true
+  repository:
+    required: false
 
 runs:
   using: "composite"
@@ -32,5 +34,6 @@ runs:
 
   - uses: actions/checkout@v5
     with:
+      repository: ${{ inputs.repository }}
       token: ${{ steps.app-token.outputs.token }}
       fetch-depth: "0"

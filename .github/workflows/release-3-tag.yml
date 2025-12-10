@@ -1,50 +1,50 @@
 name: 'CD: tag'
 
 
+# Note: tag is in the "$GITHUB_REF" variable.
 on:
   push:
     tags:
-      - v2.0**
-
+      - 2.0**
 
 jobs:
 
-  darker:
-    uses: ./.github/workflows/darker.yml
-
-  biome:
-    uses: ./.github/workflows/biome.yml
-
-  openapi:
-    uses: ./.github/workflows/openapi.yml
-
-  pytest:
-    uses: ./.github/workflows/pytest.yml
-
-  npm-test:
-    uses: ./.github/workflows/npm-test.yml
 
   version:
+    secrets: inherit
+    uses: './.github/workflows/find-releases.yml'
+
+
+  verify:
     runs-on: ubuntu-24.04
-    outputs:
-      version: ${{ steps.version.outputs.version }}
+    needs:
+      - version
+    env:
+      current_patch: ${{ needs.version.outputs.current_patch }}
+      next_major: ${{ needs.version.outputs.next_major }}
     steps:
     - uses: actions/checkout@v5
-    - name: Formats the version number
-      id: version
+    - name: Verify whether version tag is either next major or next patch
       run: |
-        set -xe
-        TAG=$GITHUB_REF
-        VERSION=$(echo "$TAG" | sed 's/v//')
-        echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+        if [[ $current_patch == "$GITHUB_REF" ]]; then
+          exit 0
+        fi
+
+        if [[ $next_major == "$GITHUB_REF" ]]; then
+          exit 0
+        fi
+
+        echo "GITHUB_REF: $GITHUB_REF"
+        echo "current_patch: $current_patch"
+        echo "next_major: $next_major"
+        echo "ERROR: Tag is neither next patch nor major bump."
+
 
   deploy-to-master:
     runs-on: ubuntu-24.04
     needs:
-      - darker
-      - pytest
-      - npm-test
-    if: ${{ !cancelled() && !failure() }}
+      - version
+      - verify
     steps:
     - uses: actions/checkout@v5
 
@@ -59,63 +59,72 @@ jobs:
         # fab update_kpi:$VERSION
         # fab dev_deploy:master,kpi,$GITHUB_REF
 
-  bump:
+
+  bump-kobo-docker:
     runs-on: ubuntu-24.04
     needs:
       - deploy-to-master
     steps:
     - uses: actions/checkout@v5
+    - uses: ./.github/actions/checkout-with-github-app-token
+      with:
+        app-id: ${{ secrets.KOBO_BOT_APP_ID }}
+        private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
+        repository: 'https://github.com/kobotoolbox/kobo-docker'
 
-    - name: Bump Kobotoolbox version in kobo-docker repo and tag it
+    - name: Upgrade kobo-docker
       run: |
-        echo 'TODO, lets test this later with a real release branch'
-        echo 'see for example https://github.com/kobotoolbox/kobo-docker/commit/8d964e51c8a82ae74f19154fc5e895ae1db6854d'
-
-    - name: Bump Kobotoolbox version in kobo-install repo and tag it
-      run: |
-        echo 'TODO, lets test this later with a real release branch'
-        echo 'see for example https://github.com/kobotoolbox/kobo-install/commit/90f63c477480c1f6771c3e9ff2295046b2d99dae'
+        sed -iE "s/image: kobotoolbox\/kpi:.*/image: kobotoolbox\/kpi:$GITHUB_REF/" docker-compose.frontend.yml
+        git add -f docker-compose.frontend.yml
+        git commit -m "chore(deps): upgrade KPI to $GITHUB_REF"
+        git tag "$GITHUB_REF"
+        git push --tags
 
 
-  queue-deploy-to-production:
+  bump-kobo-install:
     runs-on: ubuntu-24.04
+    needs:
+      - deploy-to-master
     steps:
     - uses: actions/checkout@v5
+    - uses: ./.github/actions/checkout-with-github-app-token
+      with:
+        app-id: ${{ secrets.KOBO_BOT_APP_ID }}
+        private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
+        repository: 'https://github.com/kobotoolbox/kobo-install'
 
-    - name: create Linear issue to deploy on Global
+    - name: Upgrade kobo-install
       run: |
-        echo 'TODO, for now do it manually'
-
-    - name: create Linear issue to deploy on EU a day later
-      run: |
-        echo 'TODO, for now do it manually'
-
-    - name: create Linear issue to deploy on private servers a week later
-      run: |
-        echo 'TODO, for now do it manually'
+        sed -iE "s/KOBO_DOCKER_BRANCH = .*/KOBO_DOCKER_BRANCH = '$GITHUB_REF'/" helpers/config.py
+        git add -f helpers/config.py
+        git commit -m "chore(deps): upgrade kobo-docker to $GITHUB_REF"
+        git tag "$GITHUB_REF"
+        git push --tags
 
 
   notify:
     needs:
       - version
+      - verify
+      - bump-kobo-docker
+      - bump-kobo-install
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
     with:
-      topic: "${{ needs.version.outputs.version }} release"
-      content: ":label: Release branch tagged and passes CI. Please deploy to master, bump and tag kobo-docker and kobo-install, and deploy to production. (TODO: automate)"
+      topic: "${{ needs.version.outputs.current_minor }} release"
+      content: |
+        :label: Release branch tagged and passes CI. Please deploy to master, bump and tag kobo-docker and kobo-install, and deploy to production. (TODO: automate)
 
 
   on-failure:
     needs:
       - version
-      - darker
-      - pytest
-      - npm-test
-      - deploy-to-master
-      - bump
+      - verify
+      - bump-kobo-docker
+      - bump-kobo-install
     if: ${{ !cancelled() && failure() }}
     secrets: inherit
     uses: './.github/workflows/zulip.yml'
     with:
-      topic: "${{ needs.version.outputs.version }} release"
+      topic: "${{ needs.version.outputs.current_minor }} release"
       content: ":warning: [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) release candidate tagging failed."
