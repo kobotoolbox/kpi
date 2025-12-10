@@ -20,6 +20,7 @@ from formpack.utils.kobo_locking import strip_kobo_locking_profile
 from kobo.apps.data_collectors.models import DataCollectorGroup
 from kobo.apps.reports.constants import DEFAULT_REPORTS_KEY, SPECIFIC_REPORTS_KEY
 from kobo.apps.subsequences.utils.supplement_data import get_analysis_form_json
+from kobo.apps.subsequences.utils.versioning import migrate_advanced_features
 from kpi.constants import (
     ASSET_TYPE_BLOCK,
     ASSET_TYPE_COLLECTION,
@@ -929,6 +930,9 @@ class Asset(
         # be altered on save. (e.g. on asset.deploy())
         if adjust_content:
             self.adjust_content_on_save()
+
+        if not update_fields or update_fields and 'advanced_features' in update_fields:
+            migrate_advanced_features(self, save_asset=False)
 
         # standardize settings (only when required)
         if (

@@ -6,6 +6,7 @@ from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.subsequences.models import QuestionAdvancedFeature
+from kobo.apps.subsequences.tests.constants import OLD_STYLE_ADVANCED_FEATURES
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
 
@@ -90,3 +91,57 @@ class QuestionAdvancedFeatureViewSetTestCase(BaseTestCase):
         assert QuestionAdvancedFeature.objects.filter(
             asset=self.asset, action=self.action.action
         ).exists()
+
+    def test_list_advanced_features_migrates_if_necessary(self):
+        QuestionAdvancedFeature.objects.all().delete()
+        Asset.objects.filter(pk=self.asset.pk).update(
+            advanced_features=OLD_STYLE_ADVANCED_FEATURES
+        )
+        self.asset.refresh_from_db()
+        assert self.asset.advanced_features.get('_version') is None
+        self.client.get(self.list_actions_url)
+        self.asset.refresh_from_db()
+        # what's actually created is tested elsewhere, just check that we migrated
+        assert self.asset.advanced_features.get('_version') == '20250820'
+
+    def test_create_advanced_features_fails_if_feature_exists_in_old_field(self):
+        QuestionAdvancedFeature.objects.all().delete()
+        Asset.objects.filter(pk=self.asset.pk).update(
+            advanced_features=OLD_STYLE_ADVANCED_FEATURES,
+            known_cols=['q1:transcription:en', 'q2:translation:es'],
+        )
+        self.asset.refresh_from_db()
+        assert not self.asset.advanced_features_set.exists()
+        # manual translation for this question already exists in the old dict,
+        # we shouldn't be able to re-create it
+        res = self.client.post(
+            self.list_actions_url,
+            data={
+                'action': 'manual_translation',
+                'params': json.dumps([{'language': 'de'}]),
+                'question_xpath': 'q1',
+            },
+        )
+        assert res.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_create_advanced_features_migrates_if_necessary(self):
+        QuestionAdvancedFeature.objects.all().delete()
+        Asset.objects.filter(pk=self.asset.pk).update(
+            advanced_features=OLD_STYLE_ADVANCED_FEATURES,
+            known_cols=['q1:transcription:en', 'q2:translation:es'],
+        )
+        self.asset.refresh_from_db()
+        assert self.asset.advanced_features.get('_version') is None
+        # manual translation for this question already exists in the old dict,
+        # we shouldn't be able to re-create it
+        res = self.client.post(
+            self.list_actions_url,
+            data={
+                'action': 'manual_translation',
+                'params': json.dumps([{'language': 'de'}]),
+                'question_xpath': 'new_question',
+            },
+        )
+        self.asset.refresh_from_db()
+        assert self.asset.advanced_features.get('_version') == '20250820'
+        assert res.status_code == status.HTTP_201_CREATED

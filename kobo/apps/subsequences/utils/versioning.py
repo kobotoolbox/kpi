@@ -17,11 +17,14 @@ OLD_QUESTION_TYPE_TO_NEW = {
 }
 
 
-def migrate_advanced_features(asset: 'kpi.models.Asset') -> dict | None:
+def migrate_advanced_features(
+    asset: 'kpi.models.Asset', save_asset=True
+) -> dict | None:
     advanced_features = asset.advanced_features
     if advanced_features is None:
         asset.advanced_features = {'_version': SCHEMA_VERSIONS[0]}
-        asset.save(update_fields=['advanced_features'], adjust_content=False)
+        if save_asset:
+            asset.save(update_fields=['advanced_features'], adjust_content=False)
         return
     if asset.advanced_features.get('_version') == SCHEMA_VERSIONS[0]:
         return
@@ -61,7 +64,8 @@ def migrate_advanced_features(asset: 'kpi.models.Asset') -> dict | None:
         # restore the old dict, but mark that we've already migrated
         asset.advanced_features = copied
         asset.advanced_features['_version'] = SCHEMA_VERSIONS[0]
-        asset.save(update_fields=['advanced_features'], adjust_content=False)
+        if save_asset:
+            asset.save(update_fields=['advanced_features'], adjust_content=False)
 
 
 def convert_nlp_params(

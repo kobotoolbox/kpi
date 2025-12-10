@@ -1,9 +1,11 @@
 import copy
 import itertools
+from unittest.mock import patch
 
 from django.test import TestCase
 
 from kobo.apps.subsequences.constants import Action
+from kobo.apps.subsequences.tests.constants import OLD_STYLE_ADVANCED_FEATURES
 from kobo.apps.subsequences.utils.versioning import (
     convert_nlp_params,
     convert_qual_params,
@@ -14,10 +16,16 @@ from kpi.models import Asset
 
 class TestVersioning(TestCase):
 
-    fixtures = ['test_data', 'asset_with_old_advanced_features']
+    fixtures = ['test_data']
 
     def setUp(self):
-        self.asset = Asset.objects.get(id=4)
+        self.asset = Asset.objects.get(id=1)
+        # cheat to avoid automatic migration from asset.save()
+        Asset.objects.filter(pk=1).update(
+            advanced_features=OLD_STYLE_ADVANCED_FEATURES,
+            known_cols=['q1:transcription:en', 'q2:translation:es'],
+        )
+        self.asset.refresh_from_db()
 
     def _check_expected_params(
         self,
@@ -40,6 +48,12 @@ class TestVersioning(TestCase):
             '_version': '20250820',
             **copied
         }
+
+    def test_migrate_without_save(self):
+        migrate_advanced_features(self.asset, save_asset=False)
+        assert self.asset.advanced_features.get('_version') == '20250820'
+        self.asset.refresh_from_db()
+        assert self.asset.advanced_features.get('_version') is None
 
     def test_convert_nlp_action(self):
         transcript_dict = {'languages': ['en', 'es']}
@@ -198,3 +212,8 @@ class TestVersioning(TestCase):
                 expected_label='Text?',
                 expected_uuid=f'qual_text_{q}',
             )
+
+    def test_saving_asset_only_calls_migrate_once(self):
+        with patch('kpi.models.asset.migrate_advanced_features') as migrate:
+            self.asset.save(adjust_content=False)
+        migrate.assert_called_once_with(self.asset, save_asset=False)
