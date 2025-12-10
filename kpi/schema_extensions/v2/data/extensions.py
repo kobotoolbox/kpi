@@ -97,6 +97,9 @@ class DataBulkUpdateResultFieldExtension(OpenApiSerializerFieldExtension):
 class DataSupplementPayloadExtension(OpenApiSerializerExtension):
     target_class = 'kpi.schema_extensions.v2.data.serializers.DataSupplementPayload'
 
+    DATETIME = build_basic_type(OpenApiTypes.DATETIME)
+    UUID_STR = {'type': 'string', 'format': 'uuid'}
+
     def map_serializer(self, auto_schema, direction):
         return build_object_type(
             properties={
@@ -120,20 +123,119 @@ class DataSupplementPayloadExtension(OpenApiSerializerExtension):
                                 additionalProperties=False,
                                 properties={
                                     'language': GENERIC_STRING_SCHEMA,
-                                    'translation': GENERIC_STRING_SCHEMA,
+                                    'value': GENERIC_STRING_SCHEMA,
                                 },
                                 required=['language', 'value'],
                             ),
                             min_length=1,
-                        )
+                        ),
+                        'qual': self._get_qual_schema()
                     },
                     anyOf=[
                         {'required': ['manual_transcription']},
                         {'required': ['manual_translation']},
+                        {'required': ['qual']},
                     ],
-                ),
+                )
             }
         )
+
+    @classmethod
+    def _get_qual_schema(cls):
+        qual_defs = {
+            'qualCommon': {
+                'type': 'object',
+                'additionalProperties': False,
+                'properties': {
+                    'uuid': cls.UUID_STR,
+                    'value': {},
+                },
+                'required': ['uuid', 'value'],
+            },
+            'qualInteger': {
+                'type': 'object',
+                'properties': {
+                    'value': {
+                        'type': 'integer',
+                        'nullable': True,
+                    },
+                },
+            },
+            'qualText': {
+                'type': 'object',
+                'properties': {
+                    'value': {'type': 'string'},
+                },
+            },
+            'qualSelectOne': {
+                'type': 'object',
+                'properties': {
+                    'value': cls.UUID_STR,
+                },
+            },
+            'qualSelectMultiple': {
+                'type': 'object',
+                'properties': {
+                    'value': {
+                        'type': 'array',
+                        'items': cls.UUID_STR,
+                    },
+                },
+            },
+        }
+
+        return {
+            'oneOf': [
+                {
+                    'allOf': [
+                        qual_defs['qualCommon'],
+                        qual_defs['qualInteger'],
+                        {
+                            'type': 'object',
+                            'properties': {
+                                'uuid': cls.UUID_STR,
+                            },
+                        },
+                    ],
+                },
+                {
+                    'allOf': [
+                        qual_defs['qualCommon'],
+                        qual_defs['qualText'],
+                        {
+                            'type': 'object',
+                            'properties': {
+                                'uuid': cls.UUID_STR,
+                            },
+                        },
+                    ],
+                },
+                {
+                    'allOf': [
+                        qual_defs['qualCommon'],
+                        qual_defs['qualSelectOne'],
+                        {
+                            'type': 'object',
+                            'properties': {
+                                'uuid': cls.UUID_STR,
+                            },
+                        },
+                    ],
+                },
+                {
+                    'allOf': [
+                        qual_defs['qualCommon'],
+                        qual_defs['qualSelectMultiple'],
+                        {
+                            'type': 'object',
+                            'properties': {
+                                'uuid': cls.UUID_STR,
+                            },
+                        },
+                    ],
+                },
+            ],
+        }
 
 
 class DataSupplementResponseExtension(OpenApiSerializerExtension):
