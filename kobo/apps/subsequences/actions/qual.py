@@ -313,7 +313,11 @@ class QualAction(BaseAction):
             versions_sorted = sorted(
                 versions, key=lambda x: x.get('_dateAccepted', ''), reverse=True
             )
-            selected_response_data = versions_sorted[0].get(self.VERSION_DATA_FIELD, {})
+            selected_version = versions_sorted[0]
+            if not selected_version.get('_dateAccepted'):
+                continue
+
+            selected_response_data = selected_version.get(self.VERSION_DATA_FIELD, {})
             if not selected_response_data:
                 continue
 
