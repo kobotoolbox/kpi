@@ -2392,6 +2392,7 @@ paths:
         name: root_uuid
         schema:
           type: string
+        description: Root UUID of the submission
         required: true
       - in: path
         name: uid_asset
@@ -2466,6 +2467,7 @@ paths:
         name: root_uuid
         schema:
           type: string
+        description: Root UUID of the submission
         required: true
       - in: path
         name: uid_asset

@@ -3177,6 +3177,7 @@
                         "schema": {
                             "type": "string"
                         },
+                        "description": "Root UUID of the submission",
                         "required": true
                     },
                     {
@@ -3299,6 +3300,7 @@
                         "schema": {
                             "type": "string"
                         },
+                        "description": "Root UUID of the submission",
                         "required": true
                     },
                     {
