@@ -897,3 +897,55 @@ class TestQualActionMethods(TestCase):
             '_default': 'Medical',
             'ar': 'طبي'
         }
+
+    def test_transform_data_prefers_newest_date_accepted_version(self):
+        """
+        Test that when multiple versions exist for a qual question, the version
+        with the newest `_dateAccepted` is used for output, even if it is not
+        the most recently created version
+        """
+        action = QualAction(self.source_xpath, self.action_params)
+
+        action_data = {
+            'qual-text-uuid': {
+                '_versions': [
+                    {
+                        '_data': {
+                            'uuid': 'qual-text-uuid',
+                            'value': 'Initial note'
+                        },
+                        '_dateCreated': '2025-11-24T09:00:00Z',
+                        '_dateAccepted': '2025-11-24T09:00:00Z',
+                        '_uuid': 'v1'
+                    },
+                    {
+                        '_data': {
+                            'uuid': 'qual-text-uuid',
+                            'value': 'Revised note'
+                        },
+                        '_dateCreated': '2025-11-24T10:00:00Z',
+                        '_dateAccepted': '2025-11-24T10:00:00Z',
+                        '_uuid': 'v2'
+                    },
+                    {
+                        '_data': {
+                            'uuid': 'qual-text-uuid',
+                            'value': 'Final note'
+                        },
+                        '_dateCreated': '2025-11-24T11:00:00Z',
+                        '_dateAccepted': '2025-11-24T09:30:00Z',
+                        '_uuid': 'v3'
+                    },
+                ],
+                '_dateCreated': '2025-11-24T09:00:00Z',
+                '_dateModified': '2025-11-24T11:00:00Z'
+            }
+        }
+
+        output = action.transform_data_for_output(action_data)
+        qual_list = output.get('qual', [])
+        assert len(qual_list) == 1
+
+        text_item = qual_list[0]
+        assert text_item['uuid'] == 'qual-text-uuid'
+        assert text_item['val'] == 'Revised note'

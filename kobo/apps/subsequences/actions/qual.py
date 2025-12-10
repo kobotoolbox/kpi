@@ -276,6 +276,13 @@ class QualAction(BaseAction):
             output_fields.append(field)
         return output_fields
 
+    def overlaps_other_actions(self) -> bool:
+        """
+        Qual returns a grouped structured block (e.g. {"qual": [...]}) and
+        does not participate in per-field arbitration with other actions
+        """
+        return False
+
     def transform_data_for_output(
         self, action_data: dict
     ) -> dict[str, Any]:
@@ -303,23 +310,14 @@ class QualAction(BaseAction):
             if not versions:
                 continue
 
-            # Get most recent accepted version
-            accepted_version = None
-            for version in versions:
-                if version.get(self.DATE_ACCEPTED_FIELD):
-                    accepted_version = version
-                    break
-
-            # Skip if no accepted version exists
-            if not accepted_version:
+            versions_sorted = sorted(
+                versions, key=lambda x: x.get('_dateAccepted', ''), reverse=True
+            )
+            selected_response_data = versions_sorted[0].get(self.VERSION_DATA_FIELD, {})
+            if not selected_response_data:
                 continue
 
-            # Extract the data and metadata
-            version_data = accepted_version.get(self.VERSION_DATA_FIELD, {})
-            if not version_data:
-                continue
-
-            value = version_data.get('value')
+            value = selected_response_data.get('value')
             question_type = qual_question['type']
             if question_type == 'qualSelectOne':
                 if value and qual_uuid in choices_by_uuid:
@@ -353,11 +351,3 @@ class QualAction(BaseAction):
                 'labels': qual_question.get('labels', {}),
             })
         return {'qual': results_list}
-
-    def returns_structured_output(self) -> bool:
-        """
-        Qualitative analysis returns multiple items for a single question,
-        so its output is grouped under {'qual': [...]} instead of per-column
-        fields. Mark this action as structured.
-        """
-        return True

@@ -324,6 +324,13 @@ class BaseAction:
         """
         return []
 
+    def overlaps_other_actions(self) -> bool:
+        """
+        Return True if this action may produce fields that overlap with other
+        actions and therefore requires per-field arbitration. Default: True
+        """
+        return True
+
     def transform_data_for_output(
         self, action_data: dict
     ) -> SimplifiedOutputCandidatesByColumnKey:
@@ -345,13 +352,6 @@ class BaseAction:
         }
         """
         return {}
-
-    def returns_structured_output(self) -> bool:
-        """
-        Whether this action returns a structured block (e.g., a list)
-        instead of per-field/column output. Defaults to False.
-        """
-        return False
 
     def validate_external_data(self, data):
         jsonschema.validate(data, self.external_data_schema)
