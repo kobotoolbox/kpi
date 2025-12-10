@@ -139,11 +139,15 @@ class DataSupplementPayloadExtension(OpenApiSerializerExtension):
 class DataSupplementResponseExtension(OpenApiSerializerExtension):
     target_class = 'kpi.schema_extensions.v2.data.serializers.DataSupplementResponse'
 
+    DATETIME = build_basic_type(OpenApiTypes.DATETIME)
+    UUID_STR = {'type': 'string', 'format': 'uuid'}
+
     def map_serializer(self, auto_schema, direction):
+        # TODO move to class constants
         # Reusable building blocks to reduce redundancy
         LANG_STR = GENERIC_STRING_SCHEMA
         VALUE_STR = GENERIC_STRING_SCHEMA
-        DATETIME = build_basic_type(OpenApiTypes.DATETIME)
+        # DATETIME = build_basic_type(OpenApiTypes.DATETIME)
 
         # Constraint helper: "language" and "value" must be both present or both absent
         PAIR_LANG_VALUE_BOTH_OR_NONE = {
@@ -160,6 +164,7 @@ class DataSupplementResponseExtension(OpenApiSerializerExtension):
             ]
         }
 
+        # TODO move action schemas logic to their own methods.
         # Shared properties for objects that carry a language/value pair
         VALUE_PROPS = {
             'language': LANG_STR,
@@ -173,7 +178,7 @@ class DataSupplementResponseExtension(OpenApiSerializerExtension):
             additionalProperties=False,
             properties={
                 **VALUE_PROPS,
-                '_dateCreated': DATETIME,  # Always required for a revision entry
+                '_dateCreated': self.DATETIME,  # Always required for a revision entry
             },
             required=['_dateCreated'],
             **PAIR_LANG_VALUE_BOTH_OR_NONE,
@@ -187,8 +192,8 @@ class DataSupplementResponseExtension(OpenApiSerializerExtension):
             additionalProperties=False,
             properties={
                 **VALUE_PROPS,  # Coupled via PAIR_LANG_VALUE_BOTH_OR_NONE
-                '_dateCreated': DATETIME,  # Always required
-                '_dateModified': DATETIME,  # Always required
+                '_dateCreated': self.DATETIME,  # Always required
+                '_dateModified': self.DATETIME,  # Always required
                 'revisions': build_array_type(
                     schema=REVISION_ITEM,
                 ),
@@ -205,7 +210,7 @@ class DataSupplementResponseExtension(OpenApiSerializerExtension):
             additionalProperties=False,
             properties={
                 **VALUE_PROPS,  # Coupled via PAIR_LANG_VALUE_BOTH_OR_NONE
-                '_dateCreated': DATETIME,  # Always required
+                '_dateCreated': self.DATETIME,  # Always required
                 '_revisions': build_array_type(
                     schema=REVISION_ITEM,
                 ),
@@ -230,15 +235,206 @@ class DataSupplementResponseExtension(OpenApiSerializerExtension):
                     properties={
                         'manual_transcription': MANUAL_TRANSCRIPTION,
                         'manual_translation': MANUAL_TRANSLATION,
+                        'qual': self._get_qual_schema(),
                     },
                     # At least one of "manual_transcription" or "manual_translation" must be present
                     anyOf=[
                         {'required': ['manual_transcription']},
                         {'required': ['manual_translation']},
+                        {'required': ['qual']},
                     ],
                 ),
             }
         )
+
+    @classmethod
+    def _get_qual_schema(cls):
+        """
+        Build the OpenAPI schema for the `qual` field.
+        """
+
+        # ---------------------------------------------------------------------
+        # qualCommon
+        # ---------------------------------------------------------------------
+        qual_common = build_object_type(
+            additionalProperties=False,
+            properties={
+                'uuid': cls.UUID_STR,
+                # "value" is intentionally untyped here: it will be refined
+                # by the specific qual* schemas below.
+                'value': {},
+            },
+            required=['uuid', 'value'],
+        )
+
+        # ---------------------------------------------------------------------
+        # qualInteger
+        #   properties: { value: integer | null }
+        # ---------------------------------------------------------------------
+        qual_integer = {
+            'type': 'object',
+            'properties': {
+                'value': {
+                    'type': 'integer',
+                    'nullable': True,
+                },
+            },
+        }
+
+        # ---------------------------------------------------------------------
+        # qualSelectMultiple
+        #   properties: { value: ['507129be-2aee-4fb9-8ddd-ac766ba35f46', ...] }
+        # ---------------------------------------------------------------------
+        qual_select_multiple = {
+            'type': 'object',
+            'properties': {
+                'value': {
+                    'type': 'array',
+                    'items': cls.UUID_STR,
+                },
+            },
+        }
+
+        # ---------------------------------------------------------------------
+        # qualSelectOne
+        #   properties: { value: '0bbdb149-c85c-46c2-ad31-583377c423da' }
+        # ---------------------------------------------------------------------
+        qual_select_one = {
+            'type': 'object',
+            'properties': {
+                'value': cls.UUID_STR,
+            },
+        }
+
+        # ---------------------------------------------------------------------
+        # qualTags
+        #   properties: { value: [string, ...] }
+        # ---------------------------------------------------------------------
+        qual_tags = {
+            'type': 'object',
+            'properties': {
+                'value': {
+                    'type': 'array',
+                    'items': {
+                        'type': 'string',
+                    },
+                },
+            },
+        }
+
+        # ---------------------------------------------------------------------
+        # qualText
+        #   properties: { value: string }
+        # ---------------------------------------------------------------------
+        qual_text = {
+            'type': 'object',
+            'properties': {
+                'value': {
+                    'type': 'string',
+                },
+            },
+        }
+
+        # ---------------------------------------------------------------------
+        # dataSchema
+        #   oneOf:
+        #     - allOf: [qualCommon, qualInteger]
+        #     - allOf: [qualCommon, qualSelectMultiple]
+        #     - allOf: [qualCommon, qualSelectOne]
+        #     - allOf: [qualCommon, qualTags]
+        #     - allOf: [qualCommon, qualText]
+        #
+        # We *do not* enforce "uuid: const <some-specific-uuid>" here
+        # because in your use case UUIDs are dynamic (1..n).
+        # ---------------------------------------------------------------------
+        data_schema = {
+            'oneOf': [
+                {'allOf': [qual_common, qual_integer]},
+                {'allOf': [qual_common, qual_select_multiple]},
+                {'allOf': [qual_common, qual_select_one]},
+                {'allOf': [qual_common, qual_tags]},
+                {'allOf': [qual_common, qual_text]},
+            ]
+        }
+
+        # ---------------------------------------------------------------------
+        # dataActionKey._versions[] item
+        #
+        # $defs.dataActionKey._versions.items:
+        #   - additionalProperties: false
+        #   - properties:
+        #       _data: dataSchema
+        #       _dateAccepted: dateTime
+        #       _dateCreated: dateTime
+        #       _uuid: uuid
+        #   - required: [_data, _dateCreated, _uuid]
+        # ---------------------------------------------------------------------
+        data_action_version = build_object_type(
+            additionalProperties=False,
+            properties={
+                '_data': data_schema,
+                '_dateAccepted': cls.DATETIME,
+                '_dateCreated': cls.DATETIME,
+                '_uuid': cls.UUID_STR,
+            },
+            required=['_data', '_dateCreated', '_uuid'],
+        )
+
+        # ---------------------------------------------------------------------
+        # dataActionKey
+        #
+        # $defs.dataActionKey:
+        #   - additionalProperties: false
+        #   - properties:
+        #       _dateCreated: dateTime
+        #       _dateModified: dateTime
+        #       _versions: [data_action_version, ...] (minItems=1)
+        #   - required: [_dateCreated, _dateModified]
+        # ---------------------------------------------------------------------
+        data_action_key = build_object_type(
+            additionalProperties=False,
+            properties={
+                '_dateCreated': cls.DATETIME,
+                '_dateModified': cls.DATETIME,
+                '_versions': build_array_type(
+                    schema=data_action_version,
+                    min_length=1,
+                ),
+            },
+            required=['_dateCreated', '_dateModified', '_versions'],
+        )
+
+        # ---------------------------------------------------------------------
+        # Root "qual" object
+        #
+        # In the original JSON Schema, the top-level "properties" were:
+        #   {
+        #       "<uuid>": { $ref: '#/$defs/dataActionKey' },
+        #       ...
+        #   }
+        # and you clarified that ALL those keys are UUIDs and that there can
+        # be from 1 to N of them.
+        #
+        # In OpenAPI, we model that as:
+        #   - an object
+        #   - whose keys are dynamic
+        #   - whose values follow the dataActionKey schema
+        #
+        # So we use `additionalProperties` to represent
+        # "map<string-uuid, dataActionKey>".
+        #
+        # Optionally, `x-patternProperties` gives a hint that keys are UUIDs.
+        # ---------------------------------------------------------------------
+        qual_root = build_object_type(
+            additionalProperties=data_action_key,
+            # No fixed properties since keys are dynamic UUIDs
+            patternProperties={
+                # simple UUID-like regex; you can tighten it if desired
+                '^[0-9a-fA-F-]{36}$': data_action_key,
+            }
+        )
+
+        return qual_root
 
 
 class DataValidationPayloadFieldExtension(OpenApiSerializerFieldExtension):
