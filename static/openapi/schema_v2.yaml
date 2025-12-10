@@ -2247,174 +2247,6 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
-  /api/v2/assets/{uid_asset}/data/{id}/supplement/:
-    get:
-      operationId: api_v2_assets_data_supplement_retrieve
-      description: |
-        ## TBC Supplement retrieve
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: ID of the data (when applicable)
-        required: true
-      - in: path
-        name: pk
-        schema:
-          type: string
-        description: Submission identifier
-        required: true
-      - in: path
-        name: uid_asset
-        schema:
-          type: string
-        description: UID of the parent asset
-        required: true
-      tags:
-      - Survey data
-      security:
-      - BasicAuth: []
-      - TokenAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DataSupplementResponse'
-          description: null
-        '401':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorDetail'
-              examples:
-                NotAuthenticated:
-                  value:
-                    detail: Authentication credentials were not provided.
-                  summary: Not authenticated
-          description: ''
-        '403':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorDetail'
-              examples:
-                AccessDenied:
-                  value:
-                    detail: You do not have permission to perform this action.
-                  summary: Access Denied
-          description: ''
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorDetail'
-              examples:
-                NotFound:
-                  value:
-                    detail: Not found.
-                  summary: Not Found
-          description: ''
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorObject'
-              examples:
-                BadRequest:
-                  value:
-                    detail:
-                      field_name:
-                      - Error message
-                  summary: Bad request
-          description: ''
-    patch:
-      operationId: api_v2_assets_data_supplement_partial_update
-      description: |
-        ## TBC Supplement update
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: ID of the data (when applicable)
-        required: true
-      - in: path
-        name: pk
-        schema:
-          type: string
-        description: Submission identifier
-        required: true
-      - in: path
-        name: uid_asset
-        schema:
-          type: string
-        description: UID of the parent asset
-        required: true
-      tags:
-      - Survey data
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedDataSupplementPayload'
-      security:
-      - BasicAuth: []
-      - TokenAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DataSupplementResponse'
-          description: null
-        '401':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorDetail'
-              examples:
-                NotAuthenticated:
-                  value:
-                    detail: Authentication credentials were not provided.
-                  summary: Not authenticated
-          description: ''
-        '403':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorDetail'
-              examples:
-                AccessDenied:
-                  value:
-                    detail: You do not have permission to perform this action.
-                  summary: Access Denied
-          description: ''
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorDetail'
-              examples:
-                NotFound:
-                  value:
-                    detail: Not found.
-                  summary: Not Found
-          description: ''
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorObject'
-              examples:
-                BadRequest:
-                  value:
-                    detail:
-                      field_name:
-                      - Error message
-                  summary: Bad request
-          description: ''
   /api/v2/assets/{uid_asset}/data/{id}/validation_status/:
     get:
       operationId: api_v2_assets_data_validation_status_retrieve
@@ -2549,6 +2381,160 @@ paths:
                   value:
                     detail: Not found.
                   summary: Not Found
+          description: ''
+  /api/v2/assets/{uid_asset}/data/{root_uuid}/supplement/:
+    get:
+      operationId: api_v2_assets_data_supplement_retrieve
+      description: |
+        ## TBC Supplement retrieve
+      parameters:
+      - in: path
+        name: root_uuid
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: uid_asset
+        schema:
+          type: string
+        description: UID of the parent asset
+        required: true
+      tags:
+      - Survey data
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataSupplementResponse'
+          description: null
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotAuthenticated:
+                  value:
+                    detail: Authentication credentials were not provided.
+                  summary: Not authenticated
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                AccessDenied:
+                  value:
+                    detail: You do not have permission to perform this action.
+                  summary: Access Denied
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                BadRequest:
+                  value:
+                    detail:
+                      field_name:
+                      - Error message
+                  summary: Bad request
+          description: ''
+    patch:
+      operationId: api_v2_assets_data_supplement_partial_update
+      description: |
+        ## TBC Supplement update
+      parameters:
+      - in: path
+        name: root_uuid
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: uid_asset
+        schema:
+          type: string
+        description: UID of the parent asset
+        required: true
+      tags:
+      - Survey data
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedDataSupplementPayload'
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataSupplementResponse'
+          description: null
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotAuthenticated:
+                  value:
+                    detail: Authentication credentials were not provided.
+                  summary: Not authenticated
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                AccessDenied:
+                  value:
+                    detail: You do not have permission to perform this action.
+                  summary: Access Denied
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                BadRequest:
+                  value:
+                    detail:
+                      field_name:
+                      - Error message
+                  summary: Bad request
           description: ''
   /api/v2/assets/{uid_asset}/data/{uid_data}/attachments/:
     get:
