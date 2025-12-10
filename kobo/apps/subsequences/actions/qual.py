@@ -283,9 +283,7 @@ class QualAction(BaseAction):
         """
         return False
 
-    def transform_data_for_output(
-        self, action_data: dict
-    ) -> dict[str, Any]:
+    def transform_data_for_output(self, action_data: dict) -> dict[str, Any]:
 
         qual_questions_by_uuid = {q['uuid']: q for q in self.params}
 
@@ -328,7 +326,7 @@ class QualAction(BaseAction):
                     choice = choices_by_uuid[qual_uuid].get(value)
                     output_value = {
                         'uuid': value,
-                        'labels': choice.get('labels') if choice else {}
+                        'labels': choice.get('labels') if choice else {},
                     }
                 else:
                     output_value = None
@@ -337,21 +335,25 @@ class QualAction(BaseAction):
                     output_value = []
                     for choice_uuid in value:
                         choice = choices_by_uuid[qual_uuid].get(choice_uuid)
-                        output_value.append({
-                            'uuid': choice_uuid,
-                            'labels': choice.get('labels') if choice else {}
-                        })
+                        output_value.append(
+                            {
+                                'uuid': choice_uuid,
+                                'labels': choice.get('labels') if choice else {},
+                            }
+                        )
                 else:
                     output_value = []
             else:
                 # Unchanged value for other types (integer, text, tags)
                 output_value = value
 
-            results_list.append({
-                'val': output_value,
-                'type': qual_question['type'],
-                'uuid': qual_uuid,
-                'xpath': self.source_question_xpath,
-                'labels': qual_question.get('labels', {}),
-            })
+            results_list.append(
+                {
+                    'val': output_value,
+                    'type': qual_question['type'],
+                    'uuid': qual_uuid,
+                    'xpath': self.source_question_xpath,
+                    'labels': qual_question.get('labels', {}),
+                }
+            )
         return {'qual': results_list}

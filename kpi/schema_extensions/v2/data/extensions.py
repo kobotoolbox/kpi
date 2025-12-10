@@ -129,14 +129,14 @@ class DataSupplementPayloadExtension(OpenApiSerializerExtension):
                             ),
                             min_length=1,
                         ),
-                        'qual': self._get_qual_schema()
+                        'qual': self._get_qual_schema(),
                     },
                     anyOf=[
                         {'required': ['manual_transcription']},
                         {'required': ['manual_translation']},
                         {'required': ['qual']},
                     ],
-                )
+                ),
             }
         )
 
@@ -533,7 +533,7 @@ class DataSupplementResponseExtension(OpenApiSerializerExtension):
             patternProperties={
                 # simple UUID-like regex; you can tighten it if desired
                 '^[0-9a-fA-F-]{36}$': data_action_key,
-            }
+            },
         )
 
         return qual_root

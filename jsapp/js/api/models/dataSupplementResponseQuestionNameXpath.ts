@@ -11,15 +11,24 @@ The endpoints are grouped by area of intended use. Each category contains relate
  */
 import type { DataSupplementResponseQuestionNameXpathManualTranscription } from './dataSupplementResponseQuestionNameXpathManualTranscription'
 import type { DataSupplementResponseQuestionNameXpathManualTranslationItem } from './dataSupplementResponseQuestionNameXpathManualTranslationItem'
+import type { DataSupplementResponseQuestionNameXpathQual } from './dataSupplementResponseQuestionNameXpathQual'
 
 export type DataSupplementResponseQuestionNameXpath =
   | (unknown & {
       manual_transcription?: DataSupplementResponseQuestionNameXpathManualTranscription
       /** @minLength 1 */
       manual_translation?: DataSupplementResponseQuestionNameXpathManualTranslationItem[]
+      qual?: DataSupplementResponseQuestionNameXpathQual
     })
   | (unknown & {
       manual_transcription?: DataSupplementResponseQuestionNameXpathManualTranscription
       /** @minLength 1 */
       manual_translation?: DataSupplementResponseQuestionNameXpathManualTranslationItem[]
+      qual?: DataSupplementResponseQuestionNameXpathQual
+    })
+  | (unknown & {
+      manual_transcription?: DataSupplementResponseQuestionNameXpathManualTranscription
+      /** @minLength 1 */
+      manual_translation?: DataSupplementResponseQuestionNameXpathManualTranslationItem[]
+      qual?: DataSupplementResponseQuestionNameXpathQual
     })
