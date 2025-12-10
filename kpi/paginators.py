@@ -30,9 +30,10 @@ class DefaultPagination(LimitOffsetPagination):
     def get_count(self, queryset):
         """
         This custom function raises NotImplementedError if self.no_count equals True.
-        If fast_count is enabled, it does a faster counting for DISTINCT queries on large tables. It only looks at the primary key field, avoiding expensive DISTINCTs
-        comparing several fields. This may not work for queries with lots of joins, especially with one-to-many or
-        many-to-many type relationships.
+        If fast_count is enabled, it does a faster counting for DISTINCT queries on
+        large tables. It only looks at the primary key field, avoiding expensive
+        DISTINCTs comparing several fields. This may not work for queries with lots of
+        joins, especially with one-to-many or many-to-many type relationships.
         If fast_count is disabled, it runs the parent class get_count method.
         """
         if self.no_count:
@@ -143,7 +144,7 @@ class DefaultPagination(LimitOffsetPagination):
             self.limit = self.default_limit
 
         if self.no_count:
-            items = list(queryset[self.offset : self.offset + self.limit + 1])
+            items = list(queryset[self.offset:(self.offset + self.limit + 1)])
             self.has_next = len(items) > self.limit
             return items[: self.limit]
 
@@ -154,7 +155,7 @@ class DefaultPagination(LimitOffsetPagination):
         if self.count == 0 or self.offset > self.count:
             return []
 
-        return list(queryset[self.offset : self.offset + self.limit])
+        return list(queryset[self.offset:(self.offset + self.limit)])
 
 
 class AssetPagination(DefaultPagination):
