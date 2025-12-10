@@ -13,6 +13,8 @@ from rest_framework import status
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.project_ownership.models import Invite, InviteStatusChoices, Transfer
 from kobo.apps.project_views.models.project_view import ProjectView
+from kobo.apps.subsequences.constants import Action
+from kobo.apps.subsequences.models import QuestionAdvancedFeature
 from kpi.constants import (
     ASSET_TYPE_EMPTY,
     ASSET_TYPE_SURVEY,
@@ -419,18 +421,18 @@ class AssetListApiTests(BaseAssetTestCase):
     def test_query_counts(self):
         self.create_asset()
         # 45 when stripe is disabled, 46 when enabled
-        with self.assertNumQueries(FuzzyInt(42, 51)):
+        with self.assertNumQueries(FuzzyInt(36, 45)):
             self.client.get(self.list_url)
         # test query count does not increase with more assets
         # add several assets so the fuzziness of the count doesn't hide an O(n) addition
         self.create_asset()
         self.create_asset()
         self.create_asset()
-        with self.assertNumQueries(FuzzyInt(42, 51)):
+        with self.assertNumQueries(FuzzyInt(36, 45)):
             self.client.get(self.list_url)
 
         # test query counts with search filter
-        with self.assertNumQueries(FuzzyInt(42, 51)):
+        with self.assertNumQueries(FuzzyInt(36, 45)):
             self.client.get(self.list_url, data={'q': 'asset_type:survey'})
 
 
@@ -1165,7 +1167,7 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
     def test_report_submissions(self):
         # Prepare the mock data
         report_url = reverse(
-            self._get_endpoint('asset-reports'), kwargs={'uid': self.asset_uid}
+            self._get_endpoint('asset-reports'), kwargs={'uid_asset': self.asset_uid}
         )
         anotheruser = User.objects.get(username='anotheruser')
         self.asset.content = {
@@ -1509,6 +1511,38 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
         self.asset.refresh_from_db()
         assert response.data['last_modified_by'] == anotheruser.username
         assert self.asset.last_modified_by == anotheruser.username
+
+    def test_analysis_form_json_with_nlp_actions(self):
+        for action in [
+            Action.MANUAL_TRANSLATION,
+            Action.MANUAL_TRANSCRIPTION,
+            Action.AUTOMATIC_GOOGLE_TRANSLATION,
+            Action.AUTOMATIC_GOOGLE_TRANSCRIPTION,
+        ]:
+            language = 'en' if 'transcription' in action else 'es'
+            QuestionAdvancedFeature.objects.create(
+                question_xpath='q1',
+                action=action,
+                params=[{'language': language}],
+                asset=self.asset,
+            )
+        response = self.client.get(self.asset_url, format='json')
+        fields = response.data['analysis_form_json']['additional_fields']
+        fields = sorted(fields, key=lambda x: x['type'])
+        # there should be one transcript column and one translation column
+        assert len(fields) == 2
+
+        transcript_field = fields[0]
+        assert transcript_field['language'] == 'en'
+        assert transcript_field['source'] == 'q1'
+        assert transcript_field['type'] == 'transcript'
+        assert transcript_field['dtpath'] == 'q1/transcript_en'
+
+        translation_field = fields[1]
+        assert translation_field['language'] == 'es'
+        assert translation_field['source'] == 'q1'
+        assert translation_field['type'] == 'translation'
+        assert translation_field['dtpath'] == 'q1/translation_es'
 
 
 class AssetsXmlExportApiTests(KpiTestCase):
@@ -1855,8 +1889,9 @@ class AssetFileTest(AssetFileTestCaseMixin, BaseTestCase):
 class AssetDeploymentTest(BaseAssetDetailTestCase):
 
     def test_asset_deployment(self):
-        deployment_url = reverse(self._get_endpoint('asset-deployment'),
-                                 kwargs={'uid': self.asset_uid})
+        deployment_url = reverse(
+            self._get_endpoint('asset-deployment'), kwargs={'uid_asset': self.asset_uid}
+        )
 
         response1 = self.client.post(deployment_url, {
             'backend': 'mock',
@@ -1908,7 +1943,7 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
         asset_uid = asset_response.data.get('uid')
 
         deployment_url = reverse(
-            self._get_endpoint('asset-deployment'), kwargs={'uid': asset_uid}
+            self._get_endpoint('asset-deployment'), kwargs={'uid_asset': asset_uid}
         )
 
         deploy_response = self.client.post(
@@ -1959,7 +1994,7 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
         asset_uid = asset_response.data.get('uid')
 
         deployment_url = reverse(
-            self._get_endpoint('asset-deployment'), kwargs={'uid': asset_uid}
+            self._get_endpoint('asset-deployment'), kwargs={'uid_asset': asset_uid}
         )
 
         deploy_response = self.client.post(
@@ -2021,7 +2056,7 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
         asset = Asset.objects.get(uid=asset_response.data.get('uid'))
 
         deployment_url = reverse(
-            self._get_endpoint('asset-deployment'), kwargs={'uid': asset.uid}
+            self._get_endpoint('asset-deployment'), kwargs={'uid_asset': asset.uid}
         )
 
         deploy_response = self.client.post(
@@ -2053,8 +2088,9 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
         self.asset.refresh_from_db()
         version_id = asset_response.data['version_id']
 
-        deployment_url = reverse(self._get_endpoint('asset-deployment'),
-                                 kwargs={'uid': self.asset_uid})
+        deployment_url = reverse(
+            self._get_endpoint('asset-deployment'), kwargs={'uid_asset': self.asset_uid}
+        )
 
         # We cannot `POST` to redeploy...
         redeploy_response = self.client.post(deployment_url, {
@@ -2129,7 +2165,7 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
         # without creating a new `AssetVersion`
         deployment_url = reverse(
             self._get_endpoint('asset-deployment'),
-            kwargs={'uid': self.asset_uid},
+            kwargs={'uid_asset': self.asset_uid},
         )
         before = timezone.now()
         redeploy_response = self.client.patch(
@@ -2162,8 +2198,9 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
     def test_archive_asset(self):
         self.test_asset_deployment()
 
-        deployment_url = reverse(self._get_endpoint('asset-deployment'),
-                                 kwargs={'uid': self.asset_uid})
+        deployment_url = reverse(
+            self._get_endpoint('asset-deployment'), kwargs={'uid_asset': self.asset_uid}
+        )
 
         response1 = self.client.patch(deployment_url, {
             'backend': 'mock',
@@ -2188,9 +2225,9 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
         self.asset.refresh_from_db()
         original_date_deployed = self.asset.date_deployed
 
-        deployment_url = reverse(self._get_endpoint('asset-deployment'),
-                                 kwargs={'uid': self.asset_uid})
-
+        deployment_url = reverse(
+            self._get_endpoint('asset-deployment'), kwargs={'uid_asset': self.asset_uid}
+        )
 
         # archive
         response = self.client.patch(deployment_url, {

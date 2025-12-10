@@ -1,7 +1,7 @@
-import pytest
 import uuid
 from unittest.mock import patch
 
+import pytest
 from constance import config
 from constance.test import override_config
 from django.conf import settings
@@ -15,7 +15,7 @@ from kobo.apps.organizations.constants import UsageType
 from kobo.apps.stripe.utils.import_management import requires_stripe
 from kobo.apps.trash_bin.tasks.attachment import (
     auto_delete_excess_attachments,
-    schedule_auto_attachment_cleanup_for_users
+    schedule_auto_attachment_cleanup_for_users,
 )
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.tests.mixins.create_asset_and_submission_mixin import AssetSubmissionTestMixin
@@ -43,7 +43,7 @@ class AttachmentCleanupTestCase(BaseTestCase, AssetSubmissionTestMixin):
         ExceededLimitCounter.objects.create(
             user=self.owner,
             limit_type=UsageType.STORAGE_BYTES,
-            days=config.LIMIT_ATTACHMENT_REMOVAL_GRACE_PERIOD + 1,
+            days=config.OVER_LIMIT_ATTACHMENT_RETENTION + 1,
         )
 
         with patch(
@@ -68,7 +68,7 @@ class AttachmentCleanupTestCase(BaseTestCase, AssetSubmissionTestMixin):
             }
         }
         with patch(
-            'kobo.apps.subsequences.api_view.ServiceUsageCalculator.get_usage_balances',
+            'kobo.apps.trash_bin.tasks.attachment.ServiceUsageCalculator.get_usage_balances',  # noqa
             return_value=mock_balances,
         ):
             auto_delete_excess_attachments(self.owner.pk)
@@ -91,7 +91,7 @@ class AttachmentCleanupTestCase(BaseTestCase, AssetSubmissionTestMixin):
             },
         }
         with patch(
-            'kobo.apps.subsequences.api_view.ServiceUsageCalculator.get_usage_balances',  # noqa
+            'kobo.apps.trash_bin.tasks.attachment.ServiceUsageCalculator.get_usage_balances',  # noqa
             return_value=mock_balances,
         ):
             auto_delete_excess_attachments(self.owner.pk)
@@ -104,8 +104,8 @@ class AttachmentCleanupTestCase(BaseTestCase, AssetSubmissionTestMixin):
         submission_detail_url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'submission_id_or_root_uuid': self.instance.pk,
+                'uid_asset': self.asset.uid,
+                'pk': self.instance.pk,
             },
         )
         response = self.client.get(submission_detail_url)
@@ -141,7 +141,7 @@ class AttachmentCleanupTestCase(BaseTestCase, AssetSubmissionTestMixin):
             },
         }
         with patch(
-            'kobo.apps.subsequences.api_view.ServiceUsageCalculator.get_usage_balances',  # noqa
+            'kobo.apps.trash_bin.tasks.attachment.ServiceUsageCalculator.get_usage_balances',  # noqa
             return_value=mock_balances,
         ):
             auto_delete_excess_attachments(self.owner.pk)
@@ -158,7 +158,7 @@ class AttachmentCleanupTestCase(BaseTestCase, AssetSubmissionTestMixin):
 
         # Re-run the task and ensure no further deletions
         with patch(
-            'kobo.apps.subsequences.api_view.ServiceUsageCalculator.get_usage_balances',  # noqa
+            'kobo.apps.trash_bin.tasks.attachment.ServiceUsageCalculator.get_usage_balances',  # noqa
             return_value={
                 UsageType.STORAGE_BYTES: {
                     'effective_limit': limit_bytes,
@@ -190,14 +190,14 @@ class AttachmentCleanupTestCase(BaseTestCase, AssetSubmissionTestMixin):
         ExceededLimitCounter.objects.create(
             user=self.owner,
             limit_type=UsageType.STORAGE_BYTES,
-            days=config.LIMIT_ATTACHMENT_REMOVAL_GRACE_PERIOD + 1
+            days=config.OVER_LIMIT_ATTACHMENT_RETENTION + 1
         )
 
         # Non-qualifying user (within grace period)
         ExceededLimitCounter.objects.create(
             user=anotheruser,
             limit_type=UsageType.STORAGE_BYTES,
-            days=config.LIMIT_ATTACHMENT_REMOVAL_GRACE_PERIOD - 1
+            days=config.OVER_LIMIT_ATTACHMENT_RETENTION - 1
         )
 
         with patch(
@@ -248,7 +248,7 @@ class AttachmentCleanupTestCase(BaseTestCase, AssetSubmissionTestMixin):
                 },
             }
             with patch(
-                'kobo.apps.subsequences.api_view.ServiceUsageCalculator.get_usage_balances',  # noqa
+                'kobo.apps.trash_bin.tasks.attachment.ServiceUsageCalculator.get_usage_balances',  # noqa
                 return_value=mock_balances,
             ):
 
@@ -278,7 +278,7 @@ class AttachmentCleanupTestCase(BaseTestCase, AssetSubmissionTestMixin):
         counter = ExceededLimitCounter.objects.create(
             user=self.owner,
             limit_type=UsageType.STORAGE_BYTES,
-            days=config.LIMIT_ATTACHMENT_REMOVAL_GRACE_PERIOD + 1,
+            days=config.OVER_LIMIT_ATTACHMENT_RETENTION + 1,
         )
         self.assertTrue(Attachment.objects.filter(pk=self.attachment.pk).exists())
 

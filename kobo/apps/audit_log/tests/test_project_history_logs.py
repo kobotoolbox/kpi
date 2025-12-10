@@ -5,7 +5,6 @@ import uuid
 from unittest.mock import patch
 from xml.etree import ElementTree as ET
 
-import jsonschema.exceptions
 import responses
 from ddt import data, ddt, unpack
 from django.conf import settings
@@ -20,6 +19,7 @@ from rest_framework.reverse import reverse as drf_reverse
 from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import ProjectHistoryLog
 from kobo.apps.audit_log.tests.test_models import BaseAuditLogTestCase
+from kobo.apps.data_collectors.models import DataCollector, DataCollectorGroup
 from kobo.apps.hook.models import Hook
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Instance
@@ -28,6 +28,8 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     remove_uuid_prefix,
 )
 from kobo.apps.openrosa.libs.utils.logger_tools import dict2xform
+from kobo.apps.subsequences.constants import Action
+from kobo.apps.subsequences.models import QuestionAdvancedFeature
 from kpi.constants import (
     ASSET_TYPE_TEMPLATE,
     CLONE_ARG_NAME,
@@ -62,6 +64,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
     """
 
     fixtures = ['test_data', 'asset_with_settings_and_qa']
+    URL_NAMESPACE = 'api_v2'
 
     def setUp(self):
         super().setUp()
@@ -105,10 +108,25 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(metadata_dict['project_owner'], self.asset.owner.username)
 
     def _check_submission_log_metadata(
-        self, metadata, expected_username, expected_root_uuid
+        self, metadata, expected_username, expected_root_uuid, data_collector=None
     ):
         self.assertEqual(metadata['submission']['submitted_by'], expected_username)
         self.assertEqual(metadata['submission']['root_uuid'], expected_root_uuid)
+        if data_collector:
+            self.assertEqual(
+                metadata['submission']['data_collector_uid'], data_collector.uid
+            )
+            self.assertEqual(
+                metadata['submission']['data_collector_name'], data_collector.name
+            )
+            self.assertEqual(
+                metadata['submission']['data_collector_group_uid'],
+                data_collector.group.uid,
+            )
+            self.assertEqual(
+                metadata['submission']['data_collector_group_name'],
+                data_collector.group.name,
+            )
 
     def _base_asset_detail_endpoint_test(
         self,
@@ -119,7 +137,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         use_v2=True,
     ):
         url_name_prefix = 'api_v2:' if use_v2 else ''
-        url = reverse(f'{url_name_prefix}{url_name}', kwargs={'uid': self.asset.uid})
+        url = reverse(
+            f'{url_name_prefix}{url_name}', kwargs={'uid_asset': self.asset.uid}
+        )
         method = self.client.patch if patch else self.client.post
         log_metadata = self._base_project_history_log_test(
             method,
@@ -221,7 +241,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         )
         # do it again (archive an already-archived asset)
         self.client.patch(
-            reverse('api_v2:asset-deployment', kwargs={'uid': self.asset.uid}),
+            reverse('api_v2:asset-deployment', kwargs={'uid_asset': self.asset.uid}),
             data=request_data,
             format='json',
         )
@@ -245,7 +265,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         )
         # do it again (unarchive an already-unarchived asset)
         self.client.patch(
-            reverse('api_v2:asset-deployment', kwargs={'uid': self.asset.uid}),
+            reverse('api_v2:asset-deployment', kwargs={'uid_asset': self.asset.uid}),
             data=request_data,
             format='json',
         )
@@ -261,7 +281,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             'active': True,
         }
         self.client.patch(
-            reverse('api_v2:asset-deployment', kwargs={'uid': self.asset.uid}),
+            reverse('api_v2:asset-deployment', kwargs={'uid_asset': self.asset.uid}),
             data=request_data,
             format='json',
         )
@@ -269,7 +289,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.asset.deploy(backend='mock', active=True)
         # attempt to POST to a deployed asset
         self.client.post(
-            reverse('api_v2:asset-deployment', kwargs={'uid': self.asset.uid}),
+            reverse('api_v2:asset-deployment', kwargs={'uid_asset': self.asset.uid}),
             data=request_data,
             format='json',
         )
@@ -378,7 +398,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         url_name_prefix = 'api_v2:' if use_v2 else ''
 
         self.client.patch(
-            reverse(f'{url_name_prefix}asset-detail', kwargs={'uid': self.asset.uid}),
+            reverse(
+                f'{url_name_prefix}asset-detail', kwargs={'uid_asset': self.asset.uid}
+            ),
             data=patch_data,
             format='json',
         )
@@ -562,19 +584,17 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
     def test_update_qa_creates_log(self):
         request_data = {
             'advanced_features': {
-                'qual': {
-                    'qual_survey': [
-                        {
-                            'type': 'qual_note',
-                            'uuid': '12345',
-                            'scope': 'by_question#survey',
-                            'xpath': 'q1',
-                            'labels': {'_default': 'QA Question'},
-                            # requests to remove a question just add this
-                            # option rather than actually deleting anything
-                            'options': {'deleted': True},
-                        }
-                    ]
+                '_version': '20250820',
+                '_actionConfigs': {
+                    'q1': {
+                        'qual': [
+                            {
+                                'type': 'qualText',
+                                'uuid': '12345',
+                                'labels': {'_default': 'Why?'},
+                            },
+                        ]
+                    }
                 }
             }
         }
@@ -588,19 +608,99 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
 
         self.assertEqual(
             log_metadata['qa'][PROJECT_HISTORY_LOG_METADATA_FIELD_NEW],
-            request_data['advanced_features']['qual']['qual_survey'],
+            request_data['advanced_features']['_actionConfigs'],
         )
 
-    def test_failed_qa_update_does_not_create_log(self):
-        # badly formatted QA dict should result in an error before update
-        request_data = {'advanced_features': {'qual': {'qual_survey': ['bad']}}}
-        with self.assertRaises(jsonschema.exceptions.ValidationError):
-            self.client.patch(
-                reverse('api_v2:asset-detail', kwargs={'uid': self.asset.uid}),
-                data=request_data,
-                format='json',
-            )
+    def test_add_qa_creates_log(self):
+        request_data = {
+            'action': 'qual',
+            'question_xpath': 'Audio',
+            'params': [
+                {
+                    'labels': {'_default': 'wherefore?'},
+                    'uuid': '12345',
+                    'type': 'qualText',
+                }
+            ],
+        }
+        metadata = self._base_project_history_log_test(
+            self.client.post,
+            reverse(
+                self._get_endpoint('advanced-features-list'), args=[self.asset.uid]
+            ),
+            request_data=request_data,
+            expected_action=AuditAction.UPDATE_QA,
+            expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+        )
+        self.assertEqual(metadata['qa']['new'], request_data['params'])
 
+    def test_failed_add_qa_does_not_create_log(self):
+        request_data = {
+            'action': 'qual',
+            'question_xpath': 'Audio',
+            'params': [{'bad': 'params'}],
+        }
+        self.client.post(
+            reverse(
+                self._get_endpoint('advanced-features-list'), args=[self.asset.uid]
+            ),
+            data=request_data,
+        )
+        self.assertEqual(ProjectHistoryLog.objects.count(), 0)
+
+    def test_add_other_advanced_feature_does_not_create_log(self):
+        request_data = {
+            'action': 'manual_transcription',
+            'question_xpath': 'Audio',
+            'params': [{'language': 'en'}],
+        }
+        self.client.post(
+            reverse(
+                self._get_endpoint('advanced-features-list'), args=[self.asset.uid]
+            ),
+            data=request_data,
+        )
+        self.assertEqual(ProjectHistoryLog.objects.count(), 0)
+
+    def test_modify_qa_creates_log(self):
+        question_qual_action = QuestionAdvancedFeature.objects.get(
+            asset=self.asset, action=Action.QUAL, question_xpath='q1'
+        )
+        request_data = {
+            'params': [
+                {
+                    'labels': {'_default': 'wherefore?'},
+                    'uuid': '12345',
+                    'type': 'qualText',
+                }
+            ]
+        }
+        metadata = self._base_project_history_log_test(
+            self.client.patch,
+            reverse(
+                self._get_endpoint('advanced-features-detail'),
+                args=[self.asset.uid, question_qual_action.uid],
+            ),
+            request_data=request_data,
+            expected_action=AuditAction.UPDATE_QA,
+            expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+        )
+        self.assertEqual(metadata['qa']['new'], request_data['params'])
+
+    def test_failed_modify_qa_does_not_create_log(self):
+        question_qual_action = QuestionAdvancedFeature.objects.get(
+            asset=self.asset, action=Action.QUAL, question_xpath='q1'
+        )
+        request_data = {'params': [{'bad': 'params'}]}
+        self.client.patch(
+            reverse(
+                self._get_endpoint('advanced-features-detail'),
+                args=[self.asset.uid, question_qual_action.uid],
+            ),
+            request_data=request_data,
+            expected_action=AuditAction.UPDATE_QA,
+            expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+        )
         self.assertEqual(ProjectHistoryLog.objects.count(), 0)
 
     @data(True, False)
@@ -647,8 +747,8 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             url=reverse(
                 f'{url_prefix}hook-detail',
                 kwargs={
-                    'parent_lookup_asset': self.asset.uid,
-                    'uid': new_hook.uid,
+                    'uid_asset': self.asset.uid,
+                    'uid_hook': new_hook.uid,
                 },
             ),
             request_data=request_data,
@@ -675,8 +775,8 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             url=reverse(
                 f'{url_prefix}hook-detail',
                 kwargs={
-                    'parent_lookup_asset': self.asset.uid,
-                    'uid': new_hook.uid,
+                    'uid_asset': self.asset.uid,
+                    'uid_hook': new_hook.uid,
                 },
             ),
             request_data=request_data,
@@ -697,7 +797,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         # so we don't have a permissions issue
         source.owner = self.asset.owner
         source.save()
-        asset_url = drf_reverse('api_v2:asset-detail', kwargs={'uid': source.uid})
+        asset_url = drf_reverse('api_v2:asset-detail', kwargs={'uid_asset': source.uid})
         request_data = {
             'fields': ['q1'],
             'filename': 'test_file',
@@ -738,8 +838,8 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             url=reverse(
                 'api_v2:paired-data-detail',
                 kwargs={
-                    'parent_lookup_asset': self.asset.uid,
-                    'paired_data_uid': paired_data.paired_data_uid,
+                    'uid_asset': self.asset.uid,
+                    'uid_paired_data': paired_data.paired_data_uid,
                 },
             ),
             request_data=None,
@@ -771,8 +871,8 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             url=reverse(
                 'api_v2:paired-data-detail',
                 kwargs={
-                    'parent_lookup_asset': self.asset.uid,
-                    'paired_data_uid': paired_data.paired_data_uid,
+                    'uid_asset': self.asset.uid,
+                    'uid_paired_data': paired_data.paired_data_uid,
                 },
             ),
             request_data={'fields': ['q2']},
@@ -828,8 +928,8 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             url=reverse(
                 f'{url_prefix}asset-file-detail',
                 kwargs={
-                    'parent_lookup_asset': self.asset.uid,
-                    'uid': media.uid,
+                    'uid_asset': self.asset.uid,
+                    'uid_file': media.uid,
                 },
             ),
             request_data=None,
@@ -857,7 +957,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
     def test_create_from_import_task(self, file_or_url, change_name, use_v2):
         task_data = {
             'destination': reverse(
-                'api_v2:asset-detail', kwargs={'uid': self.asset.uid}
+                'api_v2:asset-detail', kwargs={'uid_asset': self.asset.uid}
             ),
             'name': 'name',
         }
@@ -955,7 +1055,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             url=reverse(
                 'api_v2:asset-export-list',
                 kwargs={
-                    'parent_lookup_asset': self.asset.uid,
+                    'uid_asset': self.asset.uid,
                 },
             ),
             request_data=request_data,
@@ -975,7 +1075,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             'type': 'xls',
             'xls_types_as_text': False,
             'include_media_url': True,
-            'source': reverse('api_v2:asset-detail', kwargs={'uid': self.asset.uid}),
+            'source': reverse(
+                'api_v2:asset-detail', kwargs={'uid_asset': self.asset.uid}
+            ),
         }
         # can't use _base_project_history_log_test because
         # the old endpoint doesn't like format=json
@@ -1056,9 +1158,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         ]
         self.client.post(
             path=reverse(
-                'api_v2:asset-permission-assignment-bulk-assignments',
+                'api_v2:asset-permission-assignment-bulk-actions',
                 kwargs={
-                    'parent_lookup_asset': self.asset.uid,
+                    'uid_asset': self.asset.uid,
                 },
             ),
             data=request_data,
@@ -1158,12 +1260,12 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         # /bulk expects assignments to come in a list
         if use_bulk:
             request_data = [request_data]
-        endpoint = 'bulk-assignments' if use_bulk else 'list'
+        endpoint = 'bulk-actions' if use_bulk else 'list'
         self.client.post(
             path=reverse(
                 f'api_v2:asset-permission-assignment-{endpoint}',
                 kwargs={
-                    'parent_lookup_asset': self.asset.uid,
+                    'uid_asset': self.asset.uid,
                 },
             ),
             data=request_data,
@@ -1183,7 +1285,10 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.client.delete(
             path=reverse(
                 'api_v2:asset-permission-assignment-detail',
-                kwargs={'parent_lookup_asset': self.asset.uid, 'uid': perm.uid},
+                kwargs={
+                    'uid_asset': self.asset.uid,
+                    'uid_permission_assignment': perm.uid,
+                },
             ),
         )
         removal_log = ProjectHistoryLog.objects.filter(
@@ -1206,12 +1311,12 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         }
         if use_bulk:
             request_data = [request_data]
-        endpoint = 'bulk-assignments' if use_bulk else 'list'
+        endpoint = 'bulk-actions' if use_bulk else 'list'
         self.client.post(
             path=reverse(
                 f'api_v2:asset-permission-assignment-{endpoint}',
                 kwargs={
-                    'parent_lookup_asset': self.asset.uid,
+                    'uid_asset': self.asset.uid,
                 },
             ),
             data=request_data,
@@ -1243,8 +1348,8 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             path=reverse(
                 'api_v2:asset-permission-assignment-detail',
                 kwargs={
-                    'parent_lookup_asset': self.asset.uid,
-                    'uid': view_asset_perm.uid,
+                    'uid_asset': self.asset.uid,
+                    'uid_permission_assignment': view_asset_perm.uid,
                 },
             ),
         )
@@ -1292,12 +1397,12 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         }
         if use_bulk:
             request_data = [request_data]
-        endpoint = 'bulk-assignments' if use_bulk else 'list'
+        endpoint = 'bulk-actions' if use_bulk else 'list'
         self.client.post(
             path=reverse(
                 f'api_v2:asset-permission-assignment-{endpoint}',
                 kwargs={
-                    'parent_lookup_asset': self.asset.uid,
+                    'uid_asset': self.asset.uid,
                 },
             ),
             data=request_data,
@@ -1356,8 +1461,8 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             path=reverse(
                 'api_v2:asset-permission-assignment-detail',
                 kwargs={
-                    'parent_lookup_asset': self.asset.uid,
-                    'uid': partial_submissions_perm.uid,
+                    'uid_asset': self.asset.uid,
+                    'uid_permission_assignment': partial_submissions_perm.uid,
                 },
             ),
         )
@@ -1393,7 +1498,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             path=reverse(
                 'api_v2:asset-permission-assignment-list',
                 kwargs={
-                    'parent_lookup_asset': self.asset.uid,
+                    'uid_asset': self.asset.uid,
                 },
             ),
             data={
@@ -1432,9 +1537,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         ]
         self.client.post(
             path=reverse(
-                'api_v2:asset-permission-assignment-bulk-assignments',
+                'api_v2:asset-permission-assignment-bulk-actions',
                 kwargs={
-                    'parent_lookup_asset': self.asset.uid,
+                    'uid_asset': self.asset.uid,
                 },
             ),
             data=data,
@@ -1448,7 +1553,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             method=self.client.patch,
             url=reverse(
                 'api_v2:asset-permission-assignment-clone',
-                kwargs={'parent_lookup_asset': self.asset.uid},
+                kwargs={'uid_asset': self.asset.uid},
             ),
             request_data={CLONE_ARG_NAME: second_asset.uid},
             expected_action=AuditAction.CLONE_PERMISSIONS,
@@ -1519,8 +1624,8 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         submission_url = reverse(
             self._get_endpoint('submission-duplicate'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'submission_id_or_root_uuid': submission['_id'],
+                'uid_asset': self.asset.uid,
+                'pk': submission['_id'],
             },
         )
         # whoever performs the duplication request will be considered the submitter
@@ -1569,7 +1674,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         edit_submission_xml(xml_parsed, 'Q1', 'new answer')
         edited_submission = xml_tostring(xml_parsed)
         url = reverse(
-            self._get_endpoint('api_v2:assetsnapshot-submission-openrosa'),
+            self._get_endpoint('assetsnapshot-submission-openrosa'),
             args=(self.asset.snapshot().uid,),
         )
         data = {
@@ -1611,7 +1716,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
 
         self.client.patch(
             path=reverse(
-                'api_v2:submission-bulk', kwargs={'parent_lookup_asset': self.asset.uid}
+                'api_v2:submission-bulk', kwargs={'uid_asset': self.asset.uid}
             ),
             data={'payload': payload},
             format='json',
@@ -1653,8 +1758,8 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             url=reverse(
                 'api_v2:submission-validation-status',
                 kwargs={
-                    'parent_lookup_asset': self.asset.uid,
-                    'submission_id_or_root_uuid': submission['_id'],
+                    'uid_asset': self.asset.uid,
+                    'pk': submission['_id'],
                 },
             ),
             request_data={'validation_status.uid': 'validation_status_on_hold'},
@@ -1682,7 +1787,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.client.patch(
             path=reverse(
                 'api_v2:submission-validation-statuses',
-                kwargs={'parent_lookup_asset': self.asset.uid},
+                kwargs={'uid_asset': self.asset.uid},
             ),
             data={'payload': payload},
             format='json',
@@ -1720,13 +1825,14 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         )
 
     @data(
-        # submit as anonymous?, use v1 endpoint?
-        (True, False),
-        (False, True),
-        (False, False),
+        # user_type, use v1 endpoint?
+        ('anon', False),
+        ('user', True),
+        ('user', False),
+        ('dc', False),
     )
     @unpack
-    def test_add_submission(self, anonymous, v1):
+    def test_add_submission(self, user_type, v1):
         # prepare submission data
         uuid_ = uuid.uuid4()
         self.asset.deploy(backend='mock')
@@ -1746,16 +1852,23 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             'version': self.asset.latest_version.uid,
         }
         endpoint = 'submissions-list' if v1 else 'submissions'
-        kwargs = {'username': self.user.username} if not v1 else {}
+        data_collector = None
+        if user_type == 'dc':
+            dcg = DataCollectorGroup.objects.create(name='DCG', owner=self.asset.owner)
+            data_collector = DataCollector.objects.create(name='DC', group=dcg)
+            dcg.assets.add(self.asset)
+            kwargs = {'token': data_collector.token}
+        else:
+            kwargs = {'username': self.user.username} if not v1 else {}
         url = reverse(
-            self._get_endpoint(endpoint),
+            endpoint,
             kwargs=kwargs,
         )
         data = {'xml_submission_file': SimpleUploadedFile('name.txt', ET.tostring(xml))}
         # ensure anonymous users are allowed to submit
         self.asset.assign_perm(perm=PERM_ADD_SUBMISSIONS, user_obj=AnonymousUser())
 
-        if not anonymous:
+        if user_type == 'user':
             # the submission endpoints don't allow session authentication, so
             # just force the request to attach the correct user
             self.client.force_authenticate(user=self.user)
@@ -1775,8 +1888,12 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(log.object_id, self.asset.id)
         self.assertEqual(log.action, AuditAction.ADD_SUBMISSION)
         self._check_common_metadata(log.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
-        username = 'AnonymousUser' if anonymous else self.user.username
-        self._check_submission_log_metadata(log.metadata, username, inst.root_uuid)
+        username = (
+            'AnonymousUser' if user_type in ['anon', 'dc'] else self.user.username
+        )
+        self._check_submission_log_metadata(
+            log.metadata, username, inst.root_uuid, data_collector=data_collector
+        )
 
     def test_delete_single_submission(self):
         instance, submission = self._add_submission('adminuser')
@@ -1785,8 +1902,8 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             url=reverse(
                 'api_v2:submission-detail',
                 kwargs={
-                    'parent_lookup_asset': self.asset.uid,
-                    'submission_id_or_root_uuid': submission['_id'],
+                    'uid_asset': self.asset.uid,
+                    'pk': submission['_id'],
                 },
             ),
             request_data={},
@@ -1822,7 +1939,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.client.delete(
             path=reverse(
                 'api_v2:submission-bulk',
-                kwargs={'parent_lookup_asset': self.asset.uid},
+                kwargs={'uid_asset': self.asset.uid},
             ),
             data={'payload': payload},
             format='json',
@@ -1868,22 +1985,22 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         instance, submission = self._add_submission(
             'adminuser' if not is_anonymous else None
         )
+        question_uuid = self.asset.advanced_features_set.get(
+            action='qual', question_xpath='q1'
+        ).params[0]['uuid']
         log_metadata = self._base_project_history_log_test(
-            method=self.client.post,
+            method=self.client.patch,
             url=reverse(
-                'advanced-submission-post',
-                kwargs={'asset_uid': self.asset.uid},
+                self._get_endpoint('submission-supplement'),
+                kwargs={'uid_asset': self.asset.uid, 'pk': submission['_uuid']},
             ),
             request_data={
-                'submission': submission['_uuid'],
+                '_version': '20250820',
                 'q1': {
-                    'qual': [
-                        {
-                            'type': 'qual_text',
-                            'uuid': '12345',
-                            'val': 'someval',
-                        }
-                    ]
+                    'qual': {
+                        'uuid': question_uuid,
+                        'value': 1,
+                    }
                 },
             },
             expected_action=AuditAction.MODIFY_QA_DATA,
@@ -1898,6 +2015,9 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         deployment = self.asset.deployment
         new_uuid = str(uuid.uuid4())
         xml_parsed = fromstring_preserve_root_xmlns(instance.xml)
+        question_uuid = self.asset.advanced_features_set.get(
+            action='qual', question_xpath='q1'
+        ).params[0]['uuid']
         edit_submission_xml(
             xml_parsed,
             deployment.SUBMISSION_DEPRECATED_UUID_XPATH,
@@ -1917,21 +2037,18 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         instance.uuid = new_uuid
         instance.save()
         log_metadata = self._base_project_history_log_test(
-            method=self.client.post,
+            method=self.client.patch,
             url=reverse(
-                'advanced-submission-post',
-                kwargs={'asset_uid': self.asset.uid},
+                self._get_endpoint('submission-supplement'),
+                args=[self.asset.uid, submission['_uuid']],
             ),
             request_data={
-                'submission': submission['_uuid'],
+                '_version': '20250820',
                 'q1': {
-                    'qual': [
-                        {
-                            'type': 'qual_text',
-                            'uuid': '12345',
-                            'val': 'someval',
-                        }
-                    ]
+                    'qual': {
+                        'uuid': question_uuid,
+                        'value': 1,
+                    }
                 },
             },
             expected_action=AuditAction.MODIFY_QA_DATA,

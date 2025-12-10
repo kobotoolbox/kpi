@@ -119,6 +119,7 @@ module.exports = do ->
     @_afterIterator(cb, ctx)  if '_afterIterator' of @
     return
 
+  # This is an extended Backbone.Collection (because $base.BaseCollection extends Backbone.Collection)
   class surveyFragment.SurveyFragment extends $base.BaseCollection
     constructor: (arg, opts)->
       super(arg, opts)
@@ -184,7 +185,11 @@ module.exports = do ->
       ,opts
       return match
     addRowAtIndex: (r, index)-> @addRow(r, at: index)
+
     addRow: (r, opts={})->
+      # The row we want to add needs to be added in some parent at some index.
+      # Here, using the provided parent, we find index for new row. We base it on the given after or before (row).
+      # Fallback is using root list of rows as parent (with no index - TODO come up with explanation why and what)
       if (afterRow = opts.after)
         delete opts.after
         opts._parent = afterRow._parent
@@ -369,16 +374,20 @@ module.exports = do ->
       }
 
   INVALID_TYPES_AT_THIS_STAGE = ['begin_group', 'end_group', 'begin_repeat', 'end_repeat']
+
   _determineConstructorByParams = (obj)->
     formSettingsTypes = do ->
       result = []
       for key, val of $configs.defaultSurveyDetails
         result.push val.name
       return result
+
     type = obj?.type
+
     if type in INVALID_TYPES_AT_THIS_STAGE
       # inputParser should have converted groups and repeats into a structure by this point
       throw new Error("Invalid type at this stage: #{type}")
+      return
 
     if type in formSettingsTypes
       # e.g. "today"

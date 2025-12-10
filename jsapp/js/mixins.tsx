@@ -18,7 +18,7 @@ import pageState from '#/pageState.store'
 import { router, routerGetAssetId, routerIsActive } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
 import { getRouteAssetUid } from '#/router/routerUtils'
-import { escapeHtml, join, log, notify } from '#/utils'
+import { escapeHtml, join, log, notify, recordKeys } from '#/utils'
 import { actions } from './actions'
 import { ASSET_TYPES, MODAL_TYPES, PROJECT_SETTINGS_CONTEXTS } from './constants'
 
@@ -203,7 +203,7 @@ const mixins: MixinsObject = {
           <code>
             {this.state.asset_type}
             <br />
-            {`[${Object.keys(this.state).join(', ')}]`}
+            {`[${recordKeys(this.state).join(', ')}]`}
             <br />
             {JSON.stringify(this.state.summary, null, 4)}
           </code>

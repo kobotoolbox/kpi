@@ -1,4 +1,5 @@
 # coding: utf-8
+import mimetypes
 import os
 import shutil
 import tempfile
@@ -55,21 +56,21 @@ def iterate_through_instances(dirpath, callback):
                 try:
                     success_count += callback(xfxs)
                 except Exception as e:
-                    errors.append("%s => %s" % (xfxs.filename, str(e)))
+                    errors.append('%s => %s' % (xfxs.filename, str(e)))
                 del xfxs
                 total_file_count += 1
 
     return total_file_count, success_count, errors
 
 
-def import_instances_from_zip(zipfile_path, user, status="zip"):
+def import_instances_from_zip(zipfile_path, user, status='zip'):
     try:
         temp_directory = tempfile.mkdtemp()
         zf = zipfile.ZipFile(zipfile_path)
 
         zf.extractall(temp_directory)
     except zipfile.BadZipfile as e:
-        errors = ["%s" % e]
+        errors = ['%s' % e]
         return 0, 0, errors
     else:
         return import_instances_from_path(temp_directory, user, status)
@@ -77,25 +78,37 @@ def import_instances_from_zip(zipfile_path, user, status="zip"):
         shutil.rmtree(temp_directory)
 
 
-def import_instances_from_path(path, user, status="zip"):
+def import_instances_from_path(path, user, status='zip'):
     def callback(xform_fs):
         """
         This callback is passed an instance of a XFormInstanceFS.
         See xform_fs.py for more info.
         """
-        with django_file(xform_fs.path, field_name="xml_file",
-                         content_type="text/xml") as xml_file:
-            images = [django_file(jpg, field_name="image",
-                      content_type="image/jpeg") for jpg in xform_fs.photos]
+        with django_file(
+            xform_fs.path,
+            field_name='xml_file',
+            content_type='text/xml',
+        ) as xml_file:
+            attachments = [
+                django_file(
+                    dir_entry.path,
+                    field_name=dir_entry.name,
+                    content_type=mimetypes.guess_type(dir_entry.name)[0],
+                )
+                for dir_entry in xform_fs.attachments
+            ]
             # TODO: if an instance has been submitted make sure all the
             # files are in the database.
             # there shouldn't be any instances with a submitted status in the
             # import.
-            instance = create_instance(user.username, xml_file, images, status)
+            #
 
-            for i in images:
-                i.close()
-                i.close()
+            instance = create_instance(
+                user.username, xml_file, (a for a in attachments), status
+            )
+
+            for a in attachments:
+                a.close()
 
             if instance:
                 return 1

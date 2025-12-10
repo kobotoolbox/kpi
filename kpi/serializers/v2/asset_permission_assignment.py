@@ -32,7 +32,7 @@ class AssetPermissionAssignmentSerializer(serializers.ModelSerializer):
     user = RelativePrefixHyperlinkedRelatedField(
         view_name='user-kpi-detail',
         lookup_field='username',
-        queryset=User.objects.all(),
+        queryset=User.objects.filter(is_active=True),
         style={'base_template': 'input.html'},  # Render as a simple text box
     )
     permission = RelativePrefixHyperlinkedRelatedField(
@@ -524,7 +524,7 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
         # Create a dictionary of API user URLs to `User` objects
         url_to_user = dict()
         for user in User.objects.only('pk', 'username').filter(
-            username__in=username_to_url.keys()
+            username__in=username_to_url.keys(), is_active=True
         ):
             url = username_to_url[user.username]
             url_to_user[url] = user

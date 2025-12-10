@@ -1,9 +1,10 @@
 from django.db import models
 
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
+from kpi.fields import KpiUidField, LazyDefaultJSONBField
 from kpi.models.abstract_models import AbstractTimeStampedModel
 from .actions import ACTION_IDS_TO_CLASSES
-from .constants import SUBMISSION_UUID_FIELD, SCHEMA_VERSIONS
+from .constants import SCHEMA_VERSIONS, SUBMISSION_UUID_FIELD, Action
 from .exceptions import InvalidAction, InvalidXPath
 from .schemas import validate_submission_supplement
 
@@ -34,7 +35,7 @@ class SubmissionSupplement(SubmissionExtras):
     @staticmethod
     def revise_data(asset: 'kpi.Asset', submission: dict, incoming_data: dict) -> dict:
 
-        if not asset.advanced_features:
+        if not asset.advanced_features_set.exists():
             raise InvalidAction
 
         schema_version = incoming_data.get('_version')
@@ -45,10 +46,6 @@ class SubmissionSupplement(SubmissionExtras):
 
         if schema_version != SCHEMA_VERSIONS[0]:
             # TODO: migrate from old per-submission schema
-            raise NotImplementedError
-
-        if asset.advanced_features.get('_version') != schema_version:
-            # TODO: migrate from old per-asset schema
             raise NotImplementedError
 
         submission_uuid = remove_uuid_prefix(submission[SUBMISSION_UUID_FIELD])  # constant?
@@ -65,24 +62,21 @@ class SubmissionSupplement(SubmissionExtras):
                 # FIXME: what's a better way? skip all leading underscore keys?
                 # pop off the known special keys first?
                 continue
-            try:
-                action_configs_for_this_question = asset.advanced_features[
-                    '_actionConfigs'
-                ][question_xpath]
-            except KeyError as e:
-                raise InvalidXPath from e
+            feature_configs_for_this_question = asset.advanced_features_set.filter(
+                question_xpath=question_xpath
+            )
+            if not feature_configs_for_this_question.exists():
+                raise InvalidXPath
 
             for action_id, action_data in data_for_this_question.items():
+                if not ACTION_IDS_TO_CLASSES.get(action_id):
+                    raise InvalidAction
                 try:
-                    action_class = ACTION_IDS_TO_CLASSES[action_id]
-                except KeyError as e:
-                    raise InvalidAction from e
-                try:
-                    action_params = action_configs_for_this_question[action_id]
-                except KeyError as e:
+                    feature = feature_configs_for_this_question.get(action=action_id)
+                except QuestionAdvancedFeature.DoesNotExist as e:
                     raise InvalidAction from e
 
-                action = action_class(question_xpath, action_params, asset)
+                action = feature.to_action()
                 action.check_limits(asset.owner)
 
                 question_supplemental_data = supplemental_data.setdefault(
@@ -161,10 +155,6 @@ class SubmissionSupplement(SubmissionExtras):
             # TODO: migrate from old per-submission schema
             raise NotImplementedError
 
-        if asset.advanced_features.get('_version') != schema_version:
-            # TODO: migrate from old per-asset schema
-            raise NotImplementedError
-
         retrieved_supplemental_data = {}
         data_for_output = {}
 
@@ -172,42 +162,24 @@ class SubmissionSupplement(SubmissionExtras):
             processed_data_for_this_question = retrieved_supplemental_data.setdefault(
                 question_xpath, {}
             )
-            action_configs = asset.advanced_features['_actionConfigs']
-            try:
-                action_configs_for_this_question = action_configs[question_xpath]
-            except KeyError:
-                # There's still supplemental data for this question at the
-                # submission level, but the question is no longer configured at the
-                # asset level.
-                # Allow this for now, but maybe forbid later and also forbid
-                # removing things from the asset-level action configuration?
-                # Actions could be disabled or hidden instead of being removed
-
-                # FIXME: divergence between the asset-level configuration and
-                # submission-level supplemental data is going to cause schema
-                # validation failures! We defo need to forbid removal of actions
-                # and instead provide a way to mark them as deleted
-                continue
+            advanced_features_for_this_question = asset.advanced_features_set.filter(
+                question_xpath=question_xpath
+            )
+            output_data_for_question = {}
+            max_date_accepted_by_field_key = {}
 
             for action_id, action_data in data_for_this_question.items():
-                try:
-                    action_class = ACTION_IDS_TO_CLASSES[action_id]
-                except KeyError:
+                if not ACTION_IDS_TO_CLASSES.get(action_id):
                     # An action class present in the submission data no longer
                     # exists in the application code
                     # TODO: log an error
                     continue
                 try:
-                    action_params = action_configs_for_this_question[action_id]
-                except KeyError:
-                    # An action class present in the submission data is no longer
-                    # configured at the asset level for this question
-                    # Allow this for now, but maybe forbid later and also forbid
-                    # removing things from the asset-level action configuration?
-                    # Actions could be disabled or hidden instead of being removed
-                    continue
+                    feature = advanced_features_for_this_question.get(action=action_id)
+                except QuestionAdvancedFeature.DoesNotExist as e:
+                    raise InvalidAction from e
 
-                action = action_class(question_xpath, action_params)
+                action = feature.to_action()
 
                 retrieved_data = action.retrieve_data(action_data)
                 processed_data_for_this_question[action_id] = retrieved_data
@@ -215,21 +187,44 @@ class SubmissionSupplement(SubmissionExtras):
                     # Arbitrate the output data so that each column is only
                     # represented once, and that the most recently accepted
                     # action result is used as the value
+
+                    # Columns may be represented by a string or a tuple of strings
+                    # for when the API expects something like
+                    # {'translation': {'lang1': {value...}, 'lang2': {value...}}}
+                    # where ('translation','lang1') would be one key and
+                    # ('translation', 'lang2') would be the other
                     transformed_data = action.transform_data_for_output(retrieved_data)
-                    for field_name, field_data in transformed_data.items():
+                    if not action.overlaps_other_actions():
+                        for field_key, field_data in transformed_data.items():
+                            if field_data:
+                                output_data_for_question[field_key] = field_data
+                        continue
+
+                    for field_key, field_data in transformed_data.items():
                         # Omit `_dateAccepted` from the output data
                         new_acceptance_date = field_data.pop('_dateAccepted', None)
                         if not new_acceptance_date:
                             # Never return unaccepted data
                             continue
-                        existing_acceptance_date = data_for_output.get(
-                            field_name, {}
-                        ).get('_dateAccepted')
+                        existing_acceptance_date = max_date_accepted_by_field_key.get(
+                            field_key, ''
+                        )
                         if (
                             not existing_acceptance_date
                             or existing_acceptance_date < new_acceptance_date
                         ):
-                            data_for_output[field_name] = field_data
+                            max_date_accepted_by_field_key[field_key] = (
+                                new_acceptance_date
+                            )
+                            if isinstance(field_key, str):
+                                output_data_for_question[field_key] = field_data
+                            else:
+                                # see https://stackoverflow.com/questions/13687924/setting-a-value-in-a-nested-python-dictionary-given-a-list-of-indices-and-value  # noqa
+                                current = output_data_for_question
+                                for key_str in field_key[:-1]:
+                                    current = current.setdefault(key_str, {})
+                                current[field_key[-1]] = field_data
+            data_for_output[question_xpath] = output_data_for_question
 
         retrieved_supplemental_data['_version'] = schema_version
 
@@ -237,3 +232,39 @@ class SubmissionSupplement(SubmissionExtras):
             return data_for_output
 
         return retrieved_supplemental_data
+
+
+class QuestionAdvancedFeature(models.Model):
+    uid = KpiUidField(uid_prefix='qaf', primary_key=True)
+    asset = models.ForeignKey(
+        'kpi.Asset',
+        related_name='advanced_features_set',
+        null=False,
+        blank=False,
+        on_delete=models.CASCADE,
+    )
+    action = models.CharField(
+        max_length=60,
+        choices=Action.choices,
+        db_index=True,
+        null=False,
+        blank=False,
+    )
+    question_xpath = models.CharField(null=False, blank=False, max_length=2000)
+    params = LazyDefaultJSONBField(default=dict)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['asset_id', 'question_xpath', 'action'],
+                name='unique_advanced_feature',
+            )
+        ]
+
+    def to_action(self):
+        action_class = ACTION_IDS_TO_CLASSES[self.action]
+        return action_class(
+            source_question_xpath=self.question_xpath,
+            params=self.params,
+            asset=self.asset,
+        )

@@ -15,6 +15,8 @@ import { ROOT_URL } from './constants'
  * It can detect if we got HTML string as response and uses a generic message
  * instead of spitting it out. The error message displayed to the user can be
  * customized using the optional `toastMessage` argument.
+ *
+ * @deprecated - instead, use react-query + Orval.
  */
 export function handleApiFail(response: FailResponse, toastMessage?: string) {
   // Don't do anything if we purposefully aborted the request
@@ -118,6 +120,9 @@ export interface FetchDataOptions {
   includeHeaders?: boolean
 }
 
+/**
+ * @deprecated - instead, use react-query + Orval.
+ */
 export const fetchDataRaw = async <T>(
   /**
    * If you have full url to be called, remember to use `prependRootUrl` option.
@@ -136,7 +141,7 @@ export const fetchDataRaw = async <T>(
   }
 
   // For when it's needed we pass authentication data
-  if (method === 'DELETE' || data) {
+  if (method !== 'GET') {
     // Need to support old token (64 characters - prior to Django 4.1)
     // and new token (32 characters).
     const csrfCookie = document.cookie.match(/csrftoken=(\w{32,64})/)
@@ -213,6 +218,9 @@ export const fetchDataRaw = async <T>(
   return { data: responseJson, status: response.status, headers: response.headers } as T
 }
 
+/**
+ * @deprecated - instead, use react-query + Orval.
+ */
 const fetchData = async <T>(
   /**
    * If you have full url to be called, remember to use `prependRootUrl` option.
@@ -226,51 +234,81 @@ const fetchData = async <T>(
   const response = await fetchDataRaw<{ data: T; status: number; headers: unknown }>(path, method, body, options)
   return response.data
 }
-/** GET Kobo API at path */
+/**
+ * GET Kobo API at path
+ * @deprecated - instead, use react-query + Orval.
+ */
 export const fetchGet = async <T>(path: string, options?: FetchDataOptions) =>
   fetchData<T>(path, 'GET', undefined, options)
 
-/** GET data from Kobo API at url */
+/**
+ * GET data from Kobo API at url
+ * @deprecated - instead, use react-query + Orval.
+ */
 export const fetchGetUrl = async <T>(url: string, options?: FetchDataOptions) => {
   options = Object.assign({}, options, { prependRootUrl: false })
   return fetchData<T>(url, 'GET', undefined, options)
 }
 
-/** POST data to Kobo API at path */
+/**
+ * POST data to Kobo API at path
+ * @deprecated - instead, use react-query + Orval.
+ */
 export const fetchPost = async <T>(path: string, data: Json, options?: FetchDataOptions) =>
   fetchData<T>(path, 'POST', data, options)
 
-/** POST data to Kobo API at url */
+/**
+ * POST data to Kobo API at url
+ * @deprecated - instead, use react-query + Orval.
+ */
 export const fetchPostUrl = async <T>(url: string, data: Json, options?: FetchDataOptions) => {
   options = Object.assign({}, options, { prependRootUrl: false })
   return fetchData<T>(url, 'POST', data, options)
 }
 
-/** PATCH (update) data to Kobo API at path */
+/**
+ * PATCH (update) data to Kobo API at path
+ * @deprecated - instead, use react-query + Orval.
+ */
 export const fetchPatch = async <T>(path: string, data: Json, options?: FetchDataOptions) =>
   fetchData<T>(path, 'PATCH', data, options)
 
-/** PATCH (update) data to Kobo API at url */
+/**
+ * PATCH (update) data to Kobo API at url
+ * @deprecated - instead, use react-query + Orval.
+ */
 export const fetchPatchUrl = async <T>(path: string, data: Json, options?: FetchDataOptions) => {
   options = Object.assign({}, options, { prependRootUrl: false })
   return fetchData<T>(path, 'PATCH', data, options)
 }
 
-/** PUT (replace) data to Kobo API at path */
+/**
+ * PUT (replace) data to Kobo API at path
+ * @deprecated - instead, use react-query + Orval.
+ */
 export const fetchPut = async <T>(path: string, data: Json, options?: FetchDataOptions) =>
   fetchData<T>(path, 'PUT', data, options)
 
-/** PUT (replace) data to Kobo API at url */
+/**
+ * PUT (replace) data to Kobo API at url
+ * @deprecated - instead, use react-query + Orval.
+ */
 export const fetchPutUrl = async <T>(path: string, data: Json, options?: FetchDataOptions) => {
   options = Object.assign({}, options, { prependRootUrl: false })
   return fetchData<T>(path, 'PUT', data, options)
 }
 
-/** DELETE something from Kobo API at path, data is optional */
+/**
+ * DELETE something from Kobo API at path, data is optional
+ * @deprecated - instead, use react-query + Orval.
+ */
 export const fetchDelete = async <T>(path: string, data?: Json, options?: FetchDataOptions) =>
   fetchData<T>(path, 'DELETE', data, options)
 
-/** DELETE something from Kobo API at url, data is optional */
+/**
+ * DELETE something from Kobo API at url, data is optional
+ * @deprecated - instead, use react-query + Orval.
+ */
 export const fetchDeleteUrl = async <T>(path: string, data?: Json, options?: FetchDataOptions) => {
   options = Object.assign({}, options, { prependRootUrl: false })
   return fetchData<T>(path, 'DELETE', data, options)

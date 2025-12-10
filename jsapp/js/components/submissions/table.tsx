@@ -90,7 +90,7 @@ import envStore from '#/envStore'
 import pageState from '#/pageState.store'
 import type { PageStateStoreState } from '#/pageState.store'
 import { stores } from '#/stores'
-import { formatTimeDateShort } from '#/utils'
+import { formatTimeDateShort, recordKeys } from '#/utils'
 import ActionIcon from '../common/ActionIcon'
 import LimitNotifications from '../usageLimits/limitNotifications.component'
 import RepeatGroupCell from './RepeatGroupCell'
@@ -495,7 +495,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             return (
               <TableBulkCheckbox
                 visibleRowsCount={maxPageRes}
-                selectedRowsCount={Object.keys(this.state.selectedRows).length}
+                selectedRowsCount={recordKeys(this.state.selectedRows).length}
                 totalRowsCount={this.state.resultsTotal}
                 onSelectAllPages={this.bulkSelectAll.bind(this)}
                 onSelectCurrentPage={this.bulkSelectAllRows.bind(this, true)}
@@ -754,10 +754,11 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
           // Detect supplemental details column and put it after its source column.
           if (q === undefined && key.startsWith(SUPPLEMENTAL_DETAILS_PROP)) {
-            const supplementalColumnSource = key.split('/')[1]
-            // Add extra step for grouped items
-            const sourceCleaned = supplementalColumnSource.replace(/-/g, '/').split('/').at(-1) || ''
-            const sourceColumn = columnsToRender.find((column) => column.id === flatPaths[sourceCleaned])
+            const keyArray = key.split('/')
+            const relatedKey = keyArray.at(-2)
+            const sourceColumn = relatedKey
+              ? columnsToRender.find((column) => column.id === flatPaths[relatedKey])
+              : undefined
             if (sourceColumn) {
               // This way if we have a source column with index `2`, and
               // the supplemental column with index `5`, we will set
@@ -843,14 +844,12 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
           }
 
           if (q && q.type && row.value) {
-            if (Object.keys(TABLE_MEDIA_TYPES).includes(q.type)) {
+            if (recordKeys(TABLE_MEDIA_TYPES).includes(q.type)) {
               let mediaAttachment = null
 
               const attachmentIndex: number = row.original._attachments.findIndex(
                 (attachment: SubmissionAttachment) => {
-                  const attachmentFileNameEnd = attachment.filename.split('/').pop()
-                  const normalizedRowValue = row.value.replace(/ /g, '_')
-                  return attachmentFileNameEnd === normalizedRowValue
+                  return attachment.media_file_basename === row.value
                 },
               )
 
@@ -1250,7 +1249,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
     // If the entirety of the results has been selected, selectAll should be true
     // Useful when the # of results is smaller than the page size.
-    const scount = Object.keys(s).length
+    const scount = recordKeys(s).length
 
     if (scount === this.state.resultsTotal) {
       this.setState({

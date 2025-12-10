@@ -71,7 +71,7 @@ class ProjectHistoryLogTestCaseMixin:
             date_created=now,
         )
         response = self.client.get(self.url)
-        self.assertEqual(response.data['count'], 1)
+        self.assertEqual(len(response.data['results']), 1)
         ph_log = response.data['results'][0]
         self.assertListEqual(
             sorted(list(ph_log.keys())),
@@ -121,7 +121,7 @@ class ProjectHistoryLogTestCaseMixin:
             date_created=now,
         )
         response = self.client.get(self.url)
-        self.assertEqual(response.data['count'], 2)
+        self.assertEqual(len(response.data['results']), 2)
         self.assertEqual(
             response.data['results'][0]['date_created'],
             now.strftime('%Y-%m-%dT%H:%M:%SZ'),
@@ -164,7 +164,7 @@ class ProjectHistoryLogTestCaseMixin:
             f'{self.url}?q=metadata__log_subtype:'
             f'{PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE}'
         )
-        self.assertEqual(response.data['count'], 1)
+        self.assertEqual(len(response.data['results']), 1)
         self.assertEqual(
             response.data['results'][0]['metadata']['log_subtype'],
             PROJECT_HISTORY_LOG_PERMISSION_SUBTYPE,
@@ -250,9 +250,7 @@ class ApiAuditLogTestCase(BaseAuditLogTestCase):
             },
         ]
         response = self.client.get(self.url)
-        audit_logs_count = AuditLog.objects.count()
         assert response.status_code == status.HTTP_200_OK
-        assert response.data['count'] == audit_logs_count
         assert response.data['results'] == expected
 
     def test_filter_list(self):
@@ -295,7 +293,6 @@ class ApiAuditLogTestCase(BaseAuditLogTestCase):
         audit_logs_count = AuditLog.objects.count()
         assert response.status_code == status.HTTP_200_OK
         assert audit_logs_count == 2
-        assert response.data['count'] == 1
         assert response.data['results'] == expected
 
     def test_view_log_from_deleted_user(self):
@@ -314,7 +311,7 @@ class ApiAuditLogTestCase(BaseAuditLogTestCase):
         self.login_user(username='adminuser', password='pass')
         response = self.client.get(self.url)
         assert response.status_code == status.HTTP_200_OK
-        assert response.data['count'] == 1
+        assert len(response.data['results']) == 1
         assert response.data['results'][0]['username'] is None
         assert response.data['results'][0]['user'] is None
 
@@ -337,7 +334,7 @@ class ApiAccessLogTestCase(BaseAuditLogTestCase):
         self.force_login_user(user1)
 
         response = self.client.get(self.url)
-        self.assertEqual(response.data['count'], 1)
+        self.assertEqual(len(response.data['results']), 1)
         self.assertEqual(response.data['results'][0]['username'], 'someuser')
 
     def test_endpoint_ignores_querystring(self):
@@ -349,7 +346,7 @@ class ApiAccessLogTestCase(BaseAuditLogTestCase):
         self.force_login_user(user1)
         response = self.client.get(f'{self.url}?q=user__username:anotheruser')
         # check we still only got logs for the logged-in user
-        self.assertEqual(response.data['count'], 1)
+        self.assertEqual(len(response.data['results']), 1)
         self.assertEqual(response.data['results'][0]['username'], 'someuser')
 
     def test_endpoint_orders_results_by_date_desc(self):
@@ -393,7 +390,7 @@ class ApiAccessLogTestCase(BaseAuditLogTestCase):
         )
         response = self.client.get(self.url)
         # should return 1 submission group with 2 submissions
-        self.assertEqual(response.data['count'], 1)
+        self.assertEqual(len(response.data['results']), 1)
         result = response.data['results'][0]
         self.assertEqual(
             result['metadata']['auth_type'],
@@ -430,7 +427,7 @@ class AllApiAccessLogsTestCase(BaseAuditLogTestCase):
         AccessLog.objects.create(user=user2)
         self.force_login_user(admin)
         response = self.client.get(self.url)
-        self.assertEqual(response.data['count'], 2)
+        self.assertEqual(len(response.data['results']), 2)
         self.assertEqual(response.data['results'][0]['username'], 'anotheruser')
         self.assertEqual(response.data['results'][1]['username'], 'someuser')
 
@@ -472,7 +469,7 @@ class AllApiAccessLogsTestCase(BaseAuditLogTestCase):
         )
         response = self.client.get(self.url)
         # should return 2 submission group with 2 submissions each
-        self.assertEqual(response.data['count'], 2)
+        self.assertEqual(len(response.data['results']), 2)
 
         # user2's submission group should be first
         group1 = response.data['results'][0]
@@ -503,7 +500,7 @@ class AllApiAccessLogsTestCase(BaseAuditLogTestCase):
         # only return logs from user1
         for audit_log_dict in response.data['results']:
             self.assertEqual(audit_log_dict['username'], 'anotheruser')
-        self.assertEqual(response.data['count'], 1)
+        self.assertEqual(len(response.data['results']), 1)
 
     def test_can_search_access_logs_by_username_including_submission_groups(
         self,
@@ -532,7 +529,7 @@ class AllApiAccessLogsTestCase(BaseAuditLogTestCase):
         AccessLog.objects.create(user=user2)
 
         response = self.client.get(f'{self.url}?q=user__username:someuser')
-        self.assertEqual(response.data['count'], 1)
+        self.assertEqual(len(response.data['results']), 1)
         result = response.data['results'][0]
         self.assertEqual(result['username'], 'someuser')
         self.assertEqual(
@@ -559,7 +556,7 @@ class AllApiAccessLogsTestCase(BaseAuditLogTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # should only return the log from tomorrow
-        self.assertEqual(response.data['count'], 1)
+        self.assertEqual(len(response.data['results']), 1)
         result = response.data['results'][0]
         self.assertEqual(
             result['date_created'], tomorrow.strftime('%Y-%m-%dT%H:%M:%SZ')
@@ -593,7 +590,7 @@ class AllApiAccessLogsTestCase(BaseAuditLogTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # should only return the submission group
-        self.assertEqual(response.data['count'], 1)
+        self.assertEqual(len(response.data['results']), 1)
         group = response.data['results'][0]
         self.assertEqual(
             group['date_created'],
@@ -612,9 +609,7 @@ class ApiProjectHistoryLogsTestCase(BaseTestCase, ProjectHistoryLogTestCaseMixin
     def setUp(self):
         super().setUp()
         self.asset = Asset.objects.get(pk=1)
-        self.url = reverse(
-            'api_v2:history-list', kwargs={'parent_lookup_asset': self.asset.uid}
-        )
+        self.url = reverse('api_v2:history-list', kwargs={'uid_asset': self.asset.uid})
         self.user = User.objects.get(username='someuser')
         self.asset.assign_perm(user_obj=self.user, perm=PERM_MANAGE_ASSET)
         self.default_metadata = {
@@ -658,7 +653,7 @@ class ApiProjectHistoryLogsTestCase(BaseTestCase, ProjectHistoryLogTestCaseMixin
             metadata={**self.default_metadata, 'asset_uid': asset2.uid},
         )
         response = self.client.get(self.url)
-        self.assertEqual(response.data['count'], 1)
+        self.assertEqual(len(response.data['results']), 1)
         self.assertEqual(
             response.data['results'][0]['metadata']['asset_uid'], self.asset.uid
         )
@@ -756,13 +751,12 @@ class ApiAllProjectHistoryLogsTestCase(
             },
         )
         response = self.client.get(self.url)
-        self.assertEqual(response.data['count'], 2)
+        self.assertEqual(len(response.data['results']), 2)
         self.assertEqual(
             response.data['results'][0]['metadata']['asset_uid'], asset2.uid
         )
         self.assertEqual(
             response.data['results'][1]['metadata']['asset_uid'], asset1.uid
-
         )
 
     def test_export_creates_task_for_all_assets(self):

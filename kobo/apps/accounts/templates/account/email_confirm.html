@@ -7,6 +7,9 @@
 
   {% if confirmation %}
   <form method="post" action="{% url 'account_confirm_email' confirmation.key %}" class="registration">
+    {% if redirect_field_value %}
+      <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}"/>
+    {% endif %}
     <div class="registration--logo">
       <a href="/">
         {% block logo %}{{ block.super }}{% endblock %}

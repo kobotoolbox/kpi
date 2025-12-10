@@ -8,6 +8,7 @@ from import_export import fields, resources
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.mass_emails.user_queries import (
+    get_active_users,
     get_all_test_users,
     get_inactive_users,
     get_users_over_80_percent_of_nlp_limits,
@@ -28,6 +29,7 @@ USER_QUERIES: dict[str, Callable] = {
     'users_above_90_percent_storage': get_users_over_90_percent_of_storage_limit,
     'users_above_100_percent_storage': get_users_over_100_percent_of_storage_limit,
     'users_inactive_for_365_days': get_inactive_users,
+    'users_active_within_365_days': get_active_users,
     'users_above_80_percent_submissions': get_users_over_80_percent_of_submission_limit,
     'users_above_90_percent_submissions': get_users_over_90_percent_of_submission_limit,
     'users_above_100_percent_submissions': get_users_over_100_percent_of_submission_limit,  # noqa
@@ -86,6 +88,24 @@ class MassEmailConfig(AbstractTimeStampedModel):
             ),
         }
 
+    def get_users_queryset(self):
+        queryset_getter = USER_QUERIES.get(self.query, lambda: [])
+        parameters = {}
+        for param in self.parameters.all():
+            if (
+                param.name not in queryset_getter.__annotations__
+                or queryset_getter.__annotations__[param.name] not in (int, float, str)
+            ):
+                continue
+            try:
+                value = queryset_getter.__annotations__[param.name](param.value)
+            except ValueError:
+                continue
+
+            parameters[param.name] = value
+
+        return queryset_getter(**parameters)
+
 
 class MassEmailConfigExpectedRecipientsResource(resources.ModelResource):
     recipients = fields.Field(dehydrate_method='get_recipients')
@@ -99,7 +119,7 @@ class MassEmailConfigExpectedRecipientsResource(resources.ModelResource):
         )
 
     def get_recipients(self, email_config):
-        user_queryset = USER_QUERIES.get(email_config.query, lambda: [])()
+        user_queryset = email_config.get_users_queryset()
         return [
             user
             for user in user_queryset.values('username', 'email', 'extra_details__uid')
@@ -204,6 +224,14 @@ class MassEmailConfigRecipientsResource(resources.ModelResource):
             'status',
         ]
         dataset._data = reformatted
+
+
+class MassEmailQueryParam(models.Model):
+    email_config = models.ForeignKey(
+        MassEmailConfig, on_delete=models.CASCADE, related_name='parameters'
+    )
+    name = models.CharField()
+    value = models.CharField()
 
 
 class MassEmailJob(AbstractTimeStampedModel):

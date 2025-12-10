@@ -28,12 +28,13 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = User
-        fields = ('url',
-                  'username',
-                  'date_joined',
-                  'public_collection_subscribers_count',
-                  'public_collections_count',
-                  )
+        fields = (
+            'url',
+            'username',
+            'date_joined',
+            'public_collection_subscribers_count',
+            'public_collections_count',
+        )
 
     @extend_schema_field(OpenApiTypes.DATETIME)
     def get_date_joined(self, obj):
@@ -86,7 +87,7 @@ class UserListSerializer(UserSerializer):
 
     @extend_schema_field(OpenApiTypes.INT)
     def get_asset_count(self, user):
-        return user.assets.count()
+        return user.assets_count
 
     @extend_schema_field(MetadataField)
     def get_metadata(self, user):

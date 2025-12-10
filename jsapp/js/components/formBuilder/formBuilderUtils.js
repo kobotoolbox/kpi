@@ -1,5 +1,6 @@
 import clonedeep from 'lodash.clonedeep'
 import { ASSET_TYPES } from '#/constants'
+import { recordKeys } from '#/utils'
 
 /**
  * Asset type could be either the loaded asset type (editing an existing form)
@@ -213,7 +214,7 @@ export function koboMatrixParser(params) {
           content.survey.splice(i, 0, matrix[kuid])
         }
 
-        for (var k of Object.keys(matrix.choices)) {
+        for (var k of recordKeys(matrix.choices)) {
           content.choices.push(matrix.choices[k])
         }
       }
@@ -229,6 +230,11 @@ export function koboMatrixParser(params) {
   return params
 }
 
+/**
+ * This function (in theory) is reversing what `writeParameters` does.
+ *
+ * For given semicolon-separated (or comma-separated) string of parameters, it returns an object.
+ */
 export function readParameters(str) {
   if (typeof str !== 'string') {
     return null
@@ -254,15 +260,22 @@ export function readParameters(str) {
     }
   })
 
-  if (Object.keys(params).length < 1) {
+  if (recordKeys(params).length < 1) {
     return null
   }
   return params
 }
 
+/**
+ * This function takes an object of some row parameters, and:
+ * 1. filters out `undefined` and `null` (values) ones
+ * 2. stringifies objects
+ * 3. blacklists "seed" for some reason
+ * …and finally returns a single string of semicolon-separated parameters.
+ */
 export function writeParameters(obj) {
   const params = []
-  Object.keys(obj).forEach((key) => {
+  recordKeys(obj).forEach((key) => {
     if (obj[key] !== undefined && obj[key] !== null) {
       let value = obj[key]
       if (typeof value === 'object') {

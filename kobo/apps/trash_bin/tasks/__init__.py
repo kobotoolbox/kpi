@@ -66,7 +66,7 @@ def task_restarter():
 
     # 1) Restart account deletion tasks
     pending_grace_period = timezone.now() - timedelta(
-        days=config.ACCOUNT_TRASH_GRACE_PERIOD
+        days=config.ACCOUNT_TRASH_RETENTION
     )
     stuck_threshold = timezone.now() - timedelta(
         seconds=settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT + 60 * 5
@@ -86,7 +86,7 @@ def task_restarter():
 
     # 2) Restart project deletion tasks
     pending_grace_period = timezone.now() - timedelta(
-        days=config.PROJECT_TRASH_GRACE_PERIOD
+        days=config.PROJECT_TRASH_RETENTION
     )
     stuck_project_ids = (
         ProjectTrash.objects.values_list('pk', flat=True)
@@ -102,7 +102,7 @@ def task_restarter():
 
     # 3) Restart attachment deletion tasks
     pending_grace_period = timezone.now() - timedelta(
-        days=config.ATTACHMENT_TRASH_GRACE_PERIOD
+        days=config.ATTACHMENT_TRASH_RETENTION
     )
     stuck_attachment_ids = AttachmentTrash.objects.values_list(
         'pk', flat=True

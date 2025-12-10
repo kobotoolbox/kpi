@@ -8,6 +8,7 @@ from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.constants import UsageType
+from kobo.apps.trash_bin.utils import move_to_trash
 from kpi.models import Asset
 from kpi.tests.test_usage_calculator import BaseServiceUsageTestCase
 
@@ -19,7 +20,7 @@ class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
         cache.clear()
         self.url = reverse(
             self._get_endpoint('organizations-service-usage'),
-            kwargs={'id': self.organization.id}
+            kwargs={'uid_organization': self.organization.id}
         )
 
     @classmethod
@@ -83,6 +84,8 @@ class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
         assert response.data['total_nlp_usage']['asr_seconds_all_time'] == 4728
         assert response.data['total_nlp_usage']['mt_characters_current_period'] == 5473
         assert response.data['total_nlp_usage']['mt_characters_all_time'] == 6726
+        assert response.data['total_nlp_usage']['llm_requests_current_period'] == 30
+        assert response.data['total_nlp_usage']['llm_requests_all_time'] == 80
         assert response.data['total_storage_bytes'] == self.expected_file_size()
 
         # Without stripe, there are no usage limits and
@@ -174,18 +177,19 @@ class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
     )
     def test_service_usages_with_projects_in_trash_bin(self):
         self.test_multiple_forms()
-        # Simulate trash bin
-        for asset in self.anotheruser.assets.all():
-            asset.pending_delete = True
-            asset.save(
-                update_fields=['pending_delete'],
-                create_version=False,
-                adjust_content=False,
-            )
-            if asset.has_deployment:
-                asset.deployment.xform.pending_delete = True
-                asset.deployment.xform.save(update_fields=['pending_delete'])
-
+        move_to_trash(
+            request_author=self.anotheruser,
+            objects_list=[
+                {
+                    'pk': asset.pk,
+                    'asset_uid': asset.uid,
+                    'asset_name': asset.name,
+                }
+                for asset in self.anotheruser.assets.all()
+            ],
+            grace_period=1,
+            trash_type='asset',
+        )
         response = self.client.get(self.url)
 
         assert response.data['total_submission_count']['current_period'] == 3

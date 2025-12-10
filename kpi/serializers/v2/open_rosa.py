@@ -62,4 +62,3 @@ class ManifestSerializer(serializers.Serializer):
 
     def get_hash(self, obj):
         return obj.md5_hash
-

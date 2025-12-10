@@ -102,6 +102,7 @@ export function isLibraryItemXformRoute(uid: string): boolean {
 export function isAnyProjectsViewRoute() {
   return (
     getCurrentPath() === PROJECTS_ROUTES.MY_PROJECTS ||
+    getCurrentPath() === PROJECTS_ROUTES.MY_ORG_PROJECTS ||
     getCurrentPath().startsWith(PROJECTS_ROUTES.CUSTOM_VIEW.replace(':viewUid', ''))
   )
 }

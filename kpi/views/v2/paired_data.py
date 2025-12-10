@@ -33,10 +33,10 @@ from kpi.utils.xml import add_xml_declaration, strip_nodes
 
 
 @extend_schema(
-    tags=['Paired Data'],
+    tags=['Survey data'],
     parameters=[
         OpenApiParameter(
-            name='parent_lookup_asset',
+            name='uid_asset',
             type=str,
             location=OpenApiParameter.PATH,
             required=True,
@@ -62,7 +62,7 @@ from kpi.utils.xml import add_xml_declaration, strip_nodes
         ),
         parameters=[
             OpenApiParameter(
-                name='paired_data_uid',
+                name='uid_paired_data',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
@@ -82,7 +82,7 @@ from kpi.utils.xml import add_xml_declaration, strip_nodes
         ),
         parameters=[
             OpenApiParameter(
-                name='paired_data_uid',
+                name='uid_paired_data',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
@@ -112,7 +112,7 @@ from kpi.utils.xml import add_xml_declaration, strip_nodes
         ),
         parameters=[
             OpenApiParameter(
-                name='paired_data_uid',
+                name='uid_paired_data',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
@@ -130,7 +130,7 @@ from kpi.utils.xml import add_xml_declaration, strip_nodes
         ),
         parameters=[
             OpenApiParameter(
-                name='paired_data_uid',
+                name='uid_paired_data',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
@@ -144,12 +144,12 @@ class PairedDataViewset(
 ):
     """
     Available actions:
-     - create        → POST      /api/v2/asset/{parent_lookup_asset}/paired-data/
-     - delete        → DELETE    /api/v2/asset/{parent_lookup_asset}/paired-data/{uid}/
-     - external      → GET       /api/v2/asset/{parent_lookup_asset}/paired-data/{uid}/external/  # noqa
-     - list          → GET       /api/v2/asset/{parent_lookup_asset}/paired-data/
-     - retrieve      → GET       /api/v2/asset/{parent_lookup_asset}/paired-data/{uid}/
-     - update        → PATCH     /api/v2/asset/{parent_lookup_asset}/paired-data/{uid}/
+     - create        → POST      /api/v2/asset/{uid_asset}/paired-data/
+     - delete        → DELETE    /api/v2/asset/{uid_asset}/paired-data/{uid_paired_data}/
+     - external      → GET       /api/v2/asset/{uid_asset}/paired-data/{uid_paired_data}/external/  # noqa
+     - list          → GET       /api/v2/asset/{uid_asset}/paired-data/
+     - retrieve      → GET       /api/v2/asset/{uid_asset}/paired-data/{uid_paired_data}/
+     - update        → PATCH     /api/v2/asset/{uid_asset}/paired-data/{uid_paired_data}/
 
 
      Documentation:
@@ -163,6 +163,7 @@ class PairedDataViewset(
 
     parent_model = Asset
     lookup_field = 'paired_data_uid'
+    lookup_url_kwarg = 'uid_paired_data'
     permission_classes = (AssetEditorPermission,)
     serializer_class = PairedDataSerializer
     log_type = AuditType.PROJECT_HISTORY
@@ -181,7 +182,7 @@ class PairedDataViewset(
         renderer_classes=[SubmissionXMLRenderer],
         filter_backends=[],
     )
-    def external(self, request, paired_data_uid, **kwargs):
+    def external(self, request, uid_paired_data, **kwargs):
         paired_data = self.get_object()
 
         # Retrieve the source if it exists
@@ -192,7 +193,7 @@ class PairedDataViewset(
             # deactivated after it has been paired with current form.
             # We don't want to keep zombie files on storage.
             try:
-                asset_file = self.asset.asset_files.get(uid=paired_data_uid)
+                asset_file = self.asset.asset_files.get(uid=uid_paired_data)
             except AssetFile.DoesNotExist:
                 pass
             else:
@@ -208,10 +209,10 @@ class PairedDataViewset(
         # If data has already been fetched once, an `AssetFile` should exist.
         # Otherwise, we create one to store the generated XML.
         try:
-            asset_file = self.asset.asset_files.get(uid=paired_data_uid)
+            asset_file = self.asset.asset_files.get(uid=uid_paired_data)
         except AssetFile.DoesNotExist:
             asset_file = AssetFile(
-                uid=paired_data_uid,
+                uid=uid_paired_data,
                 asset=self.asset,
                 file_type=AssetFile.PAIRED_DATA,
                 user=self.asset.owner,
@@ -295,7 +296,7 @@ class PairedDataViewset(
 
     def get_object_override(self):
         obj = self.get_queryset(as_list=False).get(
-            self.kwargs[self.lookup_field]
+            self.kwargs[self.lookup_url_kwarg]
         )
         if not obj:
             raise Http404

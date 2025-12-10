@@ -8,27 +8,28 @@ from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.apps.logger.models import DailyXFormSubmissionCounter, XForm
+from kobo.apps.openrosa.apps.logger.models import DailyXFormSubmissionCounter
+from kobo.apps.openrosa.apps.main.models import UserProfile
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.types import NLPUsage, UsageBalance, UsageBalances
 from kobo.apps.organizations.utils import get_billing_dates
+from kobo.apps.stripe.utils.billing_dates import get_current_billing_period_dates_by_org
 from kobo.apps.stripe.utils.import_management import requires_stripe
 from kobo.apps.stripe.utils.subscription_limits import (
     get_organizations_effective_limits,
 )
-from kobo.apps.stripe.utils.billing_dates import get_current_billing_period_dates_by_org
 from kpi.utils.cache import CachedClass, cached_class_property
 
 
 def get_storage_usage_by_user_id(user_ids: list[int] = None) -> dict[int, int]:
-    xforms = XForm.objects.exclude(pending_delete=True)
+    query = UserProfile.objects.values('user_id', 'attachment_storage_bytes')
     if user_ids is not None:
-        xforms = xforms.filter(user_id__in=user_ids)
-    xform_query = xforms.values('user').annotate(
-        bytes_sum=Coalesce(Sum('attachment_storage_bytes'), 0)
-    )
-    return {res['user']: res['bytes_sum'] for res in xform_query}
+        query = query.filter(user_id__in=user_ids)
+    else:
+        query = query.exclude(user_id=settings.ANONYMOUS_USER_ID)
+
+    return {res['user_id']: res['attachment_storage_bytes'] for res in query.iterator()}
 
 
 def get_submission_counts_in_date_range_by_user_id(
@@ -100,6 +101,10 @@ def get_nlp_usage_in_date_range_by_user_id(date_ranges_by_user) -> dict[int, NLP
                 Sum(f'total_{UsageType.MT_CHARACTERS}'),
                 0,
             ),
+            llm_requests_current_period=Coalesce(
+                Sum(f'total_{UsageType.LLM_REQUESTS}'),
+                0,
+            ),
         )
     )
     results = {}
@@ -107,6 +112,7 @@ def get_nlp_usage_in_date_range_by_user_id(date_ranges_by_user) -> dict[int, NLP
         results[row['user_id']] = {
             UsageType.ASR_SECONDS: row[f'{UsageType.ASR_SECONDS}_current_period'],
             UsageType.MT_CHARACTERS: row[f'{UsageType.MT_CHARACTERS}_current_period'],
+            UsageType.LLM_REQUESTS: row[f'{UsageType.LLM_REQUESTS}_current_period'],
         }
     return results
 
@@ -161,6 +167,9 @@ class ServiceUsageCalculator(CachedClass):
             UsageType.MT_CHARACTERS: nlp_usage[
                 f'{UsageType.MT_CHARACTERS}_current_period'
             ],
+            UsageType.LLM_REQUESTS: nlp_usage[
+                f'{UsageType.LLM_REQUESTS}_current_period'
+            ],
         }
 
         return cached_usage[usage_type]
@@ -178,6 +187,7 @@ class ServiceUsageCalculator(CachedClass):
         limits = get_organizations_effective_limits([self.organization], True, True)
         org_limits = limits[self.organization.id]
 
+        # TODO: Check usage limit for LLM requests when supported by Stripe code
         return {
             UsageType.SUBMISSION: calculate_usage_balance(
                 limit=org_limits[f'{UsageType.SUBMISSION}_limit'],
@@ -195,6 +205,10 @@ class ServiceUsageCalculator(CachedClass):
                 limit=org_limits[f'{UsageType.MT_CHARACTERS}_limit'],
                 usage=self.get_nlp_usage_by_type(UsageType.MT_CHARACTERS),
             ),
+            UsageType.LLM_REQUESTS: calculate_usage_balance(
+                limit=org_limits[f'{UsageType.LLM_REQUESTS}_limit'],
+                usage=self.get_nlp_usage_by_type(UsageType.LLM_REQUESTS),
+            ),
         }
 
     @cached_class_property(
@@ -208,6 +222,7 @@ class ServiceUsageCalculator(CachedClass):
                 'date',
                 f'total_{UsageType.ASR_SECONDS}',
                 f'total_{UsageType.MT_CHARACTERS}',
+                f'total_{UsageType.LLM_REQUESTS}',
             )
             .filter(user_id=self._user_id)
             .aggregate(
@@ -225,9 +240,19 @@ class ServiceUsageCalculator(CachedClass):
                     ),
                     0,
                 ),
+                llm_requests_current_period=Coalesce(
+                    Sum(
+                        f'total_{UsageType.LLM_REQUESTS}',
+                        filter=self.current_period_filter,
+                    ),
+                    0,
+                ),
                 asr_seconds_all_time=Coalesce(Sum(f'total_{UsageType.ASR_SECONDS}'), 0),
                 mt_characters_all_time=Coalesce(
                     Sum(f'total_{UsageType.MT_CHARACTERS}'), 0
+                ),
+                llm_requests_all_time=Coalesce(
+                    Sum(f'total_{UsageType.LLM_REQUESTS}'), 0
                 ),
             )
         )

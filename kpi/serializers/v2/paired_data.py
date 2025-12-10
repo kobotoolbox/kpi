@@ -27,6 +27,7 @@ class PairedDataSerializer(serializers.Serializer):
 
     source = RelativePrefixHyperlinkedRelatedField(
         lookup_field='uid',
+        lookup_url_kwarg='uid_asset',
         queryset=Asset.objects.filter(asset_type=ASSET_TYPE_SURVEY),
         view_name='asset-detail',
         required=True,
@@ -160,7 +161,7 @@ class PairedDataSerializer(serializers.Serializer):
             )
 
         # Force `posted_fields` to be an empty list to avoid useless parsing when
-        # fetching external xml endpoint (i.e.: /api/v2/assets/<asset_uid>/paired-data/<paired_data_uid>/external.xml)
+        # fetching external xml endpoint (i.e.: /api/v2/assets/<asset_uid>/paired-data/<uid_paired_data>/external.xml)
         if sorted(valid_fields) == sorted(posted_fields):
             posted_fields = []
 

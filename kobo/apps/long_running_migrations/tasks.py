@@ -9,7 +9,7 @@ from .models import LongRunningMigration, LongRunningMigrationStatus
 
 
 @celery_app.task(
-    queue='kpi_low_priority_queue',
+    queue='kpi_long_running_tasks_queue',
     soft_time_limit=settings.CELERY_LONG_RUNNING_TASK_SOFT_TIME_LIMIT,
     time_limit=settings.CELERY_LONG_RUNNING_TASK_TIME_LIMIT,
 )

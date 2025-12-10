@@ -15,6 +15,7 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kobo.apps.audit_log.base_views import AuditLoggedModelViewSet
 from kobo.apps.audit_log.models import AuditType
+from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kpi.constants import (
     ASSET_TYPE_ARG_NAME,
     ASSET_TYPE_SURVEY,
@@ -42,7 +43,7 @@ from kpi.permissions import (
     ReportPermission,
     get_perm_name,
 )
-from kpi.renderers import SSJsonRenderer, XFormRenderer, XlsRenderer
+from kpi.renderers import BasicHTMLRenderer, SSJsonRenderer, XFormRenderer, XlsRenderer
 from kpi.schema_extensions.v2.assets.schema import (
     ASSET_CLONE_FROM_SCHEMA,
     ASSET_CONTENT_SCHEMA,
@@ -94,7 +95,7 @@ from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
 
 
 @extend_schema(
-    tags=['Assets'],
+    tags=['Manage projects and library content'],
 )
 @extend_schema_view(
     bulk=extend_schema(
@@ -171,7 +172,7 @@ from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
             validate_payload=False,
         ),
     ),
-    deployment=extend_schema(tags=['Deployment']),
+    deployment=extend_schema(tags=['Manage projects and library content']),
     hash=extend_schema(
         description=read_md('kpi', 'assets/hash.md'),
         responses=open_api_200_ok_response(
@@ -237,6 +238,7 @@ from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
             raise_access_forbidden=False,
             validate_payload=False,
         ),
+        tags=['Survey data'],
     ),
     retrieve=extend_schema(
         description=read_md('kpi', 'assets/retrieve.md'),
@@ -302,15 +304,15 @@ class AssetViewSet(
     Available actions:
     - list           → GET /api/v2/assets/
     - create         → POST /api/v2/assets/
-    - retrieve       → GET /api/v2/assets/{uid}/
-    - patch          → PATCH /api/v2/assets/{uid}/
-    - delete         → DELETE /api/v2/assets/{uid}/
-    - content        → GET /api/v2/assets/{uid}/content/
-    - reports        → GET /api/v2/assets/{uid}/reports/
-    - table_view     → GET /api/v2/assets/{uid}/table_view/
-    - valid_content  → GET /api/v2/assets/{uid}/valid_content/
-    - xform          → GET /api/v2/assets/{uid}/xform/
-    - xls            → GET /api/v2/assets/{uid}/xls/
+    - retrieve       → GET /api/v2/assets/{uid_asset}/
+    - patch          → PATCH /api/v2/assets/{uid_asset}/
+    - delete         → DELETE /api/v2/assets/{uid_asset}/
+    - content        → GET /api/v2/assets/{uid_asset}/content/
+    - reports        → GET /api/v2/assets/{uid_asset}/reports/
+    - table_view     → GET /api/v2/assets/{uid_asset}/table_view/
+    - valid_content  → GET /api/v2/assets/{uid_asset}/valid_content/
+    - xform          → GET /api/v2/assets/{uid_asset}/xform/
+    - xls            → GET /api/v2/assets/{uid_asset}/xls/
     - bulk           → POST /api/v2/assets/bulk/
     - hash           → GET /api/v2/assets/hash/
     - metadata       → GET /api/v2/assets/metadata/
@@ -332,47 +334,10 @@ class AssetViewSet(
     - docs/api/v2/assets/metadata.md
     """
 
-    # TODO
-    #   Define the leftover docstring in their respective endpoint documentation in
-    #   next PRs.
-    """
-    * Assign an asset to a collection
-      <span class='label label-warning'>
-        partially implemented
-      </span>
-    * Run a partial update of a asset <span class='label label-danger'>TODO</span>
-
-    ## List of asset endpoints
-
-    Lists the asset endpoints accessible to requesting user, for anonymous access
-    a list of public data endpoints is returned.
-
-
-    ### Data
-
-    Retrieves data
-    <pre class="prettyprint">
-    <b>GET</b> /api/v2/assets/{uid}/data/
-    </pre>
-
-    > Example
-    >
-    >       curl -X GET https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/
-
-    Overwrites the entire deployment, including the form contents, but does not change the deployment's identifier
-    <pre class="prettyprint">
-    <b>PUT</b> /api/v2/assets/{uid}/deployment/
-    </pre>
-
-    > Example
-    >
-    >       curl -X PUT https://[kpi]/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/deployment/
-
-    """
-
     # Filtering handled by KpiObjectPermissionsFilter.filter_queryset()
     queryset = Asset.objects.all()
     lookup_field = 'uid'
+    lookup_url_kwarg = 'uid_asset'
     pagination_class = AssetPagination
     permission_classes = (AssetPermission,)
     ordering_fields = AssetOrderingFilter.DEFAULT_ORDERING_FIELDS + [
@@ -403,10 +368,14 @@ class AssetViewSet(
         'latest_version.uid',
         'data_sharing',
         'content',
-        'advanced_features.qual.qual_survey',
+        'advanced_features._actionConfigs',
         'owner.username',
     ]
     log_type = AuditType.PROJECT_HISTORY
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._serializer_context = {}
 
     @action(
         detail=False,
@@ -415,14 +384,17 @@ class AssetViewSet(
     def bulk(self, request, *args, **kwargs):
         return Response(self._bulk_asset_actions(request.data))
 
+    @extend_schema(tags=['Form content'])
     @action(detail=True)
-    def content(self, request, uid):
+    def content(self, request, uid_asset):
         asset = self.get_object()
-        return Response({
-            'kind': 'asset.content',
-            'uid': asset.uid,
-            'data': asset.to_ss_structure(),
-        })
+        return Response(
+            {
+                'kind': 'asset.content',
+                'uid_asset': asset.uid,
+                'data': asset.to_ss_structure(),
+            }
+        )
 
     def create(self, request, *args, **kwargs):
         if CLONE_ARG_NAME in request.data:
@@ -468,14 +440,14 @@ class AssetViewSet(
     @action(detail=True,
             methods=['get', 'post', 'patch'],
             permission_classes=[PostMappedToChangePermission])
-    def deployment(self, request, uid):
+    def deployment(self, request, uid_asset):
         """
         ViewSet for managing the current project's deployment
 
         Available actions:
-        - list           → GET /api/v2/assets/{uid}/deployment/
-        - create         → POST /api/v2/assets/{uid}/deployment/
-        - patch          → PATCH /api/v2/assets/{uid}/deployment/
+        - list           → GET /api/v2/assets/{uid_asset}/deployment/
+        - create         → POST /api/v2/assets/{uid_asset}/deployment/
+        - patch          → PATCH /api/v2/assets/{uid_asset}/deployment/
 
         Documentation:
         - docs/api/v2/deployments/list.md
@@ -596,7 +568,7 @@ class AssetViewSet(
         It relies on `check_object_permissions` to validate access to the object.
         """
         try:
-            asset = Asset.objects.get(uid=self.kwargs['uid'])
+            asset = Asset.objects.get(uid=self.kwargs[self.lookup_url_kwarg])
         except Asset.DoesNotExist:
             raise Http404
 
@@ -612,6 +584,11 @@ class AssetViewSet(
         return asset
 
     def get_queryset(self, *args, **kwargs):
+
+        if self.detail:
+            # For detail views, we must explicitly bypass the NestedViewSetMixin.
+            return super(NestedViewSetMixin, self).get_queryset(*args, **kwargs)
+
         queryset = super().get_queryset(*args, **kwargs)
         if self.action == 'list':
             return queryset.model.optimize_queryset_for_list(queryset)
@@ -705,6 +682,7 @@ class AssetViewSet(
         if self.action == 'retrieve':
             return [
                 JSONRenderer(),
+                BasicHTMLRenderer(),
                 SSJsonRenderer(),
                 XFormRenderer(),
                 XlsRenderer(),
@@ -721,8 +699,9 @@ class AssetViewSet(
         """
         Extra context provided to the serializer class.
         """
-
         context_ = super().get_serializer_context()
+        context_.update(self._serializer_context)
+
         if self.action == 'list':
             # To avoid making a triple join-query for each asset in the list
             # to retrieve related objects, we populated dicts key-ed by asset
@@ -732,34 +711,37 @@ class AssetViewSet(
             # The serializer will be able to pick what it needs from that dict
             # and narrow down data according to users' permissions.
 
-            # self.__filtered_queryset is set in the `list()` method that
+            # self._filtered_queryset is set in the `list()` method that
             # DRF automatically calls and is overridden below. This is
             # to prevent double calls to `filter_queryset()` as described in
             # the issue here: https://github.com/kobotoolbox/kpi/issues/2576
-            queryset = self.__filtered_queryset
+            queryset = self._filtered_queryset
 
             # 1) Retrieve all asset IDs of the current list
-            asset_ids = AssetPagination.get_all_asset_ids_from_queryset(
-                queryset
-            )
+            if 'asset_ids_cache' not in context_:
+                asset_ids = AssetPagination.get_all_asset_ids_from_queryset(queryset)
+                context_['asset_ids_cache'] = asset_ids
+            else:
+                asset_ids = context_['asset_ids_cache']
 
             # 2) Get object permissions per asset
             context_[
                 'object_permissions_per_asset'
             ] = self.cache_all_assets_perms(asset_ids)
-            context_['asset_ids_cache'] = asset_ids
 
             # 3) Get the collection subscriptions per asset
             subscriptions_queryset = (
                 UserAssetSubscription.objects.values('asset_id', 'user_id')
                 .distinct()
+                .filter(asset_id__in=asset_ids)
                 .order_by('asset_id')
             )
 
             user_subscriptions_per_asset = defaultdict(list)
             for record in subscriptions_queryset:
                 user_subscriptions_per_asset[record['asset_id']].append(
-                    record['user_id'])
+                    record['user_id']
+                )
 
             context_['user_subscriptions_per_asset'] = user_subscriptions_per_asset
 
@@ -783,7 +765,7 @@ class AssetViewSet(
             # 5) Get organization…
             if organization := getattr(self.request, 'organization', None):
                 # …from request.
-                # e.g.: /api/v2/organizations/<organization_id>/assets/`
+                # e.g.: /api/v2/organizations/<uid_organization>/assets/`
                 context_['organization'] = organization
             else:
                 # …per asset
@@ -797,17 +779,26 @@ class AssetViewSet(
     def list(self, request, *args, **kwargs):
         # assigning global filtered query set to prevent additional,
         # unnecessary calls to `filter_queryset`
-        self.__filtered_queryset = self.filter_queryset(self.get_queryset())
+        self._filtered_queryset = self.filter_queryset(self.get_queryset())
 
-        page = self.paginate_queryset(self.__filtered_queryset)
+        page = self.paginate_queryset(self._filtered_queryset)
+
         if page is not None:
-            serializer = self.get_serializer(page, many=True)
+            self._serializer_context['asset_ids_cache'] = []
+            self._serializer_context['asset_uids_cache'] = []
+            for asset in page:
+                self._serializer_context['asset_ids_cache'].append(asset.pk)
+                self._serializer_context['asset_uids_cache'].append(asset.uid)
+
+            serializer = self.get_serializer(
+                self._attach_xforms_to_assets(page), many=True
+            )
             metadata = None
             if request.GET.get('metadata') == 'on':
-                metadata = self.get_metadata(self.__filtered_queryset)
+                metadata = self.get_metadata(self._filtered_queryset)
             return self.get_paginated_response(serializer.data, metadata)
 
-        serializer = self.get_serializer(self.__filtered_queryset, many=True)
+        serializer = self.get_serializer(self._filtered_queryset, many=True)
         return Response(serializer.data)
 
     @action(detail=False, methods=['GET'])
@@ -888,19 +879,24 @@ class AssetViewSet(
         asset = self.get_object()
         if not asset.has_deployment:
             raise Http404
-        serializer = ReportsDetailSerializer(asset,
-                                             context=self.get_serializer_context())
+        serializer = ReportsDetailSerializer(
+            asset, context=self.get_serializer_context()
+        )
         return Response(serializer.data)
 
+    @extend_schema(tags=['Form content'])
     @action(detail=True)
-    def valid_content(self, request, uid):
+    def valid_content(self, request, uid_asset):
         asset = self.get_object()
-        return Response({
-            'kind': 'asset.valid_content',
-            'uid': asset.uid,
-            'data': to_xlsform_structure(asset.content),
-        })
+        return Response(
+            {
+                'kind': 'asset.valid_content',
+                'uid_asset': asset.uid,
+                'data': to_xlsform_structure(asset.content),
+            }
+        )
 
+    @extend_schema(tags=['Form content'])
     @action(detail=True, renderer_classes=[renderers.StaticHTMLRenderer])
     def table_view(self, request, *args, **kwargs):
         sa = self.get_object()
@@ -922,9 +918,43 @@ class AssetViewSet(
             response_data['highlighted_xform'] = highlight_xform(export.xml, **options)
         return Response(response_data, template_name='highlighted_xform.html')
 
+    @extend_schema(tags=['Form content'])
     @action(detail=True, renderer_classes=[renderers.StaticHTMLRenderer])
     def xls(self, request, *args, **kwargs):
         return self.table_view(self, request, *args, **kwargs)
+
+    def _attach_xforms_to_assets(self, assets: list):
+        """
+        Attach the related XForm to each Asset and yield them to
+        stay memory-efficient.
+        """
+
+        asset_uids = self._serializer_context['asset_uids_cache']
+        xform_qs = (
+            XForm.all_objects.filter(kpi_asset_uid__in=asset_uids)
+            .only(
+                'id_string',
+                'num_of_submissions',
+                'attachment_storage_bytes',
+                'require_auth',
+                'uuid',
+                'mongo_uuid',
+                'encrypted',
+                'last_submission_time',
+                'kpi_asset_uid',
+            )
+            .order_by()
+        )
+
+        xforms_by_uid = {xf.kpi_asset_uid: xf for xf in xform_qs}
+
+        # Single pass over assets: attach _xform then yield
+        for asset in assets:
+            if asset.has_deployment:
+                xf = xforms_by_uid.get(asset.uid, None)
+                xf.user = asset.owner
+                asset.deployment._xform = xf
+            yield asset
 
     def _bulk_asset_actions(self, data: dict) -> dict:
         params = {

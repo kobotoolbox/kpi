@@ -21,6 +21,7 @@ from django.urls import reverse
 from django_digest.test import Client as DigestClient
 from rest_framework import status
 
+from kobo.apps.audit_log.models import ProjectHistoryLog
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.exceptions import InstanceIdMissingError
 from kobo.apps.openrosa.apps.logger.models.instance import Instance
@@ -29,9 +30,12 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     remove_uuid_prefix,
 )
 from kobo.apps.openrosa.apps.main.models.user_profile import UserProfile
+from kobo.apps.openrosa.apps.viewer.models import ParsedInstance
 from kobo.apps.openrosa.libs.utils.common_tags import META_ROOT_UUID
 from kobo.apps.openrosa.libs.utils.logger_tools import dict2xform
+from kobo.apps.organizations.constants import UsageType
 from kobo.apps.project_ownership.utils import create_invite
+from kobo.apps.subsequences.models import SubmissionSupplement
 from kpi.constants import (
     ASSET_TYPE_SURVEY,
     PERM_ADD_SUBMISSIONS,
@@ -109,7 +113,7 @@ class BaseSubmissionTestCase(BaseTestCase):
         self.asset.deployment.set_namespace(self.URL_NAMESPACE)
         self.submission_list_url = reverse(
             self._get_endpoint('submission-list'),
-            kwargs={'parent_lookup_asset': self.asset.uid, 'format': 'json'},
+            kwargs={'uid_asset': self.asset.uid, 'format': 'json'},
         )
         self._deployment = self.asset.deployment
 
@@ -158,12 +162,12 @@ class BulkDeleteSubmissionsApiTests(
         self._add_submissions()
         self.submission_list_url = reverse(
             self._get_endpoint('submission-list'),
-            kwargs={'parent_lookup_asset': self.asset.uid, 'format': 'json'},
+            kwargs={'uid_asset': self.asset.uid, 'format': 'json'},
         )
         self.submission_bulk_url = reverse(
             self._get_endpoint('submission-bulk'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
             },
         )
 
@@ -527,7 +531,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         asset.deployment.mock_submissions(submissions)
         submission_list_url = reverse(
             self._get_endpoint('submission-list'),
-            kwargs={'parent_lookup_asset': asset.uid, 'format': 'json'},
+            kwargs={'uid_asset': asset.uid, 'format': 'json'},
         )
 
         # Server-wide limit should apply if no limit specified
@@ -725,8 +729,8 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'submission_id_or_root_uuid': submission['_id'],
+                'uid_asset': self.asset.uid,
+                'pk': submission['_id'],
             },
         )
         response = self.client.get(url, {'format': 'json'})
@@ -742,8 +746,8 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'submission_id_or_root_uuid': submission['_uuid'],
+                'uid_asset': self.asset.uid,
+                'pk': submission['_uuid'],
             },
         )
 
@@ -762,8 +766,8 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'submission_id_or_root_uuid': submission['_id'],
+                'uid_asset': self.asset.uid,
+                'pk': submission['_id'],
             },
         )
         response = self.client.get(url, {'format': 'json'})
@@ -780,8 +784,8 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'submission_id_or_root_uuid': submission['_id'],
+                'uid_asset': self.asset.uid,
+                'pk': submission['_id'],
             },
         )
         response = self.client.get(url, {'format': 'json'})
@@ -809,8 +813,8 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'submission_id_or_root_uuid': submission['_id'],
+                'uid_asset': self.asset.uid,
+                'pk': submission['_id'],
             },
         )
         response = self.client.get(url, {'format': 'json'})
@@ -821,8 +825,8 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'submission_id_or_root_uuid': submission['_id'],
+                'uid_asset': self.asset.uid,
+                'pk': submission['_id'],
             },
         )
         response = self.client.get(url, {'format': 'json'})
@@ -845,8 +849,8 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'submission_id_or_root_uuid': 9999,
+                'uid_asset': self.asset.uid,
+                'pk': 9999,
             },
         )
         response = self.client.delete(url, HTTP_ACCEPT='application/json')
@@ -865,8 +869,8 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'submission_id_or_root_uuid': submission['_id'],
+                'uid_asset': self.asset.uid,
+                'pk': submission['_id'],
             },
         )
 
@@ -885,8 +889,8 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'submission_id_or_root_uuid': submission['_id'],
+                'uid_asset': self.asset.uid,
+                'pk': submission['_id'],
             },
         )
 
@@ -905,8 +909,8 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'submission_id_or_root_uuid': submission['_id'],
+                'uid_asset': self.asset.uid,
+                'pk': submission['_id'],
             },
         )
         response = self.client.delete(url, HTTP_ACCEPT='application/json')
@@ -948,8 +952,8 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'submission_id_or_root_uuid': submission['_id'],
+                'uid_asset': self.asset.uid,
+                'pk': submission['_id'],
             },
         )
         response = self.client.delete(
@@ -963,8 +967,8 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'submission_id_or_root_uuid': submission['_id'],
+                'uid_asset': self.asset.uid,
+                'pk': submission['_id'],
             },
         )
         response = self.client.delete(
@@ -1121,8 +1125,8 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': asset.uid,
-                'submission_id_or_root_uuid': submission['_id'],
+                'uid_asset': asset.uid,
+                'pk': submission['_id'],
             },
         )
 
@@ -1158,10 +1162,10 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
             assert attachment['download_url'] == expected_new_download_urls[idx]
             assert attachment['question_xpath'] == expected_question_xpaths[idx]
 
-    def test_inject_root_uuid_if_not_present(self):
+    def test_inject_requires_properties_if_not_present(self):
         """
-        Ensure `meta/rootUUid` is present in API response even if rootUuid was
-        not present (e.g. like old submissions)
+        Ensure `meta/rootUUid` and `_validation_status` are present in API response
+        even if not present (e.g. like old submissions)
         """
         # remove "meta/rootUuid" from MongoDB
         submission = self.submissions_submitted_by_someuser[0]
@@ -1170,20 +1174,41 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         )
         root_uuid = mongo_document.pop(META_ROOT_UUID)
         settings.MONGO_DB.instances.update_one(
-            {'_id': submission['_id']}, {'$unset': {META_ROOT_UUID: root_uuid}}
+            {'_id': submission['_id']},
+            {'$unset': {META_ROOT_UUID: root_uuid, '_validation_status': None}},
         )
 
         url = reverse(
             self._get_endpoint('submission-detail'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'submission_id_or_root_uuid': submission['_id'],
+                'uid_asset': self.asset.uid,
+                'pk': submission['_id'],
             },
         )
         response = self.client.get(url, {'format': 'json'})
         assert response.data['_id'] == submission['_id']
         assert META_ROOT_UUID in response.data
+        assert '_validation_status' in response.data
         assert response.data[META_ROOT_UUID] == root_uuid
+        assert response.data['_validation_status'] == {}
+
+    def test_submitted_by_persists_after_user_deletion(self):
+        # Simulate old submissions that don't have `submitted_by`
+        ParsedInstance.objects.filter(instance__user=self.anotheruser).update(
+            submitted_by=None
+        )
+        self.anotheruser.delete()
+        for submission in self.submissions_submitted_by_anotheruser:
+            url = reverse(
+                self._get_endpoint('submission-detail'),
+                kwargs={
+                    'uid_asset': self.asset.uid,
+                    'pk': submission['_id'],
+                },
+            )
+            response = self.client.get(url)
+            assert response.status_code == status.HTTP_200_OK
+            assert response.data['_submitted_by'] == 'anotheruser'
 
 
 class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase):
@@ -1205,22 +1230,22 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         self.submission_url = reverse(
             self._get_endpoint('submission-enketo-edit'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'submission_id_or_root_uuid': self.submission['_id'],
+                'uid_asset': self.asset.uid,
+                'pk': self.submission['_id'],
             },
         )
         self.submission_url_legacy = reverse(
             self._get_endpoint('submission-enketo-edit-legacy'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'submission_id_or_root_uuid': self.submission['_id'],
+                'uid_asset': self.asset.uid,
+                'pk': self.submission['_id'],
             },
         )
         self.submission_redirect_url = reverse(
             self._get_endpoint('submission-enketo-edit-redirect'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'submission_id_or_root_uuid': self.submission['_id'],
+                'uid_asset': self.asset.uid,
+                'pk': self.submission['_id'],
             },
         )
 
@@ -1363,8 +1388,8 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         url = reverse(
             self._get_endpoint('submission-enketo-edit'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'submission_id_or_root_uuid': submission['_id'],
+                'uid_asset': self.asset.uid,
+                'pk': submission['_id'],
             },
         )
         response = self.client.get(url, {'format': 'json'})
@@ -1375,8 +1400,8 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         url = reverse(
             self._get_endpoint('submission-enketo-edit'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'submission_id_or_root_uuid': submission['_id'],
+                'uid_asset': self.asset.uid,
+                'pk': submission['_id'],
             },
         )
 
@@ -1494,8 +1519,8 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
             edit_url = reverse(
                 self._get_endpoint('submission-enketo-edit'),
                 kwargs={
-                    'parent_lookup_asset': self.asset.uid,
-                    'submission_id_or_root_uuid': submission['_id'],
+                    'uid_asset': self.asset.uid,
+                    'pk': submission['_id'],
                 },
             )
             self.client.get(edit_url, {'format': 'json'})
@@ -1596,8 +1621,8 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         edit_url = reverse(
             self._get_endpoint('submission-enketo-edit'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'submission_id_or_root_uuid': submission['_id'],
+                'uid_asset': self.asset.uid,
+                'pk': submission['_id'],
             },
         )
 
@@ -1662,8 +1687,8 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         edit_url = reverse(
             self._get_endpoint('submission-enketo-edit'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'submission_id_or_root_uuid': submission_json['_id'],
+                'uid_asset': self.asset.uid,
+                'pk': submission_json['_id'],
             },
         )
 
@@ -1955,6 +1980,131 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         assert 'deprecatedID' in instance.xml
         self._simulate_edit_submission(instance)
 
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    @override_config(USAGE_LIMIT_ENFORCEMENT=True)
+    @mock.patch(
+        'kobo.apps.openrosa.libs.utils.logger_tools.ServiceUsageCalculator.get_usage_balances'  # noqa: E501
+    )
+    def test_edit_submission_ignores_usage_limit_enforcement(self, mock_usage):
+        mock_balances = {
+            UsageType.STORAGE_BYTES: {
+                'exceeded': True,
+            },
+            UsageType.SUBMISSION: {
+                'exceeded': True,
+            },
+        }
+        mock_usage.return_value = mock_balances
+        root_uuid = remove_uuid_prefix(self.submission['_uuid'])
+        instance = Instance.objects.get(root_uuid=root_uuid)
+        self._simulate_edit_submission(instance)
+
+    def test_submitted_by_persist_after_edit(self):
+        root_uuid = remove_uuid_prefix(self.submission['_uuid'])
+        instance = Instance.objects.get(root_uuid=root_uuid)
+        original_submitted_by = instance.parsed_instance.submitted_by
+
+        # Edit the submission
+        self._simulate_edit_submission(instance)
+
+        # Ensure the `_submitted_by` field remains unchanged after edit
+        instance.refresh_from_db()
+        assert instance.parsed_instance.submitted_by == original_submitted_by
+
+    def test_submitted_by_persists_for_shared_submitter(self):
+        """
+        Test that the `_submitted_by` field remains correct when:
+
+        1. Share the project with anotheruser
+        2. Make anotheruser submit data to the shared project
+        3. Delete the submitting user
+        4. Edit the submission
+        5. Bulk update the same submission
+        6. Ensure the `_submitted_by` field remains correct throughout
+        the process.
+        """
+        # 1. Share the project with anotheruser
+        self.asset.assign_perm(self.anotheruser, PERM_ADD_SUBMISSIONS)
+
+        # 2. Make anotheruser submit data to the shared project
+        submission_uuid = str(uuid.uuid4())
+        version_uid = self.asset.latest_deployed_version.uid
+        submission = {
+            '__version__': version_uid,
+            'meta/instanceID': add_uuid_prefix(submission_uuid),
+            '_uuid': submission_uuid,
+            '_submitted_by': self.anotheruser.username,
+            'q1': 'initial value',
+        }
+        self.asset.deployment.mock_submissions([submission])
+        root_uuid = remove_uuid_prefix(submission['_uuid'])
+        instance = Instance.objects.get(root_uuid=root_uuid)
+
+        # Simulate old submission that does not have submitted_by stored
+        ParsedInstance.objects.filter(instance=instance).update(submitted_by=None)
+        deleted_username = self.anotheruser.username
+
+        # 3. Delete the submitting user
+        self.anotheruser.delete()
+
+        # After deletion, the submission detail should still show the username
+        detail_url = reverse(
+            self._get_endpoint('submission-detail'),
+            kwargs={'uid_asset': self.asset.uid, 'pk': instance.pk},
+        )
+        response = self.client.get(detail_url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['_submitted_by'] == deleted_username
+
+        # 4. Edit the submission
+        self._simulate_edit_submission(instance)
+
+        # Ensure the edited submission still shows the original submitted_by
+        response = self.client.get(detail_url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['_submitted_by'] == deleted_username
+
+        # Ensure ProjectHistoryLog has the correct submitted_by
+        ph_edit = (
+            ProjectHistoryLog.objects.filter(
+                metadata__submission__root_uuid=instance.root_uuid,
+            )
+            .order_by('-date_created')
+            .first()
+        )
+        assert ph_edit.metadata['submission']['submitted_by'] == deleted_username
+
+        # 5. Bulk update the same submission
+        bulk_url = reverse(
+            self._get_endpoint('submission-bulk'),
+            kwargs={'uid_asset': self.asset.uid},
+        )
+        payload = {
+            'payload': {
+                'submission_ids': [instance.pk],
+                'data': {'q1': 'bulk-updated value'},
+            }
+        }
+        response = self.client.patch(bulk_url, data=payload, format='json')
+        assert response.status_code == status.HTTP_200_OK
+
+        # Ensure the updated submission still shows the original submitted_by
+        response = self.client.get(detail_url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['_submitted_by'] == deleted_username
+
+        # Ensure ProjectHistoryLog has the correct submitted_by
+        ph_bulk = (
+            ProjectHistoryLog.objects.filter(
+                metadata__submission__root_uuid=instance.root_uuid,
+            )
+            .order_by('-date_created')
+            .first()
+        )
+        assert ph_bulk.metadata['submission']['submitted_by'] == deleted_username
+
 
 class SubmissionViewApiTests(SubmissionViewTestCaseMixin, BaseSubmissionTestCase):
 
@@ -1965,15 +2115,15 @@ class SubmissionViewApiTests(SubmissionViewTestCaseMixin, BaseSubmissionTestCase
         self.submission_view_link_url = reverse(
             self._get_endpoint('submission-enketo-view'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'submission_id_or_root_uuid': self.submission['_id'],
+                'uid_asset': self.asset.uid,
+                'pk': self.submission['_id'],
             },
         )
         self.submission_view_redirect_url = reverse(
             self._get_endpoint('submission-enketo-view-redirect'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'submission_id_or_root_uuid': self.submission['_id'],
+                'uid_asset': self.asset.uid,
+                'pk': self.submission['_id'],
             },
         )
         assert 'redirect' in self.submission_view_redirect_url
@@ -2081,8 +2231,8 @@ class SubmissionViewApiTests(SubmissionViewTestCaseMixin, BaseSubmissionTestCase
         url = reverse(
             self._get_endpoint('submission-enketo-view'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'submission_id_or_root_uuid': submission['_id'],
+                'uid_asset': self.asset.uid,
+                'pk': submission['_id'],
             },
         )
 
@@ -2094,8 +2244,8 @@ class SubmissionViewApiTests(SubmissionViewTestCaseMixin, BaseSubmissionTestCase
         url = reverse(
             self._get_endpoint('submission-enketo-view'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'submission_id_or_root_uuid': submission['_id'],
+                'uid_asset': self.asset.uid,
+                'pk': submission['_id'],
             },
         )
 
@@ -2138,8 +2288,8 @@ class SubmissionDuplicateBaseApiTests(BaseSubmissionTestCase):
         self.submission_url = reverse(
             self._get_endpoint('submission-duplicate'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'submission_id_or_root_uuid': self.submission['_id'],
+                'uid_asset': self.asset.uid,
+                'pk': self.submission['_id'],
             },
         )
 
@@ -2306,8 +2456,8 @@ class SubmissionDuplicateApiTests(
         url = reverse(
             self._get_endpoint('submission-duplicate'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'submission_id_or_root_uuid': submission['_id'],
+                'uid_asset': self.asset.uid,
+                'pk': submission['_id'],
             },
         )
         response = self.client.post(url, {'format': 'json'})
@@ -2318,8 +2468,8 @@ class SubmissionDuplicateApiTests(
         url = reverse(
             self._get_endpoint('submission-duplicate'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'submission_id_or_root_uuid': submission['_id'],
+                'uid_asset': self.asset.uid,
+                'pk': submission['_id'],
             },
         )
         response = self.client.post(url, {'format': 'json'})
@@ -2328,33 +2478,63 @@ class SubmissionDuplicateApiTests(
 
     def test_duplicate_submission_with_extras(self):
         dummy_extra = {
+            '_version': '20250820',
             'q1': {
-                'transcript': {
-                    'value': 'dummy transcription',
-                    'languageCode': 'en',
+                'manual_transcription': {
+                    '_dateCreated': '2025-01-01T00:00:00Z',
+                    '_dateModified': '2025-01-01T00:00:00Z',
+                    '_versions': [
+                        {
+                            '_dateCreated': '2025-01-01T00:00:00Z',
+                            '_dateAccepted': '2025-01-01T00:00:00Z',
+                            '_data': {
+                                'value': 'dummy transcription',
+                                'langaugeCode': 'en',
+                            },
+                            '_uuid': '12345',
+                        }
+                    ],
                 },
-                'translation': {
-                    'tx1': {
-                        'value': 'dummy translation',
-                        'languageCode': 'xx',
-                    }
+                'manual_translation': {
+                    '_dateCreated': '2025-01-01T00:00:00Z',
+                    '_dateModified': '2025-01-01T00:00:00Z',
+                    '_versions': [
+                        {
+                            '_dateCreated': '2025-01-01T00:00:00Z',
+                            '_dateAccepted': '2025-01-01T00:00:00Z',
+                            '_data': {
+                                'value': 'dummy translation',
+                                'langaugeCode': 'xx',
+                            },
+                            '_uuid': '678910',
+                        }
+                    ],
                 },
             },
-            'submission': self.submission['_uuid']
         }
-        self.asset.update_submission_extra(dummy_extra)
+        SubmissionSupplement.objects.create(
+            submission_uuid=self.submission['_uuid'],
+            asset=self.asset,
+            content=dummy_extra,
+        )
         response = self.client.post(self.submission_url, {'format': 'json'})
         duplicated_submission = response.data
         duplicated_extra = self.asset.submission_extras.filter(
             submission_uuid=duplicated_submission['_uuid']
         ).first()
         assert (
-            duplicated_extra.content['q1']['translation']['tx1']['value']
-            == dummy_extra['q1']['translation']['tx1']['value']
+            duplicated_extra.content['q1']['manual_translation']['_versions'][0][
+                '_data'
+            ]['value']
+            == dummy_extra['q1']['manual_translation']['_versions'][0]['_data']['value']
         )
         assert (
-            duplicated_extra.content['q1']['transcript']['value']
-            == dummy_extra['q1']['transcript']['value']
+            duplicated_extra.content['q1']['manual_transcription']['_versions'][0][
+                '_data'
+            ]['value']
+            == dummy_extra['q1']['manual_transcription']['_versions'][0]['_data'][
+                'value'
+            ]
         )
 
     def test_duplicate_edited_submission(self):
@@ -2399,7 +2579,7 @@ class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
         self.submission_url = reverse(
             self._get_endpoint('submission-bulk'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
+                'uid_asset': self.asset.uid,
             },
         )
 
@@ -2451,6 +2631,29 @@ class BulkUpdateSubmissionsApiTests(BaseSubmissionTestCase):
                         root_uuid.text
                     )
                     break
+
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    @override_config(USAGE_LIMIT_ENFORCEMENT=True)
+    @mock.patch(
+        'kobo.apps.openrosa.libs.utils.logger_tools.ServiceUsageCalculator.get_usage_balances'  # noqa: E501
+    )
+    def test_bulk_update_submissions_ignores_limit_enforcement(self, mock_usage):
+        mock_balances = {
+            UsageType.STORAGE_BYTES: {
+                'exceeded': True,
+            },
+            UsageType.SUBMISSION: {
+                'exceeded': True,
+            },
+        }
+        mock_usage.return_value = mock_balances
+        response = self.client.patch(
+            self.submission_url, data=self.submitted_payload, format='json'
+        )
+        assert response.status_code == status.HTTP_200_OK
+        self._check_bulk_update(response)
 
     @pytest.mark.skip(
         reason=(
@@ -2597,8 +2800,8 @@ class SubmissionValidationStatusApiTests(
         self.validation_status_url = reverse(
             self._get_endpoint('submission-validation-status'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'submission_id_or_root_uuid': self.submission['_id'],
+                'uid_asset': self.asset.uid,
+                'pk': self.submission['_id'],
             },
         )
 
@@ -2771,8 +2974,8 @@ class SubmissionValidationStatusApiTests(
         url = reverse(
             self._get_endpoint('submission-validation-status'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'submission_id_or_root_uuid': submission['_id'],
+                'uid_asset': self.asset.uid,
+                'pk': submission['_id'],
             },
         )
         response = self.client.patch(url, data=data)
@@ -2783,8 +2986,8 @@ class SubmissionValidationStatusApiTests(
         url = reverse(
             self._get_endpoint('submission-validation-status'),
             kwargs={
-                'parent_lookup_asset': self.asset.uid,
-                'submission_id_or_root_uuid': submission['_id'],
+                'uid_asset': self.asset.uid,
+                'pk': submission['_id'],
             },
         )
         response = self.client.patch(url, data=data)
@@ -2806,11 +3009,11 @@ class SubmissionValidationStatusesApiTests(
         self._add_submissions()
         self.validation_statuses_url = reverse(
             self._get_endpoint('submission-validation-statuses'),
-            kwargs={'parent_lookup_asset': self.asset.uid, 'format': 'json'},
+            kwargs={'uid_asset': self.asset.uid, 'format': 'json'},
         )
         self.submission_list_url = reverse(
             self._get_endpoint('submission-list'),
-            kwargs={'parent_lookup_asset': self.asset.uid, 'format': 'json'},
+            kwargs={'uid_asset': self.asset.uid, 'format': 'json'},
         )
 
         self._validate_statuses(empty=True)
@@ -3207,6 +3410,105 @@ class SubmissionValidationStatusesApiTests(
 
         # TODO Test with `query` when Mockbackend support Mongo queries
 
+    def test_submitted_by_persists_when_validation_status_updated(self):
+        """
+        Test that the `_submitted_by` remains correct when:
+
+        1. share asset with anotheruser
+        2. have anotheruser submit a record
+        3. delete anotheruser
+        4. update submission validation status
+        5. update validation status via bulk update
+        """
+        # 1. Share the project with anotheruser
+        self.asset.assign_perm(self.anotheruser, PERM_ADD_SUBMISSIONS)
+
+        # 2. Make anotheruser submit data to the shared project
+        submission_uuid = str(uuid.uuid4())
+        version_uid = self.asset.latest_deployed_version.uid
+        submission = {
+            '__version__': version_uid,
+            'meta/instanceID': add_uuid_prefix(submission_uuid),
+            '_uuid': submission_uuid,
+            '_submitted_by': self.anotheruser.username,
+            'q1': 'initial value for validation test',
+        }
+        self.asset.deployment.mock_submissions([submission])
+        root_uuid = remove_uuid_prefix(submission['_uuid'])
+        instance = Instance.objects.get(root_uuid=root_uuid)
+
+        # Simulate old submission that does not have submitted_by stored
+        ParsedInstance.objects.filter(instance=instance).update(submitted_by=None)
+        deleted_username = self.anotheruser.username
+
+        # 3. Delete the submitting user
+        self.anotheruser.delete()
+
+        # Ensure submission still shows correct _submitted_by
+        detail_url = reverse(
+            self._get_endpoint('submission-detail'),
+            kwargs={'uid_asset': self.asset.uid, 'pk': instance.pk},
+        )
+        resp = self.client.get(detail_url)
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data['_submitted_by'] == deleted_username
+
+        # 4. Update validation status for the single submission (owner does update)
+        validation_url = reverse(
+            self._get_endpoint('submission-validation-status'),
+            kwargs={'uid_asset': self.asset.uid, 'pk': instance.pk},
+        )
+        single_update = {'validation_status.uid': 'validation_status_approved'}
+        resp = self.client.patch(validation_url, data=single_update)
+        assert resp.status_code == status.HTTP_200_OK
+
+        # Ensure detail still has original _submitted_by
+        resp = self.client.get(detail_url)
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data['_submitted_by'] == deleted_username
+        assert resp.data['_validation_status']['uid'] == 'validation_status_approved'
+        assert resp.data['_validation_status']['by_whom'] == self.someuser.username
+
+        # Ensure a ProjectHistoryLog was created with correct submitted_by
+        ph_single = (
+            ProjectHistoryLog.objects.filter(
+                metadata__submission__root_uuid=instance.root_uuid,
+            )
+            .order_by('-date_created')
+            .first()
+        )
+        assert ph_single.metadata['submission']['submitted_by'] == deleted_username
+
+        # 5. Bulk update the validation statuses for that submission id
+        bulk_payload = {
+            'payload': {
+                'validation_status.uid': 'validation_status_not_approved',
+                'submission_ids': [instance.pk],
+            }
+        }
+        resp = self.client.patch(
+            self.validation_statuses_url, data=bulk_payload, format='json'
+        )
+        assert resp.status_code == status.HTTP_200_OK
+
+        # Ensure detail still has original _submitted_by
+        resp = self.client.get(detail_url)
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data['_submitted_by'] == deleted_username
+        assert (
+            resp.data['_validation_status']['uid'] == 'validation_status_not_approved'
+        )
+
+        # Ensure a ProjectHistoryLog was created with correct submitted_by
+        ph_bulk = (
+            ProjectHistoryLog.objects.filter(
+                metadata__submission__root_uuid=instance.root_uuid,
+            )
+            .order_by('-date_created')
+            .first()
+        )
+        assert ph_bulk.metadata['submission']['submitted_by'] == deleted_username
+
 
 class SubmissionGeoJsonApiTests(BaseTestCase):
 
@@ -3256,7 +3558,7 @@ class SubmissionGeoJsonApiTests(BaseTestCase):
         self.submission_list_url = reverse(
             self._get_endpoint('submission-list'),
             kwargs={
-                'parent_lookup_asset': a.uid,
+                'uid_asset': a.uid,
             },
         )
 
