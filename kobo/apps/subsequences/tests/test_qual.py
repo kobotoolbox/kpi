@@ -1,5 +1,5 @@
 from copy import deepcopy
-from unittest import mock
+from unittest import mock, TestCase
 import uuid
 
 from freezegun import freeze_time
@@ -642,3 +642,310 @@ def test_result_content():
         accumulated_result
         == Fix.expected_result_after_filled_and_empty_responses
     )
+
+
+class TestQualActionMethods(TestCase):
+    source_xpath = 'group_name/question_name'
+    action_params = [
+        {
+            'type': 'qualInteger',
+            'uuid': 'qual-integer-uuid',
+            'labels': {'_default': 'Number of themes', 'fr': 'Nombre de thèmes'},
+        },
+        {
+            'type': 'qualText',
+            'uuid': 'qual-text-uuid',
+            'labels': {'_default': 'Summary Notes'},
+        },
+        {
+            'type': 'qualSelectOne',
+            'uuid': 'qual-select-one-uuid',
+            'labels': {'_default': 'Urgency Level', 'es': 'Nivel de Urgencia'},
+            'choices': [
+                {
+                    'uuid': 'choice-high-uuid',
+                    'labels': {'_default': 'High', 'fr': 'Élevé', 'es': 'Alto'}
+                },
+                {
+                    'uuid': 'choice-medium-uuid',
+                    'labels': {'_default': 'Medium', 'fr': 'Moyen', 'es': 'Medio'}
+                },
+                {
+                    'uuid': 'choice-low-uuid',
+                    'labels': {'_default': 'Low', 'fr': 'Bas', 'es': 'Bajo'}
+                },
+            ]
+        },
+        {
+            'type': 'qualSelectMultiple',
+            'uuid': 'qual-select-multi-uuid',
+            'labels': {'_default': 'Tags'},
+            'choices': [
+                {
+                    'uuid': 'tag-shelter-uuid',
+                    'labels': {'_default': 'Shelter', 'ar': 'مأوى'}
+                },
+                {
+                    'uuid': 'tag-food-uuid',
+                    'labels': {'_default': 'Food', 'ar': 'طعام'}
+                },
+                {
+                    'uuid': 'tag-medical-uuid',
+                    'labels': {'_default': 'Medical', 'ar': 'طبي'}
+                },
+            ]
+        },
+    ]
+
+    def test_get_output_fields(self):
+        """
+        Test for `get_output_fields()` covering:
+        - Correct structure and required fields
+        - Integer and text questions (no choices)
+        - Select one with choices
+        - Select multiple with choices
+        - Field naming convention
+        """
+        action = QualAction(self.source_xpath, self.action_params)
+        output_fields = action.get_output_fields()
+
+        # Should return one field per qual question
+        assert len(output_fields) == 4
+
+        # All fields should have required keys
+        for field in output_fields:
+            assert 'label' in field
+            assert 'source' in field
+            assert 'name' in field
+            assert 'type' in field
+            assert field['source'] == self.source_xpath
+            # Name should follow pattern: source_xpath/qual_uuid
+            assert field['name'].startswith(f'{self.source_xpath}/')
+
+        # Test integer question (no choices)
+        integer_field = next(f for f in output_fields if f['type'] == 'qualInteger')
+        assert integer_field['label'] == 'Number of themes'
+        assert integer_field['name'] == f'{self.source_xpath}/qual-integer-uuid'
+        assert 'choices' not in integer_field
+
+        # Test text question (no choices)
+        text_field = next(f for f in output_fields if f['type'] == 'qualText')
+        assert text_field['label'] == 'Summary Notes'
+        assert text_field['name'] == f'{self.source_xpath}/qual-text-uuid'
+        assert 'choices' not in text_field
+
+        # Test select one (with choices)
+        select_one_field = next(
+            f for f in output_fields if f['type'] == 'qualSelectOne'
+        )
+        assert select_one_field['label'] == 'Urgency Level'
+        assert select_one_field['name'] == f'{self.source_xpath}/qual-select-one-uuid'
+        assert 'choices' in select_one_field
+        assert len(select_one_field['choices']) == 3
+
+        # Verify choice structure
+        high_choice = select_one_field['choices'][0]
+        assert high_choice['uuid'] == 'choice-high-uuid'
+        assert high_choice['labels'] == {
+            '_default': 'High',
+            'fr': 'Élevé',
+            'es': 'Alto'
+        }
+
+        # Test select multiple (with choices)
+        select_multi_field = next(
+            f for f in output_fields if f['type'] == 'qualSelectMultiple'
+        )
+        assert 'choices' in select_multi_field
+        assert len(select_multi_field['choices']) == 3
+
+        # Verify multilingual choice labels
+        shelter_choice = next(
+            c for c in select_multi_field['choices']
+            if c['uuid'] == 'tag-shelter-uuid'
+        )
+        assert shelter_choice['labels'] == {
+            '_default': 'Shelter',
+            'ar': 'مأوى'
+        }
+
+    def test_transform_data_for_output_all_question_types(self):
+        """
+        Test for `transform_data_for_output()` covering:
+        - Integer question (direct value)
+        - Text question (direct value)
+        - Select one (UUID → object with labels)
+        - Select multiple (UUID array → object array with labels)
+        - Multiple questions processed together
+        - Field naming and structure (returns {'qual': [...]})
+        """
+        action = QualAction(self.source_xpath, self.action_params)
+
+        action_data = {
+            # Integer question
+            'qual-integer-uuid': {
+                '_versions': [{
+                    '_data': {'uuid': 'qual-integer-uuid', 'value': 5},
+                    '_dateCreated': '2025-11-24T10:00:00Z',
+                    '_dateAccepted': '2025-11-24T10:00:00Z',
+                    '_uuid': 'v1'
+                }],
+                '_dateCreated': '2025-11-24T10:00:00Z',
+                '_dateModified': '2025-11-24T10:00:00Z'
+            },
+            # Text question
+            'qual-text-uuid': {
+                '_versions': [{
+                    '_data': {
+                        'uuid': 'qual-text-uuid',
+                        'value': 'Family needs immediate shelter and medical care'
+                    },
+                    '_dateCreated': '2025-11-24T10:05:00Z',
+                    '_dateAccepted': '2025-11-24T10:05:00Z',
+                    '_uuid': 'v2'
+                }],
+                '_dateCreated': '2025-11-24T10:05:00Z',
+                '_dateModified': '2025-11-24T10:05:00Z'
+            },
+            # Select one question
+            'qual-select-one-uuid': {
+                '_versions': [{
+                    '_data': {
+                        'uuid': 'qual-select-one-uuid',
+                        'value': 'choice-high-uuid'
+                    },
+                    '_dateCreated': '2025-11-24T10:10:00Z',
+                    '_dateAccepted': '2025-11-24T10:10:00Z',
+                    '_uuid': 'v3'
+                }],
+                '_dateCreated': '2025-11-24T10:10:00Z',
+                '_dateModified': '2025-11-24T10:10:00Z'
+            },
+            # Select multiple question
+            'qual-select-multi-uuid': {
+                '_versions': [{
+                    '_data': {
+                        'uuid': 'qual-select-multi-uuid',
+                        'value': ['tag-shelter-uuid', 'tag-medical-uuid']
+                    },
+                    '_dateCreated': '2025-11-24T10:15:00Z',
+                    '_dateAccepted': '2025-11-24T10:15:00Z',
+                    '_uuid': 'v4'
+                }],
+                '_dateCreated': '2025-11-24T10:15:00Z',
+                '_dateModified': '2025-11-24T10:15:00Z'
+            }
+        }
+
+        output = action.transform_data_for_output(action_data)
+        assert isinstance(output, dict)
+        qual_list = output.get('qual', [])
+        assert isinstance(qual_list, list)
+
+        # Should have 4 items in output
+        assert len(qual_list) == 4
+
+        def find_item(q_uuid):
+            return next((it for it in qual_list if it.get('uuid') == q_uuid), None)
+
+        # Test integer question
+        int_item = find_item('qual-integer-uuid')
+        assert int_item is not None
+        assert int_item['val'] == 5
+        assert int_item['type'] == 'qualInteger'
+        assert int_item['xpath'] == self.source_xpath
+
+        # Test text question
+        text_item = find_item('qual-text-uuid')
+        assert text_item is not None
+        assert text_item['val'] == 'Family needs immediate shelter and medical care'
+        assert text_item['type'] == 'qualText'
+
+        # Test select one - UUID transformed to object with labels
+        select_one_item = find_item('qual-select-one-uuid')
+        assert select_one_item is not None
+        select_one_value = select_one_item['val']
+        assert isinstance(select_one_value, dict)
+        assert select_one_value['uuid'] == 'choice-high-uuid'
+        assert select_one_value['labels'] == {
+            '_default': 'High',
+            'fr': 'Élevé',
+            'es': 'Alto'
+        }
+
+        # Test select multiple - array of UUIDs transformed to array of objects
+        select_multi_item = find_item('qual-select-multi-uuid')
+        assert select_multi_item is not None
+        select_multi_value = select_multi_item['val']
+        assert isinstance(select_multi_value, list)
+        assert len(select_multi_value) == 2
+
+        # Verify first choice
+        shelter_item = next(
+            i for i in select_multi_value if i['uuid'] == 'tag-shelter-uuid'
+        )
+        assert shelter_item['labels'] == {
+            '_default': 'Shelter',
+            'ar': 'مأوى'
+        }
+
+        # Verify second choice
+        medical_item = next(
+            i for i in select_multi_value if i['uuid'] == 'tag-medical-uuid'
+        )
+        assert medical_item['labels'] == {
+            '_default': 'Medical',
+            'ar': 'طبي'
+        }
+
+    def test_transform_data_prefers_newest_date_accepted_version(self):
+        """
+        Test that when multiple versions exist for a qual question, the version
+        with the newest `_dateAccepted` is used for output, even if it is not
+        the most recently created version
+        """
+        action = QualAction(self.source_xpath, self.action_params)
+
+        action_data = {
+            'qual-text-uuid': {
+                '_versions': [
+                    {
+                        '_data': {
+                            'uuid': 'qual-text-uuid',
+                            'value': 'Initial note'
+                        },
+                        '_dateCreated': '2025-11-24T09:00:00Z',
+                        '_dateAccepted': '2025-11-24T09:00:00Z',
+                        '_uuid': 'v1'
+                    },
+                    {
+                        '_data': {
+                            'uuid': 'qual-text-uuid',
+                            'value': 'Revised note'
+                        },
+                        '_dateCreated': '2025-11-24T10:00:00Z',
+                        '_dateAccepted': '2025-11-24T10:00:00Z',
+                        '_uuid': 'v2'
+                    },
+                    {
+                        '_data': {
+                            'uuid': 'qual-text-uuid',
+                            'value': 'Final note'
+                        },
+                        '_dateCreated': '2025-11-24T11:00:00Z',
+                        '_dateAccepted': '2025-11-24T09:30:00Z',
+                        '_uuid': 'v3'
+                    },
+                ],
+                '_dateCreated': '2025-11-24T09:00:00Z',
+                '_dateModified': '2025-11-24T11:00:00Z'
+            }
+        }
+
+        output = action.transform_data_for_output(action_data)
+        qual_list = output.get('qual', [])
+        assert len(qual_list) == 1
+
+        text_item = qual_list[0]
+        assert text_item['uuid'] == 'qual-text-uuid'
+        assert text_item['val'] == 'Revised note'
