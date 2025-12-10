@@ -1907,7 +1907,7 @@
                         }
                     },
                     {
-                        "name": "start",
+                        "name": "offset",
                         "required": false,
                         "in": "query",
                         "description": "The initial index from which to return the results.",
@@ -5496,10 +5496,19 @@
                         }
                     },
                     {
-                        "name": "page",
+                        "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "A page number within the paginated result set.",
+                        "description": "Number of results to return per page.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "offset",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results.",
                         "schema": {
                             "type": "integer"
                         }
@@ -16899,13 +16908,13 @@
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?start=400&limit=100"
+                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
                     },
                     "previous": {
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?start=200&limit=100"
+                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -17116,13 +17125,13 @@
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?page=4"
+                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
                     },
                     "previous": {
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?page=2"
+                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
                     },
                     "results": {
                         "type": "array",
