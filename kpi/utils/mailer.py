@@ -5,11 +5,29 @@ from typing import Union
 
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives, get_connection, send_mail
+from django.core.mail.backends.smtp import EmailBackend as UpstreamEmailBackend
 from django.template.loader import get_template
 from django.utils.translation import activate
 from django.utils.translation import gettext as t
 
 from kpi.utils.log import logging
+
+
+class EmailBackend(UpstreamEmailBackend):
+
+    def _send(self, email_message):
+
+        # Always inject the SES config set header
+        config_set = settings.AWS_SES_CONFIGURATION_SET
+
+        if config_set:
+            email_message.extra_headers = email_message.extra_headers or {}
+            email_message.extra_headers.setdefault(
+                'X-SES-CONFIGURATION-SET',
+                config_set,
+            )
+
+        return super()._send(email_message)
 
 
 class EmailMessage:
@@ -71,7 +89,7 @@ class EmailMessage:
 class Mailer:
 
     @classmethod
-    def send(cls, email_messages: Union[EmailMessage, List[EmailMessage]]) -> bool:
+    def send(cls, email_messages: Union[EmailMessage, list[EmailMessage]]) -> bool:
         if isinstance(email_messages, EmailMessage):
             try:
                 send_mail(

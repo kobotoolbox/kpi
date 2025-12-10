@@ -2,6 +2,7 @@
  * exports related actions
  */
 
+import * as Sentry from '@sentry/react'
 import Reflux from 'reflux'
 import { dataInterface } from '#/dataInterface'
 import { notify } from '#/utils'
@@ -51,8 +52,14 @@ exportsActions.createExport.listen((assetUid, data) => {
     .done(exportsActions.createExport.completed)
     .fail(exportsActions.createExport.failed)
 })
-exportsActions.createExport.failed.listen(() => {
-  notify(t('Failed to create export'), 'error')
+
+exportsActions.createExport.failed.listen((response) => {
+  let errorMessage = t('Failed to create export')
+  if (typeof response === 'object' && response.responseJSON?.error) {
+    errorMessage = response.responseJSON.error
+  }
+  notify(errorMessage, 'error')
+  Sentry.captureMessage(errorMessage)
 })
 
 /**
