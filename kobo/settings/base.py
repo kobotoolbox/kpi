@@ -1624,6 +1624,9 @@ if EMAIL_BACKEND == 'django.core.mail.backends.filebased.EmailBackend':
     if not os.path.isdir(EMAIL_FILE_PATH):
         os.mkdir(EMAIL_FILE_PATH)
 
+if EMAIL_BACKEND == 'django.core.mail.backends.smtp.EmailBackend':
+    EMAIL_BACKEND = 'kpi.utils.mailer.EmailBackend'
+
 if os.environ.get('EMAIL_HOST'):
     EMAIL_HOST = os.environ.get('EMAIL_HOST')
 
@@ -1667,6 +1670,8 @@ if env.str('AWS_ACCESS_KEY_ID', False):
     # Only set the region if it is present in environment.
     if region := env.str('AWS_S3_REGION_NAME', False):
         AWS_S3_REGION_NAME = region
+
+AWS_SES_CONFIGURATION_SET = env.str('AWS_SES_CONFIGURATION_SET', None)
 
 # Storage configuration
 STORAGES = global_settings.STORAGES
