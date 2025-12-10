@@ -498,6 +498,13 @@ class DataViewSet(
                 location=OpenApiParameter.PATH,
                 exclude=True,
             ),
+            OpenApiParameter(
+                name='root_uuid',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='Root UUID of the submission',
+            ),
         ],
     )
     @extend_schema(
@@ -511,6 +518,13 @@ class DataViewSet(
                 type=str,
                 location=OpenApiParameter.PATH,
                 exclude=True,
+            ),
+            OpenApiParameter(
+                name='root_uuid',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='Root UUID of the submission',
             ),
         ],
     )
