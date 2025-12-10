@@ -31,7 +31,8 @@ def migrate_advanced_features(
 
     # save a copy so we don't lose data if there's a mistake in the migration
     copied = copy.deepcopy(advanced_features)
-    known_cols = set([col.split(':')[0] for col in asset.known_cols])
+    asset_known_cols = asset.known_cols or []
+    known_cols = set([col.split(':')[0] for col in asset_known_cols])
     features_to_create = []
 
     with transaction.atomic():
