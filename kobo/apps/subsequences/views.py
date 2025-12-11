@@ -4,11 +4,13 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kobo.apps.audit_log.base_views import AuditLoggedViewSet
 from kobo.apps.audit_log.models import AuditType
+from kobo.apps.subsequences.constants import SCHEMA_VERSIONS
 from kobo.apps.subsequences.models import QuestionAdvancedFeature
 from kobo.apps.subsequences.serializers import (
     QuestionAdvancedFeatureSerializer,
     QuestionAdvancedFeatureUpdateSerializer,
 )
+from kobo.apps.subsequences.utils.versioning import migrate_advanced_features
 from kpi.permissions import AssetAdvancedFeaturesPermission
 from kpi.schema_extensions.v2.subsequences.serializers import (
     AdvancedFeaturePatchRequest,
@@ -117,6 +119,11 @@ class QuestionAdvancedFeatureViewSet(
         return QuestionAdvancedFeature.objects.filter(asset=self.asset)
 
     def perform_create_override(self, serializer):
+        if (
+            self.asset.advanced_features
+            and self.asset.advanced_features.get('version') != SCHEMA_VERSIONS[0]
+        ):
+            migrate_advanced_features(self.asset)
         serializer.save(asset=self.asset)
 
     def get_serializer_class(self):
@@ -124,3 +131,11 @@ class QuestionAdvancedFeatureViewSet(
             return QuestionAdvancedFeatureUpdateSerializer
         else:
             return QuestionAdvancedFeatureSerializer
+
+    def list(self, request, *args, **kwargs):
+        if (
+            self.asset.advanced_features
+            and self.asset.advanced_features.get('version') != SCHEMA_VERSIONS[0]
+        ):
+            migrate_advanced_features(self.asset)
+        return super().list(request, *args, **kwargs)

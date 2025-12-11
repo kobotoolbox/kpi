@@ -10,6 +10,7 @@ class QualAction(BaseAction):
     action_class_config = ActionClassConfig(
         allow_multiple=True, automatic=False, action_data_key='uuid'
     )
+    KNOWN_PARAM_KEYS = ['uuid', 'labels', 'options', 'choices', 'type']
 
     # JSON Schema definitions
 
