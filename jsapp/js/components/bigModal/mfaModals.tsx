@@ -411,14 +411,12 @@ const MFAModals = class MFAModals extends React.Component<MFAModalsProps, MFAMod
             <strong>
               {/*This is safe as this step only shows if not on qr step*/}
               {this.props.modalType === 'regenerate' &&
-                t('Please enter your ##number##-digit authenticator token to regenerate your backup codes.').replace(
-                  '##number##',
-                  String(envStore.data.mfa_code_length),
-                )}
-
+                t(
+                  'Please enter your ##number##-digit authenticator token or one of your recovery codes to regenerate your backup codes.',
+                ).replace('##number##', String(envStore.data.mfa_code_length))}
               {this.props.modalType !== 'regenerate' &&
                 t(
-                  'Please enter your ##number##-digit authenticator token to deactivate two-factor authentication.',
+                  'Please enter your ##number##-digit authenticator token or one of your recovery codes to deactivate two-factor authentication.',
                 ).replace('##number##', String(envStore.data.mfa_code_length))}
             </strong>
           </bem.MFAModal__p>
