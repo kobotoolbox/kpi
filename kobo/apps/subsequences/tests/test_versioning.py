@@ -202,12 +202,24 @@ class TestVersioning(TestCase):
                         'transcribir pero yo lo edité',
                     }
                 },
+                'qual': [
+                    {
+                        'val': 'music123',
+                        'type': 'qual_text',
+                        'uuid': '09327944-d4a4-4d59-9316-1250cf0799a4'
+                    },
+                    {
+                        'val': 2,
+                        'type': 'qual_integer',
+                        'uuid': 'f57b263f-695c-4d74-88cb-14f1536f617c'
+                    },
+                ],
             }
         }
 
         with patch(
             'kobo.apps.subsequences.utils.versioning.uuid.uuid4',
-            side_effect=['uuid1', 'uuid2', 'uuid3', 'uuid4'],
+            side_effect=['uuid1', 'uuid2', 'uuid3', 'uuid4', 'uuid5', 'uuid6'],
         ):
             with freeze_time(now):
                 migrated = migrate_submission_supplementals(old_version)
@@ -282,6 +294,34 @@ class TestVersioning(TestCase):
                         ]
                     }
                 },
+                'qual': {
+                    '09327944-d4a4-4d59-9316-1250cf0799a4': {
+                        '_dateCreated': now.isoformat(),
+                        '_dateModified': now.isoformat(),
+                        '_versions': [{
+                            '_data': {
+                                'uuid': '09327944-d4a4-4d59-9316-1250cf0799a4',
+                                'value': 'music123'
+                            },
+                            '_dateCreated': now.isoformat(),
+                            '_dateAccepted': now.isoformat(),
+                            '_uuid': 'uuid5'
+                        }]
+                    },
+                    'f57b263f-695c-4d74-88cb-14f1536f617c': {
+                        '_dateCreated': now.isoformat(),
+                        '_dateModified': now.isoformat(),
+                        '_versions': [{
+                            '_data': {
+                                'uuid': 'f57b263f-695c-4d74-88cb-14f1536f617c',
+                                'value': 2
+                            },
+                            '_dateCreated': now.isoformat(),
+                            '_dateAccepted': now.isoformat(),
+                            '_uuid': 'uuid6'
+                        }]
+                    }
+                }
             }
         }
         assert migrated == new_version

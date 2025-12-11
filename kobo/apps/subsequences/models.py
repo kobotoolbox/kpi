@@ -7,6 +7,7 @@ from .actions import ACTION_IDS_TO_CLASSES
 from .constants import SCHEMA_VERSIONS, SUBMISSION_UUID_FIELD, Action
 from .exceptions import InvalidAction, InvalidXPath
 from .schemas import validate_submission_supplement
+from .utils.versioning import migrate_submission_supplementals
 
 
 class SubmissionExtras(AbstractTimeStampedModel):
@@ -45,8 +46,10 @@ class SubmissionSupplement(SubmissionExtras):
             raise NotImplementedError
 
         if schema_version != SCHEMA_VERSIONS[0]:
-            # TODO: migrate from old per-submission schema
-            raise NotImplementedError
+            migrated_data = migrate_submission_supplementals(incoming_data)
+            if migrated_data is None:
+                raise InvalidAction
+            incoming_data = migrated_data
 
         submission_uuid = remove_uuid_prefix(submission[SUBMISSION_UUID_FIELD])  # constant?
         supplemental_data = SubmissionExtras.objects.get_or_create(
@@ -152,8 +155,10 @@ class SubmissionSupplement(SubmissionExtras):
             raise NotImplementedError
 
         if schema_version != SCHEMA_VERSIONS[0]:
-            # TODO: migrate from old per-submission schema
-            raise NotImplementedError
+            migrated_data = migrate_submission_supplementals(supplemental_data)
+            if migrated_data is None:
+                raise InvalidAction
+            supplemental_data = migrated_data
 
         retrieved_supplemental_data = {}
         data_for_output = {}

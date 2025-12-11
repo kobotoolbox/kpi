@@ -37,9 +37,49 @@ def migrate_advanced_features(advanced_features: dict) -> dict | None:
     return migrated_advanced_features
 
 
+def migrate_qual_data(supplemental_data: dict) -> dict | None:
+    """
+    Convert old `qual` format to new format
+
+    OLD: {'qual': [{'val': 'answer', 'uuid': 'q-uuid', 'type': 'qual_text'}, ...]}
+    NEW: {'qual': {'q-uuid': {'_versions': [...], '_dateCreated': '...', ...}}}
+    """
+    qual_array = supplemental_data.get('qual')
+    if not isinstance(qual_array, list) or not qual_array:
+        return None
+
+    now = timezone.now().isoformat()
+    new_qual_dict = {}
+
+    for item in qual_array:
+        if 'uuid' not in item or 'val' not in item:
+            continue
+
+        question_uuid = item.get('uuid')
+        value = item.get('val')
+
+        new_version = {
+            '_data': {
+                'uuid': question_uuid,
+                'value': value
+            },
+            '_dateCreated': now,
+            '_dateAccepted': now,
+            '_uuid': str(uuid.uuid4())
+        }
+
+        new_qual_dict[question_uuid] = {
+            '_dateCreated': now,
+            '_dateModified': now,
+            '_versions': [new_version]
+        }
+
+    return new_qual_dict
+
+
 def migrate_submission_supplementals(supplemental_data: dict) -> dict | None:
     if supplemental_data.get('_version') == SCHEMA_VERSIONS[0]:
-        return
+        return supplemental_data
     supplemental = {
         '_version': SCHEMA_VERSIONS[0],
     }
@@ -114,6 +154,12 @@ def migrate_submission_supplementals(supplemental_data: dict) -> dict | None:
             )
         if manual_translations != {}:
             question_results_by_action['manual_translation'] = manual_translations
+
+        if 'qual' in action_results:
+            qual_migration = migrate_qual_data(action_results)
+            if qual_migration:
+                question_results_by_action['qual'] = qual_migration
+
         supplemental[question_xpath] = question_results_by_action
 
     return supplemental
