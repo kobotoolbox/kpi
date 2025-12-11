@@ -32,3 +32,14 @@ class QuestionAdvancedFeatureSerializer(serializers.ModelSerializer):
         model = QuestionAdvancedFeature
         fields = ['question_xpath', 'action', 'params', 'uid']
         read_only_fields = ['uid']
+
+    def create(self, validated_data):
+        xpath = validated_data.get('question_xpath')
+        action = validated_data.get('action')
+        asset = validated_data.get('asset')
+        # prevent unique_together error and give a better error message
+        if QuestionAdvancedFeature.objects.filter(
+            asset=asset, question_xpath=xpath, action=action
+        ).exists():
+            raise serializers.ValidationError('Action for this question already exists')
+        return super().create(validated_data)

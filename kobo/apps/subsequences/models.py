@@ -1,3 +1,4 @@
+
 from django.db import models
 
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
@@ -260,6 +261,11 @@ class QuestionAdvancedFeature(models.Model):
                 name='unique_advanced_feature',
             )
         ]
+
+    def save(self, *args, **kwargs):
+        action_class = ACTION_IDS_TO_CLASSES[self.action]
+        action_class.validate_params(self.params)
+        super().save(*args, **kwargs)
 
     def to_action(self):
         action_class = ACTION_IDS_TO_CLASSES[self.action]
