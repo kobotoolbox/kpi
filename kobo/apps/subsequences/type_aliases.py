@@ -11,5 +11,3 @@ NLPExternalServiceClass: TypeAlias = Union[
 
 # result of transform_data_for_output
 SimplifiedOutputCandidatesByColumnKey: TypeAlias = dict[str | tuple, dict[str, Any]]
-
-# QA question configs
