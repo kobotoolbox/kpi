@@ -59,6 +59,7 @@ from kpi.renderers import (
     SubmissionGeoJsonRenderer,
     SubmissionXMLRenderer,
 )
+from kpi.schema_extensions.v2.data.examples import get_data_supplement_examples
 from kpi.schema_extensions.v2.data.serializers import (
     DataBulkDelete,
     DataBulkUpdate,
@@ -490,7 +491,7 @@ class DataViewSet(
     @extend_schema(
         methods=['GET'],
         description=read_md('kpi', 'data/supplement_retrieve.md'),
-        responses=open_api_200_ok_response(DataSupplementResponse),  # TODO CHANGEME
+        responses=open_api_200_ok_response(DataSupplementResponse),
         parameters=[
             OpenApiParameter(
                 name='id',
@@ -527,6 +528,7 @@ class DataViewSet(
                 description='Root UUID of the submission',
             ),
         ],
+        examples=get_data_supplement_examples(),
     )
     def supplement(self, request, root_uuid, *args, **kwargs):
 
