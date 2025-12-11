@@ -200,9 +200,15 @@ def _get_data_supplement_response_examples():
                                 "_dateCreated": iso,
                                 "_uuid": "44444444-4444-4444-4444-444444444444",
                                 "language": "en",
-                                "status": "generated",
+                                "status": "complete",
                                 "value": "Hello world",
                                 "_dateAccepted": iso
+                            },
+                            {
+                                "_dateCreated": iso,
+                                "_uuid": "44444444-4444-4444-4444-444444444444",
+                                "language": "en",
+                                "status": "in_progress",
                             }
                         ]
                     }
@@ -216,20 +222,54 @@ def _get_data_supplement_response_examples():
                 "_version": "20250812",
                 "question_name_xpath": {
                     "automated_google_translation": {
-                        "_dateCreated": iso,
-                        "_dateModified": iso,
-                        "_dependency": {
-                            "_actionId": "action-67890"
-                        },
-                        "_versions": [
-                            {
-                                "_dateCreated": iso,
-                                "_uuid": "55555555-5555-5555-5555-555555555555",
-                                "language": "fr",
-                                "status": "generated",
-                                "value": "Bonjour le monde"
-                            }
-                        ]
+                        "en": {
+                            "_dateCreated": iso,
+                            "_dateModified": iso,
+                            "_versions": [
+                                {
+                                    "_dateCreated": iso,
+                                    "_dateAccepted": iso,
+                                    "_uuid": "88888888-8888-8888-8888-888888888888",
+                                    "language": "fr",
+                                    "status": "complete",
+                                    "value": "Bonjour le monde",
+                                    "_dependency": {
+                                        "_actionId": "automatic_google_transcription",
+                                        "_uuid": "44444444-4444-4444-4444-444444444444"
+                                    },
+                                },
+                                {
+                                    "_dateCreated": iso,
+                                    "_uuid": "77777777-7777-7777-7777-777777777777",
+                                    "status": "in_progress",
+                                    "_dependency": {
+                                        "_actionId": "automatic_google_transcription",
+                                        "_uuid": "44444444-4444-4444-4444-444444444444"
+                                    },
+                                },
+                                {
+                                    "_dateCreated": iso,
+                                    "_uuid": "66666666-6666-6666-6666-666666666666",
+                                    "language": "fr",
+                                    "status": "deleted",
+                                    "_dependency": {
+                                        "_actionId": "automatic_google_transcription",
+                                        "_uuid": "44444444-4444-4444-4444-444444444444"
+                                    },
+                                },
+                                {
+                                    "_dateCreated": iso,
+                                    "_uuid": "55555555-5555-5555-5555-555555555555",
+                                    "language": "fr",
+                                    "status": "complete",
+                                    "value": "Allo la foule",
+                                    "_dependency": {
+                                        "_actionId": "automatic_google_transcription",
+                                        "_uuid": "44444444-4444-4444-4444-444444444444"
+                                    },
+                                }
+                            ]
+                        }
                     }
                 }
             }
