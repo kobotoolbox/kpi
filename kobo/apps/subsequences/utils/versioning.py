@@ -1,12 +1,9 @@
-import uuid
-
-from django.utils import timezone
-
-from ..constants import SCHEMA_VERSIONS
 import copy
+import uuid
 from typing import Any, Iterable
 
 from django.db import transaction
+from django.utils import timezone
 
 from kobo.apps.subsequences.actions import QualAction
 from kobo.apps.subsequences.constants import SCHEMA_VERSIONS, Action
@@ -21,10 +18,12 @@ OLD_QUESTION_TYPE_TO_NEW = {
     'qual_integer': 'qualInteger',
 }
 
+
 def convert_qual_params(
     asset: Any, qualdict: dict[str, Any]
 ) -> list[QuestionAdvancedFeature]:
-    """Convert a qual dict (from `Asset.advanced_features['qual']`) into
+    """
+    Convert a qual dict (from `Asset.advanced_features['qual']`) into
     `QuestionAdvancedFeature` objects grouped by `xpath`.
     Returns the list of new `QuestionAdvancedFeature` instances.
     """
@@ -62,6 +61,37 @@ def convert_qual_params(
             )
         )
     return created_objs
+
+
+def convert_nlp_params(
+    asset,
+    action_config: dict,
+    known_cols: set[str],
+    manual_action: Action,
+    automatic_action: Action,
+) -> list[QuestionAdvancedFeature]:
+    to_create = []
+    languages = action_config.get('languages')
+    if not languages:
+        return to_create
+    for q in known_cols:
+        to_create.extend(
+            [
+                QuestionAdvancedFeature(
+                    question_xpath=q,
+                    asset=asset,
+                    action=manual_action,
+                    params=[{'language': language} for language in languages],
+                ),
+                QuestionAdvancedFeature(
+                    question_xpath=q,
+                    asset=asset,
+                    action=automatic_action,
+                    params=[{'language': language} for language in languages],
+                ),
+            ]
+        )
+    return to_create
 
 
 def migrate_advanced_features(
@@ -139,19 +169,16 @@ def migrate_qual_data(supplemental_data: dict) -> dict | None:
         value = item.get('val')
 
         new_version = {
-            '_data': {
-                'uuid': question_uuid,
-                'value': value
-            },
+            '_data': {'uuid': question_uuid, 'value': value},
             '_dateCreated': now,
             '_dateAccepted': now,
-            '_uuid': str(uuid.uuid4())
+            '_uuid': str(uuid.uuid4()),
         }
 
         new_qual_dict[question_uuid] = {
             '_dateCreated': now,
             '_dateModified': now,
-            '_versions': [new_version]
+            '_versions': [new_version],
         }
 
     return new_qual_dict
@@ -290,7 +317,7 @@ def _determine_source_transcript(
         transcripts_matching_language = [
             transcript
             for transcript in all_transcripts
-            if transcript['language'] == automatic_source_language
+            if transcript['_data']['language'] == automatic_source_language
         ]
         for transcript in transcripts_matching_language:
             # is there a transcript in the source language created earlier than the
@@ -320,8 +347,10 @@ def _new_revision_from_old(old_transcript_revision_dict: dict) -> dict | None:
         return None
     return {
         '_dateCreated': old_transcript_revision_dict.get('dateModified'),
-        'language': old_transcript_revision_dict['languageCode'],
-        'value': old_transcript_revision_dict['value'],
+        '_data': {
+            'language': old_transcript_revision_dict['languageCode'],
+            'value': old_transcript_revision_dict['value'],
+        },
         '_uuid': str(uuid.uuid4()),
         # all preexisting translations/transcripts are considered accepted
         '_dateAccepted': now,
@@ -354,15 +383,15 @@ def _separate_manual_and_automatic_versions(
         # if the language and value match that of the automatic result,
         # assume this one was generated automatically
         matches_automatic_result = (
-            revision_formatted['language'] == automatic_result_language
-            and revision_formatted['value'] == automatic_result_value
+            revision_formatted['_data']['language'] == automatic_result_language
+            and revision_formatted['_data']['value'] == automatic_result_value
         )
         correct_version_list_to_append = (
             automatic_versions if matches_automatic_result else manual_versions
         )
         if matches_automatic_result:
             # automatic versions also need a status
-            revision_formatted['status'] = 'complete'
+            revision_formatted['_data']['status'] = 'complete'
         correct_version_list_to_append.append(revision_formatted)
 
     # they should be sorted anyway, but just make sure in case the input values

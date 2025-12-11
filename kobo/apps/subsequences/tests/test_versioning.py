@@ -14,12 +14,10 @@ from kobo.apps.subsequences.utils.versioning import (
     _determine_source_transcript,
     _new_revision_from_old,
     _separate_manual_and_automatic_versions,
-    migrate_submission_supplementals,
-)
-from kobo.apps.subsequences.utils.versioning import (
     convert_nlp_params,
     convert_qual_params,
     migrate_advanced_features,
+    migrate_submission_supplementals,
 )
 from kpi.models import Asset
 
@@ -66,8 +64,8 @@ class TestVersioning(TestCase):
         }
         with freeze_time(now):
             result = _new_revision_from_old(old)
-        assert result['value'] == old['value']
-        assert result['language'] == old['languageCode']
+        assert result['_data']['value'] == old['value']
+        assert result['_data']['language'] == old['languageCode']
         assert result['_dateCreated'] == old['dateModified']
         assert result['_uuid'] is not None
         assert result['_dateAccepted'] == now.isoformat()
@@ -94,16 +92,16 @@ class TestVersioning(TestCase):
         )
 
         assert expected_most_recent_transcript['_dateCreated'] == self.now
-        assert expected_most_recent_transcript['value'] == 'Latest value'
+        assert expected_most_recent_transcript['_data']['value'] == 'Latest value'
         assert expected_old_transcript['_dateCreated'] == self.yesterday
-        assert expected_old_transcript['value'] == 'Old value'
+        assert expected_old_transcript['_data']['value'] == 'Old value'
 
     def test_separate_automatic_and_manual_forces_language_if_given(self):
         manual, automated = _separate_manual_and_automatic_versions(
             self.action_dict, None, None, language='en'
         )
         for formatted_item in manual:
-            assert formatted_item['language'] == 'en'
+            assert formatted_item['_data']['language'] == 'en'
 
     def test_separate_automatic_and_manual_without_automatic_value(self):
         manual, automatic = _separate_manual_and_automatic_versions(
@@ -137,25 +135,25 @@ class TestVersioning(TestCase):
             {
                 '_uuid': 'uuid1',
                 '_dateCreated': now.isoformat(),
-                'language': 'en',
+                '_data': {'language': 'en'},
                 '_actionId': 'manual_transcription',
             },
             {
                 '_uuid': 'uuid2',
                 '_dateCreated': jan_1_2024.isoformat(),
-                'language': 'en',
+                '_data': {'language': 'en'},
                 '_actionId': 'automatic_transcription',
             },
             {
                 '_uuid': 'uuid3',
                 '_dateCreated': one_day_ago.isoformat(),
-                'language': 'de',
+                '_data': {'language': 'de'},
                 '_actionId': 'manual_transcription',
             },
             {
                 '_uuid': 'uuid4',
                 '_dateCreated': jan_2_2024.isoformat(),
-                'language': 'de',
+                '_data': {'language': 'de'},
                 '_actionId': 'automatic_transcription',
             },
         ]
@@ -194,13 +192,13 @@ class TestVersioning(TestCase):
                             'dateModified': a_year_and_a_day_ago,
                             'languageCode': 'en',
                             'value': 'This is audio that '
-                                     'I am trying to '
-                                     'transcribe.',
+                            'I am trying to '
+                            'transcribe.',
                         },
                         {},
                     ],
                     'value': 'This is audio that I am trying to '
-                             'transcribe but i edited it.',
+                    'transcribe but i edited it.',
                 },
                 'translation': {
                     'es': {
@@ -212,27 +210,27 @@ class TestVersioning(TestCase):
                                 'dateModified': one_year_ago,
                                 'languageCode': 'es',
                                 'value': 'Esto es un '
-                                         'audio que '
-                                         'estoy '
-                                         'intentando a '
-                                         'transcribir.',
+                                'audio que '
+                                'estoy '
+                                'intentando a '
+                                'transcribir.',
                             }
                         ],
                         'value': 'Esto es un audio que '
-                                 'estoy intentando '
-                                 'transcribir pero yo lo edité',
+                        'estoy intentando '
+                        'transcribir pero yo lo edité',
                     }
                 },
                 'qual': [
                     {
                         'val': 'music123',
                         'type': 'qual_text',
-                        'uuid': '09327944-d4a4-4d59-9316-1250cf0799a4'
+                        'uuid': '09327944-d4a4-4d59-9316-1250cf0799a4',
                     },
                     {
                         'val': 2,
                         'type': 'qual_integer',
-                        'uuid': 'f57b263f-695c-4d74-88cb-14f1536f617c'
+                        'uuid': 'f57b263f-695c-4d74-88cb-14f1536f617c',
                     },
                 ],
             }
@@ -256,11 +254,13 @@ class TestVersioning(TestCase):
                             '_dateCreated': a_year_and_a_day_ago,
                             '_dateAccepted': now.isoformat(),
                             '_uuid': 'uuid2',
-                            'language': 'en',
-                            'value': 'This is audio that I am trying to transcribe.',
-                            'status': 'complete',
+                            '_data': {
+                                'language': 'en',
+                                'value': 'This is audio that I am trying to transcribe.',  # noqa
+                                'status': 'complete',
+                            },
                         }
-                    ]
+                    ],
                 },
                 'automatic_google_translation': {
                     'es': {
@@ -275,12 +275,14 @@ class TestVersioning(TestCase):
                                     '_uuid': 'uuid2',
                                 },
                                 '_uuid': 'uuid4',
-                                'language': 'es',
-                                'value': 'Esto es un audio que estoy intentando a'
-                                         ' transcribir.',
-                                'status': 'complete',
+                                '_data': {
+                                    'language': 'es',
+                                    'value': 'Esto es un audio que estoy intentando a'
+                                    ' transcribir.',
+                                    'status': 'complete',
+                                },
                             }
-                        ]
+                        ],
                     }
                 },
                 'manual_transcription': {
@@ -291,11 +293,13 @@ class TestVersioning(TestCase):
                             '_dateCreated': one_day_ago,
                             '_dateAccepted': now.isoformat(),
                             '_uuid': 'uuid1',
-                            'language': 'en',
-                            'value': 'This is audio that I am trying to '
-                                     'transcribe but i edited it.',
+                            '_data': {
+                                'language': 'en',
+                                'value': 'This is audio that I am trying to '
+                                'transcribe but i edited it.',
+                            },
                         }
-                    ]
+                    ],
                 },
                 'manual_translation': {
                     'es': {
@@ -305,45 +309,53 @@ class TestVersioning(TestCase):
                             {
                                 '_dateCreated': now.isoformat(),
                                 '_dateAccepted': now.isoformat(),
-                                '_dependency': {'_actionId': 'manual_transcription',
-                                                '_uuid': 'uuid1'},
+                                '_dependency': {
+                                    '_actionId': 'manual_transcription',
+                                    '_uuid': 'uuid1',
+                                },
                                 '_uuid': 'uuid3',
-                                'language': 'es',
-                                'value': 'Esto es un audio que estoy intentando'
-                                         ' transcribir pero yo lo edité',
+                                '_data': {
+                                    'language': 'es',
+                                    'value': 'Esto es un audio que estoy intentando'
+                                    ' transcribir pero yo lo edité',
+                                },
                             }
-                        ]
+                        ],
                     }
                 },
                 'qual': {
                     '09327944-d4a4-4d59-9316-1250cf0799a4': {
                         '_dateCreated': now.isoformat(),
                         '_dateModified': now.isoformat(),
-                        '_versions': [{
-                            '_data': {
-                                'uuid': '09327944-d4a4-4d59-9316-1250cf0799a4',
-                                'value': 'music123'
-                            },
-                            '_dateCreated': now.isoformat(),
-                            '_dateAccepted': now.isoformat(),
-                            '_uuid': 'uuid5'
-                        }]
+                        '_versions': [
+                            {
+                                '_data': {
+                                    'uuid': '09327944-d4a4-4d59-9316-1250cf0799a4',
+                                    'value': 'music123',
+                                },
+                                '_dateCreated': now.isoformat(),
+                                '_dateAccepted': now.isoformat(),
+                                '_uuid': 'uuid5',
+                            }
+                        ],
                     },
                     'f57b263f-695c-4d74-88cb-14f1536f617c': {
                         '_dateCreated': now.isoformat(),
                         '_dateModified': now.isoformat(),
-                        '_versions': [{
-                            '_data': {
-                                'uuid': 'f57b263f-695c-4d74-88cb-14f1536f617c',
-                                'value': 2
-                            },
-                            '_dateCreated': now.isoformat(),
-                            '_dateAccepted': now.isoformat(),
-                            '_uuid': 'uuid6'
-                        }]
-                    }
-                }
-            }
+                        '_versions': [
+                            {
+                                '_data': {
+                                    'uuid': 'f57b263f-695c-4d74-88cb-14f1536f617c',
+                                    'value': 2,
+                                },
+                                '_dateCreated': now.isoformat(),
+                                '_dateAccepted': now.isoformat(),
+                                '_uuid': 'uuid6',
+                            }
+                        ],
+                    },
+                },
+            },
         }
         assert migrated == new_version
 

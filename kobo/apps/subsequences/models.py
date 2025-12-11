@@ -8,7 +8,6 @@ from .actions import ACTION_IDS_TO_CLASSES
 from .constants import SCHEMA_VERSIONS, SUBMISSION_UUID_FIELD, Action
 from .exceptions import InvalidAction, InvalidXPath
 from .schemas import validate_submission_supplement
-from .utils.versioning import migrate_submission_supplementals
 
 
 class SubmissionExtras(AbstractTimeStampedModel):
@@ -36,6 +35,8 @@ class SubmissionSupplement(SubmissionExtras):
 
     @staticmethod
     def revise_data(asset: 'kpi.Asset', submission: dict, incoming_data: dict) -> dict:
+
+        from .utils.versioning import migrate_submission_supplementals
 
         if not asset.advanced_features_set.exists():
             raise InvalidAction
