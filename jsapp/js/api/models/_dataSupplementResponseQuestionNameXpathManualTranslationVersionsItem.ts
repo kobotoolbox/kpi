@@ -11,9 +11,9 @@ The endpoints are grouped by area of intended use. Each category contains relate
  */
 
 export type _DataSupplementResponseQuestionNameXpathManualTranslationVersionsItem = {
-  _dateCreated: string;
-  _uuid: string;
-  language: string;
-  status?: string;
-  value: string;
-};
+  _dateCreated: string
+  _uuid: string
+  language: string
+  status?: string
+  value: string
+}

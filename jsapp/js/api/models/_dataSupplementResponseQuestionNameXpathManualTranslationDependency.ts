@@ -11,5 +11,5 @@ The endpoints are grouped by area of intended use. Each category contains relate
  */
 
 export type _DataSupplementResponseQuestionNameXpathManualTranslationDependency = {
-  _actionId: string;
-};
+  _actionId: string
+}
