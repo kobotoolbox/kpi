@@ -1098,6 +1098,380 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
+  /api/v2/assets/{uid_asset}/advanced-features/:
+    get:
+      operationId: api_v2_assets_advanced_features_list
+      description: |
+        ## List all advanced features on an asset
+
+        Lists all advanced features on all questions in an asset
+      parameters:
+      - in: path
+        name: parent_lookup_asset
+        schema:
+          type: string
+        description: UID of the parent assets
+        required: true
+      - in: path
+        name: uid_asset
+        schema:
+          type: string
+        required: true
+      tags:
+      - Advanced Features
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AdvancedFeatureResponse'
+          description: null
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+    post:
+      operationId: api_v2_assets_advanced_features_create
+      description: |
+        ## Add an advanced action to an asset
+
+        Enables a new type of advanced action on a question in the asset.
+        * `action`, `params`, and `question_xpath` are required
+        * `params` must match the expected param_schema of the `action`
+
+        Accepted `action`s include:
+        * `manual_transcription`
+        * `automatic_google_transcription`
+        * `manual_translation`
+        * `automatic_google_translation`
+        * `qual`
+
+        For all actions except `qual`, `params` must look like
+        > '[{"language": "es"}, {"language": "en"}, ...]'
+
+        For `qual`, `params` must look like
+        ```
+           [
+                {
+                    'type': 'qualInteger',
+                    'uuid': '1a2c8eb0-e2ec-4b3c-942a-c1a5410c081a',
+                    'labels': {'_default': 'How many characters appear in the story?'},
+                },
+                {
+                    'type': 'qualSelectMultiple',
+                    'uuid': '2e30bec7-4843-43c7-98bc-13114af230c5',
+                    'labels': {'_default': "What themes were present in the story?"},
+                    'choices': [
+                        {
+                            'uuid': '2e24e6b4-bc3b-4e8e-b0cd-d8d3b9ca15b6',
+                            'labels': {'_default': 'Empathy'},
+                        },
+                        {
+                            'uuid': 'cb82919d-2948-4ccf-a488-359c5d5ee53a',
+                            'labels': {'_default': 'Competition'},
+                        },
+                        {
+                            'uuid': '8effe3b1-619e-4ada-be45-ebcea5af0aaf',
+                            'labels': {'_default': 'Apathy'},
+                        },
+                    ],
+                },
+                {
+                    'type': 'qualSelectOne',
+                    'uuid': '1a8b748b-f470-4c40-bc09-ce2b1197f503',
+                    'labels': {'_default': 'Was this a first-hand account?'},
+                    'choices': [
+                        {
+                            'uuid': '3c7aacdc-8971-482a-9528-68e64730fc99',
+                            'labels': {'_default': 'Yes'},
+                        },
+                        {
+                            'uuid': '7e31c6a5-5eac-464c-970c-62c383546a94',
+                            'labels': {'_default': 'No'},
+                        },
+                    ],
+                },
+                {
+                    'type': 'qualTags',
+                    'uuid': 'e9b4e6d1-fdbb-4dc9-8b10-a9c3c388322f',
+                    'labels': {'_default': 'Tag any landmarks mentioned in the story'},
+                },
+                {
+                    'type': 'qualText',
+                    'uuid': '83acf2a7-8edc-4fd8-8b9f-f832ca3f18ad',
+                    'labels': {'_default': 'Add any further remarks'},
+                },
+                {
+                    'type': 'qualNote',
+                    'uuid': '5ef11d48-d7a3-432e-af83-8c2e9b1feb72',
+                    'labels': {'_default': 'Thanks for your diligence'},
+                },
+            ]```
+      parameters:
+      - in: path
+        name: parent_lookup_asset
+        schema:
+          type: string
+        description: UID of the parent assets
+        required: true
+      - in: path
+        name: uid_asset
+        schema:
+          type: string
+        required: true
+      tags:
+      - Advanced Features
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdvancedFeaturePostRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AdvancedFeaturePostRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AdvancedFeaturePostRequest'
+        required: true
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdvancedFeatureResponse'
+          description: null
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                BadRequest:
+                  value:
+                    detail:
+                      field_name:
+                      - Error message
+                  summary: Bad request
+          description: ''
+  /api/v2/assets/{uid_asset}/advanced-features/{id}/:
+    get:
+      operationId: api_v2_assets_advanced_features_retrieve
+      description: |
+        ## Retrieve advanced feature configuration for a question on an asset
+
+        Gets the params for one advanced action for one question in an asset
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: parent_lookup_asset
+        schema:
+          type: string
+        description: UID of the parent assets
+        required: true
+      - in: path
+        name: uid
+        schema:
+          type: string
+        description: UID of the action
+        required: true
+      - in: path
+        name: uid_asset
+        schema:
+          type: string
+        required: true
+      tags:
+      - Advanced Features
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdvancedFeatureResponse'
+          description: null
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+    patch:
+      operationId: api_v2_assets_advanced_features_partial_update
+      description: |
+        ## Update an advanced action on an asset
+
+        Update the params of an advanced action on a question in the asset.
+        * `params` is required
+        * `params` must match the expected param_schema of the action being updated
+
+        For all actions except `qual`, `params` must look like
+        > '[{"language": "es"}, {"language": "en"}, ...]'
+
+        For `qual`, `params` must look like
+        ```
+           [
+                {
+                    'type': 'qualInteger',
+                    'uuid': '1a2c8eb0-e2ec-4b3c-942a-c1a5410c081a',
+                    'labels': {'_default': 'How many characters appear in the story?'},
+                },
+                {
+                    'type': 'qualSelectMultiple',
+                    'uuid': '2e30bec7-4843-43c7-98bc-13114af230c5',
+                    'labels': {'_default': "What themes were present in the story?"},
+                    'choices': [
+                        {
+                            'uuid': '2e24e6b4-bc3b-4e8e-b0cd-d8d3b9ca15b6',
+                            'labels': {'_default': 'Empathy'},
+                        },
+                        {
+                            'uuid': 'cb82919d-2948-4ccf-a488-359c5d5ee53a',
+                            'labels': {'_default': 'Competition'},
+                        },
+                        {
+                            'uuid': '8effe3b1-619e-4ada-be45-ebcea5af0aaf',
+                            'labels': {'_default': 'Apathy'},
+                        },
+                    ],
+                },
+                {
+                    'type': 'qualSelectOne',
+                    'uuid': '1a8b748b-f470-4c40-bc09-ce2b1197f503',
+                    'labels': {'_default': 'Was this a first-hand account?'},
+                    'choices': [
+                        {
+                            'uuid': '3c7aacdc-8971-482a-9528-68e64730fc99',
+                            'labels': {'_default': 'Yes'},
+                        },
+                        {
+                            'uuid': '7e31c6a5-5eac-464c-970c-62c383546a94',
+                            'labels': {'_default': 'No'},
+                        },
+                    ],
+                },
+                {
+                    'type': 'qualTags',
+                    'uuid': 'e9b4e6d1-fdbb-4dc9-8b10-a9c3c388322f',
+                    'labels': {'_default': 'Tag any landmarks mentioned in the story'},
+                },
+                {
+                    'type': 'qualText',
+                    'uuid': '83acf2a7-8edc-4fd8-8b9f-f832ca3f18ad',
+                    'labels': {'_default': 'Add any further remarks'},
+                },
+                {
+                    'type': 'qualNote',
+                    'uuid': '5ef11d48-d7a3-432e-af83-8c2e9b1feb72',
+                    'labels': {'_default': 'Thanks for your diligence'},
+                },
+            ]```
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: parent_lookup_asset
+        schema:
+          type: string
+        description: UID of the parent assets
+        required: true
+      - in: path
+        name: uid
+        schema:
+          type: string
+        description: UID of the action
+        required: true
+      - in: path
+        name: uid_asset
+        schema:
+          type: string
+        required: true
+      tags:
+      - Advanced Features
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAdvancedFeaturePatchRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAdvancedFeaturePatchRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAdvancedFeaturePatchRequest'
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdvancedFeatureResponse'
+          description: null
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                BadRequest:
+                  value:
+                    detail:
+                      field_name:
+                      - Error message
+                  summary: Bad request
+          description: ''
   /api/v2/assets/{uid_asset}/attachments/{id}/:
     delete:
       operationId: api_v2_assets_attachments_destroy
@@ -1897,6 +2271,172 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
+  /api/v2/assets/{uid_asset}/data/{id}/supplement/:
+    get:
+      operationId: api_v2_assets_data_supplement_retrieve
+      description: |
+        ## TBC Supplement retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: pk
+        schema:
+          type: string
+        description: Submission identifier
+        required: true
+      - in: path
+        name: uid_asset
+        schema:
+          type: string
+        description: UID of the parent asset
+        required: true
+      tags:
+      - Survey data
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataSupplementResponse'
+          description: null
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotAuthenticated:
+                  value:
+                    detail: Authentication credentials were not provided.
+                  summary: Not authenticated
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                AccessDenied:
+                  value:
+                    detail: You do not have permission to perform this action.
+                  summary: Access Denied
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                BadRequest:
+                  value:
+                    detail:
+                      field_name:
+                      - Error message
+                  summary: Bad request
+          description: ''
+    patch:
+      operationId: api_v2_assets_data_supplement_partial_update
+      description: |
+        ## TBC Supplement update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: pk
+        schema:
+          type: string
+        description: Submission identifier
+        required: true
+      - in: path
+        name: uid_asset
+        schema:
+          type: string
+        description: UID of the parent asset
+        required: true
+      tags:
+      - Survey data
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedDataSupplementPayload'
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataSupplementResponse'
+          description: null
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotAuthenticated:
+                  value:
+                    detail: Authentication credentials were not provided.
+                  summary: Not authenticated
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                AccessDenied:
+                  value:
+                    detail: You do not have permission to perform this action.
+                  summary: Access Denied
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                BadRequest:
+                  value:
+                    detail:
+                      field_name:
+                      - Error message
+                  summary: Bad request
+          description: ''
   /api/v2/assets/{uid_asset}/data/{id}/validation_status/:
     get:
       operationId: api_v2_assets_data_validation_status_retrieve
@@ -1953,8 +2493,13 @@ paths:
       - in: path
         name: id
         schema:
-          type: integer
-        description: ID of the data
+          type: string
+        required: true
+      - in: path
+        name: submission_id_or_root_uuid
+        schema:
+          type: string
+        description: Submission identifier
         required: true
       - in: path
         name: uid_asset
@@ -9087,6 +9632,42 @@ components:
       - user
       - user_uid
       - username
+    AdvancedFeaturePostRequest:
+      type: object
+      properties:
+        question_xpath:
+          type: string
+        action:
+          type: string
+        params:
+          type: array
+          items:
+            type: object
+      required:
+      - action
+      - params
+      - question_xpath
+    AdvancedFeatureResponse:
+      type: object
+      properties:
+        question_xpath:
+          type: string
+        action:
+          type: string
+        params:
+          type: array
+          items:
+            type: object
+        asset:
+          type: string
+        uid:
+          type: string
+      required:
+      - action
+      - asset
+      - params
+      - question_xpath
+      - uid
     Asset:
       type: object
       properties:
@@ -9268,24 +9849,6 @@ components:
           type: object
         advanced_features:
           type: object
-        advanced_submission_schema:
-          type: object
-          properties:
-            type:
-              type: string
-            $description:
-              type: string
-          readOnly: true
-        analysis_form_json:
-          type: object
-          properties:
-            engines:
-              type: object
-            additional_fields:
-              type: array
-              items:
-                type: string
-          readOnly: true
         map_styles:
           type: object
         map_custom:
@@ -9327,6 +9890,14 @@ components:
               format:
                 type: string
               url:
+                type: string
+          readOnly: true
+        analysis_form_json:
+          type: object
+          properties:
+            additional_fields:
+              type: array
+              items:
                 type: string
           readOnly: true
         xform_link:
@@ -9426,7 +9997,6 @@ components:
           nullable: true
       required:
       - access_types
-      - advanced_submission_schema
       - analysis_form_json
       - asset_type
       - assignable_permissions
@@ -10451,6 +11021,124 @@ components:
           type: string
       required:
       - detail
+    DataSupplementResponse:
+      type: object
+      properties:
+        _version:
+          type: string
+          example: '20250812'
+        question_name_xpath:
+          type: object
+          properties:
+            manual_transcription:
+              type: object
+              properties:
+                language:
+                  type: string
+                value:
+                  type: string
+                _dateCreated:
+                  type: string
+                  format: date-time
+                _dateModified:
+                  type: string
+                  format: date-time
+                revisions:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      language:
+                        type: string
+                      value:
+                        type: string
+                      _dateCreated:
+                        type: string
+                        format: date-time
+                    additionalProperties: false
+                    required:
+                    - _dateCreated
+                    anyOf:
+                    - required:
+                      - language
+                      - value
+                    - not:
+                        anyOf:
+                        - required:
+                          - language
+                        - required:
+                          - value
+              additionalProperties: false
+              required:
+              - _dateCreated
+              - _dateModified
+              anyOf:
+              - required:
+                - language
+                - value
+              - not:
+                  anyOf:
+                  - required:
+                    - language
+                  - required:
+                    - value
+            manual_translation:
+              type: array
+              items:
+                type: object
+                properties:
+                  language:
+                    type: string
+                  value:
+                    type: string
+                  _dateCreated:
+                    type: string
+                    format: date-time
+                  _revisions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        language:
+                          type: string
+                        value:
+                          type: string
+                        _dateCreated:
+                          type: string
+                          format: date-time
+                      additionalProperties: false
+                      required:
+                      - _dateCreated
+                      anyOf:
+                      - required:
+                        - language
+                        - value
+                      - not:
+                          anyOf:
+                          - required:
+                            - language
+                          - required:
+                            - value
+                additionalProperties: false
+                required:
+                - _dateCreated
+                anyOf:
+                - required:
+                  - language
+                  - value
+                - not:
+                    anyOf:
+                    - required:
+                      - language
+                    - required:
+                      - value
+              minLength: 1
+          additionalProperties: false
+          anyOf:
+          - required:
+            - manual_transcription
+          - required:
+            - manual_translation
     DataValidationStatusUpdateResponse:
       type: object
       properties:
@@ -12933,6 +13621,13 @@ components:
       - source
       - source__name
       - url
+    PatchedAdvancedFeaturePatchRequest:
+      type: object
+      properties:
+        params:
+          type: array
+          items:
+            type: object
     PatchedAssetPatchRequest:
       oneOf:
       - type: object
@@ -13083,6 +13778,46 @@ components:
               properties:
                 field_to_update:
                   type: string
+    PatchedDataSupplementPayload:
+      type: object
+      properties:
+        _version:
+          type: string
+          example: '20250812'
+        question_name_xpath:
+          type: object
+          properties:
+            manual_transcription:
+              type: object
+              properties:
+                language:
+                  type: string
+                value:
+                  type: string
+              additionalProperties: false
+              required:
+              - language
+              - value
+            manual_translation:
+              type: array
+              items:
+                type: object
+                properties:
+                  language:
+                    type: string
+                  translation:
+                    type: string
+                additionalProperties: false
+                required:
+                - language
+                - value
+              minLength: 1
+          additionalProperties: false
+          anyOf:
+          - required:
+            - manual_transcription
+          - required:
+            - manual_translation
     PatchedDataValidationStatusUpdatePayload:
       type: object
       properties:

@@ -21,6 +21,7 @@ from kpi.utils.schema_extensions.response import (
     open_api_201_created_response,
 )
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
+from kpi.versioning import APIV2Versioning
 
 
 @extend_schema(
@@ -112,6 +113,7 @@ class QuestionAdvancedFeatureViewSet(
     ]
     pagination_class = None
     permission_classes = (AssetAdvancedFeaturesPermission,)
+    versioning_class = APIV2Versioning
 
     def get_queryset(self):
         return QuestionAdvancedFeature.objects.filter(asset=self.asset)
