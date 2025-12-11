@@ -1,6 +1,8 @@
 from copy import deepcopy
 from typing import Any
 
+from rest_framework.exceptions import ValidationError
+
 from .base import ActionClassConfig, BaseAction
 
 
@@ -75,6 +77,7 @@ class QualAction(BaseAction):
                 'labels': {'$ref': '#/$defs/qualLabels'},
                 'uuid': {'$ref': '#/$defs/qualUuid'},
                 'options': {'type': 'object'},
+                'hidden': {'type': 'boolean'}
             },
             'required': ['labels', 'uuid'],
         },
@@ -90,6 +93,7 @@ class QualAction(BaseAction):
                 'uuid': {'$ref': '#/$defs/qualUuid'},
                 'type': {'$ref': '#/$defs/qualQuestionType'},
                 'labels': {'$ref': '#/$defs/qualLabels'},
+                'hidden': {'type': 'boolean'},
                 'choices': {
                     'type': 'array',
                     'items': {'$ref': '#/$defs/qualChoice'},
@@ -356,3 +360,42 @@ class QualAction(BaseAction):
                 'labels': qual_question.get('labels', {}),
             })
         return {'qual': results_list}
+
+    def update_params(self, incoming_params):
+        """
+        Merge incoming QA questions with existing ones
+        """
+        self.validate_params(incoming_params)
+        new_questions_by_uuid = {x['uuid']: x for x in incoming_params}
+        new_choices_by_uuid = {}
+        for new_question in incoming_params:
+            if choices := new_question.get('choices'):
+                for choice in choices:
+                    new_choices_by_uuid[choice['uuid']] = choice
+        for existing_question in self.params:
+            # old question is not in list of new questions, hide it and put it
+            # at the end
+            uuid = existing_question['uuid']
+            if not (new_question := new_questions_by_uuid.get(uuid)):
+                existing_question.setdefault('options', {})['hidden'] = True
+                incoming_params.append(existing_question)
+                continue
+            new_type = new_question['type']
+            old_type = existing_question['type']
+            # do not allow changing the type of a question, for that is silly
+            if new_type != old_type:
+                raise ValidationError(
+                    f'Cannot change type of existing question with uuid {uuid}'
+                    f' from {old_type} to {new_type}'
+                )
+
+            # merge choices if necessary
+            old_choices = existing_question.get('choices', [])
+            for old_choice in old_choices:
+                choice_uuid = old_choice['uuid']
+                if new_choices_by_uuid.get(choice_uuid) is None:
+                    old_choice.setdefault('options', {})['hidden'] = True
+                    # new question really should have 'choices' set by virtue of
+                    # the json schema but better safe than sorry
+                    new_question.setdefault('choices', []).append(old_choice)
+        self.params = incoming_params
