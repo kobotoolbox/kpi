@@ -132,8 +132,7 @@ class QuestionAdvancedFeatureViewSetTestCase(BaseTestCase):
         )
         self.asset.refresh_from_db()
         assert self.asset.advanced_features.get('_version') is None
-        # manual translation for this question already exists in the old dict,
-        # we shouldn't be able to re-create it
+
         res = self.client.post(
             self.list_actions_url,
             data={
