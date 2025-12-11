@@ -10,6 +10,7 @@ The endpoints are grouped by area of intended use. Each category contains relate
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 
-export type _DataSupplementResponseQuestionNameXpathAutomatedGoogleTranslationDependency = {
+export type _DataSupplementResponseQuestionNameXpathManualTranslationVersionsItemDependency = {
   _actionId: string
+  _uuid: string
 }
