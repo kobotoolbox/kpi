@@ -35,7 +35,7 @@ def _get_data_supplement_patch_payload_request_examples() -> list[OpenApiExample
         OpenApiExample(
             'Manual Transcription',
             value={
-                '_version': '20250812',
+                '_version': '20250820',
                 'question_name_xpath': {
                     'manual_transcription': {'language': 'fr', 'value': 'Bonjour'}
                 },
@@ -45,7 +45,7 @@ def _get_data_supplement_patch_payload_request_examples() -> list[OpenApiExample
         OpenApiExample(
             'Manual Translation',
             value={
-                '_version': '20250812',
+                '_version': '20250820',
                 'question_name_xpath': {
                     'manual_translation': {'language': 'en', 'value': 'Hello'},
                 },
@@ -53,9 +53,65 @@ def _get_data_supplement_patch_payload_request_examples() -> list[OpenApiExample
             request_only=True,
         ),
         OpenApiExample(
+            'Automic Google Transcription',
+            value={
+                '_version': '20250820',
+                'question_name_xpath': {
+                    'automatic_google_transcription': {'language': 'fr'}
+                },
+            },
+            request_only=True,
+        ),
+        OpenApiExample(
+            'Automic Google Translation',
+            value={
+                '_version': '20250820',
+                'question_name_xpath': {
+                    'automatic_google_translation': {'language': 'en'},
+                },
+            },
+            request_only=True,
+        ),
+        OpenApiExample(
+            'Delete NLP action',
+            description=(
+                '`<action_id>` can be any of:'
+                '<br>'
+                '  * `manual_transcription`<br>'
+                '  * `manual_translation`<br>'
+                '  * `automatic_google_transcription`<br>'
+                '  * `automatic_google_translation`<br>'
+                ''
+                '`<language>` is the language code, e.g. `en`.'
+            ),
+            value={
+                '_version': '20250820',
+                'question_name_xpath': {
+                    '<action_id>': {'language': '<language>', 'value': None},
+                },
+            },
+            request_only=True,
+        ),
+        OpenApiExample(
+            'Accept automatic NLP action',
+            description=(
+                '`<action_id>` can be any of `automatic_google_transcription` or '
+                '`automatic_google_translation`.<br>'
+                '`<language>` is the language code, e.g. `en`.<br>'
+                '`accepted` is a boolean. It can `true` or `false`.'
+            ),
+            value={
+                '_version': '20250820',
+                'question_name_xpath': {
+                    '<action_id>': {'language': '<language>', 'accepted': True},
+                },
+            },
+            request_only=True,
+        ),
+        OpenApiExample(
             'Qualitative Analysis – Integer Question',
             value={
-                '_version': '20250812',
+                '_version': '20250820',
                 'question_name_xpath': {
                     'qual': {
                         'uuid': '11111111-1111-1111-1111-111111111111',
@@ -68,7 +124,7 @@ def _get_data_supplement_patch_payload_request_examples() -> list[OpenApiExample
         OpenApiExample(
             'Qualitative Analysis – Text Question',
             value={
-                '_version': '20250812',
+                '_version': '20250820',
                 'question_name_xpath': {
                     'qual': {
                         'uuid': '22222222-2222-2222-2222-222222222222',
@@ -81,7 +137,7 @@ def _get_data_supplement_patch_payload_request_examples() -> list[OpenApiExample
         OpenApiExample(
             'Qualitative Analysis – Single Choice Question',
             value={
-                '_version': '20250812',
+                '_version': '20250820',
                 'question_name_xpath': {
                     'qual': {
                         'uuid': '33333333-3333-3333-3333-333333333333',
@@ -94,7 +150,7 @@ def _get_data_supplement_patch_payload_request_examples() -> list[OpenApiExample
         OpenApiExample(
             'Qualitative Analysis – Multiple Choice Question',
             value={
-                '_version': '20250812',
+                '_version': '20250820',
                 'question_name_xpath': {
                     'qual': {
                         'uuid': '44444444-4444-4444-4444-444444444444',
@@ -110,7 +166,7 @@ def _get_data_supplement_patch_payload_request_examples() -> list[OpenApiExample
         OpenApiExample(
             'Qualitative Analysis – Tags Question',
             value={
-                '_version': '20250812',
+                '_version': '20250820',
                 'question_name_xpath': {
                     'qual': {
                         'uuid': '44444444-4444-4444-4444-444444444444',
@@ -131,7 +187,7 @@ def _get_data_supplement_response_examples():
             name='Manual Transcription',
             response_only=True,
             value={
-                '_version': '20250812',
+                '_version': '20250820',
                 'question_name_xpath': {
                     'manual_transcription': {
                         '_dateCreated': iso,
@@ -139,10 +195,12 @@ def _get_data_supplement_response_examples():
                         '_versions': [
                             {
                                 '_dateCreated': iso,
-                                '_uuid': '11111111-1111-1111-1111-111111111111',
-                                'language': 'fr',
-                                'value': 'Bonjour',
                                 '_dateAccepted': iso,
+                                '_uuid': '11111111-1111-1111-1111-111111111111',
+                                '_data': {
+                                    'language': 'fr',
+                                    'value': 'Bonjour',
+                                },
                             }
                         ],
                     }
@@ -153,7 +211,7 @@ def _get_data_supplement_response_examples():
             name='Manual Translation',
             response_only=True,
             value={
-                '_version': '20250812',
+                '_version': '20250820',
                 'question_name_xpath': {
                     'manual_translation': {
                         'en': {
@@ -164,8 +222,10 @@ def _get_data_supplement_response_examples():
                                     '_dateCreated': iso,
                                     '_dateAccepted': iso,
                                     '_uuid': '22222222-2222-2222-2222-222222222222',
-                                    'language': 'en',
-                                    'value': 'Hello',
+                                    '_data': {
+                                        'language': 'en',
+                                        'value': 'Hello',
+                                    },
                                     '_dependency': {
                                         '_actionId': 'manual_transcription',
                                         '_uuid': '11111111-1111-1111-1111-111111111111',
@@ -181,9 +241,10 @@ def _get_data_supplement_response_examples():
                                     '_dateCreated': iso,
                                     '_dateAccepted': iso,
                                     '_uuid': '33333333-3333-3333-3333-333333333333',
-                                    'language': 'es',
-                                    'status': 'accepted',
-                                    'value': 'Hola',
+                                    '_data': {
+                                        'language': 'es',
+                                        'value': 'Hola',
+                                    },
                                     '_dependency': {
                                         '_actionId': 'manual_transcription',
                                         '_uuid': '11111111-1111-1111-1111-111111111111',
@@ -199,7 +260,7 @@ def _get_data_supplement_response_examples():
             name='Automated Google Transcription',
             response_only=True,
             value={
-                '_version': '20250812',
+                '_version': '20250820',
                 'question_name_xpath': {
                     'automated_google_transcription': {
                         '_dateCreated': iso,
@@ -208,16 +269,20 @@ def _get_data_supplement_response_examples():
                             {
                                 '_dateCreated': iso,
                                 '_uuid': '44444444-4444-4444-4444-444444444444',
-                                'language': 'en',
-                                'status': 'complete',
-                                'value': 'Hello world',
+                                '_data': {
+                                    'language': 'en',
+                                    'status': 'complete',
+                                    'value': 'Hello world',
+                                },
                                 '_dateAccepted': iso,
                             },
                             {
                                 '_dateCreated': iso,
                                 '_uuid': '44444444-4444-4444-4444-444444444444',
-                                'language': 'en',
-                                'status': 'in_progress',
+                                '_data': {
+                                    'language': 'en',
+                                    'status': 'in_progress',
+                                },
                             },
                         ],
                     }
@@ -228,10 +293,10 @@ def _get_data_supplement_response_examples():
             name='Automated Google Translation',
             response_only=True,
             value={
-                '_version': '20250812',
+                '_version': '20250820',
                 'question_name_xpath': {
                     'automated_google_translation': {
-                        'en': {
+                        'fr': {
                             '_dateCreated': iso,
                             '_dateModified': iso,
                             '_versions': [
@@ -239,9 +304,11 @@ def _get_data_supplement_response_examples():
                                     '_dateCreated': iso,
                                     '_dateAccepted': iso,
                                     '_uuid': '88888888-8888-8888-8888-888888888888',
-                                    'language': 'fr',
-                                    'status': 'complete',
-                                    'value': 'Bonjour le monde',
+                                    '_data': {
+                                        'language': 'fr',
+                                        'status': 'complete',
+                                        'value': 'Bonjour le monde',
+                                    },
                                     '_dependency': {
                                         '_actionId': 'automatic_google_transcription',
                                         '_uuid': '44444444-4444-4444-4444-444444444444',
@@ -250,7 +317,10 @@ def _get_data_supplement_response_examples():
                                 {
                                     '_dateCreated': iso,
                                     '_uuid': '77777777-7777-7777-7777-777777777777',
-                                    'status': 'in_progress',
+                                    '_data': {
+                                        'language': 'fr',
+                                        'status': 'in_progress',
+                                    },
                                     '_dependency': {
                                         '_actionId': 'automatic_google_transcription',
                                         '_uuid': '44444444-4444-4444-4444-444444444444',
@@ -259,8 +329,11 @@ def _get_data_supplement_response_examples():
                                 {
                                     '_dateCreated': iso,
                                     '_uuid': '66666666-6666-6666-6666-666666666666',
-                                    'language': 'fr',
-                                    'status': 'deleted',
+                                    '_data': {
+                                        'language': 'fr',
+                                        'value': None,
+                                        'status': 'deleted',
+                                    },
                                     '_dependency': {
                                         '_actionId': 'automatic_google_transcription',
                                         '_uuid': '44444444-4444-4444-4444-444444444444',
@@ -270,8 +343,10 @@ def _get_data_supplement_response_examples():
                                     '_dateCreated': iso,
                                     '_uuid': '55555555-5555-5555-5555-555555555555',
                                     'language': 'fr',
-                                    'status': 'complete',
-                                    'value': 'Allo la foule',
+                                    '_data': {
+                                        'status': 'complete',
+                                        'value': 'Allo la foule',
+                                    },
                                     '_dependency': {
                                         '_actionId': 'automatic_google_transcription',
                                         '_uuid': '44444444-4444-4444-4444-444444444444',
@@ -287,7 +362,7 @@ def _get_data_supplement_response_examples():
             name='Qualitative Analysis – Integer Question',
             response_only=True,
             value={
-                '_version': '20250812',
+                '_version': '20250820',
                 'question_name_xpath': {
                     'qual': {
                         '66666666-6666-6666-6666-666666666666': {
@@ -295,11 +370,12 @@ def _get_data_supplement_response_examples():
                             '_dateModified': iso,
                             '_versions': [
                                 {
+                                    '_dateCreated': iso,
+                                    '_dateAccepted': iso,
                                     '_data': {
                                         'uuid': '66666666-6666-6666-6666-666666666666',
                                         'value': 42,
                                     },
-                                    '_dateCreated': iso,
                                     '_uuid': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
                                 }
                             ],
@@ -312,7 +388,7 @@ def _get_data_supplement_response_examples():
             name='Qualitative Analysis – Text Question',
             response_only=True,
             value={
-                '_version': '20250812',
+                '_version': '20250820',
                 'question_name_xpath': {
                     'qual': {
                         'aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff': {
@@ -320,11 +396,12 @@ def _get_data_supplement_response_examples():
                             '_dateModified': iso,
                             '_versions': [
                                 {
+                                    '_dateCreated': iso,
+                                    '_dateAccepted': iso,
                                     '_data': {
                                         'uuid': 'aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff',
                                         'value': 'This is a qualitative text response.',
                                     },
-                                    '_dateCreated': iso,
                                     '_uuid': '12121212-3434-5656-7878-909090909090',
                                 }
                             ],
@@ -337,7 +414,7 @@ def _get_data_supplement_response_examples():
             name='Qualitative Analysis – Single Choice Question',
             response_only=True,
             value={
-                '_version': '20250812',
+                '_version': '20250820',
                 'question_name_xpath': {
                     'qual': {
                         '77777777-7777-7777-7777-777777777777': {
@@ -345,11 +422,13 @@ def _get_data_supplement_response_examples():
                             '_dateModified': iso,
                             '_versions': [
                                 {
+                                    '_dateCreated': iso,
+                                    '_dateAccepted': iso,
                                     '_data': {
+
                                         'uuid': '77777777-7777-7777-7777-777777777777',
                                         'value': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
                                     },
-                                    '_dateCreated': iso,
                                     '_uuid': 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
                                 }
                             ],
@@ -362,7 +441,7 @@ def _get_data_supplement_response_examples():
             name='Qualitative Analysis – Multiple Choice Question',
             response_only=True,
             value={
-                '_version': '20250812',
+                '_version': '20250820',
                 'question_name_xpath': {
                     'qual': {
                         '88888888-8888-8888-8888-888888888888': {
@@ -370,6 +449,8 @@ def _get_data_supplement_response_examples():
                             '_dateModified': iso,
                             '_versions': [
                                 {
+                                    '_dateCreated': iso,
+                                    '_dateAccepted': iso,
                                     '_data': {
                                         'uuid': '88888888-8888-8888-8888-888888888888',
                                         'value': [
@@ -377,7 +458,6 @@ def _get_data_supplement_response_examples():
                                             'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
                                         ],
                                     },
-                                    '_dateCreated': iso,
                                     '_uuid': '99999999-9999-9999-9999-999999999999',
                                 }
                             ],
@@ -390,7 +470,7 @@ def _get_data_supplement_response_examples():
             name='Qualitative Analysis – Tags Question',
             response_only=True,
             value={
-                '_version': '20250812',
+                '_version': '20250820',
                 'question_name_xpath': {
                     'qual': {
                         'bbbbbbbb-cccc-dddd-eeee-ffffffffffff': {
@@ -398,6 +478,8 @@ def _get_data_supplement_response_examples():
                             '_dateModified': iso,
                             '_versions': [
                                 {
+                                    '_dateCreated': iso,
+                                    '_dateAccepted': iso,
                                     '_data': {
                                         'uuid': 'bbbbbbbb-cccc-dddd-eeee-ffffffffffff',
                                         'value': ['urgent', 'review', 'priority'],

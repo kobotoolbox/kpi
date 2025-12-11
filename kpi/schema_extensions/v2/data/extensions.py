@@ -105,7 +105,7 @@ class DataSupplementPayloadExtension(OpenApiSerializerExtension):
             properties={
                 '_version': {
                     'type': 'string',
-                    'example': '20250812',
+                    'example': '20250820',
                 },
                 'question_name_xpath': build_object_type(
                     additionalProperties=False,
@@ -275,7 +275,7 @@ class DataSupplementResponseExtension(OpenApiSerializerExtension):
             properties={
                 '_version': {
                     'type': 'string',
-                    'example': '20250812',
+                    'example': '20250820',
                 },
                 'question_name_xpath': build_object_type(
                     additionalProperties=False,
