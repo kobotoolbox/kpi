@@ -30,7 +30,7 @@ from kpi.versioning import APIV2Versioning
     tags=['Advanced Features'],
     parameters=[
         OpenApiParameter(
-            name='parent_lookup_asset',
+            name='uid_asset',
             type=str,
             location=OpenApiParameter.PATH,
             required=True,
@@ -67,7 +67,7 @@ from kpi.versioning import APIV2Versioning
         ),
         parameters=[
             OpenApiParameter(
-                name='uid',
+                name='id',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
@@ -85,7 +85,7 @@ from kpi.versioning import APIV2Versioning
         ),
         parameters=[
             OpenApiParameter(
-                name='uid',
+                name='id',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
