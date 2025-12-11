@@ -507,6 +507,7 @@ class DataViewSet(
                 description='Root UUID of the submission',
             ),
         ],
+        examples=get_data_supplement_examples(),
     )
     @extend_schema(
         methods=['PATCH'],

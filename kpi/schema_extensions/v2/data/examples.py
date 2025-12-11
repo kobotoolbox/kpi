@@ -180,7 +180,10 @@ def _get_data_supplement_patch_payload_request_examples() -> list[OpenApiExample
 
 
 def _get_data_supplement_response_examples():
-    iso = '2025-01-01T12:00:00Z'
+    iso0 = "2025-01-01T12:00:00Z"
+    iso1 = "2025-01-01T12:01:00Z"
+    iso2 = "2025-01-01T12:02:00Z"
+    iso3 = "2025-01-01T12:03:00Z"
 
     return [
         OpenApiExample(
@@ -190,12 +193,12 @@ def _get_data_supplement_response_examples():
                 '_version': '20250820',
                 'question_name_xpath': {
                     'manual_transcription': {
-                        '_dateCreated': iso,
-                        '_dateModified': iso,
+                        '_dateCreated': iso0,
+                        '_dateModified': iso0,
                         '_versions': [
                             {
-                                '_dateCreated': iso,
-                                '_dateAccepted': iso,
+                                '_dateCreated': iso0,
+                                '_dateAccepted': iso0,
                                 '_uuid': '11111111-1111-1111-1111-111111111111',
                                 '_data': {
                                     'language': 'fr',
@@ -215,12 +218,12 @@ def _get_data_supplement_response_examples():
                 'question_name_xpath': {
                     'manual_translation': {
                         'en': {
-                            '_dateCreated': iso,
-                            '_dateModified': iso,
+                            '_dateCreated': iso0,
+                            '_dateModified': iso0,
                             '_versions': [
                                 {
-                                    '_dateCreated': iso,
-                                    '_dateAccepted': iso,
+                                    '_dateCreated': iso0,
+                                    '_dateAccepted': iso0,
                                     '_uuid': '22222222-2222-2222-2222-222222222222',
                                     '_data': {
                                         'language': 'en',
@@ -234,12 +237,12 @@ def _get_data_supplement_response_examples():
                             ],
                         },
                         'es': {
-                            '_dateCreated': iso,
-                            '_dateModified': iso,
+                            '_dateCreated': iso1,
+                            '_dateModified': iso1,
                             '_versions': [
                                 {
-                                    '_dateCreated': iso,
-                                    '_dateAccepted': iso,
+                                    '_dateCreated': iso1,
+                                    '_dateAccepted': iso1,
                                     '_uuid': '33333333-3333-3333-3333-333333333333',
                                     '_data': {
                                         'language': 'es',
@@ -263,21 +266,21 @@ def _get_data_supplement_response_examples():
                 '_version': '20250820',
                 'question_name_xpath': {
                     'automated_google_transcription': {
-                        '_dateCreated': iso,
-                        '_dateModified': iso,
+                        '_dateCreated': iso0,
+                        '_dateModified': iso1,
                         '_versions': [
                             {
-                                '_dateCreated': iso,
+                                '_dateCreated': iso1,
                                 '_uuid': '44444444-4444-4444-4444-444444444444',
                                 '_data': {
                                     'language': 'en',
                                     'status': 'complete',
                                     'value': 'Hello world',
                                 },
-                                '_dateAccepted': iso,
+                                '_dateAccepted': iso1,
                             },
                             {
-                                '_dateCreated': iso,
+                                '_dateCreated': iso0,
                                 '_uuid': '44444444-4444-4444-4444-444444444444',
                                 '_data': {
                                     'language': 'en',
@@ -297,12 +300,12 @@ def _get_data_supplement_response_examples():
                 'question_name_xpath': {
                     'automated_google_translation': {
                         'fr': {
-                            '_dateCreated': iso,
-                            '_dateModified': iso,
+                            '_dateCreated': iso0,
+                            '_dateModified': iso3,
                             '_versions': [
                                 {
-                                    '_dateCreated': iso,
-                                    '_dateAccepted': iso,
+                                    '_dateCreated': iso3,
+                                    '_dateAccepted': iso3,
                                     '_uuid': '88888888-8888-8888-8888-888888888888',
                                     '_data': {
                                         'language': 'fr',
@@ -315,7 +318,7 @@ def _get_data_supplement_response_examples():
                                     },
                                 },
                                 {
-                                    '_dateCreated': iso,
+                                    '_dateCreated': iso2,
                                     '_uuid': '77777777-7777-7777-7777-777777777777',
                                     '_data': {
                                         'language': 'fr',
@@ -327,7 +330,7 @@ def _get_data_supplement_response_examples():
                                     },
                                 },
                                 {
-                                    '_dateCreated': iso,
+                                    '_dateCreated': iso1,
                                     '_uuid': '66666666-6666-6666-6666-666666666666',
                                     '_data': {
                                         'language': 'fr',
@@ -340,7 +343,7 @@ def _get_data_supplement_response_examples():
                                     },
                                 },
                                 {
-                                    '_dateCreated': iso,
+                                    '_dateCreated': iso0,
                                     '_uuid': '55555555-5555-5555-5555-555555555555',
                                     'language': 'fr',
                                     '_data': {
@@ -366,12 +369,12 @@ def _get_data_supplement_response_examples():
                 'question_name_xpath': {
                     'qual': {
                         '66666666-6666-6666-6666-666666666666': {
-                            '_dateCreated': iso,
-                            '_dateModified': iso,
+                            '_dateCreated': iso0,
+                            '_dateModified': iso0,
                             '_versions': [
                                 {
-                                    '_dateCreated': iso,
-                                    '_dateAccepted': iso,
+                                    '_dateCreated': iso0,
+                                    '_dateAccepted': iso0,
                                     '_data': {
                                         'uuid': '66666666-6666-6666-6666-666666666666',
                                         'value': 42,
@@ -392,12 +395,12 @@ def _get_data_supplement_response_examples():
                 'question_name_xpath': {
                     'qual': {
                         'aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff': {
-                            '_dateCreated': iso,
-                            '_dateModified': iso,
+                            '_dateCreated': iso0,
+                            '_dateModified': iso0,
                             '_versions': [
                                 {
-                                    '_dateCreated': iso,
-                                    '_dateAccepted': iso,
+                                    '_dateCreated': iso0,
+                                    '_dateAccepted': iso0,
                                     '_data': {
                                         'uuid': 'aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff',
                                         'value': 'This is a qualitative text response.',
@@ -418,14 +421,13 @@ def _get_data_supplement_response_examples():
                 'question_name_xpath': {
                     'qual': {
                         '77777777-7777-7777-7777-777777777777': {
-                            '_dateCreated': iso,
-                            '_dateModified': iso,
+                            '_dateCreated': iso0,
+                            '_dateModified': iso0,
                             '_versions': [
                                 {
-                                    '_dateCreated': iso,
-                                    '_dateAccepted': iso,
+                                    '_dateCreated': iso0,
+                                    '_dateAccepted': iso0,
                                     '_data': {
-
                                         'uuid': '77777777-7777-7777-7777-777777777777',
                                         'value': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
                                     },
@@ -445,12 +447,12 @@ def _get_data_supplement_response_examples():
                 'question_name_xpath': {
                     'qual': {
                         '88888888-8888-8888-8888-888888888888': {
-                            '_dateCreated': iso,
-                            '_dateModified': iso,
+                            '_dateCreated': iso0,
+                            '_dateModified': iso0,
                             '_versions': [
                                 {
-                                    '_dateCreated': iso,
-                                    '_dateAccepted': iso,
+                                    '_dateCreated': iso0,
+                                    '_dateAccepted': iso0,
                                     '_data': {
                                         'uuid': '88888888-8888-8888-8888-888888888888',
                                         'value': [
@@ -474,17 +476,16 @@ def _get_data_supplement_response_examples():
                 'question_name_xpath': {
                     'qual': {
                         'bbbbbbbb-cccc-dddd-eeee-ffffffffffff': {
-                            '_dateCreated': iso,
-                            '_dateModified': iso,
+                            '_dateCreated': iso0,
+                            '_dateModified': iso0,
                             '_versions': [
                                 {
-                                    '_dateCreated': iso,
-                                    '_dateAccepted': iso,
+                                    '_dateCreated': iso0,
+                                    '_dateAccepted': iso0,
                                     '_data': {
                                         'uuid': 'bbbbbbbb-cccc-dddd-eeee-ffffffffffff',
                                         'value': ['urgent', 'review', 'priority'],
                                     },
-                                    '_dateCreated': iso,
                                     '_uuid': '23232323-4545-6767-8989-010101010101',
                                 }
                             ],
