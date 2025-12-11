@@ -331,10 +331,10 @@ class DataSupplementResponseExtension(OpenApiSerializerExtension):
         return build_object_type(
             additionalProperties=False,
             properties={
-                "_actionId": GENERIC_STRING_SCHEMA,
-                "_uuid": cls.UUID_STR,
+                '_actionId': GENERIC_STRING_SCHEMA,
+                '_uuid': cls.UUID_STR,
             },
-            required=["_actionId", "_uuid"],
+            required=['_actionId', '_uuid'],
         )
 
     @classmethod
@@ -380,11 +380,11 @@ class DataSupplementResponseExtension(OpenApiSerializerExtension):
         inner_action_schema = build_object_type(
             additionalProperties=False,
             properties={
-                "_dateCreated": cls.DATETIME,
-                "_dateModified": cls.DATETIME,
-                "_versions": build_array_type(schema=version_item, min_length=1),
+                '_dateCreated': cls.DATETIME,
+                '_dateModified': cls.DATETIME,
+                '_versions': build_array_type(schema=version_item, min_length=1),
             },
-            required=["_dateCreated", "_dateModified", "_versions"],
+            required=['_dateCreated', '_dateModified', '_versions'],
         )
 
         return build_object_type(
