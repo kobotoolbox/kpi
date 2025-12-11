@@ -113,9 +113,7 @@ class DataSupplementPayloadExtension(OpenApiSerializerExtension):
                         'manual_transcription': (
                             self._get_manual_transcription_schema()
                         ),
-                        'manual_translation': (
-                            self._get_manual_translation_schema()
-                        ),
+                        'manual_translation': (self._get_manual_translation_schema()),
                         'automated_google_transcription': (
                             self._get_auto_transcription_schema()
                         ),
@@ -285,9 +283,7 @@ class DataSupplementResponseExtension(OpenApiSerializerExtension):
                         'manual_transcription': (
                             self._get_manual_transcription_schema()
                         ),
-                        'manual_translation': (
-                            self._get_manual_translation_schema()
-                        ),
+                        'manual_translation': (self._get_manual_translation_schema()),
                         'automated_google_transcription': (
                             self._get_auto_transcription_schema()
                         ),
