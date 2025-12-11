@@ -310,29 +310,46 @@ class DataSupplementResponseExtension(OpenApiSerializerExtension):
         )
 
     @classmethod
-    def _get_base_version_props(cls):
-        return {
+    def _get_base_version_props(cls, include_status=False):
+        """
+        Base properties for a version item.
+        """
+        props = {
             '_dateCreated': cls.DATETIME,
             '_uuid': cls.UUID_STR,
             'language': GENERIC_STRING_SCHEMA,
-            'status': GENERIC_STRING_SCHEMA,
             'value': GENERIC_STRING_SCHEMA,
         }
+
+        if include_status:
+            props['status'] = GENERIC_STRING_SCHEMA
+
+        return props
 
     @classmethod
     def _get_base_version_required(cls):
         return ['_dateCreated', '_uuid', 'language', 'value']
 
     @classmethod
-    def _build_transcription_schema(cls):
+    def _get_dependency_schema(cls):
+        return build_object_type(
+            additionalProperties=False,
+            properties={
+                "_actionId": GENERIC_STRING_SCHEMA,
+                "_uuid": cls.UUID_STR,
+            },
+            required=["_actionId", "_uuid"],
+        )
+
+    @classmethod
+    def _build_transcription_schema(cls, include_status=False):
         """
         Helper for both manual and automated transcription.
-        Items have optional '_dateAccepted'.
         """
         version_item = build_object_type(
             additionalProperties=False,
             properties={
-                **cls._get_base_version_props(),
+                **cls._get_base_version_props(include_status=include_status),
                 '_dateAccepted': cls.DATETIME,  # Optional
             },
             required=cls._get_base_version_required(),
@@ -349,49 +366,50 @@ class DataSupplementResponseExtension(OpenApiSerializerExtension):
         )
 
     @classmethod
-    def _build_translation_schema(cls):
+    def _build_translation_schema(cls, include_status=False):
         """
-        Helper for both manual and automated translation.
-        Root has required '_dependency'.
+        Translation Schema:
+        Map<LanguageCode, ActionObject>.
+        The keys are dynamic strings (e.g., 'en', 'es').
         """
         version_item = build_object_type(
             additionalProperties=False,
-            properties=cls._get_base_version_props(),
-            required=cls._get_base_version_required(),
+            properties={
+                **cls._get_base_version_props(include_status),
+                '_dependency': cls._get_dependency_schema(),
+            },
+            required=[*cls._get_base_version_required(), '_dependency'],
         )
 
-        dependency_schema = build_object_type(
+        inner_action_schema = build_object_type(
             additionalProperties=False,
-            properties={'_actionId': GENERIC_STRING_SCHEMA},
-            required=['_actionId'],
+            properties={
+                "_dateCreated": cls.DATETIME,
+                "_dateModified": cls.DATETIME,
+                "_versions": build_array_type(schema=version_item, min_length=1),
+            },
+            required=["_dateCreated", "_dateModified", "_versions"],
         )
 
         return build_object_type(
-            additionalProperties=False,
-            properties={
-                '_dateCreated': cls.DATETIME,
-                '_dateModified': cls.DATETIME,
-                '_dependency': dependency_schema,
-                '_versions': build_array_type(schema=version_item, min_length=1),
-            },
-            required=['_dateCreated', '_dateModified', '_versions', '_dependency'],
+            additionalProperties=inner_action_schema,
         )
 
     @classmethod
     def _get_manual_transcription_schema(cls):
-        return cls._build_transcription_schema()
+        return cls._build_transcription_schema(include_status=False)
 
     @classmethod
     def _get_auto_transcription_schema(cls):
-        return cls._build_transcription_schema()
+        return cls._build_transcription_schema(include_status=True)
 
     @classmethod
     def _get_manual_translation_schema(cls):
-        return cls._build_translation_schema()
+        return cls._build_translation_schema(include_status=False)
 
     @classmethod
     def _get_auto_translation_schema(cls):
-        return cls._build_translation_schema()
+        return cls._build_translation_schema(include_status=True)
 
     @classmethod
     def _get_qual_schema(cls):

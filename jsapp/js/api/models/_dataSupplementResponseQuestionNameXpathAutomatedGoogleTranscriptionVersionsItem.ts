@@ -14,7 +14,7 @@ export type _DataSupplementResponseQuestionNameXpathAutomatedGoogleTranscription
   _dateCreated: string
   _uuid: string
   language: string
-  status?: string
   value: string
+  status?: string
   _dateAccepted?: string
 }

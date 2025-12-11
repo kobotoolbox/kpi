@@ -14,7 +14,6 @@ export type _DataSupplementResponseQuestionNameXpathManualTranscriptionVersionsI
   _dateCreated: string
   _uuid: string
   language: string
-  status?: string
   value: string
   _dateAccepted?: string
 }
