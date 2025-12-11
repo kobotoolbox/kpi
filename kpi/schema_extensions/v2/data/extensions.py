@@ -110,34 +110,62 @@ class DataSupplementPayloadExtension(OpenApiSerializerExtension):
                 'question_name_xpath': build_object_type(
                     additionalProperties=False,
                     properties={
-                        'manual_transcription': build_object_type(
-                            additionalProperties=False,
-                            properties={
-                                'language': GENERIC_STRING_SCHEMA,
-                                'value': GENERIC_STRING_SCHEMA,
-                            },
-                            required=['language', 'value'],
+                        'manual_transcription': (
+                            self._get_manual_transcription_schema()
                         ),
-                        'manual_translation': build_array_type(
-                            schema=build_object_type(
-                                additionalProperties=False,
-                                properties={
-                                    'language': GENERIC_STRING_SCHEMA,
-                                    'value': GENERIC_STRING_SCHEMA,
-                                },
-                                required=['language', 'value'],
-                            ),
-                            min_length=1,
+                        'manual_translation': (
+                            self._get_manual_translation_schema()
+                        ),
+                        'automated_google_transcription': (
+                            self._get_auto_transcription_schema()
+                        ),
+                        'automated_google_translation': (
+                            self._get_auto_translation_schema()
                         ),
                         'qual': self._get_qual_schema(),
                     },
                     anyOf=[
                         {'required': ['manual_transcription']},
                         {'required': ['manual_translation']},
+                        {'required': ['automated_google_transcription']},
+                        {'required': ['automated_google_translation']},
                         {'required': ['qual']},
                     ],
                 ),
             }
+        )
+
+    @classmethod
+    def _get_common_pair_schema(cls):
+        return build_object_type(
+            additionalProperties=False,
+            properties={
+                'language': GENERIC_STRING_SCHEMA,
+                'value': GENERIC_STRING_SCHEMA,
+            },
+            required=['language', 'value'],
+        )
+
+    @classmethod
+    def _get_manual_transcription_schema(cls):
+        return cls._get_common_pair_schema()
+
+    @classmethod
+    def _get_auto_transcription_schema(cls):
+        return cls._get_common_pair_schema()
+
+    @classmethod
+    def _get_manual_translation_schema(cls):
+        return build_array_type(
+            schema=cls._get_common_pair_schema(),
+            min_length=1,
+        )
+
+    @classmethod
+    def _get_auto_translation_schema(cls):
+        return build_array_type(
+            schema=cls._get_common_pair_schema(),
+            min_length=1,
         )
 
     @classmethod
@@ -245,87 +273,6 @@ class DataSupplementResponseExtension(OpenApiSerializerExtension):
     UUID_STR = {'type': 'string', 'format': 'uuid'}
 
     def map_serializer(self, auto_schema, direction):
-        # TODO move to class constants
-        # Reusable building blocks to reduce redundancy
-        LANG_STR = GENERIC_STRING_SCHEMA
-        VALUE_STR = GENERIC_STRING_SCHEMA
-        # DATETIME = build_basic_type(OpenApiTypes.DATETIME)
-
-        # Constraint helper: "language" and "value" must be both present or both absent
-        PAIR_LANG_VALUE_BOTH_OR_NONE = {
-            'anyOf': [
-                {'required': ['language', 'value']},  # both present
-                {
-                    'not': {  # forbid the cases where only one is present
-                        'anyOf': [
-                            {'required': ['language']},
-                            {'required': ['value']},
-                        ]
-                    }
-                },
-            ]
-        }
-
-        # TODO move action schemas logic to their own methods.
-        # Shared properties for objects that carry a language/value pair
-        VALUE_PROPS = {
-            'language': LANG_STR,
-            'value': VALUE_STR,
-        }
-
-        # Generic revision item:
-        # - requires _dateCreated;
-        # - language/value are coupled (both-or-none)
-        REVISION_ITEM = build_object_type(
-            additionalProperties=False,
-            properties={
-                **VALUE_PROPS,
-                '_dateCreated': self.DATETIME,  # Always required for a revision entry
-            },
-            required=['_dateCreated'],
-            **PAIR_LANG_VALUE_BOTH_OR_NONE,
-        )
-
-        # Manual transcription object:
-        # - _dateCreated and _dateModified are always required
-        # - language/value: both-or-none
-        # - "revisions" is an array of REVISION_ITEMs
-        MANUAL_TRANSCRIPTION = build_object_type(
-            additionalProperties=False,
-            properties={
-                **VALUE_PROPS,  # Coupled via PAIR_LANG_VALUE_BOTH_OR_NONE
-                '_dateCreated': self.DATETIME,  # Always required
-                '_dateModified': self.DATETIME,  # Always required
-                'revisions': build_array_type(
-                    schema=REVISION_ITEM,
-                ),
-            },
-            required=['_dateCreated', '_dateModified'],
-            **PAIR_LANG_VALUE_BOTH_OR_NONE,
-        )
-
-        # Each item in manual_translation:
-        # - requires _dateCreated
-        # - language/value: both-or-none
-        # - has a "_revisions" array with the same REVISION_ITEM structure
-        MANUAL_TRANSLATION_ITEM = build_object_type(
-            additionalProperties=False,
-            properties={
-                **VALUE_PROPS,  # Coupled via PAIR_LANG_VALUE_BOTH_OR_NONE
-                '_dateCreated': self.DATETIME,  # Always required
-                '_revisions': build_array_type(
-                    schema=REVISION_ITEM,
-                ),
-            },
-            required=['_dateCreated'],
-            **PAIR_LANG_VALUE_BOTH_OR_NONE,
-        )
-
-        MANUAL_TRANSLATION = build_array_type(
-            schema=MANUAL_TRANSLATION_ITEM,
-            min_length=1,
-        )
-
         return build_object_type(
             properties={
                 '_version': {
@@ -335,19 +282,116 @@ class DataSupplementResponseExtension(OpenApiSerializerExtension):
                 'question_name_xpath': build_object_type(
                     additionalProperties=False,
                     properties={
-                        'manual_transcription': MANUAL_TRANSCRIPTION,
-                        'manual_translation': MANUAL_TRANSLATION,
+                        'manual_transcription': (
+                            self._get_manual_transcription_schema()
+                        ),
+                        'manual_translation': (
+                            self._get_manual_translation_schema()
+                        ),
+                        'automated_google_transcription': (
+                            self._get_auto_transcription_schema()
+                        ),
+                        'automated_google_translation': (
+                            self._get_auto_translation_schema()
+                        ),
                         'qual': self._get_qual_schema(),
                     },
-                    # At least one of "manual_transcription" or "manual_translation" must be present
+                    # At least one of "manual_transcription" or "manual_translation"
+                    # must be present
                     anyOf=[
                         {'required': ['manual_transcription']},
                         {'required': ['manual_translation']},
+                        {'required': ['automated_google_transcription']},
+                        {'required': ['automated_google_translation']},
                         {'required': ['qual']},
                     ],
                 ),
             }
         )
+
+    @classmethod
+    def _get_base_version_props(cls):
+        return {
+            '_dateCreated': cls.DATETIME,
+            '_uuid': cls.UUID_STR,
+            'language': GENERIC_STRING_SCHEMA,
+            'status': GENERIC_STRING_SCHEMA,
+            'value': GENERIC_STRING_SCHEMA,
+        }
+
+    @classmethod
+    def _get_base_version_required(cls):
+        return ['_dateCreated', '_uuid', 'language', 'value']
+
+    @classmethod
+    def _build_transcription_schema(cls):
+        """
+        Helper for both manual and automated transcription.
+        Items have optional '_dateAccepted'.
+        """
+        version_item = build_object_type(
+            additionalProperties=False,
+            properties={
+                **cls._get_base_version_props(),
+                '_dateAccepted': cls.DATETIME,  # Optional
+            },
+            required=cls._get_base_version_required(),
+        )
+
+        return build_object_type(
+            additionalProperties=False,
+            properties={
+                '_dateCreated': cls.DATETIME,
+                '_dateModified': cls.DATETIME,
+                '_versions': build_array_type(schema=version_item, min_length=1),
+            },
+            required=['_dateCreated', '_dateModified', '_versions'],
+        )
+
+    @classmethod
+    def _build_translation_schema(cls):
+        """
+        Helper for both manual and automated translation.
+        Root has required '_dependency'.
+        """
+        version_item = build_object_type(
+            additionalProperties=False,
+            properties=cls._get_base_version_props(),
+            required=cls._get_base_version_required(),
+        )
+
+        dependency_schema = build_object_type(
+            additionalProperties=False,
+            properties={'_actionId': GENERIC_STRING_SCHEMA},
+            required=['_actionId'],
+        )
+
+        return build_object_type(
+            additionalProperties=False,
+            properties={
+                '_dateCreated': cls.DATETIME,
+                '_dateModified': cls.DATETIME,
+                '_dependency': dependency_schema,
+                '_versions': build_array_type(schema=version_item, min_length=1),
+            },
+            required=['_dateCreated', '_dateModified', '_versions', '_dependency'],
+        )
+
+    @classmethod
+    def _get_manual_transcription_schema(cls):
+        return cls._build_transcription_schema()
+
+    @classmethod
+    def _get_auto_transcription_schema(cls):
+        return cls._build_transcription_schema()
+
+    @classmethod
+    def _get_manual_translation_schema(cls):
+        return cls._build_translation_schema()
+
+    @classmethod
+    def _get_auto_translation_schema(cls):
+        return cls._build_translation_schema()
 
     @classmethod
     def _get_qual_schema(cls):

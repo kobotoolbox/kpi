@@ -10,14 +10,10 @@ The endpoints are grouped by area of intended use. Each category contains relate
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 
-export type DataSupplementResponseQuestionNameXpathManualTranscriptionRevisionsItem =
-  | (unknown & {
-      language?: string
-      value?: string
-      _dateCreated: string
-    })
-  | (unknown & {
-      language?: string
-      value?: string
-      _dateCreated: string
-    })
+export type _DataSupplementResponseQuestionNameXpathManualTranslationVersionsItem = {
+  _dateCreated: string;
+  _uuid: string;
+  language: string;
+  status?: string;
+  value: string;
+};

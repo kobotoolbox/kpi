@@ -9,14 +9,13 @@ The endpoints are grouped by area of intended use. Each category contains relate
 **General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as "assets".
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
+import type { _DataSupplementResponseQuestionNameXpathManualTranslationDependency } from './_dataSupplementResponseQuestionNameXpathManualTranslationDependency';
+import type { _DataSupplementResponseQuestionNameXpathManualTranslationVersionsItem } from './_dataSupplementResponseQuestionNameXpathManualTranslationVersionsItem';
 
-export type _DataResponseAttachments = {
-  download_url?: string;
-  download_large_url?: string;
-  download_medium_url?: string;
-  download_small_url?: string;
-  mimetype?: string;
-  filename?: string;
-  uid?: string;
-  question_xpath?: string;
+export type DataSupplementResponseQuestionNameXpathManualTranslation = {
+  _dateCreated: string;
+  _dateModified: string;
+  _dependency: _DataSupplementResponseQuestionNameXpathManualTranslationDependency;
+  /** @minLength 1 */
+  _versions: _DataSupplementResponseQuestionNameXpathManualTranslationVersionsItem[];
 };

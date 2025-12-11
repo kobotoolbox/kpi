@@ -9,26 +9,40 @@ The endpoints are grouped by area of intended use. Each category contains relate
 **General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as "assets".
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
-import type { DataSupplementResponseQuestionNameXpathManualTranscription } from './dataSupplementResponseQuestionNameXpathManualTranscription'
-import type { DataSupplementResponseQuestionNameXpathManualTranslationItem } from './dataSupplementResponseQuestionNameXpathManualTranslationItem'
-import type { DataSupplementResponseQuestionNameXpathQual } from './dataSupplementResponseQuestionNameXpathQual'
+import type { DataSupplementResponseQuestionNameXpathManualTranscription } from './dataSupplementResponseQuestionNameXpathManualTranscription';
+import type { DataSupplementResponseQuestionNameXpathManualTranslation } from './dataSupplementResponseQuestionNameXpathManualTranslation';
+import type { DataSupplementResponseQuestionNameXpathAutomatedGoogleTranscription } from './dataSupplementResponseQuestionNameXpathAutomatedGoogleTranscription';
+import type { DataSupplementResponseQuestionNameXpathAutomatedGoogleTranslation } from './dataSupplementResponseQuestionNameXpathAutomatedGoogleTranslation';
+import type { DataSupplementResponseQuestionNameXpathQual } from './dataSupplementResponseQuestionNameXpathQual';
 
-export type DataSupplementResponseQuestionNameXpath =
-  | (unknown & {
-      manual_transcription?: DataSupplementResponseQuestionNameXpathManualTranscription
-      /** @minLength 1 */
-      manual_translation?: DataSupplementResponseQuestionNameXpathManualTranslationItem[]
-      qual?: DataSupplementResponseQuestionNameXpathQual
-    })
-  | (unknown & {
-      manual_transcription?: DataSupplementResponseQuestionNameXpathManualTranscription
-      /** @minLength 1 */
-      manual_translation?: DataSupplementResponseQuestionNameXpathManualTranslationItem[]
-      qual?: DataSupplementResponseQuestionNameXpathQual
-    })
-  | (unknown & {
-      manual_transcription?: DataSupplementResponseQuestionNameXpathManualTranscription
-      /** @minLength 1 */
-      manual_translation?: DataSupplementResponseQuestionNameXpathManualTranslationItem[]
-      qual?: DataSupplementResponseQuestionNameXpathQual
-    })
+export type DataSupplementResponseQuestionNameXpath = (unknown & {
+  manual_transcription?: DataSupplementResponseQuestionNameXpathManualTranscription;
+  manual_translation?: DataSupplementResponseQuestionNameXpathManualTranslation;
+  automated_google_transcription?: DataSupplementResponseQuestionNameXpathAutomatedGoogleTranscription;
+  automated_google_translation?: DataSupplementResponseQuestionNameXpathAutomatedGoogleTranslation;
+  qual?: DataSupplementResponseQuestionNameXpathQual;
+}) | (unknown & {
+  manual_transcription?: DataSupplementResponseQuestionNameXpathManualTranscription;
+  manual_translation?: DataSupplementResponseQuestionNameXpathManualTranslation;
+  automated_google_transcription?: DataSupplementResponseQuestionNameXpathAutomatedGoogleTranscription;
+  automated_google_translation?: DataSupplementResponseQuestionNameXpathAutomatedGoogleTranslation;
+  qual?: DataSupplementResponseQuestionNameXpathQual;
+}) | (unknown & {
+  manual_transcription?: DataSupplementResponseQuestionNameXpathManualTranscription;
+  manual_translation?: DataSupplementResponseQuestionNameXpathManualTranslation;
+  automated_google_transcription?: DataSupplementResponseQuestionNameXpathAutomatedGoogleTranscription;
+  automated_google_translation?: DataSupplementResponseQuestionNameXpathAutomatedGoogleTranslation;
+  qual?: DataSupplementResponseQuestionNameXpathQual;
+}) | (unknown & {
+  manual_transcription?: DataSupplementResponseQuestionNameXpathManualTranscription;
+  manual_translation?: DataSupplementResponseQuestionNameXpathManualTranslation;
+  automated_google_transcription?: DataSupplementResponseQuestionNameXpathAutomatedGoogleTranscription;
+  automated_google_translation?: DataSupplementResponseQuestionNameXpathAutomatedGoogleTranslation;
+  qual?: DataSupplementResponseQuestionNameXpathQual;
+}) | (unknown & {
+  manual_transcription?: DataSupplementResponseQuestionNameXpathManualTranscription;
+  manual_translation?: DataSupplementResponseQuestionNameXpathManualTranslation;
+  automated_google_transcription?: DataSupplementResponseQuestionNameXpathAutomatedGoogleTranscription;
+  automated_google_translation?: DataSupplementResponseQuestionNameXpathAutomatedGoogleTranslation;
+  qual?: DataSupplementResponseQuestionNameXpathQual;
+});

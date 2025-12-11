@@ -10,13 +10,6 @@ The endpoints are grouped by area of intended use. Each category contains relate
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 
-export type _DataResponseAttachments = {
-  download_url?: string;
-  download_large_url?: string;
-  download_medium_url?: string;
-  download_small_url?: string;
-  mimetype?: string;
-  filename?: string;
-  uid?: string;
-  question_xpath?: string;
+export type _DataSupplementResponseQuestionNameXpathAutomatedGoogleTranslationDependency = {
+  _actionId: string;
 };

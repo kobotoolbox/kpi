@@ -9,26 +9,50 @@ The endpoints are grouped by area of intended use. Each category contains relate
 **General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as "assets".
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
-import type { PatchedDataSupplementPayloadQuestionNameXpathManualTranscription } from './patchedDataSupplementPayloadQuestionNameXpathManualTranscription'
-import type { PatchedDataSupplementPayloadQuestionNameXpathManualTranslationItem } from './patchedDataSupplementPayloadQuestionNameXpathManualTranslationItem'
-import type { PatchedDataSupplementPayloadQuestionNameXpathQual } from './patchedDataSupplementPayloadQuestionNameXpathQual'
+import type { PatchedDataSupplementPayloadQuestionNameXpathManualTranscription } from './patchedDataSupplementPayloadQuestionNameXpathManualTranscription';
+import type { PatchedDataSupplementPayloadQuestionNameXpathManualTranslationItem } from './patchedDataSupplementPayloadQuestionNameXpathManualTranslationItem';
+import type { PatchedDataSupplementPayloadQuestionNameXpathAutomatedGoogleTranscription } from './patchedDataSupplementPayloadQuestionNameXpathAutomatedGoogleTranscription';
+import type { PatchedDataSupplementPayloadQuestionNameXpathAutomatedGoogleTranslationItem } from './patchedDataSupplementPayloadQuestionNameXpathAutomatedGoogleTranslationItem';
+import type { PatchedDataSupplementPayloadQuestionNameXpathQual } from './patchedDataSupplementPayloadQuestionNameXpathQual';
 
-export type PatchedDataSupplementPayloadQuestionNameXpath =
-  | (unknown & {
-      manual_transcription?: PatchedDataSupplementPayloadQuestionNameXpathManualTranscription
-      /** @minLength 1 */
-      manual_translation?: PatchedDataSupplementPayloadQuestionNameXpathManualTranslationItem[]
-      qual?: PatchedDataSupplementPayloadQuestionNameXpathQual
-    })
-  | (unknown & {
-      manual_transcription?: PatchedDataSupplementPayloadQuestionNameXpathManualTranscription
-      /** @minLength 1 */
-      manual_translation?: PatchedDataSupplementPayloadQuestionNameXpathManualTranslationItem[]
-      qual?: PatchedDataSupplementPayloadQuestionNameXpathQual
-    })
-  | (unknown & {
-      manual_transcription?: PatchedDataSupplementPayloadQuestionNameXpathManualTranscription
-      /** @minLength 1 */
-      manual_translation?: PatchedDataSupplementPayloadQuestionNameXpathManualTranslationItem[]
-      qual?: PatchedDataSupplementPayloadQuestionNameXpathQual
-    })
+export type PatchedDataSupplementPayloadQuestionNameXpath = (unknown & {
+  manual_transcription?: PatchedDataSupplementPayloadQuestionNameXpathManualTranscription;
+  /** @minLength 1 */
+  manual_translation?: PatchedDataSupplementPayloadQuestionNameXpathManualTranslationItem[];
+  automated_google_transcription?: PatchedDataSupplementPayloadQuestionNameXpathAutomatedGoogleTranscription;
+  /** @minLength 1 */
+  automated_google_translation?: PatchedDataSupplementPayloadQuestionNameXpathAutomatedGoogleTranslationItem[];
+  qual?: PatchedDataSupplementPayloadQuestionNameXpathQual;
+}) | (unknown & {
+  manual_transcription?: PatchedDataSupplementPayloadQuestionNameXpathManualTranscription;
+  /** @minLength 1 */
+  manual_translation?: PatchedDataSupplementPayloadQuestionNameXpathManualTranslationItem[];
+  automated_google_transcription?: PatchedDataSupplementPayloadQuestionNameXpathAutomatedGoogleTranscription;
+  /** @minLength 1 */
+  automated_google_translation?: PatchedDataSupplementPayloadQuestionNameXpathAutomatedGoogleTranslationItem[];
+  qual?: PatchedDataSupplementPayloadQuestionNameXpathQual;
+}) | (unknown & {
+  manual_transcription?: PatchedDataSupplementPayloadQuestionNameXpathManualTranscription;
+  /** @minLength 1 */
+  manual_translation?: PatchedDataSupplementPayloadQuestionNameXpathManualTranslationItem[];
+  automated_google_transcription?: PatchedDataSupplementPayloadQuestionNameXpathAutomatedGoogleTranscription;
+  /** @minLength 1 */
+  automated_google_translation?: PatchedDataSupplementPayloadQuestionNameXpathAutomatedGoogleTranslationItem[];
+  qual?: PatchedDataSupplementPayloadQuestionNameXpathQual;
+}) | (unknown & {
+  manual_transcription?: PatchedDataSupplementPayloadQuestionNameXpathManualTranscription;
+  /** @minLength 1 */
+  manual_translation?: PatchedDataSupplementPayloadQuestionNameXpathManualTranslationItem[];
+  automated_google_transcription?: PatchedDataSupplementPayloadQuestionNameXpathAutomatedGoogleTranscription;
+  /** @minLength 1 */
+  automated_google_translation?: PatchedDataSupplementPayloadQuestionNameXpathAutomatedGoogleTranslationItem[];
+  qual?: PatchedDataSupplementPayloadQuestionNameXpathQual;
+}) | (unknown & {
+  manual_transcription?: PatchedDataSupplementPayloadQuestionNameXpathManualTranscription;
+  /** @minLength 1 */
+  manual_translation?: PatchedDataSupplementPayloadQuestionNameXpathManualTranslationItem[];
+  automated_google_transcription?: PatchedDataSupplementPayloadQuestionNameXpathAutomatedGoogleTranscription;
+  /** @minLength 1 */
+  automated_google_translation?: PatchedDataSupplementPayloadQuestionNameXpathAutomatedGoogleTranslationItem[];
+  qual?: PatchedDataSupplementPayloadQuestionNameXpathQual;
+});

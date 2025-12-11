@@ -15155,12 +15155,6 @@
                             "manual_transcription": {
                                 "type": "object",
                                 "properties": {
-                                    "language": {
-                                        "type": "string"
-                                    },
-                                    "value": {
-                                        "type": "string"
-                                    },
                                     "_dateCreated": {
                                         "type": "string",
                                         "format": "date-time"
@@ -15169,175 +15163,236 @@
                                         "type": "string",
                                         "format": "date-time"
                                     },
-                                    "revisions": {
+                                    "_versions": {
                                         "type": "array",
                                         "items": {
                                             "type": "object",
                                             "properties": {
+                                                "_dateCreated": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                },
+                                                "_uuid": {
+                                                    "type": "string",
+                                                    "format": "uuid"
+                                                },
                                                 "language": {
+                                                    "type": "string"
+                                                },
+                                                "status": {
                                                     "type": "string"
                                                 },
                                                 "value": {
                                                     "type": "string"
                                                 },
-                                                "_dateCreated": {
+                                                "_dateAccepted": {
                                                     "type": "string",
                                                     "format": "date-time"
                                                 }
                                             },
                                             "additionalProperties": false,
                                             "required": [
-                                                "_dateCreated"
-                                            ],
-                                            "anyOf": [
-                                                {
-                                                    "required": [
-                                                        "language",
-                                                        "value"
-                                                    ]
-                                                },
-                                                {
-                                                    "not": {
-                                                        "anyOf": [
-                                                            {
-                                                                "required": [
-                                                                    "language"
-                                                                ]
-                                                            },
-                                                            {
-                                                                "required": [
-                                                                    "value"
-                                                                ]
-                                                            }
-                                                        ]
-                                                    }
-                                                }
+                                                "_dateCreated",
+                                                "_uuid",
+                                                "language",
+                                                "value"
                                             ]
-                                        }
+                                        },
+                                        "minLength": 1
                                     }
                                 },
                                 "additionalProperties": false,
                                 "required": [
                                     "_dateCreated",
-                                    "_dateModified"
-                                ],
-                                "anyOf": [
-                                    {
-                                        "required": [
-                                            "language",
-                                            "value"
-                                        ]
-                                    },
-                                    {
-                                        "not": {
-                                            "anyOf": [
-                                                {
-                                                    "required": [
-                                                        "language"
-                                                    ]
-                                                },
-                                                {
-                                                    "required": [
-                                                        "value"
-                                                    ]
-                                                }
-                                            ]
-                                        }
-                                    }
+                                    "_dateModified",
+                                    "_versions"
                                 ]
                             },
                             "manual_translation": {
-                                "type": "array",
-                                "items": {
-                                    "type": "object",
-                                    "properties": {
-                                        "language": {
-                                            "type": "string"
-                                        },
-                                        "value": {
-                                            "type": "string"
-                                        },
-                                        "_dateCreated": {
-                                            "type": "string",
-                                            "format": "date-time"
-                                        },
-                                        "_revisions": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "language": {
-                                                        "type": "string"
-                                                    },
-                                                    "value": {
-                                                        "type": "string"
-                                                    },
-                                                    "_dateCreated": {
-                                                        "type": "string",
-                                                        "format": "date-time"
-                                                    }
-                                                },
-                                                "additionalProperties": false,
-                                                "required": [
-                                                    "_dateCreated"
-                                                ],
-                                                "anyOf": [
-                                                    {
-                                                        "required": [
-                                                            "language",
-                                                            "value"
-                                                        ]
-                                                    },
-                                                    {
-                                                        "not": {
-                                                            "anyOf": [
-                                                                {
-                                                                    "required": [
-                                                                        "language"
-                                                                    ]
-                                                                },
-                                                                {
-                                                                    "required": [
-                                                                        "value"
-                                                                    ]
-                                                                }
-                                                            ]
-                                                        }
-                                                    }
-                                                ]
-                                            }
-                                        }
+                                "type": "object",
+                                "properties": {
+                                    "_dateCreated": {
+                                        "type": "string",
+                                        "format": "date-time"
                                     },
-                                    "additionalProperties": false,
-                                    "required": [
-                                        "_dateCreated"
-                                    ],
-                                    "anyOf": [
-                                        {
+                                    "_dateModified": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                    },
+                                    "_dependency": {
+                                        "type": "object",
+                                        "properties": {
+                                            "_actionId": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "additionalProperties": false,
+                                        "required": [
+                                            "_actionId"
+                                        ]
+                                    },
+                                    "_versions": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "_dateCreated": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                },
+                                                "_uuid": {
+                                                    "type": "string",
+                                                    "format": "uuid"
+                                                },
+                                                "language": {
+                                                    "type": "string"
+                                                },
+                                                "status": {
+                                                    "type": "string"
+                                                },
+                                                "value": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "additionalProperties": false,
                                             "required": [
+                                                "_dateCreated",
+                                                "_uuid",
                                                 "language",
                                                 "value"
                                             ]
                                         },
-                                        {
-                                            "not": {
-                                                "anyOf": [
-                                                    {
-                                                        "required": [
-                                                            "language"
-                                                        ]
-                                                    },
-                                                    {
-                                                        "required": [
-                                                            "value"
-                                                        ]
-                                                    }
-                                                ]
-                                            }
-                                        }
-                                    ]
+                                        "minLength": 1
+                                    }
                                 },
-                                "minLength": 1
+                                "additionalProperties": false,
+                                "required": [
+                                    "_dateCreated",
+                                    "_dateModified",
+                                    "_dependency",
+                                    "_versions"
+                                ]
+                            },
+                            "automated_google_transcription": {
+                                "type": "object",
+                                "properties": {
+                                    "_dateCreated": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                    },
+                                    "_dateModified": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                    },
+                                    "_versions": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "_dateCreated": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                },
+                                                "_uuid": {
+                                                    "type": "string",
+                                                    "format": "uuid"
+                                                },
+                                                "language": {
+                                                    "type": "string"
+                                                },
+                                                "status": {
+                                                    "type": "string"
+                                                },
+                                                "value": {
+                                                    "type": "string"
+                                                },
+                                                "_dateAccepted": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                }
+                                            },
+                                            "additionalProperties": false,
+                                            "required": [
+                                                "_dateCreated",
+                                                "_uuid",
+                                                "language",
+                                                "value"
+                                            ]
+                                        },
+                                        "minLength": 1
+                                    }
+                                },
+                                "additionalProperties": false,
+                                "required": [
+                                    "_dateCreated",
+                                    "_dateModified",
+                                    "_versions"
+                                ]
+                            },
+                            "automated_google_translation": {
+                                "type": "object",
+                                "properties": {
+                                    "_dateCreated": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                    },
+                                    "_dateModified": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                    },
+                                    "_dependency": {
+                                        "type": "object",
+                                        "properties": {
+                                            "_actionId": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "additionalProperties": false,
+                                        "required": [
+                                            "_actionId"
+                                        ]
+                                    },
+                                    "_versions": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "_dateCreated": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                },
+                                                "_uuid": {
+                                                    "type": "string",
+                                                    "format": "uuid"
+                                                },
+                                                "language": {
+                                                    "type": "string"
+                                                },
+                                                "status": {
+                                                    "type": "string"
+                                                },
+                                                "value": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "additionalProperties": false,
+                                            "required": [
+                                                "_dateCreated",
+                                                "_uuid",
+                                                "language",
+                                                "value"
+                                            ]
+                                        },
+                                        "minLength": 1
+                                    }
+                                },
+                                "additionalProperties": false,
+                                "required": [
+                                    "_dateCreated",
+                                    "_dateModified",
+                                    "_dependency",
+                                    "_versions"
+                                ]
                             },
                             "qual": {
                                 "type": "object",
@@ -15743,6 +15798,16 @@
                             {
                                 "required": [
                                     "manual_translation"
+                                ]
+                            },
+                            {
+                                "required": [
+                                    "automated_google_transcription"
+                                ]
+                            },
+                            {
+                                "required": [
+                                    "automated_google_translation"
                                 ]
                             },
                             {
@@ -19452,6 +19517,42 @@
                                 },
                                 "minLength": 1
                             },
+                            "automated_google_transcription": {
+                                "type": "object",
+                                "properties": {
+                                    "language": {
+                                        "type": "string"
+                                    },
+                                    "value": {
+                                        "type": "string"
+                                    }
+                                },
+                                "additionalProperties": false,
+                                "required": [
+                                    "language",
+                                    "value"
+                                ]
+                            },
+                            "automated_google_translation": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "language": {
+                                            "type": "string"
+                                        },
+                                        "value": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "additionalProperties": false,
+                                    "required": [
+                                        "language",
+                                        "value"
+                                    ]
+                                },
+                                "minLength": 1
+                            },
                             "qual": {
                                 "oneOf": [
                                     {
@@ -19617,6 +19718,16 @@
                             {
                                 "required": [
                                     "manual_translation"
+                                ]
+                            },
+                            {
+                                "required": [
+                                    "automated_google_transcription"
+                                ]
+                            },
+                            {
+                                "required": [
+                                    "automated_google_translation"
                                 ]
                             },
                             {
