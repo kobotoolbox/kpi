@@ -9,8 +9,7 @@ from drf_spectacular.plumbing import (
 )
 from drf_spectacular.types import OpenApiTypes
 
-from kpi.schema_extensions.v2.generic.schema import GENERIC_STRING_SCHEMA, \
-    STATUS_NLP_ACTION_SCHEMA
+from kpi.schema_extensions.v2.generic.schema import GENERIC_STRING_SCHEMA
 from kpi.utils.schema_extensions.url_builder import build_url_type
 
 
@@ -144,7 +143,6 @@ class DataSupplementPayloadExtension(OpenApiSerializerExtension):
             },
             required=['language'],
         )
-
 
     @classmethod
     def _get_manual_nlp_action_schema(cls):
@@ -420,7 +418,6 @@ class DataSupplementResponseExtension(OpenApiSerializerExtension):
                     },
                     required=['language', 'status'],
                 ),
-
                 # failed → error required, no value
                 build_object_type(
                     additionalProperties=False,
@@ -431,7 +428,6 @@ class DataSupplementResponseExtension(OpenApiSerializerExtension):
                     },
                     required=['language', 'status', 'error'],
                 ),
-
                 # complete → value required (string)
                 build_object_type(
                     additionalProperties=False,
@@ -442,7 +438,6 @@ class DataSupplementResponseExtension(OpenApiSerializerExtension):
                     },
                     required=['language', 'status', 'value'],
                 ),
-
                 # deleted → value required AND must be null
                 build_object_type(
                     additionalProperties=False,
