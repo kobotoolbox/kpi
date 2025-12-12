@@ -96,7 +96,7 @@ class SubsequencePermissionTestCase(SubsequenceBaseTestCase):
             False,
             status.HTTP_404_NOT_FOUND,
         ),
-        # regular user with view permission
+        # regular user with change permission
         (
             'anotheruser',
             True,
@@ -108,7 +108,7 @@ class SubsequencePermissionTestCase(SubsequenceBaseTestCase):
             False,
             status.HTTP_200_OK,
         ),
-        # admin user with view permissions
+        # admin user with change permissions
         (
             'adminuser',
             True,
