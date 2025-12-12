@@ -117,7 +117,7 @@ POST to `/api/v2/assets/{uid_asset}/advanced-features/` with:
 }
 ```
 
-**Example: Enable Qual action**
+**Example: Qualitative Analysis Text question**
 
 ```json
 {
@@ -141,6 +141,7 @@ POST to `/api/v2/assets/{uid_asset}/advanced-features/` with:
   ]
 }
 ```
+See [API documentation](/api/v2/docs/?q=/api/v2/assets/{uid_asset}/advanced-features/) for more details.
 
 ---
 
@@ -174,7 +175,7 @@ PATCH /api/v2/assets/<asset_uid>/data/<submission_root_uuid>/supplement/
 }
 ```
 
-#### Example: Qual action
+#### Example: Qualitative Analysis Text question
 
 ```json
 {
@@ -187,6 +188,7 @@ PATCH /api/v2/assets/<asset_uid>/data/<submission_root_uuid>/supplement/
   }
 }
 ```
+See [API documentation](/api/v2/docs/?q=/api/v2/assets/{uid_asset}/data/{id}/supplement/) for more details.
 
 ---
 
@@ -324,7 +326,7 @@ It describes the configuration stored on a `QuestionAdvancedFeature` when an act
 }
 ```
 
-**Example: enabling Qual**
+**Example: enabling Qualitative Analysis Text question**
 
 ```json
 {
@@ -376,7 +378,7 @@ Each action has its own expected format:
   { "language": "en", "value": null }
   ```
 
-- **Qual**
+- **Qualitative Analysis**
   ```json
   {
     "uuid": "q_uuid",
@@ -483,7 +485,7 @@ The structure is the same for both manual and automatic actions:
 }
 ```
 
-**Qual Action Example**
+**Qualitative Analysis Action Example**
 
 ```json
 {
