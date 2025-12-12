@@ -3363,8 +3363,8 @@
                                                             {
                                                                 "_dateCreated": "2025-01-01T12:00:00Z",
                                                                 "_uuid": "55555555-5555-5555-5555-555555555555",
-                                                                "language": "fr",
                                                                 "_data": {
+                                                                    "language": "fr",
                                                                     "status": "complete",
                                                                     "value": "Allo la foule"
                                                                 },
@@ -3940,8 +3940,8 @@
                                                             {
                                                                 "_dateCreated": "2025-01-01T12:00:00Z",
                                                                 "_uuid": "55555555-5555-5555-5555-555555555555",
-                                                                "language": "fr",
                                                                 "_data": {
+                                                                    "language": "fr",
                                                                     "status": "complete",
                                                                     "value": "Allo la foule"
                                                                 },
@@ -15926,23 +15926,32 @@
                                                     "type": "string",
                                                     "format": "uuid"
                                                 },
-                                                "language": {
-                                                    "type": "string"
-                                                },
-                                                "value": {
-                                                    "type": "string"
-                                                },
                                                 "_dateAccepted": {
                                                     "type": "string",
                                                     "format": "date-time"
+                                                },
+                                                "_data": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "language": {
+                                                            "type": "string"
+                                                        },
+                                                        "value": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "additionalProperties": false,
+                                                    "required": [
+                                                        "language"
+                                                    ]
                                                 }
                                             },
                                             "additionalProperties": false,
                                             "required": [
+                                                "_data",
+                                                "_dateAccepted",
                                                 "_dateCreated",
-                                                "_uuid",
-                                                "language",
-                                                "value"
+                                                "_uuid"
                                             ]
                                         },
                                         "minLength": 1
@@ -15981,12 +15990,6 @@
                                                         "type": "string",
                                                         "format": "uuid"
                                                     },
-                                                    "language": {
-                                                        "type": "string"
-                                                    },
-                                                    "value": {
-                                                        "type": "string"
-                                                    },
                                                     "_dependency": {
                                                         "type": "object",
                                                         "properties": {
@@ -16003,15 +16006,34 @@
                                                             "_actionId",
                                                             "_uuid"
                                                         ]
+                                                    },
+                                                    "_dateAccepted": {
+                                                        "type": "string",
+                                                        "format": "date-time"
+                                                    },
+                                                    "_data": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "language": {
+                                                                "type": "string"
+                                                            },
+                                                            "value": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "additionalProperties": false,
+                                                        "required": [
+                                                            "language"
+                                                        ]
                                                     }
                                                 },
                                                 "additionalProperties": false,
                                                 "required": [
+                                                    "_data",
+                                                    "_dateAccepted",
                                                     "_dateCreated",
                                                     "_dependency",
-                                                    "_uuid",
-                                                    "language",
-                                                    "value"
+                                                    "_uuid"
                                                 ]
                                             },
                                             "minLength": 1
@@ -16049,26 +16071,34 @@
                                                     "type": "string",
                                                     "format": "uuid"
                                                 },
-                                                "language": {
-                                                    "type": "string"
-                                                },
-                                                "value": {
-                                                    "type": "string"
-                                                },
-                                                "status": {
-                                                    "type": "string"
-                                                },
                                                 "_dateAccepted": {
                                                     "type": "string",
                                                     "format": "date-time"
+                                                },
+                                                "_data": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "language": {
+                                                            "type": "string"
+                                                        },
+                                                        "value": {
+                                                            "type": "string"
+                                                        },
+                                                        "status": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "additionalProperties": false,
+                                                    "required": [
+                                                        "language"
+                                                    ]
                                                 }
                                             },
                                             "additionalProperties": false,
                                             "required": [
+                                                "_data",
                                                 "_dateCreated",
-                                                "_uuid",
-                                                "language",
-                                                "value"
+                                                "_uuid"
                                             ]
                                         },
                                         "minLength": 1
@@ -16107,15 +16137,6 @@
                                                         "type": "string",
                                                         "format": "uuid"
                                                     },
-                                                    "language": {
-                                                        "type": "string"
-                                                    },
-                                                    "value": {
-                                                        "type": "string"
-                                                    },
-                                                    "status": {
-                                                        "type": "string"
-                                                    },
                                                     "_dependency": {
                                                         "type": "object",
                                                         "properties": {
@@ -16132,15 +16153,36 @@
                                                             "_actionId",
                                                             "_uuid"
                                                         ]
+                                                    },
+                                                    "_dateAccepted": {
+                                                        "type": "string",
+                                                        "format": "date-time"
+                                                    },
+                                                    "_data": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "language": {
+                                                                "type": "string"
+                                                            },
+                                                            "value": {
+                                                                "type": "string"
+                                                            },
+                                                            "status": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "additionalProperties": false,
+                                                        "required": [
+                                                            "language"
+                                                        ]
                                                     }
                                                 },
                                                 "additionalProperties": false,
                                                 "required": [
+                                                    "_data",
                                                     "_dateCreated",
                                                     "_dependency",
-                                                    "_uuid",
-                                                    "language",
-                                                    "value"
+                                                    "_uuid"
                                                 ]
                                             },
                                             "minLength": 1
@@ -20282,15 +20324,11 @@
                                 "properties": {
                                     "language": {
                                         "type": "string"
-                                    },
-                                    "value": {
-                                        "type": "string"
                                     }
                                 },
                                 "additionalProperties": false,
                                 "required": [
-                                    "language",
-                                    "value"
+                                    "language"
                                 ]
                             },
                             "automated_google_translation": {
@@ -20300,15 +20338,11 @@
                                     "properties": {
                                         "language": {
                                             "type": "string"
-                                        },
-                                        "value": {
-                                            "type": "string"
                                         }
                                     },
                                     "additionalProperties": false,
                                     "required": [
-                                        "language",
-                                        "value"
+                                        "language"
                                     ]
                                 },
                                 "minLength": 1
