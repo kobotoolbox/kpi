@@ -1581,19 +1581,11 @@
                 "parameters": [
                     {
                         "in": "path",
-                        "name": "parent_lookup_asset",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "UID of the parent assets",
-                        "required": true
-                    },
-                    {
-                        "in": "path",
                         "name": "uid_asset",
                         "schema": {
                             "type": "string"
                         },
+                        "description": "UID of the parent assets",
                         "required": true
                     }
                 ],
@@ -1648,19 +1640,11 @@
                 "parameters": [
                     {
                         "in": "path",
-                        "name": "parent_lookup_asset",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "UID of the parent assets",
-                        "required": true
-                    },
-                    {
-                        "in": "path",
                         "name": "uid_asset",
                         "schema": {
                             "type": "string"
                         },
+                        "description": "UID of the parent assets",
                         "required": true
                     }
                 ],
@@ -1760,23 +1744,6 @@
                         "schema": {
                             "type": "string"
                         },
-                        "required": true
-                    },
-                    {
-                        "in": "path",
-                        "name": "parent_lookup_asset",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "UID of the parent assets",
-                        "required": true
-                    },
-                    {
-                        "in": "path",
-                        "name": "uid",
-                        "schema": {
-                            "type": "string"
-                        },
                         "description": "UID of the action",
                         "required": true
                     },
@@ -1786,6 +1753,7 @@
                         "schema": {
                             "type": "string"
                         },
+                        "description": "UID of the parent assets",
                         "required": true
                     }
                 ],
@@ -1841,23 +1809,6 @@
                         "schema": {
                             "type": "string"
                         },
-                        "required": true
-                    },
-                    {
-                        "in": "path",
-                        "name": "parent_lookup_asset",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "UID of the parent assets",
-                        "required": true
-                    },
-                    {
-                        "in": "path",
-                        "name": "uid",
-                        "schema": {
-                            "type": "string"
-                        },
                         "description": "UID of the action",
                         "required": true
                     },
@@ -1867,6 +1818,7 @@
                         "schema": {
                             "type": "string"
                         },
+                        "description": "UID of the parent assets",
                         "required": true
                     }
                 ],
@@ -13202,7 +13154,23 @@
                     "params": {
                         "type": "array",
                         "items": {
-                            "type": "object"
+                            "anyOf": [
+                                {
+                                    "$ref": "#/components/schemas/automatic_google_transcriptionParams"
+                                },
+                                {
+                                    "$ref": "#/components/schemas/automatic_google_translationParams"
+                                },
+                                {
+                                    "$ref": "#/components/schemas/manual_transcriptionParams"
+                                },
+                                {
+                                    "$ref": "#/components/schemas/manual_translationParams"
+                                },
+                                {
+                                    "$ref": "#/components/schemas/qualParams"
+                                }
+                            ]
                         }
                     }
                 },
@@ -13224,7 +13192,23 @@
                     "params": {
                         "type": "array",
                         "items": {
-                            "type": "object"
+                            "anyOf": [
+                                {
+                                    "$ref": "#/components/schemas/automatic_google_transcriptionParams"
+                                },
+                                {
+                                    "$ref": "#/components/schemas/automatic_google_translationParams"
+                                },
+                                {
+                                    "$ref": "#/components/schemas/manual_transcriptionParams"
+                                },
+                                {
+                                    "$ref": "#/components/schemas/manual_translationParams"
+                                },
+                                {
+                                    "$ref": "#/components/schemas/qualParams"
+                                }
+                            ]
                         }
                     },
                     "asset": {
@@ -18809,7 +18793,23 @@
                     "params": {
                         "type": "array",
                         "items": {
-                            "type": "object"
+                            "anyOf": [
+                                {
+                                    "$ref": "#/components/schemas/automatic_google_transcriptionParams"
+                                },
+                                {
+                                    "$ref": "#/components/schemas/automatic_google_translationParams"
+                                },
+                                {
+                                    "$ref": "#/components/schemas/manual_transcriptionParams"
+                                },
+                                {
+                                    "$ref": "#/components/schemas/manual_translationParams"
+                                },
+                                {
+                                    "$ref": "#/components/schemas/qualParams"
+                                }
+                            ]
                         }
                     }
                 }
@@ -22053,6 +22053,36 @@
                     "url"
                 ]
             },
+            "automatic_google_transcriptionParams": {
+                "type": "array",
+                "items": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "language": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "language"
+                    ],
+                    "type": "object"
+                }
+            },
+            "automatic_google_translationParams": {
+                "type": "array",
+                "items": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "language": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "language"
+                    ],
+                    "type": "object"
+                }
+            },
             "historyExportResponse": {
                 "type": "object",
                 "properties": {
@@ -22063,6 +22093,135 @@
                 "required": [
                     "status"
                 ]
+            },
+            "manual_transcriptionParams": {
+                "type": "array",
+                "items": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "language": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "language"
+                    ],
+                    "type": "object"
+                }
+            },
+            "manual_translationParams": {
+                "type": "array",
+                "items": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "language": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "language"
+                    ],
+                    "type": "object"
+                }
+            },
+            "qualParams": {
+                "type": "array",
+                "items": {
+                    "$ref": "#/$defs/qualQuestion"
+                },
+                "$defs": {
+                    "qualUuid": {
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    "qualChoice": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                            "labels": {
+                                "$ref": "#/$defs/qualLabels"
+                            },
+                            "uuid": {
+                                "$ref": "#/$defs/qualUuid"
+                            },
+                            "options": {
+                                "type": "object"
+                            }
+                        },
+                        "required": [
+                            "labels",
+                            "uuid"
+                        ]
+                    },
+                    "qualLabels": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "patternProperties": {
+                            ".+": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "qualQuestion": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                            "uuid": {
+                                "$ref": "#/$defs/qualUuid"
+                            },
+                            "type": {
+                                "$ref": "#/$defs/qualQuestionType"
+                            },
+                            "labels": {
+                                "$ref": "#/$defs/qualLabels"
+                            },
+                            "choices": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/$defs/qualChoice"
+                                }
+                            },
+                            "options": {
+                                "type": "object"
+                            }
+                        },
+                        "required": [
+                            "uuid",
+                            "type",
+                            "labels"
+                        ],
+                        "if": {
+                            "properties": {
+                                "type": {
+                                    "$ref": "#/$defs/qualSelectQuestionType"
+                                }
+                            }
+                        },
+                        "then": {
+                            "required": [
+                                "choices"
+                            ]
+                        }
+                    },
+                    "qualQuestionType": {
+                        "type": "string",
+                        "enum": [
+                            "qualInteger",
+                            "qualSelectMultiple",
+                            "qualSelectOne",
+                            "qualTags",
+                            "qualText",
+                            "qualNote"
+                        ]
+                    },
+                    "qualSelectQuestionType": {
+                        "type": "string",
+                        "enum": [
+                            "qualSelectMultiple",
+                            "qualSelectOne"
+                        ]
+                    }
+                }
             }
         },
         "securitySchemes": {
