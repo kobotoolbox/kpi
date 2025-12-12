@@ -12,6 +12,11 @@ from kobo.apps.subsequences.serializers import (
 )
 from kobo.apps.subsequences.utils.versioning import migrate_advanced_features
 from kpi.permissions import AssetAdvancedFeaturesPermission
+from kpi.schema_extensions.v2.subsequences.examples import (
+    get_advanced_features_create_examples,
+    get_advanced_features_list_examples,
+    get_advanced_features_update_examples,
+)
 from kpi.schema_extensions.v2.subsequences.serializers import (
     AdvancedFeaturePatchRequest,
     AdvancedFeaturePostRequest,
@@ -27,7 +32,7 @@ from kpi.versioning import APIV2Versioning
 
 
 @extend_schema(
-    tags=['Advanced Features'],
+    tags=['Survey data'],
     parameters=[
         OpenApiParameter(
             name='uid_asset',
@@ -47,6 +52,7 @@ from kpi.versioning import APIV2Versioning
             require_auth=False,
             raise_access_forbidden=False,
         ),
+        examples=get_advanced_features_create_examples(),
     ),
     list=extend_schema(
         description=read_md('subsequences', 'subsequences/list.md'),
@@ -56,6 +62,7 @@ from kpi.versioning import APIV2Versioning
             raise_access_forbidden=False,
             validate_payload=False,
         ),
+        examples=get_advanced_features_list_examples(),
     ),
     partial_update=extend_schema(
         description=read_md('subsequences', 'subsequences/update.md'),
@@ -74,6 +81,7 @@ from kpi.versioning import APIV2Versioning
                 description='UID of the action',
             ),
         ],
+        examples=get_advanced_features_update_examples(),
     ),
     retrieve=extend_schema(
         description=read_md('subsequences', 'subsequences/retrieve.md'),
