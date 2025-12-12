@@ -180,10 +180,10 @@ def _get_data_supplement_patch_payload_request_examples() -> list[OpenApiExample
 
 
 def _get_data_supplement_response_examples():
-    iso0 = "2025-01-01T12:00:00Z"
-    iso1 = "2025-01-01T12:01:00Z"
-    iso2 = "2025-01-01T12:02:00Z"
-    iso3 = "2025-01-01T12:03:00Z"
+    iso0 = '2025-01-01T12:00:00Z'
+    iso1 = '2025-01-01T12:01:00Z'
+    iso2 = '2025-01-01T12:02:00Z'
+    iso3 = '2025-01-01T12:03:00Z'
 
     return [
         OpenApiExample(
