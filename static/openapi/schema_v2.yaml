@@ -1113,7 +1113,7 @@ paths:
         description: UID of the parent assets
         required: true
       tags:
-      - Advanced Features
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -1125,6 +1125,89 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/AdvancedFeatureResponse'
+              examples:
+                ManualTranslation:
+                  value:
+                  - - action: manual_translation
+                      question_xpath: q1
+                      params:
+                      - language: es
+                      uid: qa123456789AbCdEfGhIjklm
+                  summary: Manual Translation
+                AutomaticGoogleTranscription:
+                  value:
+                  - - action: automatic_google_transcription
+                      question_xpath: q1
+                      params:
+                      - language: es
+                      uid: qa123456789AbCdEfGhIjklm
+                  summary: Automatic Google Transcription
+                QualitativeAnalysis:
+                  value:
+                  - - action: qual
+                      question_xpath: q1
+                      params:
+                      - type: qualText
+                        uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
+                        labels:
+                          _default: Summary
+                      uid: qa123456789AbCdEfGhIjklm
+                    - action: qual
+                      question_xpath: q1
+                      params:
+                      - type: qualInteger
+                        uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
+                        labels:
+                          _default: Number of themes
+                          fr: Nombre de thèmes
+                      uid: qa123456789AbCdEfGhIjklm
+                    - action: qual
+                      question_xpath: q1
+                      params:
+                      - type: qualSelectOne
+                        uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
+                        labels:
+                          _default: Urgency Level
+                          es: Nivel de Urgencia
+                        choices:
+                        - uuid: qqqqqqqq-bbbb-cccc-dddd-eeeeffffffff
+                          labels:
+                            _default: High
+                            fr: Élevé
+                            es: Alto
+                        - uuid: hhhhhhhh-bbbb-cccc-dddd-eeeeffffffff
+                          labels:
+                            _default: Medium
+                            fr: Moyen
+                            es: Medio
+                        - uuid: gggggggg-bbbb-cccc-dddd-eeeeffffffff
+                          labels:
+                            _default: Low
+                            fr: Bas
+                            es: Bajo
+                      uid: qa123456789AbCdEfGhIjklm
+                    - action: qual
+                      question_xpath: q1
+                      params:
+                      - type: qualSelectMultiple
+                        uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
+                        labels:
+                          _default: Tags
+                        choices:
+                        - uuid: xxxxxxxx-bbbb-cccc-dddd-eeeeffffffff
+                          labels:
+                            _default: Shelter
+                            ar: مأوى
+                        - uuid: zzzzzzzz-bbbb-cccc-dddd-eeeeffffffff
+                          labels:
+                            _default: Food
+                            ar: طعام
+                        - uuid: yyyyyyyy-bbbb-cccc-dddd-eeeeffffffff
+                          labels:
+                            _default: Medical
+                            ar: طبي
+                      uid: qa123456789AbCdEfGhIjklm
+                  summary: Qualitative Analysis
           description: null
         '404':
           content:
@@ -1222,12 +1305,105 @@ paths:
         description: UID of the parent assets
         required: true
       tags:
-      - Advanced Features
+      - Survey data
       requestBody:
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/AdvancedFeaturePostRequest'
+            examples:
+              ManualTranscription:
+                value:
+                  action: manual_transcription
+                  question_xpath: q1
+                  params:
+                  - language: es
+                summary: Manual Transcription
+              ManualTranslation:
+                value:
+                  action: manual_translation
+                  question_xpath: q1
+                  params:
+                  - language: es
+                summary: Manual Translation
+              AutomaticGoogleTranscription:
+                value:
+                  action: automatic_google_transcription
+                  question_xpath: q1
+                  params:
+                  - language: es
+                summary: Automatic Google Transcription
+              QualitativeAnalysis-TextQuestion:
+                value:
+                  action: qual
+                  question_xpath: q1
+                  params:
+                  - type: qualText
+                    uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
+                    labels:
+                      _default: Summary
+                summary: Qualitative Analysis - Text Question
+              QualitativeAnalysis-IntegerQuestion:
+                value:
+                  action: qual
+                  question_xpath: q1
+                  params:
+                  - type: qualInteger
+                    uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
+                    labels:
+                      _default: Number of themes
+                      fr: Nombre de thèmes
+                summary: Qualitative Analysis - Integer Question
+              QualitativeAnalysis-SingleChoiceQuestion:
+                value:
+                  action: qual
+                  question_xpath: q1
+                  params:
+                  - type: qualSelectOne
+                    uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
+                    labels:
+                      _default: Urgency Level
+                      es: Nivel de Urgencia
+                    choices:
+                    - uuid: qqqqqqqq-bbbb-cccc-dddd-eeeeffffffff
+                      labels:
+                        _default: High
+                        fr: Élevé
+                        es: Alto
+                    - uuid: hhhhhhhh-bbbb-cccc-dddd-eeeeffffffff
+                      labels:
+                        _default: Medium
+                        fr: Moyen
+                        es: Medio
+                    - uuid: gggggggg-bbbb-cccc-dddd-eeeeffffffff
+                      labels:
+                        _default: Low
+                        fr: Bas
+                        es: Bajo
+                summary: Qualitative Analysis - Single Choice Question
+              QualitativeAnalysis-MultipleChoiceQuestion:
+                value:
+                  action: qual
+                  question_xpath: q1
+                  params:
+                  - type: qualSelectMultiple
+                    uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
+                    labels:
+                      _default: Tags
+                    choices:
+                    - uuid: xxxxxxxx-bbbb-cccc-dddd-eeeeffffffff
+                      labels:
+                        _default: Shelter
+                        ar: مأوى
+                    - uuid: zzzzzzzz-bbbb-cccc-dddd-eeeeffffffff
+                      labels:
+                        _default: Food
+                        ar: طعام
+                    - uuid: yyyyyyyy-bbbb-cccc-dddd-eeeeffffffff
+                      labels:
+                        _default: Medical
+                        ar: طبي
+                summary: Qualitative Analysis - Multiple Choice Question
           application/x-www-form-urlencoded:
             schema:
               $ref: '#/components/schemas/AdvancedFeaturePostRequest'
@@ -1290,7 +1466,7 @@ paths:
         description: UID of the parent assets
         required: true
       tags:
-      - Advanced Features
+      - Survey data
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -1396,12 +1572,25 @@ paths:
         description: UID of the parent assets
         required: true
       tags:
-      - Advanced Features
+      - Survey data
       requestBody:
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/PatchedAdvancedFeaturePatchRequest'
+            examples:
+              ChangeActionParameters:
+                value:
+                  params:
+                  - language: es
+                summary: Change Action Parameters
+              ChangeWritableFields:
+                value:
+                  action: automatic_google_translation
+                  question_xpath: q2
+                  params:
+                  - language: fr
+                summary: Change Writable Fields
           application/x-www-form-urlencoded:
             schema:
               $ref: '#/components/schemas/PatchedAdvancedFeaturePatchRequest'
