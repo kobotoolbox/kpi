@@ -855,20 +855,32 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
           returned and passed back to `revise_data()`.
         """
 
+        current_version = action_supplemental_data.get(self.VERSION_DATA_FIELD, {})
+
         # If the client sent "accepted" while the supplement is already complete,
         # return the completed translation/transcription right away. `revise_data()`
         # will handle the merge and final validation of this acceptance.
         accepted = action_data.get('accepted', None)
-        if action_supplemental_data.get('status') == 'complete' and accepted is not None:
-            return {
-                'value': action_supplemental_data['value'],
-                'status': 'complete',
-            }
+
+        if accepted is not None:
+            if current_version.get('status') == 'complete':
+                return {
+                    'value': current_version['value'],
+                    'status': 'complete',
+                }
+            else:
+                # Intentionally return `action_data` as-is to force JSON schema
+                # validation to fail.
+                # The `{'accepted': true|false}` structure is only valid once the
+                # action has completed.
+                return action_data
 
         # If the client explicitly removed a previously stored result,
-        # preserve the deletion by returning a `deleted` status instead
-        # of reprocessing with the external service.
-        # TODO add comment for delete here
+        # preserve that deletion by returning a `deleted` status instead
+        # of reprocessing the data with the external service.
+        #
+        # An empty string is not considered a deletion.
+        # JSON Schema validation will later enforce that `value` is None.
         if 'value' in action_data:
             return {
                 'value': action_data['value'],
@@ -886,7 +898,7 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
             accepted is None
             and service_data['status'] == 'in_progress'
         ):
-            if action_supplemental_data.get('status') == 'in_progress':
+            if current_version.get('status') == 'in_progress':
                 return None
             else:
                 # Make Celery update in the background.
