@@ -685,7 +685,8 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             expected_action=AuditAction.UPDATE_QA,
             expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
         )
-        self.assertEqual(metadata['qa']['new'], request_data['params'])
+        question_qual_action.refresh_from_db()
+        self.assertEqual(metadata['qa']['new'], question_qual_action.params)
 
     def test_failed_modify_qa_does_not_create_log(self):
         question_qual_action = QuestionAdvancedFeature.objects.get(
