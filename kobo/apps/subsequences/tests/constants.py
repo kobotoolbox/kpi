@@ -37,3 +37,118 @@ QUESTION_SUPPLEMENT = {
         ],
     },
 }
+
+# putting this in a fixture causes problems because of automatic migration on save
+# so just make it a constant
+# contains english transcript, spanish translation, and one of each type of QA question
+# for 2 questions
+OLD_STYLE_ADVANCED_FEATURES = {
+    'qual': {
+        'qual_survey': [
+            {
+                'labels': {'_default': 'Note'},
+                'scope': 'by_question#survey',
+                'type': 'qual_note',
+                'uuid': 'qual_note_q1',
+                'xpath': 'q1',
+            },
+            {
+                'choices': [
+                    {'labels': {'_default': 'Green'}, 'uuid': 'green_q1'},
+                    {'labels': {'_default': 'Red'}, 'uuid': 'red_q1'},
+                    {'labels': {'_default': 'Blue'}, 'uuid': 'blue_q1'},
+                ],
+                'labels': {'_default': 'Multiple?'},
+                'scope': 'by_question#survey',
+                'type': 'qual_select_multiple',
+                'uuid': 'qual_select_multiple_q1',
+                'xpath': 'q1',
+            },
+            {
+                'choices': [
+                    {'labels': {'_default': 'A'}, 'uuid': 'a_q1'},
+                    {'labels': {'_default': 'B'}, 'uuid': 'b_q1'},
+                ],
+                'labels': {'_default': 'Single?'},
+                'scope': 'by_question#survey',
+                'type': 'qual_select_one',
+                'uuid': 'qual_select_one_q1',
+                'xpath': 'q1',
+            },
+            {
+                'labels': {'_default': 'Integer?'},
+                'scope': 'by_question#survey',
+                'type': 'qual_integer',
+                'uuid': 'qual_integer_q1',
+                'xpath': 'q1',
+            },
+            {
+                'labels': {'_default': 'Text?'},
+                'scope': 'by_question#survey',
+                'type': 'qual_text',
+                'uuid': 'qual_text_q1',
+                'xpath': 'q1',
+            },
+            {
+                'labels': {'_default': 'Tags?'},
+                'scope': 'by_question#survey',
+                'type': 'qual_tags',
+                'uuid': 'qual_tags_q1',
+                'xpath': 'q1',
+            },
+            {
+                'labels': {'_default': 'Note'},
+                'scope': 'by_question#survey',
+                'type': 'qual_note',
+                'uuid': 'qual_note_q2',
+                'xpath': 'q2',
+            },
+            {
+                'choices': [
+                    {'labels': {'_default': 'Green'}, 'uuid': 'green_q2'},
+                    {'labels': {'_default': 'Red'}, 'uuid': 'red_q2'},
+                    {'labels': {'_default': 'Blue'}, 'uuid': 'blue_q2'},
+                ],
+                'labels': {'_default': 'Multiple?'},
+                'scope': 'by_question#survey',
+                'type': 'qual_select_multiple',
+                'uuid': 'qual_select_multiple_q2',
+                'xpath': 'q2',
+            },
+            {
+                'choices': [
+                    {'labels': {'_default': 'A'}, 'uuid': 'a_q2'},
+                    {'labels': {'_default': 'B'}, 'uuid': 'b_q2'},
+                ],
+                'labels': {'_default': 'Single?'},
+                'scope': 'by_question#survey',
+                'type': 'qual_select_one',
+                'uuid': 'qual_select_one_q2',
+                'xpath': 'q2',
+            },
+            {
+                'labels': {'_default': 'Integer?'},
+                'scope': 'by_question#survey',
+                'type': 'qual_integer',
+                'uuid': 'qual_integer_q2',
+                'xpath': 'q2',
+            },
+            {
+                'labels': {'_default': 'Text?'},
+                'scope': 'by_question#survey',
+                'type': 'qual_text',
+                'uuid': 'qual_text_q2',
+                'xpath': 'q2',
+            },
+            {
+                'labels': {'_default': 'Tags?'},
+                'scope': 'by_question#survey',
+                'type': 'qual_tags',
+                'uuid': 'qual_tags_q2',
+                'xpath': 'q2',
+            },
+        ]
+    },
+    'transcript': {'languages': ['en']},
+    'translation': {'languages': ['es']},
+}
