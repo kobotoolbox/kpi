@@ -1583,7 +1583,29 @@ export const useAssetsDataValidationStatusDestroy = <TError = ErrorDetail, TCont
   return useMutation(mutationOptions)
 }
 /**
- * ## TBC Supplement retrieve
+ * ## Retrieve submission supplementary data
+
+This endpoint allows you to retrieve supplementary data attached to a submission.
+
+The supplementary data may include:
+
+* NLP actions
+  * Manual transcription
+  * Manual translation
+  * Automatic Google transcription
+  * Automatic Google translation
+* Qualitative analysis
+  * Text
+  * Number
+  * Single Choice
+  * Multiple Choice
+  * Tags
+
+⚠️ The response examples in this documentation show each action in isolation for
+readability.
+
+In practice, multiple actions can be combined for the same question, and a single
+submission may contain multiple questions.
 
  */
 export type assetsDataSupplementRetrieveResponse200 = {
@@ -1680,7 +1702,21 @@ export function useAssetsDataSupplementRetrieve<
 }
 
 /**
- * ## TBC Supplement update
+ * ## Update submission supplementary data
+
+This endpoint allows you to add, update, or delete supplementary data for a submission.
+
+It supports the same action types as the GET endpoint:
+
+* NLP actions (manual and automatic transcription / translation)
+* Qualitative analysis
+
+The PATCH payload follows the same per-question structure as the GET response.
+
+⚠️ In this documentation, request and response examples present each action in
+isolation for clarity. In practice, multiple actions may be combined within the same
+payload or response, including for the same question, and a single submission may
+contain multiple questions.
 
  */
 export type assetsDataSupplementPartialUpdateResponse200 = {
