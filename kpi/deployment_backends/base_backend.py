@@ -18,13 +18,13 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as t
 from rest_framework import serializers
 from rest_framework.pagination import _positive_int as positive_int
-from rest_framework.reverse import reverse
 from shortuuid import ShortUUID
 
 from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import add_uuid_prefix
 from kobo.apps.openrosa.libs.utils.common_tags import META_INSTANCE_ID, META_ROOT_UUID
 from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_handler
+from kobo.apps.subsequences.models import SubmissionSupplement
 from kpi.constants import (
     PERM_CHANGE_SUBMISSIONS,
     PERM_PARTIAL_SUBMISSIONS,
@@ -38,6 +38,7 @@ from kpi.models.paired_data import PairedData
 from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
 from kpi.utils.log import logging
 from kpi.utils.submission import get_attachment_filenames_and_xpaths
+from kpi.utils.urls import versioned_reverse
 from kpi.utils.xml import (
     edit_submission_xml,
     fromstring_preserve_root_xmlns,
@@ -226,8 +227,11 @@ class BaseDeploymentBackend(abc.ABC):
         ).first()
         if original_extras is not None:
             duplicated_extras = copy.deepcopy(original_extras.content)
-            duplicated_extras['submission'] = dest_uuid
-            self.asset.update_submission_extra(duplicated_extras)
+            SubmissionSupplement.objects.create(
+                asset=self.asset,
+                submission_uuid=dest_uuid,
+                content=duplicated_extras,
+            )
 
     def create_enketo_survey_links_for_data_collectors(self):
         data_collector_tokens = list(
@@ -347,7 +351,6 @@ class BaseDeploymentBackend(abc.ABC):
         submission_id: int,
         user: settings.AUTH_USER_MODEL,
         format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
-        request: Optional['rest_framework.request.Request'] = None,
         **mongo_query_params: dict
     ) -> Union[dict, str, None]:
         """
@@ -372,7 +375,6 @@ class BaseDeploymentBackend(abc.ABC):
                 user,
                 format_type,
                 [int(submission_id)],
-                request,
                 **mongo_query_params
             )
         )
@@ -388,7 +390,7 @@ class BaseDeploymentBackend(abc.ABC):
         user: settings.AUTH_USER_MODEL,
         format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
         submission_ids: list = [],
-        request: Optional['rest_framework.request.Request'] = None,
+        for_output: bool = False,
         **mongo_query_params
     ) -> Union[Iterator[dict], Iterator[str]]:
         """
@@ -820,13 +822,15 @@ class BaseDeploymentBackend(abc.ABC):
     def _inject_properties(
         self,
         submission: dict,
-        request: 'rest_framework.request.Request',
         all_attachment_xpaths: list[str],
     ) -> dict:
         submission = self._rewrite_json_attachment_urls(
-            submission, request, all_attachment_xpaths
+            submission, all_attachment_xpaths
         )
         submission = self._inject_root_uuid(submission)
+        submission['_validation_status'] = (
+            submission.get('_validation_status', None) or {}
+        )
         return submission
 
     def _inject_root_uuid(self, submission: dict) -> dict:
@@ -843,10 +847,9 @@ class BaseDeploymentBackend(abc.ABC):
     def _rewrite_json_attachment_urls(
         self,
         submission: dict,
-        request: 'rest_framework.request.Request',
         all_attachment_xpaths: list[str],
     ) -> dict:
-        if not request or '_attachments' not in submission:
+        if '_attachments' not in submission:
             return submission
 
         filenames_and_xpaths = get_attachment_filenames_and_xpaths(
@@ -873,20 +876,19 @@ class BaseDeploymentBackend(abc.ABC):
                 # Add uid to attachment data
                 attachment['uid'] = attachment_map.get(attachment['id'])
 
-            kpi_url = reverse(
+            kpi_url = versioned_reverse(
                 'attachment-detail',
                 args=(
                     self.asset.uid,
                     submission['_id'],
                     attachment['uid'],
                 ),
-                request=request,
             )
             key = f'download_url'
             attachment[key] = kpi_url
             if attachment['mimetype'].startswith('image/'):
                 for suffix in settings.THUMB_CONF.keys():
-                    kpi_url = reverse(
+                    kpi_url = versioned_reverse(
                         'attachment-thumb',
                         args=(
                             self.asset.uid,
@@ -894,7 +896,6 @@ class BaseDeploymentBackend(abc.ABC):
                             attachment['uid'],
                             suffix,
                         ),
-                        request=request,
                     )
                     key = f'download_{suffix}_url'
                     attachment[key] = kpi_url

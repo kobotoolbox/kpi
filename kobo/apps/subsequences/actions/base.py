@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 import jsonschema
+from constance import config
 from django.conf import settings
 from django.utils import timezone
 
@@ -13,7 +14,10 @@ from kobo.celery import celery_app
 from kpi.exceptions import UsageLimitExceededException
 from kpi.utils.usage_calculator import ServiceUsageCalculator
 from ..tasks import poll_run_external_process
-from ..type_aliases import NLPExternalServiceClass
+from ..type_aliases import (
+    NLPExternalServiceClass,
+    SimplifiedOutputCandidatesByColumnKey,
+)
 
 """
 ### All actions must have the following components
@@ -190,7 +194,11 @@ class BaseAction:
 
     def check_limits(self, user: User):
 
-        if not settings.STRIPE_ENABLED or not self._is_usage_limited:
+        if (
+            not settings.STRIPE_ENABLED
+            or not self._is_usage_limited
+            or not config.USAGE_LIMIT_ENFORCEMENT
+        ):
             return
 
         calculator = ServiceUsageCalculator(user)
@@ -311,16 +319,44 @@ class BaseAction:
             [
                 {
                     'language': 'fr',
-                    'name': 'group_name/question_name/transcript__fr',
                     'source': 'group_name/question_name',
                     'type': 'transcript',
+                    'dtpath': f'group_name/question_name/transcript_fr',
                 }
             ]
 
         Must be implemented by subclasses.
         """
-        # raise NotImplementedError()
         return []
+
+    def overlaps_other_actions(self) -> bool:
+        """
+        Return True if this action may produce fields that overlap with other
+        actions and therefore requires per-field arbitration. Default: True
+        """
+        return True
+
+    def transform_data_for_output(
+        self, action_data: dict
+    ) -> SimplifiedOutputCandidatesByColumnKey:
+        """
+        Given data retrieved by the action (eg the result of action.retrieve_data()),
+        returns a dict of {data_key: formatted_value}
+
+        data_key is a string or tuple representing the path to the value for a row,
+        starting at the question level, in the eventual /data response
+        e.g. 'transcript' for myquestion['transcript'], or ('translation','en') for
+        myquestion['translation']['en']
+
+        formatted_value is the simplified representation of the value along with the
+        date accepted
+        eg {
+            'value': 'my transcribed string',
+            'languageCode': 'en',
+            '_dateAccepted': 2025-01-01T00:00:00Z}
+        }
+        """
+        return {}
 
     def validate_external_data(self, data):
         jsonschema.validate(data, self.external_data_schema)
@@ -457,6 +493,17 @@ class BaseAction:
         """
         raise NotImplementedError
 
+    def update_params(self, incoming_params):
+        """
+        Returns the result of updating current params with incoming ones from
+        a request. May be overridden, eg, to prevent deletion of existing lanugages
+        for transcriptions/translations
+        Defaults to replacing the existing params with the new ones.
+        Should raise an error if the incoming params are not well-formatted
+        """
+        self.validate_params(incoming_params)
+        self.params = incoming_params
+
     def _inject_data_schema(self, destination_schema: dict, skipped_keys: list):
         raise Exception('This method is going away')
         """
@@ -586,12 +633,41 @@ class BaseManualNLPAction(BaseAction):
             },
         }
 
+    def _get_output_field_dtpath(self, language: str) -> str:
+        language = language.split('-')[0]  # ignore region if any
+        return f'{self.source_question_xpath}/{self.col_type}_{language}'
+
+    @property
+    def col_type(self):
+        raise NotImplementedError
+
+    def get_output_fields(self):
+        fields = []
+        for params in self.params:
+            language = params['language']
+            col_type = self.col_type
+            column = {
+                'language': language,
+                'source': self.source_question_xpath,
+                'type': col_type,
+                'dtpath': self._get_output_field_dtpath(language),
+            }
+            fields.append(column)
+        return fields
+
     @property
     def languages(self) -> list[str]:
         languages = []
         for individual_params in self.params:
             languages.append(individual_params['language'])
         return languages
+
+    def update_params(self, incoming_params):
+        self.validate_params(incoming_params)
+        current_languages = self.languages
+        for language_obj in incoming_params:
+            if language_obj['language'] not in current_languages:
+                self.params.append(language_obj)
 
 
 class BaseAutomaticNLPAction(BaseManualNLPAction):

@@ -1,4 +1,3 @@
-# coding: utf-8
 from collections import OrderedDict
 from typing import Union
 
@@ -12,10 +11,13 @@ from rest_framework.pagination import (
 from rest_framework.response import Response
 from rest_framework.reverse import reverse_lazy
 from rest_framework.serializers import SerializerMethodField
+from rest_framework.utils.urls import replace_query_param
 
 
 class Paginated(LimitOffsetPagination):
-    """ Adds 'root' to the wrapping response object. """
+    """
+    Adds 'root' to the wrapping response object.
+    """
     root = SerializerMethodField('get_parent_url', read_only=True)
 
     def get_parent_url(self, obj):
@@ -119,19 +121,11 @@ class AssetPagination(Paginated):
         }
 
 
-class AssetUsagePagination(PageNumberPagination):
-    """
-    Pagination class for usage project breakdown table.
-    """
-    page_size = 8
-    page_size_query_param = 'page_size'
-
-
 class DataPagination(LimitOffsetPagination):
     """
     Pagination class for submissions.
     """
-    default_limit = settings.SUBMISSION_LIST_LIMIT
+    default_limit = 100
     offset_query_param = 'start'
     max_limit = settings.SUBMISSION_LIST_LIMIT
 
@@ -149,6 +143,51 @@ class FastPagination(Paginated):
         if queryset.query.distinct:
             return queryset.only('pk').count()
         return super().get_count(queryset)
+
+
+class NoCountPagination(Paginated):
+    """
+    Omits the 'count' field to avoid expensive COUNT(*) queries.
+    """
+
+    def get_paginated_response_schema(self, schema):
+        response_schema = super().get_paginated_response_schema(schema)
+        response_schema['required'].remove('count')
+        del response_schema['properties']['count']
+        return response_schema
+
+    def get_paginated_response(self, data):
+        return Response(
+            {
+                'next': self.get_next_link(),
+                'previous': self.get_previous_link(),
+                'results': data,
+            }
+        )
+
+    def paginate_queryset(self, queryset, request, view=None):
+        self.request = request
+
+        self.limit = self.get_limit(request)
+        if self.limit is None:
+            return None
+
+        self.offset = self.get_offset(request)
+
+        # Peek one item beyond the current page to see if a next page exists
+        items = list(queryset[self.offset:self.offset + self.limit + 1])
+        self.has_next = len(items) > self.limit
+        return items[:self.limit]
+
+    def get_next_link(self):
+        if not self.has_next:
+            return None
+
+        url = self.request.build_absolute_uri()
+        url = replace_query_param(url, self.limit_query_param, self.limit)
+
+        offset = self.offset + self.limit
+        return replace_query_param(url, self.offset_query_param, offset)
 
 
 class TinyPaginated(PageNumberPagination):

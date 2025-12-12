@@ -1,16 +1,15 @@
 import React, { useContext, useState } from 'react'
 
+import { TagsInput } from '@mantine/core'
 // We don't use `KoboTagsInput` here, because we don't want the tags splitting
 // feature it has built in. It's easier for us to use `TagsInput` directly.
-import TagsInput from 'react-tagsinput'
 import AnalysisQuestionsContext from '#/components/processing/analysis/analysisQuestions.context'
 import {
   findQuestion,
   getQuestionTypeDefinition,
   updateResponseAndReducer,
 } from '#/components/processing/analysis/utils'
-import commonStyles from './common.module.scss'
-import CommonHeader from './commonHeader.component'
+import ResponseWrapper from './responseWrapper.component'
 
 interface TagsResponseFormProps {
   uuid: string
@@ -56,29 +55,8 @@ export default function TagsResponseForm(props: TagsResponseFormProps) {
   }
 
   return (
-    <>
-      <CommonHeader uuid={props.uuid} />
-
-      <section className={commonStyles.content}>
-        <TagsInput
-          value={response}
-          onChange={onTagsChange}
-          // Adds a listener to changes on the internal text field before
-          // text is added as a tag
-          inputProps={{
-            onChange: () => {
-              analysisQuestions?.dispatch({ type: 'hasUnsavedWork' })
-            },
-          }}
-          onlyUnique
-          addOnBlur
-          // We set this intentionally, because we don't want the pasted text
-          // to be split, automatically transformed into tags, or already typed
-          // in text to be lost after pasting.
-          addOnPaste={false}
-          disabled={!props.canEdit}
-        />
-      </section>
-    </>
+    <ResponseWrapper uuid={props.uuid}>
+      <TagsInput value={response} onChange={onTagsChange} acceptValueOnBlur disabled={!props.canEdit} />
+    </ResponseWrapper>
   )
 }

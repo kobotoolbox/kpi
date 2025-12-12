@@ -1,4 +1,4 @@
-from typing import Type, TypeAlias, Union
+from typing import Any, Type, TypeAlias, Union
 
 from .integrations.google.google_transcribe import GoogleTranscriptionService
 from .integrations.google.google_translate import GoogleTranslationService
@@ -8,3 +8,6 @@ NLPExternalServiceClass: TypeAlias = Union[
     Type[GoogleTranscriptionService],
     Type[GoogleTranslationService],
 ]
+
+# result of transform_data_for_output
+SimplifiedOutputCandidatesByColumnKey: TypeAlias = dict[str | tuple, dict[str, Any]]

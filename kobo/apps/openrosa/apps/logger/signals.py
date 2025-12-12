@@ -1,5 +1,6 @@
 import logging
 
+from django.apps import apps
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
@@ -43,8 +44,7 @@ def pre_delete_attachment(instance, **kwargs):
     attachment = instance
     file_size = attachment.media_file_size
     only_update_counters = kwargs.pop('only_update_counters', False)
-    # TODO use deserialized XForm from Attachment model
-    xform = attachment.instance.xform
+    xform = attachment.xform
     user_id = xform.user_id
 
     if file_size and attachment.delete_status is None:
@@ -52,6 +52,19 @@ def pre_delete_attachment(instance, **kwargs):
 
     if only_update_counters or not (media_file_name := str(attachment.media_file)):
         return
+
+    # Clean-up AttachmentTrash and related PeriodicTask
+    AttachmentTrash = apps.get_model('trash_bin', 'AttachmentTrash')
+    try:
+        att_trash = AttachmentTrash.objects.get(attachment_id=attachment.pk)
+    except AttachmentTrash.DoesNotExist:
+        pass
+    else:
+        periodic_task = att_trash.periodic_task
+        with transaction.atomic():
+            att_trash.delete()
+            if periodic_task:
+                periodic_task.delete()
 
     # Clean-up storage
     try:
@@ -86,8 +99,7 @@ def post_save_attachment(instance, created, **kwargs):
     if not file_size:
         return
 
-    # TODO use deserialized XForm from Attachment model
-    xform = attachment.instance.xform
+    xform = attachment.xform
     user_id = xform.user_id
 
     update_storage_counters(xform.pk, user_id, file_size)

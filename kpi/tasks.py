@@ -1,13 +1,12 @@
 import time
 
 import requests
+from constance import config
 from django.apps import apps
 from django.conf import settings
 from django.core import mail
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.management import call_command
-from django.db.models import Min
-from reversion.models import Version
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.markdownx_uploader.tasks import remove_unused_markdown_files
@@ -15,8 +14,13 @@ from kobo.celery import celery_app
 from kpi.constants import LIMIT_HOURS_23
 from kpi.maintenance_tasks import remove_old_asset_snapshots, remove_old_import_tasks
 from kpi.models.asset import Asset
-from kpi.models.import_export_task import ImportTask, SubmissionExportTask
-from kpi.utils.log import logging
+from kpi.models.import_export_task import (
+    ImportTask,
+    SubmissionExportTask,
+    SubmissionSynchronousExport,
+)
+from kpi.utils.export_cleanup import delete_expired_exports
+from kpi.utils.object_permission import get_anonymous_user
 
 
 @celery_app.task(
@@ -69,6 +73,30 @@ def export_task_in_background(
             recipient_list=[user.email],
             fail_silently=False,
         )
+
+
+@celery_app.task
+def cleanup_anonymous_exports(**kwargs):
+    """
+    Task to clean up export tasks created by the AnonymousUser that are older
+    than `EXPORT_RETENTION`, excluding those that are still processing
+    """
+    anon_user = get_anonymous_user()
+    delete_expired_exports(SubmissionExportTask, extra_params={'user': anon_user})
+
+
+@celery_app.task
+def cleanup_synchronous_exports(**kwargs):
+    """
+    Task to clean up old synchronous exports that are older than
+    `EXPORT_RETENTION`, excluding those that are still processing
+    """
+
+    grace_period = max(
+        config.EXPORT_RETENTION,
+        config.SYNCHRONOUS_EXPORT_CACHE_MAX_AGE,
+    )
+    delete_expired_exports(SubmissionSynchronousExport, grace_period=grace_period)
 
 
 @celery_app.task
@@ -128,15 +156,3 @@ def perform_maintenance():
     remove_unused_markdown_files()
     remove_old_import_tasks()
     remove_old_asset_snapshots()
-
-
-@celery_app.task(time_limit=30, soft_time_limit=30)
-def remove_old_versions():
-    while min_id := Version.objects.aggregate(Min('pk'))['pk__min']:
-        queryset = Version.objects.filter(
-            pk__lt=min_id + settings.VERSION_DELETION_BATCH_SIZE
-        ).only('pk')
-        deleted = queryset.delete()
-        # log at debug level so we don't flood the logs
-        logging.debug(f'Deleted {deleted[0]} version objects with pk < {min_id}')
-        time.sleep(10)

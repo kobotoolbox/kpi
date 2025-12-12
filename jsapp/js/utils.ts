@@ -13,8 +13,31 @@ import moment from 'moment'
 import { Cookies } from 'react-cookie'
 import type { Toast, ToastOptions } from 'react-hot-toast'
 import { toast } from 'react-hot-toast'
-import type { Json } from './components/common/common.interfaces'
 import type { MongoQuery } from './dataInterface'
+
+/**
+ * Type `Record<string, unknown>` raises problems down the road when using with interfaces without index signature.
+ * Type `object` handles both kinds of objects, with and without index signature. Useful for interface-d objects.
+ */
+type KeyValue<T extends object, K extends keyof T = keyof T> = [K, T[K]]
+/**
+ * A strongly-typed version of `Object.entries()`, always use this instead.
+ *
+ * P.S. Prefer mapped types (`Record<K,V>`) over index signatures (`{[k:K]: V}`) where possible in your types.
+ */
+export const recordEntries = <T extends object>(o: T) => Object.entries(o) as KeyValue<T>[]
+/**
+ * A strongly-typed version of `Object.keys()`, always use this instead.
+ *
+ * P.S. Prefer mapped types (`Record<K,V>`) over index signatures (`{[k:K]: V}`) where possible in your types.
+ */
+export const recordKeys = <T extends object>(o: T) => Object.keys(o) as (keyof T)[]
+/**
+ * A strongly-typed version of `Object.values()`, always use this instead.
+ *
+ * P.S. Prefer mapped types (`Record<K,V>`) over index signatures (`{[k:K]: V}`) where possible in your types.
+ */
+export const recordValues = <T extends object>(o: T) => Object.values(o) as T[keyof T][]
 
 export const LANGUAGE_COOKIE_NAME = 'django_language'
 
@@ -39,7 +62,7 @@ const notify = (
   if (typeof msg === 'string' && msg[0] === '{') {
     try {
       const parsed = JSON.parse(msg)
-      if (Object.keys(parsed).length === 1 && 'detail' in parsed) {
+      if (recordKeys(parsed).length === 1 && 'detail' in parsed) {
         msg = `${parsed.detail}`
       }
     } catch (err) {
@@ -580,9 +603,9 @@ export function matchUuid(uuidA: string, uuidB: string) {
   return addDefaultUuidPrefix(uuidA) === addDefaultUuidPrefix(uuidB)
 }
 
-export function createDateQuery(startDate: string, endDate: string): MongoQuery {
+export function createDateQuery(startDate: string, endDate: string): MongoQuery[] {
   // $and is necessary as repeating a json key is not valid
-  const andQuery: Json = []
+  const andQuery: MongoQuery[] = []
   if (startDate) {
     if (!startDate.includes('T')) {
       startDate = startDate + 'T00:00Z'
@@ -598,3 +621,5 @@ export function createDateQuery(startDate: string, endDate: string): MongoQuery 
 
   return andQuery
 }
+
+export const sleep = (ms: number): Promise<void> => new Promise<void>((resolve) => setTimeout(() => resolve(), ms))

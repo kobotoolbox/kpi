@@ -4,7 +4,7 @@ from ..constants import SCHEMA_VERSIONS
 def migrate_advanced_features(advanced_features: dict) -> dict | None:
 
     if advanced_features.get('_version') == SCHEMA_VERSIONS[0]:
-        return
+        return advanced_features
 
     migrated_advanced_features = {
         '_version': SCHEMA_VERSIONS[0],
@@ -32,9 +32,6 @@ def migrate_advanced_features(advanced_features: dict) -> dict | None:
             actionConfigs['manual_translation'] = [
                 {'language': language} for language in value['languages']
             ]
-
-        if key == 'qual':
-            raise NotImplementedError
 
     return migrated_advanced_features
 

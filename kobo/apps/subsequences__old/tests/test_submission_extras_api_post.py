@@ -555,7 +555,7 @@ class GoogleNLPSubmissionTest(BaseTestCase):
             'submission': submission_id,
             'q1': {GOOGLETS: {'status': 'requested', 'languageCode': ''}}
         }
-        with self.assertNumQueries(FuzzyInt(49, 65)):
+        with self.assertNumQueries(FuzzyInt(45, 65)):
             res = self.client.post(url, data, format='json')
         self.assertContains(res, 'complete')
         with self.assertNumQueries(FuzzyInt(25, 35)):

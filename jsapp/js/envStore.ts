@@ -44,6 +44,7 @@ export interface EnvironmentResponse {
   terms_of_service__sitewidemessage__exists: boolean
   open_rosa_server: string
   project_history_log_lifespan: number
+  allow_self_account_deletion: boolean
 }
 
 /*
@@ -129,6 +130,7 @@ export class EnvStoreData {
   public enable_password_entropy_meter = false
   public terms_of_service__sitewidemessage__exists = false
   public open_rosa_server = ''
+  public allow_self_account_deletion = false
 
   getProjectMetadataField(fieldName: ProjectMetadataFieldKey): EnvStoreFieldItem | boolean {
     for (const f of this.project_metadata_fields) {
@@ -220,6 +222,8 @@ class EnvStore {
     this.data.free_tier_thresholds = response.free_tier_thresholds
     this.data.free_tier_display = response.free_tier_display
     this.data.open_rosa_server = response.open_rosa_server
+
+    this.data.allow_self_account_deletion = Boolean(response.allow_self_account_deletion)
 
     if (response.sector_choices) {
       this.data.sector_choices = response.sector_choices.map(this.nestedArrToChoiceObjs)

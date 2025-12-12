@@ -31,6 +31,7 @@ class AssetUsageAPITestCase(BaseAssetTestCase):
         counter_1 = {
             'google_asr_seconds': 4586,
             'google_mt_characters': 5473,
+            'some_service_llm_requests': 20,
         }
         NLPUsageCounter.objects.create(
             user_id=self.anotheruser.id,
@@ -39,6 +40,7 @@ class AssetUsageAPITestCase(BaseAssetTestCase):
             counters=counter_1,
             total_asr_seconds=counter_1['google_asr_seconds'],
             total_mt_characters=counter_1['google_mt_characters'],
+            total_llm_requests=counter_1['some_service_llm_requests'],
         )
 
         # last month
@@ -46,6 +48,7 @@ class AssetUsageAPITestCase(BaseAssetTestCase):
         counter_2 = {
             'google_asr_seconds': 142,
             'google_mt_characters': 1253,
+            'some_service_llm_requests': 50,
         }
         NLPUsageCounter.objects.create(
             user_id=self.anotheruser.id,
@@ -54,6 +57,7 @@ class AssetUsageAPITestCase(BaseAssetTestCase):
             counters=counter_2,
             total_asr_seconds=counter_2['google_asr_seconds'],
             total_mt_characters=counter_2['google_mt_characters'],
+            total_llm_requests=counter_2['some_service_llm_requests'],
         )
 
     def __add_submissions(self):
@@ -130,7 +134,7 @@ class AssetUsageAPITestCase(BaseAssetTestCase):
         self.asset.deployment.set_namespace(self.URL_NAMESPACE)
         self.submission_list_url = reverse(
             self._get_endpoint('submission-list'),
-            kwargs={'parent_lookup_asset': self.asset.uid, 'format': 'json'},
+            kwargs={'uid_asset': self.asset.uid, 'format': 'json'},
         )
 
         self._deployment = self.asset.deployment
@@ -179,6 +183,12 @@ class AssetUsageAPITestCase(BaseAssetTestCase):
         )
         assert (
             response.data['results'][0]['nlp_usage_current_period'][
+                'total_nlp_llm_requests'
+            ]
+            == 20
+        )
+        assert (
+            response.data['results'][0]['nlp_usage_current_period'][
                 'total_nlp_mt_characters'
             ]
             == 5473
@@ -190,6 +200,10 @@ class AssetUsageAPITestCase(BaseAssetTestCase):
         assert (
             response.data['results'][0]['nlp_usage_all_time']['total_nlp_mt_characters']
             == 6726
+        )
+        assert (
+            response.data['results'][0]['nlp_usage_all_time']['total_nlp_llm_requests']
+            == 70
         )
         assert (
             response.data['results'][0]['storage_bytes']

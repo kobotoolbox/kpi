@@ -50,7 +50,7 @@ class AssetDownloadFieldExtension(OpenApiSerializerFieldExtension):
                     'format': GENERIC_STRING_SCHEMA,
                     'url': build_url_type(
                         'api_v2:asset-detail',
-                        uid='aTPPUDScaFZkvBzd8FyK4Q',
+                        uid_asset='aTPPUDScaFZkvBzd8FyK4Q',
                         format='xls',
                     ),
                 }
@@ -63,7 +63,7 @@ class AssetsURLFieldExtension(OpenApiSerializerFieldExtension):
 
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
-            'api_v2:projectview-assets', uid='pvyHWBnzRw3GCJpFs6cMdem'
+            'api_v2:projectview-assets', uid_project_view='pvyHWBnzRw3GCJpFs6cMdem'
         )
 
 
@@ -75,7 +75,7 @@ class AssetsExportURLFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
             'api_v2:projectview-export',
-            uid='pvyHWBnzRw3GCJpFs6cMdem',
+            uid_project_view='pvyHWBnzRw3GCJpFs6cMdem',
             obj_type='assets',
         )
 
@@ -106,7 +106,7 @@ class UrlFieldExtension(OpenApiSerializerFieldExtension):
 
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
-            'api_v2:projectview-detail', uid='pvyHWBnzRw3GCJpFs6cMdem'
+            'api_v2:projectview-detail', uid_project_view='pvyHWBnzRw3GCJpFs6cMdem'
         )
 
 
@@ -147,7 +147,7 @@ class UserURLFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
             'api_v2:projectview-users',
-            uid='pvyHWBnzRw3GCJpFs6cMdem',
+            uid_project_view='pvyHWBnzRw3GCJpFs6cMdem',
         )
 
 
@@ -158,5 +158,7 @@ class UserExportURLFieldExtension(OpenApiSerializerFieldExtension):
 
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
-            'api_v2:projectview-export', uid='pvyHWBnzRw3GCJpFs6cMdem', obj_type='users'
+            'api_v2:projectview-export',
+            uid_project_view='pvyHWBnzRw3GCJpFs6cMdem',
+            obj_type='users',
         )

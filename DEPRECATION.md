@@ -1,6 +1,6 @@
 # Endpoint deprecation as of release 2.025.29
 
-⚠️ The deprecated endpoints listed below will be permanently removed with the first release of 2026, scheduled for the week of **January 19, 2026**.
+⚠️ The deprecated endpoints listed below will be permanently removed with the first release of June 2026, scheduled for **June 2, 2026**.
 
 We strongly encourage all developers and users with integrations to update their systems as soon as possible to avoid disruption.
 A new support article will be available soon to guide users through the migration from KoboCAT `v1` to KPI `v2`.

@@ -30,15 +30,8 @@ import {
 } from '#/components/projectDownloads/exportsUtils'
 import { getColumnLabel } from '#/components/submissions/tableUtils'
 import { ADDITIONAL_SUBMISSION_PROPS, SUPPLEMENTAL_DETAILS_PROP } from '#/constants'
-import type {
-  AssetResponse,
-  ExportSetting,
-  ExportSettingRequest,
-  ExportSettingSettings,
-  MongoQuery,
-  PaginatedResponse,
-} from '#/dataInterface'
-import { createDateQuery, formatTimeDate } from '#/utils'
+import type { AssetResponse, ExportSetting, ExportSettingRequest, MongoQuery, PaginatedResponse } from '#/dataInterface'
+import { createDateQuery, formatTimeDate, recordEntries, recordKeys, recordValues } from '#/utils'
 
 const NAMELESS_EXPORT_NAME = t('Latest unsaved settings')
 
@@ -141,6 +134,7 @@ export default class ProjectExportsCreator extends React.Component<
     this.unlisteners.push(
       exportsStore.listen(this.onExportsStoreChange.bind(this), this),
       actions.exports.createExport.completed.listen(this.onCreateExportCompleted.bind(this)),
+      actions.exports.createExport.failed.listen(this.onCreateExportFailed.bind(this)),
       actions.exports.getExportSettings.completed.listen(this.onGetExportSettingsCompleted.bind(this)),
       actions.exports.updateExportSetting.completed.listen(this.fetchExportSettings.bind(this, true)),
       actions.exports.createExportSetting.completed.listen(this.fetchExportSettings.bind(this, true)),
@@ -194,6 +188,11 @@ export default class ProjectExportsCreator extends React.Component<
     this.setState({ isPending: false })
   }
 
+  onCreateExportFailed() {
+    this.setState({ isPending: false })
+    // Error handling happens in `exportsActions.js`
+  }
+
   onGetExportSettingsCompleted(
     response: PaginatedResponse<ExportSetting>,
     passData?: { preselectLastSettings?: boolean },
@@ -233,10 +232,10 @@ export default class ProjectExportsCreator extends React.Component<
     let allRows: Set<string> = new Set()
     if (this.props.asset?.content?.survey) {
       const flatPaths = getSurveyFlatPaths(this.props.asset.content.survey, false, true)
-      Object.values(flatPaths).forEach((path) => {
+      recordValues(flatPaths).forEach((path) => {
         allRows.add(path)
       })
-      Object.keys(ADDITIONAL_SUBMISSION_PROPS).forEach((submissionProp) => {
+      recordKeys(ADDITIONAL_SUBMISSION_PROPS).forEach((submissionProp) => {
         allRows.add(submissionProp)
       })
     }
@@ -460,10 +459,10 @@ export default class ProjectExportsCreator extends React.Component<
     // API allows for more options than our UI is handling at this moment, so we
     // need to make sure we are not losing some settings when patching.
     if (foundDefinedExport?.data) {
-      Object.entries(foundDefinedExport.data.export_settings).forEach(([key, value]) => {
+      recordEntries(foundDefinedExport.data.export_settings).forEach(([key, value]) => {
         if (!Object.prototype.hasOwnProperty.call(payload.export_settings, key)) {
           // TODO: find a TS way that is less hacky than this
-          payload.export_settings[key as keyof ExportSettingSettings] = value as never
+          payload.export_settings[key] = value as never
         }
       })
     }

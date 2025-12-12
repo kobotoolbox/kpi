@@ -1,23 +1,26 @@
-import { useState } from 'react'
-
 import type { ModalProps } from '@mantine/core'
 import { Group, Loader, Modal, Stack, Text, TextInput } from '@mantine/core'
 import { useField } from '@mantine/form'
+import { useState } from 'react'
 import { getSimpleMMOLabel } from '#/account/organization/organization.utils'
 import subscriptionStore from '#/account/subscriptionStore'
+import { InviteeRoleEnum } from '#/api/models/inviteeRoleEnum'
+import { useOrganizationsInvitesCreate } from '#/api/react-query/user-team-organization-usage'
+import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import ButtonNew from '#/components/common/ButtonNew'
 import Select from '#/components/common/Select'
+import type { FailResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import userExistence from '#/users/userExistence.store'
 import { checkEmailPattern, notify } from '#/utils'
-import { useSendMemberInvite } from './membersInviteQuery'
-import { OrganizationUserRole } from './organizationQuery'
 
 export default function InviteModal(props: ModalProps) {
-  const inviteQuery = useSendMemberInvite()
+  const [organization] = useOrganizationAssumed()
   const mmoLabel = getSimpleMMOLabel(envStore.data, subscriptionStore.activeSubscriptions[0])
 
-  const [role, setRole] = useState<string | null>(null)
+  const orgInviteCreate = useOrganizationsInvitesCreate()
+
+  const [role, setRole] = useState<InviteeRoleEnum | null>(null)
 
   async function handleUsernameOrEmailCheck(value: string) {
     if (value === '' || checkEmailPattern(value)) {
@@ -38,25 +41,27 @@ export default function InviteModal(props: ModalProps) {
     validateOnBlur: true,
   })
 
-  const handleSendInvite = () => {
-    if (role) {
-      inviteQuery
-        .mutateAsync({
+  const handleSendInvite = async () => {
+    if (!role) return
+    try {
+      await orgInviteCreate.mutateAsync({
+        uidOrganization: organization.id,
+        data: {
           invitees: [userOrEmail.getValue()],
-          role: role as OrganizationUserRole,
-        })
-        .then(() => {
-          userOrEmail.reset()
-          setRole(null)
-          props.onClose()
-        })
-        .catch((error) => {
-          if (error.responseText && JSON.parse(error.responseText)?.invitees) {
-            notify(JSON.parse(error.responseText)?.invitees.join(), 'error')
-          } else {
-            notify(t('Failed to send invite'), 'error')
-          }
-        })
+          role: role,
+        },
+      })
+      userOrEmail.reset()
+      setRole(null)
+      props.onClose()
+    } catch (error) {
+      const responseText = (error as FailResponse).responseText
+      if (responseText && JSON.parse(responseText)?.invitees) {
+        notify(JSON.parse(responseText)?.invitees.join(), 'error')
+      } else {
+        console.error(error)
+        notify(t('Failed to send invite'), 'error')
+      }
     }
   }
 
@@ -89,11 +94,11 @@ export default function InviteModal(props: ModalProps) {
             placeholder='Role'
             data={[
               {
-                value: OrganizationUserRole.admin,
+                value: InviteeRoleEnum.admin,
                 label: t('Admin'),
               },
               {
-                value: OrganizationUserRole.member,
+                value: InviteeRoleEnum.member,
                 label: t('Member'),
               },
             ]}

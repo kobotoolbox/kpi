@@ -2,6 +2,7 @@ import copy
 
 import jsonschema
 from django.conf import settings
+from django.contrib.auth.models import AnonymousUser
 from django.core.handlers.wsgi import WSGIRequest
 from django.db import models
 from django.db.models import Case, Count, F, Min, Q, Value, When
@@ -13,12 +14,14 @@ from kobo.apps.audit_log.audit_log_metadata_schemas import (
     PROJECT_HISTORY_LOG_METADATA_SCHEMA,
 )
 from kobo.apps.audit_log.utils import SubmissionUpdate
+from kobo.apps.data_collectors.authentication import DataCollectorUser
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.openrosa.libs.utils.viewer_tools import (
     get_client_ip,
     get_human_readable_client_user_agent,
 )
+from kobo.apps.subsequences.constants import Action
 from kpi.constants import (
     ACCESS_LOG_LOGINAS_AUTH_TYPE,
     ACCESS_LOG_SUBMISSION_AUTH_TYPE,
@@ -390,7 +393,7 @@ class ProjectHistoryLog(AuditLog):
             'asset-export-list': cls._create_from_export_request,
             'submissionexporttask-list': cls._create_from_v1_export,
             'asset-bulk': cls._create_from_bulk_request,
-            'asset-permission-assignment-bulk-assignments': cls._create_from_permissions_request,  # noqa
+            'asset-permission-assignment-bulk-actions': cls._create_from_permissions_request,  # noqa
             'asset-permission-assignment-detail': cls._create_from_permissions_request,
             'asset-permission-assignment-list': cls._create_from_permissions_request,
             'asset-permission-assignment-clone': cls._create_from_clone_permission_request,  # noqa
@@ -403,7 +406,9 @@ class ProjectHistoryLog(AuditLog):
             'submissions': cls._create_from_submission_request,
             'submissions-list': cls._create_from_submission_request,
             'submission-detail': cls._create_from_submission_request,
-            'advanced-submission-post': cls._create_from_submission_extra_request,
+            'submission-supplement': cls._create_from_submission_extra_request,
+            'advanced-features-list': cls._create_from_question_advanced_feature_request, # noqa
+            'advanced-features-detail': cls._create_from_question_advanced_feature_request,  # noqa
         }
         url_name = request.resolver_match.url_name
         method = url_name_to_action.get(url_name, None)
@@ -475,7 +480,7 @@ class ProjectHistoryLog(AuditLog):
         initial_data = getattr(request, 'initial_data', None)
         if initial_data is None:
             return
-        asset_uid = request.resolver_match.kwargs['parent_lookup_asset']
+        asset_uid = request.resolver_match.kwargs['uid_asset']
         asset_id = initial_data['asset.id']
         ProjectHistoryLog.objects.create(
             object_id=asset_id,
@@ -500,7 +505,7 @@ class ProjectHistoryLog(AuditLog):
             return
 
         initial_data = request.initial_data
-        asset_uid = request.resolver_match.kwargs['uid']
+        asset_uid = request.resolver_match.kwargs['uid_asset']
         object_id = request.initial_data['id']
         metadata = {
             'asset_uid': asset_uid,
@@ -555,7 +560,7 @@ class ProjectHistoryLog(AuditLog):
             # Something went wrong with the request, don't try to create a log
             return
 
-        asset_uid = request.resolver_match.kwargs['uid']
+        asset_uid = request.resolver_match.kwargs['uid_asset']
         object_id = initial_data['id']
 
         common_metadata = {
@@ -572,7 +577,7 @@ class ProjectHistoryLog(AuditLog):
             'settings': cls._handle_settings_change,
             'data_sharing': cls._handle_sharing_change,
             'content': cls._handle_content_change,
-            'advanced_features.qual.qual_survey': cls._handle_qa_change,
+            'advanced_features._actionConfigs': cls._handle_qa_change,
         }
 
         # additional metadata should generally follow the pattern
@@ -620,7 +625,9 @@ class ProjectHistoryLog(AuditLog):
         instances: dict[int:SubmissionUpdate] = getattr(request, 'instances', {})
         logs = []
         url_name = request.resolver_match.url_name
-        user = get_database_user(request.user)
+        is_data_collector = isinstance(request.user, DataCollectorUser)
+        request_user = request.user if not is_data_collector else AnonymousUser()
+        user = get_database_user(request_user)
         for instance in instances.values():
             if instance.action == 'add':
                 action = AuditAction.ADD_SUBMISSION
@@ -641,6 +648,15 @@ class ProjectHistoryLog(AuditLog):
             }
             if 'validation-status' in url_name:
                 metadata['submission']['status'] = instance.status
+            if is_data_collector:
+                metadata['submission']['data_collector_uid'] = request.user.uid
+                metadata['submission']['data_collector_name'] = request.user.name
+                metadata['submission'][
+                    'data_collector_group_uid'
+                ] = request.user.group_uid
+                metadata['submission'][
+                    'data_collector_group_name'
+                ] = request.user.group_name
 
             logs.append(
                 ProjectHistoryLog(
@@ -655,7 +671,7 @@ class ProjectHistoryLog(AuditLog):
 
     @classmethod
     def _create_from_submission_extra_request(cls, request):
-        s_uuid = request._data['submission']
+        s_uuid = request.resolver_match.kwargs['pk']
         # have to fetch the instance here because we don't have access to it
         # anywhere else in the request
         instance = Instance.objects.filter(
@@ -725,7 +741,7 @@ class ProjectHistoryLog(AuditLog):
         logs = []
         initial_data = getattr(request, 'initial_data', None)
         updated_data = getattr(request, 'updated_data', None)
-        asset_uid = request.resolver_match.kwargs['parent_lookup_asset']
+        asset_uid = request.resolver_match.kwargs['uid_asset']
         source_data = updated_data if updated_data else initial_data
         if source_data is None:
             # there was an error on the request, ignore
@@ -786,6 +802,32 @@ class ProjectHistoryLog(AuditLog):
                 )
             )
         ProjectHistoryLog.objects.bulk_create(logs)
+
+    @classmethod
+    def _create_from_question_advanced_feature_request(cls, request):
+        initial_data = getattr(request, 'initial_data', None)
+        updated_data = getattr(request, 'updated_data', None)
+        source_data = updated_data if updated_data else initial_data
+        asset_uid = request.resolver_match.kwargs['uid_asset']
+        if not source_data:
+            return
+        if source_data.get('action') != Action.QUAL:
+            return
+        owner = source_data.pop('asset.owner.username')
+        object_id = source_data.pop('object_id')
+        metadata = {
+            'asset_uid': asset_uid,
+            'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            'ip_address': get_client_ip(request),
+            'source': get_human_readable_client_user_agent(request),
+            'project_owner': owner,
+        }
+        action = AuditAction.UPDATE_QA
+        metadata['qa'] = {PROJECT_HISTORY_LOG_METADATA_FIELD_NEW: source_data['params']}
+        user = get_database_user(request.user)
+        ProjectHistoryLog.objects.create(
+            user=user, object_id=object_id, action=action, metadata=metadata
+        )
 
     @classmethod
     def _create_from_v1_export(cls, request):
@@ -940,7 +982,7 @@ class ProjectHistoryLog(AuditLog):
     def _related_request_base(request, label, add_action, delete_action, modify_action):
         initial_data = getattr(request, 'initial_data', None)
         updated_data = getattr(request, 'updated_data', None)
-        asset_uid = request.resolver_match.kwargs['parent_lookup_asset']
+        asset_uid = request.resolver_match.kwargs['uid_asset']
         source_data = updated_data if updated_data else initial_data
         if not source_data:
             # request failed, don't try to log

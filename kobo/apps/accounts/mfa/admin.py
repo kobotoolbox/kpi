@@ -2,13 +2,13 @@
 from django.contrib import admin
 
 from .models import (
-    TrenchMFAMethod,
+    ExtendedTrenchMfaMethodAdmin,
     MfaAvailableToUser,
     MfaAvailableToUserAdmin,
     MfaMethod,
-    MfaMethodAdmin,
+    TrenchMFAMethod,
 )
 
 admin.site.unregister(TrenchMFAMethod)
-admin.site.register(MfaMethod, MfaMethodAdmin)
+admin.site.register(MfaMethod, ExtendedTrenchMfaMethodAdmin)
 admin.site.register(MfaAvailableToUser, MfaAvailableToUserAdmin)

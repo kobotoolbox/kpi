@@ -907,12 +907,15 @@ class AssetImportTaskTest(BaseTestCase):
         self._post_import_task_and_compare_created_asset_to_source(task_data,
                                                                    self.asset)
 
+    @responses.activate
     def test_import_non_xls_url(self):
         """
         Make sure the import fails with a meaningful error
         """
+        mock_url = 'http://mock.kbtdev.org/bad'
+        responses.get(mock_url, body=b'Not xls')
         task_data = {
-            'url': 'https://www.google.com/',
+            'url': mock_url,
             'name': 'I was doomed from the start! (non-XLS)',
         }
         post_url = reverse('api_v2:importtask-list')
@@ -1007,9 +1010,7 @@ class AssetImportTaskTest(BaseTestCase):
 
         asset_uid = detail_response.data['messages']['updated'][0]['uid']
         asset_response = self.client.get(
-            reverse(
-                self._get_endpoint('asset-detail'), kwargs={'uid': asset_uid}
-            )
+            reverse(self._get_endpoint('asset-detail'), kwargs={'uid_asset': asset_uid})
         )
         expected_name = 'A project with a new line'
         assert asset_response.data['name'] == expected_name
@@ -1030,7 +1031,7 @@ class AssetImportTaskTest(BaseTestCase):
             'url': mock_xls_url,
             'name': 'I was imported via URL!',
             'destination': reverse(
-                'api_v2:asset-detail', kwargs={'uid': self.asset.uid}
+                'api_v2:asset-detail', kwargs={'uid_asset': self.asset.uid}
             ),
         }
         post_url = reverse(self._get_endpoint('importtask-list'))
@@ -1061,7 +1062,7 @@ class AssetImportTaskTest(BaseTestCase):
             'base64Encoded': 'base64:{}'.format(to_str(encoded_xls)),
             'name': 'I was imported via base64-encoded XLS!',
             'destination': reverse(
-                'api_v2:asset-detail', kwargs={'uid': self.asset.uid}
+                'api_v2:asset-detail', kwargs={'uid_asset': self.asset.uid}
             ),
         }
         post_url = reverse(self._get_endpoint('importtask-list'))

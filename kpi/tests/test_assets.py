@@ -27,6 +27,7 @@ from kobo.apps.project_ownership.models.transfer import Transfer
 from kpi.constants import (
     ASSET_TYPE_COLLECTION,
     ASSET_TYPE_SURVEY,
+    PERM_ADD_SUBMISSIONS,
     PERM_CHANGE_ASSET,
     PERM_MANAGE_ASSET,
     PERM_VIEW_ASSET,
@@ -440,7 +441,7 @@ class AssetContentTests(AssetsTestCase):
                 'base64Encoded': encoded_xls,
                 'destination': reverse(
                     'api_v2:asset-detail',
-                    kwargs={'uid': self.asset.uid},
+                    kwargs={'uid_asset': self.asset.uid},
                 ),
                 'filename': f'{self.asset.uid}.xlsx',
                 'assetUid': self.asset.uid,
@@ -790,8 +791,13 @@ class ShareAssetsTest(AssetsTestCase):
         self.asset.assign_perm(AnonymousUser(), PERM_VIEW_ASSET)
         # Check that both anonymous and `anotheruser` can view
         for user_obj in AnonymousUser(), self.anotheruser:
-            self.assertTrue(user_obj.has_perm(
-                PERM_VIEW_ASSET, self.asset))
+            self.assertTrue(user_obj.has_perm(PERM_VIEW_ASSET, self.asset))
+
+    def test_first_deployment_allows_anonymous_access(self):
+        asset = Asset.objects.create(asset_type=ASSET_TYPE_SURVEY, owner=self.user)
+        asset.assign_perm(AnonymousUser(), PERM_ADD_SUBMISSIONS)
+        asset.deploy(backend='mock', active=True)
+        assert asset.deployment.xform.require_auth is False
 
 
 class TestAssetNameSettingHandling(AssetsTestCase):
@@ -928,15 +934,15 @@ class TestAssetExcludedFromProjectsListFlag(BaseOrganizationAssetApiTestCase):
         self.asset_list_url = reverse(self._get_endpoint('asset-list'))
         self.asset_detail_url = lambda uid: reverse(
             self._get_endpoint('asset-detail'),
-            kwargs={'uid': uid}
+            kwargs={'uid_asset': uid}
         )
         self.invite_detail_url = lambda uid: reverse(
             self._get_endpoint('project-ownership-invite-detail'),
-            kwargs={'uid': uid}
+            kwargs={'uid_invite': uid}
         )
         self.org_assets_list_url = lambda org_id: reverse(
             self._get_endpoint('organizations-assets'),
-            kwargs={'id': org_id}
+            kwargs={'uid_organization': org_id}
         )
 
     def _add_user_to_organization(self, user, organization):

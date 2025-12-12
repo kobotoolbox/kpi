@@ -1,6 +1,7 @@
 import { expect } from '@jest/globals'
 import { getRowName } from '#/assetUtils'
 import { ASSET_TYPES } from '#/constants'
+import { recordKeys, recordValues } from '#/utils'
 import {
   FORM_RESTRICTIONS,
   GROUP_RESTRICTIONS,
@@ -34,7 +35,7 @@ import {
 describe('hasRowRestriction', () => {
   it('should be false for all restriction for rows in un-locked template', () => {
     simpleTemplate.content?.survey?.forEach((row) => {
-      Object.values(LockingRestrictionName).forEach((restrictionName) => {
+      recordValues(LockingRestrictionName).forEach((restrictionName) => {
         const test = hasRowRestriction(simpleTemplate.content, getRowName(row), restrictionName)
         expect(test).toEqual(false)
       })
@@ -43,7 +44,7 @@ describe('hasRowRestriction', () => {
 
   it('should be true for all restrictions for rows in lock_all template', () => {
     simpleTemplateWithAll.content?.survey?.forEach((row) => {
-      Object.values(LockingRestrictionName).forEach((restrictionName) => {
+      recordValues(LockingRestrictionName).forEach((restrictionName) => {
         const test = hasRowRestriction(simpleTemplateWithAll.content, getRowName(row), restrictionName)
         expect(test).toEqual(true)
       })
@@ -52,7 +53,7 @@ describe('hasRowRestriction', () => {
 
   it('should be true for all restrictions for rows in lock_all template regardless of locking profile', () => {
     simpleTemplateLockedWithAll.content?.survey?.forEach((row) => {
-      Object.values(LockingRestrictionName).forEach((restrictionName) => {
+      recordValues(LockingRestrictionName).forEach((restrictionName) => {
         const test = hasRowRestriction(simpleTemplateLockedWithAll.content, getRowName(row), restrictionName)
         expect(test).toEqual(true)
       })
@@ -60,7 +61,7 @@ describe('hasRowRestriction', () => {
   })
 
   it('should check row restriction in locked template', () => {
-    const expectedRestrictions: { [rowName: string]: LockingRestrictionName[] } = {
+    const expectedRestrictions: Record<string, LockingRestrictionName[]> = {
       start: [],
       end: [],
       Best_thing_in_the_world: [
@@ -85,8 +86,8 @@ describe('hasRowRestriction', () => {
         LockingRestrictionName.question_order_edit,
       ],
     }
-    Object.keys(expectedRestrictions).forEach((rowName) => {
-      Object.values(LockingRestrictionName).forEach((restrictionName) => {
+    recordKeys(expectedRestrictions).forEach((rowName) => {
+      recordValues(LockingRestrictionName).forEach((restrictionName) => {
         const test = hasRowRestriction(simpleTemplateLocked.content, rowName, restrictionName)
         expect(test).toEqual(expectedRestrictions[rowName].includes(restrictionName))
       })
@@ -96,28 +97,28 @@ describe('hasRowRestriction', () => {
 
 describe('hasAssetRestriction', () => {
   it('should say no restrictions for un-locked template', () => {
-    Object.values(LockingRestrictionName).forEach((restrictionName) => {
+    recordValues(LockingRestrictionName).forEach((restrictionName) => {
       const test = hasAssetRestriction(simpleTemplate.content, restrictionName)
       expect(test).toEqual(false)
     })
   })
 
   it('should be true for all restrictions for lock_all template', () => {
-    Object.values(LockingRestrictionName).forEach((restrictionName) => {
+    recordValues(LockingRestrictionName).forEach((restrictionName) => {
       const test = hasAssetRestriction(simpleTemplateWithAll.content, restrictionName)
       expect(test).toEqual(true)
     })
   })
 
   it('should be true for all restrictions for lock_all template regardless of locking profiles', () => {
-    Object.values(LockingRestrictionName).forEach((restrictionName) => {
+    recordValues(LockingRestrictionName).forEach((restrictionName) => {
       const test = hasAssetRestriction(simpleTemplateLockedWithAll.content, restrictionName)
       expect(test).toEqual(true)
     })
   })
 
   it('should check asset restrictions in locked template', () => {
-    Object.values(LockingRestrictionName).forEach((restrictionName) => {
+    recordValues(LockingRestrictionName).forEach((restrictionName) => {
       const test = hasAssetRestriction(simpleTemplateLocked.content, restrictionName)
       expect(test).toEqual(
         [
@@ -242,7 +243,7 @@ describe('isRowLocked', () => {
   })
 
   it('should check row being locked in locked template', () => {
-    const expectedRestrictions: { [key: string]: boolean } = {
+    const expectedRestrictions: Record<string, boolean> = {
       start: false,
       end: false,
       Best_thing_in_the_world: true,
@@ -250,7 +251,7 @@ describe('isRowLocked', () => {
       Your_name: false,
       Your_age: true,
     }
-    Object.keys(expectedRestrictions).forEach((rowName) => {
+    recordKeys(expectedRestrictions).forEach((rowName) => {
       const test = isRowLocked(simpleTemplateLocked.content, rowName)
       expect(test).toEqual(expectedRestrictions[rowName])
     })

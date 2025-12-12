@@ -31,7 +31,7 @@ import sessionStore from '#/stores/session'
 import { addRequiredToLabel } from '#/textUtils'
 import { escapeHtml, isAValidUrl, join, notify, validFileTypes } from '#/utils'
 
-const VIA_URL_SUPPORT_URL = 'xls_url.html'
+const VIA_URL_SUPPORT_URL = 'xlsform_with_kobotoolbox.html#importing-an-xlsform-via-url'
 
 /**
  * This is used for multiple different purposes:

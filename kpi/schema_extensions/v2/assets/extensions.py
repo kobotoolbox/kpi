@@ -65,7 +65,6 @@ class AnalysisFormJsonExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(
             properties={
-                'engines': GENERIC_OBJECT_SCHEMA,
                 'additional_fields': GENERIC_ARRAY_SCHEMA,
             }
         )
@@ -287,7 +286,7 @@ class DataFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
             'api_v2:submission-list',
-            parent_lookup_asset='aBeA23YCYjkGTFvYVHuAyU',
+            uid_asset='aBeA23YCYjkGTFvYVHuAyU',
         )
 
 
@@ -329,8 +328,8 @@ class DeployedVersionsFieldExtension(OpenApiSerializerFieldExtension):
                             'uid': GENERIC_STRING_SCHEMA,
                             'url': build_url_type(
                                 'api_v2:asset-version-detail',
-                                parent_lookup_asset='aBeA23YCYjkGTFvYVHuAyU',
-                                uid='vBeA23YCYjkGTFvYVHuAyU',
+                                uid_asset='aBeA23YCYjkGTFvYVHuAyU',
+                                uid_version='vBeA23YCYjkGTFvYVHuAyU',
                             ),
                             'content_hash': GENERIC_STRING_SCHEMA,
                             'date_deployed': build_basic_type(OpenApiTypes.DATETIME),
@@ -375,7 +374,7 @@ class ExportsURLFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
             'api_v2:asset-export-list',
-            parent_lookup_asset='aBeA23YCYjkGTFvYVHuAyU',
+            uid_asset='aBeA23YCYjkGTFvYVHuAyU',
         )
 
 
@@ -399,7 +398,7 @@ class HooksURLFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
             'api_v2:hook-list',
-            parent_lookup_asset='aBeA23YCYjkGTFvYVHuAyU',
+            uid_asset='aBeA23YCYjkGTFvYVHuAyU',
         )
 
 
@@ -445,7 +444,7 @@ class PairedDataURLFieldExtension(OpenApiSerializerFieldExtension):
 
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
-            'api_v2:paired-data-list', parent_lookup_asset='aBeA23YCYjkGTFvYVHuAyU'
+            'api_v2:paired-data-list', uid_asset='aBeA23YCYjkGTFvYVHuAyU'
         )
 
 
@@ -526,7 +525,7 @@ class ReportURLFieldExtension(OpenApiSerializerFieldExtension):
 
     def map_serializer_field(self, auto_schema, direction):
         return build_url_type(
-            viewname='api_v2:asset-reports', uid='a5owyo85mHyFazzgsZK45c'
+            viewname='api_v2:asset-reports', uid_asset='a5owyo85mHyFazzgsZK45c'
         )
 
 
@@ -570,7 +569,7 @@ class AssetHyperlinkedURLFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.AssetHyperlinkedURLField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_url_type('api_v2:asset-detail', uid='aBeA23YCYjkGTFvYVHuAyU')
+        return build_url_type('api_v2:asset-detail', uid_asset='aBeA23YCYjkGTFvYVHuAyU')
 
 
 class ValidContentDataFieldExtension(OpenApiSerializerFieldExtension):
@@ -602,11 +601,11 @@ class XFormLinkFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.XFormLinkField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_url_type('api_v2:asset-xform', uid='aBeA23YCYjkGTFvYVHuAyU')
+        return build_url_type('api_v2:asset-xform', uid_asset='aBeA23YCYjkGTFvYVHuAyU')
 
 
 class XLSLinkFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.assets.fields.XLSLinkField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_url_type('api_v2:asset-xls', uid='aBeA23YCYjkGTFvYVHuAyU')
+        return build_url_type('api_v2:asset-xls', uid_asset='aBeA23YCYjkGTFvYVHuAyU')

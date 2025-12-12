@@ -85,7 +85,7 @@ def schedule_auto_attachment_cleanup_for_users(**stripe_models):
 
     exceeded_counters = ExceededLimitCounter.objects.filter(
         limit_type=UsageType.STORAGE_BYTES,
-        days__gte=config.LIMIT_ATTACHMENT_REMOVAL_GRACE_PERIOD
+        days__gte=config.OVER_LIMIT_ATTACHMENT_RETENTION
     )
 
     logging.info(f'Found {len(exceeded_counters)} users exceeding storage limits.')
@@ -147,7 +147,7 @@ def auto_delete_excess_attachments(user_id: int, **stripe_models):
         move_to_trash(
             user,
             attachments_to_trash,
-            config.ATTACHMENT_TRASH_GRACE_PERIOD,
+            config.ATTACHMENT_TRASH_RETENTION,
             'attachment',
         )
 

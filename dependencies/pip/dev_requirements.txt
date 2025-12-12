@@ -4,15 +4,22 @@
 #
 #    pip-compile dependencies/pip/dev_requirements.in
 #
--e git+https://github.com/kobotoolbox/django-digest@3995226ed8e5bd1cb32c640aae970f8c104f6156#egg=django_digest
+# and then edited manually to
+#    * remove -e (editable git repositories)
+#
+# In the future, it can be generated with:
+#    uv pip compile dependencies/pip/requirements.in
+#  (this will update more packages)
+#
+git+https://github.com/kobotoolbox/django-digest@3995226ed8e5bd1cb32c640aae970f8c104f6156#egg=django_digest
     # via -r dependencies/pip/requirements.in
--e git+https://github.com/trevoriancox/django-dont-vary-on.git@01a804122b7ddcdc22f50b40993f91c27b03bef6#egg=django-dont-vary-on
+git+https://github.com/trevoriancox/django-dont-vary-on.git@01a804122b7ddcdc22f50b40993f91c27b03bef6#egg=django-dont-vary-on
     # via -r dependencies/pip/requirements.in
--e git+https://github.com/kobotoolbox/formpack.git@6b87821dabda94fc7d3a3467923b48fd6c96e239#egg=formpack
+git+https://github.com/kobotoolbox/formpack.git@f6d4792760291f8d376de7100ce2ffe39edd4366#egg=formpack
     # via -r dependencies/pip/requirements.in
--e git+https://github.com/dimagi/python-digest@5c94bb74516b977b60180ee832765c0695ff2b56#egg=python_digest
+git+https://github.com/dimagi/python-digest@5c94bb74516b977b60180ee832765c0695ff2b56#egg=python_digest
     # via -r dependencies/pip/requirements.in
--e git+https://github.com/kobotoolbox/ssrf-protect@9b97d3f0fd8f737a38dd7a6b64efeffc03ab3cdd#egg=ssrf_protect
+git+https://github.com/kobotoolbox/ssrf-protect@9b97d3f0fd8f737a38dd7a6b64efeffc03ab3cdd#egg=ssrf_protect
     # via -r dependencies/pip/requirements.in
 aiohttp==3.9.3
     # via
@@ -108,6 +115,7 @@ cron-descriptor==1.4.3
 cryptography==42.0.5
     # via
     #   azure-storage-blob
+    #   fido2
     #   jwcrypto
     #   paramiko
     #   pyopenssl
@@ -172,7 +180,7 @@ django==4.2.24
     #   drf-spectacular
     #   jsonfield
     #   model-bakery
-django-allauth==65.1.0
+django-allauth[mfa]==65.11.2
     # via -r dependencies/pip/requirements.in
 django-amazon-ses==4.0.1
     # via -r dependencies/pip/requirements.in
@@ -276,6 +284,8 @@ fabric==3.2.2
     # via -r dependencies/pip/dev_requirements.in
 fakeredis==2.30.1
     # via -r dependencies/pip/dev_requirements.in
+fido2==2.0.0
+    # via django-allauth
 flake8==7.1.1
     # via
     #   -r dependencies/pip/dev_requirements.in
@@ -452,7 +462,11 @@ pathspec==0.12.1
 pexpect==4.9.0
     # via ipython
 pillow==10.3.0
-    # via django-markdownx
+    # via
+    #   django-markdownx
+    #   pillow-heif
+pillow-heif==0.22.0
+    # via -r dependencies/pip/requirements.in
 platformdirs==4.3.2
     # via black
 pluggy==1.4.0
@@ -557,6 +571,8 @@ pyyaml==6.0.1
     # via
     #   drf-spectacular
     #   responses
+qrcode==8.2
+    # via django-allauth
 redis==5.0.3
     # via
     #   celery

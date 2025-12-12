@@ -195,7 +195,8 @@ module.exports = do ->
 
   configs.paramTypes = {
     number: 'number',
-    boolean: 'boolean'
+    boolean: 'boolean',
+    maxPixels: 'maxPixels',
   }
 
   configs.questionParams = {
@@ -215,8 +216,8 @@ module.exports = do ->
     }
     image: {
       'max-pixels': {
-        type: configs.paramTypes.number
-        defaultValue: 1024
+        type: configs.paramTypes.maxPixels
+        defaultValue: 2048
       }
     }
     select_one: {
@@ -281,6 +282,7 @@ module.exports = do ->
       ["select_one_from_file", "Select one from file"],
       ["select_multiple_from_file", "Select multiple from file"],
       ["xml-external", "External XML"],
+      ["background-geopoint", "Background geopoint", supportedByUI: false],
     ]
 
     class Type

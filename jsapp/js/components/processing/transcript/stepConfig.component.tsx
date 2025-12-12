@@ -4,7 +4,10 @@ import cx from 'classnames'
 import clonedeep from 'lodash.clonedeep'
 import { UsageLimitTypes } from '#/account/stripe.types'
 import { useBillingPeriod } from '#/account/usage/useBillingPeriod'
-import { useServiceUsageQuery } from '#/account/usage/useServiceUsageQuery'
+import {
+  type OrganizationsServiceUsageSummary,
+  useOrganizationsServiceUsageSummary,
+} from '#/account/usage/useOrganizationsServiceUsageSummary'
 import Button from '#/components/common/button'
 import LanguageSelector, { resetAllLanguageSelectors } from '#/components/languages/languageSelector'
 import type { DetailedLanguage, ListLanguage } from '#/components/languages/languagesStore'
@@ -16,13 +19,17 @@ import NlpUsageLimitBlockModal from '../nlpUsageLimitBlockModal/nlpUsageLimitBlo
 import { getAttachmentForProcessing } from './transcript.utils'
 
 export default function StepConfig() {
-  const { data: serviceUsageData } = useServiceUsageQuery()
+  const { data: serviceUsageData } = useOrganizationsServiceUsageSummary()
   const [isLimitBlockModalOpen, setIsLimitBlockModalOpen] = useState<boolean>(false)
   const usageLimitBlock = useMemo(
     () =>
-      serviceUsageData?.limitExceedList.includes(UsageLimitTypes.TRANSCRIPTION) &&
+      serviceUsageData?.status === 200 &&
+      serviceUsageData?.data.limitExceedList.includes(UsageLimitTypes.TRANSCRIPTION) &&
       envStore.data.usage_limit_enforcement,
-    [serviceUsageData?.limitExceedList, envStore.data.usage_limit_enforcement],
+    [
+      (serviceUsageData?.data as OrganizationsServiceUsageSummary)?.limitExceedList,
+      envStore.data.usage_limit_enforcement,
+    ],
   )
   const { billingPeriod } = useBillingPeriod()
 

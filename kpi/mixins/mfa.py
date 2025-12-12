@@ -3,7 +3,7 @@ from django.conf import settings
 from django.utils.translation import gettext
 from rest_framework import exceptions
 
-from trench.utils import get_mfa_model
+from kobo.apps.accounts.mfa.models import MfaMethodsWrapper
 
 
 class MfaBlockerMixin:
@@ -17,7 +17,7 @@ class MfaBlockerMixin:
         # decide whether TokenAuthentication should be deactivated with MFA.
         class_path = f'{self.__module__}.{self.__class__.__name__}'
         if class_path not in settings.MFA_SUPPORTED_AUTH_CLASSES:
-            if get_mfa_model().objects.filter(is_active=True, user=user).exists():
+            if MfaMethodsWrapper.objects.filter(is_active=True, user=user).exists():
                 raise exceptions.AuthenticationFailed(gettext(
                     'Multi-factor authentication is enabled for this account. '
                     f'{self.verbose_name} cannot be used.'

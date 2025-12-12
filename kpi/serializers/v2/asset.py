@@ -10,7 +10,6 @@ from django.db import transaction
 from django.db.models import F
 from django.utils.translation import gettext as t
 from django.utils.translation import ngettext as nt
-from django_request_cache import cache_for_request
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import exceptions, serializers
@@ -21,6 +20,7 @@ from kobo.apps.organizations.constants import ORG_ADMIN_ROLE
 from kobo.apps.organizations.utils import get_real_owner
 from kobo.apps.reports.constants import FUZZY_VERSION_PATTERN
 from kobo.apps.reports.report_data import build_formpack
+from kobo.apps.subsequences.utils.supplement_data import get_analysis_form_json
 from kobo.apps.trash_bin.exceptions import TrashIntegrityError, TrashTaskInProgressError
 from kobo.apps.trash_bin.models.project import ProjectTrash
 from kobo.apps.trash_bin.utils import move_to_trash, put_back
@@ -63,7 +63,6 @@ from kpi.utils.schema_extensions.fields import (
 from ...schema_extensions.v2.assets.fields import (
     AccessTypeField,
     AdvancedFeatureField,
-    AdvancedSubmissionSchemaField,
     AnalysisFormJsonField,
     AssetHyperlinkedURLField,
     AssignablePermissionField,
@@ -188,7 +187,7 @@ class AssetBulkActionsSerializer(serializers.Serializer):
     def _create_tasks(self, assets: list[dict]):
         try:
             return move_to_trash(
-                self.__user, assets, config.PROJECT_TRASH_GRACE_PERIOD, 'asset'
+                self.__user, assets, config.PROJECT_TRASH_RETENTION, 'asset'
             )
         except TrashIntegrityError:
             # We do not want to ignore conflicts. If so, something went wrong.
@@ -324,6 +323,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     url = HyperlinkedIdentityFieldWithSchemaField(
         schema_field=AssetHyperlinkedURLField,
         lookup_field='uid',
+        lookup_url_kwarg='uid_asset',
         view_name='asset-detail',
     )
     asset_type = serializers.ChoiceField(choices=ASSET_TYPES)
@@ -347,6 +347,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         schema_field=AdvancedFeatureField, required=False
     )
     files = serializers.SerializerMethodField()
+    analysis_form_json = serializers.SerializerMethodField()
     xls_link = serializers.SerializerMethodField()
     summary = ReadOnlyFieldWithSchemaField(schema_field=SummaryField)
     xform_link = serializers.SerializerMethodField()
@@ -356,6 +357,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     parent = RelativePrefixHyperlinkedRelatedFieldWithSchemaField(
         schema_field=ParentURLField,
         lookup_field='uid',
+        lookup_url_kwarg='uid_asset',
         queryset=Asset.objects.filter(asset_type=ASSET_TYPE_COLLECTION),
         view_name='asset-detail',
         required=False,
@@ -436,12 +438,12 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             'report_styles',
             'report_custom',
             'advanced_features',
-            'supplemental_output_fields',
             'map_styles',
             'map_custom',
             'content',
             'downloads',
             'embeds',
+            'analysis_form_json',
             'xform_link',
             'hooks_link',
             'tag_string',
@@ -540,6 +542,10 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             asset.assign_perm(user, PERM_MANAGE_ASSET)
 
         return asset
+
+    @extend_schema_field(AnalysisFormJsonField)
+    def get_analysis_form_json(self, obj):
+        return {'additional_fields': get_analysis_form_json(obj)}
 
     def get_fields(self, *args, **kwargs):
         fields = super().get_fields(*args, **kwargs)
@@ -647,7 +653,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
     @extend_schema_field(DataURLField)
     def get_data(self, obj):
-        kwargs = {'parent_lookup_asset': obj.uid}
+        kwargs = {'uid_asset': obj.uid}
         format = self.context.get('format')
         if format:
             kwargs['format'] = format
@@ -988,7 +994,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
                     ).format(valid_fields='`,`'.join(valid_fields))
 
                 # Force `fields` to be an empty list to avoid useless parsing when
-                # fetching external xml endpoint (i.e.: /api/v2/assets/<asset_uid>/paired-data/<paired_data_uid>/external.xml)
+                # fetching external xml endpoint (i.e.: /api/v2/assets/<asset_uid>/paired-data/<uid_paired_data>/external.xml)
                 if sorted(valid_fields) == sorted(fields):
                     data_sharing['fields'] = []
         else:
@@ -1264,14 +1270,4 @@ class AssetMetadataListSerializer(AssetListSerializer):
 
     def _get_view(self) -> str:
         request = self.context['request']
-        return request.parser_context['kwargs']['uid']
-
-    # FIXME Remove this method, seems to not be used anywhere
-    @cache_for_request
-    def _user_has_asset_perms(self, obj: Asset, perm: str) -> bool:
-        request = self.context.get('request')
-        user = get_database_user(request.user)
-        self._set_asset_ids_cache(obj)
-        if obj.owner == user or obj.has_perm(user, perm):
-            return True
-        return False
+        return request.parser_context['kwargs']['uid_project_view']
