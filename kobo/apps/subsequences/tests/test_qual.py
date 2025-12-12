@@ -852,20 +852,20 @@ class TestQualActionMethods(TestCase):
         # Test integer question
         int_item = find_item('qual-integer-uuid')
         assert int_item is not None
-        assert int_item['val'] == 5
+        assert int_item['value'] == 5
         assert int_item['type'] == 'qualInteger'
         assert int_item['xpath'] == self.source_xpath
 
         # Test text question
         text_item = find_item('qual-text-uuid')
         assert text_item is not None
-        assert text_item['val'] == 'Family needs immediate shelter and medical care'
+        assert text_item['value'] == 'Family needs immediate shelter and medical care'
         assert text_item['type'] == 'qualText'
 
         # Test select one - UUID transformed to object with labels
         select_one_item = find_item('qual-select-one-uuid')
         assert select_one_item is not None
-        select_one_value = select_one_item['val']
+        select_one_value = select_one_item['value']
         assert isinstance(select_one_value, dict)
         assert select_one_value['uuid'] == 'choice-high-uuid'
         assert select_one_value['labels'] == {
@@ -877,7 +877,7 @@ class TestQualActionMethods(TestCase):
         # Test select multiple - array of UUIDs transformed to array of objects
         select_multi_item = find_item('qual-select-multi-uuid')
         assert select_multi_item is not None
-        select_multi_value = select_multi_item['val']
+        select_multi_value = select_multi_item['value']
         assert isinstance(select_multi_value, list)
         assert len(select_multi_value) == 2
 
@@ -934,7 +934,7 @@ class TestQualActionMethods(TestCase):
 
         text_item = qual_list[0]
         assert text_item['uuid'] == 'qual-text-uuid'
-        assert text_item['val'] == 'Revised note'
+        assert text_item['value'] == 'Revised note'
 
     def test_update_params_sets_missing_questions_to_deleted_and_moved_to_the_end(self):
         params = [

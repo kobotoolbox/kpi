@@ -359,7 +359,7 @@ class ManualQualAction(BaseAction):
 
             results_list.append(
                 {
-                    'val': output_value,
+                    'value': output_value,
                     'type': qual_question['type'],
                     'uuid': qual_uuid,
                     'xpath': self.source_question_xpath,
