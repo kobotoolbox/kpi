@@ -2518,8 +2518,8 @@ paths:
                               _uuid: 44444444-4444-4444-4444-444444444444
                           - _dateCreated: '2025-01-01T12:00:00Z'
                             _uuid: 55555555-5555-5555-5555-555555555555
-                            language: fr
                             _data:
+                              language: fr
                               status: complete
                               value: Allo la foule
                             _dependency:
@@ -2896,8 +2896,8 @@ paths:
                               _uuid: 44444444-4444-4444-4444-444444444444
                           - _dateCreated: '2025-01-01T12:00:00Z'
                             _uuid: 55555555-5555-5555-5555-555555555555
-                            language: fr
                             _data:
+                              language: fr
                               status: complete
                               value: Allo la foule
                             _dependency:
@@ -11539,19 +11539,25 @@ components:
                       _uuid:
                         type: string
                         format: uuid
-                      language:
-                        type: string
-                      value:
-                        type: string
                       _dateAccepted:
                         type: string
                         format: date-time
+                      _data:
+                        type: object
+                        properties:
+                          language:
+                            type: string
+                          value:
+                            type: string
+                        additionalProperties: false
+                        required:
+                        - language
                     additionalProperties: false
                     required:
+                    - _data
+                    - _dateAccepted
                     - _dateCreated
                     - _uuid
-                    - language
-                    - value
                   minLength: 1
               additionalProperties: false
               required:
@@ -11580,10 +11586,6 @@ components:
                         _uuid:
                           type: string
                           format: uuid
-                        language:
-                          type: string
-                        value:
-                          type: string
                         _dependency:
                           type: object
                           properties:
@@ -11596,13 +11598,26 @@ components:
                           required:
                           - _actionId
                           - _uuid
+                        _dateAccepted:
+                          type: string
+                          format: date-time
+                        _data:
+                          type: object
+                          properties:
+                            language:
+                              type: string
+                            value:
+                              type: string
+                          additionalProperties: false
+                          required:
+                          - language
                       additionalProperties: false
                       required:
+                      - _data
+                      - _dateAccepted
                       - _dateCreated
                       - _dependency
                       - _uuid
-                      - language
-                      - value
                     minLength: 1
                 additionalProperties: false
                 required:
@@ -11629,21 +11644,26 @@ components:
                       _uuid:
                         type: string
                         format: uuid
-                      language:
-                        type: string
-                      value:
-                        type: string
-                      status:
-                        type: string
                       _dateAccepted:
                         type: string
                         format: date-time
+                      _data:
+                        type: object
+                        properties:
+                          language:
+                            type: string
+                          value:
+                            type: string
+                          status:
+                            type: string
+                        additionalProperties: false
+                        required:
+                        - language
                     additionalProperties: false
                     required:
+                    - _data
                     - _dateCreated
                     - _uuid
-                    - language
-                    - value
                   minLength: 1
               additionalProperties: false
               required:
@@ -11672,12 +11692,6 @@ components:
                         _uuid:
                           type: string
                           format: uuid
-                        language:
-                          type: string
-                        value:
-                          type: string
-                        status:
-                          type: string
                         _dependency:
                           type: object
                           properties:
@@ -11690,13 +11704,27 @@ components:
                           required:
                           - _actionId
                           - _uuid
+                        _dateAccepted:
+                          type: string
+                          format: date-time
+                        _data:
+                          type: object
+                          properties:
+                            language:
+                              type: string
+                            value:
+                              type: string
+                            status:
+                              type: string
+                          additionalProperties: false
+                          required:
+                          - language
                       additionalProperties: false
                       required:
+                      - _data
                       - _dateCreated
                       - _dependency
                       - _uuid
-                      - language
-                      - value
                     minLength: 1
                 additionalProperties: false
                 required:
@@ -14632,12 +14660,9 @@ components:
               properties:
                 language:
                   type: string
-                value:
-                  type: string
               additionalProperties: false
               required:
               - language
-              - value
             automated_google_translation:
               type: array
               items:
@@ -14645,12 +14670,9 @@ components:
                 properties:
                   language:
                     type: string
-                  value:
-                    type: string
                 additionalProperties: false
                 required:
                 - language
-                - value
               minLength: 1
             qual:
               oneOf:

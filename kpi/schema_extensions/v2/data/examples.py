@@ -345,8 +345,8 @@ def _get_data_supplement_response_examples():
                                 {
                                     '_dateCreated': iso0,
                                     '_uuid': '55555555-5555-5555-5555-555555555555',
-                                    'language': 'fr',
                                     '_data': {
+                                        'language': 'fr',
                                         'status': 'complete',
                                         'value': 'Allo la foule',
                                     },

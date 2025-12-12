@@ -134,7 +134,10 @@ class DataSupplementPayloadExtension(OpenApiSerializerExtension):
         )
 
     @classmethod
-    def _get_common_pair_schema(cls):
+    def _get_manual_pair_schema(cls):
+        """
+        Used for Manual operations. Requires both language and value.
+        """
         return build_object_type(
             additionalProperties=False,
             properties={
@@ -145,24 +148,37 @@ class DataSupplementPayloadExtension(OpenApiSerializerExtension):
         )
 
     @classmethod
+    def _get_auto_pair_schema(cls):
+        """
+        Used for Automated operations. Only requires language.
+        """
+        return build_object_type(
+            additionalProperties=False,
+            properties={
+                'language': GENERIC_STRING_SCHEMA,
+            },
+            required=['language'],
+        )
+
+    @classmethod
     def _get_manual_transcription_schema(cls):
-        return cls._get_common_pair_schema()
+        return cls._get_manual_pair_schema()
 
     @classmethod
     def _get_auto_transcription_schema(cls):
-        return cls._get_common_pair_schema()
+        return cls._get_auto_pair_schema()
 
     @classmethod
     def _get_manual_translation_schema(cls):
         return build_array_type(
-            schema=cls._get_common_pair_schema(),
+            schema=cls._get_manual_pair_schema(),
             min_length=1,
         )
 
     @classmethod
     def _get_auto_translation_schema(cls):
         return build_array_type(
-            schema=cls._get_common_pair_schema(),
+            schema=cls._get_auto_pair_schema(),
             min_length=1,
         )
 
@@ -306,13 +322,11 @@ class DataSupplementResponseExtension(OpenApiSerializerExtension):
         )
 
     @classmethod
-    def _get_base_version_props(cls, include_status=False):
+    def _get_data_content_schema(cls, include_status=False):
         """
-        Base properties for a version item.
+        Common Schema for the nested `_data` object found in versions.
         """
         props = {
-            '_dateCreated': cls.DATETIME,
-            '_uuid': cls.UUID_STR,
             'language': GENERIC_STRING_SCHEMA,
             'value': GENERIC_STRING_SCHEMA,
         }
@@ -320,11 +334,11 @@ class DataSupplementResponseExtension(OpenApiSerializerExtension):
         if include_status:
             props['status'] = GENERIC_STRING_SCHEMA
 
-        return props
-
-    @classmethod
-    def _get_base_version_required(cls):
-        return ['_dateCreated', '_uuid', 'language', 'value']
+        return build_object_type(
+            additionalProperties=False,
+            properties=props,
+            required=['language'],
+        )
 
     @classmethod
     def _get_dependency_schema(cls):
@@ -340,15 +354,25 @@ class DataSupplementResponseExtension(OpenApiSerializerExtension):
     @classmethod
     def _build_transcription_schema(cls, include_status=False):
         """
-        Helper for both manual and automated transcription.
+        Transcription Schema:
+        _versions list where each item has a nested `_data` object.
+        _dateAccepted is required if Manual (include_status=False), optional otherwise.
         """
+        required_fields = ['_dateCreated', '_uuid', '_data']
+
+        # If Manual (no status), dateAccepted is Mandatory.
+        if not include_status:
+            required_fields.append('_dateAccepted')
+
         version_item = build_object_type(
             additionalProperties=False,
             properties={
-                **cls._get_base_version_props(include_status=include_status),
-                '_dateAccepted': cls.DATETIME,  # Optional
+                '_dateCreated': cls.DATETIME,
+                '_uuid': cls.UUID_STR,
+                '_dateAccepted': cls.DATETIME,
+                '_data': cls._get_data_content_schema(include_status=include_status),
             },
-            required=cls._get_base_version_required(),
+            required=required_fields,
         )
 
         return build_object_type(
@@ -366,15 +390,24 @@ class DataSupplementResponseExtension(OpenApiSerializerExtension):
         """
         Translation Schema:
         Map<LanguageCode, ActionObject>.
-        The keys are dynamic strings (e.g., 'en', 'es').
+        _dateAccepted is required if Manual (include_status=False), optional otherwise.
         """
+        required_fields = ['_dateCreated', '_uuid', '_dependency', '_data']
+
+        # If Manual (no status), dateAccepted is Mandatory.
+        if not include_status:
+            required_fields.append('_dateAccepted')
+
         version_item = build_object_type(
             additionalProperties=False,
             properties={
-                **cls._get_base_version_props(include_status),
+                '_dateCreated': cls.DATETIME,
+                '_uuid': cls.UUID_STR,
                 '_dependency': cls._get_dependency_schema(),
+                '_dateAccepted': cls.DATETIME,
+                '_data': cls._get_data_content_schema(include_status=include_status),
             },
-            required=[*cls._get_base_version_required(), '_dependency'],
+            required=required_fields,
         )
 
         inner_action_schema = build_object_type(

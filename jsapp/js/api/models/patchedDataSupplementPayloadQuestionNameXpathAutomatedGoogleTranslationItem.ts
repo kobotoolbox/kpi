@@ -12,5 +12,4 @@ The endpoints are grouped by area of intended use. Each category contains relate
 
 export type PatchedDataSupplementPayloadQuestionNameXpathAutomatedGoogleTranslationItem = {
   language: string
-  value: string
 }
