@@ -26,7 +26,7 @@ class TranscriptionActionMixin:
         # they should already be in order but there's no way to guarantee it, so
         # sort just in case
         versions_sorted = sorted(
-            versions, key=lambda x: x.get('_dateAccepted', ''), reverse=True
+            versions, key=lambda x: x.get(self.DATE_ACCEPTED_FIELD, ''), reverse=True
         )
         version_data = versions_sorted[0]
 
@@ -305,7 +305,7 @@ class TranslationActionMixin:
             versions = language_data.get('_versions', [])
             # order by date accepted
             versions_sorted = sorted(
-                versions, key=lambda x: x.get('_dateAccepted', ''), reverse=True
+                versions, key=lambda x: x.get(self.DATE_ACCEPTED_FIELD, ''), reverse=True
             )
             version_data = versions_sorted[0]
 

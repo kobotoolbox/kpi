@@ -290,7 +290,7 @@ class BaseAction:
                         0
                     ].pop(self.DATE_ACCEPTED_FIELD, None)
 
-        else:
+        elif accepted:
             new_version[self.DATE_ACCEPTED_FIELD] = now_str
 
         if not self.action_class_config.allow_multiple:
@@ -439,7 +439,9 @@ class BaseAction:
             accepted = action_data.pop('accepted', None)
         else:
             dependency_supplemental_data = action_data.pop(self.DEPENDENCY_FIELD, None)
-            accepted = True
+            # Deletion is triggered by passing `{value: null}`.
+            # When this occurs, no acceptance should be recorded.
+            accepted = action_data.get('value') is not None
 
         if dependency_supplemental_data:
             # Sanitize 'dependency' before persisting: keep only a reference of the
