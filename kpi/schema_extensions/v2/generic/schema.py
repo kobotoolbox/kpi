@@ -76,3 +76,8 @@ GENERIC_STRING_SCHEMA = build_basic_type(OpenApiTypes.STR)
 GENERIC_OBJECT_SCHEMA = build_object_type(properties={})
 
 USER_URL_SCHEMA = build_url_type('api_v2:user-kpi-detail', username='bob')
+
+STATUS_NLP_ACTION_SCHEMA = {
+    'type': 'string',
+    'enum': ['failed', 'complete', 'deleted', 'in_progress'],
+}

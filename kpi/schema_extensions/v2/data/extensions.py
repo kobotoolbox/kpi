@@ -9,7 +9,8 @@ from drf_spectacular.plumbing import (
 )
 from drf_spectacular.types import OpenApiTypes
 
-from kpi.schema_extensions.v2.generic.schema import GENERIC_STRING_SCHEMA
+from kpi.schema_extensions.v2.generic.schema import GENERIC_STRING_SCHEMA, \
+    STATUS_NLP_ACTION_SCHEMA
 from kpi.utils.schema_extensions.url_builder import build_url_type
 
 
@@ -106,38 +107,48 @@ class DataSupplementPayloadExtension(OpenApiSerializerExtension):
                 '_version': {
                     'type': 'string',
                     'example': '20250820',
+                }
+            },
+            additionalProperties=build_object_type(
+                additionalProperties=False,
+                properties={
+                    'manual_transcription': self._get_manual_nlp_action_schema(),
+                    'manual_translation': self._get_manual_nlp_action_schema(),
+                    'automatic_google_transcription': (
+                        self._get_auto_nlp_action_schema()
+                    ),
+                    'automatic_google_translation': (
+                        self._get_auto_nlp_action_schema()
+                    ),
+                    'qual': self._get_qual_schema(),
                 },
-                'question_name_xpath': build_object_type(
-                    additionalProperties=False,
-                    properties={
-                        'manual_transcription': (
-                            self._get_manual_transcription_schema()
-                        ),
-                        'manual_translation': (self._get_manual_translation_schema()),
-                        'automated_google_transcription': (
-                            self._get_auto_transcription_schema()
-                        ),
-                        'automated_google_translation': (
-                            self._get_auto_translation_schema()
-                        ),
-                        'qual': self._get_qual_schema(),
-                    },
-                    anyOf=[
-                        {'required': ['manual_transcription']},
-                        {'required': ['manual_translation']},
-                        {'required': ['automated_google_transcription']},
-                        {'required': ['automated_google_translation']},
-                        {'required': ['qual']},
-                    ],
-                ),
-            }
+                anyOf=[
+                    {'required': ['manual_transcription']},
+                    {'required': ['manual_translation']},
+                    {'required': ['automatic_google_transcription']},
+                    {'required': ['automatic_google_translation']},
+                    {'required': ['qual']},
+                ],
+            ),
+            required=['_version'],
         )
 
     @classmethod
-    def _get_manual_pair_schema(cls):
-        """
-        Used for Manual operations. Requires both language and value.
-        """
+    def _get_auto_nlp_action_schema(cls):
+
+        return build_object_type(
+            additionalProperties=False,
+            properties={
+                'language': GENERIC_STRING_SCHEMA,
+                'accepted': {'type': 'boolean'},
+            },
+            required=['language'],
+        )
+
+
+    @classmethod
+    def _get_manual_nlp_action_schema(cls):
+
         return build_object_type(
             additionalProperties=False,
             properties={
@@ -145,41 +156,6 @@ class DataSupplementPayloadExtension(OpenApiSerializerExtension):
                 'value': GENERIC_STRING_SCHEMA,
             },
             required=['language', 'value'],
-        )
-
-    @classmethod
-    def _get_auto_pair_schema(cls):
-        """
-        Used for Automated operations. Only requires language.
-        """
-        return build_object_type(
-            additionalProperties=False,
-            properties={
-                'language': GENERIC_STRING_SCHEMA,
-            },
-            required=['language'],
-        )
-
-    @classmethod
-    def _get_manual_transcription_schema(cls):
-        return cls._get_manual_pair_schema()
-
-    @classmethod
-    def _get_auto_transcription_schema(cls):
-        return cls._get_auto_pair_schema()
-
-    @classmethod
-    def _get_manual_translation_schema(cls):
-        return build_array_type(
-            schema=cls._get_manual_pair_schema(),
-            min_length=1,
-        )
-
-    @classmethod
-    def _get_auto_translation_schema(cls):
-        return build_array_type(
-            schema=cls._get_auto_pair_schema(),
-            min_length=1,
         )
 
     @classmethod
@@ -221,6 +197,15 @@ class DataSupplementPayloadExtension(OpenApiSerializerExtension):
                     'value': {
                         'type': 'array',
                         'items': cls.UUID_STR,
+                    },
+                },
+            },
+            'qualTags': {
+                'type': 'object',
+                'properties': {
+                    'value': {
+                        'type': 'array',
+                        'items': {'type': 'string'},
                     },
                 },
             },
@@ -276,6 +261,18 @@ class DataSupplementPayloadExtension(OpenApiSerializerExtension):
                         },
                     ],
                 },
+                {
+                    'allOf': [
+                        qual_defs['qualCommon'],
+                        qual_defs['qualTags'],
+                        {
+                            'type': 'object',
+                            'properties': {
+                                'uuid': cls.UUID_STR,
+                            },
+                        },
+                    ],
+                },
             ],
         }
 
@@ -287,68 +284,38 @@ class DataSupplementResponseExtension(OpenApiSerializerExtension):
     UUID_STR = {'type': 'string', 'format': 'uuid'}
 
     def map_serializer(self, auto_schema, direction):
+
         return build_object_type(
             properties={
                 '_version': {
                     'type': 'string',
                     'example': '20250820',
-                },
-                'question_name_xpath': build_object_type(
-                    additionalProperties=False,
-                    properties={
-                        'manual_transcription': (
-                            self._get_manual_transcription_schema()
-                        ),
-                        'manual_translation': (self._get_manual_translation_schema()),
-                        'automated_google_transcription': (
-                            self._get_auto_transcription_schema()
-                        ),
-                        'automated_google_translation': (
-                            self._get_auto_translation_schema()
-                        ),
-                        'qual': self._get_qual_schema(),
-                    },
-                    # At least one of "manual_transcription" or "manual_translation"
-                    # must be present
-                    anyOf=[
-                        {'required': ['manual_transcription']},
-                        {'required': ['manual_translation']},
-                        {'required': ['automated_google_transcription']},
-                        {'required': ['automated_google_translation']},
-                        {'required': ['qual']},
-                    ],
-                ),
-            }
-        )
-
-    @classmethod
-    def _get_data_content_schema(cls, include_status=False):
-        """
-        Common Schema for the nested `_data` object found in versions.
-        """
-        props = {
-            'language': GENERIC_STRING_SCHEMA,
-            'value': GENERIC_STRING_SCHEMA,
-        }
-
-        if include_status:
-            props['status'] = GENERIC_STRING_SCHEMA
-
-        return build_object_type(
-            additionalProperties=False,
-            properties=props,
-            required=['language'],
-        )
-
-    @classmethod
-    def _get_dependency_schema(cls):
-        return build_object_type(
-            additionalProperties=False,
-            properties={
-                '_actionId': GENERIC_STRING_SCHEMA,
-                '_uuid': cls.UUID_STR,
+                }
             },
-            required=['_actionId', '_uuid'],
+            additionalProperties=build_object_type(
+                additionalProperties=False,
+                properties={
+                    'manual_transcription': self._get_manual_transcription_schema(),
+                    'manual_translation': self._get_manual_translation_schema(),
+                    'automated_google_transcription': (
+                        self._get_auto_transcription_schema()
+                    ),
+                    'automated_google_translation': (
+                        self._get_auto_translation_schema()
+                    ),
+                    'qual': self._get_qual_schema(),
+                },
+                # At least one of "manual_transcription" or "manual_translation"
+                # must be present
+                anyOf=[
+                    {'required': ['manual_transcription']},
+                    {'required': ['manual_translation']},
+                    {'required': ['automated_google_transcription']},
+                    {'required': ['automated_google_translation']},
+                    {'required': ['qual']},
+                ],
+            ),
+            required=['_version'],
         )
 
     @classmethod
@@ -420,25 +387,101 @@ class DataSupplementResponseExtension(OpenApiSerializerExtension):
             required=['_dateCreated', '_dateModified', '_versions'],
         )
 
-        return build_object_type(
-            additionalProperties=inner_action_schema,
-        )
+        return build_object_type(additionalProperties=inner_action_schema)
 
     @classmethod
-    def _get_manual_transcription_schema(cls):
-        return cls._build_transcription_schema(include_status=False)
+    def _get_base_version_required(cls):
+        return ['_dateCreated', '_uuid', '_data']
+
+    @classmethod
+    def _get_data_content_schema(cls, include_status=False):
+        """
+        Common Schema for the nested `_data` object found in versions.
+        """
+
+        if not include_status:
+            return build_object_type(
+                additionalProperties=False,
+                properties={
+                    'language': GENERIC_STRING_SCHEMA,
+                    'value': {'type': 'string', 'nullable': True},
+                },
+                required=['language', 'value'],
+            )
+
+        return {
+            'oneOf': [
+                # in_progress → no value, no error
+                build_object_type(
+                    additionalProperties=False,
+                    properties={
+                        'language': GENERIC_STRING_SCHEMA,
+                        'status': {'type': 'string', 'const': 'in_progress'},
+                    },
+                    required=['language', 'status'],
+                ),
+
+                # failed → error required, no value
+                build_object_type(
+                    additionalProperties=False,
+                    properties={
+                        'language': GENERIC_STRING_SCHEMA,
+                        'status': {'type': 'string', 'const': 'failed'},
+                        'error': {'type': 'string'},
+                    },
+                    required=['language', 'status', 'error'],
+                ),
+
+                # complete → value required (string)
+                build_object_type(
+                    additionalProperties=False,
+                    properties={
+                        'language': GENERIC_STRING_SCHEMA,
+                        'status': {'type': 'string', 'const': 'complete'},
+                        'value': {'type': 'string'},
+                    },
+                    required=['language', 'status', 'value'],
+                ),
+
+                # deleted → value required AND must be null
+                build_object_type(
+                    additionalProperties=False,
+                    properties={
+                        'language': GENERIC_STRING_SCHEMA,
+                        'status': {'type': 'string', 'const': 'deleted'},
+                        'value': {'type': 'null'},
+                    },
+                    required=['language', 'status', 'value'],
+                ),
+            ]
+        }
+
+    @classmethod
+    def _get_dependency_schema(cls):
+        return build_object_type(
+            additionalProperties=False,
+            properties={
+                '_actionId': GENERIC_STRING_SCHEMA,
+                '_uuid': cls.UUID_STR,
+            },
+            required=['_actionId', '_uuid'],
+        )
 
     @classmethod
     def _get_auto_transcription_schema(cls):
         return cls._build_transcription_schema(include_status=True)
 
     @classmethod
-    def _get_manual_translation_schema(cls):
-        return cls._build_translation_schema(include_status=False)
-
-    @classmethod
     def _get_auto_translation_schema(cls):
         return cls._build_translation_schema(include_status=True)
+
+    @classmethod
+    def _get_manual_transcription_schema(cls):
+        return cls._build_transcription_schema(include_status=False)
+
+    @classmethod
+    def _get_manual_translation_schema(cls):
+        return cls._build_translation_schema(include_status=False)
 
     @classmethod
     def _get_qual_schema(cls):
