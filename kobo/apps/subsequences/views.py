@@ -123,6 +123,7 @@ class QuestionAdvancedFeatureViewSet(
     ]
     pagination_class = None
     permission_classes = (AssetAdvancedFeaturesPermission,)
+    # FIXME v2 version should be set by default
     versioning_class = APIV2Versioning
 
     def get_queryset(self):
