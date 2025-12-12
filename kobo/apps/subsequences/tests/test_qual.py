@@ -1078,7 +1078,7 @@ class TestQualActionMethods(TestCase):
         action.update_params([hide_question, unhide_question])
         assert len(action.params) == 2
         assert action.params[0]['uuid'] == 'qual-hide-me'
-        assert action.params[0]['options']['hidden'] == True
+        assert action.params[0]['options']['hidden']
         assert action.params[1]['uuid'] == 'qual-unhide-me'
         # the entire options dictionary will actually go away, which is equivalent
         # to setting hidden to False
