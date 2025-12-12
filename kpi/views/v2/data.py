@@ -2,6 +2,7 @@ import copy
 import json
 import re
 
+import jsonschema
 import requests
 from django.conf import settings
 from django.http import Http404, HttpResponseRedirect
@@ -19,8 +20,17 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 from kobo.apps.audit_log.base_views import AuditLoggedViewSet
 from kobo.apps.audit_log.models import AuditType
 from kobo.apps.audit_log.utils import SubmissionUpdate
-from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
+    add_uuid_prefix,
+    remove_uuid_prefix,
+)
 from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_handler
+from kobo.apps.subsequences.exceptions import (
+    InvalidAction,
+    InvalidXPath,
+    TranscriptionNotFound,
+)
+from kobo.apps.subsequences.models import SubmissionSupplement
 from kpi.authentication import EnketoSessionAuthentication
 from kpi.constants import (
     PERM_CHANGE_SUBMISSIONS,
@@ -38,6 +48,7 @@ from kpi.exceptions import (
 from kpi.models import Asset
 from kpi.paginators import DataPagination
 from kpi.permissions import (
+    AdvancedSubmissionPermission,
     DuplicateSubmissionPermission,
     EditLinkSubmissionPermission,
     SubmissionPermission,
@@ -55,6 +66,8 @@ from kpi.schema_extensions.v2.data.serializers import (
     DataBulkUpdateResponse,
     DataResponse,
     DataStatusesUpdate,
+    DataSupplementPayload,
+    DataSupplementResponse,
     DataValidationStatusesUpdatePayload,
     DataValidationStatusUpdatePayload,
     DataValidationStatusUpdateResponse,
@@ -192,6 +205,8 @@ class DataViewSet(
     - docs/api/v2/data/validation_statuses_update.md
     - docs/api/v2/data/enketo_view.md
     - docs/api/v2/data/enketo_edit.md
+    - docs/api/v2/data/supplement_retrieve.md
+    - docs/api/v2/data/supplement_update.md
     """
 
     parent_model = Asset
@@ -240,7 +255,7 @@ class DataViewSet(
 
     def destroy(self, request, pk, *args, **kwargs):
         deployment = self._get_deployment()
-        # Coerce to int because back end only finds matches with same type
+        # Coerce to int because back end only finds matches with the same type
         submission_id = positive_int(pk)
 
         if deployment.delete_submission(submission_id, user=request.user):
@@ -270,7 +285,7 @@ class DataViewSet(
         # Coerce to int because the back end only finds matches with the same type
         submission_id = positive_int(pk)
         original_submission = deployment.get_submission(
-            submission_id=submission_id, user=request.user, fields=['_id', '_uuid']
+            submission_id=submission_id, user=request.user, fields=['_id', '_uuid'],
         )
 
         with http_open_rosa_error_handler(
@@ -394,7 +409,11 @@ class DataViewSet(
 
         try:
             submissions = deployment.get_submissions(
-                request.user, format_type=format_type, request=request, **filters
+                request.user,
+                format_type=format_type,
+                request=request,
+                for_output=True,
+                **filters,
             )
         except OperationFailure as err:
             message = str(err)
@@ -434,7 +453,7 @@ class DataViewSet(
         # its name cannot be changed (easily).
         submission_id_or_uuid = pk
         try:
-            submission_id_or_uuid = positive_int(submission_id_or_uuid)
+            submission_id_or_uuid = positive_int(pk)
         except ValueError:
             if not re.match(
                 r'[a-z\d]{8}-([a-z\d]{4}-){3}[a-z\d]{12}', submission_id_or_uuid
@@ -463,6 +482,83 @@ class DataViewSet(
         return Response(submission)
 
     @extend_schema(
+        methods=['GET'],
+        description=read_md('kpi', 'data/supplement_retrieve.md'),
+        responses=open_api_200_ok_response(DataSupplementResponse),  # TODO CHANGEME
+        parameters=[
+            OpenApiParameter(
+                name='pk',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='Submission identifier',
+            ),
+        ],
+    )
+    @extend_schema(
+        methods=['PATCH'],
+        description=read_md('kpi', 'data/supplement_update.md'),
+        request={'application/json': DataSupplementPayload},
+        responses=open_api_200_ok_response(DataSupplementResponse),
+        parameters=[
+            OpenApiParameter(
+                name='pk',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='Submission identifier',
+            ),
+        ],
+    )
+    @action(
+        detail=True,
+        methods=['GET', 'PATCH'],
+        renderer_classes=[renderers.JSONRenderer],
+        permission_classes=[AdvancedSubmissionPermission],
+    )
+    def supplement(self, request, pk, *args, **kwargs):
+
+        # make it clear, a root uuid is expected here
+        submission_root_uuid = pk
+
+        deployment = self._get_deployment()
+        try:
+            submission = list(
+                deployment.get_submissions(
+                    user=request.user,
+                    query={'meta/rootUuid': add_uuid_prefix(submission_root_uuid)},
+                )
+            )[0]
+        except IndexError:
+            raise Http404
+
+        submission_root_uuid = submission[deployment.SUBMISSION_ROOT_UUID_XPATH]
+
+        if request.method == 'GET':
+            return Response(
+                SubmissionSupplement.retrieve_data(self.asset, submission_root_uuid)
+            )
+
+        post_data = request.data
+
+        try:
+            supplemental_data = SubmissionSupplement.revise_data(
+                self.asset, submission, post_data
+            )
+        except InvalidAction:
+            raise serializers.ValidationError({'detail': 'Invalid action'})
+        except InvalidXPath:
+            raise serializers.ValidationError({'detail': 'Invalid question name'})
+        except jsonschema.exceptions.ValidationError:
+            raise serializers.ValidationError({'detail': 'Invalid payload'})
+        except TranscriptionNotFound:
+            raise serializers.ValidationError(
+                {'detail': 'Cannot translate without transcription'}
+            )
+
+        return Response(supplemental_data)
+
+    @extend_schema(
         methods=['PATCH'],
         description=read_md('kpi', 'data/validation_status_update.md'),
         request={'application/json': DataValidationStatusUpdatePayload},
@@ -474,11 +570,11 @@ class DataViewSet(
         ),
         parameters=[
             OpenApiParameter(
-                name='id',
-                type=int,
+                name='submission_id_or_root_uuid',
+                type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
-                description='ID of the data',
+                description='Submission identifier',
             ),
         ],
     )
@@ -527,7 +623,7 @@ class DataViewSet(
     )
     def validation_status(self, request, pk, *args, **kwargs):
         deployment = self._get_deployment()
-        # Coerce to int because back end only finds matches with same type
+        # Coerce to int because the back end only finds matches with the same type
         submission_id = positive_int(pk)
         if request.method == 'GET':
             json_response = deployment.get_validation_status(

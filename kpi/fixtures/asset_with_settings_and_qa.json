@@ -40,25 +40,24 @@
         "fields": [],
         "enabled": false
       },
-      "advanced_features": {
-        "qual": {
-          "qual_survey": [
-            {
-              "type": "qual_note",
-              "uuid": "12345",
-              "scope": "by_question#survey",
-              "xpath": "q1",
-              "labels": {
-                "_default": "QA Question"
-              }
-            }
-          ]
-        }
-      },
       "date_created": "2022-04-05T21:00:22.402Z",
       "date_modified": "2022-04-05T21:00:33.946Z",
       "owner": 1,
       "uid": "aNp9yMt4zKpUtTeZUnozYG"
+    }
+  },
+  {
+    "model": "subsequences.QuestionAdvancedFeature",
+    "pk": "qaf12345",
+    "fields": {
+      "question_xpath": "q1",
+      "asset": 3,
+      "action": "qual",
+      "params": [{
+            "type": "qualInteger",
+            "uuid": "1a2c8eb0-e2ec-4b3c-942a-c1a5410c081a",
+            "labels": {"_default": "How many characters appear in the story?"}
+        }]
     }
   }
 ]
