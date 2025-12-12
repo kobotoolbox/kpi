@@ -168,6 +168,8 @@ class QualAction(BaseAction):
             'oneOf': [],
         }
 
+        # For now, allow answers to all questions that can receive responses,
+        # even if they are hidden
         for qual_item in self.params:
             try:
                 data_schema_def = self.data_schema_definitions[
