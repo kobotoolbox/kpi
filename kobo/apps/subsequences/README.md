@@ -141,7 +141,12 @@ POST to `/api/v2/assets/{uid_asset}/advanced-features/` with:
   ]
 }
 ```
-See [API documentation](/api/v2/docs/?q=/api/v2/assets/{uid_asset}/advanced-features/) for more details.
+To learn more, visit `/api/v2/docs/` on your KoboToolbox server.
+
+Or use the public documentation endpoints:
+
+- Global Server: [API documentation](https://kf.kobotoolbox.org/api/v2/docs/?q=/api/v2/assets/{uid_asset}/advanced-features/)
+- EU Server: [API documentation](https://eu.kobotoolbox.org/api/v2/docs/?q=/api/v2/assets/{uid_asset}/advanced-features/)
 
 ---
 
@@ -188,7 +193,12 @@ PATCH /api/v2/assets/<asset_uid>/data/<submission_root_uuid>/supplement/
   }
 }
 ```
-See [API documentation](/api/v2/docs/?q=/api/v2/assets/{uid_asset}/data/{id}/supplement/) for more details.
+To learn more, visit `/api/v2/docs/` on your KoboToolbox server.
+
+Or use the public documentation endpoints:
+
+- Global Server: [API documentation](https://kf.kobotoolbox.org/api/v2/docs/?q=/api/v2/assets/{uid_asset}/data/{id}/supplement/)
+- EU Server: [API documentation](https://eu.kobotoolbox.org/api/v2/docs/?q=/api/v2/assets/{uid_asset}/data/{id}/supplement/)
 
 ---
 
