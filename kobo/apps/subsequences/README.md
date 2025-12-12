@@ -348,10 +348,10 @@ The structure is the same for both manual and automatic actions:
 
 - Metadata about the action itself (`_dateCreated`, `_dateModified`).
 - A list of versions under `_versions`, each containing:
-  - The properties defined by `data_schema` (manual) or `external_data_schema` (automatic).
+  - A nested `_data` object with properties from either `data_schema` (manual) or `external_data_schema` (automatic).
   - Audit fields (`_dateCreated`, `_dateAccepted`, `_uuid`).
 
-**Generic Example**
+**Manual Action Example**
 
 ```json
 {
@@ -359,17 +359,50 @@ The structure is the same for both manual and automatic actions:
   "_dateModified": "2025-08-21T20:57:28Z",
   "_versions": [
     {
-      "language": "en",
-      "value": "My automatic result",
-      "status": "complete",
+      "_data": {
+        "language": "en",
+        "value": "My manual transcript"
+      },
       "_dateCreated": "2025-08-21T20:57:28Z",
       "_dateAccepted": "2025-08-21T20:57:28Z",
       "_uuid": "4dcf9c9f-e503-4e5c-81f5-74250b295001"
     },
     {
-      "language": "en",
-      "value": "Previous revision",
-      "status": "complete",
+      "_data": {
+        "language": "en",
+        "value": "My previous manual transcript"
+      },
+      "_dateCreated": "2025-08-21T20:55:42Z",
+      "_dateAccepted": "2025-08-21T20:55:42Z",
+      "_uuid": "850e6359-50e8-4252-9895-e9669a27b1ea"
+    }
+  ]
+}
+```
+
+**Automatic Action Example**
+
+```json
+{
+  "_dateCreated": "2025-08-21T20:55:42Z",
+  "_dateModified": "2025-08-21T20:57:28Z",
+  "_versions": [
+    {
+      "_data": {
+        "language": "en",
+        "value": "My automatic result",
+        "status": "complete"
+      },
+      "_dateCreated": "2025-08-21T20:57:28Z",
+      "_dateAccepted": "2025-08-21T20:57:28Z",
+      "_uuid": "4dcf9c9f-e503-4e5c-81f5-74250b295001"
+    },
+    {
+      "_data": {
+        "language": "en",
+        "value": "My previous automatic result",
+        "status": "complete"
+      },
       "_dateCreated": "2025-08-21T20:55:42Z",
       "_dateAccepted": "2025-08-21T20:55:42Z",
       "_uuid": "850e6359-50e8-4252-9895-e9669a27b1ea"
@@ -398,9 +431,11 @@ In this case, a `_dependency` property is added to the persisted JSON.
   "_dateModified": "2025-09-01T12:17:28Z",
   "_versions": [
     {
-      "language": "fr",
-      "value": "Mon audio a été traduit automatiquement",
-      "status": "complete",
+      "_data": {
+        "language": "fr",
+        "value": "Mon audio a été traduit automatiquement",
+        "status": "complete"
+      },
       "_dateCreated": "2025-09-01T12:17:28Z",
       "_uuid": "91ab5f30-0f73-4e2e-b91f-8ad2f67a4729",
       "_dependency": {
