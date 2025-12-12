@@ -77,7 +77,6 @@ class QualAction(BaseAction):
                 'labels': {'$ref': '#/$defs/qualLabels'},
                 'uuid': {'$ref': '#/$defs/qualUuid'},
                 'options': {'type': 'object'},
-                'hidden': {'type': 'boolean'}
             },
             'required': ['labels', 'uuid'],
         },
@@ -93,7 +92,6 @@ class QualAction(BaseAction):
                 'uuid': {'$ref': '#/$defs/qualUuid'},
                 'type': {'$ref': '#/$defs/qualQuestionType'},
                 'labels': {'$ref': '#/$defs/qualLabels'},
-                'hidden': {'type': 'boolean'},
                 'choices': {
                     'type': 'array',
                     'items': {'$ref': '#/$defs/qualChoice'},
