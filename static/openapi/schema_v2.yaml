@@ -1098,6 +1098,350 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
+  /api/v2/assets/{uid_asset}/advanced-features/:
+    get:
+      operationId: api_v2_assets_advanced_features_list
+      description: |
+        ## List all advanced features on an asset
+
+        Lists all advanced features on all questions in an asset
+      parameters:
+      - in: path
+        name: uid_asset
+        schema:
+          type: string
+        description: UID of the parent assets
+        required: true
+      tags:
+      - Advanced Features
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AdvancedFeatureResponse'
+          description: null
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+    post:
+      operationId: api_v2_assets_advanced_features_create
+      description: |
+        ## Add an advanced action to an asset
+
+        Enables a new type of advanced action on a question in the asset.
+        * `action`, `params`, and `question_xpath` are required
+        * `params` must match the expected param_schema of the `action`
+
+        Accepted `action`s include:
+        * `manual_transcription`
+        * `automatic_google_transcription`
+        * `manual_translation`
+        * `automatic_google_translation`
+        * `qual`
+
+        For all actions except `qual`, `params` must look like
+        > '[{"language": "es"}, {"language": "en"}, ...]'
+
+        For `qual`, `params` must look like
+        ```
+           [
+                {
+                    'type': 'qualInteger',
+                    'uuid': '1a2c8eb0-e2ec-4b3c-942a-c1a5410c081a',
+                    'labels': {'_default': 'How many characters appear in the story?'},
+                },
+                {
+                    'type': 'qualSelectMultiple',
+                    'uuid': '2e30bec7-4843-43c7-98bc-13114af230c5',
+                    'labels': {'_default': "What themes were present in the story?"},
+                    'choices': [
+                        {
+                            'uuid': '2e24e6b4-bc3b-4e8e-b0cd-d8d3b9ca15b6',
+                            'labels': {'_default': 'Empathy'},
+                        },
+                        {
+                            'uuid': 'cb82919d-2948-4ccf-a488-359c5d5ee53a',
+                            'labels': {'_default': 'Competition'},
+                        },
+                        {
+                            'uuid': '8effe3b1-619e-4ada-be45-ebcea5af0aaf',
+                            'labels': {'_default': 'Apathy'},
+                        },
+                    ],
+                },
+                {
+                    'type': 'qualSelectOne',
+                    'uuid': '1a8b748b-f470-4c40-bc09-ce2b1197f503',
+                    'labels': {'_default': 'Was this a first-hand account?'},
+                    'choices': [
+                        {
+                            'uuid': '3c7aacdc-8971-482a-9528-68e64730fc99',
+                            'labels': {'_default': 'Yes'},
+                        },
+                        {
+                            'uuid': '7e31c6a5-5eac-464c-970c-62c383546a94',
+                            'labels': {'_default': 'No'},
+                        },
+                    ],
+                },
+                {
+                    'type': 'qualTags',
+                    'uuid': 'e9b4e6d1-fdbb-4dc9-8b10-a9c3c388322f',
+                    'labels': {'_default': 'Tag any landmarks mentioned in the story'},
+                },
+                {
+                    'type': 'qualText',
+                    'uuid': '83acf2a7-8edc-4fd8-8b9f-f832ca3f18ad',
+                    'labels': {'_default': 'Add any further remarks'},
+                },
+                {
+                    'type': 'qualNote',
+                    'uuid': '5ef11d48-d7a3-432e-af83-8c2e9b1feb72',
+                    'labels': {'_default': 'Thanks for your diligence'},
+                },
+            ]```
+      parameters:
+      - in: path
+        name: uid_asset
+        schema:
+          type: string
+        description: UID of the parent assets
+        required: true
+      tags:
+      - Advanced Features
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdvancedFeaturePostRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AdvancedFeaturePostRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AdvancedFeaturePostRequest'
+        required: true
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdvancedFeatureResponse'
+          description: null
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                BadRequest:
+                  value:
+                    detail:
+                      field_name:
+                      - Error message
+                  summary: Bad request
+          description: ''
+  /api/v2/assets/{uid_asset}/advanced-features/{id}/:
+    get:
+      operationId: api_v2_assets_advanced_features_retrieve
+      description: |
+        ## Retrieve advanced feature configuration for a question on an asset
+
+        Gets the params for one advanced action for one question in an asset
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        description: UID of the action
+        required: true
+      - in: path
+        name: uid_asset
+        schema:
+          type: string
+        description: UID of the parent assets
+        required: true
+      tags:
+      - Advanced Features
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdvancedFeatureResponse'
+          description: null
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+    patch:
+      operationId: api_v2_assets_advanced_features_partial_update
+      description: |
+        ## Update an advanced action on an asset
+
+        Update the params of an advanced action on a question in the asset.
+        * `params` is required
+        * `params` must match the expected param_schema of the action being updated
+
+        For all actions except `qual`, `params` must look like
+        > '[{"language": "es"}, {"language": "en"}, ...]'
+
+        For `qual`, `params` must look like
+        ```
+           [
+                {
+                    'type': 'qualInteger',
+                    'uuid': '1a2c8eb0-e2ec-4b3c-942a-c1a5410c081a',
+                    'labels': {'_default': 'How many characters appear in the story?'},
+                },
+                {
+                    'type': 'qualSelectMultiple',
+                    'uuid': '2e30bec7-4843-43c7-98bc-13114af230c5',
+                    'labels': {'_default': "What themes were present in the story?"},
+                    'choices': [
+                        {
+                            'uuid': '2e24e6b4-bc3b-4e8e-b0cd-d8d3b9ca15b6',
+                            'labels': {'_default': 'Empathy'},
+                        },
+                        {
+                            'uuid': 'cb82919d-2948-4ccf-a488-359c5d5ee53a',
+                            'labels': {'_default': 'Competition'},
+                        },
+                        {
+                            'uuid': '8effe3b1-619e-4ada-be45-ebcea5af0aaf',
+                            'labels': {'_default': 'Apathy'},
+                        },
+                    ],
+                },
+                {
+                    'type': 'qualSelectOne',
+                    'uuid': '1a8b748b-f470-4c40-bc09-ce2b1197f503',
+                    'labels': {'_default': 'Was this a first-hand account?'},
+                    'choices': [
+                        {
+                            'uuid': '3c7aacdc-8971-482a-9528-68e64730fc99',
+                            'labels': {'_default': 'Yes'},
+                        },
+                        {
+                            'uuid': '7e31c6a5-5eac-464c-970c-62c383546a94',
+                            'labels': {'_default': 'No'},
+                        },
+                    ],
+                },
+                {
+                    'type': 'qualTags',
+                    'uuid': 'e9b4e6d1-fdbb-4dc9-8b10-a9c3c388322f',
+                    'labels': {'_default': 'Tag any landmarks mentioned in the story'},
+                },
+                {
+                    'type': 'qualText',
+                    'uuid': '83acf2a7-8edc-4fd8-8b9f-f832ca3f18ad',
+                    'labels': {'_default': 'Add any further remarks'},
+                },
+                {
+                    'type': 'qualNote',
+                    'uuid': '5ef11d48-d7a3-432e-af83-8c2e9b1feb72',
+                    'labels': {'_default': 'Thanks for your diligence'},
+                },
+            ]```
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        description: UID of the action
+        required: true
+      - in: path
+        name: uid_asset
+        schema:
+          type: string
+        description: UID of the parent assets
+        required: true
+      tags:
+      - Advanced Features
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAdvancedFeaturePatchRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAdvancedFeaturePatchRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAdvancedFeaturePatchRequest'
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdvancedFeatureResponse'
+          description: null
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                BadRequest:
+                  value:
+                    detail:
+                      field_name:
+                      - Error message
+                  summary: Bad request
+          description: ''
   /api/v2/assets/{uid_asset}/attachments/{id}/:
     delete:
       operationId: api_v2_assets_attachments_destroy
@@ -1394,6 +1738,12 @@ paths:
           - geojson
           - json
           - xml
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: ID of the data (when applicable)
+        required: true
       - name: limit
         required: false
         in: query
@@ -1954,7 +2304,13 @@ paths:
         name: id
         schema:
           type: integer
-        description: ID of the data
+        description: ID of the data (when applicable)
+        required: true
+      - in: path
+        name: submission_id_or_root_uuid
+        schema:
+          type: string
+        description: Submission identifier
         required: true
       - in: path
         name: uid_asset
@@ -2025,6 +2381,697 @@ paths:
                   value:
                     detail: Not found.
                   summary: Not Found
+          description: ''
+  /api/v2/assets/{uid_asset}/data/{root_uuid}/supplement/:
+    get:
+      operationId: api_v2_assets_data_supplement_retrieve
+      description: |
+        ## Retrieve submission supplementary data
+
+        This endpoint allows you to retrieve supplementary data attached to a submission.
+
+        The supplementary data may include:
+
+        * NLP actions
+          * Manual transcription
+          * Manual translation
+          * Automatic Google transcription
+          * Automatic Google translation
+        * Qualitative analysis
+          * Text
+          * Number
+          * Single Choice
+          * Multiple Choice
+          * Tags
+
+        ⚠️ The response examples in this documentation show each action in isolation for
+        readability.
+
+        In practice, multiple actions can be combined for the same question, and a single
+        submission may contain multiple questions.
+      parameters:
+      - in: path
+        name: root_uuid
+        schema:
+          type: string
+        description: Root UUID of the submission
+        required: true
+      - in: path
+        name: uid_asset
+        schema:
+          type: string
+        description: UID of the parent asset
+        required: true
+      tags:
+      - Survey data
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataSupplementResponse'
+              examples:
+                ManualTranscription:
+                  value:
+                    _version: '20250820'
+                    question_name_xpath:
+                      manual_transcription:
+                        _dateCreated: '2025-01-01T12:00:00Z'
+                        _dateModified: '2025-01-01T12:00:00Z'
+                        _versions:
+                        - _dateCreated: '2025-01-01T12:00:00Z'
+                          _dateAccepted: '2025-01-01T12:00:00Z'
+                          _uuid: 11111111-1111-1111-1111-111111111111
+                          _data:
+                            language: fr
+                            value: Bonjour
+                  summary: Manual Transcription
+                ManualTranslation:
+                  value:
+                    _version: '20250820'
+                    question_name_xpath:
+                      manual_translation:
+                        en:
+                          _dateCreated: '2025-01-01T12:00:00Z'
+                          _dateModified: '2025-01-01T12:00:00Z'
+                          _versions:
+                          - _dateCreated: '2025-01-01T12:00:00Z'
+                            _dateAccepted: '2025-01-01T12:00:00Z'
+                            _uuid: 22222222-2222-2222-2222-222222222222
+                            _data:
+                              language: en
+                              value: Hello
+                            _dependency:
+                              _actionId: manual_transcription
+                              _uuid: 11111111-1111-1111-1111-111111111111
+                        es:
+                          _dateCreated: '2025-01-01T12:01:00Z'
+                          _dateModified: '2025-01-01T12:01:00Z'
+                          _versions:
+                          - _dateCreated: '2025-01-01T12:01:00Z'
+                            _dateAccepted: '2025-01-01T12:01:00Z'
+                            _uuid: 33333333-3333-3333-3333-333333333333
+                            _data:
+                              language: es
+                              value: Hola
+                            _dependency:
+                              _actionId: manual_transcription
+                              _uuid: 11111111-1111-1111-1111-111111111111
+                  summary: Manual Translation
+                AutomatedGoogleTranscription:
+                  value:
+                    _version: '20250820'
+                    question_name_xpath:
+                      automated_google_transcription:
+                        _dateCreated: '2025-01-01T12:00:00Z'
+                        _dateModified: '2025-01-01T12:01:00Z'
+                        _versions:
+                        - _dateCreated: '2025-01-01T12:01:00Z'
+                          _uuid: 44444444-4444-4444-4444-444444444444
+                          _data:
+                            language: en
+                            status: complete
+                            value: Hello world
+                          _dateAccepted: '2025-01-01T12:01:00Z'
+                        - _dateCreated: '2025-01-01T12:00:00Z'
+                          _uuid: 44444444-4444-4444-4444-444444444444
+                          _data:
+                            language: en
+                            status: in_progress
+                  summary: Automated Google Transcription
+                AutomatedGoogleTranslation:
+                  value:
+                    _version: '20250820'
+                    question_name_xpath:
+                      automated_google_translation:
+                        fr:
+                          _dateCreated: '2025-01-01T12:00:00Z'
+                          _dateModified: '2025-01-01T12:03:00Z'
+                          _versions:
+                          - _dateCreated: '2025-01-01T12:03:00Z'
+                            _dateAccepted: '2025-01-01T12:03:00Z'
+                            _uuid: 88888888-8888-8888-8888-888888888888
+                            _data:
+                              language: fr
+                              status: complete
+                              value: Bonjour le monde
+                            _dependency:
+                              _actionId: automatic_google_transcription
+                              _uuid: 44444444-4444-4444-4444-444444444444
+                          - _dateCreated: '2025-01-01T12:02:00Z'
+                            _uuid: 77777777-7777-7777-7777-777777777777
+                            _data:
+                              language: fr
+                              status: in_progress
+                            _dependency:
+                              _actionId: automatic_google_transcription
+                              _uuid: 44444444-4444-4444-4444-444444444444
+                          - _dateCreated: '2025-01-01T12:01:00Z'
+                            _uuid: 66666666-6666-6666-6666-666666666666
+                            _data:
+                              language: fr
+                              value: null
+                              status: deleted
+                            _dependency:
+                              _actionId: automatic_google_transcription
+                              _uuid: 44444444-4444-4444-4444-444444444444
+                          - _dateCreated: '2025-01-01T12:00:00Z'
+                            _uuid: 55555555-5555-5555-5555-555555555555
+                            _data:
+                              language: fr
+                              status: complete
+                              value: Allo la foule
+                            _dependency:
+                              _actionId: automatic_google_transcription
+                              _uuid: 44444444-4444-4444-4444-444444444444
+                  summary: Automated Google Translation
+                QualitativeAnalysis–IntegerQuestion:
+                  value:
+                    _version: '20250820'
+                    question_name_xpath:
+                      qual:
+                        66666666-6666-6666-6666-666666666666:
+                          _dateCreated: '2025-01-01T12:00:00Z'
+                          _dateModified: '2025-01-01T12:00:00Z'
+                          _versions:
+                          - _dateCreated: '2025-01-01T12:00:00Z'
+                            _dateAccepted: '2025-01-01T12:00:00Z'
+                            _data:
+                              uuid: 66666666-6666-6666-6666-666666666666
+                              value: 42
+                            _uuid: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
+                  summary: Qualitative Analysis – Integer Question
+                QualitativeAnalysis–TextQuestion:
+                  value:
+                    _version: '20250820'
+                    question_name_xpath:
+                      qual:
+                        aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff:
+                          _dateCreated: '2025-01-01T12:00:00Z'
+                          _dateModified: '2025-01-01T12:00:00Z'
+                          _versions:
+                          - _dateCreated: '2025-01-01T12:00:00Z'
+                            _dateAccepted: '2025-01-01T12:00:00Z'
+                            _data:
+                              uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
+                              value: This is a qualitative text response.
+                            _uuid: 12121212-3434-5656-7878-909090909090
+                  summary: Qualitative Analysis – Text Question
+                QualitativeAnalysis–SingleChoiceQuestion:
+                  value:
+                    _version: '20250820'
+                    question_name_xpath:
+                      qual:
+                        77777777-7777-7777-7777-777777777777:
+                          _dateCreated: '2025-01-01T12:00:00Z'
+                          _dateModified: '2025-01-01T12:00:00Z'
+                          _versions:
+                          - _dateCreated: '2025-01-01T12:00:00Z'
+                            _dateAccepted: '2025-01-01T12:00:00Z'
+                            _data:
+                              uuid: 77777777-7777-7777-7777-777777777777
+                              value: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
+                            _uuid: bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
+                  summary: Qualitative Analysis – Single Choice Question
+                QualitativeAnalysis–MultipleChoiceQuestion:
+                  value:
+                    _version: '20250820'
+                    question_name_xpath:
+                      qual:
+                        88888888-8888-8888-8888-888888888888:
+                          _dateCreated: '2025-01-01T12:00:00Z'
+                          _dateModified: '2025-01-01T12:00:00Z'
+                          _versions:
+                          - _dateCreated: '2025-01-01T12:00:00Z'
+                            _dateAccepted: '2025-01-01T12:00:00Z'
+                            _data:
+                              uuid: 88888888-8888-8888-8888-888888888888
+                              value:
+                              - aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
+                              - bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
+                            _uuid: 99999999-9999-9999-9999-999999999999
+                  summary: Qualitative Analysis – Multiple Choice Question
+                QualitativeAnalysis–TagsQuestion:
+                  value:
+                    _version: '20250820'
+                    question_name_xpath:
+                      qual:
+                        bbbbbbbb-cccc-dddd-eeee-ffffffffffff:
+                          _dateCreated: '2025-01-01T12:00:00Z'
+                          _dateModified: '2025-01-01T12:00:00Z'
+                          _versions:
+                          - _dateCreated: '2025-01-01T12:00:00Z'
+                            _dateAccepted: '2025-01-01T12:00:00Z'
+                            _data:
+                              uuid: bbbbbbbb-cccc-dddd-eeee-ffffffffffff
+                              value:
+                              - urgent
+                              - review
+                              - priority
+                            _uuid: 23232323-4545-6767-8989-010101010101
+                  summary: Qualitative Analysis – Tags Question
+          description: null
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotAuthenticated:
+                  value:
+                    detail: Authentication credentials were not provided.
+                  summary: Not authenticated
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                AccessDenied:
+                  value:
+                    detail: You do not have permission to perform this action.
+                  summary: Access Denied
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                BadRequest:
+                  value:
+                    detail:
+                      field_name:
+                      - Error message
+                  summary: Bad request
+          description: ''
+    patch:
+      operationId: api_v2_assets_data_supplement_partial_update
+      description: |
+        ## Update submission supplementary data
+
+        This endpoint allows you to add, update, or delete supplementary data for a submission.
+
+        It supports the same action types as the GET endpoint:
+
+        * NLP actions (manual and automatic transcription / translation)
+        * Qualitative analysis
+
+        The PATCH payload follows the same per-question structure as the GET response.
+
+        ⚠️ In this documentation, request and response examples present each action in
+        isolation for clarity. In practice, multiple actions may be combined within the same
+        payload or response, including for the same question, and a single submission may
+        contain multiple questions.
+      parameters:
+      - in: path
+        name: root_uuid
+        schema:
+          type: string
+        description: Root UUID of the submission
+        required: true
+      - in: path
+        name: uid_asset
+        schema:
+          type: string
+        description: UID of the parent asset
+        required: true
+      tags:
+      - Survey data
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedDataSupplementPayload'
+            examples:
+              ManualTranscription:
+                value:
+                  _version: '20250820'
+                  question_name_xpath:
+                    manual_transcription:
+                      language: fr
+                      value: Bonjour
+                summary: Manual Transcription
+              ManualTranslation:
+                value:
+                  _version: '20250820'
+                  question_name_xpath:
+                    manual_translation:
+                      language: en
+                      value: Hello
+                summary: Manual Translation
+              AutomicGoogleTranscription:
+                value:
+                  _version: '20250820'
+                  question_name_xpath:
+                    automatic_google_transcription:
+                      language: fr
+                summary: Automic Google Transcription
+              AutomicGoogleTranslation:
+                value:
+                  _version: '20250820'
+                  question_name_xpath:
+                    automatic_google_translation:
+                      language: en
+                summary: Automic Google Translation
+              DeleteNLPAction:
+                value:
+                  _version: '20250820'
+                  question_name_xpath:
+                    <action_id>:
+                      language: <language>
+                      value: null
+                summary: Delete NLP action
+                description: '`<action_id>` can be any of:<br>  * `manual_transcription`<br>  *
+                  `manual_translation`<br>  * `automatic_google_transcription`<br>  *
+                  `automatic_google_translation`<br>`<language>` is the language code,
+                  e.g. `en`.'
+              AcceptAutomaticNLPAction:
+                value:
+                  _version: '20250820'
+                  question_name_xpath:
+                    <action_id>:
+                      language: <language>
+                      accepted: true
+                summary: Accept automatic NLP action
+                description: '`<action_id>` can be any of `automatic_google_transcription`
+                  or `automatic_google_translation`.<br>`<language>` is the language
+                  code, e.g. `en`.<br>`accepted` is a boolean. It can `true` or `false`.'
+              QualitativeAnalysis–IntegerQuestion:
+                value:
+                  _version: '20250820'
+                  question_name_xpath:
+                    qual:
+                      uuid: 11111111-1111-1111-1111-111111111111
+                      value: 42
+                summary: Qualitative Analysis – Integer Question
+              QualitativeAnalysis–TextQuestion:
+                value:
+                  _version: '20250820'
+                  question_name_xpath:
+                    qual:
+                      uuid: 22222222-2222-2222-2222-222222222222
+                      value: example-text
+                summary: Qualitative Analysis – Text Question
+              QualitativeAnalysis–SingleChoiceQuestion:
+                value:
+                  _version: '20250820'
+                  question_name_xpath:
+                    qual:
+                      uuid: 33333333-3333-3333-3333-333333333333
+                      value: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
+                summary: Qualitative Analysis – Single Choice Question
+              QualitativeAnalysis–MultipleChoiceQuestion:
+                value:
+                  _version: '20250820'
+                  question_name_xpath:
+                    qual:
+                      uuid: 44444444-4444-4444-4444-444444444444
+                      value:
+                      - aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
+                      - bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
+                summary: Qualitative Analysis – Multiple Choice Question
+              QualitativeAnalysis–TagsQuestion:
+                value:
+                  _version: '20250820'
+                  question_name_xpath:
+                    qual:
+                      uuid: 44444444-4444-4444-4444-444444444444
+                      value:
+                      - tag1
+                      - tag2
+                summary: Qualitative Analysis – Tags Question
+        required: true
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataSupplementResponse'
+              examples:
+                ManualTranscription:
+                  value:
+                    _version: '20250820'
+                    question_name_xpath:
+                      manual_transcription:
+                        _dateCreated: '2025-01-01T12:00:00Z'
+                        _dateModified: '2025-01-01T12:00:00Z'
+                        _versions:
+                        - _dateCreated: '2025-01-01T12:00:00Z'
+                          _dateAccepted: '2025-01-01T12:00:00Z'
+                          _uuid: 11111111-1111-1111-1111-111111111111
+                          _data:
+                            language: fr
+                            value: Bonjour
+                  summary: Manual Transcription
+                ManualTranslation:
+                  value:
+                    _version: '20250820'
+                    question_name_xpath:
+                      manual_translation:
+                        en:
+                          _dateCreated: '2025-01-01T12:00:00Z'
+                          _dateModified: '2025-01-01T12:00:00Z'
+                          _versions:
+                          - _dateCreated: '2025-01-01T12:00:00Z'
+                            _dateAccepted: '2025-01-01T12:00:00Z'
+                            _uuid: 22222222-2222-2222-2222-222222222222
+                            _data:
+                              language: en
+                              value: Hello
+                            _dependency:
+                              _actionId: manual_transcription
+                              _uuid: 11111111-1111-1111-1111-111111111111
+                        es:
+                          _dateCreated: '2025-01-01T12:01:00Z'
+                          _dateModified: '2025-01-01T12:01:00Z'
+                          _versions:
+                          - _dateCreated: '2025-01-01T12:01:00Z'
+                            _dateAccepted: '2025-01-01T12:01:00Z'
+                            _uuid: 33333333-3333-3333-3333-333333333333
+                            _data:
+                              language: es
+                              value: Hola
+                            _dependency:
+                              _actionId: manual_transcription
+                              _uuid: 11111111-1111-1111-1111-111111111111
+                  summary: Manual Translation
+                AutomatedGoogleTranscription:
+                  value:
+                    _version: '20250820'
+                    question_name_xpath:
+                      automated_google_transcription:
+                        _dateCreated: '2025-01-01T12:00:00Z'
+                        _dateModified: '2025-01-01T12:01:00Z'
+                        _versions:
+                        - _dateCreated: '2025-01-01T12:01:00Z'
+                          _uuid: 44444444-4444-4444-4444-444444444444
+                          _data:
+                            language: en
+                            status: complete
+                            value: Hello world
+                          _dateAccepted: '2025-01-01T12:01:00Z'
+                        - _dateCreated: '2025-01-01T12:00:00Z'
+                          _uuid: 44444444-4444-4444-4444-444444444444
+                          _data:
+                            language: en
+                            status: in_progress
+                  summary: Automated Google Transcription
+                AutomatedGoogleTranslation:
+                  value:
+                    _version: '20250820'
+                    question_name_xpath:
+                      automated_google_translation:
+                        fr:
+                          _dateCreated: '2025-01-01T12:00:00Z'
+                          _dateModified: '2025-01-01T12:03:00Z'
+                          _versions:
+                          - _dateCreated: '2025-01-01T12:03:00Z'
+                            _dateAccepted: '2025-01-01T12:03:00Z'
+                            _uuid: 88888888-8888-8888-8888-888888888888
+                            _data:
+                              language: fr
+                              status: complete
+                              value: Bonjour le monde
+                            _dependency:
+                              _actionId: automatic_google_transcription
+                              _uuid: 44444444-4444-4444-4444-444444444444
+                          - _dateCreated: '2025-01-01T12:02:00Z'
+                            _uuid: 77777777-7777-7777-7777-777777777777
+                            _data:
+                              language: fr
+                              status: in_progress
+                            _dependency:
+                              _actionId: automatic_google_transcription
+                              _uuid: 44444444-4444-4444-4444-444444444444
+                          - _dateCreated: '2025-01-01T12:01:00Z'
+                            _uuid: 66666666-6666-6666-6666-666666666666
+                            _data:
+                              language: fr
+                              value: null
+                              status: deleted
+                            _dependency:
+                              _actionId: automatic_google_transcription
+                              _uuid: 44444444-4444-4444-4444-444444444444
+                          - _dateCreated: '2025-01-01T12:00:00Z'
+                            _uuid: 55555555-5555-5555-5555-555555555555
+                            _data:
+                              language: fr
+                              status: complete
+                              value: Allo la foule
+                            _dependency:
+                              _actionId: automatic_google_transcription
+                              _uuid: 44444444-4444-4444-4444-444444444444
+                  summary: Automated Google Translation
+                QualitativeAnalysis–IntegerQuestion:
+                  value:
+                    _version: '20250820'
+                    question_name_xpath:
+                      qual:
+                        66666666-6666-6666-6666-666666666666:
+                          _dateCreated: '2025-01-01T12:00:00Z'
+                          _dateModified: '2025-01-01T12:00:00Z'
+                          _versions:
+                          - _dateCreated: '2025-01-01T12:00:00Z'
+                            _dateAccepted: '2025-01-01T12:00:00Z'
+                            _data:
+                              uuid: 66666666-6666-6666-6666-666666666666
+                              value: 42
+                            _uuid: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
+                  summary: Qualitative Analysis – Integer Question
+                QualitativeAnalysis–TextQuestion:
+                  value:
+                    _version: '20250820'
+                    question_name_xpath:
+                      qual:
+                        aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff:
+                          _dateCreated: '2025-01-01T12:00:00Z'
+                          _dateModified: '2025-01-01T12:00:00Z'
+                          _versions:
+                          - _dateCreated: '2025-01-01T12:00:00Z'
+                            _dateAccepted: '2025-01-01T12:00:00Z'
+                            _data:
+                              uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
+                              value: This is a qualitative text response.
+                            _uuid: 12121212-3434-5656-7878-909090909090
+                  summary: Qualitative Analysis – Text Question
+                QualitativeAnalysis–SingleChoiceQuestion:
+                  value:
+                    _version: '20250820'
+                    question_name_xpath:
+                      qual:
+                        77777777-7777-7777-7777-777777777777:
+                          _dateCreated: '2025-01-01T12:00:00Z'
+                          _dateModified: '2025-01-01T12:00:00Z'
+                          _versions:
+                          - _dateCreated: '2025-01-01T12:00:00Z'
+                            _dateAccepted: '2025-01-01T12:00:00Z'
+                            _data:
+                              uuid: 77777777-7777-7777-7777-777777777777
+                              value: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
+                            _uuid: bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
+                  summary: Qualitative Analysis – Single Choice Question
+                QualitativeAnalysis–MultipleChoiceQuestion:
+                  value:
+                    _version: '20250820'
+                    question_name_xpath:
+                      qual:
+                        88888888-8888-8888-8888-888888888888:
+                          _dateCreated: '2025-01-01T12:00:00Z'
+                          _dateModified: '2025-01-01T12:00:00Z'
+                          _versions:
+                          - _dateCreated: '2025-01-01T12:00:00Z'
+                            _dateAccepted: '2025-01-01T12:00:00Z'
+                            _data:
+                              uuid: 88888888-8888-8888-8888-888888888888
+                              value:
+                              - aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
+                              - bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
+                            _uuid: 99999999-9999-9999-9999-999999999999
+                  summary: Qualitative Analysis – Multiple Choice Question
+                QualitativeAnalysis–TagsQuestion:
+                  value:
+                    _version: '20250820'
+                    question_name_xpath:
+                      qual:
+                        bbbbbbbb-cccc-dddd-eeee-ffffffffffff:
+                          _dateCreated: '2025-01-01T12:00:00Z'
+                          _dateModified: '2025-01-01T12:00:00Z'
+                          _versions:
+                          - _dateCreated: '2025-01-01T12:00:00Z'
+                            _dateAccepted: '2025-01-01T12:00:00Z'
+                            _data:
+                              uuid: bbbbbbbb-cccc-dddd-eeee-ffffffffffff
+                              value:
+                              - urgent
+                              - review
+                              - priority
+                            _uuid: 23232323-4545-6767-8989-010101010101
+                  summary: Qualitative Analysis – Tags Question
+          description: null
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotAuthenticated:
+                  value:
+                    detail: Authentication credentials were not provided.
+                  summary: Not authenticated
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                AccessDenied:
+                  value:
+                    detail: You do not have permission to perform this action.
+                  summary: Access Denied
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                BadRequest:
+                  value:
+                    detail:
+                      field_name:
+                      - Error message
+                  summary: Bad request
           description: ''
   /api/v2/assets/{uid_asset}/data/{uid_data}/attachments/:
     get:
@@ -2277,6 +3324,12 @@ paths:
         *"group_1/sub_group_1/.../sub_group_n/question_1": "new value"*
       parameters:
       - in: path
+        name: id
+        schema:
+          type: integer
+        description: ID of the data (when applicable)
+        required: true
+      - in: path
         name: uid_asset
         schema:
           type: string
@@ -2344,6 +3397,12 @@ paths:
         _Due to limitations with DRF-Spectacular current version, `DELETE` actions do not support showing a request body OR a response body. This is due to the 'vague' nature of the action which generally does *not* recommend the use of a payload. To still document this endpoint, example for the payload and response will be included but it will not be possible to test this endpoint. The HTTP code and the errors example are, for their part, factual and can be considered when working with the endpoint._
       parameters:
       - in: path
+        name: id
+        schema:
+          type: integer
+        description: ID of the data (when applicable)
+        required: true
+      - in: path
         name: uid_asset
         schema:
           type: string
@@ -2388,6 +3447,12 @@ paths:
         >           "detail": "{number_of_submissions} submissions have been updated"
         >        }
       parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: ID of the data (when applicable)
+        required: true
       - in: path
         name: uid_asset
         schema:
@@ -2460,6 +3525,12 @@ paths:
 
         _Due to limitations with DRF-Spectacular current version, `DELETE` actions do not support showing a request body OR a response body. This is due to the 'vague' nature of the action which generally does *not* recommend the use of a payload. To still document this endpoint, example for the payload and response will be included but it will not be possible to test this endpoint. The HTTP code and the errors example are, for their part, factual and can be considered when working with the endpoint._
       parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: ID of the data (when applicable)
+        required: true
       - in: path
         name: uid_asset
         schema:
@@ -9087,6 +10158,42 @@ components:
       - user
       - user_uid
       - username
+    AdvancedFeaturePostRequest:
+      type: object
+      properties:
+        question_xpath:
+          type: string
+        action:
+          type: string
+        params:
+          type: array
+          items:
+            type: object
+      required:
+      - action
+      - params
+      - question_xpath
+    AdvancedFeatureResponse:
+      type: object
+      properties:
+        question_xpath:
+          type: string
+        action:
+          type: string
+        params:
+          type: array
+          items:
+            type: object
+        asset:
+          type: string
+        uid:
+          type: string
+      required:
+      - action
+      - asset
+      - params
+      - question_xpath
+      - uid
     Asset:
       type: object
       properties:
@@ -9268,24 +10375,6 @@ components:
           type: object
         advanced_features:
           type: object
-        advanced_submission_schema:
-          type: object
-          properties:
-            type:
-              type: string
-            $description:
-              type: string
-          readOnly: true
-        analysis_form_json:
-          type: object
-          properties:
-            engines:
-              type: object
-            additional_fields:
-              type: array
-              items:
-                type: string
-          readOnly: true
         map_styles:
           type: object
         map_custom:
@@ -9327,6 +10416,14 @@ components:
               format:
                 type: string
               url:
+                type: string
+          readOnly: true
+        analysis_form_json:
+          type: object
+          properties:
+            additional_fields:
+              type: array
+              items:
                 type: string
           readOnly: true
         xform_link:
@@ -9426,7 +10523,6 @@ components:
           nullable: true
       required:
       - access_types
-      - advanced_submission_schema
       - analysis_form_json
       - asset_type
       - assignable_permissions
@@ -10451,6 +11547,574 @@ components:
           type: string
       required:
       - detail
+    DataSupplementResponse:
+      type: object
+      properties:
+        _version:
+          type: string
+          example: '20250820'
+      additionalProperties:
+        $ref: '#/components/schemas/DataSupplementResponseOneOf'
+      required:
+      - _version
+    DataSupplementResponseOneOf:
+      oneOf:
+      - type: string
+      - type: object
+        properties:
+          manual_transcription:
+            type: object
+            properties:
+              _dateCreated:
+                type: string
+                format: date-time
+              _dateModified:
+                type: string
+                format: date-time
+              _versions:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    _dateCreated:
+                      type: string
+                      format: date-time
+                    _uuid:
+                      type: string
+                      format: uuid
+                    _dateAccepted:
+                      type: string
+                      format: date-time
+                    _data:
+                      type: object
+                      properties:
+                        language:
+                          type: string
+                        value:
+                          type: string
+                          nullable: true
+                      additionalProperties: false
+                      required:
+                      - language
+                      - value
+                  additionalProperties: false
+                  required:
+                  - _data
+                  - _dateAccepted
+                  - _dateCreated
+                  - _uuid
+                minLength: 1
+            additionalProperties: false
+            required:
+            - _dateCreated
+            - _dateModified
+            - _versions
+          manual_translation:
+            type: object
+            additionalProperties:
+              type: object
+              properties:
+                _dateCreated:
+                  type: string
+                  format: date-time
+                _dateModified:
+                  type: string
+                  format: date-time
+                _versions:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      _dateCreated:
+                        type: string
+                        format: date-time
+                      _uuid:
+                        type: string
+                        format: uuid
+                      _dependency:
+                        type: object
+                        properties:
+                          _actionId:
+                            type: string
+                          _uuid:
+                            type: string
+                            format: uuid
+                        additionalProperties: false
+                        required:
+                        - _actionId
+                        - _uuid
+                      _dateAccepted:
+                        type: string
+                        format: date-time
+                      _data:
+                        type: object
+                        properties:
+                          language:
+                            type: string
+                          value:
+                            type: string
+                            nullable: true
+                        additionalProperties: false
+                        required:
+                        - language
+                        - value
+                    additionalProperties: false
+                    required:
+                    - _data
+                    - _dateAccepted
+                    - _dateCreated
+                    - _dependency
+                    - _uuid
+                  minLength: 1
+              additionalProperties: false
+              required:
+              - _dateCreated
+              - _dateModified
+              - _versions
+          automatic_google_transcription:
+            type: object
+            properties:
+              _dateCreated:
+                type: string
+                format: date-time
+              _dateModified:
+                type: string
+                format: date-time
+              _versions:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    _dateCreated:
+                      type: string
+                      format: date-time
+                    _uuid:
+                      type: string
+                      format: uuid
+                    _dateAccepted:
+                      type: string
+                      format: date-time
+                    _data:
+                      oneOf:
+                      - type: object
+                        properties:
+                          language:
+                            type: string
+                          status:
+                            type: string
+                            const: in_progress
+                        additionalProperties: false
+                        required:
+                        - language
+                        - status
+                      - type: object
+                        properties:
+                          language:
+                            type: string
+                          status:
+                            type: string
+                            const: failed
+                          error:
+                            type: string
+                        additionalProperties: false
+                        required:
+                        - error
+                        - language
+                        - status
+                      - type: object
+                        properties:
+                          language:
+                            type: string
+                          status:
+                            type: string
+                            const: complete
+                          value:
+                            type: string
+                        additionalProperties: false
+                        required:
+                        - language
+                        - status
+                        - value
+                      - type: object
+                        properties:
+                          language:
+                            type: string
+                          status:
+                            type: string
+                            const: deleted
+                          value:
+                            type: 'null'
+                        additionalProperties: false
+                        required:
+                        - language
+                        - status
+                        - value
+                  additionalProperties: false
+                  required:
+                  - _data
+                  - _dateCreated
+                  - _uuid
+                minLength: 1
+            additionalProperties: false
+            required:
+            - _dateCreated
+            - _dateModified
+            - _versions
+          automatic_google_translation:
+            type: object
+            additionalProperties:
+              type: object
+              properties:
+                _dateCreated:
+                  type: string
+                  format: date-time
+                _dateModified:
+                  type: string
+                  format: date-time
+                _versions:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      _dateCreated:
+                        type: string
+                        format: date-time
+                      _uuid:
+                        type: string
+                        format: uuid
+                      _dependency:
+                        type: object
+                        properties:
+                          _actionId:
+                            type: string
+                          _uuid:
+                            type: string
+                            format: uuid
+                        additionalProperties: false
+                        required:
+                        - _actionId
+                        - _uuid
+                      _dateAccepted:
+                        type: string
+                        format: date-time
+                      _data:
+                        oneOf:
+                        - type: object
+                          properties:
+                            language:
+                              type: string
+                            status:
+                              type: string
+                              const: in_progress
+                          additionalProperties: false
+                          required:
+                          - language
+                          - status
+                        - type: object
+                          properties:
+                            language:
+                              type: string
+                            status:
+                              type: string
+                              const: failed
+                            error:
+                              type: string
+                          additionalProperties: false
+                          required:
+                          - error
+                          - language
+                          - status
+                        - type: object
+                          properties:
+                            language:
+                              type: string
+                            status:
+                              type: string
+                              const: complete
+                            value:
+                              type: string
+                          additionalProperties: false
+                          required:
+                          - language
+                          - status
+                          - value
+                        - type: object
+                          properties:
+                            language:
+                              type: string
+                            status:
+                              type: string
+                              const: deleted
+                            value:
+                              type: 'null'
+                          additionalProperties: false
+                          required:
+                          - language
+                          - status
+                          - value
+                    additionalProperties: false
+                    required:
+                    - _data
+                    - _dateCreated
+                    - _dependency
+                    - _uuid
+                  minLength: 1
+              additionalProperties: false
+              required:
+              - _dateCreated
+              - _dateModified
+              - _versions
+          qual:
+            type: object
+            additionalProperties:
+              type: object
+              properties:
+                _dateCreated:
+                  type: string
+                  format: date-time
+                _dateModified:
+                  type: string
+                  format: date-time
+                _versions:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      _data:
+                        oneOf:
+                        - allOf:
+                          - type: object
+                            properties:
+                              uuid:
+                                type: string
+                                format: uuid
+                              value: {}
+                            additionalProperties: false
+                            required:
+                            - uuid
+                            - value
+                          - type: object
+                            properties:
+                              value:
+                                type: integer
+                                nullable: true
+                        - allOf:
+                          - type: object
+                            properties:
+                              uuid:
+                                type: string
+                                format: uuid
+                              value: {}
+                            additionalProperties: false
+                            required:
+                            - uuid
+                            - value
+                          - type: object
+                            properties:
+                              value:
+                                type: array
+                                items:
+                                  type: string
+                                  format: uuid
+                        - allOf:
+                          - type: object
+                            properties:
+                              uuid:
+                                type: string
+                                format: uuid
+                              value: {}
+                            additionalProperties: false
+                            required:
+                            - uuid
+                            - value
+                          - type: object
+                            properties:
+                              value:
+                                type: string
+                                format: uuid
+                        - allOf:
+                          - type: object
+                            properties:
+                              uuid:
+                                type: string
+                                format: uuid
+                              value: {}
+                            additionalProperties: false
+                            required:
+                            - uuid
+                            - value
+                          - type: object
+                            properties:
+                              value:
+                                type: array
+                                items:
+                                  type: string
+                        - allOf:
+                          - type: object
+                            properties:
+                              uuid:
+                                type: string
+                                format: uuid
+                              value: {}
+                            additionalProperties: false
+                            required:
+                            - uuid
+                            - value
+                          - type: object
+                            properties:
+                              value:
+                                type: string
+                      _dateAccepted:
+                        type: string
+                        format: date-time
+                      _dateCreated:
+                        type: string
+                        format: date-time
+                      _uuid:
+                        type: string
+                        format: uuid
+                    additionalProperties: false
+                    required:
+                    - _data
+                    - _dateCreated
+                    - _uuid
+                  minLength: 1
+              additionalProperties: false
+              required:
+              - _dateCreated
+              - _dateModified
+              - _versions
+            patternProperties:
+              ^[0-9a-fA-F-]{36}$:
+                type: object
+                properties:
+                  _dateCreated:
+                    type: string
+                    format: date-time
+                  _dateModified:
+                    type: string
+                    format: date-time
+                  _versions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _data:
+                          oneOf:
+                          - allOf:
+                            - type: object
+                              properties:
+                                uuid:
+                                  type: string
+                                  format: uuid
+                                value: {}
+                              additionalProperties: false
+                              required:
+                              - uuid
+                              - value
+                            - type: object
+                              properties:
+                                value:
+                                  type: integer
+                                  nullable: true
+                          - allOf:
+                            - type: object
+                              properties:
+                                uuid:
+                                  type: string
+                                  format: uuid
+                                value: {}
+                              additionalProperties: false
+                              required:
+                              - uuid
+                              - value
+                            - type: object
+                              properties:
+                                value:
+                                  type: array
+                                  items:
+                                    type: string
+                                    format: uuid
+                          - allOf:
+                            - type: object
+                              properties:
+                                uuid:
+                                  type: string
+                                  format: uuid
+                                value: {}
+                              additionalProperties: false
+                              required:
+                              - uuid
+                              - value
+                            - type: object
+                              properties:
+                                value:
+                                  type: string
+                                  format: uuid
+                          - allOf:
+                            - type: object
+                              properties:
+                                uuid:
+                                  type: string
+                                  format: uuid
+                                value: {}
+                              additionalProperties: false
+                              required:
+                              - uuid
+                              - value
+                            - type: object
+                              properties:
+                                value:
+                                  type: array
+                                  items:
+                                    type: string
+                          - allOf:
+                            - type: object
+                              properties:
+                                uuid:
+                                  type: string
+                                  format: uuid
+                                value: {}
+                              additionalProperties: false
+                              required:
+                              - uuid
+                              - value
+                            - type: object
+                              properties:
+                                value:
+                                  type: string
+                        _dateAccepted:
+                          type: string
+                          format: date-time
+                        _dateCreated:
+                          type: string
+                          format: date-time
+                        _uuid:
+                          type: string
+                          format: uuid
+                      additionalProperties: false
+                      required:
+                      - _data
+                      - _dateCreated
+                      - _uuid
+                    minLength: 1
+                additionalProperties: false
+                required:
+                - _dateCreated
+                - _dateModified
+                - _versions
+        additionalProperties: false
+        anyOf:
+        - required:
+          - manual_transcription
+        - required:
+          - manual_translation
+        - required:
+          - automatic_google_transcription
+        - required:
+          - automatic_google_translation
+        - required:
+          - qual
     DataValidationStatusUpdateResponse:
       type: object
       properties:
@@ -12933,6 +14597,13 @@ components:
       - source
       - source__name
       - url
+    PatchedAdvancedFeaturePatchRequest:
+      type: object
+      properties:
+        params:
+          type: array
+          items:
+            type: object
     PatchedAssetPatchRequest:
       oneOf:
       - type: object
@@ -13083,6 +14754,184 @@ components:
               properties:
                 field_to_update:
                   type: string
+    PatchedDataSupplementPayload:
+      type: object
+      properties:
+        _version:
+          type: string
+          example: '20250820'
+      additionalProperties:
+        $ref: '#/components/schemas/PatchedDataSupplementPayloadOneOf'
+      required:
+      - _version
+    PatchedDataSupplementPayloadOneOf:
+      oneOf:
+      - type: string
+      - type: object
+        properties:
+          manual_transcription:
+            type: object
+            properties:
+              language:
+                type: string
+              value:
+                type: string
+            additionalProperties: false
+            required:
+            - language
+            - value
+          manual_translation:
+            type: object
+            properties:
+              language:
+                type: string
+              value:
+                type: string
+            additionalProperties: false
+            required:
+            - language
+            - value
+          automatic_google_transcription:
+            type: object
+            properties:
+              language:
+                type: string
+              accepted:
+                type: boolean
+            additionalProperties: false
+            required:
+            - language
+          automatic_google_translation:
+            type: object
+            properties:
+              language:
+                type: string
+              accepted:
+                type: boolean
+            additionalProperties: false
+            required:
+            - language
+          qual:
+            oneOf:
+            - allOf:
+              - type: object
+                additionalProperties: false
+                properties:
+                  uuid:
+                    type: string
+                    format: uuid
+                  value: {}
+                required:
+                - uuid
+                - value
+              - type: object
+                properties:
+                  value:
+                    type: integer
+                    nullable: true
+              - type: object
+                properties:
+                  uuid:
+                    type: string
+                    format: uuid
+            - allOf:
+              - type: object
+                additionalProperties: false
+                properties:
+                  uuid:
+                    type: string
+                    format: uuid
+                  value: {}
+                required:
+                - uuid
+                - value
+              - type: object
+                properties:
+                  value:
+                    type: string
+              - type: object
+                properties:
+                  uuid:
+                    type: string
+                    format: uuid
+            - allOf:
+              - type: object
+                additionalProperties: false
+                properties:
+                  uuid:
+                    type: string
+                    format: uuid
+                  value: {}
+                required:
+                - uuid
+                - value
+              - type: object
+                properties:
+                  value:
+                    type: string
+                    format: uuid
+              - type: object
+                properties:
+                  uuid:
+                    type: string
+                    format: uuid
+            - allOf:
+              - type: object
+                additionalProperties: false
+                properties:
+                  uuid:
+                    type: string
+                    format: uuid
+                  value: {}
+                required:
+                - uuid
+                - value
+              - type: object
+                properties:
+                  value:
+                    type: array
+                    items:
+                      type: string
+                      format: uuid
+              - type: object
+                properties:
+                  uuid:
+                    type: string
+                    format: uuid
+            - allOf:
+              - type: object
+                additionalProperties: false
+                properties:
+                  uuid:
+                    type: string
+                    format: uuid
+                  value: {}
+                required:
+                - uuid
+                - value
+              - type: object
+                properties:
+                  value:
+                    type: array
+                    items:
+                      type: string
+              - type: object
+                properties:
+                  uuid:
+                    type: string
+                    format: uuid
+        additionalProperties: false
+        anyOf:
+        - required:
+          - manual_transcription
+        - required:
+          - manual_translation
+        - required:
+          - automatic_google_transcription
+        - required:
+          - automatic_google_translation
+        - required:
+          - qual
     PatchedDataValidationStatusUpdatePayload:
       type: object
       properties:

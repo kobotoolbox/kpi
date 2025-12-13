@@ -685,7 +685,7 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
         Schema rules:
 
         - The field `status` is always required and must be one of:
-          ["requested", "in_progress", "complete", "failed"].
+          ["in_progress", "complete", "failed"].
         - If `status` == "complete":
             * The field `value` becomes required and must be a string.
         - If `status` == "failed":
