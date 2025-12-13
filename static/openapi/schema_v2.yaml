@@ -11547,174 +11547,6 @@ components:
           type: string
       required:
       - detail
-    DataSupplementPayloadOneOf:
-      oneOf:
-      - type: string
-      - type: object
-        properties:
-          manual_transcription:
-            type: object
-            properties:
-              language:
-                type: string
-              value:
-                type: string
-            additionalProperties: false
-            required:
-            - language
-            - value
-          manual_translation:
-            type: object
-            properties:
-              language:
-                type: string
-              value:
-                type: string
-            additionalProperties: false
-            required:
-            - language
-            - value
-          automatic_google_transcription:
-            type: object
-            properties:
-              language:
-                type: string
-              accepted:
-                type: boolean
-            additionalProperties: false
-            required:
-            - language
-          automatic_google_translation:
-            type: object
-            properties:
-              language:
-                type: string
-              accepted:
-                type: boolean
-            additionalProperties: false
-            required:
-            - language
-          qual:
-            oneOf:
-            - allOf:
-              - type: object
-                additionalProperties: false
-                properties:
-                  uuid:
-                    type: string
-                    format: uuid
-                  value: {}
-                required:
-                - uuid
-                - value
-              - type: object
-                properties:
-                  value:
-                    type: integer
-                    nullable: true
-              - type: object
-                properties:
-                  uuid:
-                    type: string
-                    format: uuid
-            - allOf:
-              - type: object
-                additionalProperties: false
-                properties:
-                  uuid:
-                    type: string
-                    format: uuid
-                  value: {}
-                required:
-                - uuid
-                - value
-              - type: object
-                properties:
-                  value:
-                    type: string
-              - type: object
-                properties:
-                  uuid:
-                    type: string
-                    format: uuid
-            - allOf:
-              - type: object
-                additionalProperties: false
-                properties:
-                  uuid:
-                    type: string
-                    format: uuid
-                  value: {}
-                required:
-                - uuid
-                - value
-              - type: object
-                properties:
-                  value:
-                    type: string
-                    format: uuid
-              - type: object
-                properties:
-                  uuid:
-                    type: string
-                    format: uuid
-            - allOf:
-              - type: object
-                additionalProperties: false
-                properties:
-                  uuid:
-                    type: string
-                    format: uuid
-                  value: {}
-                required:
-                - uuid
-                - value
-              - type: object
-                properties:
-                  value:
-                    type: array
-                    items:
-                      type: string
-                      format: uuid
-              - type: object
-                properties:
-                  uuid:
-                    type: string
-                    format: uuid
-            - allOf:
-              - type: object
-                additionalProperties: false
-                properties:
-                  uuid:
-                    type: string
-                    format: uuid
-                  value: {}
-                required:
-                - uuid
-                - value
-              - type: object
-                properties:
-                  value:
-                    type: array
-                    items:
-                      type: string
-              - type: object
-                properties:
-                  uuid:
-                    type: string
-                    format: uuid
-        additionalProperties: false
-        anyOf:
-        - required:
-          - manual_transcription
-        - required:
-          - manual_translation
-        - required:
-          - automatic_google_transcription
-        - required:
-          - automatic_google_translation
-        - required:
-          - qual
     DataSupplementResponse:
       type: object
       properties:
@@ -14929,9 +14761,177 @@ components:
           type: string
           example: '20250820'
       additionalProperties:
-        $ref: '#/components/schemas/DataSupplementPayloadOneOf'
+        $ref: '#/components/schemas/PatchedDataSupplementPayloadOneOf'
       required:
       - _version
+    PatchedDataSupplementPayloadOneOf:
+      oneOf:
+      - type: string
+      - type: object
+        properties:
+          manual_transcription:
+            type: object
+            properties:
+              language:
+                type: string
+              value:
+                type: string
+            additionalProperties: false
+            required:
+            - language
+            - value
+          manual_translation:
+            type: object
+            properties:
+              language:
+                type: string
+              value:
+                type: string
+            additionalProperties: false
+            required:
+            - language
+            - value
+          automatic_google_transcription:
+            type: object
+            properties:
+              language:
+                type: string
+              accepted:
+                type: boolean
+            additionalProperties: false
+            required:
+            - language
+          automatic_google_translation:
+            type: object
+            properties:
+              language:
+                type: string
+              accepted:
+                type: boolean
+            additionalProperties: false
+            required:
+            - language
+          qual:
+            oneOf:
+            - allOf:
+              - type: object
+                additionalProperties: false
+                properties:
+                  uuid:
+                    type: string
+                    format: uuid
+                  value: {}
+                required:
+                - uuid
+                - value
+              - type: object
+                properties:
+                  value:
+                    type: integer
+                    nullable: true
+              - type: object
+                properties:
+                  uuid:
+                    type: string
+                    format: uuid
+            - allOf:
+              - type: object
+                additionalProperties: false
+                properties:
+                  uuid:
+                    type: string
+                    format: uuid
+                  value: {}
+                required:
+                - uuid
+                - value
+              - type: object
+                properties:
+                  value:
+                    type: string
+              - type: object
+                properties:
+                  uuid:
+                    type: string
+                    format: uuid
+            - allOf:
+              - type: object
+                additionalProperties: false
+                properties:
+                  uuid:
+                    type: string
+                    format: uuid
+                  value: {}
+                required:
+                - uuid
+                - value
+              - type: object
+                properties:
+                  value:
+                    type: string
+                    format: uuid
+              - type: object
+                properties:
+                  uuid:
+                    type: string
+                    format: uuid
+            - allOf:
+              - type: object
+                additionalProperties: false
+                properties:
+                  uuid:
+                    type: string
+                    format: uuid
+                  value: {}
+                required:
+                - uuid
+                - value
+              - type: object
+                properties:
+                  value:
+                    type: array
+                    items:
+                      type: string
+                      format: uuid
+              - type: object
+                properties:
+                  uuid:
+                    type: string
+                    format: uuid
+            - allOf:
+              - type: object
+                additionalProperties: false
+                properties:
+                  uuid:
+                    type: string
+                    format: uuid
+                  value: {}
+                required:
+                - uuid
+                - value
+              - type: object
+                properties:
+                  value:
+                    type: array
+                    items:
+                      type: string
+              - type: object
+                properties:
+                  uuid:
+                    type: string
+                    format: uuid
+        additionalProperties: false
+        anyOf:
+        - required:
+          - manual_transcription
+        - required:
+          - manual_translation
+        - required:
+          - automatic_google_transcription
+        - required:
+          - automatic_google_translation
+        - required:
+          - qual
     PatchedDataValidationStatusUpdatePayload:
       type: object
       properties:

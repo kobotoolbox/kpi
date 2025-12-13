@@ -142,7 +142,7 @@ class DataSupplementPayloadExtension(
                 }
             },
             additionalProperties=self._register_schema_component(
-                auto_schema, 'DataSupplementPayloadOneOf', one_of_schema
+                auto_schema, 'PatchedDataSupplementPayloadOneOf', one_of_schema
             ),
             required=['_version'],
         )

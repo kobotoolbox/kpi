@@ -10,9 +10,8 @@ The endpoints are grouped by area of intended use. Each category contains relate
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 
-import { DataSupplementPayloadOneOf } from './dataSupplementPayloadOneOf'
-
+import type { PatchedDataSupplementPayloadOneOf } from './patchedDataSupplementPayloadOneOf'
 export interface PatchedDataSupplementPayload {
   _version: string
-  [key: string]: DataSupplementPayloadOneOf
+  [key: string]: PatchedDataSupplementPayloadOneOf
 }
