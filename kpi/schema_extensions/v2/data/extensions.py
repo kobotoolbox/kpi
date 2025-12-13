@@ -3,7 +3,6 @@ from drf_spectacular.extensions import (
     OpenApiSerializerFieldExtension,
 )
 from drf_spectacular.plumbing import (
-    ResolvedComponent,
     build_array_type,
     build_basic_type,
     build_object_type,
@@ -141,6 +140,18 @@ class DataSupplementPayloadExtension(
                     'example': '20250820',
                 }
             },
+            # Use a named schema component for `additionalProperties` because the
+            # payload mixes:
+            #   - a static key (`_version`)
+            #   - dynamic keys (question names)
+            #
+            # When represented as a plain `additionalProperties` object, Orval generates
+            # a TypeScript index signature that conflicts with the static `_version`
+            # field (i.e. `[key: string]: QuestionEntry` vs `_version: string`).
+            #
+            # Registering and referencing a dedicated schema component here allows Orval
+            # to generate a union type for dynamic values while keeping `_version`
+            # correctly typed, without changing the backend response format.
             additionalProperties=self._register_schema_component(
                 auto_schema, 'PatchedDataSupplementPayloadOneOf', one_of_schema
             ),
@@ -289,17 +300,6 @@ class DataSupplementPayloadExtension(
             required=['language', 'value'],
         )
 
-    def _register_schema_component(self, auto_schema, name, schema):
-        component = ResolvedComponent(
-            name=name,
-            type=ResolvedComponent.SCHEMA,
-            schema=schema,
-            object=self,
-        )
-
-        auto_schema.registry.register(component)
-        return component.ref
-
 
 class DataSupplementResponseExtension(
     ComponentRegistrationMixin, OpenApiSerializerExtension
@@ -348,14 +348,14 @@ class DataSupplementResponseExtension(
                     'example': '20250820',
                 }
             },
-            # This schema intentionally uses a named component for `additionalProperties`
-            # because the payload mixes:
+            # Use a named schema component for `additionalProperties` because the
+            # payload mixes:
             #   - a static key (`_version`)
             #   - dynamic keys (question names)
             #
             # When represented as a plain `additionalProperties` object, Orval generates
-            # a TypeScript index signature that conflicts with the static `_version` field
-            # (i.e. `[key: string]: QuestionEntry` vs `_version: string`).
+            # a TypeScript index signature that conflicts with the static `_version`
+            # field (i.e. `[key: string]: QuestionEntry` vs `_version: string`).
             #
             # Registering and referencing a dedicated schema component here allows Orval
             # to generate a union type for dynamic values while keeping `_version`
@@ -708,13 +708,12 @@ class DataSupplementResponseExtension(
         return qual_root
 
     @property
-    def _manual_transcription_schema(cls):
-        return cls._build_transcription_schema(include_status=False)
+    def _manual_transcription_schema(self):
+        return self._build_transcription_schema(include_status=False)
 
     @property
-    def _manual_translation_schema(cls):
-        return cls._build_translation_schema(include_status=False)
-
+    def _manual_translation_schema(self):
+        return self._build_translation_schema(include_status=False)
 
 
 class DataValidationPayloadFieldExtension(OpenApiSerializerFieldExtension):
