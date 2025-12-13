@@ -12,40 +12,5 @@ The endpoints are grouped by area of intended use. Each category contains relate
 
 export interface PatchedDataSupplementPayload {
   _version: string
-  [key: string]:
-    | (unknown & {
-        manual_transcription?: PatchedDataSupplementPayloadManualTranscription
-        manual_translation?: PatchedDataSupplementPayloadManualTranslation
-        automatic_google_transcription?: PatchedDataSupplementPayloadAutomaticGoogleTranscription
-        automatic_google_translation?: PatchedDataSupplementPayloadAutomaticGoogleTranslation
-        qual?: PatchedDataSupplementPayloadQual
-      })
-    | (unknown & {
-        manual_transcription?: PatchedDataSupplementPayloadManualTranscription
-        manual_translation?: PatchedDataSupplementPayloadManualTranslation
-        automatic_google_transcription?: PatchedDataSupplementPayloadAutomaticGoogleTranscription
-        automatic_google_translation?: PatchedDataSupplementPayloadAutomaticGoogleTranslation
-        qual?: PatchedDataSupplementPayloadQual
-      })
-    | (unknown & {
-        manual_transcription?: PatchedDataSupplementPayloadManualTranscription
-        manual_translation?: PatchedDataSupplementPayloadManualTranslation
-        automatic_google_transcription?: PatchedDataSupplementPayloadAutomaticGoogleTranscription
-        automatic_google_translation?: PatchedDataSupplementPayloadAutomaticGoogleTranslation
-        qual?: PatchedDataSupplementPayloadQual
-      })
-    | (unknown & {
-        manual_transcription?: PatchedDataSupplementPayloadManualTranscription
-        manual_translation?: PatchedDataSupplementPayloadManualTranslation
-        automatic_google_transcription?: PatchedDataSupplementPayloadAutomaticGoogleTranscription
-        automatic_google_translation?: PatchedDataSupplementPayloadAutomaticGoogleTranslation
-        qual?: PatchedDataSupplementPayloadQual
-      })
-    | (unknown & {
-        manual_transcription?: PatchedDataSupplementPayloadManualTranscription
-        manual_translation?: PatchedDataSupplementPayloadManualTranslation
-        automatic_google_transcription?: PatchedDataSupplementPayloadAutomaticGoogleTranscription
-        automatic_google_translation?: PatchedDataSupplementPayloadAutomaticGoogleTranslation
-        qual?: PatchedDataSupplementPayloadQual
-      })
+  [key: string]: DataSupplementPayloadOneOf
 }

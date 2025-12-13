@@ -5,11 +5,12 @@ from drf_spectacular.extensions import (
 from drf_spectacular.plumbing import (
     build_array_type,
     build_basic_type,
-    build_object_type,
+    build_object_type, ResolvedComponent,
 )
 from drf_spectacular.types import OpenApiTypes
 
 from kpi.schema_extensions.v2.generic.schema import GENERIC_STRING_SCHEMA
+from kpi.utils.schema_extensions.mixins import ComponentRegistrationMixin
 from kpi.utils.schema_extensions.url_builder import build_url_type
 
 
@@ -94,13 +95,44 @@ class DataBulkUpdateResultFieldExtension(OpenApiSerializerFieldExtension):
         )
 
 
-class DataSupplementPayloadExtension(OpenApiSerializerExtension):
+class DataSupplementPayloadExtension(
+    ComponentRegistrationMixin, OpenApiSerializerExtension
+):
     target_class = 'kpi.schema_extensions.v2.data.serializers.DataSupplementPayload'
 
     DATETIME = build_basic_type(OpenApiTypes.DATETIME)
     UUID_STR = {'type': 'string', 'format': 'uuid'}
 
+    @property
+    def question_schema(self):
+
+        return build_object_type(
+            additionalProperties=False,
+            properties={
+                'manual_transcription': self._nlp_manual_action_schema,
+                'manual_translation': self._nlp_manual_action_schema,
+                'automatic_google_transcription': self._nlp_automatic_action_schema,
+                'automatic_google_translation': self._nlp_automatic_action_schema,
+                'qual': self._qual_schema,
+            },
+            anyOf=[
+                {'required': ['manual_transcription']},
+                {'required': ['manual_translation']},
+                {'required': ['automatic_google_transcription']},
+                {'required': ['automatic_google_translation']},
+                {'required': ['qual']},
+            ],
+        )
+
     def map_serializer(self, auto_schema, direction):
+
+        one_of_schema = {
+            'oneOf': [
+                {'type': 'string'},  # for `_version`
+                self.question_schema,
+            ]
+        }
+
         return build_object_type(
             properties={
                 '_version': {
@@ -108,62 +140,20 @@ class DataSupplementPayloadExtension(OpenApiSerializerExtension):
                     'example': '20250820',
                 }
             },
-            additionalProperties=build_object_type(
-                additionalProperties=False,
-                properties={
-                    'manual_transcription': self._get_manual_nlp_action_schema(),
-                    'manual_translation': self._get_manual_nlp_action_schema(),
-                    'automatic_google_transcription': (
-                        self._get_auto_nlp_action_schema()
-                    ),
-                    'automatic_google_translation': (
-                        self._get_auto_nlp_action_schema()
-                    ),
-                    'qual': self._get_qual_schema(),
-                },
-                anyOf=[
-                    {'required': ['manual_transcription']},
-                    {'required': ['manual_translation']},
-                    {'required': ['automatic_google_transcription']},
-                    {'required': ['automatic_google_translation']},
-                    {'required': ['qual']},
-                ],
+            additionalProperties = self._register_schema_component(
+                auto_schema, 'DataSupplementPayloadOneOf', one_of_schema
             ),
             required=['_version'],
         )
 
-    @classmethod
-    def _get_auto_nlp_action_schema(cls):
-
-        return build_object_type(
-            additionalProperties=False,
-            properties={
-                'language': GENERIC_STRING_SCHEMA,
-                'accepted': {'type': 'boolean'},
-            },
-            required=['language'],
-        )
-
-    @classmethod
-    def _get_manual_nlp_action_schema(cls):
-
-        return build_object_type(
-            additionalProperties=False,
-            properties={
-                'language': GENERIC_STRING_SCHEMA,
-                'value': GENERIC_STRING_SCHEMA,
-            },
-            required=['language', 'value'],
-        )
-
-    @classmethod
-    def _get_qual_schema(cls):
+    @property
+    def _qual_schema(self):
         qual_defs = {
             'qualCommon': {
                 'type': 'object',
                 'additionalProperties': False,
                 'properties': {
-                    'uuid': cls.UUID_STR,
+                    'uuid': self.UUID_STR,
                     'value': {},
                 },
                 'required': ['uuid', 'value'],
@@ -186,7 +176,7 @@ class DataSupplementPayloadExtension(OpenApiSerializerExtension):
             'qualSelectOne': {
                 'type': 'object',
                 'properties': {
-                    'value': cls.UUID_STR,
+                    'value': self.UUID_STR,
                 },
             },
             'qualSelectMultiple': {
@@ -194,7 +184,7 @@ class DataSupplementPayloadExtension(OpenApiSerializerExtension):
                 'properties': {
                     'value': {
                         'type': 'array',
-                        'items': cls.UUID_STR,
+                        'items': self.UUID_STR,
                     },
                 },
             },
@@ -218,7 +208,7 @@ class DataSupplementPayloadExtension(OpenApiSerializerExtension):
                         {
                             'type': 'object',
                             'properties': {
-                                'uuid': cls.UUID_STR,
+                                'uuid': self.UUID_STR,
                             },
                         },
                     ],
@@ -230,7 +220,7 @@ class DataSupplementPayloadExtension(OpenApiSerializerExtension):
                         {
                             'type': 'object',
                             'properties': {
-                                'uuid': cls.UUID_STR,
+                                'uuid': self.UUID_STR,
                             },
                         },
                     ],
@@ -242,7 +232,7 @@ class DataSupplementPayloadExtension(OpenApiSerializerExtension):
                         {
                             'type': 'object',
                             'properties': {
-                                'uuid': cls.UUID_STR,
+                                'uuid': self.UUID_STR,
                             },
                         },
                     ],
@@ -254,7 +244,7 @@ class DataSupplementPayloadExtension(OpenApiSerializerExtension):
                         {
                             'type': 'object',
                             'properties': {
-                                'uuid': cls.UUID_STR,
+                                'uuid': self.UUID_STR,
                             },
                         },
                     ],
@@ -266,7 +256,7 @@ class DataSupplementPayloadExtension(OpenApiSerializerExtension):
                         {
                             'type': 'object',
                             'properties': {
-                                'uuid': cls.UUID_STR,
+                                'uuid': self.UUID_STR,
                             },
                         },
                     ],
@@ -274,14 +264,82 @@ class DataSupplementPayloadExtension(OpenApiSerializerExtension):
             ],
         }
 
+    @property
+    def _nlp_automatic_action_schema(self):
 
-class DataSupplementResponseExtension(OpenApiSerializerExtension):
+        return build_object_type(
+            additionalProperties=False,
+            properties={
+                'language': GENERIC_STRING_SCHEMA,
+                'accepted': {'type': 'boolean'},
+            },
+            required=['language'],
+        )
+
+    @property
+    def _nlp_manual_action_schema(self):
+
+        return build_object_type(
+            additionalProperties=False,
+            properties={
+                'language': GENERIC_STRING_SCHEMA,
+                'value': GENERIC_STRING_SCHEMA,
+            },
+            required=['language', 'value'],
+        )
+
+    def _register_schema_component(self, auto_schema, name, schema):
+        component = ResolvedComponent(
+            name=name,
+            type=ResolvedComponent.SCHEMA,
+            schema=schema,
+            object=self,
+        )
+
+        auto_schema.registry.register(component)
+        return component.ref
+
+
+class DataSupplementResponseExtension(
+    ComponentRegistrationMixin, OpenApiSerializerExtension
+):
     target_class = 'kpi.schema_extensions.v2.data.serializers.DataSupplementResponse'
 
     DATETIME = build_basic_type(OpenApiTypes.DATETIME)
     UUID_STR = {'type': 'string', 'format': 'uuid'}
 
+
+    @property
+    def question_schema(self):
+
+        return build_object_type(
+            additionalProperties=False,
+            properties={
+                'manual_transcription': self._manual_transcription_schema,
+                'manual_translation': self._manual_translation_schema,
+                'automatic_google_transcription': self._automatic_transcription_schema,
+                'automatic_google_translation': self._automatic_translation_schema,
+                'qual': self._qual_schema,
+            },
+            # At least one of "manual_transcription" or "manual_translation"
+            # must be present
+            anyOf=[
+                {'required': ['manual_transcription']},
+                {'required': ['manual_translation']},
+                {'required': ['automatic_google_transcription']},
+                {'required': ['automatic_google_translation']},
+                {'required': ['qual']},
+            ]
+        )
+
     def map_serializer(self, auto_schema, direction):
+
+        one_of_schema = {
+            'oneOf': [
+                {'type': 'string'},  # for `_version`
+                self.question_schema,
+            ]
+        }
 
         return build_object_type(
             properties={
@@ -290,31 +348,31 @@ class DataSupplementResponseExtension(OpenApiSerializerExtension):
                     'example': '20250820',
                 }
             },
-            additionalProperties=build_object_type(
-                additionalProperties=False,
-                properties={
-                    'manual_transcription': self._get_manual_transcription_schema(),
-                    'manual_translation': self._get_manual_translation_schema(),
-                    'automated_google_transcription': (
-                        self._get_auto_transcription_schema()
-                    ),
-                    'automated_google_translation': (
-                        self._get_auto_translation_schema()
-                    ),
-                    'qual': self._get_qual_schema(),
-                },
-                # At least one of "manual_transcription" or "manual_translation"
-                # must be present
-                anyOf=[
-                    {'required': ['manual_transcription']},
-                    {'required': ['manual_translation']},
-                    {'required': ['automated_google_transcription']},
-                    {'required': ['automated_google_translation']},
-                    {'required': ['qual']},
-                ],
+            # This schema intentionally uses a named component for `additionalProperties`
+            # because the payload mixes:
+            #   - a static key (`_version`)
+            #   - dynamic keys (question names)
+            #
+            # When represented as a plain `additionalProperties` object, Orval generates
+            # a TypeScript index signature that conflicts with the static `_version` field
+            # (i.e. `[key: string]: QuestionEntry` vs `_version: string`).
+            #
+            # Registering and referencing a dedicated schema component here allows Orval
+            # to generate a union type for dynamic values while keeping `_version`
+            # correctly typed, without changing the backend response format.
+            additionalProperties = self._register_schema_component(
+                auto_schema, 'DataSupplementResponseOneOf', one_of_schema
             ),
             required=['_version'],
         )
+
+    @property
+    def _automatic_transcription_schema(self):
+        return self._build_transcription_schema(include_status=True)
+
+    @property
+    def _automatic_translation_schema(self):
+        return self._build_translation_schema(include_status=True)
 
     @classmethod
     def _build_transcription_schema(cls, include_status=False):
@@ -357,6 +415,7 @@ class DataSupplementResponseExtension(OpenApiSerializerExtension):
         Map<LanguageCode, ActionObject>.
         _dateAccepted is required if Manual (include_status=False), optional otherwise.
         """
+
         required_fields = ['_dateCreated', '_uuid', '_dependency', '_data']
 
         # If Manual (no status), dateAccepted is Mandatory.
@@ -386,10 +445,6 @@ class DataSupplementResponseExtension(OpenApiSerializerExtension):
         )
 
         return build_object_type(additionalProperties=inner_action_schema)
-
-    @classmethod
-    def _get_base_version_required(cls):
-        return ['_dateCreated', '_uuid', '_data']
 
     @classmethod
     def _get_data_content_schema(cls, include_status=False):
@@ -453,6 +508,7 @@ class DataSupplementResponseExtension(OpenApiSerializerExtension):
 
     @classmethod
     def _get_dependency_schema(cls):
+
         return build_object_type(
             additionalProperties=False,
             properties={
@@ -462,24 +518,8 @@ class DataSupplementResponseExtension(OpenApiSerializerExtension):
             required=['_actionId', '_uuid'],
         )
 
-    @classmethod
-    def _get_auto_transcription_schema(cls):
-        return cls._build_transcription_schema(include_status=True)
-
-    @classmethod
-    def _get_auto_translation_schema(cls):
-        return cls._build_translation_schema(include_status=True)
-
-    @classmethod
-    def _get_manual_transcription_schema(cls):
-        return cls._build_transcription_schema(include_status=False)
-
-    @classmethod
-    def _get_manual_translation_schema(cls):
-        return cls._build_translation_schema(include_status=False)
-
-    @classmethod
-    def _get_qual_schema(cls):
+    @property
+    def _qual_schema(self):
         """
         Build the OpenAPI schema for the `qual` field.
         """
@@ -490,7 +530,7 @@ class DataSupplementResponseExtension(OpenApiSerializerExtension):
         qual_common = build_object_type(
             additionalProperties=False,
             properties={
-                'uuid': cls.UUID_STR,
+                'uuid': self.UUID_STR,
                 # "value" is intentionally untyped here: it will be refined
                 # by the specific qual* schemas below.
                 'value': {},
@@ -521,7 +561,7 @@ class DataSupplementResponseExtension(OpenApiSerializerExtension):
             'properties': {
                 'value': {
                     'type': 'array',
-                    'items': cls.UUID_STR,
+                    'items': self.UUID_STR,
                 },
             },
         }
@@ -533,7 +573,7 @@ class DataSupplementResponseExtension(OpenApiSerializerExtension):
         qual_select_one = {
             'type': 'object',
             'properties': {
-                'value': cls.UUID_STR,
+                'value': self.UUID_STR,
             },
         }
 
@@ -604,9 +644,9 @@ class DataSupplementResponseExtension(OpenApiSerializerExtension):
             additionalProperties=False,
             properties={
                 '_data': data_schema,
-                '_dateAccepted': cls.DATETIME,
-                '_dateCreated': cls.DATETIME,
-                '_uuid': cls.UUID_STR,
+                '_dateAccepted': self.DATETIME,
+                '_dateCreated': self.DATETIME,
+                '_uuid': self.UUID_STR,
             },
             required=['_data', '_dateCreated', '_uuid'],
         )
@@ -625,8 +665,8 @@ class DataSupplementResponseExtension(OpenApiSerializerExtension):
         data_action_key = build_object_type(
             additionalProperties=False,
             properties={
-                '_dateCreated': cls.DATETIME,
-                '_dateModified': cls.DATETIME,
+                '_dateCreated': self.DATETIME,
+                '_dateModified': self.DATETIME,
                 '_versions': build_array_type(
                     schema=data_action_version,
                     min_length=1,
@@ -666,6 +706,15 @@ class DataSupplementResponseExtension(OpenApiSerializerExtension):
         )
 
         return qual_root
+
+    @property
+    def _manual_transcription_schema(cls):
+        return cls._build_transcription_schema(include_status=False)
+
+    @property
+    def _manual_translation_schema(cls):
+        return cls._build_translation_schema(include_status=False)
+
 
 
 class DataValidationPayloadFieldExtension(OpenApiSerializerFieldExtension):
