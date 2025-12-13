@@ -21,7 +21,7 @@ class SubsequenceParamsFieldExtension(OpenApiSerializerFieldExtension):
         )
         registry.register_on_missing(nlp_component)
         qual_component = ResolvedComponent(
-            name='NLPActionParams',
+            name='QualActionParams',
             schema=cls._get_qual_params_schema(),
             type=ResolvedComponent.SCHEMA,
             object=dict,
