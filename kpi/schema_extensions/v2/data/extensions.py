@@ -3,9 +3,10 @@ from drf_spectacular.extensions import (
     OpenApiSerializerFieldExtension,
 )
 from drf_spectacular.plumbing import (
+    ResolvedComponent,
     build_array_type,
     build_basic_type,
-    build_object_type, ResolvedComponent,
+    build_object_type,
 )
 from drf_spectacular.types import OpenApiTypes
 
@@ -140,7 +141,7 @@ class DataSupplementPayloadExtension(
                     'example': '20250820',
                 }
             },
-            additionalProperties = self._register_schema_component(
+            additionalProperties=self._register_schema_component(
                 auto_schema, 'DataSupplementPayloadOneOf', one_of_schema
             ),
             required=['_version'],
@@ -308,7 +309,6 @@ class DataSupplementResponseExtension(
     DATETIME = build_basic_type(OpenApiTypes.DATETIME)
     UUID_STR = {'type': 'string', 'format': 'uuid'}
 
-
     @property
     def question_schema(self):
 
@@ -329,7 +329,7 @@ class DataSupplementResponseExtension(
                 {'required': ['automatic_google_transcription']},
                 {'required': ['automatic_google_translation']},
                 {'required': ['qual']},
-            ]
+            ],
         )
 
     def map_serializer(self, auto_schema, direction):
@@ -360,7 +360,7 @@ class DataSupplementResponseExtension(
             # Registering and referencing a dedicated schema component here allows Orval
             # to generate a union type for dynamic values while keeping `_version`
             # correctly typed, without changing the backend response format.
-            additionalProperties = self._register_schema_component(
+            additionalProperties=self._register_schema_component(
                 auto_schema, 'DataSupplementResponseOneOf', one_of_schema
             ),
             required=['_version'],

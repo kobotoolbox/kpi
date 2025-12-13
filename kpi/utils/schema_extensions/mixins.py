@@ -19,5 +19,5 @@ class ComponentRegistrationMixin:
             object=self,
         )
 
-        auto_schema.registry.register(component)
+        auto_schema.registry.register_on_missing(component)
         return component.ref
