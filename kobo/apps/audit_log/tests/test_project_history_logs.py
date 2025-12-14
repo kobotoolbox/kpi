@@ -1992,7 +1992,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             method=self.client.patch,
             url=reverse(
                 self._get_endpoint('submission-supplement'),
-                kwargs={'uid_asset': self.asset.uid, 'pk': submission['_uuid']},
+                args=[self.asset.uid, submission['_uuid']],
             ),
             request_data={
                 '_version': '20250820',

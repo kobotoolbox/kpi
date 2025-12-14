@@ -1,6 +1,7 @@
 import jsonschema.exceptions
 from rest_framework import serializers
 
+from kobo.apps.subsequences.actions import ACTION_IDS_TO_CLASSES
 from kobo.apps.subsequences.models import QuestionAdvancedFeature
 
 
@@ -43,3 +44,12 @@ class QuestionAdvancedFeatureSerializer(serializers.ModelSerializer):
         ).exists():
             raise serializers.ValidationError('Action for this question already exists')
         return super().create(validated_data)
+
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        Action = ACTION_IDS_TO_CLASSES[attrs.get('action')]
+        try:
+            Action.validate_params(attrs.get('params'))
+        except jsonschema.exceptions.ValidationError as ve:
+            raise serializers.ValidationError(ve)
+        return data
