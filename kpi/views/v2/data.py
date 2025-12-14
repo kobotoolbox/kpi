@@ -48,7 +48,6 @@ from kpi.exceptions import (
 from kpi.models import Asset
 from kpi.paginators import DataPagination
 from kpi.permissions import (
-    AdvancedSubmissionPermission,
     DuplicateSubmissionPermission,
     EditLinkSubmissionPermission,
     SubmissionPermission,
@@ -60,6 +59,7 @@ from kpi.renderers import (
     SubmissionGeoJsonRenderer,
     SubmissionXMLRenderer,
 )
+from kpi.schema_extensions.v2.data.examples import get_data_supplement_examples
 from kpi.schema_extensions.v2.data.serializers import (
     DataBulkDelete,
     DataBulkUpdate,
@@ -98,6 +98,13 @@ from kpi.utils.xml import (
             location=OpenApiParameter.PATH,
             required=True,
             description='UID of the parent asset',
+        ),
+        OpenApiParameter(
+            name='id',
+            type=int,
+            location=OpenApiParameter.PATH,
+            required=False,
+            description='ID of the data (when applicable)',
         ),
     ],
 )
@@ -484,16 +491,23 @@ class DataViewSet(
     @extend_schema(
         methods=['GET'],
         description=read_md('kpi', 'data/supplement_retrieve.md'),
-        responses=open_api_200_ok_response(DataSupplementResponse),  # TODO CHANGEME
+        responses=open_api_200_ok_response(DataSupplementResponse),
         parameters=[
             OpenApiParameter(
-                name='pk',
+                name='id',
+                type=str,
+                location=OpenApiParameter.PATH,
+                exclude=True,
+            ),
+            OpenApiParameter(
+                name='root_uuid',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
-                description='Submission identifier',
+                description='Root UUID of the submission',
             ),
         ],
+        examples=get_data_supplement_examples(),
     )
     @extend_schema(
         methods=['PATCH'],
@@ -502,24 +516,25 @@ class DataViewSet(
         responses=open_api_200_ok_response(DataSupplementResponse),
         parameters=[
             OpenApiParameter(
-                name='pk',
+                name='id',
+                type=str,
+                location=OpenApiParameter.PATH,
+                exclude=True,
+            ),
+            OpenApiParameter(
+                name='root_uuid',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
-                description='Submission identifier',
+                description='Root UUID of the submission',
             ),
         ],
+        examples=get_data_supplement_examples(),
     )
-    @action(
-        detail=True,
-        methods=['GET', 'PATCH'],
-        renderer_classes=[renderers.JSONRenderer],
-        permission_classes=[AdvancedSubmissionPermission],
-    )
-    def supplement(self, request, pk, *args, **kwargs):
+    def supplement(self, request, root_uuid, *args, **kwargs):
 
         # make it clear, a root uuid is expected here
-        submission_root_uuid = pk
+        submission_root_uuid = root_uuid
 
         deployment = self._get_deployment()
         try:
