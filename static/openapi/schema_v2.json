@@ -2557,6 +2557,15 @@
                         }
                     },
                     {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "ID of the data (when applicable)",
+                        "required": true
+                    },
+                    {
                         "name": "limit",
                         "required": false,
                         "in": "query",
@@ -3276,279 +3285,6 @@
                 }
             }
         },
-        "/api/v2/assets/{uid_asset}/data/{id}/supplement/": {
-            "get": {
-                "operationId": "api_v2_assets_data_supplement_retrieve",
-                "description": "## TBC Supplement retrieve\n",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "id",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "required": true
-                    },
-                    {
-                        "in": "path",
-                        "name": "pk",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "Submission identifier",
-                        "required": true
-                    },
-                    {
-                        "in": "path",
-                        "name": "uid_asset",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "UID of the parent asset",
-                        "required": true
-                    }
-                ],
-                "tags": [
-                    "Survey data"
-                ],
-                "security": [
-                    {
-                        "BasicAuth": []
-                    },
-                    {
-                        "TokenAuth": []
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/DataSupplementResponse"
-                                }
-                            }
-                        },
-                        "description": null
-                    },
-                    "401": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorDetail"
-                                },
-                                "examples": {
-                                    "NotAuthenticated": {
-                                        "value": {
-                                            "detail": "Authentication credentials were not provided."
-                                        },
-                                        "summary": "Not authenticated"
-                                    }
-                                }
-                            }
-                        },
-                        "description": ""
-                    },
-                    "403": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorDetail"
-                                },
-                                "examples": {
-                                    "AccessDenied": {
-                                        "value": {
-                                            "detail": "You do not have permission to perform this action."
-                                        },
-                                        "summary": "Access Denied"
-                                    }
-                                }
-                            }
-                        },
-                        "description": ""
-                    },
-                    "404": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorDetail"
-                                },
-                                "examples": {
-                                    "NotFound": {
-                                        "value": {
-                                            "detail": "Not found."
-                                        },
-                                        "summary": "Not Found"
-                                    }
-                                }
-                            }
-                        },
-                        "description": ""
-                    },
-                    "400": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
-                                },
-                                "examples": {
-                                    "BadRequest": {
-                                        "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
-                                        },
-                                        "summary": "Bad request"
-                                    }
-                                }
-                            }
-                        },
-                        "description": ""
-                    }
-                }
-            },
-            "patch": {
-                "operationId": "api_v2_assets_data_supplement_partial_update",
-                "description": "## TBC Supplement update\n",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "id",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "required": true
-                    },
-                    {
-                        "in": "path",
-                        "name": "pk",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "Submission identifier",
-                        "required": true
-                    },
-                    {
-                        "in": "path",
-                        "name": "uid_asset",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "UID of the parent asset",
-                        "required": true
-                    }
-                ],
-                "tags": [
-                    "Survey data"
-                ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/PatchedDataSupplementPayload"
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "BasicAuth": []
-                    },
-                    {
-                        "TokenAuth": []
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/DataSupplementResponse"
-                                }
-                            }
-                        },
-                        "description": null
-                    },
-                    "401": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorDetail"
-                                },
-                                "examples": {
-                                    "NotAuthenticated": {
-                                        "value": {
-                                            "detail": "Authentication credentials were not provided."
-                                        },
-                                        "summary": "Not authenticated"
-                                    }
-                                }
-                            }
-                        },
-                        "description": ""
-                    },
-                    "403": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorDetail"
-                                },
-                                "examples": {
-                                    "AccessDenied": {
-                                        "value": {
-                                            "detail": "You do not have permission to perform this action."
-                                        },
-                                        "summary": "Access Denied"
-                                    }
-                                }
-                            }
-                        },
-                        "description": ""
-                    },
-                    "404": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorDetail"
-                                },
-                                "examples": {
-                                    "NotFound": {
-                                        "value": {
-                                            "detail": "Not found."
-                                        },
-                                        "summary": "Not Found"
-                                    }
-                                }
-                            }
-                        },
-                        "description": ""
-                    },
-                    "400": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorObject"
-                                },
-                                "examples": {
-                                    "BadRequest": {
-                                        "value": {
-                                            "detail": {
-                                                "field_name": [
-                                                    "Error message"
-                                                ]
-                                            }
-                                        },
-                                        "summary": "Bad request"
-                                    }
-                                }
-                            }
-                        },
-                        "description": ""
-                    }
-                }
-            }
-        },
         "/api/v2/assets/{uid_asset}/data/{id}/validation_status/": {
             "get": {
                 "operationId": "api_v2_assets_data_validation_status_retrieve",
@@ -3623,8 +3359,9 @@
                         "in": "path",
                         "name": "id",
                         "schema": {
-                            "type": "string"
+                            "type": "integer"
                         },
+                        "description": "ID of the data (when applicable)",
                         "required": true
                     },
                     {
@@ -3747,6 +3484,1014 @@
                                             "detail": "Not found."
                                         },
                                         "summary": "Not Found"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v2/assets/{uid_asset}/data/{root_uuid}/supplement/": {
+            "get": {
+                "operationId": "api_v2_assets_data_supplement_retrieve",
+                "description": "## Retrieve submission supplementary data\n\nThis endpoint allows you to retrieve supplementary data attached to a submission.\n\nThe supplementary data may include:\n\n* NLP actions\n  * Manual transcription\n  * Manual translation\n  * Automatic Google transcription\n  * Automatic Google translation\n* Qualitative analysis\n  * Text\n  * Number\n  * Single Choice\n  * Multiple Choice\n  * Tags\n\n⚠️ The response examples in this documentation show each action in isolation for\nreadability.\n\nIn practice, multiple actions can be combined for the same question, and a single\nsubmission may contain multiple questions.\n",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "root_uuid",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Root UUID of the submission",
+                        "required": true
+                    },
+                    {
+                        "in": "path",
+                        "name": "uid_asset",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "UID of the parent asset",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Survey data"
+                ],
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "TokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DataSupplementResponse"
+                                },
+                                "examples": {
+                                    "ManualTranscription": {
+                                        "value": {
+                                            "_version": "20250820",
+                                            "question_name_xpath": {
+                                                "manual_transcription": {
+                                                    "_dateCreated": "2025-01-01T12:00:00Z",
+                                                    "_dateModified": "2025-01-01T12:00:00Z",
+                                                    "_versions": [
+                                                        {
+                                                            "_dateCreated": "2025-01-01T12:00:00Z",
+                                                            "_dateAccepted": "2025-01-01T12:00:00Z",
+                                                            "_uuid": "11111111-1111-1111-1111-111111111111",
+                                                            "_data": {
+                                                                "language": "fr",
+                                                                "value": "Bonjour"
+                                                            }
+                                                        }
+                                                    ]
+                                                }
+                                            }
+                                        },
+                                        "summary": "Manual Transcription"
+                                    },
+                                    "ManualTranslation": {
+                                        "value": {
+                                            "_version": "20250820",
+                                            "question_name_xpath": {
+                                                "manual_translation": {
+                                                    "en": {
+                                                        "_dateCreated": "2025-01-01T12:00:00Z",
+                                                        "_dateModified": "2025-01-01T12:00:00Z",
+                                                        "_versions": [
+                                                            {
+                                                                "_dateCreated": "2025-01-01T12:00:00Z",
+                                                                "_dateAccepted": "2025-01-01T12:00:00Z",
+                                                                "_uuid": "22222222-2222-2222-2222-222222222222",
+                                                                "_data": {
+                                                                    "language": "en",
+                                                                    "value": "Hello"
+                                                                },
+                                                                "_dependency": {
+                                                                    "_actionId": "manual_transcription",
+                                                                    "_uuid": "11111111-1111-1111-1111-111111111111"
+                                                                }
+                                                            }
+                                                        ]
+                                                    },
+                                                    "es": {
+                                                        "_dateCreated": "2025-01-01T12:01:00Z",
+                                                        "_dateModified": "2025-01-01T12:01:00Z",
+                                                        "_versions": [
+                                                            {
+                                                                "_dateCreated": "2025-01-01T12:01:00Z",
+                                                                "_dateAccepted": "2025-01-01T12:01:00Z",
+                                                                "_uuid": "33333333-3333-3333-3333-333333333333",
+                                                                "_data": {
+                                                                    "language": "es",
+                                                                    "value": "Hola"
+                                                                },
+                                                                "_dependency": {
+                                                                    "_actionId": "manual_transcription",
+                                                                    "_uuid": "11111111-1111-1111-1111-111111111111"
+                                                                }
+                                                            }
+                                                        ]
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "summary": "Manual Translation"
+                                    },
+                                    "AutomatedGoogleTranscription": {
+                                        "value": {
+                                            "_version": "20250820",
+                                            "question_name_xpath": {
+                                                "automated_google_transcription": {
+                                                    "_dateCreated": "2025-01-01T12:00:00Z",
+                                                    "_dateModified": "2025-01-01T12:01:00Z",
+                                                    "_versions": [
+                                                        {
+                                                            "_dateCreated": "2025-01-01T12:01:00Z",
+                                                            "_uuid": "44444444-4444-4444-4444-444444444444",
+                                                            "_data": {
+                                                                "language": "en",
+                                                                "status": "complete",
+                                                                "value": "Hello world"
+                                                            },
+                                                            "_dateAccepted": "2025-01-01T12:01:00Z"
+                                                        },
+                                                        {
+                                                            "_dateCreated": "2025-01-01T12:00:00Z",
+                                                            "_uuid": "44444444-4444-4444-4444-444444444444",
+                                                            "_data": {
+                                                                "language": "en",
+                                                                "status": "in_progress"
+                                                            }
+                                                        }
+                                                    ]
+                                                }
+                                            }
+                                        },
+                                        "summary": "Automated Google Transcription"
+                                    },
+                                    "AutomatedGoogleTranslation": {
+                                        "value": {
+                                            "_version": "20250820",
+                                            "question_name_xpath": {
+                                                "automated_google_translation": {
+                                                    "fr": {
+                                                        "_dateCreated": "2025-01-01T12:00:00Z",
+                                                        "_dateModified": "2025-01-01T12:03:00Z",
+                                                        "_versions": [
+                                                            {
+                                                                "_dateCreated": "2025-01-01T12:03:00Z",
+                                                                "_dateAccepted": "2025-01-01T12:03:00Z",
+                                                                "_uuid": "88888888-8888-8888-8888-888888888888",
+                                                                "_data": {
+                                                                    "language": "fr",
+                                                                    "status": "complete",
+                                                                    "value": "Bonjour le monde"
+                                                                },
+                                                                "_dependency": {
+                                                                    "_actionId": "automatic_google_transcription",
+                                                                    "_uuid": "44444444-4444-4444-4444-444444444444"
+                                                                }
+                                                            },
+                                                            {
+                                                                "_dateCreated": "2025-01-01T12:02:00Z",
+                                                                "_uuid": "77777777-7777-7777-7777-777777777777",
+                                                                "_data": {
+                                                                    "language": "fr",
+                                                                    "status": "in_progress"
+                                                                },
+                                                                "_dependency": {
+                                                                    "_actionId": "automatic_google_transcription",
+                                                                    "_uuid": "44444444-4444-4444-4444-444444444444"
+                                                                }
+                                                            },
+                                                            {
+                                                                "_dateCreated": "2025-01-01T12:01:00Z",
+                                                                "_uuid": "66666666-6666-6666-6666-666666666666",
+                                                                "_data": {
+                                                                    "language": "fr",
+                                                                    "value": null,
+                                                                    "status": "deleted"
+                                                                },
+                                                                "_dependency": {
+                                                                    "_actionId": "automatic_google_transcription",
+                                                                    "_uuid": "44444444-4444-4444-4444-444444444444"
+                                                                }
+                                                            },
+                                                            {
+                                                                "_dateCreated": "2025-01-01T12:00:00Z",
+                                                                "_uuid": "55555555-5555-5555-5555-555555555555",
+                                                                "_data": {
+                                                                    "language": "fr",
+                                                                    "status": "complete",
+                                                                    "value": "Allo la foule"
+                                                                },
+                                                                "_dependency": {
+                                                                    "_actionId": "automatic_google_transcription",
+                                                                    "_uuid": "44444444-4444-4444-4444-444444444444"
+                                                                }
+                                                            }
+                                                        ]
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "summary": "Automated Google Translation"
+                                    },
+                                    "QualitativeAnalysis–IntegerQuestion": {
+                                        "value": {
+                                            "_version": "20250820",
+                                            "question_name_xpath": {
+                                                "qual": {
+                                                    "66666666-6666-6666-6666-666666666666": {
+                                                        "_dateCreated": "2025-01-01T12:00:00Z",
+                                                        "_dateModified": "2025-01-01T12:00:00Z",
+                                                        "_versions": [
+                                                            {
+                                                                "_dateCreated": "2025-01-01T12:00:00Z",
+                                                                "_dateAccepted": "2025-01-01T12:00:00Z",
+                                                                "_data": {
+                                                                    "uuid": "66666666-6666-6666-6666-666666666666",
+                                                                    "value": 42
+                                                                },
+                                                                "_uuid": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+                                                            }
+                                                        ]
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "summary": "Qualitative Analysis – Integer Question"
+                                    },
+                                    "QualitativeAnalysis–TextQuestion": {
+                                        "value": {
+                                            "_version": "20250820",
+                                            "question_name_xpath": {
+                                                "qual": {
+                                                    "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff": {
+                                                        "_dateCreated": "2025-01-01T12:00:00Z",
+                                                        "_dateModified": "2025-01-01T12:00:00Z",
+                                                        "_versions": [
+                                                            {
+                                                                "_dateCreated": "2025-01-01T12:00:00Z",
+                                                                "_dateAccepted": "2025-01-01T12:00:00Z",
+                                                                "_data": {
+                                                                    "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
+                                                                    "value": "This is a qualitative text response."
+                                                                },
+                                                                "_uuid": "12121212-3434-5656-7878-909090909090"
+                                                            }
+                                                        ]
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "summary": "Qualitative Analysis – Text Question"
+                                    },
+                                    "QualitativeAnalysis–SingleChoiceQuestion": {
+                                        "value": {
+                                            "_version": "20250820",
+                                            "question_name_xpath": {
+                                                "qual": {
+                                                    "77777777-7777-7777-7777-777777777777": {
+                                                        "_dateCreated": "2025-01-01T12:00:00Z",
+                                                        "_dateModified": "2025-01-01T12:00:00Z",
+                                                        "_versions": [
+                                                            {
+                                                                "_dateCreated": "2025-01-01T12:00:00Z",
+                                                                "_dateAccepted": "2025-01-01T12:00:00Z",
+                                                                "_data": {
+                                                                    "uuid": "77777777-7777-7777-7777-777777777777",
+                                                                    "value": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+                                                                },
+                                                                "_uuid": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
+                                                            }
+                                                        ]
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "summary": "Qualitative Analysis – Single Choice Question"
+                                    },
+                                    "QualitativeAnalysis–MultipleChoiceQuestion": {
+                                        "value": {
+                                            "_version": "20250820",
+                                            "question_name_xpath": {
+                                                "qual": {
+                                                    "88888888-8888-8888-8888-888888888888": {
+                                                        "_dateCreated": "2025-01-01T12:00:00Z",
+                                                        "_dateModified": "2025-01-01T12:00:00Z",
+                                                        "_versions": [
+                                                            {
+                                                                "_dateCreated": "2025-01-01T12:00:00Z",
+                                                                "_dateAccepted": "2025-01-01T12:00:00Z",
+                                                                "_data": {
+                                                                    "uuid": "88888888-8888-8888-8888-888888888888",
+                                                                    "value": [
+                                                                        "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+                                                                        "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
+                                                                    ]
+                                                                },
+                                                                "_uuid": "99999999-9999-9999-9999-999999999999"
+                                                            }
+                                                        ]
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "summary": "Qualitative Analysis – Multiple Choice Question"
+                                    },
+                                    "QualitativeAnalysis–TagsQuestion": {
+                                        "value": {
+                                            "_version": "20250820",
+                                            "question_name_xpath": {
+                                                "qual": {
+                                                    "bbbbbbbb-cccc-dddd-eeee-ffffffffffff": {
+                                                        "_dateCreated": "2025-01-01T12:00:00Z",
+                                                        "_dateModified": "2025-01-01T12:00:00Z",
+                                                        "_versions": [
+                                                            {
+                                                                "_dateCreated": "2025-01-01T12:00:00Z",
+                                                                "_dateAccepted": "2025-01-01T12:00:00Z",
+                                                                "_data": {
+                                                                    "uuid": "bbbbbbbb-cccc-dddd-eeee-ffffffffffff",
+                                                                    "value": [
+                                                                        "urgent",
+                                                                        "review",
+                                                                        "priority"
+                                                                    ]
+                                                                },
+                                                                "_uuid": "23232323-4545-6767-8989-010101010101"
+                                                            }
+                                                        ]
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "summary": "Qualitative Analysis – Tags Question"
+                                    }
+                                }
+                            }
+                        },
+                        "description": null
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "NotAuthenticated": {
+                                        "value": {
+                                            "detail": "Authentication credentials were not provided."
+                                        },
+                                        "summary": "Not authenticated"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "AccessDenied": {
+                                        "value": {
+                                            "detail": "You do not have permission to perform this action."
+                                        },
+                                        "summary": "Access Denied"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "NotFound": {
+                                        "value": {
+                                            "detail": "Not found."
+                                        },
+                                        "summary": "Not Found"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorObject"
+                                },
+                                "examples": {
+                                    "BadRequest": {
+                                        "value": {
+                                            "detail": {
+                                                "field_name": [
+                                                    "Error message"
+                                                ]
+                                            }
+                                        },
+                                        "summary": "Bad request"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "patch": {
+                "operationId": "api_v2_assets_data_supplement_partial_update",
+                "description": "## Update submission supplementary data\n\nThis endpoint allows you to add, update, or delete supplementary data for a submission.\n\nIt supports the same action types as the GET endpoint:\n\n* NLP actions (manual and automatic transcription / translation)\n* Qualitative analysis\n\nThe PATCH payload follows the same per-question structure as the GET response.\n\n⚠️ In this documentation, request and response examples present each action in\nisolation for clarity. In practice, multiple actions may be combined within the same\npayload or response, including for the same question, and a single submission may\ncontain multiple questions.\n",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "root_uuid",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Root UUID of the submission",
+                        "required": true
+                    },
+                    {
+                        "in": "path",
+                        "name": "uid_asset",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "UID of the parent asset",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "Survey data"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedDataSupplementPayload"
+                            },
+                            "examples": {
+                                "ManualTranscription": {
+                                    "value": {
+                                        "_version": "20250820",
+                                        "question_name_xpath": {
+                                            "manual_transcription": {
+                                                "language": "fr",
+                                                "value": "Bonjour"
+                                            }
+                                        }
+                                    },
+                                    "summary": "Manual Transcription"
+                                },
+                                "ManualTranslation": {
+                                    "value": {
+                                        "_version": "20250820",
+                                        "question_name_xpath": {
+                                            "manual_translation": {
+                                                "language": "en",
+                                                "value": "Hello"
+                                            }
+                                        }
+                                    },
+                                    "summary": "Manual Translation"
+                                },
+                                "AutomicGoogleTranscription": {
+                                    "value": {
+                                        "_version": "20250820",
+                                        "question_name_xpath": {
+                                            "automatic_google_transcription": {
+                                                "language": "fr"
+                                            }
+                                        }
+                                    },
+                                    "summary": "Automic Google Transcription"
+                                },
+                                "AutomicGoogleTranslation": {
+                                    "value": {
+                                        "_version": "20250820",
+                                        "question_name_xpath": {
+                                            "automatic_google_translation": {
+                                                "language": "en"
+                                            }
+                                        }
+                                    },
+                                    "summary": "Automic Google Translation"
+                                },
+                                "DeleteNLPAction": {
+                                    "value": {
+                                        "_version": "20250820",
+                                        "question_name_xpath": {
+                                            "<action_id>": {
+                                                "language": "<language>",
+                                                "value": null
+                                            }
+                                        }
+                                    },
+                                    "summary": "Delete NLP action",
+                                    "description": "`<action_id>` can be any of:<br>  * `manual_transcription`<br>  * `manual_translation`<br>  * `automatic_google_transcription`<br>  * `automatic_google_translation`<br>`<language>` is the language code, e.g. `en`."
+                                },
+                                "AcceptAutomaticNLPAction": {
+                                    "value": {
+                                        "_version": "20250820",
+                                        "question_name_xpath": {
+                                            "<action_id>": {
+                                                "language": "<language>",
+                                                "accepted": true
+                                            }
+                                        }
+                                    },
+                                    "summary": "Accept automatic NLP action",
+                                    "description": "`<action_id>` can be any of `automatic_google_transcription` or `automatic_google_translation`.<br>`<language>` is the language code, e.g. `en`.<br>`accepted` is a boolean. It can `true` or `false`."
+                                },
+                                "QualitativeAnalysis–IntegerQuestion": {
+                                    "value": {
+                                        "_version": "20250820",
+                                        "question_name_xpath": {
+                                            "qual": {
+                                                "uuid": "11111111-1111-1111-1111-111111111111",
+                                                "value": 42
+                                            }
+                                        }
+                                    },
+                                    "summary": "Qualitative Analysis – Integer Question"
+                                },
+                                "QualitativeAnalysis–TextQuestion": {
+                                    "value": {
+                                        "_version": "20250820",
+                                        "question_name_xpath": {
+                                            "qual": {
+                                                "uuid": "22222222-2222-2222-2222-222222222222",
+                                                "value": "example-text"
+                                            }
+                                        }
+                                    },
+                                    "summary": "Qualitative Analysis – Text Question"
+                                },
+                                "QualitativeAnalysis–SingleChoiceQuestion": {
+                                    "value": {
+                                        "_version": "20250820",
+                                        "question_name_xpath": {
+                                            "qual": {
+                                                "uuid": "33333333-3333-3333-3333-333333333333",
+                                                "value": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+                                            }
+                                        }
+                                    },
+                                    "summary": "Qualitative Analysis – Single Choice Question"
+                                },
+                                "QualitativeAnalysis–MultipleChoiceQuestion": {
+                                    "value": {
+                                        "_version": "20250820",
+                                        "question_name_xpath": {
+                                            "qual": {
+                                                "uuid": "44444444-4444-4444-4444-444444444444",
+                                                "value": [
+                                                    "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+                                                    "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "summary": "Qualitative Analysis – Multiple Choice Question"
+                                },
+                                "QualitativeAnalysis–TagsQuestion": {
+                                    "value": {
+                                        "_version": "20250820",
+                                        "question_name_xpath": {
+                                            "qual": {
+                                                "uuid": "44444444-4444-4444-4444-444444444444",
+                                                "value": [
+                                                    "tag1",
+                                                    "tag2"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "summary": "Qualitative Analysis – Tags Question"
+                                }
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "TokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DataSupplementResponse"
+                                },
+                                "examples": {
+                                    "ManualTranscription": {
+                                        "value": {
+                                            "_version": "20250820",
+                                            "question_name_xpath": {
+                                                "manual_transcription": {
+                                                    "_dateCreated": "2025-01-01T12:00:00Z",
+                                                    "_dateModified": "2025-01-01T12:00:00Z",
+                                                    "_versions": [
+                                                        {
+                                                            "_dateCreated": "2025-01-01T12:00:00Z",
+                                                            "_dateAccepted": "2025-01-01T12:00:00Z",
+                                                            "_uuid": "11111111-1111-1111-1111-111111111111",
+                                                            "_data": {
+                                                                "language": "fr",
+                                                                "value": "Bonjour"
+                                                            }
+                                                        }
+                                                    ]
+                                                }
+                                            }
+                                        },
+                                        "summary": "Manual Transcription"
+                                    },
+                                    "ManualTranslation": {
+                                        "value": {
+                                            "_version": "20250820",
+                                            "question_name_xpath": {
+                                                "manual_translation": {
+                                                    "en": {
+                                                        "_dateCreated": "2025-01-01T12:00:00Z",
+                                                        "_dateModified": "2025-01-01T12:00:00Z",
+                                                        "_versions": [
+                                                            {
+                                                                "_dateCreated": "2025-01-01T12:00:00Z",
+                                                                "_dateAccepted": "2025-01-01T12:00:00Z",
+                                                                "_uuid": "22222222-2222-2222-2222-222222222222",
+                                                                "_data": {
+                                                                    "language": "en",
+                                                                    "value": "Hello"
+                                                                },
+                                                                "_dependency": {
+                                                                    "_actionId": "manual_transcription",
+                                                                    "_uuid": "11111111-1111-1111-1111-111111111111"
+                                                                }
+                                                            }
+                                                        ]
+                                                    },
+                                                    "es": {
+                                                        "_dateCreated": "2025-01-01T12:01:00Z",
+                                                        "_dateModified": "2025-01-01T12:01:00Z",
+                                                        "_versions": [
+                                                            {
+                                                                "_dateCreated": "2025-01-01T12:01:00Z",
+                                                                "_dateAccepted": "2025-01-01T12:01:00Z",
+                                                                "_uuid": "33333333-3333-3333-3333-333333333333",
+                                                                "_data": {
+                                                                    "language": "es",
+                                                                    "value": "Hola"
+                                                                },
+                                                                "_dependency": {
+                                                                    "_actionId": "manual_transcription",
+                                                                    "_uuid": "11111111-1111-1111-1111-111111111111"
+                                                                }
+                                                            }
+                                                        ]
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "summary": "Manual Translation"
+                                    },
+                                    "AutomatedGoogleTranscription": {
+                                        "value": {
+                                            "_version": "20250820",
+                                            "question_name_xpath": {
+                                                "automated_google_transcription": {
+                                                    "_dateCreated": "2025-01-01T12:00:00Z",
+                                                    "_dateModified": "2025-01-01T12:01:00Z",
+                                                    "_versions": [
+                                                        {
+                                                            "_dateCreated": "2025-01-01T12:01:00Z",
+                                                            "_uuid": "44444444-4444-4444-4444-444444444444",
+                                                            "_data": {
+                                                                "language": "en",
+                                                                "status": "complete",
+                                                                "value": "Hello world"
+                                                            },
+                                                            "_dateAccepted": "2025-01-01T12:01:00Z"
+                                                        },
+                                                        {
+                                                            "_dateCreated": "2025-01-01T12:00:00Z",
+                                                            "_uuid": "44444444-4444-4444-4444-444444444444",
+                                                            "_data": {
+                                                                "language": "en",
+                                                                "status": "in_progress"
+                                                            }
+                                                        }
+                                                    ]
+                                                }
+                                            }
+                                        },
+                                        "summary": "Automated Google Transcription"
+                                    },
+                                    "AutomatedGoogleTranslation": {
+                                        "value": {
+                                            "_version": "20250820",
+                                            "question_name_xpath": {
+                                                "automated_google_translation": {
+                                                    "fr": {
+                                                        "_dateCreated": "2025-01-01T12:00:00Z",
+                                                        "_dateModified": "2025-01-01T12:03:00Z",
+                                                        "_versions": [
+                                                            {
+                                                                "_dateCreated": "2025-01-01T12:03:00Z",
+                                                                "_dateAccepted": "2025-01-01T12:03:00Z",
+                                                                "_uuid": "88888888-8888-8888-8888-888888888888",
+                                                                "_data": {
+                                                                    "language": "fr",
+                                                                    "status": "complete",
+                                                                    "value": "Bonjour le monde"
+                                                                },
+                                                                "_dependency": {
+                                                                    "_actionId": "automatic_google_transcription",
+                                                                    "_uuid": "44444444-4444-4444-4444-444444444444"
+                                                                }
+                                                            },
+                                                            {
+                                                                "_dateCreated": "2025-01-01T12:02:00Z",
+                                                                "_uuid": "77777777-7777-7777-7777-777777777777",
+                                                                "_data": {
+                                                                    "language": "fr",
+                                                                    "status": "in_progress"
+                                                                },
+                                                                "_dependency": {
+                                                                    "_actionId": "automatic_google_transcription",
+                                                                    "_uuid": "44444444-4444-4444-4444-444444444444"
+                                                                }
+                                                            },
+                                                            {
+                                                                "_dateCreated": "2025-01-01T12:01:00Z",
+                                                                "_uuid": "66666666-6666-6666-6666-666666666666",
+                                                                "_data": {
+                                                                    "language": "fr",
+                                                                    "value": null,
+                                                                    "status": "deleted"
+                                                                },
+                                                                "_dependency": {
+                                                                    "_actionId": "automatic_google_transcription",
+                                                                    "_uuid": "44444444-4444-4444-4444-444444444444"
+                                                                }
+                                                            },
+                                                            {
+                                                                "_dateCreated": "2025-01-01T12:00:00Z",
+                                                                "_uuid": "55555555-5555-5555-5555-555555555555",
+                                                                "_data": {
+                                                                    "language": "fr",
+                                                                    "status": "complete",
+                                                                    "value": "Allo la foule"
+                                                                },
+                                                                "_dependency": {
+                                                                    "_actionId": "automatic_google_transcription",
+                                                                    "_uuid": "44444444-4444-4444-4444-444444444444"
+                                                                }
+                                                            }
+                                                        ]
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "summary": "Automated Google Translation"
+                                    },
+                                    "QualitativeAnalysis–IntegerQuestion": {
+                                        "value": {
+                                            "_version": "20250820",
+                                            "question_name_xpath": {
+                                                "qual": {
+                                                    "66666666-6666-6666-6666-666666666666": {
+                                                        "_dateCreated": "2025-01-01T12:00:00Z",
+                                                        "_dateModified": "2025-01-01T12:00:00Z",
+                                                        "_versions": [
+                                                            {
+                                                                "_dateCreated": "2025-01-01T12:00:00Z",
+                                                                "_dateAccepted": "2025-01-01T12:00:00Z",
+                                                                "_data": {
+                                                                    "uuid": "66666666-6666-6666-6666-666666666666",
+                                                                    "value": 42
+                                                                },
+                                                                "_uuid": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+                                                            }
+                                                        ]
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "summary": "Qualitative Analysis – Integer Question"
+                                    },
+                                    "QualitativeAnalysis–TextQuestion": {
+                                        "value": {
+                                            "_version": "20250820",
+                                            "question_name_xpath": {
+                                                "qual": {
+                                                    "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff": {
+                                                        "_dateCreated": "2025-01-01T12:00:00Z",
+                                                        "_dateModified": "2025-01-01T12:00:00Z",
+                                                        "_versions": [
+                                                            {
+                                                                "_dateCreated": "2025-01-01T12:00:00Z",
+                                                                "_dateAccepted": "2025-01-01T12:00:00Z",
+                                                                "_data": {
+                                                                    "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
+                                                                    "value": "This is a qualitative text response."
+                                                                },
+                                                                "_uuid": "12121212-3434-5656-7878-909090909090"
+                                                            }
+                                                        ]
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "summary": "Qualitative Analysis – Text Question"
+                                    },
+                                    "QualitativeAnalysis–SingleChoiceQuestion": {
+                                        "value": {
+                                            "_version": "20250820",
+                                            "question_name_xpath": {
+                                                "qual": {
+                                                    "77777777-7777-7777-7777-777777777777": {
+                                                        "_dateCreated": "2025-01-01T12:00:00Z",
+                                                        "_dateModified": "2025-01-01T12:00:00Z",
+                                                        "_versions": [
+                                                            {
+                                                                "_dateCreated": "2025-01-01T12:00:00Z",
+                                                                "_dateAccepted": "2025-01-01T12:00:00Z",
+                                                                "_data": {
+                                                                    "uuid": "77777777-7777-7777-7777-777777777777",
+                                                                    "value": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+                                                                },
+                                                                "_uuid": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
+                                                            }
+                                                        ]
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "summary": "Qualitative Analysis – Single Choice Question"
+                                    },
+                                    "QualitativeAnalysis–MultipleChoiceQuestion": {
+                                        "value": {
+                                            "_version": "20250820",
+                                            "question_name_xpath": {
+                                                "qual": {
+                                                    "88888888-8888-8888-8888-888888888888": {
+                                                        "_dateCreated": "2025-01-01T12:00:00Z",
+                                                        "_dateModified": "2025-01-01T12:00:00Z",
+                                                        "_versions": [
+                                                            {
+                                                                "_dateCreated": "2025-01-01T12:00:00Z",
+                                                                "_dateAccepted": "2025-01-01T12:00:00Z",
+                                                                "_data": {
+                                                                    "uuid": "88888888-8888-8888-8888-888888888888",
+                                                                    "value": [
+                                                                        "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+                                                                        "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
+                                                                    ]
+                                                                },
+                                                                "_uuid": "99999999-9999-9999-9999-999999999999"
+                                                            }
+                                                        ]
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "summary": "Qualitative Analysis – Multiple Choice Question"
+                                    },
+                                    "QualitativeAnalysis–TagsQuestion": {
+                                        "value": {
+                                            "_version": "20250820",
+                                            "question_name_xpath": {
+                                                "qual": {
+                                                    "bbbbbbbb-cccc-dddd-eeee-ffffffffffff": {
+                                                        "_dateCreated": "2025-01-01T12:00:00Z",
+                                                        "_dateModified": "2025-01-01T12:00:00Z",
+                                                        "_versions": [
+                                                            {
+                                                                "_dateCreated": "2025-01-01T12:00:00Z",
+                                                                "_dateAccepted": "2025-01-01T12:00:00Z",
+                                                                "_data": {
+                                                                    "uuid": "bbbbbbbb-cccc-dddd-eeee-ffffffffffff",
+                                                                    "value": [
+                                                                        "urgent",
+                                                                        "review",
+                                                                        "priority"
+                                                                    ]
+                                                                },
+                                                                "_uuid": "23232323-4545-6767-8989-010101010101"
+                                                            }
+                                                        ]
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "summary": "Qualitative Analysis – Tags Question"
+                                    }
+                                }
+                            }
+                        },
+                        "description": null
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "NotAuthenticated": {
+                                        "value": {
+                                            "detail": "Authentication credentials were not provided."
+                                        },
+                                        "summary": "Not authenticated"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "AccessDenied": {
+                                        "value": {
+                                            "detail": "You do not have permission to perform this action."
+                                        },
+                                        "summary": "Access Denied"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "NotFound": {
+                                        "value": {
+                                            "detail": "Not found."
+                                        },
+                                        "summary": "Not Found"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorObject"
+                                },
+                                "examples": {
+                                    "BadRequest": {
+                                        "value": {
+                                            "detail": {
+                                                "field_name": [
+                                                    "Error message"
+                                                ]
+                                            }
+                                        },
+                                        "summary": "Bad request"
                                     }
                                 }
                             }
@@ -4042,6 +4787,15 @@
                 "parameters": [
                     {
                         "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "ID of the data (when applicable)",
+                        "required": true
+                    },
+                    {
+                        "in": "path",
                         "name": "uid_asset",
                         "schema": {
                             "type": "string"
@@ -4107,6 +4861,15 @@
                 "parameters": [
                     {
                         "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "ID of the data (when applicable)",
+                        "required": true
+                    },
+                    {
+                        "in": "path",
                         "name": "uid_asset",
                         "schema": {
                             "type": "string"
@@ -4156,6 +4919,15 @@
                 "operationId": "api_v2_assets_data_validation_statuses_partial_update",
                 "description": "## Bulk update submissions status\n\n* Where: \"submissions_ids\" (required) is a list of submission root id on the data\nto delete\n* Where: \"validation_status.uid\" (required)  is a string and can be one of these values:\n  * `validation_status_approved`\n  * `validation_status_not_approved`\n  * `validation_status_on_hold`\n\nWill return the number of submission updated as such:\n> **Response**\n>\n>        {\n>           \"detail\": \"{number_of_submissions} submissions have been updated\"\n>        }\n",
                 "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "ID of the data (when applicable)",
+                        "required": true
+                    },
                     {
                         "in": "path",
                         "name": "uid_asset",
@@ -4221,6 +4993,15 @@
                 "operationId": "api_v2_assets_data_validation_statuses_destroy",
                 "description": "## Bulk delete submissions status\n\n```curl\n  curl -X DELETE https://kf.kobotoolbox.org/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/data/validation_statuses/\n```\n\n**Payload**\n```json\n{\n  \"payload\": {\n    \"submission_ids\": [\n        1,\n        2\n      ],\n    \"validation_status.uid\": \"validation_status\"\n  }\n}\n```\n* Where: \"submissions_ids\" (required) is a list of submission root id on the data\nto delete\n\nThe validation status of the submission can be updated. The `validation_status.uid` should be a `string`, and it must be one of the following values:\n- `validation_status_approved`\n- `validation_status_not_approved`\n- `validation_status_on_hold`\n\n**Response**\n```json\n{\n           \"detail\": \"{number_of_submissions} submissions have been updated\"\n}\n```\n\n_Due to limitations with DRF-Spectacular current version, `DELETE` actions do not support showing a request body OR a response body. This is due to the 'vague' nature of the action which generally does *not* recommend the use of a payload. To still document this endpoint, example for the payload and response will be included but it will not be possible to test this endpoint. The HTTP code and the errors example are, for their part, factual and can be considered when working with the endpoint._\n",
                 "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "ID of the data (when applicable)",
+                        "required": true
+                    },
                     {
                         "in": "path",
                         "name": "uid_asset",
@@ -15458,20 +16239,27 @@
                 "properties": {
                     "_version": {
                         "type": "string",
-                        "example": "20250812"
+                        "example": "20250820"
+                    }
+                },
+                "additionalProperties": {
+                    "$ref": "#/components/schemas/DataSupplementResponseOneOf"
+                },
+                "required": [
+                    "_version"
+                ]
+            },
+            "DataSupplementResponseOneOf": {
+                "oneOf": [
+                    {
+                        "type": "string"
                     },
-                    "question_name_xpath": {
+                    {
                         "type": "object",
                         "properties": {
                             "manual_transcription": {
                                 "type": "object",
                                 "properties": {
-                                    "language": {
-                                        "type": "string"
-                                    },
-                                    "value": {
-                                        "type": "string"
-                                    },
                                     "_dateCreated": {
                                         "type": "string",
                                         "format": "date-time"
@@ -15480,175 +16268,817 @@
                                         "type": "string",
                                         "format": "date-time"
                                     },
-                                    "revisions": {
+                                    "_versions": {
                                         "type": "array",
                                         "items": {
                                             "type": "object",
                                             "properties": {
-                                                "language": {
-                                                    "type": "string"
-                                                },
-                                                "value": {
-                                                    "type": "string"
-                                                },
                                                 "_dateCreated": {
                                                     "type": "string",
                                                     "format": "date-time"
-                                                }
-                                            },
-                                            "additionalProperties": false,
-                                            "required": [
-                                                "_dateCreated"
-                                            ],
-                                            "anyOf": [
-                                                {
+                                                },
+                                                "_uuid": {
+                                                    "type": "string",
+                                                    "format": "uuid"
+                                                },
+                                                "_dateAccepted": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                },
+                                                "_data": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "language": {
+                                                            "type": "string"
+                                                        },
+                                                        "value": {
+                                                            "type": "string",
+                                                            "nullable": true
+                                                        }
+                                                    },
+                                                    "additionalProperties": false,
                                                     "required": [
                                                         "language",
                                                         "value"
                                                     ]
-                                                },
-                                                {
-                                                    "not": {
-                                                        "anyOf": [
-                                                            {
-                                                                "required": [
-                                                                    "language"
-                                                                ]
-                                                            },
-                                                            {
-                                                                "required": [
-                                                                    "value"
-                                                                ]
-                                                            }
-                                                        ]
-                                                    }
                                                 }
+                                            },
+                                            "additionalProperties": false,
+                                            "required": [
+                                                "_data",
+                                                "_dateAccepted",
+                                                "_dateCreated",
+                                                "_uuid"
                                             ]
-                                        }
+                                        },
+                                        "minLength": 1
                                     }
                                 },
                                 "additionalProperties": false,
                                 "required": [
                                     "_dateCreated",
-                                    "_dateModified"
-                                ],
-                                "anyOf": [
-                                    {
-                                        "required": [
-                                            "language",
-                                            "value"
-                                        ]
-                                    },
-                                    {
-                                        "not": {
-                                            "anyOf": [
-                                                {
-                                                    "required": [
-                                                        "language"
-                                                    ]
-                                                },
-                                                {
-                                                    "required": [
-                                                        "value"
-                                                    ]
-                                                }
-                                            ]
-                                        }
-                                    }
+                                    "_dateModified",
+                                    "_versions"
                                 ]
                             },
                             "manual_translation": {
-                                "type": "array",
-                                "items": {
+                                "type": "object",
+                                "additionalProperties": {
                                     "type": "object",
                                     "properties": {
-                                        "language": {
-                                            "type": "string"
-                                        },
-                                        "value": {
-                                            "type": "string"
-                                        },
                                         "_dateCreated": {
                                             "type": "string",
                                             "format": "date-time"
                                         },
-                                        "_revisions": {
+                                        "_dateModified": {
+                                            "type": "string",
+                                            "format": "date-time"
+                                        },
+                                        "_versions": {
                                             "type": "array",
                                             "items": {
                                                 "type": "object",
                                                 "properties": {
-                                                    "language": {
-                                                        "type": "string"
-                                                    },
-                                                    "value": {
-                                                        "type": "string"
-                                                    },
                                                     "_dateCreated": {
                                                         "type": "string",
                                                         "format": "date-time"
-                                                    }
-                                                },
-                                                "additionalProperties": false,
-                                                "required": [
-                                                    "_dateCreated"
-                                                ],
-                                                "anyOf": [
-                                                    {
+                                                    },
+                                                    "_uuid": {
+                                                        "type": "string",
+                                                        "format": "uuid"
+                                                    },
+                                                    "_dependency": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "_actionId": {
+                                                                "type": "string"
+                                                            },
+                                                            "_uuid": {
+                                                                "type": "string",
+                                                                "format": "uuid"
+                                                            }
+                                                        },
+                                                        "additionalProperties": false,
+                                                        "required": [
+                                                            "_actionId",
+                                                            "_uuid"
+                                                        ]
+                                                    },
+                                                    "_dateAccepted": {
+                                                        "type": "string",
+                                                        "format": "date-time"
+                                                    },
+                                                    "_data": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "language": {
+                                                                "type": "string"
+                                                            },
+                                                            "value": {
+                                                                "type": "string",
+                                                                "nullable": true
+                                                            }
+                                                        },
+                                                        "additionalProperties": false,
                                                         "required": [
                                                             "language",
                                                             "value"
                                                         ]
-                                                    },
-                                                    {
-                                                        "not": {
-                                                            "anyOf": [
-                                                                {
-                                                                    "required": [
-                                                                        "language"
-                                                                    ]
-                                                                },
-                                                                {
-                                                                    "required": [
-                                                                        "value"
-                                                                    ]
-                                                                }
-                                                            ]
-                                                        }
                                                     }
+                                                },
+                                                "additionalProperties": false,
+                                                "required": [
+                                                    "_data",
+                                                    "_dateAccepted",
+                                                    "_dateCreated",
+                                                    "_dependency",
+                                                    "_uuid"
                                                 ]
-                                            }
+                                            },
+                                            "minLength": 1
                                         }
                                     },
                                     "additionalProperties": false,
                                     "required": [
-                                        "_dateCreated"
-                                    ],
-                                    "anyOf": [
-                                        {
+                                        "_dateCreated",
+                                        "_dateModified",
+                                        "_versions"
+                                    ]
+                                }
+                            },
+                            "automatic_google_transcription": {
+                                "type": "object",
+                                "properties": {
+                                    "_dateCreated": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                    },
+                                    "_dateModified": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                    },
+                                    "_versions": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "_dateCreated": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                },
+                                                "_uuid": {
+                                                    "type": "string",
+                                                    "format": "uuid"
+                                                },
+                                                "_dateAccepted": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                },
+                                                "_data": {
+                                                    "oneOf": [
+                                                        {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "language": {
+                                                                    "type": "string"
+                                                                },
+                                                                "status": {
+                                                                    "type": "string",
+                                                                    "const": "in_progress"
+                                                                }
+                                                            },
+                                                            "additionalProperties": false,
+                                                            "required": [
+                                                                "language",
+                                                                "status"
+                                                            ]
+                                                        },
+                                                        {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "language": {
+                                                                    "type": "string"
+                                                                },
+                                                                "status": {
+                                                                    "type": "string",
+                                                                    "const": "failed"
+                                                                },
+                                                                "error": {
+                                                                    "type": "string"
+                                                                }
+                                                            },
+                                                            "additionalProperties": false,
+                                                            "required": [
+                                                                "error",
+                                                                "language",
+                                                                "status"
+                                                            ]
+                                                        },
+                                                        {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "language": {
+                                                                    "type": "string"
+                                                                },
+                                                                "status": {
+                                                                    "type": "string",
+                                                                    "const": "complete"
+                                                                },
+                                                                "value": {
+                                                                    "type": "string"
+                                                                }
+                                                            },
+                                                            "additionalProperties": false,
+                                                            "required": [
+                                                                "language",
+                                                                "status",
+                                                                "value"
+                                                            ]
+                                                        },
+                                                        {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "language": {
+                                                                    "type": "string"
+                                                                },
+                                                                "status": {
+                                                                    "type": "string",
+                                                                    "const": "deleted"
+                                                                },
+                                                                "value": {
+                                                                    "type": "null"
+                                                                }
+                                                            },
+                                                            "additionalProperties": false,
+                                                            "required": [
+                                                                "language",
+                                                                "status",
+                                                                "value"
+                                                            ]
+                                                        }
+                                                    ]
+                                                }
+                                            },
+                                            "additionalProperties": false,
                                             "required": [
-                                                "language",
-                                                "value"
+                                                "_data",
+                                                "_dateCreated",
+                                                "_uuid"
                                             ]
                                         },
-                                        {
-                                            "not": {
-                                                "anyOf": [
-                                                    {
+                                        "minLength": 1
+                                    }
+                                },
+                                "additionalProperties": false,
+                                "required": [
+                                    "_dateCreated",
+                                    "_dateModified",
+                                    "_versions"
+                                ]
+                            },
+                            "automatic_google_translation": {
+                                "type": "object",
+                                "additionalProperties": {
+                                    "type": "object",
+                                    "properties": {
+                                        "_dateCreated": {
+                                            "type": "string",
+                                            "format": "date-time"
+                                        },
+                                        "_dateModified": {
+                                            "type": "string",
+                                            "format": "date-time"
+                                        },
+                                        "_versions": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "_dateCreated": {
+                                                        "type": "string",
+                                                        "format": "date-time"
+                                                    },
+                                                    "_uuid": {
+                                                        "type": "string",
+                                                        "format": "uuid"
+                                                    },
+                                                    "_dependency": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "_actionId": {
+                                                                "type": "string"
+                                                            },
+                                                            "_uuid": {
+                                                                "type": "string",
+                                                                "format": "uuid"
+                                                            }
+                                                        },
+                                                        "additionalProperties": false,
                                                         "required": [
-                                                            "language"
+                                                            "_actionId",
+                                                            "_uuid"
                                                         ]
                                                     },
-                                                    {
-                                                        "required": [
-                                                            "value"
+                                                    "_dateAccepted": {
+                                                        "type": "string",
+                                                        "format": "date-time"
+                                                    },
+                                                    "_data": {
+                                                        "oneOf": [
+                                                            {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "language": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "status": {
+                                                                        "type": "string",
+                                                                        "const": "in_progress"
+                                                                    }
+                                                                },
+                                                                "additionalProperties": false,
+                                                                "required": [
+                                                                    "language",
+                                                                    "status"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "language": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "status": {
+                                                                        "type": "string",
+                                                                        "const": "failed"
+                                                                    },
+                                                                    "error": {
+                                                                        "type": "string"
+                                                                    }
+                                                                },
+                                                                "additionalProperties": false,
+                                                                "required": [
+                                                                    "error",
+                                                                    "language",
+                                                                    "status"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "language": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "status": {
+                                                                        "type": "string",
+                                                                        "const": "complete"
+                                                                    },
+                                                                    "value": {
+                                                                        "type": "string"
+                                                                    }
+                                                                },
+                                                                "additionalProperties": false,
+                                                                "required": [
+                                                                    "language",
+                                                                    "status",
+                                                                    "value"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "language": {
+                                                                        "type": "string"
+                                                                    },
+                                                                    "status": {
+                                                                        "type": "string",
+                                                                        "const": "deleted"
+                                                                    },
+                                                                    "value": {
+                                                                        "type": "null"
+                                                                    }
+                                                                },
+                                                                "additionalProperties": false,
+                                                                "required": [
+                                                                    "language",
+                                                                    "status",
+                                                                    "value"
+                                                                ]
+                                                            }
                                                         ]
                                                     }
+                                                },
+                                                "additionalProperties": false,
+                                                "required": [
+                                                    "_data",
+                                                    "_dateCreated",
+                                                    "_dependency",
+                                                    "_uuid"
                                                 ]
-                                            }
+                                            },
+                                            "minLength": 1
                                         }
+                                    },
+                                    "additionalProperties": false,
+                                    "required": [
+                                        "_dateCreated",
+                                        "_dateModified",
+                                        "_versions"
+                                    ]
+                                }
+                            },
+                            "qual": {
+                                "type": "object",
+                                "additionalProperties": {
+                                    "type": "object",
+                                    "properties": {
+                                        "_dateCreated": {
+                                            "type": "string",
+                                            "format": "date-time"
+                                        },
+                                        "_dateModified": {
+                                            "type": "string",
+                                            "format": "date-time"
+                                        },
+                                        "_versions": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "_data": {
+                                                        "oneOf": [
+                                                            {
+                                                                "allOf": [
+                                                                    {
+                                                                        "type": "object",
+                                                                        "properties": {
+                                                                            "uuid": {
+                                                                                "type": "string",
+                                                                                "format": "uuid"
+                                                                            },
+                                                                            "value": {}
+                                                                        },
+                                                                        "additionalProperties": false,
+                                                                        "required": [
+                                                                            "uuid",
+                                                                            "value"
+                                                                        ]
+                                                                    },
+                                                                    {
+                                                                        "type": "object",
+                                                                        "properties": {
+                                                                            "value": {
+                                                                                "type": "integer",
+                                                                                "nullable": true
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                ]
+                                                            },
+                                                            {
+                                                                "allOf": [
+                                                                    {
+                                                                        "type": "object",
+                                                                        "properties": {
+                                                                            "uuid": {
+                                                                                "type": "string",
+                                                                                "format": "uuid"
+                                                                            },
+                                                                            "value": {}
+                                                                        },
+                                                                        "additionalProperties": false,
+                                                                        "required": [
+                                                                            "uuid",
+                                                                            "value"
+                                                                        ]
+                                                                    },
+                                                                    {
+                                                                        "type": "object",
+                                                                        "properties": {
+                                                                            "value": {
+                                                                                "type": "array",
+                                                                                "items": {
+                                                                                    "type": "string",
+                                                                                    "format": "uuid"
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                ]
+                                                            },
+                                                            {
+                                                                "allOf": [
+                                                                    {
+                                                                        "type": "object",
+                                                                        "properties": {
+                                                                            "uuid": {
+                                                                                "type": "string",
+                                                                                "format": "uuid"
+                                                                            },
+                                                                            "value": {}
+                                                                        },
+                                                                        "additionalProperties": false,
+                                                                        "required": [
+                                                                            "uuid",
+                                                                            "value"
+                                                                        ]
+                                                                    },
+                                                                    {
+                                                                        "type": "object",
+                                                                        "properties": {
+                                                                            "value": {
+                                                                                "type": "string",
+                                                                                "format": "uuid"
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                ]
+                                                            },
+                                                            {
+                                                                "allOf": [
+                                                                    {
+                                                                        "type": "object",
+                                                                        "properties": {
+                                                                            "uuid": {
+                                                                                "type": "string",
+                                                                                "format": "uuid"
+                                                                            },
+                                                                            "value": {}
+                                                                        },
+                                                                        "additionalProperties": false,
+                                                                        "required": [
+                                                                            "uuid",
+                                                                            "value"
+                                                                        ]
+                                                                    },
+                                                                    {
+                                                                        "type": "object",
+                                                                        "properties": {
+                                                                            "value": {
+                                                                                "type": "array",
+                                                                                "items": {
+                                                                                    "type": "string"
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                ]
+                                                            },
+                                                            {
+                                                                "allOf": [
+                                                                    {
+                                                                        "type": "object",
+                                                                        "properties": {
+                                                                            "uuid": {
+                                                                                "type": "string",
+                                                                                "format": "uuid"
+                                                                            },
+                                                                            "value": {}
+                                                                        },
+                                                                        "additionalProperties": false,
+                                                                        "required": [
+                                                                            "uuid",
+                                                                            "value"
+                                                                        ]
+                                                                    },
+                                                                    {
+                                                                        "type": "object",
+                                                                        "properties": {
+                                                                            "value": {
+                                                                                "type": "string"
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                ]
+                                                            }
+                                                        ]
+                                                    },
+                                                    "_dateAccepted": {
+                                                        "type": "string",
+                                                        "format": "date-time"
+                                                    },
+                                                    "_dateCreated": {
+                                                        "type": "string",
+                                                        "format": "date-time"
+                                                    },
+                                                    "_uuid": {
+                                                        "type": "string",
+                                                        "format": "uuid"
+                                                    }
+                                                },
+                                                "additionalProperties": false,
+                                                "required": [
+                                                    "_data",
+                                                    "_dateCreated",
+                                                    "_uuid"
+                                                ]
+                                            },
+                                            "minLength": 1
+                                        }
+                                    },
+                                    "additionalProperties": false,
+                                    "required": [
+                                        "_dateCreated",
+                                        "_dateModified",
+                                        "_versions"
                                     ]
                                 },
-                                "minLength": 1
+                                "patternProperties": {
+                                    "^[0-9a-fA-F-]{36}$": {
+                                        "type": "object",
+                                        "properties": {
+                                            "_dateCreated": {
+                                                "type": "string",
+                                                "format": "date-time"
+                                            },
+                                            "_dateModified": {
+                                                "type": "string",
+                                                "format": "date-time"
+                                            },
+                                            "_versions": {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "_data": {
+                                                            "oneOf": [
+                                                                {
+                                                                    "allOf": [
+                                                                        {
+                                                                            "type": "object",
+                                                                            "properties": {
+                                                                                "uuid": {
+                                                                                    "type": "string",
+                                                                                    "format": "uuid"
+                                                                                },
+                                                                                "value": {}
+                                                                            },
+                                                                            "additionalProperties": false,
+                                                                            "required": [
+                                                                                "uuid",
+                                                                                "value"
+                                                                            ]
+                                                                        },
+                                                                        {
+                                                                            "type": "object",
+                                                                            "properties": {
+                                                                                "value": {
+                                                                                    "type": "integer",
+                                                                                    "nullable": true
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    ]
+                                                                },
+                                                                {
+                                                                    "allOf": [
+                                                                        {
+                                                                            "type": "object",
+                                                                            "properties": {
+                                                                                "uuid": {
+                                                                                    "type": "string",
+                                                                                    "format": "uuid"
+                                                                                },
+                                                                                "value": {}
+                                                                            },
+                                                                            "additionalProperties": false,
+                                                                            "required": [
+                                                                                "uuid",
+                                                                                "value"
+                                                                            ]
+                                                                        },
+                                                                        {
+                                                                            "type": "object",
+                                                                            "properties": {
+                                                                                "value": {
+                                                                                    "type": "array",
+                                                                                    "items": {
+                                                                                        "type": "string",
+                                                                                        "format": "uuid"
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    ]
+                                                                },
+                                                                {
+                                                                    "allOf": [
+                                                                        {
+                                                                            "type": "object",
+                                                                            "properties": {
+                                                                                "uuid": {
+                                                                                    "type": "string",
+                                                                                    "format": "uuid"
+                                                                                },
+                                                                                "value": {}
+                                                                            },
+                                                                            "additionalProperties": false,
+                                                                            "required": [
+                                                                                "uuid",
+                                                                                "value"
+                                                                            ]
+                                                                        },
+                                                                        {
+                                                                            "type": "object",
+                                                                            "properties": {
+                                                                                "value": {
+                                                                                    "type": "string",
+                                                                                    "format": "uuid"
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    ]
+                                                                },
+                                                                {
+                                                                    "allOf": [
+                                                                        {
+                                                                            "type": "object",
+                                                                            "properties": {
+                                                                                "uuid": {
+                                                                                    "type": "string",
+                                                                                    "format": "uuid"
+                                                                                },
+                                                                                "value": {}
+                                                                            },
+                                                                            "additionalProperties": false,
+                                                                            "required": [
+                                                                                "uuid",
+                                                                                "value"
+                                                                            ]
+                                                                        },
+                                                                        {
+                                                                            "type": "object",
+                                                                            "properties": {
+                                                                                "value": {
+                                                                                    "type": "array",
+                                                                                    "items": {
+                                                                                        "type": "string"
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    ]
+                                                                },
+                                                                {
+                                                                    "allOf": [
+                                                                        {
+                                                                            "type": "object",
+                                                                            "properties": {
+                                                                                "uuid": {
+                                                                                    "type": "string",
+                                                                                    "format": "uuid"
+                                                                                },
+                                                                                "value": {}
+                                                                            },
+                                                                            "additionalProperties": false,
+                                                                            "required": [
+                                                                                "uuid",
+                                                                                "value"
+                                                                            ]
+                                                                        },
+                                                                        {
+                                                                            "type": "object",
+                                                                            "properties": {
+                                                                                "value": {
+                                                                                    "type": "string"
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    ]
+                                                                }
+                                                            ]
+                                                        },
+                                                        "_dateAccepted": {
+                                                            "type": "string",
+                                                            "format": "date-time"
+                                                        },
+                                                        "_dateCreated": {
+                                                            "type": "string",
+                                                            "format": "date-time"
+                                                        },
+                                                        "_uuid": {
+                                                            "type": "string",
+                                                            "format": "uuid"
+                                                        }
+                                                    },
+                                                    "additionalProperties": false,
+                                                    "required": [
+                                                        "_data",
+                                                        "_dateCreated",
+                                                        "_uuid"
+                                                    ]
+                                                },
+                                                "minLength": 1
+                                            }
+                                        },
+                                        "additionalProperties": false,
+                                        "required": [
+                                            "_dateCreated",
+                                            "_dateModified",
+                                            "_versions"
+                                        ]
+                                    }
+                                }
                             }
                         },
                         "additionalProperties": false,
@@ -15662,10 +17092,25 @@
                                 "required": [
                                     "manual_translation"
                                 ]
+                            },
+                            {
+                                "required": [
+                                    "automatic_google_transcription"
+                                ]
+                            },
+                            {
+                                "required": [
+                                    "automatic_google_translation"
+                                ]
+                            },
+                            {
+                                "required": [
+                                    "qual"
+                                ]
                             }
                         ]
                     }
-                }
+                ]
             },
             "DataValidationStatusUpdateResponse": {
                 "type": "object",
@@ -19346,9 +20791,22 @@
                 "properties": {
                     "_version": {
                         "type": "string",
-                        "example": "20250812"
+                        "example": "20250820"
+                    }
+                },
+                "additionalProperties": {
+                    "$ref": "#/components/schemas/PatchedDataSupplementPayloadOneOf"
+                },
+                "required": [
+                    "_version"
+                ]
+            },
+            "PatchedDataSupplementPayloadOneOf": {
+                "oneOf": [
+                    {
+                        "type": "string"
                     },
-                    "question_name_xpath": {
+                    {
                         "type": "object",
                         "properties": {
                             "manual_transcription": {
@@ -19368,24 +20826,243 @@
                                 ]
                             },
                             "manual_translation": {
-                                "type": "array",
-                                "items": {
-                                    "type": "object",
-                                    "properties": {
-                                        "language": {
-                                            "type": "string"
-                                        },
-                                        "translation": {
-                                            "type": "string"
-                                        }
+                                "type": "object",
+                                "properties": {
+                                    "language": {
+                                        "type": "string"
                                     },
-                                    "additionalProperties": false,
-                                    "required": [
-                                        "language",
-                                        "value"
-                                    ]
+                                    "value": {
+                                        "type": "string"
+                                    }
                                 },
-                                "minLength": 1
+                                "additionalProperties": false,
+                                "required": [
+                                    "language",
+                                    "value"
+                                ]
+                            },
+                            "automatic_google_transcription": {
+                                "type": "object",
+                                "properties": {
+                                    "language": {
+                                        "type": "string"
+                                    },
+                                    "accepted": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "additionalProperties": false,
+                                "required": [
+                                    "language"
+                                ]
+                            },
+                            "automatic_google_translation": {
+                                "type": "object",
+                                "properties": {
+                                    "language": {
+                                        "type": "string"
+                                    },
+                                    "accepted": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "additionalProperties": false,
+                                "required": [
+                                    "language"
+                                ]
+                            },
+                            "qual": {
+                                "oneOf": [
+                                    {
+                                        "allOf": [
+                                            {
+                                                "type": "object",
+                                                "additionalProperties": false,
+                                                "properties": {
+                                                    "uuid": {
+                                                        "type": "string",
+                                                        "format": "uuid"
+                                                    },
+                                                    "value": {}
+                                                },
+                                                "required": [
+                                                    "uuid",
+                                                    "value"
+                                                ]
+                                            },
+                                            {
+                                                "type": "object",
+                                                "properties": {
+                                                    "value": {
+                                                        "type": "integer",
+                                                        "nullable": true
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                "type": "object",
+                                                "properties": {
+                                                    "uuid": {
+                                                        "type": "string",
+                                                        "format": "uuid"
+                                                    }
+                                                }
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "allOf": [
+                                            {
+                                                "type": "object",
+                                                "additionalProperties": false,
+                                                "properties": {
+                                                    "uuid": {
+                                                        "type": "string",
+                                                        "format": "uuid"
+                                                    },
+                                                    "value": {}
+                                                },
+                                                "required": [
+                                                    "uuid",
+                                                    "value"
+                                                ]
+                                            },
+                                            {
+                                                "type": "object",
+                                                "properties": {
+                                                    "value": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                "type": "object",
+                                                "properties": {
+                                                    "uuid": {
+                                                        "type": "string",
+                                                        "format": "uuid"
+                                                    }
+                                                }
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "allOf": [
+                                            {
+                                                "type": "object",
+                                                "additionalProperties": false,
+                                                "properties": {
+                                                    "uuid": {
+                                                        "type": "string",
+                                                        "format": "uuid"
+                                                    },
+                                                    "value": {}
+                                                },
+                                                "required": [
+                                                    "uuid",
+                                                    "value"
+                                                ]
+                                            },
+                                            {
+                                                "type": "object",
+                                                "properties": {
+                                                    "value": {
+                                                        "type": "string",
+                                                        "format": "uuid"
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                "type": "object",
+                                                "properties": {
+                                                    "uuid": {
+                                                        "type": "string",
+                                                        "format": "uuid"
+                                                    }
+                                                }
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "allOf": [
+                                            {
+                                                "type": "object",
+                                                "additionalProperties": false,
+                                                "properties": {
+                                                    "uuid": {
+                                                        "type": "string",
+                                                        "format": "uuid"
+                                                    },
+                                                    "value": {}
+                                                },
+                                                "required": [
+                                                    "uuid",
+                                                    "value"
+                                                ]
+                                            },
+                                            {
+                                                "type": "object",
+                                                "properties": {
+                                                    "value": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "string",
+                                                            "format": "uuid"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                "type": "object",
+                                                "properties": {
+                                                    "uuid": {
+                                                        "type": "string",
+                                                        "format": "uuid"
+                                                    }
+                                                }
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "allOf": [
+                                            {
+                                                "type": "object",
+                                                "additionalProperties": false,
+                                                "properties": {
+                                                    "uuid": {
+                                                        "type": "string",
+                                                        "format": "uuid"
+                                                    },
+                                                    "value": {}
+                                                },
+                                                "required": [
+                                                    "uuid",
+                                                    "value"
+                                                ]
+                                            },
+                                            {
+                                                "type": "object",
+                                                "properties": {
+                                                    "value": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                "type": "object",
+                                                "properties": {
+                                                    "uuid": {
+                                                        "type": "string",
+                                                        "format": "uuid"
+                                                    }
+                                                }
+                                            }
+                                        ]
+                                    }
+                                ]
                             }
                         },
                         "additionalProperties": false,
@@ -19399,10 +21076,25 @@
                                 "required": [
                                     "manual_translation"
                                 ]
+                            },
+                            {
+                                "required": [
+                                    "automatic_google_transcription"
+                                ]
+                            },
+                            {
+                                "required": [
+                                    "automatic_google_translation"
+                                ]
+                            },
+                            {
+                                "required": [
+                                    "qual"
+                                ]
                             }
                         ]
                     }
-                }
+                ]
             },
             "PatchedDataValidationStatusUpdatePayload": {
                 "type": "object",

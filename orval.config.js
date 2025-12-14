@@ -37,5 +37,8 @@ module.exports = {
     input: {
       target: './static/openapi/schema_v2.yaml',
     },
+    hooks: {
+      afterAllFilesWrite: 'node scripts/orval-fix-missing-imports.js',
+    },
   },
 }

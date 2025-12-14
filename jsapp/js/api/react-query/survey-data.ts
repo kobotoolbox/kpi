@@ -1821,207 +1821,6 @@ export function useAssetsDataEnketoViewRetrieve<
 }
 
 /**
- * ## TBC Supplement retrieve
-
- */
-export type assetsDataSupplementRetrieveResponse200 = {
-  data: DataSupplementResponse
-  status: 200
-}
-
-export type assetsDataSupplementRetrieveResponse400 = {
-  data: ErrorObject
-  status: 400
-}
-
-export type assetsDataSupplementRetrieveResponse401 = {
-  data: ErrorDetail
-  status: 401
-}
-
-export type assetsDataSupplementRetrieveResponseComposite =
-  | assetsDataSupplementRetrieveResponse200
-  | assetsDataSupplementRetrieveResponse400
-  | assetsDataSupplementRetrieveResponse401
-
-export type assetsDataSupplementRetrieveResponse = assetsDataSupplementRetrieveResponseComposite & {
-  headers: Headers
-}
-
-export const getAssetsDataSupplementRetrieveUrl = (uidAsset: string, id: string) => {
-  return `/api/v2/assets/${uidAsset}/data/${id}/supplement/`
-}
-
-export const assetsDataSupplementRetrieve = async (
-  uidAsset: string,
-  id: string,
-  options?: RequestInit,
-): Promise<assetsDataSupplementRetrieveResponse> => {
-  return fetchWithAuth<assetsDataSupplementRetrieveResponse>(getAssetsDataSupplementRetrieveUrl(uidAsset, id), {
-    ...options,
-    method: 'GET',
-  })
-}
-
-export const getAssetsDataSupplementRetrieveQueryKey = (uidAsset: string, id: string) => {
-  return ['api', 'v2', 'assets', uidAsset, 'data', id, 'supplement'] as const
-}
-
-export const getAssetsDataSupplementRetrieveQueryOptions = <
-  TData = Awaited<ReturnType<typeof assetsDataSupplementRetrieve>>,
-  TError = ErrorObject | ErrorDetail,
->(
-  uidAsset: string,
-  id: string,
-  options?: {
-    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsDataSupplementRetrieve>>, TError, TData>
-    request?: SecondParameter<typeof fetchWithAuth>
-  },
-) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {}
-
-  const queryKey = queryOptions?.queryKey ?? getAssetsDataSupplementRetrieveQueryKey(uidAsset, id)
-
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsDataSupplementRetrieve>>> = ({ signal }) =>
-    assetsDataSupplementRetrieve(uidAsset, id, { signal, ...requestOptions })
-
-  return { queryKey, queryFn, enabled: !!(uidAsset && id), ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof assetsDataSupplementRetrieve>>,
-    TError,
-    TData
-  > & { queryKey: QueryKey }
-}
-
-export type AssetsDataSupplementRetrieveQueryResult = NonNullable<
-  Awaited<ReturnType<typeof assetsDataSupplementRetrieve>>
->
-export type AssetsDataSupplementRetrieveQueryError = ErrorObject | ErrorDetail
-
-export function useAssetsDataSupplementRetrieve<
-  TData = Awaited<ReturnType<typeof assetsDataSupplementRetrieve>>,
-  TError = ErrorObject | ErrorDetail,
->(
-  uidAsset: string,
-  id: string,
-  options?: {
-    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsDataSupplementRetrieve>>, TError, TData>
-    request?: SecondParameter<typeof fetchWithAuth>
-  },
-): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getAssetsDataSupplementRetrieveQueryOptions(uidAsset, id, options)
-
-  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
-
-  query.queryKey = queryOptions.queryKey
-
-  return query
-}
-
-/**
- * ## TBC Supplement update
-
- */
-export type assetsDataSupplementPartialUpdateResponse200 = {
-  data: DataSupplementResponse
-  status: 200
-}
-
-export type assetsDataSupplementPartialUpdateResponse400 = {
-  data: ErrorObject
-  status: 400
-}
-
-export type assetsDataSupplementPartialUpdateResponse401 = {
-  data: ErrorDetail
-  status: 401
-}
-
-export type assetsDataSupplementPartialUpdateResponseComposite =
-  | assetsDataSupplementPartialUpdateResponse200
-  | assetsDataSupplementPartialUpdateResponse400
-  | assetsDataSupplementPartialUpdateResponse401
-
-export type assetsDataSupplementPartialUpdateResponse = assetsDataSupplementPartialUpdateResponseComposite & {
-  headers: Headers
-}
-
-export const getAssetsDataSupplementPartialUpdateUrl = (uidAsset: string, id: string) => {
-  return `/api/v2/assets/${uidAsset}/data/${id}/supplement/`
-}
-
-export const assetsDataSupplementPartialUpdate = async (
-  uidAsset: string,
-  id: string,
-  patchedDataSupplementPayload: PatchedDataSupplementPayload,
-  options?: RequestInit,
-): Promise<assetsDataSupplementPartialUpdateResponse> => {
-  return fetchWithAuth<assetsDataSupplementPartialUpdateResponse>(
-    getAssetsDataSupplementPartialUpdateUrl(uidAsset, id),
-    {
-      ...options,
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', ...options?.headers },
-      body: JSON.stringify(patchedDataSupplementPayload),
-    },
-  )
-}
-
-export const getAssetsDataSupplementPartialUpdateMutationOptions = <
-  TError = ErrorObject | ErrorDetail,
-  TContext = unknown,
->(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof assetsDataSupplementPartialUpdate>>,
-    TError,
-    { uidAsset: string; id: string; data: PatchedDataSupplementPayload },
-    TContext
-  >
-  request?: SecondParameter<typeof fetchWithAuth>
-}): UseMutationOptions<
-  Awaited<ReturnType<typeof assetsDataSupplementPartialUpdate>>,
-  TError,
-  { uidAsset: string; id: string; data: PatchedDataSupplementPayload },
-  TContext
-> => {
-  const mutationKey = ['assetsDataSupplementPartialUpdate']
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined }
-
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof assetsDataSupplementPartialUpdate>>,
-    { uidAsset: string; id: string; data: PatchedDataSupplementPayload }
-  > = (props) => {
-    const { uidAsset, id, data } = props ?? {}
-
-    return assetsDataSupplementPartialUpdate(uidAsset, id, data, requestOptions)
-  }
-
-  return { mutationFn, ...mutationOptions }
-}
-
-export type AssetsDataSupplementPartialUpdateMutationResult = NonNullable<
-  Awaited<ReturnType<typeof assetsDataSupplementPartialUpdate>>
->
-export type AssetsDataSupplementPartialUpdateMutationBody = PatchedDataSupplementPayload
-export type AssetsDataSupplementPartialUpdateMutationError = ErrorObject | ErrorDetail
-
-export const useAssetsDataSupplementPartialUpdate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof assetsDataSupplementPartialUpdate>>,
-    TError,
-    { uidAsset: string; id: string; data: PatchedDataSupplementPayload },
-    TContext
-  >
-  request?: SecondParameter<typeof fetchWithAuth>
-}) => {
-  const mutationOptions = getAssetsDataSupplementPartialUpdateMutationOptions(options)
-
-  return useMutation(mutationOptions)
-}
-/**
  * ## Get validation statuses
 Retrieves the validation status of a submission.
 
@@ -2145,13 +1944,13 @@ export type assetsDataValidationStatusPartialUpdateResponse =
     headers: Headers
   }
 
-export const getAssetsDataValidationStatusPartialUpdateUrl = (uidAsset: string, id: string) => {
+export const getAssetsDataValidationStatusPartialUpdateUrl = (uidAsset: string, id: number) => {
   return `/api/v2/assets/${uidAsset}/data/${id}/validation_status/`
 }
 
 export const assetsDataValidationStatusPartialUpdate = async (
   uidAsset: string,
-  id: string,
+  id: number,
   patchedDataValidationStatusUpdatePayload: PatchedDataValidationStatusUpdatePayload,
   options?: RequestInit,
 ): Promise<assetsDataValidationStatusPartialUpdateResponse> => {
@@ -2173,14 +1972,14 @@ export const getAssetsDataValidationStatusPartialUpdateMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsDataValidationStatusPartialUpdate>>,
     TError,
-    { uidAsset: string; id: string; data: PatchedDataValidationStatusUpdatePayload },
+    { uidAsset: string; id: number; data: PatchedDataValidationStatusUpdatePayload },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof assetsDataValidationStatusPartialUpdate>>,
   TError,
-  { uidAsset: string; id: string; data: PatchedDataValidationStatusUpdatePayload },
+  { uidAsset: string; id: number; data: PatchedDataValidationStatusUpdatePayload },
   TContext
 > => {
   const mutationKey = ['assetsDataValidationStatusPartialUpdate']
@@ -2192,7 +1991,7 @@ export const getAssetsDataValidationStatusPartialUpdateMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof assetsDataValidationStatusPartialUpdate>>,
-    { uidAsset: string; id: string; data: PatchedDataValidationStatusUpdatePayload }
+    { uidAsset: string; id: number; data: PatchedDataValidationStatusUpdatePayload }
   > = (props) => {
     const { uidAsset, id, data } = props ?? {}
 
@@ -2212,7 +2011,7 @@ export const useAssetsDataValidationStatusPartialUpdate = <TError = ErrorDetail,
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsDataValidationStatusPartialUpdate>>,
     TError,
-    { uidAsset: string; id: string; data: PatchedDataValidationStatusUpdatePayload },
+    { uidAsset: string; id: number; data: PatchedDataValidationStatusUpdatePayload },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
@@ -2313,6 +2112,243 @@ export const useAssetsDataValidationStatusDestroy = <TError = ErrorDetail, TCont
   request?: SecondParameter<typeof fetchWithAuth>
 }) => {
   const mutationOptions = getAssetsDataValidationStatusDestroyMutationOptions(options)
+
+  return useMutation(mutationOptions)
+}
+/**
+ * ## Retrieve submission supplementary data
+
+This endpoint allows you to retrieve supplementary data attached to a submission.
+
+The supplementary data may include:
+
+* NLP actions
+  * Manual transcription
+  * Manual translation
+  * Automatic Google transcription
+  * Automatic Google translation
+* Qualitative analysis
+  * Text
+  * Number
+  * Single Choice
+  * Multiple Choice
+  * Tags
+
+⚠️ The response examples in this documentation show each action in isolation for
+readability.
+
+In practice, multiple actions can be combined for the same question, and a single
+submission may contain multiple questions.
+
+ */
+export type assetsDataSupplementRetrieveResponse200 = {
+  data: DataSupplementResponse
+  status: 200
+}
+
+export type assetsDataSupplementRetrieveResponse400 = {
+  data: ErrorObject
+  status: 400
+}
+
+export type assetsDataSupplementRetrieveResponse401 = {
+  data: ErrorDetail
+  status: 401
+}
+
+export type assetsDataSupplementRetrieveResponseComposite =
+  | assetsDataSupplementRetrieveResponse200
+  | assetsDataSupplementRetrieveResponse400
+  | assetsDataSupplementRetrieveResponse401
+
+export type assetsDataSupplementRetrieveResponse = assetsDataSupplementRetrieveResponseComposite & {
+  headers: Headers
+}
+
+export const getAssetsDataSupplementRetrieveUrl = (uidAsset: string, rootUuid: string) => {
+  return `/api/v2/assets/${uidAsset}/data/${rootUuid}/supplement/`
+}
+
+export const assetsDataSupplementRetrieve = async (
+  uidAsset: string,
+  rootUuid: string,
+  options?: RequestInit,
+): Promise<assetsDataSupplementRetrieveResponse> => {
+  return fetchWithAuth<assetsDataSupplementRetrieveResponse>(getAssetsDataSupplementRetrieveUrl(uidAsset, rootUuid), {
+    ...options,
+    method: 'GET',
+  })
+}
+
+export const getAssetsDataSupplementRetrieveQueryKey = (uidAsset: string, rootUuid: string) => {
+  return ['api', 'v2', 'assets', uidAsset, 'data', rootUuid, 'supplement'] as const
+}
+
+export const getAssetsDataSupplementRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetsDataSupplementRetrieve>>,
+  TError = ErrorObject | ErrorDetail,
+>(
+  uidAsset: string,
+  rootUuid: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsDataSupplementRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getAssetsDataSupplementRetrieveQueryKey(uidAsset, rootUuid)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsDataSupplementRetrieve>>> = ({ signal }) =>
+    assetsDataSupplementRetrieve(uidAsset, rootUuid, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: !!(uidAsset && rootUuid), ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsDataSupplementRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type AssetsDataSupplementRetrieveQueryResult = NonNullable<
+  Awaited<ReturnType<typeof assetsDataSupplementRetrieve>>
+>
+export type AssetsDataSupplementRetrieveQueryError = ErrorObject | ErrorDetail
+
+export function useAssetsDataSupplementRetrieve<
+  TData = Awaited<ReturnType<typeof assetsDataSupplementRetrieve>>,
+  TError = ErrorObject | ErrorDetail,
+>(
+  uidAsset: string,
+  rootUuid: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsDataSupplementRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAssetsDataSupplementRetrieveQueryOptions(uidAsset, rootUuid, options)
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
+/**
+ * ## Update submission supplementary data
+
+This endpoint allows you to add, update, or delete supplementary data for a submission.
+
+It supports the same action types as the GET endpoint:
+
+* NLP actions (manual and automatic transcription / translation)
+* Qualitative analysis
+
+The PATCH payload follows the same per-question structure as the GET response.
+
+⚠️ In this documentation, request and response examples present each action in
+isolation for clarity. In practice, multiple actions may be combined within the same
+payload or response, including for the same question, and a single submission may
+contain multiple questions.
+
+ */
+export type assetsDataSupplementPartialUpdateResponse200 = {
+  data: DataSupplementResponse
+  status: 200
+}
+
+export type assetsDataSupplementPartialUpdateResponse400 = {
+  data: ErrorObject
+  status: 400
+}
+
+export type assetsDataSupplementPartialUpdateResponse401 = {
+  data: ErrorDetail
+  status: 401
+}
+
+export type assetsDataSupplementPartialUpdateResponseComposite =
+  | assetsDataSupplementPartialUpdateResponse200
+  | assetsDataSupplementPartialUpdateResponse400
+  | assetsDataSupplementPartialUpdateResponse401
+
+export type assetsDataSupplementPartialUpdateResponse = assetsDataSupplementPartialUpdateResponseComposite & {
+  headers: Headers
+}
+
+export const getAssetsDataSupplementPartialUpdateUrl = (uidAsset: string, rootUuid: string) => {
+  return `/api/v2/assets/${uidAsset}/data/${rootUuid}/supplement/`
+}
+
+export const assetsDataSupplementPartialUpdate = async (
+  uidAsset: string,
+  rootUuid: string,
+  patchedDataSupplementPayload: PatchedDataSupplementPayload,
+  options?: RequestInit,
+): Promise<assetsDataSupplementPartialUpdateResponse> => {
+  return fetchWithAuth<assetsDataSupplementPartialUpdateResponse>(
+    getAssetsDataSupplementPartialUpdateUrl(uidAsset, rootUuid),
+    {
+      ...options,
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(patchedDataSupplementPayload),
+    },
+  )
+}
+
+export const getAssetsDataSupplementPartialUpdateMutationOptions = <
+  TError = ErrorObject | ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsDataSupplementPartialUpdate>>,
+    TError,
+    { uidAsset: string; rootUuid: string; data: PatchedDataSupplementPayload },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof assetsDataSupplementPartialUpdate>>,
+  TError,
+  { uidAsset: string; rootUuid: string; data: PatchedDataSupplementPayload },
+  TContext
+> => {
+  const mutationKey = ['assetsDataSupplementPartialUpdate']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof assetsDataSupplementPartialUpdate>>,
+    { uidAsset: string; rootUuid: string; data: PatchedDataSupplementPayload }
+  > = (props) => {
+    const { uidAsset, rootUuid, data } = props ?? {}
+
+    return assetsDataSupplementPartialUpdate(uidAsset, rootUuid, data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type AssetsDataSupplementPartialUpdateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof assetsDataSupplementPartialUpdate>>
+>
+export type AssetsDataSupplementPartialUpdateMutationBody = PatchedDataSupplementPayload
+export type AssetsDataSupplementPartialUpdateMutationError = ErrorObject | ErrorDetail
+
+export const useAssetsDataSupplementPartialUpdate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsDataSupplementPartialUpdate>>,
+    TError,
+    { uidAsset: string; rootUuid: string; data: PatchedDataSupplementPayload },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getAssetsDataSupplementPartialUpdateMutationOptions(options)
 
   return useMutation(mutationOptions)
 }
