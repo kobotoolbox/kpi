@@ -53,11 +53,13 @@
       "question_xpath": "q1",
       "asset": 3,
       "action": "qual",
-      "params": [{
-            "type": "qualInteger",
-            "uuid": "1a2c8eb0-e2ec-4b3c-942a-c1a5410c081a",
-            "labels": {"_default": "How many characters appear in the story?"}
-        }]
+      "params": [
+        {
+          "type": "qualInteger",
+          "uuid": "1a2c8eb0-e2ec-4b3c-942a-c1a5410c081a",
+          "labels": { "_default": "How many characters appear in the story?" }
+        }
+      ]
     }
   }
 ]

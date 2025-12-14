@@ -665,17 +665,17 @@ class TestQualActionMethods(TestCase):
             'choices': [
                 {
                     'uuid': 'choice-high-uuid',
-                    'labels': {'_default': 'High', 'fr': 'Élevé', 'es': 'Alto'}
+                    'labels': {'_default': 'High', 'fr': 'Élevé', 'es': 'Alto'},
                 },
                 {
                     'uuid': 'choice-medium-uuid',
-                    'labels': {'_default': 'Medium', 'fr': 'Moyen', 'es': 'Medio'}
+                    'labels': {'_default': 'Medium', 'fr': 'Moyen', 'es': 'Medio'},
                 },
                 {
                     'uuid': 'choice-low-uuid',
-                    'labels': {'_default': 'Low', 'fr': 'Bas', 'es': 'Bajo'}
+                    'labels': {'_default': 'Low', 'fr': 'Bas', 'es': 'Bajo'},
                 },
-            ]
+            ],
         },
         {
             'type': 'qualSelectMultiple',
@@ -684,17 +684,14 @@ class TestQualActionMethods(TestCase):
             'choices': [
                 {
                     'uuid': 'tag-shelter-uuid',
-                    'labels': {'_default': 'Shelter', 'ar': 'مأوى'}
+                    'labels': {'_default': 'Shelter', 'ar': 'مأوى'},
                 },
-                {
-                    'uuid': 'tag-food-uuid',
-                    'labels': {'_default': 'Food', 'ar': 'طعام'}
-                },
+                {'uuid': 'tag-food-uuid', 'labels': {'_default': 'Food', 'ar': 'طعام'}},
                 {
                     'uuid': 'tag-medical-uuid',
-                    'labels': {'_default': 'Medical', 'ar': 'طبي'}
+                    'labels': {'_default': 'Medical', 'ar': 'طبي'},
                 },
-            ]
+            ],
         },
     ]
 
@@ -750,7 +747,7 @@ class TestQualActionMethods(TestCase):
         assert high_choice['labels'] == {
             '_default': 'High',
             'fr': 'Élevé',
-            'es': 'Alto'
+            'es': 'Alto',
         }
 
         # Test select multiple (with choices)
@@ -762,13 +759,9 @@ class TestQualActionMethods(TestCase):
 
         # Verify multilingual choice labels
         shelter_choice = next(
-            c for c in select_multi_field['choices']
-            if c['uuid'] == 'tag-shelter-uuid'
+            c for c in select_multi_field['choices'] if c['uuid'] == 'tag-shelter-uuid'
         )
-        assert shelter_choice['labels'] == {
-            '_default': 'Shelter',
-            'ar': 'مأوى'
-        }
+        assert shelter_choice['labels'] == {'_default': 'Shelter', 'ar': 'مأوى'}
 
     def test_transform_data_for_output_all_question_types(self):
         """
@@ -785,57 +778,65 @@ class TestQualActionMethods(TestCase):
         action_data = {
             # Integer question
             'qual-integer-uuid': {
-                '_versions': [{
-                    '_data': {'uuid': 'qual-integer-uuid', 'value': 5},
-                    '_dateCreated': '2025-11-24T10:00:00Z',
-                    '_dateAccepted': '2025-11-24T10:00:00Z',
-                    '_uuid': 'v1'
-                }],
+                '_versions': [
+                    {
+                        '_data': {'uuid': 'qual-integer-uuid', 'value': 5},
+                        '_dateCreated': '2025-11-24T10:00:00Z',
+                        '_dateAccepted': '2025-11-24T10:00:00Z',
+                        '_uuid': 'v1',
+                    }
+                ],
                 '_dateCreated': '2025-11-24T10:00:00Z',
-                '_dateModified': '2025-11-24T10:00:00Z'
+                '_dateModified': '2025-11-24T10:00:00Z',
             },
             # Text question
             'qual-text-uuid': {
-                '_versions': [{
-                    '_data': {
-                        'uuid': 'qual-text-uuid',
-                        'value': 'Family needs immediate shelter and medical care'
-                    },
-                    '_dateCreated': '2025-11-24T10:05:00Z',
-                    '_dateAccepted': '2025-11-24T10:05:00Z',
-                    '_uuid': 'v2'
-                }],
+                '_versions': [
+                    {
+                        '_data': {
+                            'uuid': 'qual-text-uuid',
+                            'value': 'Family needs immediate shelter and medical care',
+                        },
+                        '_dateCreated': '2025-11-24T10:05:00Z',
+                        '_dateAccepted': '2025-11-24T10:05:00Z',
+                        '_uuid': 'v2',
+                    }
+                ],
                 '_dateCreated': '2025-11-24T10:05:00Z',
-                '_dateModified': '2025-11-24T10:05:00Z'
+                '_dateModified': '2025-11-24T10:05:00Z',
             },
             # Select one question
             'qual-select-one-uuid': {
-                '_versions': [{
-                    '_data': {
-                        'uuid': 'qual-select-one-uuid',
-                        'value': 'choice-high-uuid'
-                    },
-                    '_dateCreated': '2025-11-24T10:10:00Z',
-                    '_dateAccepted': '2025-11-24T10:10:00Z',
-                    '_uuid': 'v3'
-                }],
+                '_versions': [
+                    {
+                        '_data': {
+                            'uuid': 'qual-select-one-uuid',
+                            'value': 'choice-high-uuid',
+                        },
+                        '_dateCreated': '2025-11-24T10:10:00Z',
+                        '_dateAccepted': '2025-11-24T10:10:00Z',
+                        '_uuid': 'v3',
+                    }
+                ],
                 '_dateCreated': '2025-11-24T10:10:00Z',
-                '_dateModified': '2025-11-24T10:10:00Z'
+                '_dateModified': '2025-11-24T10:10:00Z',
             },
             # Select multiple question
             'qual-select-multi-uuid': {
-                '_versions': [{
-                    '_data': {
-                        'uuid': 'qual-select-multi-uuid',
-                        'value': ['tag-shelter-uuid', 'tag-medical-uuid']
-                    },
-                    '_dateCreated': '2025-11-24T10:15:00Z',
-                    '_dateAccepted': '2025-11-24T10:15:00Z',
-                    '_uuid': 'v4'
-                }],
+                '_versions': [
+                    {
+                        '_data': {
+                            'uuid': 'qual-select-multi-uuid',
+                            'value': ['tag-shelter-uuid', 'tag-medical-uuid'],
+                        },
+                        '_dateCreated': '2025-11-24T10:15:00Z',
+                        '_dateAccepted': '2025-11-24T10:15:00Z',
+                        '_uuid': 'v4',
+                    }
+                ],
                 '_dateCreated': '2025-11-24T10:15:00Z',
-                '_dateModified': '2025-11-24T10:15:00Z'
-            }
+                '_dateModified': '2025-11-24T10:15:00Z',
+            },
         }
 
         output = action.transform_data_for_output(action_data)
@@ -871,7 +872,7 @@ class TestQualActionMethods(TestCase):
         assert select_one_value['labels'] == {
             '_default': 'High',
             'fr': 'Élevé',
-            'es': 'Alto'
+            'es': 'Alto',
         }
 
         # Test select multiple - array of UUIDs transformed to array of objects
@@ -885,19 +886,13 @@ class TestQualActionMethods(TestCase):
         shelter_item = next(
             i for i in select_multi_value if i['uuid'] == 'tag-shelter-uuid'
         )
-        assert shelter_item['labels'] == {
-            '_default': 'Shelter',
-            'ar': 'مأوى'
-        }
+        assert shelter_item['labels'] == {'_default': 'Shelter', 'ar': 'مأوى'}
 
         # Verify second choice
         medical_item = next(
             i for i in select_multi_value if i['uuid'] == 'tag-medical-uuid'
         )
-        assert medical_item['labels'] == {
-            '_default': 'Medical',
-            'ar': 'طبي'
-        }
+        assert medical_item['labels'] == {'_default': 'Medical', 'ar': 'طبي'}
 
     def test_transform_data_prefers_newest_date_accepted_version(self):
         """
@@ -911,35 +906,26 @@ class TestQualActionMethods(TestCase):
             'qual-text-uuid': {
                 '_versions': [
                     {
-                        '_data': {
-                            'uuid': 'qual-text-uuid',
-                            'value': 'Initial note'
-                        },
+                        '_data': {'uuid': 'qual-text-uuid', 'value': 'Initial note'},
                         '_dateCreated': '2025-11-24T09:00:00Z',
                         '_dateAccepted': '2025-11-24T09:00:00Z',
-                        '_uuid': 'v1'
+                        '_uuid': 'v1',
                     },
                     {
-                        '_data': {
-                            'uuid': 'qual-text-uuid',
-                            'value': 'Revised note'
-                        },
+                        '_data': {'uuid': 'qual-text-uuid', 'value': 'Revised note'},
                         '_dateCreated': '2025-11-24T10:00:00Z',
                         '_dateAccepted': '2025-11-24T10:00:00Z',
-                        '_uuid': 'v2'
+                        '_uuid': 'v2',
                     },
                     {
-                        '_data': {
-                            'uuid': 'qual-text-uuid',
-                            'value': 'Final note'
-                        },
+                        '_data': {'uuid': 'qual-text-uuid', 'value': 'Final note'},
                         '_dateCreated': '2025-11-24T11:00:00Z',
                         '_dateAccepted': '2025-11-24T09:30:00Z',
-                        '_uuid': 'v3'
+                        '_uuid': 'v3',
                     },
                 ],
                 '_dateCreated': '2025-11-24T09:00:00Z',
-                '_dateModified': '2025-11-24T11:00:00Z'
+                '_dateModified': '2025-11-24T11:00:00Z',
             }
         }
 

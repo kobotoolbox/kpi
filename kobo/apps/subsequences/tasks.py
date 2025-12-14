@@ -32,6 +32,8 @@ def poll_run_external_process(
     action_id: str,
     action_data: dict,
 ):
+    from .actions.base import BaseAction
+
     Asset = apps.get_model('kpi', 'Asset')  # noqa: N806
     SubmissionSupplement = apps.get_model('subsequences', 'SubmissionSupplement')  # noqa: N806
     incoming_data = {
@@ -43,7 +45,7 @@ def poll_run_external_process(
 
     last_action_version = supplement_data[question_xpath][action_id]['_versions'][0]
 
-    if last_action_version['status'] == 'in_progress':
+    if last_action_version[BaseAction.VERSION_DATA_FIELD]['status'] == 'in_progress':
         raise SubsequenceTimeoutError(
             f'{action_id} is still in progress for submission '
             f'{submission[SUBMISSION_UUID_FIELD]}'
