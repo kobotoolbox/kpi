@@ -109,7 +109,6 @@ class CustomerPortalSerializer(serializers.Serializer):
         required=False,
         allow_empty=True,
     )
-    quantity = serializers.IntegerField(required=False, default=1, min_value=1)
 
     def validate_organization_id(self, organization_id):
         if organization_id.startswith('org'):
