@@ -100,6 +100,7 @@ from kpi.versioning import APIV2Versioning
                 description='UID of the advanced feature',
             ),
         ],
+        examples=get_advanced_features_list_examples(),
     ),
     update=extend_schema(
         exclude=True,
