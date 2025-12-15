@@ -1640,8 +1640,7 @@
                                                         "type": "<question_type>",
                                                         "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
                                                         "labels": {
-                                                            "_default": "Qualitative analysis result",
-                                                            "es": "Resultado de análisis cualitativo"
+                                                            "_default": "Qualitative analysis result"
                                                         }
                                                     }
                                                 ],
@@ -1661,32 +1660,25 @@
                                                         "type": "qualSelectOne",
                                                         "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
                                                         "labels": {
-                                                            "_default": "Urgency Level",
-                                                            "es": "Nivel de Urgencia"
+                                                            "_default": "Urgency Level"
                                                         },
                                                         "choices": [
                                                             {
                                                                 "uuid": "qqqqqqqq-bbbb-cccc-dddd-eeeeffffffff",
                                                                 "labels": {
-                                                                    "_default": "High",
-                                                                    "fr": "Élevé",
-                                                                    "es": "Alto"
+                                                                    "_default": "High"
                                                                 }
                                                             },
                                                             {
                                                                 "uuid": "hhhhhhhh-bbbb-cccc-dddd-eeeeffffffff",
                                                                 "labels": {
-                                                                    "_default": "Medium",
-                                                                    "fr": "Moyen",
-                                                                    "es": "Medio"
+                                                                    "_default": "Medium"
                                                                 }
                                                             },
                                                             {
                                                                 "uuid": "gggggggg-bbbb-cccc-dddd-eeeeffffffff",
                                                                 "labels": {
-                                                                    "_default": "Low",
-                                                                    "fr": "Bas",
-                                                                    "es": "Bajo"
+                                                                    "_default": "Low"
                                                                 }
                                                             }
                                                         ]
@@ -1713,22 +1705,19 @@
                                                             {
                                                                 "uuid": "xxxxxxxx-bbbb-cccc-dddd-eeeeffffffff",
                                                                 "labels": {
-                                                                    "_default": "Shelter",
-                                                                    "ar": "مأوى"
+                                                                    "_default": "Shelter"
                                                                 }
                                                             },
                                                             {
                                                                 "uuid": "zzzzzzzz-bbbb-cccc-dddd-eeeeffffffff",
                                                                 "labels": {
-                                                                    "_default": "Food",
-                                                                    "ar": "طعام"
+                                                                    "_default": "Food"
                                                                 }
                                                             },
                                                             {
                                                                 "uuid": "yyyyyyyy-bbbb-cccc-dddd-eeeeffffffff",
                                                                 "labels": {
-                                                                    "_default": "Medical",
-                                                                    "ar": "طبي"
+                                                                    "_default": "Medical"
                                                                 }
                                                             }
                                                         ]
@@ -1813,8 +1802,7 @@
                                                 "type": "<question_type>",
                                                 "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
                                                 "labels": {
-                                                    "_default": "Qualitative analysis result",
-                                                    "es": "Resultado de análisis cualitativo"
+                                                    "_default": "Qualitative analysis result"
                                                 }
                                             }
                                         ]
@@ -1831,32 +1819,25 @@
                                                 "type": "qualSelectOne",
                                                 "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
                                                 "labels": {
-                                                    "_default": "Urgency Level",
-                                                    "es": "Nivel de Urgencia"
+                                                    "_default": "Urgency Level"
                                                 },
                                                 "choices": [
                                                     {
                                                         "uuid": "qqqqqqqq-bbbb-cccc-dddd-eeeeffffffff",
                                                         "labels": {
-                                                            "_default": "High",
-                                                            "fr": "Élevé",
-                                                            "es": "Alto"
+                                                            "_default": "High"
                                                         }
                                                     },
                                                     {
                                                         "uuid": "hhhhhhhh-bbbb-cccc-dddd-eeeeffffffff",
                                                         "labels": {
-                                                            "_default": "Medium",
-                                                            "fr": "Moyen",
-                                                            "es": "Medio"
+                                                            "_default": "Medium"
                                                         }
                                                     },
                                                     {
                                                         "uuid": "gggggggg-bbbb-cccc-dddd-eeeeffffffff",
                                                         "labels": {
-                                                            "_default": "Low",
-                                                            "fr": "Bas",
-                                                            "es": "Bajo"
+                                                            "_default": "Low"
                                                         }
                                                     }
                                                 ]
@@ -1880,22 +1861,19 @@
                                                     {
                                                         "uuid": "xxxxxxxx-bbbb-cccc-dddd-eeeeffffffff",
                                                         "labels": {
-                                                            "_default": "Shelter",
-                                                            "ar": "مأوى"
+                                                            "_default": "Shelter"
                                                         }
                                                     },
                                                     {
                                                         "uuid": "zzzzzzzz-bbbb-cccc-dddd-eeeeffffffff",
                                                         "labels": {
-                                                            "_default": "Food",
-                                                            "ar": "طعام"
+                                                            "_default": "Food"
                                                         }
                                                     },
                                                     {
                                                         "uuid": "yyyyyyyy-bbbb-cccc-dddd-eeeeffffffff",
                                                         "labels": {
-                                                            "_default": "Medical",
-                                                            "ar": "طبي"
+                                                            "_default": "Medical"
                                                         }
                                                     }
                                                 ]
@@ -2040,8 +2018,7 @@
                                                     "type": "<question_type>",
                                                     "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
                                                     "labels": {
-                                                        "_default": "Qualitative analysis result",
-                                                        "es": "Resultado de análisis cualitativo"
+                                                        "_default": "Qualitative analysis result"
                                                     }
                                                 }
                                             ],
@@ -2059,32 +2036,25 @@
                                                     "type": "qualSelectOne",
                                                     "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
                                                     "labels": {
-                                                        "_default": "Urgency Level",
-                                                        "es": "Nivel de Urgencia"
+                                                        "_default": "Urgency Level"
                                                     },
                                                     "choices": [
                                                         {
                                                             "uuid": "qqqqqqqq-bbbb-cccc-dddd-eeeeffffffff",
                                                             "labels": {
-                                                                "_default": "High",
-                                                                "fr": "Élevé",
-                                                                "es": "Alto"
+                                                                "_default": "High"
                                                             }
                                                         },
                                                         {
                                                             "uuid": "hhhhhhhh-bbbb-cccc-dddd-eeeeffffffff",
                                                             "labels": {
-                                                                "_default": "Medium",
-                                                                "fr": "Moyen",
-                                                                "es": "Medio"
+                                                                "_default": "Medium"
                                                             }
                                                         },
                                                         {
                                                             "uuid": "gggggggg-bbbb-cccc-dddd-eeeeffffffff",
                                                             "labels": {
-                                                                "_default": "Low",
-                                                                "fr": "Bas",
-                                                                "es": "Bajo"
+                                                                "_default": "Low"
                                                             }
                                                         }
                                                     ]
@@ -2109,22 +2079,19 @@
                                                         {
                                                             "uuid": "xxxxxxxx-bbbb-cccc-dddd-eeeeffffffff",
                                                             "labels": {
-                                                                "_default": "Shelter",
-                                                                "ar": "مأوى"
+                                                                "_default": "Shelter"
                                                             }
                                                         },
                                                         {
                                                             "uuid": "zzzzzzzz-bbbb-cccc-dddd-eeeeffffffff",
                                                             "labels": {
-                                                                "_default": "Food",
-                                                                "ar": "طعام"
+                                                                "_default": "Food"
                                                             }
                                                         },
                                                         {
                                                             "uuid": "yyyyyyyy-bbbb-cccc-dddd-eeeeffffffff",
                                                             "labels": {
-                                                                "_default": "Medical",
-                                                                "ar": "طبي"
+                                                                "_default": "Medical"
                                                             }
                                                         }
                                                     ]
@@ -2217,8 +2184,7 @@
                                                 "type": "<question_type>",
                                                 "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
                                                 "labels": {
-                                                    "_default": "Qualitative analysis result",
-                                                    "es": "Resultado de análisis cualitativo"
+                                                    "_default": "Qualitative analysis result"
                                                 }
                                             }
                                         ]
@@ -2235,32 +2201,25 @@
                                                 "type": "qualSelectOne",
                                                 "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
                                                 "labels": {
-                                                    "_default": "Urgency Level",
-                                                    "es": "Nivel de Urgencia"
+                                                    "_default": "Urgency Level"
                                                 },
                                                 "choices": [
                                                     {
                                                         "uuid": "qqqqqqqq-bbbb-cccc-dddd-eeeeffffffff",
                                                         "labels": {
-                                                            "_default": "High",
-                                                            "fr": "Élevé",
-                                                            "es": "Alto"
+                                                            "_default": "High"
                                                         }
                                                     },
                                                     {
                                                         "uuid": "hhhhhhhh-bbbb-cccc-dddd-eeeeffffffff",
                                                         "labels": {
-                                                            "_default": "Medium",
-                                                            "fr": "Moyen",
-                                                            "es": "Medio"
+                                                            "_default": "Medium"
                                                         }
                                                     },
                                                     {
                                                         "uuid": "gggggggg-bbbb-cccc-dddd-eeeeffffffff",
                                                         "labels": {
-                                                            "_default": "Low",
-                                                            "fr": "Bas",
-                                                            "es": "Bajo"
+                                                            "_default": "Low"
                                                         }
                                                     }
                                                 ]
@@ -2284,22 +2243,19 @@
                                                     {
                                                         "uuid": "xxxxxxxx-bbbb-cccc-dddd-eeeeffffffff",
                                                         "labels": {
-                                                            "_default": "Shelter",
-                                                            "ar": "مأوى"
+                                                            "_default": "Shelter"
                                                         }
                                                     },
                                                     {
                                                         "uuid": "zzzzzzzz-bbbb-cccc-dddd-eeeeffffffff",
                                                         "labels": {
-                                                            "_default": "Food",
-                                                            "ar": "طعام"
+                                                            "_default": "Food"
                                                         }
                                                     },
                                                     {
                                                         "uuid": "yyyyyyyy-bbbb-cccc-dddd-eeeeffffffff",
                                                         "labels": {
-                                                            "_default": "Medical",
-                                                            "ar": "طبي"
+                                                            "_default": "Medical"
                                                         }
                                                     }
                                                 ]
@@ -2354,8 +2310,7 @@
                                                     "type": "<question_type>",
                                                     "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
                                                     "labels": {
-                                                        "_default": "Qualitative analysis result",
-                                                        "es": "Resultado de análisis cualitativo"
+                                                        "_default": "Qualitative analysis result"
                                                     }
                                                 }
                                             ],
@@ -2373,32 +2328,25 @@
                                                     "type": "qualSelectOne",
                                                     "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
                                                     "labels": {
-                                                        "_default": "Urgency Level",
-                                                        "es": "Nivel de Urgencia"
+                                                        "_default": "Urgency Level"
                                                     },
                                                     "choices": [
                                                         {
                                                             "uuid": "qqqqqqqq-bbbb-cccc-dddd-eeeeffffffff",
                                                             "labels": {
-                                                                "_default": "High",
-                                                                "fr": "Élevé",
-                                                                "es": "Alto"
+                                                                "_default": "High"
                                                             }
                                                         },
                                                         {
                                                             "uuid": "hhhhhhhh-bbbb-cccc-dddd-eeeeffffffff",
                                                             "labels": {
-                                                                "_default": "Medium",
-                                                                "fr": "Moyen",
-                                                                "es": "Medio"
+                                                                "_default": "Medium"
                                                             }
                                                         },
                                                         {
                                                             "uuid": "gggggggg-bbbb-cccc-dddd-eeeeffffffff",
                                                             "labels": {
-                                                                "_default": "Low",
-                                                                "fr": "Bas",
-                                                                "es": "Bajo"
+                                                                "_default": "Low"
                                                             }
                                                         }
                                                     ]
@@ -2423,22 +2371,19 @@
                                                         {
                                                             "uuid": "xxxxxxxx-bbbb-cccc-dddd-eeeeffffffff",
                                                             "labels": {
-                                                                "_default": "Shelter",
-                                                                "ar": "مأوى"
+                                                                "_default": "Shelter"
                                                             }
                                                         },
                                                         {
                                                             "uuid": "zzzzzzzz-bbbb-cccc-dddd-eeeeffffffff",
                                                             "labels": {
-                                                                "_default": "Food",
-                                                                "ar": "طعام"
+                                                                "_default": "Food"
                                                             }
                                                         },
                                                         {
                                                             "uuid": "yyyyyyyy-bbbb-cccc-dddd-eeeeffffffff",
                                                             "labels": {
-                                                                "_default": "Medical",
-                                                                "ar": "طبي"
+                                                                "_default": "Medical"
                                                             }
                                                         }
                                                     ]

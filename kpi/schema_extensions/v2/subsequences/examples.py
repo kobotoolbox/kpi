@@ -35,7 +35,6 @@ def get_advanced_features_create_examples() -> list[OpenApiExample]:
                         'uuid': 'aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff',
                         'labels': {
                             '_default': 'Qualitative analysis result',
-                            'es': 'Resultado de análisis cualitativo',
                         },
                     },
                 ],
@@ -61,31 +60,24 @@ def get_advanced_features_create_examples() -> list[OpenApiExample]:
                         'uuid': 'aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff',
                         'labels': {
                             '_default': 'Urgency Level',
-                            'es': 'Nivel de Urgencia',
                         },
                         'choices': [
                             {
                                 'uuid': 'qqqqqqqq-bbbb-cccc-dddd-eeeeffffffff',
                                 'labels': {
                                     '_default': 'High',
-                                    'fr': 'Élevé',
-                                    'es': 'Alto',
                                 },
                             },
                             {
                                 'uuid': 'hhhhhhhh-bbbb-cccc-dddd-eeeeffffffff',
                                 'labels': {
                                     '_default': 'Medium',
-                                    'fr': 'Moyen',
-                                    'es': 'Medio',
                                 },
                             },
                             {
                                 'uuid': 'gggggggg-bbbb-cccc-dddd-eeeeffffffff',
                                 'labels': {
                                     '_default': 'Low',
-                                    'fr': 'Bas',
-                                    'es': 'Bajo',
                                 },
                             },
                         ],
@@ -107,15 +99,15 @@ def get_advanced_features_create_examples() -> list[OpenApiExample]:
                         'choices': [
                             {
                                 'uuid': 'xxxxxxxx-bbbb-cccc-dddd-eeeeffffffff',
-                                'labels': {'_default': 'Shelter', 'ar': 'مأوى'},
+                                'labels': {'_default': 'Shelter'},
                             },
                             {
                                 'uuid': 'zzzzzzzz-bbbb-cccc-dddd-eeeeffffffff',
-                                'labels': {'_default': 'Food', 'ar': 'طعام'},
+                                'labels': {'_default': 'Food'},
                             },
                             {
                                 'uuid': 'yyyyyyyy-bbbb-cccc-dddd-eeeeffffffff',
-                                'labels': {'_default': 'Medical', 'ar': 'طبي'},
+                                'labels': {'_default': 'Medical'},
                             },
                         ],
                     },
@@ -161,7 +153,6 @@ def get_advanced_features_list_examples() -> list[OpenApiExample]:
                         'uuid': 'aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff',
                         'labels': {
                             '_default': 'Qualitative analysis result',
-                            'es': 'Resultado de análisis cualitativo',
                         },
                     },
                 ],
@@ -188,31 +179,24 @@ def get_advanced_features_list_examples() -> list[OpenApiExample]:
                         'uuid': 'aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff',
                         'labels': {
                             '_default': 'Urgency Level',
-                            'es': 'Nivel de Urgencia',
                         },
                         'choices': [
                             {
                                 'uuid': 'qqqqqqqq-bbbb-cccc-dddd-eeeeffffffff',
                                 'labels': {
                                     '_default': 'High',
-                                    'fr': 'Élevé',
-                                    'es': 'Alto',
                                 },
                             },
                             {
                                 'uuid': 'hhhhhhhh-bbbb-cccc-dddd-eeeeffffffff',
                                 'labels': {
                                     '_default': 'Medium',
-                                    'fr': 'Moyen',
-                                    'es': 'Medio',
                                 },
                             },
                             {
                                 'uuid': 'gggggggg-bbbb-cccc-dddd-eeeeffffffff',
                                 'labels': {
                                     '_default': 'Low',
-                                    'fr': 'Bas',
-                                    'es': 'Bajo',
                                 },
                             },
                         ],
@@ -235,15 +219,15 @@ def get_advanced_features_list_examples() -> list[OpenApiExample]:
                         'choices': [
                             {
                                 'uuid': 'xxxxxxxx-bbbb-cccc-dddd-eeeeffffffff',
-                                'labels': {'_default': 'Shelter', 'ar': 'مأوى'},
+                                'labels': {'_default': 'Shelter'},
                             },
                             {
                                 'uuid': 'zzzzzzzz-bbbb-cccc-dddd-eeeeffffffff',
-                                'labels': {'_default': 'Food', 'ar': 'طعام'},
+                                'labels': {'_default': 'Food'},
                             },
                             {
                                 'uuid': 'yyyyyyyy-bbbb-cccc-dddd-eeeeffffffff',
-                                'labels': {'_default': 'Medical', 'ar': 'طبي'},
+                                'labels': {'_default': 'Medical'},
                             },
                         ],
                     },
