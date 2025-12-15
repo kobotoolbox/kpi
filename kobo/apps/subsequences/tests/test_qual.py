@@ -955,7 +955,7 @@ class TestQualActionMethods(TestCase):
         assert len(action.params) == 2
         assert action.params[0]['uuid'] == 'new_question'
         assert action.params[1]['uuid'] == 'qual-integer-uuid'
-        assert action.params[1]['options']['hidden'] is True
+        assert action.params[1]['options'][action.DELETED_OPTION] is True
 
     def test_update_params_modify_choices(self):
         params = [
@@ -997,7 +997,7 @@ class TestQualActionMethods(TestCase):
         # Hide "Red"
         assert choices[3]['uuid'] == 'choice-red-uuid'
         assert choices[3]['labels']['_default'] == 'Red'
-        assert choices[3]['options']['hidden'] is True
+        assert choices[3]['options'][action.DELETED_OPTION] is True
 
     def test_update_params_cannot_change_type_of_question(self):
         params = [
@@ -1035,7 +1035,7 @@ class TestQualActionMethods(TestCase):
         assert action.params[0]['uuid'] == 'qual-integer-uuid'
         assert action.params[0]['labels'] == {'_default': 'How many?'}
 
-    def test_update_params_change_hidden(self):
+    def test_update_params_change_deleted_option(self):
         params = [
             {
                 'type': 'qualInteger',
@@ -1046,7 +1046,7 @@ class TestQualActionMethods(TestCase):
                 'type': 'qualInteger',
                 'uuid': 'qual-unhide-me',
                 'labels': {'_default': 'How many more?'},
-                'options': {'hidden': True},
+                'options': {QualAction.DELETED_OPTION: True},
             },
         ]
         action = QualAction(self.source_xpath, params=params)
@@ -1054,7 +1054,7 @@ class TestQualActionMethods(TestCase):
             'uuid': 'qual-hide-me',
             'type': 'qualInteger',
             'labels': {'_default': 'How many?'},
-            'options': {'hidden': True},
+            'options': {QualAction.DELETED_OPTION: True},
         }
         unhide_question = {
             'uuid': 'qual-unhide-me',
@@ -1064,8 +1064,11 @@ class TestQualActionMethods(TestCase):
         action.update_params([hide_question, unhide_question])
         assert len(action.params) == 2
         assert action.params[0]['uuid'] == 'qual-hide-me'
-        assert action.params[0]['options']['hidden'] is True
+        assert action.params[0]['options'][action.DELETED_OPTION] is True
         assert action.params[1]['uuid'] == 'qual-unhide-me'
         # the entire options dictionary will actually go away, which is equivalent
-        # to setting hidden to False
-        assert bool(action.params[1].get('options', {}).get('hidden')) is False
+        # to setting 'deleted' to False
+        assert (
+            bool(action.params[1].get('options', {}).get(action.DELETED_OPTION))
+            is False
+        )

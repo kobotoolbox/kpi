@@ -13,6 +13,9 @@ class QualAction(BaseAction):
         allow_multiple=True, automatic=False, action_data_key='uuid'
     )
     KNOWN_PARAM_KEYS = ['uuid', 'labels', 'options', 'choices', 'type']
+    # Confusing: "deleted" actually means "hidden", we don't delete QA questions
+    # TODO: make "hidden" its own field and remove this option
+    DELETED_OPTION = 'deleted'
 
     # JSON Schema definitions
 
@@ -375,11 +378,11 @@ class QualAction(BaseAction):
                 for choice in choices:
                     new_choices_by_uuid[choice['uuid']] = choice
         for existing_question in self.params:
-            # old question is not in list of new questions, hide it and put it
-            # at the end
+            # old question is not in list of new questions, hide ("delete") it and
+            # put it at the end
             uuid = existing_question['uuid']
             if not (new_question := new_questions_by_uuid.get(uuid)):
-                existing_question.setdefault('options', {})['hidden'] = True
+                existing_question.setdefault('options', {})[self.DELETED_OPTION] = True
                 incoming_params.append(existing_question)
                 continue
             new_type = new_question['type']
@@ -396,7 +399,7 @@ class QualAction(BaseAction):
             for old_choice in old_choices:
                 choice_uuid = old_choice['uuid']
                 if new_choices_by_uuid.get(choice_uuid) is None:
-                    old_choice.setdefault('options', {})['hidden'] = True
+                    old_choice.setdefault('options', {})[self.DELETED_OPTION] = True
                     # new question really should have 'choices' set by virtue of
                     # the json schema but better safe than sorry
                     new_question.setdefault('choices', []).append(old_choice)
