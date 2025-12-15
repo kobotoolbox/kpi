@@ -13,7 +13,6 @@ def get_advanced_features_create_examples() -> list[OpenApiExample]:
                     {'language': 'fr'},
                 ],
             },
-            request_only=True,
             description=(
                 '`<action_id>` can be any of:'
                 '\n\n'
@@ -23,6 +22,7 @@ def get_advanced_features_create_examples() -> list[OpenApiExample]:
                 '* `automatic_google_translation`\n'
                 ''
             ),
+            request_only=True,
         ),
         OpenApiExample(
             'Qualitative Analysis - Simple Types',
@@ -48,7 +48,7 @@ def get_advanced_features_create_examples() -> list[OpenApiExample]:
                 '* `qualTags` \n'
                 '* `qualNote` \n'
             ),
-            response_only=True,
+            request_only=True,
         ),
         OpenApiExample(
             'Qualitative Analysis - Single Choice Question',

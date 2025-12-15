@@ -1804,6 +1804,24 @@
                                     "summary": "NLP Advanced Features",
                                     "description": "`<action_id>` can be any of:\n\n* `manual_transcription`\n* `manual_translation`\n* `automatic_google_transcription`\n* `automatic_google_translation`\n"
                                 },
+                                "QualitativeAnalysis-SimpleTypes": {
+                                    "value": {
+                                        "action": "qual",
+                                        "question_xpath": "q1",
+                                        "params": [
+                                            {
+                                                "type": "<question_type>",
+                                                "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
+                                                "labels": {
+                                                    "_default": "Qualitative analysis result",
+                                                    "es": "Resultado de análisis cualitativo"
+                                                }
+                                            }
+                                        ]
+                                    },
+                                    "summary": "Qualitative Analysis - Simple Types",
+                                    "description": "`<question_type>` can be any of:\n\n* `qualText` \n* `qualInteger` \n* `qualTags` \n* `qualNote` \n"
+                                },
                                 "QualitativeAnalysis-SingleChoiceQuestion": {
                                     "value": {
                                         "action": "qual",
@@ -1905,26 +1923,6 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/AdvancedFeatureResponse"
-                                },
-                                "examples": {
-                                    "QualitativeAnalysis-SimpleTypes": {
-                                        "value": {
-                                            "action": "qual",
-                                            "question_xpath": "q1",
-                                            "params": [
-                                                {
-                                                    "type": "<question_type>",
-                                                    "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
-                                                    "labels": {
-                                                        "_default": "Qualitative analysis result",
-                                                        "es": "Resultado de análisis cualitativo"
-                                                    }
-                                                }
-                                            ]
-                                        },
-                                        "summary": "Qualitative Analysis - Simple Types",
-                                        "description": "`<question_type>` can be any of:\n\n* `qualText` \n* `qualInteger` \n* `qualTags` \n* `qualNote` \n"
-                                    }
                                 }
                             }
                         },
@@ -2210,6 +2208,24 @@
                                     "summary": "NLP Advanced Features",
                                     "description": "`<action_id>` can be any of:\n\n* `manual_transcription`\n* `manual_translation`\n* `automatic_google_transcription`\n* `automatic_google_translation`\n"
                                 },
+                                "QualitativeAnalysis-SimpleTypes": {
+                                    "value": {
+                                        "action": "qual",
+                                        "question_xpath": "q1",
+                                        "params": [
+                                            {
+                                                "type": "<question_type>",
+                                                "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
+                                                "labels": {
+                                                    "_default": "Qualitative analysis result",
+                                                    "es": "Resultado de análisis cualitativo"
+                                                }
+                                            }
+                                        ]
+                                    },
+                                    "summary": "Qualitative Analysis - Simple Types",
+                                    "description": "`<question_type>` can be any of:\n\n* `qualText` \n* `qualInteger` \n* `qualTags` \n* `qualNote` \n"
+                                },
                                 "QualitativeAnalysis-SingleChoiceQuestion": {
                                     "value": {
                                         "action": "qual",
@@ -2312,6 +2328,23 @@
                                     "$ref": "#/components/schemas/AdvancedFeatureResponse"
                                 },
                                 "examples": {
+                                    "NLPAdvancedFeatures": {
+                                        "value": {
+                                            "action": "<action_id>",
+                                            "question_xpath": "q1",
+                                            "params": [
+                                                {
+                                                    "language": "es"
+                                                },
+                                                {
+                                                    "language": "en"
+                                                }
+                                            ],
+                                            "uid": "qa123456789AbCdEfGhIjklm"
+                                        },
+                                        "summary": "NLP Advanced Features",
+                                        "description": "`<action_id>` can be any of:\n\n* `manual_transcription`\n* `manual_translation`\n* `automatic_google_transcription`\n* `automatic_google_translation`\n"
+                                    },
                                     "QualitativeAnalysis-SimpleTypes": {
                                         "value": {
                                             "action": "qual",
@@ -2330,23 +2363,6 @@
                                         },
                                         "summary": "Qualitative Analysis - Simple Types",
                                         "description": "`<question_type>` can be any of:\n\n* `qualText` \n* `qualInteger` \n* `qualTags` \n* `qualNote` \n"
-                                    },
-                                    "NLPAdvancedFeatures": {
-                                        "value": {
-                                            "action": "<action_id>",
-                                            "question_xpath": "q1",
-                                            "params": [
-                                                {
-                                                    "language": "es"
-                                                },
-                                                {
-                                                    "language": "en"
-                                                }
-                                            ],
-                                            "uid": "qa123456789AbCdEfGhIjklm"
-                                        },
-                                        "summary": "NLP Advanced Features",
-                                        "description": "`<action_id>` can be any of:\n\n* `manual_transcription`\n* `manual_translation`\n* `automatic_google_transcription`\n* `automatic_google_translation`\n"
                                     },
                                     "QualitativeAnalysis-SingleChoiceQuestion": {
                                         "value": {

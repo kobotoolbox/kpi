@@ -1266,6 +1266,19 @@ paths:
                   * `manual_translation`
                   * `automatic_google_transcription`
                   * `automatic_google_translation`
+              QualitativeAnalysis-SimpleTypes:
+                value:
+                  action: qual
+                  question_xpath: q1
+                  params:
+                  - type: <question_type>
+                    uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
+                    labels:
+                      _default: Qualitative analysis result
+                      es: Resultado de análisis cualitativo
+                summary: Qualitative Analysis - Simple Types
+                description: "`<question_type>` can be any of:\n\n* `qualText` \n\
+                  * `qualInteger` \n* `qualTags` \n* `qualNote` \n"
               QualitativeAnalysis-SingleChoiceQuestion:
                 value:
                   action: qual
@@ -1326,20 +1339,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AdvancedFeatureResponse'
-              examples:
-                QualitativeAnalysis-SimpleTypes:
-                  value:
-                    action: qual
-                    question_xpath: q1
-                    params:
-                    - type: <question_type>
-                      uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
-                      labels:
-                        _default: Qualitative analysis result
-                        es: Resultado de análisis cualitativo
-                  summary: Qualitative Analysis - Simple Types
-                  description: "`<question_type>` can be any of:\n\n* `qualText` \n\
-                    * `qualInteger` \n* `qualTags` \n* `qualNote` \n"
           description: null
         '404':
           content:
@@ -1537,6 +1536,19 @@ paths:
                   * `manual_translation`
                   * `automatic_google_transcription`
                   * `automatic_google_translation`
+              QualitativeAnalysis-SimpleTypes:
+                value:
+                  action: qual
+                  question_xpath: q1
+                  params:
+                  - type: <question_type>
+                    uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
+                    labels:
+                      _default: Qualitative analysis result
+                      es: Resultado de análisis cualitativo
+                summary: Qualitative Analysis - Simple Types
+                description: "`<question_type>` can be any of:\n\n* `qualText` \n\
+                  * `qualInteger` \n* `qualTags` \n* `qualNote` \n"
               QualitativeAnalysis-SingleChoiceQuestion:
                 value:
                   action: qual
@@ -1597,20 +1609,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/AdvancedFeatureResponse'
               examples:
-                QualitativeAnalysis-SimpleTypes:
-                  value:
-                    action: qual
-                    question_xpath: q1
-                    params:
-                    - type: <question_type>
-                      uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
-                      labels:
-                        _default: Qualitative analysis result
-                        es: Resultado de análisis cualitativo
-                    uid: qa123456789AbCdEfGhIjklm
-                  summary: Qualitative Analysis - Simple Types
-                  description: "`<question_type>` can be any of:\n\n* `qualText` \n\
-                    * `qualInteger` \n* `qualTags` \n* `qualNote` \n"
                 NLPAdvancedFeatures:
                   value:
                     action: <action_id>
@@ -1627,6 +1625,20 @@ paths:
                     * `manual_translation`
                     * `automatic_google_transcription`
                     * `automatic_google_translation`
+                QualitativeAnalysis-SimpleTypes:
+                  value:
+                    action: qual
+                    question_xpath: q1
+                    params:
+                    - type: <question_type>
+                      uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
+                      labels:
+                        _default: Qualitative analysis result
+                        es: Resultado de análisis cualitativo
+                    uid: qa123456789AbCdEfGhIjklm
+                  summary: Qualitative Analysis - Simple Types
+                  description: "`<question_type>` can be any of:\n\n* `qualText` \n\
+                    * `qualInteger` \n* `qualTags` \n* `qualNote` \n"
                 QualitativeAnalysis-SingleChoiceQuestion:
                   value:
                     action: qual
