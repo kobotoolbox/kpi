@@ -399,7 +399,7 @@ class CustomerPortalView(APIView):
             # by comparing monthly prices
             current_product_monthly_price = Price.objects.filter(
                 product=customer['subscriptions__items__price__product'],
-                recurring__interval="month",
+                recurring__interval='month',
                 recurring__interval_count=1,
             ).first()
             current_product_monthly_unit_amount = (
@@ -410,14 +410,14 @@ class CustomerPortalView(APIView):
 
             if (
                 requested_price.recurring
-                and requested_price.recurring["interval"] == "month"
-                and requested_price.recurring["interval_count"] == 1
+                and requested_price.recurring['interval'] == 'month'
+                and requested_price.recurring['interval_count'] == 1
             ):
                 requested_product_monthly_unit_amount = requested_price.unit_amount
             else:
                 requested_product_monthly_price = Price.objects.filter(
                     product=requested_price.product,
-                    recurring__interval="month",
+                    recurring__interval='month',
                     recurring__interval_count=1,
                 ).first()
                 requested_product_monthly_unit_amount = (
