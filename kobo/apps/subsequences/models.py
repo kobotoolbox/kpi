@@ -131,6 +131,9 @@ class SubmissionSupplement(SubmissionExtras):
         same column, the most recently accepted action result is used as the
         value
         """
+
+        from .utils.versioning import migrate_submission_supplementals
+
         if (submission_root_uuid is None) == (prefetched_supplement is None):
             raise ValueError(
                 'Specify either `submission_root_uuid` or `prefetched_supplement`'
@@ -139,10 +142,10 @@ class SubmissionSupplement(SubmissionExtras):
         if submission_root_uuid:
             submission_uuid = remove_uuid_prefix(submission_root_uuid)
             try:
-                supplemental_data = SubmissionExtras.objects.get(
+                supplemental_data = SubmissionSupplement.objects.get(
                     asset=asset, submission_uuid=submission_uuid
                 ).content
-            except SubmissionExtras.DoesNotExist:
+            except SubmissionSupplement.DoesNotExist:
                 supplemental_data = None
         else:
             supplemental_data = prefetched_supplement
@@ -150,7 +153,7 @@ class SubmissionSupplement(SubmissionExtras):
         if not supplemental_data:
             return {}
 
-        schema_version = supplemental_data.pop('_version')
+        schema_version = supplemental_data.pop('_version', None)
 
         if schema_version not in SCHEMA_VERSIONS:
             # TODO: raise error. Unknown version
@@ -161,6 +164,7 @@ class SubmissionSupplement(SubmissionExtras):
             if migrated_data is None:
                 raise InvalidAction
             supplemental_data = migrated_data
+            schema_version = supplemental_data.pop('_version')
 
         retrieved_supplemental_data = {}
         data_for_output = {}

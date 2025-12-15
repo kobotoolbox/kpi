@@ -1,5 +1,7 @@
 import uuid
+from datetime import datetime
 from unittest.mock import MagicMock, patch
+from zoneinfo import ZoneInfo
 
 import pytest
 from constance.test import override_config
@@ -19,6 +21,8 @@ from kobo.apps.subsequences.actions.automatic_google_transcription import (
 from kobo.apps.subsequences.models import QuestionAdvancedFeature, SubmissionSupplement
 from kobo.apps.subsequences.tests.api.v2.base import SubsequenceBaseTestCase
 from kobo.apps.subsequences.tests.constants import QUESTION_SUPPLEMENT
+from kobo.apps.subsequences.tests.test_qual import Fix
+from kobo.apps.subsequences.utils.versioning import migrate_advanced_features
 from kpi.utils.xml import (
     edit_submission_xml,
     fromstring_preserve_root_xmlns,
@@ -347,6 +351,285 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
             )
             assert response.status_code == status.HTTP_400_BAD_REQUEST
             assert 'Invalid payload' in str(response.data)
+
+    def test_retrieve_does_migrate_data(self):
+        """
+        The migration utils are already covered by other tests (`test_versioning.py),
+        but we need to test that the correct value is return when fetching data from
+        the API endpoint.
+        """
+        self.asset.known_cols = [
+            'q1:transcript_auto_google:en',
+            'q1:transcript:en',
+            'q1:translation_auto_google:fr',
+            'q1:translation:fr'
+        ]
+
+        self.asset.advanced_features = {
+            'qual': {
+                'qual_survey': [
+                    {
+                        'type': 'qual_select_multiple',
+                        'uuid': 'b0bce6b0-9bf3-4f0f-a76e-4b3b4e9ba0e8',
+                        'scope': 'by_question#survey',
+                        'xpath': 'q1',
+                        'labels': {'_default': 'Multiple Choice'},
+                        'choices': [
+                            {
+                                'uuid': '35793589-556e-4872-b5eb-3b75e4dc4a99',
+                                'labels': {'_default': 'Day'},
+                            },
+                            {
+                                'uuid': 'efceb7be-c120-43b4-9d6c-48c3c8d393bc',
+                                'labels': {'_default': 'Night'},
+                            }
+                        ],
+                    },
+                    {
+                        'type': 'qual_select_one',
+                        'uuid': 'c52ba63d-3202-44bc-8f55-159983e7f0d9',
+                        'scope': 'by_question#survey',
+                        'xpath': 'q1',
+                        'labels': {'_default': 'Single choice'},
+                        'choices': [
+                            {
+                                'uuid': '83212060-fd18-445a-b121-ad82c2e5811d',
+                                'labels': {'_default': 'yes'},
+                            },
+                            {
+                                'uuid': '394e7c6e-1468-4964-8d04-8d9bdd0d1746',
+                                'labels': {'_default': 'no'},
+                            },
+                        ],
+                    },
+                    {
+                        'type': 'qual_text',
+                        'uuid': 'fd61cafc-9516-4063-8498-5eace89146a5',
+                        'scope': 'by_question#survey',
+                        'xpath': 'audio',
+                        'labels': {'_default': 'Question?'},
+                    },
+                ]
+            },
+            'transcript': {'languages': ['en']},
+            'translation': {'languages': ['fr']},
+        }
+
+        old_supplement_data = {
+            'q1': {
+                'qual': [
+                    {
+                        'val': 'Answer',
+                        'type': 'qual_text',
+                        'uuid': 'fd61cafc-9516-4063-8498-5eace89146a5',
+                    },
+                    {
+                        'val': '83212060-fd18-445a-b121-ad82c2e5811d',
+                        'type': 'qual_select_one',
+                        'uuid': 'c52ba63d-3202-44bc-8f55-159983e7f0d9',
+                    },
+                    {
+                        'val': [
+                            '35793589-556e-4872-b5eb-3b75e4dc4a99',
+                            'efceb7be-c120-43b4-9d6c-48c3c8d393bc',
+                        ],
+                        'type': 'qual_select_multiple',
+                        'uuid': 'b0bce6b0-9bf3-4f0f-a76e-4b3b4e9ba0e8',
+                    },
+                ],
+                'googlets': {
+                    'value': 'Hello world',
+                    'status': 'complete',
+                    'regionCode': 'en-CA',
+                    'languageCode': 'en',
+                },
+                'googletx': {
+                    'value': 'Bonjour le monde',
+                    'source': 'en',
+                    'status': 'complete',
+                    'languageCode': 'fr',
+                },
+                'transcript': {
+                    'value': 'Hello world!',
+                    'revisions': [
+                        {
+                            'value': 'Hello world',
+                            'dateModified': '2025-12-11 23:57:21',
+                            'languageCode': 'en',
+                        }
+                    ],
+                    'dateCreated': '2025-12-12 00:03:23',
+                    'dateModified': '2025-12-12 00:03:23',
+                    'languageCode': 'en',
+                },
+                'translation': {
+                    'fr': {
+                        'value': 'Bonjour le monde!',
+                        'revisions': [],
+                        'dateCreated': '2025-12-12T00:04:38Z',
+                        'dateModified': '2025-12-12T00:04:38Z',
+                        'languageCode': 'fr',
+                    }
+                },
+            }
+        }
+
+        # Simulate old data
+        self.asset.save(
+            update_fields=['advanced_features', 'known_cols'],
+            create_version=False,
+            adjust_content=False,
+        )
+
+        SubmissionSupplement.objects.create(
+            asset=self.asset,
+            submission_uuid=self.submission_uuid,
+            content=old_supplement_data,
+        )
+
+        frozen_datetime_now = datetime(
+            year=2025,
+            month=12,
+            day=15,
+            hour=22,
+            minute=22,
+            second=0,
+            tzinfo=ZoneInfo('UTC'),
+        )
+
+        result_mock_uuid_sequence = [
+            'a9a817c0-7208-4063-bab6-93c0a3a7615b',
+            '61d23cd7-ce2c-467b-ab26-0839226c714d',
+            '20dd5185-ee43-451f-8759-2f5185c3c912',
+            '409c690e-d148-4d80-8c73-51be941b33b0',
+            '49fbd509-e042-44ce-843c-db04485a0096',
+            '5799f662-76d7-49ab-9a1c-ae2c7d502a78',
+            'c4fa8263-50c0-4252-9c9b-216ca338be13',
+            '64e59cc1-adaf-47a3-a068-550854d8f98f',
+            '909c62cf-d544-4926-8839-7f035c6c7483',
+            '15ccc864-0e83-48f2-be1d-dc2adb9297f4',
+            'f2b4c6b1-3c6a-4a7f-9e55-1a8c2a0a7c91',
+            '8c9a8e44-7a3d-4c58-b7bb-5f2a1c6e5c3a',
+        ]
+
+        uuid_list = [uuid.UUID(u) for u in result_mock_uuid_sequence]
+
+        with patch('uuid.uuid4', side_effect=uuid_list):
+            with freeze_time(frozen_datetime_now):
+                response = self.client.get(
+                    self.supplement_details_url, format='json'
+                )
+
+        assert response.status_code == status.HTTP_200_OK
+
+        expected_response = {
+            'q1': {
+                'manual_transcription': {
+                    '_dateCreated': '2025-12-12 00:03:23',
+                    '_dateModified': '2025-12-12 00:03:23',
+                    '_versions': [
+                        {
+                            '_dateCreated': '2025-12-12 00:03:23',
+                            '_data': {
+                                'language': 'en',
+                                'value': 'Hello world!',
+                            },
+                            '_uuid': 'c4fa8263-50c0-4252-9c9b-216ca338be13',
+                            '_dateAccepted': '2025-12-15T22:22:00+00:00',
+                        }
+                    ],
+                },
+                'automatic_google_transcription': {
+                    '_dateCreated': '2025-12-11 23:57:21',
+                    '_dateModified': '2025-12-11 23:57:21',
+                    '_versions': [
+                        {
+                            '_dateCreated': '2025-12-11 23:57:21',
+                            '_data': {
+                                'language': 'en',
+                                'value': 'Hello world',
+                                'status': 'complete',
+                            },
+                            '_uuid': '64e59cc1-adaf-47a3-a068-550854d8f98f',
+                            '_dateAccepted': '2025-12-15T22:22:00+00:00',
+                        }
+                    ],
+                },
+                'manual_translation': {
+                    'fr': {
+                        '_dateCreated': '2025-12-12T00:04:38Z',
+                        '_dateModified': '2025-12-12T00:04:38Z',
+                        '_versions': [
+                            {
+                                '_dateCreated': '2025-12-12T00:04:38Z',
+                                '_data': {
+                                    'language': 'fr',
+                                    'value': 'Bonjour le monde!',
+                                },
+                                '_uuid': '909c62cf-d544-4926-8839-7f035c6c7483',
+                                '_dateAccepted': '2025-12-15T22:22:00+00:00',
+                                '_dependency': {
+                                    '_uuid': 'c4fa8263-50c0-4252-9c9b-216ca338be13',
+                                    '_actionId': 'manual_transcription',
+                                },
+                            }
+                        ],
+                    }
+                },
+                'qual': {
+                    'fd61cafc-9516-4063-8498-5eace89146a5': {
+                        '_dateCreated': '2025-12-15T22:22:00+00:00',
+                        '_dateModified': '2025-12-15T22:22:00+00:00',
+                        '_versions': [
+                            {
+                                '_data': {
+                                    'uuid': 'fd61cafc-9516-4063-8498-5eace89146a5',
+                                    'value': 'Answer',
+                                },
+                                '_dateCreated': '2025-12-15T22:22:00+00:00',
+                                '_dateAccepted': '2025-12-15T22:22:00+00:00',
+                                '_uuid': '15ccc864-0e83-48f2-be1d-dc2adb9297f4',
+                            }
+                        ],
+                    },
+                    'c52ba63d-3202-44bc-8f55-159983e7f0d9': {
+                        '_dateCreated': '2025-12-15T22:22:00+00:00',
+                        '_dateModified': '2025-12-15T22:22:00+00:00',
+                        '_versions': [
+                            {
+                                '_data': {
+                                    'uuid': 'c52ba63d-3202-44bc-8f55-159983e7f0d9',
+                                    'value': '83212060-fd18-445a-b121-ad82c2e5811d',
+                                },
+                                '_dateCreated': '2025-12-15T22:22:00+00:00',
+                                '_dateAccepted': '2025-12-15T22:22:00+00:00',
+                                '_uuid': 'f2b4c6b1-3c6a-4a7f-9e55-1a8c2a0a7c91',
+                            }
+                        ],
+                    },
+                    'b0bce6b0-9bf3-4f0f-a76e-4b3b4e9ba0e8': {
+                        '_dateCreated': '2025-12-15T22:22:00+00:00',
+                        '_dateModified': '2025-12-15T22:22:00+00:00',
+                        '_versions': [
+                            {
+                                '_data': {
+                                    'uuid': 'b0bce6b0-9bf3-4f0f-a76e-4b3b4e9ba0e8',
+                                    'value': [
+                                        '35793589-556e-4872-b5eb-3b75e4dc4a99',
+                                        'efceb7be-c120-43b4-9d6c-48c3c8d393bc',
+                                    ],
+                                },
+                                '_dateCreated': '2025-12-15T22:22:00+00:00',
+                                '_dateAccepted': '2025-12-15T22:22:00+00:00',
+                                '_uuid': '8c9a8e44-7a3d-4c58-b7bb-5f2a1c6e5c3a',
+                            }
+                        ],
+                    },
+                },
+            },
+            '_version': '20250820',
+        }
+        assert response.data == expected_response
 
 
 class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
