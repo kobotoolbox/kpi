@@ -1577,7 +1577,7 @@
         "/api/v2/assets/{uid_asset}/advanced-features/": {
             "get": {
                 "operationId": "api_v2_assets_advanced_features_list",
-                "description": "## List all advanced features on an asset\n\nLists all advanced features on all questions in an asset\n",
+                "description": "## List all advanced features on an asset\n\nLists all advanced features on all questions in an asset. Examples show one type at a time, but the response may contain multiple advanced features items.\n",
                 "parameters": [
                     {
                         "in": "path",

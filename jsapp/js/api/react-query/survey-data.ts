@@ -129,7 +129,7 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 /**
  * ## List all advanced features on an asset
 
-Lists all advanced features on all questions in an asset
+Lists all advanced features on all questions in an asset. Examples show one type at a time, but the response may contain multiple advanced features items.
 
  */
 export type assetsAdvancedFeaturesListResponse200 = {
