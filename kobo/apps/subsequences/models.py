@@ -36,6 +36,8 @@ class SubmissionSupplement(SubmissionExtras):
     @staticmethod
     def revise_data(asset: 'kpi.Asset', submission: dict, incoming_data: dict) -> dict:
 
+        from .utils.versioning import migrate_submission_supplementals
+
         if not asset.advanced_features_set.exists():
             raise InvalidAction
 
@@ -46,8 +48,10 @@ class SubmissionSupplement(SubmissionExtras):
             raise NotImplementedError
 
         if schema_version != SCHEMA_VERSIONS[0]:
-            # TODO: migrate from old per-submission schema
-            raise NotImplementedError
+            migrated_data = migrate_submission_supplementals(incoming_data)
+            if migrated_data is None:
+                raise InvalidAction
+            incoming_data = migrated_data
 
         submission_uuid = remove_uuid_prefix(submission[SUBMISSION_UUID_FIELD])  # constant?
         supplemental_data = SubmissionExtras.objects.get_or_create(
@@ -153,8 +157,10 @@ class SubmissionSupplement(SubmissionExtras):
             raise NotImplementedError
 
         if schema_version != SCHEMA_VERSIONS[0]:
-            # TODO: migrate from old per-submission schema
-            raise NotImplementedError
+            migrated_data = migrate_submission_supplementals(supplemental_data)
+            if migrated_data is None:
+                raise InvalidAction
+            supplemental_data = migrated_data
 
         retrieved_supplemental_data = {}
         data_for_output = {}

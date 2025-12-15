@@ -117,6 +117,37 @@ POST to `/api/v2/assets/{uid_asset}/advanced-features/` with:
 }
 ```
 
+**Example: Qualitative Analysis Text question**
+
+```json
+{
+  "question_xpath": "text_question",
+  "action": "qual",
+  "params": [
+    {
+      "type": "qualSelectOne",
+      "uuid": "1a8b748b-f470-4c40-bc09-ce2b1197f503",
+      "labels": { "_default": "Was this a first-hand account?" },
+      "choices": [
+        { "uuid": "3c7aacdc-8971-482a-9528-68e64730fc99", "labels": { "_default": "Yes" } },
+        { "uuid": "7e31c6a5-5eac-464c-970c-62c383546a94", "labels": { "_default": "No" } }
+      ]
+    },
+    {
+      "type": "qualInteger",
+      "uuid": "1a2c8eb0-e2ec-4b3c-942a-c1a5410c081a",
+      "labels": { "_default": "How many characters appear in the story?" }
+    }
+  ]
+}
+```
+To learn more, visit `/api/v2/docs/` on your KoboToolbox server.
+
+Or use the public documentation endpoints:
+
+- Global Server: [API documentation](https://kf.kobotoolbox.org/api/v2/docs/?q=/api/v2/assets/{uid_asset}/advanced-features/)
+- EU Server: [API documentation](https://eu.kobotoolbox.org/api/v2/docs/?q=/api/v2/assets/{uid_asset}/advanced-features/)
+
 ---
 
 ### 2.2 Add Submission Supplement
@@ -148,6 +179,26 @@ PATCH /api/v2/assets/<asset_uid>/data/<submission_root_uuid>/supplement/
   }
 }
 ```
+
+#### Example: Qualitative Analysis Text question
+
+```json
+{
+  "_version": "20250820",
+  "text_question": {
+    "qual": {
+      "uuid": "q_uuid",
+      "value": "sentiment_pos"
+    }
+  }
+}
+```
+To learn more, visit `/api/v2/docs/` on your KoboToolbox server.
+
+Or use the public documentation endpoints:
+
+- Global Server: [API documentation](https://kf.kobotoolbox.org/api/v2/docs/?q=/api/v2/assets/{uid_asset}/data/{id}/supplement/)
+- EU Server: [API documentation](https://eu.kobotoolbox.org/api/v2/docs/?q=/api/v2/assets/{uid_asset}/data/{id}/supplement/)
 
 ---
 
@@ -285,6 +336,31 @@ It describes the configuration stored on a `QuestionAdvancedFeature` when an act
 }
 ```
 
+**Example: enabling Qualitative Analysis Text question**
+
+```json
+{
+  "question_xpath": "text_question",
+  "action": "qual",
+  "params": [
+    {
+      "type": "qualSelectOne",
+      "uuid": "1a8b748b-f470-4c40-bc09-ce2b1197f503",
+      "labels": { "_default": "Was this a first-hand account?" },
+      "choices": [
+        { "uuid": "3c7aacdc-8971-482a-9528-68e64730fc99", "labels": { "_default": "Yes" } },
+        { "uuid": "7e31c6a5-5eac-464c-970c-62c383546a94", "labels": { "_default": "No" } }
+      ]
+    },
+    {
+      "type": "qualInteger",
+      "uuid": "1a2c8eb0-e2ec-4b3c-942a-c1a5410c081a",
+      "labels": { "_default": "How many characters appear in the story?" }
+    }
+  ]
+}
+```
+
 ---
 
 ### 3.2 `data_schema`
@@ -310,6 +386,14 @@ Each action has its own expected format:
 - **All actions – delete request**
   ```json
   { "language": "en", "value": null }
+  ```
+
+- **Qualitative Analysis**
+  ```json
+  {
+    "uuid": "q_uuid",
+    "value": "sentiment_pos"
+  }
   ```
 
 ---
@@ -348,10 +432,10 @@ The structure is the same for both manual and automatic actions:
 
 - Metadata about the action itself (`_dateCreated`, `_dateModified`).
 - A list of versions under `_versions`, each containing:
-  - The properties defined by `data_schema` (manual) or `external_data_schema` (automatic).
+  - A nested `_data` object with properties from either `data_schema` (manual) or `external_data_schema` (automatic).
   - Audit fields (`_dateCreated`, `_dateAccepted`, `_uuid`).
 
-**Generic Example**
+**Manual Action Example**
 
 ```json
 {
@@ -359,22 +443,101 @@ The structure is the same for both manual and automatic actions:
   "_dateModified": "2025-08-21T20:57:28Z",
   "_versions": [
     {
-      "language": "en",
-      "value": "My automatic result",
-      "status": "complete",
+      "_data": {
+        "language": "en",
+        "value": "My manual transcript"
+      },
       "_dateCreated": "2025-08-21T20:57:28Z",
       "_dateAccepted": "2025-08-21T20:57:28Z",
       "_uuid": "4dcf9c9f-e503-4e5c-81f5-74250b295001"
     },
     {
-      "language": "en",
-      "value": "Previous revision",
-      "status": "complete",
+      "_data": {
+        "language": "en",
+        "value": "My previous manual transcript"
+      },
       "_dateCreated": "2025-08-21T20:55:42Z",
       "_dateAccepted": "2025-08-21T20:55:42Z",
       "_uuid": "850e6359-50e8-4252-9895-e9669a27b1ea"
     }
   ]
+}
+```
+
+**Automatic Action Example**
+
+```json
+{
+  "_dateCreated": "2025-08-21T20:55:42Z",
+  "_dateModified": "2025-08-21T20:57:28Z",
+  "_versions": [
+    {
+      "_data": {
+        "language": "en",
+        "value": "My automatic result",
+        "status": "complete"
+      },
+      "_dateCreated": "2025-08-21T20:57:28Z",
+      "_dateAccepted": "2025-08-21T20:57:28Z",
+      "_uuid": "4dcf9c9f-e503-4e5c-81f5-74250b295001"
+    },
+    {
+      "_data": {
+        "language": "en",
+        "value": "My previous automatic result",
+        "status": "complete"
+      },
+      "_dateCreated": "2025-08-21T20:55:42Z",
+      "_dateAccepted": "2025-08-21T20:55:42Z",
+      "_uuid": "850e6359-50e8-4252-9895-e9669a27b1ea"
+    }
+  ]
+}
+```
+
+**Qualitative Analysis Action Example**
+
+```json
+{
+  "q1_uuid_here": {
+    "_dateCreated": "2025-08-21T20:55:42Z",
+    "_dateModified": "2025-08-21T20:57:28Z",
+    "_versions": [
+      {
+        "_data": {
+          "uuid": "q1_uuid_here",
+          "value": "sentiment_pos"
+        },
+        "_dateCreated": "2025-08-21T20:57:28Z",
+        "_dateAccepted": "2025-08-21T20:57:28Z",
+        "_uuid": "4dcf9c9f-e503-4e5c-81f5-74250b295001"
+      },
+      {
+        "_data": {
+          "uuid": "q1_uuid_here",
+          "value": "sentiment_neg"
+        },
+        "_dateCreated": "2025-08-21T20:55:42Z",
+        "_dateAccepted": "2025-08-21T20:55:42Z",
+        "_uuid": "850e6359-50e8-4252-9895-e9669a27b1ea"
+      }
+    ]
+  },
+  "q2_uuid_here": {
+    "_dateCreated": "2025-08-21T20:55:42Z",
+    "_dateModified": "2025-08-21T20:57:28Z",
+    "_versions": [
+      {
+        "_data": {
+          "uuid": "q2_uuid_here",
+          "value": 8
+        },
+        "_dateCreated": "2025-08-21T20:57:28Z",
+        "_dateAccepted": "2025-08-21T20:57:28Z",
+        "_uuid": "91ab5f30-0f73-4e2e-b91f-8ad2f67a4729"
+      }
+    ]
+  }
 }
 ```
 
@@ -398,9 +561,11 @@ In this case, a `_dependency` property is added to the persisted JSON.
   "_dateModified": "2025-09-01T12:17:28Z",
   "_versions": [
     {
-      "language": "fr",
-      "value": "Mon audio a été traduit automatiquement",
-      "status": "complete",
+      "_data": {
+        "language": "fr",
+        "value": "Mon audio a été traduit automatiquement",
+        "status": "complete"
+      },
       "_dateCreated": "2025-09-01T12:17:28Z",
       "_uuid": "91ab5f30-0f73-4e2e-b91f-8ad2f67a4729",
       "_dependency": {

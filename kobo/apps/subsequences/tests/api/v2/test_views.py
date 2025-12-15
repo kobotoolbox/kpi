@@ -144,3 +144,14 @@ class QuestionAdvancedFeatureViewSetTestCase(BaseTestCase):
         self.asset.refresh_from_db()
         assert self.asset.advanced_features.get('_version') == '20250820'
         assert res.status_code == status.HTTP_201_CREATED
+
+    def test_cannot_create_feature_with_invalid_params(self):
+        res = self.client.post(
+            self.list_actions_url,
+            data={
+                'action': 'manual_translation',
+                'params': json.dumps([{'bad': 'stuff'}]),
+                'question_xpath': 'q1',
+            },
+        )
+        assert res.status_code == status.HTTP_400_BAD_REQUEST
