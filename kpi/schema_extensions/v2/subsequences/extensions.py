@@ -27,8 +27,7 @@ class SubsequenceParamsFieldExtension(
             qual_component_ref,
         ]
 
-    @classmethod
-    def _get_nlp_params_schema(cls):
+    def _get_nlp_params_schema(self):
         return {
             'type': 'array',
             'items': {
