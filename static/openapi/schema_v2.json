@@ -1611,153 +1611,133 @@
                                     }
                                 },
                                 "examples": {
-                                    "ManualTranslation": {
+                                    "NLPAdvancedFeatures": {
                                         "value": [
-                                            [
-                                                {
-                                                    "action": "manual_translation",
-                                                    "question_xpath": "q1",
-                                                    "params": [
-                                                        {
-                                                            "language": "es"
-                                                        }
-                                                    ],
-                                                    "uid": "qa123456789AbCdEfGhIjklm"
-                                                }
-                                            ]
+                                            {
+                                                "action": "<action_id>",
+                                                "question_xpath": "q1",
+                                                "params": [
+                                                    {
+                                                        "language": "es"
+                                                    },
+                                                    {
+                                                        "language": "en"
+                                                    }
+                                                ],
+                                                "uid": "qa123456789AbCdEfGhIjklm"
+                                            }
                                         ],
-                                        "summary": "Manual Translation"
+                                        "summary": "NLP Advanced Features",
+                                        "description": "`<action_id>` can be any of:\n\n* `manual_transcription`\n* `manual_translation`\n* `automatic_google_transcription`\n* `automatic_google_translation`\n"
                                     },
-                                    "AutomaticGoogleTranscription": {
+                                    "QualitativeAnalysis-SimpleTypes": {
                                         "value": [
-                                            [
-                                                {
-                                                    "action": "automatic_google_transcription",
-                                                    "question_xpath": "q1",
-                                                    "params": [
-                                                        {
-                                                            "language": "es"
+                                            {
+                                                "action": "qual",
+                                                "question_xpath": "q1",
+                                                "params": [
+                                                    {
+                                                        "type": "<question_type>",
+                                                        "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
+                                                        "labels": {
+                                                            "_default": "Qualitative analysis result",
+                                                            "es": "Resultado de análisis cualitativo"
                                                         }
-                                                    ],
-                                                    "uid": "qa123456789AbCdEfGhIjklm"
-                                                }
-                                            ]
+                                                    }
+                                                ],
+                                                "uid": "qa123456789AbCdEfGhIjklm"
+                                            }
                                         ],
-                                        "summary": "Automatic Google Transcription"
+                                        "summary": "Qualitative Analysis - Simple Types",
+                                        "description": "`<question_type>` can be any of:\n\n* `qualText` \n* `qualInteger` \n* `qualTags` \n* `qualNote` \n"
                                     },
-                                    "QualitativeAnalysis": {
+                                    "QualitativeAnalysis-SingleChoiceQuestion": {
                                         "value": [
-                                            [
-                                                {
-                                                    "action": "qual",
-                                                    "question_xpath": "q1",
-                                                    "params": [
-                                                        {
-                                                            "type": "qualText",
-                                                            "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
-                                                            "labels": {
-                                                                "_default": "Summary"
-                                                            }
-                                                        }
-                                                    ],
-                                                    "uid": "qa123456789AbCdEfGhIjklm"
-                                                },
-                                                {
-                                                    "action": "qual",
-                                                    "question_xpath": "q1",
-                                                    "params": [
-                                                        {
-                                                            "type": "qualInteger",
-                                                            "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
-                                                            "labels": {
-                                                                "_default": "Number of themes",
-                                                                "fr": "Nombre de thèmes"
-                                                            }
-                                                        }
-                                                    ],
-                                                    "uid": "qa123456789AbCdEfGhIjklm"
-                                                },
-                                                {
-                                                    "action": "qual",
-                                                    "question_xpath": "q1",
-                                                    "params": [
-                                                        {
-                                                            "type": "qualSelectOne",
-                                                            "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
-                                                            "labels": {
-                                                                "_default": "Urgency Level",
-                                                                "es": "Nivel de Urgencia"
-                                                            },
-                                                            "choices": [
-                                                                {
-                                                                    "uuid": "qqqqqqqq-bbbb-cccc-dddd-eeeeffffffff",
-                                                                    "labels": {
-                                                                        "_default": "High",
-                                                                        "fr": "Élevé",
-                                                                        "es": "Alto"
-                                                                    }
-                                                                },
-                                                                {
-                                                                    "uuid": "hhhhhhhh-bbbb-cccc-dddd-eeeeffffffff",
-                                                                    "labels": {
-                                                                        "_default": "Medium",
-                                                                        "fr": "Moyen",
-                                                                        "es": "Medio"
-                                                                    }
-                                                                },
-                                                                {
-                                                                    "uuid": "gggggggg-bbbb-cccc-dddd-eeeeffffffff",
-                                                                    "labels": {
-                                                                        "_default": "Low",
-                                                                        "fr": "Bas",
-                                                                        "es": "Bajo"
-                                                                    }
+                                            {
+                                                "action": "qual",
+                                                "question_xpath": "q1",
+                                                "params": [
+                                                    {
+                                                        "type": "qualSelectOne",
+                                                        "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
+                                                        "labels": {
+                                                            "_default": "Urgency Level",
+                                                            "es": "Nivel de Urgencia"
+                                                        },
+                                                        "choices": [
+                                                            {
+                                                                "uuid": "qqqqqqqq-bbbb-cccc-dddd-eeeeffffffff",
+                                                                "labels": {
+                                                                    "_default": "High",
+                                                                    "fr": "Élevé",
+                                                                    "es": "Alto"
                                                                 }
-                                                            ]
-                                                        }
-                                                    ],
-                                                    "uid": "qa123456789AbCdEfGhIjklm"
-                                                },
-                                                {
-                                                    "action": "qual",
-                                                    "question_xpath": "q1",
-                                                    "params": [
-                                                        {
-                                                            "type": "qualSelectMultiple",
-                                                            "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
-                                                            "labels": {
-                                                                "_default": "Tags"
                                                             },
-                                                            "choices": [
-                                                                {
-                                                                    "uuid": "xxxxxxxx-bbbb-cccc-dddd-eeeeffffffff",
-                                                                    "labels": {
-                                                                        "_default": "Shelter",
-                                                                        "ar": "مأوى"
-                                                                    }
-                                                                },
-                                                                {
-                                                                    "uuid": "zzzzzzzz-bbbb-cccc-dddd-eeeeffffffff",
-                                                                    "labels": {
-                                                                        "_default": "Food",
-                                                                        "ar": "طعام"
-                                                                    }
-                                                                },
-                                                                {
-                                                                    "uuid": "yyyyyyyy-bbbb-cccc-dddd-eeeeffffffff",
-                                                                    "labels": {
-                                                                        "_default": "Medical",
-                                                                        "ar": "طبي"
-                                                                    }
+                                                            {
+                                                                "uuid": "hhhhhhhh-bbbb-cccc-dddd-eeeeffffffff",
+                                                                "labels": {
+                                                                    "_default": "Medium",
+                                                                    "fr": "Moyen",
+                                                                    "es": "Medio"
                                                                 }
-                                                            ]
-                                                        }
-                                                    ],
-                                                    "uid": "qa123456789AbCdEfGhIjklm"
-                                                }
-                                            ]
+                                                            },
+                                                            {
+                                                                "uuid": "gggggggg-bbbb-cccc-dddd-eeeeffffffff",
+                                                                "labels": {
+                                                                    "_default": "Low",
+                                                                    "fr": "Bas",
+                                                                    "es": "Bajo"
+                                                                }
+                                                            }
+                                                        ]
+                                                    }
+                                                ],
+                                                "uid": "qa123456789AbCdEfGhIjklm"
+                                            }
                                         ],
-                                        "summary": "Qualitative Analysis"
+                                        "summary": "Qualitative Analysis - Single Choice Question"
+                                    },
+                                    "QualitativeAnalysis-MultipleChoiceQuestion": {
+                                        "value": [
+                                            {
+                                                "action": "qual",
+                                                "question_xpath": "q1",
+                                                "params": [
+                                                    {
+                                                        "type": "qualSelectMultiple",
+                                                        "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
+                                                        "labels": {
+                                                            "_default": "Tags"
+                                                        },
+                                                        "choices": [
+                                                            {
+                                                                "uuid": "xxxxxxxx-bbbb-cccc-dddd-eeeeffffffff",
+                                                                "labels": {
+                                                                    "_default": "Shelter",
+                                                                    "ar": "مأوى"
+                                                                }
+                                                            },
+                                                            {
+                                                                "uuid": "zzzzzzzz-bbbb-cccc-dddd-eeeeffffffff",
+                                                                "labels": {
+                                                                    "_default": "Food",
+                                                                    "ar": "طعام"
+                                                                }
+                                                            },
+                                                            {
+                                                                "uuid": "yyyyyyyy-bbbb-cccc-dddd-eeeeffffffff",
+                                                                "labels": {
+                                                                    "_default": "Medical",
+                                                                    "ar": "طبي"
+                                                                }
+                                                            }
+                                                        ]
+                                                    }
+                                                ],
+                                                "uid": "qa123456789AbCdEfGhIjklm"
+                                            }
+                                        ],
+                                        "summary": "Qualitative Analysis - Multiple Choice Question"
                                     }
                                 }
                             }
@@ -1786,7 +1766,7 @@
             },
             "post": {
                 "operationId": "api_v2_assets_advanced_features_create",
-                "description": "## Add an advanced action to an asset\n\nEnables a new type of advanced action on a question in the asset.\n* `action`, `params`, and `question_xpath` are required\n* `params` must match the expected param_schema of the `action`\n\nAccepted `action`s include:\n* `manual_transcription`\n* `automatic_google_transcription`\n* `manual_translation`\n* `automatic_google_translation`\n* `qual`\n\nFor all actions except `qual`, `params` must look like\n> '[{\"language\": \"es\"}, {\"language\": \"en\"}, ...]'\n\nFor `qual`, `params` must look like\n```\n   [\n        {\n            'type': 'qualInteger',\n            'uuid': '1a2c8eb0-e2ec-4b3c-942a-c1a5410c081a',\n            'labels': {'_default': 'How many characters appear in the story?'},\n        },\n        {\n            'type': 'qualSelectMultiple',\n            'uuid': '2e30bec7-4843-43c7-98bc-13114af230c5',\n            'labels': {'_default': \"What themes were present in the story?\"},\n            'choices': [\n                {\n                    'uuid': '2e24e6b4-bc3b-4e8e-b0cd-d8d3b9ca15b6',\n                    'labels': {'_default': 'Empathy'},\n                },\n                {\n                    'uuid': 'cb82919d-2948-4ccf-a488-359c5d5ee53a',\n                    'labels': {'_default': 'Competition'},\n                },\n                {\n                    'uuid': '8effe3b1-619e-4ada-be45-ebcea5af0aaf',\n                    'labels': {'_default': 'Apathy'},\n                },\n            ],\n        },\n        {\n            'type': 'qualSelectOne',\n            'uuid': '1a8b748b-f470-4c40-bc09-ce2b1197f503',\n            'labels': {'_default': 'Was this a first-hand account?'},\n            'choices': [\n                {\n                    'uuid': '3c7aacdc-8971-482a-9528-68e64730fc99',\n                    'labels': {'_default': 'Yes'},\n                },\n                {\n                    'uuid': '7e31c6a5-5eac-464c-970c-62c383546a94',\n                    'labels': {'_default': 'No'},\n                },\n            ],\n        },\n        {\n            'type': 'qualTags',\n            'uuid': 'e9b4e6d1-fdbb-4dc9-8b10-a9c3c388322f',\n            'labels': {'_default': 'Tag any landmarks mentioned in the story'},\n        },\n        {\n            'type': 'qualText',\n            'uuid': '83acf2a7-8edc-4fd8-8b9f-f832ca3f18ad',\n            'labels': {'_default': 'Add any further remarks'},\n        },\n        {\n            'type': 'qualNote',\n            'uuid': '5ef11d48-d7a3-432e-af83-8c2e9b1feb72',\n            'labels': {'_default': 'Thanks for your diligence'},\n        },\n    ]```\n",
+                "description": "## Add an advanced action to an asset\n\nEnables a new type of advanced action on a question in the asset.\n* `action`, `params`, and `question_xpath` are required\n* `params` must match the expected param_schema of the `action`\n\nAccepted `action`s include:\n* `manual_transcription`\n* `automatic_google_transcription`\n* `manual_translation`\n* `automatic_google_translation`\n* `qual`\n\n",
                 "parameters": [
                     {
                         "in": "path",
@@ -1808,41 +1788,21 @@
                                 "$ref": "#/components/schemas/AdvancedFeaturePostRequest"
                             },
                             "examples": {
-                                "ManualTranscription": {
+                                "NLPAdvancedFeatures": {
                                     "value": {
-                                        "action": "manual_transcription",
+                                        "action": "<action_id>",
                                         "question_xpath": "q1",
                                         "params": [
                                             {
                                                 "language": "es"
-                                            }
-                                        ]
-                                    },
-                                    "summary": "Manual Transcription"
-                                },
-                                "ManualTranslation": {
-                                    "value": {
-                                        "action": "manual_translation",
-                                        "question_xpath": "q1",
-                                        "params": [
+                                            },
                                             {
-                                                "language": "es"
+                                                "language": "fr"
                                             }
                                         ]
                                     },
-                                    "summary": "Manual Translation"
-                                },
-                                "AutomaticGoogleTranscription": {
-                                    "value": {
-                                        "action": "automatic_google_transcription",
-                                        "question_xpath": "q1",
-                                        "params": [
-                                            {
-                                                "language": "es"
-                                            }
-                                        ]
-                                    },
-                                    "summary": "Automatic Google Transcription"
+                                    "summary": "NLP Advanced Features",
+                                    "description": "`<action_id>` can be any of:\n\n* `manual_transcription`\n* `manual_translation`\n* `automatic_google_transcription`\n* `automatic_google_translation`\n"
                                 },
                                 "QualitativeAnalysis-TextQuestion": {
                                     "value": {
@@ -2104,7 +2064,7 @@
             },
             "patch": {
                 "operationId": "api_v2_assets_advanced_features_partial_update",
-                "description": "## Update an advanced action on an asset\n\nUpdate the params of an advanced action on a question in the asset.\n* `params` is required\n* `params` must match the expected param_schema of the action being updated\n\nFor all actions except `qual`, `params` must look like\n> '[{\"language\": \"es\"}, {\"language\": \"en\"}, ...]'\n\nFor `qual`, `params` must look like\n```\n   [\n        {\n            'type': 'qualInteger',\n            'uuid': '1a2c8eb0-e2ec-4b3c-942a-c1a5410c081a',\n            'labels': {'_default': 'How many characters appear in the story?'},\n        },\n        {\n            'type': 'qualSelectMultiple',\n            'uuid': '2e30bec7-4843-43c7-98bc-13114af230c5',\n            'labels': {'_default': \"What themes were present in the story?\"},\n            'choices': [\n                {\n                    'uuid': '2e24e6b4-bc3b-4e8e-b0cd-d8d3b9ca15b6',\n                    'labels': {'_default': 'Empathy'},\n                },\n                {\n                    'uuid': 'cb82919d-2948-4ccf-a488-359c5d5ee53a',\n                    'labels': {'_default': 'Competition'},\n                },\n                {\n                    'uuid': '8effe3b1-619e-4ada-be45-ebcea5af0aaf',\n                    'labels': {'_default': 'Apathy'},\n                },\n            ],\n        },\n        {\n            'type': 'qualSelectOne',\n            'uuid': '1a8b748b-f470-4c40-bc09-ce2b1197f503',\n            'labels': {'_default': 'Was this a first-hand account?'},\n            'choices': [\n                {\n                    'uuid': '3c7aacdc-8971-482a-9528-68e64730fc99',\n                    'labels': {'_default': 'Yes'},\n                },\n                {\n                    'uuid': '7e31c6a5-5eac-464c-970c-62c383546a94',\n                    'labels': {'_default': 'No'},\n                },\n            ],\n        },\n        {\n            'type': 'qualTags',\n            'uuid': 'e9b4e6d1-fdbb-4dc9-8b10-a9c3c388322f',\n            'labels': {'_default': 'Tag any landmarks mentioned in the story'},\n        },\n        {\n            'type': 'qualText',\n            'uuid': '83acf2a7-8edc-4fd8-8b9f-f832ca3f18ad',\n            'labels': {'_default': 'Add any further remarks'},\n        },\n        {\n            'type': 'qualNote',\n            'uuid': '5ef11d48-d7a3-432e-af83-8c2e9b1feb72',\n            'labels': {'_default': 'Thanks for your diligence'},\n        },\n    ]```\n",
+                "description": "## Update an advanced action on an asset\n\nUpdate the params of an advanced action on a question in the asset.\n* `params` is required\n* `params` must match the expected param_schema of the action being updated\n\n\n",
                 "parameters": [
                     {
                         "in": "path",
@@ -2135,27 +2095,18 @@
                                 "$ref": "#/components/schemas/PatchedAdvancedFeaturePatchRequest"
                             },
                             "examples": {
-                                "ChangeActionParameters": {
-                                    "value": {
-                                        "params": [
-                                            {
-                                                "language": "es"
-                                            }
-                                        ]
-                                    },
-                                    "summary": "Change Action Parameters"
-                                },
                                 "ChangeWritableFields": {
                                     "value": {
-                                        "action": "automatic_google_translation",
-                                        "question_xpath": "q2",
+                                        "action": "<action_id>",
+                                        "question_xpath": "<question_path>",
                                         "params": [
                                             {
                                                 "language": "fr"
                                             }
                                         ]
                                     },
-                                    "summary": "Change Writable Fields"
+                                    "summary": "Change Writable Fields",
+                                    "description": "`<action_id>` can be any of:\n\n* `manual_transcription`\n* `manual_translation`\n* `automatic_google_transcription`\n* `automatic_google_translation`\n"
                                 }
                             }
                         },
@@ -22462,66 +22413,112 @@
             "QualActionParams": {
                 "type": "array",
                 "items": {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "properties": {
-                        "uuid": {
-                            "type": "string",
-                            "format": "uuid"
+                    "anyOf": [
+                        {
+                            "$ref": "#/components/schemas/QualSimpleQuestionParams"
                         },
-                        "type": {
-                            "type": "string",
-                            "enum": [
-                                "qualInteger",
-                                "qualSelectMultiple",
-                                "qualSelectOne",
-                                "qualTags",
-                                "qualText",
-                                "qualNote"
-                            ]
-                        },
-                        "labels": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        },
-                        "choices": {
-                            "type": "array",
-                            "items": {
-                                "type": "object",
-                                "additionalProperties": false,
-                                "properties": {
-                                    "labels": {
-                                        "type": "object",
-                                        "additionalProperties": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "uuid": {
-                                        "type": "string",
-                                        "format": "uuid"
-                                    },
-                                    "options": {
-                                        "type": "object"
-                                    }
-                                },
-                                "required": [
-                                    "labels",
-                                    "uuid"
-                                ]
-                            }
-                        },
-                        "options": {
-                            "type": "object"
+                        {
+                            "$ref": "#/components/schemas/QualSelectQuestionParams"
                         }
-                    },
-                    "required": [
-                        "uuid",
-                        "type",
-                        "labels"
                     ]
                 }
+            },
+            "QualSelectQuestionParams": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "uuid": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "type": {
+                        "$ref": "#/components/schemas/QualSelectQuestionParamsTypeEnum"
+                    },
+                    "labels": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "string"
+                        }
+                    },
+                    "choices": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                                "labels": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                },
+                                "uuid": {
+                                    "type": "string",
+                                    "format": "uuid"
+                                },
+                                "options": {
+                                    "type": "object"
+                                }
+                            },
+                            "required": [
+                                "labels",
+                                "uuid"
+                            ]
+                        }
+                    },
+                    "options": {
+                        "type": "object"
+                    }
+                },
+                "required": [
+                    "uuid",
+                    "type",
+                    "labels",
+                    "choices"
+                ]
+            },
+            "QualSelectQuestionParamsTypeEnum": {
+                "type": "string",
+                "enum": [
+                    "qualSelectMultiple",
+                    "qualSelectOne"
+                ]
+            },
+            "QualSimpleQuestionParams": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "uuid": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "type": {
+                        "$ref": "#/components/schemas/QualSimpleQuestionParamsTypeEnum"
+                    },
+                    "labels": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "string"
+                        }
+                    },
+                    "options": {
+                        "type": "object"
+                    }
+                },
+                "required": [
+                    "uuid",
+                    "type",
+                    "labels"
+                ]
+            },
+            "QualSimpleQuestionParamsTypeEnum": {
+                "type": "string",
+                "enum": [
+                    "qualInteger",
+                    "qualTags",
+                    "qualText",
+                    "qualNote"
+                ]
             },
             "Recurring": {
                 "type": "object",
