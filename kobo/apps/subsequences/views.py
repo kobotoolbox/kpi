@@ -46,7 +46,7 @@ from kpi.versioning import APIV2Versioning
 @extend_schema_view(
     create=extend_schema(
         description=read_md('subsequences', 'subsequences/create.md'),
-        request=AdvancedFeaturePostRequest,
+        request={'application/json': AdvancedFeaturePostRequest},
         responses=open_api_201_created_response(
             AdvancedFeatureResponse,
             require_auth=False,
@@ -66,7 +66,7 @@ from kpi.versioning import APIV2Versioning
     ),
     partial_update=extend_schema(
         description=read_md('subsequences', 'subsequences/update.md'),
-        request=AdvancedFeaturePatchRequest,
+        request={'application/json': AdvancedFeaturePatchRequest},
         responses=open_api_200_ok_response(
             AdvancedFeatureResponse,
             require_auth=False,
