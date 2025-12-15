@@ -6,7 +6,7 @@ from django.test import TestCase
 
 from kobo.apps.openrosa.apps.logger.exceptions import ConflictingSubmissionUUIDError
 from kobo.apps.subsequences.constants import SUPPLEMENT_KEY
-from kobo.apps.subsequences.models import SubmissionExtras, QuestionAdvancedFeature
+from kobo.apps.subsequences.models import SubmissionSupplement, QuestionAdvancedFeature
 from kobo.apps.subsequences.utils.supplement_data import stream_with_supplements
 from kpi.models import Asset
 
@@ -25,7 +25,7 @@ class TestSubmissionStream(TestCase):
             params=[
                 {
                     'labels': {
-                        '_default': "What is the quality score?"
+                        '_default': 'What is the quality score?'
                     },
                     'type': 'qualText',
                     'uuid': '4dcf9c9f-e503-4e5c-81f5-74250b295001'
@@ -65,7 +65,7 @@ class TestSubmissionStream(TestCase):
                         self.assertIsInstance(uuid_field, str)
 
     def test_stream_with_extras_ignores_empty_qual_responses(self):
-        submission_extras = SubmissionExtras.objects.get(
+        submission_extras = SubmissionSupplement.objects.get(
             submission_uuid='1c05898e-b43c-491d-814c-79595eb84e81'
         )
         content = submission_extras.content
@@ -102,19 +102,15 @@ class TestSubmissionStream(TestCase):
                 'survey': [
                     {
                         'type': 'text',
-                        '$kuid': 'rc9ak31',
                         'label': ["What's your name?"],
                         '$xpath': 'What_s_your_name',
                         'required': False,
-                        '$autoname': 'What_s_your_name',
                     },
                     {
                         'type': 'audio',
-                        '$kuid': 'ff6ek09',
                         'label': ['Tell me a story!'],
                         '$xpath': 'Tell_me_a_story',
                         'required': False,
-                        '$autoname': 'Tell_me_a_story',
                     },
                 ],
                 'settings': {},
@@ -151,7 +147,7 @@ class TestSubmissionStream(TestCase):
                 }
             ],
         }
-        SubmissionExtras.objects.create(
+        SubmissionSupplement.objects.create(
             submission_uuid='1c05898e-b43c-491d-814c-79595eb84e81',
             asset=self.asset,
             content={
@@ -161,7 +157,7 @@ class TestSubmissionStream(TestCase):
                 }
             },
         )
-        SubmissionExtras.objects.create(
+        SubmissionSupplement.objects.create(
             submission_uuid='1c05898e-b43c-491d-814c-79595eb84e82',
             asset=self.asset,
             content={
