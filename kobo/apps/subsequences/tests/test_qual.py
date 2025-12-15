@@ -8,7 +8,7 @@ import pytest
 from freezegun import freeze_time
 from rest_framework.exceptions import ValidationError
 
-from ..actions.qual import QualAction
+from ..actions.qual import ManualQualAction
 from .constants import EMPTY_SUBMISSION
 
 
@@ -536,7 +536,7 @@ class Fix:
     }
 
 
-_action = QualAction(
+_action = ManualQualAction(
     source_question_xpath=Fix.fake_question_xpath, params=Fix.action_params
 )
 
@@ -552,7 +552,7 @@ def test_param_validation():
     ]
     with pytest.raises(jsonschema.exceptions.ValidationError):
         # Instantiation must validate params
-        QualAction(
+        ManualQualAction(
             source_question_xpath=Fix.fake_question_xpath, params=invalid_params
         )
 
@@ -703,7 +703,7 @@ class TestQualActionMethods(TestCase):
         - Select multiple with choices
         - Field naming convention
         """
-        action = QualAction(self.source_xpath, self.action_params)
+        action = ManualQualAction(self.source_xpath, self.action_params)
         output_fields = action.get_output_fields()
 
         # Should return one field per qual question
@@ -772,7 +772,7 @@ class TestQualActionMethods(TestCase):
         - Multiple questions processed together
         - Field naming and structure (returns {'qual': [...]})
         """
-        action = QualAction(self.source_xpath, self.action_params)
+        action = ManualQualAction(self.source_xpath, self.action_params)
 
         action_data = {
             # Integer question
@@ -899,7 +899,7 @@ class TestQualActionMethods(TestCase):
         with the newest `_dateAccepted` is used for output, even if it is not
         the most recently created version
         """
-        action = QualAction(self.source_xpath, self.action_params)
+        action = ManualQualAction(self.source_xpath, self.action_params)
 
         action_data = {
             'qual-text-uuid': {
@@ -944,7 +944,7 @@ class TestQualActionMethods(TestCase):
                 'labels': {'_default': 'Number of themes', 'fr': 'Nombre de thèmes'},
             }
         ]
-        action = QualAction(self.source_xpath, params=params)
+        action = ManualQualAction(self.source_xpath, params=params)
         new_question = {
             'uuid': 'new_question',
             'type': 'qualInteger',
@@ -969,7 +969,7 @@ class TestQualActionMethods(TestCase):
                 ],
             }
         ]
-        action = QualAction(self.source_xpath, params=params)
+        action = ManualQualAction(self.source_xpath, params=params)
         # remove 'Red', relabel 'Blue', move 'Purple', add 'Green'
         new_question = {
             'type': 'qualSelectMultiple',
@@ -1006,7 +1006,7 @@ class TestQualActionMethods(TestCase):
                 'labels': {'_default': 'Number of themes', 'fr': 'Nombre de thèmes'},
             }
         ]
-        action = QualAction(self.source_xpath, params=params)
+        action = ManualQualAction(self.source_xpath, params=params)
         new_question = {
             'uuid': 'qual-integer-uuid',
             'type': 'qualText',
@@ -1023,7 +1023,7 @@ class TestQualActionMethods(TestCase):
                 'labels': {'_default': 'Number of themes', 'fr': 'Nombre de thèmes'},
             }
         ]
-        action = QualAction(self.source_xpath, params=params)
+        action = ManualQualAction(self.source_xpath, params=params)
         new_question = {
             'uuid': 'qual-integer-uuid',
             'type': 'qualInteger',
@@ -1045,15 +1045,15 @@ class TestQualActionMethods(TestCase):
                 'type': 'qualInteger',
                 'uuid': 'qual-unhide-me',
                 'labels': {'_default': 'How many more?'},
-                'options': {QualAction.DELETED_OPTION: True},
+                'options': {ManualQualAction.DELETED_OPTION: True},
             },
         ]
-        action = QualAction(self.source_xpath, params=params)
+        action = ManualQualAction(self.source_xpath, params=params)
         hide_question = {
             'uuid': 'qual-hide-me',
             'type': 'qualInteger',
             'labels': {'_default': 'How many?'},
-            'options': {QualAction.DELETED_OPTION: True},
+            'options': {ManualQualAction.DELETED_OPTION: True},
         }
         unhide_question = {
             'uuid': 'qual-unhide-me',

@@ -664,7 +664,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
 
     def test_modify_qa_creates_log(self):
         question_qual_action = QuestionAdvancedFeature.objects.get(
-            asset=self.asset, action=Action.QUAL, question_xpath='q1'
+            asset=self.asset, action=Action.MANUAL_QUAL, question_xpath='q1'
         )
         request_data = {
             'params': [
@@ -690,7 +690,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
 
     def test_failed_modify_qa_does_not_create_log(self):
         question_qual_action = QuestionAdvancedFeature.objects.get(
-            asset=self.asset, action=Action.QUAL, question_xpath='q1'
+            asset=self.asset, action=Action.MANUAL_QUAL, question_xpath='q1'
         )
         request_data = {'params': [{'bad': 'params'}]}
         self.client.patch(

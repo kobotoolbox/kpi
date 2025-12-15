@@ -341,7 +341,7 @@ It describes the configuration stored on a `QuestionAdvancedFeature` when an act
 ```json
 {
   "question_xpath": "text_question",
-  "action": "qual",
+  "action": "manual_qual",
   "params": [
     {
       "type": "qualSelectOne",

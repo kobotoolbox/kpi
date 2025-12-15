@@ -5,7 +5,7 @@ from typing import Any, Iterable
 from django.db import transaction
 from django.utils import timezone
 
-from kobo.apps.subsequences.actions import QualAction
+from kobo.apps.subsequences.actions import ManualQualAction
 from kobo.apps.subsequences.constants import SCHEMA_VERSIONS, Action
 from kobo.apps.subsequences.models import QuestionAdvancedFeature
 
@@ -49,13 +49,13 @@ def convert_qual_params(
             item['type'] = OLD_QUESTION_TYPE_TO_NEW[item['type']]
             # remove any top-level cruft
             for key in list(item.keys()):
-                if key not in QualAction.KNOWN_PARAM_KEYS:
+                if key not in ManualQualAction.KNOWN_PARAM_KEYS:
                     item.pop(key)
-        QualAction.validate_params(list(items))
+        ManualQualAction.validate_params(list(items))
         created_objs.append(
             QuestionAdvancedFeature(
                 asset=asset,
-                action=Action.QUAL,
+                action=Action.MANUAL_QUAL,
                 question_xpath=xpath,
                 params=list(items),
             )
@@ -274,7 +274,7 @@ def migrate_submission_supplementals(supplemental_data: dict) -> dict | None:
         if 'qual' in action_results:
             qual_migration = migrate_qual_data(action_results)
             if qual_migration:
-                question_results_by_action['qual'] = qual_migration
+                question_results_by_action['manual_qual'] = qual_migration
 
         supplemental[question_xpath] = question_results_by_action
 

@@ -815,7 +815,7 @@ class ProjectHistoryLog(AuditLog):
         asset_uid = request.resolver_match.kwargs['uid_asset']
         if not source_data:
             return
-        if source_data.get('action') != Action.QUAL:
+        if source_data.get('action') != Action.MANUAL_QUAL:
             return
         owner = source_data.pop('asset.owner.username')
         object_id = source_data.pop('object_id')
