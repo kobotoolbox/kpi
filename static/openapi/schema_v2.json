@@ -1585,7 +1585,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "UID of the parent assets",
+                        "description": "UID of the parent asset",
                         "required": true
                     }
                 ],
@@ -1794,7 +1794,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "UID of the parent assets",
+                        "description": "UID of the parent asset",
                         "required": true
                     }
                 ],
@@ -2036,18 +2036,18 @@
                 }
             }
         },
-        "/api/v2/assets/{uid_asset}/advanced-features/{id}/": {
+        "/api/v2/assets/{uid_asset}/advanced-features/{uid_advanced_feature}/": {
             "get": {
                 "operationId": "api_v2_assets_advanced_features_retrieve",
                 "description": "## Retrieve advanced feature configuration for a question on an asset\n\nGets the params for one advanced action for one question in an asset\n",
                 "parameters": [
                     {
                         "in": "path",
-                        "name": "id",
+                        "name": "uid_advanced_feature",
                         "schema": {
                             "type": "string"
                         },
-                        "description": "UID of the action",
+                        "description": "UID of the advanced feature",
                         "required": true
                     },
                     {
@@ -2056,7 +2056,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "UID of the parent assets",
+                        "description": "UID of the parent asset",
                         "required": true
                     }
                 ],
@@ -2108,11 +2108,11 @@
                 "parameters": [
                     {
                         "in": "path",
-                        "name": "id",
+                        "name": "uid_advanced_feature",
                         "schema": {
                             "type": "string"
                         },
-                        "description": "UID of the action",
+                        "description": "UID of the advanced feature",
                         "required": true
                     },
                     {
@@ -2121,7 +2121,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "UID of the parent assets",
+                        "description": "UID of the parent asset",
                         "required": true
                     }
                 ],

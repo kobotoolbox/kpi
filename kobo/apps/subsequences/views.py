@@ -39,7 +39,7 @@ from kpi.versioning import APIV2Versioning
             type=str,
             location=OpenApiParameter.PATH,
             required=True,
-            description='UID of the parent assets',
+            description='UID of the parent asset',
         ),
     ],
 )
@@ -74,11 +74,11 @@ from kpi.versioning import APIV2Versioning
         ),
         parameters=[
             OpenApiParameter(
-                name='id',
+                name='uid_advanced_feature',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
-                description='UID of the action',
+                description='UID of the advanced feature',
             ),
         ],
         examples=get_advanced_features_update_examples(),
@@ -93,11 +93,11 @@ from kpi.versioning import APIV2Versioning
         ),
         parameters=[
             OpenApiParameter(
-                name='id',
+                name='uid_advanced_feature',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
-                description='UID of the action',
+                description='UID of the advanced feature',
             ),
         ],
     ),
@@ -125,6 +125,8 @@ class QuestionAdvancedFeatureViewSet(
     permission_classes = (AssetAdvancedFeaturesPermission,)
     # FIXME v2 version should be set by default
     versioning_class = APIV2Versioning
+    lookup_field = 'uid'
+    lookup_url_kwarg = 'uid_advanced_feature'
 
     def get_queryset(self):
         return QuestionAdvancedFeature.objects.filter(asset=self.asset)
