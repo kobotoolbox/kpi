@@ -33,6 +33,11 @@ function insertImportAfterHeader(source, importLine) {
   return `${header}\n${importLine}\n${rest}`
 }
 
+/**
+ * Orval has a bug that fails to generate imports for $ref in additionalProperties.
+ * See https://github.com/orval-labs/orval/issues/1077.
+ * This is a workaround. Remove it once the underlying bug is fixed.
+ */
 for (const { file, type, importPath } of TARGETS) {
   const filePath = path.join(MODELS_DIR, file)
 
