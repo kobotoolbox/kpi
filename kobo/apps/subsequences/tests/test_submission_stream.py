@@ -25,7 +25,7 @@ class TestSubmissionStream(TestCase):
             params=[
                 {
                     'labels': {
-                        '_default': "What is the quality score?"
+                        '_default': 'What is the quality score?'
                     },
                     'type': 'qualText',
                     'uuid': '4dcf9c9f-e503-4e5c-81f5-74250b295001'
@@ -102,19 +102,15 @@ class TestSubmissionStream(TestCase):
                 'survey': [
                     {
                         'type': 'text',
-                        '$kuid': 'rc9ak31',
                         'label': ["What's your name?"],
                         '$xpath': 'What_s_your_name',
                         'required': False,
-                        '$autoname': 'What_s_your_name',
                     },
                     {
                         'type': 'audio',
-                        '$kuid': 'ff6ek09',
                         'label': ['Tell me a story!'],
                         '$xpath': 'Tell_me_a_story',
                         'required': False,
-                        '$autoname': 'Tell_me_a_story',
                     },
                 ],
                 'settings': {},
