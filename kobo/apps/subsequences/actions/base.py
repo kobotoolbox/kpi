@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 import jsonschema
+from constance import config
 from django.conf import settings
 from django.utils import timezone
 
@@ -193,7 +194,11 @@ class BaseAction:
 
     def check_limits(self, user: User):
 
-        if not settings.STRIPE_ENABLED or not self._is_usage_limited:
+        if (
+            not settings.STRIPE_ENABLED
+            or not self._is_usage_limited
+            or not config.USAGE_LIMIT_ENFORCEMENT
+        ):
             return
 
         calculator = ServiceUsageCalculator(user)
@@ -399,7 +404,6 @@ class BaseAction:
         `submission` argument for future use by subclasses
         this method might need to be made more friendly for overriding
         """
-
         self.validate_data(action_data)
         self.raise_for_any_leading_underscore_key(action_data)
 
