@@ -1,5 +1,5 @@
 from drf_spectacular.extensions import OpenApiSerializerFieldExtension
-from drf_spectacular.plumbing import ResolvedComponent, build_array_type
+from drf_spectacular.plumbing import build_array_type
 
 from kpi.schema_extensions.v2.generic.schema import GENERIC_STRING_SCHEMA
 from kpi.utils.schema_extensions.mixins import ComponentRegistrationMixin
@@ -46,8 +46,16 @@ class SubsequenceParamsFieldExtension(
             'type': 'array',
             'items': {
                 'anyOf': [
-                    self._register_schema_component(auto_schema, 'QualSimpleQuestionParams', defs['qualSimpleQuestion']),
-                    self._register_schema_component(auto_schema, 'QualSelectQuestionParams', defs['qualSelectQuestion']),
+                    self._register_schema_component(
+                        auto_schema,
+                        'QualSimpleQuestionParams',
+                        defs['qualSimpleQuestion'],
+                    ),
+                    self._register_schema_component(
+                        auto_schema,
+                        'QualSelectQuestionParams',
+                        defs['qualSelectQuestion'],
+                    ),
                 ]
             },
         }

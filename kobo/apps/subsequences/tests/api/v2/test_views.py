@@ -32,7 +32,7 @@ class QuestionAdvancedFeatureViewSetTestCase(BaseTestCase):
         )
         self.action_detail_url = reverse(
             'api_v2:advanced-features-detail',
-            kwargs={'uid_asset': self.asset.uid, 'pk': self.action.uid},
+            args=[self.asset.uid, self.action.uid],
         )
         self.client = Client(raise_request_exception=False)
         self.client.force_login(user)
