@@ -25,37 +25,30 @@ def get_advanced_features_create_examples() -> list[OpenApiExample]:
             ),
         ),
         OpenApiExample(
-            'Qualitative Analysis - Text Question',
+            'Qualitative Analysis - Simple Types',
             value={
                 'action': 'qual',
                 'question_xpath': 'q1',
                 'params': [
                     {
-                        'type': 'qualText',
-                        'uuid': 'aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff',
-                        'labels': {'_default': 'Summary'},
-                    },
-                ],
-            },
-            request_only=True,
-        ),
-        OpenApiExample(
-            'Qualitative Analysis - Integer Question',
-            value={
-                'action': 'qual',
-                'question_xpath': 'q1',
-                'params': [
-                    {
-                        'type': 'qualInteger',
+                        'type': '<question_type>',
                         'uuid': 'aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff',
                         'labels': {
-                            '_default': 'Number of themes',
-                            'fr': 'Nombre de thèmes',
+                            '_default': 'Qualitative analysis result',
+                            'es': 'Resultado de análisis cualitativo',
                         },
                     },
                 ],
             },
-            request_only=True,
+            description=(
+                '`<question_type>` can be any of:'
+                '\n\n'
+                '* `qualText` \n'
+                '* `qualInteger` \n'
+                '* `qualTags` \n'
+                '* `qualNote` \n'
+            ),
+            response_only=True,
         ),
         OpenApiExample(
             'Qualitative Analysis - Single Choice Question',
@@ -182,6 +175,7 @@ def get_advanced_features_list_examples() -> list[OpenApiExample]:
                 '* `qualTags` \n'
                 '* `qualNote` \n'
             ),
+            response_only=True,
         ),
         OpenApiExample(
             'Qualitative Analysis - Single Choice Question',
@@ -226,6 +220,7 @@ def get_advanced_features_list_examples() -> list[OpenApiExample]:
                 ],
                 'uid': 'qa123456789AbCdEfGhIjklm',
             },
+            response_only=True,
         ),
         OpenApiExample(
             'Qualitative Analysis - Multiple Choice Question',
@@ -256,30 +251,5 @@ def get_advanced_features_list_examples() -> list[OpenApiExample]:
                 'uid': 'qa123456789AbCdEfGhIjklm',
             },
             response_only=True,
-        ),
-    ]
-
-
-def get_advanced_features_update_examples() -> list[OpenApiExample]:
-    return [
-        OpenApiExample(
-            'Change Writable Fields',
-            value={
-                'action': '<action_id>',
-                'question_xpath': '<question_path>',
-                'params': [
-                    {'language': 'fr'},
-                ],
-            },
-            request_only=True,
-            description=(
-                '`<action_id>` can be any of:'
-                '\n\n'
-                '* `manual_transcription`\n'
-                '* `manual_translation`\n'
-                '* `automatic_google_transcription`\n'
-                '* `automatic_google_translation`\n'
-                ''
-            ),
         ),
     ]

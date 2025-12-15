@@ -1266,27 +1266,6 @@ paths:
                   * `manual_translation`
                   * `automatic_google_transcription`
                   * `automatic_google_translation`
-              QualitativeAnalysis-TextQuestion:
-                value:
-                  action: qual
-                  question_xpath: q1
-                  params:
-                  - type: qualText
-                    uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
-                    labels:
-                      _default: Summary
-                summary: Qualitative Analysis - Text Question
-              QualitativeAnalysis-IntegerQuestion:
-                value:
-                  action: qual
-                  question_xpath: q1
-                  params:
-                  - type: qualInteger
-                    uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
-                    labels:
-                      _default: Number of themes
-                      fr: Nombre de thèmes
-                summary: Qualitative Analysis - Integer Question
               QualitativeAnalysis-SingleChoiceQuestion:
                 value:
                   action: qual
@@ -1347,6 +1326,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AdvancedFeatureResponse'
+              examples:
+                QualitativeAnalysis-SimpleTypes:
+                  value:
+                    action: qual
+                    question_xpath: q1
+                    params:
+                    - type: <question_type>
+                      uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
+                      labels:
+                        _default: Qualitative analysis result
+                        es: Resultado de análisis cualitativo
+                  summary: Qualitative Analysis - Simple Types
+                  description: "`<question_type>` can be any of:\n\n* `qualText` \n\
+                    * `qualInteger` \n* `qualTags` \n* `qualNote` \n"
           description: null
         '404':
           content:
@@ -1529,13 +1522,14 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedAdvancedFeaturePatchRequest'
             examples:
-              ChangeWritableFields:
+              NLPAdvancedFeatures:
                 value:
                   action: <action_id>
-                  question_xpath: <question_path>
+                  question_xpath: q1
                   params:
+                  - language: es
                   - language: fr
-                summary: Change Writable Fields
+                summary: NLP Advanced Features
                 description: |
                   `<action_id>` can be any of:
 
@@ -1543,6 +1537,56 @@ paths:
                   * `manual_translation`
                   * `automatic_google_transcription`
                   * `automatic_google_translation`
+              QualitativeAnalysis-SingleChoiceQuestion:
+                value:
+                  action: qual
+                  question_xpath: q1
+                  params:
+                  - type: qualSelectOne
+                    uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
+                    labels:
+                      _default: Urgency Level
+                      es: Nivel de Urgencia
+                    choices:
+                    - uuid: qqqqqqqq-bbbb-cccc-dddd-eeeeffffffff
+                      labels:
+                        _default: High
+                        fr: Élevé
+                        es: Alto
+                    - uuid: hhhhhhhh-bbbb-cccc-dddd-eeeeffffffff
+                      labels:
+                        _default: Medium
+                        fr: Moyen
+                        es: Medio
+                    - uuid: gggggggg-bbbb-cccc-dddd-eeeeffffffff
+                      labels:
+                        _default: Low
+                        fr: Bas
+                        es: Bajo
+                summary: Qualitative Analysis - Single Choice Question
+              QualitativeAnalysis-MultipleChoiceQuestion:
+                value:
+                  action: qual
+                  question_xpath: q1
+                  params:
+                  - type: qualSelectMultiple
+                    uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
+                    labels:
+                      _default: Tags
+                    choices:
+                    - uuid: xxxxxxxx-bbbb-cccc-dddd-eeeeffffffff
+                      labels:
+                        _default: Shelter
+                        ar: مأوى
+                    - uuid: zzzzzzzz-bbbb-cccc-dddd-eeeeffffffff
+                      labels:
+                        _default: Food
+                        ar: طعام
+                    - uuid: yyyyyyyy-bbbb-cccc-dddd-eeeeffffffff
+                      labels:
+                        _default: Medical
+                        ar: طبي
+                summary: Qualitative Analysis - Multiple Choice Question
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -1552,6 +1596,89 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AdvancedFeatureResponse'
+              examples:
+                QualitativeAnalysis-SimpleTypes:
+                  value:
+                    action: qual
+                    question_xpath: q1
+                    params:
+                    - type: <question_type>
+                      uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
+                      labels:
+                        _default: Qualitative analysis result
+                        es: Resultado de análisis cualitativo
+                    uid: qa123456789AbCdEfGhIjklm
+                  summary: Qualitative Analysis - Simple Types
+                  description: "`<question_type>` can be any of:\n\n* `qualText` \n\
+                    * `qualInteger` \n* `qualTags` \n* `qualNote` \n"
+                NLPAdvancedFeatures:
+                  value:
+                    action: <action_id>
+                    question_xpath: q1
+                    params:
+                    - language: es
+                    - language: en
+                    uid: qa123456789AbCdEfGhIjklm
+                  summary: NLP Advanced Features
+                  description: |
+                    `<action_id>` can be any of:
+
+                    * `manual_transcription`
+                    * `manual_translation`
+                    * `automatic_google_transcription`
+                    * `automatic_google_translation`
+                QualitativeAnalysis-SingleChoiceQuestion:
+                  value:
+                    action: qual
+                    question_xpath: q1
+                    params:
+                    - type: qualSelectOne
+                      uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
+                      labels:
+                        _default: Urgency Level
+                        es: Nivel de Urgencia
+                      choices:
+                      - uuid: qqqqqqqq-bbbb-cccc-dddd-eeeeffffffff
+                        labels:
+                          _default: High
+                          fr: Élevé
+                          es: Alto
+                      - uuid: hhhhhhhh-bbbb-cccc-dddd-eeeeffffffff
+                        labels:
+                          _default: Medium
+                          fr: Moyen
+                          es: Medio
+                      - uuid: gggggggg-bbbb-cccc-dddd-eeeeffffffff
+                        labels:
+                          _default: Low
+                          fr: Bas
+                          es: Bajo
+                    uid: qa123456789AbCdEfGhIjklm
+                  summary: Qualitative Analysis - Single Choice Question
+                QualitativeAnalysis-MultipleChoiceQuestion:
+                  value:
+                    action: qual
+                    question_xpath: q1
+                    params:
+                    - type: qualSelectMultiple
+                      uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
+                      labels:
+                        _default: Tags
+                      choices:
+                      - uuid: xxxxxxxx-bbbb-cccc-dddd-eeeeffffffff
+                        labels:
+                          _default: Shelter
+                          ar: مأوى
+                      - uuid: zzzzzzzz-bbbb-cccc-dddd-eeeeffffffff
+                        labels:
+                          _default: Food
+                          ar: طعام
+                      - uuid: yyyyyyyy-bbbb-cccc-dddd-eeeeffffffff
+                        labels:
+                          _default: Medical
+                          ar: طبي
+                    uid: qa123456789AbCdEfGhIjklm
+                  summary: Qualitative Analysis - Multiple Choice Question
           description: null
         '404':
           content:
