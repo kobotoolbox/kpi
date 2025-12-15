@@ -417,10 +417,9 @@ class Fix:
                 {
                     '_data': {
                         'uuid': '1a2c8eb0-e2ec-4b3c-942a-c1a5410c081a',
-                        'value': None,  # Empty response recorded last
+                        'value': None,  # Deleted response recorded last
                     },
                     '_dateCreated': '2025-01-02T11:11:11Z',
-                    '_dateAccepted': '2025-01-02T11:11:11Z',
                     '_uuid': '61d23cd7-ce2c-467b-ab26-0839226c714d',
                 },
                 {
