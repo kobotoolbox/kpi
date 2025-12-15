@@ -4,37 +4,25 @@ from drf_spectacular.utils import OpenApiExample
 def get_advanced_features_create_examples() -> list[OpenApiExample]:
     return [
         OpenApiExample(
-            'Manual Transcription',
+            'NLP Advanced Features',
             value={
-                'action': 'manual_transcription',
+                'action': '<action_id>',
                 'question_xpath': 'q1',
                 'params': [
                     {'language': 'es'},
+                    {'language': 'fr'},
                 ],
             },
             request_only=True,
-        ),
-        OpenApiExample(
-            'Manual Translation',
-            value={
-                'action': 'manual_translation',
-                'question_xpath': 'q1',
-                'params': [
-                    {'language': 'es'},
-                ],
-            },
-            request_only=True,
-        ),
-        OpenApiExample(
-            'Automatic Google Transcription',
-            value={
-                'action': 'automatic_google_transcription',
-                'question_xpath': 'q1',
-                'params': [
-                    {'language': 'es'},
-                ],
-            },
-            request_only=True,
+            description=(
+                '`<action_id>` can be any of:'
+                '\n\n'
+                '* `manual_transcription`\n'
+                '* `manual_translation`\n'
+                '* `automatic_google_transcription`\n'
+                '* `automatic_google_translation`\n'
+                ''
+            ),
         ),
         OpenApiExample(
             'Qualitative Analysis - Text Question',
@@ -148,131 +136,125 @@ def get_advanced_features_create_examples() -> list[OpenApiExample]:
 def get_advanced_features_list_examples() -> list[OpenApiExample]:
     return [
         OpenApiExample(
-            'Manual Translation',
-            value=[
-                {
-                    'action': 'manual_translation',
-                    'question_xpath': 'q1',
-                    'params': [
-                        {'language': 'es'},
-                    ],
-                    'uid': 'qa123456789AbCdEfGhIjklm',
-                },
-            ],
+            'NLP Advanced Features',
+            value={
+                'action': '<action_id>',
+                'question_xpath': 'q1',
+                'params': [
+                    {'language': 'es'},
+                    {'language': 'en'},
+                ],
+                'uid': 'qa123456789AbCdEfGhIjklm',
+            },
             response_only=True,
+            description=(
+                '`<action_id>` can be any of:'
+                '\n\n'
+                '* `manual_transcription`\n'
+                '* `manual_translation`\n'
+                '* `automatic_google_transcription`\n'
+                '* `automatic_google_translation`\n'
+                ''
+            ),
         ),
         OpenApiExample(
-            'Automatic Google Transcription',
-            value=[
-                {
-                    'action': 'automatic_google_transcription',
-                    'question_xpath': 'q1',
-                    'params': [
-                        {'language': 'es'},
-                    ],
-                    'uid': 'qa123456789AbCdEfGhIjklm',
-                },
-            ],
-            response_only=True,
+            'Qualitative Analysis - Simple Types',
+            value={
+                'action': 'qual',
+                'question_xpath': 'q1',
+                'params': [
+                    {
+                        'type': '<question_type>',
+                        'uuid': 'aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff',
+                        'labels': {
+                            '_default': 'Qualitative analysis result',
+                            'es': 'Resultado de análisis cualitativo',
+                        },
+                    },
+                ],
+                'uid': 'qa123456789AbCdEfGhIjklm',
+            },
+            description=(
+                '`<question_type>` can be any of:'
+                '\n\n'
+                '* `qualText` \n'
+                '* `qualInteger` \n'
+                '* `qualTags` \n'
+                '* `qualNote` \n'
+            ),
         ),
         OpenApiExample(
-            'Qualitative Analysis',
-            value=[
-                {
-                    'action': 'qual',
-                    'question_xpath': 'q1',
-                    'params': [
-                        {
-                            'type': 'qualText',
-                            'uuid': 'aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff',
-                            'labels': {'_default': 'Summary'},
+            'Qualitative Analysis - Single Choice Question',
+            value={
+                'action': 'qual',
+                'question_xpath': 'q1',
+                'params': [
+                    {
+                        'type': 'qualSelectOne',
+                        'uuid': 'aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff',
+                        'labels': {
+                            '_default': 'Urgency Level',
+                            'es': 'Nivel de Urgencia',
                         },
-                    ],
-                    'uid': 'qa123456789AbCdEfGhIjklm',
-                },
-                {
-                    'action': 'qual',
-                    'question_xpath': 'q1',
-                    'params': [
-                        {
-                            'type': 'qualInteger',
-                            'uuid': 'aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff',
-                            'labels': {
-                                '_default': 'Number of themes',
-                                'fr': 'Nombre de thèmes',
+                        'choices': [
+                            {
+                                'uuid': 'qqqqqqqq-bbbb-cccc-dddd-eeeeffffffff',
+                                'labels': {
+                                    '_default': 'High',
+                                    'fr': 'Élevé',
+                                    'es': 'Alto',
+                                },
                             },
-                        },
-                    ],
-                    'uid': 'qa123456789AbCdEfGhIjklm',
-                },
-                {
-                    'action': 'qual',
-                    'question_xpath': 'q1',
-                    'params': [
-                        {
-                            'type': 'qualSelectOne',
-                            'uuid': 'aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff',
-                            'labels': {
-                                '_default': 'Urgency Level',
-                                'es': 'Nivel de Urgencia',
+                            {
+                                'uuid': 'hhhhhhhh-bbbb-cccc-dddd-eeeeffffffff',
+                                'labels': {
+                                    '_default': 'Medium',
+                                    'fr': 'Moyen',
+                                    'es': 'Medio',
+                                },
                             },
-                            'choices': [
-                                {
-                                    'uuid': 'qqqqqqqq-bbbb-cccc-dddd-eeeeffffffff',
-                                    'labels': {
-                                        '_default': 'High',
-                                        'fr': 'Élevé',
-                                        'es': 'Alto',
-                                    },
+                            {
+                                'uuid': 'gggggggg-bbbb-cccc-dddd-eeeeffffffff',
+                                'labels': {
+                                    '_default': 'Low',
+                                    'fr': 'Bas',
+                                    'es': 'Bajo',
                                 },
-                                {
-                                    'uuid': 'hhhhhhhh-bbbb-cccc-dddd-eeeeffffffff',
-                                    'labels': {
-                                        '_default': 'Medium',
-                                        'fr': 'Moyen',
-                                        'es': 'Medio',
-                                    },
-                                },
-                                {
-                                    'uuid': 'gggggggg-bbbb-cccc-dddd-eeeeffffffff',
-                                    'labels': {
-                                        '_default': 'Low',
-                                        'fr': 'Bas',
-                                        'es': 'Bajo',
-                                    },
-                                },
-                            ],
-                        },
-                    ],
-                    'uid': 'qa123456789AbCdEfGhIjklm',
-                },
-                {
-                    'action': 'qual',
-                    'question_xpath': 'q1',
-                    'params': [
-                        {
-                            'type': 'qualSelectMultiple',
-                            'uuid': 'aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff',
-                            'labels': {'_default': 'Tags'},
-                            'choices': [
-                                {
-                                    'uuid': 'xxxxxxxx-bbbb-cccc-dddd-eeeeffffffff',
-                                    'labels': {'_default': 'Shelter', 'ar': 'مأوى'},
-                                },
-                                {
-                                    'uuid': 'zzzzzzzz-bbbb-cccc-dddd-eeeeffffffff',
-                                    'labels': {'_default': 'Food', 'ar': 'طعام'},
-                                },
-                                {
-                                    'uuid': 'yyyyyyyy-bbbb-cccc-dddd-eeeeffffffff',
-                                    'labels': {'_default': 'Medical', 'ar': 'طبي'},
-                                },
-                            ],
-                        },
-                    ],
-                    'uid': 'qa123456789AbCdEfGhIjklm',
-                },
-            ],
+                            },
+                        ],
+                    },
+                ],
+                'uid': 'qa123456789AbCdEfGhIjklm',
+            },
+        ),
+        OpenApiExample(
+            'Qualitative Analysis - Multiple Choice Question',
+            value={
+                'action': 'qual',
+                'question_xpath': 'q1',
+                'params': [
+                    {
+                        'type': 'qualSelectMultiple',
+                        'uuid': 'aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff',
+                        'labels': {'_default': 'Tags'},
+                        'choices': [
+                            {
+                                'uuid': 'xxxxxxxx-bbbb-cccc-dddd-eeeeffffffff',
+                                'labels': {'_default': 'Shelter', 'ar': 'مأوى'},
+                            },
+                            {
+                                'uuid': 'zzzzzzzz-bbbb-cccc-dddd-eeeeffffffff',
+                                'labels': {'_default': 'Food', 'ar': 'طعام'},
+                            },
+                            {
+                                'uuid': 'yyyyyyyy-bbbb-cccc-dddd-eeeeffffffff',
+                                'labels': {'_default': 'Medical', 'ar': 'طبي'},
+                            },
+                        ],
+                    },
+                ],
+                'uid': 'qa123456789AbCdEfGhIjklm',
+            },
             response_only=True,
         ),
     ]
@@ -281,23 +263,23 @@ def get_advanced_features_list_examples() -> list[OpenApiExample]:
 def get_advanced_features_update_examples() -> list[OpenApiExample]:
     return [
         OpenApiExample(
-            'Change Action Parameters',
-            value={
-                'params': [
-                    {'language': 'es'},
-                ],
-            },
-            request_only=True,
-        ),
-        OpenApiExample(
             'Change Writable Fields',
             value={
-                'action': 'automatic_google_translation',
-                'question_xpath': 'q2',
+                'action': '<action_id>',
+                'question_xpath': '<question_path>',
                 'params': [
                     {'language': 'fr'},
                 ],
             },
             request_only=True,
+            description=(
+                '`<action_id>` can be any of:'
+                '\n\n'
+                '* `manual_transcription`\n'
+                '* `manual_translation`\n'
+                '* `automatic_google_transcription`\n'
+                '* `automatic_google_translation`\n'
+                ''
+            ),
         ),
     ]
