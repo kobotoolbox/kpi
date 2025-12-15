@@ -6,6 +6,7 @@ import dateutil
 import jsonschema
 import pytest
 from freezegun import freeze_time
+from rest_framework.exceptions import ValidationError
 
 from ..actions.qual import QualAction
 from .constants import EMPTY_SUBMISSION
@@ -934,3 +935,139 @@ class TestQualActionMethods(TestCase):
         text_item = qual_list[0]
         assert text_item['uuid'] == 'qual-text-uuid'
         assert text_item['val'] == 'Revised note'
+
+    def test_update_params_sets_missing_questions_to_deleted_and_moved_to_the_end(self):
+        params = [
+            {
+                'type': 'qualInteger',
+                'uuid': 'qual-integer-uuid',
+                'labels': {'_default': 'Number of themes', 'fr': 'Nombre de thèmes'},
+            }
+        ]
+        action = QualAction(self.source_xpath, params=params)
+        new_question = {
+            'uuid': 'new_question',
+            'type': 'qualInteger',
+            'labels': {'_default': 'How many?'},
+        }
+        action.update_params([new_question])
+        assert len(action.params) == 2
+        assert action.params[0]['uuid'] == 'new_question'
+        assert action.params[1]['uuid'] == 'qual-integer-uuid'
+        assert action.params[1]['options'][action.DELETED_OPTION] is True
+
+    def test_update_params_modify_choices(self):
+        params = [
+            {
+                'type': 'qualSelectMultiple',
+                'uuid': 'qual-choice-uuid',
+                'labels': {'_default': 'Which colors?'},
+                'choices': [
+                    {'uuid': 'choice-red-uuid', 'labels': {'_default': 'Red'}},
+                    {'uuid': 'choice-blue-uuid', 'labels': {'_default': 'Blue'}},
+                    {'uuid': 'choice-purple-uuid', 'labels': {'_default': 'Purple'}},
+                ],
+            }
+        ]
+        action = QualAction(self.source_xpath, params=params)
+        # remove 'Red', relabel 'Blue', move 'Purple', add 'Green'
+        new_question = {
+            'type': 'qualSelectMultiple',
+            'uuid': 'qual-choice-uuid',
+            'labels': {'_default': 'Which colors?'},
+            'choices': [
+                {'uuid': 'choice-purple-uuid', 'labels': {'_default': 'Purple'}},
+                {'uuid': 'choice-blue-uuid', 'labels': {'_default': 'Cerulean'}},
+                {'uuid': 'choice-green-uuid', 'labels': {'_default': 'Green'}},
+            ],
+        }
+        action.update_params([new_question])
+        assert len(action.params) == 1
+        choices = action.params[0]['choices']
+        # "Purple" is first
+        assert choices[0]['uuid'] == 'choice-purple-uuid'
+        assert choices[0]['labels']['_default'] == 'Purple'
+        # "Blue" -> "Cerulean"
+        assert choices[1]['uuid'] == 'choice-blue-uuid'
+        assert choices[1]['labels']['_default'] == 'Cerulean'
+        # Add "Green"
+        assert choices[2]['uuid'] == 'choice-green-uuid'
+        assert choices[2]['labels']['_default'] == 'Green'
+        # Hide "Red"
+        assert choices[3]['uuid'] == 'choice-red-uuid'
+        assert choices[3]['labels']['_default'] == 'Red'
+        assert choices[3]['options'][action.DELETED_OPTION] is True
+
+    def test_update_params_cannot_change_type_of_question(self):
+        params = [
+            {
+                'type': 'qualInteger',
+                'uuid': 'qual-integer-uuid',
+                'labels': {'_default': 'Number of themes', 'fr': 'Nombre de thèmes'},
+            }
+        ]
+        action = QualAction(self.source_xpath, params=params)
+        new_question = {
+            'uuid': 'qual-integer-uuid',
+            'type': 'qualText',
+            'labels': {'_default': 'How many?'},
+        }
+        with pytest.raises(ValidationError):
+            action.update_params([new_question])
+
+    def test_update_params_change_label(self):
+        params = [
+            {
+                'type': 'qualInteger',
+                'uuid': 'qual-integer-uuid',
+                'labels': {'_default': 'Number of themes', 'fr': 'Nombre de thèmes'},
+            }
+        ]
+        action = QualAction(self.source_xpath, params=params)
+        new_question = {
+            'uuid': 'qual-integer-uuid',
+            'type': 'qualInteger',
+            'labels': {'_default': 'How many?'},
+        }
+        action.update_params([new_question])
+        assert len(action.params) == 1
+        assert action.params[0]['uuid'] == 'qual-integer-uuid'
+        assert action.params[0]['labels'] == {'_default': 'How many?'}
+
+    def test_update_params_change_deleted_option(self):
+        params = [
+            {
+                'type': 'qualInteger',
+                'uuid': 'qual-hide-me',
+                'labels': {'_default': 'How many?'},
+            },
+            {
+                'type': 'qualInteger',
+                'uuid': 'qual-unhide-me',
+                'labels': {'_default': 'How many more?'},
+                'options': {QualAction.DELETED_OPTION: True},
+            },
+        ]
+        action = QualAction(self.source_xpath, params=params)
+        hide_question = {
+            'uuid': 'qual-hide-me',
+            'type': 'qualInteger',
+            'labels': {'_default': 'How many?'},
+            'options': {QualAction.DELETED_OPTION: True},
+        }
+        unhide_question = {
+            'uuid': 'qual-unhide-me',
+            'type': 'qualInteger',
+            'labels': {'_default': 'How many more?'},
+        }
+        action.update_params([hide_question, unhide_question])
+        assert len(action.params) == 2
+        assert action.params[0]['uuid'] == 'qual-hide-me'
+        assert action.params[0]['options'][action.DELETED_OPTION] is True
+        assert action.params[1]['uuid'] == 'qual-unhide-me'
+        # the entire options dictionary will actually go away, which is equivalent
+        # to setting 'deleted' to False
+        assert (
+            bool(action.params[1].get('options', {}).get(action.DELETED_OPTION))
+            is False
+        )
