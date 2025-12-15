@@ -6,7 +6,7 @@ from django.test import TestCase
 
 from kobo.apps.openrosa.apps.logger.exceptions import ConflictingSubmissionUUIDError
 from kobo.apps.subsequences.constants import SUPPLEMENT_KEY
-from kobo.apps.subsequences.models import SubmissionSupplement, QuestionAdvancedFeature
+from kobo.apps.subsequences.models import QuestionAdvancedFeature, SubmissionSupplement
 from kobo.apps.subsequences.utils.supplement_data import stream_with_supplements
 from kpi.models import Asset
 
@@ -24,13 +24,11 @@ class TestSubmissionStream(TestCase):
             action='qual',
             params=[
                 {
-                    'labels': {
-                        '_default': 'What is the quality score?'
-                    },
+                    'labels': {'_default': 'What is the quality score?'},
                     'type': 'qualText',
-                    'uuid': '4dcf9c9f-e503-4e5c-81f5-74250b295001'
+                    'uuid': '4dcf9c9f-e503-4e5c-81f5-74250b295001',
                 }
-            ]
+            ],
         )
 
         with patch.object(
@@ -154,7 +152,7 @@ class TestSubmissionStream(TestCase):
                 '_version': '20250820',
                 'Tell_me_a_story': {
                     'qual': qual_action_data,
-                }
+                },
             },
         )
         SubmissionSupplement.objects.create(
@@ -164,7 +162,7 @@ class TestSubmissionStream(TestCase):
                 '_version': '20250820',
                 'Tell_me_a_story': {
                     'qual': qual_action_data,
-                }
+                },
             },
         )
 

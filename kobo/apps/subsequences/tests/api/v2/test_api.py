@@ -21,8 +21,6 @@ from kobo.apps.subsequences.actions.automatic_google_transcription import (
 from kobo.apps.subsequences.models import QuestionAdvancedFeature, SubmissionSupplement
 from kobo.apps.subsequences.tests.api.v2.base import SubsequenceBaseTestCase
 from kobo.apps.subsequences.tests.constants import QUESTION_SUPPLEMENT
-from kobo.apps.subsequences.tests.test_qual import Fix
-from kobo.apps.subsequences.utils.versioning import migrate_advanced_features
 from kpi.utils.xml import (
     edit_submission_xml,
     fromstring_preserve_root_xmlns,
@@ -362,7 +360,7 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
             'q1:transcript_auto_google:en',
             'q1:transcript:en',
             'q1:translation_auto_google:fr',
-            'q1:translation:fr'
+            'q1:translation:fr',
         ]
 
         self.asset.advanced_features = {
@@ -382,7 +380,7 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
                             {
                                 'uuid': 'efceb7be-c120-43b4-9d6c-48c3c8d393bc',
                                 'labels': {'_default': 'Night'},
-                            }
+                            },
                         ],
                     },
                     {
@@ -516,9 +514,7 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
 
         with patch('uuid.uuid4', side_effect=uuid_list):
             with freeze_time(frozen_datetime_now):
-                response = self.client.get(
-                    self.supplement_details_url, format='json'
-                )
+                response = self.client.get(self.supplement_details_url, format='json')
 
         assert response.status_code == status.HTTP_200_OK
 
