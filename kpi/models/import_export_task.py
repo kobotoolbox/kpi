@@ -41,7 +41,10 @@ from rest_framework.reverse import reverse
 from werkzeug.http import parse_options_header
 
 from kobo.apps.reports.report_data import build_formpack
-from kobo.apps.subsequences.utils.supplement_data import stream_with_supplements
+from kobo.apps.subsequences.utils.supplement_data import (
+    get_analysis_form_json,
+    stream_with_supplements,
+)
 from kpi.constants import (
     ASSET_TYPE_COLLECTION,
     ASSET_TYPE_EMPTY,
@@ -1053,6 +1056,12 @@ class SubmissionExportTaskBase(ImportExportTask):
             source, submission_stream, self._fields_from_all_versions
         )
 
+        if source.has_advanced_features:
+            # FIXME: need to omit qualitative analysis notes
+            # FIXME: `get_analysis_form_json()` should respect the order of
+            # qualitative anaylsis questions, not just sort everything
+            # alphabetically
+            pack.extend_survey(get_analysis_form_json(source))
 
         # Wrap the submission stream in a generator that records the most
         # recent timestamp

@@ -652,6 +652,8 @@ class BaseManualNLPAction(BaseAction):
                 'language': language,
                 'source': self.source_question_xpath,
                 'type': col_type,
+                # `name` was trashed in favor of resurrecting `dtpath`? 😭😭😭
+                'name': self._get_output_field_dtpath(language),
                 'dtpath': self._get_output_field_dtpath(language),
             }
             fields.append(column)
