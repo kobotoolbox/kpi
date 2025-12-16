@@ -375,11 +375,10 @@ export const ADDITIONAL_SUBMISSION_PROPS = createEnum([
   '_tags',
   '_index',
   '__version__',
+  'meta/rootUuid'
 ])
 
 export const SUPPLEMENTAL_DETAILS_PROP = '_supplementalDetails'
-
-export const META_ROOT_UUID = 'meta/rootUuid'
 
 export const NAME_MAX_LENGTH = 255
 

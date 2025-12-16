@@ -68,7 +68,6 @@ import {
   EnketoActions,
   GROUP_TYPES_BEGIN,
   META_QUESTION_TYPES,
-  META_ROOT_UUID,
   MODAL_TYPES,
   QUESTION_TYPES,
   SUPPLEMENTAL_DETAILS_PROP,
@@ -733,7 +732,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
           index = 'z92'
           break
         // Ensure `meta/rootUuid` is the last one
-        case META_ROOT_UUID:
+        case ADDITIONAL_SUBMISSION_PROPS['meta/rootUuid']:
           index = 'z999'
           break
         // set index for `background-audio` to the very first column with `_`
