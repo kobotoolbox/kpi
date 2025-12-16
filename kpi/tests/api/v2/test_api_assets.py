@@ -433,6 +433,18 @@ class AssetListApiTests(BaseAssetTestCase):
         with self.assertNumQueries(FuzzyInt(36, 45)):
             self.client.get(self.list_url, data={'q': 'asset_type:survey'})
 
+    def test_list_can_load_with_desynchronized_assets(self):
+        asset = Asset.objects.get(pk=1)
+        asset.save()
+        asset.deploy(backend='mock', active=True)
+
+        # Simulate desynchronized asset by deleting the related xform
+        asset.deployment.xform.delete()
+        response = self.client.get(self.list_url)
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.data['results']) == 1
+        assert response.data['results'][0]['uid'] == asset.uid
+
 
 class AssetProjectViewListApiTests(BaseAssetTestCase):
     fixtures = ['test_data']
