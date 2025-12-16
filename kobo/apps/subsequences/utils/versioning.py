@@ -214,7 +214,7 @@ def migrate_submission_supplementals(supplemental_data: dict) -> dict | None:
         # divide transcripts into manual and automatic
         manual_transcripts, automatic_transcripts = (
             _separate_manual_and_automatic_versions(
-                action_results.get('transcript'),
+                action_results.get('transcript', {}),
                 automatic_transcript_language,
                 automatic_transcript_value,
             )
