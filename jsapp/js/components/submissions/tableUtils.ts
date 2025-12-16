@@ -15,6 +15,7 @@ import {
   GROUP_TYPES_BEGIN,
   GROUP_TYPES_END,
   META_QUESTION_TYPES,
+  META_ROOT_UUID,
   QUESTION_TYPES,
   SUPPLEMENTAL_DETAILS_PROP,
 } from '#/constants'
@@ -178,6 +179,13 @@ export function getAllDataColumns(asset: AssetResponse, submissions?: Submission
   }
   if (output.indexOf(META_QUESTION_TYPES.start)) {
     output.unshift(output.splice(output.indexOf(META_QUESTION_TYPES.start), 1)[0])
+  }
+
+  // Make `meta/rootUuid` the very last column
+  // NOTE: in `table.tsx` we override ordering of few columns, thus this code here only partially solves it, the second
+  // part can be found in that file
+  if (output.indexOf(META_ROOT_UUID)) {
+    output.push(output.splice(output.indexOf(META_ROOT_UUID), 1)[0])
   }
 
   // exclude some technical non-data columns

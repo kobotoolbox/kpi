@@ -29,7 +29,7 @@ import {
   getExportFormatOptions,
 } from '#/components/projectDownloads/exportsUtils'
 import { getColumnLabel } from '#/components/submissions/tableUtils'
-import { ADDITIONAL_SUBMISSION_PROPS, SUPPLEMENTAL_DETAILS_PROP } from '#/constants'
+import { ADDITIONAL_SUBMISSION_PROPS, META_ROOT_UUID, SUPPLEMENTAL_DETAILS_PROP } from '#/constants'
 import type { AssetResponse, ExportSetting, ExportSettingRequest, MongoQuery, PaginatedResponse } from '#/dataInterface'
 import { createDateQuery, formatTimeDate, recordEntries, recordKeys, recordValues } from '#/utils'
 
@@ -241,6 +241,8 @@ export default class ProjectExportsCreator extends React.Component<
     }
 
     allRows = new Set(injectSupplementalRowsIntoListOfRows(this.props.asset, allRows))
+
+    allRows.add(META_ROOT_UUID)
 
     return allRows
   }
