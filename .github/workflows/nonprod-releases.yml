@@ -10,6 +10,7 @@ on:
       - 'feature/unu'
       - 'public-beta'
       - 'main'
+      - 'ci-move-kfmain'
   workflow_dispatch:
 
 jobs:
@@ -78,6 +79,7 @@ jobs:
   trigger-main-deploy:
     needs: deploy
     runs-on: ubuntu-latest
+    if: github.ref_name == 'main' || github.ref_name == 'ci-move-kfmain'
     steps:
       - name: Generate GitHub App Token
         id: app-token
@@ -96,7 +98,7 @@ jobs:
           token: ${{ steps.app-token.outputs.token }}
           inputs: |
             {
-              "image_sha": "${{ needs.deploy.outputs.image_sha }}",
+              "image_sha": "${{ needs.deploy.outputs.image_sha }}"
             }
 
   notify-success:
