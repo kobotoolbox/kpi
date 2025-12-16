@@ -2,7 +2,6 @@ name: 'CD: stabilize'
 
 
 on:
-  create:
   push:
     branches: [ 'release/**' ]
 
@@ -104,14 +103,10 @@ jobs:
 
     - name: draft a changelog
       run: |
-        set -xe
-        npx git-cliff -u $(git log --format=format:%H origin/$PREV_BRANCH..origin/$CURRENT_BRANCH | tail -1)..origin/$CURRENT_BRANCH --tag $CURRENT_PATCH
+        npx git-cliff -u --tag $CURRENT_PATCH
 
     - name: commit the changelog to a dedicated branch
       run: |
-        set -xe
-        git config user.name '${{ steps.app-token.outputs.app-slug }}[bot]'
-        git config user.email '${{ steps.get-user-id.outputs.user-id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com'
         git checkout -B changelog/$CURRENT_PATCH
         git add -f CHANGELOG.md
         git commit -m "chore(releases): generate CHANGELOG.md for $CURRENT_PATCH"
@@ -140,7 +135,6 @@ jobs:
 
     - name: deploy to beta
       run: |
-        set -xe
         git checkout -B public-beta
         git push -f --set-upstream origin public-beta
 
@@ -221,7 +215,7 @@ jobs:
             && format(':warning: failed to update changelog: @*devs* please investigate [run #{0}]({1}/{2}/actions/runs/{3})!', github.run_number, github.server_url, github.repository, github.run_id)
             || needs.changelog.result == 'skipped'
               && ':skip_forward: changelog update skipped due failed automated tests.'
-              || format(':check: updated [changelog](https://github.com/kobotoolbox/kpi/blob/changelog/{0}/CHANGELOG.md)', needs.version.outputs.current_patch)
+              || format(':check: updated [changelog](https://github.com/kobotoolbox/kpi/blob/changelog/{0}/CHANGELOG.md) for `{1}..{0}`', needs.version.outputs.current_patch, needs.version.outputs.prev_patch)
           }}
         - ${{ (needs.deploy-to-beta.result == 'failure' || needs.deploy-to-beta.result == 'timed_out')
             && format(':warning: failed to queue to deploy to beta: @*devs* please investigate [run #{0}]({1}/{2}/actions/runs/{3})!', github.run_number, github.server_url, github.repository, github.run_id)
