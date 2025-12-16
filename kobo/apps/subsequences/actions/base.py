@@ -336,6 +336,10 @@ class BaseAction:
         """
         return True
 
+    @classmethod
+    def merge_results(cls, action0, action1):
+        pass
+
     def transform_data_for_output(
         self, action_data: dict
     ) -> SimplifiedOutputCandidatesByColumnKey:
