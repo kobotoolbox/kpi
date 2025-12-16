@@ -265,6 +265,11 @@ class ManualQualAction(BaseAction):
     def get_output_fields(self) -> list[dict]:
         output_fields = []
         for qual_item in self.params:
+            if qual_item['type'] not in self.data_schema_definitions:
+                # Exclude from output fields if the type is not allowed to
+                # receive response data
+                continue
+
             field = {
                 'label': qual_item['labels']['_default'],
                 'source': self.source_question_xpath,

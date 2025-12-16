@@ -1057,10 +1057,6 @@ class SubmissionExportTaskBase(ImportExportTask):
         )
 
         if source.has_advanced_features:
-            # FIXME: need to omit qualitative analysis notes
-            # FIXME: `get_analysis_form_json()` should respect the order of
-            # qualitative anaylsis questions, not just sort everything
-            # alphabetically
             pack.extend_survey(get_analysis_form_json(source))
 
         # Wrap the submission stream in a generator that records the most
