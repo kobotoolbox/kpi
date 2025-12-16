@@ -27,7 +27,7 @@ def get_advanced_features_create_examples() -> list[OpenApiExample]:
         OpenApiExample(
             'Qualitative Analysis - Simple Types',
             value={
-                'action': 'qual',
+                'action': 'manual_qual',
                 'question_xpath': 'q1',
                 'params': [
                     {
@@ -52,7 +52,7 @@ def get_advanced_features_create_examples() -> list[OpenApiExample]:
         OpenApiExample(
             'Qualitative Analysis - Single Choice Question',
             value={
-                'action': 'qual',
+                'action': 'manual_qual',
                 'question_xpath': 'q1',
                 'params': [
                     {
@@ -89,7 +89,7 @@ def get_advanced_features_create_examples() -> list[OpenApiExample]:
         OpenApiExample(
             'Qualitative Analysis - Multiple Choice Question',
             value={
-                'action': 'qual',
+                'action': 'manual_qual',
                 'question_xpath': 'q1',
                 'params': [
                     {
@@ -145,7 +145,7 @@ def get_advanced_features_list_examples() -> list[OpenApiExample]:
         OpenApiExample(
             'Qualitative Analysis - Simple Types',
             value={
-                'action': 'qual',
+                'action': 'manual_qual',
                 'question_xpath': 'q1',
                 'params': [
                     {
@@ -171,7 +171,7 @@ def get_advanced_features_list_examples() -> list[OpenApiExample]:
         OpenApiExample(
             'Qualitative Analysis - Single Choice Question',
             value={
-                'action': 'qual',
+                'action': 'manual_qual',
                 'question_xpath': 'q1',
                 'params': [
                     {
@@ -209,7 +209,7 @@ def get_advanced_features_list_examples() -> list[OpenApiExample]:
         OpenApiExample(
             'Qualitative Analysis - Multiple Choice Question',
             value={
-                'action': 'qual',
+                'action': 'manual_qual',
                 'question_xpath': 'q1',
                 'params': [
                     {

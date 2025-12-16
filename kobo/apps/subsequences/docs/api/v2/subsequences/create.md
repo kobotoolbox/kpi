@@ -9,5 +9,5 @@ Accepted `action`s include:
 * `automatic_google_transcription`
 * `manual_translation`
 * `automatic_google_translation`
-* `qual`
+* `manual_qual`
 
