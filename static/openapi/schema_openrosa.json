@@ -835,12 +835,12 @@
                         "downloadUrl": {
                             "type": "string",
                             "format": "uri",
-                            "example": "http://kf.kobo.local:8080/api/v2/asset_snapshots/{uid_asset_snapshot}/xml_with_disclaimer/"
+                            "example": "https://kf.kobotoolbox.org/api/v2/asset_snapshots/{uid_asset_snapshot}/xml_with_disclaimer/"
                         },
                         "manifestUrl": {
                             "type": "string",
                             "format": "uri",
-                            "example": "http://kf.kobo.local:8080/api/v2/asset_snapshots/{uid_asset_snapshot}/manifest"
+                            "example": "https://kf.kobotoolbox.org/api/v2/asset_snapshots/{uid_asset_snapshot}/manifest"
                         }
                     },
                     "xml": {
@@ -866,7 +866,7 @@
                         "downloadUrl": {
                             "type": "string",
                             "format": "uri",
-                            "example": "http://kf.kobo.local:8080/xformsMedia/123/456.jpg"
+                            "example": "https://kf.kobotoolbox.org/xformsMedia/123/456.jpg"
                         }
                     },
                     "xml": {
@@ -884,7 +884,7 @@
                     "manifest": {
                         "type": "string",
                         "format": "uri",
-                        "example": "http://kf.kobo.local:8080/api/v2/asset_snapshots/{uid_asset_snapshot}/manifest"
+                        "example": "https://kf.kobotoolbox.org/api/v2/asset_snapshots/{uid_asset_snapshot}/manifest"
                     }
                 },
                 "required": [
@@ -1009,12 +1009,12 @@
                         "downloadUrl": {
                             "type": "string",
                             "format": "uri",
-                            "example": "http://kf.kobo.local:8080/forms/6/form.xml"
+                            "example": "https://kf.kobotoolbox.org/forms/6/form.xml"
                         },
                         "manifestUrl": {
                             "type": "string",
                             "format": "uri",
-                            "example": "http://kf.kobo.local:8080/xformsManifest/6"
+                            "example": "https://kf.kobotoolbox.org/xformsManifest/6"
                         }
                     },
                     "xml": {

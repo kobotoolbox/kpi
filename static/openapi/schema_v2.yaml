@@ -335,7 +335,7 @@ paths:
             examples:
               UsingAsset:
                 value:
-                  asset: http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
+                  asset: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
                   details:
                     status: string
                     warnings:
@@ -4655,16 +4655,16 @@ paths:
             examples:
               CreatingAFileWithBinaryContent:
                 value:
-                  user: http://kf.kobo.local:8080/api/v2/users/bob/
-                  asset: http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
+                  user: https://kf.kobotoolbox.org/api/v2/users/bob/
+                  asset: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
                   description: Description of the file
                   file_type: image/png
                   content: <binary>
                 summary: Creating a file with binary content
               CreatingAFileWithBase64Content:
                 value:
-                  user: http://kf.kobo.local:8080/api/v2/users/bob/
-                  asset: http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
+                  user: https://kf.kobotoolbox.org/api/v2/users/bob/
+                  asset: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
                   description: Description of the file
                   file_type: image/png
                   base64Encoded: SGVsbG8sIFdvcmxkIQ
@@ -4673,8 +4673,8 @@ paths:
                 summary: Creating a file with Base64 content
               CreatingAFileWithARemoteUrl:
                 value:
-                  user: http://kf.kobo.local:8080/api/v2/users/bob/
-                  asset: http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
+                  user: https://kf.kobotoolbox.org/api/v2/users/bob/
+                  asset: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
                   description: Description of the file
                   file_type: image/png
                   metadata:
@@ -6040,19 +6040,19 @@ paths:
             examples:
               CreatePartialPermission:
                 value:
-                  user: http://kf.kobo.local:8080/api/v2/users/bob/
+                  user: https://kf.kobotoolbox.org/api/v2/users/bob/
                   partial_permission:
                   - filter:
                     - _submitted_by:
                         $in:
                         - string
-                    url: http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/permission-assignments/pGaXCTDAbdZKLXoXAXd3M4/
-                  permission: http://kf.kobo.local:8080/api/v2/permissions/change_asset/
+                    url: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/permission-assignments/pGaXCTDAbdZKLXoXAXd3M4/
+                  permission: https://kf.kobotoolbox.org/api/v2/permissions/change_asset/
                 summary: Create partial permission
               CreatePermission:
                 value:
-                  user: http://kf.kobo.local:8080/api/v2/users/bob/
-                  permission: http://kf.kobo.local:8080/api/v2/permissions/change_asset/
+                  user: https://kf.kobotoolbox.org/api/v2/users/bob/
+                  permission: https://kf.kobotoolbox.org/api/v2/permissions/change_asset/
                 summary: Create permission
       security:
       - BasicAuth: []
@@ -10345,7 +10345,7 @@ components:
         user:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/users/bob/
+          example: https://kf.kobotoolbox.org/api/v2/users/bob/
         date_created:
           type: string
           format: date-time
@@ -10423,12 +10423,12 @@ components:
         url:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/
+          example: https://kf.kobotoolbox.org/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/
           readOnly: true
         owner:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/users/bob/
+          example: https://kf.kobotoolbox.org/api/v2/users/bob/
           readOnly: true
         owner__username:
           type: string
@@ -10438,7 +10438,7 @@ components:
         parent:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
+          example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
           nullable: true
         settings:
           type: object
@@ -10540,7 +10540,7 @@ components:
                   url:
                     type: string
                     format: uri
-                    example: http://kf.kobo.local:8080/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/versions/vBeA23YCYjkGTFvYVHuAyU/
+                    example: https://kf.kobotoolbox.org/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/versions/vBeA23YCYjkGTFvYVHuAyU/
                   content_hash:
                     type: string
                   date_deployed:
@@ -10652,12 +10652,12 @@ components:
         xform_link:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/xform/
+          example: https://kf.kobotoolbox.org/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/xform/
           readOnly: true
         hooks_link:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/hooks/
+          example: https://kf.kobotoolbox.org/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/hooks/
           readOnly: true
         tag_string:
           type: string
@@ -10670,7 +10670,7 @@ components:
         xls_link:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU.xls
+          example: https://kf.kobotoolbox.org/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU.xls
           readOnly: true
         name:
           type: string
@@ -10696,7 +10696,7 @@ components:
         exports:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/exports/
+          example: https://kf.kobotoolbox.org/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/exports/
           readOnly: true
         export_settings:
           type: array
@@ -10706,7 +10706,7 @@ components:
         data:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/submissions/
+          example: https://kf.kobotoolbox.org/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/submissions/
           readOnly: true
         children:
           type: object
@@ -10730,7 +10730,7 @@ components:
         paired_data:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/paired-data/
+          example: https://kf.kobotoolbox.org/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/paired-data/
           readOnly: true
         project_ownership:
           type: object
@@ -10934,7 +10934,7 @@ components:
           asset:
             type: string
             format: uri
-            example: http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
+            example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
           details:
             type: object
             properties:
@@ -11004,28 +11004,28 @@ components:
         url:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/asset_snapshots/sEMPghTguZsxj4rn4s9dvS/
+          example: https://kf.kobotoolbox.org/api/v2/asset_snapshots/sEMPghTguZsxj4rn4s9dvS/
         uid:
           type: string
         owner:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/users/bob/
+          example: https://kf.kobotoolbox.org/api/v2/users/bob/
         date_created:
           type: string
           format: date-time
         xml:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/asset_snapshots/sEMPghTguZsxj4rn4s9dvS/
+          example: https://kf.kobotoolbox.org/api/v2/asset_snapshots/sEMPghTguZsxj4rn4s9dvS/
         enketopreviewlink:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/asset_snapshots/sEMPghTguZsxj4rn4s9dvS/preview/
+          example: https://kf.kobotoolbox.org/api/v2/asset_snapshots/sEMPghTguZsxj4rn4s9dvS/preview/
         asset:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
+          example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
         asset_version_id:
           type: string
         details:
@@ -11086,7 +11086,7 @@ components:
         asset:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
+          example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
       required:
       - asset
     AssetSubscriptionResponse:
@@ -11095,11 +11095,11 @@ components:
         url:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/asset_subscription/sEMPghTguZsxj4rn4s9dvS/
+          example: https://kf.kobotoolbox.org/api/v2/asset_subscription/sEMPghTguZsxj4rn4s9dvS/
         asset:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
+          example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
         uid:
           type: string
       required:
@@ -11130,7 +11130,7 @@ components:
         asset:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
+          example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
         asset__name:
           type: string
         nlp_usage_current_period:
@@ -11224,7 +11224,7 @@ components:
         user:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/users/bob/
+          example: https://kf.kobotoolbox.org/api/v2/users/bob/
         user_uid:
           type: string
         username:
@@ -11491,11 +11491,11 @@ components:
           user:
             type: string
             format: uri
-            example: http://kf.kobo.local:8080/api/v2/users/bob/
+            example: https://kf.kobotoolbox.org/api/v2/users/bob/
           asset:
             type: string
             format: uri
-            example: http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
+            example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
           description:
             type: string
           file_type:
@@ -11513,11 +11513,11 @@ components:
           user:
             type: string
             format: uri
-            example: http://kf.kobo.local:8080/api/v2/users/bob/
+            example: https://kf.kobotoolbox.org/api/v2/users/bob/
           asset:
             type: string
             format: uri
-            example: http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
+            example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
           description:
             type: string
           file_type:
@@ -11543,11 +11543,11 @@ components:
           user:
             type: string
             format: uri
-            example: http://kf.kobo.local:8080/api/v2/users/bob/
+            example: https://kf.kobotoolbox.org/api/v2/users/bob/
           asset:
             type: string
             format: uri
-            example: http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
+            example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
           description:
             type: string
           file_type:
@@ -11572,7 +11572,7 @@ components:
         asset:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/
+          example: https://kf.kobotoolbox.org/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/
           readOnly: true
         asset__name:
           type: string
@@ -11698,19 +11698,19 @@ components:
             download_url:
               type: string
               format: uri
-              example: http://kf.kobo.local:8080/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/1
+              example: https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/1
             download_large_url:
               type: string
               format: uri
-              example: http://kf.kobo.local:8080/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/large/
+              example: https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/large/
             download_medium_url:
               type: string
               format: uri
-              example: http://kf.kobo.local:8080/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/medium/
+              example: https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/medium/
             download_small_url:
               type: string
               format: uri
-              example: http://kf.kobo.local:8080/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/small/
+              example: https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/small/
             mimetype:
               type: string
             filename:
@@ -12420,7 +12420,7 @@ components:
         url:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/edit/iXUdUc3w?instance_id=1824b282-f729-4944-b799-7a805d4564e1&return_url=false
+          example: https://kf.kobotoolbox.org/edit/iXUdUc3w?instance_id=1824b282-f729-4944-b799-7a805d4564e1&return_url=false
         version:
           type: string
       required:
@@ -12432,7 +12432,7 @@ components:
         url:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/view/f93d2a488a2e35cedc336e84e1bd1edc?instance_id=1824b282-f729-4944-b799-7a805d4564e1&return_url=false
+          example: https://kf.kobotoolbox.org/view/f93d2a488a2e35cedc336e84e1bd1edc?instance_id=1824b282-f729-4944-b799-7a805d4564e1&return_url=false
         version:
           type: string
       required:
@@ -12544,7 +12544,7 @@ components:
         url:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/exports/eYeXfo2KjbSzXgWuKsJNPY/
+          example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/exports/eYeXfo2KjbSzXgWuKsJNPY/
         status:
           type: string
         message:
@@ -12560,7 +12560,7 @@ components:
         result:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080user/export/NEW PROJECT - all versions
+          example: https://kf.kobotoolbox.orguser/export/NEW PROJECT - all versions
             - False - 2025-01-01-01-01.csv
         data:
           type: object
@@ -12578,7 +12578,7 @@ components:
             source:
               type: string
               format: uri
-              example: http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
+              example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
             group_sep:
               type: string
             multiple_select:
@@ -12660,15 +12660,15 @@ components:
         url:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/export-settings/esMxJfzPhnWn6r2c3EKkuaV/
+          example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/export-settings/esMxJfzPhnWn6r2c3EKkuaV/
         data_url_csv:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/export-settings/esMxJfzPhnWn6r2c3EKkuaV/data.csv
+          example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/export-settings/esMxJfzPhnWn6r2c3EKkuaV/data.csv
         data_url_xlsx:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/export-settings/esMxJfzPhnWn6r2c3EKkuaV/data.xlsx
+          example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/export-settings/esMxJfzPhnWn6r2c3EKkuaV/data.xlsx
         name:
           type: string
         date_modified:
@@ -12742,15 +12742,15 @@ components:
         url:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/files/afSa8PqnoYe8vJqkrsGz3oN/
+          example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/files/afSa8PqnoYe8vJqkrsGz3oN/
         asset:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
+          example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
         user:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/users/bob/
+          example: https://kf.kobotoolbox.org/api/v2/users/bob/
         user__username:
           type: string
         file_type:
@@ -12763,7 +12763,7 @@ components:
         content:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/files/afSa8PqnoYe8vJqkrsGz3oN/content/
+          example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/files/afSa8PqnoYe8vJqkrsGz3oN/content/
         metadata:
           type: object
           properties:
@@ -12806,7 +12806,7 @@ components:
         user:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/users/bob/
+          example: https://kf.kobotoolbox.org/api/v2/users/bob/
         user_uid:
           type: string
         username:
@@ -12987,7 +12987,7 @@ components:
         logs_url:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/hooks/hZzzeedWxQoFHgibsTCysv/logs/
+          example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/hooks/hZzzeedWxQoFHgibsTCysv/logs/
           readOnly: true
         name:
           type: string
@@ -13025,7 +13025,7 @@ components:
         url:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
+          example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
           readOnly: true
       required:
       - asset
@@ -13044,7 +13044,7 @@ components:
         url:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/hooks/hsw3Ec5vz7Lqg7TrwrxdaS/logs/hl8Ldv5m84SBpU5UB5J7QBD/
+          example: https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/hooks/hsw3Ec5vz7Lqg7TrwrxdaS/logs/hl8Ldv5m84SBpU5UB5J7QBD/
           readOnly: true
         uid:
           type: string
@@ -13129,7 +13129,7 @@ components:
         url:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/imports/iYxVZhbZb6poxVpPqrd6eG/
+          example: https://kf.kobotoolbox.org/api/v2/imports/iYxVZhbZb6poxVpPqrd6eG/
         status:
           type: string
       required:
@@ -13142,7 +13142,7 @@ components:
         url:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/imports/iYxVZhbZb6poxVpPqrd6eG/
+          example: https://kf.kobotoolbox.org/api/v2/imports/iYxVZhbZb6poxVpPqrd6eG/
         status:
           type: string
         messages:
@@ -13249,11 +13249,11 @@ components:
           url:
             type: string
             format: uri
-            example: http://kf.kobo.local:8080/api/v2/organizations/orgR6zUBwMHop2mgGygtFd6c/invites/f3ba00b2-372b-4283-9d57-adbe7d5b1bf1/
+            example: https://kf.kobotoolbox.org/api/v2/organizations/orgR6zUBwMHop2mgGygtFd6c/invites/f3ba00b2-372b-4283-9d57-adbe7d5b1bf1/
           invited_by:
             type: string
             format: uri
-            example: http://kf.kobo.local:8080/api/v2/users/bob/
+            example: https://kf.kobotoolbox.org/api/v2/users/bob/
           status:
             type: string
           invitee_role:
@@ -13293,11 +13293,11 @@ components:
         url:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/organizations/orgR6zUBwMHop2mgGygtFd6c/invites/f3ba00b2-372b-4283-9d57-adbe7d5b1bf1/
+          example: https://kf.kobotoolbox.org/api/v2/organizations/orgR6zUBwMHop2mgGygtFd6c/invites/f3ba00b2-372b-4283-9d57-adbe7d5b1bf1/
         invited_by:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/users/bob/
+          example: https://kf.kobotoolbox.org/api/v2/users/bob/
         organization_name:
           type: string
         created:
@@ -13416,7 +13416,7 @@ components:
         url:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/language/en/
+          example: https://kf.kobotoolbox.org/api/v2/language/en/
           readOnly: true
       required:
       - code
@@ -13469,7 +13469,7 @@ components:
         projects_url:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/bob
+          example: https://kf.kobotoolbox.org/bob
         gravatar:
           type: string
           format: uri
@@ -13551,7 +13551,7 @@ components:
             url:
               type: string
               format: uri
-              example: http://kf.kobo.local:8080/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/
+              example: https://kf.kobotoolbox.org/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/
             name:
               type: string
             uid:
@@ -13583,11 +13583,11 @@ components:
         url:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/organizations/orgR6zUBwMHop2mgGygtFd6c/members/bob/
+          example: https://kf.kobotoolbox.org/api/v2/organizations/orgR6zUBwMHop2mgGygtFd6c/members/bob/
         user:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/users/bob/
+          example: https://kf.kobotoolbox.org/api/v2/users/bob/
         user__username:
           type: string
         user__email:
@@ -13741,7 +13741,7 @@ components:
         url:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/
+          example: https://kf.kobotoolbox.org/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/
           readOnly: true
         name:
           type: string
@@ -13776,22 +13776,22 @@ components:
         members:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/members/
+          example: https://kf.kobotoolbox.org/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/members/
           readOnly: true
         assets:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/assets/
+          example: https://kf.kobotoolbox.org/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/assets/
           readOnly: true
         service_usage:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/service_usage/
+          example: https://kf.kobotoolbox.org/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/service_usage/
           readOnly: true
         asset_usage:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/assets_usage/
+          example: https://kf.kobotoolbox.org/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/assets_usage/
           readOnly: true
       required:
       - asset_usage
@@ -14810,7 +14810,7 @@ components:
         source:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
+          example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
         source__name:
           type: string
           readOnly: true
@@ -14823,7 +14823,7 @@ components:
         url:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/assets/a5owyo85mHyFazzgsZK45c/paired-data/pd9CWSKADt4T7h5bMKwhLqq/
+          example: https://kf.kobotoolbox.org/api/v2/assets/a5owyo85mHyFazzgsZK45c/paired-data/pd9CWSKADt4T7h5bMKwhLqq/
       required:
       - fields
       - filename
@@ -14892,7 +14892,7 @@ components:
         projects_url:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/bob
+          example: https://kf.kobotoolbox.org/bob
           readOnly: true
         gravatar:
           type: string
@@ -14965,7 +14965,7 @@ components:
             url:
               type: string
               format: uri
-              example: http://kf.kobo.local:8080/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/
+              example: https://kf.kobotoolbox.org/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/
             name:
               type: string
             uid:
@@ -15242,7 +15242,7 @@ components:
         logs_url:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/hooks/hZzzeedWxQoFHgibsTCysv/logs/
+          example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/hooks/hZzzeedWxQoFHgibsTCysv/logs/
           readOnly: true
         name:
           type: string
@@ -15280,7 +15280,7 @@ components:
         url:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
+          example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
           readOnly: true
     PatchedHookLog:
       type: object
@@ -15288,7 +15288,7 @@ components:
         url:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/hooks/hsw3Ec5vz7Lqg7TrwrxdaS/logs/hl8Ldv5m84SBpU5UB5J7QBD/
+          example: https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/hooks/hsw3Ec5vz7Lqg7TrwrxdaS/logs/hl8Ldv5m84SBpU5UB5J7QBD/
           readOnly: true
         uid:
           type: string
@@ -15371,11 +15371,11 @@ components:
         user:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/users/bob/
+          example: https://kf.kobotoolbox.org/api/v2/users/bob/
         permission:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/permission-assignments/pGaXCTDAbdZKLXoXAXd3M4/
+          example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/permission-assignments/pGaXCTDAbdZKLXoXAXd3M4/
       required:
       - permission
       - user
@@ -15386,11 +15386,11 @@ components:
           permission:
             type: string
             format: uri
-            example: http://kf.kobo.local:8080/api/v2/permissions/change_asset/
+            example: https://kf.kobotoolbox.org/api/v2/permissions/change_asset/
           user:
             type: string
             format: uri
-            example: http://kf.kobo.local:8080/api/v2/users/bob/
+            example: https://kf.kobotoolbox.org/api/v2/users/bob/
         additionalProperties: false
         required:
         - permission
@@ -15417,15 +15417,15 @@ components:
                 url:
                   type: string
                   format: uri
-                  example: http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/permission-assignments/pGaXCTDAbdZKLXoXAXd3M4/
+                  example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/permission-assignments/pGaXCTDAbdZKLXoXAXd3M4/
           permission:
             type: string
             format: uri
-            example: http://kf.kobo.local:8080/api/v2/permissions/change_asset/
+            example: https://kf.kobotoolbox.org/api/v2/permissions/change_asset/
           user:
             type: string
             format: uri
-            example: http://kf.kobo.local:8080/api/v2/users/bob/
+            example: https://kf.kobotoolbox.org/api/v2/users/bob/
         required:
         - partial_permission
         - permission
@@ -15436,15 +15436,15 @@ components:
         url:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/permission-assignments/pGaXCTDAbdZKLXoXAXd3M4/
+          example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/permission-assignments/pGaXCTDAbdZKLXoXAXd3M4/
         user:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/users/bob/
+          example: https://kf.kobotoolbox.org/api/v2/users/bob/
         permission:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/permissions/change_asset/
+          example: https://kf.kobotoolbox.org/api/v2/permissions/change_asset/
         label:
           type: string
           readOnly: true
@@ -15459,7 +15459,7 @@ components:
         url:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/permissions/change_submissions/
+          example: https://kf.kobotoolbox.org/api/v2/permissions/change_submissions/
           readOnly: true
         codename:
           type: string
@@ -15468,13 +15468,13 @@ components:
           items:
             type: string
             format: uri
-            example: http://kf.kobo.local:8080/api/v2/permissions/change_submissions/
+            example: https://kf.kobotoolbox.org/api/v2/permissions/change_submissions/
         contradictory:
           type: array
           items:
             type: string
             format: uri
-            example: http://kf.kobo.local:8080/api/v2/permissions/change_submissions/
+            example: https://kf.kobotoolbox.org/api/v2/permissions/change_submissions/
         name:
           type: string
       required:
@@ -15646,7 +15646,7 @@ components:
         user:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/users/bob/
+          example: https://kf.kobotoolbox.org/api/v2/users/bob/
         user_uid:
           type: string
         username:
@@ -15821,7 +15821,7 @@ components:
         recipient:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/users/bob/
+          example: https://kf.kobotoolbox.org/api/v2/users/bob/
         assets:
           type: array
           items:
@@ -15835,11 +15835,11 @@ components:
         url:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/project-ownership/invites/poi52fGkwDjQeZkUxcaou39q/
+          example: https://kf.kobotoolbox.org/api/v2/project-ownership/invites/poi52fGkwDjQeZkUxcaou39q/
         sender |  recipient:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/users/bob/
+          example: https://kf.kobotoolbox.org/api/v2/users/bob/
         status:
           $ref: '#/components/schemas/InviteStatusChoicesEnum'
         date_created:
@@ -15856,11 +15856,11 @@ components:
               url:
                 type: string
                 format: uri
-                example: http://kf.kobo.local:8080/api/v2/project-ownership/invites/poi52fGkwDjQeZkUxcaou39q/transfers/pot54pTqM5qwKdZ4wnNdiwDY/
+                example: https://kf.kobotoolbox.org/api/v2/project-ownership/invites/poi52fGkwDjQeZkUxcaou39q/transfers/pot54pTqM5qwKdZ4wnNdiwDY/
               asset:
                 type: string
                 format: uri
-                example: http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
+                example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
               status:
                 type: string
               error:
@@ -15881,7 +15881,7 @@ components:
         url:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/project-views/pvyHWBnzRw3GCJpFs6cMdem/assets/
+          example: https://kf.kobotoolbox.org/api/v2/project-views/pvyHWBnzRw3GCJpFs6cMdem/assets/
         date_created:
           type: string
           format: date-time
@@ -15894,7 +15894,7 @@ components:
         owner:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/project-views/pvyHWBnzRw3GCJpFs6cMdem/users/
+          example: https://kf.kobotoolbox.org/api/v2/project-views/pvyHWBnzRw3GCJpFs6cMdem/users/
         owner__username:
           type: string
         owner__email:
@@ -15963,7 +15963,7 @@ components:
               url:
                 type: string
                 format: uri
-                example: http://kf.kobo.local:8080/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/
+                example: https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/
         owner_label:
           type: string
       required:
@@ -16004,7 +16004,7 @@ components:
         result:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/private-media/bob/exports/assets-bob-view_pvNNUan8EBhzfkrv6sCNuzR-2025-08-11T143443Z.csv
+          example: https://kf.kobotoolbox.org/private-media/bob/exports/assets-bob-view_pvNNUan8EBhzfkrv6sCNuzR-2025-08-11T143443Z.csv
       required:
       - result
       - status
@@ -16017,27 +16017,27 @@ components:
         name:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/private-media/bob/exports/assets-bob-view_pvNNUan8EBhzfkrv6sCNuzR-2025-08-11T143443Z.csv
+          example: https://kf.kobotoolbox.org/private-media/bob/exports/assets-bob-view_pvNNUan8EBhzfkrv6sCNuzR-2025-08-11T143443Z.csv
         url:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/project-views/pvyHWBnzRw3GCJpFs6cMdem/
+          example: https://kf.kobotoolbox.org/api/v2/project-views/pvyHWBnzRw3GCJpFs6cMdem/
         assets:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/project-views/pvyHWBnzRw3GCJpFs6cMdem/assets/
+          example: https://kf.kobotoolbox.org/api/v2/project-views/pvyHWBnzRw3GCJpFs6cMdem/assets/
         assets_export:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/project-views/pvyHWBnzRw3GCJpFs6cMdem/assets/export/
+          example: https://kf.kobotoolbox.org/api/v2/project-views/pvyHWBnzRw3GCJpFs6cMdem/assets/export/
         users:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/project-views/pvyHWBnzRw3GCJpFs6cMdem/users/
+          example: https://kf.kobotoolbox.org/api/v2/project-views/pvyHWBnzRw3GCJpFs6cMdem/users/
         users_export:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/project-views/pvyHWBnzRw3GCJpFs6cMdem/users/export/
+          example: https://kf.kobotoolbox.org/api/v2/project-views/pvyHWBnzRw3GCJpFs6cMdem/users/export/
         countries:
           type: array
           items:
@@ -16235,7 +16235,7 @@ components:
         url:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/assets/a5owyo85mHyFazzgsZK45c/reports/
+          example: https://kf.kobotoolbox.org/api/v2/assets/a5owyo85mHyFazzgsZK45c/reports/
         count:
           type: integer
         list:
@@ -16747,7 +16747,7 @@ components:
         user:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/users/bob/
+          example: https://kf.kobotoolbox.org/api/v2/users/bob/
         date_created:
           type: string
           format: date-time
@@ -16787,7 +16787,7 @@ components:
         url:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/tags/tg3c5giitsQUMCJNNoDEpQ/
+          example: https://kf.kobotoolbox.org/api/v2/tags/tg3c5giitsQUMCJNNoDEpQ/
       required:
       - name
       - url
@@ -16799,17 +16799,17 @@ components:
         url:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/tags/tg3c5giitsQUMCJNNoDEpQ/
+          example: https://kf.kobotoolbox.org/api/v2/tags/tg3c5giitsQUMCJNNoDEpQ/
         assets:
           type: array
           items:
             type: string
             format: uri
-            example: http://kf.kobo.local:8080/api/v2/assets/a5owyo85mHyFazzgsZK45c/
+            example: https://kf.kobotoolbox.org/api/v2/assets/a5owyo85mHyFazzgsZK45c/
         parent:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/tags/
+          example: https://kf.kobotoolbox.org/api/v2/tags/
         uid:
           type: string
       required:
@@ -16824,7 +16824,7 @@ components:
         url:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/terms-of-service/terms_of_service_fr/
+          example: https://kf.kobotoolbox.org/api/v2/terms-of-service/terms_of_service_fr/
         slug:
           type: string
         body:
@@ -16851,11 +16851,11 @@ components:
         url:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/project-ownership/invites/poi52fGkwDjQeZkUxcaou39q/transfers/pot54pTqM5qwKdZ4wnNdiwDY/
+          example: https://kf.kobotoolbox.org/api/v2/project-ownership/invites/poi52fGkwDjQeZkUxcaou39q/transfers/pot54pTqM5qwKdZ4wnNdiwDY/
         asset:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
+          example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/
         status:
           type: string
         error:
@@ -17329,7 +17329,7 @@ components:
         url:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/users/bob/
+          example: https://kf.kobotoolbox.org/api/v2/users/bob/
         username:
           type: string
         date_joined:
@@ -17354,7 +17354,7 @@ components:
         url:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/versions/vf7pK9SmkJPYZVzr4uypi4/
+          example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/versions/vf7pK9SmkJPYZVzr4uypi4/
           readOnly: true
         content_hash:
           type: string
@@ -17382,7 +17382,7 @@ components:
         url:
           type: string
           format: uri
-          example: http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/versions/vf7pK9SmkJPYZVzr4uypi4/
+          example: https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/versions/vf7pK9SmkJPYZVzr4uypi4/
           readOnly: true
         content_hash:
           type: string
