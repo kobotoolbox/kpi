@@ -52,7 +52,7 @@
     "fields": {
       "question_xpath": "q1",
       "asset": 3,
-      "action": "qual",
+      "action": "manual_qual",
       "params": [
         {
           "type": "qualInteger",
