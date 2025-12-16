@@ -45,7 +45,7 @@ class AutomaticChainedQualAction(BaseAction):
             '$defs': {
                 'value': {
                     'anyOf': {
-                        
+
                     }
                 },
                 'action_status': {

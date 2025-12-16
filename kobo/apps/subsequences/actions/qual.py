@@ -4,7 +4,7 @@ from rest_framework.exceptions import ValidationError
 
 
 from ..type_aliases import SimplifiedOutputCandidatesByColumnKey
-from .base import ActionClassConfig, BaseAction
+from kobo.apps.subsequences.actions.base import BaseAction
 
 
 class BaseQualAction(BaseAction):
