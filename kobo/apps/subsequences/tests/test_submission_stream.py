@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 
 from kobo.apps.openrosa.apps.logger.exceptions import ConflictingSubmissionUUIDError
-from kobo.apps.subsequences.constants import SUPPLEMENT_KEY
+from kobo.apps.subsequences.constants import SUPPLEMENT_KEY, Action
 from kobo.apps.subsequences.models import QuestionAdvancedFeature, SubmissionSupplement
 from kobo.apps.subsequences.utils.supplement_data import stream_with_supplements
 from kpi.models import Asset
@@ -21,7 +21,7 @@ class TestSubmissionStream(TestCase):
         QuestionAdvancedFeature.objects.create(
             asset=self.asset,
             question_xpath='Tell_me_a_story',
-            action='qual',
+            action=Action.MANUAL_QUAL,
             params=[
                 {
                     'labels': {'_default': 'What is the quality score?'},
@@ -56,7 +56,9 @@ class TestSubmissionStream(TestCase):
                 supplemental_details = submission[SUPPLEMENT_KEY]
                 self.assertIn('Tell_me_a_story', supplemental_details)
 
-                qual_data = supplemental_details.get('Tell_me_a_story').get('qual')
+                qual_data = supplemental_details.get('Tell_me_a_story').get(
+                    Action.MANUAL_QUAL
+                )
                 if '_versions' in qual_data:
                     for version_entry in qual_data['_versions']:
                         uuid_field = version_entry.get('_uuid')
@@ -151,7 +153,7 @@ class TestSubmissionStream(TestCase):
             content={
                 '_version': '20250820',
                 'Tell_me_a_story': {
-                    'qual': qual_action_data,
+                    Action.MANUAL_QUAL: qual_action_data,
                 },
             },
         )
@@ -161,7 +163,7 @@ class TestSubmissionStream(TestCase):
             content={
                 '_version': '20250820',
                 'Tell_me_a_story': {
-                    'qual': qual_action_data,
+                    Action.MANUAL_QUAL: qual_action_data,
                 },
             },
         )
