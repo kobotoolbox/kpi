@@ -443,7 +443,7 @@
                             "examples": {
                                 "UsingAsset": {
                                     "value": {
-                                        "asset": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/",
+                                        "asset": "http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/",
                                         "details": {
                                             "status": "string",
                                             "warnings": [
@@ -1633,7 +1633,7 @@
                                     "QualitativeAnalysis-SimpleTypes": {
                                         "value": [
                                             {
-                                                "action": "qual",
+                                                "action": "manual_qual",
                                                 "question_xpath": "q1",
                                                 "params": [
                                                     {
@@ -1653,7 +1653,7 @@
                                     "QualitativeAnalysis-SingleChoiceQuestion": {
                                         "value": [
                                             {
-                                                "action": "qual",
+                                                "action": "manual_qual",
                                                 "question_xpath": "q1",
                                                 "params": [
                                                     {
@@ -1692,7 +1692,7 @@
                                     "QualitativeAnalysis-MultipleChoiceQuestion": {
                                         "value": [
                                             {
-                                                "action": "qual",
+                                                "action": "manual_qual",
                                                 "question_xpath": "q1",
                                                 "params": [
                                                     {
@@ -1755,7 +1755,7 @@
             },
             "post": {
                 "operationId": "api_v2_assets_advanced_features_create",
-                "description": "## Add an advanced action to an asset\n\nEnables a new type of advanced action on a question in the asset.\n* `action`, `params`, and `question_xpath` are required\n* `params` must match the expected param_schema of the `action`\n\nAccepted `action`s include:\n* `manual_transcription`\n* `automatic_google_transcription`\n* `manual_translation`\n* `automatic_google_translation`\n* `qual`\n\n",
+                "description": "## Add an advanced action to an asset\n\nEnables a new type of advanced action on a question in the asset.\n* `action`, `params`, and `question_xpath` are required\n* `params` must match the expected param_schema of the `action`\n\nAccepted `action`s include:\n* `manual_transcription`\n* `automatic_google_transcription`\n* `manual_translation`\n* `automatic_google_translation`\n* `manual_qual`\n\n",
                 "parameters": [
                     {
                         "in": "path",
@@ -1795,7 +1795,7 @@
                                 },
                                 "QualitativeAnalysis-SimpleTypes": {
                                     "value": {
-                                        "action": "qual",
+                                        "action": "manual_qual",
                                         "question_xpath": "q1",
                                         "params": [
                                             {
@@ -1812,7 +1812,7 @@
                                 },
                                 "QualitativeAnalysis-SingleChoiceQuestion": {
                                     "value": {
-                                        "action": "qual",
+                                        "action": "manual_qual",
                                         "question_xpath": "q1",
                                         "params": [
                                             {
@@ -1848,7 +1848,7 @@
                                 },
                                 "QualitativeAnalysis-MultipleChoiceQuestion": {
                                     "value": {
-                                        "action": "qual",
+                                        "action": "manual_qual",
                                         "question_xpath": "q1",
                                         "params": [
                                             {
@@ -2011,7 +2011,7 @@
                                     },
                                     "QualitativeAnalysis-SimpleTypes": {
                                         "value": {
-                                            "action": "qual",
+                                            "action": "manual_qual",
                                             "question_xpath": "q1",
                                             "params": [
                                                 {
@@ -2029,7 +2029,7 @@
                                     },
                                     "QualitativeAnalysis-SingleChoiceQuestion": {
                                         "value": {
-                                            "action": "qual",
+                                            "action": "manual_qual",
                                             "question_xpath": "q1",
                                             "params": [
                                                 {
@@ -2066,7 +2066,7 @@
                                     },
                                     "QualitativeAnalysis-MultipleChoiceQuestion": {
                                         "value": {
-                                            "action": "qual",
+                                            "action": "manual_qual",
                                             "question_xpath": "q1",
                                             "params": [
                                                 {
@@ -2177,7 +2177,7 @@
                                 },
                                 "QualitativeAnalysis-SimpleTypes": {
                                     "value": {
-                                        "action": "qual",
+                                        "action": "manual_qual",
                                         "question_xpath": "q1",
                                         "params": [
                                             {
@@ -2194,7 +2194,7 @@
                                 },
                                 "QualitativeAnalysis-SingleChoiceQuestion": {
                                     "value": {
-                                        "action": "qual",
+                                        "action": "manual_qual",
                                         "question_xpath": "q1",
                                         "params": [
                                             {
@@ -2230,7 +2230,7 @@
                                 },
                                 "QualitativeAnalysis-MultipleChoiceQuestion": {
                                     "value": {
-                                        "action": "qual",
+                                        "action": "manual_qual",
                                         "question_xpath": "q1",
                                         "params": [
                                             {
@@ -2303,7 +2303,7 @@
                                     },
                                     "QualitativeAnalysis-SimpleTypes": {
                                         "value": {
-                                            "action": "qual",
+                                            "action": "manual_qual",
                                             "question_xpath": "q1",
                                             "params": [
                                                 {
@@ -2321,7 +2321,7 @@
                                     },
                                     "QualitativeAnalysis-SingleChoiceQuestion": {
                                         "value": {
-                                            "action": "qual",
+                                            "action": "manual_qual",
                                             "question_xpath": "q1",
                                             "params": [
                                                 {
@@ -2358,7 +2358,7 @@
                                     },
                                     "QualitativeAnalysis-MultipleChoiceQuestion": {
                                         "value": {
-                                            "action": "qual",
+                                            "action": "manual_qual",
                                             "question_xpath": "q1",
                                             "params": [
                                                 {
@@ -3915,11 +3915,11 @@
                                         },
                                         "summary": "Automated Google Translation"
                                     },
-                                    "QualitativeAnalysis–IntegerQuestion": {
+                                    "ManualQualitativeAnalysis–IntegerQuestion": {
                                         "value": {
                                             "_version": "20250820",
                                             "question_name_xpath": {
-                                                "qual": {
+                                                "manual_qual": {
                                                     "66666666-6666-6666-6666-666666666666": {
                                                         "_dateCreated": "2025-01-01T12:00:00Z",
                                                         "_dateModified": "2025-01-01T12:00:00Z",
@@ -3938,13 +3938,13 @@
                                                 }
                                             }
                                         },
-                                        "summary": "Qualitative Analysis – Integer Question"
+                                        "summary": "Manual Qualitative Analysis – Integer Question"
                                     },
-                                    "QualitativeAnalysis–TextQuestion": {
+                                    "ManualQualitativeAnalysis–TextQuestion": {
                                         "value": {
                                             "_version": "20250820",
                                             "question_name_xpath": {
-                                                "qual": {
+                                                "manual_qual": {
                                                     "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff": {
                                                         "_dateCreated": "2025-01-01T12:00:00Z",
                                                         "_dateModified": "2025-01-01T12:00:00Z",
@@ -3963,13 +3963,13 @@
                                                 }
                                             }
                                         },
-                                        "summary": "Qualitative Analysis – Text Question"
+                                        "summary": "Manual Qualitative Analysis – Text Question"
                                     },
-                                    "QualitativeAnalysis–SingleChoiceQuestion": {
+                                    "ManualQualitativeAnalysis–SingleChoiceQuestion": {
                                         "value": {
                                             "_version": "20250820",
                                             "question_name_xpath": {
-                                                "qual": {
+                                                "manual_qual": {
                                                     "77777777-7777-7777-7777-777777777777": {
                                                         "_dateCreated": "2025-01-01T12:00:00Z",
                                                         "_dateModified": "2025-01-01T12:00:00Z",
@@ -3988,13 +3988,13 @@
                                                 }
                                             }
                                         },
-                                        "summary": "Qualitative Analysis – Single Choice Question"
+                                        "summary": "Manual Qualitative Analysis – Single Choice Question"
                                     },
-                                    "QualitativeAnalysis–MultipleChoiceQuestion": {
+                                    "ManualQualitativeAnalysis–MultipleChoiceQuestion": {
                                         "value": {
                                             "_version": "20250820",
                                             "question_name_xpath": {
-                                                "qual": {
+                                                "manual_qual": {
                                                     "88888888-8888-8888-8888-888888888888": {
                                                         "_dateCreated": "2025-01-01T12:00:00Z",
                                                         "_dateModified": "2025-01-01T12:00:00Z",
@@ -4016,13 +4016,13 @@
                                                 }
                                             }
                                         },
-                                        "summary": "Qualitative Analysis – Multiple Choice Question"
+                                        "summary": "Manual Qualitative Analysis – Multiple Choice Question"
                                     },
-                                    "QualitativeAnalysis–TagsQuestion": {
+                                    "ManualQualitativeAnalysis–TagsQuestion": {
                                         "value": {
                                             "_version": "20250820",
                                             "question_name_xpath": {
-                                                "qual": {
+                                                "manual_qual": {
                                                     "bbbbbbbb-cccc-dddd-eeee-ffffffffffff": {
                                                         "_dateCreated": "2025-01-01T12:00:00Z",
                                                         "_dateModified": "2025-01-01T12:00:00Z",
@@ -4045,7 +4045,7 @@
                                                 }
                                             }
                                         },
-                                        "summary": "Qualitative Analysis – Tags Question"
+                                        "summary": "Manual Qualitative Analysis – Tags Question"
                                     }
                                 }
                             }
@@ -4235,47 +4235,47 @@
                                     "summary": "Accept automatic NLP action",
                                     "description": "`<action_id>` can be any of `automatic_google_transcription` or `automatic_google_translation`.<br>`<language>` is the language code, e.g. `en`.<br>`accepted` is a boolean. It can `true` or `false`."
                                 },
-                                "QualitativeAnalysis–IntegerQuestion": {
+                                "ManualQualitativeAnalysis–IntegerQuestion": {
                                     "value": {
                                         "_version": "20250820",
                                         "question_name_xpath": {
-                                            "qual": {
+                                            "manual_qual": {
                                                 "uuid": "11111111-1111-1111-1111-111111111111",
                                                 "value": 42
                                             }
                                         }
                                     },
-                                    "summary": "Qualitative Analysis – Integer Question"
+                                    "summary": "Manual Qualitative Analysis – Integer Question"
                                 },
-                                "QualitativeAnalysis–TextQuestion": {
+                                "ManualQualitativeAnalysis–TextQuestion": {
                                     "value": {
                                         "_version": "20250820",
                                         "question_name_xpath": {
-                                            "qual": {
+                                            "manual_qual": {
                                                 "uuid": "22222222-2222-2222-2222-222222222222",
                                                 "value": "example-text"
                                             }
                                         }
                                     },
-                                    "summary": "Qualitative Analysis – Text Question"
+                                    "summary": "Manual Qualitative Analysis – Text Question"
                                 },
-                                "QualitativeAnalysis–SingleChoiceQuestion": {
+                                "ManualQualitativeAnalysis–SingleChoiceQuestion": {
                                     "value": {
                                         "_version": "20250820",
                                         "question_name_xpath": {
-                                            "qual": {
+                                            "manual_qual": {
                                                 "uuid": "33333333-3333-3333-3333-333333333333",
                                                 "value": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
                                             }
                                         }
                                     },
-                                    "summary": "Qualitative Analysis – Single Choice Question"
+                                    "summary": "Manual Qualitative Analysis – Single Choice Question"
                                 },
-                                "QualitativeAnalysis–MultipleChoiceQuestion": {
+                                "ManualQualitativeAnalysis–MultipleChoiceQuestion": {
                                     "value": {
                                         "_version": "20250820",
                                         "question_name_xpath": {
-                                            "qual": {
+                                            "manual_qual": {
                                                 "uuid": "44444444-4444-4444-4444-444444444444",
                                                 "value": [
                                                     "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
@@ -4284,13 +4284,13 @@
                                             }
                                         }
                                     },
-                                    "summary": "Qualitative Analysis – Multiple Choice Question"
+                                    "summary": "Manual Qualitative Analysis – Multiple Choice Question"
                                 },
-                                "QualitativeAnalysis–TagsQuestion": {
+                                "ManualQualitativeAnalysis–TagsQuestion": {
                                     "value": {
                                         "_version": "20250820",
                                         "question_name_xpath": {
-                                            "qual": {
+                                            "manual_qual": {
                                                 "uuid": "44444444-4444-4444-4444-444444444444",
                                                 "value": [
                                                     "tag1",
@@ -4299,7 +4299,7 @@
                                             }
                                         }
                                     },
-                                    "summary": "Qualitative Analysis – Tags Question"
+                                    "summary": "Manual Qualitative Analysis – Tags Question"
                                 }
                             }
                         }
@@ -4493,11 +4493,11 @@
                                         },
                                         "summary": "Automated Google Translation"
                                     },
-                                    "QualitativeAnalysis–IntegerQuestion": {
+                                    "ManualQualitativeAnalysis–IntegerQuestion": {
                                         "value": {
                                             "_version": "20250820",
                                             "question_name_xpath": {
-                                                "qual": {
+                                                "manual_qual": {
                                                     "66666666-6666-6666-6666-666666666666": {
                                                         "_dateCreated": "2025-01-01T12:00:00Z",
                                                         "_dateModified": "2025-01-01T12:00:00Z",
@@ -4516,13 +4516,13 @@
                                                 }
                                             }
                                         },
-                                        "summary": "Qualitative Analysis – Integer Question"
+                                        "summary": "Manual Qualitative Analysis – Integer Question"
                                     },
-                                    "QualitativeAnalysis–TextQuestion": {
+                                    "ManualQualitativeAnalysis–TextQuestion": {
                                         "value": {
                                             "_version": "20250820",
                                             "question_name_xpath": {
-                                                "qual": {
+                                                "manual_qual": {
                                                     "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff": {
                                                         "_dateCreated": "2025-01-01T12:00:00Z",
                                                         "_dateModified": "2025-01-01T12:00:00Z",
@@ -4541,13 +4541,13 @@
                                                 }
                                             }
                                         },
-                                        "summary": "Qualitative Analysis – Text Question"
+                                        "summary": "Manual Qualitative Analysis – Text Question"
                                     },
-                                    "QualitativeAnalysis–SingleChoiceQuestion": {
+                                    "ManualQualitativeAnalysis–SingleChoiceQuestion": {
                                         "value": {
                                             "_version": "20250820",
                                             "question_name_xpath": {
-                                                "qual": {
+                                                "manual_qual": {
                                                     "77777777-7777-7777-7777-777777777777": {
                                                         "_dateCreated": "2025-01-01T12:00:00Z",
                                                         "_dateModified": "2025-01-01T12:00:00Z",
@@ -4566,13 +4566,13 @@
                                                 }
                                             }
                                         },
-                                        "summary": "Qualitative Analysis – Single Choice Question"
+                                        "summary": "Manual Qualitative Analysis – Single Choice Question"
                                     },
-                                    "QualitativeAnalysis–MultipleChoiceQuestion": {
+                                    "ManualQualitativeAnalysis–MultipleChoiceQuestion": {
                                         "value": {
                                             "_version": "20250820",
                                             "question_name_xpath": {
-                                                "qual": {
+                                                "manual_qual": {
                                                     "88888888-8888-8888-8888-888888888888": {
                                                         "_dateCreated": "2025-01-01T12:00:00Z",
                                                         "_dateModified": "2025-01-01T12:00:00Z",
@@ -4594,13 +4594,13 @@
                                                 }
                                             }
                                         },
-                                        "summary": "Qualitative Analysis – Multiple Choice Question"
+                                        "summary": "Manual Qualitative Analysis – Multiple Choice Question"
                                     },
-                                    "QualitativeAnalysis–TagsQuestion": {
+                                    "ManualQualitativeAnalysis–TagsQuestion": {
                                         "value": {
                                             "_version": "20250820",
                                             "question_name_xpath": {
-                                                "qual": {
+                                                "manual_qual": {
                                                     "bbbbbbbb-cccc-dddd-eeee-ffffffffffff": {
                                                         "_dateCreated": "2025-01-01T12:00:00Z",
                                                         "_dateModified": "2025-01-01T12:00:00Z",
@@ -4623,7 +4623,7 @@
                                                 }
                                             }
                                         },
-                                        "summary": "Qualitative Analysis – Tags Question"
+                                        "summary": "Manual Qualitative Analysis – Tags Question"
                                     }
                                 }
                             }
@@ -6472,8 +6472,8 @@
                             "examples": {
                                 "CreatingAFileWithBinaryContent": {
                                     "value": {
-                                        "user": "https://kf.kobotoolbox.org/api/v2/users/bob/",
-                                        "asset": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/",
+                                        "user": "http://kf.kobo.local:8080/api/v2/users/bob/",
+                                        "asset": "http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/",
                                         "description": "Description of the file",
                                         "file_type": "image/png",
                                         "content": "<binary>"
@@ -6482,8 +6482,8 @@
                                 },
                                 "CreatingAFileWithBase64Content": {
                                     "value": {
-                                        "user": "https://kf.kobotoolbox.org/api/v2/users/bob/",
-                                        "asset": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/",
+                                        "user": "http://kf.kobo.local:8080/api/v2/users/bob/",
+                                        "asset": "http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/",
                                         "description": "Description of the file",
                                         "file_type": "image/png",
                                         "base64Encoded": "SGVsbG8sIFdvcmxkIQ",
@@ -6495,8 +6495,8 @@
                                 },
                                 "CreatingAFileWithARemoteUrl": {
                                     "value": {
-                                        "user": "https://kf.kobotoolbox.org/api/v2/users/bob/",
-                                        "asset": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/",
+                                        "user": "http://kf.kobo.local:8080/api/v2/users/bob/",
+                                        "asset": "http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/",
                                         "description": "Description of the file",
                                         "file_type": "image/png",
                                         "metadata": {
@@ -8372,7 +8372,7 @@
                             "examples": {
                                 "CreatePartialPermission": {
                                     "value": {
-                                        "user": "https://kf.kobotoolbox.org/api/v2/users/bob/",
+                                        "user": "http://kf.kobo.local:8080/api/v2/users/bob/",
                                         "partial_permission": [
                                             {
                                                 "filter": [
@@ -8384,17 +8384,17 @@
                                                         }
                                                     }
                                                 ],
-                                                "url": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/permission-assignments/pGaXCTDAbdZKLXoXAXd3M4/"
+                                                "url": "http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/permission-assignments/pGaXCTDAbdZKLXoXAXd3M4/"
                                             }
                                         ],
-                                        "permission": "https://kf.kobotoolbox.org/api/v2/permissions/change_asset/"
+                                        "permission": "http://kf.kobo.local:8080/api/v2/permissions/change_asset/"
                                     },
                                     "summary": "Create partial permission"
                                 },
                                 "CreatePermission": {
                                     "value": {
-                                        "user": "https://kf.kobotoolbox.org/api/v2/users/bob/",
-                                        "permission": "https://kf.kobotoolbox.org/api/v2/permissions/change_asset/"
+                                        "user": "http://kf.kobo.local:8080/api/v2/users/bob/",
+                                        "permission": "http://kf.kobo.local:8080/api/v2/permissions/change_asset/"
                                     },
                                     "summary": "Create permission"
                                 }
@@ -14410,7 +14410,7 @@
                     "user": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/users/bob/"
+                        "example": "http://kf.kobo.local:8080/api/v2/users/bob/"
                     },
                     "date_created": {
                         "type": "string",
@@ -14530,13 +14530,13 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/",
+                        "example": "http://kf.kobo.local:8080/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/",
                         "readOnly": true
                     },
                     "owner": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/users/bob/",
+                        "example": "http://kf.kobo.local:8080/api/v2/users/bob/",
                         "readOnly": true
                     },
                     "owner__username": {
@@ -14547,7 +14547,7 @@
                     "parent": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/",
+                        "example": "http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/",
                         "nullable": true
                     },
                     "settings": {
@@ -14690,7 +14690,7 @@
                                         "url": {
                                             "type": "string",
                                             "format": "uri",
-                                            "example": "https://kf.kobotoolbox.org/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/versions/vBeA23YCYjkGTFvYVHuAyU/"
+                                            "example": "http://kf.kobo.local:8080/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/versions/vBeA23YCYjkGTFvYVHuAyU/"
                                         },
                                         "content_hash": {
                                             "type": "string"
@@ -14858,13 +14858,13 @@
                     "xform_link": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/xform/",
+                        "example": "http://kf.kobo.local:8080/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/xform/",
                         "readOnly": true
                     },
                     "hooks_link": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/hooks/",
+                        "example": "http://kf.kobo.local:8080/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/hooks/",
                         "readOnly": true
                     },
                     "tag_string": {
@@ -14881,7 +14881,7 @@
                     "xls_link": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU.xls",
+                        "example": "http://kf.kobo.local:8080/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU.xls",
                         "readOnly": true
                     },
                     "name": {
@@ -14917,7 +14917,7 @@
                     "exports": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/exports/",
+                        "example": "http://kf.kobo.local:8080/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/exports/",
                         "readOnly": true
                     },
                     "export_settings": {
@@ -14930,7 +14930,7 @@
                     "data": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/submissions/",
+                        "example": "http://kf.kobo.local:8080/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/submissions/",
                         "readOnly": true
                     },
                     "children": {
@@ -14963,7 +14963,7 @@
                     "paired_data": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/paired-data/",
+                        "example": "http://kf.kobo.local:8080/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/paired-data/",
                         "readOnly": true
                     },
                     "project_ownership": {
@@ -15247,7 +15247,7 @@
                             "asset": {
                                 "type": "string",
                                 "format": "uri",
-                                "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/"
+                                "example": "http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/"
                             },
                             "details": {
                                 "type": "object",
@@ -15358,7 +15358,7 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/asset_snapshots/sEMPghTguZsxj4rn4s9dvS/"
+                        "example": "http://kf.kobo.local:8080/api/v2/asset_snapshots/sEMPghTguZsxj4rn4s9dvS/"
                     },
                     "uid": {
                         "type": "string"
@@ -15366,7 +15366,7 @@
                     "owner": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/users/bob/"
+                        "example": "http://kf.kobo.local:8080/api/v2/users/bob/"
                     },
                     "date_created": {
                         "type": "string",
@@ -15375,17 +15375,17 @@
                     "xml": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/asset_snapshots/sEMPghTguZsxj4rn4s9dvS/"
+                        "example": "http://kf.kobo.local:8080/api/v2/asset_snapshots/sEMPghTguZsxj4rn4s9dvS/"
                     },
                     "enketopreviewlink": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/asset_snapshots/sEMPghTguZsxj4rn4s9dvS/preview/"
+                        "example": "http://kf.kobo.local:8080/api/v2/asset_snapshots/sEMPghTguZsxj4rn4s9dvS/preview/"
                     },
                     "asset": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/"
+                        "example": "http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/"
                     },
                     "asset_version_id": {
                         "type": "string"
@@ -15474,7 +15474,7 @@
                     "asset": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/"
+                        "example": "http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/"
                     }
                 },
                 "required": [
@@ -15487,12 +15487,12 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/asset_subscription/sEMPghTguZsxj4rn4s9dvS/"
+                        "example": "http://kf.kobo.local:8080/api/v2/asset_subscription/sEMPghTguZsxj4rn4s9dvS/"
                     },
                     "asset": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/"
+                        "example": "http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/"
                     },
                     "uid": {
                         "type": "string"
@@ -15523,7 +15523,7 @@
                     "asset": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/"
+                        "example": "http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/"
                     },
                     "asset__name": {
                         "type": "string"
@@ -15660,7 +15660,7 @@
                     "user": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/users/bob/"
+                        "example": "http://kf.kobo.local:8080/api/v2/users/bob/"
                     },
                     "user_uid": {
                         "type": "string"
@@ -16046,12 +16046,12 @@
                             "user": {
                                 "type": "string",
                                 "format": "uri",
-                                "example": "https://kf.kobotoolbox.org/api/v2/users/bob/"
+                                "example": "http://kf.kobo.local:8080/api/v2/users/bob/"
                             },
                             "asset": {
                                 "type": "string",
                                 "format": "uri",
-                                "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/"
+                                "example": "http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/"
                             },
                             "description": {
                                 "type": "string"
@@ -16077,12 +16077,12 @@
                             "user": {
                                 "type": "string",
                                 "format": "uri",
-                                "example": "https://kf.kobotoolbox.org/api/v2/users/bob/"
+                                "example": "http://kf.kobo.local:8080/api/v2/users/bob/"
                             },
                             "asset": {
                                 "type": "string",
                                 "format": "uri",
-                                "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/"
+                                "example": "http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/"
                             },
                             "description": {
                                 "type": "string"
@@ -16120,12 +16120,12 @@
                             "user": {
                                 "type": "string",
                                 "format": "uri",
-                                "example": "https://kf.kobotoolbox.org/api/v2/users/bob/"
+                                "example": "http://kf.kobo.local:8080/api/v2/users/bob/"
                             },
                             "asset": {
                                 "type": "string",
                                 "format": "uri",
-                                "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/"
+                                "example": "http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/"
                             },
                             "description": {
                                 "type": "string"
@@ -16162,7 +16162,7 @@
                     "asset": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/",
+                        "example": "http://kf.kobo.local:8080/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/",
                         "readOnly": true
                     },
                     "asset__name": {
@@ -16346,22 +16346,22 @@
                             "download_url": {
                                 "type": "string",
                                 "format": "uri",
-                                "example": "https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/1"
+                                "example": "http://kf.kobo.local:8080/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/1"
                             },
                             "download_large_url": {
                                 "type": "string",
                                 "format": "uri",
-                                "example": "https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/large/"
+                                "example": "http://kf.kobo.local:8080/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/large/"
                             },
                             "download_medium_url": {
                                 "type": "string",
                                 "format": "uri",
-                                "example": "https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/medium/"
+                                "example": "http://kf.kobo.local:8080/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/medium/"
                             },
                             "download_small_url": {
                                 "type": "string",
                                 "format": "uri",
-                                "example": "https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/small/"
+                                "example": "http://kf.kobo.local:8080/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/small/"
                             },
                             "mimetype": {
                                 "type": "string"
@@ -17429,7 +17429,7 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/edit/iXUdUc3w?instance_id=1824b282-f729-4944-b799-7a805d4564e1&return_url=false"
+                        "example": "http://kf.kobo.local:8080/edit/iXUdUc3w?instance_id=1824b282-f729-4944-b799-7a805d4564e1&return_url=false"
                     },
                     "version": {
                         "type": "string"
@@ -17446,7 +17446,7 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/view/f93d2a488a2e35cedc336e84e1bd1edc?instance_id=1824b282-f729-4944-b799-7a805d4564e1&return_url=false"
+                        "example": "http://kf.kobo.local:8080/view/f93d2a488a2e35cedc336e84e1bd1edc?instance_id=1824b282-f729-4944-b799-7a805d4564e1&return_url=false"
                     },
                     "version": {
                         "type": "string"
@@ -17608,7 +17608,7 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/exports/eYeXfo2KjbSzXgWuKsJNPY/"
+                        "example": "http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/exports/eYeXfo2KjbSzXgWuKsJNPY/"
                     },
                     "status": {
                         "type": "string"
@@ -17630,7 +17630,7 @@
                     "result": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.orguser/export/NEW PROJECT - all versions - False - 2025-01-01-01-01.csv"
+                        "example": "http://kf.kobo.local:8080user/export/NEW PROJECT - all versions - False - 2025-01-01-01-01.csv"
                     },
                     "data": {
                         "type": "object",
@@ -17653,7 +17653,7 @@
                             "source": {
                                 "type": "string",
                                 "format": "uri",
-                                "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/"
+                                "example": "http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/"
                             },
                             "group_sep": {
                                 "type": "string"
@@ -17775,17 +17775,17 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/export-settings/esMxJfzPhnWn6r2c3EKkuaV/"
+                        "example": "http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/export-settings/esMxJfzPhnWn6r2c3EKkuaV/"
                     },
                     "data_url_csv": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/export-settings/esMxJfzPhnWn6r2c3EKkuaV/data.csv"
+                        "example": "http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/export-settings/esMxJfzPhnWn6r2c3EKkuaV/data.csv"
                     },
                     "data_url_xlsx": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/export-settings/esMxJfzPhnWn6r2c3EKkuaV/data.xlsx"
+                        "example": "http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/export-settings/esMxJfzPhnWn6r2c3EKkuaV/data.xlsx"
                     },
                     "name": {
                         "type": "string"
@@ -17890,17 +17890,17 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/files/afSa8PqnoYe8vJqkrsGz3oN/"
+                        "example": "http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/files/afSa8PqnoYe8vJqkrsGz3oN/"
                     },
                     "asset": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/"
+                        "example": "http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/"
                     },
                     "user": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/users/bob/"
+                        "example": "http://kf.kobo.local:8080/api/v2/users/bob/"
                     },
                     "user__username": {
                         "type": "string"
@@ -17918,7 +17918,7 @@
                     "content": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/files/afSa8PqnoYe8vJqkrsGz3oN/content/"
+                        "example": "http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/files/afSa8PqnoYe8vJqkrsGz3oN/content/"
                     },
                     "metadata": {
                         "type": "object",
@@ -17979,7 +17979,7 @@
                     "user": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/users/bob/"
+                        "example": "http://kf.kobo.local:8080/api/v2/users/bob/"
                     },
                     "user_uid": {
                         "type": "string"
@@ -18253,7 +18253,7 @@
                     "logs_url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/hooks/hZzzeedWxQoFHgibsTCysv/logs/",
+                        "example": "http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/hooks/hZzzeedWxQoFHgibsTCysv/logs/",
                         "readOnly": true
                     },
                     "name": {
@@ -18307,7 +18307,7 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/",
+                        "example": "http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/",
                         "readOnly": true
                     }
                 },
@@ -18330,7 +18330,7 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/hooks/hsw3Ec5vz7Lqg7TrwrxdaS/logs/hl8Ldv5m84SBpU5UB5J7QBD/",
+                        "example": "http://kf.kobo.local:8080/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/hooks/hsw3Ec5vz7Lqg7TrwrxdaS/logs/hl8Ldv5m84SBpU5UB5J7QBD/",
                         "readOnly": true
                     },
                     "uid": {
@@ -18443,7 +18443,7 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/imports/iYxVZhbZb6poxVpPqrd6eG/"
+                        "example": "http://kf.kobo.local:8080/api/v2/imports/iYxVZhbZb6poxVpPqrd6eG/"
                     },
                     "status": {
                         "type": "string"
@@ -18461,7 +18461,7 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/imports/iYxVZhbZb6poxVpPqrd6eG/"
+                        "example": "http://kf.kobo.local:8080/api/v2/imports/iYxVZhbZb6poxVpPqrd6eG/"
                     },
                     "status": {
                         "type": "string"
@@ -18620,12 +18620,12 @@
                         "url": {
                             "type": "string",
                             "format": "uri",
-                            "example": "https://kf.kobotoolbox.org/api/v2/organizations/orgR6zUBwMHop2mgGygtFd6c/invites/f3ba00b2-372b-4283-9d57-adbe7d5b1bf1/"
+                            "example": "http://kf.kobo.local:8080/api/v2/organizations/orgR6zUBwMHop2mgGygtFd6c/invites/f3ba00b2-372b-4283-9d57-adbe7d5b1bf1/"
                         },
                         "invited_by": {
                             "type": "string",
                             "format": "uri",
-                            "example": "https://kf.kobotoolbox.org/api/v2/users/bob/"
+                            "example": "http://kf.kobo.local:8080/api/v2/users/bob/"
                         },
                         "status": {
                             "type": "string"
@@ -18677,12 +18677,12 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/organizations/orgR6zUBwMHop2mgGygtFd6c/invites/f3ba00b2-372b-4283-9d57-adbe7d5b1bf1/"
+                        "example": "http://kf.kobo.local:8080/api/v2/organizations/orgR6zUBwMHop2mgGygtFd6c/invites/f3ba00b2-372b-4283-9d57-adbe7d5b1bf1/"
                     },
                     "invited_by": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/users/bob/"
+                        "example": "http://kf.kobo.local:8080/api/v2/users/bob/"
                     },
                     "organization_name": {
                         "type": "string"
@@ -18836,7 +18836,7 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/language/en/",
+                        "example": "http://kf.kobo.local:8080/api/v2/language/en/",
                         "readOnly": true
                     }
                 },
@@ -18910,7 +18910,7 @@
                     "projects_url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/bob"
+                        "example": "http://kf.kobo.local:8080/bob"
                     },
                     "gravatar": {
                         "type": "string",
@@ -19029,7 +19029,7 @@
                             "url": {
                                 "type": "string",
                                 "format": "uri",
-                                "example": "https://kf.kobotoolbox.org/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/"
+                                "example": "http://kf.kobo.local:8080/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/"
                             },
                             "name": {
                                 "type": "string"
@@ -19071,12 +19071,12 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/organizations/orgR6zUBwMHop2mgGygtFd6c/members/bob/"
+                        "example": "http://kf.kobo.local:8080/api/v2/organizations/orgR6zUBwMHop2mgGygtFd6c/members/bob/"
                     },
                     "user": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/users/bob/"
+                        "example": "http://kf.kobo.local:8080/api/v2/users/bob/"
                     },
                     "user__username": {
                         "type": "string"
@@ -19290,7 +19290,7 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/",
+                        "example": "http://kf.kobo.local:8080/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/",
                         "readOnly": true
                     },
                     "name": {
@@ -19340,25 +19340,25 @@
                     "members": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/members/",
+                        "example": "http://kf.kobo.local:8080/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/members/",
                         "readOnly": true
                     },
                     "assets": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/assets/",
+                        "example": "http://kf.kobo.local:8080/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/assets/",
                         "readOnly": true
                     },
                     "service_usage": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/service_usage/",
+                        "example": "http://kf.kobo.local:8080/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/service_usage/",
                         "readOnly": true
                     },
                     "asset_usage": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/assets_usage/",
+                        "example": "http://kf.kobo.local:8080/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/assets_usage/",
                         "readOnly": true
                     }
                 },
@@ -20735,7 +20735,7 @@
                     "source": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/"
+                        "example": "http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/"
                     },
                     "source__name": {
                         "type": "string",
@@ -20753,7 +20753,7 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a5owyo85mHyFazzgsZK45c/paired-data/pd9CWSKADt4T7h5bMKwhLqq/"
+                        "example": "http://kf.kobo.local:8080/api/v2/assets/a5owyo85mHyFazzgsZK45c/paired-data/pd9CWSKADt4T7h5bMKwhLqq/"
                     }
                 },
                 "required": [
@@ -20855,7 +20855,7 @@
                     "projects_url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/bob",
+                        "example": "http://kf.kobo.local:8080/bob",
                         "readOnly": true
                     },
                     "gravatar": {
@@ -20953,7 +20953,7 @@
                             "url": {
                                 "type": "string",
                                 "format": "uri",
-                                "example": "https://kf.kobotoolbox.org/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/"
+                                "example": "http://kf.kobo.local:8080/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/"
                             },
                             "name": {
                                 "type": "string"
@@ -21414,7 +21414,7 @@
                     "logs_url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/hooks/hZzzeedWxQoFHgibsTCysv/logs/",
+                        "example": "http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/hooks/hZzzeedWxQoFHgibsTCysv/logs/",
                         "readOnly": true
                     },
                     "name": {
@@ -21468,7 +21468,7 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/",
+                        "example": "http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/",
                         "readOnly": true
                     }
                 }
@@ -21479,7 +21479,7 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/hooks/hsw3Ec5vz7Lqg7TrwrxdaS/logs/hl8Ldv5m84SBpU5UB5J7QBD/",
+                        "example": "http://kf.kobo.local:8080/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/hooks/hsw3Ec5vz7Lqg7TrwrxdaS/logs/hl8Ldv5m84SBpU5UB5J7QBD/",
                         "readOnly": true
                     },
                     "uid": {
@@ -21607,12 +21607,12 @@
                     "user": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/users/bob/"
+                        "example": "http://kf.kobo.local:8080/api/v2/users/bob/"
                     },
                     "permission": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/permission-assignments/pGaXCTDAbdZKLXoXAXd3M4/"
+                        "example": "http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/permission-assignments/pGaXCTDAbdZKLXoXAXd3M4/"
                     }
                 },
                 "required": [
@@ -21628,12 +21628,12 @@
                             "permission": {
                                 "type": "string",
                                 "format": "uri",
-                                "example": "https://kf.kobotoolbox.org/api/v2/permissions/change_asset/"
+                                "example": "http://kf.kobo.local:8080/api/v2/permissions/change_asset/"
                             },
                             "user": {
                                 "type": "string",
                                 "format": "uri",
-                                "example": "https://kf.kobotoolbox.org/api/v2/users/bob/"
+                                "example": "http://kf.kobo.local:8080/api/v2/users/bob/"
                             }
                         },
                         "additionalProperties": false,
@@ -21672,7 +21672,7 @@
                                         "url": {
                                             "type": "string",
                                             "format": "uri",
-                                            "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/permission-assignments/pGaXCTDAbdZKLXoXAXd3M4/"
+                                            "example": "http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/permission-assignments/pGaXCTDAbdZKLXoXAXd3M4/"
                                         }
                                     }
                                 }
@@ -21680,12 +21680,12 @@
                             "permission": {
                                 "type": "string",
                                 "format": "uri",
-                                "example": "https://kf.kobotoolbox.org/api/v2/permissions/change_asset/"
+                                "example": "http://kf.kobo.local:8080/api/v2/permissions/change_asset/"
                             },
                             "user": {
                                 "type": "string",
                                 "format": "uri",
-                                "example": "https://kf.kobotoolbox.org/api/v2/users/bob/"
+                                "example": "http://kf.kobo.local:8080/api/v2/users/bob/"
                             }
                         },
                         "required": [
@@ -21702,17 +21702,17 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/permission-assignments/pGaXCTDAbdZKLXoXAXd3M4/"
+                        "example": "http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/permission-assignments/pGaXCTDAbdZKLXoXAXd3M4/"
                     },
                     "user": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/users/bob/"
+                        "example": "http://kf.kobo.local:8080/api/v2/users/bob/"
                     },
                     "permission": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/permissions/change_asset/"
+                        "example": "http://kf.kobo.local:8080/api/v2/permissions/change_asset/"
                     },
                     "label": {
                         "type": "string",
@@ -21732,7 +21732,7 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/permissions/change_submissions/",
+                        "example": "http://kf.kobo.local:8080/api/v2/permissions/change_submissions/",
                         "readOnly": true
                     },
                     "codename": {
@@ -21743,7 +21743,7 @@
                         "items": {
                             "type": "string",
                             "format": "uri",
-                            "example": "https://kf.kobotoolbox.org/api/v2/permissions/change_submissions/"
+                            "example": "http://kf.kobo.local:8080/api/v2/permissions/change_submissions/"
                         }
                     },
                     "contradictory": {
@@ -21751,7 +21751,7 @@
                         "items": {
                             "type": "string",
                             "format": "uri",
-                            "example": "https://kf.kobotoolbox.org/api/v2/permissions/change_submissions/"
+                            "example": "http://kf.kobo.local:8080/api/v2/permissions/change_submissions/"
                         }
                     },
                     "name": {
@@ -21962,7 +21962,7 @@
                     "user": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/users/bob/"
+                        "example": "http://kf.kobo.local:8080/api/v2/users/bob/"
                     },
                     "user_uid": {
                         "type": "string"
@@ -22230,7 +22230,7 @@
                     "recipient": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/users/bob/"
+                        "example": "http://kf.kobo.local:8080/api/v2/users/bob/"
                     },
                     "assets": {
                         "type": "array",
@@ -22250,12 +22250,12 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/project-ownership/invites/poi52fGkwDjQeZkUxcaou39q/"
+                        "example": "http://kf.kobo.local:8080/api/v2/project-ownership/invites/poi52fGkwDjQeZkUxcaou39q/"
                     },
                     "sender |  recipient": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/users/bob/"
+                        "example": "http://kf.kobo.local:8080/api/v2/users/bob/"
                     },
                     "status": {
                         "$ref": "#/components/schemas/InviteStatusChoicesEnum"
@@ -22276,12 +22276,12 @@
                                 "url": {
                                     "type": "string",
                                     "format": "uri",
-                                    "example": "https://kf.kobotoolbox.org/api/v2/project-ownership/invites/poi52fGkwDjQeZkUxcaou39q/transfers/pot54pTqM5qwKdZ4wnNdiwDY/"
+                                    "example": "http://kf.kobo.local:8080/api/v2/project-ownership/invites/poi52fGkwDjQeZkUxcaou39q/transfers/pot54pTqM5qwKdZ4wnNdiwDY/"
                                 },
                                 "asset": {
                                     "type": "string",
                                     "format": "uri",
-                                    "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/"
+                                    "example": "http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/"
                                 },
                                 "status": {
                                     "type": "string"
@@ -22312,7 +22312,7 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/project-views/pvyHWBnzRw3GCJpFs6cMdem/assets/"
+                        "example": "http://kf.kobo.local:8080/api/v2/project-views/pvyHWBnzRw3GCJpFs6cMdem/assets/"
                     },
                     "date_created": {
                         "type": "string",
@@ -22329,7 +22329,7 @@
                     "owner": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/project-views/pvyHWBnzRw3GCJpFs6cMdem/users/"
+                        "example": "http://kf.kobo.local:8080/api/v2/project-views/pvyHWBnzRw3GCJpFs6cMdem/users/"
                     },
                     "owner__username": {
                         "type": "string"
@@ -22430,7 +22430,7 @@
                                 "url": {
                                     "type": "string",
                                     "format": "uri",
-                                    "example": "https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/"
+                                    "example": "http://kf.kobo.local:8080/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/"
                                 }
                             }
                         }
@@ -22484,7 +22484,7 @@
                     "result": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/private-media/bob/exports/assets-bob-view_pvNNUan8EBhzfkrv6sCNuzR-2025-08-11T143443Z.csv"
+                        "example": "http://kf.kobo.local:8080/private-media/bob/exports/assets-bob-view_pvNNUan8EBhzfkrv6sCNuzR-2025-08-11T143443Z.csv"
                     }
                 },
                 "required": [
@@ -22502,32 +22502,32 @@
                     "name": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/private-media/bob/exports/assets-bob-view_pvNNUan8EBhzfkrv6sCNuzR-2025-08-11T143443Z.csv"
+                        "example": "http://kf.kobo.local:8080/private-media/bob/exports/assets-bob-view_pvNNUan8EBhzfkrv6sCNuzR-2025-08-11T143443Z.csv"
                     },
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/project-views/pvyHWBnzRw3GCJpFs6cMdem/"
+                        "example": "http://kf.kobo.local:8080/api/v2/project-views/pvyHWBnzRw3GCJpFs6cMdem/"
                     },
                     "assets": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/project-views/pvyHWBnzRw3GCJpFs6cMdem/assets/"
+                        "example": "http://kf.kobo.local:8080/api/v2/project-views/pvyHWBnzRw3GCJpFs6cMdem/assets/"
                     },
                     "assets_export": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/project-views/pvyHWBnzRw3GCJpFs6cMdem/assets/export/"
+                        "example": "http://kf.kobo.local:8080/api/v2/project-views/pvyHWBnzRw3GCJpFs6cMdem/assets/export/"
                     },
                     "users": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/project-views/pvyHWBnzRw3GCJpFs6cMdem/users/"
+                        "example": "http://kf.kobo.local:8080/api/v2/project-views/pvyHWBnzRw3GCJpFs6cMdem/users/"
                     },
                     "users_export": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/project-views/pvyHWBnzRw3GCJpFs6cMdem/users/export/"
+                        "example": "http://kf.kobo.local:8080/api/v2/project-views/pvyHWBnzRw3GCJpFs6cMdem/users/export/"
                     },
                     "countries": {
                         "type": "array",
@@ -22806,7 +22806,7 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a5owyo85mHyFazzgsZK45c/reports/"
+                        "example": "http://kf.kobo.local:8080/api/v2/assets/a5owyo85mHyFazzgsZK45c/reports/"
                     },
                     "count": {
                         "type": "integer"
@@ -23374,7 +23374,7 @@
                     "user": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/users/bob/"
+                        "example": "http://kf.kobo.local:8080/api/v2/users/bob/"
                     },
                     "date_created": {
                         "type": "string",
@@ -23431,7 +23431,7 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/tags/tg3c5giitsQUMCJNNoDEpQ/"
+                        "example": "http://kf.kobo.local:8080/api/v2/tags/tg3c5giitsQUMCJNNoDEpQ/"
                     }
                 },
                 "required": [
@@ -23448,20 +23448,20 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/tags/tg3c5giitsQUMCJNNoDEpQ/"
+                        "example": "http://kf.kobo.local:8080/api/v2/tags/tg3c5giitsQUMCJNNoDEpQ/"
                     },
                     "assets": {
                         "type": "array",
                         "items": {
                             "type": "string",
                             "format": "uri",
-                            "example": "https://kf.kobotoolbox.org/api/v2/assets/a5owyo85mHyFazzgsZK45c/"
+                            "example": "http://kf.kobo.local:8080/api/v2/assets/a5owyo85mHyFazzgsZK45c/"
                         }
                     },
                     "parent": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/tags/"
+                        "example": "http://kf.kobo.local:8080/api/v2/tags/"
                     },
                     "uid": {
                         "type": "string"
@@ -23481,7 +23481,7 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/terms-of-service/terms_of_service_fr/"
+                        "example": "http://kf.kobo.local:8080/api/v2/terms-of-service/terms_of_service_fr/"
                     },
                     "slug": {
                         "type": "string"
@@ -23519,12 +23519,12 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/project-ownership/invites/poi52fGkwDjQeZkUxcaou39q/transfers/pot54pTqM5qwKdZ4wnNdiwDY/"
+                        "example": "http://kf.kobo.local:8080/api/v2/project-ownership/invites/poi52fGkwDjQeZkUxcaou39q/transfers/pot54pTqM5qwKdZ4wnNdiwDY/"
                     },
                     "asset": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/"
+                        "example": "http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/"
                     },
                     "status": {
                         "type": "string"
@@ -24217,7 +24217,7 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/users/bob/"
+                        "example": "http://kf.kobo.local:8080/api/v2/users/bob/"
                     },
                     "username": {
                         "type": "string"
@@ -24251,7 +24251,7 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/versions/vf7pK9SmkJPYZVzr4uypi4/",
+                        "example": "http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/versions/vf7pK9SmkJPYZVzr4uypi4/",
                         "readOnly": true
                     },
                     "content_hash": {
@@ -24287,7 +24287,7 @@
                     "url": {
                         "type": "string",
                         "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/versions/vf7pK9SmkJPYZVzr4uypi4/",
+                        "example": "http://kf.kobo.local:8080/api/v2/assets/a3C9wWefqZVkChNLKqqXVZ/versions/vf7pK9SmkJPYZVzr4uypi4/",
                         "readOnly": true
                     },
                     "content_hash": {
