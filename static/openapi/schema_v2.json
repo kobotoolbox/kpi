@@ -1577,7 +1577,7 @@
         "/api/v2/assets/{uid_asset}/advanced-features/": {
             "get": {
                 "operationId": "api_v2_assets_advanced_features_list",
-                "description": "## List all advanced features on an asset\n\nLists all advanced features on all questions in an asset\n",
+                "description": "## List all advanced features on an asset\n\nLists all advanced features on all questions in an asset. Examples show one type at a time, but the response may contain multiple advanced features items.\n",
                 "parameters": [
                     {
                         "in": "path",
@@ -1585,12 +1585,12 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "UID of the parent assets",
+                        "description": "UID of the parent asset",
                         "required": true
                     }
                 ],
                 "tags": [
-                    "Advanced Features"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -1608,6 +1608,125 @@
                                     "type": "array",
                                     "items": {
                                         "$ref": "#/components/schemas/AdvancedFeatureResponse"
+                                    }
+                                },
+                                "examples": {
+                                    "NLPAdvancedFeatures": {
+                                        "value": [
+                                            {
+                                                "action": "<action_id>",
+                                                "question_xpath": "q1",
+                                                "params": [
+                                                    {
+                                                        "language": "es"
+                                                    },
+                                                    {
+                                                        "language": "en"
+                                                    }
+                                                ],
+                                                "uid": "qa123456789AbCdEfGhIjklm"
+                                            }
+                                        ],
+                                        "summary": "NLP Advanced Features",
+                                        "description": "`<action_id>` can be any of:\n\n* `manual_transcription`\n* `manual_translation`\n* `automatic_google_transcription`\n* `automatic_google_translation`\n"
+                                    },
+                                    "QualitativeAnalysis-SimpleTypes": {
+                                        "value": [
+                                            {
+                                                "action": "qual",
+                                                "question_xpath": "q1",
+                                                "params": [
+                                                    {
+                                                        "type": "<question_type>",
+                                                        "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
+                                                        "labels": {
+                                                            "_default": "Qualitative analysis result"
+                                                        }
+                                                    }
+                                                ],
+                                                "uid": "qa123456789AbCdEfGhIjklm"
+                                            }
+                                        ],
+                                        "summary": "Qualitative Analysis - Simple Types",
+                                        "description": "`<question_type>` can be any of:\n\n* `qualText` \n* `qualInteger` \n* `qualTags` \n* `qualNote` \n"
+                                    },
+                                    "QualitativeAnalysis-SingleChoiceQuestion": {
+                                        "value": [
+                                            {
+                                                "action": "qual",
+                                                "question_xpath": "q1",
+                                                "params": [
+                                                    {
+                                                        "type": "qualSelectOne",
+                                                        "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
+                                                        "labels": {
+                                                            "_default": "Urgency Level"
+                                                        },
+                                                        "choices": [
+                                                            {
+                                                                "uuid": "qqqqqqqq-bbbb-cccc-dddd-eeeeffffffff",
+                                                                "labels": {
+                                                                    "_default": "High"
+                                                                }
+                                                            },
+                                                            {
+                                                                "uuid": "hhhhhhhh-bbbb-cccc-dddd-eeeeffffffff",
+                                                                "labels": {
+                                                                    "_default": "Medium"
+                                                                }
+                                                            },
+                                                            {
+                                                                "uuid": "gggggggg-bbbb-cccc-dddd-eeeeffffffff",
+                                                                "labels": {
+                                                                    "_default": "Low"
+                                                                }
+                                                            }
+                                                        ]
+                                                    }
+                                                ],
+                                                "uid": "qa123456789AbCdEfGhIjklm"
+                                            }
+                                        ],
+                                        "summary": "Qualitative Analysis - Single Choice Question"
+                                    },
+                                    "QualitativeAnalysis-MultipleChoiceQuestion": {
+                                        "value": [
+                                            {
+                                                "action": "qual",
+                                                "question_xpath": "q1",
+                                                "params": [
+                                                    {
+                                                        "type": "qualSelectMultiple",
+                                                        "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
+                                                        "labels": {
+                                                            "_default": "Tags"
+                                                        },
+                                                        "choices": [
+                                                            {
+                                                                "uuid": "xxxxxxxx-bbbb-cccc-dddd-eeeeffffffff",
+                                                                "labels": {
+                                                                    "_default": "Shelter"
+                                                                }
+                                                            },
+                                                            {
+                                                                "uuid": "zzzzzzzz-bbbb-cccc-dddd-eeeeffffffff",
+                                                                "labels": {
+                                                                    "_default": "Food"
+                                                                }
+                                                            },
+                                                            {
+                                                                "uuid": "yyyyyyyy-bbbb-cccc-dddd-eeeeffffffff",
+                                                                "labels": {
+                                                                    "_default": "Medical"
+                                                                }
+                                                            }
+                                                        ]
+                                                    }
+                                                ],
+                                                "uid": "qa123456789AbCdEfGhIjklm"
+                                            }
+                                        ],
+                                        "summary": "Qualitative Analysis - Multiple Choice Question"
                                     }
                                 }
                             }
@@ -1636,7 +1755,7 @@
             },
             "post": {
                 "operationId": "api_v2_assets_advanced_features_create",
-                "description": "## Add an advanced action to an asset\n\nEnables a new type of advanced action on a question in the asset.\n* `action`, `params`, and `question_xpath` are required\n* `params` must match the expected param_schema of the `action`\n\nAccepted `action`s include:\n* `manual_transcription`\n* `automatic_google_transcription`\n* `manual_translation`\n* `automatic_google_translation`\n* `qual`\n\nFor all actions except `qual`, `params` must look like\n> '[{\"language\": \"es\"}, {\"language\": \"en\"}, ...]'\n\nFor `qual`, `params` must look like\n```\n   [\n        {\n            'type': 'qualInteger',\n            'uuid': '1a2c8eb0-e2ec-4b3c-942a-c1a5410c081a',\n            'labels': {'_default': 'How many characters appear in the story?'},\n        },\n        {\n            'type': 'qualSelectMultiple',\n            'uuid': '2e30bec7-4843-43c7-98bc-13114af230c5',\n            'labels': {'_default': \"What themes were present in the story?\"},\n            'choices': [\n                {\n                    'uuid': '2e24e6b4-bc3b-4e8e-b0cd-d8d3b9ca15b6',\n                    'labels': {'_default': 'Empathy'},\n                },\n                {\n                    'uuid': 'cb82919d-2948-4ccf-a488-359c5d5ee53a',\n                    'labels': {'_default': 'Competition'},\n                },\n                {\n                    'uuid': '8effe3b1-619e-4ada-be45-ebcea5af0aaf',\n                    'labels': {'_default': 'Apathy'},\n                },\n            ],\n        },\n        {\n            'type': 'qualSelectOne',\n            'uuid': '1a8b748b-f470-4c40-bc09-ce2b1197f503',\n            'labels': {'_default': 'Was this a first-hand account?'},\n            'choices': [\n                {\n                    'uuid': '3c7aacdc-8971-482a-9528-68e64730fc99',\n                    'labels': {'_default': 'Yes'},\n                },\n                {\n                    'uuid': '7e31c6a5-5eac-464c-970c-62c383546a94',\n                    'labels': {'_default': 'No'},\n                },\n            ],\n        },\n        {\n            'type': 'qualTags',\n            'uuid': 'e9b4e6d1-fdbb-4dc9-8b10-a9c3c388322f',\n            'labels': {'_default': 'Tag any landmarks mentioned in the story'},\n        },\n        {\n            'type': 'qualText',\n            'uuid': '83acf2a7-8edc-4fd8-8b9f-f832ca3f18ad',\n            'labels': {'_default': 'Add any further remarks'},\n        },\n        {\n            'type': 'qualNote',\n            'uuid': '5ef11d48-d7a3-432e-af83-8c2e9b1feb72',\n            'labels': {'_default': 'Thanks for your diligence'},\n        },\n    ]```\n",
+                "description": "## Add an advanced action to an asset\n\nEnables a new type of advanced action on a question in the asset.\n* `action`, `params`, and `question_xpath` are required\n* `params` must match the expected param_schema of the `action`\n\nAccepted `action`s include:\n* `manual_transcription`\n* `automatic_google_transcription`\n* `manual_translation`\n* `automatic_google_translation`\n* `qual`\n\n",
                 "parameters": [
                     {
                         "in": "path",
@@ -1644,28 +1763,125 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "UID of the parent assets",
+                        "description": "UID of the parent asset",
                         "required": true
                     }
                 ],
                 "tags": [
-                    "Advanced Features"
+                    "Survey data"
                 ],
                 "requestBody": {
                     "content": {
                         "application/json": {
                             "schema": {
                                 "$ref": "#/components/schemas/AdvancedFeaturePostRequest"
-                            }
-                        },
-                        "application/x-www-form-urlencoded": {
-                            "schema": {
-                                "$ref": "#/components/schemas/AdvancedFeaturePostRequest"
-                            }
-                        },
-                        "multipart/form-data": {
-                            "schema": {
-                                "$ref": "#/components/schemas/AdvancedFeaturePostRequest"
+                            },
+                            "examples": {
+                                "NLPAdvancedFeatures": {
+                                    "value": {
+                                        "action": "<action_id>",
+                                        "question_xpath": "q1",
+                                        "params": [
+                                            {
+                                                "language": "es"
+                                            },
+                                            {
+                                                "language": "fr"
+                                            }
+                                        ]
+                                    },
+                                    "summary": "NLP Advanced Features",
+                                    "description": "`<action_id>` can be any of:\n\n* `manual_transcription`\n* `manual_translation`\n* `automatic_google_transcription`\n* `automatic_google_translation`\n"
+                                },
+                                "QualitativeAnalysis-SimpleTypes": {
+                                    "value": {
+                                        "action": "qual",
+                                        "question_xpath": "q1",
+                                        "params": [
+                                            {
+                                                "type": "<question_type>",
+                                                "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
+                                                "labels": {
+                                                    "_default": "Qualitative analysis result"
+                                                }
+                                            }
+                                        ]
+                                    },
+                                    "summary": "Qualitative Analysis - Simple Types",
+                                    "description": "`<question_type>` can be any of:\n\n* `qualText` \n* `qualInteger` \n* `qualTags` \n* `qualNote` \n"
+                                },
+                                "QualitativeAnalysis-SingleChoiceQuestion": {
+                                    "value": {
+                                        "action": "qual",
+                                        "question_xpath": "q1",
+                                        "params": [
+                                            {
+                                                "type": "qualSelectOne",
+                                                "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
+                                                "labels": {
+                                                    "_default": "Urgency Level"
+                                                },
+                                                "choices": [
+                                                    {
+                                                        "uuid": "qqqqqqqq-bbbb-cccc-dddd-eeeeffffffff",
+                                                        "labels": {
+                                                            "_default": "High"
+                                                        }
+                                                    },
+                                                    {
+                                                        "uuid": "hhhhhhhh-bbbb-cccc-dddd-eeeeffffffff",
+                                                        "labels": {
+                                                            "_default": "Medium"
+                                                        }
+                                                    },
+                                                    {
+                                                        "uuid": "gggggggg-bbbb-cccc-dddd-eeeeffffffff",
+                                                        "labels": {
+                                                            "_default": "Low"
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    "summary": "Qualitative Analysis - Single Choice Question"
+                                },
+                                "QualitativeAnalysis-MultipleChoiceQuestion": {
+                                    "value": {
+                                        "action": "qual",
+                                        "question_xpath": "q1",
+                                        "params": [
+                                            {
+                                                "type": "qualSelectMultiple",
+                                                "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
+                                                "labels": {
+                                                    "_default": "Tags"
+                                                },
+                                                "choices": [
+                                                    {
+                                                        "uuid": "xxxxxxxx-bbbb-cccc-dddd-eeeeffffffff",
+                                                        "labels": {
+                                                            "_default": "Shelter"
+                                                        }
+                                                    },
+                                                    {
+                                                        "uuid": "zzzzzzzz-bbbb-cccc-dddd-eeeeffffffff",
+                                                        "labels": {
+                                                            "_default": "Food"
+                                                        }
+                                                    },
+                                                    {
+                                                        "uuid": "yyyyyyyy-bbbb-cccc-dddd-eeeeffffffff",
+                                                        "labels": {
+                                                            "_default": "Medical"
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    "summary": "Qualitative Analysis - Multiple Choice Question"
+                                }
                             }
                         }
                     },
@@ -1733,18 +1949,18 @@
                 }
             }
         },
-        "/api/v2/assets/{uid_asset}/advanced-features/{id}/": {
+        "/api/v2/assets/{uid_asset}/advanced-features/{uid_advanced_feature}/": {
             "get": {
                 "operationId": "api_v2_assets_advanced_features_retrieve",
                 "description": "## Retrieve advanced feature configuration for a question on an asset\n\nGets the params for one advanced action for one question in an asset\n",
                 "parameters": [
                     {
                         "in": "path",
-                        "name": "id",
+                        "name": "uid_advanced_feature",
                         "schema": {
                             "type": "string"
                         },
-                        "description": "UID of the action",
+                        "description": "UID of the advanced feature",
                         "required": true
                     },
                     {
@@ -1753,12 +1969,12 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "UID of the parent assets",
+                        "description": "UID of the parent asset",
                         "required": true
                     }
                 ],
                 "tags": [
-                    "Advanced Features"
+                    "Survey data"
                 ],
                 "security": [
                     {
@@ -1774,6 +1990,117 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/AdvancedFeatureResponse"
+                                },
+                                "examples": {
+                                    "NLPAdvancedFeatures": {
+                                        "value": {
+                                            "action": "<action_id>",
+                                            "question_xpath": "q1",
+                                            "params": [
+                                                {
+                                                    "language": "es"
+                                                },
+                                                {
+                                                    "language": "en"
+                                                }
+                                            ],
+                                            "uid": "qa123456789AbCdEfGhIjklm"
+                                        },
+                                        "summary": "NLP Advanced Features",
+                                        "description": "`<action_id>` can be any of:\n\n* `manual_transcription`\n* `manual_translation`\n* `automatic_google_transcription`\n* `automatic_google_translation`\n"
+                                    },
+                                    "QualitativeAnalysis-SimpleTypes": {
+                                        "value": {
+                                            "action": "qual",
+                                            "question_xpath": "q1",
+                                            "params": [
+                                                {
+                                                    "type": "<question_type>",
+                                                    "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
+                                                    "labels": {
+                                                        "_default": "Qualitative analysis result"
+                                                    }
+                                                }
+                                            ],
+                                            "uid": "qa123456789AbCdEfGhIjklm"
+                                        },
+                                        "summary": "Qualitative Analysis - Simple Types",
+                                        "description": "`<question_type>` can be any of:\n\n* `qualText` \n* `qualInteger` \n* `qualTags` \n* `qualNote` \n"
+                                    },
+                                    "QualitativeAnalysis-SingleChoiceQuestion": {
+                                        "value": {
+                                            "action": "qual",
+                                            "question_xpath": "q1",
+                                            "params": [
+                                                {
+                                                    "type": "qualSelectOne",
+                                                    "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
+                                                    "labels": {
+                                                        "_default": "Urgency Level"
+                                                    },
+                                                    "choices": [
+                                                        {
+                                                            "uuid": "qqqqqqqq-bbbb-cccc-dddd-eeeeffffffff",
+                                                            "labels": {
+                                                                "_default": "High"
+                                                            }
+                                                        },
+                                                        {
+                                                            "uuid": "hhhhhhhh-bbbb-cccc-dddd-eeeeffffffff",
+                                                            "labels": {
+                                                                "_default": "Medium"
+                                                            }
+                                                        },
+                                                        {
+                                                            "uuid": "gggggggg-bbbb-cccc-dddd-eeeeffffffff",
+                                                            "labels": {
+                                                                "_default": "Low"
+                                                            }
+                                                        }
+                                                    ]
+                                                }
+                                            ],
+                                            "uid": "qa123456789AbCdEfGhIjklm"
+                                        },
+                                        "summary": "Qualitative Analysis - Single Choice Question"
+                                    },
+                                    "QualitativeAnalysis-MultipleChoiceQuestion": {
+                                        "value": {
+                                            "action": "qual",
+                                            "question_xpath": "q1",
+                                            "params": [
+                                                {
+                                                    "type": "qualSelectMultiple",
+                                                    "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
+                                                    "labels": {
+                                                        "_default": "Tags"
+                                                    },
+                                                    "choices": [
+                                                        {
+                                                            "uuid": "xxxxxxxx-bbbb-cccc-dddd-eeeeffffffff",
+                                                            "labels": {
+                                                                "_default": "Shelter"
+                                                            }
+                                                        },
+                                                        {
+                                                            "uuid": "zzzzzzzz-bbbb-cccc-dddd-eeeeffffffff",
+                                                            "labels": {
+                                                                "_default": "Food"
+                                                            }
+                                                        },
+                                                        {
+                                                            "uuid": "yyyyyyyy-bbbb-cccc-dddd-eeeeffffffff",
+                                                            "labels": {
+                                                                "_default": "Medical"
+                                                            }
+                                                        }
+                                                    ]
+                                                }
+                                            ],
+                                            "uid": "qa123456789AbCdEfGhIjklm"
+                                        },
+                                        "summary": "Qualitative Analysis - Multiple Choice Question"
+                                    }
                                 }
                             }
                         },
@@ -1801,15 +2128,15 @@
             },
             "patch": {
                 "operationId": "api_v2_assets_advanced_features_partial_update",
-                "description": "## Update an advanced action on an asset\n\nUpdate the params of an advanced action on a question in the asset.\n* `params` is required\n* `params` must match the expected param_schema of the action being updated\n\nFor all actions except `qual`, `params` must look like\n> '[{\"language\": \"es\"}, {\"language\": \"en\"}, ...]'\n\nFor `qual`, `params` must look like\n```\n   [\n        {\n            'type': 'qualInteger',\n            'uuid': '1a2c8eb0-e2ec-4b3c-942a-c1a5410c081a',\n            'labels': {'_default': 'How many characters appear in the story?'},\n        },\n        {\n            'type': 'qualSelectMultiple',\n            'uuid': '2e30bec7-4843-43c7-98bc-13114af230c5',\n            'labels': {'_default': \"What themes were present in the story?\"},\n            'choices': [\n                {\n                    'uuid': '2e24e6b4-bc3b-4e8e-b0cd-d8d3b9ca15b6',\n                    'labels': {'_default': 'Empathy'},\n                },\n                {\n                    'uuid': 'cb82919d-2948-4ccf-a488-359c5d5ee53a',\n                    'labels': {'_default': 'Competition'},\n                },\n                {\n                    'uuid': '8effe3b1-619e-4ada-be45-ebcea5af0aaf',\n                    'labels': {'_default': 'Apathy'},\n                },\n            ],\n        },\n        {\n            'type': 'qualSelectOne',\n            'uuid': '1a8b748b-f470-4c40-bc09-ce2b1197f503',\n            'labels': {'_default': 'Was this a first-hand account?'},\n            'choices': [\n                {\n                    'uuid': '3c7aacdc-8971-482a-9528-68e64730fc99',\n                    'labels': {'_default': 'Yes'},\n                },\n                {\n                    'uuid': '7e31c6a5-5eac-464c-970c-62c383546a94',\n                    'labels': {'_default': 'No'},\n                },\n            ],\n        },\n        {\n            'type': 'qualTags',\n            'uuid': 'e9b4e6d1-fdbb-4dc9-8b10-a9c3c388322f',\n            'labels': {'_default': 'Tag any landmarks mentioned in the story'},\n        },\n        {\n            'type': 'qualText',\n            'uuid': '83acf2a7-8edc-4fd8-8b9f-f832ca3f18ad',\n            'labels': {'_default': 'Add any further remarks'},\n        },\n        {\n            'type': 'qualNote',\n            'uuid': '5ef11d48-d7a3-432e-af83-8c2e9b1feb72',\n            'labels': {'_default': 'Thanks for your diligence'},\n        },\n    ]```\n",
+                "description": "## Update an advanced action on an asset\n\nUpdate the params of an advanced action on a question in the asset.\n* `params` is required\n* `params` must match the expected param_schema of the action being updated\n\n\n",
                 "parameters": [
                     {
                         "in": "path",
-                        "name": "id",
+                        "name": "uid_advanced_feature",
                         "schema": {
                             "type": "string"
                         },
-                        "description": "UID of the action",
+                        "description": "UID of the advanced feature",
                         "required": true
                     },
                     {
@@ -1818,28 +2145,125 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "UID of the parent assets",
+                        "description": "UID of the parent asset",
                         "required": true
                     }
                 ],
                 "tags": [
-                    "Advanced Features"
+                    "Survey data"
                 ],
                 "requestBody": {
                     "content": {
                         "application/json": {
                             "schema": {
                                 "$ref": "#/components/schemas/PatchedAdvancedFeaturePatchRequest"
-                            }
-                        },
-                        "application/x-www-form-urlencoded": {
-                            "schema": {
-                                "$ref": "#/components/schemas/PatchedAdvancedFeaturePatchRequest"
-                            }
-                        },
-                        "multipart/form-data": {
-                            "schema": {
-                                "$ref": "#/components/schemas/PatchedAdvancedFeaturePatchRequest"
+                            },
+                            "examples": {
+                                "NLPAdvancedFeatures": {
+                                    "value": {
+                                        "action": "<action_id>",
+                                        "question_xpath": "q1",
+                                        "params": [
+                                            {
+                                                "language": "es"
+                                            },
+                                            {
+                                                "language": "fr"
+                                            }
+                                        ]
+                                    },
+                                    "summary": "NLP Advanced Features",
+                                    "description": "`<action_id>` can be any of:\n\n* `manual_transcription`\n* `manual_translation`\n* `automatic_google_transcription`\n* `automatic_google_translation`\n"
+                                },
+                                "QualitativeAnalysis-SimpleTypes": {
+                                    "value": {
+                                        "action": "qual",
+                                        "question_xpath": "q1",
+                                        "params": [
+                                            {
+                                                "type": "<question_type>",
+                                                "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
+                                                "labels": {
+                                                    "_default": "Qualitative analysis result"
+                                                }
+                                            }
+                                        ]
+                                    },
+                                    "summary": "Qualitative Analysis - Simple Types",
+                                    "description": "`<question_type>` can be any of:\n\n* `qualText` \n* `qualInteger` \n* `qualTags` \n* `qualNote` \n"
+                                },
+                                "QualitativeAnalysis-SingleChoiceQuestion": {
+                                    "value": {
+                                        "action": "qual",
+                                        "question_xpath": "q1",
+                                        "params": [
+                                            {
+                                                "type": "qualSelectOne",
+                                                "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
+                                                "labels": {
+                                                    "_default": "Urgency Level"
+                                                },
+                                                "choices": [
+                                                    {
+                                                        "uuid": "qqqqqqqq-bbbb-cccc-dddd-eeeeffffffff",
+                                                        "labels": {
+                                                            "_default": "High"
+                                                        }
+                                                    },
+                                                    {
+                                                        "uuid": "hhhhhhhh-bbbb-cccc-dddd-eeeeffffffff",
+                                                        "labels": {
+                                                            "_default": "Medium"
+                                                        }
+                                                    },
+                                                    {
+                                                        "uuid": "gggggggg-bbbb-cccc-dddd-eeeeffffffff",
+                                                        "labels": {
+                                                            "_default": "Low"
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    "summary": "Qualitative Analysis - Single Choice Question"
+                                },
+                                "QualitativeAnalysis-MultipleChoiceQuestion": {
+                                    "value": {
+                                        "action": "qual",
+                                        "question_xpath": "q1",
+                                        "params": [
+                                            {
+                                                "type": "qualSelectMultiple",
+                                                "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
+                                                "labels": {
+                                                    "_default": "Tags"
+                                                },
+                                                "choices": [
+                                                    {
+                                                        "uuid": "xxxxxxxx-bbbb-cccc-dddd-eeeeffffffff",
+                                                        "labels": {
+                                                            "_default": "Shelter"
+                                                        }
+                                                    },
+                                                    {
+                                                        "uuid": "zzzzzzzz-bbbb-cccc-dddd-eeeeffffffff",
+                                                        "labels": {
+                                                            "_default": "Food"
+                                                        }
+                                                    },
+                                                    {
+                                                        "uuid": "yyyyyyyy-bbbb-cccc-dddd-eeeeffffffff",
+                                                        "labels": {
+                                                            "_default": "Medical"
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    "summary": "Qualitative Analysis - Multiple Choice Question"
+                                }
                             }
                         }
                     }
@@ -1858,6 +2282,117 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/AdvancedFeatureResponse"
+                                },
+                                "examples": {
+                                    "NLPAdvancedFeatures": {
+                                        "value": {
+                                            "action": "<action_id>",
+                                            "question_xpath": "q1",
+                                            "params": [
+                                                {
+                                                    "language": "es"
+                                                },
+                                                {
+                                                    "language": "en"
+                                                }
+                                            ],
+                                            "uid": "qa123456789AbCdEfGhIjklm"
+                                        },
+                                        "summary": "NLP Advanced Features",
+                                        "description": "`<action_id>` can be any of:\n\n* `manual_transcription`\n* `manual_translation`\n* `automatic_google_transcription`\n* `automatic_google_translation`\n"
+                                    },
+                                    "QualitativeAnalysis-SimpleTypes": {
+                                        "value": {
+                                            "action": "qual",
+                                            "question_xpath": "q1",
+                                            "params": [
+                                                {
+                                                    "type": "<question_type>",
+                                                    "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
+                                                    "labels": {
+                                                        "_default": "Qualitative analysis result"
+                                                    }
+                                                }
+                                            ],
+                                            "uid": "qa123456789AbCdEfGhIjklm"
+                                        },
+                                        "summary": "Qualitative Analysis - Simple Types",
+                                        "description": "`<question_type>` can be any of:\n\n* `qualText` \n* `qualInteger` \n* `qualTags` \n* `qualNote` \n"
+                                    },
+                                    "QualitativeAnalysis-SingleChoiceQuestion": {
+                                        "value": {
+                                            "action": "qual",
+                                            "question_xpath": "q1",
+                                            "params": [
+                                                {
+                                                    "type": "qualSelectOne",
+                                                    "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
+                                                    "labels": {
+                                                        "_default": "Urgency Level"
+                                                    },
+                                                    "choices": [
+                                                        {
+                                                            "uuid": "qqqqqqqq-bbbb-cccc-dddd-eeeeffffffff",
+                                                            "labels": {
+                                                                "_default": "High"
+                                                            }
+                                                        },
+                                                        {
+                                                            "uuid": "hhhhhhhh-bbbb-cccc-dddd-eeeeffffffff",
+                                                            "labels": {
+                                                                "_default": "Medium"
+                                                            }
+                                                        },
+                                                        {
+                                                            "uuid": "gggggggg-bbbb-cccc-dddd-eeeeffffffff",
+                                                            "labels": {
+                                                                "_default": "Low"
+                                                            }
+                                                        }
+                                                    ]
+                                                }
+                                            ],
+                                            "uid": "qa123456789AbCdEfGhIjklm"
+                                        },
+                                        "summary": "Qualitative Analysis - Single Choice Question"
+                                    },
+                                    "QualitativeAnalysis-MultipleChoiceQuestion": {
+                                        "value": {
+                                            "action": "qual",
+                                            "question_xpath": "q1",
+                                            "params": [
+                                                {
+                                                    "type": "qualSelectMultiple",
+                                                    "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
+                                                    "labels": {
+                                                        "_default": "Tags"
+                                                    },
+                                                    "choices": [
+                                                        {
+                                                            "uuid": "xxxxxxxx-bbbb-cccc-dddd-eeeeffffffff",
+                                                            "labels": {
+                                                                "_default": "Shelter"
+                                                            }
+                                                        },
+                                                        {
+                                                            "uuid": "zzzzzzzz-bbbb-cccc-dddd-eeeeffffffff",
+                                                            "labels": {
+                                                                "_default": "Food"
+                                                            }
+                                                        },
+                                                        {
+                                                            "uuid": "yyyyyyyy-bbbb-cccc-dddd-eeeeffffffff",
+                                                            "labels": {
+                                                                "_default": "Medical"
+                                                            }
+                                                        }
+                                                    ]
+                                                }
+                                            ],
+                                            "uid": "qa123456789AbCdEfGhIjklm"
+                                        },
+                                        "summary": "Qualitative Analysis - Multiple Choice Question"
+                                    }
                                 }
                             }
                         },
@@ -13935,7 +14470,14 @@
                     "params": {
                         "type": "array",
                         "items": {
-                            "type": "object"
+                            "anyOf": [
+                                {
+                                    "$ref": "#/components/schemas/NLPActionParams"
+                                },
+                                {
+                                    "$ref": "#/components/schemas/QualActionParams"
+                                }
+                            ]
                         }
                     }
                 },
@@ -13957,7 +14499,14 @@
                     "params": {
                         "type": "array",
                         "items": {
-                            "type": "object"
+                            "anyOf": [
+                                {
+                                    "$ref": "#/components/schemas/NLPActionParams"
+                                },
+                                {
+                                    "$ref": "#/components/schemas/QualActionParams"
+                                }
+                            ]
                         }
                     },
                     "asset": {
@@ -18580,6 +19129,21 @@
                 "type": "string",
                 "description": "* `admin` - admin\n* `member` - member\n* `owner` - owner"
             },
+            "NLPActionParams": {
+                "type": "array",
+                "items": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "language": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "language"
+                    ],
+                    "type": "object"
+                }
+            },
             "NlpUsage": {
                 "type": "object",
                 "properties": {
@@ -20206,7 +20770,14 @@
                     "params": {
                         "type": "array",
                         "items": {
-                            "type": "object"
+                            "anyOf": [
+                                {
+                                    "$ref": "#/components/schemas/NLPActionParams"
+                                },
+                                {
+                                    "$ref": "#/components/schemas/QualActionParams"
+                                }
+                            ]
                         }
                     }
                 }
@@ -22095,6 +22666,116 @@
                 ],
                 "type": "string",
                 "description": "* `always_invoice` - Always invoice\n* `create_prorations` - Create prorations\n* `none` - None"
+            },
+            "QualActionParams": {
+                "type": "array",
+                "items": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/components/schemas/QualSimpleQuestionParams"
+                        },
+                        {
+                            "$ref": "#/components/schemas/QualSelectQuestionParams"
+                        }
+                    ]
+                }
+            },
+            "QualSelectQuestionParams": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "uuid": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "type": {
+                        "$ref": "#/components/schemas/QualSelectQuestionParamsTypeEnum"
+                    },
+                    "labels": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "string"
+                        }
+                    },
+                    "choices": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                                "labels": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    }
+                                },
+                                "uuid": {
+                                    "type": "string",
+                                    "format": "uuid"
+                                },
+                                "options": {
+                                    "type": "object"
+                                }
+                            },
+                            "required": [
+                                "labels",
+                                "uuid"
+                            ]
+                        }
+                    },
+                    "options": {
+                        "type": "object"
+                    }
+                },
+                "required": [
+                    "uuid",
+                    "type",
+                    "labels",
+                    "choices"
+                ]
+            },
+            "QualSelectQuestionParamsTypeEnum": {
+                "type": "string",
+                "enum": [
+                    "qualSelectMultiple",
+                    "qualSelectOne"
+                ]
+            },
+            "QualSimpleQuestionParams": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "uuid": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "type": {
+                        "$ref": "#/components/schemas/QualSimpleQuestionParamsTypeEnum"
+                    },
+                    "labels": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "string"
+                        }
+                    },
+                    "options": {
+                        "type": "object"
+                    }
+                },
+                "required": [
+                    "uuid",
+                    "type",
+                    "labels"
+                ]
+            },
+            "QualSimpleQuestionParamsTypeEnum": {
+                "type": "string",
+                "enum": [
+                    "qualInteger",
+                    "qualTags",
+                    "qualText",
+                    "qualNote"
+                ]
             },
             "Recurring": {
                 "type": "object",

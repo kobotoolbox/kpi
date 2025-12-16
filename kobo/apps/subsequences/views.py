@@ -12,6 +12,10 @@ from kobo.apps.subsequences.serializers import (
 )
 from kobo.apps.subsequences.utils.versioning import migrate_advanced_features
 from kpi.permissions import AssetAdvancedFeaturesPermission
+from kpi.schema_extensions.v2.subsequences.examples import (
+    get_advanced_features_create_examples,
+    get_advanced_features_list_examples,
+)
 from kpi.schema_extensions.v2.subsequences.serializers import (
     AdvancedFeaturePatchRequest,
     AdvancedFeaturePostRequest,
@@ -23,29 +27,31 @@ from kpi.utils.schema_extensions.response import (
     open_api_201_created_response,
 )
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
+from kpi.versioning import APIV2Versioning
 
 
 @extend_schema(
-    tags=['Advanced Features'],
+    tags=['Survey data'],
     parameters=[
         OpenApiParameter(
             name='uid_asset',
             type=str,
             location=OpenApiParameter.PATH,
             required=True,
-            description='UID of the parent assets',
+            description='UID of the parent asset',
         ),
     ],
 )
 @extend_schema_view(
     create=extend_schema(
         description=read_md('subsequences', 'subsequences/create.md'),
-        request=AdvancedFeaturePostRequest,
+        request={'application/json': AdvancedFeaturePostRequest},
         responses=open_api_201_created_response(
             AdvancedFeatureResponse,
             require_auth=False,
             raise_access_forbidden=False,
         ),
+        examples=get_advanced_features_create_examples(),
     ),
     list=extend_schema(
         description=read_md('subsequences', 'subsequences/list.md'),
@@ -55,10 +61,11 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
             raise_access_forbidden=False,
             validate_payload=False,
         ),
+        examples=get_advanced_features_list_examples(),
     ),
     partial_update=extend_schema(
         description=read_md('subsequences', 'subsequences/update.md'),
-        request=AdvancedFeaturePatchRequest,
+        request={'application/json': AdvancedFeaturePatchRequest},
         responses=open_api_200_ok_response(
             AdvancedFeatureResponse,
             require_auth=False,
@@ -66,13 +73,15 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
         ),
         parameters=[
             OpenApiParameter(
-                name='id',
+                name='uid_advanced_feature',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
-                description='UID of the action',
+                description='UID of the advanced feature',
             ),
         ],
+        examples=get_advanced_features_create_examples()
+        + get_advanced_features_list_examples(),
     ),
     retrieve=extend_schema(
         description=read_md('subsequences', 'subsequences/retrieve.md'),
@@ -84,13 +93,14 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
         ),
         parameters=[
             OpenApiParameter(
-                name='id',
+                name='uid_advanced_feature',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
-                description='UID of the action',
+                description='UID of the advanced feature',
             ),
         ],
+        examples=get_advanced_features_list_examples(),
     ),
     update=extend_schema(
         exclude=True,
@@ -114,6 +124,10 @@ class QuestionAdvancedFeatureViewSet(
     ]
     pagination_class = None
     permission_classes = (AssetAdvancedFeaturesPermission,)
+    # FIXME v2 version should be set by default
+    versioning_class = APIV2Versioning
+    lookup_field = 'uid'
+    lookup_url_kwarg = 'uid_advanced_feature'
 
     def get_queryset(self):
         return QuestionAdvancedFeature.objects.filter(asset=self.asset)
