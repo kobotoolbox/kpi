@@ -1144,7 +1144,7 @@ paths:
                     * `automatic_google_translation`
                 QualitativeAnalysis-SimpleTypes:
                   value:
-                  - action: qual
+                  - action: manual_qual
                     question_xpath: q1
                     params:
                     - type: <question_type>
@@ -1157,7 +1157,7 @@ paths:
                     * `qualInteger` \n* `qualTags` \n* `qualNote` \n"
                 QualitativeAnalysis-SingleChoiceQuestion:
                   value:
-                  - action: qual
+                  - action: manual_qual
                     question_xpath: q1
                     params:
                     - type: qualSelectOne
@@ -1178,7 +1178,7 @@ paths:
                   summary: Qualitative Analysis - Single Choice Question
                 QualitativeAnalysis-MultipleChoiceQuestion:
                   value:
-                  - action: qual
+                  - action: manual_qual
                     question_xpath: q1
                     params:
                     - type: qualSelectMultiple
@@ -1223,7 +1223,7 @@ paths:
         * `automatic_google_transcription`
         * `manual_translation`
         * `automatic_google_translation`
-        * `qual`
+        * `manual_qual`
 
       parameters:
       - in: path
@@ -1257,7 +1257,7 @@ paths:
                   * `automatic_google_translation`
               QualitativeAnalysis-SimpleTypes:
                 value:
-                  action: qual
+                  action: manual_qual
                   question_xpath: q1
                   params:
                   - type: <question_type>
@@ -1269,7 +1269,7 @@ paths:
                   * `qualInteger` \n* `qualTags` \n* `qualNote` \n"
               QualitativeAnalysis-SingleChoiceQuestion:
                 value:
-                  action: qual
+                  action: manual_qual
                   question_xpath: q1
                   params:
                   - type: qualSelectOne
@@ -1289,7 +1289,7 @@ paths:
                 summary: Qualitative Analysis - Single Choice Question
               QualitativeAnalysis-MultipleChoiceQuestion:
                 value:
-                  action: qual
+                  action: manual_qual
                   question_xpath: q1
                   params:
                   - type: qualSelectMultiple
@@ -1392,7 +1392,7 @@ paths:
                     * `automatic_google_translation`
                 QualitativeAnalysis-SimpleTypes:
                   value:
-                    action: qual
+                    action: manual_qual
                     question_xpath: q1
                     params:
                     - type: <question_type>
@@ -1405,7 +1405,7 @@ paths:
                     * `qualInteger` \n* `qualTags` \n* `qualNote` \n"
                 QualitativeAnalysis-SingleChoiceQuestion:
                   value:
-                    action: qual
+                    action: manual_qual
                     question_xpath: q1
                     params:
                     - type: qualSelectOne
@@ -1426,7 +1426,7 @@ paths:
                   summary: Qualitative Analysis - Single Choice Question
                 QualitativeAnalysis-MultipleChoiceQuestion:
                   value:
-                    action: qual
+                    action: manual_qual
                     question_xpath: q1
                     params:
                     - type: qualSelectMultiple
@@ -1505,7 +1505,7 @@ paths:
                   * `automatic_google_translation`
               QualitativeAnalysis-SimpleTypes:
                 value:
-                  action: qual
+                  action: manual_qual
                   question_xpath: q1
                   params:
                   - type: <question_type>
@@ -1517,7 +1517,7 @@ paths:
                   * `qualInteger` \n* `qualTags` \n* `qualNote` \n"
               QualitativeAnalysis-SingleChoiceQuestion:
                 value:
-                  action: qual
+                  action: manual_qual
                   question_xpath: q1
                   params:
                   - type: qualSelectOne
@@ -1537,7 +1537,7 @@ paths:
                 summary: Qualitative Analysis - Single Choice Question
               QualitativeAnalysis-MultipleChoiceQuestion:
                 value:
-                  action: qual
+                  action: manual_qual
                   question_xpath: q1
                   params:
                   - type: qualSelectMultiple
@@ -1583,7 +1583,7 @@ paths:
                     * `automatic_google_translation`
                 QualitativeAnalysis-SimpleTypes:
                   value:
-                    action: qual
+                    action: manual_qual
                     question_xpath: q1
                     params:
                     - type: <question_type>
@@ -1596,7 +1596,7 @@ paths:
                     * `qualInteger` \n* `qualTags` \n* `qualNote` \n"
                 QualitativeAnalysis-SingleChoiceQuestion:
                   value:
-                    action: qual
+                    action: manual_qual
                     question_xpath: q1
                     params:
                     - type: qualSelectOne
@@ -1617,7 +1617,7 @@ paths:
                   summary: Qualitative Analysis - Single Choice Question
                 QualitativeAnalysis-MultipleChoiceQuestion:
                   value:
-                    action: qual
+                    action: manual_qual
                     question_xpath: q1
                     params:
                     - type: qualSelectMultiple
@@ -2767,11 +2767,11 @@ paths:
                               _actionId: automatic_google_transcription
                               _uuid: 44444444-4444-4444-4444-444444444444
                   summary: Automated Google Translation
-                QualitativeAnalysis–IntegerQuestion:
+                ManualQualitativeAnalysis–IntegerQuestion:
                   value:
                     _version: '20250820'
                     question_name_xpath:
-                      qual:
+                      manual_qual:
                         66666666-6666-6666-6666-666666666666:
                           _dateCreated: '2025-01-01T12:00:00Z'
                           _dateModified: '2025-01-01T12:00:00Z'
@@ -2782,12 +2782,12 @@ paths:
                               uuid: 66666666-6666-6666-6666-666666666666
                               value: 42
                             _uuid: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
-                  summary: Qualitative Analysis – Integer Question
-                QualitativeAnalysis–TextQuestion:
+                  summary: Manual Qualitative Analysis – Integer Question
+                ManualQualitativeAnalysis–TextQuestion:
                   value:
                     _version: '20250820'
                     question_name_xpath:
-                      qual:
+                      manual_qual:
                         aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff:
                           _dateCreated: '2025-01-01T12:00:00Z'
                           _dateModified: '2025-01-01T12:00:00Z'
@@ -2798,12 +2798,12 @@ paths:
                               uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
                               value: This is a qualitative text response.
                             _uuid: 12121212-3434-5656-7878-909090909090
-                  summary: Qualitative Analysis – Text Question
-                QualitativeAnalysis–SingleChoiceQuestion:
+                  summary: Manual Qualitative Analysis – Text Question
+                ManualQualitativeAnalysis–SingleChoiceQuestion:
                   value:
                     _version: '20250820'
                     question_name_xpath:
-                      qual:
+                      manual_qual:
                         77777777-7777-7777-7777-777777777777:
                           _dateCreated: '2025-01-01T12:00:00Z'
                           _dateModified: '2025-01-01T12:00:00Z'
@@ -2814,12 +2814,12 @@ paths:
                               uuid: 77777777-7777-7777-7777-777777777777
                               value: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
                             _uuid: bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
-                  summary: Qualitative Analysis – Single Choice Question
-                QualitativeAnalysis–MultipleChoiceQuestion:
+                  summary: Manual Qualitative Analysis – Single Choice Question
+                ManualQualitativeAnalysis–MultipleChoiceQuestion:
                   value:
                     _version: '20250820'
                     question_name_xpath:
-                      qual:
+                      manual_qual:
                         88888888-8888-8888-8888-888888888888:
                           _dateCreated: '2025-01-01T12:00:00Z'
                           _dateModified: '2025-01-01T12:00:00Z'
@@ -2832,12 +2832,12 @@ paths:
                               - aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
                               - bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
                             _uuid: 99999999-9999-9999-9999-999999999999
-                  summary: Qualitative Analysis – Multiple Choice Question
-                QualitativeAnalysis–TagsQuestion:
+                  summary: Manual Qualitative Analysis – Multiple Choice Question
+                ManualQualitativeAnalysis–TagsQuestion:
                   value:
                     _version: '20250820'
                     question_name_xpath:
-                      qual:
+                      manual_qual:
                         bbbbbbbb-cccc-dddd-eeee-ffffffffffff:
                           _dateCreated: '2025-01-01T12:00:00Z'
                           _dateModified: '2025-01-01T12:00:00Z'
@@ -2851,7 +2851,7 @@ paths:
                               - review
                               - priority
                             _uuid: 23232323-4545-6767-8989-010101010101
-                  summary: Qualitative Analysis – Tags Question
+                  summary: Manual Qualitative Analysis – Tags Question
           description: null
         '401':
           content:
@@ -2991,50 +2991,50 @@ paths:
                 description: '`<action_id>` can be any of `automatic_google_transcription`
                   or `automatic_google_translation`.<br>`<language>` is the language
                   code, e.g. `en`.<br>`accepted` is a boolean. It can `true` or `false`.'
-              QualitativeAnalysis–IntegerQuestion:
+              ManualQualitativeAnalysis–IntegerQuestion:
                 value:
                   _version: '20250820'
                   question_name_xpath:
-                    qual:
+                    manual_qual:
                       uuid: 11111111-1111-1111-1111-111111111111
                       value: 42
-                summary: Qualitative Analysis – Integer Question
-              QualitativeAnalysis–TextQuestion:
+                summary: Manual Qualitative Analysis – Integer Question
+              ManualQualitativeAnalysis–TextQuestion:
                 value:
                   _version: '20250820'
                   question_name_xpath:
-                    qual:
+                    manual_qual:
                       uuid: 22222222-2222-2222-2222-222222222222
                       value: example-text
-                summary: Qualitative Analysis – Text Question
-              QualitativeAnalysis–SingleChoiceQuestion:
+                summary: Manual Qualitative Analysis – Text Question
+              ManualQualitativeAnalysis–SingleChoiceQuestion:
                 value:
                   _version: '20250820'
                   question_name_xpath:
-                    qual:
+                    manual_qual:
                       uuid: 33333333-3333-3333-3333-333333333333
                       value: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
-                summary: Qualitative Analysis – Single Choice Question
-              QualitativeAnalysis–MultipleChoiceQuestion:
+                summary: Manual Qualitative Analysis – Single Choice Question
+              ManualQualitativeAnalysis–MultipleChoiceQuestion:
                 value:
                   _version: '20250820'
                   question_name_xpath:
-                    qual:
+                    manual_qual:
                       uuid: 44444444-4444-4444-4444-444444444444
                       value:
                       - aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
                       - bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
-                summary: Qualitative Analysis – Multiple Choice Question
-              QualitativeAnalysis–TagsQuestion:
+                summary: Manual Qualitative Analysis – Multiple Choice Question
+              ManualQualitativeAnalysis–TagsQuestion:
                 value:
                   _version: '20250820'
                   question_name_xpath:
-                    qual:
+                    manual_qual:
                       uuid: 44444444-4444-4444-4444-444444444444
                       value:
                       - tag1
                       - tag2
-                summary: Qualitative Analysis – Tags Question
+                summary: Manual Qualitative Analysis – Tags Question
         required: true
       security:
       - BasicAuth: []
@@ -3160,11 +3160,11 @@ paths:
                               _actionId: automatic_google_transcription
                               _uuid: 44444444-4444-4444-4444-444444444444
                   summary: Automated Google Translation
-                QualitativeAnalysis–IntegerQuestion:
+                ManualQualitativeAnalysis–IntegerQuestion:
                   value:
                     _version: '20250820'
                     question_name_xpath:
-                      qual:
+                      manual_qual:
                         66666666-6666-6666-6666-666666666666:
                           _dateCreated: '2025-01-01T12:00:00Z'
                           _dateModified: '2025-01-01T12:00:00Z'
@@ -3175,12 +3175,12 @@ paths:
                               uuid: 66666666-6666-6666-6666-666666666666
                               value: 42
                             _uuid: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
-                  summary: Qualitative Analysis – Integer Question
-                QualitativeAnalysis–TextQuestion:
+                  summary: Manual Qualitative Analysis – Integer Question
+                ManualQualitativeAnalysis–TextQuestion:
                   value:
                     _version: '20250820'
                     question_name_xpath:
-                      qual:
+                      manual_qual:
                         aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff:
                           _dateCreated: '2025-01-01T12:00:00Z'
                           _dateModified: '2025-01-01T12:00:00Z'
@@ -3191,12 +3191,12 @@ paths:
                               uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
                               value: This is a qualitative text response.
                             _uuid: 12121212-3434-5656-7878-909090909090
-                  summary: Qualitative Analysis – Text Question
-                QualitativeAnalysis–SingleChoiceQuestion:
+                  summary: Manual Qualitative Analysis – Text Question
+                ManualQualitativeAnalysis–SingleChoiceQuestion:
                   value:
                     _version: '20250820'
                     question_name_xpath:
-                      qual:
+                      manual_qual:
                         77777777-7777-7777-7777-777777777777:
                           _dateCreated: '2025-01-01T12:00:00Z'
                           _dateModified: '2025-01-01T12:00:00Z'
@@ -3207,12 +3207,12 @@ paths:
                               uuid: 77777777-7777-7777-7777-777777777777
                               value: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
                             _uuid: bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
-                  summary: Qualitative Analysis – Single Choice Question
-                QualitativeAnalysis–MultipleChoiceQuestion:
+                  summary: Manual Qualitative Analysis – Single Choice Question
+                ManualQualitativeAnalysis–MultipleChoiceQuestion:
                   value:
                     _version: '20250820'
                     question_name_xpath:
-                      qual:
+                      manual_qual:
                         88888888-8888-8888-8888-888888888888:
                           _dateCreated: '2025-01-01T12:00:00Z'
                           _dateModified: '2025-01-01T12:00:00Z'
@@ -3225,12 +3225,12 @@ paths:
                               - aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
                               - bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
                             _uuid: 99999999-9999-9999-9999-999999999999
-                  summary: Qualitative Analysis – Multiple Choice Question
-                QualitativeAnalysis–TagsQuestion:
+                  summary: Manual Qualitative Analysis – Multiple Choice Question
+                ManualQualitativeAnalysis–TagsQuestion:
                   value:
                     _version: '20250820'
                     question_name_xpath:
-                      qual:
+                      manual_qual:
                         bbbbbbbb-cccc-dddd-eeee-ffffffffffff:
                           _dateCreated: '2025-01-01T12:00:00Z'
                           _dateModified: '2025-01-01T12:00:00Z'
@@ -3244,7 +3244,7 @@ paths:
                               - review
                               - priority
                             _uuid: 23232323-4545-6767-8989-010101010101
-                  summary: Qualitative Analysis – Tags Question
+                  summary: Manual Qualitative Analysis – Tags Question
           description: null
         '401':
           content:

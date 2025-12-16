@@ -1633,7 +1633,7 @@
                                     "QualitativeAnalysis-SimpleTypes": {
                                         "value": [
                                             {
-                                                "action": "qual",
+                                                "action": "manual_qual",
                                                 "question_xpath": "q1",
                                                 "params": [
                                                     {
@@ -1653,7 +1653,7 @@
                                     "QualitativeAnalysis-SingleChoiceQuestion": {
                                         "value": [
                                             {
-                                                "action": "qual",
+                                                "action": "manual_qual",
                                                 "question_xpath": "q1",
                                                 "params": [
                                                     {
@@ -1692,7 +1692,7 @@
                                     "QualitativeAnalysis-MultipleChoiceQuestion": {
                                         "value": [
                                             {
-                                                "action": "qual",
+                                                "action": "manual_qual",
                                                 "question_xpath": "q1",
                                                 "params": [
                                                     {
@@ -1755,7 +1755,7 @@
             },
             "post": {
                 "operationId": "api_v2_assets_advanced_features_create",
-                "description": "## Add an advanced action to an asset\n\nEnables a new type of advanced action on a question in the asset.\n* `action`, `params`, and `question_xpath` are required\n* `params` must match the expected param_schema of the `action`\n\nAccepted `action`s include:\n* `manual_transcription`\n* `automatic_google_transcription`\n* `manual_translation`\n* `automatic_google_translation`\n* `qual`\n\n",
+                "description": "## Add an advanced action to an asset\n\nEnables a new type of advanced action on a question in the asset.\n* `action`, `params`, and `question_xpath` are required\n* `params` must match the expected param_schema of the `action`\n\nAccepted `action`s include:\n* `manual_transcription`\n* `automatic_google_transcription`\n* `manual_translation`\n* `automatic_google_translation`\n* `manual_qual`\n\n",
                 "parameters": [
                     {
                         "in": "path",
@@ -1795,7 +1795,7 @@
                                 },
                                 "QualitativeAnalysis-SimpleTypes": {
                                     "value": {
-                                        "action": "qual",
+                                        "action": "manual_qual",
                                         "question_xpath": "q1",
                                         "params": [
                                             {
@@ -1812,7 +1812,7 @@
                                 },
                                 "QualitativeAnalysis-SingleChoiceQuestion": {
                                     "value": {
-                                        "action": "qual",
+                                        "action": "manual_qual",
                                         "question_xpath": "q1",
                                         "params": [
                                             {
@@ -1848,7 +1848,7 @@
                                 },
                                 "QualitativeAnalysis-MultipleChoiceQuestion": {
                                     "value": {
-                                        "action": "qual",
+                                        "action": "manual_qual",
                                         "question_xpath": "q1",
                                         "params": [
                                             {
@@ -2011,7 +2011,7 @@
                                     },
                                     "QualitativeAnalysis-SimpleTypes": {
                                         "value": {
-                                            "action": "qual",
+                                            "action": "manual_qual",
                                             "question_xpath": "q1",
                                             "params": [
                                                 {
@@ -2029,7 +2029,7 @@
                                     },
                                     "QualitativeAnalysis-SingleChoiceQuestion": {
                                         "value": {
-                                            "action": "qual",
+                                            "action": "manual_qual",
                                             "question_xpath": "q1",
                                             "params": [
                                                 {
@@ -2066,7 +2066,7 @@
                                     },
                                     "QualitativeAnalysis-MultipleChoiceQuestion": {
                                         "value": {
-                                            "action": "qual",
+                                            "action": "manual_qual",
                                             "question_xpath": "q1",
                                             "params": [
                                                 {
@@ -2177,7 +2177,7 @@
                                 },
                                 "QualitativeAnalysis-SimpleTypes": {
                                     "value": {
-                                        "action": "qual",
+                                        "action": "manual_qual",
                                         "question_xpath": "q1",
                                         "params": [
                                             {
@@ -2194,7 +2194,7 @@
                                 },
                                 "QualitativeAnalysis-SingleChoiceQuestion": {
                                     "value": {
-                                        "action": "qual",
+                                        "action": "manual_qual",
                                         "question_xpath": "q1",
                                         "params": [
                                             {
@@ -2230,7 +2230,7 @@
                                 },
                                 "QualitativeAnalysis-MultipleChoiceQuestion": {
                                     "value": {
-                                        "action": "qual",
+                                        "action": "manual_qual",
                                         "question_xpath": "q1",
                                         "params": [
                                             {
@@ -2303,7 +2303,7 @@
                                     },
                                     "QualitativeAnalysis-SimpleTypes": {
                                         "value": {
-                                            "action": "qual",
+                                            "action": "manual_qual",
                                             "question_xpath": "q1",
                                             "params": [
                                                 {
@@ -2321,7 +2321,7 @@
                                     },
                                     "QualitativeAnalysis-SingleChoiceQuestion": {
                                         "value": {
-                                            "action": "qual",
+                                            "action": "manual_qual",
                                             "question_xpath": "q1",
                                             "params": [
                                                 {
@@ -2358,7 +2358,7 @@
                                     },
                                     "QualitativeAnalysis-MultipleChoiceQuestion": {
                                         "value": {
-                                            "action": "qual",
+                                            "action": "manual_qual",
                                             "question_xpath": "q1",
                                             "params": [
                                                 {
@@ -3915,11 +3915,11 @@
                                         },
                                         "summary": "Automated Google Translation"
                                     },
-                                    "QualitativeAnalysis–IntegerQuestion": {
+                                    "ManualQualitativeAnalysis–IntegerQuestion": {
                                         "value": {
                                             "_version": "20250820",
                                             "question_name_xpath": {
-                                                "qual": {
+                                                "manual_qual": {
                                                     "66666666-6666-6666-6666-666666666666": {
                                                         "_dateCreated": "2025-01-01T12:00:00Z",
                                                         "_dateModified": "2025-01-01T12:00:00Z",
@@ -3938,13 +3938,13 @@
                                                 }
                                             }
                                         },
-                                        "summary": "Qualitative Analysis – Integer Question"
+                                        "summary": "Manual Qualitative Analysis – Integer Question"
                                     },
-                                    "QualitativeAnalysis–TextQuestion": {
+                                    "ManualQualitativeAnalysis–TextQuestion": {
                                         "value": {
                                             "_version": "20250820",
                                             "question_name_xpath": {
-                                                "qual": {
+                                                "manual_qual": {
                                                     "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff": {
                                                         "_dateCreated": "2025-01-01T12:00:00Z",
                                                         "_dateModified": "2025-01-01T12:00:00Z",
@@ -3963,13 +3963,13 @@
                                                 }
                                             }
                                         },
-                                        "summary": "Qualitative Analysis – Text Question"
+                                        "summary": "Manual Qualitative Analysis – Text Question"
                                     },
-                                    "QualitativeAnalysis–SingleChoiceQuestion": {
+                                    "ManualQualitativeAnalysis–SingleChoiceQuestion": {
                                         "value": {
                                             "_version": "20250820",
                                             "question_name_xpath": {
-                                                "qual": {
+                                                "manual_qual": {
                                                     "77777777-7777-7777-7777-777777777777": {
                                                         "_dateCreated": "2025-01-01T12:00:00Z",
                                                         "_dateModified": "2025-01-01T12:00:00Z",
@@ -3988,13 +3988,13 @@
                                                 }
                                             }
                                         },
-                                        "summary": "Qualitative Analysis – Single Choice Question"
+                                        "summary": "Manual Qualitative Analysis – Single Choice Question"
                                     },
-                                    "QualitativeAnalysis–MultipleChoiceQuestion": {
+                                    "ManualQualitativeAnalysis–MultipleChoiceQuestion": {
                                         "value": {
                                             "_version": "20250820",
                                             "question_name_xpath": {
-                                                "qual": {
+                                                "manual_qual": {
                                                     "88888888-8888-8888-8888-888888888888": {
                                                         "_dateCreated": "2025-01-01T12:00:00Z",
                                                         "_dateModified": "2025-01-01T12:00:00Z",
@@ -4016,13 +4016,13 @@
                                                 }
                                             }
                                         },
-                                        "summary": "Qualitative Analysis – Multiple Choice Question"
+                                        "summary": "Manual Qualitative Analysis – Multiple Choice Question"
                                     },
-                                    "QualitativeAnalysis–TagsQuestion": {
+                                    "ManualQualitativeAnalysis–TagsQuestion": {
                                         "value": {
                                             "_version": "20250820",
                                             "question_name_xpath": {
-                                                "qual": {
+                                                "manual_qual": {
                                                     "bbbbbbbb-cccc-dddd-eeee-ffffffffffff": {
                                                         "_dateCreated": "2025-01-01T12:00:00Z",
                                                         "_dateModified": "2025-01-01T12:00:00Z",
@@ -4045,7 +4045,7 @@
                                                 }
                                             }
                                         },
-                                        "summary": "Qualitative Analysis – Tags Question"
+                                        "summary": "Manual Qualitative Analysis – Tags Question"
                                     }
                                 }
                             }
@@ -4235,47 +4235,47 @@
                                     "summary": "Accept automatic NLP action",
                                     "description": "`<action_id>` can be any of `automatic_google_transcription` or `automatic_google_translation`.<br>`<language>` is the language code, e.g. `en`.<br>`accepted` is a boolean. It can `true` or `false`."
                                 },
-                                "QualitativeAnalysis–IntegerQuestion": {
+                                "ManualQualitativeAnalysis–IntegerQuestion": {
                                     "value": {
                                         "_version": "20250820",
                                         "question_name_xpath": {
-                                            "qual": {
+                                            "manual_qual": {
                                                 "uuid": "11111111-1111-1111-1111-111111111111",
                                                 "value": 42
                                             }
                                         }
                                     },
-                                    "summary": "Qualitative Analysis – Integer Question"
+                                    "summary": "Manual Qualitative Analysis – Integer Question"
                                 },
-                                "QualitativeAnalysis–TextQuestion": {
+                                "ManualQualitativeAnalysis–TextQuestion": {
                                     "value": {
                                         "_version": "20250820",
                                         "question_name_xpath": {
-                                            "qual": {
+                                            "manual_qual": {
                                                 "uuid": "22222222-2222-2222-2222-222222222222",
                                                 "value": "example-text"
                                             }
                                         }
                                     },
-                                    "summary": "Qualitative Analysis – Text Question"
+                                    "summary": "Manual Qualitative Analysis – Text Question"
                                 },
-                                "QualitativeAnalysis–SingleChoiceQuestion": {
+                                "ManualQualitativeAnalysis–SingleChoiceQuestion": {
                                     "value": {
                                         "_version": "20250820",
                                         "question_name_xpath": {
-                                            "qual": {
+                                            "manual_qual": {
                                                 "uuid": "33333333-3333-3333-3333-333333333333",
                                                 "value": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
                                             }
                                         }
                                     },
-                                    "summary": "Qualitative Analysis – Single Choice Question"
+                                    "summary": "Manual Qualitative Analysis – Single Choice Question"
                                 },
-                                "QualitativeAnalysis–MultipleChoiceQuestion": {
+                                "ManualQualitativeAnalysis–MultipleChoiceQuestion": {
                                     "value": {
                                         "_version": "20250820",
                                         "question_name_xpath": {
-                                            "qual": {
+                                            "manual_qual": {
                                                 "uuid": "44444444-4444-4444-4444-444444444444",
                                                 "value": [
                                                     "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
@@ -4284,13 +4284,13 @@
                                             }
                                         }
                                     },
-                                    "summary": "Qualitative Analysis – Multiple Choice Question"
+                                    "summary": "Manual Qualitative Analysis – Multiple Choice Question"
                                 },
-                                "QualitativeAnalysis–TagsQuestion": {
+                                "ManualQualitativeAnalysis–TagsQuestion": {
                                     "value": {
                                         "_version": "20250820",
                                         "question_name_xpath": {
-                                            "qual": {
+                                            "manual_qual": {
                                                 "uuid": "44444444-4444-4444-4444-444444444444",
                                                 "value": [
                                                     "tag1",
@@ -4299,7 +4299,7 @@
                                             }
                                         }
                                     },
-                                    "summary": "Qualitative Analysis – Tags Question"
+                                    "summary": "Manual Qualitative Analysis – Tags Question"
                                 }
                             }
                         }
@@ -4493,11 +4493,11 @@
                                         },
                                         "summary": "Automated Google Translation"
                                     },
-                                    "QualitativeAnalysis–IntegerQuestion": {
+                                    "ManualQualitativeAnalysis–IntegerQuestion": {
                                         "value": {
                                             "_version": "20250820",
                                             "question_name_xpath": {
-                                                "qual": {
+                                                "manual_qual": {
                                                     "66666666-6666-6666-6666-666666666666": {
                                                         "_dateCreated": "2025-01-01T12:00:00Z",
                                                         "_dateModified": "2025-01-01T12:00:00Z",
@@ -4516,13 +4516,13 @@
                                                 }
                                             }
                                         },
-                                        "summary": "Qualitative Analysis – Integer Question"
+                                        "summary": "Manual Qualitative Analysis – Integer Question"
                                     },
-                                    "QualitativeAnalysis–TextQuestion": {
+                                    "ManualQualitativeAnalysis–TextQuestion": {
                                         "value": {
                                             "_version": "20250820",
                                             "question_name_xpath": {
-                                                "qual": {
+                                                "manual_qual": {
                                                     "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff": {
                                                         "_dateCreated": "2025-01-01T12:00:00Z",
                                                         "_dateModified": "2025-01-01T12:00:00Z",
@@ -4541,13 +4541,13 @@
                                                 }
                                             }
                                         },
-                                        "summary": "Qualitative Analysis – Text Question"
+                                        "summary": "Manual Qualitative Analysis – Text Question"
                                     },
-                                    "QualitativeAnalysis–SingleChoiceQuestion": {
+                                    "ManualQualitativeAnalysis–SingleChoiceQuestion": {
                                         "value": {
                                             "_version": "20250820",
                                             "question_name_xpath": {
-                                                "qual": {
+                                                "manual_qual": {
                                                     "77777777-7777-7777-7777-777777777777": {
                                                         "_dateCreated": "2025-01-01T12:00:00Z",
                                                         "_dateModified": "2025-01-01T12:00:00Z",
@@ -4566,13 +4566,13 @@
                                                 }
                                             }
                                         },
-                                        "summary": "Qualitative Analysis – Single Choice Question"
+                                        "summary": "Manual Qualitative Analysis – Single Choice Question"
                                     },
-                                    "QualitativeAnalysis–MultipleChoiceQuestion": {
+                                    "ManualQualitativeAnalysis–MultipleChoiceQuestion": {
                                         "value": {
                                             "_version": "20250820",
                                             "question_name_xpath": {
-                                                "qual": {
+                                                "manual_qual": {
                                                     "88888888-8888-8888-8888-888888888888": {
                                                         "_dateCreated": "2025-01-01T12:00:00Z",
                                                         "_dateModified": "2025-01-01T12:00:00Z",
@@ -4594,13 +4594,13 @@
                                                 }
                                             }
                                         },
-                                        "summary": "Qualitative Analysis – Multiple Choice Question"
+                                        "summary": "Manual Qualitative Analysis – Multiple Choice Question"
                                     },
-                                    "QualitativeAnalysis–TagsQuestion": {
+                                    "ManualQualitativeAnalysis–TagsQuestion": {
                                         "value": {
                                             "_version": "20250820",
                                             "question_name_xpath": {
-                                                "qual": {
+                                                "manual_qual": {
                                                     "bbbbbbbb-cccc-dddd-eeee-ffffffffffff": {
                                                         "_dateCreated": "2025-01-01T12:00:00Z",
                                                         "_dateModified": "2025-01-01T12:00:00Z",
@@ -4623,7 +4623,7 @@
                                                 }
                                             }
                                         },
-                                        "summary": "Qualitative Analysis – Tags Question"
+                                        "summary": "Manual Qualitative Analysis – Tags Question"
                                     }
                                 }
                             }

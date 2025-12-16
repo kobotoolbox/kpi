@@ -613,7 +613,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
 
     def test_add_qa_creates_log(self):
         request_data = {
-            'action': 'qual',
+            'action': Action.MANUAL_QUAL,
             'question_xpath': 'Audio',
             'params': [
                 {
@@ -636,7 +636,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
 
     def test_failed_add_qa_does_not_create_log(self):
         request_data = {
-            'action': 'qual',
+            'action': Action.MANUAL_QUAL,
             'question_xpath': 'Audio',
             'params': [{'bad': 'params'}],
         }
@@ -664,7 +664,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
 
     def test_modify_qa_creates_log(self):
         question_qual_action = QuestionAdvancedFeature.objects.get(
-            asset=self.asset, action=Action.QUAL, question_xpath='q1'
+            asset=self.asset, action=Action.MANUAL_QUAL, question_xpath='q1'
         )
         request_data = {
             'params': [
@@ -690,7 +690,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
 
     def test_failed_modify_qa_does_not_create_log(self):
         question_qual_action = QuestionAdvancedFeature.objects.get(
-            asset=self.asset, action=Action.QUAL, question_xpath='q1'
+            asset=self.asset, action=Action.MANUAL_QUAL, question_xpath='q1'
         )
         request_data = {'params': [{'bad': 'params'}]}
         self.client.patch(
@@ -1987,7 +1987,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             'adminuser' if not is_anonymous else None
         )
         question_uuid = self.asset.advanced_features_set.get(
-            action='qual', question_xpath='q1'
+            action=Action.MANUAL_QUAL, question_xpath='q1'
         ).params[0]['uuid']
         log_metadata = self._base_project_history_log_test(
             method=self.client.patch,
@@ -1998,7 +1998,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             request_data={
                 '_version': '20250820',
                 'q1': {
-                    'qual': {
+                    Action.MANUAL_QUAL: {
                         'uuid': question_uuid,
                         'value': 1,
                     }
@@ -2017,7 +2017,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         new_uuid = str(uuid.uuid4())
         xml_parsed = fromstring_preserve_root_xmlns(instance.xml)
         question_uuid = self.asset.advanced_features_set.get(
-            action='qual', question_xpath='q1'
+            action=Action.MANUAL_QUAL, question_xpath='q1'
         ).params[0]['uuid']
         edit_submission_xml(
             xml_parsed,
@@ -2046,7 +2046,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             request_data={
                 '_version': '20250820',
                 'q1': {
-                    'qual': {
+                    Action.MANUAL_QUAL: {
                         'uuid': question_uuid,
                         'value': 1,
                     }

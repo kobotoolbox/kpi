@@ -323,7 +323,7 @@ class TestVersioning(TestCase):
                         ],
                     }
                 },
-                'qual': {
+                'manual_qual': {
                     '09327944-d4a4-4d59-9316-1250cf0799a4': {
                         '_dateCreated': now.isoformat(),
                         '_dateModified': now.isoformat(),
@@ -475,7 +475,9 @@ class TestVersioning(TestCase):
 
         # qual
         for q in ['q1', 'q2']:
-            qaf = all_asset_advanced_features.get(action='qual', question_xpath=q)
+            qaf = all_asset_advanced_features.get(
+                action=Action.MANUAL_QUAL, question_xpath=q
+            )
             params = qaf.params
             params.sort(key=lambda x: x['type'])
             # qual_integer

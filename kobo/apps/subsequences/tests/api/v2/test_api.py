@@ -572,7 +572,7 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
                         ],
                     }
                 },
-                'qual': {
+                'manual_qual': {
                     'fd61cafc-9516-4063-8498-5eace89146a5': {
                         '_dateCreated': '2025-12-15T22:22:00+00:00',
                         '_dateModified': '2025-12-15T22:22:00+00:00',

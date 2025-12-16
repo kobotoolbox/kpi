@@ -11,7 +11,7 @@ def get_data_supplement_examples() -> list[OpenApiExample]:
       - manual_translation
       - automated_google_transcription
       - automated_google_translation
-      - all 5 Qualitative Analysis variants:
+      - all 5 manual Qualitative Analysis variants:
         - integer
         - text
         - tags
@@ -109,11 +109,11 @@ def _get_data_supplement_patch_payload_request_examples() -> list[OpenApiExample
             request_only=True,
         ),
         OpenApiExample(
-            'Qualitative Analysis – Integer Question',
+            'Manual Qualitative Analysis – Integer Question',
             value={
                 '_version': '20250820',
                 'question_name_xpath': {
-                    'qual': {
+                    'manual_qual': {
                         'uuid': '11111111-1111-1111-1111-111111111111',
                         'value': 42,
                     }
@@ -122,11 +122,11 @@ def _get_data_supplement_patch_payload_request_examples() -> list[OpenApiExample
             request_only=True,
         ),
         OpenApiExample(
-            'Qualitative Analysis – Text Question',
+            'Manual Qualitative Analysis – Text Question',
             value={
                 '_version': '20250820',
                 'question_name_xpath': {
-                    'qual': {
+                    'manual_qual': {
                         'uuid': '22222222-2222-2222-2222-222222222222',
                         'value': 'example-text',
                     }
@@ -135,11 +135,11 @@ def _get_data_supplement_patch_payload_request_examples() -> list[OpenApiExample
             request_only=True,
         ),
         OpenApiExample(
-            'Qualitative Analysis – Single Choice Question',
+            'Manual Qualitative Analysis – Single Choice Question',
             value={
                 '_version': '20250820',
                 'question_name_xpath': {
-                    'qual': {
+                    'manual_qual': {
                         'uuid': '33333333-3333-3333-3333-333333333333',
                         'value': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
                     }
@@ -148,11 +148,11 @@ def _get_data_supplement_patch_payload_request_examples() -> list[OpenApiExample
             request_only=True,
         ),
         OpenApiExample(
-            'Qualitative Analysis – Multiple Choice Question',
+            'Manual Qualitative Analysis – Multiple Choice Question',
             value={
                 '_version': '20250820',
                 'question_name_xpath': {
-                    'qual': {
+                    'manual_qual': {
                         'uuid': '44444444-4444-4444-4444-444444444444',
                         'value': [
                             'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
@@ -164,11 +164,11 @@ def _get_data_supplement_patch_payload_request_examples() -> list[OpenApiExample
             request_only=True,
         ),
         OpenApiExample(
-            'Qualitative Analysis – Tags Question',
+            'Manual Qualitative Analysis – Tags Question',
             value={
                 '_version': '20250820',
                 'question_name_xpath': {
-                    'qual': {
+                    'manual_qual': {
                         'uuid': '44444444-4444-4444-4444-444444444444',
                         'value': ['tag1', 'tag2'],
                     }
@@ -362,12 +362,12 @@ def _get_data_supplement_response_examples():
             },
         ),
         OpenApiExample(
-            name='Qualitative Analysis – Integer Question',
+            name='Manual Qualitative Analysis – Integer Question',
             response_only=True,
             value={
                 '_version': '20250820',
                 'question_name_xpath': {
-                    'qual': {
+                    'manual_qual': {
                         '66666666-6666-6666-6666-666666666666': {
                             '_dateCreated': iso0,
                             '_dateModified': iso0,
@@ -388,12 +388,12 @@ def _get_data_supplement_response_examples():
             },
         ),
         OpenApiExample(
-            name='Qualitative Analysis – Text Question',
+            name='Manual Qualitative Analysis – Text Question',
             response_only=True,
             value={
                 '_version': '20250820',
                 'question_name_xpath': {
-                    'qual': {
+                    'manual_qual': {
                         'aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff': {
                             '_dateCreated': iso0,
                             '_dateModified': iso0,
@@ -414,12 +414,12 @@ def _get_data_supplement_response_examples():
             },
         ),
         OpenApiExample(
-            name='Qualitative Analysis – Single Choice Question',
+            name='Manual Qualitative Analysis – Single Choice Question',
             response_only=True,
             value={
                 '_version': '20250820',
                 'question_name_xpath': {
-                    'qual': {
+                    'manual_qual': {
                         '77777777-7777-7777-7777-777777777777': {
                             '_dateCreated': iso0,
                             '_dateModified': iso0,
@@ -440,12 +440,12 @@ def _get_data_supplement_response_examples():
             },
         ),
         OpenApiExample(
-            name='Qualitative Analysis – Multiple Choice Question',
+            name='Manual Qualitative Analysis – Multiple Choice Question',
             response_only=True,
             value={
                 '_version': '20250820',
                 'question_name_xpath': {
-                    'qual': {
+                    'manual_qual': {
                         '88888888-8888-8888-8888-888888888888': {
                             '_dateCreated': iso0,
                             '_dateModified': iso0,
@@ -469,12 +469,12 @@ def _get_data_supplement_response_examples():
             },
         ),
         OpenApiExample(
-            name='Qualitative Analysis – Tags Question',
+            name='Manual Qualitative Analysis – Tags Question',
             response_only=True,
             value={
                 '_version': '20250820',
                 'question_name_xpath': {
-                    'qual': {
+                    'manual_qual': {
                         'bbbbbbbb-cccc-dddd-eeee-ffffffffffff': {
                             '_dateCreated': iso0,
                             '_dateModified': iso0,

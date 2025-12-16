@@ -6,9 +6,9 @@ from rest_framework.exceptions import ValidationError
 from .base import ActionClassConfig, BaseAction
 
 
-class QualAction(BaseAction):
+class ManualQualAction(BaseAction):
 
-    ID = 'qual'
+    ID = 'manual_qual'
     action_class_config = ActionClassConfig(
         allow_multiple=True, automatic=False, action_data_key='uuid'
     )
@@ -148,7 +148,7 @@ class QualAction(BaseAction):
         {
             '_version': '20250820',
             'question_name_xpath': {
-                'qual': {
+                'manual_qual': {
                     'uuid': '24a68b0a-62fb-4122-8377-412810b2f45d',
                     'value': 'pithy text',
                 }
