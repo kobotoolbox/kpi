@@ -3195,28 +3195,28 @@ export const submissionWithSupplementalDetails = {
       },
       qual: [
         {
-          val: ['best', 'things', 'ever recorder by human', '3'],
+          value: ['best', 'things', 'ever recorder by human', '3'],
           type: 'qual_tags',
           uuid: 'b05f29f7-8b58-4dd7-8695-c29cb04f3f7a',
           labels: { _default: 'Another tag question here?' },
           xpath: '',
         },
         {
-          val: 12345,
+          value: 12345,
           type: 'qual_integer',
           uuid: '97fd5387-ac2b-4108-b5b4-37fa91ae0e22',
           labels: { _default: 'Another integer question here?' },
           xpath: '',
         },
         {
-          val: 'a thing',
+          value: 'a thing',
           type: 'qual_text',
           uuid: 'ab0e40e1-fbcc-43e9-9d00-b9b3314089cb',
           labels: { _default: 'Another text question here?' },
           xpath: '',
         },
         {
-          val: [
+          value: [
             {
               labels: {
                 _default: 'First',
@@ -3236,14 +3236,14 @@ export const submissionWithSupplementalDetails = {
           xpath: '',
         },
         {
-          val: ['wow', 'this works', 'f me', 'alpha beta gamma'],
+          value: ['wow', 'this works', 'f me', 'alpha beta gamma'],
           type: 'qual_tags',
           uuid: '056c8f57-0733-4669-a84e-aa9726ffbf6b',
           labels: { _default: 'Another tag question here?' },
           xpath: '',
         },
         {
-          val: {
+          value: {
             labels: {
               _default: 'Yes',
             },
@@ -3295,7 +3295,7 @@ export const submissionWithNestedSupplementalDetails = {
     'level_a/level_b/level_c/sounds': {
       qual: [
         {
-          val: ['first', 'second', 'third', 'fourth', 'fifth'],
+          value: ['first', 'second', 'third', 'fourth', 'fifth'],
           type: 'qual_tags',
           uuid: '5dc7f202-8103-43a8-a48f-8f9b3c8f955f',
           scope: 'by_question#survey',
