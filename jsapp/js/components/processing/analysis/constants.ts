@@ -150,7 +150,7 @@ export interface AnalysisResponse extends AnalysisQuestionBase {
  * - containing both `uuid` and `labels` object.
  */
 export interface SubmissionAnalysisResponse extends AnalysisQuestionBase {
-  val: AnalysisResponseValue
+  value: AnalysisResponseValue
   // There can be a `scope` property here, but we have no use of it on FE
   scope?: 'by_question#survey'
 }
