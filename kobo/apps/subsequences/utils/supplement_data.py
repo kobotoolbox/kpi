@@ -43,7 +43,7 @@ def get_analysis_form_json(asset: 'kpi.models.Asset') -> list[dict]:
         Action.AUTOMATIC_GOOGLE_TRANSCRIPTION: [],
         Action.MANUAL_TRANSLATION: [],
         Action.AUTOMATIC_GOOGLE_TRANSLATION: [],
-        Action.QUAL: [],
+        Action.MANUAL_QUAL: [],
     }
 
     dt_paths_seen = set()
