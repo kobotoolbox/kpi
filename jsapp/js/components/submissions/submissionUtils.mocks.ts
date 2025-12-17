@@ -3215,7 +3215,7 @@ export const submissionWithSupplementalDetails = {
           labels: { _default: 'Another text question here?' },
           xpath: '',
         },
-        'fa89e0da-3344-4b5d-b919-ab8b072e0918': {
+        '1a89e0da-3344-4b5d-b919-ab8b072e0918': {
           value: [
             {
               labels: {
