@@ -183,7 +183,7 @@ export function getAllDataColumns(asset: AssetResponse, submissions?: Submission
 
   // In `table.tsx` we override the ordering of few columns, this one too. Some other places rely on ordering coming
   // from this function, so we still want to ensure `meta/rootUuid` is the very last column
-  if (output.indexOf(ADDITIONAL_SUBMISSION_PROPS['meta/rootUuid'])) {
+  if (output.indexOf(ADDITIONAL_SUBMISSION_PROPS['meta/rootUuid']) > -1) {
     output.push(output.splice(output.indexOf(ADDITIONAL_SUBMISSION_PROPS['meta/rootUuid']), 1)[0])
   }
   // TODO: Ordering of columns is being used in few places (columns of Data Table, "Hide fields" dropdown). Some places
