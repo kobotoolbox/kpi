@@ -815,7 +815,7 @@ export function removeEmptyFromSupplementalDetails(supplementalDetails: Submissi
             qualResponse.value !== null &&
             !(Array.isArray(qualResponse.value) && qualResponse.value.length === 0) &&
             qualResponse.options?.deleted !== true,
-        )
+        ),
       )
     }
   }
