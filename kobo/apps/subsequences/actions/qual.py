@@ -1,24 +1,14 @@
-from copy import deepcopy
 from typing import Any
 
-from rest_framework.exceptions import ValidationError
+from kobo.apps.subsequences.actions.base import BaseAction
+from kobo.apps.subsequences.type_aliases import SimplifiedOutputCandidatesByColumnKey
 
-from .base import ActionClassConfig, BaseAction
 
-
-class ManualQualAction(BaseAction):
-
-    ID = 'manual_qual'
-    action_class_config = ActionClassConfig(
-        allow_multiple=True, automatic=False, action_data_key='uuid'
-    )
+class BaseQualAction(BaseAction):
     KNOWN_PARAM_KEYS = ['uuid', 'labels', 'options', 'choices', 'type']
     # Confusing: "deleted" actually means "hidden", we don't delete QA questions
     # TODO: make "hidden" its own field and remove this option
     DELETED_OPTION = 'deleted'
-
-    # JSON Schema definitions
-
     data_schema_definitions = {
         'qualCommon': {
             # Remember that JSON Schema is subtractive
@@ -284,14 +274,7 @@ class ManualQualAction(BaseAction):
             output_fields.append(field)
         return output_fields
 
-    def overlaps_other_actions(self) -> bool:
-        """
-        Qual returns a grouped structured block (e.g. {"qual": [...]}) and
-        does not participate in per-field arbitration with other actions
-        """
-        return False
-
-    def transform_data_for_output(self, action_data: dict) -> dict[str, Any]:
+    def transform_data_for_output(self, action_data: dict) -> SimplifiedOutputCandidatesByColumnKey:
 
         qual_questions_by_uuid = {q['uuid']: q for q in self.params}
 
@@ -304,7 +287,7 @@ class ManualQualAction(BaseAction):
                     for choice in qual_question.get('choices', [])
                 }
 
-        results_list = []
+        results_dict = {}
         for qual_uuid, qual_data in action_data.items():
             if qual_uuid not in qual_questions_by_uuid:
                 continue
@@ -357,16 +340,17 @@ class ManualQualAction(BaseAction):
                 # Unchanged value for other types (integer, text, tags)
                 output_value = value
 
-            results_list.append(
-                {
+            results_dict[('qual', qual_uuid)] = {
                     'val': output_value,
                     'type': qual_question['type'],
                     'uuid': qual_uuid,
                     'xpath': self.source_question_xpath,
                     'labels': qual_question.get('labels', {}),
+                    self.DATE_ACCEPTED_FIELD: selected_version[self.DATE_ACCEPTED_FIELD],
                 }
-            )
-        return {'qual': results_list}
+
+        return results_dict
+
 
     def update_params(self, incoming_params):
         """

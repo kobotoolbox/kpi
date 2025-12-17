@@ -1,0 +1,12 @@
+from typing import Any
+
+from .base import ActionClassConfig
+from .qual import BaseQualAction
+
+
+class ManualQualAction(BaseQualAction):
+
+    ID = 'manual_qual'
+    action_class_config = ActionClassConfig(
+        allow_multiple=True, automatic=False, action_data_key='uuid'
+    )
