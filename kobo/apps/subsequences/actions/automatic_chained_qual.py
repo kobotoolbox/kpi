@@ -43,11 +43,6 @@ class AutomaticChainedQualAction(BaseAction):
                 {'$ref': '#/$defs/rule_error_presence_when_failed'},
             ],
             '$defs': {
-                'value': {
-                    'anyOf': {
-
-                    }
-                },
                 'action_status': {
                     'type': 'string',
                     'enum': ['in_progress', 'complete', 'failed', 'deleted'],
