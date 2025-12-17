@@ -1,0 +1,118 @@
+name: Update Translations
+
+# See docs at `/.tx/README.md`.
+
+on:
+  push:
+    branches: [ "main", "kalvis/transifex" ] # WIP
+  workflow_call:
+    inputs:
+      push:
+        required: true
+        type: boolean
+      pull:
+        required: true
+        type: boolean
+
+
+jobs:
+  upload-to-transifex:
+    runs-on: ubuntu-24.04
+    steps:
+
+    - uses: actions/checkout@v6
+      with:
+        submodules: true
+
+    - uses: ./.github/actions/checkout-with-github-app-token
+      with:
+        app-id: ${{ secrets.KOBO_BOT_APP_ID }}
+        private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
+
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v6
+      with:
+        python-version: "3.10"
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with: { cache-suffix: 'dev_requirements' }
+
+    - name: Update Debian package lists
+      run: sudo DEBIAN_FRONTEND=noninteractive apt-get -y update
+
+    - name: Install Debian dependencies
+      run: sudo DEBIAN_FRONTEND=noninteractive apt-get -y install gdal-bin gettext libproj-dev postgresql-client ffmpeg gcc libc-dev build-essential
+
+    - name: Install Python dependencies
+      run: uv pip sync --system dependencies/pip/dev_requirements.txt
+
+
+    ## Pushing
+
+    - name: Extract translatable strings from Python code.
+      if: ${{ inputs.push }}
+      run: python manage.py makemessages --locale en
+
+    - name: Extract translatable strings from Javascript/Typescript code.
+      if: ${{ inputs.push }}
+      run: python manage.py makemessages --locale en --domain djangojs --extension js
+
+    # DEBUG
+    - name: Output translatable strings for debugging
+      if: ${{ inputs.push }}
+      run: |
+        git diff --stat
+        echo '---------'
+        git diff
+        echo '---------'
+        (cd locale; git diff --stat)
+        echo '---------'
+        (cd locale; git diff)
+
+    # WIP
+    # - name: Push Transifex
+    #   if: ${{ inputs.push }}
+    #   uses: transifex/cli-action@v2
+    #   with:
+    #     token: ${{ secrets.TRANSIFEX_API }}
+    #     args: 'push -s'
+
+    # WIP
+    # - name: commit the translateble strings
+    #   if: ${{ inputs.push }}
+    #   run: |
+    #     git add .
+    #     git commit -m "chore: update transifex translatable strings"
+    #     git push
+
+
+    ## Pulling
+
+    - name: Pull Transifex
+      if: ${{ inputs.pull }}
+      uses: transifex/cli-action@v2
+      with:
+        token: ${{ secrets.TRANSIFEX_API }}
+        args: 'pull -a -f --mode reviewed'
+
+    # DEBUG
+    - name: Output translated strings for debugging
+      if: ${{ inputs.pull }}
+      run: |
+        git diff --stat
+        echo '---------'
+        git diff
+        echo '---------'
+        (cd locale; git diff --stat)
+        echo '---------'
+        (cd locale; git diff)
+
+    # WIP
+    # - name: commit the translateble strings
+    #   if: ${{ inputs.pull }}
+    #   run: |
+    #     git add .
+    #     git commit -m "chore: update transifex translations"
+    #     git push
+
