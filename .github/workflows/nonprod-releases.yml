@@ -22,7 +22,7 @@ jobs:
     env:
        CI_REGISTRY_IMAGE: ghcr.io/kobotoolbox/kpi
     outputs:
-      image_sha: ${{ steps.sha.outputs.sha }}
+      kpi_image_sha: ${{ steps.sha.outputs.sha }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -97,7 +97,7 @@ jobs:
           token: ${{ steps.app-token.outputs.token }}
           inputs: |
             {
-              "image_sha": "${{ needs.deploy.outputs.image_sha }}"
+              "kpi_image_sha": "${{ needs.deploy.outputs.kpi_image_sha }}"
             }
 
   notify-success:
