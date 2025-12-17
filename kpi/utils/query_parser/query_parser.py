@@ -143,6 +143,7 @@ class QueryParseActions:
         if elements[0].text == '':
             value = _get_value('', elements)
 
+            value = str(value) if not isinstance(value, str) else value
             if len(value) >= self.min_search_characters:
                 # Note that at least one term meets the minimum length
                 # requirement
