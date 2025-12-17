@@ -444,6 +444,7 @@ class AssetListApiTests(BaseAssetTestCase):
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data['results']) == 1
         assert response.data['results'][0]['uid'] == asset.uid
+        assert response.data['results'][0]['date_deployed'] is None
 
 
 class AssetProjectViewListApiTests(BaseAssetTestCase):
