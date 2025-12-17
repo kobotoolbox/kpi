@@ -951,9 +951,14 @@ class AssetViewSet(
         # Single pass over assets: attach _xform then yield
         for asset in assets:
             if asset.has_deployment:
-                xf = xforms_by_uid.get(asset.uid, None)
-                xf.user = asset.owner
-                asset.deployment._xform = xf
+                if xf := xforms_by_uid.get(asset.uid):
+                    xf.user = asset.owner
+                    asset.deployment._xform = xf
+                else:
+                    # If XForm does not exist, something went wrong.
+                    # Consider the asset as not deployed.
+                    asset.date_deployed = None
+                    asset._deployment_data = {}
             yield asset
 
     def _bulk_asset_actions(self, data: dict) -> dict:
