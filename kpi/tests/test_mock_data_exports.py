@@ -197,6 +197,7 @@ class MockDataExportsBase(TestCase):
                     'formhub/uuid': '1511083383a64c9dad1eca3795cd3788',
                     'meta/instanceID': 'uuid:48583952-1892-4931-8d9c-869e7b49bafb',
                     'start': '2017-10-23T05:40:39.000-04:00',
+                    'meta/rootUuid': 'uuid:48583952-1892-4931-8d9c-869e7b49bafb',
                 },
                 {
                     'Do_you_descend_from_unicellular_organism': 'no',
@@ -217,6 +218,7 @@ class MockDataExportsBase(TestCase):
                     'formhub/uuid': '1511083383a64c9dad1eca3795cd3788',
                     'meta/instanceID': 'uuid:317ba7b7-bea4-4a8c-8620-a483c3079c4b',
                     'start': '2017-10-23T05:41:14.000-04:00',
+                    'meta/rootUuid': 'uuid:317ba7b7-bea4-4a8c-8620-a483c3079c4b',
                 },
                 {
                     'Do_you_descend_from_unicellular_organism': 'yes',
@@ -237,6 +239,7 @@ class MockDataExportsBase(TestCase):
                     'formhub/uuid': '1511083383a64c9dad1eca3795cd3788',
                     'meta/instanceID': 'uuid:3f15cdfe-3eab-4678-8352-7806febf158d',
                     'start': '2017-10-23T05:41:32.000-04:00',
+                    'meta/rootUuid': 'uuid:3f15cdfe-3eab-4678-8352-7806febf158d',
                 },
             ],
         },
@@ -357,19 +360,13 @@ class MockDataExportsBase(TestCase):
 
     @staticmethod
     def _create_asset_with_submissions(user, content, name, submissions):
-        asset = Asset.objects.create(
-            name=name,
-            content=content,
-            owner=user
-        )
+        asset = Asset.objects.create(name=name, content=content, owner=user)
         asset.deploy(backend='mock', active=True)
         asset.save()
 
         v_uid = asset.latest_deployed_version.uid
         for submission in submissions:
-            submission.update({
-                '__version__': v_uid
-            })
+            submission.update({'__version__': v_uid})
         asset.deployment.set_namespace('api_v2')
         asset.deployment.mock_submissions(submissions)
         return asset
@@ -381,9 +378,7 @@ class MockDataExports(MockDataExportsBase):
 
         self.anotheruser = User.objects.get(username='anotheruser')
         partial_perms = {
-            PERM_VIEW_SUBMISSIONS: [
-                {'_submitted_by': self.anotheruser.username}
-            ]
+            PERM_VIEW_SUBMISSIONS: [{'_submitted_by': self.anotheruser.username}]
         }
         for asset in self.assets.values():
             asset.assign_perm(
@@ -394,9 +389,7 @@ class MockDataExports(MockDataExportsBase):
 
         self.formpack, self.submission_stream = report_data.build_formpack(
             self.asset,
-            submission_stream=self.asset.deployment.get_submissions(
-                self.asset.owner
-            ),
+            submission_stream=self.asset.deployment.get_submissions(self.asset.owner),
         )
 
     def run_csv_export_test(
@@ -418,7 +411,7 @@ class MockDataExports(MockDataExportsBase):
         export_task.user = self.user if user is None else user
         export_task.data = {
             'source': reverse('asset-detail', args=[asset.uid]),
-            'type': 'csv'
+            'type': 'csv',
         }
         if export_options:
             export_task.data.update(export_options)
@@ -663,7 +656,7 @@ class MockDataExports(MockDataExportsBase):
                     version_uid,
                     '',
                     1.0,
-                    '48583952-1892-4931-8d9c-869e7b49bafb',
+                    'uuid:48583952-1892-4931-8d9c-869e7b49bafb',
                 ],
                 [
                     '2017-10-23T05:41:14.000-04:00',
@@ -685,7 +678,7 @@ class MockDataExports(MockDataExportsBase):
                     version_uid,
                     '',
                     2.0,
-                    '317ba7b7-bea4-4a8c-8620-a483c3079c4b',
+                    'uuid:317ba7b7-bea4-4a8c-8620-a483c3079c4b',
                 ],
                 [
                     '2017-10-23T05:41:32.000-04:00',
@@ -707,7 +700,7 @@ class MockDataExports(MockDataExportsBase):
                     version_uid,
                     '',
                     3.0,
-                    '3f15cdfe-3eab-4678-8352-7806febf158d',
+                    'uuid:3f15cdfe-3eab-4678-8352-7806febf158d',
                 ],
             ]
         }
@@ -1215,12 +1208,7 @@ class MockDataExports(MockDataExportsBase):
 
     def test_xls_export_filter_fields_repeat_groups(self):
         export_options = {
-            'fields': [
-                '_uuid',
-                '_submission_time',
-                'people/person/name',
-                '_index'
-            ]
+            'fields': ['_uuid', '_submission_time', 'people/person/name', '_index']
         }
         asset = self.assets['Simple repeat group']
         expected_data = {
@@ -1393,7 +1381,7 @@ class MockDataExports(MockDataExportsBase):
         self.assertEqual(
             os.path.split(export_task.result.name)[-1],
             'Identificaci\xf3n_de_animales_-_all_versions_-_SPSS_Labels_-_'
-            '{date:%Y-%m-%d-%H-%M-%S}.zip'.format(date=utcnow)
+            '{date:%Y-%m-%d-%H-%M-%S}.zip'.format(date=utcnow),
         )
         expected_file_names_and_content_lines = {
             'Identificaci\xf3n de animales - Spanish - SPSS labels.sps': [
@@ -1425,7 +1413,7 @@ class MockDataExports(MockDataExportsBase):
                 ' /Do_you_descend_from_unicellular_organism',
                 " 'yes' 'S\xed'",
                 " 'no' 'No'",
-                ' .'
+                ' .',
             ],
             'Identificaci\xf3n de animales - English - SPSS labels.sps': [
                 '\ufeffVARIABLE LABELS',
@@ -1456,7 +1444,7 @@ class MockDataExports(MockDataExportsBase):
                 ' /Do_you_descend_from_unicellular_organism',
                 " 'yes' 'Yes'",
                 " 'no' 'No'",
-                ' .'
+                ' .',
             ],
         }
         result_zip = zipfile.ZipFile(export_task.result, 'r')
@@ -1464,7 +1452,7 @@ class MockDataExports(MockDataExportsBase):
             self.assertEqual(
                 # we have `unicode_literals` but the rest of the app doesn't
                 result_zip.open(name, 'r').read().decode('utf-8'),
-                '\r\n'.join(content_lines)
+                '\r\n'.join(content_lines),
             )
 
     def test_remove_excess_exports(self):
@@ -1495,7 +1483,8 @@ class MockDataExports(MockDataExportsBase):
         self.assertEqual(excess_count + 1, created_export_tasks.count())
         # Identify which exports should be kept
         export_tasks_to_keep = created_export_tasks.order_by('-date_created')[
-            :settings.MAXIMUM_EXPORTS_PER_USER_PER_FORM]
+            : settings.MAXIMUM_EXPORTS_PER_USER_PER_FORM
+        ]
         # Call `run()` once more since it invokes the cleanup logic
         export_task.run()
         self.assertEqual(export_task.status, ImportExportStatusChoices.COMPLETE)
@@ -1506,7 +1495,9 @@ class MockDataExports(MockDataExportsBase):
             list(
                 SubmissionExportTask.objects.filter(
                     user=self.user, data__source=task_data['source']
-                ).order_by('-date_created').values_list('pk', flat=True)
+                )
+                .order_by('-date_created')
+                .values_list('pk', flat=True)
             ),
         )
 
@@ -1537,7 +1528,9 @@ class MockDataExports(MockDataExportsBase):
             [ImportExportStatusChoices.CREATED, ImportExportStatusChoices.PROCESSING],
             SubmissionExportTask.objects.filter(
                 user=self.user, data__source=task_data['source']
-            ).order_by('pk').values_list('status', flat=True),
+            )
+            .order_by('pk')
+            .values_list('status', flat=True),
         )
         # Run another export, which invokes the cleanup logic
         export_task = SubmissionExportTask()
@@ -1554,7 +1547,9 @@ class MockDataExports(MockDataExportsBase):
             ],
             SubmissionExportTask.objects.filter(
                 user=self.user, data__source=task_data['source']
-            ).order_by('pk').values_list('status', flat=True),
+            )
+            .order_by('pk')
+            .values_list('status', flat=True),
         )
 
     def test_export_long_form_title(self):
@@ -1578,19 +1573,23 @@ class MockDataExports(MockDataExportsBase):
         export_task.run()
 
         assert (
-            len(os.path.basename(export_task.result.name)) ==
-                SubmissionExportTask.MAXIMUM_FILENAME_LENGTH
+            len(os.path.basename(export_task.result.name))
+            == SubmissionExportTask.MAXIMUM_FILENAME_LENGTH
         )
 
     def test_export_latest_version_only(self):
         submissions = self.forms[self.form_names[0]]['submissions']
-        new_survey_content = [{
-            'label': ['Do you descend... new label',
-                      '\xbfDesciende de... etiqueta nueva'],
-            'name': 'Do_you_descend_from_unicellular_organism',
-            'required': False,
-            'type': 'text'
-        }]
+        new_survey_content = [
+            {
+                'label': [
+                    'Do you descend... new label',
+                    '\xbfDesciende de... etiqueta nueva',
+                ],
+                'name': 'Do_you_descend_from_unicellular_organism',
+                'required': False,
+                'type': 'text',
+            }
+        ]
         # Re-fetch from the database to avoid modifying self.form_content
         self.asset = Asset.objects.get(pk=self.asset.pk)
         self.asset.content['survey'] = new_survey_content
@@ -1606,8 +1605,7 @@ class MockDataExports(MockDataExportsBase):
             f'"no";"{submissions[1]["_id"]}";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2017-10-23T09:41:38";"";"";"submitted_via_web";"";"{version_uid}";"";"2"',
             f'"yes";"{submissions[2]["_id"]}";"3f15cdfe-3eab-4678-8352-7806febf158d";"2017-10-23T09:42:11";"";"";"submitted_via_web";"anotheruser";"{version_uid}";"";"3"',
         ]
-        self.run_csv_export_test(
-            expected_lines, {'fields_from_all_versions': 'false'})
+        self.run_csv_export_test(expected_lines, {'fields_from_all_versions': 'false'})
 
     def test_export_exceeding_api_submission_limit(self):
         """
@@ -1626,14 +1624,15 @@ class MockDataExports(MockDataExportsBase):
             {
                 '__version__': asset.latest_deployed_version.uid,
                 'q': i,
-            } for i in range(limit + excess)
+            }
+            for i in range(limit + excess)
         ]
         asset.deployment.mock_submissions(submissions)
         export_task = SubmissionExportTask()
         export_task.user = self.user
         export_task.data = {
             'source': reverse('asset-detail', args=[asset.uid]),
-            'type': 'csv'
+            'type': 'csv',
         }
         messages = defaultdict(list)
         export_task._run_task(messages)
@@ -1694,19 +1693,12 @@ class MockDataExports(MockDataExportsBase):
         assert self.asset.has_perm(self.anotheruser, PERM_CHANGE_ASSET) == True
         assert PERM_CHANGE_ASSET in self.asset.get_perms(self.anotheruser)
 
-        assert (
-            self.asset.has_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
-            == False
-        )
-        assert PERM_VIEW_SUBMISSIONS not in self.asset.get_perms(
-            self.anotheruser
-        )
+        assert self.asset.has_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS) == False
+        assert PERM_VIEW_SUBMISSIONS not in self.asset.get_perms(self.anotheruser)
 
         self.asset.assign_perm(anonymous_user, PERM_VIEW_SUBMISSIONS)
 
-        assert (
-            self.asset.has_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS) == True
-        )
+        assert self.asset.has_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS) == True
         assert PERM_VIEW_SUBMISSIONS in self.asset.get_perms(self.anotheruser)
 
         # testing anotheruser can export data
