@@ -1,7 +1,11 @@
 from typing import Generator
 
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
-from kobo.apps.subsequences.constants import Action, SUBMISSION_UUID_FIELD, SUPPLEMENT_KEY
+from kobo.apps.subsequences.constants import (
+    SUBMISSION_UUID_FIELD,
+    SUPPLEMENT_KEY,
+    Action,
+)
 from kobo.apps.subsequences.models import SubmissionSupplement
 
 

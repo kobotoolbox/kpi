@@ -267,7 +267,7 @@ class ManualQualAction(BaseAction):
         for qual_item in self.params:
             if qual_item['type'] not in self.data_schema_definitions:
                 # Exclude from output fields if the type is not allowed to
-                # receive response data
+                # receive response data, e.g. `qualNote`
                 continue
 
             field = {
