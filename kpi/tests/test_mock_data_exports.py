@@ -619,6 +619,7 @@ class MockDataExports(MockDataExportsBase):
                     '__version__',
                     '_tags',
                     '_index',
+                    'meta/rootUuid',
                 ],
                 [
                     '',
@@ -629,6 +630,7 @@ class MockDataExports(MockDataExportsBase):
                     '',
                     '#segments',
                     '#fluids',
+                    '',
                     '',
                     '',
                     '',
@@ -661,6 +663,7 @@ class MockDataExports(MockDataExportsBase):
                     version_uid,
                     '',
                     1.0,
+                    '48583952-1892-4931-8d9c-869e7b49bafb',
                 ],
                 [
                     '2017-10-23T05:41:14.000-04:00',
@@ -682,6 +685,7 @@ class MockDataExports(MockDataExportsBase):
                     version_uid,
                     '',
                     2.0,
+                    '317ba7b7-bea4-4a8c-8620-a483c3079c4b',
                 ],
                 [
                     '2017-10-23T05:41:32.000-04:00',
@@ -703,6 +707,7 @@ class MockDataExports(MockDataExportsBase):
                     version_uid,
                     '',
                     3.0,
+                    '3f15cdfe-3eab-4678-8352-7806febf158d',
                 ],
             ]
         }
