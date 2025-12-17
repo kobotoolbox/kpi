@@ -1,0 +1,60 @@
+name: Update Translations
+
+on:
+  push:
+    branches: [ "main", "kalvis/transifex" ] # WIP
+
+
+jobs:
+  upload-to-transifex:
+    runs-on: ubuntu-24.04
+    steps:
+
+    - uses: actions/checkout@v6
+      with:
+        submodules: true
+
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v6
+      with:
+        python-version: "3.10"
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with: { cache-suffix: 'dev_requirements' }
+
+    - name: Update Debian package lists
+      run: sudo DEBIAN_FRONTEND=noninteractive apt-get -y update
+
+    - name: Install Debian dependencies
+      # All about YAML line breaks: https://stackoverflow.com/a/21699210
+      run: >-
+        sudo DEBIAN_FRONTEND=noninteractive apt-get -y install
+        gdal-bin gettext libproj-dev postgresql-client ffmpeg
+        gcc libc-dev build-essential
+
+    - name: Install Python dependencies
+      run: uv pip sync --system dependencies/pip/dev_requirements.txt
+
+    - name: Extract translatable strings from Python code.
+      run: |
+        python manage.py makemessages --locale en
+        git diff --stat
+        git diff
+        (cd locale; git diff --stat)
+        (cd locale; git diff)
+
+    - name: Extract translatable strings from Javascript/Typescript code.
+      run: |
+        python manage.py makemessages --locale en --domain djangojs --extension js
+        # json2po jsapp/compiled/extracted-strings.json locale/en/LC_MESSAGES/djangojs.po
+        git diff --stat
+        git diff
+        (cd locale; git diff --stat)
+        (cd locale; git diff)
+
+    # - name: Run Transifex
+    #   uses: transifex/cli-action@v2
+    #   with:
+    #     token: ${{ secrets.TRANSIFEX_API }}
+    #     args: 'push -s'
