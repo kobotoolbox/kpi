@@ -808,13 +808,15 @@ export function removeEmptyFromSupplementalDetails(supplementalDetails: Submissi
   // b) responses to qual questions that are deleted
   for (const detailsKey of recordKeys(details)) {
     if (details[detailsKey].qual) {
-      details[detailsKey].qual = Object.fromEntries(Object.entries(
-        details[detailsKey].qual).filter(([_, qualResponse]) =>
-        qualResponse.value !== '' &&
-          qualResponse.value !== null &&
-          !(Array.isArray(qualResponse.value) && qualResponse.value.length === 0) &&
-          qualResponse.options?.deleted !== true,
-          ))
+      details[detailsKey].qual = Object.fromEntries(
+        Object.entries(details[detailsKey].qual).filter(
+          ([_, qualResponse]) =>
+            qualResponse.value !== '' &&
+            qualResponse.value !== null &&
+            !(Array.isArray(qualResponse.value) && qualResponse.value.length === 0) &&
+            qualResponse.options?.deleted !== true,
+        )
+      )
     }
   }
 

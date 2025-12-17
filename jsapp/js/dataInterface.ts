@@ -197,7 +197,7 @@ export interface SubmissionSupplementalDetails {
     translation?: {
       [languageCode: LanguageCode]: TransxObject
     }
-    qual?: {[uuid: string]: SubmissionAnalysisResponse}
+    qual?: { [uuid: string]: SubmissionAnalysisResponse }
   }
 }
 

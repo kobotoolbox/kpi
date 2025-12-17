@@ -3208,7 +3208,7 @@ export const submissionWithSupplementalDetails = {
           labels: { _default: 'Another integer question here?' },
           xpath: '',
         },
-        'ab0e40e1-fbcc-43e9-9d00-b9b3314089cb':{
+        'ab0e40e1-fbcc-43e9-9d00-b9b3314089cb': {
           value: 'a thing',
           type: 'qual_text',
           uuid: 'ab0e40e1-fbcc-43e9-9d00-b9b3314089cb',
