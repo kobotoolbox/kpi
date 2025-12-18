@@ -364,7 +364,6 @@ class ManualQualAction(BaseAction):
                 # Unchanged value for other types (integer, text, tags)
                 output_value = value
 
-
             results_dict[('qual', qual_uuid)] = {
                     'value': output_value,
                     'type': qual_question['type'],
