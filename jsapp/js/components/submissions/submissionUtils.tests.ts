@@ -220,21 +220,21 @@ describe('removeEmptyFromSupplementalDetails', () => {
       How_much_can_you_handle: {
         qual: [
           {
-            val: '',
+            value: '',
             type: 'qual_text',
             uuid: '',
             labels: { _default: 'foo' },
             xpath: '',
           },
           {
-            val: 'foo',
+            value: 'foo',
             type: 'qual_text',
             uuid: '',
             labels: { _default: 'foo' },
             xpath: '',
           },
           {
-            val: 'bar',
+            value: 'bar',
             options: { deleted: true },
             type: 'qual_text',
             uuid: '',
@@ -251,7 +251,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
       How_much_can_you_handle: {
         qual: [
           {
-            val: 'foo',
+            value: 'foo',
             type: 'qual_text',
             uuid: '',
             labels: { _default: 'foo' },
@@ -267,14 +267,14 @@ describe('removeEmptyFromSupplementalDetails', () => {
       How_much_can_you_handle: {
         qual: [
           {
-            val: '',
+            value: '',
             type: 'qual_text',
             labels: { _default: 'foo' },
             uuid: '',
             xpath: '',
           },
           {
-            val: 'bar',
+            value: 'bar',
             options: { deleted: true },
             type: 'qual_text',
             labels: { _default: 'foo' },
@@ -308,7 +308,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
       How_much_can_you_handle: {
         qual: [
           {
-            val: 'foo',
+            value: 'foo',
             type: 'qual_text',
             labels: { _default: 'foo' },
             uuid: '',
@@ -328,28 +328,28 @@ describe('removeEmptyFromSupplementalDetails', () => {
       How_much_can_you_handle: {
         qual: [
           {
-            val: '',
+            value: '',
             type: 'qual_text',
             labels: { _default: 'foo' },
             uuid: '',
             xpath: '',
           },
           {
-            val: [],
+            value: [],
             type: 'qual_text',
             labels: { _default: 'foo' },
             uuid: '',
             xpath: '',
           },
           {
-            val: null,
+            value: null,
             type: 'qual_text',
             labels: { _default: 'foo' },
             uuid: '',
             xpath: '',
           },
           {
-            val: 'foo',
+            value: 'foo',
             options: { deleted: true },
             type: 'qual_text',
             labels: { _default: 'foo' },
@@ -357,7 +357,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
             xpath: '',
           },
           {
-            val: 'bar',
+            value: 'bar',
             type: 'qual_text',
             labels: { _default: 'foo' },
             uuid: '',
@@ -373,7 +373,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
       How_much_can_you_handle: {
         qual: [
           {
-            val: 'bar',
+            value: 'bar',
             type: 'qual_text',
             labels: { _default: 'foo' },
             uuid: '',

@@ -645,6 +645,12 @@ class BaseManualNLPAction(BaseAction):
                 'language': language,
                 'source': self.source_question_xpath,
                 'type': col_type,
+                'name': self._get_output_field_dtpath(language),
+                # TODO: expunge `dtpath`, which is now just the same thing as
+                # `name` with a cryptic moniker. commit 4006bbd37 put `dtpath`
+                # back (and removed `name`) to get restore functionality to the
+                # data table, but the preferred solution would be changing the
+                # frontend to use `name` instead of `dtpath`
                 'dtpath': self._get_output_field_dtpath(language),
             }
             fields.append(column)

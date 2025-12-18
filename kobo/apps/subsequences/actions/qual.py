@@ -1,4 +1,7 @@
+from copy import deepcopy
 from typing import Any
+
+from rest_framework.exceptions import ValidationError
 
 from kobo.apps.subsequences.actions.base import BaseAction
 from kobo.apps.subsequences.type_aliases import SimplifiedOutputCandidatesByColumnKey
@@ -255,6 +258,11 @@ class BaseQualAction(BaseAction):
     def get_output_fields(self) -> list[dict]:
         output_fields = []
         for qual_item in self.params:
+            if qual_item['type'] not in self.data_schema_definitions:
+                # Exclude from output fields if the type is not allowed to
+                # receive response data, e.g. `qualNote`
+                continue
+
             field = {
                 'label': qual_item['labels']['_default'],
                 'source': self.source_question_xpath,
@@ -341,7 +349,7 @@ class BaseQualAction(BaseAction):
                 output_value = value
 
             results_dict[('qual', qual_uuid)] = {
-                    'val': output_value,
+                    'value': output_value,
                     'type': qual_question['type'],
                     'uuid': qual_uuid,
                     'xpath': self.source_question_xpath,

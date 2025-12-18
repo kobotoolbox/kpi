@@ -1,7 +1,11 @@
 from typing import Generator
 
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
-from kobo.apps.subsequences.constants import SUBMISSION_UUID_FIELD, SUPPLEMENT_KEY
+from kobo.apps.subsequences.constants import (
+    SUBMISSION_UUID_FIELD,
+    SUPPLEMENT_KEY,
+    Action,
+)
 from kobo.apps.subsequences.models import SubmissionSupplement
 
 
@@ -35,7 +39,17 @@ def get_analysis_form_json(asset: 'kpi.models.Asset') -> list[dict]:
     the most recent win
     """
 
-    additional_fields = []
+    additional_fields_by_action_id = {
+        # The order of this dictionary governs how fields are sorted in the
+        # list to be returned. Grouping fields together with their sources is
+        # handled by logic elsewhere
+        Action.MANUAL_TRANSCRIPTION: [],
+        Action.AUTOMATIC_GOOGLE_TRANSCRIPTION: [],
+        Action.MANUAL_TRANSLATION: [],
+        Action.AUTOMATIC_GOOGLE_TRANSLATION: [],
+        Action.MANUAL_QUAL: [],
+    }
+
     dt_paths_seen = set()
     for advanced_feature in asset.advanced_features_set.all():
         action = advanced_feature.to_action()
@@ -43,11 +57,15 @@ def get_analysis_form_json(asset: 'kpi.models.Asset') -> list[dict]:
         for field in output_fields:
             if field['dtpath'] in dt_paths_seen:
                 continue
-            additional_fields.append(field)
+            additional_fields_by_action_id[action.ID].append(field)
             dt_paths_seen.add(field['dtpath'])
-    # sort so transcriptions come before translations for every source question
-    additional_fields = sorted(additional_fields, key=lambda x: x['dtpath'])
-    return additional_fields
+
+    additional_fields_sorted = []
+    for fields_for_action in additional_fields_by_action_id.values():
+        # Yay, dictionaries retain their order nowadays
+        additional_fields_sorted.extend(fields_for_action)
+
+    return additional_fields_sorted
 
 
 def stream_with_supplements(
