@@ -104,7 +104,7 @@ jobs:
 
     - name: draft a changelog
       run: |
-        npx git-cliff -u --tag $CURRENT_PATCH
+        npx git-cliff@2.10.0 -u --tag $CURRENT_PATCH
 
     - name: commit the changelog to a dedicated branch
       run: |
