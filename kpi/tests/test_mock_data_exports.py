@@ -611,8 +611,8 @@ class MockDataExports(MockDataExportsBase):
                     '_submitted_by',
                     '__version__',
                     '_tags',
-                    '_index',
                     'meta/rootUuid',
+                    '_index',
                 ],
                 [
                     '',
@@ -655,8 +655,8 @@ class MockDataExports(MockDataExportsBase):
                     '',
                     version_uid,
                     '',
-                    1.0,
                     'uuid:48583952-1892-4931-8d9c-869e7b49bafb',
+                    1.0,
                 ],
                 [
                     '2017-10-23T05:41:14.000-04:00',
@@ -677,8 +677,8 @@ class MockDataExports(MockDataExportsBase):
                     '',
                     version_uid,
                     '',
-                    2.0,
                     'uuid:317ba7b7-bea4-4a8c-8620-a483c3079c4b',
+                    2.0,
                 ],
                 [
                     '2017-10-23T05:41:32.000-04:00',
@@ -699,8 +699,8 @@ class MockDataExports(MockDataExportsBase):
                     'anotheruser',
                     version_uid,
                     '',
-                    3.0,
                     'uuid:3f15cdfe-3eab-4678-8352-7806febf158d',
+                    3.0,
                 ],
             ]
         }
