@@ -6,6 +6,7 @@ from rest_framework.exceptions import ValidationError
 from ..type_aliases import SimplifiedOutputCandidatesByColumnKey
 from typing import Any
 
+
 from kobo.apps.subsequences.actions.base import BaseAction
 from kobo.apps.subsequences.type_aliases import SimplifiedOutputCandidatesByColumnKey
 

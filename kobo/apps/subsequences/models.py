@@ -230,8 +230,11 @@ class SubmissionSupplement(SubmissionExtras):
                                 for key_str in field_key[:-1]:
                                     current = current.setdefault(key_str, {})
                                 current[field_key[-1]] = field_data
+
                     # hack: the `qual` field has to be an array instead of a dict
-                    output_data_for_question['qual'] = [value for key, value in output_data_for_question['qual'].items()]
+            output_data_for_question['qual'] = [
+                value for key, value in output_data_for_question['qual'].items()
+            ]
             data_for_output[question_xpath] = output_data_for_question
 
         retrieved_supplemental_data['_version'] = schema_version

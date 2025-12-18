@@ -1,7 +1,9 @@
 from kobo.apps.subsequences.actions.base import ActionClassConfig, BaseAction
+from kobo.apps.subsequences.actions.mixins import RequiresTranscriptionMixin
+from kobo.apps.subsequences.actions.qual import BaseQualAction
 
 
-class AutomaticChainedQualAction(BaseAction):
+class AutomaticChainedQualAction(BaseQualAction, RequiresTranscriptionMixin):
 
     ID = 'automatic_chained_qual'
     action_class_config = ActionClassConfig(
@@ -19,6 +21,12 @@ class AutomaticChainedQualAction(BaseAction):
         """
         Update action_data with external process
         """
+        # get initial question
+        survey = self.asset.content.get('survey', [])
+        question = [q for q in survey if q['$xpath'] == self.source_question_xpath][0]
+        # TBD: is the first label in the "label" array always the default language?
+        question_text = question['label'][0]
+
         return {}
 
     def external_data_schema(self):
