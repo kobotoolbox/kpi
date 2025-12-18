@@ -21,10 +21,15 @@ jobs:
       packages: write
     env:
        CI_REGISTRY_IMAGE: ghcr.io/kobotoolbox/kpi
-
+    outputs:
+      kpi_image_sha: ${{ steps.sha.outputs.sha }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
+
+      - name: Store commit SHA
+        id: sha
+        run: echo "sha=${GITHUB_SHA}" >> $GITHUB_OUTPUT
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v5.1.1
@@ -70,15 +75,36 @@ jobs:
           BRANCH_TITLE=${GITHUB_REF_NAME#feature/}
           helm -n kobo-dev upgrade --install $BRANCH_TITLE oci://ghcr.io/kobotoolbox/kobo --atomic --set-string kpi.version=${GITHUB_SHA} --set kpi.image.repository=$CI_REGISTRY_IMAGE --reuse-values
 
-      - name: Deploy main
-        if:  github.ref_name == 'main'
-        run: |
-          helm -n kobo-dev upgrade staging-main oci://ghcr.io/kobotoolbox/kobo --atomic --set-string kpi.version=${GITHUB_SHA} --set kpi.image.repository=$CI_REGISTRY_IMAGE --reuse-values
-          helm -n kobo-dev upgrade staging-nobill oci://ghcr.io/kobotoolbox/kobo --atomic --set-string kpi.version=${GITHUB_SHA} --set kpi.image.repository=$CI_REGISTRY_IMAGE --reuse-values
+  trigger-main-deploy:
+    needs: deploy
+    runs-on: ubuntu-latest
+    if: github.ref_name == 'main'
+    steps:
+      - name: Generate GitHub App Token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.KOBO_BOT_APP_ID }}
+          private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
+          owner: kobotoolbox
+          repositories: "devops"
+          
+      - name: Trigger kfmain deploy build
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: deploy-kfmain.yml
+          repo: kobotoolbox/devops
+          ref: instance/kfmain
+          token: ${{ steps.app-token.outputs.token }}
+          inputs: |
+            {
+              "kpi_image_sha": "${{ needs.deploy.outputs.kpi_image_sha }}"
+            }
 
   notify-success:
     needs:
       - deploy
+      - trigger-main-deploy
     if: ${{ !cancelled() && !failure() }}
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
@@ -89,6 +115,7 @@ jobs:
   notify-failure:
     needs:
       - deploy
+      - trigger-main-deploy
     if: ${{ !cancelled() && failure() }}
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
