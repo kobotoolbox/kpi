@@ -9,6 +9,7 @@ import { KEY_CODES } from '#/constants'
 import envStore from '#/envStore'
 import type { InAppMessage } from './helpBubbleStore'
 import helpBubbleStore from './helpBubbleStore'
+import sessionStore from '#/stores/session'
 
 bem.HelpBubble = makeBem(null, 'help-bubble')
 bem.HelpBubble__close = makeBem(bem.HelpBubble, 'close', 'button')
@@ -25,11 +26,17 @@ interface HelpBubbleState {
   isOpen: boolean
 }
 
-class HelpBubble extends React.Component<{}, HelpBubbleState> {
+interface HelpBubbleProps {
+  username: string
+  userUid: string
+  userFullName: string
+}
+
+class HelpBubble extends React.Component<HelpBubbleProps, HelpBubbleState> {
   public cancelOutsideCloseWatch = Function.prototype
   private store = helpBubbleStore
 
-  constructor(props: {}) {
+  constructor(props: HelpBubbleProps) {
     super(props)
     this.state = {
       isOpen: false,
@@ -108,15 +115,23 @@ class HelpBubble extends React.Component<{}, HelpBubbleState> {
     this.open()
   }
 
+  interpolateMessageUserInfo(htmlString: string) {
+    return htmlString
+      .replace('##username##', this.props.username)
+      .replace('##user_uid##', this.props.userUid)
+      .replace('##user_full_name##', this.props.userFullName || t('KoboToolbox user'))
+  }
+
   renderSnippetRow(msg: InAppMessage, clickCallback: (messageUid: string) => void) {
     const modifiers = ['message', 'message-clickable']
+    const snippet = this.interpolateMessageUserInfo(msg.html.snippet)
     if (!msg.interactions.readTime || msg.always_display_as_new) {
       modifiers.push('message-unread')
     }
     return (
       <bem.HelpBubble__row m={modifiers} key={msg.uid} onClick={clickCallback}>
         <header>{msg.title}</header>
-        <div dangerouslySetInnerHTML={{ __html: msg.html.snippet }} />
+        <div dangerouslySetInnerHTML={{ __html: snippet }} />
       </bem.HelpBubble__row>
     )
   }
@@ -227,6 +242,7 @@ class HelpBubble extends React.Component<{}, HelpBubbleState> {
     if (msg === undefined) {
       return null
     }
+    const body = this.interpolateMessageUserInfo(msg.html.body)
 
     return (
       <bem.HelpBubble__popup>
@@ -243,7 +259,7 @@ class HelpBubble extends React.Component<{}, HelpBubbleState> {
             <header>{msg.title}</header>
           </bem.HelpBubble__row>
 
-          <bem.HelpBubble__row m='message' dangerouslySetInnerHTML={{ __html: msg.html.body }} />
+          <bem.HelpBubble__row m='message' dangerouslySetInnerHTML={{ __html: body }} />
         </bem.HelpBubble__popupContent>
       </bem.HelpBubble__popup>
     )

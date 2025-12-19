@@ -16,6 +16,11 @@ class InAppMessageAdmin(MarkdownxModelAdminBase):
         'information. If someone has already dismissed a message, editing it '
         'here will not cause it to reappear.'
     )
+    user_details_info = (
+        'The following template variables can be used to insert user info '
+        'in the snippet and message fields on the frontend: '
+        '##username##, ##user_uid##, and ##user_full_name## (defaults to `KoboToolbox user`).'
+    )
     readonly_fields = ['uid', 'last_editor']
 
     def get_queryset(self, request):
@@ -44,6 +49,7 @@ class InAppMessageAdmin(MarkdownxModelAdminBase):
         # Only display messages on edit.
         if obj:
             fieldsets.insert(0, (self.new_message_warning, {'fields': ''}))
+            fieldsets.insert(1, (self.user_details_info, {'fields': ''}))
         return fieldsets
 
     def save_model(self, request, obj, form, change):
