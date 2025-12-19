@@ -19,7 +19,8 @@ class InAppMessageAdmin(MarkdownxModelAdminBase):
     user_details_info = (
         'The following template variables can be used to insert user info '
         'in the snippet and message fields on the frontend: '
-        '##username##, ##user_uid##, and ##user_full_name## (defaults to `KoboToolbox user`).'
+        '##username##, ##user_uid##, and ##user_full_name## '
+        '(defaults to `KoboToolbox user`).'
     )
     readonly_fields = ['uid', 'last_editor']
 
