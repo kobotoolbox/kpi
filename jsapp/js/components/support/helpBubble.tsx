@@ -9,7 +9,6 @@ import { KEY_CODES } from '#/constants'
 import envStore from '#/envStore'
 import type { InAppMessage } from './helpBubbleStore'
 import helpBubbleStore from './helpBubbleStore'
-import sessionStore from '#/stores/session'
 
 bem.HelpBubble = makeBem(null, 'help-bubble')
 bem.HelpBubble__close = makeBem(bem.HelpBubble, 'close', 'button')
