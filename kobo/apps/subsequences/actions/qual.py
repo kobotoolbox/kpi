@@ -1,8 +1,8 @@
 from copy import deepcopy
-from typing import Any
 
 from rest_framework.exceptions import ValidationError
 
+from ..type_aliases import SimplifiedOutputCandidatesByColumnKey
 from .base import ActionClassConfig, BaseAction
 
 
@@ -296,7 +296,9 @@ class ManualQualAction(BaseAction):
         """
         return False
 
-    def transform_data_for_output(self, action_data: dict) -> dict[str, Any]:
+    def transform_data_for_output(
+        self, action_data: dict
+    ) -> SimplifiedOutputCandidatesByColumnKey:
 
         qual_questions_by_uuid = {q['uuid']: q for q in self.params}
 
@@ -309,7 +311,7 @@ class ManualQualAction(BaseAction):
                     for choice in qual_question.get('choices', [])
                 }
 
-        results_list = []
+        results_dict = {}
         for qual_uuid, qual_data in action_data.items():
             if qual_uuid not in qual_questions_by_uuid:
                 continue
@@ -362,16 +364,14 @@ class ManualQualAction(BaseAction):
                 # Unchanged value for other types (integer, text, tags)
                 output_value = value
 
-            results_list.append(
-                {
+            results_dict[('qual', qual_uuid)] = {
                     'value': output_value,
                     'type': qual_question['type'],
-                    'uuid': qual_uuid,
                     'xpath': self.source_question_xpath,
                     'labels': qual_question.get('labels', {}),
+                    self.DATE_ACCEPTED_FIELD: selected_version[self.DATE_ACCEPTED_FIELD]
                 }
-            )
-        return {'qual': results_list}
+        return results_dict
 
     def update_params(self, incoming_params):
         """

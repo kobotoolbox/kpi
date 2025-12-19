@@ -3193,29 +3193,29 @@ export const submissionWithSupplementalDetails = {
           languageCode: 'pl',
         },
       },
-      qual: [
-        {
+      qual: {
+        'b05f29f7-8b58-4dd7-8695-c29cb04f3f7a': {
           value: ['best', 'things', 'ever recorder by human', '3'],
           type: 'qual_tags',
           uuid: 'b05f29f7-8b58-4dd7-8695-c29cb04f3f7a',
           labels: { _default: 'Another tag question here?' },
           xpath: '',
         },
-        {
+        '97fd5387-ac2b-4108-b5b4-37fa91ae0e22': {
           value: 12345,
           type: 'qual_integer',
           uuid: '97fd5387-ac2b-4108-b5b4-37fa91ae0e22',
           labels: { _default: 'Another integer question here?' },
           xpath: '',
         },
-        {
+        'ab0e40e1-fbcc-43e9-9d00-b9b3314089cb': {
           value: 'a thing',
           type: 'qual_text',
           uuid: 'ab0e40e1-fbcc-43e9-9d00-b9b3314089cb',
           labels: { _default: 'Another text question here?' },
           xpath: '',
         },
-        {
+        '1a89e0da-3344-4b5d-b919-ab8b072e0918': {
           value: [
             {
               labels: {
@@ -3235,14 +3235,14 @@ export const submissionWithSupplementalDetails = {
           labels: { _default: 'Another select question here?' },
           xpath: '',
         },
-        {
+        '056c8f57-0733-4669-a84e-aa9726ffbf6b': {
           value: ['wow', 'this works', 'f me', 'alpha beta gamma'],
           type: 'qual_tags',
           uuid: '056c8f57-0733-4669-a84e-aa9726ffbf6b',
           labels: { _default: 'Another tag question here?' },
           xpath: '',
         },
-        {
+        '6f230992-b0c4-4cf4-a4a3-a5bd5b50ab4d': {
           value: {
             labels: {
               _default: 'Yes',
@@ -3254,7 +3254,7 @@ export const submissionWithSupplementalDetails = {
           labels: { _default: 'Another select question here?' },
           xpath: '',
         },
-      ],
+      },
     },
   },
 } as const satisfies SubmissionResponse
@@ -3293,8 +3293,8 @@ export const submissionWithNestedSupplementalDetails = {
   _submitted_by: null,
   _supplementalDetails: {
     'level_a/level_b/level_c/sounds': {
-      qual: [
-        {
+      qual: {
+        '5dc7f202-8103-43a8-a48f-8f9b3c8f955f': {
           value: ['first', 'second', 'third', 'fourth', 'fifth'],
           type: 'qual_tags',
           uuid: '5dc7f202-8103-43a8-a48f-8f9b3c8f955f',
@@ -3304,7 +3304,7 @@ export const submissionWithNestedSupplementalDetails = {
             _default: 'What kind?',
           },
         },
-      ],
+      },
       transcript: {
         value: 'How are you doing my dear friend?',
         revisions: [],
