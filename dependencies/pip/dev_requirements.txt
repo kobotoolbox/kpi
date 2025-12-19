@@ -15,7 +15,7 @@ git+https://github.com/kobotoolbox/django-digest@3995226ed8e5bd1cb32c640aae970f8
     # via -r dependencies/pip/requirements.in
 git+https://github.com/trevoriancox/django-dont-vary-on.git@01a804122b7ddcdc22f50b40993f91c27b03bef6#egg=django-dont-vary-on
     # via -r dependencies/pip/requirements.in
-git+https://github.com/kobotoolbox/formpack.git@4eb19e38b42269c4c932c9435323032529037fba#egg=formpack
+git+https://github.com/kobotoolbox/formpack.git@6f0c7601625f6bf962008b518eab934ca0fdbd57#egg=formpack
     # via -r dependencies/pip/requirements.in
 git+https://github.com/dimagi/python-digest@5c94bb74516b977b60180ee832765c0695ff2b56#egg=python_digest
     # via -r dependencies/pip/requirements.in

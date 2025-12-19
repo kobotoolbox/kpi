@@ -1,10 +1,10 @@
 from copy import deepcopy
-from typing import Any
 
 from rest_framework.exceptions import ValidationError
 
-from kobo.apps.subsequences.actions.base import BaseAction
-from kobo.apps.subsequences.type_aliases import SimplifiedOutputCandidatesByColumnKey
+
+from ..type_aliases import SimplifiedOutputCandidatesByColumnKey
+from .base import ActionClassConfig, BaseAction
 
 
 class BaseQualAction(BaseAction):
@@ -282,7 +282,9 @@ class BaseQualAction(BaseAction):
             output_fields.append(field)
         return output_fields
 
-    def transform_data_for_output(self, action_data: dict) -> SimplifiedOutputCandidatesByColumnKey:
+    def transform_data_for_output(
+        self, action_data: dict
+    ) -> SimplifiedOutputCandidatesByColumnKey:
 
         qual_questions_by_uuid = {q['uuid']: q for q in self.params}
 
@@ -351,14 +353,11 @@ class BaseQualAction(BaseAction):
             results_dict[('qual', qual_uuid)] = {
                     'value': output_value,
                     'type': qual_question['type'],
-                    'uuid': qual_uuid,
                     'xpath': self.source_question_xpath,
                     'labels': qual_question.get('labels', {}),
-                    self.DATE_ACCEPTED_FIELD: selected_version[self.DATE_ACCEPTED_FIELD],
+                    self.DATE_ACCEPTED_FIELD: selected_version[self.DATE_ACCEPTED_FIELD]
                 }
-
         return results_dict
-
 
     def update_params(self, incoming_params):
         """

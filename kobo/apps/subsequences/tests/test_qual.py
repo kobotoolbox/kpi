@@ -840,30 +840,24 @@ class TestQualActionMethods(TestCase):
 
         output = action.transform_data_for_output(action_data)
         assert isinstance(output, dict)
-        qual_list = output.get('qual', [])
-        assert isinstance(qual_list, list)
-
         # Should have 4 items in output
-        assert len(qual_list) == 4
-
-        def find_item(q_uuid):
-            return next((it for it in qual_list if it.get('uuid') == q_uuid), None)
+        assert len(output.keys()) == 4
 
         # Test integer question
-        int_item = find_item('qual-integer-uuid')
+        int_item = output.get(('qual', 'qual-integer-uuid'))
         assert int_item is not None
         assert int_item['value'] == 5
         assert int_item['type'] == 'qualInteger'
         assert int_item['xpath'] == self.source_xpath
 
         # Test text question
-        text_item = find_item('qual-text-uuid')
+        text_item = output.get(('qual', 'qual-text-uuid'))
         assert text_item is not None
         assert text_item['value'] == 'Family needs immediate shelter and medical care'
         assert text_item['type'] == 'qualText'
 
         # Test select one - UUID transformed to object with labels
-        select_one_item = find_item('qual-select-one-uuid')
+        select_one_item = output.get(('qual', 'qual-select-one-uuid'))
         assert select_one_item is not None
         select_one_value = select_one_item['value']
         assert isinstance(select_one_value, dict)
@@ -875,7 +869,7 @@ class TestQualActionMethods(TestCase):
         }
 
         # Test select multiple - array of UUIDs transformed to array of objects
-        select_multi_item = find_item('qual-select-multi-uuid')
+        select_multi_item = output.get(('qual', 'qual-select-multi-uuid'))
         assert select_multi_item is not None
         select_multi_value = select_multi_item['value']
         assert isinstance(select_multi_value, list)
@@ -929,11 +923,9 @@ class TestQualActionMethods(TestCase):
         }
 
         output = action.transform_data_for_output(action_data)
-        qual_list = output.get('qual', [])
-        assert len(qual_list) == 1
+        assert len(output.keys()) == 1
 
-        text_item = qual_list[0]
-        assert text_item['uuid'] == 'qual-text-uuid'
+        text_item = output.get(('qual', 'qual-text-uuid'))
         assert text_item['value'] == 'Revised note'
 
     def test_update_params_sets_missing_questions_to_deleted_and_moved_to_the_end(self):

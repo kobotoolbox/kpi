@@ -684,10 +684,9 @@ export function getSupplementalDetailsContent(submission: SubmissionResponse, pa
   if (pathParts.type === 'qual') {
     // The last element is some random uuid, but we look for `qual`.
     pathArray.push('qual')
-    const qualResponses: SubmissionAnalysisResponse[] = get(submission, pathArray, [])
-    const foundResponse = qualResponses.find(
-      (item: SubmissionAnalysisResponse) => item.uuid === pathParts.analysisQuestionUuid,
-    )
+    pathArray.push(pathParts.analysisQuestionUuid || '')
+    const foundResponse: SubmissionAnalysisResponse = get(submission, pathArray, {})
+
     if (foundResponse) {
       // For `qual_select_one` we get object
       if (typeof foundResponse.value === 'object' && foundResponse.value !== null && 'labels' in foundResponse.value) {
@@ -809,12 +808,14 @@ export function removeEmptyFromSupplementalDetails(supplementalDetails: Submissi
   // b) responses to qual questions that are deleted
   for (const detailsKey of recordKeys(details)) {
     if (details[detailsKey].qual) {
-      details[detailsKey].qual = details[detailsKey].qual.filter(
-        (qualResponse) =>
-          qualResponse.value !== '' &&
-          qualResponse.value !== null &&
-          !(Array.isArray(qualResponse.value) && qualResponse.value.length === 0) &&
-          qualResponse.options?.deleted !== true,
+      details[detailsKey].qual = Object.fromEntries(
+        Object.entries(details[detailsKey].qual).filter(
+          ([_, qualResponse]) =>
+            qualResponse.value !== '' &&
+            qualResponse.value !== null &&
+            !(Array.isArray(qualResponse.value) && qualResponse.value.length === 0) &&
+            qualResponse.options?.deleted !== true,
+        ),
       )
     }
   }
