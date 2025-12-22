@@ -339,17 +339,4 @@ class ConnectViewsetPermissions(IsAuthenticated):
         return super().has_permission(request, view)
 
 
-class UserDeletePermission(BasePermission):
-
-    perms_map = {}
-
-    def has_permission(self, request, view):
-        # Do not reveal user's existence
-        raise Http404
-
-    def has_object_permission(self, request, view, obj):
-        # Always return True because it must pass `has_permission()` first
-        return True
-
-
 __permissions__ = [DjangoObjectPermissions, IsAuthenticated]
