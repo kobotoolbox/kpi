@@ -144,6 +144,9 @@ const Drawer = observer(
       if (!sessionStore.isLoggedIn) {
         return null
       }
+      const username = sessionStore.currentAccount.username
+      const userFullName = sessionStore.currentAccount.extra_details.name ?? ''
+      const userUid = sessionStore.currentAccount.extra_details__uid
 
       return (
         <bem.KDrawer>
@@ -175,7 +178,9 @@ const Drawer = observer(
           </bem.KDrawer__sidebar>
 
           <bem.KDrawer__secondaryIcons>
-            {sessionStore.isLoggedIn && <HelpBubble />}
+            {sessionStore.isLoggedIn && (
+              <HelpBubble username={username} userFullName={userFullName} userUid={userUid} />
+            )}
             {envStore.isReady && envStore.data.source_code_url && (
               <a href={envStore.data.source_code_url} className='k-drawer__link' target='_blank' data-tip={t('Source')}>
                 <i className='k-icon k-icon-logo-github' />
