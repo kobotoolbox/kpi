@@ -1,9 +1,7 @@
 from copy import deepcopy
 
-from django.http import Http404
 from rest_framework.permissions import (
     SAFE_METHODS,
-    BasePermission,
     DjangoObjectPermissions,
     IsAuthenticated,
 )
