@@ -8,7 +8,6 @@ from rest_framework.urlpatterns import format_suffix_patterns
 
 from kobo.apps.openrosa.apps.api.viewsets.attachment_viewset import AttachmentViewSet
 from kobo.apps.openrosa.apps.api.viewsets.briefcase_api import BriefcaseApi
-from kobo.apps.openrosa.apps.api.viewsets.connect_viewset import ConnectViewSet
 from kobo.apps.openrosa.apps.api.viewsets.data_viewset import DataViewSet
 from kobo.apps.openrosa.apps.api.viewsets.metadata_viewset import MetaDataViewSet
 from kobo.apps.openrosa.apps.api.viewsets.note_viewset import NoteViewSet
@@ -395,7 +394,6 @@ class MultiLookupRouterWithPatchList(MultiLookupRouter):
 
 router = MultiLookupRouter(trailing_slash=False)
 
-router.register(r'user', ConnectViewSet)
 router.register(r'forms', XFormViewSet)
 router.register(r'notes', NoteViewSet, basename='notes')
 router.register(r'metadata', MetaDataViewSet, basename='metadata')
