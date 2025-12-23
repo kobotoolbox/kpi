@@ -11,7 +11,6 @@ from kobo.apps.openrosa.apps.api.viewsets.briefcase_api import BriefcaseApi
 from kobo.apps.openrosa.apps.api.viewsets.data_viewset import DataViewSet
 from kobo.apps.openrosa.apps.api.viewsets.metadata_viewset import MetaDataViewSet
 from kobo.apps.openrosa.apps.api.viewsets.note_viewset import NoteViewSet
-from kobo.apps.openrosa.apps.api.viewsets.user import UserViewSet
 from kobo.apps.openrosa.apps.api.viewsets.xform_list_api import XFormListApi
 from kobo.apps.openrosa.apps.api.viewsets.xform_submission_api import XFormSubmissionApi
 from kobo.apps.openrosa.apps.api.viewsets.xform_viewset import XFormViewSet
@@ -395,7 +394,6 @@ class MultiLookupRouterWithPatchList(MultiLookupRouter):
 
 router = MultiLookupRouter(trailing_slash=False)
 
-router.register(r'users', UserViewSet)
 router.register(r'forms', XFormViewSet)
 router.register(r'notes', NoteViewSet, basename='notes')
 router.register(r'metadata', MetaDataViewSet, basename='metadata')
