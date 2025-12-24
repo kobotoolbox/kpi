@@ -2,13 +2,9 @@ from copy import deepcopy
 
 from rest_framework.exceptions import ValidationError
 
-
-from ..type_aliases import SimplifiedOutputCandidatesByColumnKey
-from typing import Any
-
-
 from kobo.apps.subsequences.actions.base import BaseAction
 from kobo.apps.subsequences.type_aliases import SimplifiedOutputCandidatesByColumnKey
+from ..type_aliases import SimplifiedOutputCandidatesByColumnKey
 
 
 class BaseQualAction(BaseAction):
@@ -99,13 +95,14 @@ class BaseQualAction(BaseAction):
                 'options': {'type': 'object'},
             },
             'required': ['uuid', 'type', 'labels'],
-            # Additionally require `choices` for the select types
+            # Additionally require `choices` for the select types, forbid otherwise
             'if': {
                 'properties': {
                     'type': {'$ref': '#/$defs/qualSelectQuestionType'},
                 }
             },
             'then': {'required': ['choices']},
+            'else': {'not': {'required': ['choices']}},
         },
         'qualQuestionType': {
             'type': 'string',
