@@ -328,6 +328,7 @@ class SubmissionDataTable extends React.Component<SubmissionDataTableProps> {
         {this.renderMetaResponse('_id', t('_id'))}
         {this.renderMetaResponse('meta/instanceID', t('instanceID'))}
         {this.renderMetaResponse('_submitted_by', t('Submitted by'))}
+        {this.renderMetaResponse('meta/rootUuid', t('rootUuid'))}
       </bem.SubmissionDataTable>
     )
   }

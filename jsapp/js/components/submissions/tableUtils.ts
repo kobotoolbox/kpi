@@ -12,6 +12,7 @@ import {
 } from '#/components/submissions/tableConstants'
 import { ValidationStatusAdditionalName } from '#/components/submissions/validationStatus.constants'
 import {
+  ADDITIONAL_SUBMISSION_PROPS,
   GROUP_TYPES_BEGIN,
   GROUP_TYPES_END,
   META_QUESTION_TYPES,
@@ -179,6 +180,15 @@ export function getAllDataColumns(asset: AssetResponse, submissions?: Submission
   if (output.indexOf(META_QUESTION_TYPES.start)) {
     output.unshift(output.splice(output.indexOf(META_QUESTION_TYPES.start), 1)[0])
   }
+
+  // In `table.tsx` we override the ordering of few columns, this one too. Some other places rely on ordering coming
+  // from this function, so we still want to ensure `meta/rootUuid` is the very last column
+  if (output.indexOf(ADDITIONAL_SUBMISSION_PROPS['meta/rootUuid']) > -1) {
+    output.push(output.splice(output.indexOf(ADDITIONAL_SUBMISSION_PROPS['meta/rootUuid']), 1)[0])
+  }
+  // TODO: Ordering of columns is being used in few places (columns of Data Table, "Hide fields" dropdown). Some places
+  // rely on order this function spits out, but some override it or user other means. Let's make SSOT for columns order
+  // please :pray: - see https://linear.app/kobotoolbox/issue/DEV-1480/make-order-and-list-of-columns-come-from-single-place
 
   // exclude some technical non-data columns
   output = output.filter((key) => EXCLUDED_COLUMNS.includes(key) === false)
