@@ -71,7 +71,7 @@ do
 done
 
 echo "prev_minor=${prev_minor}" >> $GITHUB_OUTPUT
-if [[ $current_patch == "" ]]; then
+if [[ $current_patch == $current_minor ]]; then
     prev_patch="$(git tag -l "$prev_minor*" | grep -E "^$prev_minor.?$" | tail -1 || true)"
 else
     prev_patch="$(git tag -l "$current_minor*" | grep -E "^$current_minor.?$" | tail -1 || true)"

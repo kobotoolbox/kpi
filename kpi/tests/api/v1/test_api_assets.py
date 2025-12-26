@@ -57,6 +57,10 @@ class AssetListApiTests(test_api_assets.AssetListApiTests):
     def test_last_modified_by_field_not_assigned(self):
         pass
 
+    @unittest.skip(reason='`date_deployed` field only exists in v2 endpoint')
+    def test_list_can_load_with_desynchronized_assets(self):
+        pass
+
     def test_query_counts(self):
         # expected query counts are different in v1 and v2 so override the test here
         self.create_asset()
