@@ -5,13 +5,13 @@ import type { OneTimeAddOn, Price, Product, SubscriptionInfo } from '#/account/s
 import { isAddonProduct } from '#/account/stripe.utils'
 import subscriptionStore from '#/account/subscriptionStore'
 import { OneTimeAddOnsContext } from '#/account/useOneTimeAddonList.hook'
+import {useOrganizationAssumed} from '#/api/useOrganizationAssumed'
 import type { BadgeColor } from '#/components/common/badge'
 import Badge from '#/components/common/badge'
 import useWhen from '#/hooks/useWhen.hook'
 import { formatDate } from '#/utils'
-import styles from './addOnList.module.scss'
-import {useOrganizationAssumed} from '#/api/useOrganizationAssumed'
 import {ProductsContext} from '../useProducts.hook'
+import styles from './addOnList.module.scss'
 
 /**
  * A table of add-on products along with dropdowns to purchase them.

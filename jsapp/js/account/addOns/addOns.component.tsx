@@ -3,8 +3,8 @@ import React from 'react'
 import { YourPlan } from '#/account/usage/yourPlan.component'
 import LimitNotifications from '#/components/usageLimits/limitNotifications.component'
 import Plan from '../plans/plan.component'
-import styles from './addOns.module.scss'
 import AddOnList from './addOnList.component'
+import styles from './addOns.module.scss'
 
 export default function addOns() {
   return (
