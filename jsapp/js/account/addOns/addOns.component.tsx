@@ -4,6 +4,7 @@ import { YourPlan } from '#/account/usage/yourPlan.component'
 import LimitNotifications from '#/components/usageLimits/limitNotifications.component'
 import Plan from '../plans/plan.component'
 import styles from './addOns.module.scss'
+import AddOnList from './addOnList.component'
 
 export default function addOns() {
   return (
@@ -13,7 +14,7 @@ export default function addOns() {
         <h2 className={styles.headerText}>{t('Your plan')}</h2>
       </header>
       <YourPlan />
-      <Plan showAddOns={true} />
+      <AddOnList />
     </div>
   )
 }

@@ -30,10 +30,6 @@ export interface PlanState {
   featureTypes: string[]
 }
 
-interface PlanProps {
-  showAddOns?: boolean
-}
-
 // An interface for our action
 type DataUpdates =
   | {
@@ -83,7 +79,7 @@ function planReducer(state: PlanState, action: DataUpdates): PlanState {
   }
 }
 
-export default function Plan(props: PlanProps) {
+export default function Plan() {
   // useReducer type defs incorrectly require an initializer arg - see https://github.com/facebook/react/issues/27052
   const [state, dispatch]: [PlanState, (arg: DataUpdates) => void] = useReducer(planReducer, initialState)
   const [expandComparison, setExpandComparison] = useState(false)
@@ -93,6 +89,7 @@ export default function Plan(props: PlanProps) {
   const [products, loadProducts, productsStatus] = useContext(ProductsContext)
   useRefreshApiFetcher(loadProducts, productsStatus)
   const [organization] = useOrganizationAssumed()
+  console.log('-------------------', organization)
   const [visiblePlanTypes, setVisiblePlanTypes] = useState(['default'])
 
   const [searchParams] = useSearchParams()
@@ -378,10 +375,8 @@ export default function Plan(props: PlanProps) {
         ref={pageBody}
         className={classnames(styles.accountPlan, {
           [styles.wait]: isBusy,
-          [styles.showAddOns]: props.showAddOns,
         })}
       >
-        {!props.showAddOns && (
           <>
             <div className={styles.plansSection}>
               <form className={styles.intervalToggle}>
@@ -451,16 +446,6 @@ export default function Plan(props: PlanProps) {
               )}
             </div>
           </>
-        )}
-        {props.showAddOns && (
-          <AddOnList
-            isBusy={isBusy}
-            setIsBusy={setIsBusy}
-            products={products.products}
-            organization={organization}
-            onClickBuy={buySubscription}
-          />
-        )}
         {showGoTop && (
           <button onClick={handleScrollUp} className={styles.scrollToTopButton}>
             <i className='k-icon k-icon-arrow-up k-icon--size-m' />
