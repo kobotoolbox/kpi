@@ -131,16 +131,17 @@ const AddOnList = () => {
   }
   return (
     <>
-      <table className={styles.table}>
-        <caption className={styles.caption}>
+      <div className={styles.wrapper}>
+        <table className={styles.table}>
+          <caption className={styles.caption}>
           <label className={styles.header}>{t('available add-ons')}</label>
-          <p>
+            <p>
             {t(
               `You can add add-ons to increase your usage caps as needed when you are close to or over your plan's limits.`,
             )}
-          </p>
-        </caption>
-        <tbody>
+            </p>
+          </caption>
+          <tbody>
           {showRecurringAddons && (
             <AddOnProductRow
               key={recurringAddOnProducts.map((product) => product.id).join('-')}
@@ -150,7 +151,7 @@ const AddOnList = () => {
               subscribedAddOns={subscribedAddOns}
               organization={organization}
               isRecurring
-            />
+              />
           )}
           {!!oneTimeAddOnProducts.length && (
             <AddOnProductRow
@@ -160,26 +161,26 @@ const AddOnList = () => {
               setIsBusy={setIsBusy}
               subscribedAddOns={subscribedAddOns}
               organization={organization}
-            />
+              />
           )}
-        </tbody>
-      </table>
-      {subscribedAddOns.some((product) => product.status === 'active') ||
-      oneTimeAddOnSubscriptions.some((oneTimeAddOns) => oneTimeAddOns.is_available)
-        ? ActivePreviousAddons(
-            subscribedAddOns,
-            oneTimeAddOnSubscriptions,
-            'active',
-            true,
-            t('your active add-ons'),
-            t('Active'),
-            'light-teal',
-          )
-        : null}
+            </tbody>
+          </table>
+          {subscribedAddOns.some((product) => product.status === 'active') ||
+            oneTimeAddOnSubscriptions.some((oneTimeAddOns) => oneTimeAddOns.is_available)
+              ? ActivePreviousAddons(
+                subscribedAddOns,
+                oneTimeAddOnSubscriptions,
+                'active',
+                true,
+                t('your active add-ons'),
+                t('Active'),
+                'light-teal',
+              )
+      : null}
 
       {subscribedAddOns.some((product) => product.status !== 'active') ||
-      oneTimeAddOnSubscriptions.some((oneTimeAddOns) => !oneTimeAddOns.is_available)
-        ? ActivePreviousAddons(
+        oneTimeAddOnSubscriptions.some((oneTimeAddOns) => !oneTimeAddOns.is_available)
+          ? ActivePreviousAddons(
             subscribedAddOns,
             oneTimeAddOnSubscriptions,
             'inactive',
@@ -188,7 +189,8 @@ const AddOnList = () => {
             t('Inactive'),
             'light-storm',
           )
-        : null}
+      : null}
+      </div>
     </>
   )
 }
