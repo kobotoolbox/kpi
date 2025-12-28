@@ -89,7 +89,6 @@ export default function Plan() {
   const [products, loadProducts, productsStatus] = useContext(ProductsContext)
   useRefreshApiFetcher(loadProducts, productsStatus)
   const [organization] = useOrganizationAssumed()
-  console.log('-------------------', organization)
   const [visiblePlanTypes, setVisiblePlanTypes] = useState(['default'])
 
   const [searchParams] = useSearchParams()
