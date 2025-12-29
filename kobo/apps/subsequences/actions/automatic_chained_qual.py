@@ -1,11 +1,12 @@
 from copy import deepcopy
 
+from kobo.apps.organizations.constants import UsageType
 from kobo.apps.subsequences.actions.base import ActionClassConfig
 from kobo.apps.subsequences.actions.mixins import RequiresTranscriptionMixin
 from kobo.apps.subsequences.actions.qual import BaseQualAction
 
 
-class AutomaticChainedQualAction(BaseQualAction, RequiresTranscriptionMixin):
+class AutomaticChainedQualAction(RequiresTranscriptionMixin, BaseQualAction):
 
     ID = 'automatic_chained_qual'
     action_class_config = ActionClassConfig(
@@ -51,9 +52,73 @@ class AutomaticChainedQualAction(BaseQualAction, RequiresTranscriptionMixin):
             },
             'required': ['uuid'],
             '$defs': {
-                'uid': {'type': 'string', 'enum': uuids},
+                'uuid': {'type': 'string', 'enum': uuids},
             },
         }
+
+    @property
+    def result_schema(self):
+        data_schema = self.external_data_schema
+        data_schema = deepcopy(data_schema)
+        data_schema_defs = data_schema.pop('$defs')
+        data_schema.pop('$schema')  # Also discard this prior to nesting
+
+        schema = {
+            '$schema': 'https://json-schema.org/draft/2020-12/schema',
+            'type': 'object',
+            'additionalProperties': False,
+            'properties': {
+                # Every question gets a property in the results
+                qual_item['uuid']: {'$ref': '#/$defs/dataActionKey'}
+                for qual_item in self.params
+            },
+            '$defs': {
+                'dataActionKey': {
+                    'type': 'object',
+                    'additionalProperties': False,
+                    'properties': {
+                        '_versions': {
+                            'type': 'array',
+                            'minItems': 1,
+                            'items': {
+                                'type': 'object',
+                                'additionalProperties': False,
+                                'properties': {
+                                    '_data': {'$ref': '#/$defs/dataSchema'},
+                                    '_dateCreated': {'$ref': '#/$defs/dateTime'},
+                                    '_dateAccepted': {'$ref': '#/$defs/dateTime'},
+                                    '_uuid': {'$ref': '#/$defs/uuid'},
+                                    self.DEPENDENCY_FIELD: {
+                                        'type': 'object',
+                                        'additionalProperties': False,
+                                        'properties': {
+                                            self.UUID_FIELD: {'$ref': '#/$defs/uuid'},
+                                            self.ACTION_ID_FIELD: {'type': 'string'},
+                                        },
+                                        'required': [self.UUID_FIELD, self.ACTION_ID_FIELD],
+                                    },
+                                },
+                                'required': ['_data', '_dateCreated', '_uuid'],
+                            },
+                        },
+                        '_dateCreated': {'$ref': '#/$defs/dateTime'},
+                        '_dateModified': {'$ref': '#/$defs/dateTime'},
+                    },
+                    'required': ['_dateCreated', '_dateModified'],
+                },
+                'dateTime': {'type': 'string', 'format': 'date-time'},
+                'uuid': {'type': 'string', 'format': 'uuid'},
+                'dataSchema': data_schema,
+                **data_schema_defs,
+            },
+        }
+
+        return schema
+
+
+    @property
+    def _limit_identifier(self):
+        return UsageType.LLM_REQUESTS
 
     @property
     def external_data_schema(self):
@@ -112,67 +177,6 @@ class AutomaticChainedQualAction(BaseQualAction, RequiresTranscriptionMixin):
                 # error must be present iff status == "failed"
                 {'$ref': '#/$defs/rule_error_presence_when_failed'},
             ],
-            '$defs': {
-                'action_status': {
-                    'type': 'string',
-                    'enum': ['in_progress', 'complete', 'failed', 'deleted'],
-                },
-                'value': {'type': ['string', 'null']},
-                'error': {'type': 'string'},
-                'accepted': {'type': 'boolean'},
-                # --- Value rules ---
-                # If status == "complete" → require "value" (string or null)
-                'rule_value_required_when_complete': {
-                    'if': {
-                        'required': ['status'],
-                        'properties': {'status': {'const': 'complete'}},
-                    },
-                    'then': {'required': ['value']},
-                },
-                # If status in {"in_progress","failed"} → forbid "value"
-                'rule_value_forbidden_when_in_progress_or_failed': {
-                    'if': {
-                        'required': ['status'],
-                        'properties': {'status': {'enum': ['in_progress', 'failed']}},
-                    },
-                    'then': {'not': {'required': ['value']}},
-                },
-                # If status == "deleted" → "value" optional, but if present it MUST be null
-                'rule_value_null_only_when_deleted': {
-                    'if': {
-                        'required': ['status'],
-                        'properties': {'status': {'const': 'deleted'}},
-                    },
-                    'then': {
-                        'anyOf': [
-                            {'not': {'required': ['value']}},  # value absent
-                            {  # value present and null
-                                'properties': {'value': {'type': 'null'}},
-                                'required': ['value'],
-                            },
-                        ]
-                    },
-                },
-                # --- Other field rules ---
-                # If status == "failed" → require "error"; else forbid it
-                'rule_error_presence_when_failed': {
-                    'if': {
-                        'required': ['status'],
-                        'properties': {'status': {'const': 'failed'}},
-                    },
-                    'then': {'required': ['error']},
-                    'else': {'not': {'required': ['error']}},
-                },
-                # If status == "complete" → accepted allowed but optional; else forbid it
-                'rule_accepted_only_when_complete': {
-                    'if': {
-                        'required': ['status'],
-                        'properties': {'status': {'const': 'complete'}},
-                    },
-                    'then': {},  # optional
-                    'else': {'not': {'required': ['accepted']}},
-                },
-            },
         }
         to_return['$defs'] = {**defs, **status_defs}
         to_return['allOf'] = common['allOf']

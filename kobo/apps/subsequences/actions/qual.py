@@ -158,6 +158,7 @@ class BaseQualAction(BaseAction):
         …which is what the schema returned by this function needs to validate
         """
         schema = {
+            '$schema': 'https://json-schema.org/draft/2020-12/schema',
             '$defs': {
                 **self.shared_definitions,
                 'qualCommon': deepcopy(self.data_schema_definitions['qualCommon'])
@@ -177,7 +178,6 @@ class BaseQualAction(BaseAction):
                 continue
 
             schema['$defs'][qual_item['type']] = data_schema_def
-            schema['oneOf'].append(
                 # TODO: resolve
                 #
                 # Concerns:
@@ -191,19 +191,26 @@ class BaseQualAction(BaseAction):
                 # past (which we probably have), at least validation won't blow
                 # up for existing data
 
-                {
-                    'allOf': [
-                        {'$ref': '#/$defs/qualCommon'},
-                        {'$ref': '#/$defs/' + qual_item['type']},
-                        {
-                            'type': 'object',
-                            'properties': {
-                                'uuid': {'const': qual_item['uuid']}
-                            },
+            thing = {
+                'allOf': [
+                    {'$ref': '#/$defs/qualCommon'},
+                    {'$ref': '#/$defs/' + qual_item['type']},
+                    {
+                        'type': 'object',
+                        'properties': {
+                            'uuid': {'const': qual_item['uuid']}
                         },
-                    ],
-                }
-            )
+                    },
+                ],
+            }
+            if qual_item['type'] == 'qualSelectOne':
+                uuids = [inner_thing['uuid'] for inner_thing in qual_item['choices']]
+                thing['allOf'][2]['properties']['value'] = {'enum': [*uuids,'']}
+            elif qual_item['type'] == 'qualSelectMultiple':
+                uuids = [inner_thing['uuid'] for inner_thing in qual_item['choices']]
+                thing['allOf'][2]['properties']['value'] = {'type': 'array', 'items': {'enum':[*uuids,'']}}
+            schema['oneOf'].append(thing)
+
 
         return schema
 

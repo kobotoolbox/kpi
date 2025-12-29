@@ -412,7 +412,6 @@ class BaseAction:
             )[0]
         except IndexError:
             current_version = {}
-
         self.attach_action_dependency(action_data)
 
         if self.action_class_config.automatic:

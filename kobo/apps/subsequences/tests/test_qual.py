@@ -8,7 +8,7 @@ import pytest
 from freezegun import freeze_time
 from rest_framework.exceptions import ValidationError
 
-from ..actions.qual import ManualQualAction
+from ..actions.manual_qual import ManualQualAction
 from .constants import EMPTY_SUBMISSION
 
 
@@ -164,7 +164,18 @@ class Fix:
                         'properties': {
                             'uuid': {
                                 'const': '2e30bec7-4843-43c7-98bc-13114af230c5'
-                            }
+                            },
+                            'value': {
+                                'items': {
+                                    'enum': [
+                                        '2e24e6b4-bc3b-4e8e-b0cd-d8d3b9ca15b6',
+                                        'cb82919d-2948-4ccf-a488-359c5d5ee53a',
+                                        '8effe3b1-619e-4ada-be45-ebcea5af0aaf',
+                                        '',
+                                    ],
+                                },
+                                'type': 'array',
+                            },
                         },
                     },
                 ]
@@ -178,6 +189,13 @@ class Fix:
                         'properties': {
                             'uuid': {
                                 'const': '1a8b748b-f470-4c40-bc09-ce2b1197f503'
+                            },
+                            'value': {
+                                'enum': [
+                                    '3c7aacdc-8971-482a-9528-68e64730fc99',
+                                    '7e31c6a5-5eac-464c-970c-62c383546a94',
+                                    ''
+                                ]
                             }
                         },
                     },

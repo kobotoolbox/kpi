@@ -37,7 +37,6 @@ class SubmissionSupplement(SubmissionExtras):
     def revise_data(asset: 'kpi.Asset', submission: dict, incoming_data: dict) -> dict:
 
         from .utils.versioning import migrate_submission_supplementals
-
         if not asset.advanced_features_set.exists():
             raise InvalidAction
 
@@ -233,7 +232,7 @@ class SubmissionSupplement(SubmissionExtras):
 
                     # hack: the `qual` field has to be an array instead of a dict
             output_data_for_question['qual'] = [
-                value for key, value in output_data_for_question['qual'].items()
+                value for key, value in output_data_for_question.get('qual', {}).items()
             ]
             data_for_output[question_xpath] = output_data_for_question
 

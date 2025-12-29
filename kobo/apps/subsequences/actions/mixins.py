@@ -67,7 +67,6 @@ class RequiresTranscriptionMixin:
         Raises:
           - TranscriptionNotFound: if no accepted transcript is available.
         """
-
         latest_version = latest_accepted_dt = latest_version_action_id = None
 
         # If deletion has been requested, we do not want to attach any dependency.
