@@ -2,7 +2,7 @@ from copy import deepcopy
 
 from rest_framework.exceptions import ValidationError
 
-from kobo.apps.subsequences.actions.base import BaseAction
+from kobo.apps.subsequences.actions.base import ActionClassConfig, BaseAction
 from kobo.apps.subsequences.type_aliases import SimplifiedOutputCandidatesByColumnKey
 from ..type_aliases import SimplifiedOutputCandidatesByColumnKey
 
@@ -289,6 +289,7 @@ class BaseQualAction(BaseAction):
                 ]
             output_fields.append(field)
         return output_fields
+
 
     def transform_data_for_output(
         self, action_data: dict
