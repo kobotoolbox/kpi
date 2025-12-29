@@ -887,11 +887,10 @@ class TestQualActionMethods(TestCase):
         )
         assert medical_item['labels'] == {'_default': 'Medical', 'ar': 'طبي'}
 
-    def test_transform_data_prefers_newest_date_accepted_version(self):
+    def test_transform_data_prefers_newest_date_created_version(self):
         """
         Test that when multiple versions exist for a qual question, the version
-        with the newest `_dateAccepted` is used for output, even if it is not
-        the most recently created version
+        with the newest `_dateCreated` is used for output
         """
         action = ManualQualAction(self.source_xpath, self.action_params)
 
@@ -926,7 +925,7 @@ class TestQualActionMethods(TestCase):
         assert len(output.keys()) == 1
 
         text_item = output.get(('qual', 'qual-text-uuid'))
-        assert text_item['value'] == 'Revised note'
+        assert text_item['value'] == 'Final note'
 
     def test_update_params_sets_missing_questions_to_deleted_and_moved_to_the_end(self):
         params = [

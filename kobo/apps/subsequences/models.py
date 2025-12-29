@@ -5,7 +5,12 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_pre
 from kpi.fields import KpiUidField, LazyDefaultJSONBField
 from kpi.models.abstract_models import AbstractTimeStampedModel
 from .actions import ACTION_IDS_TO_CLASSES
-from .constants import SCHEMA_VERSIONS, SUBMISSION_UUID_FIELD, Action
+from .constants import (
+    SCHEMA_VERSIONS,
+    SORT_BY_DATE_FIELD,
+    SUBMISSION_UUID_FIELD,
+    Action,
+)
 from .exceptions import InvalidAction, InvalidXPath
 from .schemas import validate_submission_supplement
 
@@ -177,7 +182,7 @@ class SubmissionSupplement(SubmissionExtras):
                 question_xpath=question_xpath
             )
             output_data_for_question = {}
-            max_date_accepted_by_field_key = {}
+            max_sort_by_date_by_key = {}
 
             for action_id, action_data in data_for_this_question.items():
                 if not ACTION_IDS_TO_CLASSES.get(action_id):
@@ -207,20 +212,13 @@ class SubmissionSupplement(SubmissionExtras):
                     transformed_data = action.transform_data_for_output(retrieved_data)
                     for field_key, field_data in transformed_data.items():
                         # Omit `_dateAccepted` from the output data
-                        new_acceptance_date = field_data.pop('_dateAccepted', None)
-                        if not new_acceptance_date:
-                            # Never return unaccepted data
+                        sort_by_date = field_data.pop(SORT_BY_DATE_FIELD, None)
+                        if not sort_by_date:
+                            # Never return data without a date
                             continue
-                        existing_acceptance_date = max_date_accepted_by_field_key.get(
-                            field_key, ''
-                        )
-                        if (
-                            not existing_acceptance_date
-                            or existing_acceptance_date < new_acceptance_date
-                        ):
-                            max_date_accepted_by_field_key[field_key] = (
-                                new_acceptance_date
-                            )
+                        existing_max_date = max_sort_by_date_by_key.get(field_key, '')
+                        if not existing_max_date or existing_max_date < sort_by_date:
+                            max_sort_by_date_by_key[field_key] = sort_by_date
                             if isinstance(field_key, str):
                                 output_data_for_question[field_key] = field_data
                             else:
