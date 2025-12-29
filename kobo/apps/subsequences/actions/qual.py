@@ -289,7 +289,6 @@ class BaseQualAction(BaseAction):
             output_fields.append(field)
         return output_fields
 
-
     def transform_data_for_output(
         self, action_data: dict
     ) -> SimplifiedOutputCandidatesByColumnKey:
