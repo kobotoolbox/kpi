@@ -3,6 +3,7 @@ import React from 'react'
 import { YourPlan } from '#/account/usage/yourPlan.component'
 import LimitNotifications from '#/components/usageLimits/limitNotifications.component'
 import Plan from '../plans/plan.component'
+import AddOnList from './addOnList.component'
 import styles from './addOns.module.scss'
 
 export default function addOns() {
@@ -13,7 +14,7 @@ export default function addOns() {
         <h2 className={styles.headerText}>{t('Your plan')}</h2>
       </header>
       <YourPlan />
-      <Plan showAddOns={true} />
+      <AddOnList />
     </div>
   )
 }

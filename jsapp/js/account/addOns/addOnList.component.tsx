@@ -5,26 +5,24 @@ import type { OneTimeAddOn, Price, Product, SubscriptionInfo } from '#/account/s
 import { isAddonProduct } from '#/account/stripe.utils'
 import subscriptionStore from '#/account/subscriptionStore'
 import { OneTimeAddOnsContext } from '#/account/useOneTimeAddonList.hook'
-import type { OrganizationResponse } from '#/api/models/organizationResponse'
+import {useOrganizationAssumed} from '#/api/useOrganizationAssumed'
 import type { BadgeColor } from '#/components/common/badge'
 import Badge from '#/components/common/badge'
 import useWhen from '#/hooks/useWhen.hook'
 import { formatDate } from '#/utils'
+import {ProductsContext} from '../useProducts.hook'
 import styles from './addOnList.module.scss'
 
 /**
  * A table of add-on products along with dropdowns to purchase them.
  */
-const AddOnList = (props: {
-  products: Product[]
-  organization: OrganizationResponse
-  isBusy: boolean
-  setIsBusy: (value: boolean) => void
-  onClickBuy: (price: Price) => void
-}) => {
+const AddOnList = () => {
   const [subscribedAddOns, setSubscribedAddOns] = useState<SubscriptionInfo[]>([])
   const [subscribedPlans, setSubscribedPlans] = useState<SubscriptionInfo[]>([])
   const [addOnProducts, setAddOnProducts] = useState<Product[]>([])
+  const [organization] = useOrganizationAssumed()
+  const [products] = useContext(ProductsContext)
+  const [isBusy, setIsBusy] = useState(true)
   const oneTimeAddOnsContext = useContext(OneTimeAddOnsContext)
   const oneTimeAddOnSubscriptions = oneTimeAddOnsContext.oneTimeAddOns
   const oneTimeAddOnProducts = addOnProducts.filter((product) => product.metadata.product_type === 'addon_onetime')
@@ -35,10 +33,10 @@ const AddOnList = (props: {
    * Extract the add-on products and prices from the list of all products
    */
   useEffect(() => {
-    if (!props.products) {
+    if (!products.products) {
       return
     }
-    const addonProducts = props.products
+    const addonProducts = products.products
       .filter((product) => isAddonProduct(product))
       .map((product) => {
         return {
@@ -47,13 +45,14 @@ const AddOnList = (props: {
         }
       })
     setAddOnProducts(addonProducts)
-  }, [props.products])
+  }, [products.products])
 
   useWhen(
     () => subscriptionStore.isInitialised,
     () => {
       setSubscribedAddOns(subscriptionStore.addOnsResponse)
       setSubscribedPlans(subscriptionStore.planResponse)
+      setIsBusy(false)
     },
     [],
   )
@@ -132,55 +131,56 @@ const AddOnList = (props: {
   }
   return (
     <>
-      <table className={styles.table}>
-        <caption className={styles.caption}>
+      <div className={styles.wrapper}>
+        <table className={styles.table}>
+          <caption className={styles.caption}>
           <label className={styles.header}>{t('available add-ons')}</label>
-          <p>
+            <p>
             {t(
               `You can add add-ons to increase your usage caps as needed when you are close to or over your plan's limits.`,
             )}
-          </p>
-        </caption>
-        <tbody>
+            </p>
+          </caption>
+          <tbody>
           {showRecurringAddons && (
             <AddOnProductRow
               key={recurringAddOnProducts.map((product) => product.id).join('-')}
               products={recurringAddOnProducts}
-              isBusy={props.isBusy}
-              setIsBusy={props.setIsBusy}
+              isBusy={isBusy}
+              setIsBusy={setIsBusy}
               subscribedAddOns={subscribedAddOns}
-              organization={props.organization}
+              organization={organization}
               isRecurring
-            />
+              />
           )}
           {!!oneTimeAddOnProducts.length && (
             <AddOnProductRow
               key={oneTimeAddOnProducts.map((product) => product.id).join('-')}
               products={oneTimeAddOnProducts}
-              isBusy={props.isBusy}
-              setIsBusy={props.setIsBusy}
+              isBusy={isBusy}
+              setIsBusy={setIsBusy}
               subscribedAddOns={subscribedAddOns}
-              organization={props.organization}
-            />
+              organization={organization}
+              />
           )}
-        </tbody>
-      </table>
-      {subscribedAddOns.some((product) => product.status === 'active') ||
-      oneTimeAddOnSubscriptions.some((oneTimeAddOns) => oneTimeAddOns.is_available)
-        ? ActivePreviousAddons(
-            subscribedAddOns,
-            oneTimeAddOnSubscriptions,
-            'active',
-            true,
-            t('your active add-ons'),
-            t('Active'),
-            'light-teal',
-          )
-        : null}
+            </tbody>
+          </table>
+          {subscribedAddOns.some((product) => product.status === 'active') ||
+            oneTimeAddOnSubscriptions.some((oneTimeAddOns) => oneTimeAddOns.is_available)
+              ? ActivePreviousAddons(
+                subscribedAddOns,
+                oneTimeAddOnSubscriptions,
+                'active',
+                true,
+                t('your active add-ons'),
+                t('Active'),
+                'light-teal',
+              )
+      : null}
 
       {subscribedAddOns.some((product) => product.status !== 'active') ||
-      oneTimeAddOnSubscriptions.some((oneTimeAddOns) => !oneTimeAddOns.is_available)
-        ? ActivePreviousAddons(
+        oneTimeAddOnSubscriptions.some((oneTimeAddOns) => !oneTimeAddOns.is_available)
+          ? ActivePreviousAddons(
             subscribedAddOns,
             oneTimeAddOnSubscriptions,
             'inactive',
@@ -189,7 +189,8 @@ const AddOnList = (props: {
             t('Inactive'),
             'light-storm',
           )
-        : null}
+      : null}
+      </div>
     </>
   )
 }
