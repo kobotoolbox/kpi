@@ -23,6 +23,8 @@ class AutomaticChainedQualAction(RequiresTranscriptionMixin, BaseQualAction):
     ) -> dict | bool:
         """
         Update action_data with external process
+
+        Stub for testing
         """
         uuid = action_data['uuid']
         found = [q for q in self.params if q['uuid'] == uuid]
@@ -61,7 +63,7 @@ class AutomaticChainedQualAction(RequiresTranscriptionMixin, BaseQualAction):
         data_schema = self.external_data_schema
         data_schema = deepcopy(data_schema)
         data_schema_defs = data_schema.pop('$defs')
-        data_schema.pop('$schema')  # Also discard this prior to nesting
+        data_schema.pop('$schema')  # discard this prior to nesting
 
         schema = {
             '$schema': 'https://json-schema.org/draft/2020-12/schema',

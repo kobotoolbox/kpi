@@ -31,10 +31,3 @@ class Action(models.TextChoices):
     AUTOMATIC_GOOGLE_TRANSCRIPTION = 'automatic_google_transcription'
     MANUAL_QUAL = 'manual_qual'
     AUTOMATIC_CHAINED_QUAL = 'automatic_chained_qual'
-
-
-ACTION_MERGE_GROUPS = [
-    (Action.MANUAL_TRANSCRIPTION, Action.AUTOMATIC_GOOGLE_TRANSCRIPTION),
-    (Action.MANUAL_TRANSLATION, Action.AUTOMATIC_GOOGLE_TRANSLATION),
-    (Action.MANUAL_QUAL, Action.AUTOMATIC_CHAINED_QUAL),
-]
