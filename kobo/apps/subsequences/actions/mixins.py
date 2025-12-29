@@ -104,10 +104,11 @@ class RequiresTranscriptionMixin:
             'value': latest_version_data['value'],
             'language': language_or_locale,
             self.UUID_FIELD: latest_version[self.UUID_FIELD],
-            self.ACTION_ID_FIELD: latest_version_action_id
+            self.ACTION_ID_FIELD: latest_version_action_id,
         }
 
         return action_data
+
 
 class TranscriptionActionMixin:
     """

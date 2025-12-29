@@ -13,7 +13,7 @@ ACTIONS = (
     ManualTranscriptionAction,
     ManualTranslationAction,
     ManualQualAction,
-    AutomaticChainedQualAction
+    AutomaticChainedQualAction,
 )
 
 ACTION_IDS_TO_CLASSES = {a.ID: a for a in ACTIONS}

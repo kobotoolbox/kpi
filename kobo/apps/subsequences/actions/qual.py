@@ -2,9 +2,8 @@ from copy import deepcopy
 
 from rest_framework.exceptions import ValidationError
 
-from kobo.apps.subsequences.actions.base import ActionClassConfig, BaseAction
+from kobo.apps.subsequences.actions.base import BaseAction
 from kobo.apps.subsequences.type_aliases import SimplifiedOutputCandidatesByColumnKey
-from ..type_aliases import SimplifiedOutputCandidatesByColumnKey
 
 
 class BaseQualAction(BaseAction):
@@ -197,27 +196,27 @@ class BaseQualAction(BaseAction):
                     {'$ref': '#/$defs/' + qual_item['type']},
                     {
                         'type': 'object',
-                        'properties': {
-                            'uuid': {'const': qual_item['uuid']}
-                        },
+                        'properties': {'uuid': {'const': qual_item['uuid']}},
                     },
                 ],
             }
             if qual_item['type'] == 'qualSelectOne':
                 uuids = [inner_thing['uuid'] for inner_thing in qual_item['choices']]
-                thing['allOf'][2]['properties']['value'] = {'enum': [*uuids,'']}
+                thing['allOf'][2]['properties']['value'] = {'enum': [*uuids, '']}
             elif qual_item['type'] == 'qualSelectMultiple':
                 uuids = [inner_thing['uuid'] for inner_thing in qual_item['choices']]
-                thing['allOf'][2]['properties']['value'] = {'type': 'array', 'items': {'enum':[*uuids,'']}}
+                thing['allOf'][2]['properties']['value'] = {
+                    'type': 'array',
+                    'items': {'enum': [*uuids, '']},
+                }
             schema['oneOf'].append(thing)
-
-
         return schema
 
     @property
     def result_schema(self):
         data_schema = deepcopy(self.data_schema)
         data_schema_definitions = data_schema.pop('$defs')
+        data_schema.pop('$schema')
         schema = {
             '$schema': 'https://json-schema.org/draft/2020-12/schema',
             'type': 'object',
@@ -294,7 +293,6 @@ class BaseQualAction(BaseAction):
     def transform_data_for_output(
         self, action_data: dict
     ) -> SimplifiedOutputCandidatesByColumnKey:
-
         qual_questions_by_uuid = {q['uuid']: q for q in self.params}
 
         # Choice lookup tables for select questions
@@ -360,12 +358,12 @@ class BaseQualAction(BaseAction):
                 output_value = value
 
             results_dict[('qual', qual_uuid)] = {
-                    'value': output_value,
-                    'type': qual_question['type'],
-                    'xpath': self.source_question_xpath,
-                    'labels': qual_question.get('labels', {}),
-                    self.DATE_ACCEPTED_FIELD: selected_version[self.DATE_ACCEPTED_FIELD]
-                }
+                'value': output_value,
+                'type': qual_question['type'],
+                'xpath': self.source_question_xpath,
+                'labels': qual_question.get('labels', {}),
+                self.DATE_ACCEPTED_FIELD: selected_version[self.DATE_ACCEPTED_FIELD],
+            }
         return results_dict
 
     def update_params(self, incoming_params):

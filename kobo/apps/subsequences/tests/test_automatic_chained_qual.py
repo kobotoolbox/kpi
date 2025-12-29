@@ -1,29 +1,26 @@
 import uuid
 
-from rest_framework import status
-from rest_framework.reverse import reverse
-
-from kobo.apps.subsequences.constants import Action
-from kpi.models import Asset
-from kpi.tests.base_test_case import BaseTestCase
-
 import jsonschema
 import pytest
 from ddt import data, ddt, unpack
+from rest_framework import status
+from rest_framework.reverse import reverse
 
 from kobo.apps.subsequences.actions.automatic_chained_qual import (
     AutomaticChainedQualAction,
 )
-from kobo.apps.subsequences.models import QuestionAdvancedFeature, SubmissionSupplement
+from kobo.apps.subsequences.constants import Action
+from kobo.apps.subsequences.models import QuestionAdvancedFeature
+from kpi.models import Asset
+from kpi.tests.base_test_case import BaseTestCase
 
-valid_external_data = [
-
-]
+valid_external_data = []
 
 
 @ddt
 class TestAutomaticChainedQual(BaseTestCase):
     fixtures = ['test_data', 'asset_with_settings_and_qa']
+
     def setUp(self):
         action_params = [
             {
@@ -78,7 +75,12 @@ class TestAutomaticChainedQual(BaseTestCase):
             },
         ]
         self.asset = Asset.objects.get(uid='aNp9yMt4zKpUtTeZUnozYG')
-        self.feature = QuestionAdvancedFeature.objects.create(asset=self.asset, action=Action.AUTOMATIC_CHAINED_QUAL, params=action_params, question_xpath='q1')
+        self.feature = QuestionAdvancedFeature.objects.create(
+            asset=self.asset,
+            action=Action.AUTOMATIC_CHAINED_QUAL,
+            params=action_params,
+            question_xpath='q1',
+        )
         self.feature.save()
         self.action = self.feature.to_action()
 
@@ -137,11 +139,11 @@ class TestAutomaticChainedQual(BaseTestCase):
 
     def test_invalid_user_data_extra_field(self):
         with pytest.raises(jsonschema.exceptions.ValidationError):
-            self.action.validate_data({'uuid':'uuid-qual-text', 'other':'stuff'})
+            self.action.validate_data({'uuid': 'uuid-qual-text', 'other': 'stuff'})
 
     def test_invalid_user_data_type_note(self):
         with pytest.raises(jsonschema.exceptions.ValidationError):
-            self.action.validate_data({'uuid':'uuid-qual-note'})
+            self.action.validate_data({'uuid': 'uuid-qual-note'})
 
     # uuid, value, status, error, good
     @data(
@@ -175,10 +177,7 @@ class TestAutomaticChainedQual(BaseTestCase):
     )
     @unpack
     def test_valid_external_data(self, uuid, value, status, error, accept):
-        data = {
-            'uuid': uuid,
-            'status': status
-        }
+        data = {'uuid': uuid, 'status': status}
         if value is not None:
             data['value'] = value
         if error:
@@ -207,10 +206,10 @@ class TestAutomaticChainedQual(BaseTestCase):
         self.asset.deployment.mock_submissions([submission_data])
         # enable transcription
         QuestionAdvancedFeature.objects.create(
-            question_xpath = 'q1',
-            asset = self.asset,
-            action = Action.MANUAL_TRANSCRIPTION,
-            params = [{'language': 'en'}]
+            question_xpath='q1',
+            asset=self.asset,
+            action=Action.MANUAL_TRANSCRIPTION,
+            params=[{'language': 'en'}],
         )
         # add a transcription
         supplement_details_url = reverse(
@@ -237,11 +236,7 @@ class TestAutomaticChainedQual(BaseTestCase):
                 },
             },
         }
-        response = self.client.patch(supplement_details_url, data=payload, format='json')
+        response = self.client.patch(
+            supplement_details_url, data=payload, format='json'
+        )
         assert response.status_code == status.HTTP_200_OK
-
-    def test_get_output_fields(self):
-        pass
-
-    def test_transform_data_for_output(self):
-        pass

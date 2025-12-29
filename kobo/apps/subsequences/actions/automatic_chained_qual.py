@@ -95,7 +95,10 @@ class AutomaticChainedQualAction(RequiresTranscriptionMixin, BaseQualAction):
                                             self.UUID_FIELD: {'$ref': '#/$defs/uuid'},
                                             self.ACTION_ID_FIELD: {'type': 'string'},
                                         },
-                                        'required': [self.UUID_FIELD, self.ACTION_ID_FIELD],
+                                        'required': [
+                                            self.UUID_FIELD,
+                                            self.ACTION_ID_FIELD,
+                                        ],
                                     },
                                 },
                                 'required': ['_data', '_dateCreated', '_uuid'],
@@ -114,7 +117,6 @@ class AutomaticChainedQualAction(RequiresTranscriptionMixin, BaseQualAction):
         }
 
         return schema
-
 
     @property
     def _limit_identifier(self):

@@ -1,5 +1,3 @@
-from typing import Any
-
 from .base import ActionClassConfig
 from .qual import BaseQualAction
 
