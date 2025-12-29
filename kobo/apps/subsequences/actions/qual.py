@@ -177,18 +177,18 @@ class BaseQualAction(BaseAction):
                 continue
 
             schema['$defs'][qual_item['type']] = data_schema_def
-                # TODO: resolve
-                #
-                # Concerns:
-                # 1. Is including only the schemas for types actually used in
-                #    this asset's qualitative analysis form confusing?
-                # 2. Does using the definitions to save on bloat in the schema
-                #    result in error messages that are too confusing?
-                #
-                # Note: a "good" (?) thing is that the choices are not really
-                # validated, so if we have allowed them to be deleted in the
-                # past (which we probably have), at least validation won't blow
-                # up for existing data
+            # TODO: resolve
+            #
+            # Concerns:
+            # 1. Is including only the schemas for types actually used in
+            #    this asset's qualitative analysis form confusing?
+            # 2. Does using the definitions to save on bloat in the schema
+            #    result in error messages that are too confusing?
+            #
+            # Note: a "good" (?) thing is that the choices are not really
+            # validated, so if we have allowed them to be deleted in the
+            # past (which we probably have), at least validation won't blow
+            # up for existing data
 
             thing = {
                 'allOf': [
