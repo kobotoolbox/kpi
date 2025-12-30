@@ -186,12 +186,10 @@ class BaseQualAction(BaseAction):
             # 2. Does using the definitions to save on bloat in the schema
             #    result in error messages that are too confusing?
             #
-            # Note: a "good" (?) thing is that the choices are not really
-            # validated, so if we have allowed them to be deleted in the
-            # past (which we probably have), at least validation won't blow
-            # up for existing data
+            # We do not allow deletion of choices (only hiding) so it should be safe
+            # to validate the choice uuids are valid
 
-            thing = {
+            single_question_schema = {
                 'allOf': [
                     {'$ref': '#/$defs/qualCommon'},
                     {'$ref': '#/$defs/' + qual_item['type']},
@@ -202,15 +200,19 @@ class BaseQualAction(BaseAction):
                 ],
             }
             if qual_item['type'] == 'qualSelectOne':
+                # the value must be a valid choice uuid or empty
                 uuids = [inner_thing['uuid'] for inner_thing in qual_item['choices']]
-                thing['allOf'][2]['properties']['value'] = {'enum': [*uuids, '']}
-            elif qual_item['type'] == 'qualSelectMultiple':
-                uuids = [inner_thing['uuid'] for inner_thing in qual_item['choices']]
-                thing['allOf'][2]['properties']['value'] = {
-                    'type': 'array',
-                    'items': {'enum': [*uuids, '']},
+                single_question_schema['allOf'][2]['properties']['value'] = {
+                    'enum': [*uuids, '']
                 }
-            schema['oneOf'].append(thing)
+            elif qual_item['type'] == 'qualSelectMultiple':
+                # the value must be a list of valid choice ids
+                uuids = [inner_thing['uuid'] for inner_thing in qual_item['choices']]
+                single_question_schema['allOf'][2]['properties']['value'] = {
+                    'type': 'array',
+                    'items': {'enum': [*uuids]},
+                }
+            schema['oneOf'].append(single_question_schema)
         return schema
 
     @property

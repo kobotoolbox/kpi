@@ -170,7 +170,6 @@ class Fix:
                                         '2e24e6b4-bc3b-4e8e-b0cd-d8d3b9ca15b6',
                                         'cb82919d-2948-4ccf-a488-359c5d5ee53a',
                                         '8effe3b1-619e-4ada-be45-ebcea5af0aaf',
-                                        '',
                                     ],
                                 },
                                 'type': 'array',
