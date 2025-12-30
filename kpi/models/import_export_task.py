@@ -78,6 +78,7 @@ from kpi.utils.rename_xls_sheet import (
 )
 from kpi.utils.strings import to_str
 from kpi.zip_importer import HttpContentParse
+from kobo.apps.openrosa.libs.utils.common_tags import META_ROOT_UUID
 
 
 def utcnow(*args, **kwargs):
@@ -753,6 +754,7 @@ class SubmissionExportTaskBase(ImportExportTask):
         '_submitted_by',
         '__version__',
         TagsCopyField,
+        META_ROOT_UUID,
     )
 
     # It's not very nice to ask our API users to submit `null` or `false`,

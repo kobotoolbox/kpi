@@ -731,6 +731,10 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
         case ADDITIONAL_SUBMISSION_PROPS._submitted_by:
           index = 'z92'
           break
+        // Ensure `meta/rootUuid` is the last one
+        case ADDITIONAL_SUBMISSION_PROPS['meta/rootUuid']:
+          index = 'z999'
+          break
         // set index for `background-audio` to the very first column with `_`
         case backgroundAudioName:
           index = '_1'
