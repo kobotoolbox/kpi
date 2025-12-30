@@ -439,12 +439,12 @@ def test_transform_data_for_output():
         ('translation', 'es'): {
             'value': 'Hola otra vez',
             'languageCode': 'es',
-            '_dateAccepted': None,
+            '_sortByDate': None,
         },
         ('translation', 'fr'): {
             'value': 'bonjour',
             'languageCode': 'fr',
-            '_dateAccepted': None,
+            '_sortByDate': None,
         },
     }
 

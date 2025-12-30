@@ -192,12 +192,12 @@ def test_transform_data_for_output():
         ('translation', 'en'): {
             'value': 'hello again',
             'languageCode': 'en',
-            '_dateAccepted': retrieved_data['en']['_versions'][0]['_dateAccepted'],
+            '_sortByDate': retrieved_data['en']['_versions'][0]['_dateAccepted'],
         },
         ('translation', 'fr'): {
             'value': 'bonjour',
             'languageCode': 'fr',
-            '_dateAccepted': retrieved_data['fr']['_versions'][0]['_dateAccepted'],
+            '_sortByDate': retrieved_data['fr']['_versions'][0]['_dateAccepted'],
         },
     }
 

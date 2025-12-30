@@ -2,8 +2,9 @@ from copy import deepcopy
 
 from rest_framework.exceptions import ValidationError
 
-from ..type_aliases import SimplifiedOutputCandidatesByColumnKey
-from .base import ActionClassConfig, BaseAction
+from kobo.apps.subsequences.actions.base import BaseAction, ActionClassConfig
+from kobo.apps.subsequences.constants import SORT_BY_DATE_FIELD
+from kobo.apps.subsequences.type_aliases import SimplifiedOutputCandidatesByColumnKey
 
 
 class ManualQualAction(BaseAction):
@@ -325,12 +326,10 @@ class ManualQualAction(BaseAction):
 
             versions_sorted = sorted(
                 versions,
-                key=lambda x: x.get(self.DATE_ACCEPTED_FIELD, ''),
+                key=lambda x: x.get(self.DATE_CREATED_FIELD, ''),
                 reverse=True,
             )
             selected_version = versions_sorted[0]
-            if not selected_version.get(self.DATE_ACCEPTED_FIELD):
-                continue
 
             selected_response_data = selected_version.get(self.VERSION_DATA_FIELD, {})
             if not selected_response_data:
@@ -365,12 +364,12 @@ class ManualQualAction(BaseAction):
                 output_value = value
 
             results_dict[('qual', qual_uuid)] = {
-                    'value': output_value,
-                    'type': qual_question['type'],
-                    'xpath': self.source_question_xpath,
-                    'labels': qual_question.get('labels', {}),
-                    self.DATE_ACCEPTED_FIELD: selected_version[self.DATE_ACCEPTED_FIELD]
-                }
+                'value': output_value,
+                'type': qual_question['type'],
+                'xpath': self.source_question_xpath,
+                'labels': qual_question.get('labels', {}),
+                SORT_BY_DATE_FIELD: selected_version[self.DATE_CREATED_FIELD],
+            }
         return results_dict
 
     def update_params(self, incoming_params):

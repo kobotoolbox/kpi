@@ -366,6 +366,6 @@ def test_transform_data_for_output():
         'transcript': {
             'value': 'bonjour',
             'languageCode': 'fr',
-            '_dateAccepted': None,
+            '_sortByDate': None,
         },
     }

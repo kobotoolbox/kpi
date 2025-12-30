@@ -2,6 +2,7 @@ from copy import deepcopy
 
 from dateutil import parser
 
+from ..constants import SORT_BY_DATE_FIELD
 from ..exceptions import TranscriptionNotFound
 from ..type_aliases import SimplifiedOutputCandidatesByColumnKey
 
@@ -35,7 +36,7 @@ class TranscriptionActionMixin:
             self.col_type: {
                 'languageCode': version_data['_data']['language'],
                 'value': version_data['_data']['value'],
-                self.DATE_ACCEPTED_FIELD: version_data.get(self.DATE_ACCEPTED_FIELD),
+                SORT_BY_DATE_FIELD: version_data.get(self.DATE_ACCEPTED_FIELD),
             }
         }
 
@@ -318,6 +319,6 @@ class TranslationActionMixin:
             result[key] = {
                 'languageCode': version_data['_data']['language'],
                 'value': version_data['_data']['value'],
-                self.DATE_ACCEPTED_FIELD: version_data.get(self.DATE_ACCEPTED_FIELD),
+                SORT_BY_DATE_FIELD: version_data.get(self.DATE_ACCEPTED_FIELD),
             }
         return result
