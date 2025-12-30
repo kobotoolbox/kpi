@@ -1,4 +1,5 @@
 import uuid
+from unittest.mock import patch
 
 import jsonschema
 import pytest
@@ -188,7 +189,7 @@ class TestAutomaticChainedQual(BaseTestCase):
             with pytest.raises(jsonschema.exceptions.ValidationError):
                 self.action.validate_external_data(data)
 
-    def test_api_stuff(self):
+    def test_update_supplement_api(self):
         u = self.asset.owner
         self.client.force_login(u)
         self.asset.save()
@@ -220,7 +221,7 @@ class TestAutomaticChainedQual(BaseTestCase):
         payload = {
             '_version': '20250820',
             'q1': {
-                'manual_transcription': {
+                Action.MANUAL_TRANSCRIPTION: {
                     'language': 'en',
                     'value': 'transcription',
                 },
@@ -231,12 +232,26 @@ class TestAutomaticChainedQual(BaseTestCase):
         payload = {
             '_version': '20250820',
             'q1': {
-                'automatic_chained_qual': {
+                Action.AUTOMATIC_CHAINED_QUAL: {
                     'uuid': 'uuid-qual-text',
                 },
             },
         }
-        response = self.client.patch(
-            supplement_details_url, data=payload, format='json'
-        )
+        return_val = {'value': 'LLM text', 'status': 'complete'}
+        with patch.object(
+            AutomaticChainedQualAction, 'run_external_process', return_value=return_val
+        ):
+            response = self.client.patch(
+                supplement_details_url, data=payload, format='json'
+            )
         assert response.status_code == status.HTTP_200_OK
+        transcript = response.data['q1'][Action.MANUAL_TRANSCRIPTION]['_versions'][0]
+        transcript_uuid = transcript['_uuid']
+        version = response.data['q1'][Action.AUTOMATIC_CHAINED_QUAL]['uuid-qual-text'][
+            '_versions'
+        ][0]
+        version_data = version['_data']
+        assert version_data['value'] == 'LLM text'
+        assert version_data['status'] == 'complete'
+        assert version['_dependency']['_uuid'] == transcript_uuid
+        assert version['_dependency']['_actionId'] == Action.MANUAL_TRANSCRIPTION
