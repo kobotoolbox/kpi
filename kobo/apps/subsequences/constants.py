@@ -2,6 +2,7 @@ from django.db import models
 
 SUBMISSION_UUID_FIELD = 'meta/rootUuid'  # FIXME: import from elsewhere
 SUPPLEMENT_KEY = '_supplementalDetails'  # leave unchanged for backwards compatibility
+SORT_BY_DATE_FIELD = '_sortByDate'
 
 # Could allow more types in the future? See
 # formpack.utils.replace_aliases.MEDIA_TYPES

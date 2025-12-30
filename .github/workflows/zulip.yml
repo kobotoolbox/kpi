@@ -9,6 +9,10 @@ on:
       content:
         required: true
         type: string
+      stream:
+        required: false
+        type: string
+        default: "Kobo Dev"
     secrets:
       ZULIP_API_KEY_GITHUB_ACTIONS_BOT:
         required: true
@@ -46,6 +50,6 @@ jobs:
         email: "github-actions-bot@chat.kobotoolbox.org"
         organization-url: "https://chat.kobotoolbox.org"
         type: "stream"
-        to: "Kobo Dev"
+        to: ${{inputs.stream}}
         topic: ${{ inputs.topic }}
         content: ${{ steps.title.outputs.CONTENT }}

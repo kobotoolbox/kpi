@@ -2,7 +2,8 @@ from copy import deepcopy
 
 from rest_framework.exceptions import ValidationError
 
-from kobo.apps.subsequences.actions.base import BaseAction
+from kobo.apps.subsequences.actions.base import BaseAction, ActionClassConfig
+from kobo.apps.subsequences.constants import SORT_BY_DATE_FIELD
 from kobo.apps.subsequences.type_aliases import SimplifiedOutputCandidatesByColumnKey
 
 
@@ -317,12 +318,10 @@ class BaseQualAction(BaseAction):
 
             versions_sorted = sorted(
                 versions,
-                key=lambda x: x.get(self.DATE_ACCEPTED_FIELD, ''),
+                key=lambda x: x.get(self.DATE_CREATED_FIELD, ''),
                 reverse=True,
             )
             selected_version = versions_sorted[0]
-            if not selected_version.get(self.DATE_ACCEPTED_FIELD):
-                continue
 
             selected_response_data = selected_version.get(self.VERSION_DATA_FIELD, {})
             if not selected_response_data:
@@ -361,7 +360,7 @@ class BaseQualAction(BaseAction):
                 'type': qual_question['type'],
                 'xpath': self.source_question_xpath,
                 'labels': qual_question.get('labels', {}),
-                self.DATE_ACCEPTED_FIELD: selected_version[self.DATE_ACCEPTED_FIELD],
+                SORT_BY_DATE_FIELD: selected_version[self.DATE_CREATED_FIELD],
             }
         return results_dict
 
