@@ -42,6 +42,7 @@ class SubmissionSupplement(SubmissionExtras):
     def revise_data(asset: 'kpi.Asset', submission: dict, incoming_data: dict) -> dict:
 
         from .utils.versioning import migrate_submission_supplementals
+
         if not asset.advanced_features_set.exists():
             raise InvalidAction
 
@@ -209,7 +210,6 @@ class SubmissionSupplement(SubmissionExtras):
                     # where ('translation','lang1') would be one key and
                     # ('translation', 'lang2') would be the other
                     transformed_data = action.transform_data_for_output(retrieved_data)
-
                     for field_key, field_data in transformed_data.items():
                         # Omit `_dateAccepted` from the output data
                         sort_by_date = field_data.pop(SORT_BY_DATE_FIELD, None)
@@ -227,7 +227,6 @@ class SubmissionSupplement(SubmissionExtras):
                                 for key_str in field_key[:-1]:
                                     current = current.setdefault(key_str, {})
                                 current[field_key[-1]] = field_data
-
             data_for_output[question_xpath] = output_data_for_question
 
         retrieved_supplemental_data['_version'] = schema_version
