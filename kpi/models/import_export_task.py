@@ -24,6 +24,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as t
 from openpyxl.utils.exceptions import InvalidFileException
 from private_storage.fields import PrivateFileField
+from pyxform.xls2json_backends import xls_to_dict, xlsx_to_dict
 from rest_framework import exceptions
 from rest_framework.reverse import reverse
 from werkzeug.http import parse_options_header
@@ -77,7 +78,6 @@ from kpi.utils.rename_xls_sheet import (
 )
 from kpi.utils.strings import to_str
 from kpi.zip_importer import HttpContentParse
-from pyxform.xls2json_backends import xls_to_dict, xlsx_to_dict
 from kobo.apps.openrosa.libs.utils.common_tags import META_ROOT_UUID
 
 
