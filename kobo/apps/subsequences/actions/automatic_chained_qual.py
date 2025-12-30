@@ -44,6 +44,7 @@ class AutomaticChainedQualAction(RequiresTranscriptionMixin, BaseQualAction):
 
     @property
     def data_schema(self):
+        # the only data the user provides is the uuid of the question to be answered
         uuids = [q['uuid'] for q in self.params if q['type'] != 'qualNote']
         return {
             '$schema': 'https://json-schema.org/draft/2020-12/schema',
@@ -60,8 +61,7 @@ class AutomaticChainedQualAction(RequiresTranscriptionMixin, BaseQualAction):
 
     @property
     def result_schema(self):
-        data_schema = self.external_data_schema
-        data_schema = deepcopy(data_schema)
+        data_schema = deepcopy(self.external_data_schema)
         data_schema_defs = data_schema.pop('$defs')
         data_schema.pop('$schema')  # discard this prior to nesting
 
@@ -126,6 +126,8 @@ class AutomaticChainedQualAction(RequiresTranscriptionMixin, BaseQualAction):
 
     @property
     def external_data_schema(self):
+        # external data schema consists of the manual data schema + fields for status
+        # and error
         to_return = deepcopy(super().data_schema)
         defs = to_return['$defs']
         qual_common = to_return['$defs']['qualCommon']

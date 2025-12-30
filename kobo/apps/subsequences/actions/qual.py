@@ -2,7 +2,7 @@ from copy import deepcopy
 
 from rest_framework.exceptions import ValidationError
 
-from kobo.apps.subsequences.actions.base import BaseAction, ActionClassConfig
+from kobo.apps.subsequences.actions.base import BaseAction
 from kobo.apps.subsequences.constants import SORT_BY_DATE_FIELD
 from kobo.apps.subsequences.type_aliases import SimplifiedOutputCandidatesByColumnKey
 
