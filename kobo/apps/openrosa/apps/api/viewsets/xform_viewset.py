@@ -2,9 +2,9 @@
 import json
 import os
 
-from django.http import Http404, HttpResponseBadRequest
+from django.http import Http404
 from django.utils.translation import gettext as t
-from rest_framework import exceptions, status
+from rest_framework import exceptions
 
 from kobo.apps.openrosa.apps.viewer.models.export import Export
 from kobo.apps.openrosa.libs.exceptions import NoRecordsFoundError
