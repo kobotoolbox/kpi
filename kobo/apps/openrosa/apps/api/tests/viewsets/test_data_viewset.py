@@ -3,7 +3,6 @@ from django.test import RequestFactory
 from rest_framework import status
 
 from kobo.apps.openrosa.apps.api.viewsets.data_viewset import DataViewSet
-from kobo.apps.openrosa.apps.api.viewsets.xform_viewset import XFormViewSet
 from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 from kobo.apps.openrosa.libs.permissions import assign_perm, remove_perm
@@ -167,37 +166,6 @@ class TestDataViewSet(TestBase):
         request = self.factory.get('/')
         response = view(request)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-
-    def test_add_form_tag_propagates_to_data_tags(self):
-        """Test that when a tag is applied on an xform,
-        it propagates to the instance submissions
-        """
-        self._make_submissions()
-        xform = XForm.objects.all()[0]
-        pk = xform.id
-        view = XFormViewSet.as_view({
-            'get': 'labels',
-            'post': 'labels',
-            'delete': 'labels'
-        })
-        # no tags
-        request = self.factory.get('/', **self.extra)
-        response = view(request, pk=pk)
-        self.assertEqual(response.data, [])
-        # add tag "hello"
-        request = self.factory.post('/', data={'tags': 'hello'}, **self.extra)
-        response = view(request, pk=pk)
-        self.assertEqual(response.status_code, 201)
-        self.assertEqual(response.data, ['hello'])
-        for i in self.xform.instances.all():
-            self.assertIn('hello', i.tags.names())
-        # remove tag "hello"
-        request = self.factory.delete('/', data={'tags': 'hello'}, **self.extra)
-        response = view(request, pk=pk, label='hello')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, [])
-        for i in self.xform.instances.all():
-            self.assertNotIn('hello', i.tags.names())
 
     def test_labels_action_with_params(self):
         self._make_submissions()

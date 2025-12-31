@@ -9,10 +9,8 @@ from kobo.apps.openrosa.apps.api.tests.viewsets.test_abstract_viewset import (
     TestAbstractViewSet,
 )
 from kobo.apps.openrosa.apps.api.viewsets.metadata_viewset import MetaDataViewSet
-from kobo.apps.openrosa.apps.api.viewsets.xform_viewset import XFormViewSet
 from kobo.apps.openrosa.apps.main.models.meta_data import MetaData
 from kobo.apps.openrosa.libs.permissions import assign_perm
-from kobo.apps.openrosa.libs.serializers.xform_serializer import XFormSerializer
 from kpi.constants import PERM_CHANGE_ASSET, PERM_VIEW_ASSET
 
 
@@ -56,21 +54,6 @@ class TestMetaDataViewSet(TestAbstractViewSet):
         for data_type in ['supporting_doc', 'media', 'source']:
             self._add_form_metadata(self.xform, data_type,
                                     self.data_value, self.path)
-
-    def test_forms_endpoint_with_metadata(self):
-        for data_type in ['supporting_doc', 'media', 'source']:
-            self._add_form_metadata(self.xform, data_type,
-                                    self.data_value, self.path)
-        # /forms
-        view = XFormViewSet.as_view({
-            'get': 'retrieve'
-        })
-        formid = self.xform.pk
-        request = self.factory.get('/', **self.extra)
-        response = view(request, pk=formid)
-        self.assertEqual(response.status_code, 200)
-        data = XFormSerializer(self.xform, context={'request': request}).data
-        self.assertEqual(response.data, data)
 
     def test_get_metadata_with_file_attachment(self):
         for data_type in ['supporting_doc', 'media', 'source']:

@@ -12,7 +12,7 @@ from rest_framework.test import APIRequestFactory
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.api.viewsets.metadata_viewset import MetaDataViewSet
-from kobo.apps.openrosa.apps.logger.models import Attachment, XForm
+from kobo.apps.openrosa.apps.logger.models import Attachment
 from kobo.apps.openrosa.apps.main import tests as main_tests
 from kobo.apps.openrosa.apps.main.models import MetaData, UserProfile
 from kobo.apps.openrosa.libs.tests.mixins.make_submission_mixin import (
@@ -86,39 +86,22 @@ class TestAbstractViewSet(RequestMixin, MakeSubmissionMixin, TestCase):
                 'transportation.xls',
             )
 
-        if use_api is True:
-            xform_list_url = reverse('xform-list')
-            with open(path, 'rb') as xls_file:
-                post_data = {'xls_file': xls_file}
-                response = self.client.post(
-                    xform_list_url, data=post_data, **self.extra
-                )
+        with open(path, 'rb') as f:
+            xls_file = ContentFile(f.read(), name='transportation.xls')
 
-            if assert_creation is False:
-                return response
+        self.xform = logger_tools.publish_xls_form(xls_file, self.user)
+        # The permissions are based on the asset, so we need the asset to be saved
+        asset = self.xform.asset
+        asset.save()
+        self.xform.kpi_asset_uid = asset.uid
+        self.xform.save()
+        response = self.client.get(
+            reverse('asset-detail', args=[asset.uid])
+        )
 
-            self.assertEqual(response.status_code, 201)
-            self.xform = XForm.objects.all().order_by('pk').reverse()[0]
-            data.update({'url': f'http://testserver/api/v1/forms/{self.xform.pk}'})
-            self.assertEqual(dict(response.data, **data), response.data)
+        if assert_creation is True:
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
             self.form_data = response.data
-        else:
-            with open(path, 'rb') as f:
-                xls_file = ContentFile(f.read(), name='transportation.xls')
-
-            self.xform = logger_tools.publish_xls_form(xls_file, self.user)
-            # The permissions are based on the asset, so we need the asset to be saved
-            asset = self.xform.asset
-            asset.save()
-            self.xform.kpi_asset_uid = asset.uid
-            self.xform.save()
-            response = self.client.get(
-                reverse('xform-detail', kwargs={'pk': self.xform.pk})
-            )
-
-            if assert_creation is True:
-                self.assertEqual(response.status_code, status.HTTP_200_OK)
-                self.form_data = response.data
 
     def user_profile_data(self):
         return {
