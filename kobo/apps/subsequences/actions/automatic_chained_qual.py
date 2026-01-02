@@ -1,5 +1,7 @@
 from copy import deepcopy
 
+from django.utils.functional import classproperty
+
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.subsequences.actions.base import ActionClassConfig
 from kobo.apps.subsequences.actions.mixins import RequiresTranscriptionMixin
@@ -12,6 +14,13 @@ class AutomaticChainedQualAction(RequiresTranscriptionMixin, BaseQualAction):
     action_class_config = ActionClassConfig(
         allow_multiple=True, automatic=True, action_data_key='uuid'
     )
+
+    @classproperty
+    def params_schema(cls):
+        initial_params = deepcopy(super().params_schema)
+        initial_params['$defs']['qualQuestionType']['enum'].remove('qualNote')
+        initial_params['$defs']['qualQuestionType']['enum'].remove('qualTags')
+        return initial_params
 
     def run_external_process(
         self,
@@ -37,15 +46,13 @@ class AutomaticChainedQualAction(RequiresTranscriptionMixin, BaseQualAction):
             return {'value': 'Text', 'status': 'complete'}
         elif question['type'] == 'qualSelectOne':
             return {'value': question['choices'][0][uuid], 'status': 'complete'}
-        elif question['type'] == 'qualSelectMultiple':
-            return {'value': [question['choices'][0][uuid]], 'status': 'complete'}
         else:
-            return {'value': ['tag'], 'status': 'complete'}
+            return {'value': [question['choices'][0][uuid]], 'status': 'complete'}
 
     @property
     def data_schema(self):
         # the only data the user provides is the uuid of the question to be answered
-        uuids = [q['uuid'] for q in self.params if q['type'] != 'qualNote']
+        uuids = [q['uuid'] for q in self.params]
         return {
             '$schema': 'https://json-schema.org/draft/2020-12/schema',
             'type': 'object',

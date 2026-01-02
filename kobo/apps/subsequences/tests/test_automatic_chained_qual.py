@@ -60,19 +60,9 @@ class TestAutomaticChainedQual(BaseTestCase):
                 ],
             },
             {
-                'type': 'qualTags',
-                'uuid': 'uuid-qual-tags',
-                'labels': {'_default': 'Tag any landmarks mentioned in the story'},
-            },
-            {
                 'type': 'qualText',
                 'uuid': 'uuid-qual-text',
                 'labels': {'_default': 'Add any further remarks'},
-            },
-            {
-                'type': 'qualNote',
-                'uuid': 'uuid-qual-note',
-                'labels': {'_default': 'Thanks for your diligence'},
             },
         ]
         self.asset = Asset.objects.get(uid='aNp9yMt4zKpUtTeZUnozYG')
@@ -93,28 +83,25 @@ class TestAutomaticChainedQual(BaseTestCase):
         ('qualText', 'Why?', None, True),
         ('qualText', 'Why?', 'This should not be here', False),
         ('qualText', None, None, False),
-        ('qualNote', 'Note', None, True),
-        ('qualNote', 'Note', 'This should not be here', False),
-        ('qualNote', None, None, False),
         ('qualSelectOne', 'Select one', None, False),
         ('qualSelectOne', 'Select one', 'Choice A', True),
         ('qualSelectOne', None, 'Choice A', False),
         ('qualSelectMultiple', 'Select many', None, False),
         ('qualSelectMultiple', 'Select many', 'Choice A', True),
         ('qualSelectMultiple', None, 'Choice A', False),
-        ('qualTags', 'Tag', None, True),
-        ('qualTags', 'Tag', 'Choice A', False),
-        ('qualTags', None, None, False),
+        # notes and tags not allowed in automatic QA
+        ('qualNote', 'Note', None, False),
+        ('qualTags', 'Tag', None, False),
         ('badType', 'label', None, False),
         (None, 'label', None, False),
     )
     @unpack
-    def test_valid_params(self, type, main_label, choice_label, should_pass):
+    def test_valid_params(self, question_type, main_label, choice_label, should_pass):
         main_uuid = 'main_uuid'
         choice_uuid = 'choice_uuid'
         param = {'uuid': main_uuid}
-        if type:
-            param['type'] = type
+        if question_type:
+            param['type'] = question_type
         if main_label:
             param['labels'] = {'_default': main_label}
         if choice_label:
@@ -170,11 +157,6 @@ class TestAutomaticChainedQual(BaseTestCase):
         ('uuid-qual-select-multiple', ['uuid-bad'], 'complete', None, False),
         ('uuid-qual-select-multiple', None, 'failed', 'error', True),
         ('uuid-qual-select-multiple', ['uuid-empathy'], 'failed', 'error', False),
-        ('uuid-qual-tags', ['uuid-empathy'], 'complete', None, True),
-        ('uuid-qual-tags', [], 'complete', None, True),
-        ('uuid-qual-tags', None, 'complete', None, False),
-        ('uuid-qual-tags', None, 'failed', 'error', True),
-        ('uuid-qual-tags', ['uuid-empathy'], 'failed', 'error', False),
     )
     @unpack
     def test_valid_external_data(self, uuid, value, status, error, accept):
