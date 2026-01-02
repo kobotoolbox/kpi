@@ -2,24 +2,16 @@ from copy import deepcopy
 
 from rest_framework.exceptions import ValidationError
 
-from kobo.apps.subsequences.actions.base import BaseAction, ActionClassConfig
+from kobo.apps.subsequences.actions.base import BaseAction
 from kobo.apps.subsequences.constants import SORT_BY_DATE_FIELD
 from kobo.apps.subsequences.type_aliases import SimplifiedOutputCandidatesByColumnKey
 
 
-class ManualQualAction(BaseAction):
-
-    ID = 'manual_qual'
-    action_class_config = ActionClassConfig(
-        allow_multiple=True, automatic=False, action_data_key='uuid'
-    )
+class BaseQualAction(BaseAction):
     KNOWN_PARAM_KEYS = ['uuid', 'labels', 'options', 'choices', 'type']
     # Confusing: "deleted" actually means "hidden", we don't delete QA questions
     # TODO: make "hidden" its own field and remove this option
     DELETED_OPTION = 'deleted'
-
-    # JSON Schema definitions
-
     data_schema_definitions = {
         'qualCommon': {
             # Remember that JSON Schema is subtractive
@@ -103,13 +95,14 @@ class ManualQualAction(BaseAction):
                 'options': {'type': 'object'},
             },
             'required': ['uuid', 'type', 'labels'],
-            # Additionally require `choices` for the select types
+            # Additionally require `choices` for the select types, forbid otherwise
             'if': {
                 'properties': {
                     'type': {'$ref': '#/$defs/qualSelectQuestionType'},
                 }
             },
             'then': {'required': ['choices']},
+            'else': {'not': {'required': ['choices']}},
         },
         'qualQuestionType': {
             'type': 'string',
@@ -165,6 +158,7 @@ class ManualQualAction(BaseAction):
         …which is what the schema returned by this function needs to validate
         """
         schema = {
+            '$schema': 'https://json-schema.org/draft/2020-12/schema',
             '$defs': {
                 **self.shared_definitions,
                 'qualCommon': deepcopy(self.data_schema_definitions['qualCommon'])
@@ -184,40 +178,48 @@ class ManualQualAction(BaseAction):
                 continue
 
             schema['$defs'][qual_item['type']] = data_schema_def
-            schema['oneOf'].append(
-                # TODO: resolve
-                #
-                # Concerns:
-                # 1. Is including only the schemas for types actually used in
-                #    this asset's qualitative analysis form confusing?
-                # 2. Does using the definitions to save on bloat in the schema
-                #    result in error messages that are too confusing?
-                #
-                # Note: a "good" (?) thing is that the choices are not really
-                # validated, so if we have allowed them to be deleted in the
-                # past (which we probably have), at least validation won't blow
-                # up for existing data
+            # TODO: resolve
+            #
+            # Concerns:
+            # 1. Is including only the schemas for types actually used in
+            #    this asset's qualitative analysis form confusing?
+            # 2. Does using the definitions to save on bloat in the schema
+            #    result in error messages that are too confusing?
+            #
+            # We do not allow deletion of choices (only hiding) so it should be safe
+            # to validate the choice uuids are valid
 
-                {
-                    'allOf': [
-                        {'$ref': '#/$defs/qualCommon'},
-                        {'$ref': '#/$defs/' + qual_item['type']},
-                        {
-                            'type': 'object',
-                            'properties': {
-                                'uuid': {'const': qual_item['uuid']}
-                            },
-                        },
-                    ],
+            single_question_schema = {
+                'allOf': [
+                    {'$ref': '#/$defs/qualCommon'},
+                    {'$ref': '#/$defs/' + qual_item['type']},
+                    {
+                        'type': 'object',
+                        'properties': {'uuid': {'const': qual_item['uuid']}},
+                    },
+                ],
+            }
+            if qual_item['type'] == 'qualSelectOne':
+                # the value must be a valid choice uuid or empty
+                uuids = [inner_thing['uuid'] for inner_thing in qual_item['choices']]
+                single_question_schema['allOf'][2]['properties']['value'] = {
+                    'enum': [*uuids, '']
                 }
-            )
-
+            elif qual_item['type'] == 'qualSelectMultiple':
+                # the value must be a list of valid choice ids
+                uuids = [inner_thing['uuid'] for inner_thing in qual_item['choices']]
+                single_question_schema['allOf'][2]['properties']['value'] = {
+                    'type': 'array',
+                    'items': {'enum': [*uuids]},
+                }
+            schema['oneOf'].append(single_question_schema)
         return schema
 
     @property
     def result_schema(self):
         data_schema = deepcopy(self.data_schema)
         data_schema_definitions = data_schema.pop('$defs')
+        data_schema.pop('$schema')
         schema = {
             '$schema': 'https://json-schema.org/draft/2020-12/schema',
             'type': 'object',
@@ -290,17 +292,9 @@ class ManualQualAction(BaseAction):
             output_fields.append(field)
         return output_fields
 
-    def overlaps_other_actions(self) -> bool:
-        """
-        Qual returns a grouped structured block (e.g. {"qual": [...]}) and
-        does not participate in per-field arbitration with other actions
-        """
-        return False
-
     def transform_data_for_output(
         self, action_data: dict
     ) -> SimplifiedOutputCandidatesByColumnKey:
-
         qual_questions_by_uuid = {q['uuid']: q for q in self.params}
 
         # Choice lookup tables for select questions

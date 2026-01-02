@@ -31,3 +31,4 @@ class Action(models.TextChoices):
     AUTOMATIC_GOOGLE_TRANSLATION = 'automatic_google_translation'
     AUTOMATIC_GOOGLE_TRANSCRIPTION = 'automatic_google_transcription'
     MANUAL_QUAL = 'manual_qual'
+    AUTOMATIC_CHAINED_QUAL = 'automatic_chained_qual'

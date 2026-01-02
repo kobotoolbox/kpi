@@ -329,13 +329,6 @@ class BaseAction:
         """
         return []
 
-    def overlaps_other_actions(self) -> bool:
-        """
-        Return True if this action may produce fields that overlap with other
-        actions and therefore requires per-field arbitration. Default: True
-        """
-        return True
-
     def transform_data_for_output(
         self, action_data: dict
     ) -> SimplifiedOutputCandidatesByColumnKey:
@@ -419,7 +412,6 @@ class BaseAction:
             )[0]
         except IndexError:
             current_version = {}
-
         self.attach_action_dependency(action_data)
 
         if self.action_class_config.automatic:
