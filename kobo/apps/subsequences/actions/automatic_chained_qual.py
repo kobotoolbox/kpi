@@ -15,39 +15,9 @@ class AutomaticChainedQualAction(RequiresTranscriptionMixin, BaseQualAction):
         allow_multiple=True, automatic=True, action_data_key='uuid'
     )
 
-    @classproperty
-    def params_schema(cls):
-        initial_params = deepcopy(super().params_schema)
-        initial_params['$defs']['qualQuestionType']['enum'].remove('qualNote')
-        initial_params['$defs']['qualQuestionType']['enum'].remove('qualTags')
-        return initial_params
-
-    def run_external_process(
-        self,
-        submission: dict,
-        action_supplemental_data: dict,
-        action_data: dict,
-        *args,
-        **kwargs,
-    ) -> dict | bool:
-        """
-        Update action_data with external process
-
-        Stub for testing
-        """
-        uuid = action_data['uuid']
-        found = [q for q in self.params if q['uuid'] == uuid]
-        if len(found) != 1:
-            raise Exception(f'UUID {uuid} not found')
-        question = found[0]
-        if question['type'] == 'qualInteger':
-            return {'value': 1, 'status': 'complete'}
-        elif question['type'] == 'qualText':
-            return {'value': 'Text', 'status': 'complete'}
-        elif question['type'] == 'qualSelectOne':
-            return {'value': question['choices'][0][uuid], 'status': 'complete'}
-        else:
-            return {'value': [question['choices'][0][uuid]], 'status': 'complete'}
+    @property
+    def _limit_identifier(self):
+        return UsageType.LLM_REQUESTS
 
     @property
     def data_schema(self):
@@ -65,71 +35,6 @@ class AutomaticChainedQualAction(RequiresTranscriptionMixin, BaseQualAction):
                 'uuid': {'type': 'string', 'enum': uuids},
             },
         }
-
-    @property
-    def result_schema(self):
-        data_schema = deepcopy(self.external_data_schema)
-        data_schema_defs = data_schema.pop('$defs')
-        data_schema.pop('$schema')  # discard this prior to nesting
-
-        schema = {
-            '$schema': 'https://json-schema.org/draft/2020-12/schema',
-            'type': 'object',
-            'additionalProperties': False,
-            'properties': {
-                # Every question gets a property in the results
-                qual_item['uuid']: {'$ref': '#/$defs/dataActionKey'}
-                for qual_item in self.params
-            },
-            '$defs': {
-                'dataActionKey': {
-                    'type': 'object',
-                    'additionalProperties': False,
-                    'properties': {
-                        '_versions': {
-                            'type': 'array',
-                            'minItems': 1,
-                            'items': {
-                                'type': 'object',
-                                'additionalProperties': False,
-                                'properties': {
-                                    '_data': {'$ref': '#/$defs/dataSchema'},
-                                    '_dateCreated': {'$ref': '#/$defs/dateTime'},
-                                    '_dateAccepted': {'$ref': '#/$defs/dateTime'},
-                                    '_uuid': {'$ref': '#/$defs/uuid'},
-                                    self.DEPENDENCY_FIELD: {
-                                        'type': 'object',
-                                        'additionalProperties': False,
-                                        'properties': {
-                                            self.UUID_FIELD: {'$ref': '#/$defs/uuid'},
-                                            self.ACTION_ID_FIELD: {'type': 'string'},
-                                        },
-                                        'required': [
-                                            self.UUID_FIELD,
-                                            self.ACTION_ID_FIELD,
-                                        ],
-                                    },
-                                },
-                                'required': ['_data', '_dateCreated', '_uuid'],
-                            },
-                        },
-                        '_dateCreated': {'$ref': '#/$defs/dateTime'},
-                        '_dateModified': {'$ref': '#/$defs/dateTime'},
-                    },
-                    'required': ['_dateCreated', '_dateModified'],
-                },
-                'dateTime': {'type': 'string', 'format': 'date-time'},
-                'uuid': {'type': 'string', 'format': 'uuid'},
-                'dataSchema': data_schema,
-                **data_schema_defs,
-            },
-        }
-
-        return schema
-
-    @property
-    def _limit_identifier(self):
-        return UsageType.LLM_REQUESTS
 
     @property
     def external_data_schema(self):
@@ -194,3 +99,98 @@ class AutomaticChainedQualAction(RequiresTranscriptionMixin, BaseQualAction):
         to_return['$defs'] = {**defs, **status_defs}
         to_return['allOf'] = common['allOf']
         return to_return
+
+    @classproperty
+    def params_schema(cls):
+        initial_params = deepcopy(super().params_schema)
+        initial_params['$defs']['qualQuestionType']['enum'].remove('qualNote')
+        initial_params['$defs']['qualQuestionType']['enum'].remove('qualTags')
+        return initial_params
+
+    @property
+    def result_schema(self):
+        data_schema = deepcopy(self.external_data_schema)
+        data_schema_defs = data_schema.pop('$defs')
+        data_schema.pop('$schema')  # discard this prior to nesting
+
+        schema = {
+            '$schema': 'https://json-schema.org/draft/2020-12/schema',
+            'type': 'object',
+            'additionalProperties': False,
+            'properties': {
+                # Every question gets a property in the results
+                qual_item['uuid']: {'$ref': '#/$defs/dataActionKey'}
+                for qual_item in self.params
+            },
+            '$defs': {
+                'dataActionKey': {
+                    'type': 'object',
+                    'additionalProperties': False,
+                    'properties': {
+                        '_versions': {
+                            'type': 'array',
+                            'minItems': 1,
+                            'items': {
+                                'type': 'object',
+                                'additionalProperties': False,
+                                'properties': {
+                                    '_data': {'$ref': '#/$defs/dataSchema'},
+                                    '_dateCreated': {'$ref': '#/$defs/dateTime'},
+                                    '_dateAccepted': {'$ref': '#/$defs/dateTime'},
+                                    '_uuid': {'$ref': '#/$defs/uuid'},
+                                    self.DEPENDENCY_FIELD: {
+                                        'type': 'object',
+                                        'additionalProperties': False,
+                                        'properties': {
+                                            self.UUID_FIELD: {'$ref': '#/$defs/uuid'},
+                                            self.ACTION_ID_FIELD: {'type': 'string'},
+                                        },
+                                        'required': [
+                                            self.UUID_FIELD,
+                                            self.ACTION_ID_FIELD,
+                                        ],
+                                    },
+                                },
+                                'required': ['_data', '_dateCreated', '_uuid'],
+                            },
+                        },
+                        '_dateCreated': {'$ref': '#/$defs/dateTime'},
+                        '_dateModified': {'$ref': '#/$defs/dateTime'},
+                    },
+                    'required': ['_dateCreated', '_dateModified'],
+                },
+                'dateTime': {'type': 'string', 'format': 'date-time'},
+                'uuid': {'type': 'string', 'format': 'uuid'},
+                'dataSchema': data_schema,
+                **data_schema_defs,
+            },
+        }
+
+        return schema
+
+    def run_external_process(
+        self,
+        submission: dict,
+        action_supplemental_data: dict,
+        action_data: dict,
+        *args,
+        **kwargs,
+    ) -> dict | bool:
+        """
+        Update action_data with external process
+
+        Stub for testing
+        """
+        uuid = action_data['uuid']
+        found = [q for q in self.params if q['uuid'] == uuid]
+        if len(found) != 1:
+            raise Exception(f'UUID {uuid} not found')
+        question = found[0]
+        if question['type'] == 'qualInteger':
+            return {'value': 1, 'status': 'complete'}
+        elif question['type'] == 'qualText':
+            return {'value': 'Text', 'status': 'complete'}
+        elif question['type'] == 'qualSelectOne':
+            return {'value': question['choices'][0][uuid], 'status': 'complete'}
+        else:
+            return {'value': [question['choices'][0][uuid]], 'status': 'complete'}
