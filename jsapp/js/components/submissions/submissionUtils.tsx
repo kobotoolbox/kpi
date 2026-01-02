@@ -684,20 +684,19 @@ export function getSupplementalDetailsContent(submission: SubmissionResponse, pa
   if (pathParts.type === 'qual') {
     // The last element is some random uuid, but we look for `qual`.
     pathArray.push('qual')
-    const qualResponses: SubmissionAnalysisResponse[] = get(submission, pathArray, [])
-    const foundResponse = qualResponses.find(
-      (item: SubmissionAnalysisResponse) => item.uuid === pathParts.analysisQuestionUuid,
-    )
+    pathArray.push(pathParts.analysisQuestionUuid || '')
+    const foundResponse: SubmissionAnalysisResponse = get(submission, pathArray, {})
+
     if (foundResponse) {
       // For `qual_select_one` we get object
-      if (typeof foundResponse.val === 'object' && foundResponse.val !== null && 'labels' in foundResponse.val) {
-        return foundResponse.val.labels._default
+      if (typeof foundResponse.value === 'object' && foundResponse.value !== null && 'labels' in foundResponse.value) {
+        return foundResponse.value.labels._default
       }
 
       // Here we handle both `qual_select_multiple` and `qual_tags`, as both are
       // arrays of items
-      if (Array.isArray(foundResponse.val) && foundResponse.val.length > 0) {
-        const choiceLabels = foundResponse.val.map((item) => {
+      if (Array.isArray(foundResponse.value) && foundResponse.value.length > 0) {
+        const choiceLabels = foundResponse.value.map((item) => {
           if (typeof item === 'object') {
             // For `qual_select_multiple` we get an array of objects
             return item.labels._default
@@ -710,12 +709,12 @@ export function getSupplementalDetailsContent(submission: SubmissionResponse, pa
         return choiceLabels.join(', ')
       }
 
-      if (typeof foundResponse.val === 'string' && foundResponse.val !== '') {
-        return foundResponse.val
+      if (typeof foundResponse.value === 'string' && foundResponse.value !== '') {
+        return foundResponse.value
       }
 
-      if (typeof foundResponse.val === 'number') {
-        return String(foundResponse.val)
+      if (typeof foundResponse.value === 'number') {
+        return String(foundResponse.value)
       }
 
       return null
@@ -809,12 +808,14 @@ export function removeEmptyFromSupplementalDetails(supplementalDetails: Submissi
   // b) responses to qual questions that are deleted
   for (const detailsKey of recordKeys(details)) {
     if (details[detailsKey].qual) {
-      details[detailsKey].qual = details[detailsKey].qual.filter(
-        (qualResponse) =>
-          qualResponse.val !== '' &&
-          qualResponse.val !== null &&
-          !(Array.isArray(qualResponse.val) && qualResponse.val.length === 0) &&
-          qualResponse.options?.deleted !== true,
+      details[detailsKey].qual = Object.fromEntries(
+        Object.entries(details[detailsKey].qual).filter(
+          ([_, qualResponse]) =>
+            qualResponse.value !== '' &&
+            qualResponse.value !== null &&
+            !(Array.isArray(qualResponse.value) && qualResponse.value.length === 0) &&
+            qualResponse.options?.deleted !== true,
+        ),
       )
     }
   }

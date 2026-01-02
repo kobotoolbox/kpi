@@ -218,30 +218,30 @@ describe('removeEmptyFromSupplementalDetails', () => {
   it('should remove empty strings and deleted qual responses', () => {
     const supplementalDetails: SubmissionSupplementalDetails = {
       How_much_can_you_handle: {
-        qual: [
-          {
-            val: '',
+        qual: {
+          123: {
+            value: '',
             type: 'qual_text',
-            uuid: '',
+            uuid: '123',
             labels: { _default: 'foo' },
             xpath: '',
           },
-          {
-            val: 'foo',
+          234: {
+            value: 'foo',
             type: 'qual_text',
-            uuid: '',
+            uuid: '234',
             labels: { _default: 'foo' },
             xpath: '',
           },
-          {
-            val: 'bar',
+          345: {
+            value: 'bar',
             options: { deleted: true },
             type: 'qual_text',
-            uuid: '',
+            uuid: '345',
             labels: { _default: 'foo' },
-            xpath: '',
+            xpath: '345',
           },
-        ],
+        },
       },
     }
 
@@ -249,15 +249,15 @@ describe('removeEmptyFromSupplementalDetails', () => {
 
     chai.expect(result).to.eql({
       How_much_can_you_handle: {
-        qual: [
-          {
-            val: 'foo',
+        qual: {
+          234: {
+            value: 'foo',
             type: 'qual_text',
-            uuid: '',
+            uuid: '234',
             labels: { _default: 'foo' },
             xpath: '',
           },
-        ],
+        },
       },
     })
   })
@@ -265,23 +265,23 @@ describe('removeEmptyFromSupplementalDetails', () => {
   it('should remove qual array if all responses are removed', () => {
     const supplementalDetails: SubmissionSupplementalDetails = {
       How_much_can_you_handle: {
-        qual: [
-          {
-            val: '',
+        qual: {
+          123: {
+            value: '',
             type: 'qual_text',
             labels: { _default: 'foo' },
-            uuid: '',
+            uuid: '123',
             xpath: '',
           },
-          {
-            val: 'bar',
+          234: {
+            value: 'bar',
             options: { deleted: true },
             type: 'qual_text',
             labels: { _default: 'foo' },
-            uuid: '',
+            uuid: '234',
             xpath: '',
           },
-        ],
+        },
       },
     }
 
@@ -293,7 +293,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
   it('should remove nested empty objects', () => {
     const supplementalDetails: SubmissionSupplementalDetails = {
       How_much_can_you_handle: {
-        qual: [],
+        qual: {},
       },
       question2: {},
     }
@@ -306,15 +306,15 @@ describe('removeEmptyFromSupplementalDetails', () => {
   it('should handle already clean supplemental details', () => {
     const supplementalDetails: SubmissionSupplementalDetails = {
       How_much_can_you_handle: {
-        qual: [
-          {
-            val: 'foo',
+        qual: {
+          123: {
+            value: 'foo',
             type: 'qual_text',
             labels: { _default: 'foo' },
-            uuid: '',
+            uuid: '123',
             xpath: '',
           },
-        ],
+        },
       },
     }
 
@@ -326,44 +326,44 @@ describe('removeEmptyFromSupplementalDetails', () => {
   it('should handle multiple kinds of empty responses', () => {
     const supplementalDetails: SubmissionSupplementalDetails = {
       How_much_can_you_handle: {
-        qual: [
-          {
-            val: '',
+        qual: {
+          123: {
+            value: '',
             type: 'qual_text',
             labels: { _default: 'foo' },
-            uuid: '',
+            uuid: '123',
             xpath: '',
           },
-          {
-            val: [],
+          234: {
+            value: [],
             type: 'qual_text',
             labels: { _default: 'foo' },
-            uuid: '',
+            uuid: '234',
             xpath: '',
           },
-          {
-            val: null,
+          345: {
+            value: null,
             type: 'qual_text',
             labels: { _default: 'foo' },
-            uuid: '',
+            uuid: '345',
             xpath: '',
           },
-          {
-            val: 'foo',
+          456: {
+            value: 'foo',
             options: { deleted: true },
             type: 'qual_text',
             labels: { _default: 'foo' },
-            uuid: '',
+            uuid: '456',
             xpath: '',
           },
-          {
-            val: 'bar',
+          567: {
+            value: 'bar',
             type: 'qual_text',
             labels: { _default: 'foo' },
-            uuid: '',
+            uuid: '567',
             xpath: '',
           },
-        ],
+        },
       },
     }
 
@@ -371,15 +371,15 @@ describe('removeEmptyFromSupplementalDetails', () => {
 
     chai.expect(result).to.eql({
       How_much_can_you_handle: {
-        qual: [
-          {
-            val: 'bar',
+        qual: {
+          567: {
+            value: 'bar',
             type: 'qual_text',
             labels: { _default: 'foo' },
-            uuid: '',
+            uuid: '567',
             xpath: '',
           },
-        ],
+        },
       },
     })
   })
