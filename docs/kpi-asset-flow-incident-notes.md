@@ -117,7 +117,23 @@ Actual backend-specific behavior (e.g., OpenRosa/KoboCAT) is implemented in the
 backend class (see `kpi/deployment_backends/openrosa_backend.py`, notably
 `redeploy`).
 
-## Why asset listing can fail under the incident conditions
+## Updated evidence from the incident report
+
+The latest field report contradicts the initial hypothesis that the
+organization record is missing:
+
+* `GET /api/v2/organizations/orggEoXcwRkY2nzHY6HzboVR/` returns **200 OK** with a
+  complete organization payload.
+* `GET /api/v2/organizations/orggEoXcwRkY2nzHY6HzboVR/assets/` returns **200 OK**
+  with an **empty result set** (`count: 0`).
+* The global list (`GET /api/v2/assets/?q=asset_type:survey`) returns **500**.
+
+Given those observations, the failure is not caused by the organization record
+being missing. The failure is more likely tied to **per-asset organization
+membership lookups or serializer assumptions** for assets that are included in
+the global list.
+
+## Why asset listing can fail under the incident conditions (revised)
 
 ### The crash point
 
@@ -127,41 +143,48 @@ based on current code is:
 
 1. The list view builds `organizations_per_asset` using
    `AssetViewSetListMixin.get_organizations_per_asset_ids()`.
-2. If the underlying organization record is missing or the join data is
-   corrupt, `organizations_per_asset` may not contain an entry for some assets
-   (or the entry is `None`).
-3. `AssetListSerializer.get_access_types()` unconditionally calls
-   `organization.get_user_role(request.user)`. If `organization` is `None`, this
-   becomes an `AttributeError`, which bubbles up as a 500 and may crash the
-   worker process if uncaught.
+2. If an asset owner has **no valid organization membership** (for example,
+   a missing/invalid `OrganizationUser` join row), the prefetch used by
+   `get_organizations_per_asset_ids()` can yield **no organization** for that
+   owner.
+3. Serializer helpers assume a valid organization object when building
+   metadata. For example, `AssetListSerializer.get_owner_label()` calls
+   `organization.is_owner(...)` and `organization.is_mmo` without guarding for
+   `None`. That produces an `AttributeError`, which surfaces as a 500 for the
+   list endpoint.
 
 Code paths involved:
 
 * `kpi/mixins/asset.py` — organization prefetch for assets.
 * `kpi/views/v2/asset.py` — context construction for lists.
-* `kpi/serializers/v2/asset.py` — `get_access_types()` uses
-  `organization.get_user_role(...)` without a `None` guard.
+* `kpi/serializers/v2/asset.py` — `get_owner_label()` calls
+  `organization.is_owner(...)` and `organization.is_mmo` without a `None` guard.
+* `kpi/serializers/v2/asset.py` — `get_access_types()` also calls
+  `organization.get_user_role(...)` for collection assets.
 
 ### Why the organization detail endpoint may differ
 
 * `GET /api/v2/organizations/{uid}/` is handled by `OrganizationViewSet` and
   filters the queryset to organizations containing the user.
-* If the org record is missing or the user is not attached, the view should
-  return **404**, not 500, because it simply can't locate the object.
+* That endpoint can return **200 OK** even when asset-listing still fails,
+  because the list view uses **per-asset organization lookups** that are
+  independent of whether the requesting user can fetch their own organization
+  record.
 
 Code: `kobo/apps/organizations/views.py` (`OrganizationViewSet.get_queryset`).
 
 ### Likely data issue that triggers the crash
 
-The failure described in the incident (a broken organization UID attached to a
-user) aligns with a **corrupted organization membership link** in the
-`OrganizationUser` join table or related data. If a user has a membership row
-that references a missing organization, the M2M prefetch used by asset listing
-will fail to populate `organizations_per_asset`, leaving `organization` as
-`None` in the serializer.
+The failure described in the incident (500 on `/api/v2/assets/` with a valid
+organization record) aligns with a **corrupted organization membership link**
+for **one or more asset owners**. If an asset owner is missing a valid
+`OrganizationUser` join row, the prefetch used by asset listing fails to
+populate `organizations_per_asset`, leaving `organization` as `None` in the
+serializer.
 
-Once that `None` reaches `get_access_types()`, the serializer raises an
-`AttributeError`, leading to the 500 error observed in production logs.
+Once that `None` reaches `get_owner_label()` (or `get_access_types()` for
+collection assets), the serializer raises an `AttributeError`, leading to the
+500 error observed in production logs.
 
 ## Remediation guidance (aligned with the incident)
 
