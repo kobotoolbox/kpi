@@ -12,6 +12,7 @@ from kobo.apps.openrosa.apps.api.tests.viewsets.test_abstract_viewset import (
 from kobo.apps.openrosa.apps.api.viewsets.briefcase_api import BriefcaseApi
 from kobo.apps.openrosa.apps.api.viewsets.xform_submission_api import XFormSubmissionApi
 from kobo.apps.openrosa.apps.logger.models import Instance, XForm
+from kobo.apps.openrosa.libs.utils.logger_tools import publish_form, publish_xml_form
 from kobo.apps.openrosa.libs.utils.storage import rmdir
 
 NUM_INSTANCES = 4
@@ -36,7 +37,6 @@ class TestBriefcaseAPI(TestAbstractViewSet):
         self._submission_list_url = reverse('view-submission-list')
         self._submission_url = reverse('submissions')
         self._download_submission_url = reverse('view-download-submission')
-        self._form_upload_url = reverse('form-upload')
 
     def test_view_submission_list(self):
         view = BriefcaseApi.as_view({'get': 'list'})
@@ -310,117 +310,16 @@ class TestBriefcaseAPI(TestAbstractViewSet):
         response = view(request)
         self.assertEqual(response.status_code, 404)
 
-    def test_publish_xml_form_other_user(self):
-        view = BriefcaseApi.as_view({'post': 'create'})
-        # alice cannot publish form to bob's account
-        alice_data = {
-            'username': 'alice',
-            'password1': 'alicealice',
-            'password2': 'alicealice',
-            'email': 'alice@localhost.com',
-        }
-        self._create_user_profile(alice_data)
-        count = XForm.objects.count()
-
-        with open(self.form_def_path, 'rb') as f:
-            params = {'form_def_file': f, 'dataFile': ''}
-            auth = DigestAuth('alice', 'alicealice')
-            request = self.factory.post(self._form_upload_url, data=params)
-            response = view(request, username=self.user.username)
-            self.assertEqual(response.status_code, 401)
-            request.META.update(auth(request.META, response))
-            response = view(request, username=self.user.username)
-            self.assertNotEqual(XForm.objects.count(), count + 1)
-            self.assertEqual(response.status_code, 403)
-
-    def test_publish_xml_form_where_filename_is_not_id_string(self):
-        view = BriefcaseApi.as_view({'post': 'create'})
-        form_def_path = os.path.join(
-            self.main_directory, 'fixtures', 'transportation',
-            'Transportation Form.xml')
-        count = XForm.objects.count()
-        with open(form_def_path, 'rb') as f:
-            params = {'form_def_file': f, 'dataFile': ''}
-            auth = DigestAuth(self.login_username, self.login_password)
-            request = self.factory.post(self._form_upload_url, data=params)
-            response = view(request)
-            self.assertEqual(response.status_code, 401)
-
-            # Rewind the file to avoid the xml parser to get an empty string
-            # and throw and parsing error
-            f.seek(0)
-            # Create a new requests to avoid request.FILES to be empty
-            request = self.factory.post(self._form_upload_url, data=params)
-            request.META.update(auth(request.META, response))
-            response = view(request)
-            self.assertEqual(XForm.objects.count(), count + 1)
-            self.assertContains(response, 'successfully published.', status_code=201)
-
     def _publish_xml_form(self, auth=None):
-        view = BriefcaseApi.as_view({'post': 'create'})
-        count = XForm.objects.count()
-
         with open(self.form_def_path, 'rb') as f:
-            params = {'form_def_file': f, 'dataFile': ''}
-            auth = auth or DigestAuth(self.login_username, self.login_password)
-            request = self.factory.post(self._form_upload_url, data=params)
-            response = view(request)
-            self.assertEqual(response.status_code, 401)
+            publish_lambda = lambda: publish_xml_form(f, self.user)
+            xform = publish_form(publish_lambda)
+            assert isinstance(xform, XForm)
+            self.xform = xform
+            self.xform.asset.save()
+            self.xform.kpi_asset_uid = self.xform.asset.uid
+            self.xform.save()
 
-            # Rewind the file to avoid the xml parser to get an empty string
-            # and throw and parsing error
-            f.seek(0)
-            # Create a new requests to avoid request.FILES to be empty
-            request = self.factory.post(self._form_upload_url, data=params)
-            request.META.update(auth(request.META, response))
-            response = view(request)
-            self.assertEqual(XForm.objects.count(), count + 1)
-            self.assertContains(response, 'successfully published.', status_code=201)
-        self.xform = XForm.objects.order_by('pk').reverse()[0]
-        self.xform.asset.save()
-        self.xform.kpi_asset_uid = self.xform.asset.uid
-        self.xform.save()
-
-    def test_form_upload(self):
-        view = BriefcaseApi.as_view({'post': 'create'})
-        self._publish_xml_form()
-
-        with open(self.form_def_path, 'rb') as f:
-            params = {'form_def_file': f, 'dataFile': ''}
-            auth = DigestAuth(self.login_username, self.login_password)
-            request = self.factory.post(self._form_upload_url, data=params)
-            response = view(request)
-            self.assertEqual(response.status_code, 401)
-
-            # Rewind the file to avoid the xml parser to get an empty string
-            # and throw and parsing error
-            f.seek(0)
-            # Create a new requests to avoid request.FILES to be empty
-            request = self.factory.post(self._form_upload_url, data=params)
-            request.META.update(auth(request.META, response))
-            response = view(request)
-            self.assertEqual(response.status_code, 400)
-            # SQLite returns `UNIQUE constraint failed` whereas PostgreSQL
-            # returns 'duplicate key ... violates unique constraint'
-            self.assertIn(
-                'unique constraint',
-                response.data['message'].lower(),
-            )
-
-    def test_upload_head_request(self):
-        view = BriefcaseApi.as_view({'head': 'create'})
-
-        auth = DigestAuth(self.login_username, self.login_password)
-        request = self.factory.head(self._form_upload_url)
-        response = view(request)
-        self.assertEqual(response.status_code, 401)
-        request.META.update(auth(request.META, response))
-        response = view(request)
-        self.assertEqual(response.status_code, 204)
-        self.assertTrue(response.has_header('X-OpenRosa-Version'))
-        self.assertTrue(
-            response.has_header('X-OpenRosa-Accept-Content-Length'))
-        self.assertTrue(response.has_header('Date'))
 
     def test_submission_with_instance_id_on_root_node(self):
         view = XFormSubmissionApi.as_view({'post': 'create'})
