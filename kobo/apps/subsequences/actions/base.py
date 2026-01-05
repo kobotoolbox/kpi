@@ -55,7 +55,7 @@ idea of example content in asset.advanced_features (what kind of actions are act
     },
 }
 
-idea of example data in SubmissionExtras based on the above
+idea of example data in SubmissionSupplement based on the above
 {
     '_version': '20250820',
     'my_audio_question': {
@@ -374,18 +374,11 @@ class BaseAction:
     def retrieve_data(self, action_data: dict) -> dict:
         """
         `action_data` must be ONLY the data for this particular action
-        instance, not the entire SubmissionExtras caboodle
+        instance, not the entire SubmissionSupplement caboodle
 
         subclasses could override with special manipulation if needed
         """
         return action_data
-
-    def revise_field(self, *args, **kwargs):
-        # TODO: remove this alias
-        import warnings
-
-        warnings.warn('Oh no, this method is going away!', DeprecationWarning)
-        return self.revise_data(*args, **kwargs)
 
     def revise_data(
         self,

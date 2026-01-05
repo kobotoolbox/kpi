@@ -1,4 +1,3 @@
-
 from django.db import models
 
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
@@ -15,8 +14,7 @@ from .exceptions import InvalidAction, InvalidXPath
 from .schemas import validate_submission_supplement
 
 
-class SubmissionExtras(AbstractTimeStampedModel):
-    # TODO: trash this and rename the model
+class SubmissionSupplement(AbstractTimeStampedModel):
     submission_uuid = models.CharField(max_length=249)
     content = models.JSONField(default=dict)
     asset = models.ForeignKey(
@@ -29,11 +27,6 @@ class SubmissionExtras(AbstractTimeStampedModel):
         # ideally `submission_uuid` is universally unique, but its uniqueness
         # per-asset is most important
         unique_together = (('asset', 'submission_uuid'),)
-
-
-class SubmissionSupplement(SubmissionExtras):
-    class Meta(SubmissionExtras.Meta):
-        proxy = True
 
     def __repr__(self):
         return f'Supplement for submission {self.submission_uuid}'
@@ -59,7 +52,7 @@ class SubmissionSupplement(SubmissionExtras):
             incoming_data = migrated_data
 
         submission_uuid = remove_uuid_prefix(submission[SUBMISSION_UUID_FIELD])  # constant?
-        supplemental_data = SubmissionExtras.objects.get_or_create(
+        supplemental_data = SubmissionSupplement.objects.get_or_create(
             asset=asset, submission_uuid=submission_uuid
         )[
             0
@@ -116,7 +109,7 @@ class SubmissionSupplement(SubmissionExtras):
 
         supplemental_data['_version'] = schema_version
         validate_submission_supplement(asset, supplemental_data)
-        SubmissionExtras.objects.filter(
+        SubmissionSupplement.objects.filter(
             asset=asset, submission_uuid=submission_uuid
         ).update(content=supplemental_data)
 
