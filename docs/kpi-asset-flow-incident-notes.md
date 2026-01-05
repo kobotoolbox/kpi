@@ -127,11 +127,15 @@ organization record is missing:
 * `GET /api/v2/organizations/orggEoXcwRkY2nzHY6HzboVR/assets/` returns **200 OK**
   with an **empty result set** (`count: 0`).
 * The global list (`GET /api/v2/assets/?q=asset_type:survey`) returns **500**.
+* The communityvoices account still reports errors when listing assets and
+  when attempting to delete forms.
+* Sharing a newly deployed form with communityvoices still triggers a 500 in
+  the projects UI.
 
 Given those observations, the failure is not caused by the organization record
 being missing. The failure is more likely tied to **per-asset organization
-membership lookups or serializer assumptions** for assets that are included in
-the global list.
+membership lookups, serializer assumptions**, or permission data for assets
+that are included in the global list.
 
 ## Why asset listing can fail under the incident conditions (revised)
 
