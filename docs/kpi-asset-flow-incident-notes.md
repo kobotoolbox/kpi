@@ -117,6 +117,60 @@ Actual backend-specific behavior (e.g., OpenRosa/KoboCAT) is implemented in the
 backend class (see `kpi/deployment_backends/openrosa_backend.py`, notably
 `redeploy`).
 
+## Database architecture (from settings + migrations)
+
+KPI runs multiple datastores. The authoritative configuration is in
+`kobo/settings/base.py`:
+
+* **PostgreSQL (KPI DB)** — `DATABASES['default']` points at `KPI_DATABASE_URL`
+  (or `DATABASE_URL`). This DB stores KPI-facing models such as Assets,
+  Organizations, permissions, and project metadata.
+* **PostgreSQL (KoboCAT/OpenRosa DB)** — `DATABASES['kobocat']` is configured
+  via `KC_DATABASE_URL` and is accessed through the `OPENROSA_DB_ALIAS`
+  (`kobocat`). This DB stores OpenRosa/KoboCAT models such as XForm definitions
+  and submission metadata.
+* **MongoDB** — configured via `MONGO_DB_URL` (or legacy
+  `KPI_MONGO_*` variables) and used for submission documents and export query
+  filters.
+* **Redis** — configured in `CACHES` and `SESSION_ENGINE` and used for caches,
+  sessions, and other transient data.
+
+### Key tables (non-exhaustive, by flow)
+
+The migrations declare many tables; the list below focuses on the tables most
+relevant to asset listing, deployment, sharing, and deletion.
+
+**KPI (default Postgres)**
+
+* **`kpi_asset`** — Assets/projects (`kpi/models/asset.py`).
+* **`kpi_assetversion`** — Asset versions (`kpi/models/asset_version.py`).
+* **`kpi_assetfile`** — Asset files/media (`kpi/models/asset_file.py`).
+* **`kpi_assetexportssettings`** — Export settings
+  (`kpi/models/asset_export_settings.py`).
+* **`kpi_assetsnapshot`** — Snapshot metadata
+  (`kpi/models/asset_snapshot.py`).
+* **`organizations_organization`** — Organizations
+  (`kobo/apps/organizations/models.py`).
+* **`organizations_organizationuser`** — Organization membership join table
+  (`kobo/apps/organizations/migrations/0001_initial.py`).
+* **`auth_user`** (and related profile tables) — User accounts
+  (`kobo/apps/kobo_auth/models.py`).
+
+**KoboCAT/OpenRosa (kobocat Postgres alias)**
+
+* **`logger_xform`** — Form definitions in the OpenRosa app
+  (`kobo/apps/openrosa/apps/logger/models/xform.py`).
+* **`logger_instance`** — Submission instance metadata
+  (`kobo/apps/openrosa/apps/logger/models/instance.py`).
+
+**MongoDB**
+
+* **Submission documents** — Actual submission payloads (Mongo collections
+  accessed via `MONGO_DB` in `kobo/settings/base.py`).
+
+> Note: This list is intentionally scoped to the assets/deployments flow. For a
+> complete table inventory, inspect the migrations under each Django app.
+
 ## Updated evidence from the incident report
 
 The latest field report contradicts the initial hypothesis that the
@@ -216,6 +270,51 @@ when the org reference is missing.
 Code to adjust:
 
 * `kpi/serializers/v2/asset.py` (`get_access_types`).
+
+## Delete flow (forms/projects)
+
+Deletion in KPI is implemented via the bulk actions serializer and is invoked
+from the asset viewset:
+
+1. **API entry points**
+   * `DELETE /api/v2/assets/{uid}/` uses `AssetViewSet.perform_destroy_override`
+     which forwards to `_bulk_asset_actions(...)`.
+   * `POST /api/v2/assets/bulk/` can delete multiple assets with an `action`
+     payload.
+   * Code: `kpi/views/v2/asset.py` (`perform_destroy_override`, `bulk`,
+     `_bulk_asset_actions`).
+2. **Bulk action routing**
+   * `AssetBulkActionsSerializer` validates permissions and action type, then
+     routes deletes to the project trash subsystem.
+   * Code: `kpi/serializers/v2/asset.py` (`AssetBulkActionsSerializer`).
+3. **Soft delete + background tasks**
+   * Deletion requests route through `ProjectTrash.toggle_statuses(...)` and
+     the trash task pipeline. These steps enforce retention and prevent
+     concurrent deletes.
+   * Code: `kpi/serializers/v2/asset.py` (`_create_tasks`, `_delete_tasks`).
+
+If deletion is failing for `communityvoices`, it is likely failing in the same
+serializer path as listing or in permissions checks inside the bulk action
+validator.
+
+## How to sync KoboCAT and KPI
+
+KPI provides a management command and a user endpoint that synchronize
+OpenRosa/KoboCAT XForms into KPI assets:
+
+1. **Management command**
+   * `./manage.py sync_kobocat_xforms`
+   * This command fetches XForms from the KoboCAT API, converts them to KPI
+     asset content, and updates deployment metadata.
+   * Code: `kpi/management/commands/sync_kobocat_xforms.py`.
+2. **API endpoint (user migration)**
+   * `GET /api/v2/users/{username}/migrate/` triggers a Celery task to sync the
+     user’s forms, including form media.
+   * Code: `kpi/views/v2/user.py` (`migrate` action) and `kpi/tasks.py`
+     (`sync_kobocat_xforms` task).
+
+These tools are the supported path to reconcile KoboCAT records with KPI assets
+in a dual-database deployment.
 
 ---
 
