@@ -683,7 +683,7 @@ export default Object.assign(
                 type='text'
                 size='m'
                 onClick={this.toggleAsideLayoutSettings.bind(this)}
-                tooltip={t('Change form layout and settings')}
+                tooltip={this.hasMetadataAndDetails() ? t('Change form layout and settings') : t('Change form layout')}
                 tooltipPosition='left'
                 startIcon={this.state.asideLayoutSettingsVisible ? 'close' : 'settings'}
                 label={this.hasMetadataAndDetails() ? t('Layout & Settings') : t('Layout')}
