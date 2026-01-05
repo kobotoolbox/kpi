@@ -312,14 +312,16 @@ class TestBriefcaseAPI(TestAbstractViewSet):
 
     def _publish_xml_form(self, auth=None):
         with open(self.form_def_path, 'rb') as f:
-            publish_lambda = lambda: publish_xml_form(f, self.user)
+
+            def publish_lambda():
+                publish_xml_form(f, self.user)
+
             xform = publish_form(publish_lambda)
             assert isinstance(xform, XForm)
             self.xform = xform
             self.xform.asset.save()
             self.xform.kpi_asset_uid = self.xform.asset.uid
             self.xform.save()
-
 
     def test_submission_with_instance_id_on_root_node(self):
         view = XFormSubmissionApi.as_view({'post': 'create'})

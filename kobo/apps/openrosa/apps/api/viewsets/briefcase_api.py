@@ -60,7 +60,6 @@ def _parse_int(num):
         pass
 
 
-
 @extend_schema(
     tags=['Briefcase'],
     exclude=True,
