@@ -313,10 +313,10 @@ class TestBriefcaseAPI(TestAbstractViewSet):
     def _publish_xml_form(self, auth=None):
         with open(self.form_def_path, 'rb') as f:
 
-            def publish_lambda():
-                publish_xml_form(f, self.user)
+            def publish():
+                return publish_xml_form(f, self.user)
 
-            xform = publish_form(publish_lambda)
+            xform = publish_form(publish)
             assert isinstance(xform, XForm)
             self.xform = xform
             self.xform.asset.save()
