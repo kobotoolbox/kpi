@@ -7,11 +7,11 @@ from django.views.i18n import JavaScriptCatalog
 from kobo.apps.openrosa import koboform
 from kobo.apps.openrosa.apps.api.urls import (
     BriefcaseApi,
-    XFormListApi,
     XFormSubmissionApi,
     router,
     router_with_patch_list,
 )
+from kobo.apps.openrosa.apps.api.viewsets.xform_list_api import XFormListApi
 from kobo.apps.openrosa.apps.logger.views import (
     bulksubmission,
     bulksubmission_form,
