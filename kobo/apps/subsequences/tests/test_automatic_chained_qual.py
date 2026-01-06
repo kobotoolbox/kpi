@@ -273,4 +273,4 @@ class TestAutomaticChainedQual(BaseTestCase):
         text_item = output.get(('qual', 'uuid-qual-text'))
         # take the initial note because the most recent request to overwrite failed
         assert text_item['value'] == 'Initial note'
-        assert not text_item.get('error')
+        assert 'error' not in text_item
