@@ -1,3 +1,5 @@
+import type { Survey } from '../../xlform/src/model.survey'
+
 /**
  * NOTE: all the actions groups definitions are both functions and objects with
  * nested functions.
@@ -78,10 +80,21 @@ interface DeleteAssetCompletedDefinition extends Function {
   listen: (callback: (response: AssetResponse) => void) => Function
 }
 
+export interface UpdateAssetDefinitionParams {
+  /** Stringified object with `survey`, `choices`, `settings`, etc. */
+  content: string
+  name?: string
+  settings?: AssetSettings
+  asset_type?: AssetTypeName
+  /** url to parent asset */
+  parent?: string
+}
+
 interface UpdateAssetDefinition extends Function {
-  (uid: string, values: any, params?: any): void
+  (uid: string, values: any, params?: UpdateAssetDefinitionParams): void
   completed: UpdateAssetCompletedDefinition
   failed: GenericFailedDefinition
+  triggerAsync: (uid: string, values: any, params?: UpdateAssetDefinitionParams) => Promise
 }
 
 interface UpdateAssetCompletedDefinition extends Function {
@@ -275,6 +288,34 @@ interface MapSetMapStylesStartedDefinition extends Function {
   listen: (callback: (assetUid: string, upcomingMapSettings: AssetMapStyles) => void) => Function
 }
 
+interface CreateResourceDefinition extends Function {
+  (params: UpdateAssetDefinitionParams): void
+  completed: CreateResourceCompletedDefinition
+  failed: GenericFailedDefinition
+  triggerAsync: (params: UpdateAssetDefinitionParams) => Promise
+}
+interface CreateResourceCompletedDefinition extends Function {
+  (response: any): void
+  listen: (callback: (response: any) => void) => Function
+}
+
+interface SurveyAddExternalItemParams {
+  position: number
+  uid: string
+  survey: Survey
+  groupId: string | undefined
+}
+interface SurveyAddExternalItemDefinition extends Function {
+  (params: SurveyAddExternalItemParams): void
+  completed: SurveyAddExternalItemCompletedDefinition
+  failed: GenericFailedDefinition
+  triggerAsync: (params: SurveyAddExternalItemParams) => Promise
+}
+interface SurveyAddExternalItemCompletedDefinition extends Function {
+  (response: any): void
+  listen: (callback: (response: any) => void) => Function
+}
+
 // NOTE: as you use more actions in your ts files, please extend this namespace,
 // for now we are defining only the ones we need.
 export namespace actions {
@@ -287,7 +328,9 @@ export namespace actions {
     }
     changePassword: GenericDefinition
   }
-  const survey: object
+  const survey: {
+    addExternalItemAtPosition: SurveyAddExternalItemDefinition
+  }
   const search: object
   const resources: {
     createImport: GenericDefinition
@@ -298,7 +341,7 @@ export namespace actions {
     cloneAsset: GenericDefinition
     deleteAsset: DeleteAssetDefinition
     listTags: GenericDefinition
-    createResource: GenericDefinition
+    createResource: CreateResourceDefinition
     updateAsset: UpdateAssetDefinition
     updateSubmissionValidationStatus: UpdateSubmissionValidationStatusDefinition
     removeSubmissionValidationStatus: RemoveSubmissionValidationStatusDefinition
