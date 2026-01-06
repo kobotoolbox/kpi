@@ -161,7 +161,7 @@ class BaseQualAction(BaseAction):
             '$schema': 'https://json-schema.org/draft/2020-12/schema',
             '$defs': {
                 **self.shared_definitions,
-                'qualCommon': deepcopy(self.data_schema_definitions['qualCommon'])
+                'qualCommon': deepcopy(self.data_schema_definitions['qualCommon']),
             },
             'oneOf': [],
         }
@@ -170,9 +170,7 @@ class BaseQualAction(BaseAction):
         # even if they are hidden
         for qual_item in self.params:
             try:
-                data_schema_def = self.data_schema_definitions[
-                    qual_item['type']
-                ]
+                data_schema_def = self.data_schema_definitions[qual_item['type']]
             except KeyError:
                 # Not all "question" types are allowed to receive responses
                 continue

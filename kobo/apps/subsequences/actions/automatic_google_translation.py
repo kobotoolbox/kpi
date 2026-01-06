@@ -5,9 +5,7 @@ from .base import ActionClassConfig, BaseAutomaticNLPAction
 from .mixins import TranslationActionMixin
 
 
-class AutomaticGoogleTranslationAction(
-    TranslationActionMixin, BaseAutomaticNLPAction
-):
+class AutomaticGoogleTranslationAction(TranslationActionMixin, BaseAutomaticNLPAction):
 
     ID = 'automatic_google_translation'
     action_class_config = ActionClassConfig(

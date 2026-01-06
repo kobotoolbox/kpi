@@ -55,26 +55,28 @@ class SubmissionSupplementTestCase(TestCase):
                         '_dateCreated': '2024-04-08T15:27:00Z',
                         '_dateAccepted': '2024-04-08T15:27:00Z',
                         '_uuid': '123e4567-e89b-12d3-a456-426614174000',
-                    }
+                    },
                 ],
             },
             'manual_translation': {
                 'en': {
                     '_dateCreated': '2024-04-08T15:27:00Z',
                     '_dateModified': '2024-04-08T15:27:00Z',
-                    '_versions': [{
-                        '_data': {
-                            'language': 'en',
-                            'value': 'berserk',
-                        },
-                        '_dateCreated': '2024-04-08T15:27:00Z',
-                        '_dateAccepted': '2024-04-08T15:27:00Z',
-                        '_uuid': '22b04ce8-61c2-4383-836f-5d5f0ad73645',
-                        '_dependency': {
-                            '_uuid': '123e4567-e89b-12d3-a456-426614174000',
-                            '_actionId': 'manual_transcription'
+                    '_versions': [
+                        {
+                            '_data': {
+                                'language': 'en',
+                                'value': 'berserk',
+                            },
+                            '_dateCreated': '2024-04-08T15:27:00Z',
+                            '_dateAccepted': '2024-04-08T15:27:00Z',
+                            '_uuid': '22b04ce8-61c2-4383-836f-5d5f0ad73645',
+                            '_dependency': {
+                                '_uuid': '123e4567-e89b-12d3-a456-426614174000',
+                                '_actionId': 'manual_transcription',
+                            },
                         }
-                    }],
+                    ],
                 },
                 'es': {
                     '_dateCreated': '2024-04-08T15:29:00Z',
@@ -90,8 +92,8 @@ class SubmissionSupplementTestCase(TestCase):
                             '_uuid': 'd69b9263-04fd-45b4-b011-2e166cfefd4a',
                             '_dependency': {
                                 '_uuid': '51ff33a5-62d6-48ec-94b2-2dfb406e1dee',
-                                '_actionId': 'manual_transcription'
-                            }
+                                '_actionId': 'manual_transcription',
+                            },
                         },
                         {
                             '_data': {
@@ -103,9 +105,9 @@ class SubmissionSupplementTestCase(TestCase):
                             '_uuid': '30d0f39c-a1dd-43fe-999a-844f12f83d31',
                             '_dependency': {
                                 '_uuid': '123e4567-e89b-12d3-a456-426614174000',
-                                '_actionId': 'manual_transcription'
-                            }
-                        }
+                                '_actionId': 'manual_transcription',
+                            },
+                        },
                     ],
                 },
             },
@@ -380,7 +382,9 @@ class SubmissionSupplementTestCase(TestCase):
 
         with patch('uuid.uuid4', side_effect=fake_uuids):
 
-            frozen_datetime_now = datetime(2024, 4, 8, 15, 27, 0, tzinfo=ZoneInfo('UTC'))
+            frozen_datetime_now = datetime(
+                2024, 4, 8, 15, 27, 0, tzinfo=ZoneInfo('UTC')
+            )
             with freeze_time(frozen_datetime_now):
 
                 # 1) First call with transcription (ar) and translation (en)
@@ -408,7 +412,9 @@ class SubmissionSupplementTestCase(TestCase):
             ).exists()
 
             # 2) Call with translation es = "loco"
-            frozen_datetime_now = datetime(2024, 4, 8, 15, 29, 0, tzinfo=ZoneInfo('UTC'))
+            frozen_datetime_now = datetime(
+                2024, 4, 8, 15, 29, 0, tzinfo=ZoneInfo('UTC')
+            )
             with freeze_time(frozen_datetime_now):
                 SubmissionSupplement.revise_data(
                     self.asset,
@@ -432,7 +438,9 @@ class SubmissionSupplementTestCase(TestCase):
             )
 
             # 3) Call with transcription ar = 'مجنون'
-            frozen_datetime_now = datetime(2024, 4, 8, 15, 31, 0, tzinfo=ZoneInfo('UTC'))
+            frozen_datetime_now = datetime(
+                2024, 4, 8, 15, 31, 0, tzinfo=ZoneInfo('UTC')
+            )
             with freeze_time(frozen_datetime_now):
                 submission_supplement = SubmissionSupplement.revise_data(
                     self.asset,
@@ -449,7 +457,9 @@ class SubmissionSupplementTestCase(TestCase):
                 )
 
             # 4) Call with translation es = "enloquecido"
-            frozen_datetime_now = datetime(2024, 4, 8, 15, 32, 0, tzinfo=ZoneInfo('UTC'))
+            frozen_datetime_now = datetime(
+                2024, 4, 8, 15, 32, 0, tzinfo=ZoneInfo('UTC')
+            )
             with freeze_time(frozen_datetime_now):
                 submission_supplement = SubmissionSupplement.revise_data(
                     self.asset,

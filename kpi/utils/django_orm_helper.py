@@ -1,12 +1,10 @@
-import json
 from typing import Any
 
-from django.db.models import F, Func, Value, JSONField, TextField
-from django.db.models.functions import Coalesce
 from django.contrib.postgres.fields import ArrayField
-from django.db.models.fields.json import KeyTransform
-from django.db.models import Field, Lookup
+from django.db.models import F, Field, JSONField, Lookup, TextField
 from django.db.models.expressions import Func, Value
+from django.db.models.fields.json import KeyTransform
+from django.db.models.functions import Coalesce
 
 
 class DeductUsageValue(Func):
@@ -183,6 +181,7 @@ class UpdateJSONFieldAttributes(Func):
             data=UpdateJSONFieldAttributes('data', path='flags__legacy', updates=False)
         )
     """
+
     output_field = JSONField()
     template = '%(expressions)s'
     arg_joiner = ', '

@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from django.test import TestCase
-from kobo.apps.kobo_auth.shortcuts import User
-from hub.models import ExtraUserDetail
 
+from hub.models import ExtraUserDetail
+from kobo.apps.kobo_auth.shortcuts import User
 from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
 
 
@@ -30,9 +30,7 @@ class DjangoORMHelperTestCase(TestCase):
             'sector': 'Humanitarian',
         }
         ExtraUserDetail.objects.filter(user_id=self.bob.pk).update(
-            data=UpdateJSONFieldAttributes(
-                'data', updates=updates
-            )
+            data=UpdateJSONFieldAttributes('data', updates=updates)
         )
         data = self._data()
         assert data['organization'] == "Bob's organization"
@@ -70,9 +68,7 @@ class DjangoORMHelperTestCase(TestCase):
         """
 
         ExtraUserDetail.objects.filter(user_id=self.bob.pk).update(
-            data=UpdateJSONFieldAttributes(
-                'data', path='flags__legacy', updates=False
-            )
+            data=UpdateJSONFieldAttributes('data', path='flags__legacy', updates=False)
         )
         data = self._data()
         assert 'flags' in data
@@ -134,9 +130,7 @@ class DjangoORMHelperTestCase(TestCase):
         """
 
         ExtraUserDetail.objects.filter(user_id=self.bob.pk).update(
-            data=UpdateJSONFieldAttributes(
-                'data', path='tags', updates=['a', 'b']
-            )
+            data=UpdateJSONFieldAttributes('data', path='tags', updates=['a', 'b'])
         )
         data = self._data()
         assert data['tags'] == ['a', 'b']
@@ -162,9 +156,7 @@ class DjangoORMHelperTestCase(TestCase):
         # Merge: change label, add continent; keep code and postal_code
         patch = {'label': 'Country of SantaClaus', 'continent': 'North America'}
         ExtraUserDetail.objects.filter(user_id=self.bob.pk).update(
-            data=UpdateJSONFieldAttributes(
-                'data', path='country', updates=patch
-            )
+            data=UpdateJSONFieldAttributes('data', path='country', updates=patch)
         )
         data = self._data()
         assert data['country']['code'] == 'CA'  # preserved
@@ -204,9 +196,7 @@ class DjangoORMHelperTestCase(TestCase):
         """
         try:
             ExtraUserDetail.objects.filter(user_id=self.bob.pk).update(
-                data=UpdateJSONFieldAttributes(
-                    'data', path='foo____bar', updates=1
-                )
+                data=UpdateJSONFieldAttributes('data', path='foo____bar', updates=1)
             )
             assert False, 'ValueError was expected but not raised'
         except ValueError:

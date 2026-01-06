@@ -5,7 +5,7 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_pre
 from kobo.apps.subsequences.exceptions import SubsequenceTimeoutError
 from kobo.celery import celery_app
 from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
-from .constants import SUBMISSION_UUID_FIELD, SCHEMA_VERSIONS
+from .constants import SCHEMA_VERSIONS, SUBMISSION_UUID_FIELD
 
 
 # With retry_backoff=5 and retry_backoff_max=60, each retry waits:
@@ -85,10 +85,12 @@ def poll_run_external_process_failure(sender=None, **kwargs):
     action.get_action_dependencies(supplemental_data[question_xpath])
 
     action_supplemental_data = supplemental_data[question_xpath][action_id]
-    action_data.update({
-        'error': error,
-        'status': 'failed',
-    })
+    action_data.update(
+        {
+            'error': error,
+            'status': 'failed',
+        }
+    )
     # FIXME We assume that the last action is the one in progress but it could
     #   be another one.
     dependency_supplemental_data = action_supplemental_data['_versions'][0].get(

@@ -20,7 +20,6 @@ from ...constants import (
     SUBSEQUENCES_ASYNC_CACHE_KEY,
 )
 from ...exceptions import SubsequenceTimeoutError
-
 from ..utils.google import google_credentials_from_constance_config
 
 

@@ -267,29 +267,28 @@ class TranslationActionMixin(RequiresTranscriptionMixin):
                         # Add conditional rule: `_dependency` is required unless `value`
                         # is explicitly null.
                         {
-                        'if': {
-                            # If `value` exists and is null…
-                            'properties': {
-                                self.VERSION_DATA_FIELD: {
-                                    'type': 'object',
-                                    'properties': {
-                                        'value': {'type': 'null'},
-                                    },
-                                    'required': ['value'],
-                                }
+                            'if': {
+                                # If `value` exists and is null…
+                                'properties': {
+                                    self.VERSION_DATA_FIELD: {
+                                        'type': 'object',
+                                        'properties': {
+                                            'value': {'type': 'null'},
+                                        },
+                                        'required': ['value'],
+                                    }
+                                },
                             },
-                        },
-                        # …then `_dependency` must be absent.
-                        'then': {
-                            # Quand value est null → _dependency doit être absent
-                            'not': {'required': ['_dependency']}
-                        },
-                        # Otherwise (value is absent or not null), `_dependency` is
-                        # required.
-                        'else': {
-                            'required': ['_dependency']
+                            # …then `_dependency` must be absent.
+                            'then': {
+                                # Quand value est null → _dependency doit être absent
+                                'not': {'required': ['_dependency']}
+                            },
+                            # Otherwise (value is absent or not null), `_dependency` is
+                            # required.
+                            'else': {'required': ['_dependency']},
                         }
-                    }]
+                    ],
                 },
                 'uuid': {'type': 'string', 'format': 'uuid'},
                 'dataSchema': data_schema,

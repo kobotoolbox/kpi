@@ -211,8 +211,7 @@ def test_acceptance_does_not_produce_versions():
             assert '_versions' in mock_sup_det
             if data.get('value') is None:
                 is_date_accepted_present = (
-                    mock_sup_det['_versions'][0].get('_dateAccepted')
-                    is None
+                    mock_sup_det['_versions'][0].get('_dateAccepted') is None
                 )
                 assert is_date_accepted_present is not bool(data.get('accepted'))
 
