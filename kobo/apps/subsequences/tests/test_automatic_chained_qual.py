@@ -253,13 +253,13 @@ class TestAutomaticChainedQual(BaseTestCase):
                             'error': 'Something went wrong',
                         },
                         '_dateCreated': today.isoformat(),
-                        '_uuid': 'v1',
+                        '_uuid': 'v2',
                     },
                     {
                         '_data': {'uuid': 'uuid-qual-text', 'value': 'Initial note'},
                         '_dateCreated': yesterday.isoformat(),
                         '_dateAccepted': yesterday.isoformat(),
-                        '_uuid': 'v2',
+                        '_uuid': 'v1',
                     },
                 ],
                 '_dateCreated': yesterday.isoformat(),
@@ -273,3 +273,4 @@ class TestAutomaticChainedQual(BaseTestCase):
         text_item = output.get(('qual', 'uuid-qual-text'))
         # take the initial note because the most recent request to overwrite failed
         assert text_item['value'] == 'Initial note'
+        assert not text_item.get('error')
