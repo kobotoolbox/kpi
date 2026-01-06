@@ -8,10 +8,12 @@ from rest_framework import status
 from ssrf_protect.exceptions import SSRFProtectException
 
 from kobo.apps.hook.constants import HOOK_LOG_FAILED, KOBO_INTERNAL_ERROR_STATUS_CODE
+from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from .hook_test_case import HookTestCase
 
 
 class SSRFHookTestCase(HookTestCase):
+    URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
     @patch(
         'ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',

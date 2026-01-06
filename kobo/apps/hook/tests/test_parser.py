@@ -5,12 +5,14 @@ import re
 from lxml import etree
 
 from kpi.constants import SUBMISSION_FORMAT_TYPE_XML
+from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.strings import to_str
 from kpi.utils.xml import check_lxml_fromstring
 from .hook_test_case import HookTestCase
 
 
 class ParserTestCase(HookTestCase):
+    URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
     def test_json_parser(self):
         hook = self._create_hook(subset_fields=['_id', 'subgroup1', 'q3'])

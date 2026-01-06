@@ -22,24 +22,29 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
     SUBMISSION_FORMAT_TYPE_JSON,
 )
+from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.datetime import several_minutes_from_now
 from ..exceptions import HookRemoteServerDownError
 from .hook_test_case import HookTestCase
 
 
 class ApiHookTestCase(HookTestCase):
+    URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
     def test_anonymous_access(self):
         hook = self._create_hook()
         self.client.logout()
 
-        list_url = reverse('hook-list', kwargs={'uid_asset': self.asset.uid})
+        list_url = reverse(
+            self._get_endpoint('hook-list'),
+            kwargs={'uid_asset': self.asset.uid}
+        )
 
         response = self.client.get(list_url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
         detail_url = reverse(
-            'hook-detail',
+            self._get_endpoint('hook-detail'),
             kwargs={
                 'uid_asset': self.asset.uid,
                 'uid_hook': hook.uid,
@@ -50,7 +55,7 @@ class ApiHookTestCase(HookTestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
         log_list_url = reverse(
-            'hook-log-list',
+            self._get_endpoint('hook-log-list'),
             kwargs={
                 'uid_asset': self.asset.uid,
                 'uid_hook': hook.uid,
@@ -69,7 +74,10 @@ class ApiHookTestCase(HookTestCase):
     def test_editor_access(self):
         hook = self._create_hook()
 
-        list_url = reverse('hook-list', kwargs={'uid_asset': self.asset.uid})
+        list_url = reverse(
+            self._get_endpoint('hook-list'),
+            kwargs={'uid_asset': self.asset.uid}
+        )
 
         response = self.client.get(list_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -93,7 +101,7 @@ class ApiHookTestCase(HookTestCase):
         self.assertEqual(owner_results, response.get('results'))
 
         detail_url = reverse(
-            'hook-detail',
+            self._get_endpoint('hook-detail'),
             kwargs={
                 'uid_asset': self.asset.uid,
                 'uid_hook': hook.uid,
@@ -104,7 +112,7 @@ class ApiHookTestCase(HookTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         log_list_url = reverse(
-            'hook-log-list',
+            self._get_endpoint('hook-log-list'),
             kwargs={
                 'uid_asset': self.asset.uid,
                 'uid_hook': hook.uid,
@@ -130,13 +138,16 @@ class ApiHookTestCase(HookTestCase):
         self.client.logout()
         self.client.login(username='anotheruser', password='anotheruser')
 
-        list_url = reverse('hook-list', kwargs={'uid_asset': self.asset.uid})
+        list_url = reverse(
+            self._get_endpoint('hook-list'),
+            kwargs={'uid_asset': self.asset.uid}
+        )
 
         response = self.client.get(list_url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
         detail_url = reverse(
-            'hook-detail',
+            self._get_endpoint('hook-detail'),
             kwargs={
                 'uid_asset': self.asset.uid,
                 'uid_hook': hook.uid,
@@ -147,7 +158,7 @@ class ApiHookTestCase(HookTestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
         log_list_url = reverse(
-            'hook-log-list',
+            self._get_endpoint('hook-log-list'),
             kwargs={
                 'uid_asset': self.asset.uid,
                 'uid_hook': hook.uid,
@@ -174,7 +185,7 @@ class ApiHookTestCase(HookTestCase):
     def test_partial_update_hook(self):
         hook = self._create_hook()
         url = reverse(
-            'hook-detail',
+            self._get_endpoint('hook-detail'),
             kwargs={'uid_asset': self.asset.uid, 'uid_hook': hook.uid},
         )
         data = {'name': 'some disabled external service', 'active': False}
@@ -196,7 +207,7 @@ class ApiHookTestCase(HookTestCase):
 
         # Let's retry through API call
         retry_url = reverse(
-            'hook-log-retry',
+            self._get_endpoint('hook-log-retry'),
             kwargs={
                 'uid_asset': self.asset.uid,
                 'uid_hook': self.hook.uid,
@@ -210,7 +221,7 @@ class ApiHookTestCase(HookTestCase):
 
         # Let's check if logs has 2 tries
         detail_url = reverse(
-            'hook-log-detail',
+            self._get_endpoint('hook-log-detail'),
             kwargs={
                 'uid_asset': self.asset.uid,
                 'uid_hook': self.hook.uid,
@@ -232,7 +243,7 @@ class ApiHookTestCase(HookTestCase):
 
         # Let's retry through API call
         retry_url = reverse(
-            'hook-log-retry',
+            self._get_endpoint('hook-log-retry'),
             kwargs={
                 'uid_asset': self.asset.uid,
                 'uid_hook': self.hook.uid,
@@ -246,7 +257,7 @@ class ApiHookTestCase(HookTestCase):
 
         # Let's check if logs has 2 tries
         detail_url = reverse(
-            'hook-log-detail',
+            self._get_endpoint('hook-log-detail'),
             kwargs={
                 'uid_asset': self.asset.uid,
                 'uid_hook': self.hook.uid,
@@ -291,7 +302,8 @@ class ApiHookTestCase(HookTestCase):
 
         # Retrieve the corresponding log
         url = reverse(
-            'hook-log-list', kwargs={'uid_asset': hook.asset.uid, 'uid_hook': hook.uid}
+            self._get_endpoint('hook-log-list'),
+            kwargs={'uid_asset': hook.asset.uid, 'uid_hook': hook.uid}
         )
 
         response = self.client.get(url)
@@ -372,7 +384,7 @@ class ApiHookTestCase(HookTestCase):
 
         # Get log for the success hook
         hook_log_url = reverse(
-            'hook-log-list',
+            self._get_endpoint('hook-log-list'),
             kwargs={
                 'uid_asset': hook.asset.uid,
                 'uid_hook': hook.uid,
@@ -417,7 +429,7 @@ class ApiHookTestCase(HookTestCase):
 
         # Get log for the failing hook
         hook_log_url = reverse(
-            'hook-log-list',
+            self._get_endpoint('hook-log-list'),
             kwargs={
                 'uid_asset': hook.asset.uid,
                 'uid_hook': hook.uid,
@@ -446,7 +458,7 @@ class ApiHookTestCase(HookTestCase):
 
         # Get log for the success hook
         hook_log_url = reverse(
-            'hook-log-list',
+            self._get_endpoint('hook-log-list'),
             kwargs={
                 'uid_asset': hook.asset.uid,
                 'uid_hook': hook.uid,
@@ -485,7 +497,7 @@ class ApiHookTestCase(HookTestCase):
 
         # Get log for the failing hook
         hook_log_url = reverse(
-            'hook-log-list',
+            self._get_endpoint('hook-log-list'),
             kwargs={
                 'uid_asset': hook.asset.uid,
                 'uid_hook': hook.uid,
@@ -533,7 +545,7 @@ class ApiHookTestCase(HookTestCase):
 
         # Get log for the success hook
         hook_log_url = reverse(
-            'hook-log-list',
+            self._get_endpoint('hook-log-list'),
             kwargs={
                 'uid_asset': hook.asset.uid,
                 'uid_hook': hook.uid,
