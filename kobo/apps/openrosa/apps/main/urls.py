@@ -72,16 +72,6 @@ urlpatterns = [
         BriefcaseApi.as_view({'get': 'retrieve', 'head': 'retrieve'}),
         name='view-download-submission',
     ),
-    re_path(
-        r'^formUpload$',
-        BriefcaseApi.as_view({'post': 'create', 'head': 'create'}),
-        name='form-upload',
-    ),
-    re_path(
-        r'^upload$',
-        BriefcaseApi.as_view({'post': 'create', 'head': 'create'}),
-        name='upload',
-    ),
     # exporting stuff
     re_path(
         r'^(?P<username>\w+)/exports/(?P<id_string>[^/]+)/(?P<export_type>\w+)'
