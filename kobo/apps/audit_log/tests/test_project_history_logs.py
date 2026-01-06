@@ -387,7 +387,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
 
         self.client.patch(
             reverse(
-                f'api_v2:asset-detail', kwargs={'uid_asset': self.asset.uid}
+                'api_v2:asset-detail', kwargs={'uid_asset': self.asset.uid}
             ),
             data=patch_data,
             format='json',
@@ -619,7 +619,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             'settings': {'custom_headers': {}},
             'payload_template': '',
         }
-        url = reverse(f'api_v2:hook-list', args=(self.asset.uid,))
+        url = reverse('api_v2:hook-list', args=(self.asset.uid,))
         log_metadata = self._base_project_history_log_test(
             method=self.client.post,
             url=url,
@@ -645,7 +645,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         log_metadata = self._base_project_history_log_test(
             method=self.client.patch,
             url=reverse(
-                f'api_v2:hook-detail',
+                'api_v2:hook-detail',
                 kwargs={
                     'uid_asset': self.asset.uid,
                     'uid_hook': new_hook.uid,
@@ -671,7 +671,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         log_metadata = self._base_project_history_log_test(
             method=self.client.delete,
             url=reverse(
-                f'api_v2:hook-detail',
+                'api_v2:hook-detail',
                 kwargs={
                     'uid_asset': self.asset.uid,
                     'uid_hook': new_hook.uid,
@@ -795,7 +795,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             'base64Encoded': 'data:image/png;base64,' + crab_png_b64,
             'metadata': json.dumps({'filename': 'crab.png'}),
         }
-        url = reverse(f'api_v2:asset-file-list', args=(self.asset.uid,))
+        url = reverse('api_v2:asset-file-list', args=(self.asset.uid,))
         log_metadata = self._base_project_history_log_test(
             method=self.client.post,
             url=url,
@@ -820,7 +820,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         log_metadata = self._base_project_history_log_test(
             method=self.client.delete,
             url=reverse(
-                f'api_v2:asset-file-detail',
+                'api_v2:asset-file-detail',
                 kwargs={
                     'uid_asset': self.asset.uid,
                     'uid_file': media.uid,
@@ -886,13 +886,13 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         # hit the endpoint that creates and runs the ImportTask
         # Task should complete right away due to `CELERY_TASK_ALWAYS_EAGER`
         with patch(
-            f'kpi.views.v2.import_task.get_client_ip', return_value='127.0.0.1'
+            'kpi.views.v2.import_task.get_client_ip', return_value='127.0.0.1'
         ):
             with patch(
-                f'kpi.views.v2.import_task.get_human_readable_client_user_agent',
+                'kpi.views.v2.import_task.get_human_readable_client_user_agent',
                 return_value='source',
             ):
-                self.client.post(reverse(f'api_v2:importtask-list'), task_data)
+                self.client.post(reverse('api_v2:importtask-list'), task_data)
         expected_logs_count = 2 if change_name else 1
         log_query = ProjectHistoryLog.objects.filter(metadata__asset_uid=self.asset.uid)
         self.assertEqual(log_query.count(), expected_logs_count)
