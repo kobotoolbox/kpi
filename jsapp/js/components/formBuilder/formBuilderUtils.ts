@@ -1,5 +1,5 @@
 import clonedeep from 'lodash.clonedeep'
-import { ASSET_TYPES, type AssetTypeName } from '#/constants'
+import { ASSET_TYPES, type AssetTypeName, GroupTypeEndName } from '#/constants'
 import type { AssetContent } from '#/dataInterface'
 import type { KoboMatrixPlainData } from '#/formbuild/containers/KoboMatrix'
 import { recordKeys } from '#/utils'
@@ -215,10 +215,10 @@ export function koboMatrixParser(params: KoboMatrixParserParams): KoboMatrixPars
   // add open/close tags for kobomatrix groups
   for (var i = 0; i < surveyLength; i++) {
     if (content.survey[i].type === 'kobomatrix') {
-      content.survey[i].type = 'begin_kobomatrix'
+      content.survey[i].type = GroupTypeEndName.end_kobomatrix
       content.survey[i].appearance = 'field-list'
       surveyLength++
-      content.survey.splice(i + 1, 0, { type: 'end_kobomatrix', $kuid: `/${content.survey[i].$kuid}` })
+      content.survey.splice(i + 1, 0, { type: GroupTypeEndName.end_kobomatrix, $kuid: `/${content.survey[i].$kuid}` })
     }
   }
 

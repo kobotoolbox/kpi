@@ -16,7 +16,7 @@ import type {
 } from '#/components/reports/reportsConstants'
 import type { SortValues } from '#/components/submissions/tableConstants'
 import type { ValidationStatusName } from '#/components/submissions/validationStatus.constants'
-import type { AnyRowTypeName, AssetFileType, AssetTypeName } from '#/constants'
+import type { AnyRowTypeName, AssetFileType, AssetTypeName, FormStyleName } from '#/constants'
 import type { UserResponse } from '#/users/userExistence.store'
 import type { AccountFieldsValues } from './account/account.constants'
 import { endpoints } from './api.endpoints'
@@ -473,7 +473,7 @@ export interface AssetContentSettings {
   name?: string
   version?: string
   id_string?: string
-  style?: string
+  style?: FormStyleName
   form_id?: string
   title?: string
   'kobo--lock_all'?: boolean
@@ -750,7 +750,8 @@ export interface AssetResponse extends AssetRequestObject {
   subscribers_count: number
   status: string
   access_types: string[] | null
-  files?: AssetResponseFile[]
+  /** If there are no files this will be empty array */
+  files: AssetResponseFile[]
 
   // TODO: think about creating a new interface for asset that is being extended
   // on frontend.

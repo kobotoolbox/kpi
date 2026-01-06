@@ -6,6 +6,13 @@ import { BaseCollection, BaseModel } from './model.base'
 export class SurveyDetail extends BaseModel {
   idAttribute: 'name'
 
+  attributes: {
+    name: string
+    value: any // Can be string ("true") or boolean depending on parsing
+    parameters?: string
+    [key: string]: any
+  }
+
   /**
    * Serializes the detail for XLSForm export.
    * Returns false if the detail has no value (i.e., is toggled off).

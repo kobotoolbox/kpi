@@ -30,44 +30,48 @@ export interface SluggifyOptions {
   incrementorPadding?: number | false
 }
 
+
+
 /**
- * Utility functions for parsing skip logic and generating valid XML identifiers
+ * Parses a tab-delimited string (like a copy-paste from Excel)
+ * into an array of objects.
  */
-export interface Utils {
-  skipLogicParser: any
-  validationLogicParser: any
+export function split_paste(str: string): Array<Record<string, string>>;
 
-  /**
-   * Parses a tab-delimited string (like a copy-paste from Excel)
-   * into an array of objects.
-   */
-  split_paste(str: string): Array<Record<string, string>>
-
-  parseHelper: {
-    /**
-     * Takes an XPath-like skip logic string and populates a
-     * Backbone collection with logic criteria models.
-     */
-    parseSkipLogic(collection: any, value: string, parent_row: any): void
-  }
-
-  /**
-   * Specialized sluggification for XLSForm labels.
-   * Defaults to keeping case and ensuring XML tag validity.
-   */
-  sluggifyLabel(str: string, other_names?: string[]): string
-
-  /**
-   * Checks if a string conforms to XML tag naming rules.
-   */
-  isValidXmlTag(str: string): boolean
-
-  /**
-   * The core string transformation engine. Converts labels into
-   * "slugs" (machine-readable IDs).
-   */
-  sluggify(str: string, opts?: SluggifyOptions): string
+export namespace parseHelper {
+  function parseSkipLogic(collection: any, value: string, parent_row: any): void;
 }
 
-declare const utils: Utils
-export default utils
+/**
+ * Specialized sluggification for XLSForm labels.
+ * Defaults to keeping case and ensuring XML tag validity.
+ */
+export function sluggifyLabel(str: string, other_names?: string[]): string;
+
+/**
+ * Checks if a string conforms to XML tag naming rules.
+ */
+export function isValidXmlTag(str: string): boolean;
+
+/**
+ * The core string transformation engine. Converts labels into
+ * "slugs" (machine-readable IDs).
+ */
+export function sluggify(str: string, opts?: SluggifyOptions): string;
+
+export const Validator: any;
+export const skipLogicParser: any;
+export const validationLogicParser: any;
+
+declare const utils: {
+  split_paste: typeof split_paste;
+  parseHelper: typeof parseHelper;
+  sluggifyLabel: typeof sluggifyLabel;
+  isValidXmlTag: typeof isValidXmlTag;
+  sluggify: typeof sluggify;
+  Validator: typeof Validator;
+  skipLogicParser: typeof skipLogicParser;
+  validationLogicParser: typeof validationLogicParser;
+};
+
+export default utils;

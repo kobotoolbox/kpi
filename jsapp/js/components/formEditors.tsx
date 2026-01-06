@@ -12,6 +12,7 @@ export class FormPage extends React.Component<WithRouterProps & { params: { uid?
   render() {
     return (
       <EditableForm
+        router={this.props.router}
         asset_updated={update_states.UP_TO_DATE}
         multioptionsExpanded={true}
         surveyAppRendered={false}
@@ -52,6 +53,7 @@ class LibraryAssetEditorComponent extends React.Component<WithRouterProps & { pa
 
     return (
       <EditableForm
+        router={this.props.router}
         asset_updated={update_states.UP_TO_DATE}
         multioptionsExpanded={true}
         surveyAppRendered={false}

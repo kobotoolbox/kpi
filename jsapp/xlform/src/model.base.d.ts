@@ -10,7 +10,7 @@ export interface BaseOptions {
 /**
  * Enhanced Collection that supports tree traversal back to the root Survey
  */
-export class BaseCollection<TModel extends Backbone.Model = Backbone.Model> extends Backbone.Collection<TModel> {
+export class BaseCollection<T extends Backbone.Model> extends Backbone.Collection<T> {
   _parent: any
   constructor(models?: TModel[] | any[], options?: BaseOptions)
 

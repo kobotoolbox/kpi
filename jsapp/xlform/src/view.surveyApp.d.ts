@@ -24,7 +24,7 @@ export interface SurveyAppOptions extends Backbone.ViewOptions<Backbone.Model> {
   // Allow null here because user code initializes it as nullable
   survey?: Survey | null
   warnings?: any[]
-  ngScope?: NgScope
+  ngScope?: SurveyScope
   stateStore?: SurveyStateStore
 
   // Callbacks
@@ -46,7 +46,7 @@ export class SurveyFragmentApp extends Backbone.View<Backbone.Model> {
 
   survey: Survey
   warnings: any[]
-  ngScope: NgScope
+  ngScope: SurveyScope
   surveyStateStore: SurveyStateStore
 
   /** * A Backbone Model acting as a Map<RowCid, RowView>.

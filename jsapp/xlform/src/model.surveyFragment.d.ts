@@ -65,9 +65,24 @@ export class SurveyFragment extends BaseCollection<any> {
   get(attr: string): any
   set(attr: string, value: any, options?: any): void
   set(obj: any, options?: any): void
-  on(eventName: string, callback: Function, context?: any): any
-  off(eventName?: string, callback?: Function, context?: any): any
-  trigger(eventName: string, ...args: any[]): any
+
+  /**
+   * Remove a previously-bound callback function from an object.
+   * Proxied to the internal _meta model.
+   */
+  off(eventName?: string, callback?: Function, context?: any): this
+
+  /**
+   * Bind a callback function to an object.
+   * Proxied to the internal _meta model.
+   */
+  on(eventName: string, callback: Function, context?: any): this
+
+  /**
+   * Trigger callbacks for the given event.
+   * Proxied to the internal _meta model.
+   */
+  trigger(eventName: string, ...args: any[]): this
 }
 
 /**

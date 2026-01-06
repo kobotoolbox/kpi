@@ -50,13 +50,13 @@ import type { RouterProp } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
 import dkobo_xlform from '../../xlform/src/_xlform.init'
 import type { Survey } from '../../xlform/src/model.survey'
+import type { SurveyDetail } from '../../xlform/src/model.surveyDetail'
 import type { SurveyApp } from '../../xlform/src/view.surveyApp'
 import { type UpdateAssetDefinitionParams, actions } from '../actions'
 import {
   type AssetContent,
   type AssetResponse,
   type AssetResponseFile,
-  type AssetSettings,
   type FailResponse,
   dataInterface,
 } from '../dataInterface'
@@ -88,8 +88,7 @@ const RECORDING_SUPPORT_URL = 'recording-interviews.html'
 interface LaunchAppData {
   name: string
   savedName?: string
-  settings__style: FormStyleName
-  asset_uid: string
+  settings__style?: FormStyleName
   files: AssetResponseFile[]
   asset_type: AssetTypeName
   asset: AssetResponse
@@ -102,7 +101,7 @@ interface EditableFormButtonStates {
   showAllAvailable?: boolean
   name?: string
   hasSettings?: boolean
-  styleValue?: FormStyleName | null
+  styleValue?: FormStyleName
   allButtonsDisabled?: boolean
   saveButtonText?: string
 }
@@ -124,7 +123,7 @@ interface EditableFormProps {
   // TODO: see if this is still needed. Previously it was used (obfuscated through a this.state mixin way) to ensure
   // there is no preloaded asset when creating new library item or new library child
   forceCleanupAsset?: boolean
-  router?: RouterProp
+  router: RouterProp
 }
 
 interface EditableFormState extends SurveyStateStoreData {
@@ -133,7 +132,6 @@ interface EditableFormState extends SurveyStateStoreData {
   asideLayoutSettingsVisible: boolean
   asideLibrarySearchVisible: boolean
   asset: AssetResponse | undefined
-  asset_uid: string | undefined
   asset_updated: UpdateStatesValue
   cascadeMessage: {
     msgType: 'ready' | 'warning'
@@ -141,7 +139,7 @@ interface EditableFormState extends SurveyStateStoreData {
     message?: string
   }
   cascadeReady: boolean
-  cascadeReadySurvey: {} | undefined
+  cascadeReadySurvey?: Survey
   cascadeTextareaValue: string
   desiredAssetType: AssetTypeName | undefined
   enketopreviewError?: string
@@ -149,9 +147,7 @@ interface EditableFormState extends SurveyStateStoreData {
   isBackgroundAudioBannerDismissed: boolean
   name: string
   preventNavigatingOut: boolean
-  // `null` when cleared
-  settings__style: FormStyleName | null
-  settingsNew: AssetSettings
+  settings__style?: FormStyleName
   showCascadePopup: boolean
   cascadeLastSelectedRowIndex?: number
   surveyAppRendered: boolean
@@ -191,14 +187,13 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
         // asset is being set, because `.form-wrap` node needs to exist for
         // `launchAppForSurveyContent` to work.
         window.setTimeout(() => {
-          let settingsStyle: string | undefined
+          let settingsStyle: FormStyleName | undefined
           if (asset.content?.settings && !Array.isArray(asset.content?.settings)) {
             settingsStyle = asset.content.settings.style
           }
           this.launchAppForSurveyContent(asset.content, {
             name: asset.name,
             settings__style: settingsStyle,
-            asset_uid: asset.uid,
             files: asset.files,
             asset_type: asset.asset_type,
             asset: asset,
@@ -240,21 +235,12 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
     this.onSurveyChangeDebounced()
   }
 
-  onProjectDetailsChange({ fieldName, fieldValue }) {
-    const settingsNew = this.state.settingsNew || {}
-    settingsNew[fieldName] = fieldValue
-    this.setState({
-      settingsNew: settingsNew,
-    })
-    this.onSurveyChangeDebounced()
-  }
-
   surveyStateChanged(state: SurveyStateStoreData) {
     this.setState(state)
   }
 
   onStyleChange(newStyle: null | FormStyleDefinition) {
-    let settingsStyle = null
+    let settingsStyle
     if (newStyle !== null) {
       settingsStyle = newStyle.value
     }
@@ -265,7 +251,7 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
     this.onSurveyChangeDebounced()
   }
 
-  getStyleSelectVal(optionVal: FormStyleName) {
+  getStyleSelectVal(optionVal?: FormStyleName) {
     return AVAILABLE_FORM_STYLES.find((option) => option.value === optionVal)
   }
 
@@ -397,31 +383,6 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
       params.name = this.state.name
     }
 
-    // handle settings update (if any changed)
-    if (this.state.settingsNew) {
-      let settings: AssetSettings = {}
-      if (this.state.asset) {
-        settings = this.state.asset.settings
-      }
-
-      if (this.state.settingsNew.description) {
-        settings.description = this.state.settingsNew.description
-      }
-      if (this.state.settingsNew.sector) {
-        settings.sector = this.state.settingsNew.sector
-      }
-      if (this.state.settingsNew.country) {
-        settings.country = this.state.settingsNew.country
-      }
-      if (this.state.settingsNew.operational_purpose) {
-        settings.operational_purpose = this.state.settingsNew.operational_purpose
-      }
-      if (this.state.settingsNew.collects_pii) {
-        settings.collects_pii = this.state.settingsNew.collects_pii
-      }
-      params.settings = JSON.stringify(settings)
-    }
-
     if (this.state.isNewAsset) {
       // we're intentionally leaving after creating new asset,
       // so there is nothing unsaved here
@@ -514,8 +475,8 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
     return ooo
   }
 
-  toggleAsideLibrarySearch(evt) {
-    evt.target.blur()
+  toggleAsideLibrarySearch(evt: React.TouchEvent<HTMLButtonElement>) {
+    evt.currentTarget.blur()
     const asideSettings: AsideSettings = {
       asideLayoutSettingsVisible: false,
       asideLibrarySearchVisible: !this.state.asideLibrarySearchVisible,
@@ -524,8 +485,8 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
     this.saveAsideSettings(asideSettings)
   }
 
-  toggleAsideLayoutSettings(evt) {
-    evt.target.blur()
+  toggleAsideLayoutSettings(evt: React.TouchEvent<HTMLButtonElement>) {
+    evt.currentTarget.blur()
     const asideSettings: AsideSettings = {
       asideLayoutSettingsVisible: !this.state.asideLayoutSettingsVisible,
       asideLibrarySearchVisible: false,
@@ -620,7 +581,7 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
 
   clearPreviewError() {
     this.setState({
-      enketopreviewError: false,
+      enketopreviewError: undefined,
     })
   }
 
@@ -635,21 +596,26 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
   }
 
   safeNavigateToAsset() {
+    if (!this.state.asset || !this.state.backRoute) {
+      return
+    }
+
     let targetRoute = this.state.backRoute
     if (this.state.backRoute === ROUTES.FORMS) {
-      targetRoute = ROUTES.FORM.replace(':uid', this.state.asset_uid)
+      targetRoute = ROUTES.FORM.replace(':uid', this.state.asset.uid)
     } else if (this.state.backRoute === ROUTES.LIBRARY) {
       // Check if the the uid is undefined to prevent getting an Access Denied screen
-      if (this.state.asset_uid !== undefined) {
-        targetRoute = ROUTES.LIBRARY_ITEM.replace(':uid', this.state.asset_uid)
+      if (this.state.asset.uid !== undefined) {
+        targetRoute = ROUTES.LIBRARY_ITEM.replace(':uid', this.state.asset.uid)
       }
     }
+
     this.props.router.navigate(targetRoute)
   }
 
   isAddingQuestionsRestricted() {
     return (
-      this.state.asset &&
+      this.state.asset?.content &&
       isAssetLockable(this.state.asset.asset_type) &&
       hasAssetRestriction(this.state.asset.content, LockingRestrictionName.question_add)
     )
@@ -657,7 +623,7 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
 
   isAddingGroupsRestricted() {
     return (
-      this.state.asset &&
+      this.state.asset?.content &&
       isAssetLockable(this.state.asset.asset_type) &&
       hasAssetRestriction(this.state.asset.content, LockingRestrictionName.group_add)
     )
@@ -665,7 +631,7 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
 
   isChangingAppearanceRestricted() {
     return (
-      this.state.asset &&
+      this.state.asset?.content &&
       isAssetLockable(this.state.asset.asset_type) &&
       hasAssetRestriction(this.state.asset.content, LockingRestrictionName.form_appearance)
     )
@@ -673,7 +639,7 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
 
   isChangingMetaQuestionsRestricted() {
     return (
-      this.state.asset &&
+      this.state.asset?.content &&
       isAssetLockable(this.state.asset.asset_type) &&
       hasAssetRestriction(this.state.asset.content, LockingRestrictionName.form_meta_edit)
     )
@@ -681,7 +647,7 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
 
   hasBackgroundAudio() {
     return this.app?.survey?.surveyDetails.filter(
-      (sd) => sd.attributes.name === QuestionTypeName['background-audio'],
+      (sd: SurveyDetail) => sd.attributes.name === QuestionTypeName['background-audio'],
     )[0].attributes.value
   }
 
@@ -929,7 +895,7 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
                 <bem.FormBuilderAside__header>{t('Metadata')}</bem.FormBuilderAside__header>
 
                 <MetadataEditor
-                  survey={this.app.survey}
+                  survey={this.app?.survey}
                   onChange={this.onMetadataEditorChange}
                   isDisabled={this.isChangingMetaQuestionsRestricted()}
                   {...this.state}
@@ -974,10 +940,11 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
       return null
     }
 
-    const assetTypeLabel = getFormBuilderAssetType(this.state.asset.asset_type, this.state.desiredAssetType)?.label
+    const assetTypeLabel =
+      getFormBuilderAssetType(this.state.asset.asset_type, this.state.desiredAssetType)?.label || 'asset'
 
     // Case 1: there is no asset yet (creting a new) or asset is not locked
-    if (!this.state.asset || !hasAssetAnyLocking(this.state.asset.content)) {
+    if (!this.state.asset?.content || !hasAssetAnyLocking(this.state.asset.content)) {
       return assetTypeLabel
       // Case 2: asset is locked fully or partially
     } else {
@@ -1006,8 +973,8 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
   }
 
   toggleCascade() {
-    var lastSelectedRow = last(this.app.selectedRows()),
-      lastSelectedRowIndex = lastSelectedRow ? this.app.survey.rows.indexOf(lastSelectedRow) : -1
+    var lastSelectedRow = last(this.app?.selectedRows()),
+      lastSelectedRowIndex = lastSelectedRow ? this.app?.survey.rows.indexOf(lastSelectedRow) : -1
     this.setState({
       showCascadePopup: !this.state.showCascadePopup,
       cascadeTextareaValue: '',
@@ -1018,15 +985,23 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
   cancelCascade() {
     this.setState({
       cascadeReady: false,
-      cascadeReadySurvey: false,
+      cascadeReadySurvey: undefined,
       cascadeTextareaValue: '',
       showCascadePopup: false,
     })
   }
 
-  cascadePopopChange(evt) {
-    var s = {
-      cascadeTextareaValue: ReactDOM.findDOMNode(this.refs.cascade).value,
+  cascadePopupChange() {
+    const cascadeEl = ReactDOM.findDOMNode(this.refs.cascade)
+
+    if (cascadeEl === null) {
+      return
+    }
+
+    const textareaEl = cascadeEl as HTMLTextAreaElement
+
+    var s: Partial<EditableFormState> & Pick<EditableFormState, 'cascadeTextareaValue'> = {
+      cascadeTextareaValue: textareaEl.value,
     }
     // if (s.cascadeTextareaValue.length === 0) {
     //   return this.cancelCascade();
@@ -1064,10 +1039,11 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
         addCascadeMessage: t('add cascade with # questions').replace('#', rowCount),
       }
     } catch (err) {
+      const errObject = (err as unknown as { message?: string }) || {}
       s.cascadeReady = false
       s.cascadeMessage = {
         msgType: 'warning',
-        message: err.message,
+        message: errObject.message,
       }
     }
     this.setState(s)
@@ -1088,7 +1064,7 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
 
         {this.state.cascadeReady ? <bem.CascadePopup__message m='ready'>{t('OK')}</bem.CascadePopup__message> : null}
 
-        <textarea ref='cascade' onChange={this.cascadePopopChange} value={this.state.cascadeTextareaValue} />
+        <textarea ref='cascade' onChange={this.cascadePopupChange} value={this.state.cascadeTextareaValue} />
 
         {envStore.isReady && envStore.data.support_url && (
           <div className='cascade-help right-tooltip'>
@@ -1108,9 +1084,10 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
             size='l'
             isDisabled={!this.state.cascadeReady}
             onClick={() => {
-              var survey = this.app.survey
-              survey.insertSurvey(this.state.cascadeReadySurvey, this.state.cascadeLastSelectedRowIndex)
-              this.cancelCascade()
+              if (this.state.cascadeReadySurvey) {
+                this.app?.survey?.insertSurvey(this.state.cascadeReadySurvey, this.state.cascadeLastSelectedRowIndex)
+                this.cancelCascade()
+              }
             }}
             label={t('DONE')}
           />

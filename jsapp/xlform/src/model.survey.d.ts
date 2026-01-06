@@ -1,12 +1,12 @@
-import type { QuestionTypeName } from '#/constants'
+import type { AnyRowTypeName } from '#/constants'
 import type { AssetResponseFile } from '#/dataInterface'
 import { BaseModel } from './model.base'
 import type { ChoiceLists } from './model.choices'
 import type { SurveyDetails } from './model.surveyDetail'
-import { SurveyFragment } from './model.surveyFragment'
+import { type Rows, SurveyFragment } from './model.surveyFragment'
 
 export interface FlatRow {
-  type: QuestionTypeName
+  type: AnyRowTypeName
   name?: string // `end_kobomatrix` might not have `name`
   label?: string | string[] // KPI often stores labels as arrays for translations
   hint?: string | string[]
@@ -52,6 +52,9 @@ export interface FullCsvJson {
 export class Settings extends BaseModel {
   auto_name: boolean
   changing_form_title: boolean
+  get(attributeName: string): any
+  set(attributeName: string, value: any, options?: any): this
+  set(attributes: any, options?: any): this
   toCsvJson(): CsvJsonStructure
   enable_auto_name(): void
 }
@@ -66,7 +69,14 @@ export class Survey extends SurveyFragment {
   newRowDetails: any
   defaultsForType: any
   surveyDetails: SurveyDetails
+
+  /**
+   * The collection of rows (questions/groups) in this survey.
+   */
+  rows: Rows
+
   choices: ChoiceLists
+
   context: {
     warnings: any[]
     errors: any[]
@@ -75,6 +85,14 @@ export class Survey extends SurveyFragment {
   availableFiles?: AssetResponseFile[]
 
   constructor(options?: any, addlOpts?: any)
+
+  /**
+   * Iterates through every row in the survey, including nested rows
+   * inside groups and repeats.
+   * @param callback Function to execute for each row
+   * @param options { includeGroups?: boolean, includeErrors?: boolean, flat?: boolean }
+   */
+  forEachRow(callback: (row: BaseRow) => void, options?: any): void
 
   // Instance Methods
   linkUpChoiceLists(): void
@@ -98,6 +116,10 @@ export class Survey extends SurveyFragment {
   // Internal/Helper Methods (often prefixed with _)
   _ensure_row_list_is_copied(row: any): void
   _insertRowInPlace(row: any, opts?: any): void
+
+  off(eventName?: string, callback?: Function, context?: any): this
+  on(eventName: string, callback: Function, context?: any): this
+  trigger(eventName: string, ...args: any[]): this
 
   /** * Static Methods
    */
