@@ -121,9 +121,6 @@ interface EditableFormProps {
   isNewAsset?: boolean
   backRoute: string | null
   parentAssetUid?: string
-  // TODO: see if this is still needed. Previously it was used (obfuscated through a this.state mixin way) to ensure
-  // there is no preloaded asset when creating new library item or new library child
-  forceCleanupAsset?: boolean
   router: RouterProp
 }
 
@@ -405,8 +402,8 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
         surveyJSON = unnullifyTranslations(surveyJSONWithMatrix, this.state.asset.content)
       }
     }
-    // We normally have `content` as an actual object, not a stringified representation, but since this already works
-    // with JSON string, let's extend the types
+    // We normally have `content` as an actual object, not a stringified representation, but since
+    // `actions.resources.updateAsset` already works with JSON string, let's extend the types
     const params: Partial<AssetRequestObject> & { content: string } = { content: surveyJSON }
 
     if (this.state.name) {

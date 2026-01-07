@@ -33,8 +33,8 @@ export function surveyToValidJson(survey: Survey) {
  * This function reverses what `nullifyTranslations` did to the form data.
  */
 export function unnullifyTranslations(surveyDataJSON: string, assetContent: AssetContent) {
-  // TODO: here we assume that parsed JSON will be `AssetContent`, but it seems like a dangerouse assumption. Let's try
-  // adding some verifying checks
+  // Here we assume that parsed JSON will be `FlatSurvey`. If we ever pass some other string in here, the code would
+  // crash. If this ever happens, let's add some checks.
   const surveyData: FlatSurvey = JSON.parse(surveyDataJSON)
 
   let translatedProps: string[] = []
@@ -48,8 +48,6 @@ export function unnullifyTranslations(surveyDataJSON: string, assetContent: Asse
   if (!defaultLang) {
     defaultLang = null
   }
-  // TODO: Does this even do anything? Does …settings[0] is actually a thing?
-  // Isn't `settings` an object without `0` key, i.e. not an array?
   if (!surveyData.settings[0].default_language && defaultLang !== null) {
     surveyData.settings[0].default_language = defaultLang
   }
@@ -238,9 +236,7 @@ export function koboMatrixParser(params: KoboMatrixParserParams): KoboMatrixPars
         }
 
         for (var k of recordKeys(matrixData.choices)) {
-          if (content.choices) {
-            content.choices.push(matrixData.choices[k])
-          }
+          content.choices?.push(matrixData.choices[k])
         }
       }
       // TODO: handle corrupt matrix data

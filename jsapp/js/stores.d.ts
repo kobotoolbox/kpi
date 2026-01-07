@@ -1,7 +1,3 @@
-/**
- * Interface representing the state object held by the store.
- * Since init() sets this.state = {}, it's effectively a flexible dictionary.
- */
 export interface SurveyStateStoreData {
   groupButtonIsActive?: boolean
   groupShrunk?: boolean

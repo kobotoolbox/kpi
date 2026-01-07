@@ -32,13 +32,6 @@ class LibraryAssetEditorComponent extends React.Component<WithRouterProps & { pa
       isNewAsset = false
     }
 
-    let forceCleanupAsset = false
-    if (this.props.router.path === ROUTES.NEW_LIBRARY_ITEM) {
-      forceCleanupAsset = true
-    } else if (this.props.router.path === ROUTES.NEW_LIBRARY_CHILD) {
-      forceCleanupAsset = true
-    }
-
     let parentAssetUid: string | undefined
     if (this.props.router.path === ROUTES.NEW_LIBRARY_CHILD) {
       parentAssetUid = this.props.params.uid
@@ -62,7 +55,6 @@ class LibraryAssetEditorComponent extends React.Component<WithRouterProps & { pa
         assetUid={this.props.params.uid}
         backRoute={backRoute}
         parentAssetUid={parentAssetUid}
-        forceCleanupAsset={forceCleanupAsset}
       />
     )
   }
