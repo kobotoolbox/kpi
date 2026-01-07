@@ -21,7 +21,7 @@ GOOGLE_CODE = 'goog'
 
 SCHEMA_VERSIONS = [
     '20250820',
-    None
+    None,
 ]
 
 

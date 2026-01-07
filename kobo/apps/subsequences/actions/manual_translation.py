@@ -1,4 +1,3 @@
-
 from .base import ActionClassConfig, BaseManualNLPAction
 from .mixins import TranslationActionMixin
 

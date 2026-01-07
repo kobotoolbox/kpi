@@ -149,9 +149,7 @@ class Fix:
                     {
                         'type': 'object',
                         'properties': {
-                            'uuid': {
-                                'const': '1a2c8eb0-e2ec-4b3c-942a-c1a5410c081a'
-                            }
+                            'uuid': {'const': '1a2c8eb0-e2ec-4b3c-942a-c1a5410c081a'}
                         },
                     },
                 ]
@@ -192,7 +190,7 @@ class Fix:
                                     '7e31c6a5-5eac-464c-970c-62c383546a94',
                                     '',
                                 ]
-                            }
+                            },
                         },
                     },
                 ]
@@ -204,9 +202,7 @@ class Fix:
                     {
                         'type': 'object',
                         'properties': {
-                            'uuid': {
-                                'const': 'e9b4e6d1-fdbb-4dc9-8b10-a9c3c388322f'
-                            }
+                            'uuid': {'const': 'e9b4e6d1-fdbb-4dc9-8b10-a9c3c388322f'}
                         },
                     },
                 ]
@@ -218,9 +214,7 @@ class Fix:
                     {
                         'type': 'object',
                         'properties': {
-                            'uuid': {
-                                'const': '83acf2a7-8edc-4fd8-8b9f-f832ca3f18ad'
-                            }
+                            'uuid': {'const': '83acf2a7-8edc-4fd8-8b9f-f832ca3f18ad'}
                         },
                     },
                 ]
@@ -232,24 +226,12 @@ class Fix:
         'type': 'object',
         'additionalProperties': False,
         'properties': {
-            '1a2c8eb0-e2ec-4b3c-942a-c1a5410c081a': {
-                '$ref': '#/$defs/dataActionKey'
-            },
-            '2e30bec7-4843-43c7-98bc-13114af230c5': {
-                '$ref': '#/$defs/dataActionKey'
-            },
-            '1a8b748b-f470-4c40-bc09-ce2b1197f503': {
-                '$ref': '#/$defs/dataActionKey'
-            },
-            'e9b4e6d1-fdbb-4dc9-8b10-a9c3c388322f': {
-                '$ref': '#/$defs/dataActionKey'
-            },
-            '83acf2a7-8edc-4fd8-8b9f-f832ca3f18ad': {
-                '$ref': '#/$defs/dataActionKey'
-            },
-            '5ef11d48-d7a3-432e-af83-8c2e9b1feb72': {
-                '$ref': '#/$defs/dataActionKey'
-            },
+            '1a2c8eb0-e2ec-4b3c-942a-c1a5410c081a': {'$ref': '#/$defs/dataActionKey'},
+            '2e30bec7-4843-43c7-98bc-13114af230c5': {'$ref': '#/$defs/dataActionKey'},
+            '1a8b748b-f470-4c40-bc09-ce2b1197f503': {'$ref': '#/$defs/dataActionKey'},
+            'e9b4e6d1-fdbb-4dc9-8b10-a9c3c388322f': {'$ref': '#/$defs/dataActionKey'},
+            '83acf2a7-8edc-4fd8-8b9f-f832ca3f18ad': {'$ref': '#/$defs/dataActionKey'},
+            '5ef11d48-d7a3-432e-af83-8c2e9b1feb72': {'$ref': '#/$defs/dataActionKey'},
         },
         '$defs': {
             'dataActionKey': {
@@ -598,20 +580,16 @@ def test_result_schema_generation():
 
 
 def test_valid_result_passes_validation():
-    _action.validate_result(
-        Fix.expected_result_after_filled_and_empty_responses
-    )
+    _action.validate_result(Fix.expected_result_after_filled_and_empty_responses)
 
 
 def test_invalid_result_fails_validation():
-    working_result = deepcopy(
-        Fix.expected_result_after_filled_and_empty_responses
-    )
+    working_result = deepcopy(Fix.expected_result_after_filled_and_empty_responses)
 
     # erroneously add '_dateModified' onto a version
-    first_version = working_result['1a2c8eb0-e2ec-4b3c-942a-c1a5410c081a'][
-        '_versions'
-    ][0]
+    first_version = working_result['1a2c8eb0-e2ec-4b3c-942a-c1a5410c081a']['_versions'][
+        0
+    ]
     first_version['_dateModified'] = first_version['_dateCreated']
 
     with pytest.raises(jsonschema.exceptions.ValidationError):
@@ -652,10 +630,7 @@ def test_result_content():
                         EMPTY_SUBMISSION, accumulated_result, response
                     )
 
-    assert (
-        accumulated_result
-        == Fix.expected_result_after_filled_and_empty_responses
-    )
+    assert accumulated_result == Fix.expected_result_after_filled_and_empty_responses
 
 
 class TestQualActionMethods(TestCase):

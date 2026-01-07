@@ -17,7 +17,7 @@ QUESTION_SUPPLEMENT = {
                 '_dateAccepted': '2024-04-08T15:29:00Z',
                 '_uuid': '4dcf9c9f-e503-4e5c-81f5-74250b295001',
             },
-        ]
+        ],
     },
     'manual_transcription': {
         '_dateCreated': '2024-04-08T15:28:00Z',

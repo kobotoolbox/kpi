@@ -363,10 +363,7 @@ class TestVersioning(TestCase):
         copied = copy.deepcopy(self.asset.advanced_features)
         migrate_advanced_features(self.asset)
         self.asset.refresh_from_db()
-        assert self.asset.advanced_features == {
-            '_version': '20250820',
-            **copied
-        }
+        assert self.asset.advanced_features == {'_version': '20250820', **copied}
 
     def test_migrate_without_save(self):
         migrate_advanced_features(self.asset, save_asset=False)

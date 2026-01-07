@@ -40,6 +40,7 @@ from formpack.schema.fields import (
 )
 from formpack.utils.kobo_locking import get_kobo_locking_profiles
 from formpack.utils.string import ellipsize
+from kobo.apps.openrosa.libs.utils.common_tags import META_ROOT_UUID
 from kobo.apps.reports.report_data import build_formpack
 from kobo.apps.subsequences.utils.supplement_data import (
     get_analysis_form_json,
@@ -78,7 +79,6 @@ from kpi.utils.rename_xls_sheet import (
 )
 from kpi.utils.strings import to_str
 from kpi.zip_importer import HttpContentParse
-from kobo.apps.openrosa.libs.utils.common_tags import META_ROOT_UUID
 
 
 def utcnow(*args, **kwargs):
@@ -1052,7 +1052,9 @@ class SubmissionExportTaskBase(ImportExportTask):
         )
 
         if source.has_advanced_features:
-            submission_stream = stream_with_supplements(source, submission_stream, for_output=True)
+            submission_stream = stream_with_supplements(
+                source, submission_stream, for_output=True
+            )
 
         pack, submission_stream = build_formpack(
             source, submission_stream, self._fields_from_all_versions

@@ -103,9 +103,9 @@ class SubmissionSupplement(AbstractTimeStampedModel):
                 question_supplemental_data[action_id] = action_supplemental_data
 
                 # 2025-09-24 oleger: What are the 3 lines below for?
-                #retrieved_supplemental_data.setdefault(question_xpath, {})[
+                # retrieved_supplemental_data.setdefault(question_xpath, {})[
                 #    action_id
-                #] = action.retrieve_data(action_supplemental_data)
+                # ] = action.retrieve_data(action_supplemental_data)
 
         supplemental_data['_version'] = schema_version
         validate_submission_supplement(asset, supplemental_data)

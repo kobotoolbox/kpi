@@ -198,17 +198,12 @@ def test_acceptance_does_not_produce_versions():
                 'value': value,
                 'status': 'complete',
             }
-            mock_sup_det = action.revise_data(
-                EMPTY_SUBMISSION, mock_sup_det, data
-            )
+            mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, data)
             if data.get('value') is None:
                 is_date_accepted_present = (
-                    mock_sup_det['fr']['_versions'][0].get('_dateAccepted')
-                    is None
+                    mock_sup_det['fr']['_versions'][0].get('_dateAccepted') is None
                 )
-                assert is_date_accepted_present is not bool(
-                    data.get('accepted')
-                )
+                assert is_date_accepted_present is not bool(data.get('accepted'))
 
         action.validate_result(mock_sup_det)
 
@@ -226,7 +221,7 @@ def test_invalid_result_fails_validation():
 
     mock_service = MagicMock()
     with patch(
-        'kobo.apps.subsequences.actions.automatic_google_translation.GoogleTranslationService', # noqa
+        'kobo.apps.subsequences.actions.automatic_google_translation.GoogleTranslationService',  # noqa
         return_value=mock_service,
     ):
         for data in first, second, third, fourth, fifth, six:
@@ -324,7 +319,7 @@ def test_latest_version_is_first():
     mock_sup_det = EMPTY_SUPPLEMENT
     mock_service = MagicMock()
     with patch(
-        'kobo.apps.subsequences.actions.automatic_google_translation.GoogleTranslationService', # noqa
+        'kobo.apps.subsequences.actions.automatic_google_translation.GoogleTranslationService',  # noqa
         return_value=mock_service,
     ):
         for data in first, second, third:
@@ -407,9 +402,7 @@ def test_action_is_updated_in_background_if_in_progress():
         with patch(
             'kobo.apps.subsequences.actions.base.poll_run_external_process'
         ) as task_mock:
-            action.revise_data(
-                submission, EMPTY_SUPPLEMENT, {'language': 'fr'}
-            )
+            action.revise_data(submission, EMPTY_SUPPLEMENT, {'language': 'fr'})
 
         task_mock.apply_async.assert_called_once()
 

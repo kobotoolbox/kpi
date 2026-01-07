@@ -246,7 +246,9 @@ class BaseAction:
             #   Not a big issue for now since translation actions don’t use locale
             #   (yet?) and transcription actions only involve one occurrence at a time.
             needle = action_data[self.action_class_config.action_data_key]
-            localized_action_supplemental_data = action_supplemental_data.get(needle, {})
+            localized_action_supplemental_data = action_supplemental_data.get(
+                needle, {}
+            )
 
         return localized_action_supplemental_data, needle
 
@@ -275,9 +277,9 @@ class BaseAction:
             localized_action_supplemental_data[self.DATE_CREATED_FIELD] = now_str
         localized_action_supplemental_data[self.DATE_MODIFIED_FIELD] = now_str
 
-        localized_action_supplemental_data.setdefault(
-            self.VERSION_FIELD, []
-        ).insert(0, new_version)
+        localized_action_supplemental_data.setdefault(self.VERSION_FIELD, []).insert(
+            0, new_version
+        )
 
         # For manual actions, always mark as accepted.
         # For automatic actions, revert the just-created revision (remove it and
@@ -291,9 +293,9 @@ class BaseAction:
                         self.DATE_ACCEPTED_FIELD
                     ] = now_str
                 else:
-                    localized_action_supplemental_data[self.VERSION_FIELD][
-                        0
-                    ].pop(self.DATE_ACCEPTED_FIELD, None)
+                    localized_action_supplemental_data[self.VERSION_FIELD][0].pop(
+                        self.DATE_ACCEPTED_FIELD, None
+                    )
 
         elif accepted:
             new_version[self.DATE_ACCEPTED_FIELD] = now_str
@@ -302,9 +304,9 @@ class BaseAction:
             new_action_supplemental_data = localized_action_supplemental_data
         else:
             new_action_supplemental_data = deepcopy(action_supplemental_data)
-            new_action_supplemental_data.update({
-                needle: localized_action_supplemental_data
-            })
+            new_action_supplemental_data.update(
+                {needle: localized_action_supplemental_data}
+            )
 
         self.validate_result(new_action_supplemental_data)
 
@@ -891,10 +893,7 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
 
         # If the request is still running, stop processing here.
         # Returning None ensures that `revise_data()` will not be called afterwards.
-        if (
-            accepted is None
-            and service_data['status'] == 'in_progress'
-        ):
+        if accepted is None and service_data['status'] == 'in_progress':
             if current_version.get('status') == 'in_progress':
                 return None
             else:

@@ -3,12 +3,12 @@ from django.contrib import admin
 from django.db import models
 from django.db.models import Q
 
+from ..exceptions import LanguageNotSupported
 from .base import (
     BaseLanguageService,
     BaseLanguageServiceAdmin,
     BaseLanguageServiceM2M,
 )
-from ..exceptions import LanguageNotSupported
 
 
 class TranslationService(BaseLanguageService):
