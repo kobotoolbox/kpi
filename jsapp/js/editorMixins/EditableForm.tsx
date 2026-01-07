@@ -134,7 +134,7 @@ interface EditableFormState extends SurveyStateStoreData {
   asideLibrarySearchVisible: boolean
   asset: AssetResponse | undefined
   asset_updated: UpdateStatesValue
-  cascadeMessage: {
+  cascadeMessage?: {
     msgType: 'ready' | 'warning'
     addCascadeMessage?: string
     message?: string
@@ -165,6 +165,32 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
   onSurveyChangeDebounced: () => void = Function
 
   app?: SurveyApp
+
+  constructor(props: EditableFormProps) {
+    super(props)
+    this.state = {
+      asideLayoutSettingsVisible: false,
+      asideLibrarySearchVisible: false,
+      asset: undefined,
+      asset_updated: update_states.UP_TO_DATE,
+      cascadeMessage: undefined,
+      cascadeReady: false,
+      cascadeTextareaValue: '',
+      desiredAssetType: undefined,
+      enketopreviewOverlay: undefined,
+      isBackgroundAudioBannerDismissed: false,
+      name: props.name,
+      preventNavigatingOut: false,
+      showCascadePopup: false,
+      surveyAppRendered: props.surveyAppRendered,
+      surveyLoadError: undefined,
+      surveySaveFail: false,
+      isNewAsset: props.isNewAsset,
+      backRoute: props.backRoute === null ? undefined : props.backRoute,
+      groupButtonIsActive: false,
+      multioptionsExpanded: props.multioptionsExpanded,
+    }
+  }
 
   componentDidMount() {
     this.loadAsideSettings()
@@ -668,7 +694,7 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
             data-tip={t('Return to list')}
             className='left-tooltip'
             tabIndex='0'
-            onClick={this.safeNavigateToList}
+            onClick={this.safeNavigateToList.bind(this)}
           >
             <i className='k-icon k-icon-kobo' />
           </bem.FormBuilderHeader__cell>
@@ -900,7 +926,7 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
 
                 <MetadataEditor
                   survey={this.app?.survey}
-                  onChange={this.onMetadataEditorChange}
+                  onChange={this.onMetadataEditorChange.bind(this)}
                   isDisabled={this.isChangingMetaQuestionsRestricted()}
                   {...this.state}
                 />
@@ -1068,7 +1094,7 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
 
         {this.state.cascadeReady ? <bem.CascadePopup__message m='ready'>{t('OK')}</bem.CascadePopup__message> : null}
 
-        <textarea ref='cascade' onChange={this.cascadePopupChange} value={this.state.cascadeTextareaValue} />
+        <textarea ref='cascade' onChange={this.cascadePopupChange.bind(this)} value={this.state.cascadeTextareaValue} />
 
         {envStore.isReady && envStore.data.support_url && (
           <div className='cascade-help right-tooltip'>
@@ -1139,7 +1165,7 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
             </bem.FormBuilder>
 
             {this.state.enketopreviewOverlay && (
-              <Modal open large onClose={this.hidePreview} title={t('Form Preview')}>
+              <Modal open large onClose={this.hidePreview.bind(this)} title={t('Form Preview')}>
                 <Modal.Body>
                   <div className='enketo-holder'>
                     <iframe src={this.state.enketopreviewOverlay} />
@@ -1151,13 +1177,13 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
             {!this.state.enketopreviewOverlay && this.state.enketopreviewError && (
               // This used to have `error` prop, but `modal.tsx` no longer has the prop. I am leaving this comment here
               // as I am not sure how to test this, and maybe the popup should appear differently?
-              <Modal open onClose={this.clearPreviewError} title={t('Error generating preview')}>
+              <Modal open onClose={this.clearPreviewError.bind(this)} title={t('Error generating preview')}>
                 <Modal.Body>{this.state.enketopreviewError}</Modal.Body>
               </Modal>
             )}
 
             {this.state.showCascadePopup && (
-              <Modal open onClose={this.hideCascade} title={t('Import Cascading Select Questions')}>
+              <Modal open onClose={this.hideCascade.bind(this)} title={t('Import Cascading Select Questions')}>
                 <Modal.Body>{this.renderCascadePopup()}</Modal.Body>
               </Modal>
             )}
