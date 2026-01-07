@@ -9,7 +9,6 @@ from rest_framework.urlpatterns import format_suffix_patterns
 from kobo.apps.openrosa.apps.api.viewsets.attachment_viewset import AttachmentViewSet
 from kobo.apps.openrosa.apps.api.viewsets.briefcase_api import BriefcaseApi
 from kobo.apps.openrosa.apps.api.viewsets.data_viewset import DataViewSet
-from kobo.apps.openrosa.apps.api.viewsets.metadata_viewset import MetaDataViewSet
 from kobo.apps.openrosa.apps.api.viewsets.note_viewset import NoteViewSet
 from kobo.apps.openrosa.apps.api.viewsets.xform_list_api import XFormListApi
 from kobo.apps.openrosa.apps.api.viewsets.xform_submission_api import XFormSubmissionApi
@@ -150,7 +149,6 @@ class MultiLookupRouter(routers.DefaultRouter):
             ### Forms
             * [/api/v1/forms](/api/v1/forms) - List, Retrieve form information
             * [/api/v1/media](/api/v1/media) - List, Retrieve media attachments
-            * [/api/v1/metadata](/api/v1/metadata) - List, Retrieve form metadata
             * [/api/v1/submissions](/api/v1/submissions) - Submit XForms to a form
 
             ### Users and Organizations
@@ -396,7 +394,6 @@ router = MultiLookupRouter(trailing_slash=False)
 
 router.register(r'forms', XFormViewSet)
 router.register(r'notes', NoteViewSet, basename='notes')
-router.register(r'metadata', MetaDataViewSet, basename='metadata')
 router.register(r'media', AttachmentViewSet, basename='attachment')
 router.register(r'formlist', XFormListApi, basename='formlist')
 router.register(r'submissions', XFormSubmissionApi, basename='submissions')

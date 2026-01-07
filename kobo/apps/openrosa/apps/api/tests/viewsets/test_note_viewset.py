@@ -23,7 +23,7 @@ class TestNoteViewSet(TestBase):
 
     def _add_notes_to_data_point(self):
         # add a note to a specific data point
-        note = {'note': "Road Warrior"}
+        note = {'note': 'Road Warrior'}
         dataid = self.xform.instances.all()[0].pk
         note['instance'] = dataid
         request = self.factory.post('/', data=note, **self.extra)
@@ -62,7 +62,7 @@ class TestNoteViewSet(TestBase):
         self._create_user_and_login('lilly', '1234')
         extra = {
             'HTTP_AUTHORIZATION': 'Token %s' % self.user.auth_token}
-        note = {'note': "Road Warrior"}
+        note = {'note': 'Road Warrior'}
         dataid = self.xform.instances.all()[0].pk
         note['instance'] = dataid
 
