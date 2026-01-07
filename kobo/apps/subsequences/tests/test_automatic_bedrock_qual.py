@@ -9,8 +9,8 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from kobo.apps.subsequences.actions.automatic_chained_qual import (
-    AutomaticChainedQualAction,
+from kobo.apps.subsequences.actions.automatic_bedrock_qual import (
+    AutomaticBedrockQual,
 )
 from kobo.apps.subsequences.constants import Action
 from kobo.apps.subsequences.models import QuestionAdvancedFeature
@@ -21,7 +21,7 @@ valid_external_data = []
 
 
 @ddt
-class TestAutomaticChainedQual(BaseTestCase):
+class TestAutomaticBedrockQual(BaseTestCase):
     fixtures = ['test_data', 'asset_with_settings_and_qa']
 
     def setUp(self):
@@ -70,7 +70,7 @@ class TestAutomaticChainedQual(BaseTestCase):
         self.asset = Asset.objects.get(uid='aNp9yMt4zKpUtTeZUnozYG')
         self.feature = QuestionAdvancedFeature.objects.create(
             asset=self.asset,
-            action=Action.AUTOMATIC_CHAINED_QUAL,
+            action=Action.AUTOMATIC_BEDROCK_QUAL,
             params=action_params,
             question_xpath='q1',
         )
@@ -111,10 +111,10 @@ class TestAutomaticChainedQual(BaseTestCase):
                 {'uuid': choice_uuid, 'labels': {'_default': choice_label}}
             ]
         if should_pass:
-            AutomaticChainedQualAction.validate_params([param])
+            AutomaticBedrockQual.validate_params([param])
         else:
             with pytest.raises(jsonschema.exceptions.ValidationError):
-                AutomaticChainedQualAction.validate_params([param])
+                AutomaticBedrockQual.validate_params([param])
 
     def test_valid_user_data(self):
         for param in self.feature.params:
@@ -216,14 +216,14 @@ class TestAutomaticChainedQual(BaseTestCase):
         payload = {
             '_version': '20250820',
             'q1': {
-                Action.AUTOMATIC_CHAINED_QUAL: {
+                Action.AUTOMATIC_BEDROCK_QUAL: {
                     'uuid': 'uuid-qual-text',
                 },
             },
         }
         return_val = {'value': 'LLM text', 'status': 'complete'}
         with patch.object(
-            AutomaticChainedQualAction, 'run_external_process', return_value=return_val
+            AutomaticBedrockQual, 'run_external_process', return_value=return_val
         ):
             response = self.client.patch(
                 supplement_details_url, data=payload, format='json'
@@ -231,7 +231,7 @@ class TestAutomaticChainedQual(BaseTestCase):
         assert response.status_code == status.HTTP_200_OK
         transcript = response.data['q1'][Action.MANUAL_TRANSCRIPTION]['_versions'][0]
         transcript_uuid = transcript['_uuid']
-        version = response.data['q1'][Action.AUTOMATIC_CHAINED_QUAL]['uuid-qual-text'][
+        version = response.data['q1'][Action.AUTOMATIC_BEDROCK_QUAL]['uuid-qual-text'][
             '_versions'
         ][0]
         version_data = version['_data']

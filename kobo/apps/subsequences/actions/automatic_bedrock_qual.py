@@ -8,9 +8,9 @@ from kobo.apps.subsequences.actions.mixins import RequiresTranscriptionMixin
 from kobo.apps.subsequences.actions.qual import BaseQualAction
 
 
-class AutomaticChainedQualAction(RequiresTranscriptionMixin, BaseQualAction):
+class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
 
-    ID = 'automatic_chained_qual'
+    ID = 'automatic_bedrock_qual'
     action_class_config = ActionClassConfig(
         allow_multiple=True, automatic=True, action_data_key='uuid'
     )
