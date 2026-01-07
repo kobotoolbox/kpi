@@ -1,9 +1,11 @@
 import uuid
+from datetime import timedelta
 from unittest.mock import patch
 
 import jsonschema
 import pytest
 from ddt import data, ddt, unpack
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.reverse import reverse
 
@@ -237,3 +239,38 @@ class TestAutomaticChainedQual(BaseTestCase):
         assert version_data['status'] == 'complete'
         assert version['_dependency']['_uuid'] == transcript_uuid
         assert version['_dependency']['_actionId'] == Action.MANUAL_TRANSCRIPTION
+
+    def test_transform_data_filters_out_failed_versions(self):
+        today = timezone.now()
+        yesterday = today - timedelta(days=1)
+        action_data = {
+            'uuid-qual-text': {
+                '_versions': [
+                    {
+                        '_data': {
+                            'uuid': 'uuid-qual-text',
+                            'status': 'failed',
+                            'error': 'Something went wrong',
+                        },
+                        '_dateCreated': today.isoformat(),
+                        '_uuid': 'v2',
+                    },
+                    {
+                        '_data': {'uuid': 'uuid-qual-text', 'value': 'Initial note'},
+                        '_dateCreated': yesterday.isoformat(),
+                        '_dateAccepted': yesterday.isoformat(),
+                        '_uuid': 'v1',
+                    },
+                ],
+                '_dateCreated': yesterday.isoformat(),
+                '_dateModified': today.isoformat(),
+            }
+        }
+
+        output = self.action.transform_data_for_output(action_data)
+        assert len(output.keys()) == 1
+
+        text_item = output.get(('qual', 'uuid-qual-text'))
+        # take the initial note because the most recent request to overwrite failed
+        assert text_item['value'] == 'Initial note'
+        assert 'error' not in text_item
