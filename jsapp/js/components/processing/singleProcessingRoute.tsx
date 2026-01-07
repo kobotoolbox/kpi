@@ -73,14 +73,6 @@ export default class SingleProcessingRoute extends React.Component<
     this.forceUpdate()
   }
 
-  /** Is processing enabled for current question. */
-  isProcessingEnabled() {
-    if (this.props.params.uid && this.props.params.xpath) {
-      return isRowProcessingEnabled(this.props.params.uid, this.props.params.xpath)
-    }
-    return false
-  }
-
   /** Whether current submission has a response for current question. */
   isDataProcessable(): boolean {
     const editIds = singleProcessingStore.getCurrentQuestionSubmissionsEditIds()
@@ -99,26 +91,18 @@ export default class SingleProcessingRoute extends React.Component<
       return <LoadingSpinner />
     }
 
-    if (!this.isProcessingEnabled()) {
-      return <CenteredMessage message={NO_DATA_MESSAGE} />
-    }
+    return (
+      <React.Fragment>
+        <section className={styles.bottomLeft}>
+          {this.isDataProcessable() && <SingleProcessingContent />}
+          {!this.isDataProcessable() && <CenteredMessage message={NO_DATA_MESSAGE} />}
+        </section>
 
-    if (this.isProcessingEnabled()) {
-      return (
-        <React.Fragment>
-          <section className={styles.bottomLeft}>
-            {this.isDataProcessable() && <SingleProcessingContent />}
-            {!this.isDataProcessable() && <CenteredMessage message={NO_DATA_MESSAGE} />}
-          </section>
-
-          <section className={styles.bottomRight}>
-            <ProcessingSidebar asset={this.state.asset} />
-          </section>
-        </React.Fragment>
-      )
-    }
-
-    return null
+        <section className={styles.bottomRight}>
+          <ProcessingSidebar asset={this.state.asset} />
+        </section>
+      </React.Fragment>
+    )
   }
 
   render() {

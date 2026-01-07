@@ -647,21 +647,27 @@ export function getAssetAdvancedFeatures(assetUid: string) {
 }
 
 // This url returns `ProcessingDataResponse`
-export function getAssetProcessingUrl(assetUid: string): string | undefined {
-  const foundAsset = assetStore.getAsset(assetUid)
-  if (foundAsset) {
-    return foundAsset.advanced_submission_schema?.url
-  }
-  return undefined
+export function buildAssetProcessingUrl(assetUid: string): string | undefined {
+  return `${ROOT_URL}/api/v2/assets/${assetUid}/advanced-features/`
 }
 
 // This url returns `SubmissionProcessingDataResponse`
 export function getAssetSubmissionProcessingUrl(assetUid: string, submission: string) {
-  const processingUrl = getAssetProcessingUrl(assetUid)
+  const processingUrl = buildAssetProcessingUrl(assetUid)
   if (processingUrl) {
     return processingUrl + '?submission=' + submission
   }
   return undefined
+}
+
+export function getProcessableRowXpaths(assetUid: string) {
+  const foundAsset = assetStore.getAsset(assetUid)
+  return foundAsset?.content?.survey
+    ?.filter(
+      (row) =>
+        !!row.$xpath && (row.type === QUESTION_TYPES.audio.id || row.type === QUESTION_TYPES['background-audio'].id),
+    )
+    .map((row) => row.$xpath as string)
 }
 
 /** Returns a list of all rows (their `xpath`s) activated for advanced features. */
@@ -691,7 +697,7 @@ export function isRowProcessingEnabled(assetUid: string, xpath: string) {
 }
 
 export function isAssetProcessingActivated(assetUid: string) {
-  return getAssetProcessingUrl(assetUid) !== undefined
+  return buildAssetProcessingUrl(assetUid) !== undefined
 }
 
 /**
@@ -727,8 +733,9 @@ export default {
   isSelfOwned,
   renderQuestionTypeIcon,
   removeInvalidChars,
+  getProcessableRowXpaths,
   getAssetAdvancedFeatures,
-  getAssetProcessingUrl,
+  buildAssetProcessingUrl,
   getAssetProcessingRows,
   isRowProcessingEnabled,
   isAssetProcessingActivated,

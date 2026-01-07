@@ -68,6 +68,7 @@ class SingleProcessingHeader extends React.Component<SingleProcessingHeaderProps
     return null
   }
 
+  // TODO: checking for question type is redundant here because that's how we decide on getSubmissionsEditIds
   /**
    * For displaying question selector - filtered down to questions with
    * responses and of audio type (for now).

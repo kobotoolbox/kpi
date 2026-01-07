@@ -10,6 +10,7 @@ import {
   getAssetProcessingRows,
   getFlatQuestionsList,
   getLanguageIndex,
+  getProcessableRowXpaths,
   getRowName,
   getRowNameByXpath,
   getSurveyFlatPaths,
@@ -254,7 +255,7 @@ class SingleProcessingStore extends Reflux.Store {
       if (isAssetProcessingActivated(this.currentAssetUid)) {
         this.fetchAllInitialDataForAsset()
       } else {
-        this.activateAsset()
+        // this.activateAsset()
       }
     }
   }
@@ -302,13 +303,13 @@ class SingleProcessingStore extends Reflux.Store {
       return
     }
 
-    if (isAssetProcessingActivated(this.currentAssetUid)) {
-      this.fetchSubmissionData()
-      this.fetchEditIds()
-      this.fetchProcessingData()
-    } else {
-      this.activateAsset()
-    }
+    // if (isAssetProcessingActivated(this.currentAssetUid)) {
+    this.fetchSubmissionData()
+    this.fetchEditIds()
+    this.fetchProcessingData()
+    // } else {
+    //   this.activateAsset()
+    // }
   }
 
   private onRouteChange(data: RouterState) {
@@ -412,7 +413,7 @@ class SingleProcessingStore extends Reflux.Store {
     this.data.submissionsEditIds = undefined
     this.trigger(this.data)
 
-    const processingRows = getAssetProcessingRows(this.currentAssetUid)
+    const processingRows = getProcessableRowXpaths(this.currentAssetUid)
     const asset = assetStore.getAsset(this.currentAssetUid)
     let flatPaths: SurveyFlatPaths = {}
 
@@ -430,7 +431,6 @@ class SingleProcessingStore extends Reflux.Store {
             // Here we need to "convert" xpath into name, as flatPaths work with
             // names only. We search the row by xpath and use its name.
             const rowName = getRowNameByXpath(asset.content, xpath)
-
             if (rowName && flatPaths[rowName]) {
               processingRowsPaths.push(flatPaths[rowName])
             }
@@ -444,14 +444,13 @@ class SingleProcessingStore extends Reflux.Store {
 
   private onGetProcessingSubmissionsCompleted(response: GetProcessingSubmissionsResponse) {
     const submissionsEditIds: SubmissionsEditIds = {}
-    const processingRows = getAssetProcessingRows(this.currentAssetUid)
+    const processingRows = getProcessableRowXpaths(this.currentAssetUid)
 
     const asset = assetStore.getAsset(this.currentAssetUid)
     let flatPaths: SurveyFlatPaths = {}
 
     if (asset?.content?.survey) {
       flatPaths = getSurveyFlatPaths(asset.content.survey)
-
       if (processingRows !== undefined) {
         processingRows.forEach((xpath) => {
           submissionsEditIds[xpath] = []
