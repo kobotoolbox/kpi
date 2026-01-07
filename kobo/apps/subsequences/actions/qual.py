@@ -315,13 +315,6 @@ class BaseQualAction(BaseAction):
             versions = qual_data.get(self.VERSION_FIELD, [])
             if not versions:
                 continue
-            # filter out failed versions
-
-            versions = [
-                v
-                for v in versions
-                if v.get(self.VERSION_DATA_FIELD, {}).get('status') != 'failed'
-            ]
 
             versions_sorted = sorted(
                 versions,
