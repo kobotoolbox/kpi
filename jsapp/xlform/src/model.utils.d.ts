@@ -30,48 +30,42 @@ export interface SluggifyOptions {
   incrementorPadding?: number | false
 }
 
-
-
 /**
  * Parses a tab-delimited string (like a copy-paste from Excel)
  * into an array of objects.
  */
-export function split_paste(str: string): Array<Record<string, string>>;
+export function split_paste(str: string): Array<Record<string, string>>
 
 export namespace parseHelper {
-  function parseSkipLogic(collection: any, value: string, parent_row: any): void;
+  function parseSkipLogic(collection: any, value: string, parent_row: any): void
 }
 
 /**
  * Specialized sluggification for XLSForm labels.
  * Defaults to keeping case and ensuring XML tag validity.
  */
-export function sluggifyLabel(str: string, other_names?: string[]): string;
+export function sluggifyLabel(str: string, other_names?: string[]): string
 
 /**
  * Checks if a string conforms to XML tag naming rules.
  */
-export function isValidXmlTag(str: string): boolean;
+export function isValidXmlTag(str: string): boolean
 
 /**
  * The core string transformation engine. Converts labels into
  * "slugs" (machine-readable IDs).
  */
-export function sluggify(str: string, opts?: SluggifyOptions): string;
-
-export const Validator: any;
-export const skipLogicParser: any;
-export const validationLogicParser: any;
+export function sluggify(str: string, opts?: SluggifyOptions): string
 
 declare const utils: {
-  split_paste: typeof split_paste;
-  parseHelper: typeof parseHelper;
-  sluggifyLabel: typeof sluggifyLabel;
-  isValidXmlTag: typeof isValidXmlTag;
-  sluggify: typeof sluggify;
-  Validator: typeof Validator;
-  skipLogicParser: typeof skipLogicParser;
-  validationLogicParser: typeof validationLogicParser;
-};
+  split_paste: typeof split_paste
+  parseHelper: typeof parseHelper
+  sluggifyLabel: typeof sluggifyLabel
+  isValidXmlTag: typeof isValidXmlTag
+  sluggify: typeof sluggify
+  Validator: any
+  skipLogicParser: any
+  validationLogicParser: any
+}
 
-export default utils;
+export default utils

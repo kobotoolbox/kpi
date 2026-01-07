@@ -611,7 +611,7 @@ export interface AssetSettings {
 }
 
 /** This is the asset object Frontend uses with the endpoints. */
-interface AssetRequestObject {
+export interface AssetRequestObject {
   // NOTE: there might be a few properties in AssetResponse that should be here,
   // so please feel free to move them when you encounter a typing error.
   parent: string | null

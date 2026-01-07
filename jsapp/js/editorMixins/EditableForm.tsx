@@ -37,7 +37,7 @@ import MetadataEditor from '#/components/metadataEditor'
 import {
   ASSET_TYPES,
   AVAILABLE_FORM_STYLES,
-  type AssetTypeName,
+  AssetTypeName,
   type FormStyleDefinition,
   type FormStyleName,
   NAME_MAX_LENGTH,
@@ -52,9 +52,10 @@ import dkobo_xlform from '../../xlform/src/_xlform.init'
 import type { Survey } from '../../xlform/src/model.survey'
 import type { SurveyDetail } from '../../xlform/src/model.surveyDetail'
 import type { SurveyApp } from '../../xlform/src/view.surveyApp'
-import { type UpdateAssetDefinitionParams, actions } from '../actions'
+import { actions } from '../actions'
 import {
   type AssetContent,
+  type AssetRequestObject,
   type AssetResponse,
   type AssetResponseFile,
   type FailResponse,
@@ -218,6 +219,7 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
     if (this.state.preventNavigatingOut) {
       return UNSAVED_CHANGES_WARNING
     }
+    return ''
   }
 
   loadAsideSettings() {
@@ -377,7 +379,9 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
         surveyJSON = unnullifyTranslations(surveyJSONWithMatrix, this.state.asset.content)
       }
     }
-    const params: UpdateAssetDefinitionParams = { content: surveyJSON }
+    // We normally have `content` as an actual object, not a stringified representation, but since this already works
+    // with JSON string, let's extend the types
+    const params: Partial<AssetRequestObject> & { content: string } = { content: surveyJSON }
 
     if (this.state.name) {
       params.name = this.state.name
@@ -392,7 +396,7 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
       if (this.state.desiredAssetType) {
         params.asset_type = this.state.desiredAssetType
       } else {
-        params.asset_type = 'block'
+        params.asset_type = AssetTypeName.block
       }
       if (this.props.parentAssetUid) {
         params.parent = assetUtils.buildAssetUrl(this.props.parentAssetUid)
@@ -1036,7 +1040,7 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
       s.cascadeReadySurvey = tmpSurvey
       s.cascadeMessage = {
         msgType: 'ready',
-        addCascadeMessage: t('add cascade with # questions').replace('#', rowCount),
+        addCascadeMessage: t('add cascade with # questions').replace('#', rowCount.toString()),
       }
     } catch (err) {
       const errObject = (err as unknown as { message?: string }) || {}
@@ -1145,7 +1149,9 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
             )}
 
             {!this.state.enketopreviewOverlay && this.state.enketopreviewError && (
-              <Modal open error onClose={this.clearPreviewError} title={t('Error generating preview')}>
+              // This used to have `error` prop, but `modal.tsx` no longer has the prop. I am leaving this comment here
+              // as I am not sure how to test this, and maybe the popup should appear differently?
+              <Modal open onClose={this.clearPreviewError} title={t('Error generating preview')}>
                 <Modal.Body>{this.state.enketopreviewError}</Modal.Body>
               </Modal>
             )}

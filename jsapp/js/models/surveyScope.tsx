@@ -85,7 +85,7 @@ class SurveyScope {
       const contents_kuids = map(contents, '$kuid')
       const selectSurveyContents = unnullifiedContent.survey.filter(
         (content) =>
-          [QUESTION_TYPES.select_one.id, QUESTION_TYPES.select_multiple.id].indexOf(content.type) > -1 &&
+          (content.type === QUESTION_TYPES.select_one.id || content.type === QUESTION_TYPES.select_multiple.id) &&
           contents_kuids.indexOf(content['$kuid']) > -1,
       )
       if (selectSurveyContents.length > 0) {

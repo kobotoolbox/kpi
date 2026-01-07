@@ -543,7 +543,7 @@ class KoboMatrix extends React.Component<KoboMatrixProps, KoboMatrixState> {
       relevant: '',
       required: 'false',
       type: 'text',
-    })
+    }) as unknown as KoboMatrixDataRow
 
     data = data.set(newColKuid, newCol)
     data = data.update('cols', (cols) => (cols as List<string>).push(newColKuid))

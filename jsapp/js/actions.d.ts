@@ -1,4 +1,5 @@
 import type { Survey } from '../../xlform/src/model.survey'
+import type { AssetResponse, FailResponse } from './dataInterface'
 
 /**
  * NOTE: all the actions groups definitions are both functions and objects with
@@ -76,22 +77,17 @@ interface DeleteAssetDefinition extends Function {
 }
 
 interface DeleteAssetCompletedDefinition extends Function {
-  (response: AssetResponse): void
-  listen: (callback: (response: AssetResponse) => void) => Function
+  (response: {uid: string, assetType: AssetTypeName}): void
+  listen: (callback: (response: {uid: string, assetType: AssetTypeName}) => void) => Function
 }
 
 export interface UpdateAssetDefinitionParams {
-  /** Stringified object with `survey`, `choices`, `settings`, etc. */
-  content: string
-  name?: string
-  settings?: AssetSettings
-  asset_type?: AssetTypeName
-  /** url to parent asset */
-  parent?: string
+  onComplete: (response: AssetResponse) => void
+  onFail: (response: FailResponse) => void
 }
 
 interface UpdateAssetDefinition extends Function {
-  (uid: string, values: any, params?: UpdateAssetDefinitionParams): void
+  (uid: string, values: Partial<AssetRequestObject>, params?: UpdateAssetDefinitionParams): void
   completed: UpdateAssetCompletedDefinition
   failed: GenericFailedDefinition
   triggerAsync: (uid: string, values: any, params?: UpdateAssetDefinitionParams) => Promise
@@ -195,11 +191,15 @@ interface GetUserCompletedDefinition extends Function {
 interface SetAssetPublicDefinition extends Function {
   (asset: AssetResponse, shouldSetAnonPerms: boolean): void
   completed: SetAssetPublicCompletedDefinition
-  failed: GenericFailedDefinition
+  failed: SetAssetPublicFailedDefinition
 }
 interface SetAssetPublicCompletedDefinition extends Function {
   (assetUid: string, shouldSetAnonPerms: boolean): void
   listen: (callback: (assetUid: string, shouldSetAnonPerms: boolean) => void) => Function
+}
+interface SetAssetPublicFailedDefinition extends Function {
+  (assetUid: string): void
+  listen: (callback: (assetUid: string) => void) => Function
 }
 
 interface RemoveAssetPermissionDefinition extends Function {
@@ -289,10 +289,10 @@ interface MapSetMapStylesStartedDefinition extends Function {
 }
 
 interface CreateResourceDefinition extends Function {
-  (params: UpdateAssetDefinitionParams): void
+  (params: Partial<AssetRequestObject>): void
   completed: CreateResourceCompletedDefinition
   failed: GenericFailedDefinition
-  triggerAsync: (params: UpdateAssetDefinitionParams) => Promise
+  triggerAsync: (params: Partial<AssetRequestObject>) => Promise
 }
 interface CreateResourceCompletedDefinition extends Function {
   (response: any): void
