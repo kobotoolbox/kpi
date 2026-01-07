@@ -601,9 +601,9 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
 
       this.app.$el.appendTo(formWrapEl)
       this.app.render()
-      survey.rows.on('change', this.onSurveyChange)
-      survey.rows.on('sort', this.onSurveyChange)
-      survey.on('change', this.onSurveyChange)
+      survey.rows.on('change', this.onSurveyChange.bind(this))
+      survey.rows.on('sort', this.onSurveyChange.bind(this))
+      survey.on('change', this.onSurveyChange.bind(this))
     }
 
     this.setState(newState)
