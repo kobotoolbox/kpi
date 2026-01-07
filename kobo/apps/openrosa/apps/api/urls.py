@@ -149,7 +149,6 @@ class MultiLookupRouter(routers.DefaultRouter):
             * [/api/v1/forms](/api/v1/forms) - List, Retrieve form information
             * [/api/v1/media](/api/v1/media) - List, Retrieve media attachments
             * [/api/v1/metadata](/api/v1/metadata) - List, Retrieve form metadata
-            * [/api/v1/submissions](/api/v1/submissions) - Submit XForms to a form
 
             ### Users and Organizations
             * [/api/v1/user](/api/v1/user) - Return authenticated user profile info
