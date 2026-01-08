@@ -1,12 +1,11 @@
 from django.db import connection
 
+from .fix_migrations_for_kobocat import are_migration_already_applied
+
 
 def run():
-    if 'django_migrations' not in connection.introspection.table_names():
-        print(
-            'Django migrations are not set up yet, if this is a new install '
-            'the fixes in this script are not necessary'
-        )
+
+    if not are_migration_already_applied():
         return
 
     if should_fix_internal_mfa_app_label():
