@@ -22,14 +22,12 @@ from kpi.constants import (
     PERM_VIEW_SUBMISSIONS,
     SUBMISSION_FORMAT_TYPE_JSON,
 )
-from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.datetime import several_minutes_from_now
 from ..exceptions import HookRemoteServerDownError
 from .hook_test_case import HookTestCase
 
 
 class ApiHookTestCase(HookTestCase):
-    URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
     def test_anonymous_access(self):
         hook = self._create_hook()
