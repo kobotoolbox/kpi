@@ -77,8 +77,8 @@ interface DeleteAssetDefinition extends Function {
 }
 
 interface DeleteAssetCompletedDefinition extends Function {
-  (response: {uid: string, assetType: AssetTypeName}): void
-  listen: (callback: (response: {uid: string, assetType: AssetTypeName}) => void) => Function
+  (response: { uid: string; assetType: AssetTypeName }): void
+  listen: (callback: (response: { uid: string; assetType: AssetTypeName }) => void) => Function
 }
 
 export interface UpdateAssetDefinitionParams {
@@ -318,21 +318,21 @@ interface SurveyAddExternalItemCompletedDefinition extends Function {
 
 // NOTE: as you use more actions in your ts files, please extend this namespace,
 // for now we are defining only the ones we need.
-export namespace actions {
-  const navigation: {
+export declare const actions: {
+  navigation: {
     routeUpdate: GenericCallbackDefinition
   }
-  const auth: {
+  auth: {
     verifyLogin: {
       loggedin: GenericCallbackDefinition
     }
     changePassword: GenericDefinition
   }
-  const survey: {
+  survey: {
     addExternalItemAtPosition: SurveyAddExternalItemDefinition
   }
-  const search: object
-  const resources: {
+  search: object
+  resources: {
     createImport: GenericDefinition
     loadAsset: LoadAssetDefinition
     deployAsset: GenericDefinition
@@ -350,7 +350,7 @@ export namespace actions {
     refreshTableSubmissions: GenericDefinition
     getAssetFiles: ResourcesGetAssetFilesDefinition
   }
-  const hooks: {
+  hooks: {
     add: GenericDefinition
     update: GenericDefinition
     delete: GenericDefinition
@@ -359,20 +359,20 @@ export namespace actions {
     retryLog: GenericDefinition
     retryLogs: GenericDefinition
   }
-  const misc: {
+  misc: {
     getUser: GetUserDefinition
   }
-  const reports: {
+  reports: {
     setStyle: ReportsSetStyleDefinition
     setCustom: ReportsSetCustomDefinition
   }
-  const table: {
+  table: {
     updateSettings: TableUpdateSettingsDefinition
   }
-  const map: {
+  map: {
     setMapStyles: MapSetMapStylesDefinition
   }
-  const permissions: {
+  permissions: {
     getConfig: GenericDefinition
     copyPermissionsFrom: GenericDefinition
     removeAssetPermission: RemoveAssetPermissionDefinition
@@ -381,13 +381,19 @@ export namespace actions {
     getAssetPermissions: GenericDefinition
     setAssetPublic: SetAssetPublicDefinition
   }
-  const help: {
+  help: {
     getInAppMessages: GenericDefinition
     setMessageAcknowledged: GenericDefinition
     setMessageReadTime: GenericDefinition
   }
-  const library: any
-  const submissions: {
+  library: {
+    moveToCollection: GenericDefinition
+    subscribeToCollection: GenericDefinition
+    unsubscribeFromCollection: GenericDefinition
+    searchMyCollectionAssets: GenericDefinition
+    searchMyCollectionMetadata: GenericDefinition
+  }
+  submissions: {
     getSubmission: GetSubmissionDefinition
     getSubmissionByUuid: GetSubmissionDefinition
     getSubmissions: GetSubmissionsDefinition
@@ -397,8 +403,8 @@ export namespace actions {
     bulkPatchValues: GenericDefinition
     bulkDelete: GenericDefinition
   }
-  const media: object
-  const exports: {
+  media: object
+  exports: {
     getExport: GetExportDefinition
     getExports: GenericDefinition
     createExport: GenericDefinition
@@ -408,7 +414,7 @@ export namespace actions {
     createExportSetting: GenericDefinition
     deleteExportSetting: GenericDefinition
   }
-  const dataShare: {
+  dataShare: {
     attachToSource: GenericDefinition
     detachSource: GenericDefinition
     getAttachedSources: GenericDefinition
