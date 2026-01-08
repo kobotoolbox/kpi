@@ -9,14 +9,11 @@ from django.template.loader import get_template
 from django.utils import dateparse, translation
 from django_celery_beat.models import CrontabSchedule, PeriodicTask
 
-from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
-
 from ..tasks import failures_reports
 from .hook_test_case import HookTestCase
 
 
 class EmailTestCase(HookTestCase):
-    URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
     def _create_periodic_task(self):
         beat_schedule = settings.CELERY_BEAT_SCHEDULE.get('send-hooks-failures-reports')

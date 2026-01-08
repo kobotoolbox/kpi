@@ -10,7 +10,6 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import ASSET_TYPE_ARG_NAME, ASSET_TYPE_SURVEY, \
     ASSET_TYPE_TEMPLATE, ASSET_TYPE_BLOCK, ASSET_TYPE_QUESTION
 from kpi.exceptions import BadAssetTypeException
-from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from .kpi_test_case import KpiTestCase
 from .test_assets import AssetsTestCase
 
@@ -56,8 +55,6 @@ class TestCloningOrm(AssetsTestCase):
 
 
 class TestCloning(KpiTestCase):
-
-    URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
     def setUp(self):
         self.someuser = User.objects.get(username='someuser')

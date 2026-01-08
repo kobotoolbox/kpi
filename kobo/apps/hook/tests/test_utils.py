@@ -4,14 +4,11 @@ from unittest.mock import MagicMock, patch
 import responses
 from rest_framework import status
 
-from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
-
 from ..utils.services import call_services
 from .hook_test_case import HookTestCase
 
 
 class HookUtilsTestCase(HookTestCase):
-    URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
     @patch(
         'ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',
