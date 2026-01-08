@@ -630,7 +630,6 @@ interface AssetRequestObject {
   }
   paired_data?: string
   advanced_features?: AssetAdvancedFeatures
-  advanced_submission_schema?: AdvancedSubmissionSchema
 }
 
 export type AssetDownloads = Array<{

@@ -132,9 +132,9 @@ type AnalysisResponseValue =
 
 /**
  * This is the object that is returned from interacting with the processing
- * endpoint (`asset.advanced_submission_schema.url`). It's similar to
- * the `SubmissionAnalysisResponse`, but with less detailed `val` - for both
- * `qual_select_one` and `qual_select_multiple` it will return a `string` (an
+ * endpoint. It's similar to the `SubmissionAnalysisResponse`,
+ * but with less detailed `val` - for both `qual_select_one`
+ * and `qual_select_multiple` it will return a `string` (an
  * `uuid` of choice) and `string[]` (list of `uuid` of selected choices)
  * respectively.
  */

@@ -670,32 +670,6 @@ export function getProcessableRowXpaths(assetUid: string) {
     .map((row) => row.$xpath as string)
 }
 
-/** Returns a list of all rows (their `xpath`s) activated for advanced features. */
-export function getAssetProcessingRows(assetUid: string) {
-  const foundAsset = assetStore.getAsset(assetUid)
-  if (foundAsset?.advanced_submission_schema?.properties) {
-    const rows: string[] = []
-    recordKeys(foundAsset.advanced_submission_schema.properties).forEach((propertyName) => {
-      if (foundAsset.advanced_submission_schema?.properties !== undefined) {
-        const propertyObj = foundAsset.advanced_submission_schema.properties[propertyName]
-        // NOTE: we assume that the properties will hold only a special string
-        // "submission" property and one object property for each
-        // processing-enabled row.
-        if (propertyObj.type === 'object') {
-          rows.push(propertyName)
-        }
-      }
-    })
-    return rows
-  }
-  return undefined
-}
-
-export function isRowProcessingEnabled(assetUid: string, xpath: string) {
-  const processingRows = getAssetProcessingRows(assetUid)
-  return Array.isArray(processingRows) && processingRows.includes(xpath)
-}
-
 export function isAssetProcessingActivated(assetUid: string) {
   return buildAssetProcessingUrl(assetUid) !== undefined
 }
@@ -736,7 +710,5 @@ export default {
   getProcessableRowXpaths,
   getAssetAdvancedFeatures,
   buildAssetProcessingUrl,
-  getAssetProcessingRows,
-  isRowProcessingEnabled,
   isAssetProcessingActivated,
 }
