@@ -307,6 +307,7 @@ class TestBedrockAutomaticChainedQual(BaseAutomaticBedrockQualTestCase):
         assert text_item['value'] == 'Initial note'
         assert 'error' not in text_item
 
+
 @ddt
 class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
 
