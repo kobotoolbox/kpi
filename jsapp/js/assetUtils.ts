@@ -38,7 +38,7 @@ import envStore from '#/envStore'
 import type { IconName } from '#/k-icons'
 import sessionStore from '#/stores/session'
 import { ANON_USERNAME_URL } from '#/users/utils'
-import { currentLang, recordKeys } from '#/utils'
+import { currentLang } from '#/utils'
 
 /**
  * Removes whitespace from tags. Returns list of cleaned up tags.
@@ -647,17 +647,8 @@ export function getAssetAdvancedFeatures(assetUid: string) {
 }
 
 // This url returns `ProcessingDataResponse`
-export function buildAssetProcessingUrl(assetUid: string): string | undefined {
-  return `${ROOT_URL}/api/v2/assets/${assetUid}/advanced-features/`
-}
-
-// This url returns `SubmissionProcessingDataResponse`
-export function getAssetSubmissionProcessingUrl(assetUid: string, submission: string) {
-  const processingUrl = buildAssetProcessingUrl(assetUid)
-  if (processingUrl) {
-    return processingUrl + '?submission=' + submission
-  }
-  return undefined
+export function buildSubmissionSupplementUrl(assetUid: string, submissionUid: string): string | undefined {
+  return `${ROOT_URL}/api/v2/assets/${assetUid}/data/${submissionUid}/supplement/`
 }
 
 export function getProcessableRowXpaths(assetUid: string) {
@@ -668,10 +659,6 @@ export function getProcessableRowXpaths(assetUid: string) {
         !!row.$xpath && (row.type === QUESTION_TYPES.audio.id || row.type === QUESTION_TYPES['background-audio'].id),
     )
     .map((row) => row.$xpath as string)
-}
-
-export function isAssetProcessingActivated(assetUid: string) {
-  return buildAssetProcessingUrl(assetUid) !== undefined
 }
 
 /**
@@ -709,6 +696,5 @@ export default {
   removeInvalidChars,
   getProcessableRowXpaths,
   getAssetAdvancedFeatures,
-  buildAssetProcessingUrl,
-  isAssetProcessingActivated,
+  buildSubmissionSupplementUrl,
 }

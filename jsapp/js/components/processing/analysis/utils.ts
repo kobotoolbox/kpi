@@ -3,7 +3,7 @@ import clonedeep from 'lodash.clonedeep'
 import { fetchPatch, fetchPostUrl, handleApiFail } from '#/api'
 import { endpoints } from '#/api.endpoints'
 import assetStore from '#/assetStore'
-import { buildAssetProcessingUrl, getAssetAdvancedFeatures } from '#/assetUtils'
+import { buildSubmissionSupplementUrl, getAssetAdvancedFeatures } from '#/assetUtils'
 import { userCan } from '#/components/permissions/utils'
 import type { AssetAdvancedFeatures, AssetResponse, FailResponse } from '#/dataInterface'
 import { notify } from '#/utils'
@@ -233,7 +233,7 @@ export async function updateResponseAndReducer(
   response: string | string[],
 ) {
   // Double check before removing this check (we no longer have to activate NLP features)
-  const processingUrl = buildAssetProcessingUrl(singleProcessingStore.currentAssetUid)
+  const processingUrl = buildSubmissionSupplementUrl(singleProcessingStore.currentAssetUid, surveyQuestionXpath)
   if (!processingUrl) {
     notify(NO_FEATURE_ERROR, 'error')
     return

@@ -2,7 +2,7 @@ import React, { useMemo, useReducer, useState, useEffect } from 'react'
 
 import classNames from 'classnames'
 import { fetchGetUrl, handleApiFail } from '#/api'
-import { getAssetAdvancedFeatures, getAssetSubmissionProcessingUrl } from '#/assetUtils'
+import { buildSubmissionSupplementUrl, getAssetAdvancedFeatures } from '#/assetUtils'
 import InlineMessage from '#/components/common/inlineMessage'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import bodyStyles from '#/components/processing/processingBody.module.scss'
@@ -47,7 +47,7 @@ export default function AnalysisTab() {
       let questions = getQuestionsFromSchema(advancedFeatures)
 
       // Step 3: get processing url
-      const processingUrl = getAssetSubmissionProcessingUrl(
+      const processingUrl = buildSubmissionSupplementUrl(
         singleProcessingStore.currentAssetUid,
         singleProcessingStore.currentSubmissionEditId,
       )
