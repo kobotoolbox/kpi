@@ -36,7 +36,7 @@ valid_external_data = []
 
 
 @ddt
-class TestAutomaticBedrockQual(BaseTestCase):
+class BaseAutomaticBedrockQualTestCase(BaseTestCase):
     fixtures = ['test_data', 'asset_with_settings_and_qa']
 
     def setUp(self):
@@ -140,7 +140,7 @@ class TestAutomaticBedrockQual(BaseTestCase):
 
 
 @ddt
-class TestAutomaticChainedQual(BaseAutomaticQualTestCase):
+class TestBedrockAutomaticChainedQual(BaseAutomaticBedrockQualTestCase):
 
     @data(
         # type, main label, choice label, should pass?
@@ -263,7 +263,7 @@ class TestAutomaticChainedQual(BaseAutomaticQualTestCase):
             )
         assert response.status_code == status.HTTP_200_OK
         transcript_uuid = transcript_dict['_uuid']
-        version = response.data['q1'][Action.AUTOMATIC_CHAINED_QUAL]['uuid-qual-text'][
+        version = response.data['q1'][Action.AUTOMATIC_BEDROCK_QUAL]['uuid-qual-text'][
             '_versions'
         ][0]
         version_data = version['_data']
@@ -308,7 +308,7 @@ class TestAutomaticChainedQual(BaseAutomaticQualTestCase):
         assert 'error' not in text_item
 
 @ddt
-class TestAutomaticQualExternalProcess(BaseAutomaticQualTestCase):
+class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
 
     def setUp(self):
         super().setUp()
@@ -381,11 +381,11 @@ class TestAutomaticQualExternalProcess(BaseAutomaticQualTestCase):
         choice_count = len(qa_choices)
         with patch.dict(PROMPTS_BY_QUESTION_TYPE, mock_templates_by_type):
             with patch(
-                'kobo.apps.subsequences.actions.automatic_chained_qual.format_choices',
+                'kobo.apps.subsequences.actions.automatic_bedrock_qual.format_choices',
                 lambda choices: ','.join(choices),
             ):
                 with patch(
-                    'kobo.apps.subsequences.actions.automatic_chained_qual.get_example_format',  # noqa
+                    'kobo.apps.subsequences.actions.automatic_bedrock_qual.get_example_format',  # noqa
                     return_value='example format string',
                 ):
                     prompt = self.action.generate_llm_prompt(action_data)
@@ -414,7 +414,7 @@ class TestAutomaticQualExternalProcess(BaseAutomaticQualTestCase):
         }
         with patch.object(self.action, 'get_response_from_llm', return_value='text'):
             with patch(
-                f'kobo.apps.subsequences.actions.automatic_chained_qual.{method_to_patch}',  # noqa
+                f'kobo.apps.subsequences.actions.automatic_bedrock_qual.{method_to_patch}',  # noqa
                 side_effect=InvalidResponseFromLLMException('Cannot parse'),
             ):
                 return_value = self.action.run_external_process(
@@ -437,7 +437,7 @@ class TestAutomaticQualExternalProcess(BaseAutomaticQualTestCase):
         self.action = self.feature.to_action()
         with patch.dict(PROMPTS_BY_QUESTION_TYPE, mock_templates_by_type):
             with patch(
-                'kobo.apps.subsequences.actions.automatic_chained_qual.format_choices',
+                'kobo.apps.subsequences.actions.automatic_bedrock_qual.format_choices',
                 lambda choices: ','.join(choices),
             ):
                 prompt = self.action.generate_llm_prompt(action_data)
