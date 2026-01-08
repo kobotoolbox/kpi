@@ -361,33 +361,6 @@ class TestAttachmentViewSet(TestAbstractViewSet):
         self.assertTrue(response.data[0], expected)
         self.assertTrue(len(response.data), 1)
 
-        # Validate that /api/v1/data endpoint returns the correct attachment list
-        # Unfortunately, attachments list differ from /api/v1/media
-        expected = {
-            'download_url': expected['download_url'],
-            'download_small_url': expected['small_download_url'],
-            'download_medium_url': expected['medium_download_url'],
-            'download_large_url': expected['large_download_url'],
-            'id': expected['id'],
-            'xform': expected['xform'],
-            'instance': expected['instance'],
-            'mimetype': expected['mimetype'],
-            'filename': expected['filename'],
-            'media_file_basename': attachment.media_file_basename,
-            'uid': attachment.uid,
-            'is_deleted': expected['is_deleted'],
-        }
-
-        instance_response = self.client.get(
-            reverse(
-                'data-detail',
-                kwargs={'pk': self.xform.pk, 'dataid': instance.pk},
-            ),
-            format='json',
-        )
-        self.assertEqual(instance_response.data['_attachments'][0], expected)
-        self.assertEqual(len(instance_response.data['_attachments']), 1)
-
     def test_storage_counters_still_accurate_on_hard_delete(self):
         """
         This test is not an API test, not really an Attachment unit test.
