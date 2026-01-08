@@ -7,14 +7,12 @@ import assetStore from '#/assetStore'
 import {
   findRowByXpath,
   getAssetAdvancedFeatures,
-  getAssetProcessingRows,
   getFlatQuestionsList,
   getLanguageIndex,
   getProcessableRowXpaths,
   getRowName,
   getRowNameByXpath,
   getSurveyFlatPaths,
-  isAssetProcessingActivated,
 } from '#/assetUtils'
 import type { SurveyFlatPaths } from '#/assetUtils'
 import type { KoboSelectOption } from '#/components/common/koboSelect'
@@ -29,7 +27,7 @@ import {
   isAnyProcessingRouteActive,
 } from '#/components/processing/routes.utils'
 import { type AnyRowTypeName, QUESTION_TYPES, XML_VALUES_OPTION_VALUE } from '#/constants'
-import type { AssetResponse, FailResponse, GetProcessingSubmissionsResponse, SubmissionResponse } from '#/dataInterface'
+import type { FailResponse, GetProcessingSubmissionsResponse, SubmissionResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import { router } from '#/router/legacy'
 import { getCurrentPath } from '#/router/routerUtils'
@@ -241,31 +239,11 @@ class SingleProcessingStore extends Reflux.Store {
     processingActions.requestAutoTranslation.completed.listen(this.onRequestAutoTranslationCompleted.bind(this))
     processingActions.requestAutoTranslation.in_progress.listen(this.onRequestAutoTranslationInProgress.bind(this))
     processingActions.requestAutoTranslation.failed.listen(this.onAnyCallFailed.bind(this))
-    processingActions.activateAsset.completed.listen(this.onActivateAssetCompleted.bind(this))
 
     // We need the asset to be loaded for the store to work (we get the
     // processing endpoint url from asset JSON). We try to startup store
     // immediately and also listen to asset loads.
     this.startupStore()
-  }
-
-  /** This is making sure the asset processing features are activated. */
-  private onAssetLoad(asset: AssetResponse) {
-    if (isAnyProcessingRouteActive() && this.currentAssetUid === asset.uid) {
-      if (isAssetProcessingActivated(this.currentAssetUid)) {
-        this.fetchAllInitialDataForAsset()
-      } else {
-        // this.activateAsset()
-      }
-    }
-  }
-
-  private onActivateAssetCompleted() {
-    this.fetchAllInitialDataForAsset()
-  }
-
-  private activateAsset() {
-    processingActions.activateAsset(this.currentAssetUid, true, [])
   }
 
   /**
@@ -274,23 +252,13 @@ class SingleProcessingStore extends Reflux.Store {
    */
   private startupStore() {
     if (isAnyProcessingRouteActive()) {
-      const isAssetLoaded = Boolean(assetStore.getAsset(this.currentAssetUid))
-      if (isAssetLoaded) {
-        this.fetchAllInitialDataForAsset()
-      } else {
-        // This would happen when user is opening the processing URL directly,
-        // thus asset might not be loaded yet. We need to wait for it and try
-        // starting up again (through `onAssetLoad`).
-        assetStore.whenLoaded(this.currentAssetUid, this.onAssetLoad.bind(this))
-      }
+      this.fetchAllInitialDataForAsset()
     }
   }
 
   /**
-   * This does a few things:
-   * 1. checks if asset is processing-activated and activates if not
-   * 2. fetches all data needed when processing view is opened (in comparison to
-   *    fetching data needed when switching processing question or submission)
+   * Fetches all data needed when processing view is opened (in comparison to
+   * fetching data needed when switching processing question or submission).
    */
   private fetchAllInitialDataForAsset() {
     // JUST A NOTE: we don't need to load asset ourselves, as it is already
@@ -303,13 +271,9 @@ class SingleProcessingStore extends Reflux.Store {
       return
     }
 
-    // if (isAssetProcessingActivated(this.currentAssetUid)) {
     this.fetchSubmissionData()
     this.fetchEditIds()
     this.fetchProcessingData()
-    // } else {
-    //   this.activateAsset()
-    // }
   }
 
   private onRouteChange(data: RouterState) {
@@ -912,12 +876,7 @@ class SingleProcessingStore extends Reflux.Store {
   }
 
   isReady() {
-    return (
-      isAssetProcessingActivated(this.currentAssetUid) &&
-      this.areEditIdsLoaded &&
-      this.isSubmissionLoaded &&
-      this.isProcessingDataLoaded
-    )
+    return this.areEditIdsLoaded && this.isSubmissionLoaded && this.isProcessingDataLoaded
   }
 
   getDisplayedLanguagesList(): KoboSelectOption[] {
