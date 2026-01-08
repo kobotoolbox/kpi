@@ -122,7 +122,7 @@ POST to `/api/v2/assets/{uid_asset}/advanced-features/` with:
 ```json
 {
   "question_xpath": "text_question",
-  "action": "qual",
+  "action": "manual_qual",
   "params": [
     {
       "type": "qualSelectOne",
@@ -186,7 +186,7 @@ PATCH /api/v2/assets/<asset_uid>/data/<submission_root_uuid>/supplement/
 {
   "_version": "20250820",
   "text_question": {
-    "qual": {
+    "manual_qual": {
       "uuid": "q_uuid",
       "value": "sentiment_pos"
     }
