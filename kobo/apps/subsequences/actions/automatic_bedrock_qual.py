@@ -5,6 +5,7 @@ from json import JSONDecodeError
 import boto3
 from django.conf import settings
 from django.utils.functional import classproperty
+from django_userforeignkey.request import get_current_request
 
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.subsequences.actions.base import ActionClassConfig
@@ -175,7 +176,7 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
                 .replace(choices_list_placeholder, choices_text)
             )
 
-    def get_response_from_llm(self, prompt: str) -> str:
+    def get_response_from_llm(self, prompt: str) -> dict:
         aws_id = settings.AWS_ACCESS_KEY_ID
         aws_secret = settings.AWS_SECRET_ACCESS_KEY
         bedrock_runtime = boto3.client(
