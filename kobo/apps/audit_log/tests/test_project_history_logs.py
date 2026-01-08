@@ -1483,7 +1483,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
     def test_log_created_for_duplicate_submission(self, duplicating_user):
         instance, submission = self._add_submission('adminuser')
         submission_url = reverse(
-            self._get_endpoint('api_v2:submission-duplicate'),
+            self._get_endpoint('submission-duplicate'),
             kwargs={
                 'uid_asset': self.asset.uid,
                 'pk': submission['_id'],
@@ -1535,7 +1535,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         edit_submission_xml(xml_parsed, 'Q1', 'new answer')
         edited_submission = xml_tostring(xml_parsed)
         url = reverse(
-            self._get_endpoint('api_v2:assetsnapshot-submission-openrosa'),
+            self._get_endpoint('assetsnapshot-submission-openrosa'),
             args=(self.asset.snapshot().uid,),
         )
         data = {
@@ -1721,10 +1721,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             kwargs = {'token': data_collector.token}
         else:
             kwargs = {'username': self.user.username} if not v1 else {}
-        url = reverse(
-            self._get_endpoint(endpoint),
-            kwargs=kwargs,
-        )
+        url = reverse(endpoint, kwargs=kwargs)
         data = {'xml_submission_file': SimpleUploadedFile('name.txt', ET.tostring(xml))}
         # ensure anonymous users are allowed to submit
         self.asset.assign_perm(perm=PERM_ADD_SUBMISSIONS, user_obj=AnonymousUser())
