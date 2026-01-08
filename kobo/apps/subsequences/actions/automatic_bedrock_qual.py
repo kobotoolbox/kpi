@@ -30,6 +30,7 @@ from kobo.apps.subsequences.prompts import (
     parse_text_response,
     response_placeholder,
 )
+from kpi.utils.log import logging
 
 
 class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
@@ -282,6 +283,7 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         qa_question_type = qa_question['type']
         prompt = self.generate_llm_prompt(action_data)
         full_response_text = self.get_response_from_llm(prompt)
+        logging.info(f'LLM prompt: \n{prompt}\nLLM response:\n{full_response_text}')
         try:
             if qa_question_type == QUESTION_TYPE_TEXT:
                 return {
