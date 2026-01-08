@@ -1,3 +1,4 @@
+from django.contrib.auth.management import DEFAULT_DB_ALIAS
 from django.db import connection
 
 from .fix_migrations_for_kobocat import are_migrations_already_applied
@@ -5,8 +6,8 @@ from .fix_migrations_for_kobocat import are_migrations_already_applied
 
 def run():
 
-    if not are_migrations_already_applied('default'):
-        print('Migrations not yet applied. Skip!')
+    if not are_migrations_already_applied(DEFAULT_DB_ALIAS):
+        print('Skipping KPI migration fixes...')
         return
 
     if should_fix_internal_mfa_app_label():

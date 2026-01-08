@@ -4,6 +4,7 @@ from django.db import connection, connections
 
 def run():
     if not are_migrations_already_applied(settings.OPENROSA_DB_ALIAS):
+        print('Skipping KoboCAT migration fixes...')
         return
 
     if migrate_custom_user_model():
@@ -22,7 +23,9 @@ def are_migrations_already_applied(connection_name: str):
             ");"
         )
         row = cursor.fetchone()
-        return bool(row[0])
+    if not bool(row[0]):
+        print(f'Fresh install detected (no applied migrations on database: {connection_name}).')
+    return bool(row[0])
 
 
 def delete_kobocat_form_disclaimer_app():
