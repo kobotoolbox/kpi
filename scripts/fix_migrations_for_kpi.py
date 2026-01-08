@@ -1,8 +1,14 @@
-from django.conf import settings
-from django.db import connection, connections
+from django.db import connection
 
 
 def run():
+    if 'django_migrations' not in connection.introspection.table_names():
+        print(
+            'Django migrations are not set up yet, if this is a new install '
+            'the fixes in this script are not necessary'
+        )
+        return
+
     if should_fix_internal_mfa_app_label():
         fix_internal_mfa_app_label()
 
