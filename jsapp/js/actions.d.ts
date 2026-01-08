@@ -316,6 +316,17 @@ interface SurveyAddExternalItemCompletedDefinition extends Function {
   listen: (callback: (response: any) => void) => Function
 }
 
+interface UnsubscribeFromCollectionDefinition extends Function {
+  (assetUid: string): void
+  listen: (callback: (assetUid: string) => void) => Function
+  completed: UnsubscribeFromCollectionCompletedDefinition
+  failed: GenericFailedDefinition
+}
+interface UnsubscribeFromCollectionCompletedDefinition extends Function {
+  (response: any): void
+  listen: (callback: (response: any) => void) => Function
+}
+
 // NOTE: as you use more actions in your ts files, please extend this namespace,
 // for now we are defining only the ones we need.
 export declare const actions: {
@@ -387,11 +398,16 @@ export declare const actions: {
     setMessageReadTime: GenericDefinition
   }
   library: {
+    getCollections: GenericDefinition
     moveToCollection: GenericDefinition
     subscribeToCollection: GenericDefinition
-    unsubscribeFromCollection: GenericDefinition
+    unsubscribeFromCollection: UnsubscribeFromCollectionDefinition
     searchMyCollectionAssets: GenericDefinition
     searchMyCollectionMetadata: GenericDefinition
+    searchMyLibraryAssets: GenericDefinition
+    searchMyLibraryMetadata: GenericDefinition
+    searchPublicCollections: GenericDefinition
+    searchPublicCollectionsMetadata: GenericDefinition
   }
   submissions: {
     getSubmission: GetSubmissionDefinition
