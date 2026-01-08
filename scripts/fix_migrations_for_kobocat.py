@@ -3,7 +3,7 @@ from django.db import connection, connections
 
 
 def run():
-    if not are_migration_already_applied():
+    if not are_migrations_already_applied(settings.OPENROSA_DB_ALIAS):
         return
 
     if migrate_custom_user_model():
@@ -12,8 +12,8 @@ def run():
 
     fix_mfa_migrations()
 
-def are_migration_already_applied():
-    with connection.cursor() as cursor:
+def are_migrations_already_applied(connection_name: str):
+    with connections[connection_name].cursor() as cursor:
         cursor.execute(
             "SELECT EXISTS ("
             "    SELECT FROM pg_tables"

@@ -1,11 +1,12 @@
 from django.db import connection
 
-from .fix_migrations_for_kobocat import are_migration_already_applied
+from .fix_migrations_for_kobocat import are_migrations_already_applied
 
 
 def run():
 
-    if not are_migration_already_applied():
+    if not are_migrations_already_applied('default'):
+        print('Migrations not yet applied. Skip!')
         return
 
     if should_fix_internal_mfa_app_label():
