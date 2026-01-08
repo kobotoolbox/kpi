@@ -1,19 +1,20 @@
 from constance.test import override_config
 from django.test import TestCase
+from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIRequestFactory
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.apps.api.viewsets.data_viewset import DataViewSet
 from kobo.apps.openrosa.apps.logger.models.attachment import AttachmentDeleteStatus
 from kobo.apps.openrosa.apps.main.models import UserProfile
 from kobo.apps.project_ownership.utils import create_invite
 from kobo.apps.trash_bin.utils import move_to_trash, put_back
+from kpi.tests.base_test_case import BaseTestCase
 from kpi.tests.mixins.create_asset_and_submission_mixin import AssetSubmissionTestMixin
 from kpi.tests.utils.transaction import immediate_on_commit
 
 
-class AttachmentTrashStorageCountersTestCase(TestCase, AssetSubmissionTestMixin):
+class AttachmentTrashStorageCountersTestCase(BaseTestCase, AssetSubmissionTestMixin):
     """
     Test that moving an attachment to trash and restoring it updates the
     storage counters
@@ -75,11 +76,15 @@ class AttachmentTrashStorageCountersTestCase(TestCase, AssetSubmissionTestMixin)
         decremented_user_bytes = self.user_profile.attachment_storage_bytes
 
         # Delete the submission
-        view = DataViewSet.as_view({'delete': 'destroy'})
-        request = self.factory.delete('/', **self.extra)
-        formid = self.xform.pk
-        dataid = self.xform.instances.all().order_by('id')[0].pk
-        response = view(request, pk=formid, dataid=dataid)
+        submission_detail_url = reverse(
+            self._get_endpoint('submission-detail'),
+            kwargs={
+                'uid_asset': self.asset.uid,
+                'pk': self.instance.pk,
+            },
+        )
+        self.client.force_login(self.user)
+        response = self.client.delete(submission_detail_url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
         # Verify that the attachment storage counter is not decreased twice

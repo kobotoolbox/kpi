@@ -1525,6 +1525,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
 
         # Python-only attribute used by `kpi.views.v2.data.DataViewSet.list()`
         self.current_submission_count = total_count
+        print("\n\n ----------- total submissions count:", total_count)
 
         add_supplemental_details_to_query = self.asset.has_advanced_features
 

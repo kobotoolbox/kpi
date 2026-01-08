@@ -396,6 +396,7 @@ class TestAttachmentViewSet(TestAbstractViewSet):
 
         """
         self.test_update_attachment_on_edit()
+        self.xform.asset.deploy(backend='mock')
         self.xform.refresh_from_db()
 
         instance = self.xform.instances.first()
@@ -417,8 +418,8 @@ class TestAttachmentViewSet(TestAbstractViewSet):
         # to it, even the soft-deleted one.
         self.client.delete(
             reverse(
-                'data-detail',
-                kwargs={'pk': self.xform.pk, 'dataid': instance.pk},
+                'submission-detail',
+                kwargs={'pk': instance.pk, 'uid_asset': self.xform.kpi_asset_uid},
             ),
             format='json',
         )

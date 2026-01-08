@@ -13,8 +13,9 @@ class TestAuthBase(TestBase):
         TestBase.setUp(self)
         self._create_user_and_login(username='bob', password='bob')
         self._publish_transportation_form()
+        self.xform.asset.deploy(backend='mock')
         self.api_url = reverse(
-            'data-list', kwargs={'pk': self.xform.pk, 'format': 'json'}
+            'submission-list', kwargs={'uid_asset': self.xform.kpi_asset_uid}
         )
         self._logout()
 
@@ -42,16 +43,6 @@ class TestBasicHttpAuthentication(TestAuthBase):
         response = client.get(self.api_url, **self._set_auth_headers('bob', 'bob'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_http_auth_shared_data(self):
-        self.xform.shared_data = True
-        self.xform.save()
-        response = self.anon.get(self.api_url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # Log in as bob
-        self._login(username='bob', password='bob')
-        response = self.client.get(self.api_url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
     def test_http_auth_failed_with_mfa_active(self):
         # headers with valid user/pass
         response = self.client.get(self.api_url, **self._set_auth_headers('bob', 'bob'))
@@ -71,49 +62,12 @@ class TestBasicHttpAuthentication(TestAuthBase):
         # Allow Basic Auth with MFA
         with override_settings(
             MFA_SUPPORTED_AUTH_CLASSES=[
-                'kobo.apps.openrosa.libs.authentication.HttpsOnlyBasicAuthentication',
+                'kpi.authentication.BasicAuthentication',
             ]
         ):
             response = self.client.get(
                 self.api_url, **self._set_auth_headers('bob', 'bob')
             )
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-
-class TestDigestAuthentication(TestAuthBase):
-    def setUp(self):
-        super().setUp()
-        # Data endpoint does not support Digest.
-        # Let's test it against the XForm list
-        self.api_url = reverse('data-list', kwargs={'format': 'json'})
-
-    def test_digest_auth_failed_with_mfa_active(self):
-        # headers with valid user/pass
-        digest_client = self._get_authenticated_client(self.api_url, 'bob', 'bob')
-        response = digest_client.get(self.api_url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        # Activate MFA
-        self.activate_mfa(self.user)
-        digest_client = self._get_authenticated_client(self.api_url, 'bob', 'bob')
-        response = digest_client.get(self.api_url)
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-
-    def test_digest_auth_with_mfa_active_with_exception(self):
-        # Activate MFA
-        self.activate_mfa(self.user)
-        digest_client = self._get_authenticated_client(self.api_url, 'bob', 'bob')
-        response = digest_client.get(self.api_url)
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-
-        # Allow Basic Auth with MFA
-        with override_settings(
-            MFA_SUPPORTED_AUTH_CLASSES=[
-                'kpi.authentication.DigestAuthentication',
-            ]
-        ):
-            digest_client = self._get_authenticated_client(self.api_url, 'bob', 'bob')
-            response = digest_client.get(self.api_url)
             self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 

@@ -382,10 +382,11 @@ class TestExports(TestBase):
         # get id of second submission
         instance_id = Instance.objects.filter(
             xform=self.xform).order_by('id').reverse()[0].id
-        delete_url = reverse('data-detail', kwargs={
-            'pk': self.xform.pk,
-            'dataid': instance_id
-        })
+        self.xform.asset.deploy(backend='mock')
+        delete_url = reverse(
+            'submission-detail',
+            kwargs={'pk': instance_id, 'uid_asset': self.xform.kpi_asset_uid}
+        )
         self.client.delete(delete_url)
         count = ParsedInstance.query_mongo(
             self.user.username, self.xform.id_string, '{}', '[]', '{}',
