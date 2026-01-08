@@ -1,9 +1,7 @@
 import * as Backbone from 'backbone'
 import type { Survey } from './model.survey'
 
-/**
- * Factory for creating skip logic components based on question types.
- */
+/** Factory for creating skip logic components based on question types. */
 export class SkipLogicFactory {
   survey: Survey
   constructor(survey: Survey)
@@ -12,10 +10,7 @@ export class SkipLogicFactory {
   create_response_model(type: string): ResponseModel
 }
 
-/**
- * Represents a single condition in a skip logic rule.
- * Example: ${age} > 18
- */
+/** Represents a single condition in a skip logic rule. */
 export class SkipLogicCriterion extends Backbone.Model {
   factory: SkipLogicFactory
   survey: Survey
@@ -24,29 +19,20 @@ export class SkipLogicCriterion extends Backbone.Model {
 
   /** Generates the final XPath string for this criterion */
   serialize(): string
-
-  /** Internal helper to find the targeted question by CID */
   _get_question(): any
-
   /** Updates the criterion when the targeted question changes */
   change_question(cid: string): void
-
   /** Updates the operator and ensures the response type is still valid */
   change_operator(operator: string | number): void
-
   /** Calculates the required response type (text, number, dropdown, etc) */
   get_correct_type(): string
-
   /** Ensures choice options have valid XML names for dropdown logic */
   set_option_names(options: any[]): void
-
   /** Updates the expected response value/model */
   change_response(value: any): void
 }
 
-/**
- * Base class for logic operators (=, !=, <, >, selected, etc.)
- */
+/** Base class for logic operators (=, !=, <, >, selected, etc.) */
 export class Operator extends Backbone.Model {
   serialize(question_name: string, response_value: any): string
   get_value(): string
@@ -63,10 +49,7 @@ export class DateOperator extends SkipLogicOperator {}
 export class ExistenceSkipLogicOperator extends SkipLogicOperator {}
 export class SelectMultipleSkipLogicOperator extends SkipLogicOperator {}
 
-/**
- * Models for the "Value" side of a logic equation.
- * Handles validation and formatting (e.g., adding quotes to strings or date() wrappers).
- */
+/** Models for the "Value" side of a logic equation. Handles validation and formatting. */
 export class ResponseModel extends Backbone.Model {
   constructor(type: string)
   get_type(): string
@@ -92,5 +75,4 @@ declare const rowDetailsSkipLogic: {
   DecimalResponseModel: typeof DecimalResponseModel
   DateResponseModel: typeof DateResponseModel
 }
-
 export default rowDetailsSkipLogic

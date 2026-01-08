@@ -8,9 +8,7 @@ export interface RowOptions extends Backbone.ModelSetOptions {
   error?: Error
 }
 
-/**
- * The base class for every row-like object (Question, Group, Error)
- */
+/** The base class for every row-like object (Question, Group, Error) */
 export class BaseRow extends BaseModel {
   static kls: string
   _parent: any
@@ -37,27 +35,26 @@ export class BaseRow extends BaseModel {
   toJSON(): Record<string, any>
 }
 
-/**
- * Standard survey question
- */
+/** Standard survey question */
 export class Row extends BaseRow {
   static kls: 'Row'
 
   constructor(attributes?: any, options?: RowOptions)
 
   getTypeId(): string
-  get_type(): any // Returns question type config
+  /** Returns question type config */
+  get_type(): any
   _isSelectQuestion(): boolean
 
-  /** File type restrictions (body::accept) */
+  // File type restrictions (body::accept) handling
   getAcceptedFiles(): string | undefined
   setAcceptedFiles(bodyAcceptString: string): void
 
-  /** XLSForm parameters (e.g. start-date, end-date) */
+  // XLSForm parameters (e.g. start-date, end-date) handling
   getParameters(): Record<string, any>
   setParameters(paramObject: Record<string, any>): void
 
-  /** Choice List Management */
+  // Choice List Management
   getList(): ChoiceList
   setList(list: ChoiceList | string): void
 
@@ -67,18 +64,14 @@ export class Row extends BaseRow {
   linkUp(ctx: any): void
 }
 
-/**
- * Fallback class for rows that failed to parse correctly
- */
+/** Fallback class for rows that failed to parse correctly */
 export class RowError extends BaseRow {
   _error: Error
   constructor(obj: any, options: RowOptions)
   isError(): true
 }
 
-/**
- * Simplified row used as sub-items in Score/Rank questions
- */
+/** Simplified row used as sub-items in Score/Rank questions */
 declare class SimpleRow extends Backbone.Model {
   finalize(): void
   simpleEnsureKuid(): void
@@ -89,9 +82,7 @@ declare class SimpleRow extends Backbone.Model {
   getValue(which: string): any
 }
 
-/**
- * Mixin functionality for complex question types (Score/Rank)
- */
+/** Mixin functionality for complex question types (Score/Rank) */
 export interface ScoreRankMixin {
   _rowAttributeName: string
   _extendAll(rr: Row): void
@@ -100,11 +91,9 @@ export interface ScoreRankMixin {
   forEachRow(cb: (row: any) => void, ctx: any): void
 }
 
-// Internal Module Structure
 declare const row: {
   BaseRow: typeof BaseRow
   Row: typeof Row
   RowError: typeof RowError
 }
-
 export default row

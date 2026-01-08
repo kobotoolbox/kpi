@@ -4,9 +4,7 @@ import type { Row } from './model.row'
 import type { Group } from './model.surveyFragment'
 import type { SurveyFragmentApp } from './view.surveyApp'
 
-/**
- * Base Options for any Row View
- */
+/** Base Options for any Row View */
 export interface RowViewOptions extends Backbone.ViewOptions<Row | Group> {
   ngScope?: SurveyScope
   surveyView: SurveyFragmentApp
@@ -14,9 +12,7 @@ export interface RowViewOptions extends Backbone.ViewOptions<Row | Group> {
   fixScroll?: boolean
 }
 
-/**
- * Base class for all row-like views (questions, groups).
- */
+/** Base class for all row-like views (questions, groups). */
 export class BaseRowView extends Backbone.View<Row | Group> {
   model: Row | Group
   ngScope: SurveyScope
@@ -28,7 +24,7 @@ export class BaseRowView extends Backbone.View<Row | Group> {
   is_expanded: boolean
   _settingsExpanded: boolean
 
-  // DOM caches
+  // DOM pointers
   $card: JQuery
   $header: JQuery
   $label: JQuery
@@ -37,7 +33,7 @@ export class BaseRowView extends Backbone.View<Row | Group> {
 
   initialize(opts: RowViewOptions): void
 
-  /** Handles drag-and-drop 'drop' event */
+  /** Handles drag-and-drop's drop event */
   drop(evt: JQuery.TriggeredEvent, index: number): void
 
   getApp(): SurveyFragmentApp
@@ -55,7 +51,7 @@ export class BaseRowView extends Backbone.View<Row | Group> {
   render(opts?: { fixScroll?: boolean }): this
 
   _renderError(): this
-  _renderRow(): this // Abstract-ish method overridden by subclasses
+  _renderRow(): this
 
   toggleSettings(show?: boolean): void
   _expandedRender(): void
@@ -65,64 +61,51 @@ export class BaseRowView extends Backbone.View<Row | Group> {
   addItemToLibrary(evt: JQuery.TriggeredEvent): void
 }
 
-/**
- * Standard Question View (select_one, text, note, etc.)
- */
+/** Standard Question View (select_one, text, note, etc.) */
 export class RowView extends BaseRowView {
   model: Row
   paramsView?: any
   acceptedFilesView?: any
   listView?: any
   mandatorySetting?: any
-
   _onMandatorySettingChange(newVal: any): void
-
   hideMultioptions(): void
   showMultioptions(): void
   toggleMultioptions(): void
 }
 
-/**
- * Group View (contains nested rows)
- */
+/** Group View (contains nested rows) */
 export class GroupView extends BaseRowView {
   model: Group
   $rows: JQuery
   _shrunk: boolean
-
   deleteGroup(evt: JQuery.TriggeredEvent): void
   _deleteGroup(): void
   _deleteGroupWithContent(): void
-
   hasNestedGroups(): boolean
   add_group_to_library(evt: JQuery.TriggeredEvent): void
 }
 
-/**
- * Matrix Question View (specialized group)
- */
+/** Matrix Question View (specialized group) */
 export class KoboMatrixView extends RowView {
   matrix: JQuery
 }
 
-/**
- * Shared logic for Rank and Score views
- */
+/** Shared logic for Rank and Score views */
 export class RankScoreView extends RowView {
   // Overrides _expandedRender to hide certain standard settings
+  _expandedRender(): void
 }
 
-/**
- * Score Question View
- */
+/** Score Question View */
 export class ScoreView extends RankScoreView {
   // Complex logic for rendering score grids and handling inline edits
-  editRanks(): void // Although named editRanks, likely shared or copy-paste legacy naming
+  // TODO: Although this is named editRanks, it should probably be `editScores` or something… possibly not renamed when
+  // copy-pasted or shared with `RankView` below?
+  editRanks(): void
 }
 
-/**
- * Rank Question View
- */
+/** Rank Question View */
 export class RankView extends RankScoreView {
   editRanks(): void
 }
@@ -134,5 +117,4 @@ declare const rowViewModule: {
   ScoreView: typeof ScoreView
   RankView: typeof RankView
 }
-
 export default rowViewModule

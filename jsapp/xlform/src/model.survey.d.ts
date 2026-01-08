@@ -7,15 +7,17 @@ import { type Rows, SurveyFragment } from './model.surveyFragment'
 
 export interface FlatRow {
   type: AnyRowTypeName
-  name?: string // `end_kobomatrix` might not have `name`
-  label?: string | string[] // KPI often stores labels as arrays for translations
+  /** `end_kobomatrix` might not have `name` */
+  name?: string
+  /** Will be an array when translations are defined */
+  label?: string | string[]
   hint?: string | string[]
   required?: string | boolean
   relevant?: string
   constraint?: string
   calculation?: string
   appearance?: string
-  [key: string]: any // Allows for dynamic Kobo-specific attributes
+  [key: string]: any
 }
 
 export interface FlatChoice {
@@ -27,14 +29,12 @@ export interface FlatChoice {
 
 export interface FlatSurvey {
   survey: FlatRow[]
-  choices?: FlatChoice[] // Optional because it might be empty
-  settings: Record<string, any>[] // CoffeeScript wraps settings in an array
-  [key: string]: any // For dynamic props like lockingProfiles
+  choices?: FlatChoice[]
+  settings: Record<string, any>[]
+  [key: string]: any
 }
 
-/**
- * Interface representing the structure of a serialized XLSForm
- */
+/** Interface representing the structure of a serialized XLSForm */
 export interface CsvJsonStructure {
   columns: string[]
   rowObjects: Array<Record<string, any>>
@@ -46,9 +46,7 @@ export interface FullCsvJson {
   settings: CsvJsonStructure
 }
 
-/**
- * Settings model for the Survey
- */
+/** Settings model for the Survey */
 export class Settings extends BaseModel {
   auto_name: boolean
   changing_form_title: boolean
@@ -59,42 +57,29 @@ export class Settings extends BaseModel {
   enable_auto_name(): void
 }
 
-/**
- * Main Survey Class
- */
+/** Main Survey Class */
 export class Survey extends SurveyFragment {
-  // Properties initialized in constructor
   settings: Settings
   lockingProfiles: any
   newRowDetails: any
   defaultsForType: any
   surveyDetails: SurveyDetails
-
-  /**
-   * The collection of rows (questions/groups) in this survey.
-   */
   rows: Rows
-
   choices: ChoiceLists
-
   context: {
     warnings: any[]
     errors: any[]
   }
-
   availableFiles?: AssetResponseFile[]
 
   constructor(options?: any, addlOpts?: any)
 
-  /**
-   * Iterates through every row in the survey, including nested rows
-   * inside groups and repeats.
-   * @param callback Function to execute for each row
-   * @param options { includeGroups?: boolean, includeErrors?: boolean, flat?: boolean }
-   */
-  forEachRow(callback: (row: BaseRow) => void, options?: any): void
+  /** Iterates through every row in the survey, including nested rows inside groups and repeats. */
+  forEachRow(
+    callback: (row: BaseRow) => void,
+    options?: { includeGroups?: boolean; includeErrors?: boolean; flat?: boolean },
+  ): void
 
-  // Instance Methods
   linkUpChoiceLists(): void
   insert_row(row: any, index: number): any
   insertSurvey(survey: Survey, index?: number, targetGroupId?: string): void
@@ -113,7 +98,6 @@ export class Survey extends SurveyFragment {
   toMarkdown(): string
   toCSV(): string
 
-  // Internal/Helper Methods (often prefixed with _)
   _ensure_row_list_is_copied(row: any): void
   _insertRowInPlace(row: any, opts?: any): void
 
@@ -121,13 +105,8 @@ export class Survey extends SurveyFragment {
   on(eventName: string, callback: Function, context?: any): this
   trigger(eventName: string, ...args: any[]): this
 
-  /** * Static Methods
-   */
   static create(options?: any, addlOpts?: any): Survey
 
-  /**
-   * Static Loaders
-   */
   static load: {
     (csv_repr: string | any, _usingSurveyLoadCsv?: boolean): Survey
     csv(csv_repr: string): Survey
@@ -137,10 +116,8 @@ export class Survey extends SurveyFragment {
   static loadDict(obj: any, baseSurvey?: Survey): Survey
 }
 
-// The module exports an object containing these classes
 declare const _default: {
   Survey: typeof Survey
   Settings: typeof Settings
 }
-
 export default _default

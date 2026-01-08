@@ -2,9 +2,7 @@ import type * as Backbone from 'backbone'
 import { BaseCollection } from './model.base'
 import { BaseRow, type Row } from './model.row'
 
-/**
- * Options for iterating through rows in a Survey or Group
- */
+/** Options for iterating through rows in a Survey or Group */
 export interface ForEachRowOptions {
   includeGroups?: boolean
   includeErrors?: boolean
@@ -17,19 +15,13 @@ export interface RowDescriptor {
   name: string
 }
 
-/**
- * The collection that holds rows. It uses a dynamic model factory
- * to decide whether to create a Row, Group, or RowError.
- */
+/** The collection that holds rows */
 export class Rows extends BaseCollection<BaseRow> {
   _parent: SurveyFragment | Group
   comparator(m: BaseRow): number
 }
 
-/**
- * Base class for both the Survey and Groups,
- * providing common row manipulation logic.
- */
+/** Base class for both the Survey and Groups, providing common row manipulation logic */
 export class SurveyFragment extends BaseCollection<any> {
   rows: Rows
   errors: string[]
@@ -37,7 +29,6 @@ export class SurveyFragment extends BaseCollection<any> {
 
   constructor(arg?: any, opts?: any)
 
-  // Core Iteration
   forEachRow(cb: (row: any) => void, ctx?: ForEachRowOptions): void
 
   // Validation
@@ -45,48 +36,39 @@ export class SurveyFragment extends BaseCollection<any> {
   clearErrors(): void
   addError(message: string): void
 
-  // Search and Retrieval
+  // Search and retrieval
   getRowDescriptors(): RowDescriptor[]
   findRowByCid(cid: string, options?: ForEachRowOptions): any
   findRowByName(name: string, opts?: ForEachRowOptions): any
 
-  // Row Manipulation
+  // Row manipulation
   addRow(r: any, opts?: { after?: any; before?: any; at?: number; [key: string]: any }): any
   addRowAtIndex(r: any, index: number): any
   detach(): void
   remove(item: any): void
 
-  // Group Logic
+  // Group logic
   _addGroup(opts: { type?: string; __rows?: any[]; label?: string; [key: string]: any }): void
   _allRows(): Row[]
   finalize(): this
 
-  // Internal Meta-model proxies (bound in constructor)
+  // Internal meta-model proxies (bound in constructor)
   get(attr: string): any
   set(attr: string, value: any, options?: any): void
   set(obj: any, options?: any): void
 
-  /**
-   * Remove a previously-bound callback function from an object.
-   * Proxied to the internal _meta model.
-   */
+  /** Remove a previously-bound callback function from an object */
   off(eventName?: string, callback?: Function, context?: any): this
 
-  /**
-   * Bind a callback function to an object.
-   * Proxied to the internal _meta model.
-   */
+  /** Bind a callback function to an object */
   on(eventName: string, callback: Function, context?: any): this
 
-  /**
-   * Trigger callbacks for the given event.
-   * Proxied to the internal _meta model.
-   */
+  /** Trigger callbacks for the given event */
   trigger(eventName: string, ...args: any[]): this
 }
 
 /**
- * Represents a group or repeat in the XLSForm
+ * Represents a group or repeat group in the XLSForm
  */
 export class Group extends BaseRow {
   static kls: 'Group'
@@ -103,7 +85,7 @@ export class Group extends BaseRow {
   detach(opts?: any): void
   splitApart(): void
 
-  // Already there in `BaseRow`, but TypeScript wasn't catching that…
+  // It's already there in `BaseRow`, but TypeScript wasn't catching that…
   toJSON2(): Record<string, any>
   get(attributeName: string): any
   set(attributeName: string, value: any, options?: any): this
@@ -114,7 +96,7 @@ export class Group extends BaseRow {
   _afterIterator(cb: Function, ctxt: ForEachRowOptions): void
   forEachRow(cb: (row: any) => void, ctx?: ForEachRowOptions): void
 
-  // XLSForm Structure Helpers
+  // XLSForm structure helpers
   _groupOrRepeatKey(): 'group' | 'repeat'
   groupStart(): {
     export_relevant_values: (surv: any[], shts: any) => void
@@ -126,9 +108,6 @@ export class Group extends BaseRow {
   }
 }
 
-/**
- * Internal Matrix Mixin types
- */
 export interface KobomatrixMixin {
   _kobomatrix_columns: Backbone.Collection<any>
   linkUp(ctx: any): Record<string, any>
@@ -139,5 +118,4 @@ declare const surveyFragment: {
   SurveyFragment: typeof SurveyFragment
   Group: typeof Group
 }
-
 export default surveyFragment

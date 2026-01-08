@@ -2,9 +2,7 @@ import * as Backbone from 'backbone'
 import type { Row } from './model.row'
 import type { Survey } from './model.survey'
 
-/**
- * Interface for the Angular Scope often passed into the view
- */
+/** Interface for React (called "ng" because we wanted (did we?) to use angular years ago?) */
 export interface NgScope {
   rawSurvey?: any
   assetType?: { id: string }
@@ -12,9 +10,7 @@ export interface NgScope {
   [key: string]: any
 }
 
-/**
- * Interface for the State Store (Redux-lite pattern used in Kobo)
- */
+/** Interface for the surveyState Reflux store */
 export interface SurveyStateStore {
   trigger: (event: any) => void
   setState: (state: Record<string, any>) => void
@@ -33,14 +29,10 @@ export interface SurveyAppOptions extends Backbone.ViewOptions<Backbone.Model> {
   preview?: () => void
 }
 
-/**
- * Base class for the Survey Builder Application.
- * Handles the DOM events, Drag & Drop, and Selection logic.
- */
+/** Base class for the Form Builder "app" - it handles the DOM events, Drag & Drop, and Selection logic */
 export class SurveyFragmentApp extends Backbone.View<Backbone.Model> {
   /**
-   * Explicitly define the constructor to accept `SurveyAppOptions`.
-   * This overrides the default Backbone constructor signature.
+   * Explicitly define the constructor to accept `SurveyAppOptions` (this overrides the default Backbone constructor)
    */
   constructor(options?: SurveyAppOptions)
 
@@ -49,7 +41,8 @@ export class SurveyFragmentApp extends Backbone.View<Backbone.Model> {
   ngScope: SurveyScope
   surveyStateStore: SurveyStateStore
 
-  /** * A Backbone Model acting as a Map<RowCid, RowView>.
+  /**
+   * A Backbone Model acting as a Map<RowCid, RowView>.
    * Stores references to the sub-views for every question.
    */
   __rowViews: Backbone.Model
@@ -57,7 +50,7 @@ export class SurveyFragmentApp extends Backbone.View<Backbone.Model> {
   /** Reference to the jQuery element for the editor container */
   formEditorEl: JQuery
 
-  /** Reference to the "add row" selector at the top of an empty form */
+  /** Reference to "initial row in the survey" */
   null_top_row_view_selector: any
 
   features: {
@@ -73,37 +66,26 @@ export class SurveyFragmentApp extends Backbone.View<Backbone.Model> {
   initialize(options: SurveyAppOptions): void
   render(): this
 
-  /**
-   * Internal render steps
-   */
+  // Internal render steps
   _render_html(): void
   _render_attachEvents(): void
   _render_addSubViews(): void
   _render_hideConditionallyDisplayedContent(): void
 
-  /**
-   * Resets the view, re-rendering rows.
-   * @param newlyAddedRow If provided, focuses/scrolls to this row.
-   */
+  /** Resets the view, re-rendering rows. If `newlyAddedRow` is provided, it focuses/scrolls to this row. */
   _reset(newlyAddedRow?: Row | false): void
-  reset: (newlyAddedRow?: Row | false) => JQuery.Promise<void> // Debounced version
+  // Debounced version of the above(?)
+  reset: (newlyAddedRow?: Row | false) => JQuery.Promise<void>
 
-  /**
-   * UI Tab Switching
-   */
   switchTab(event: JQuery.TriggeredEvent): void
 
-  /**
-   * Drag and Drop (Sortable) Logic
-   */
+  // Drag and Drop (Sortable) Logic
   activateSortable(): void
   surveyRowSortableStop(evt: JQuery.TriggeredEvent): void
   updateSort(evt: any, model: Row, position: number): void
   _preventSortableIfGroupTooSmall(index: number, element: HTMLElement): void
 
-  /**
-   * Row Selection Logic
-   */
+  // Row Selection Logic
   selectRow(evt: JQuery.TriggeredEvent): void
   forceSelectRow(evt: JQuery.TriggeredEvent): void
   deselect_rows(evt: JQuery.TriggeredEvent): void
@@ -112,83 +94,64 @@ export class SurveyFragmentApp extends Backbone.View<Backbone.Model> {
   questionSelect(): void
   activateGroupButton(active: boolean): void
 
-  /** Returns an array of currently selected Row models */
+  /** Returns an array of currently selected rows */
   selectedRows(): Row[]
 
-  /**
-   * Takes selected rows and wraps them in a new Group.
-   * Returns true if successful.
-   */
+  /** Takes selected rows and wraps them in a new Group. Returns true if successful. */
   groupSelectedRows(): boolean
 
-  /**
-   * Actions
-   */
+  // Actions
   clickRemoveRow(evt: JQuery.TriggeredEvent): void
   clickDeleteGroup(evt: JQuery.TriggeredEvent): void
   clickAddRowToQuestionLibrary(evt: JQuery.TriggeredEvent): void
   clickAddGroupToLibrary(evt: JQuery.TriggeredEvent): void
   clickCloneQuestion(evt: JQuery.TriggeredEvent): void
 
-  /**
-   * Expand/Collapse Logic
-   */
+  // Expand/Collapse Logic
   toggleCardSettings(evt: JQuery.TriggeredEvent): void
   toggleGroupExpansion(evt: JQuery.TriggeredEvent): void
   toggleRowMultioptions(evt: JQuery.TriggeredEvent): void
   expandRowSelector(evt: JQuery.TriggeredEvent): void
-
   shrinkAllGroups(): void
   expandAllGroups(): void
-
-  /** Toggles between showing all choices or hiding them */
   expandMultioptions(): void
   expand_all_multioptions: () => boolean
 
-  /**
-   * Locking / Permissions
-   */
+  // Locking / Permissions
   hasRestriction(restrictionName: string): boolean
   isLockable(): boolean
   applyLocking(): void
 
-  /**
-   * View Retrieval & DOM Helpers
-   */
+  // View Retrieval & DOM Helpers
   getView(cid: string): Backbone.View<Backbone.Model>
   getViewForRow(row: Row): Backbone.View<Backbone.Model> // Returns specific sub-view
   _getViewForTarget(evt: JQuery.TriggeredEvent | { currentTarget: HTMLElement }): any // Returns the sub-view associated with the event target
   ensureElInView(row: Row, parentView: any, $parentEl: JQuery): any
   getItemPosition(item: JQuery): number
 
-  /**
-   * Validation
-   */
+  // Validation
   validateSurvey(): boolean
   closeWarningBox(evt: JQuery.TriggeredEvent): void
 
-  /** Button Hover Effects */
+  // Button hover callbacks
   buttonHoverIn(evt: JQuery.TriggeredEvent): void
   buttonHoverOut(evt: JQuery.TriggeredEvent): void
 
   getApp(): this
 }
 
-/**
- * The concrete implementation used in the application.
- */
+/** The actual implementation used in the application */
 export class SurveyApp extends SurveyFragmentApp {
   features: {
     multipleQuestions: true
     skipLogic: true
     copyToLibrary: true
   }
-  // Inherits constructor from SurveyFragmentApp
+  // Note: It inherits constructor from SurveyFragmentApp
 }
 
 declare const surveyAppModule: {
   SurveyFragmentApp: typeof SurveyFragmentApp
   SurveyApp: typeof SurveyApp
 }
-
 export default surveyAppModule

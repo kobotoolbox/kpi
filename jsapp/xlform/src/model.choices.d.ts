@@ -1,8 +1,6 @@
 import { BaseCollection, BaseModel } from './model.base'
 
-/**
- * A single row in the choices sheet (e.g., an option in a dropdown)
- */
+/** A single row in the choices sheet (e.g. an option in a dropdown) */
 export class Option extends BaseModel {
   initialize(): void
   destroy(): void
@@ -13,16 +11,12 @@ export class Option extends BaseModel {
   toJSON(): Record<string, any>
 }
 
-/**
- * Collection of Option models for a specific ChoiceList
- */
+/** Collection of Option models for a specific ChoiceList */
 export class Options extends BaseCollection<Option> {
   model: typeof Option
 }
 
-/**
- * A list of choices (e.g., "list_name" in XLSForm)
- */
+/** A list of choices (e.g. "list_name" in XLSForm) */
 export class ChoiceList extends BaseModel {
   idAttribute: 'name'
   options: Options
@@ -34,11 +28,9 @@ export class ChoiceList extends BaseModel {
 
   summaryObj(): any
   getSurvey(): any
-
-  /** Cascading Selects: Returns the list this one filters into */
   getList(): ChoiceList | null
 
-  /** Logic for traversing linked cascading lists */
+  // Logic for traversing linked cascading lists
   _get_previous_linked_choice_list(): ChoiceList | undefined
   _get_last_linked_choice_list(): ChoiceList
   _get_first_linked_choice_list(): ChoiceList
@@ -63,9 +55,7 @@ export class ChoiceList extends BaseModel {
   getNames(): string[]
 }
 
-/**
- * Collection of all ChoiceLists in the survey
- */
+/** Collection of all ChoiceLists in the survey */
 export class ChoiceLists extends BaseCollection<ChoiceList> {
   model: typeof ChoiceList
 
@@ -85,5 +75,4 @@ declare const choices: {
   ChoiceList: typeof ChoiceList
   ChoiceLists: typeof ChoiceLists
 }
-
 export default choices

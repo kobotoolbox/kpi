@@ -1,28 +1,20 @@
 import * as Backbone from 'backbone'
 
-/**
- * Base configuration for the XLForm model structure
- */
+/** Base configuration for the XLForm model structure */
 export interface BaseOptions {
   _parent?: any
 }
 
-/**
- * Enhanced Collection that supports tree traversal back to the root Survey
- */
+/** Enhanced Collection that supports tree traversal back to the root Survey */
 export class BaseCollection<T extends Backbone.Model> extends Backbone.Collection<T> {
   _parent: any
   constructor(models?: TModel[] | any[], options?: BaseOptions)
 
-  /**
-   * Traverses up the parent chain until it finds the root Survey object
-   */
+  /** Traverses up the parent chain until it finds the root Survey object */
   getSurvey(): any
 }
 
-/**
- * Enhanced Model providing XLSForm-specific lifecycle and traversal methods
- */
+/** Enhanced Model providing XLSForm-specific lifecycle and traversal methods */
 export class BaseModel extends Backbone.Model {
   _parent: any
   constructor(attributes?: any, options?: BaseOptions)
@@ -35,13 +27,11 @@ export class BaseModel extends Backbone.Model {
   /**
    * Retrieves the value of an attribute from the RowDetail model.
    * Note: This usually returns a RowDetail object, not the raw string value.
-   * Use .getValue() if you want the actual content.
+   * Use `.getValue()` if you want the actual content.
    */
   get(attributeName: string): any
 
-  /**
-   * Sets a hash of attributes (one or many) on the model.
-   */
+  /** Sets a hash of attributes (one or many) on the model */
   set(attributeName: string, value: any, options?: any): this
   set(attributes: any, options?: any): this
 
@@ -51,9 +41,7 @@ export class BaseModel extends Backbone.Model {
    */
   getValue(what?: string): any
 
-  /**
-   * Sets an attribute as a RowDetail object rather than a primitive
-   */
+  /** Sets an attribute as a RowDetail object rather than a primitive */
   setDetail(what: string, value: any): void
 
   /** Navigation Helpers */
@@ -61,14 +49,12 @@ export class BaseModel extends Backbone.Model {
   precedingRow(): any
   nextRow(): any
 
-  /**
-   * Traverses up through parents or collections to find the root Survey
-   */
+  /** Traverses up through parents or collections to find the root Survey */
   getSurvey(): any
 }
 
 /**
- * Represents a single "cell" or property of a Row (e.g., its label or name).
+ * Represents a single "cell" or property of a Row (e.g. its label or name).
  * Supports complex mixins and cell-level validation.
  */
 export class RowDetail extends BaseModel {
@@ -82,9 +68,7 @@ export class RowDetail extends BaseModel {
   /** Hook for post-constructor logic */
   postInitialize(): void
 
-  /** * Validation logic that checks for uniqueness (for 'name')
-   * and requirements based on the key type.
-   */
+  /** Validation logic that checks for uniqueness (for `name`) and requirements based on the key type */
   validation(): any
 }
 
@@ -93,5 +77,4 @@ declare const base: {
   BaseModel: typeof BaseModel
   RowDetail: typeof RowDetail
 }
-
 export default base

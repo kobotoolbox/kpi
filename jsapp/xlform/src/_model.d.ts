@@ -6,15 +6,14 @@ import type * as utils from './model.utils'
 
 /**
  * The aggregated Model namespace for dkobo_xlform.
- * This combines classes from survey and row modules, along with
- * helper utilities and skip logic controllers.
+ * This combines classes from survey and row modules, along with helper utilities and skip logic controllers.
  */
 export interface ModelModule {
-  // Classes from model.survey (Survey, Settings)
+  // Classes from model.survey
   Survey: typeof surveyModule.Survey
   Settings: typeof surveyModule.Settings
 
-  // Classes from model.row (Row, BaseRow, RowError)
+  // Classes from model.row
   Row: typeof rowModule.Row
   BaseRow: typeof rowModule.BaseRow
   RowError: typeof rowModule.RowError
@@ -29,5 +28,4 @@ export interface ModelModule {
 }
 
 declare const model: ModelModule
-
 export default model

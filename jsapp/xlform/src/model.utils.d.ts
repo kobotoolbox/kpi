@@ -1,6 +1,3 @@
-/**
- * Options for the sluggify function to control how strings are sanitized
- */
 export interface SluggifyOptions {
   /** Strip spaces from beginning and end */
   lrstrip?: boolean
@@ -30,31 +27,20 @@ export interface SluggifyOptions {
   incrementorPadding?: number | false
 }
 
-/**
- * Parses a tab-delimited string (like a copy-paste from Excel)
- * into an array of objects.
- */
+/** Parses a tab-delimited string into an array of objects */
 export function split_paste(str: string): Array<Record<string, string>>
 
 export namespace parseHelper {
   function parseSkipLogic(collection: any, value: string, parent_row: any): void
 }
 
-/**
- * Specialized sluggification for XLSForm labels.
- * Defaults to keeping case and ensuring XML tag validity.
- */
+/** Specialized sluggification for XLSForm labels. Defaults to keeping case and ensuring XML tag validity. */
 export function sluggifyLabel(str: string, other_names?: string[]): string
 
-/**
- * Checks if a string conforms to XML tag naming rules.
- */
+/** Checks if a string conforms to XML tag naming rules */
 export function isValidXmlTag(str: string): boolean
 
-/**
- * The core string transformation engine. Converts labels into
- * "slugs" (machine-readable IDs).
- */
+/** The core string transformation engine that converts labels into slugs */
 export function sluggify(str: string, opts?: SluggifyOptions): string
 
 declare const utils: {
@@ -67,5 +53,4 @@ declare const utils: {
   skipLogicParser: any
   validationLogicParser: any
 }
-
 export default utils

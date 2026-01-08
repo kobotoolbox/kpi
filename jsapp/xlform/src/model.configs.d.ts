@@ -1,8 +1,6 @@
 import type * as Backbone from 'backbone'
 
-/**
- * Metadata definition for survey-level details (start, end, audit, etc.)
- */
+/** Metadata definition for survey-level details (start, end, audit, etc.) */
 export interface SurveyDetailDefinition {
   name: string
   label: string
@@ -12,17 +10,12 @@ export interface SurveyDetailDefinition {
   aliases?: string[]
 }
 
-/**
- * Config for a RowDetail (XLSForm cell)
- */
+/** Config for a RowDetail (XLSForm cell) */
 export interface DefaultValueConfig {
   value: any | (() => any)
   _hideUnlessChanged?: boolean
 }
 
-/**
- * Master Question Type Metadata
- */
 export interface QuestionType {
   name: string
   label: string
@@ -33,9 +26,7 @@ export interface QuestionType {
   supportedByUI?: boolean
 }
 
-/**
- * The Configs module interface
- */
+/** The Configs module interface */
 export interface Configs {
   defaultSurveyDetails: Record<string, SurveyDetailDefinition>
   surveyDetailSchema: Backbone.Collection<Backbone.Model>
@@ -46,7 +37,7 @@ export interface Configs {
   /** Default settings for a brand new group or repeat */
   newGroupDetails: Record<string, DefaultValueConfig>
 
-  /** Type-specific overrides (e.g. Geopoint defaults to 'Record your current location') */
+  /** Type-specific overrides */
   defaultsForType: Record<string, Record<string, DefaultValueConfig>>
 
   /** The master order of columns in the exported XLSForm */
@@ -55,19 +46,16 @@ export interface Configs {
   /** Helper to determine the index of a column for CSV ordering */
   columnOrder(key: string): number
 
-  /** * Dictionary of parameter definitions (e.g. range start/end/step)
-   */
+  /** Dictionary of parameter definitions */
   questionParams: Record<string, Record<string, { type: string; defaultValue?: any }>>
 
-  /**
-   * Returns metadata for a question type (e.g. lookupRowType('select_one'))
-   */
+  /** Returns metadata for a question type */
   lookupRowType: {
     (typeId: string): QuestionType | undefined
     typeSelectList(): QuestionType[]
   }
 
-  /** Valid strings that equate to true/false in XLSForm columns */
+  // Valid strings that equate to true/false in XLSForm columns
   truthyValues: string[]
   falsyValues: string[]
   boolOutputs: { true: string; false: string }
