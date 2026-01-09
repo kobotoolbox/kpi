@@ -23,7 +23,6 @@ export const EXCLUDED_COLUMNS = [
   'formhub/uuid',
   '_tags',
   '_geolocation',
-  'meta/rootUuid',
   'meta/instanceID',
   'meta/deprecatedID',
   '_validation_status',

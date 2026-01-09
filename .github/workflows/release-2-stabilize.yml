@@ -2,7 +2,6 @@ name: 'CD: stabilize'
 
 
 on:
-  create:
   push:
     branches: [ 'release/**' ]
 

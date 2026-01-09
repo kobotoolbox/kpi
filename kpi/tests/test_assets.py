@@ -274,6 +274,51 @@ class AssetContentTests(AssetsTestCase):
         except:
             self.assertEqual(self.asset.content.get('translations'), ['lang1', None])
 
+    def test_fix_unnamed_language_leak_on_hint_addition(self):
+        """
+        Verifies that adding a hint to an undeployed form with multiple languages
+        does not create an unnamed (None) language and maintains correct translations.
+        """
+        # Setup with 2 languages
+        languages = ['English (en)', 'French (fr)']
+        initial_content = {
+            'schema': '1',
+            'survey': [
+                {'name': 'start', 'type': 'start', '$kuid': 'DmDARxejl'},
+                {'name': 'end', 'type': 'end', '$kuid': 'ZuYDDLIlj'},
+                {
+                    'name': 'q1',
+                    'type': 'text',
+                    'label': ['Question 1', 'Question 1 FR'],
+                    '$kuid': 'abc123',
+                },
+            ],
+            'settings': {'default_language': 'English (en)'},
+            'translations': languages,
+            'translated': ['label'],
+        }
+
+        asset = Asset.objects.create(
+            owner=self.user, asset_type='survey', content=initial_content
+        )
+
+        # Simulate adding a hint to the question
+        builder_payload = deepcopy(asset.content)
+        if 'hint' not in builder_payload['translated']:
+            builder_payload['translated'].append('hint')
+        builder_payload['survey'][2]['hint'] = 'This is a new hint'
+
+        asset.content = builder_payload
+        asset.save()
+        asset.refresh_from_db()
+
+        # Verify translations: Ensure they weren't removed or added to (no 'None')
+        self.assertEqual(asset.content['translations'], ['English (en)', 'French (fr)'])
+        self.assertEqual(len(asset.content['translations']), 2)
+        self.assertNotIn(None, asset.content['translations'])
+
+        self.assertIn('hint', asset.content['translated'])
+
     def test_flatten_empty_relevant(self):
         content = self._wrap_field('relevant', [])
         a1 = Asset.objects.create(content=content, asset_type='survey')
