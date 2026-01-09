@@ -323,6 +323,9 @@ class BaseQualAction(BaseAction):
                 if v.get(self.VERSION_DATA_FIELD, {}).get('status') != 'failed'
             ]
 
+            if len(versions) == 0:
+                continue
+
             versions_sorted = sorted(
                 versions,
                 key=lambda x: x.get(self.DATE_CREATED_FIELD, ''),
