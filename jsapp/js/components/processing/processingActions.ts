@@ -12,6 +12,7 @@ import { buildSubmissionSupplementUrl, getAssetAdvancedFeatures } from '#/assetU
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import type { AssetAdvancedFeatures, AssetResponse, FailResponse } from '#/dataInterface'
 import { notify, recordValues } from '#/utils'
+import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 
 /**
  * A safety check error message for calls made with assets that don't have
@@ -207,7 +208,7 @@ type GetProcessingDataFn = (assetUid: string, submissionEditId: string) => void
 interface GetProcessingDataDefinition extends GetProcessingDataFn {
   listen: (fn: GetProcessingDataFn) => void
   started: ListenableCallback<() => void>
-  completed: ListenableCallback<ProcessingDataResponse>
+  completed: ListenableCallback<DataSupplementResponse>
   failed: ListenableCallback<FailResponse | string>
 }
 processingActions.getProcessingData.listen((assetUid, submissionEditId) => {

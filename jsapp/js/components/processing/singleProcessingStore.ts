@@ -32,6 +32,10 @@ import envStore from '#/envStore'
 import { router } from '#/router/legacy'
 import { getCurrentPath } from '#/router/routerUtils'
 import { getExponentialDelayTime, recordKeys, recordValues, removeDefaultUuidPrefix } from '#/utils'
+import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
+import type { DataSupplementResponseOneOfOneOf } from '#/api/models/dataSupplementResponseOneOfOneOf'
+import type { _DataSupplementResponseOneOfOneOfAutomaticGoogleTranscriptionVersionsItemDataOneOfThree } from '#/api/models/_dataSupplementResponseOneOfOneOfAutomaticGoogleTranscriptionVersionsItemDataOneOfThree'
+import type { _DataSupplementResponseOneOfOneOfManualTranscriptionVersionsItemData } from '#/api/models/_dataSupplementResponseOneOfOneOfManualTranscriptionVersionsItemData'
 
 export enum StaticDisplays {
   Data = 'Data',
@@ -234,7 +238,8 @@ class SingleProcessingStore extends Reflux.Store {
     processingActions.setTranslation.completed.listen(this.onSetTranslationCompleted.bind(this))
     processingActions.setTranslation.failed.listen(this.onAnyCallFailed.bind(this))
     // NOTE: deleteTranslation endpoint is sending whole processing data in response.
-    processingActions.deleteTranslation.completed.listen(this.onFetchProcessingDataCompleted.bind(this))
+    // TODO-SR: Fix this once fetch is in a good state
+    // processingActions.deleteTranslation.completed.listen(this.onFetchProcessingDataCompleted.bind(this))
     processingActions.deleteTranslation.failed.listen(this.onAnyCallFailed.bind(this))
     processingActions.requestAutoTranslation.completed.listen(this.onRequestAutoTranslationCompleted.bind(this))
     processingActions.requestAutoTranslation.in_progress.listen(this.onRequestAutoTranslationInProgress.bind(this))
@@ -471,31 +476,53 @@ class SingleProcessingStore extends Reflux.Store {
     this.trigger(this.data)
   }
 
-  private onFetchProcessingDataCompleted(response: ProcessingDataResponse) {
-    const transcriptResponse = response[this.currentQuestionXpath]?.transcript
-    // NOTE: we treat empty transcript object same as nonexistent one
+  // TODO-SR: Come up with better way to deal with types after we
+  // have confirmed these code changes accomplish what they need to.
+  private onFetchProcessingDataCompleted(response: DataSupplementResponse) {
+    const currentQuestionData = response[this.currentQuestionXpath] as DataSupplementResponseOneOfOneOf
     this.data.transcript = undefined
-    if (transcriptResponse?.value && transcriptResponse?.languageCode) {
-      this.data.transcript = transcriptResponse
-    }
+    const manualVersions = currentQuestionData.manual_transcription?._versions
+    const acceptedAutomaticVersions = currentQuestionData.automatic_google_transcription?._versions.filter(
+      (version) => !!version._dateAccepted,
+    )
+    const allVersions = [...(manualVersions ?? []), ...(acceptedAutomaticVersions ?? [])]
+    const versionToDisplay = allVersions.sort((a, b) => b._dateAccepted!.localeCompare(a._dateAccepted!))[0]
+    if (versionToDisplay) {
+      const versionToDisplayData = versionToDisplay._data as
+        | _DataSupplementResponseOneOfOneOfAutomaticGoogleTranscriptionVersionsItemDataOneOfThree
+        | _DataSupplementResponseOneOfOneOfManualTranscriptionVersionsItemData
 
-    const translationsResponse = response[this.currentQuestionXpath]?.translation
-    const translationsArray: Transx[] = []
-
-    if (translationsResponse) {
-      recordKeys(translationsResponse).forEach((languageCode: LanguageCode) => {
-        const translation = translationsResponse[languageCode]
-        if (translation.languageCode) {
-          translationsArray.push({
-            value: translation.value,
-            languageCode: translation.languageCode,
-            dateModified: translation.dateModified,
-            dateCreated: translation.dateCreated,
-          })
+      if (versionToDisplayData.value) {
+        const transcriptionData = {
+          value: versionToDisplayData.value,
+          languageCode: versionToDisplayData.language,
+          dateModified: versionToDisplay._dateCreated,
+          dateCreated: versionToDisplay._dateCreated,
         }
-      })
+        this.data.transcript = transcriptionData
+      }
     }
-    this.data.translations = translationsArray
+
+    // TODO-SR: Rewrite below to select appropriate translations for display/editing
+    // // NOTE: we treat empty transcript object same as nonexistent one
+
+    // const translationsResponse = response[this.currentQuestionXpath]?.translation
+    // const translationsArray: Transx[] = []
+
+    // if (translationsResponse) {
+    //   recordKeys(translationsResponse).forEach((languageCode: LanguageCode) => {
+    //     const translation = translationsResponse[languageCode]
+    //     if (translation.languageCode) {
+    //       translationsArray.push({
+    //         value: translation.value,
+    //         languageCode: translation.languageCode,
+    //         dateModified: translation.dateModified,
+    //         dateCreated: translation.dateCreated,
+    //       })
+    //     }
+    //   })
+    // }
+    this.data.translations = []
 
     delete this.abortFetchData
     this.isProcessingDataLoaded = true
