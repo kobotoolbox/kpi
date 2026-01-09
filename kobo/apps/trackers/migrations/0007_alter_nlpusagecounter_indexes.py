@@ -105,7 +105,9 @@ def add_state_ops():
     return [
         migrations.AddIndex(
             model_name='nlpusagecounter',
-            index=models.Index(fields=['date', 'user'], name='trackers_nl_date_552b2e_idx'),
+            index=models.Index(
+                fields=['date', 'user'], name='trackers_nl_date_552b2e_idx'
+            ),
         ),
         migrations.AddConstraint(
             model_name='nlpusagecounter',

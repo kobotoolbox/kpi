@@ -21,7 +21,8 @@ class NLPUsageCounter(models.Model):
     class Meta:
         constraints = [
             UniqueConstraint(
-                fields=['date', 'user', 'asset'], name='nlpusagecounter_unique_with_asset'
+                fields=['date', 'user', 'asset'],
+                name='nlpusagecounter_unique_with_asset',
             ),
             UniqueConstraint(
                 fields=['date', 'user'],
