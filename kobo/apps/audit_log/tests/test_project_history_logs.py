@@ -1,5 +1,6 @@
 import base64
 import copy
+import io
 import json
 import uuid
 from unittest.mock import patch
@@ -29,7 +30,7 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
 )
 from kobo.apps.openrosa.libs.utils.logger_tools import dict2xform
 from kobo.apps.subsequences.constants import Action
-from kobo.apps.subsequences.models import QuestionAdvancedFeature
+from kobo.apps.subsequences.models import QuestionAdvancedFeature, SubmissionSupplement
 from kpi.constants import (
     ASSET_TYPE_TEMPLATE,
     CLONE_ARG_NAME,
@@ -161,7 +162,6 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             data=request_data,
             format='json',
         )
-
         self.asset.refresh_from_db()
 
         # make sure a log was created
@@ -2058,3 +2058,101 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self._check_submission_log_metadata(
             log_metadata, 'adminuser', instance.root_uuid
         )
+
+    def test_update_qa_data_multiple(self):
+        instance, submission = self._add_submission('adminuser')
+        self.client.patch(
+            path=reverse(
+                self._get_endpoint('submission-supplement'),
+                args=[self.asset.uid, submission['_uuid']],
+            ),
+            data={
+                '_version': '20250820',
+                'q1': {
+                    Action.MANUAL_QUAL: {
+                        'uuid': 'uuid-integer-q1',
+                        'value': 1,
+                    },
+                    Action.MANUAL_TRANSCRIPTION: {
+                        'language': 'en',
+                        'value': 'This is a transcript',
+                    },
+                },
+                'q2': {
+                    Action.MANUAL_QUAL: {
+                        'uuid': 'uuid-integer-q2',
+                        'value': 1,
+                    },
+                    Action.MANUAL_TRANSCRIPTION: {
+                        'language': 'en',
+                        'value': 'This is another transcript',
+                    },
+                },
+            },
+            format='json',
+        )
+        self.assertEqual(
+            ProjectHistoryLog.objects.filter(
+                object_id=self.asset.id, action=AuditAction.MODIFY_QA_DATA
+            ).count(),
+            4,
+        )
+
+    def test_request_automatic_qa_data(self):
+        instance, submission = self._add_submission('adminuser')
+        submission = list(
+            self.asset.deployment.get_submissions(
+                user=User.objects.get(username='adminuser'),
+                query={'meta/rootUuid': add_uuid_prefix(instance.root_uuid)},
+            )
+        )[0]
+
+        class MockClient:
+            def invoke_model(self, *args, **kwargs):
+                return {
+                    'body': io.StringIO(
+                        '{"model":"llm_model", "content": [{"text":"5"}],'
+                        ' "usage": {"input_tokens":10, "output_tokens":20}}'
+                    )
+                }
+
+        # add a transcript
+        SubmissionSupplement.revise_data(
+            self.asset,
+            submission,
+            incoming_data={
+                '_version': '20250820',
+                'q1': {
+                    'manual_transcription': {'language': 'en', 'value': 'transcript'}
+                },
+            },
+        )
+
+        with patch(
+            'kobo.apps.subsequences.actions.automatic_bedrock_qual.boto3.client',
+            return_value=MockClient(),
+        ):
+            log_metadata = self._base_project_history_log_test(
+                url=reverse(
+                    self._get_endpoint('submission-supplement'),
+                    args=[self.asset.uid, submission['_uuid']],
+                ),
+                method=self.client.patch,
+                request_data={
+                    '_version': '20250820',
+                    'q1': {
+                        Action.AUTOMATIC_BEDROCK_QUAL: {
+                            'uuid': 'uuid-bedrock-integer-q1',
+                        }
+                    },
+                },
+                expected_action=AuditAction.MODIFY_AUTOMATIC_QA_DATA,
+                expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            )
+            self._check_submission_log_metadata(
+                log_metadata, 'adminuser', instance.root_uuid
+            )
+            llm_info = log_metadata['llm']
+            self.assertEqual(llm_info['model'], 'llm_model')
+            self.assertEqual(llm_info['input_tokens'], 10)
+            self.assertEqual(llm_info['output_tokens'], 20)

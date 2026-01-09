@@ -176,7 +176,7 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
                 .replace(choices_list_placeholder, choices_text)
             )
 
-    def get_response_from_llm(self, prompt: str) -> dict:
+    def get_response_from_llm(self, prompt: str) -> str:
         aws_id = settings.AWS_ACCESS_KEY_ID
         aws_secret = settings.AWS_SECRET_ACCESS_KEY
         bedrock_runtime = boto3.client(
@@ -200,6 +200,7 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         )
         try:
             response_body = json.loads(response['body'].read())
+            get_current_request().llm_response = response_body
             return response_body['content'][0]['text']
         except (JSONDecodeError, IndexError, KeyError) as e:
             # the response isn't in the form we expected
