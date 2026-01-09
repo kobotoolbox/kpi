@@ -1,12 +1,11 @@
 from xml.dom import NotFoundErr
 
 from django.conf import settings
-from django.core.files import File
 from django.core.validators import ValidationError
 from django.http import Http404
 from django.utils.translation import gettext as t
 from drf_spectacular.utils import extend_schema
-from rest_framework import exceptions, mixins, permissions, status
+from rest_framework import exceptions, mixins, permissions
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.renderers import BrowsableAPIRenderer
@@ -25,11 +24,7 @@ from kobo.apps.openrosa.libs.serializers.xform_serializer import (
     XFormListSerializer,
     XFormManifestSerializer,
 )
-from kobo.apps.openrosa.libs.utils.logger_tools import (
-    get_instance_or_404,
-    publish_form,
-    publish_xml_form,
-)
+from kobo.apps.openrosa.libs.utils.logger_tools import get_instance_or_404
 from kpi.authentication import DigestAuthentication
 from ..utils.rest_framework.viewsets import OpenRosaGenericViewSet
 
@@ -63,16 +58,6 @@ def _parse_int(num):
         return num and int(num)
     except ValueError:
         pass
-
-
-class DoXmlFormUpload:
-
-    def __init__(self, xml_file, user):
-        self.xml_file = xml_file
-        self.user = user
-
-    def publish(self):
-        return publish_xml_form(self.xml_file, self.user)
 
 
 @extend_schema(
@@ -172,43 +157,6 @@ class BriefcaseApi(
             self.resumption_cursor = 0
 
         return instances
-
-    def create(self, request, *args, **kwargs):
-        if request.method.upper() == 'HEAD':
-            return Response(status=status.HTTP_204_NO_CONTENT,
-                            headers=self.get_openrosa_headers(request),
-                            template_name=self.template_name)
-
-        xform_def = request.FILES.get('form_def_file', None)
-        response_status = status.HTTP_201_CREATED
-        # With the advent of project-level anonymous access in #904, Briefcase
-        # requests must no longer use endpoints whose URLs contain usernames.
-        # Ideally, Briefcase would display error messages returned by this method,
-        # but sadly that is not the case.
-        # Raise an empty PermissionDenied since it's impossible to have
-        # Briefcase display any guidance.
-        if kwargs.get('username'):
-            raise exceptions.PermissionDenied()
-
-        data = {}
-
-        if isinstance(xform_def, File):
-            do_form_upload = DoXmlFormUpload(xform_def, request.user)
-            dd = publish_form(do_form_upload.publish)
-
-            if isinstance(dd, XForm):
-                data['message'] = t('%s successfully published.' % dd.id_string)
-            else:
-                data['message'] = dd['text']
-                response_status = status.HTTP_400_BAD_REQUEST
-        else:
-            data['message'] = t('Missing xml file.')
-            response_status = status.HTTP_400_BAD_REQUEST
-
-        return Response(data, status=response_status,
-                        headers=self.get_openrosa_headers(request,
-                                                          location=False),
-                        template_name=self.template_name)
 
     def list(self, request, *args, **kwargs):
         object_list = self.filter_queryset(self.get_queryset())
