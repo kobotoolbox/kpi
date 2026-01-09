@@ -229,8 +229,12 @@ class TestBriefcaseAPI(TestAbstractViewSet):
             text = f.read()
             text = text.replace('{{submissionDate}}',
                                 instance.date_created.isoformat())
-            text = text.replace('{{xform_uuid}}',
-                                self.xform.uuid)
+            text = text.replace('{{kpi_asset_uid}}',
+                                self.xform.kpi_asset_uid)
+            text = text.replace('{{instance_id}}',
+                                (instance.id))
+            text = text.replace('{{attachment_uid}}',
+                                instance.attachments.first().uid)
             self.assertContains(response, instance_id, status_code=200)
             self.assertMultiLineEqual(response.content.decode('utf-8'), text)
 

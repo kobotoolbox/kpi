@@ -6,6 +6,6 @@
     {% for media in media_files %}<mediaFile>
         <filename>{{ media.filename|safe }}</filename>
         <hash>md5:{{ media.md5hash }}</hash>
-        <downloadUrl>{{ host }}{% url "attachment_url" 'original' %}?media_file={{ media.media_file.name|urlencode }}</downloadUrl>
+        <downloadUrl>{{ host }}/api/v2/assets/{{ media.xform.kpi_asset_uid|default:media.xform.asset.uid }}/data/{{ media.instance.pk }}/attachments/{{ media.uid }}/</downloadUrl>
     </mediaFile>{% endfor %}
 </submission>
