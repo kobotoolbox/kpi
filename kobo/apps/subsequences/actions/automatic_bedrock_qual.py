@@ -1,5 +1,6 @@
 import json
 from copy import deepcopy
+from json import JSONDecodeError
 
 import boto3
 from django.conf import settings
@@ -196,8 +197,14 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
             modelId='anthropic.claude-3-5-sonnet-20240620-v1:0',
             body=json.dumps(request),
         )
-        response_body = json.loads(response['body'].read())
-        return response_body['content'][0]['text']
+        try:
+            response_body = json.loads(response['body'].read())
+            return response_body['content'][0]['text']
+        except (JSONDecodeError, IndexError, KeyError) as e:
+            # the response isn't in the form we expected
+            raise InvalidResponseFromLLMException(
+                f'Unable to extract answer from LLM response object'
+            ) from e
 
     @classproperty
     def params_schema(cls):
@@ -282,9 +289,9 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         qa_question = self._get_question(qa_question_uuid)
         qa_question_type = qa_question['type']
         prompt = self.generate_llm_prompt(action_data)
-        full_response_text = self.get_response_from_llm(prompt)
-        logging.info(f'LLM prompt: \n{prompt}\nLLM response:\n{full_response_text}')
         try:
+            full_response_text = self.get_response_from_llm(prompt)
+            logging.info(f'LLM prompt: \n{prompt}\nLLM response:\n{full_response_text}')
             if qa_question_type == QUESTION_TYPE_TEXT:
                 return {
                     'value': parse_text_response(full_response_text),
