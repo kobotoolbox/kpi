@@ -203,7 +203,7 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         except (JSONDecodeError, IndexError, KeyError) as e:
             # the response isn't in the form we expected
             raise InvalidResponseFromLLMException(
-                f'Unable to extract answer from LLM response object'
+                'Unable to extract answer from LLM response object'
             ) from e
 
     @classproperty
