@@ -1,11 +1,37 @@
+import json
 from copy import deepcopy
+from json import JSONDecodeError
 
+import boto3
+from django.conf import settings
 from django.utils.functional import classproperty
 
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.subsequences.actions.base import ActionClassConfig
 from kobo.apps.subsequences.actions.mixins import RequiresTranscriptionMixin
 from kobo.apps.subsequences.actions.qual import BaseQualAction
+from kobo.apps.subsequences.constants import (
+    QUESTION_TYPE_INTEGER,
+    QUESTION_TYPE_TEXT,
+    SELECT_QUESTIONS,
+)
+from kobo.apps.subsequences.prompts import (
+    MAX_TOKENS,
+    MODEL_TEMPERATURE,
+    PROMPTS_BY_QUESTION_TYPE,
+    InvalidResponseFromLLMException,
+    analysis_question_placeholder,
+    choices_list_placeholder,
+    example_format_placeholder,
+    format_choices,
+    get_example_format,
+    num_choice_placeholder,
+    parse_choices_response,
+    parse_integer_response,
+    parse_text_response,
+    response_placeholder,
+)
+from kpi.utils.log import logging
 
 
 class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
@@ -18,6 +44,17 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
     @property
     def _limit_identifier(self):
         return UsageType.LLM_REQUESTS
+
+    def _get_question(self, uuid: str) -> dict:
+        qa_question = [q for q in self.params if q['uuid'] == uuid]
+        return qa_question[0]
+
+    def _get_visible_choices(self, question: dict) -> list[dict]:
+        return [
+            choice
+            for choice in question['choices']
+            if not choice.get('options', {}).get('deleted')
+        ]
 
     @property
     def data_schema(self):
@@ -100,6 +137,75 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         to_return['allOf'] = common['allOf']
         return to_return
 
+    def generate_llm_prompt(self, action_data: dict) -> str:
+        """
+        Generate the prompt that will be sent to the llm
+        """
+        # always need transcript, QA question text, and QA question value
+        # to fill out the LLM prompt
+        transcript_text = action_data['_dependency']['value']
+        question_uuid = action_data['uuid']
+        qa_question = self._get_question(question_uuid)
+        question_text = qa_question['labels']['_default']
+        question_type = qa_question['type']
+
+        # get the correct template based on question type
+        prompt_template = PROMPTS_BY_QUESTION_TYPE[question_type]
+
+        # if it's not a select question, we only need the transcript and the question
+        # text to fill out the prompt
+        if question_type not in SELECT_QUESTIONS:
+            return prompt_template.replace(
+                response_placeholder, transcript_text
+            ).replace(analysis_question_placeholder, question_text)
+        else:
+            # for select questions, need to get all the choices
+            visible_choices = self._get_visible_choices(qa_question)
+            visible_choice_labels = [
+                choice['labels']['_default'] for choice in visible_choices
+            ]
+            choices_text = format_choices(visible_choice_labels)
+            choices_count = len(visible_choices)
+            example_format = get_example_format(question_type, choices_count)
+            return (
+                prompt_template.replace(response_placeholder, transcript_text)
+                .replace(analysis_question_placeholder, question_text)
+                .replace(num_choice_placeholder, str(choices_count))
+                .replace(example_format_placeholder, example_format)
+                .replace(choices_list_placeholder, choices_text)
+            )
+
+    def get_response_from_llm(self, prompt: str) -> str:
+        aws_id = settings.AWS_ACCESS_KEY_ID
+        aws_secret = settings.AWS_SECRET_ACCESS_KEY
+        bedrock_runtime = boto3.client(
+            service_name='bedrock-runtime',
+            region_name=settings.AWS_BEDROCK_REGION_NAME,
+            aws_access_key_id=aws_id,
+            aws_secret_access_key=aws_secret,
+        )
+
+        request = {
+            'anthropic_version': 'bedrock-2023-05-31',
+            'max_tokens': MAX_TOKENS,
+            'temperature': MODEL_TEMPERATURE,  # keep model from getting too creative
+            'messages': [
+                {'role': 'user', 'content': prompt},
+            ],
+        }
+        response = bedrock_runtime.invoke_model(
+            modelId='anthropic.claude-3-5-sonnet-20240620-v1:0',
+            body=json.dumps(request),
+        )
+        try:
+            response_body = json.loads(response['body'].read())
+            return response_body['content'][0]['text']
+        except (JSONDecodeError, IndexError, KeyError) as e:
+            # the response isn't in the form we expected
+            raise InvalidResponseFromLLMException(
+                'Unable to extract answer from LLM response object'
+            ) from e
+
     @classproperty
     def params_schema(cls):
         initial_params = deepcopy(super().params_schema)
@@ -177,20 +283,42 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         **kwargs,
     ) -> dict | bool:
         """
-        Update action_data with external process
-
-        Stub for testing
+        Run and return results of external process
         """
-        uuid = action_data['uuid']
-        found = [q for q in self.params if q['uuid'] == uuid]
-        if len(found) != 1:
-            raise Exception(f'UUID {uuid} not found')
-        question = found[0]
-        if question['type'] == 'qualInteger':
-            return {'value': 1, 'status': 'complete'}
-        elif question['type'] == 'qualText':
-            return {'value': 'Text', 'status': 'complete'}
-        elif question['type'] == 'qualSelectOne':
-            return {'value': question['choices'][0][uuid], 'status': 'complete'}
-        else:
-            return {'value': [question['choices'][0][uuid]], 'status': 'complete'}
+        qa_question_uuid = action_data['uuid']
+        qa_question = self._get_question(qa_question_uuid)
+        qa_question_type = qa_question['type']
+        prompt = self.generate_llm_prompt(action_data)
+        try:
+            full_response_text = self.get_response_from_llm(prompt)
+            logging.info(f'LLM prompt: \n{prompt}\nLLM response:\n{full_response_text}')
+            if qa_question_type == QUESTION_TYPE_TEXT:
+                return {
+                    'value': parse_text_response(full_response_text),
+                    'status': 'complete',
+                }
+            elif qa_question['type'] == QUESTION_TYPE_INTEGER:
+                return {
+                    'value': parse_integer_response(full_response_text),
+                    'status': 'complete',
+                }
+            elif qa_question['type'] == 'qualSelectOne':
+                visible_choices = self._get_visible_choices(qa_question)
+                selected_indexes = parse_choices_response(
+                    full_response_text, len(visible_choices), False
+                )
+                index = selected_indexes[0]
+                selected_uuid = visible_choices[index]['uuid']
+                return {'value': selected_uuid, 'status': 'complete'}
+            else:
+                visible_choices = self._get_visible_choices(qa_question)
+
+                selected_indexes = parse_choices_response(
+                    full_response_text, len(visible_choices), True
+                )
+                return {
+                    'value': [visible_choices[i]['uuid'] for i in selected_indexes],
+                    'status': 'complete',
+                }
+        except InvalidResponseFromLLMException as e:
+            return {'status': 'failed', 'error': f'{e}'}
