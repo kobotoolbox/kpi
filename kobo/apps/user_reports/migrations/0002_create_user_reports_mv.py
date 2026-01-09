@@ -22,26 +22,6 @@ CREATE_MV_BASE_SQL = f"""
         WHERE a.pending_delete = false
         GROUP BY a.owner_id
     ),
-    user_role_map AS (
-        SELECT
-            au.id AS user_id,
-            CASE
-                WHEN EXISTS (
-                    SELECT 1
-                    FROM organizations_organizationowner o
-                    JOIN organizations_organizationuser ou_owner ON ou_owner.id = o.organization_user_id
-                    WHERE ou_owner.user_id = au.id
-                ) THEN 'owner'
-                WHEN EXISTS (
-                    SELECT 1 FROM organizations_organizationuser ou WHERE ou.user_id = au.id AND ou.is_admin IS TRUE
-                ) THEN 'admin'
-                WHEN EXISTS (
-                    SELECT 1 FROM organizations_organizationuser ou WHERE ou.user_id = au.id
-                ) THEN 'member'
-                ELSE 'external'
-            END AS user_role
-        FROM auth_user au
-    ),
     user_billing_periods AS (
         SELECT DISTINCT
             au.id as user_id,
@@ -142,7 +122,14 @@ CREATE_MV_BASE_SQL = f"""
             WHEN org.id IS NOT NULL THEN jsonb_build_object(
                 'name', org.name,
                 'uid', org.id::text,
-                'role', ur.user_role,
+                'role', CASE
+                    WHEN EXISTS (
+                        SELECT 1 FROM organizations_organizationowner o 
+                        WHERE o.organization_user_id = ou.id
+                    ) THEN 'owner'
+                    WHEN ou.is_admin IS TRUE THEN 'admin'
+                    ELSE 'member'
+                END,
                 'website', org.website
             )
             ELSE NULL
@@ -245,7 +232,6 @@ CREATE_MV_BASE_SQL = f"""
     LEFT JOIN socialaccount_socialaccount sa ON au.id = sa.user_id
     LEFT JOIN user_nlp_usage unl ON au.id = unl.user_id
     LEFT JOIN user_assets ua ON au.id = ua.user_id
-    LEFT JOIN user_role_map ur ON ur.user_id = au.id
     LEFT JOIN user_current_period_usage ucpu ON au.id = ucpu.user_id AND ucpu.organization_id = org.id
     LEFT JOIN user_billing_periods ubau ON au.id = ubau.user_id AND ubau.organization_id = org.id
     WHERE au.id != {settings.ANONYMOUS_USER_ID}
@@ -272,7 +258,8 @@ CREATE_MV_BASE_SQL = f"""
         unl.total_mt_characters,
         ua.total_assets,
         ua.deployed_assets,
-        ur.user_role,
+        ou.id,
+        ou.is_admin,
         ucpu.current_period_start,
         ucpu.current_period_end,
         ucpu.total_nlp_usage_asr_seconds_current_period,
