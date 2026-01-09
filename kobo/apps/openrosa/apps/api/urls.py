@@ -10,7 +10,6 @@ from kobo.apps.openrosa.apps.api.viewsets.attachment_viewset import AttachmentVi
 from kobo.apps.openrosa.apps.api.viewsets.briefcase_api import BriefcaseApi
 from kobo.apps.openrosa.apps.api.viewsets.data_viewset import DataViewSet
 from kobo.apps.openrosa.apps.api.viewsets.metadata_viewset import MetaDataViewSet
-from kobo.apps.openrosa.apps.api.viewsets.xform_list_api import XFormListApi
 from kobo.apps.openrosa.apps.api.viewsets.xform_submission_api import XFormSubmissionApi
 from kobo.apps.openrosa.apps.api.viewsets.xform_viewset import XFormViewSet
 from kpi.models.asset import Asset
@@ -396,7 +395,6 @@ router = MultiLookupRouter(trailing_slash=False)
 router.register(r'forms', XFormViewSet)
 router.register(r'metadata', MetaDataViewSet, basename='metadata')
 router.register(r'media', AttachmentViewSet, basename='attachment')
-router.register(r'formlist', XFormListApi, basename='formlist')
 router.register(r'submissions', XFormSubmissionApi, basename='submissions')
 router.register(r'briefcase', BriefcaseApi, basename='briefcase')
 
