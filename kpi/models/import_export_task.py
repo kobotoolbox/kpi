@@ -40,7 +40,9 @@ from rest_framework import exceptions
 from rest_framework.reverse import reverse
 from werkzeug.http import parse_options_header
 
+from kobo.apps.openrosa.libs.utils.common_tags import META_ROOT_UUID
 from kobo.apps.reports.report_data import build_formpack
+from kobo.apps.storage_backends.base import default_kpi_private_storage
 from kpi.constants import (
     ASSET_TYPE_COLLECTION,
     ASSET_TYPE_EMPTY,
@@ -74,7 +76,6 @@ from kpi.utils.rename_xls_sheet import (
 )
 from kpi.utils.strings import to_str
 from kpi.zip_importer import HttpContentParse
-from kobo.apps.openrosa.libs.utils.common_tags import META_ROOT_UUID
 
 
 def utcnow(*args, **kwargs):
@@ -573,7 +574,9 @@ class AuditLogExportTaskMixin:
 class AccessLogExportTask(ExportTaskMixin, AuditLogExportTaskMixin, ImportExportTask):
     uid = KpiUidField(uid_prefix='ale')
     get_all_logs = models.BooleanField(default=False)
-    result = PrivateFileField(upload_to=export_upload_to, max_length=380)
+    result = PrivateFileField(
+        storage=default_kpi_private_storage, upload_to=export_upload_to, max_length=380
+    )
 
     @property
     def default_email_subject(self) -> str:
@@ -619,7 +622,11 @@ class ProjectHistoryLogExportTask(
     ExportTaskMixin, AuditLogExportTaskMixin, ImportExportTask
 ):
     uid = KpiUidField(uid_prefix='phe')
-    result = PrivateFileField(upload_to=export_upload_to, max_length=380)
+    result = PrivateFileField(
+        storage=default_kpi_private_storage,
+        upload_to=export_upload_to,
+        max_length=380,
+    )
     asset_uid = models.CharField(null=True)
 
     @property
@@ -666,7 +673,11 @@ class ProjectHistoryLogExportTask(
 
 class ProjectViewExportTask(ExportTaskMixin, ImportExportTask):
     uid = KpiUidField(uid_prefix='pve')
-    result = PrivateFileField(upload_to=export_upload_to, max_length=380)
+    result = PrivateFileField(
+        storage=default_kpi_private_storage,
+        upload_to=export_upload_to,
+        max_length=380,
+    )
 
     @property
     def default_email_subject(self) -> str:
@@ -735,7 +746,9 @@ class SubmissionExportTaskBase(ImportExportTask):
 
     uid = KpiUidField(uid_prefix='e')
     last_submission_time = models.DateTimeField(null=True)
-    result = PrivateFileField(upload_to=export_upload_to, max_length=380)
+    result = PrivateFileField(
+        storage=default_kpi_private_storage, upload_to=export_upload_to, max_length=380
+    )
 
     COPY_FIELDS = (
         IdCopyField,

@@ -22,7 +22,7 @@ class Migration(migrations.Migration):
                 blank=True,
                 max_length=380,
                 null=True,
-                storage=kpi.deployment_backends.kc_access.storage.KobocatS3Boto3Storage(),
+                storage=kpi.deployment_backends.kc_access.storage.KobocatDefaultStorage(),
                 upload_to=kobo.apps.openrosa.apps.main.models.meta_data.upload_to,
             ),
         ),

@@ -5,6 +5,7 @@ import private_storage.fields
 import private_storage.storage.s3boto3
 from django.db import migrations, models
 
+import kobo.apps.storage_backends.base
 import kpi.models.import_export_task
 
 
@@ -41,7 +42,7 @@ class Migration(migrations.Migration):
             name='result',
             field=private_storage.fields.PrivateFileField(
                 max_length=380,
-                storage=private_storage.storage.s3boto3.PrivateS3BotoStorage(),
+                storage=kobo.apps.storage_backends.base.KpiPrivateDefaultStorage(),
                 upload_to=kpi.models.import_export_task.export_upload_to,
             ),
         ),
@@ -78,7 +79,7 @@ class Migration(migrations.Migration):
             name='result',
             field=private_storage.fields.PrivateFileField(
                 max_length=380,
-                storage=private_storage.storage.s3boto3.PrivateS3BotoStorage(),
+                storage=kobo.apps.storage_backends.base.KpiPrivateDefaultStorage(),
                 upload_to=kpi.models.import_export_task.export_upload_to,
             ),
         ),
@@ -101,7 +102,7 @@ class Migration(migrations.Migration):
             name='result',
             field=private_storage.fields.PrivateFileField(
                 max_length=380,
-                storage=private_storage.storage.s3boto3.PrivateS3BotoStorage(),
+                storage=kobo.apps.storage_backends.base.KpiPrivateDefaultStorage(),
                 upload_to=kpi.models.import_export_task.export_upload_to,
             ),
         ),
@@ -124,7 +125,7 @@ class Migration(migrations.Migration):
             name='result',
             field=private_storage.fields.PrivateFileField(
                 max_length=380,
-                storage=private_storage.storage.s3boto3.PrivateS3BotoStorage(),
+                storage=kobo.apps.storage_backends.base.KpiPrivateDefaultStorage(),
                 upload_to=kpi.models.import_export_task.export_upload_to,
             ),
         ),
@@ -147,7 +148,7 @@ class Migration(migrations.Migration):
             name='result',
             field=private_storage.fields.PrivateFileField(
                 max_length=380,
-                storage=private_storage.storage.s3boto3.PrivateS3BotoStorage(),
+                storage=kobo.apps.storage_backends.base.KpiPrivateDefaultStorage(),
                 upload_to=kpi.models.import_export_task.export_upload_to,
             ),
         ),
@@ -163,6 +164,16 @@ class Migration(migrations.Migration):
                 ],
                 default='created',
                 max_length=32,
+            ),
+        ),
+        migrations.AlterField(
+            model_name='assetfile',
+            name='content',
+            field=kpi.fields.file.PrivateExtendedFileField(
+                max_length=380,
+                null=True,
+                storage=kobo.apps.storage_backends.base.KpiPrivateDefaultStorage(),
+                upload_to=kpi.models.asset_file.upload_to,
             ),
         ),
     ]

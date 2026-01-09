@@ -4,6 +4,8 @@ import private_storage.fields
 import private_storage.storage.s3boto3
 from django.db import migrations
 
+import kobo.apps.storage_backends.base
+
 
 class Migration(migrations.Migration):
 
@@ -17,7 +19,7 @@ class Migration(migrations.Migration):
             name='content',
             field=private_storage.fields.PrivateFileField(
                 max_length=380,
-                storage=private_storage.storage.s3boto3.PrivateS3BotoStorage(),
+                storage=kobo.apps.storage_backends.base.KpiPrivateDefaultStorage(),
                 upload_to='__markdown_media_files/%Y/%m/%d',
             ),
         ),
