@@ -192,7 +192,7 @@ class AssetListApiTests(BaseAssetTestCase):
         ]
         versions_ids.sort()
         expected_hash = calculate_hash(''.join(versions_ids))
-        hash_url = reverse('asset-hash')
+        hash_url = reverse(self._get_endpoint('asset-hash'))
         hash_response = self.client.get(hash_url)
         self.assertEqual(hash_response.data.get('hash'), expected_hash)
 
@@ -2253,9 +2253,10 @@ class AssetDeploymentTest(BaseAssetDetailTestCase):
 
 class TestCreatedByAndLastModifiedByAsset(BaseAssetTestCase):
     fixtures = ['test_data']
+    URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
     def setUp(self):
-        self.url = reverse('asset-list')
+        self.url = reverse(self._get_endpoint('asset-list'))
         self.client.login(username='someuser', password='someuser')
         self.some_user = User.objects.get(username='someuser')
 

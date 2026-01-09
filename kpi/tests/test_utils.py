@@ -466,21 +466,6 @@ class UtilsTestCase(TestCase):
         )
         assert got == expected
 
-        # Explicit v1 namespace should produce a v1-style URL
-        expected = 'http://testserver/assets/foo/'
-        got = versioned_reverse(
-            'asset-detail',
-            url_namespace=API_NAMESPACES['v1'],
-            kwargs={'uid_asset': 'foo'},
-        )
-        assert got == expected
-
-        # Same result using args instead of kwargs for v1
-        got = versioned_reverse(
-            'asset-detail', url_namespace=API_NAMESPACES['v1'], args=('foo',)
-        )
-        assert got == expected
-
     @override_settings(KOBOFORM_URL='http://testserver')
     def test_versioned_reverse_with_request(self):
 
@@ -499,16 +484,6 @@ class UtilsTestCase(TestCase):
 
         # Same behaviour when passing args instead of kwargs
         got = versioned_reverse('asset-detail', args=('foo',), request=request)
-        assert got == expected
-
-        # Explicit v1 namespace should override request version
-        expected = 'http://testserver/assets/foo/'
-        got = versioned_reverse(
-            'asset-detail',
-            url_namespace=API_NAMESPACES['v1'],
-            args=('foo',),
-            request=request,
-        )
         assert got == expected
 
         # No versioning_scheme → should fall back to default (v2)
