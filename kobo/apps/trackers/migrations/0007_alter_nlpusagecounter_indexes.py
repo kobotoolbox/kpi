@@ -6,87 +6,112 @@ from django.db import migrations, models
 from django.db.models import Q
 
 
-def manually_create_constraints_instructions(apps, schema_editor):
+def manually_create_indexes_and_constraints_instructions(apps, schema_editor):
     print(
         """
         ⚠️ ATTENTION ⚠️
-        Run the SQL queries below in PostgreSQL directly:
+        Run the SQL queries below in PostgreSQL directly (so we can use CONCURRENTLY):
 
-            -- 1) (Optional) Drop old index if it exists (in case you renamed it)
+            -- Legacy cleanup (safe to re-run)
             DROP INDEX CONCURRENTLY IF EXISTS "trackers_mo_year_72676f_idx";
+            ALTER TABLE "trackers_nlpusagecounter" DROP CONSTRAINT IF EXISTS "unique_with_asset";
+            DROP INDEX CONCURRENTLY IF EXISTS "unique_without_asset";
 
-            -- 2) Create the regular (non-unique) index that Django would create
+            -- New objects
             CREATE INDEX CONCURRENTLY IF NOT EXISTS "trackers_nl_date_552b2e_idx"
               ON "trackers_nlpusagecounter" ("date", "user_id");
 
-            -- 3) unique_with_asset (unique on date, user, asset)
-            CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS "unique_with_asset_idx"
+            CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS "nlpusagecounter_unique_with_asset_idx"
               ON "trackers_nlpusagecounter" ("date", "user_id", "asset_id");
 
-            -- Add the UNIQUE constraint only if it does not exist
             DO $$
             BEGIN
                 IF NOT EXISTS (
-                    SELECT 1
-                    FROM pg_constraint
-                    WHERE conname = 'unique_with_asset'
+                    SELECT 1 FROM pg_constraint WHERE conname = 'nlpusagecounter_unique_with_asset'
                 ) THEN
                     ALTER TABLE "trackers_nlpusagecounter"
-                        ADD CONSTRAINT "unique_with_asset"
-                        UNIQUE USING INDEX "unique_with_asset_idx";
+                        ADD CONSTRAINT "nlpusagecounter_unique_with_asset"
+                        UNIQUE USING INDEX "nlpusagecounter_unique_with_asset_idx";
                 END IF;
             END
             $$;
 
-            -- 4) unique_without_asset (partial unique: asset_id IS NULL)
-            CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS "unique_without_asset"
+            CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS "nlpusagecounter_unique_without_asset"
               ON "trackers_nlpusagecounter" ("date", "user_id")
               WHERE "asset_id" IS NULL;
-
         """
     )
 
 
-def manually_drop_constraints_instructions(apps, schema_editor):
+def manually_drop_indexes_and_constraints_instructions(apps, schema_editor):
     print(
         """
         ⚠️ ATTENTION ⚠️
         Run the SQL queries below in PostgreSQL directly:
 
-            -- Drop constraints / indexes created in the forward manual steps
-            ALTER TABLE "trackers_nlpusagecounter" DROP CONSTRAINT IF EXISTS "unique_with_asset";
-
-            DROP INDEX CONCURRENTLY IF EXISTS "unique_with_asset_idx";
-            DROP INDEX CONCURRENTLY IF EXISTS "unique_without_asset";
+            ALTER TABLE "trackers_nlpusagecounter" DROP CONSTRAINT IF EXISTS "nlpusagecounter_unique_with_asset";
+            DROP INDEX CONCURRENTLY IF EXISTS "nlpusagecounter_unique_with_asset_idx";
+            DROP INDEX CONCURRENTLY IF EXISTS "nlpusagecounter_unique_without_asset";
             DROP INDEX CONCURRENTLY IF EXISTS "trackers_nl_date_552b2e_idx";
-
         """
     )
 
 
-def get_conditional_operations():
-    if settings.SKIP_HEAVY_MIGRATIONS:
-        return [
-            migrations.RunPython(
-                manually_create_constraints_instructions,
-                manually_drop_constraints_instructions,
-            )
-        ]
+def legacy_cleanup_ops():
+    """
+    Remove old monthly-based objects (by their legacy names).
+    This MUST be idempotent in DB, because they may not exist in some environments.
+    """
+    return migrations.SeparateDatabaseAndState(
+        database_operations=[
+            # Index (legacy)
+            migrations.RunSQL(
+                sql='DROP INDEX IF EXISTS "trackers_mo_year_72676f_idx";',
+                reverse_sql=migrations.RunSQL.noop,
+            ),
+            # Unique constraint (legacy)
+            migrations.RunSQL(
+                sql='ALTER TABLE "trackers_nlpusagecounter" DROP CONSTRAINT IF EXISTS "unique_with_asset";',
+                reverse_sql=migrations.RunSQL.noop,
+            ),
+            migrations.RunSQL(
+                sql='DROP INDEX IF EXISTS "unique_without_asset";',
+                reverse_sql=migrations.RunSQL.noop,
+            ),
+            # Conditional unique (legacy) -> in Postgres: partial unique index
+            migrations.RunSQL(
+                sql='DROP INDEX IF EXISTS "unique_without_asset";',
+                reverse_sql=migrations.RunSQL.noop,
+            ),
+        ],
+        state_operations=[
+            migrations.RemoveIndex(
+                model_name='nlpusagecounter',
+                name='trackers_mo_year_72676f_idx',
+            ),
+            migrations.RemoveConstraint(
+                model_name='nlpusagecounter',
+                name='unique_with_asset',
+            ),
+            migrations.RemoveConstraint(
+                model_name='nlpusagecounter',
+                name='unique_without_asset',
+            ),
+        ],
+    )
 
-    # Not skipping: let Django apply the real schema changes
+
+def add_state_ops():
     return [
         migrations.AddIndex(
             model_name='nlpusagecounter',
-            index=models.Index(
-                fields=['date', 'user'],
-                name='trackers_nl_date_552b2e_idx',
-            ),
+            index=models.Index(fields=['date', 'user'], name='trackers_nl_date_552b2e_idx'),
         ),
         migrations.AddConstraint(
             model_name='nlpusagecounter',
             constraint=models.UniqueConstraint(
                 fields=('date', 'user', 'asset'),
-                name='unique_with_asset',
+                name='nlpusagecounter_unique_with_asset',
             ),
         ),
         migrations.AddConstraint(
@@ -94,10 +119,29 @@ def get_conditional_operations():
             constraint=models.UniqueConstraint(
                 condition=Q(('asset', None)),
                 fields=('date', 'user'),
-                name='unique_without_asset',
+                name='nlpusagecounter_unique_without_asset',
             ),
         ),
     ]
+
+
+def get_add_operations():
+    state_ops = add_state_ops()
+
+    if settings.SKIP_HEAVY_MIGRATIONS:
+        return [
+            migrations.SeparateDatabaseAndState(
+                database_operations=[
+                    migrations.RunPython(
+                        manually_create_indexes_and_constraints_instructions,
+                        manually_drop_indexes_and_constraints_instructions,
+                    )
+                ],
+                state_operations=state_ops,
+            )
+        ]
+
+    return state_ops
 
 
 class Migration(migrations.Migration):
@@ -113,5 +157,6 @@ class Migration(migrations.Migration):
             name='date',
             field=models.DateField(),
         ),
-        *get_conditional_operations(),
+        legacy_cleanup_ops(),
+        *get_add_operations(),
     ]

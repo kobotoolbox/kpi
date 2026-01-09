@@ -21,12 +21,12 @@ class NLPUsageCounter(models.Model):
     class Meta:
         constraints = [
             UniqueConstraint(
-                fields=['date', 'user', 'asset'], name='unique_with_asset'
+                fields=['date', 'user', 'asset'], name='nlpusagecounter_unique_with_asset'
             ),
             UniqueConstraint(
                 fields=['date', 'user'],
                 condition=Q(asset=None),
-                name='unique_without_asset',
+                name='nlpusagecounter_unique_without_asset',
             ),
         ]
         indexes = [
