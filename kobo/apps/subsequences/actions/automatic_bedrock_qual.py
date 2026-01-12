@@ -204,6 +204,9 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
             return response_body['content'][0]['text']
         except (JSONDecodeError, IndexError, KeyError) as e:
             # the response isn't in the form we expected
+            get_current_request().llm_response = {
+                'error': 'Unable to extract answer from LLM response object',
+            }
             raise InvalidResponseFromLLMException(
                 'Unable to extract answer from LLM response object'
             ) from e

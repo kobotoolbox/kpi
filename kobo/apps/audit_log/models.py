@@ -706,11 +706,14 @@ class ProjectHistoryLog(AuditLog):
                     # automatic QA requests have more metadata and a different action
                     log_action = AuditAction.MODIFY_AUTOMATIC_QA_DATA
                     llm_info = request.llm_response
-                    metadata['llm'] = {
-                        'model': llm_info['model'],
-                        'input_tokens': llm_info['usage']['input_tokens'],
-                        'output_tokens': llm_info['usage']['output_tokens'],
-                    }
+                    if 'error' in llm_info:
+                        metadata['llm'] = {'error': llm_info['error']}
+                    else:
+                        metadata['llm'] = {
+                            'model': llm_info['model'],
+                            'input_tokens': llm_info['usage']['input_tokens'],
+                            'output_tokens': llm_info['usage']['output_tokens'],
+                        }
                 ProjectHistoryLog.objects.create(
                     user=request.user,
                     object_id=request.asset.id,

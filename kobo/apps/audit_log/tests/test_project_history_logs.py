@@ -2143,3 +2143,57 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             self.assertEqual(llm_info['model'], 'llm_model')
             self.assertEqual(llm_info['input_tokens'], 10)
             self.assertEqual(llm_info['output_tokens'], 20)
+
+    def test_request_automatic_qa_data_bad_response(self):
+        class MockErrorClient:
+            def invoke_model(self, *args, **kwargs):
+                return {'something': 'bad'}
+
+        instance, submission = self._add_submission('adminuser')
+        submission = list(
+            self.asset.deployment.get_submissions(
+                user=User.objects.get(username='adminuser'),
+                query={'meta/rootUuid': add_uuid_prefix(instance.root_uuid)},
+            )
+        )[0]
+
+        # add a transcript
+        SubmissionSupplement.revise_data(
+            self.asset,
+            submission,
+            incoming_data={
+                '_version': '20250820',
+                'q1': {
+                    'manual_transcription': {'language': 'en', 'value': 'transcript'}
+                },
+            },
+        )
+
+        with patch(
+            'kobo.apps.subsequences.actions.automatic_bedrock_qual.boto3.client',
+            return_value=MockErrorClient(),
+        ):
+            log_metadata = self._base_project_history_log_test(
+                url=reverse(
+                    self._get_endpoint('submission-supplement'),
+                    args=[self.asset.uid, submission['_uuid']],
+                ),
+                method=self.client.patch,
+                request_data={
+                    '_version': '20250820',
+                    'q1': {
+                        Action.AUTOMATIC_BEDROCK_QUAL: {
+                            'uuid': 'uuid-qual-integer',
+                        }
+                    },
+                },
+                expected_action=AuditAction.MODIFY_AUTOMATIC_QA_DATA,
+                expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            )
+            self._check_submission_log_metadata(
+                log_metadata, 'adminuser', instance.root_uuid
+            )
+            self.assertEqual(
+                log_metadata['llm']['error'],
+                'Unable to extract answer from LLM response object',
+            )
