@@ -34,6 +34,10 @@ class KobocatDefaultStorage:
             f'{self._backend.__class__.__name__} at 0x{id(self._backend):x}>'
         )
 
+    @property
+    def backend(self):
+        return self._get_backend()
+
     def _get_backend(self):
 
         if self._backend is not None:

@@ -12,17 +12,23 @@ from zoneinfo import ZoneInfo
 
 import constance
 import dateutil.parser
-import formpack
 import requests
 from django.conf import settings
 from django.contrib.postgres.indexes import BTreeIndex, HashIndex
-from django.core.files.storage import FileSystemStorage
 from django.db import models, transaction
 from django.db.models import CharField, F, Value
 from django.db.models.functions import Concat
 from django.db.models.query import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext as t
+from openpyxl.utils.exceptions import InvalidFileException
+from private_storage.fields import PrivateFileField
+from pyxform.xls2json_backends import xls_to_dict, xlsx_to_dict
+from rest_framework import exceptions
+from rest_framework.reverse import reverse
+from werkzeug.http import parse_options_header
+
+import formpack
 from formpack.constants import KOBO_LOCK_SHEET
 from formpack.schema.fields import (
     IdCopyField,
@@ -33,13 +39,6 @@ from formpack.schema.fields import (
 )
 from formpack.utils.kobo_locking import get_kobo_locking_profiles
 from formpack.utils.string import ellipsize
-from openpyxl.utils.exceptions import InvalidFileException
-from private_storage.fields import PrivateFileField
-from pyxform.xls2json_backends import xls_to_dict, xlsx_to_dict
-from rest_framework import exceptions
-from rest_framework.reverse import reverse
-from werkzeug.http import parse_options_header
-
 from kobo.apps.openrosa.libs.utils.common_tags import META_ROOT_UUID
 from kobo.apps.reports.report_data import build_formpack
 from kobo.apps.storage_backends.base import default_kpi_private_storage
@@ -74,6 +73,7 @@ from kpi.utils.rename_xls_sheet import (
     rename_xls_sheet,
     rename_xlsx_sheet,
 )
+from kpi.utils.storage import is_filesystem_storage
 from kpi.utils.strings import to_str
 from kpi.zip_importer import HttpContentParse
 
@@ -202,7 +202,7 @@ class ImportExportTask(models.Model):
         # Copied from `FileSystemStorage._save()` 😢
         # TODO avoid duplicating Django FileSystemStorage class code and find
         #   a way to use `self.result.save()`
-        if isinstance(storage_class, FileSystemStorage):
+        if is_filesystem_storage(storage_class):
             full_path = storage_class.path(filename)
 
             # Create any intermediate directories that do not exist.
@@ -746,9 +746,7 @@ class SubmissionExportTaskBase(ImportExportTask):
 
     uid = KpiUidField(uid_prefix='e')
     last_submission_time = models.DateTimeField(null=True)
-    result = PrivateFileField(
-        storage=default_kpi_private_storage, upload_to=export_upload_to, max_length=380
-    )
+    result = PrivateFileField(upload_to=export_upload_to, max_length=380)
 
     COPY_FIELDS = (
         IdCopyField,
@@ -982,7 +980,7 @@ class SubmissionExportTaskBase(ImportExportTask):
                 # XLSX export actually requires a filename (limitation of
                 # pyexcelerate?)
                 with tempfile.NamedTemporaryFile(
-                        prefix='export_xlsx', mode='rb'
+                    prefix='export_xlsx', mode='rb'
                 ) as xlsx_output_file:
                     export.to_xlsx(xlsx_output_file.name, submission_stream)
                     # TODO: chunk again once

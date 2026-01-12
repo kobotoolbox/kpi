@@ -8,7 +8,6 @@ from tempfile import NamedTemporaryFile
 
 import requests
 from django.conf import settings
-from django.core.files.storage import FileSystemStorage
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.mail import mail_admins
 from django.utils.translation import gettext as t
@@ -18,6 +17,7 @@ from kpi.constants import UNSUPPORTED_INLINE_MIMETYPES
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
+from kpi.utils.storage import is_filesystem_storage
 
 SLASH = '/'
 
@@ -218,7 +218,7 @@ def create_attachments_zipfile(attachments, output_file=None):
             # The default, file-system storage won't allow changing the `seek`
             # attribute, which is fine because seeking on local files works
             # perfectly anyway
-            if not isinstance(default_storage, FileSystemStorage):
+            if not is_filesystem_storage(default_storage):
                 logging.warning(
                     f'{default_storage.__class__} may not be a local storage class, but '
                     f'disabling seeking failed: {e}'
