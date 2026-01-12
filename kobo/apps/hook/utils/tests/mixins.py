@@ -27,7 +27,7 @@ class HookTestCaseMixin:
 
         self._add_submissions()
 
-        url = reverse('hook-list', args=(self.asset.uid,))
+        url = reverse('api_v2:hook-list', args=(self.asset.uid,))
 
         data = {
             'name': kwargs.get('name', 'some external service with token'),
@@ -102,7 +102,7 @@ class HookTestCaseMixin:
 
         # Retrieve the corresponding log
         url = reverse(
-            'hook-log-list',
+            'api_v2:hook-log-list',
             kwargs={
                 'uid_asset': self.hook.asset.uid,
                 'uid_hook': self.hook.uid,

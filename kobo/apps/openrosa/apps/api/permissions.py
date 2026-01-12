@@ -233,42 +233,4 @@ class AttachmentObjectPermissions(DjangoObjectPermissions):
         return super().has_object_permission(request, view, obj.xform.asset)
 
 
-class NoteObjectPermissions(DjangoObjectPermissions):
-    authenticated_users_only = False
-
-    def __init__(self, *args, **kwargs):
-        self.perms_map = deepcopy(self.perms_map)
-        self.perms_map['GET'] = ['kpi.view_asset']
-        self.perms_map['OPTIONS'] = ['kpi.view_asset']
-        self.perms_map['HEAD'] = ['kpi.view_asset']
-        self.perms_map['PATCH'] = ['kpi.change_asset']
-        self.perms_map['POST'] = ['kpi.change_asset']
-        self.perms_map['DELETE'] = ['kpi.change_asset']
-
-        return super().__init__(*args, **kwargs)
-
-    def has_permission(self, request, view):
-        # Data will be filtered in `NoteViewSet`
-        if request.method in SAFE_METHODS and view.action == 'retrieve':
-            return True
-
-        # Anonymous users can't see notes
-        is_anonymous = is_user_anonymous(request.user)
-        if is_anonymous:
-            return False
-
-        return super().has_permission(request, view)
-
-    def has_object_permission(self, request, view, obj):
-
-        xform = obj.instance.xform
-
-        # Allow anonymous users to access shared data
-        if request.method in SAFE_METHODS and view.action == 'retrieve':
-            if xform.shared_data:
-                return True
-
-        return super().has_object_permission(request, view, xform.asset)
-
-
 __permissions__ = [DjangoObjectPermissions, IsAuthenticated]
