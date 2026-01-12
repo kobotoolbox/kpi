@@ -479,27 +479,29 @@ class SingleProcessingStore extends Reflux.Store {
   // TODO-SR: Come up with better way to deal with types after we
   // have confirmed these code changes accomplish what they need to.
   private onFetchProcessingDataCompleted(response: DataSupplementResponse) {
-    const currentQuestionData = response[this.currentQuestionXpath] as DataSupplementResponseOneOfOneOf
     this.data.transcript = undefined
-    const manualVersions = currentQuestionData.manual_transcription?._versions
-    const acceptedAutomaticVersions = currentQuestionData.automatic_google_transcription?._versions.filter(
-      (version) => !!version._dateAccepted,
-    )
-    const allVersions = [...(manualVersions ?? []), ...(acceptedAutomaticVersions ?? [])]
-    const versionToDisplay = allVersions.sort((a, b) => b._dateAccepted!.localeCompare(a._dateAccepted!))[0]
-    if (versionToDisplay) {
-      const versionToDisplayData = versionToDisplay._data as
-        | _DataSupplementResponseOneOfOneOfAutomaticGoogleTranscriptionVersionsItemDataOneOfThree
-        | _DataSupplementResponseOneOfOneOfManualTranscriptionVersionsItemData
+    const currentQuestionData = response[this.currentQuestionXpath] as DataSupplementResponseOneOfOneOf
+    if (currentQuestionData) {
+      const manualVersions = currentQuestionData?.manual_transcription?._versions
+      const acceptedAutomaticVersions = currentQuestionData?.automatic_google_transcription?._versions.filter(
+        (version) => !!version._dateAccepted,
+      )
+      const allVersions = [...(manualVersions ?? []), ...(acceptedAutomaticVersions ?? [])]
+      const versionToDisplay = allVersions.sort((a, b) => b._dateAccepted!.localeCompare(a._dateAccepted!))[0]
+      if (versionToDisplay) {
+        const versionToDisplayData = versionToDisplay._data as
+          | _DataSupplementResponseOneOfOneOfAutomaticGoogleTranscriptionVersionsItemDataOneOfThree
+          | _DataSupplementResponseOneOfOneOfManualTranscriptionVersionsItemData
 
-      if (versionToDisplayData.value) {
-        const transcriptionData = {
-          value: versionToDisplayData.value,
-          languageCode: versionToDisplayData.language,
-          dateModified: versionToDisplay._dateCreated,
-          dateCreated: versionToDisplay._dateCreated,
+        if (versionToDisplayData.value) {
+          const transcriptionData = {
+            value: versionToDisplayData.value,
+            languageCode: versionToDisplayData.language,
+            dateModified: versionToDisplay._dateCreated,
+            dateCreated: versionToDisplay._dateCreated,
+          }
+          this.data.transcript = transcriptionData
         }
-        this.data.transcript = transcriptionData
       }
     }
 
