@@ -746,7 +746,9 @@ class SubmissionExportTaskBase(ImportExportTask):
 
     uid = KpiUidField(uid_prefix='e')
     last_submission_time = models.DateTimeField(null=True)
-    result = PrivateFileField(upload_to=export_upload_to, max_length=380)
+    result = PrivateFileField(
+        storage=default_kpi_private_storage, upload_to=export_upload_to, max_length=380
+    )
 
     COPY_FIELDS = (
         IdCopyField,

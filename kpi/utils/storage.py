@@ -2,9 +2,10 @@ import os
 import shutil
 
 from django.core.files.storage import FileSystemStorage, default_storage
+from storages.backends.s3 import S3Storage
 
 
-def is_filesystem_storage(storage):
+def is_filesystem_storage(storage) -> bool:
     # Case 1: storage *is* a FileSystemStorage
     if isinstance(storage, FileSystemStorage):
         return True
@@ -12,6 +13,19 @@ def is_filesystem_storage(storage):
     # Case 2: storage is a proxy exposing a backend
     backend = getattr(storage, 'backend', None)
     if backend is not None and isinstance(backend, FileSystemStorage):
+        return True
+
+    return False
+
+
+def is_s3_storage(storage) -> bool:
+    # Case 1: storage *is* a S3Storage
+    if isinstance(storage, S3Storage):
+        return True
+
+    # Case 2: storage is a proxy exposing a backend
+    backend = getattr(storage, 'backend', None)
+    if backend is not None and isinstance(backend, S3Storage):
         return True
 
     return False
