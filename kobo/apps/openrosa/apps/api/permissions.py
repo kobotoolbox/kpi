@@ -209,63 +209,6 @@ class XFormDataPermissions(ObjectPermissionsWithViewRestricted):
         return super().has_object_permission(request, view, obj)
 
 
-class MetaDataObjectPermissions(ObjectPermissionsWithViewRestricted):
-
-    # Users can read MetaData objects with 'view_asset' permissions and
-    # they can edit MetaData objects with 'change_asset'.
-    # DRF get the app label and the model name from the queryset, so we
-    # override them the find a match among user's Asset permissions.
-    APP_LABEL = 'kpi'
-    MODEL_NAME = 'asset'
-
-    def __init__(self, *args, **kwargs):
-        super(MetaDataObjectPermissions, self).__init__(
-            *args, **kwargs
-        )
-        self.perms_map = deepcopy(self.perms_map)
-        self.perms_map['POST'] = self.perms_map['PATCH']
-        self.perms_map['PUT'] = self.perms_map['PATCH']
-        self.perms_map['DELETE'] = self.perms_map['PATCH']
-
-    def has_permission(self, request, view):
-        if request.user and request.user.is_superuser:
-            return True
-
-        is_anonymous = is_user_anonymous(request.user)
-        allowed_anonymous_action = ['retrieve']
-        if 'xform' in request.GET:
-            # Allow anonymous user to list metadata when `xform` parameter is
-            # specified.
-            allowed_anonymous_action.append('list')
-
-        if is_anonymous:
-            return (
-                request.method in SAFE_METHODS
-                and view.action in allowed_anonymous_action
-            )
-
-        return super(MetaDataObjectPermissions, self).has_permission(
-            request=request, view=view
-        )
-
-    def has_object_permission(self, request, view, obj):
-
-        if request.user and request.user.is_superuser:
-            return True
-
-        # Grant access to publicly shared xforms.
-        if (
-            request.method in SAFE_METHODS
-            and view.action == 'retrieve'
-            and obj.xform.shared_data
-        ):
-            return True
-
-        return super(MetaDataObjectPermissions, self).has_object_permission(
-            request=request, view=view, obj=obj.xform.asset
-        )
-
-
 class AttachmentObjectPermissions(DjangoObjectPermissions):
 
     def __init__(self, *args, **kwargs):

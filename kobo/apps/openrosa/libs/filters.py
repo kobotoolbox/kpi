@@ -210,15 +210,6 @@ class XFormPermissionFilterMixin:
         return queryset.filter(**kwargs)
 
 
-class MetaDataFilter(XFormPermissionFilterMixin, ObjectPermissionsFilter):
-    def filter_queryset(self, request, queryset, view):
-        queryset = self._xform_filter_queryset(request, queryset, view, 'xform')
-        data_type = request.query_params.get('data_type')
-        if data_type is not None:
-            queryset = queryset.filter(data_type=data_type)
-        return queryset
-
-
 class AttachmentFilter(XFormPermissionFilterMixin, ObjectPermissionsFilter):
     def filter_queryset(self, request, queryset, view):
         queryset = self._xform_filter_queryset(
