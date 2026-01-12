@@ -41,48 +41,6 @@ class BaseAutomaticBedrockQualTestCase(BaseTestCase):
     fixtures = ['test_data', 'asset_with_settings_and_qa']
 
     def setUp(self):
-        action_params = [
-            {
-                'type': 'qualInteger',
-                'uuid': 'uuid-qual-integer',
-                'labels': {'_default': 'How many characters appear in the story?'},
-            },
-            {
-                'type': 'qualSelectMultiple',
-                'uuid': 'uuid-qual-select-multiple',
-                'labels': {'_default': 'What themes were present in the story?'},
-                'choices': [
-                    {
-                        'uuid': 'uuid-empathy',
-                        'labels': {'_default': 'Empathy'},
-                    },
-                    {
-                        'uuid': 'uuid-apathy',
-                        'labels': {'_default': 'Apathy'},
-                    },
-                ],
-            },
-            {
-                'type': 'qualSelectOne',
-                'uuid': 'uuid-qual-select-one',
-                'labels': {'_default': 'Was this a first-hand account?'},
-                'choices': [
-                    {
-                        'uuid': 'uuid-yes',
-                        'labels': {'_default': 'Yes'},
-                    },
-                    {
-                        'uuid': 'uuid-no',
-                        'labels': {'_default': 'No'},
-                    },
-                ],
-            },
-            {
-                'type': 'qualText',
-                'uuid': 'uuid-qual-text',
-                'labels': {'_default': 'Add any further remarks'},
-            },
-        ]
         self.asset = Asset.objects.get(uid='aNp9yMt4zKpUtTeZUnozYG')
         self.feature = QuestionAdvancedFeature.objects.get(
             asset=self.asset,
