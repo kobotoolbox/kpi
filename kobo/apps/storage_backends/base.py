@@ -3,8 +3,8 @@ from django.utils.deconstruct import deconstructible
 from django.utils.module_loading import import_string
 
 
-@deconstructible(path='kobo.apps.storage_backends.base.KpiDefaultStorage')
-class KpiDefaultStorage:
+@deconstructible(path='kobo.apps.storage_backends.base.DefaultKpiStorageProxy')
+class DefaultKpiStorageProxy:
     """
     Deconstructible storage proxy used to keep Django migration state stable.
 
@@ -26,10 +26,10 @@ class KpiDefaultStorage:
 
     def __repr__(self):
         if self._backend is None:
-            return '<KpiDefaultStorage: (uninitialized)>'
+            return '<DefaultKpiStorageProxy: (uninitialized)>'
 
         return (
-            f'<KpiDefaultStorage proxy: '
+            f'<DefaultKpiStorageProxy proxy: '
             f'{self._backend.__class__.__name__} at 0x{id(self._backend):x}>'
         )
 
@@ -48,8 +48,8 @@ class KpiDefaultStorage:
         return self._backend
 
 
-@deconstructible(path='kobo.apps.storage_backends.base.KpiPrivateDefaultStorage')
-class KpiPrivateDefaultStorage(KpiDefaultStorage):
+@deconstructible(path='kobo.apps.storage_backends.base.DefaultKpiPrivateStorageProxy')
+class DefaultKpiPrivateStorageProxy(DefaultKpiStorageProxy):
     """
     Deconstructible storage proxy used to keep Django migration state stable.
 
@@ -63,13 +63,13 @@ class KpiPrivateDefaultStorage(KpiDefaultStorage):
 
     def __repr__(self):
         if self._backend is None:
-            return '<KpiPrivateDefaultStorage: (uninitialized)>'
+            return '<DefaultKpiPrivateStorageProxy: (uninitialized)>'
 
         return (
-            f'<KpiPrivateDefaultStorage proxy: '
+            f'<DefaultKpiPrivateStorageProxy: '
             f'{self._backend.__class__.__name__} at 0x{id(self._backend):x}>'
         )
 
 
-default_kpi_storage = KpiDefaultStorage()
-default_kpi_private_storage = KpiPrivateDefaultStorage()
+default_kpi_storage = DefaultKpiStorageProxy()
+default_kpi_private_storage = DefaultKpiPrivateStorageProxy()

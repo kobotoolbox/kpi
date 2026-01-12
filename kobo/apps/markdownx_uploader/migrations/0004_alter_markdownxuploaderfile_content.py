@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
             name='content',
             field=private_storage.fields.PrivateFileField(
                 max_length=380,
-                storage=kobo.apps.storage_backends.base.KpiPrivateDefaultStorage(),
+                storage=kobo.apps.storage_backends.base.DefaultKpiPrivateStorageProxy(),
                 upload_to='__markdown_media_files/%Y/%m/%d',
             ),
         ),

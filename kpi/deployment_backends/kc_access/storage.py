@@ -6,8 +6,10 @@ from storages.backends.azure_storage import AzureStorage
 from kobo.apps.storage_backends.s3boto3 import S3Boto3Storage
 
 
-@deconstructible(path='kpi.deployment_backends.kc_access.storage.KobocatDefaultStorage')
-class KobocatDefaultStorage:
+@deconstructible(
+    path='kpi.deployment_backends.kc_access.storage.DefaultKobocatStorageProxy'
+)
+class DefaultKobocatStorageProxy:
     """
     Deconstructible storage proxy used to keep Django migration state stable.
 
@@ -27,10 +29,10 @@ class KobocatDefaultStorage:
 
     def __repr__(self):
         if self._backend is None:
-            return '<KobocatDefaultStorage: (uninitialized)>'
+            return '<DefaultKobocatStorageProxy: (uninitialized)>'
 
         return (
-            f'<KobocatDefaultStorage proxy: '
+            f'<DefaultKobocatStorageProxy proxy: '
             f'{self._backend.__class__.__name__} at 0x{id(self._backend):x}>'
         )
 
@@ -55,7 +57,7 @@ class KobocatDefaultStorage:
         return self._backend
 
 
-default_kobocat_storage = KobocatDefaultStorage()
+default_kobocat_storage = DefaultKobocatStorageProxy()
 
 
 class KobocatFileSystemStorage(FileSystemStorage):

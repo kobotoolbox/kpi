@@ -33,7 +33,7 @@ class Migration(migrations.Migration):
             field=kpi.fields.file.ExtendedFileField(
                 db_index=True,
                 max_length=380,
-                storage=kpi.deployment_backends.kc_access.storage.KobocatDefaultStorage(),
+                storage=kpi.deployment_backends.kc_access.storage.DefaultKobocatStorageProxy(),
                 upload_to=kobo.apps.openrosa.apps.logger.models.attachment.upload_to,
             ),
         ),
@@ -71,7 +71,7 @@ class Migration(migrations.Migration):
             field=kpi.fields.file.ExtendedFileField(
                 max_length=380,
                 null=True,
-                storage=kpi.deployment_backends.kc_access.storage.KobocatDefaultStorage(),
+                storage=kpi.deployment_backends.kc_access.storage.DefaultKobocatStorageProxy(),
                 upload_to=kobo.apps.openrosa.apps.logger.models.xform.upload_to,
             ),
         ),

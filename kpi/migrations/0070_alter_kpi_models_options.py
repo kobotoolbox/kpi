@@ -42,7 +42,7 @@ class Migration(migrations.Migration):
             name='result',
             field=private_storage.fields.PrivateFileField(
                 max_length=380,
-                storage=kobo.apps.storage_backends.base.KpiPrivateDefaultStorage(),
+                storage=kobo.apps.storage_backends.base.DefaultKpiPrivateStorageProxy(),
                 upload_to=kpi.models.import_export_task.export_upload_to,
             ),
         ),
@@ -79,7 +79,7 @@ class Migration(migrations.Migration):
             name='result',
             field=private_storage.fields.PrivateFileField(
                 max_length=380,
-                storage=kobo.apps.storage_backends.base.KpiPrivateDefaultStorage(),
+                storage=kobo.apps.storage_backends.base.DefaultKpiPrivateStorageProxy(),
                 upload_to=kpi.models.import_export_task.export_upload_to,
             ),
         ),
@@ -102,7 +102,7 @@ class Migration(migrations.Migration):
             name='result',
             field=private_storage.fields.PrivateFileField(
                 max_length=380,
-                storage=kobo.apps.storage_backends.base.KpiPrivateDefaultStorage(),
+                storage=kobo.apps.storage_backends.base.DefaultKpiPrivateStorageProxy(),
                 upload_to=kpi.models.import_export_task.export_upload_to,
             ),
         ),
@@ -125,7 +125,7 @@ class Migration(migrations.Migration):
             name='result',
             field=private_storage.fields.PrivateFileField(
                 max_length=380,
-                storage=kobo.apps.storage_backends.base.KpiPrivateDefaultStorage(),
+                storage=kobo.apps.storage_backends.base.DefaultKpiPrivateStorageProxy(),
                 upload_to=kpi.models.import_export_task.export_upload_to,
             ),
         ),
@@ -148,7 +148,7 @@ class Migration(migrations.Migration):
             name='result',
             field=private_storage.fields.PrivateFileField(
                 max_length=380,
-                storage=kobo.apps.storage_backends.base.KpiPrivateDefaultStorage(),
+                storage=kobo.apps.storage_backends.base.DefaultKpiPrivateStorageProxy(),
                 upload_to=kpi.models.import_export_task.export_upload_to,
             ),
         ),
@@ -172,7 +172,7 @@ class Migration(migrations.Migration):
             field=kpi.fields.file.PrivateExtendedFileField(
                 max_length=380,
                 null=True,
-                storage=kobo.apps.storage_backends.base.KpiPrivateDefaultStorage(),
+                storage=kobo.apps.storage_backends.base.DefaultKpiPrivateStorageProxy(),
                 upload_to=kpi.models.asset_file.upload_to,
             ),
         ),
