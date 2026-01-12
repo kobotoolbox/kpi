@@ -33,7 +33,9 @@
           "label": "Education",
           "value": "Education"
         },
-        "country_codes": ["USA"],
+        "country_codes": [
+          "USA"
+        ],
         "organization": "An organization"
       },
       "data_sharing": {
@@ -44,22 +46,6 @@
       "date_modified": "2022-04-05T21:00:33.946Z",
       "owner": 1,
       "uid": "aNp9yMt4zKpUtTeZUnozYG"
-    }
-  },
-    {
-    "model": "subsequences.QuestionAdvancedFeature",
-    "pk": "qafautomatic",
-    "fields": {
-      "question_xpath": "q1",
-      "asset": 3,
-      "action": "automatic_bedrock_qual",
-      "params": [
-        {
-          "type": "qualInteger",
-          "uuid": "uuid-bedrock-integer-q1",
-          "labels": { "_default": "How many movies did they see last week?" }
-        }
-      ]
     }
   },
   {
@@ -80,6 +66,73 @@
   },
   {
     "model": "subsequences.QuestionAdvancedFeature",
+    "pk": "qafautomaticqual",
+    "fields": {
+      "question_xpath": "q1",
+      "asset": 3,
+      "action": "automatic_bedrock_qual",
+      "params": [
+        {
+          "type": "qualInteger",
+          "uuid": "uuid-qual-integer",
+          "labels": {
+            "_default": "How many characters appear in the story?"
+          }
+        },
+        {
+          "type": "qualSelectMultiple",
+          "uuid": "uuid-qual-select-multiple",
+          "labels": {
+            "_default": "What themes were present in the story?"
+          },
+          "choices": [
+            {
+              "uuid": "uuid-empathy",
+              "labels": {
+                "_default": "Empathy"
+              }
+            },
+            {
+              "uuid": "uuid-apathy",
+              "labels": {
+                "_default": "Apathy"
+              }
+            }
+          ]
+        },
+        {
+          "type": "qualSelectOne",
+          "uuid": "uuid-qual-select-one",
+          "labels": {
+            "_default": "Was this a first-hand account?"
+          },
+          "choices": [
+            {
+              "uuid": "uuid-yes",
+              "labels": {
+                "_default": "Yes"
+              }
+            },
+            {
+              "uuid": "uuid-no",
+              "labels": {
+                "_default": "No"
+              }
+            }
+          ]
+        },
+        {
+          "type": "qualText",
+          "uuid": "uuid-qual-text",
+          "labels": {
+            "_default": "Add any further remarks"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "model": "subsequences.QuestionAdvancedFeature",
     "pk": "qaf678910",
     "fields": {
       "question_xpath": "q1",
@@ -92,7 +145,7 @@
       ]
     }
   },
-    {
+  {
     "model": "subsequences.QuestionAdvancedFeature",
     "pk": "qaf111213",
     "fields": {
@@ -103,7 +156,9 @@
         {
           "type": "qualInteger",
           "uuid": "uuid-integer-q2",
-          "labels": { "_default": "How many horses do they own?" }
+          "labels": {
+            "_default": "How many horses do they own?"
+          }
         }
       ]
     }

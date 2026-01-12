@@ -1,6 +1,5 @@
 import base64
 import copy
-import io
 import json
 import uuid
 from unittest.mock import patch
@@ -31,6 +30,7 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
 from kobo.apps.openrosa.libs.utils.logger_tools import dict2xform
 from kobo.apps.subsequences.constants import Action
 from kobo.apps.subsequences.models import QuestionAdvancedFeature, SubmissionSupplement
+from kobo.apps.subsequences.tests.utils import MockLLMClient
 from kpi.constants import (
     ASSET_TYPE_TEMPLATE,
     CLONE_ARG_NAME,
@@ -2069,10 +2069,6 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             data={
                 '_version': '20250820',
                 'q1': {
-                    Action.MANUAL_QUAL: {
-                        'uuid': 'uuid-integer-q1',
-                        'value': 1,
-                    },
                     Action.MANUAL_TRANSCRIPTION: {
                         'language': 'en',
                         'value': 'This is a transcript',
@@ -2095,7 +2091,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             ProjectHistoryLog.objects.filter(
                 object_id=self.asset.id, action=AuditAction.MODIFY_QA_DATA
             ).count(),
-            4,
+            3,
         )
 
     def test_request_automatic_qa_data(self):
@@ -2106,15 +2102,6 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                 query={'meta/rootUuid': add_uuid_prefix(instance.root_uuid)},
             )
         )[0]
-
-        class MockClient:
-            def invoke_model(self, *args, **kwargs):
-                return {
-                    'body': io.StringIO(
-                        '{"model":"llm_model", "content": [{"text":"5"}],'
-                        ' "usage": {"input_tokens":10, "output_tokens":20}}'
-                    )
-                }
 
         # add a transcript
         SubmissionSupplement.revise_data(
@@ -2130,7 +2117,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
 
         with patch(
             'kobo.apps.subsequences.actions.automatic_bedrock_qual.boto3.client',
-            return_value=MockClient(),
+            return_value=MockLLMClient('answer'),
         ):
             log_metadata = self._base_project_history_log_test(
                 url=reverse(
@@ -2142,7 +2129,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                     '_version': '20250820',
                     'q1': {
                         Action.AUTOMATIC_BEDROCK_QUAL: {
-                            'uuid': 'uuid-bedrock-integer-q1',
+                            'uuid': 'uuid-qual-integer',
                         }
                     },
                 },

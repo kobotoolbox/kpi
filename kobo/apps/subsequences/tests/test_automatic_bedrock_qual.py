@@ -29,6 +29,7 @@ from kobo.apps.subsequences.prompts import (
     num_choice_placeholder,
     response_placeholder,
 )
+from kobo.apps.subsequences.tests.utils import MockLLMClient
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
 
@@ -83,13 +84,11 @@ class BaseAutomaticBedrockQualTestCase(BaseTestCase):
             },
         ]
         self.asset = Asset.objects.get(uid='aNp9yMt4zKpUtTeZUnozYG')
-        self.feature = QuestionAdvancedFeature.objects.create(
+        self.feature = QuestionAdvancedFeature.objects.get(
             asset=self.asset,
             action=Action.AUTOMATIC_BEDROCK_QUAL,
-            params=action_params,
             question_xpath='q1',
         )
-        self.feature.save()
         self.action = self.feature.to_action()
 
     def _add_submission(self):
@@ -110,14 +109,6 @@ class BaseAutomaticBedrockQualTestCase(BaseTestCase):
         return submission_uuid
 
     def _add_manual_transcription(self, submission_uuid) -> dict:
-        # enable transcription
-        QuestionAdvancedFeature.objects.create(
-            question_xpath='q1',
-            asset=self.asset,
-            action=Action.MANUAL_TRANSCRIPTION,
-            params=[{'language': 'en'}],
-        )
-        # add a transcription
         supplement_details_url = reverse(
             'api_v2:submission-supplement',
             args=[self.asset.uid, submission_uuid],
@@ -254,9 +245,9 @@ class TestBedrockAutomaticChainedQual(BaseAutomaticBedrockQualTestCase):
                 },
             },
         }
-        return_val = {'value': 'LLM text', 'status': 'complete'}
-        with patch.object(
-            AutomaticBedrockQual, 'run_external_process', return_value=return_val
+        with patch(
+            'kobo.apps.subsequences.actions.automatic_bedrock_qual.boto3.client',
+            return_value=MockLLMClient('LLM text'),
         ):
             response = self.client.patch(
                 supplement_details_url, data=payload, format='json'
