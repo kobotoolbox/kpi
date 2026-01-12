@@ -64,7 +64,7 @@ export default function StepEditor({
 
       <textarea
         className={bodyStyles.textarea}
-        value={draft?.value}
+        value={draft?._data.value!}
         onChange={(evt: React.ChangeEvent<HTMLTextAreaElement>) => {
           setDraftValue(evt.target.value)
         }}
