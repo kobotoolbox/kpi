@@ -1,24 +1,42 @@
-import React from 'react'
+import React, { useState } from 'react'
 
-import { destroyConfirm } from '#/alertify'
+import { useParams } from 'react-router-dom'
+import type { _DataSupplementResponseOneOfOneOfManualTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfOneOfManualTranscriptionVersionsItem'
+import { useAssetsDataSupplementPartialUpdate } from '#/api/react-query/survey-data'
 import Button from '#/components/common/button'
 import bodyStyles from '#/components/processing/processingBody.module.scss'
-import singleProcessingStore from '#/components/processing/singleProcessingStore'
 import { hasChangeSubPermissionToCurrentAsset } from '../analysis/utils'
 import HeaderLanguageAndDate from './headerLanguageAndDate.component'
+import StepEditor from './stepEditor.component'
 
-export default function StepViewer() {
-  function openEditor() {
-    const transcript = singleProcessingStore.getTranscript()
-    if (transcript) {
-      // Make new draft using existing transcript.
-      singleProcessingStore.setTranscriptDraft(transcript)
-    }
+// TODO OpenAPI: PatchedDataSupplementPayloadOneOfOneOfManualTranscription.value is nullable
+
+interface RouteParams extends Record<string, string | undefined> {
+  uid: string
+  xpath: string
+  submissionEditId: string
+}
+
+export default function StepViewer({
+  transcript,
+}: { transcript: _DataSupplementResponseOneOfOneOfManualTranscriptionVersionsItem }) {
+  const { uid, xpath, submissionEditId } = useParams<RouteParams>()
+  const [edit, setEdit] = useState(false)
+
+  const mutateTrash = useAssetsDataSupplementPartialUpdate({ mutation: {} })
+
+  const handleTrash = () => {
+    mutateTrash.mutateAsync({
+      uidAsset: uid!,
+      rootUuid: submissionEditId!,
+      data: {
+        _version: '',
+        [xpath!]: { manual_transcription: { language: transcript!._data.language, value: null as any } },
+      },
+    })
   }
 
-  function deleteTranscript() {
-    destroyConfirm(singleProcessingStore.deleteTranscript.bind(singleProcessingStore), t('Delete transcript?'))
-  }
+  if (edit) return <StepEditor draft={transcript} />
 
   return (
     <div className={bodyStyles.root}>
@@ -30,25 +48,25 @@ export default function StepViewer() {
             type='text'
             size='s'
             startIcon='edit'
-            onClick={openEditor}
+            onClick={() => setEdit(true)}
             tooltip={t('Edit')}
-            isDisabled={singleProcessingStore.data.isFetchingData || !hasChangeSubPermissionToCurrentAsset()}
+            isDisabled={edit}
           />
 
           <Button
             type='text'
             size='s'
             startIcon='trash'
-            onClick={deleteTranscript}
+            onClick={handleTrash}
             tooltip={t('Delete')}
-            isPending={singleProcessingStore.data.isFetchingData}
+            isPending={mutateTrash.isPending}
             isDisabled={!hasChangeSubPermissionToCurrentAsset()}
           />
         </nav>
       </header>
 
       <article className={bodyStyles.text} dir='auto'>
-        {singleProcessingStore.getTranscript()?.value}
+        {transcript?._data.value}
       </article>
     </div>
   )

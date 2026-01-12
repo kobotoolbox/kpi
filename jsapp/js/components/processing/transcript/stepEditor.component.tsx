@@ -1,13 +1,16 @@
 import React from 'react'
 
 import clonedeep from 'lodash.clonedeep'
+import type { _DataSupplementResponseOneOfOneOfManualTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfOneOfManualTranscriptionVersionsItem'
 import Button from '#/components/common/button'
 import bodyStyles from '#/components/processing/processingBody.module.scss'
 import singleProcessingStore from '#/components/processing/singleProcessingStore'
 import { hasChangeSubPermissionToCurrentAsset } from '../analysis/utils'
 import HeaderLanguageAndDate from './headerLanguageAndDate.component'
 
-export default function StepEditor() {
+export default function StepEditor({
+  draft,
+}: { draft: _DataSupplementResponseOneOfOneOfManualTranscriptionVersionsItem }) {
   function discardDraft() {
     singleProcessingStore.safelyDeleteTranscriptDraft()
   }
@@ -25,8 +28,6 @@ export default function StepEditor() {
     newDraft.value = newVal
     singleProcessingStore.setTranscriptDraft(newDraft)
   }
-
-  const draft = singleProcessingStore.getTranscriptDraft()
 
   // The discard button will become a back button when there are no unsaved changes.
   let discardLabel = t('Back')

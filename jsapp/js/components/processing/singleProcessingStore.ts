@@ -3,6 +3,10 @@ import alertify from 'alertifyjs'
 import Reflux from 'reflux'
 import { actions } from '#/actions'
 import { destroyConfirm } from '#/alertify'
+import type { _DataSupplementResponseOneOfOneOfAutomaticGoogleTranscriptionVersionsItemDataOneOfThree } from '#/api/models/_dataSupplementResponseOneOfOneOfAutomaticGoogleTranscriptionVersionsItemDataOneOfThree'
+import type { _DataSupplementResponseOneOfOneOfManualTranscriptionVersionsItemData } from '#/api/models/_dataSupplementResponseOneOfOneOfManualTranscriptionVersionsItemData'
+import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
+import type { DataSupplementResponseOneOfOneOf } from '#/api/models/dataSupplementResponseOneOfOneOf'
 import assetStore from '#/assetStore'
 import {
   findRowByXpath,
@@ -32,10 +36,6 @@ import envStore from '#/envStore'
 import { router } from '#/router/legacy'
 import { getCurrentPath } from '#/router/routerUtils'
 import { getExponentialDelayTime, recordKeys, recordValues, removeDefaultUuidPrefix } from '#/utils'
-import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
-import type { DataSupplementResponseOneOfOneOf } from '#/api/models/dataSupplementResponseOneOfOneOf'
-import type { _DataSupplementResponseOneOfOneOfAutomaticGoogleTranscriptionVersionsItemDataOneOfThree } from '#/api/models/_dataSupplementResponseOneOfOneOfAutomaticGoogleTranscriptionVersionsItemDataOneOfThree'
-import type { _DataSupplementResponseOneOfOneOfManualTranscriptionVersionsItemData } from '#/api/models/_dataSupplementResponseOneOfOneOfManualTranscriptionVersionsItemData'
 
 export enum StaticDisplays {
   Data = 'Data',
@@ -1066,6 +1066,6 @@ class SingleProcessingStore extends Reflux.Store {
  * its features. Handles draft transcripts/translations.
  */
 const singleProcessingStore = new SingleProcessingStore()
-singleProcessingStore.init()
+// singleProcessingStore.init()
 
 export default singleProcessingStore
