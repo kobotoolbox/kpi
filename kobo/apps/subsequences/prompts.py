@@ -146,10 +146,15 @@ def parse_choices_response(
     selected_answer_indexes = [
         i for i, value in enumerate(separated_answers) if value == 'TRUE'
     ]
-    if not allow_multiple and len(selected_answer_indexes) > 1:
-        raise InvalidResponseFromLLMException(
-            'LLM returned multiple answers for a single select'
-        )
+    if not allow_multiple:
+        if len(selected_answer_indexes) > 1:
+            raise InvalidResponseFromLLMException(
+                'LLM returned multiple answers for a single select'
+            )
+        if len(selected_answer_indexes) == 0:
+            raise InvalidResponseFromLLMException(
+                'LLM returned no answers for a single select'
+            )
     return selected_answer_indexes
 
 
