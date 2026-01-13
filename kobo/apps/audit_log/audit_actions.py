@@ -26,6 +26,7 @@ class AuditAction(models.TextChoices):
     MODIFY_SHARING = 'modify-sharing'
     MODIFY_SUBMISSION = 'modify-submission'
     MODIFY_QA_DATA = 'modify-qa-data'
+    MODIFY_AUTOMATIC_QA_DATA = 'modify-automatic-qa-data'
     MODIFY_USER_PERMISSIONS = 'modify-user-permissions'
     PUT_BACK = 'put-back'
     REDEPLOY = 'redeploy'
