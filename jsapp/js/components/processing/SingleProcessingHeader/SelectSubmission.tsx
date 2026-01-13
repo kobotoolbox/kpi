@@ -1,5 +1,9 @@
 import React, { useCallback } from 'react'
-import { type assetsDataListResponse, getAssetsDataListQueryKey, useAssetsDataList } from '#/api/react-query/survey-data'
+import {
+  type assetsDataListResponse,
+  getAssetsDataListQueryKey,
+  useAssetsDataList,
+} from '#/api/react-query/survey-data'
 import Button from '#/components/common/button'
 import { goToProcessing } from '#/components/processing/routes.utils'
 import styles from './index.module.scss'
@@ -26,21 +30,24 @@ interface Props {
  * via "DONE" button.
  */
 export default function SelectSubmission({ assetUid, submissionEditId, xpath }: Props) {
+  const query = JSON.stringify({ [xpath]: { $exists: true } })
 
-  // TODO: how to list all submissions ids with answers to question xpath?
-  //       Maybe we even shouldn't, and display "200+" as a count instead.
   const params = {
     limit: 200,
     start: 0,
     sort: JSON.stringify({ _id: -1 }),
+    query,
   } as any
   const querySubmission = useAssetsDataList(assetUid!, params, {
     query: {
       queryKey: getAssetsDataListQueryKey(assetUid!, params),
       enabled: !!assetUid,
-      select: useCallback((data: assetsDataListResponse) => {
-          return data?.status === 200 ? data.data.results.filter((submission) => !!(submission as any)[xpath]) : []
-      }, [xpath]),
+      select: useCallback(
+        (data: assetsDataListResponse) => {
+          return data?.status === 200 ? data.data.results : []
+        },
+        [xpath],
+      ),
     },
   })
   console.log(querySubmission.data)
