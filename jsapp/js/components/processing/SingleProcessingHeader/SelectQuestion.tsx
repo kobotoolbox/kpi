@@ -22,11 +22,9 @@ const ADVANCED_FEATURES_ACTION = [
   'automatic_google_translation',
 ]
 // TODO: improve schema, AdvancedFeatureResponse.asset doesn't exist for the above.
-// TODO: improve ...
 
 interface Props {
   submissionEditId: string
-  assetUid: string
   asset: AssetResponse
   xpath: string
 }
@@ -38,14 +36,18 @@ interface Props {
  */
 export default function SelectQuestion({
   asset,
-  assetUid,
   submissionEditId,
   xpath,
 }: Props) {
-  const queryAdvancedFeatures = useAssetsAdvancedFeaturesList(assetUid!, {
+
+  // Problem: this is wrong to list questions with enabled AF for two reasons:
+  // - AF can be enabled on arbitrary question xpath, including those that don't exist
+  // - we should allow to proceed with questions without AF enabled, and auto-magically enable them later at some point.
+  // TODO: delete this query. Adjust `getQuestionSelectorOptions` so it lists enable-able currently existing questions.
+  const queryAdvancedFeatures = useAssetsAdvancedFeaturesList(asset.uid, {
     query: {
-      queryKey: getAssetsAdvancedFeaturesListQueryKey(assetUid!),
-      enabled: !!assetUid,
+      queryKey: getAssetsAdvancedFeaturesListQueryKey(asset.uid),
+      enabled: !!asset.uid,
       select: useCallback((data: assetsAdvancedFeaturesListResponse) => {
         return data.status === 200 ? data.data.filter((datum) => ADVANCED_FEATURES_ACTION.includes(datum.action)) : []
       }, []),
@@ -104,7 +106,7 @@ export default function SelectQuestion({
 
   /** Goes to another submission. */
   const goToSubmission = (xpath: string, targetSubmissionEditId: string) => {
-    goToProcessing(assetUid, xpath, targetSubmissionEditId, true)
+    goToProcessing(asset.uid, xpath, targetSubmissionEditId, true)
   }
 
   return (

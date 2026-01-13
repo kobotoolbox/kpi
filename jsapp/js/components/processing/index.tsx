@@ -50,6 +50,8 @@ export default function SingleProcessingRoute() {
   const asset = uid ? assetStore.getAsset(uid) : null
   console.log(asset)
 
+
+  // TODO: remove, for now just logging for debugging.
   const queryAF = useAssetsAdvancedFeaturesList(uid!, {
     query: {
       queryKey: getAssetsAdvancedFeaturesListQueryKey(uid!),
@@ -79,12 +81,11 @@ export default function SingleProcessingRoute() {
   console.log(queryAF.data)
   console.log(querySupplement.data)
   console.log(querySubmission.data)
+  // end of TODO.
 
   /** Whether current submission has a response for current question. */
-  function isDataProcessable(): boolean {
-    // TODO OpenAPI: DataResponse should be indexable.
-    return querySubmission.data?.status === 200 && !!(querySubmission.data.data.results[0] as DataResponse & Record<string, string>)[xpath!]
-  }
+  // TODO OpenAPI: DataResponse should be indexable.
+  const questionHasAnswer = querySubmission.data?.status === 200 && !!(querySubmission.data.data.results[0] as DataResponse & Record<string, string>)[xpath!]
 
   function renderBottom() {
     if (queryAF.data?.status !== 200 || querySupplement.data?.status !== 200 || !asset?.content?.survey) {
@@ -94,8 +95,11 @@ export default function SingleProcessingRoute() {
     return (
       <React.Fragment>
         <section className={styles.bottomLeft}>
-          {isDataProcessable() && <SingleProcessingContent />}
-          {!isDataProcessable() && <CenteredMessage message={NO_DATA_MESSAGE} />}
+          {questionHasAnswer ? (
+            <SingleProcessingContent />
+          ) : (
+            <CenteredMessage message={NO_DATA_MESSAGE} />
+          )}
         </section>
 
         <section className={styles.bottomRight}>
@@ -120,9 +124,12 @@ export default function SingleProcessingRoute() {
   return (
     <DocumentTitle title={pageTitle}>
       <section className={styles.root}>
+
+        {/* TODO: move deeper into editor components and condition over the local variables. */}
         {(singleProcessingStore.hasAnyUnsavedWork() || singleProcessingStore.data.isPollingForTranscript) && <Prompt />}
+
         <section className={styles.top}>
-          <SingleProcessingHeader submissionEditId={submissionEditId!} assetUid={uid!} asset={asset} xpath={xpath!} />
+          <SingleProcessingHeader submissionEditId={submissionEditId!} asset={asset} xpath={xpath!} />
         </section>
 
         <section className={styles.bottom}>{renderBottom()}</section>

@@ -8,7 +8,6 @@ import styles from './index.module.scss'
 
 interface SingleProcessingHeaderProps {
   submissionEditId: string
-  assetUid: string
   asset: AssetResponse
   xpath: string
 }
@@ -20,15 +19,14 @@ interface SingleProcessingHeaderProps {
  */
 export default function SingleProcessingHeader({
   asset,
-  assetUid,
   submissionEditId,
   xpath,
 }: SingleProcessingHeaderProps) {
   return (
     <header className={styles.root}>
-      <SelectQuestion assetUid={assetUid} xpath={xpath} submissionEditId={submissionEditId} asset={asset} />
-      <SelectSubmission assetUid={assetUid} xpath={xpath} submissionEditId={submissionEditId} />
-      <ButtonReturn assetUid={assetUid} />
+      <SelectQuestion asset={asset} xpath={xpath} submissionEditId={submissionEditId} />
+      <SelectSubmission assetUid={asset.uid} xpath={xpath} submissionEditId={submissionEditId} />
+      <ButtonReturn assetUid={asset.uid} />
     </header>
   )
 }

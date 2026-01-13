@@ -26,6 +26,9 @@ interface Props {
  * via "DONE" button.
  */
 export default function SelectSubmission({ assetUid, submissionEditId, xpath }: Props) {
+
+  // TODO: how to list all submissions ids with answers to question xpath?
+  //       Maybe we even shouldn't, and display "200+" as a count instead.
   const params = {
     limit: 200,
     start: 0,
@@ -43,6 +46,9 @@ export default function SelectSubmission({ assetUid, submissionEditId, xpath }: 
   console.log(querySubmission.data)
 
   const count = querySubmission.data?.length ?? 0
+
+  // Note: in case a submission has answer for Q1 but not Q2, when question is switched then the index will be 0.
+  // TODO: auto-select 1st instead? Auto-select next one instead?
   const currentSubmissionIndex = querySubmission.data?.findIndex((submission) => submission['meta/rootUuid'].slice(5) === submissionEditId) ?? -1
 
   const goPrev = () => {
