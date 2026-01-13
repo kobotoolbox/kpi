@@ -258,6 +258,9 @@ declare module 'react-autobind' {
   export default autoBind
 }
 
+declare module '*.scss'
+declare module '*.css'
+
 declare module '*.module.scss'
 declare module '*.module.css'
 

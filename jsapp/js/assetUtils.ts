@@ -9,7 +9,7 @@ import { isRtlLang } from 'rtl-detect'
 import assetStore from '#/assetStore'
 import permConfig from '#/components/permissions/permConfig'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
-import { QUAL_NOTE_TYPE } from '#/components/processing/analysis/constants'
+import { QUAL_NOTE_TYPE } from '#/components/processing/SingleProcessingContent/TabAnalysis/constants'
 import type { AnyRowTypeName, AssetTypeName } from '#/constants'
 import { QuestionTypeName } from '#/constants'
 import {

@@ -10,6 +10,11 @@ import type { AssetLockingProfileDefinition } from '#/components/locking/locking
 import type { PermissionCodename } from '#/components/permissions/permConstants'
 import type { ProjectTransferAssetDetail } from '#/components/permissions/transferProjects/transferProjects.api'
 import type {
+  AnalysisQuestionSchema,
+  AnalysisQuestionType,
+  SubmissionAnalysisResponse,
+} from '#/components/processing/SingleProcessingContent/TabAnalysis/constants'
+import type {
   AssetResponseReportCustom,
   AssetResponseReportStyles,
   ReportsPaginatedResponse,
@@ -22,11 +27,6 @@ import type { AccountFieldsValues } from './account/account.constants'
 import { endpoints } from './api.endpoints'
 import type { HookAuthLevelName, HookExportTypeName } from './components/RESTServices/RESTServicesForm'
 import type { Json } from './components/common/common.interfaces'
-import type {
-  AnalysisQuestionSchema,
-  AnalysisQuestionType,
-  SubmissionAnalysisResponse,
-} from './components/processing/analysis/constants'
 import type { TransxObject } from './components/processing/processingActions'
 import type {
   ExportFormatName,
