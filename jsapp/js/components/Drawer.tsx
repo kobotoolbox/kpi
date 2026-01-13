@@ -29,10 +29,7 @@ const AccountSidebar = lazy(() => import('#/account/accountSidebar'))
  *   - links to different routes - when viewing account routes
  */
 export default function Drawer() {
-  function isAccount() {
-    return routerIsActive(ROUTES.ACCOUNT_ROOT)
-  }
-
+  const isAccount = routerIsActive(ROUTES.ACCOUNT_ROOT)
   const isLibrary = routerIsActive(ROUTES.LIBRARY)
 
   function openNewFormModal(evt: React.MouseEvent<HTMLButtonElement>) {
@@ -69,7 +66,7 @@ export default function Drawer() {
           </bem.FormSidebarWrapper>
         )}
 
-        {isAccount() && (
+        {isAccount && (
           <Suspense fallback={null}>
             <RequireAuth>
               <AccountSidebar />
@@ -77,7 +74,7 @@ export default function Drawer() {
           </Suspense>
         )}
 
-        {!isLibrary && !isAccount() && (
+        {!isLibrary && !isAccount && (
           <bem.FormSidebarWrapper>
             <Button size='lg' fullWidth disabled={!sessionStore.isLoggedIn} onClick={openNewFormModal}>
               {t('new').toUpperCase()}
