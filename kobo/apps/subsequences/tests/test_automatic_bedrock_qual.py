@@ -39,6 +39,7 @@ from kobo.apps.subsequences.prompts import (
     num_choice_placeholder,
     response_placeholder,
 )
+from kobo.apps.subsequences.tests.utils import MockLLMClient
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
 
@@ -50,56 +51,12 @@ class BaseAutomaticBedrockQualTestCase(BaseTestCase):
     fixtures = ['test_data', 'asset_with_settings_and_qa']
 
     def setUp(self):
-        action_params = [
-            {
-                'type': 'qualInteger',
-                'uuid': BEDROCK_QUAL_INTEGER_UUID,
-                'labels': {'_default': 'How many characters appear in the story?'},
-            },
-            {
-                'type': 'qualSelectMultiple',
-                'uuid': BEDROCK_QUAL_SELECT_MULTIPLE_UUID,
-                'labels': {'_default': 'What themes were present in the story?'},
-                'choices': [
-                    {
-                        'uuid': BEDROCK_CHOICE_EMPATHY_UUID,
-                        'labels': {'_default': 'Empathy'},
-                    },
-                    {
-                        'uuid': BEDROCK_CHOICE_APATHY_UUID,
-                        'labels': {'_default': 'Apathy'},
-                    },
-                ],
-            },
-            {
-                'type': 'qualSelectOne',
-                'uuid': BEDROCK_QUAL_SELECT_ONE_UUID,
-                'labels': {'_default': 'Was this a first-hand account?'},
-                'choices': [
-                    {
-                        'uuid': BEDROCK_QUAL_SELECT_ONE_UUID,
-                        'labels': {'_default': 'Yes'},
-                    },
-                    {
-                        'uuid': BEDROCK_QUAL_SELECT_MULTIPLE_UUID,
-                        'labels': {'_default': 'No'},
-                    },
-                ],
-            },
-            {
-                'type': 'qualText',
-                'uuid': BEDROCK_QUAL_TEXT_UUID,
-                'labels': {'_default': 'Add any further remarks'},
-            },
-        ]
         self.asset = Asset.objects.get(uid='aNp9yMt4zKpUtTeZUnozYG')
-        self.feature = QuestionAdvancedFeature.objects.create(
+        self.feature = QuestionAdvancedFeature.objects.get(
             asset=self.asset,
             action=Action.AUTOMATIC_BEDROCK_QUAL,
-            params=action_params,
             question_xpath='q1',
         )
-        self.feature.save()
         self.action = self.feature.to_action()
 
     def _add_submission(self):
@@ -120,14 +77,6 @@ class BaseAutomaticBedrockQualTestCase(BaseTestCase):
         return submission_uuid
 
     def _add_manual_transcription(self, submission_uuid) -> dict:
-        # enable transcription
-        QuestionAdvancedFeature.objects.create(
-            question_xpath='q1',
-            asset=self.asset,
-            action=Action.MANUAL_TRANSCRIPTION,
-            params=[{'language': 'en'}],
-        )
-        # add a transcription
         supplement_details_url = reverse(
             'api_v2:submission-supplement',
             args=[self.asset.uid, submission_uuid],
@@ -290,9 +239,9 @@ class TestBedrockAutomaticChainedQual(BaseAutomaticBedrockQualTestCase):
                 },
             },
         }
-        return_val = {'value': 'LLM text', 'status': 'complete'}
-        with patch.object(
-            AutomaticBedrockQual, 'run_external_process', return_value=return_val
+        with patch(
+            'kobo.apps.subsequences.actions.automatic_bedrock_qual.boto3.client',
+            return_value=MockLLMClient('LLM text'),
         ):
             response = self.client.patch(
                 supplement_details_url, data=payload, format='json'
