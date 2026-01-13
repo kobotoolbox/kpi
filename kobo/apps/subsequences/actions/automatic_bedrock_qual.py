@@ -5,6 +5,7 @@ from json import JSONDecodeError
 import boto3
 from django.conf import settings
 from django.utils.functional import classproperty
+from django_userforeignkey.request import get_current_request
 
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.subsequences.actions.base import ActionClassConfig
@@ -199,9 +200,13 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         )
         try:
             response_body = json.loads(response['body'].read())
+            get_current_request().llm_response = response_body
             return response_body['content'][0]['text']
         except (JSONDecodeError, IndexError, KeyError) as e:
             # the response isn't in the form we expected
+            get_current_request().llm_response = {
+                'error': 'Unable to extract answer from LLM response object',
+            }
             raise InvalidResponseFromLLMException(
                 'Unable to extract answer from LLM response object'
             ) from e
