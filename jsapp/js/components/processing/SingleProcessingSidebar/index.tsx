@@ -21,8 +21,10 @@ export default function ProcessingSidebar({ asset, submissionId, xpath }: Proces
   // Note: configuration doesn't work, because
   // - edits doesn't trigger re-render (wip mess)
   // - and config is not persistent across refreshes (prod behavior)
-  // TODO: use a simpler store for this
+  // TODO: use a simple state for it, pass setter into `SidebarDisplaySettings` and getter into all of these.
   const displays = store.getDisplays(getActiveTab())
+
+  // TODO: query via react-query and orval
   const translations = store.getTranslations()
   const transcript = store.getTranscript()
 
