@@ -297,7 +297,6 @@ export namespace actions {
     createSnapshot: GenericDefinition
     cloneAsset: GenericDefinition
     deleteAsset: DeleteAssetDefinition
-    listTags: GenericDefinition
     createResource: GenericDefinition
     updateAsset: UpdateAssetDefinition
     updateSubmissionValidationStatus: UpdateSubmissionValidationStatusDefinition
