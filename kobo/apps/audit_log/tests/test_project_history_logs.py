@@ -2210,7 +2210,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                         'body': io.StringIO(
                             json.dumps(
                                 get_mock_claude_response(
-                                    text='text', input_tokens=10, output_tokens=20
+                                    text='5', input_tokens=10, output_tokens=20
                                 )
                             )
                         )

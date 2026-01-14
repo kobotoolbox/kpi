@@ -80,7 +80,7 @@ OSS120 = LLModel(
     path_to_response='choices.0.message.content',
     supports_reasoning=True,
     path_to_input_tokens='usage.prompt_tokens',
-    path_to_output_tokens='usage.response_tokens',
+    path_to_output_tokens='usage.completion_tokens',
 )
 
 

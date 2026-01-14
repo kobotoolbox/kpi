@@ -8,7 +8,7 @@ def get_mock_oss_response(text='text', input_tokens=10, output_tokens=20):
     return {
         'model': 'oss',
         'choices': [{'message': {'content': text}}],
-        'usage': {'prompt_tokens': input_tokens, 'response_tokens': output_tokens},
+        'usage': {'prompt_tokens': input_tokens, 'completion_tokens': output_tokens},
     }
 
 
