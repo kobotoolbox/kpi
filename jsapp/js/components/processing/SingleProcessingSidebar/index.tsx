@@ -10,13 +10,18 @@ import SidebarSubmissionMedia from './sidebarSubmissionMedia'
 import TransxDisplay from './transxDisplay'
 
 interface ProcessingSidebarProps {
+  xpath: string
   submissionId: string
   asset: AssetResponse
 }
 
-export default function ProcessingSidebar({ asset, submissionId }: ProcessingSidebarProps) {
+export default function ProcessingSidebar({ asset, submissionId, xpath }: ProcessingSidebarProps) {
   const [store] = useState(() => singleProcessingStore)
 
+  // Note: configuration doesn't work, because
+  // - edits doesn't trigger re-render (wip mess)
+  // - and config is not persistent across refreshes (prod behavior)
+  // TODO: use a simpler store for this
   const displays = store.getDisplays(getActiveTab())
   const translations = store.getTranslations()
   const transcript = store.getTranscript()
@@ -40,7 +45,7 @@ export default function ProcessingSidebar({ asset, submissionId }: ProcessingSid
           <SidebarSubmissionMedia submissionId={submissionId} asset={asset} xpath={xpath} />
         )}
 
-        {displays.includes(StaticDisplays.Data) && <SidebarSubmissionData asset={asset} />}
+        {displays.includes(StaticDisplays.Data) && <SidebarSubmissionData submissionId={submissionId} asset={asset} xpath={xpath} />}
 
         {displays.length === 0 && (
           <div className={styles.emptyMessage}>

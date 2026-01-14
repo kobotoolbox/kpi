@@ -2,11 +2,12 @@ import './submissionDataList.scss'
 
 import React from 'react'
 
+import type { DataResponse } from '#/api/models/dataResponse'
 import { getFlatQuestionsList, getLanguageIndex } from '#/assetUtils'
 import type { FlatQuestion } from '#/assetUtils'
 import bem, { makeBem } from '#/bem'
 import { getRowData } from '#/components/submissions/submissionUtils'
-import type { AssetResponse, SubmissionResponse } from '#/dataInterface'
+import type { AssetResponse } from '#/dataInterface'
 import singleProcessingStore from '../processing/singleProcessingStore'
 
 bem.SubmissionDataList = makeBem(null, 'submission-data-list', 'ul')
@@ -17,7 +18,7 @@ bem.SubmissionDataListQuestion__response = makeBem(bem.SubmissionDataListQuestio
 
 interface SubmissionDataListProps {
   asset: AssetResponse
-  submissionData: SubmissionResponse
+  submissionData: DataResponse
   /** A list of questions that should be omitted from display. */
   hideQuestions?: string[]
   /** Whether to display the path (the groups) or not. */

@@ -1,22 +1,35 @@
-import React, { useState } from 'react'
+import React, { useMemo } from 'react'
 
-import singleProcessingStore from '#/components/processing/singleProcessingStore'
+import { getAssetsDataListQueryKey, useAssetsDataList } from '#/api/react-query/survey-data'
+import { getRowNameByXpath } from '#/assetUtils'
 import SubmissionDataList from '#/components/submissions/submissionDataList'
 import { ADDITIONAL_SUBMISSION_PROPS, META_QUESTION_TYPES } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
-import { recordKeys } from '#/utils'
+import { addDefaultUuidPrefix, recordKeys } from '#/utils'
 import styles from './sidebarSubmissionData.module.scss'
 
 interface SidebarSubmissionDataProps {
+  xpath: string
+  submissionId: string
   asset: AssetResponse
 }
 
-export default function SidebarSubmissionData(props: SidebarSubmissionDataProps) {
-  const [store] = useState(() => singleProcessingStore)
+export default function SidebarSubmissionData({ asset, submissionId, xpath }: SidebarSubmissionDataProps) {
+  const params = {
+    query: JSON.stringify({
+      $or: [{ 'meta/rootUuid': addDefaultUuidPrefix(submissionId!) }, { _uuid: submissionId }],
+    }),
+  } as any
+  const querySubmission = useAssetsDataList(asset!.uid, params, {
+    query: {
+      queryKey: getAssetsDataListQueryKey(asset!.uid, params),
+      enabled: !!asset!.uid,
+    },
+  })
 
-  const submissionData = store.getSubmissionData()
+  const submissionData = querySubmission.data?.status === 200 ? querySubmission.data.data.results[0] : undefined
 
-  if (!props.asset.content) {
+  if (!asset.content) {
     return null
   }
 
@@ -26,27 +39,21 @@ export default function SidebarSubmissionData(props: SidebarSubmissionDataProps)
   }
 
   /** We want only the processing related data (the actual form questions) */
-  function getQuestionsToHide(): string[] {
+  const questionsToHide = useMemo(() => {
     const metaQuestions = [
-      singleProcessingStore.currentQuestionName || '',
+      getRowNameByXpath(asset.content!, xpath) || '',
       ...recordKeys(ADDITIONAL_SUBMISSION_PROPS),
       ...recordKeys(META_QUESTION_TYPES),
     ]
 
-    return metaQuestions.concat(store.getHiddenSidebarQuestions())
-  }
+    // TODO: use a simpler store instead.
+    return metaQuestions // .concat(store.getHiddenSidebarQuestions())
+  }, [asset, xpath])
 
   return (
     <section className={styles.dataList} key='data-list'>
       <div className={styles.dataListBody}>
-        {submissionData && (
-          <SubmissionDataList
-            asset={props.asset}
-            submissionData={submissionData}
-            hideQuestions={getQuestionsToHide()}
-            hideGroups
-          />
-        )}
+        <SubmissionDataList asset={asset} submissionData={submissionData} hideQuestions={questionsToHide} hideGroups />
       </div>
     </section>
   )

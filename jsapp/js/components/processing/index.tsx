@@ -103,7 +103,7 @@ export default function SingleProcessingRoute() {
         </section>
 
         <section className={styles.bottomRight}>
-          <SingleProcessingSidebar submissionId={submissionEditId!} asset={asset} />
+          <SingleProcessingSidebar submissionId={submissionEditId!} asset={asset} xpath={xpath!} />
         </section>
       </React.Fragment>
     )
