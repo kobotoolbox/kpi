@@ -149,7 +149,7 @@ def get_add_operations():
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('kpi', '0070_alter_kpi_models_options'),
+        ('kpi', '0071_alter_kpi_models_options'),
         ('trackers', '0006_add_total_llm_requests'),
     ]
 

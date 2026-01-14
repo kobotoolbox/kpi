@@ -12,7 +12,7 @@ import kpi.models.import_export_task
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('kpi', '0069_alter_assetversion_reversion_version'),
+        ('kpi', '0070_add_index_asset_pending_delete'),
     ]
 
     operations = [
