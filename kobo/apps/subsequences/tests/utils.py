@@ -3,10 +3,6 @@ import json
 
 from kobo.apps.subsequences.actions.automatic_bedrock_qual import OSS120
 
-"""
-choices.0.message.content
-"""
-
 
 def get_mock_oss_response(text='text', input_tokens=10, output_tokens=20):
     return {
