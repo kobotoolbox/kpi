@@ -825,7 +825,6 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
         response = self.client.patch(
             self.supplement_details_url, data=payload, format='json'
         )
-        breakpoint()
         # Should not fail because there' something to delete
         assert response.status_code == status.HTTP_200_OK
         supplement.refresh_from_db()
