@@ -40,7 +40,7 @@ import { dataInterface } from '../dataInterface'
 import SurveyScope from '../models/surveyScope'
 import { stores } from '../stores'
 import { escapeHtml, recordKeys } from '../utils'
-import AssetNavigator from './assetNavigator'
+import AssetNavigator from './AssetNavigator'
 import { cascadeMixin } from './cascadeMixin'
 
 const ErrorMessage = makeBem(null, 'error-message')
