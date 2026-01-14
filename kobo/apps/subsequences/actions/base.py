@@ -423,6 +423,13 @@ class BaseAction:
                 # Stop here to avoid processing data and creating redundant revisions.
                 return None
 
+            # Check if user is trying to delete null data
+            if (
+                not current_version.get(self.VERSION_DATA_FIELD, {}).get('value')
+                and action_data.get('value') is None
+                and action_data.get('status') == 'deleted'
+            ):
+                raise DeletionTargetNotFound
             # Otherwise, merge the service response into action_data and keep going
             # the validation process.
             dependency_supplemental_data = action_data.pop(self.DEPENDENCY_FIELD, None)
