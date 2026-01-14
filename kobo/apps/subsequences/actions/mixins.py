@@ -139,7 +139,7 @@ class TranscriptionActionMixin:
         return {
             self.col_type: {
                 'languageCode': version_data['_data']['language'],
-                'value': version_data['_data']['value'],
+                'value': version_data['_data'].get('value'),
                 SORT_BY_DATE_FIELD: version_data.get(self.DATE_ACCEPTED_FIELD),
             }
         }
