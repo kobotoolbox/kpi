@@ -26,10 +26,10 @@ class DataCollectorUser(AnonymousUser):
 
     def has_perm(self, perm, obj=...):
         Asset = apps.get_model('kpi', 'Asset')
-        if perm != PERM_ADD_SUBMISSIONS or obj.kpi_asset_uid is None:
+        if perm != PERM_ADD_SUBMISSIONS:
             return False
         if isinstance(obj, XForm):
-            return obj.kpi_asset_uid in self.assets
+            return obj.kpi_asset_uid is not None and obj.kpi_asset_uid in self.assets
         if isinstance(obj, Asset):
             return obj.uid in self.assets
         return False
