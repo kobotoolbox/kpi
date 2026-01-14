@@ -1,5 +1,6 @@
 import json
 from copy import deepcopy
+from dataclasses import dataclass
 from json import JSONDecodeError
 
 import boto3
@@ -35,6 +36,54 @@ from kobo.apps.subsequences.prompts import (
 from kpi.utils.log import logging
 
 
+@dataclass
+class LLModel:
+    model_id: str
+    path_to_response: str
+    path_to_input_tokens: str
+    path_to_output_tokens: str
+    supports_reasoning: bool
+
+    def __repr__(self):
+        return self.model_id
+
+    @staticmethod
+    def traverse_path(path_str: str, response_dict: dict) -> str:
+        path = path_str.split('.')
+        current_level = response_dict
+        for path_component in path:
+            if path_component.isdigit():
+                current_level = current_level[int(path_component)]
+            else:
+                current_level = current_level[path_component]
+        return current_level
+
+    def get_input_tokens(self, response_dict):
+        return self.traverse_path(self.path_to_input_tokens, response_dict)
+
+    def get_output_tokens(self, response_dict):
+        return self.traverse_path(self.path_to_output_tokens, response_dict)
+
+    def get_response_text(self, response_dict):
+        return self.traverse_path(self.path_to_response, response_dict)
+
+
+ClaudeSonnet = LLModel(
+    model_id='anthropic.claude-3-5-sonnet-20240620-v1:0',
+    path_to_response='content.0.text',
+    supports_reasoning=False,
+    path_to_input_tokens='usage.input_tokens',
+    path_to_output_tokens='usage.output_tokens',
+)
+OSS120 = LLModel(
+    model_id='openai.gpt-oss-safeguard-120b',
+    path_to_response='choices.0.message.content',
+    supports_reasoning=True,
+    path_to_input_tokens='usage.prompt_tokens',
+    path_to_output_tokens='usage.response_tokens',
+)
+
+
 class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
 
     ID = 'automatic_bedrock_qual'
@@ -56,6 +105,14 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
             for choice in question['choices']
             if not choice.get('options', {}).get('deleted')
         ]
+
+    def create_bedrock_client(self):
+        return boto3.client(
+            service_name='bedrock-runtime',
+            region_name=settings.AWS_BEDROCK_REGION_NAME,
+            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+        )
 
     @property
     def data_schema(self):
@@ -176,16 +233,7 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
                 .replace(choices_list_placeholder, choices_text)
             )
 
-    def get_response_from_llm(self, prompt: str) -> str:
-        aws_id = settings.AWS_ACCESS_KEY_ID
-        aws_secret = settings.AWS_SECRET_ACCESS_KEY
-        bedrock_runtime = boto3.client(
-            service_name='bedrock-runtime',
-            region_name=settings.AWS_BEDROCK_REGION_NAME,
-            aws_access_key_id=aws_id,
-            aws_secret_access_key=aws_secret,
-        )
-
+    def get_response_from_llm(self, prompt: str, model: LLModel) -> str:
         request = {
             'anthropic_version': 'bedrock-2023-05-31',
             'max_tokens': MAX_TOKENS,
@@ -194,19 +242,30 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
                 {'role': 'user', 'content': prompt},
             ],
         }
-        response = bedrock_runtime.invoke_model(
-            modelId='anthropic.claude-3-5-sonnet-20240620-v1:0',
+
+        if model.supports_reasoning:
+            # invoke_model raises an error if you try to disable reasoning
+            # on a model that doesn't support it in the first place
+            request['include_reasoning'] = False
+
+        response = self.client.invoke_model(
+            modelId=model.model_id,
             body=json.dumps(request),
         )
         try:
             response_body = json.loads(response['body'].read())
-            get_current_request().llm_response = response_body
-            return response_body['content'][0]['text']
+            if request := get_current_request():
+                request.llm_response = {
+                    'body': response_body,
+                    'model': model,
+                }
+            return model.get_response_text(response_body)
         except (JSONDecodeError, IndexError, KeyError) as e:
             # the response isn't in the form we expected
-            get_current_request().llm_response = {
-                'error': 'Unable to extract answer from LLM response object',
-            }
+            if request := get_current_request():
+                request.llm_response = {
+                    'error': 'Unable to extract answer from LLM response object',
+                }
             raise InvalidResponseFromLLMException(
                 'Unable to extract answer from LLM response object'
             ) from e
@@ -294,36 +353,52 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         qa_question = self._get_question(qa_question_uuid)
         qa_question_type = qa_question['type']
         prompt = self.generate_llm_prompt(action_data)
-        try:
-            full_response_text = self.get_response_from_llm(prompt)
-            logging.info(f'LLM prompt: \n{prompt}\nLLM response:\n{full_response_text}')
-            if qa_question_type == QUESTION_TYPE_TEXT:
-                return {
-                    'value': parse_text_response(full_response_text),
-                    'status': 'complete',
-                }
-            elif qa_question['type'] == QUESTION_TYPE_INTEGER:
-                return {
-                    'value': parse_integer_response(full_response_text),
-                    'status': 'complete',
-                }
-            elif qa_question['type'] == 'qualSelectOne':
-                visible_choices = self._get_visible_choices(qa_question)
-                selected_indexes = parse_choices_response(
-                    full_response_text, len(visible_choices), False
+        error = ''
+        self.client = self.create_bedrock_client()
+        # for now, hardcode OSS to be primary and Claude to be backup
+        # eventually this will be configurable
+        for index, model in enumerate([OSS120, ClaudeSonnet]):
+            try:
+                full_response_text = self.get_response_from_llm(prompt, model)
+                logging.info(
+                    f'LLM prompt: \n{prompt}\nLLM response:\n{full_response_text}'
                 )
-                index = selected_indexes[0]
-                selected_uuid = visible_choices[index]['uuid']
-                return {'value': selected_uuid, 'status': 'complete'}
-            else:
-                visible_choices = self._get_visible_choices(qa_question)
+                if qa_question_type == QUESTION_TYPE_TEXT:
+                    return {
+                        'value': parse_text_response(full_response_text),
+                        'status': 'complete',
+                    }
+                elif qa_question['type'] == QUESTION_TYPE_INTEGER:
+                    return {
+                        'value': parse_integer_response(full_response_text),
+                        'status': 'complete',
+                    }
+                elif qa_question['type'] == 'qualSelectOne':
+                    visible_choices = self._get_visible_choices(qa_question)
+                    selected_indexes = parse_choices_response(
+                        full_response_text, len(visible_choices), False
+                    )
+                    index = selected_indexes[0]
+                    selected_uuid = visible_choices[index]['uuid']
+                    return {'value': selected_uuid, 'status': 'complete'}
+                else:
+                    visible_choices = self._get_visible_choices(qa_question)
 
-                selected_indexes = parse_choices_response(
-                    full_response_text, len(visible_choices), True
-                )
-                return {
-                    'value': [visible_choices[i]['uuid'] for i in selected_indexes],
-                    'status': 'complete',
-                }
-        except InvalidResponseFromLLMException as e:
-            return {'status': 'failed', 'error': f'{e}'}
+                    selected_indexes = parse_choices_response(
+                        full_response_text, len(visible_choices), True
+                    )
+                    return {
+                        'value': [visible_choices[i]['uuid'] for i in selected_indexes],
+                        'status': 'complete',
+                    }
+            except InvalidResponseFromLLMException as e:
+                if index == 0:
+                    logging.warning(
+                        f'Invalid response from primary llm {model}: {e}.'
+                        ' Defaulting to backup.'
+                    )
+                error = e
+                continue
+        if request := get_current_request():
+            request.llm_response = {'error': f'{error}'}
+        return {'status': 'failed', 'error': f'{error}'}
