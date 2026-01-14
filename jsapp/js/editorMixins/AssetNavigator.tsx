@@ -1,5 +1,6 @@
 import { Center, Checkbox, Group, Loader, MultiSelect, Select, Stack, Text, TextInput } from '@mantine/core'
 import { useDebouncedValue } from '@mantine/hooks'
+import * as Sentry from '@sentry/react'
 import React, { useState, useMemo, useRef, useEffect } from 'react'
 import ReactDOM from 'react-dom'
 import type { Asset } from '#/api/models/asset'
@@ -32,7 +33,8 @@ export default function AssetNavigator() {
   // --- Data Fetching via Orval Hooks ---
 
   // 1. Fetch Tags for the MultiSelect filter
-  const { data: tagsResponse } = useTagsList()
+  // Note if `limit` is too big (e.g. 9999) it causes a deadly timeout whenever Form Builder displays the aside Library search
+  const { data: tagsResponse } = useTagsList({ limit: 100 })
   const tagsOptions = useMemo(() => {
     if (tagsResponse?.data && 'results' in tagsResponse.data) {
       const nonUniqueTags = tagsResponse.data.results.map((t: TagListResponse) => t.name)
@@ -43,6 +45,13 @@ export default function AssetNavigator() {
     // TODO: should we handle error here? It's also possible it's pending
     return []
   }, [tagsResponse])
+
+  if (tagsResponse?.data && 'next' in tagsResponse.data) {
+    if (tagsResponse.data.next) {
+      // We want to not if there are any users who have more than 100 tags
+      Sentry.captureMessage('MAX_TAGS_EXCEEDED: Too many tags')
+    }
+  }
 
   // 2. Fetch Collections for the Select filter
   const { data: collectionsResponse } = useAssetsList({
