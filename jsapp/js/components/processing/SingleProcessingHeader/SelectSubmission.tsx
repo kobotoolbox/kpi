@@ -7,6 +7,7 @@ import {
 import Button from '#/components/common/button'
 import { goToProcessing } from '#/components/processing/routes.utils'
 import styles from './index.module.scss'
+import type { DataResponse } from '#/api/models/dataResponse'
 
 // TODO: improve schema to enum `action` prop.
 const ADVANCED_FEATURES_ACTION = [
@@ -19,7 +20,7 @@ const ADVANCED_FEATURES_ACTION = [
 // TODO: improve ...
 
 interface Props {
-  submissionEditId: string
+  currentSubmission: DataResponse
   assetUid: string
   xpath: string
 }
@@ -29,45 +30,66 @@ interface Props {
  * submissions and questions. It also has means of leaving Single Processing
  * via "DONE" button.
  */
-export default function SelectSubmission({ assetUid, submissionEditId, xpath }: Props) {
-  const query = JSON.stringify({ [xpath]: { $exists: true } })
+export default function SelectSubmission({ assetUid, currentSubmission, xpath }: Props) {
+  if (!currentSubmission) return
+  console.log(currentSubmission._submission_time)
+  function getNeighborParams(uuid: string, time: string, direction: 'next' | 'prev') {
+    const isNext = direction === 'next'
+    return {
+      limit: 1,
+      start: 0,
+      query: JSON.stringify({
+        _uuid: { $nin: [uuid] },
+        _submission_time: isNext ? { $lt: time } : { $gt: time },
+      }),
+      sort: JSON.stringify({ _submission_time: isNext ? -1 : 1 }),
+      isNext,
+    }
+  }
 
-  const params = {
-    limit: 200,
-    start: 0,
-    sort: JSON.stringify({ _id: -1 }),
-    query,
-  } as any
-  const querySubmission = useAssetsDataList(assetUid!, params, {
+  function getNeighborResults(data: assetsDataListResponse) {
+    if (data.status !== 200) return
+    if (!data.data.results.length) return
+    return {
+      submission: data.data.results[0],
+      count: data.data.count,
+    }
+  }
+
+  const { _uuid, _submission_time } = currentSubmission
+
+  // Define the params directly in the component body
+  const nextParams = getNeighborParams(_uuid, _submission_time, 'next')
+  const queryNext = useAssetsDataList(assetUid!, nextParams, {
     query: {
-      queryKey: getAssetsDataListQueryKey(assetUid!, params),
+      queryKey: getAssetsDataListQueryKey(assetUid, nextParams),
       enabled: !!assetUid,
-      select: useCallback(
-        (data: assetsDataListResponse) => {
-          return data?.status === 200 ? data.data.results : []
-        },
-        [xpath],
-      ),
+      select: useCallback(getNeighborResults, [currentSubmission._uuid]),
     },
   })
-  console.log(querySubmission.data)
 
-  const count = querySubmission.data?.length ?? 0
+  const prevParams = getNeighborParams(_uuid, _submission_time, 'prev')
+  const queryPrev = useAssetsDataList(assetUid!, prevParams, {
+    query: {
+      queryKey: getAssetsDataListQueryKey(assetUid, prevParams),
+      enabled: !!assetUid,
+      select: useCallback(getNeighborResults, [currentSubmission._uuid]),
+    },
+  })
 
-  // Note: in case a submission has answer for Q1 but not Q2, when question is switched then the index will be 0.
-  // TODO: auto-select 1st instead? Auto-select next one instead?
-  const currentSubmissionIndex = querySubmission.data?.findIndex((submission) => submission['meta/rootUuid'].slice(5) === submissionEditId) ?? -1
+  const prevCount = queryPrev.data?.count ?? 0
+  const nextCount = queryNext.data?.count ?? 0
+  const count = prevCount + nextCount + 1
 
   const goPrev = () => {
-    if(!querySubmission.data) return
-    if(currentSubmissionIndex === 0) return
-    goToProcessing(assetUid, xpath, querySubmission.data[currentSubmissionIndex - 1]['meta/rootUuid'].slice(5), true)
+    if (!queryPrev.data) return
+    console.log(queryPrev.data?.submission._uuid)
+    goToProcessing(assetUid, xpath, queryPrev.data.submission._uuid, true)
   }
 
   const goNext = () => {
-    if(!querySubmission.data) return
-    if(currentSubmissionIndex + 1 === count) return
-    goToProcessing(assetUid, xpath, querySubmission.data[currentSubmissionIndex + 1]['meta/rootUuid'].slice(5), true)
+    if (!queryNext.data) return
+    goToProcessing(assetUid, xpath, queryNext.data.submission._uuid, true)
   }
 
   return (
@@ -77,27 +99,15 @@ export default function SelectSubmission({ assetUid, submissionEditId, xpath }: 
           <strong>
             {t('Item')}
             &nbsp;
-            {currentSubmissionIndex + 1}
+            {prevCount + 1}
           </strong>
           &nbsp;
           {t('of ##total_count##').replace('##total_count##', String(count))}
         </div>
 
-        <Button
-          type='text'
-          size='s'
-          startIcon='arrow-up'
-          onClick={goPrev}
-          isDisabled={currentSubmissionIndex <= 0}
-        />
+        <Button type='text' size='s' startIcon='arrow-up' onClick={goPrev} isDisabled={!queryPrev.data?.submission} />
 
-        <Button
-          type='text'
-          size='s'
-          endIcon='arrow-down'
-          onClick={goNext}
-          isDisabled={currentSubmissionIndex + 1 === count}
-        />
+        <Button type='text' size='s' endIcon='arrow-down' onClick={goNext} isDisabled={!queryNext.data?.submission} />
       </nav>
     </section>
   )

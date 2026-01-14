@@ -50,7 +50,6 @@ export default function SingleProcessingRoute() {
   const asset = uid ? assetStore.getAsset(uid) : null
   console.log(asset)
 
-
   // TODO: remove, for now just logging for debugging.
   const queryAF = useAssetsAdvancedFeaturesList(uid!, {
     query: {
@@ -81,25 +80,25 @@ export default function SingleProcessingRoute() {
   console.log(queryAF.data)
   console.log(querySupplement.data)
   console.log(querySubmission.data)
-  // end of TODO.
+
+  // TODO OpenAPI: DataResponse should be indexable.
+  const currentSubmission =
+    querySubmission.data?.status === 200 && querySubmission.data.data.results.length > 0
+      ? (querySubmission.data.data.results[0] as DataResponse & Record<string, string>)
+      : null
 
   /** Whether current submission has a response for current question. */
-  // TODO OpenAPI: DataResponse should be indexable.
-  const questionHasAnswer = querySubmission.data?.status === 200 && !!(querySubmission.data.data.results[0] as DataResponse & Record<string, string>)[xpath!]
+  const questionHasAnswer = !!(xpath && currentSubmission?.[xpath])
 
   function renderBottom() {
-    if (queryAF.data?.status !== 200 || querySupplement.data?.status !== 200 || !asset?.content?.survey) {
+    if (queryAF.data?.status !== 200 || querySupplement.data?.status !== 200 || !asset?.content?.survey || !currentSubmission) {
       return <LoadingSpinner />
     }
 
     return (
       <React.Fragment>
         <section className={styles.bottomLeft}>
-          {questionHasAnswer ? (
-            <SingleProcessingContent />
-          ) : (
-            <CenteredMessage message={NO_DATA_MESSAGE} />
-          )}
+          {questionHasAnswer ? <SingleProcessingContent /> : <CenteredMessage message={NO_DATA_MESSAGE} />}
         </section>
 
         <section className={styles.bottomRight}>
@@ -124,12 +123,11 @@ export default function SingleProcessingRoute() {
   return (
     <DocumentTitle title={pageTitle}>
       <section className={styles.root}>
-
         {/* TODO: move deeper into editor components and condition over the local variables. */}
         {(singleProcessingStore.hasAnyUnsavedWork() || singleProcessingStore.data.isPollingForTranscript) && <Prompt />}
 
         <section className={styles.top}>
-          <SingleProcessingHeader submissionEditId={submissionEditId!} asset={asset} xpath={xpath!} />
+          <SingleProcessingHeader currentSubmission={currentSubmission as DataResponse} asset={asset} xpath={xpath!} />
         </section>
 
         <section className={styles.bottom}>{renderBottom()}</section>
