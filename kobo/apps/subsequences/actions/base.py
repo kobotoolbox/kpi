@@ -427,7 +427,7 @@ class BaseAction:
             if (
                 not current_version.get(self.VERSION_DATA_FIELD, {}).get('value')
                 and action_data.get('value') is None
-                and action_data.get('status') == 'deleted'
+                and service_response.get('status') == 'deleted'
             ):
                 raise DeletionTargetNotFound
             # Otherwise, merge the service response into action_data and keep going
