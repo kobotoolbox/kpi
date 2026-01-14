@@ -1,27 +1,12 @@
-import React, { useCallback } from 'react'
+import React, { useMemo } from 'react'
 
 import classNames from 'classnames'
-import {
-  type assetsAdvancedFeaturesListResponse,
-  getAssetsAdvancedFeaturesListQueryKey,
-  useAssetsAdvancedFeaturesList,
-} from '#/api/react-query/survey-data'
-import { findRowByXpath, getRowName, getRowTypeIcon, getTranslatedRowLabel } from '#/assetUtils'
+import { getRowName, getRowTypeIcon, getTranslatedRowLabel } from '#/assetUtils'
 import KoboSelect from '#/components/common/koboSelect'
-import type { KoboSelectOption } from '#/components/common/koboSelect'
 import { goToProcessing } from '#/components/processing/routes.utils'
 import { QUESTION_TYPES } from '#/constants'
-import type { AssetResponse } from '#/dataInterface'
+import type { AssetResponse, SurveyRow } from '#/dataInterface'
 import styles from './index.module.scss'
-
-// TODO: improve schema to enum `action` prop.
-const ADVANCED_FEATURES_ACTION = [
-  'manual_transcription',
-  'manual_translation',
-  'automatic_google_transcription',
-  'automatic_google_translation',
-]
-// TODO: improve schema, AdvancedFeatureResponse.asset doesn't exist for the above.
 
 interface Props {
   submissionEditId: string
@@ -44,31 +29,26 @@ export default function SelectQuestion({ asset, submissionEditId, xpath }: Props
   /**
    * We display all questions with audio response type
    */
-  const getQuestionSelectorOptions = () => {
-    const options: KoboSelectOption[] = []
+  const options = useMemo(() => {
     const assetContent = asset.content
-    const languageIndex = 0 //getLanguageIndex(asset, singleProcessingStore.getCurrentlyDisplayedLanguage())
+    const languageIndex = 0 // TODO: getLanguageIndex(asset, singleProcessingStore.getCurrentlyDisplayedLanguage())
 
-    if (!assetContent) {
+    if (!assetContent?.survey) {
       return []
     }
 
-    assetContent.survey?.forEach((question) => {
-      if (
-        question.$xpath &&
-        (question.type === QUESTION_TYPES.audio.id || question.type === QUESTION_TYPES['background-audio'].id)
-      ) {
+    return assetContent.survey
+      .filter((question): question is SurveyRow & { $xpath: NonNullable<SurveyRow['$xpath']> } => !!question.$xpath)
+      .filter(({type}) => type === QUESTION_TYPES.audio.id || type === QUESTION_TYPES['background-audio'].id)
+      .map((question) => {
         const rowName = getRowName(question)
-        const translatedLabel = getTranslatedRowLabel(rowName, assetContent.survey, languageIndex)
-        options.push({
+        return {
           value: question.$xpath,
-          label: translatedLabel !== null ? translatedLabel : rowName,
+          label: getTranslatedRowLabel(rowName, assetContent.survey, languageIndex) ?? rowName,
           icon: getRowTypeIcon(question.type),
-        })
-      }
-    })
-    return options
-  }
+        }
+      })
+  }, [asset.content])
 
   /** Goes to another submission. */
   const goToSubmission = (xpath: string, targetSubmissionEditId: string) => {
@@ -81,7 +61,7 @@ export default function SelectQuestion({ asset, submissionEditId, xpath }: Props
         name='single-processing-question-selector'
         type='gray'
         size='l'
-        options={getQuestionSelectorOptions()}
+        options={options}
         selectedOption={xpath}
         onChange={onQuestionSelectChange}
       />
