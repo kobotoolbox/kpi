@@ -19,6 +19,7 @@ def get_mock_claude_response(text='text', input_tokens=10, output_tokens=20):
         'usage': {'input_tokens': input_tokens, 'output_tokens': output_tokens},
     }
 
+
 class MockLLMClient:
     def __init__(self, response_text):
         self.response_text = response_text
