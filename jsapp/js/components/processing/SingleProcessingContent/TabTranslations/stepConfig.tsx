@@ -131,7 +131,7 @@ export default function StepConfig() {
 
           <TransxAutomaticButton
             onClick={onAutomaticButtonClick}
-            selectedLanguage={draft?.languageCode}
+            selectedLanguage={draft?.languageCode!}
             type='translation'
           />
           <NlpUsageLimitBlockModal

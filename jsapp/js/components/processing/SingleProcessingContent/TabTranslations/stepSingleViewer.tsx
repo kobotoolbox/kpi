@@ -1,15 +1,17 @@
 import React from 'react'
 
 import { destroyConfirm } from '#/alertify'
+import assetStore from '#/assetStore'
 import Button from '#/components/common/button'
 import type { LanguageCode } from '#/components/languages/languagesStore'
+import { userCan } from '#/components/permissions/utils'
 import singleProcessingStore from '#/components/processing/singleProcessingStore'
 import bodyStyles from '../../common/processingBody.module.scss'
-import { hasChangeSubPermissionToCurrentAsset } from '../TabAnalysis/utils'
 import HeaderLanguageAndDate from './headerLanguageAndDate'
 import styles from './stepSingleViewer.module.scss'
 
 interface StepSingleViewerProps {
+  assetUid: string
   /** Uses languageCode. */
   selectedTranslation?: LanguageCode
   onRequestSelectTranslation: (newSelectedOption: LanguageCode | undefined) => void
@@ -64,7 +66,9 @@ export default function StepSingleViewer(props: StepSingleViewerProps) {
               </>
             }
             onClick={addTranslation}
-            isDisabled={singleProcessingStore.data.isFetchingData || !hasChangeSubPermissionToCurrentAsset()}
+            isDisabled={
+              singleProcessingStore.data.isFetchingData || !userCan('change_submissions', assetStore.getAsset(props.assetUid))
+            }
           />
 
           <Button
@@ -73,7 +77,9 @@ export default function StepSingleViewer(props: StepSingleViewerProps) {
             startIcon='edit'
             onClick={openEditor}
             tooltip={t('Edit')}
-            isDisabled={singleProcessingStore.data.isFetchingData || !hasChangeSubPermissionToCurrentAsset()}
+            isDisabled={
+              singleProcessingStore.data.isFetchingData || !userCan('change_submissions', assetStore.getAsset(props.assetUid))
+            }
           />
 
           <Button
@@ -83,7 +89,7 @@ export default function StepSingleViewer(props: StepSingleViewerProps) {
             onClick={deleteTranslation}
             tooltip={t('Delete')}
             isPending={singleProcessingStore.data.isFetchingData}
-            isDisabled={!hasChangeSubPermissionToCurrentAsset()}
+            isDisabled={!userCan('change_submissions', assetStore.getAsset(props.assetUid))}
           />
         </div>
       </header>

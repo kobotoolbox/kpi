@@ -38,7 +38,7 @@ export default function SidebarSubmissionMedia({ asset, submissionId, xpath }: S
     return null
   }
 
-  const attachment = getAttachmentForProcessing(asset, submissionData)
+  const attachment = getAttachmentForProcessing(asset, xpath, submissionData)
   if (typeof attachment === 'string') {
     return null
   }

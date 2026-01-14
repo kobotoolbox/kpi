@@ -2,15 +2,22 @@ import React from 'react'
 
 import clonedeep from 'lodash.clonedeep'
 import type { _DataSupplementResponseOneOfOneOfManualTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfOneOfManualTranscriptionVersionsItem'
+import assetStore from '#/assetStore'
 import Button from '#/components/common/button'
+import { userCan } from '#/components/permissions/utils'
 import singleProcessingStore from '#/components/processing/singleProcessingStore'
 import bodyStyles from '../../common/processingBody.module.scss'
-import { hasChangeSubPermissionToCurrentAsset } from '../TabAnalysis/utils'
 import HeaderLanguageAndDate from './headerLanguageAndDate'
 
+interface Props {
+  draft: _DataSupplementResponseOneOfOneOfManualTranscriptionVersionsItem
+  assetUid: string
+}
+
 export default function StepEditor({
+  assetUid,
   draft,
-}: { draft: _DataSupplementResponseOneOfOneOfManualTranscriptionVersionsItem }) {
+}: Props) {
   function discardDraft() {
     singleProcessingStore.safelyDeleteTranscriptDraft()
   }
@@ -46,7 +53,9 @@ export default function StepEditor({
             size='s'
             label={discardLabel}
             onClick={discardDraft}
-            isDisabled={singleProcessingStore.data.isFetchingData || !hasChangeSubPermissionToCurrentAsset()}
+            isDisabled={
+              singleProcessingStore.data.isFetchingData || !userCan('change_submissions', assetStore.getAsset(assetUid))
+            }
           />
 
           <Button
@@ -56,7 +65,8 @@ export default function StepEditor({
             onClick={saveDraft}
             isPending={singleProcessingStore.data.isFetchingData}
             isDisabled={
-              !singleProcessingStore.hasUnsavedTranscriptDraftValue() || !hasChangeSubPermissionToCurrentAsset()
+              !singleProcessingStore.hasUnsavedTranscriptDraftValue() ||
+              !userCan('change_submissions', assetStore.getAsset(assetUid))
             }
           />
         </nav>

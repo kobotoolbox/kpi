@@ -1,20 +1,27 @@
 import type { DataResponse } from '#/api/models/dataResponse'
-import singleProcessingStore from '#/components/processing/singleProcessingStore'
-import { getMediaAttachment, getQuestionXPath, getRowData } from '#/components/submissions/submissionUtils'
+import { findRowByXpath, getRowName } from '#/assetUtils'
+import { getMediaAttachment, getRowData } from '#/components/submissions/submissionUtils'
 import type { AssetResponse, SubmissionAttachment } from '#/dataInterface'
 import { convertSecondsToMinutes } from '#/utils'
+
+function getQuestionName(asset: AssetResponse, xpath: string) {
+  if (!asset?.content) return undefined
+  const foundRow = findRowByXpath(asset.content, xpath)
+  return foundRow ? getRowName(foundRow) : undefined
+}
 
 /**
  * Returns an error string or the attachment. It's basically a wrapper function
  * over `getMediaAttachment` for DRY purposes in `singleProcessingStore` context.
  */
 export function getAttachmentForProcessing(
-  asset?: AssetResponse,
+  asset: AssetResponse,
+  questionXPath: string,
   submissionData?: DataResponse,
 ): string | SubmissionAttachment {
   const errorMessage = 'Insufficient data'
 
-  const currentQuestionName = singleProcessingStore.currentQuestionName
+  const currentQuestionName = getQuestionName(asset, questionXPath)
   // We need `assetContent` with survey, submission data, and question name to
   // go further.
   if (!asset?.content?.survey || !submissionData || !currentQuestionName) {
@@ -26,8 +33,6 @@ export function getAttachmentForProcessing(
   if (!rowData || typeof rowData !== 'string') {
     return errorMessage
   }
-
-  const questionXPath = getQuestionXPath(asset.content.survey, currentQuestionName)
 
   return getMediaAttachment(submissionData, rowData, questionXPath)
 }

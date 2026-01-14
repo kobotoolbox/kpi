@@ -3,12 +3,11 @@ import React from 'react'
 import Button from '#/components/common/button'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { hasTranscriptServicesAvailable, hasTranslationServicesAvailable } from '#/components/languages/languagesUtils'
-import singleProcessingStore from '#/components/processing/singleProcessingStore'
 import envStore from '#/envStore'
 
 interface TransxAutomaticButtonProps {
   onClick: () => void
-  selectedLanguage?: LanguageCode
+  selectedLanguage: LanguageCode | null
   /** Which type of service the button should check availability for. */
   type: 'transcript' | 'translation'
   disabled?: boolean
@@ -27,8 +26,6 @@ export default class TransxAutomaticButton extends React.Component<
   TransxAutomaticButtonProps,
   TransxAutomaticButtonState
 > {
-  private unlisteners: Function[] = []
-
   constructor(props: TransxAutomaticButtonProps) {
     super(props)
     this.state = {
@@ -38,14 +35,7 @@ export default class TransxAutomaticButton extends React.Component<
   }
 
   componentDidMount() {
-    this.unlisteners.push(singleProcessingStore.listen(this.onSingleProcessingStoreChange, this))
     this.checkAvailability()
-  }
-
-  componentWillUnmount() {
-    this.unlisteners.forEach((clb) => {
-      clb()
-    })
   }
 
   componentDidUpdate(prevProps: TransxAutomaticButtonProps) {
@@ -54,20 +44,11 @@ export default class TransxAutomaticButton extends React.Component<
     }
   }
 
-  /**
-   * Don't want to store a duplicate of store data here just for the sake of
-   * comparison, so we need to make the component re-render itself when the
-   * store changes :shrug:.
-   */
-  onSingleProcessingStoreChange() {
-    this.forceUpdate()
-  }
-
   async checkAvailability() {
     const languageCode = this.props.selectedLanguage
 
     // If there is no language selected, we simply reset properties and stop.
-    if (languageCode === undefined) {
+    if (!languageCode) {
       this.setState({
         isLoading: false,
         isAvailable: false,
@@ -110,7 +91,7 @@ export default class TransxAutomaticButton extends React.Component<
           label={t('automatic')}
           onClick={this.props.onClick}
           isDisabled={this.props.disabled || !this.state.isAvailable}
-          isPending={singleProcessingStore.data.isFetchingData || this.state.isLoading}
+          isPending={this.state.isLoading}
         />
       )
     } else {

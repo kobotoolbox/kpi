@@ -1,20 +1,22 @@
 import React from 'react'
 
 import clonedeep from 'lodash.clonedeep'
+import assetStore from '#/assetStore'
 import Button from '#/components/common/button'
 import type { LanguageCode } from '#/components/languages/languagesStore'
+import { userCan } from '#/components/permissions/utils'
 import bodyStyles from '../../common/processingBody.module.scss'
 import singleProcessingStore from '../../singleProcessingStore'
-import { hasChangeSubPermissionToCurrentAsset } from '../TabAnalysis/utils'
 import HeaderLanguageAndDate from './headerLanguageAndDate'
 
-interface StepEditorProps {
+interface Props {
+  assetUid: string
   /** Uses languageCode. */
   selectedTranslation?: LanguageCode
   onRequestSelectTranslation: (newSelectedOption: LanguageCode | undefined) => void
 }
 
-export default function StepEditor(props: StepEditorProps) {
+export default function StepEditor(props: Props) {
   function discardDraft() {
     singleProcessingStore.safelyDeleteTranslationDraft()
   }
@@ -56,7 +58,9 @@ export default function StepEditor(props: StepEditorProps) {
             size='s'
             label={discardLabel}
             onClick={discardDraft}
-            isDisabled={singleProcessingStore.data.isFetchingData || !hasChangeSubPermissionToCurrentAsset()}
+            isDisabled={
+              singleProcessingStore.data.isFetchingData || !userCan('change_submissions', assetStore.getAsset(props.assetUid))
+            }
           />
 
           <Button
@@ -66,7 +70,8 @@ export default function StepEditor(props: StepEditorProps) {
             onClick={saveDraft}
             isPending={singleProcessingStore.data.isFetchingData}
             isDisabled={
-              !singleProcessingStore.hasUnsavedTranslationDraftValue() || !hasChangeSubPermissionToCurrentAsset()
+              !singleProcessingStore.hasUnsavedTranslationDraftValue() ||
+              !userCan('change_submissions', assetStore.getAsset(props.assetUid))
             }
           />
         </div>

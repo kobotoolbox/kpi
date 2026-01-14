@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react'
+import type { DataResponse } from '#/api/models/dataResponse'
 import {
   type assetsDataListResponse,
   getAssetsDataListQueryKey,
@@ -6,17 +7,9 @@ import {
 } from '#/api/react-query/survey-data'
 import Button from '#/components/common/button'
 import { goToProcessing } from '#/components/processing/routes.utils'
-import styles from './index.module.scss'
-import type { DataResponse } from '#/api/models/dataResponse'
 import { addDefaultUuidPrefix } from '#/utils'
+import styles from './index.module.scss'
 
-// TODO: improve schema to enum `action` prop.
-const ADVANCED_FEATURES_ACTION = [
-  'manual_transcription',
-  'manual_translation',
-  'automatic_google_transcription',
-  'automatic_google_translation',
-]
 // TODO: improve schema, AdvancedFeatureResponse.asset doesn't exist for the above.
 // TODO: improve ...
 

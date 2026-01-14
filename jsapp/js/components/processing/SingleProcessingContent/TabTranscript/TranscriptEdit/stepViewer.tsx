@@ -3,9 +3,10 @@ import React, { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import type { _DataSupplementResponseOneOfOneOfManualTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfOneOfManualTranscriptionVersionsItem'
 import { useAssetsDataSupplementPartialUpdate } from '#/api/react-query/survey-data'
+import assetStore from '#/assetStore'
 import Button from '#/components/common/button'
+import { userCan } from '#/components/permissions/utils'
 import bodyStyles from '../../common/processingBody.module.scss'
-import { hasChangeSubPermissionToCurrentAsset } from '../TabAnalysis/utils'
 import HeaderLanguageAndDate from './headerLanguageAndDate'
 import StepEditor from './stepEditor'
 
@@ -36,7 +37,7 @@ export default function StepViewer({
     })
   }
 
-  if (edit) return <StepEditor draft={transcript} />
+  if (edit) return <StepEditor assetUid={uid!} draft={transcript} />
 
   return (
     <div className={bodyStyles.root}>
@@ -60,7 +61,7 @@ export default function StepViewer({
             onClick={handleTrash}
             tooltip={t('Delete')}
             isPending={mutateTrash.isPending}
-            isDisabled={!hasChangeSubPermissionToCurrentAsset()}
+            isDisabled={!userCan('change_submissions', assetStore.getAsset(uid!))}
           />
         </nav>
       </header>

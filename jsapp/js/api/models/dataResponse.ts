@@ -31,4 +31,4 @@ export type DataResponse = {
   Notes: unknown[]
   _validation_status: unknown
   _submitted_by: string
-} & Record<string, unknown>
+} & Record<string, unknown> // Hack. TODO: handle the type that it isn't.

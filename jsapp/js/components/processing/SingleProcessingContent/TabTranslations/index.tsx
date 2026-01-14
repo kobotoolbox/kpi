@@ -106,6 +106,7 @@ export default class TranslationsTab extends React.Component<{}, TranslationsTab
     if (draft !== undefined) {
       return (
         <StepEditor
+          assetUid={'asdf go away errors'}
           selectedTranslation={this.state.selectedTranslation}
           onRequestSelectTranslation={this.selectTranslation.bind(this)}
         />
@@ -122,6 +123,7 @@ export default class TranslationsTab extends React.Component<{}, TranslationsTab
     ) {
       return (
         <StepSingleViewer
+          assetUid={'TODO'}
           selectedTranslation={this.state.selectedTranslation}
           onRequestSelectTranslation={this.selectTranslation.bind(this)}
         />

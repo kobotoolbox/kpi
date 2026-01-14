@@ -6,7 +6,7 @@ export class ServerError extends Error implements ErrorObject, ErrorDetail {
     let detail: any
     const text = await response.text()
     try {
-      detail = JSON.parse(text) as (ErrorObject | ErrorDetail)['detail']
+      detail = (JSON.parse(text) as (ErrorObject | ErrorDetail))['detail']
     } catch {
       detail = text
     }

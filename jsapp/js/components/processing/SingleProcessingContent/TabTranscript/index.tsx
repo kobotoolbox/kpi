@@ -1,15 +1,32 @@
 import React from 'react'
-
 import { useParams } from 'react-router-dom'
+import type { _DataSupplementResponseOneOfOneOfAutomaticGoogleTranscriptionVersionsItemData } from '#/api/models/_dataSupplementResponseOneOfOneOfAutomaticGoogleTranscriptionVersionsItemData'
+import type { _DataSupplementResponseOneOfOneOfAutomaticGoogleTranscriptionVersionsItemDataOneOfThree } from '#/api/models/_dataSupplementResponseOneOfOneOfAutomaticGoogleTranscriptionVersionsItemDataOneOfThree'
+import type { _DataSupplementResponseOneOfOneOfManualTranscriptionVersionsItemData } from '#/api/models/_dataSupplementResponseOneOfOneOfManualTranscriptionVersionsItemData'
+import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponseOneOfOneOf } from '#/api/models/dataSupplementResponseOneOfOneOf'
-import { getAssetsDataSupplementRetrieveQueryKey, useAssetsDataSupplementRetrieve } from '#/api/react-query/survey-data'
-import StepConfig from './stepConfig'
-import StepEditor from './stepEditor'
-import StepViewer from './stepViewer'
+import {
+  getAssetsDataListQueryKey,
+  getAssetsDataSupplementRetrieveQueryKey,
+  useAssetsDataList,
+  useAssetsDataSupplementRetrieve,
+} from '#/api/react-query/survey-data'
+import assetStore from '#/assetStore'
+import { addDefaultUuidPrefix } from '#/utils'
+import TranscriptCreate from './TranscriptCreate'
+import TranscriptEdit from './TranscriptEdit'
 
-// TODO OpenAPI: DataSupplementResponseOneOf should be obj, not obj | string.
-// TODO: OpenAPI: _DataSupplementResponseOneOfOneOfManualTranscriptionVersionsItemData should have `locale?: string` prop.
-// TODO OpenAPI: _DataSupplementResponseOneOfOneOfManualTranscriptionVersionsItemData.language should be an enum?
+function isTranscriptDataExisting(
+  transcriptData: _DataSupplementResponseOneOfOneOfAutomaticGoogleTranscriptionVersionsItemData,
+): transcriptData is _DataSupplementResponseOneOfOneOfAutomaticGoogleTranscriptionVersionsItemDataOneOfThree
+function isTranscriptDataExisting(
+  transcriptData: Partial<_DataSupplementResponseOneOfOneOfManualTranscriptionVersionsItemData>,
+): transcriptData is _DataSupplementResponseOneOfOneOfManualTranscriptionVersionsItemData & {value: string}
+function isTranscriptDataExisting(
+  transcriptData: _DataSupplementResponseOneOfOneOfAutomaticGoogleTranscriptionVersionsItemData | Partial<_DataSupplementResponseOneOfOneOfManualTranscriptionVersionsItemData>,
+) {
+  return 'value' in transcriptData && typeof transcriptData.value === 'string'
+}
 
 interface RouteParams extends Record<string, string | undefined> {
   uid: string
@@ -27,18 +44,50 @@ export default function TranscriptTab() {
     },
   })
 
-  const questionSupplement = querySupplement.data?.status === 200 ?
-      (querySupplement.data.data[xpath!] as DataSupplementResponseOneOfOneOf) : undefined
-  const transcripts = questionSupplement?.manual_transcription?._versions || []
-  const transcript = transcripts.find((transcript) => transcript._data.value !== null && !!transcript._dateAccepted)
-  const draft = transcripts.find((transcript) => transcript._data.value !== null && !transcript._dateAccepted)
+  const params = {
+    query: JSON.stringify({
+      $or: [{ 'meta/rootUuid': addDefaultUuidPrefix(submissionEditId!) }, { _uuid: submissionEditId }],
+    }),
+  } as any
+  const querySubmission = useAssetsDataList(uid!, params, {
+    query: {
+      queryKey: getAssetsDataListQueryKey(uid!, params),
+      enabled: !!uid,
+    },
+  })
+  // TODO OpenAPI: DataResponse should be indexable.
+  const currentSubmission =
+    querySubmission.data?.status === 200 && querySubmission.data.data.results.length > 0
+      ? (querySubmission.data.data.results[0] as DataResponse & Record<string, string>)
+      : null
 
-  if (draft) {
-    return <StepEditor draft={draft} />
-  }
-  if (transcript) {
-    return <StepViewer transcript={transcript} />
-  }
+  const asset = uid !== undefined ? assetStore.getAsset(uid) : undefined
 
-  return <StepConfig />
+  // console.log('TranscriptTab', asset, xpath, currentSubmission)
+  if (!asset) return null // TODO: better error handling
+  if (!xpath) return null // TODO: better error handling
+  if (!currentSubmission) return null // TODO: some spinner
+
+  const questionSupplement =
+    querySupplement.data?.status === 200
+      ? (querySupplement.data.data[xpath!] as DataSupplementResponseOneOfOneOf)
+      : undefined
+
+  // Backend said, that latest version is the "real version" and to discared the rest.
+  // This should equal what can be found within `DataResponse._supplementalDetails`.
+  // TODO: perhaps use `DataResponse._supplementalDetails` instead?
+  const transcript = [
+    ...(questionSupplement?.manual_transcription?._versions || []),
+    ...(questionSupplement?.automatic_google_transcription?._versions || []),
+  ].sort((a, b) => (a._dateCreated > b._dateCreated ? 1 : -1))[0] // TODO: is that "<" or ">" to make descending?
+
+  console.log('TranscriptTab', transcript)
+
+  if (
+    transcript && !!isTranscriptDataExisting(transcript._data)
+  ) {
+    return <TranscriptEdit />
+  } else {
+    return <TranscriptCreate asset={asset} questionXpath={xpath} submission={currentSubmission} />
+  }
 }
