@@ -566,6 +566,8 @@ class DataViewSet(
             raise serializers.ValidationError({'detail': 'Invalid action'})
         except InvalidXPath:
             raise serializers.ValidationError({'detail': 'Invalid question name'})
+        except ValueError:
+            raise serializers.ValidationError({'detail': 'Invalid payload'})
         except jsonschema.exceptions.ValidationError:
             raise serializers.ValidationError({'detail': 'Invalid payload'})
         except TranscriptionNotFound:

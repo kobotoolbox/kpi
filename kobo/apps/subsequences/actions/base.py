@@ -431,6 +431,12 @@ class BaseAction:
         else:
             dependency_supplemental_data = action_data.pop(self.DEPENDENCY_FIELD, None)
             # Deletion is triggered by passing `{value: null}`.
+            # Check if user is trying to delete null data
+            if (
+                not current_version.get(self.VERSION_DATA_FIELD, {}).get('value')
+                and action_data.get('value') is None
+            ):
+                raise ValueError
             # When this occurs, no acceptance should be recorded.
             accepted = action_data.get('value') is not None
 

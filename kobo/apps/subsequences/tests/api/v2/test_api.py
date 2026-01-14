@@ -779,6 +779,58 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
             assert response.status_code == status.HTTP_400_BAD_REQUEST
             assert 'Cannot translate without transcription' in str(response.data)
 
+    def test_cannot_delete_non_existent_transcription(self):
+        """
+        Users should not be able to delete a transcription from a submission
+        that doesn't have an existing transcription to begin with.
+        Setting `value: null` on a non-existent transcription should return 400.
+        """
+        QuestionAdvancedFeature.objects.create(
+            asset=self.asset,
+            question_xpath='q1',
+            action='manual_transcription',
+            params=[{'language': 'en'}],
+        )
+
+        # Attempt to "delete" a non-existent transcription
+        payload = {
+            '_version': '20250820',
+            'q1': {
+                'manual_transcription': {
+                    'language': 'en',
+                    'value': None,
+                },
+            },
+        }
+
+        response = self.client.patch(
+            self.supplement_details_url, data=payload, format='json'
+        )
+        # Should fail because there's nothing to delete
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert 'Invalid payload' in str(response.data)
+
+        # Verify no entry was created
+        supplement = SubmissionSupplement.objects.filter(
+            submission_uuid=self.submission_uuid, asset=self.asset
+        ).first()
+        assert 'q1' not in supplement.content
+
+        payload['q1']['manual_transcription']['value'] = 'test value'
+        response = self.client.patch(
+            self.supplement_details_url, data=payload, format='json'
+        )
+
+        payload['q1']['manual_transcription']['value'] = None
+        response = self.client.patch(
+            self.supplement_details_url, data=payload, format='json'
+        )
+        breakpoint()
+        # Should not fail because there' something to delete
+        assert response.status_code == status.HTTP_200_OK
+        supplement.refresh_from_db()
+        assert 'q1' in supplement.content
+
 
 @ddt
 class SubmissionSupplementAPIUsageLimitsTestCase(SubsequenceBaseTestCase):
