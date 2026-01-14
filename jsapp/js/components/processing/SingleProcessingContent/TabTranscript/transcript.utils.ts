@@ -1,19 +1,19 @@
-import assetStore from '#/assetStore'
+import type { DataResponse } from '#/api/models/dataResponse'
 import singleProcessingStore from '#/components/processing/singleProcessingStore'
 import { getMediaAttachment, getQuestionXPath, getRowData } from '#/components/submissions/submissionUtils'
-import type { SubmissionAttachment } from '#/dataInterface'
+import type { AssetResponse, SubmissionAttachment } from '#/dataInterface'
 import { convertSecondsToMinutes } from '#/utils'
 
 /**
  * Returns an error string or the attachment. It's basically a wrapper function
  * over `getMediaAttachment` for DRY purposes in `singleProcessingStore` context.
  */
-export function getAttachmentForProcessing(): string | SubmissionAttachment {
+export function getAttachmentForProcessing(
+  asset?: AssetResponse,
+  submissionData?: DataResponse,
+): string | SubmissionAttachment {
   const errorMessage = 'Insufficient data'
 
-  const asset = assetStore.getAsset(singleProcessingStore.currentAssetUid)
-
-  const submissionData = singleProcessingStore.getSubmissionData()
   const currentQuestionName = singleProcessingStore.currentQuestionName
   // We need `assetContent` with survey, submission data, and question name to
   // go further.

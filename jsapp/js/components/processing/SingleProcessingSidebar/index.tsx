@@ -10,10 +10,11 @@ import SidebarSubmissionMedia from './sidebarSubmissionMedia'
 import TransxDisplay from './transxDisplay'
 
 interface ProcessingSidebarProps {
+  submissionId: string
   asset: AssetResponse
 }
 
-export default function ProcessingSidebar(props: ProcessingSidebarProps) {
+export default function ProcessingSidebar({ asset, submissionId }: ProcessingSidebarProps) {
   const [store] = useState(() => singleProcessingStore)
 
   const displays = store.getDisplays(getActiveTab())
@@ -35,9 +36,11 @@ export default function ProcessingSidebar(props: ProcessingSidebarProps) {
 
         {displays.includes(StaticDisplays.Transcript) && transcript && <TransxDisplay transx={transcript} />}
 
-        {displays.includes(StaticDisplays.Audio) && <SidebarSubmissionMedia asset={props.asset} />}
+        {displays.includes(StaticDisplays.Audio) && (
+          <SidebarSubmissionMedia submissionId={submissionId} asset={asset} xpath={xpath} />
+        )}
 
-        {displays.includes(StaticDisplays.Data) && <SidebarSubmissionData asset={props.asset} />}
+        {displays.includes(StaticDisplays.Data) && <SidebarSubmissionData asset={asset} />}
 
         {displays.length === 0 && (
           <div className={styles.emptyMessage}>

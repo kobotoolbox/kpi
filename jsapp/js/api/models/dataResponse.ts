@@ -11,7 +11,7 @@ The endpoints are grouped by area of intended use. Each category contains relate
  */
 import type { _DataResponseAttachments } from './_dataResponseAttachments'
 
-export interface DataResponse {
+export type DataResponse = {
   _id: number
   'formhub/uuid': string
   start: string
@@ -31,4 +31,4 @@ export interface DataResponse {
   Notes: unknown[]
   _validation_status: unknown
   _submitted_by: string
-}
+} & Record<string, unknown>

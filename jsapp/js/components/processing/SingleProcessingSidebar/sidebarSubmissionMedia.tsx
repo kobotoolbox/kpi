@@ -1,29 +1,44 @@
-import React, { useState } from 'react'
+import React from 'react'
 
 import cx from 'classnames'
+import { queryClient } from '#/api/queryClient'
+import { getAssetsDataListQueryKey, useAssetsDataList } from '#/api/react-query/survey-data'
+import { findRowByXpath } from '#/assetUtils'
 import AttachmentActionsDropdown from '#/attachments/AttachmentActionsDropdown'
 import DeletedAttachment from '#/attachments/deletedAttachment.component'
 import AudioPlayer from '#/components/common/audioPlayer'
-import singleProcessingStore from '#/components/processing/singleProcessingStore'
 import { QUESTION_TYPES } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
+import { addDefaultUuidPrefix } from '#/utils'
 import { getAttachmentForProcessing } from '../SingleProcessingContent/TabTranscript/transcript.utils'
 import styles from './sidebarSubmissionMedia.module.scss'
 
 interface SidebarSubmissionMediaProps {
+  xpath: string
+  submissionId: string
   asset: AssetResponse | undefined
 }
 
-export default function SidebarSubmissionMedia(props: SidebarSubmissionMediaProps) {
-  // We need submission data.
-  const [store] = useState(() => singleProcessingStore)
+export default function SidebarSubmissionMedia({ asset, submissionId, xpath }: SidebarSubmissionMediaProps) {
+  const params = {
+    query: JSON.stringify({
+      $or: [{ 'meta/rootUuid': addDefaultUuidPrefix(submissionId!) }, { _uuid: submissionId }],
+    }),
+  } as any
+  const querySubmission = useAssetsDataList(asset!.uid, params, {
+    query: {
+      queryKey: getAssetsDataListQueryKey(asset!.uid, params),
+      enabled: !!asset!.uid,
+    },
+  })
+  const submissionData = querySubmission.data?.status === 200 ? querySubmission.data.data.results[0] : undefined
 
   // We need `asset` to proceed.
-  if (!props.asset) {
+  if (!asset) {
     return null
   }
 
-  const attachment = getAttachmentForProcessing()
+  const attachment = getAttachmentForProcessing(asset, submissionData)
   if (typeof attachment === 'string') {
     return null
   }
@@ -35,7 +50,7 @@ export default function SidebarSubmissionMedia(props: SidebarSubmissionMediaProp
     )
   }
 
-  switch (store.currentQuestionType) {
+  switch (findRowByXpath(asset?.content!, xpath)?.type) {
     case QUESTION_TYPES.audio.id:
     case QUESTION_TYPES['background-audio'].id:
       return (
@@ -50,18 +65,13 @@ export default function SidebarSubmissionMedia(props: SidebarSubmissionMediaProp
             mediaURL={attachment.download_url}
             filename={attachment.filename}
             rightHeaderSection={
-              store.data.submissionData && (
+              submissionData && (
                 <AttachmentActionsDropdown
-                  asset={props.asset}
-                  submissionData={store.data.submissionData}
+                  asset={asset}
+                  submissionData={submissionData}
                   attachmentUid={attachment.uid}
                   onDeleted={() => {
-                    // TODO: this might be done with a bit more elegant UX, as calling the function causes a whole page
-                    // spinner to appear. I feel like redoing `singleProcessingStore` in a `react-query` way would
-                    // be the way to go. Alternatively we could use `markAttachmentAsDeleted` function and simply
-                    // override memoized value in store - but given how big and complex the store (and NLP view) is, we
-                    // could end up with unexpected bugs.
-                    store.fetchSubmissionData()
+                    queryClient.invalidateQueries({ queryKey: getAssetsDataListQueryKey(asset!.uid, params) })
                   }}
                 />
               )

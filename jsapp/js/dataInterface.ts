@@ -177,6 +177,9 @@ interface ProcessingResponseData {
 
 export type GetProcessingSubmissionsResponse = PaginatedResponse<ProcessingResponseData>
 
+/**
+ * @deprecated use _DataResponseAttachments from Orval instead.
+ */
 export interface SubmissionAttachment {
   download_url: string
   download_large_url: string
@@ -239,6 +242,8 @@ export interface SubmissionResponseValueObject {
 
 /**
  * A list of responses to form questions plus some submission metadata
+ *
+ * @deprecated - use DataResponse from Orval instead.
  */
 export interface SubmissionResponse extends SubmissionResponseValueObject {
   __version__: string

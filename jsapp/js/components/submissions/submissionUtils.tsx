@@ -1,5 +1,7 @@
 import clonedeep from 'lodash.clonedeep'
 import get from 'lodash.get'
+import type { _DataResponseAttachments } from '#/api/models/_dataResponseAttachments'
+import type { DataResponse } from '#/api/models/dataResponse'
 import { getRowName, getSurveyFlatPaths, getTranslatedRowLabel, isRowSpecialLabelHolder } from '#/assetUtils'
 import DeletedAttachment from '#/attachments/deletedAttachment.component'
 import { getSupplementalPathParts } from '#/components/processing/processingUtils'
@@ -177,7 +179,7 @@ export function getSubmissionDisplayData(
   asset: AssetResponse,
   /** for choosing label to display */
   translationIndex: number,
-  submissionData: SubmissionResponse,
+  submissionData: DataResponse | SubmissionResponse,
 ) {
   // let's start with a root of survey being a group with special flag
   const output = new DisplayGroup(DISPLAY_GROUP_TYPES.group_root)
@@ -232,7 +234,7 @@ export function getSubmissionDisplayData(
         continue
       }
 
-      let rowData = getRowData(rowName, survey, parentData as SubmissionResponse)
+      let rowData = getRowData(rowName, survey, parentData as DataResponse | SubmissionResponse)
 
       if (row.type === GROUP_TYPES_BEGIN.begin_repeat) {
         if (Array.isArray(rowData)) {
@@ -362,7 +364,7 @@ export function getSubmissionDisplayData(
 function populateMatrixData(
   survey: SurveyRow[],
   choices: SurveyChoice[],
-  submissionData: SubmissionResponse,
+  submissionData: DataResponse | SubmissionResponse,
   translationIndex: number,
   /** A group you want to add a row of questions to. */
   matrixGroup: DisplayGroup,
@@ -433,7 +435,7 @@ function populateMatrixData(
 export function getRowData(
   name: string,
   survey: SurveyRow[],
-  data: SubmissionResponse | null,
+  data: DataResponse | SubmissionResponse | null,
 ): SubmissionResponseValue | null {
   if (data === null || typeof data !== 'object') {
     return null
@@ -498,15 +500,15 @@ const isSubmissionResponseValueObject = (data: any): data is SubmissionResponseV
  * TODO: we might want to change this in future, when we will improve the Data Table UI for repeat groups.
  */
 export function getRepeatGroupAnswers(
-  responseData: SubmissionResponse,
+  responseData: DataResponse | SubmissionResponse,
   /** Full (nested) path to a response, e.g. group_person/group_pets/group_pet/pet_name. */
   fullPath: string,
 ): React.ReactNode[] {
   // This function is a recursive detective. It goes through nested groups from given path (`targetKey`), looking for
-  // answers. We are traversing `SubmissionResponse` and it's values (might be nested arrays), going one path level and
+  // answers. We are traversing `DataResponse | SubmissionResponse` and it's values (might be nested arrays), going one path level and
   // one `responseData` level at a time - verifying if response exist and if needed (nested) going deeper.
   const lookForAnswers = (
-    data: SubmissionResponse | SubmissionResponseValue,
+    data: DataResponse | SubmissionResponse | SubmissionResponseValue,
     currentDepth = 0,
     responseIndex?: number,
   ): Array<JSX.Element | string> => {
@@ -562,7 +564,7 @@ export function getRepeatGroupAnswers(
  * Filters data for items inside the group
  */
 function getRegularGroupAnswers(
-  data: SubmissionResponse,
+  data: DataResponse | SubmissionResponse,
   /** With groups e.g. group_person/group_pets/group_pet. */
   targetKey: string,
 ): { [questionName: string]: SubmissionResponseValue } {
@@ -600,24 +602,24 @@ function getRowListName(row: SurveyRow | undefined): string | undefined {
  * Returns an attachment object or an error message.
  */
 export function getMediaAttachment(
-  submission: SubmissionResponse,
+  submission: DataResponse | SubmissionResponse,
   fileName: string,
   questionXPath: string,
 ): string | SubmissionAttachment {
-  let mediaAttachment: string | SubmissionAttachment = t('Could not find ##fileName##').replace(
+  let mediaAttachment: string | _DataResponseAttachments = t('Could not find ##fileName##').replace(
     '##fileName##',
     fileName,
   )
 
-  submission._attachments.forEach((attachment) => {
+  ;(submission._attachments as any as _DataResponseAttachments[]).forEach((attachment) => {
     if (attachment.question_xpath === questionXPath) {
       // Check if the audio filetype is of type not supported by player and send it to format to mp3
       if (
-        attachment.mimetype.includes('audio/') &&
-        !attachment.mimetype.includes('/mp3') &&
-        !attachment.mimetype.includes('mpeg') &&
-        !attachment.mimetype.includes('/wav') &&
-        !attachment.mimetype.includes('ogg')
+        attachment.mimetype!.includes('audio/') &&
+        !attachment.mimetype!.includes('/mp3') &&
+        !attachment.mimetype!.includes('mpeg') &&
+        !attachment.mimetype!.includes('/wav') &&
+        !attachment.mimetype!.includes('ogg')
       ) {
         const newAudioURL = attachment.download_url + '?format=mp3'
         const newAttachment = {
@@ -650,7 +652,7 @@ export function getMediaAttachment(
  * can be only one transcript), but we need to use paths with languages in it
  * to build Submission Modal and Data Table properly.
  */
-export function getSupplementalDetailsContent(submission: SubmissionResponse, path: string): string | null {
+export function getSupplementalDetailsContent(submission: DataResponse | SubmissionResponse, path: string): string | null {
   const pathParts = getSupplementalPathParts(path)
   const pathArray = [SUPPLEMENTAL_DETAILS_PROP, pathParts.sourceRowPath]
 
@@ -756,19 +758,19 @@ function appendTextToPathAtLevel(path: string, level: string, stringToAdd: strin
  * flag to `true` and then returns the updated submission data.
  */
 export function markAttachmentAsDeleted(
-  submissionData: SubmissionResponse,
+  submissionData: DataResponse | SubmissionResponse,
   targetAttachmentUid: string,
-): SubmissionResponse {
+): DataResponse | SubmissionResponse {
   const data = clonedeep(submissionData)
-  const targetAttachment = data._attachments.find((item) => item.uid === targetAttachmentUid)
+  const targetAttachment = (data._attachments as any as _DataResponseAttachments[]).find((item) => item.uid === targetAttachmentUid)
 
-  data._attachments.forEach((attachment) => {
+  ;(data._attachments as any as _DataResponseAttachments[]).forEach((attachment) => {
     if (
       attachment.uid === targetAttachment?.uid &&
       attachment.question_xpath === targetAttachment?.question_xpath &&
       attachment.filename === targetAttachment?.filename
     ) {
-      attachment.is_deleted = true
+      (attachment as any).is_deleted = true
     }
   })
 
@@ -830,12 +832,12 @@ export function removeEmptyFromSupplementalDetails(supplementalDetails: Submissi
 // features and we want to avoid acting on false positives here (e.g. user added transcript, then deleted it = we
 // don't want to display the button).
 export function shouldProcessingBeAccessible(
-  submissionData: SubmissionResponse,
+  submissionData: DataResponse | SubmissionResponse,
   mediaAttachment: SubmissionAttachment,
 ) {
   const hasProcessingFeatures =
     typeof submissionData._supplementalDetails !== 'undefined' &&
-    recordKeys(removeEmptyFromSupplementalDetails(submissionData._supplementalDetails)).length > 0
+    recordKeys(removeEmptyFromSupplementalDetails((submissionData as any)._supplementalDetails)).length > 0
 
   return !mediaAttachment.is_deleted || hasProcessingFeatures
 }
@@ -843,15 +845,15 @@ export function shouldProcessingBeAccessible(
 // Counts the number of each attachment type for the given array of submissions
 // Returns semi-colon seperated string in the form of `<number_of_attachments> <attachment_type>;` ending with a period
 // for each attachment type present
-export function getMediaCount(selectedSubmissions: SubmissionResponse[]) {
+export function getMediaCount(selectedSubmissions: DataResponse[] | SubmissionResponse[]) {
   let totalImages = 0
   let totalVideos = 0
   let totalFiles = 0
   let totalAudios = 0
 
   selectedSubmissions.forEach((submission) => {
-    submission._attachments.forEach((attachment) => {
-      const mimetype = attachment.mimetype
+    (submission._attachments as any as _DataResponseAttachments[]).forEach((attachment) => {
+      const mimetype = attachment.mimetype!
       if (mimetype.includes('image/')) {
         totalImages++
       } else if (mimetype.includes('video/')) {
@@ -885,7 +887,7 @@ export function getMediaCount(selectedSubmissions: SubmissionResponse[]) {
 
 export function getBackgroundAudioAttachment(
   asset: AssetResponse,
-  submission: SubmissionResponse,
+  submission: DataResponse | SubmissionResponse,
 ): undefined | SubmissionAttachment {
   const backgroundAudioName = getBackgroundAudioQuestionName(asset)
 
