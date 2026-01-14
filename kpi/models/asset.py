@@ -259,7 +259,7 @@ class Asset(
     #   }
     # }
     paired_data = LazyDefaultJSONBField(default=dict)
-    pending_delete = models.BooleanField(default=False)
+    pending_delete = models.BooleanField(default=False, db_index=True)
     # `_deployment_status` is calculated field, therefore should **NOT** be
     # set directly.
     _deployment_status = models.CharField(
