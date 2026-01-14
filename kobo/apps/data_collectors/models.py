@@ -47,4 +47,4 @@ class DataCollector(AbstractTimeStampedModel):
 
     @classmethod
     def generate_key(cls):
-        return secrets.token_hex(20)
+        return secrets.token_urlsafe(20)

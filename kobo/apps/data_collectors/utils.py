@@ -8,20 +8,19 @@ from kobo.apps.data_collectors.constants import DC_ENKETO_URL_TEMPLATE
 from kpi.deployment_backends.openrosa_utils import create_enketo_links
 from kpi.utils.log import logging
 
-URL_REGEX = re.compile(r'https?://(www\.)?(.*)/?')
-
 
 def get_url_for_enketo_key(initial_url):
     # mimic the regex processing enketo does to urls to make them work as keys
-    match = URL_REGEX.match(initial_url)
+    url_regex = re.compile(r'https?://(www\.)?(.*)/?')
+    match = url_regex.match(initial_url)
     stripped_url = match.groups()[1]
     return stripped_url
 
 
-def get_redis_key_for_token_and_xform(token, xform_id):
+def get_redis_key_for_token_and_xform(token, xform_id_string):
     initial_url = DC_ENKETO_URL_TEMPLATE.format(token)
     url_for_key = get_url_for_enketo_key(initial_url)
-    return f'or:{url_for_key},{xform_id}'
+    return f'or:{url_for_key},{xform_id_string}'
 
 
 def get_redis_key_for_enketo_id(enketo_id):
@@ -31,46 +30,57 @@ def get_redis_key_for_enketo_id(enketo_id):
 def get_all_redis_entries_for_token(redis_client, token):
     initial_url = DC_ENKETO_URL_TEMPLATE.format(token)
     url_for_key = get_url_for_enketo_key(initial_url)
-    keys = redis_client.keys(f'or:{url_for_key},*')
+    (cursor, keys) = redis_client.scan(cursor=0, match=f'or:{url_for_key},*')
+    while cursor > 0:
+        (cursor, more_keys) = redis_client.scan(
+            cursor=cursor, match=f'or:{url_for_key},*'
+        )
+        keys.extend(more_keys)
     return [key.decode('utf-8') for key in keys]
 
-def set_data_collector_enketo_links(token: str, xform_ids: list[str]):
+def set_data_collector_enketo_links(token: str, xform_id_strings: list[str]):
     redis_client = get_redis_connection('enketo_redis_main')
-    for xform_id in xform_ids:
+    for xform_id_string in xform_id_strings:
         # have enketo create hashes and store the token-based urls
         server_url = DC_ENKETO_URL_TEMPLATE.format(token)
         data = {
             'server_url': server_url,
-            'form_id': xform_id,
+            'form_id': xform_id_string,
         }
         response = create_enketo_links(data)
         enketo_id = response.json()['enketo_id']
         # replace the enketo hash with a longer one
         new_id = ShortUUID().random(31)
-        key = get_redis_key_for_token_and_xform(token, xform_id)
+        key = get_redis_key_for_token_and_xform(token, xform_id_string)
         redis_client.set(key, value=new_id)
         # move the token-based url info under the new hash
         old_id_key = get_redis_key_for_enketo_id(enketo_id)
         try:
             redis_client.rename(old_id_key, get_redis_key_for_enketo_id(new_id))
-        except redis.exceptions.ResponseError:
-            logging.warning(f'Attempt to rename non-existent key {old_id_key}')
-            return
+        except redis.exceptions.ResponseError as e:
+            raise Exception(f'Attempt to rename non-existent key {old_id_key}') from e
 
 
-def remove_data_collector_enketo_links(token:str, xform_ids: list[str] = None):
+def remove_data_collector_enketo_links(token: str, xform_id_strings: list[str] = None):
+    """
+    Remove enketo links from redis for the given token
+
+    If xform_id_strings is present, remove only the links for those forms,
+    otherwise, remove all
+    """
     redis_client = get_redis_connection('enketo_redis_main')
-    if xform_ids == []:
+    if xform_id_strings == []:
         return
-    if xform_ids is not None:
+    if xform_id_strings is not None:
         all_keys = [
-            get_redis_key_for_token_and_xform(token, xform_id) for xform_id in xform_ids
+            get_redis_key_for_token_and_xform(token, xform_id_string)
+            for xform_id_string in xform_id_strings
         ]
     else:
         # get all enketo redis entries for this token
         all_keys = get_all_redis_entries_for_token(redis_client, token)
         if not all_keys:
-            # no entries to rename, nothing to do
+            # no entries to remove, nothing to do
             logging.warning(f'No redis entries found for data collector token {token}')
             return
     # get all enketo hashes for relevant xforms
