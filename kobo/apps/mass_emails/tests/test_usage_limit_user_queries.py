@@ -11,6 +11,7 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.mass_emails.user_queries import get_users_within_range_of_usage_limit
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.organizations.models import Organization
+from kobo.apps.trash_bin.utils import move_to_trash
 from kpi.tests.test_usage_calculator import BaseServiceUsageTestCase
 
 
@@ -198,3 +199,43 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
         # result should be empty because the organization has no owner
         aslist = list(results)
         assert aslist == []
+
+    def test_usage_limits_exclude_inactive_users(self):
+        superuser = User.objects.create_superuser('super')
+
+        usage_limits = {
+            self.someuser.organization.id: {'storage_bytes_limit': 1000000000},
+        }
+        storage_by_user_id = {self.someuser.id: 1000000001}
+
+        with patch(
+            'kobo.apps.mass_emails.user_queries.get_organizations_effective_limits',
+            return_value=usage_limits,
+        ):
+            with patch(
+                'kobo.apps.mass_emails.user_queries.get_storage_usage_by_user_id',
+                return_value=storage_by_user_id,
+            ):
+                # minimum 0 max inf should catch everyone
+                results = get_users_within_range_of_usage_limit(
+                    usage_types=[UsageType.STORAGE_BYTES],
+                    minimum=0,
+                    maximum=inf,
+                )
+                aslist = list(results)
+                assert aslist == [self.someuser]
+                move_to_trash(
+                    request_author=superuser,
+                    objects_list=[
+                        {'pk': self.someuser.pk, 'username': self.someuser.username}
+                    ],
+                    grace_period=1,
+                    trash_type='user',
+                )
+
+                results = get_users_within_range_of_usage_limit(
+                    usage_types=[UsageType.STORAGE_BYTES],
+                    minimum=0,
+                    maximum=inf,
+                )
+        assert not results
