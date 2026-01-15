@@ -1,7 +1,7 @@
 import React from 'react'
 
 import DocumentTitle from 'react-document-title'
-import { useParams, unstable_usePrompt as usePrompt } from 'react-router-dom'
+import { unstable_usePrompt as usePrompt } from 'react-router-dom'
 import type { DataResponse } from '#/api/models/dataResponse'
 import {
   getAssetsAdvancedFeaturesListQueryKey,
@@ -41,8 +41,8 @@ const Prompt = () => {
  * Provides the base pieces of data for all processing components. Also renders
  * everything with nice spinners.
  */
-export default function SingleProcessingRoute() {
-  const { uid, xpath, submissionEditId } = useParams<RouteParams>()
+export default function SingleProcessingRoute({ params: routeParams }: { params: RouteParams }) {
+  const { uid, xpath, submissionEditId } = routeParams
 
   // NOTE: This route component is being loaded with PermProtectedRoute so
   // we know that the call to backend to get asset was already made, and
@@ -91,7 +91,12 @@ export default function SingleProcessingRoute() {
   const questionHasAnswer = !!(xpath && currentSubmission?.[xpath])
 
   function renderBottom() {
-    if (queryAF.data?.status !== 200 || querySupplement.data?.status !== 200 || !asset?.content?.survey || !currentSubmission) {
+    if (
+      queryAF.data?.status !== 200 ||
+      querySupplement.data?.status !== 200 ||
+      !asset?.content?.survey ||
+      !currentSubmission
+    ) {
       return <LoadingSpinner />
     }
 

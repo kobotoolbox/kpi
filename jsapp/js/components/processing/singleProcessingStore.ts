@@ -122,7 +122,6 @@ interface SingleProcessingStoreData {
   isFetchingData: boolean
   isPollingForTranscript: boolean
   isPollingForTranslation: boolean
-  hiddenSidebarQuestions: string[]
   currentlyDisplayedLanguage: LanguageCode | string
   exponentialBackoffCount: number
 }
@@ -155,7 +154,6 @@ class SingleProcessingStore extends Reflux.Store {
     isFetchingData: false,
     isPollingForTranscript: false,
     isPollingForTranslation: false,
-    hiddenSidebarQuestions: [],
     currentlyDisplayedLanguage: this.getInitialDisplayedLanguage(),
     exponentialBackoffCount: 1,
   }
@@ -995,10 +993,6 @@ class SingleProcessingStore extends Reflux.Store {
     }
   }
 
-  getHiddenSidebarQuestions() {
-    return this.data.hiddenSidebarQuestions
-  }
-
   /** Updates the list of active displays for given tab. */
   setDisplays(tabName: ProcessingTab, displays: DisplaysList) {
     this.displays[tabName] = displays
@@ -1046,12 +1040,6 @@ class SingleProcessingStore extends Reflux.Store {
       this.data.isPristine = false
       this.trigger(this.data)
     }
-  }
-
-  setHiddenSidebarQuestions(list: string[]) {
-    this.data.hiddenSidebarQuestions = list
-
-    this.trigger(this.data)
   }
 
   setCurrentlyDisplayedLanguage(language: LanguageCode) {

@@ -1,8 +1,8 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 import type { AssetResponse } from '#/dataInterface'
 import { getActiveTab } from '../routes.utils'
-import singleProcessingStore, { StaticDisplays } from '../singleProcessingStore'
+import singleProcessingStore, { StaticDisplays, type DisplaysList } from '../singleProcessingStore'
 import styles from './index.module.scss'
 import SidebarDisplaySettings from './sidebarDisplaySettings'
 import SidebarSubmissionData from './sidebarSubmissionData'
@@ -18,11 +18,22 @@ interface ProcessingSidebarProps {
 export default function ProcessingSidebar({ asset, submissionId, xpath }: ProcessingSidebarProps) {
   const [store] = useState(() => singleProcessingStore)
 
-  // Note: configuration doesn't work, because
-  // - edits doesn't trigger re-render (wip mess)
-  // - and config is not persistent across refreshes (prod behavior)
-  // TODO: use a simple state for it, pass setter into `SidebarDisplaySettings` and getter into all of these.
-  const displays = store.getDisplays(getActiveTab())
+  const activeTab = getActiveTab()
+
+  if (activeTab === undefined) {
+    return null
+  }
+
+  // These next states are set from settings in `SidebarDisplaySettings`.
+  const [selectedDisplays, setSelectedDisplays] = useState<DisplaysList>([])
+  const [hiddenQuestions, setHiddenQuestions] = useState<string[]>([])
+
+  // Every time user changes the tab, we need to load the stored displays list
+  // for that tab.
+  useEffect(() => {
+    //TODO: Move this out of store. This is only using the default values for displays based on activeTab
+    setSelectedDisplays(store.getDisplays(activeTab))
+  }, [activeTab])
 
   // TODO: query via react-query and orval
   const translations = store.getTranslations()
@@ -30,26 +41,37 @@ export default function ProcessingSidebar({ asset, submissionId, xpath }: Proces
 
   return (
     <div className={styles.root}>
-      <SidebarDisplaySettings />
-
+      <SidebarDisplaySettings
+        selectedDisplays={selectedDisplays}
+        setSelectedDisplays={setSelectedDisplays}
+        hiddenQuestions={hiddenQuestions}
+        setHiddenQuestions={setHiddenQuestions}
+      />
       <div className={styles.displays}>
         {Array.from(translations).map((translation) => {
-          if (displays.includes(translation.languageCode)) {
+          if (selectedDisplays.includes(translation.languageCode)) {
             return <TransxDisplay transx={translation} key={translation.languageCode} />
           }
 
           return null
         })}
 
-        {displays.includes(StaticDisplays.Transcript) && transcript && <TransxDisplay transx={transcript} />}
+        {selectedDisplays.includes(StaticDisplays.Transcript) && transcript && <TransxDisplay transx={transcript} />}
 
-        {displays.includes(StaticDisplays.Audio) && (
+        {selectedDisplays.includes(StaticDisplays.Audio) && (
           <SidebarSubmissionMedia submissionId={submissionId} asset={asset} xpath={xpath} />
         )}
 
-        {displays.includes(StaticDisplays.Data) && <SidebarSubmissionData submissionId={submissionId} asset={asset} xpath={xpath} />}
+        {selectedDisplays.includes(StaticDisplays.Data) && (
+          <SidebarSubmissionData
+            submissionId={submissionId}
+            asset={asset}
+            xpath={xpath}
+            hiddenQuestions={hiddenQuestions}
+          />
+        )}
 
-        {displays.length === 0 && (
+        {selectedDisplays.length === 0 && (
           <div className={styles.emptyMessage}>
             {t('Use the button above to select the information to be displayed in this area')}
           </div>

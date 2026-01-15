@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 
 import cx from 'classnames'
 import Button from '#/components/common/button'
@@ -17,7 +17,19 @@ import singleProcessingStore, { StaticDisplays } from '#/components/processing/s
 import type { DisplaysList } from '#/components/processing/singleProcessingStore'
 import styles from './sidebarDisplaySettings.module.scss'
 
-export default function SidebarDisplaySettings() {
+interface SidebarDisplaySettingsProps {
+  selectedDisplays: DisplaysList
+  setSelectedDisplays: (displays: DisplaysList) => void
+  hiddenQuestions: string[]
+  setHiddenQuestions: (questions: string[]) => void
+}
+
+export default function SidebarDisplaySettings({
+  selectedDisplays,
+  setSelectedDisplays,
+  hiddenQuestions,
+  setHiddenQuestions,
+}: SidebarDisplaySettingsProps) {
   const [store] = useState(() => singleProcessingStore)
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
   const [labelLanguage, setLabelLanguage] = useState<LanguageCode | string>(store.getCurrentlyDisplayedLanguage())
@@ -30,11 +42,9 @@ export default function SidebarDisplaySettings() {
     return null
   }
 
-  const [selectedDisplays, setSelectedDisplays] = useState<DisplaysList>(store.getDisplays(activeTab))
-
-  function getInitialFields() {
+  function getInitialFields(customHiddenQuestions?: string[]) {
     const allQuestions = store.getAllSidebarQuestions()
-    const hiddenFields = store.getHiddenSidebarQuestions()
+    const hiddenFields = customHiddenQuestions || hiddenQuestions
 
     // Remove the fields hidden in the store so it persists when
     // across navigating submissions.
@@ -42,13 +52,8 @@ export default function SidebarDisplaySettings() {
     return questionsList
   }
 
+  const [localSelectedDisplays, setLocalSelectedDisplays] = useState<DisplaysList>(() => selectedDisplays)
   const [selectedFields, setSelectedFields] = useState(() => getInitialFields())
-
-  // Every time user changes the tab, we need to load the stored displays list
-  // for that tab.
-  useEffect(() => {
-    setSelectedDisplays(store.getDisplays(activeTab))
-  }, [activeTab])
 
   const transcript = store.getTranscript()
   const availableDisplays = store.getAvailableDisplays(activeTab)
@@ -75,11 +80,11 @@ export default function SidebarDisplaySettings() {
   }
 
   function enableDisplay(displayName: LanguageCode | StaticDisplays) {
-    setSelectedDisplays(Array.from(new Set([...selectedDisplays, displayName])))
+    setLocalSelectedDisplays(Array.from(new Set([...localSelectedDisplays, displayName])))
   }
 
   function disableDisplay(displayName: LanguageCode | StaticDisplays) {
-    setSelectedDisplays(selectedDisplays.filter((selectedDisplayName) => selectedDisplayName !== displayName))
+    setLocalSelectedDisplays(localSelectedDisplays.filter((selectedDisplayName) => selectedDisplayName !== displayName))
   }
 
   function isFieldChecked(questionName: string) {
@@ -92,7 +97,7 @@ export default function SidebarDisplaySettings() {
         label: question.label,
         checked: isFieldChecked(question.name),
         name: question.name,
-        disabled: !selectedDisplays.includes(StaticDisplays.Data),
+        disabled: !localSelectedDisplays.includes(StaticDisplays.Data),
       }
     })
 
@@ -118,15 +123,14 @@ export default function SidebarDisplaySettings() {
         .filter((question) => !question.checked)
         .map((question) => question.name) || []
 
-    store.setHiddenSidebarQuestions(hiddenList)
+    setHiddenQuestions(hiddenList)
   }
 
   function resetFieldsSelection() {
     // Since we check the store for hidden fields and use that to get our
     // checkboxes, using `applyFieldsSelection` here would never actually
     // reset the checkboxes visually so we explicitly set it to empty here.
-    store.setHiddenSidebarQuestions([])
-    setSelectedFields(getInitialFields())
+    setSelectedFields(getInitialFields([]))
   }
 
   return (
@@ -136,14 +140,16 @@ export default function SidebarDisplaySettings() {
         type='text'
         label={t('Display settings')}
         startIcon='settings'
-        onClick={() => setIsModalOpen(true)}
+        onClick={() => {
+          // Reset modals and checkboxes to current state when opening.
+          setLocalSelectedDisplays(selectedDisplays)
+          setSelectedFields(getInitialFields())
+          setIsModalOpen(true)
+        }}
       />
       <KoboModal
         isOpen={isModalOpen}
         onRequestClose={() => {
-          // Reset modals and checkboxes if user closed modal without applying
-          setSelectedDisplays(store.getDisplays(activeTab))
-          setSelectedFields(getInitialFields())
           setIsModalOpen(false)
         }}
         size='medium'
@@ -181,7 +187,7 @@ export default function SidebarDisplaySettings() {
             </li>
 
             {availableDisplays.map((entry) => {
-              const isEnabled = selectedDisplays.includes(entry)
+              const isEnabled = localSelectedDisplays.includes(entry)
 
               if (entry in StaticDisplays) {
                 const staticDisplay = entry as StaticDisplays
@@ -212,6 +218,7 @@ export default function SidebarDisplaySettings() {
                   </li>
                 )
               } else {
+                // TODO: Check later to see if translations/languages is working, since now we don't have the data for it.
                 return (
                   <li className={styles.display} key={entry}>
                     <ToggleSwitch
@@ -245,14 +252,12 @@ export default function SidebarDisplaySettings() {
             type='secondary-danger'
             size='m'
             onClick={() => {
-              store.resetDisplays(activeTab)
               // Apply reset to local state of selected displays. This is needed
               // because the modal component (and its state) is kept alive even
               // when the modal is closed.
               resetFieldsSelection()
-              setSelectedDisplays(store.getDisplays(activeTab))
+              setLocalSelectedDisplays(store.getDisplays(activeTab))
               setLabelLanguage(store.getCurrentlyDisplayedLanguage())
-              setIsModalOpen(false)
             }}
           />
 
@@ -263,7 +268,7 @@ export default function SidebarDisplaySettings() {
             size='m'
             onClick={() => {
               applyFieldsSelection()
-              store.setDisplays(activeTab, selectedDisplays)
+              setSelectedDisplays(localSelectedDisplays)
               store.setCurrentlyDisplayedLanguage(labelLanguage)
               setIsModalOpen(false)
             }}

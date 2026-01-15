@@ -12,9 +12,15 @@ interface SidebarSubmissionDataProps {
   xpath: string
   submissionId: string
   asset: AssetResponse
+  hiddenQuestions: string[]
 }
 
-export default function SidebarSubmissionData({ asset, submissionId, xpath }: SidebarSubmissionDataProps) {
+export default function SidebarSubmissionData({
+  asset,
+  submissionId,
+  xpath,
+  hiddenQuestions,
+}: SidebarSubmissionDataProps) {
   const params = {
     query: JSON.stringify({
       $or: [{ 'meta/rootUuid': addDefaultUuidPrefix(submissionId!) }, { _uuid: submissionId }],
@@ -46,9 +52,8 @@ export default function SidebarSubmissionData({ asset, submissionId, xpath }: Si
       ...recordKeys(META_QUESTION_TYPES),
     ]
 
-    // TODO: use a simpler store instead.
-    return metaQuestions // .concat(store.getHiddenSidebarQuestions())
-  }, [asset, xpath])
+    return metaQuestions.concat(hiddenQuestions)
+  }, [asset, xpath, hiddenQuestions])
 
   return (
     <section className={styles.dataList} key='data-list'>
