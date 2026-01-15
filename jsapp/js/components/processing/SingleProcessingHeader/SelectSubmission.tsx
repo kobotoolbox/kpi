@@ -8,6 +8,7 @@ import Button from '#/components/common/button'
 import { goToProcessing } from '#/components/processing/routes.utils'
 import styles from './index.module.scss'
 import type { DataResponse } from '#/api/models/dataResponse'
+import { addDefaultUuidPrefix } from '#/utils'
 
 // TODO: improve schema to enum `action` prop.
 const ADVANCED_FEATURES_ACTION = [
@@ -34,20 +35,23 @@ interface Props {
 export default function SelectSubmission({ assetUid, currentSubmission, xpath }: Props) {
   if (!currentSubmission) return
 
+  // TODO: Ensure query handles cases where submissions have the same submission time
   // We fetch the two submissions before and after the current submission to enable
   // back and forth navigation, provide a count of total submissions and current
   // position in list
-  function getNeighborParams(uuid: string, time: string, direction: 'next' | 'prev') {
+  function getNeighborParams(uid: string, time: string, direction: 'next' | 'prev') {
     const isNext = direction === 'next'
+    const formattedUiD = addDefaultUuidPrefix(uid)
     return {
       limit: 1,
       start: 0,
       query: JSON.stringify({
-        _uuid: { $nin: [uuid] },
+        $expr: {
+          $ne: [{ $ifNull: ['$meta/rootUuid', '$meta/instanceID'] }, formattedUiD],
+        },
         _submission_time: isNext ? { $lt: time } : { $gt: time },
       }),
       sort: JSON.stringify({ _submission_time: isNext ? -1 : 1 }),
-      isNext,
     }
   }
 
@@ -96,6 +100,8 @@ export default function SelectSubmission({ assetUid, currentSubmission, xpath }:
     goToProcessing(assetUid, xpath, queryNext.data.submission._uuid, true)
   }
 
+  console.log("previous submission")
+  console.log(queryPrev.data?.submission._uuid)
   return (
     <section className={styles.column}>
       <nav className={styles.submissions}>
