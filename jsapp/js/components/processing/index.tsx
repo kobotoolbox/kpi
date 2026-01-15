@@ -43,6 +43,7 @@ const Prompt = () => {
  */
 export default function SingleProcessingRoute({ params: routeParams }: { params: RouteParams }) {
   const { uid, xpath, submissionEditId } = routeParams
+  if (!uid || !xpath || !submissionEditId) return
 
   // NOTE: This route component is being loaded with PermProtectedRoute so
   // we know that the call to backend to get asset was already made, and
@@ -132,7 +133,12 @@ export default function SingleProcessingRoute({ params: routeParams }: { params:
         {(singleProcessingStore.hasAnyUnsavedWork() || singleProcessingStore.data.isPollingForTranscript) && <Prompt />}
 
         <section className={styles.top}>
-          <SingleProcessingHeader currentSubmission={currentSubmission as DataResponse} asset={asset} xpath={xpath!} />
+          <SingleProcessingHeader
+            currentSubmission={currentSubmission}
+            currentSubmissionUid={submissionEditId}
+            asset={asset}
+            xpath={xpath!}
+          />
         </section>
 
         <section className={styles.bottom}>{renderBottom()}</section>

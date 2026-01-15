@@ -9,7 +9,7 @@ import type { AssetResponse, SurveyRow } from '#/dataInterface'
 import styles from './index.module.scss'
 
 interface Props {
-  submissionEditId: string
+  currentSubmissionUid: string
   asset: AssetResponse
   xpath: string
 }
@@ -19,10 +19,10 @@ interface Props {
  * submissions and questions. It also has means of leaving Single Processing
  * via "DONE" button.
  */
-export default function SelectQuestion({ asset, submissionEditId, xpath }: Props) {
+export default function SelectQuestion({ asset, currentSubmissionUid, xpath }: Props) {
   const onQuestionSelectChange = (newXpath: string | null) => {
     if (newXpath !== null) {
-      goToSubmission(newXpath, submissionEditId)
+      goToProcessing(asset.uid, xpath, currentSubmissionUid, true)
     }
   }
 
@@ -39,7 +39,7 @@ export default function SelectQuestion({ asset, submissionEditId, xpath }: Props
 
     return assetContent.survey
       .filter((question): question is SurveyRow & { $xpath: NonNullable<SurveyRow['$xpath']> } => !!question.$xpath)
-      .filter(({type}) => type === QUESTION_TYPES.audio.id || type === QUESTION_TYPES['background-audio'].id)
+      .filter(({ type }) => type === QUESTION_TYPES.audio.id || type === QUESTION_TYPES['background-audio'].id)
       .map((question) => {
         const rowName = getRowName(question)
         return {
@@ -49,11 +49,6 @@ export default function SelectQuestion({ asset, submissionEditId, xpath }: Props
         }
       })
   }, [asset.content])
-
-  /** Goes to another submission. */
-  const goToSubmission = (xpath: string, targetSubmissionEditId: string) => {
-    goToProcessing(asset.uid, xpath, targetSubmissionEditId, true)
-  }
 
   return (
     <section className={classNames(styles.column, styles.columnMain)}>

@@ -20,11 +20,12 @@ const ADVANCED_FEATURES_ACTION = [
 // TODO: improve ...
 
 interface Props {
-  currentSubmission: DataResponse
+  currentSubmission: DataResponse | null
   assetUid: string
   xpath: string
 }
 
+// TODO: Fix loading handling to avoid displaying incorrect counts while loading
 /**
  * Component with the current question label and the UI for switching between
  * submissions and questions. It also has means of leaving Single Processing
@@ -32,7 +33,10 @@ interface Props {
  */
 export default function SelectSubmission({ assetUid, currentSubmission, xpath }: Props) {
   if (!currentSubmission) return
-  console.log(currentSubmission._submission_time)
+
+  // We fetch the two submissions before and after the current submission to enable
+  // back and forth navigation, provide a count of total submissions and current
+  // position in list
   function getNeighborParams(uuid: string, time: string, direction: 'next' | 'prev') {
     const isNext = direction === 'next'
     return {
