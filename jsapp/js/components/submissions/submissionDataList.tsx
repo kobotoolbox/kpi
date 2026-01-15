@@ -36,7 +36,7 @@ export default class SubmissionDataList extends React.Component<SubmissionDataLi
       return null
     }
 
-    // check if the question shouldn't be hidden
+    // check if the question should be hidden
     if (Array.isArray(this.props.hideQuestions) && this.props.hideQuestions.includes(question.name)) {
       return null
     }
