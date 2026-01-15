@@ -146,11 +146,15 @@ class DataSupplementPayloadExtension(
             # to generate a union type for dynamic values while keeping `_version`
             # correctly typed, without changing the backend response format.
             additionalProperties=self._register_schema_component(
-                auto_schema, 'PatchedDataSupplementPayloadOneOf', self.question_schema,
+                auto_schema,
+                'PatchedDataSupplementPayloadOneOf',
+                self.question_schema,
             ),
             patternProperties={
                 '^(?!_version$).*': self._register_schema_component(
-                    auto_schema, 'PatchedDataSupplementPayloadOneOf', self.question_schema,
+                    auto_schema,
+                    'PatchedDataSupplementPayloadOneOf',
+                    self.question_schema,
                 ),
             },
             required=['_version'],
@@ -331,13 +335,6 @@ class DataSupplementResponseExtension(
         )
 
     def map_serializer(self, auto_schema, direction):
-
-        one_of_schema = {
-            'oneOf': [
-                {'type': 'string'},  # for `_version`
-                self.question_schema,
-            ]
-        }
 
         return build_object_type(
             properties={
