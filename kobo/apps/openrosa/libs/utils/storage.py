@@ -2,10 +2,10 @@
 import os
 import shutil
 
-from django.core.files.storage import FileSystemStorage
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
+from kpi.utils.storage import is_filesystem_storage
 
 
 def rmdir(directory: str):
@@ -20,7 +20,7 @@ def rmdir(directory: str):
         for directory_ in directories:
             _recursive_delete(os.path.join(path, directory_))
 
-    if isinstance(default_storage, FileSystemStorage):
+    if is_filesystem_storage(default_storage):
         if default_storage.exists(directory):
             shutil.rmtree(default_storage.path(directory))
     else:
