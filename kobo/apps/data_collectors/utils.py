@@ -38,6 +38,7 @@ def get_all_redis_entries_for_token(redis_client, token):
         keys.extend(more_keys)
     return [key.decode('utf-8') for key in keys]
 
+
 def set_data_collector_enketo_links(token: str, xform_id_strings: list[str]):
     redis_client = get_redis_connection('enketo_redis_main')
     for xform_id_string in xform_id_strings:
