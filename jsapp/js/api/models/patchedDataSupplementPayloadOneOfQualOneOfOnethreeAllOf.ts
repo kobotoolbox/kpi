@@ -10,7 +10,7 @@ The endpoints are grouped by area of intended use. Each category contains relate
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 
-import type { PatchedDataSupplementPayloadOneOf } from './patchedDataSupplementPayloadOneOf'
-export type PatchedDataSupplementPayload = {
-  _version: string
-} & Record<string, PatchedDataSupplementPayloadOneOf>
+export type PatchedDataSupplementPayloadOneOfQualOneOfOnethreeAllOf = {
+  uuid: string
+  value: unknown
+}

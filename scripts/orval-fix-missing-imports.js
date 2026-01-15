@@ -1,64 +1,88 @@
 /* eslint-disable no-console */
-const fs = require('fs')
-const path = require('path')
-
-const ROOT = process.cwd() // /srv/src/kpi
-const MODELS_DIR = path.join(ROOT, 'jsapp/js/api/models')
-
-const TARGETS = [
-  {
-    file: 'dataSupplementResponse.ts',
-    type: 'DataSupplementResponseOneOf',
-    importPath: './dataSupplementResponseOneOf',
-  },
-  {
-    file: 'patchedDataSupplementPayload.ts',
-    type: 'PatchedDataSupplementPayloadOneOf',
-    importPath: './patchedDataSupplementPayloadOneOf',
-  },
-]
-
-function insertImportAfterHeader(source, importLine) {
-  // Match first /** ... */ block
-  const headerMatch = source.match(/^\/\*\*[\s\S]*?\*\/\s*/)
-
-  if (!headerMatch) {
-    // Fallback: prepend if header not found
-    return `${importLine}\n${source}`
-  }
-
-  const header = headerMatch[0]
-  const rest = source.slice(header.length)
-
-  return `${header}\n${importLine}\n${rest}`
-}
-
 /**
  * Orval has a bug that fails to generate imports for $ref in additionalProperties.
  * See https://github.com/orval-labs/orval/issues/1077.
  * This is a workaround. Remove it once the underlying bug is fixed.
  */
-for (const { file, type, importPath } of TARGETS) {
-  const filePath = path.join(MODELS_DIR, file)
+const fs = require('fs');
+const path = require('path');
 
-  if (!fs.existsSync(filePath)) {
-    continue
-  }
+const ROOT = process.cwd(); // /srv/src/kpi
+const MODELS_DIR = path.join(ROOT, 'jsapp/js/api/models');
 
-  const source = fs.readFileSync(filePath, 'utf8')
+const FILES = [
+  'dataSupplementResponse.ts',
+  'patchedDataSupplementPayload.ts',
+];
 
-  const usesType = source.includes(type)
-  const hasImport = new RegExp(`import\\s+type\\s*\\{\\s*${type}\\s*\\}`).test(source)
-  const hasLocalDecl = new RegExp(`\\b(type|interface)\\s+${type}\\b`).test(source)
+function splitHeader(source) {
+  const m = source.match(/^\/\*\*[\s\S]*?\*\/\s*/);
+  if (!m) return { header: '', rest: source };
+  return { header: m[0], rest: source.slice(m[0].length) };
+}
 
-  if (!usesType || hasImport || hasLocalDecl) {
-    continue
-  }
+function inferImportPath(typeName) {
+  // Orval usually writes file names as lowerCamelCase.
+  return `./${typeName[0].toLowerCase()}${typeName.slice(1)}`;
+}
 
-  const importLine = `import type { ${type} } from '${importPath}'`
+function detectInterfaceWithIndex(source) {
+  const m = source.match(/export\s+interface\s+([A-Za-z0-9_]+)\s*\{\s*([\s\S]*?)\s*\}\s*/m);
+  if (!m) return null;
 
-  const patched = insertImportAfterHeader(source, importLine)
+  const name = m[1];
+  const body = m[2];
 
-  fs.writeFileSync(filePath, patched, 'utf8')
-  console.log(`✔ Added missing import for ${type} in ${file}`)
+  const v = body.match(/^\s*_version\s*:\s*([^;\n]+)\s*;?\s*$/m);
+  const k = body.match(/^\s*\[\s*key\s*:\s*string\s*\]\s*:\s*([^;\n]+)\s*;?\s*$/m);
+
+  if (!v || !k) return null;
+
+  return {
+    name,
+    versionType: v[1].trim(),
+    valueType: k[1].trim(),
+    interfaceBlock: m[0],
+  };
+}
+
+function ensureTypeImportAfterHeader(source, typeName, importPath) {
+  const importLine = `import type { ${typeName} } from '${importPath}'`;
+
+  // Already imported?
+  const hasImport = new RegExp(
+    `\\bimport\\s+type\\s*\\{\\s*${typeName}\\s*\\}\\s+from\\s+['"]`
+  ).test(source);
+  if (hasImport) return source;
+
+  const { header, rest } = splitHeader(source);
+  if (!header) return `${importLine}\n${source}`;
+
+  // Ensure one blank line after the Orval header for readability
+  return `${header}\n${importLine}\n${rest}`;
+}
+
+for (const file of FILES) {
+  const filePath = path.join(MODELS_DIR, file);
+  if (!fs.existsSync(filePath)) continue;
+
+  const source = fs.readFileSync(filePath, 'utf8');
+
+  const detected = detectInterfaceWithIndex(source);
+  if (!detected) continue;
+
+  const { name, versionType, valueType, interfaceBlock } = detected;
+
+  const importPath = inferImportPath(valueType);
+  let patched = ensureTypeImportAfterHeader(source, valueType, importPath);
+
+  const replacement =
+    `export type ${name} = {\n` +
+    `  _version: ${versionType}\n` +
+    `} & Record<string, ${valueType}>\n`;
+
+  patched = patched.replace(interfaceBlock, replacement);
+
+  fs.writeFileSync(filePath, patched, 'utf8');
+  console.log(`✔ Fixed Orval model: ${file}`);
 }

@@ -16455,867 +16455,865 @@
                 },
                 "required": [
                     "_version"
-                ]
+                ],
+                "patternProperties": {
+                    "^(?!_version$).*": {
+                        "$ref": "#/components/schemas/DataSupplementResponseOneOf"
+                    }
+                }
             },
             "DataSupplementResponseOneOf": {
-                "oneOf": [
-                    {
-                        "type": "string"
-                    },
-                    {
+                "type": "object",
+                "properties": {
+                    "manual_transcription": {
                         "type": "object",
                         "properties": {
-                            "manual_transcription": {
-                                "type": "object",
-                                "properties": {
-                                    "_dateCreated": {
-                                        "type": "string",
-                                        "format": "date-time"
-                                    },
-                                    "_dateModified": {
-                                        "type": "string",
-                                        "format": "date-time"
-                                    },
-                                    "_versions": {
-                                        "type": "array",
-                                        "items": {
+                            "_dateCreated": {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            "_dateModified": {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            "_versions": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "_dateCreated": {
+                                            "type": "string",
+                                            "format": "date-time"
+                                        },
+                                        "_uuid": {
+                                            "type": "string",
+                                            "format": "uuid"
+                                        },
+                                        "_dateAccepted": {
+                                            "type": "string",
+                                            "format": "date-time"
+                                        },
+                                        "_data": {
                                             "type": "object",
                                             "properties": {
-                                                "_dateCreated": {
-                                                    "type": "string",
-                                                    "format": "date-time"
+                                                "language": {
+                                                    "type": "string"
                                                 },
-                                                "_uuid": {
+                                                "value": {
                                                     "type": "string",
-                                                    "format": "uuid"
-                                                },
-                                                "_dateAccepted": {
-                                                    "type": "string",
-                                                    "format": "date-time"
-                                                },
-                                                "_data": {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "language": {
-                                                            "type": "string"
-                                                        },
-                                                        "value": {
-                                                            "type": "string",
-                                                            "nullable": true
-                                                        }
-                                                    },
-                                                    "additionalProperties": false,
-                                                    "required": [
-                                                        "language",
-                                                        "value"
-                                                    ]
+                                                    "nullable": true
                                                 }
                                             },
                                             "additionalProperties": false,
                                             "required": [
-                                                "_data",
-                                                "_dateAccepted",
-                                                "_dateCreated",
-                                                "_uuid"
+                                                "language",
+                                                "value"
                                             ]
-                                        },
-                                        "minLength": 1
-                                    }
-                                },
-                                "additionalProperties": false,
-                                "required": [
-                                    "_dateCreated",
-                                    "_dateModified",
-                                    "_versions"
-                                ]
-                            },
-                            "manual_translation": {
-                                "type": "object",
-                                "additionalProperties": {
-                                    "type": "object",
-                                    "properties": {
-                                        "_dateCreated": {
-                                            "type": "string",
-                                            "format": "date-time"
-                                        },
-                                        "_dateModified": {
-                                            "type": "string",
-                                            "format": "date-time"
-                                        },
-                                        "_versions": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "_dateCreated": {
-                                                        "type": "string",
-                                                        "format": "date-time"
-                                                    },
-                                                    "_uuid": {
-                                                        "type": "string",
-                                                        "format": "uuid"
-                                                    },
-                                                    "_dependency": {
-                                                        "type": "object",
-                                                        "properties": {
-                                                            "_actionId": {
-                                                                "type": "string"
-                                                            },
-                                                            "_uuid": {
-                                                                "type": "string",
-                                                                "format": "uuid"
-                                                            }
-                                                        },
-                                                        "additionalProperties": false,
-                                                        "required": [
-                                                            "_actionId",
-                                                            "_uuid"
-                                                        ]
-                                                    },
-                                                    "_dateAccepted": {
-                                                        "type": "string",
-                                                        "format": "date-time"
-                                                    },
-                                                    "_data": {
-                                                        "type": "object",
-                                                        "properties": {
-                                                            "language": {
-                                                                "type": "string"
-                                                            },
-                                                            "value": {
-                                                                "type": "string",
-                                                                "nullable": true
-                                                            }
-                                                        },
-                                                        "additionalProperties": false,
-                                                        "required": [
-                                                            "language",
-                                                            "value"
-                                                        ]
-                                                    }
-                                                },
-                                                "additionalProperties": false,
-                                                "required": [
-                                                    "_data",
-                                                    "_dateAccepted",
-                                                    "_dateCreated",
-                                                    "_dependency",
-                                                    "_uuid"
-                                                ]
-                                            },
-                                            "minLength": 1
                                         }
                                     },
                                     "additionalProperties": false,
                                     "required": [
+                                        "_data",
+                                        "_dateAccepted",
                                         "_dateCreated",
-                                        "_dateModified",
-                                        "_versions"
-                                    ]
-                                }
-                            },
-                            "automatic_google_transcription": {
-                                "type": "object",
-                                "properties": {
-                                    "_dateCreated": {
-                                        "type": "string",
-                                        "format": "date-time"
-                                    },
-                                    "_dateModified": {
-                                        "type": "string",
-                                        "format": "date-time"
-                                    },
-                                    "_versions": {
-                                        "type": "array",
-                                        "items": {
-                                            "type": "object",
-                                            "properties": {
-                                                "_dateCreated": {
-                                                    "type": "string",
-                                                    "format": "date-time"
-                                                },
-                                                "_uuid": {
-                                                    "type": "string",
-                                                    "format": "uuid"
-                                                },
-                                                "_dateAccepted": {
-                                                    "type": "string",
-                                                    "format": "date-time"
-                                                },
-                                                "_data": {
-                                                    "oneOf": [
-                                                        {
-                                                            "type": "object",
-                                                            "properties": {
-                                                                "language": {
-                                                                    "type": "string"
-                                                                },
-                                                                "status": {
-                                                                    "type": "string",
-                                                                    "const": "in_progress"
-                                                                }
-                                                            },
-                                                            "additionalProperties": false,
-                                                            "required": [
-                                                                "language",
-                                                                "status"
-                                                            ]
-                                                        },
-                                                        {
-                                                            "type": "object",
-                                                            "properties": {
-                                                                "language": {
-                                                                    "type": "string"
-                                                                },
-                                                                "status": {
-                                                                    "type": "string",
-                                                                    "const": "failed"
-                                                                },
-                                                                "error": {
-                                                                    "type": "string"
-                                                                }
-                                                            },
-                                                            "additionalProperties": false,
-                                                            "required": [
-                                                                "error",
-                                                                "language",
-                                                                "status"
-                                                            ]
-                                                        },
-                                                        {
-                                                            "type": "object",
-                                                            "properties": {
-                                                                "language": {
-                                                                    "type": "string"
-                                                                },
-                                                                "status": {
-                                                                    "type": "string",
-                                                                    "const": "complete"
-                                                                },
-                                                                "value": {
-                                                                    "type": "string"
-                                                                }
-                                                            },
-                                                            "additionalProperties": false,
-                                                            "required": [
-                                                                "language",
-                                                                "status",
-                                                                "value"
-                                                            ]
-                                                        },
-                                                        {
-                                                            "type": "object",
-                                                            "properties": {
-                                                                "language": {
-                                                                    "type": "string"
-                                                                },
-                                                                "status": {
-                                                                    "type": "string",
-                                                                    "const": "deleted"
-                                                                },
-                                                                "value": {
-                                                                    "type": "null"
-                                                                }
-                                                            },
-                                                            "additionalProperties": false,
-                                                            "required": [
-                                                                "language",
-                                                                "status",
-                                                                "value"
-                                                            ]
-                                                        }
-                                                    ]
-                                                }
-                                            },
-                                            "additionalProperties": false,
-                                            "required": [
-                                                "_data",
-                                                "_dateCreated",
-                                                "_uuid"
-                                            ]
-                                        },
-                                        "minLength": 1
-                                    }
-                                },
-                                "additionalProperties": false,
-                                "required": [
-                                    "_dateCreated",
-                                    "_dateModified",
-                                    "_versions"
-                                ]
-                            },
-                            "automatic_google_translation": {
-                                "type": "object",
-                                "additionalProperties": {
-                                    "type": "object",
-                                    "properties": {
-                                        "_dateCreated": {
-                                            "type": "string",
-                                            "format": "date-time"
-                                        },
-                                        "_dateModified": {
-                                            "type": "string",
-                                            "format": "date-time"
-                                        },
-                                        "_versions": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "_dateCreated": {
-                                                        "type": "string",
-                                                        "format": "date-time"
-                                                    },
-                                                    "_uuid": {
-                                                        "type": "string",
-                                                        "format": "uuid"
-                                                    },
-                                                    "_dependency": {
-                                                        "type": "object",
-                                                        "properties": {
-                                                            "_actionId": {
-                                                                "type": "string"
-                                                            },
-                                                            "_uuid": {
-                                                                "type": "string",
-                                                                "format": "uuid"
-                                                            }
-                                                        },
-                                                        "additionalProperties": false,
-                                                        "required": [
-                                                            "_actionId",
-                                                            "_uuid"
-                                                        ]
-                                                    },
-                                                    "_dateAccepted": {
-                                                        "type": "string",
-                                                        "format": "date-time"
-                                                    },
-                                                    "_data": {
-                                                        "oneOf": [
-                                                            {
-                                                                "type": "object",
-                                                                "properties": {
-                                                                    "language": {
-                                                                        "type": "string"
-                                                                    },
-                                                                    "status": {
-                                                                        "type": "string",
-                                                                        "const": "in_progress"
-                                                                    }
-                                                                },
-                                                                "additionalProperties": false,
-                                                                "required": [
-                                                                    "language",
-                                                                    "status"
-                                                                ]
-                                                            },
-                                                            {
-                                                                "type": "object",
-                                                                "properties": {
-                                                                    "language": {
-                                                                        "type": "string"
-                                                                    },
-                                                                    "status": {
-                                                                        "type": "string",
-                                                                        "const": "failed"
-                                                                    },
-                                                                    "error": {
-                                                                        "type": "string"
-                                                                    }
-                                                                },
-                                                                "additionalProperties": false,
-                                                                "required": [
-                                                                    "error",
-                                                                    "language",
-                                                                    "status"
-                                                                ]
-                                                            },
-                                                            {
-                                                                "type": "object",
-                                                                "properties": {
-                                                                    "language": {
-                                                                        "type": "string"
-                                                                    },
-                                                                    "status": {
-                                                                        "type": "string",
-                                                                        "const": "complete"
-                                                                    },
-                                                                    "value": {
-                                                                        "type": "string"
-                                                                    }
-                                                                },
-                                                                "additionalProperties": false,
-                                                                "required": [
-                                                                    "language",
-                                                                    "status",
-                                                                    "value"
-                                                                ]
-                                                            },
-                                                            {
-                                                                "type": "object",
-                                                                "properties": {
-                                                                    "language": {
-                                                                        "type": "string"
-                                                                    },
-                                                                    "status": {
-                                                                        "type": "string",
-                                                                        "const": "deleted"
-                                                                    },
-                                                                    "value": {
-                                                                        "type": "null"
-                                                                    }
-                                                                },
-                                                                "additionalProperties": false,
-                                                                "required": [
-                                                                    "language",
-                                                                    "status",
-                                                                    "value"
-                                                                ]
-                                                            }
-                                                        ]
-                                                    }
-                                                },
-                                                "additionalProperties": false,
-                                                "required": [
-                                                    "_data",
-                                                    "_dateCreated",
-                                                    "_dependency",
-                                                    "_uuid"
-                                                ]
-                                            },
-                                            "minLength": 1
-                                        }
-                                    },
-                                    "additionalProperties": false,
-                                    "required": [
-                                        "_dateCreated",
-                                        "_dateModified",
-                                        "_versions"
-                                    ]
-                                }
-                            },
-                            "qual": {
-                                "type": "object",
-                                "additionalProperties": {
-                                    "type": "object",
-                                    "properties": {
-                                        "_dateCreated": {
-                                            "type": "string",
-                                            "format": "date-time"
-                                        },
-                                        "_dateModified": {
-                                            "type": "string",
-                                            "format": "date-time"
-                                        },
-                                        "_versions": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "_data": {
-                                                        "oneOf": [
-                                                            {
-                                                                "allOf": [
-                                                                    {
-                                                                        "type": "object",
-                                                                        "properties": {
-                                                                            "uuid": {
-                                                                                "type": "string",
-                                                                                "format": "uuid"
-                                                                            },
-                                                                            "value": {}
-                                                                        },
-                                                                        "additionalProperties": false,
-                                                                        "required": [
-                                                                            "uuid",
-                                                                            "value"
-                                                                        ]
-                                                                    },
-                                                                    {
-                                                                        "type": "object",
-                                                                        "properties": {
-                                                                            "value": {
-                                                                                "type": "integer",
-                                                                                "nullable": true
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                ]
-                                                            },
-                                                            {
-                                                                "allOf": [
-                                                                    {
-                                                                        "type": "object",
-                                                                        "properties": {
-                                                                            "uuid": {
-                                                                                "type": "string",
-                                                                                "format": "uuid"
-                                                                            },
-                                                                            "value": {}
-                                                                        },
-                                                                        "additionalProperties": false,
-                                                                        "required": [
-                                                                            "uuid",
-                                                                            "value"
-                                                                        ]
-                                                                    },
-                                                                    {
-                                                                        "type": "object",
-                                                                        "properties": {
-                                                                            "value": {
-                                                                                "type": "array",
-                                                                                "items": {
-                                                                                    "type": "string",
-                                                                                    "format": "uuid"
-                                                                                }
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                ]
-                                                            },
-                                                            {
-                                                                "allOf": [
-                                                                    {
-                                                                        "type": "object",
-                                                                        "properties": {
-                                                                            "uuid": {
-                                                                                "type": "string",
-                                                                                "format": "uuid"
-                                                                            },
-                                                                            "value": {}
-                                                                        },
-                                                                        "additionalProperties": false,
-                                                                        "required": [
-                                                                            "uuid",
-                                                                            "value"
-                                                                        ]
-                                                                    },
-                                                                    {
-                                                                        "type": "object",
-                                                                        "properties": {
-                                                                            "value": {
-                                                                                "type": "string",
-                                                                                "format": "uuid"
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                ]
-                                                            },
-                                                            {
-                                                                "allOf": [
-                                                                    {
-                                                                        "type": "object",
-                                                                        "properties": {
-                                                                            "uuid": {
-                                                                                "type": "string",
-                                                                                "format": "uuid"
-                                                                            },
-                                                                            "value": {}
-                                                                        },
-                                                                        "additionalProperties": false,
-                                                                        "required": [
-                                                                            "uuid",
-                                                                            "value"
-                                                                        ]
-                                                                    },
-                                                                    {
-                                                                        "type": "object",
-                                                                        "properties": {
-                                                                            "value": {
-                                                                                "type": "array",
-                                                                                "items": {
-                                                                                    "type": "string"
-                                                                                }
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                ]
-                                                            },
-                                                            {
-                                                                "allOf": [
-                                                                    {
-                                                                        "type": "object",
-                                                                        "properties": {
-                                                                            "uuid": {
-                                                                                "type": "string",
-                                                                                "format": "uuid"
-                                                                            },
-                                                                            "value": {}
-                                                                        },
-                                                                        "additionalProperties": false,
-                                                                        "required": [
-                                                                            "uuid",
-                                                                            "value"
-                                                                        ]
-                                                                    },
-                                                                    {
-                                                                        "type": "object",
-                                                                        "properties": {
-                                                                            "value": {
-                                                                                "type": "string"
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                ]
-                                                            }
-                                                        ]
-                                                    },
-                                                    "_dateAccepted": {
-                                                        "type": "string",
-                                                        "format": "date-time"
-                                                    },
-                                                    "_dateCreated": {
-                                                        "type": "string",
-                                                        "format": "date-time"
-                                                    },
-                                                    "_uuid": {
-                                                        "type": "string",
-                                                        "format": "uuid"
-                                                    }
-                                                },
-                                                "additionalProperties": false,
-                                                "required": [
-                                                    "_data",
-                                                    "_dateCreated",
-                                                    "_uuid"
-                                                ]
-                                            },
-                                            "minLength": 1
-                                        }
-                                    },
-                                    "additionalProperties": false,
-                                    "required": [
-                                        "_dateCreated",
-                                        "_dateModified",
-                                        "_versions"
+                                        "_uuid"
                                     ]
                                 },
-                                "patternProperties": {
-                                    "^[0-9a-fA-F-]{36}$": {
+                                "minLength": 1
+                            }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                            "_dateCreated",
+                            "_dateModified",
+                            "_versions"
+                        ]
+                    },
+                    "manual_translation": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "object",
+                            "properties": {
+                                "_dateCreated": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                },
+                                "_dateModified": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                },
+                                "_versions": {
+                                    "type": "array",
+                                    "items": {
                                         "type": "object",
                                         "properties": {
                                             "_dateCreated": {
                                                 "type": "string",
                                                 "format": "date-time"
                                             },
-                                            "_dateModified": {
+                                            "_uuid": {
+                                                "type": "string",
+                                                "format": "uuid"
+                                            },
+                                            "_dependency": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "_actionId": {
+                                                        "type": "string"
+                                                    },
+                                                    "_uuid": {
+                                                        "type": "string",
+                                                        "format": "uuid"
+                                                    }
+                                                },
+                                                "additionalProperties": false,
+                                                "required": [
+                                                    "_actionId",
+                                                    "_uuid"
+                                                ]
+                                            },
+                                            "_dateAccepted": {
                                                 "type": "string",
                                                 "format": "date-time"
                                             },
-                                            "_versions": {
-                                                "type": "array",
-                                                "items": {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "_data": {
-                                                            "oneOf": [
-                                                                {
-                                                                    "allOf": [
-                                                                        {
-                                                                            "type": "object",
-                                                                            "properties": {
-                                                                                "uuid": {
-                                                                                    "type": "string",
-                                                                                    "format": "uuid"
-                                                                                },
-                                                                                "value": {}
-                                                                            },
-                                                                            "additionalProperties": false,
-                                                                            "required": [
-                                                                                "uuid",
-                                                                                "value"
-                                                                            ]
-                                                                        },
-                                                                        {
-                                                                            "type": "object",
-                                                                            "properties": {
-                                                                                "value": {
-                                                                                    "type": "integer",
-                                                                                    "nullable": true
-                                                                                }
-                                                                            }
-                                                                        }
-                                                                    ]
-                                                                },
-                                                                {
-                                                                    "allOf": [
-                                                                        {
-                                                                            "type": "object",
-                                                                            "properties": {
-                                                                                "uuid": {
-                                                                                    "type": "string",
-                                                                                    "format": "uuid"
-                                                                                },
-                                                                                "value": {}
-                                                                            },
-                                                                            "additionalProperties": false,
-                                                                            "required": [
-                                                                                "uuid",
-                                                                                "value"
-                                                                            ]
-                                                                        },
-                                                                        {
-                                                                            "type": "object",
-                                                                            "properties": {
-                                                                                "value": {
-                                                                                    "type": "array",
-                                                                                    "items": {
-                                                                                        "type": "string",
-                                                                                        "format": "uuid"
-                                                                                    }
-                                                                                }
-                                                                            }
-                                                                        }
-                                                                    ]
-                                                                },
-                                                                {
-                                                                    "allOf": [
-                                                                        {
-                                                                            "type": "object",
-                                                                            "properties": {
-                                                                                "uuid": {
-                                                                                    "type": "string",
-                                                                                    "format": "uuid"
-                                                                                },
-                                                                                "value": {}
-                                                                            },
-                                                                            "additionalProperties": false,
-                                                                            "required": [
-                                                                                "uuid",
-                                                                                "value"
-                                                                            ]
-                                                                        },
-                                                                        {
-                                                                            "type": "object",
-                                                                            "properties": {
-                                                                                "value": {
-                                                                                    "type": "string",
-                                                                                    "format": "uuid"
-                                                                                }
-                                                                            }
-                                                                        }
-                                                                    ]
-                                                                },
-                                                                {
-                                                                    "allOf": [
-                                                                        {
-                                                                            "type": "object",
-                                                                            "properties": {
-                                                                                "uuid": {
-                                                                                    "type": "string",
-                                                                                    "format": "uuid"
-                                                                                },
-                                                                                "value": {}
-                                                                            },
-                                                                            "additionalProperties": false,
-                                                                            "required": [
-                                                                                "uuid",
-                                                                                "value"
-                                                                            ]
-                                                                        },
-                                                                        {
-                                                                            "type": "object",
-                                                                            "properties": {
-                                                                                "value": {
-                                                                                    "type": "array",
-                                                                                    "items": {
-                                                                                        "type": "string"
-                                                                                    }
-                                                                                }
-                                                                            }
-                                                                        }
-                                                                    ]
-                                                                },
-                                                                {
-                                                                    "allOf": [
-                                                                        {
-                                                                            "type": "object",
-                                                                            "properties": {
-                                                                                "uuid": {
-                                                                                    "type": "string",
-                                                                                    "format": "uuid"
-                                                                                },
-                                                                                "value": {}
-                                                                            },
-                                                                            "additionalProperties": false,
-                                                                            "required": [
-                                                                                "uuid",
-                                                                                "value"
-                                                                            ]
-                                                                        },
-                                                                        {
-                                                                            "type": "object",
-                                                                            "properties": {
-                                                                                "value": {
-                                                                                    "type": "string"
-                                                                                }
-                                                                            }
-                                                                        }
-                                                                    ]
-                                                                }
-                                                            ]
-                                                        },
-                                                        "_dateAccepted": {
-                                                            "type": "string",
-                                                            "format": "date-time"
-                                                        },
-                                                        "_dateCreated": {
-                                                            "type": "string",
-                                                            "format": "date-time"
-                                                        },
-                                                        "_uuid": {
-                                                            "type": "string",
-                                                            "format": "uuid"
-                                                        }
+                                            "_data": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "language": {
+                                                        "type": "string"
                                                     },
-                                                    "additionalProperties": false,
-                                                    "required": [
-                                                        "_data",
-                                                        "_dateCreated",
-                                                        "_uuid"
-                                                    ]
+                                                    "value": {
+                                                        "type": "string",
+                                                        "nullable": true
+                                                    }
                                                 },
-                                                "minLength": 1
+                                                "additionalProperties": false,
+                                                "required": [
+                                                    "language",
+                                                    "value"
+                                                ]
                                             }
                                         },
                                         "additionalProperties": false,
                                         "required": [
+                                            "_data",
+                                            "_dateAccepted",
                                             "_dateCreated",
-                                            "_dateModified",
-                                            "_versions"
+                                            "_dependency",
+                                            "_uuid"
                                         ]
-                                    }
+                                    },
+                                    "minLength": 1
                                 }
+                            },
+                            "additionalProperties": false,
+                            "required": [
+                                "_dateCreated",
+                                "_dateModified",
+                                "_versions"
+                            ]
+                        }
+                    },
+                    "automatic_google_transcription": {
+                        "type": "object",
+                        "properties": {
+                            "_dateCreated": {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            "_dateModified": {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            "_versions": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "_dateCreated": {
+                                            "type": "string",
+                                            "format": "date-time"
+                                        },
+                                        "_uuid": {
+                                            "type": "string",
+                                            "format": "uuid"
+                                        },
+                                        "_dateAccepted": {
+                                            "type": "string",
+                                            "format": "date-time"
+                                        },
+                                        "_data": {
+                                            "oneOf": [
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "language": {
+                                                            "type": "string"
+                                                        },
+                                                        "status": {
+                                                            "type": "string",
+                                                            "const": "in_progress"
+                                                        }
+                                                    },
+                                                    "additionalProperties": false,
+                                                    "required": [
+                                                        "language",
+                                                        "status"
+                                                    ]
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "language": {
+                                                            "type": "string"
+                                                        },
+                                                        "status": {
+                                                            "type": "string",
+                                                            "const": "failed"
+                                                        },
+                                                        "error": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "additionalProperties": false,
+                                                    "required": [
+                                                        "error",
+                                                        "language",
+                                                        "status"
+                                                    ]
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "language": {
+                                                            "type": "string"
+                                                        },
+                                                        "status": {
+                                                            "type": "string",
+                                                            "const": "complete"
+                                                        },
+                                                        "value": {
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "additionalProperties": false,
+                                                    "required": [
+                                                        "language",
+                                                        "status",
+                                                        "value"
+                                                    ]
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "language": {
+                                                            "type": "string"
+                                                        },
+                                                        "status": {
+                                                            "type": "string",
+                                                            "const": "deleted"
+                                                        },
+                                                        "value": {
+                                                            "type": "null"
+                                                        }
+                                                    },
+                                                    "additionalProperties": false,
+                                                    "required": [
+                                                        "language",
+                                                        "status",
+                                                        "value"
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "additionalProperties": false,
+                                    "required": [
+                                        "_data",
+                                        "_dateCreated",
+                                        "_uuid"
+                                    ]
+                                },
+                                "minLength": 1
                             }
                         },
                         "additionalProperties": false,
-                        "anyOf": [
-                            {
-                                "required": [
-                                    "manual_transcription"
-                                ]
+                        "required": [
+                            "_dateCreated",
+                            "_dateModified",
+                            "_versions"
+                        ]
+                    },
+                    "automatic_google_translation": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "object",
+                            "properties": {
+                                "_dateCreated": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                },
+                                "_dateModified": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                },
+                                "_versions": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "_dateCreated": {
+                                                "type": "string",
+                                                "format": "date-time"
+                                            },
+                                            "_uuid": {
+                                                "type": "string",
+                                                "format": "uuid"
+                                            },
+                                            "_dependency": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "_actionId": {
+                                                        "type": "string"
+                                                    },
+                                                    "_uuid": {
+                                                        "type": "string",
+                                                        "format": "uuid"
+                                                    }
+                                                },
+                                                "additionalProperties": false,
+                                                "required": [
+                                                    "_actionId",
+                                                    "_uuid"
+                                                ]
+                                            },
+                                            "_dateAccepted": {
+                                                "type": "string",
+                                                "format": "date-time"
+                                            },
+                                            "_data": {
+                                                "oneOf": [
+                                                    {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "language": {
+                                                                "type": "string"
+                                                            },
+                                                            "status": {
+                                                                "type": "string",
+                                                                "const": "in_progress"
+                                                            }
+                                                        },
+                                                        "additionalProperties": false,
+                                                        "required": [
+                                                            "language",
+                                                            "status"
+                                                        ]
+                                                    },
+                                                    {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "language": {
+                                                                "type": "string"
+                                                            },
+                                                            "status": {
+                                                                "type": "string",
+                                                                "const": "failed"
+                                                            },
+                                                            "error": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "additionalProperties": false,
+                                                        "required": [
+                                                            "error",
+                                                            "language",
+                                                            "status"
+                                                        ]
+                                                    },
+                                                    {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "language": {
+                                                                "type": "string"
+                                                            },
+                                                            "status": {
+                                                                "type": "string",
+                                                                "const": "complete"
+                                                            },
+                                                            "value": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "additionalProperties": false,
+                                                        "required": [
+                                                            "language",
+                                                            "status",
+                                                            "value"
+                                                        ]
+                                                    },
+                                                    {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "language": {
+                                                                "type": "string"
+                                                            },
+                                                            "status": {
+                                                                "type": "string",
+                                                                "const": "deleted"
+                                                            },
+                                                            "value": {
+                                                                "type": "null"
+                                                            }
+                                                        },
+                                                        "additionalProperties": false,
+                                                        "required": [
+                                                            "language",
+                                                            "status",
+                                                            "value"
+                                                        ]
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        "additionalProperties": false,
+                                        "required": [
+                                            "_data",
+                                            "_dateCreated",
+                                            "_dependency",
+                                            "_uuid"
+                                        ]
+                                    },
+                                    "minLength": 1
+                                }
                             },
-                            {
-                                "required": [
-                                    "manual_translation"
-                                ]
+                            "additionalProperties": false,
+                            "required": [
+                                "_dateCreated",
+                                "_dateModified",
+                                "_versions"
+                            ]
+                        }
+                    },
+                    "qual": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "object",
+                            "properties": {
+                                "_dateCreated": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                },
+                                "_dateModified": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                },
+                                "_versions": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "_data": {
+                                                "oneOf": [
+                                                    {
+                                                        "allOf": [
+                                                            {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "uuid": {
+                                                                        "type": "string",
+                                                                        "format": "uuid"
+                                                                    },
+                                                                    "value": {}
+                                                                },
+                                                                "additionalProperties": false,
+                                                                "required": [
+                                                                    "uuid",
+                                                                    "value"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "value": {
+                                                                        "type": "integer",
+                                                                        "nullable": true
+                                                                    }
+                                                                }
+                                                            }
+                                                        ]
+                                                    },
+                                                    {
+                                                        "allOf": [
+                                                            {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "uuid": {
+                                                                        "type": "string",
+                                                                        "format": "uuid"
+                                                                    },
+                                                                    "value": {}
+                                                                },
+                                                                "additionalProperties": false,
+                                                                "required": [
+                                                                    "uuid",
+                                                                    "value"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "value": {
+                                                                        "type": "array",
+                                                                        "items": {
+                                                                            "type": "string",
+                                                                            "format": "uuid"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        ]
+                                                    },
+                                                    {
+                                                        "allOf": [
+                                                            {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "uuid": {
+                                                                        "type": "string",
+                                                                        "format": "uuid"
+                                                                    },
+                                                                    "value": {}
+                                                                },
+                                                                "additionalProperties": false,
+                                                                "required": [
+                                                                    "uuid",
+                                                                    "value"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "value": {
+                                                                        "type": "string",
+                                                                        "format": "uuid"
+                                                                    }
+                                                                }
+                                                            }
+                                                        ]
+                                                    },
+                                                    {
+                                                        "allOf": [
+                                                            {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "uuid": {
+                                                                        "type": "string",
+                                                                        "format": "uuid"
+                                                                    },
+                                                                    "value": {}
+                                                                },
+                                                                "additionalProperties": false,
+                                                                "required": [
+                                                                    "uuid",
+                                                                    "value"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "value": {
+                                                                        "type": "array",
+                                                                        "items": {
+                                                                            "type": "string"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        ]
+                                                    },
+                                                    {
+                                                        "allOf": [
+                                                            {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "uuid": {
+                                                                        "type": "string",
+                                                                        "format": "uuid"
+                                                                    },
+                                                                    "value": {}
+                                                                },
+                                                                "additionalProperties": false,
+                                                                "required": [
+                                                                    "uuid",
+                                                                    "value"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "value": {
+                                                                        "type": "string"
+                                                                    }
+                                                                }
+                                                            }
+                                                        ]
+                                                    }
+                                                ]
+                                            },
+                                            "_dateAccepted": {
+                                                "type": "string",
+                                                "format": "date-time"
+                                            },
+                                            "_dateCreated": {
+                                                "type": "string",
+                                                "format": "date-time"
+                                            },
+                                            "_uuid": {
+                                                "type": "string",
+                                                "format": "uuid"
+                                            }
+                                        },
+                                        "additionalProperties": false,
+                                        "required": [
+                                            "_data",
+                                            "_dateCreated",
+                                            "_uuid"
+                                        ]
+                                    },
+                                    "minLength": 1
+                                }
                             },
-                            {
+                            "additionalProperties": false,
+                            "required": [
+                                "_dateCreated",
+                                "_dateModified",
+                                "_versions"
+                            ]
+                        },
+                        "patternProperties": {
+                            "^[0-9a-fA-F-]{36}$": {
+                                "type": "object",
+                                "properties": {
+                                    "_dateCreated": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                    },
+                                    "_dateModified": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                    },
+                                    "_versions": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "_data": {
+                                                    "oneOf": [
+                                                        {
+                                                            "allOf": [
+                                                                {
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "uuid": {
+                                                                            "type": "string",
+                                                                            "format": "uuid"
+                                                                        },
+                                                                        "value": {}
+                                                                    },
+                                                                    "additionalProperties": false,
+                                                                    "required": [
+                                                                        "uuid",
+                                                                        "value"
+                                                                    ]
+                                                                },
+                                                                {
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "value": {
+                                                                            "type": "integer",
+                                                                            "nullable": true
+                                                                        }
+                                                                    }
+                                                                }
+                                                            ]
+                                                        },
+                                                        {
+                                                            "allOf": [
+                                                                {
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "uuid": {
+                                                                            "type": "string",
+                                                                            "format": "uuid"
+                                                                        },
+                                                                        "value": {}
+                                                                    },
+                                                                    "additionalProperties": false,
+                                                                    "required": [
+                                                                        "uuid",
+                                                                        "value"
+                                                                    ]
+                                                                },
+                                                                {
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "value": {
+                                                                            "type": "array",
+                                                                            "items": {
+                                                                                "type": "string",
+                                                                                "format": "uuid"
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            ]
+                                                        },
+                                                        {
+                                                            "allOf": [
+                                                                {
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "uuid": {
+                                                                            "type": "string",
+                                                                            "format": "uuid"
+                                                                        },
+                                                                        "value": {}
+                                                                    },
+                                                                    "additionalProperties": false,
+                                                                    "required": [
+                                                                        "uuid",
+                                                                        "value"
+                                                                    ]
+                                                                },
+                                                                {
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "value": {
+                                                                            "type": "string",
+                                                                            "format": "uuid"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            ]
+                                                        },
+                                                        {
+                                                            "allOf": [
+                                                                {
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "uuid": {
+                                                                            "type": "string",
+                                                                            "format": "uuid"
+                                                                        },
+                                                                        "value": {}
+                                                                    },
+                                                                    "additionalProperties": false,
+                                                                    "required": [
+                                                                        "uuid",
+                                                                        "value"
+                                                                    ]
+                                                                },
+                                                                {
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "value": {
+                                                                            "type": "array",
+                                                                            "items": {
+                                                                                "type": "string"
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            ]
+                                                        },
+                                                        {
+                                                            "allOf": [
+                                                                {
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "uuid": {
+                                                                            "type": "string",
+                                                                            "format": "uuid"
+                                                                        },
+                                                                        "value": {}
+                                                                    },
+                                                                    "additionalProperties": false,
+                                                                    "required": [
+                                                                        "uuid",
+                                                                        "value"
+                                                                    ]
+                                                                },
+                                                                {
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "value": {
+                                                                            "type": "string"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            ]
+                                                        }
+                                                    ]
+                                                },
+                                                "_dateAccepted": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                },
+                                                "_dateCreated": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                },
+                                                "_uuid": {
+                                                    "type": "string",
+                                                    "format": "uuid"
+                                                }
+                                            },
+                                            "additionalProperties": false,
+                                            "required": [
+                                                "_data",
+                                                "_dateCreated",
+                                                "_uuid"
+                                            ]
+                                        },
+                                        "minLength": 1
+                                    }
+                                },
+                                "additionalProperties": false,
                                 "required": [
-                                    "automatic_google_transcription"
-                                ]
-                            },
-                            {
-                                "required": [
-                                    "automatic_google_translation"
-                                ]
-                            },
-                            {
-                                "required": [
-                                    "qual"
+                                    "_dateCreated",
+                                    "_dateModified",
+                                    "_versions"
                                 ]
                             }
+                        }
+                    }
+                },
+                "additionalProperties": false,
+                "anyOf": [
+                    {
+                        "required": [
+                            "manual_transcription"
+                        ]
+                    },
+                    {
+                        "required": [
+                            "manual_translation"
+                        ]
+                    },
+                    {
+                        "required": [
+                            "automatic_google_transcription"
+                        ]
+                    },
+                    {
+                        "required": [
+                            "automatic_google_translation"
+                        ]
+                    },
+                    {
+                        "required": [
+                            "qual"
                         ]
                     }
                 ]
@@ -21007,299 +21005,297 @@
                 },
                 "required": [
                     "_version"
-                ]
+                ],
+                "patternProperties": {
+                    "^(?!_version$).*": {
+                        "$ref": "#/components/schemas/PatchedDataSupplementPayloadOneOf"
+                    }
+                }
             },
             "PatchedDataSupplementPayloadOneOf": {
-                "oneOf": [
-                    {
-                        "type": "string"
-                    },
-                    {
+                "type": "object",
+                "properties": {
+                    "manual_transcription": {
                         "type": "object",
                         "properties": {
-                            "manual_transcription": {
-                                "type": "object",
-                                "properties": {
-                                    "language": {
-                                        "type": "string"
-                                    },
-                                    "value": {
-                                        "type": "string"
-                                    }
-                                },
-                                "additionalProperties": false,
-                                "required": [
-                                    "language",
-                                    "value"
-                                ]
+                            "language": {
+                                "type": "string"
                             },
-                            "manual_translation": {
-                                "type": "object",
-                                "properties": {
-                                    "language": {
-                                        "type": "string"
-                                    },
-                                    "value": {
-                                        "type": "string"
-                                    }
-                                },
-                                "additionalProperties": false,
-                                "required": [
-                                    "language",
-                                    "value"
-                                ]
-                            },
-                            "automatic_google_transcription": {
-                                "type": "object",
-                                "properties": {
-                                    "language": {
-                                        "type": "string"
-                                    },
-                                    "accepted": {
-                                        "type": "boolean"
-                                    }
-                                },
-                                "additionalProperties": false,
-                                "required": [
-                                    "language"
-                                ]
-                            },
-                            "automatic_google_translation": {
-                                "type": "object",
-                                "properties": {
-                                    "language": {
-                                        "type": "string"
-                                    },
-                                    "accepted": {
-                                        "type": "boolean"
-                                    }
-                                },
-                                "additionalProperties": false,
-                                "required": [
-                                    "language"
-                                ]
-                            },
-                            "qual": {
-                                "oneOf": [
-                                    {
-                                        "allOf": [
-                                            {
-                                                "type": "object",
-                                                "additionalProperties": false,
-                                                "properties": {
-                                                    "uuid": {
-                                                        "type": "string",
-                                                        "format": "uuid"
-                                                    },
-                                                    "value": {}
-                                                },
-                                                "required": [
-                                                    "uuid",
-                                                    "value"
-                                                ]
-                                            },
-                                            {
-                                                "type": "object",
-                                                "properties": {
-                                                    "value": {
-                                                        "type": "integer",
-                                                        "nullable": true
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                "type": "object",
-                                                "properties": {
-                                                    "uuid": {
-                                                        "type": "string",
-                                                        "format": "uuid"
-                                                    }
-                                                }
-                                            }
-                                        ]
-                                    },
-                                    {
-                                        "allOf": [
-                                            {
-                                                "type": "object",
-                                                "additionalProperties": false,
-                                                "properties": {
-                                                    "uuid": {
-                                                        "type": "string",
-                                                        "format": "uuid"
-                                                    },
-                                                    "value": {}
-                                                },
-                                                "required": [
-                                                    "uuid",
-                                                    "value"
-                                                ]
-                                            },
-                                            {
-                                                "type": "object",
-                                                "properties": {
-                                                    "value": {
-                                                        "type": "string"
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                "type": "object",
-                                                "properties": {
-                                                    "uuid": {
-                                                        "type": "string",
-                                                        "format": "uuid"
-                                                    }
-                                                }
-                                            }
-                                        ]
-                                    },
-                                    {
-                                        "allOf": [
-                                            {
-                                                "type": "object",
-                                                "additionalProperties": false,
-                                                "properties": {
-                                                    "uuid": {
-                                                        "type": "string",
-                                                        "format": "uuid"
-                                                    },
-                                                    "value": {}
-                                                },
-                                                "required": [
-                                                    "uuid",
-                                                    "value"
-                                                ]
-                                            },
-                                            {
-                                                "type": "object",
-                                                "properties": {
-                                                    "value": {
-                                                        "type": "string",
-                                                        "format": "uuid"
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                "type": "object",
-                                                "properties": {
-                                                    "uuid": {
-                                                        "type": "string",
-                                                        "format": "uuid"
-                                                    }
-                                                }
-                                            }
-                                        ]
-                                    },
-                                    {
-                                        "allOf": [
-                                            {
-                                                "type": "object",
-                                                "additionalProperties": false,
-                                                "properties": {
-                                                    "uuid": {
-                                                        "type": "string",
-                                                        "format": "uuid"
-                                                    },
-                                                    "value": {}
-                                                },
-                                                "required": [
-                                                    "uuid",
-                                                    "value"
-                                                ]
-                                            },
-                                            {
-                                                "type": "object",
-                                                "properties": {
-                                                    "value": {
-                                                        "type": "array",
-                                                        "items": {
-                                                            "type": "string",
-                                                            "format": "uuid"
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                "type": "object",
-                                                "properties": {
-                                                    "uuid": {
-                                                        "type": "string",
-                                                        "format": "uuid"
-                                                    }
-                                                }
-                                            }
-                                        ]
-                                    },
-                                    {
-                                        "allOf": [
-                                            {
-                                                "type": "object",
-                                                "additionalProperties": false,
-                                                "properties": {
-                                                    "uuid": {
-                                                        "type": "string",
-                                                        "format": "uuid"
-                                                    },
-                                                    "value": {}
-                                                },
-                                                "required": [
-                                                    "uuid",
-                                                    "value"
-                                                ]
-                                            },
-                                            {
-                                                "type": "object",
-                                                "properties": {
-                                                    "value": {
-                                                        "type": "array",
-                                                        "items": {
-                                                            "type": "string"
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                "type": "object",
-                                                "properties": {
-                                                    "uuid": {
-                                                        "type": "string",
-                                                        "format": "uuid"
-                                                    }
-                                                }
-                                            }
-                                        ]
-                                    }
-                                ]
+                            "value": {
+                                "type": "string"
                             }
                         },
                         "additionalProperties": false,
-                        "anyOf": [
+                        "required": [
+                            "language",
+                            "value"
+                        ]
+                    },
+                    "manual_translation": {
+                        "type": "object",
+                        "properties": {
+                            "language": {
+                                "type": "string"
+                            },
+                            "value": {
+                                "type": "string"
+                            }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                            "language",
+                            "value"
+                        ]
+                    },
+                    "automatic_google_transcription": {
+                        "type": "object",
+                        "properties": {
+                            "language": {
+                                "type": "string"
+                            },
+                            "accepted": {
+                                "type": "boolean"
+                            }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                            "language"
+                        ]
+                    },
+                    "automatic_google_translation": {
+                        "type": "object",
+                        "properties": {
+                            "language": {
+                                "type": "string"
+                            },
+                            "accepted": {
+                                "type": "boolean"
+                            }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                            "language"
+                        ]
+                    },
+                    "qual": {
+                        "oneOf": [
                             {
-                                "required": [
-                                    "manual_transcription"
+                                "allOf": [
+                                    {
+                                        "type": "object",
+                                        "additionalProperties": false,
+                                        "properties": {
+                                            "uuid": {
+                                                "type": "string",
+                                                "format": "uuid"
+                                            },
+                                            "value": {}
+                                        },
+                                        "required": [
+                                            "uuid",
+                                            "value"
+                                        ]
+                                    },
+                                    {
+                                        "type": "object",
+                                        "properties": {
+                                            "value": {
+                                                "type": "integer",
+                                                "nullable": true
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "type": "object",
+                                        "properties": {
+                                            "uuid": {
+                                                "type": "string",
+                                                "format": "uuid"
+                                            }
+                                        }
+                                    }
                                 ]
                             },
                             {
-                                "required": [
-                                    "manual_translation"
+                                "allOf": [
+                                    {
+                                        "type": "object",
+                                        "additionalProperties": false,
+                                        "properties": {
+                                            "uuid": {
+                                                "type": "string",
+                                                "format": "uuid"
+                                            },
+                                            "value": {}
+                                        },
+                                        "required": [
+                                            "uuid",
+                                            "value"
+                                        ]
+                                    },
+                                    {
+                                        "type": "object",
+                                        "properties": {
+                                            "value": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "type": "object",
+                                        "properties": {
+                                            "uuid": {
+                                                "type": "string",
+                                                "format": "uuid"
+                                            }
+                                        }
+                                    }
                                 ]
                             },
                             {
-                                "required": [
-                                    "automatic_google_transcription"
+                                "allOf": [
+                                    {
+                                        "type": "object",
+                                        "additionalProperties": false,
+                                        "properties": {
+                                            "uuid": {
+                                                "type": "string",
+                                                "format": "uuid"
+                                            },
+                                            "value": {}
+                                        },
+                                        "required": [
+                                            "uuid",
+                                            "value"
+                                        ]
+                                    },
+                                    {
+                                        "type": "object",
+                                        "properties": {
+                                            "value": {
+                                                "type": "string",
+                                                "format": "uuid"
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "type": "object",
+                                        "properties": {
+                                            "uuid": {
+                                                "type": "string",
+                                                "format": "uuid"
+                                            }
+                                        }
+                                    }
                                 ]
                             },
                             {
-                                "required": [
-                                    "automatic_google_translation"
+                                "allOf": [
+                                    {
+                                        "type": "object",
+                                        "additionalProperties": false,
+                                        "properties": {
+                                            "uuid": {
+                                                "type": "string",
+                                                "format": "uuid"
+                                            },
+                                            "value": {}
+                                        },
+                                        "required": [
+                                            "uuid",
+                                            "value"
+                                        ]
+                                    },
+                                    {
+                                        "type": "object",
+                                        "properties": {
+                                            "value": {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "string",
+                                                    "format": "uuid"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "type": "object",
+                                        "properties": {
+                                            "uuid": {
+                                                "type": "string",
+                                                "format": "uuid"
+                                            }
+                                        }
+                                    }
                                 ]
                             },
                             {
-                                "required": [
-                                    "qual"
+                                "allOf": [
+                                    {
+                                        "type": "object",
+                                        "additionalProperties": false,
+                                        "properties": {
+                                            "uuid": {
+                                                "type": "string",
+                                                "format": "uuid"
+                                            },
+                                            "value": {}
+                                        },
+                                        "required": [
+                                            "uuid",
+                                            "value"
+                                        ]
+                                    },
+                                    {
+                                        "type": "object",
+                                        "properties": {
+                                            "value": {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "type": "object",
+                                        "properties": {
+                                            "uuid": {
+                                                "type": "string",
+                                                "format": "uuid"
+                                            }
+                                        }
+                                    }
                                 ]
                             }
+                        ]
+                    }
+                },
+                "additionalProperties": false,
+                "anyOf": [
+                    {
+                        "required": [
+                            "manual_transcription"
+                        ]
+                    },
+                    {
+                        "required": [
+                            "manual_translation"
+                        ]
+                    },
+                    {
+                        "required": [
+                            "automatic_google_transcription"
+                        ]
+                    },
+                    {
+                        "required": [
+                            "automatic_google_translation"
+                        ]
+                    },
+                    {
+                        "required": [
+                            "qual"
                         ]
                     }
                 ]
