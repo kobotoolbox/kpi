@@ -1061,7 +1061,9 @@ class SubmissionExportTaskBase(ImportExportTask):
         )
 
         if source.has_advanced_features:
-            pack.extend_survey(get_analysis_form_json(source))
+            pack.extend_survey({
+                'additional_fields': get_analysis_form_json(source)
+            })
 
         # Wrap the submission stream in a generator that records the most
         # recent timestamp
