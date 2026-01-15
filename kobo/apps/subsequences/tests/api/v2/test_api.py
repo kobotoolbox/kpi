@@ -779,6 +779,110 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
             assert response.status_code == status.HTTP_400_BAD_REQUEST
             assert 'Cannot translate without transcription' in str(response.data)
 
+    def test_cannot_delete_non_existent_transcription(self):
+        """
+        Users should not be able to delete a transcription from a submission
+        that doesn't have an existing transcription to begin with.
+        Setting `value: null` on a non-existent transcription should return 400.
+        """
+        QuestionAdvancedFeature.objects.create(
+            asset=self.asset,
+            question_xpath='q1',
+            action='manual_transcription',
+            params=[{'language': 'en'}],
+        )
+
+        # Attempt to "delete" a non-existent transcription
+        payload = {
+            '_version': '20250820',
+            'q1': {
+                'manual_transcription': {
+                    'language': 'en',
+                    'value': None,
+                },
+            },
+        }
+
+        response = self.client.patch(
+            self.supplement_details_url, data=payload, format='json'
+        )
+        # Should fail because there's nothing to delete
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert 'Deletion target not found' in str(response.data)
+
+        # Verify no entry was created
+        supplement = SubmissionSupplement.objects.filter(
+            submission_uuid=self.submission_uuid, asset=self.asset
+        ).first()
+        assert 'q1' not in supplement.content
+
+        payload['q1']['manual_transcription']['value'] = 'test value'
+        response = self.client.patch(
+            self.supplement_details_url, data=payload, format='json'
+        )
+
+        payload['q1']['manual_transcription']['value'] = None
+        response = self.client.patch(
+            self.supplement_details_url, data=payload, format='json'
+        )
+        # Should not fail because there's something to delete
+        assert response.status_code == status.HTTP_200_OK
+        supplement.refresh_from_db()
+        assert 'q1' in supplement.content
+
+    def test_cannot_delete_non_existent_automatic_transcription(self):
+        QuestionAdvancedFeature.objects.create(
+            asset=self.asset,
+            question_xpath='q1',
+            action='automatic_google_transcription',
+            params=[{'language': 'en'}],
+        )
+
+        # Create a mock submission supplement with no 'value' field
+        failed_transcription_data = {
+            'q1': {
+                'automatic_google_transcription': {
+                    '_dateCreated': '2026-01-11T01:29:00.908261Z',
+                    '_dateModified': '2026-01-11T01:29:00.908261Z',
+                    '_versions': [
+                        {
+                            '_data': {
+                                'language': 'en',
+                                'status': 'failed',
+                                'error': 'Any error',
+                            },
+                            '_dateCreated': '2026-01-11T01:29:00.908261Z',
+                            '_uuid': '08668365-c922-48ea-9f0e-26935ca2755e',
+                        }
+                    ],
+                }
+            },
+            '_version': '20250820',
+        }
+
+        SubmissionSupplement.objects.create(
+            asset=self.asset,
+            submission_uuid=self.submission_uuid,
+            content=failed_transcription_data,
+        )
+
+        # Attempt to "delete" a non-existent transcription
+        payload = {
+            '_version': '20250820',
+            'q1': {
+                'automatic_google_transcription': {
+                    'language': 'en',
+                    'value': None,
+                },
+            },
+        }
+
+        response = self.client.patch(
+            self.supplement_details_url, data=payload, format='json'
+        )
+        # Should fail because there's nothing to delete
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
 
 @ddt
 class SubmissionSupplementAPIUsageLimitsTestCase(SubsequenceBaseTestCase):
