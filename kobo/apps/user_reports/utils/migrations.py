@@ -1,5 +1,7 @@
 # flake8: noqa: E501
+
 from django.conf import settings
+
 
 CREATE_MV_BASE_SQL = f"""
     CREATE MATERIALIZED VIEW user_reports_userreportsmv AS
@@ -20,7 +22,6 @@ CREATE_MV_BASE_SQL = f"""
         WHERE a.pending_delete = false
         GROUP BY a.owner_id
     ),
-    {{role_map_cte}}
     user_billing_periods AS (
         SELECT DISTINCT
             au.id as user_id,
@@ -121,7 +122,14 @@ CREATE_MV_BASE_SQL = f"""
             WHEN org.id IS NOT NULL THEN jsonb_build_object(
                 'name', org.name,
                 'uid', org.id::text,
-                'role', {{role_selection_logic}}
+                'role', CASE
+                    WHEN EXISTS (
+                        SELECT 1 FROM organizations_organizationowner o 
+                        WHERE o.organization_user_id = ou.id
+                    ) THEN 'owner'
+                    WHEN ou.is_admin IS TRUE THEN 'admin'
+                    ELSE 'member'
+                END,
                 'website', org.website
             )
             ELSE NULL
@@ -224,7 +232,6 @@ CREATE_MV_BASE_SQL = f"""
     LEFT JOIN socialaccount_socialaccount sa ON au.id = sa.user_id
     LEFT JOIN user_nlp_usage unl ON au.id = unl.user_id
     LEFT JOIN user_assets ua ON au.id = ua.user_id
-    {{role_join}}
     LEFT JOIN user_current_period_usage ucpu ON au.id = ucpu.user_id AND ucpu.organization_id = org.id
     LEFT JOIN user_billing_periods ubau ON au.id = ubau.user_id AND ubau.organization_id = org.id
     WHERE au.id != {settings.ANONYMOUS_USER_ID}
@@ -251,7 +258,8 @@ CREATE_MV_BASE_SQL = f"""
         unl.total_mt_characters,
         ua.total_assets,
         ua.deployed_assets,
-       {{group_by_role}}
+        ou.id,
+        ou.is_admin,
         ucpu.current_period_start,
         ucpu.current_period_end,
         ucpu.total_nlp_usage_asr_seconds_current_period,
@@ -392,54 +400,20 @@ STRIPE_JOINS = """
     LEFT JOIN djstripe_customer cust ON sub.customer_id = cust.id
     """
 
+NO_STRIPE_JOINS = ''
 
-def get_mv_sql(mode='scoped'):
-    """
-    mode='global' (for migration 0002), mode='scoped' (for migration 0003)
-    """
+if settings.STRIPE_ENABLED:
+    MV_PARAMS = {
+        'MV_STRIPE_JOINS': STRIPE_JOINS,
+        'MV_SUBSCRIPTIONS_SELECT': STRIPE_SUBSCRIPTIONS,
+    }
+else:
+    MV_PARAMS = {
+        'MV_STRIPE_JOINS': NO_STRIPE_JOINS,
+        'MV_SUBSCRIPTIONS_SELECT': NO_STRIPE_SUBSCRIPTIONS,
+    }
 
-    if settings.STRIPE_ENABLED:
-        stripe_joins = STRIPE_JOINS
-        stripe_select = STRIPE_SUBSCRIPTIONS
-    else:
-        stripe_joins = ''
-        stripe_select = NO_STRIPE_SUBSCRIPTIONS
-
-    # Determine Role fragments
-    if mode == 'global':
-        role_map_cte = """user_role_map AS (
-            SELECT au.id AS user_id, CASE 
-                WHEN EXISTS (SELECT 1 FROM organizations_organizationowner o JOIN organizations_organizationuser ou_owner ON ou_owner.id = o.organization_user_id WHERE ou_owner.user_id = au.id) THEN 'owner'
-                WHEN EXISTS (SELECT 1 FROM organizations_organizationuser ou WHERE ou.user_id = au.id AND ou.is_admin IS TRUE) THEN 'admin'
-                ELSE 'member' END AS user_role FROM auth_user au
-        ),"""
-        role_selection_logic = 'ur.user_role,'
-        role_join = 'LEFT JOIN user_role_map ur ON ur.user_id = au.id'
-        group_by_role = 'ur.user_role,'
-    else:
-        # Scoped mode logic
-        role_map_cte = 'dummy_cte AS (SELECT 1),'
-        role_selection_logic = """CASE 
-            WHEN EXISTS (SELECT 1 FROM organizations_organizationowner o WHERE o.organization_user_id = ou.id) THEN 'owner'
-            WHEN ou.is_admin IS TRUE THEN 'admin'
-            ELSE 'member' END,"""
-        role_join = ''
-        group_by_role = 'ou.id, ou.is_admin,'
-
-    # Clean up the role_map_cte trailing comma logic
-    if mode == 'scoped':
-        role_map_cte = ''
-
-    return CREATE_MV_BASE_SQL.format(
-        role_map_cte=role_map_cte,
-        role_selection_logic=role_selection_logic,
-        role_join=role_join,
-        group_by_role=group_by_role,
-        anonymous_id=settings.ANONYMOUS_USER_ID,
-        MV_SUBSCRIPTIONS_SELECT=stripe_select,
-        MV_STRIPE_JOINS=stripe_joins,
-    )
-
+CREATE_MV_SQL = CREATE_MV_BASE_SQL.format(**MV_PARAMS)
 
 DROP_MV_SQL = """
     DROP MATERIALIZED VIEW IF EXISTS user_reports_userreportsmv;

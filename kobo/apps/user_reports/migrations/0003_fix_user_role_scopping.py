@@ -2,10 +2,10 @@
 from django.conf import settings
 from django.db import migrations
 
-from kobo.apps.user_reports.utils.sql_utils import (
+from kobo.apps.user_reports.utils.migrations import (
     CREATE_INDEXES_SQL,
+    CREATE_MV_SQL,
     DROP_MV_SQL,
-    get_mv_sql,
 )
 
 
@@ -20,7 +20,7 @@ def apply_fix(apps, schema_editor):
             
             Run the SQL query below in PostgreSQL directly to create the materialized view:
 
-            {get_mv_sql(mode='scoped')}
+            {CREATE_MV_SQL}
 
             Then run the SQL query below to create the indexes:
 
@@ -33,7 +33,7 @@ def apply_fix(apps, schema_editor):
         return
 
     schema_editor.execute(DROP_MV_SQL)
-    schema_editor.execute(get_mv_sql(mode='scoped'))
+    schema_editor.execute(CREATE_MV_SQL)
     schema_editor.execute(CREATE_INDEXES_SQL)
 
 
