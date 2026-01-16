@@ -11,7 +11,6 @@ The endpoints are grouped by area of intended use. Each category contains relate
  */
 
 import type { DataSupplementResponseOneOf } from './dataSupplementResponseOneOf'
-export interface DataSupplementResponse {
+export type DataSupplementResponse = {
   _version: string
-  [key: string]: DataSupplementResponseOneOf
-}
+} & Record<string, DataSupplementResponseOneOf>
