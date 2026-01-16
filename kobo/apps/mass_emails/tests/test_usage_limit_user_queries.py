@@ -200,6 +200,9 @@ class UsageLimitUserQueryTestCase(BaseServiceUsageTestCase):
         aslist = list(results)
         assert aslist == []
 
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
     def test_usage_limits_exclude_inactive_users(self):
         superuser = User.objects.create_superuser('super')
 
