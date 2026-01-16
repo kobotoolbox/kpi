@@ -1,6 +1,6 @@
 import uuid
 from datetime import timedelta
-from unittest.mock import patch
+from unittest.mock import ANY, DEFAULT, call, patch
 
 import jsonschema
 import pytest
@@ -10,7 +10,9 @@ from rest_framework import status
 from rest_framework.reverse import reverse
 
 from kobo.apps.subsequences.actions.automatic_bedrock_qual import (
+    OSS120,
     AutomaticBedrockQual,
+    ClaudeSonnet,
 )
 from kobo.apps.subsequences.constants import (
     QUESTION_TYPE_INTEGER,
@@ -48,6 +50,11 @@ class BaseAutomaticBedrockQualTestCase(BaseTestCase):
             question_xpath='q1',
         )
         self.action = self.feature.to_action()
+        patched_get_client = patch.object(
+            self.action, 'create_bedrock_client', return_value=MockLLMClient('response')
+        )
+        patched_get_client.start()
+        self.addCleanup(patched_get_client.stop)
 
     def _add_submission(self):
         # add a submission
@@ -89,7 +96,7 @@ class BaseAutomaticBedrockQualTestCase(BaseTestCase):
 
 
 @ddt
-class TestBedrockAutomaticChainedQual(BaseAutomaticBedrockQualTestCase):
+class TestBedrockAutomaticBedrockQual(BaseAutomaticBedrockQualTestCase):
 
     @data(
         # type, main label, choice label, should pass?
@@ -362,14 +369,13 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
             'uuid': question_uuid,
             '_dependency': self._dependency_dict_from_transcript_dict(),
         }
-        with patch.object(self.action, 'get_response_from_llm', return_value='text'):
-            with patch(
-                f'kobo.apps.subsequences.actions.automatic_bedrock_qual.{method_to_patch}',  # noqa
-                side_effect=InvalidResponseFromLLMException('Cannot parse'),
-            ):
-                return_value = self.action.run_external_process(
-                    {}, {}, action_data=action_data
-                )
+        with patch(
+            f'kobo.apps.subsequences.actions.automatic_bedrock_qual.{method_to_patch}',  # noqa
+            side_effect=InvalidResponseFromLLMException('Cannot parse'),
+        ):
+            return_value = self.action.run_external_process(
+                {}, {}, action_data=action_data
+            )
         assert return_value.get('status') == 'failed'
         assert return_value.get('error') == 'Cannot parse'
 
@@ -392,3 +398,41 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
             ):
                 prompt = self.action.generate_llm_prompt(action_data)
         assert prompt == 'choices: Apathy count: 1'
+
+    def test_run_external_process_does_not_call_default_if_primary_succeeds(self):
+        action_data = {
+            'uuid': 'uuid-qual-text',
+            '_dependency': self._dependency_dict_from_transcript_dict(),
+        }
+        with patch.object(
+            self.action, 'get_response_from_llm', return_value='response'
+        ) as patched_get_response_from_llm:
+            self.action.run_external_process({}, {}, action_data=action_data)
+        patched_get_response_from_llm.assert_called_once()
+        assert (
+            patched_get_response_from_llm.call_args.args[1].model_id == OSS120.model_id
+        )
+
+    def test_run_external_process_calls_default_if_primary_fails(self):
+        action_data = {
+            'uuid': 'uuid-qual-text',
+            '_dependency': self._dependency_dict_from_transcript_dict(),
+        }
+        with patch.object(
+            self.action, 'get_response_from_llm', return_value='response'
+        ) as patched_get_response_from_llm:
+            with patch(
+                f'kobo.apps.subsequences.actions.automatic_bedrock_qual.parse_text_response',  # noqa
+                # first call errors, second call succeeds
+                side_effect=[
+                    InvalidResponseFromLLMException('Cannot parse'),
+                    DEFAULT,
+                ],
+            ):
+                self.action.run_external_process({}, {}, action_data=action_data)
+        # make sure get_response_from_llm was called twice with
+        # the two different models in the correct order
+        patched_get_response_from_llm.assert_has_calls(
+            [call(ANY, OSS120), call(ANY, ClaudeSonnet)], any_order=False
+        )
+        assert len(patched_get_response_from_llm.call_args) == 2

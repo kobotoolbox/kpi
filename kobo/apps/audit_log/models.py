@@ -709,10 +709,11 @@ class ProjectHistoryLog(AuditLog):
                     if 'error' in llm_info:
                         metadata['llm'] = {'error': llm_info['error']}
                     else:
+                        model = llm_info['model']
                         metadata['llm'] = {
-                            'model': llm_info['model'],
-                            'input_tokens': llm_info['usage']['input_tokens'],
-                            'output_tokens': llm_info['usage']['output_tokens'],
+                            'model': model.model_id,
+                            'input_tokens': model.get_input_tokens(llm_info['body']),
+                            'output_tokens': model.get_output_tokens(llm_info['body']),
                         }
                 ProjectHistoryLog.objects.create(
                     user=request.user,
