@@ -6,8 +6,10 @@ from django.test import TestCase
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import (
     Organization,
+    OrganizationOwner,
     OrganizationUser,
 )
+from kpi.models import Asset
 
 job = import_module('kobo.apps.long_running_migrations.jobs.0014_fix_duplicate_organizations')  # noqa
 
@@ -17,6 +19,7 @@ class TestFixDuplicateOrgs(TestCase):
 
     def setUp(self):
         self.someuser = User.objects.get(username='someuser')
+        self.anotheruser = User.objects.get(username='anotheruser')
         self.organization = self.someuser.organization
 
     def test_keep_newest_when_no_mmo_and_no_subscription(self):
@@ -24,8 +27,7 @@ class TestFixDuplicateOrgs(TestCase):
         Test that when user is part of two single-member orgs with no MMO or
         active subscription, then the newest organization should be kept
         """
-        second_org = Organization.objects.create(name='Second Org')
-        OrganizationUser.objects.create(organization=second_org, user=self.someuser)
+        second_org = self._create_organization_for_user(user=self.someuser)
 
         # Ensure `someuser` is now in two organizations
         orgs = Organization.objects.filter(organization_users__user=self.someuser)
@@ -44,8 +46,9 @@ class TestFixDuplicateOrgs(TestCase):
         organization, then the MMO organization should be kept
         """
         # Create an MMO organization
-        mmo_org = Organization.objects.create(name='MMO Org', mmo_override=True)
-        OrganizationUser.objects.create(organization=mmo_org, user=self.someuser)
+        mmo_org = self._create_organization_for_user(
+            user=self.someuser, mmo_override=True
+        )
 
         # Ensure `someuser` is now in two organizations
         orgs = Organization.objects.filter(organization_users__user=self.someuser)
@@ -65,12 +68,7 @@ class TestFixDuplicateOrgs(TestCase):
         subscription should be kept
         """
         # Create an organization with subscription
-        org_with_subscription = Organization.objects.create(
-            name='Org With Subscription'
-        )
-        OrganizationUser.objects.create(
-            organization=org_with_subscription, user=self.someuser
-        )
+        org_with_subscription = self._create_organization_for_user(user=self.someuser)
 
         # Mock active subscription on org_with_subscription
         def active_subscription_mock(self):
@@ -95,12 +93,10 @@ class TestFixDuplicateOrgs(TestCase):
         Test that when user is part of a multi-member org (with mmo_override False)
         and a single-member org, then the multi-member organization should be kept
         """
-        multi_member_org = Organization.objects.create(name='Multi Member Org')
-        other_user = User.objects.create(username='otheruser')
+        multi_member_org = self.anotheruser.organization
         OrganizationUser.objects.create(
             organization=multi_member_org, user=self.someuser
         )
-        OrganizationUser.objects.create(organization=multi_member_org, user=other_user)
 
         # Ensure `someuser` is now in two organizations
         orgs = Organization.objects.filter(organization_users__user=self.someuser)
@@ -112,3 +108,49 @@ class TestFixDuplicateOrgs(TestCase):
         orgs = Organization.objects.filter(organization_users__user=self.someuser)
         self.assertEqual(orgs.count(), 1)
         self.assertEqual(orgs.first().id, multi_member_org.id)
+
+    def test_asset_transfer_to_kept_organization(self):
+        """
+        Test that when duplicate organizations are resolved, the user's assets
+        are transferred to the kept organization.
+
+        Also verify that the `mmo_override` flag is set correctly on the kept org
+        """
+        another_org = self.anotheruser.organization
+        OrganizationUser.objects.create(organization=another_org, user=self.someuser)
+
+        # Verify that `mmo_override` is False for `another_org` despite
+        # having multiple members
+        self.assertFalse(another_org.mmo_override)
+
+        asset1 = Asset.objects.create(name='Asset 1', owner=self.anotheruser)
+        asset2 = Asset.objects.create(name='Asset 2', owner=self.someuser)
+        asset3 = Asset.objects.create(name='Asset 3', owner=self.someuser)
+
+        # Ensure `someuser` is now in two organizations
+        orgs = Organization.objects.filter(organization_users__user=self.someuser)
+        self.assertEqual(orgs.count(), 2)
+
+        job.run()
+
+        # Verify that only one organization remains for `someuser`
+        orgs_after = Organization.objects.filter(organization_users__user=self.someuser)
+        self.assertEqual(orgs_after.count(), 1)
+
+        # Verify that `mmo_override` is now True for the kept organization
+        kept_org = orgs_after.first()
+        self.assertTrue(kept_org.mmo_override)
+
+        # Verify that all assets are now owned by the kept organization
+        asset1.refresh_from_db()
+        asset2.refresh_from_db()
+        asset3.refresh_from_db()
+        self.assertEqual(asset1.owner, self.anotheruser)
+        self.assertEqual(asset2.owner, self.anotheruser)
+        self.assertEqual(asset3.owner, self.anotheruser)
+
+    def _create_organization_for_user(self, user, mmo_override=False):
+        org = Organization.objects.create(name='Org', mmo_override=mmo_override)
+        org_user = OrganizationUser.objects.create(organization=org, user=user)
+        OrganizationOwner.objects.create(organization=org, organization_user=org_user)
+        return org

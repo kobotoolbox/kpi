@@ -5,6 +5,7 @@ from django.db.models import Count
 
 from kobo.apps.organizations.models import OrganizationOwner, OrganizationUser
 from kobo.apps.organizations.utils import revoke_org_asset_perms
+from kobo.apps.organizations.tasks import transfer_member_data_ownership_to_org
 from kpi.utils.log import logging
 
 CHUNK_SIZE = 200
@@ -103,6 +104,14 @@ def run():
                     OrganizationOwner.objects.filter(organization_id=org.id).delete()
                     org.delete()
                     logging.info(f'Deleted organization {org.id} for user {uid}')
+
+            # Ensure MMO status is consistent for multi-member orgs
+            if keep.mmo_override is False and keep.organization_users.count() > 1:
+                keep.mmo_override = True
+                keep.save(update_fields=['mmo_override'])
+
+            # Transfer asset ownership to the kept organization
+            transfer_member_data_ownership_to_org.delay(uid)
 
         total_processed += len(user_ids)
         logging.info(f'Processed {total_processed} users so far.')
