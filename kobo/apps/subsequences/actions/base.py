@@ -493,6 +493,22 @@ class BaseAction:
         self.validate_params(incoming_params)
         self.params = incoming_params
 
+    def _get_date_field_value(self, version: dict) -> str:
+        """
+        Return the date used to sort a version.
+
+        If `_data.value` is None, the action was deleted, so the creation date
+        (`_dateCreated`) is used. Otherwise, the acceptance date (`_dateAccepted`)
+        is used.
+        """
+
+        return (
+            version.get(self.DATE_CREATED_FIELD, '')
+            if 'value' in version[self.VERSION_DATA_FIELD]
+            and version[self.VERSION_DATA_FIELD]['value'] is None
+            else version.get(self.DATE_ACCEPTED_FIELD, '')
+        )
+
     def _inject_data_schema(self, destination_schema: dict, skipped_keys: list):
         raise Exception('This method is going away')
         """
