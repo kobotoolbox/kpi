@@ -26,9 +26,9 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
 )
 from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_handler
 from kobo.apps.subsequences.exceptions import (
-    SubsequenceDeletionError,
     InvalidAction,
     InvalidXPath,
+    SubsequenceDeletionError,
     TranscriptionNotFound,
 )
 from kobo.apps.subsequences.models import SubmissionSupplement

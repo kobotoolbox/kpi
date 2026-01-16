@@ -9,8 +9,8 @@ from django.conf import settings
 from django.utils import timezone
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.subsequences.utils.time import utc_datetime_to_js_str
 from kobo.apps.subsequences.exceptions import SubsequenceDeletionError
+from kobo.apps.subsequences.utils.time import utc_datetime_to_js_str
 from kobo.celery import celery_app
 from kpi.exceptions import UsageLimitExceededException
 from kpi.utils.usage_calculator import ServiceUsageCalculator
@@ -409,6 +409,11 @@ class BaseAction:
         except IndexError:
             current_version = {}
         self.attach_action_dependency(action_data)
+        # Check if user is trying to delete null data
+        if ('value' in action_data and action_data['value'] is None) and (
+            current_version.get(self.VERSION_DATA_FIELD, {}).get('value') is None
+        ):
+            raise SubsequenceDeletionError
 
         if self.action_class_config.automatic:
             # If the action is automatic, run the external process first.
@@ -423,13 +428,6 @@ class BaseAction:
                 # Stop here to avoid processing data and creating redundant revisions.
                 return None
 
-            # Check if user is trying to delete null data
-            if (
-                not current_version.get(self.VERSION_DATA_FIELD, {}).get('value')
-                and action_data.get('value') is None
-                and service_response.get('status') == 'deleted'
-            ):
-                raise SubsequenceDeletionError
             # Otherwise, merge the service response into action_data and keep going
             # the validation process.
             dependency_supplemental_data = action_data.pop(self.DEPENDENCY_FIELD, None)
@@ -439,12 +437,6 @@ class BaseAction:
         else:
             dependency_supplemental_data = action_data.pop(self.DEPENDENCY_FIELD, None)
             # Deletion is triggered by passing `{value: null}`.
-            # Check if user is trying to delete null data
-            if (
-                not current_version.get(self.VERSION_DATA_FIELD, {}).get('value')
-                and action_data.get('value') is None
-            ):
-                raise SubsequenceDeletionError
             # When this occurs, no acceptance should be recorded.
             accepted = action_data.get('value') is not None
 
