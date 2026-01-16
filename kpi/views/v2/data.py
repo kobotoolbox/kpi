@@ -455,6 +455,7 @@ class DataViewSet(
             'user': request.user,
             'format_type': format_type,
             'request': request,
+            'for_output': True,
         }
         filters = self._filter_mongo_query(request)
 
