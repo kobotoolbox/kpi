@@ -5,7 +5,8 @@ import time
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
-from django.db.models import OuterRef, Subquery, Sum
+from django.db.models import OuterRef, Subquery, Sum, Value
+from django.db.models.functions import Coalesce
 from django_redis import get_redis_connection
 
 from kobo.apps.openrosa.apps.logger.constants import SUBMISSIONS_SUSPENDED_HEARTBEAT_KEY
@@ -286,14 +287,17 @@ class Command(BaseCommand):
         # right away. See https://stackoverflow.com/a/56122354/1141214 for
         # details.
         subquery = (
-            XForm.objects.filter(user_id=user.pk)
+            XForm.objects
+            .filter(user_id=user.pk)
             .values('user_id')
-            .annotate(total=Sum('attachment_storage_bytes'))
-            .values('total')
+            .annotate(
+                total=Coalesce(Sum('attachment_storage_bytes'), Value(0))
+            )
+            .values('total')[:1]
         )
 
         UserProfile.objects.filter(user_id=user.pk).update(
-            attachment_storage_bytes=Subquery(subquery),
+            attachment_storage_bytes=Coalesce(Subquery(subquery), Value(0)),
             metadata=UpdateJSONFieldAttributes(
                 'metadata',
                 updates=updates,
