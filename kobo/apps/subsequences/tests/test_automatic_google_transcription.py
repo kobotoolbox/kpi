@@ -359,6 +359,7 @@ def test_transform_data_for_output():
                 'status': 'complete',
             }
             mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, data)
+
     retrieved_data = action.retrieve_data(mock_sup_det)
     result = action.transform_data_for_output(retrieved_data)
     assert result == {
@@ -367,5 +368,39 @@ def test_transform_data_for_output():
             'languageCode': 'fr',
             'regionCode': None,
             '_sortByDate': None,
+        },
+    }
+
+def test_transform_data_for_output_with_delete():
+    xpath = 'group_name/question_name'  # irrelevant for this test
+    params = [{'language': 'fr'}, {'language': 'en'}]
+    action = AutomaticGoogleTranscriptionAction(xpath, params)
+
+    first = {'language': 'en', 'value': 'hello'}
+    second = {'language': 'en', 'accepted': True}
+    third = {'language': 'en', 'value': None}
+
+    mock_sup_det = EMPTY_SUPPLEMENT
+    mock_service = MagicMock()
+    with patch(
+        'kobo.apps.subsequences.actions.automatic_google_transcription.GoogleTranscriptionService',  # noqa
+        return_value=mock_service,
+    ):
+        for data in first, second, third:
+            value = data.pop('value', '')
+            mock_service.process_data.return_value = {
+                'value': value,
+                'status': 'complete' if value is not None else 'deleted',
+            }
+            mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, data)
+
+    retrieved_data = action.retrieve_data(mock_sup_det)
+    result = action.transform_data_for_output(retrieved_data)
+    assert result == {
+        'transcript': {
+            'value': None,
+            'languageCode': 'en',
+            'regionCode': None,
+            '_sortByDate': retrieved_data['_versions'][0]['_dateCreated'],
         },
     }
