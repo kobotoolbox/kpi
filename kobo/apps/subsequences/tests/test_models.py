@@ -267,7 +267,11 @@ class SubmissionSupplementTestCase(TestCase):
             self.asset, self.submission_root_uuid, for_output=True
         )
         transcription_data = output[self.xpath].get('transcript')
-        assert transcription_data == {'value': 'Bonjour', 'languageCode': 'fr'}
+        assert transcription_data == {
+            'value': 'Bonjour',
+            'languageCode': 'fr',
+            'regionCode': None,
+        }
 
     def test_retrieve_data_for_output_selects_most_recent_translation_by_language(self):
         # Enable automatic translations in Spanish and German
