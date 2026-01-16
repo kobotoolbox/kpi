@@ -76,17 +76,17 @@ export default function TranscriptTab() {
   // Backend said, that latest version is the "real version" and to discared the rest.
   // This should equal what can be found within `DataResponse._supplementalDetails`.
   // TODO: perhaps use `DataResponse._supplementalDetails` instead?
-  const transcript = [
+  const transcriptVersion = [
     ...(questionSupplement?.manual_transcription?._versions || []),
     ...(questionSupplement?.automatic_google_transcription?._versions || []),
-  ].sort((a, b) => (a._dateCreated > b._dateCreated ? 1 : -1))[0] // TODO: is that "<" or ">" to make descending?
+  ].sort((a, b) => (a._dateCreated < b._dateCreated ? 1 : -1))[0]
 
-  console.log('TranscriptTab', transcript)
+  console.log('TranscriptTab', transcriptVersion)
 
   if (
-    transcript && !!isTranscriptDataExisting(transcript._data)
+    transcriptVersion && !!isTranscriptDataExisting(transcriptVersion._data)
   ) {
-    return <TranscriptEdit />
+    return <TranscriptEdit asset={asset} questionXpath={xpath} submission={currentSubmission} transcriptVersion={transcriptVersion} />
   } else {
     return <TranscriptCreate asset={asset} questionXpath={xpath} submission={currentSubmission} />
   }

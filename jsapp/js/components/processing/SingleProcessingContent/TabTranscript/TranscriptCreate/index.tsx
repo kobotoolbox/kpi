@@ -24,7 +24,7 @@ export default function TranscriptCreate({ asset, questionXpath, submission }: P
 
   return (
     <div className={cx(bodyStyles.root, bodyStyles.stepBegin)}>
-      {step === 'begin' && <StepBegin assetUid={asset.uid} onNext={() => setStep('language')} />}
+      {step === 'begin' && <StepBegin asset={asset} questionXpath={questionXpath} onNext={() => setStep('language')} />}
       {step === 'language' && (
         <StepSelectLanguage
           onBack={() => setStep('begin')}

@@ -1,16 +1,14 @@
 import React from 'react'
-
-import cx from 'classnames'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import type { AssetResponse } from '#/dataInterface'
-import bodyStyles from '../../../common/processingBody.module.scss'
+import Editor from '../TranscriptEdit/Editor'
 
 interface Props {
   asset: AssetResponse
   questionXpath: string
-  languageCode: LanguageCode
   submission: DataResponse & Record<string, string>
+  languageCode: LanguageCode
   onBack: () => void
 }
 
@@ -18,6 +16,20 @@ interface Props {
  * TODO: wrap Editor and display it.
  */
 
-export default function StepCreateManual({}: Props) {
-  return <div className={cx(bodyStyles.root, bodyStyles.stepConfig)}>TODO</div>
+export default function StepCreateManual({ asset, questionXpath, submission, languageCode, onBack }: Props) {
+  // TODO: fix styles
+  return (
+    <Editor
+      asset={asset}
+      questionXpath={questionXpath}
+      submission={submission}
+      transcriptVersion={{
+        _uuid: '',
+        _dateCreated: '',
+        _dateAccepted: '',
+        _data: { language: languageCode, value: null },
+      }}
+      onBack={onBack}
+    />
+  )
 }

@@ -12,7 +12,7 @@ function getQuestionName(asset: AssetResponse, xpath: string) {
 
 /**
  * Returns an error string or the attachment. It's basically a wrapper function
- * over `getMediaAttachment` for DRY purposes in `singleProcessingStore` context.
+ * over `getMediaAttachment` for DRY purposes.
  */
 export function getAttachmentForProcessing(
   asset: AssetResponse,

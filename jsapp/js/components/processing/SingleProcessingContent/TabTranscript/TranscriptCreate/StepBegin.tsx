@@ -1,24 +1,26 @@
 import React from 'react'
 
 import cx from 'classnames'
-import assetStore from '#/assetStore'
 import Button from '#/components/common/button'
 import { userCan } from '#/components/permissions/utils'
-import singleProcessingStore from '#/components/processing/singleProcessingStore'
+import type { AnyRowTypeName } from '#/constants'
+import type { AssetResponse } from '#/dataInterface'
 import bodyStyles from '../../../common/processingBody.module.scss'
+import { getProcessedFileLabel, getQuestionName } from '../common/utils'
 
 interface Props {
-  assetUid: string
+  asset: AssetResponse
+  questionXpath: string
   onNext: () => void
 }
 
-export default function StepBegin({ onNext, assetUid }: Props) {
+export default function StepBegin({ onNext, asset, questionXpath }: Props) {
   return (
     <div className={cx(bodyStyles.root, bodyStyles.stepBegin)}>
       <header className={bodyStyles.header}>
         {t('This ##type## does not have a transcript yet').replace(
           '##type##',
-          singleProcessingStore.getProcessedFileLabel(),
+          getProcessedFileLabel(getQuestionName(asset, questionXpath) as AnyRowTypeName), // TODO: potential bug was always here.
         )}
       </header>
 
@@ -27,7 +29,7 @@ export default function StepBegin({ onNext, assetUid }: Props) {
         size='l'
         label={t('begin')}
         onClick={onNext}
-        isDisabled={!userCan('change_submissions', assetStore.getAsset(assetUid))}
+        isDisabled={!userCan('change_submissions', asset)}
       />
     </div>
   )

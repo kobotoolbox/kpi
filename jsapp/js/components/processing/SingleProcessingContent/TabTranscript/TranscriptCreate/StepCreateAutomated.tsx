@@ -1,29 +1,28 @@
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 
 import cx from 'classnames'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { NLPActionParamsItem } from '#/api/models/nLPActionParamsItem'
 import { onErrorDefaultHandler } from '#/api/onErrorDefaultHandler'
 import { queryClient } from '#/api/queryClient'
-import { getAssetsDataSupplementRetrieveQueryKey, useAssetsAdvancedFeaturesCreate, useAssetsAdvancedFeaturesList, useAssetsAdvancedFeaturesPartialUpdate, useAssetsDataSupplementPartialUpdate } from '#/api/react-query/survey-data'
+import {
+  getAssetsAdvancedFeaturesListQueryKey,
+  getAssetsDataSupplementRetrieveQueryKey,
+  useAssetsAdvancedFeaturesCreate,
+  useAssetsAdvancedFeaturesList,
+  useAssetsAdvancedFeaturesPartialUpdate,
+  useAssetsDataSupplementPartialUpdate,
+} from '#/api/react-query/survey-data'
 import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import type { LanguageCode, LocaleCode } from '#/components/languages/languagesStore'
 import RegionSelector from '#/components/languages/regionSelector'
 import { SUBSEQUENCES_SCHEMA_VERSION } from '#/components/processing/common/constants'
-import singleProcessingStore from '#/components/processing/singleProcessingStore'
 import type { AssetResponse } from '#/dataInterface'
-import { getAudioDuration, notify } from '#/utils'
+import { getAudioDuration, notify, removeDefaultUuidPrefix } from '#/utils'
 import bodyStyles from '../../../common/processingBody.module.scss'
+import { ADVANCED_FEATURES_ACTION } from '../common/utils'
 import { getAttachmentForProcessing, secondsToTranscriptionEstimate } from '../transcript.utils'
-
-// TODO: improve schema to enum `action` prop.
-enum ADVANCED_FEATURES_ACTION {
-  manual_transcription = "manual_transcription",
-  manual_translation = "manual_translation",
-  automatic_google_transcription = "automatic_google_transcription",
-  automatic_google_translation = "automatic_google_translation",
-}
 
 /** Until the estimate is loaded we display dot dot dot. */
 const NO_ESTIMATED_MINUTES = '…'
@@ -42,29 +41,58 @@ export default function StepCreateAutomated({ asset, questionXpath, languageCode
   // TODO: remove, for now just logging for debugging.
   const queryAF = useAssetsAdvancedFeaturesList(asset.uid)
 
-  const advancedFeature = queryAF.data?.status === 200 ? queryAF.data?.data.find((af) => af.action === ADVANCED_FEATURES_ACTION.automatic_google_transcription && af.question_xpath === questionXpath) : undefined
+  const advancedFeature =
+    queryAF.data?.status === 200
+      ? queryAF.data?.data.find(
+          (af) =>
+            af.action === ADVANCED_FEATURES_ACTION.automatic_google_transcription &&
+            af.question_xpath === questionXpath,
+        )
+      : undefined
   console.log(advancedFeature)
 
-  const mutationCreateAF = useAssetsAdvancedFeaturesCreate()
-  const mutationPatchAF = useAssetsAdvancedFeaturesPartialUpdate()
+  const mutationCreateAF = useAssetsAdvancedFeaturesCreate({
+    mutation: {
+      onSettled: () => queryClient.invalidateQueries({ queryKey: getAssetsAdvancedFeaturesListQueryKey(asset.uid) }),
+    },
+  })
+  const mutationPatchAF = useAssetsAdvancedFeaturesPartialUpdate({
+    mutation: {
+      onSettled: () => queryClient.invalidateQueries({ queryKey: getAssetsAdvancedFeaturesListQueryKey(asset.uid) }),
+    },
+  })
 
   const mutationCreateAutomaticTranscript = useAssetsDataSupplementPartialUpdate({
     mutation: {
       onSettled: () => {
-        queryClient.invalidateQueries({ queryKey: getAssetsDataSupplementRetrieveQueryKey(asset.uid, submission.uid) })
+        queryClient.invalidateQueries({
+          queryKey: getAssetsDataSupplementRetrieveQueryKey(
+            asset.uid,
+            removeDefaultUuidPrefix(submission['meta/rootUuid']),
+          ),
+        })
       },
       onError: (error, variables, context) => {
-        if(error.detail === 'Invalid action') {
+        if (error.detail === 'Invalid action') {
           // TODO: should never happen, gotta check and enable silently.
-          notify('Advances Features are not enabled for this language for this form.', 'error', {}, `${error.name}: ${error.message} | ${error.detail}`)
+          notify(
+            'Advances Features are not enabled for this language for this form.',
+            'error',
+            {},
+            `${error.name}: ${error.message} | ${error.detail}`,
+          )
         } else {
           onErrorDefaultHandler(error, variables, context)
         }
       },
-    }
+    },
   })
 
-  const anyPending = queryAF.isPending || mutationCreateAF.isPending || mutationPatchAF.isPending || mutationCreateAutomaticTranscript.isPending
+  const anyPending =
+    queryAF.isPending ||
+    mutationCreateAF.isPending ||
+    mutationPatchAF.isPending ||
+    mutationCreateAutomaticTranscript.isPending
 
   // When polling for transcript, we need to calculate the estimated time
   // TODO improvement: check `sidebarSubmissionMedia`, perhaps get a duration in a sync manner, show asap?
@@ -80,7 +108,7 @@ export default function StepCreateAutomated({ asset, questionXpath, languageCode
     } else {
       setEstimate(NO_ESTIMATED_MINUTES)
     }
-  }, [singleProcessingStore.data.isPollingForTranscript])
+  }, [mutationCreateAutomaticTranscript.isPending])
 
   function handleChangeLocale(newVal: LocaleCode | null) {
     setLocale(newVal)
@@ -92,33 +120,37 @@ export default function StepCreateAutomated({ asset, questionXpath, languageCode
 
   // TODO: cleanup unused methods, search for `requestAutoTranscription`
   async function handleCreateTranscript() {
-
     // Silently under the hook enable advanced features if needed.
-    if(!advancedFeature) {
+    if (!advancedFeature) {
       await mutationCreateAF.mutateAsync({
-      uidAsset: asset.uid,
-      data: {
-        question_xpath: questionXpath,
-        action: ADVANCED_FEATURES_ACTION.automatic_google_transcription,
-        // TODO: OpenAPI shouldn't be double-arrayed.
-        params: [{
-          language: languageCode,
-        } as any]
-      }
+        uidAsset: asset.uid,
+        data: {
+          question_xpath: questionXpath,
+          action: ADVANCED_FEATURES_ACTION.automatic_google_transcription,
+          // TODO: OpenAPI shouldn't be double-arrayed.
+          params: [
+            {
+              language: languageCode,
+            } as any,
+          ],
+        },
       })
-    // TODO: should I check for locales too or not?
-    // TODO: OpenAPI shouldn't be double-arrayed.
-    } else if(!advancedFeature?.params.find((param) => (param as any as NLPActionParamsItem).language === languageCode)) {
+      // TODO: should I check for locales too or not?
+      // TODO: OpenAPI shouldn't be double-arrayed.
+    } else if (
+      !advancedFeature?.params.find((param) => (param as any as NLPActionParamsItem).language === languageCode)
+    ) {
       await mutationPatchAF.mutateAsync({
         uidAsset: asset.uid,
-        uidAdvancedFeature: ADVANCED_FEATURES_ACTION.automatic_google_transcription,
+        uidAdvancedFeature: advancedFeature.uid,
         data: {
-          question_xpath: questionXpath, // TODO: OpenAPI PatchedAdvancedFeaturePatchRequest doesn't have this prop typed.
           action: ADVANCED_FEATURES_ACTION.automatic_google_transcription, // TODO: OpenAPI PatchedAdvancedFeaturePatchRequest doesn't have this prop typed.
-          params: advancedFeature.params.concat({ // TODO: OpenAPI shouldn't be double-arrayed.
+          question_xpath: questionXpath, // TODO: OpenAPI PatchedAdvancedFeaturePatchRequest doesn't have this prop typed.
+          params: advancedFeature.params.concat({
+            // TODO: OpenAPI shouldn't be double-arrayed.
             language: languageCode,
-          } as any)
-        } as any
+          } as any),
+        } as any,
       })
     }
 
@@ -177,13 +209,7 @@ export default function StepCreateAutomated({ asset, questionXpath, languageCode
 
       <footer className={bodyStyles.footer}>
         <div className={bodyStyles.footerCenterButtons}>
-          <Button
-            type='secondary'
-            size='m'
-            label={t('cancel')}
-            onClick={handleClickBack}
-            isDisabled={anyPending}
-          />
+          <Button type='secondary' size='m' label={t('cancel')} onClick={handleClickBack} isDisabled={anyPending} />
 
           <Button
             type='primary'
