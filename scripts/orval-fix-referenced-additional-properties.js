@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 /**
- * Orval has a bug that fails to generate imports for $ref in additionalProperties.
- * See https://github.com/orval-labs/orval/issues/1077.
+ * Orval doesn't have a feature yet to support `unevaluatedProperties`.
+ * See https://github.com/orval-labs/orval/issues/2156.
  * This is a workaround. Remove it once the underlying bug is fixed.
  */
 const fs = require('fs')
@@ -64,7 +64,7 @@ for (const file of FILES) {
   const source = fs.readFileSync(filePath, 'utf8')
 
   const detected = detectInterfaceWithIndex(source)
-  if (!detected) continue
+  if (!fs.existsSync(filePath)) throw new Error(`File ${file} doesn't have an interface within`)
 
   const { name, versionType, valueType, interfaceBlock } = detected
 
