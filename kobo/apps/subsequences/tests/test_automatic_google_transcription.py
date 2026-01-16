@@ -371,6 +371,7 @@ def test_transform_data_for_output():
         },
     }
 
+
 def test_transform_data_for_output_with_delete():
     xpath = 'group_name/question_name'  # irrelevant for this test
     params = [{'language': 'fr'}, {'language': 'en'}]

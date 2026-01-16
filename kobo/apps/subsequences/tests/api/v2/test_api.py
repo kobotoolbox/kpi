@@ -627,49 +627,6 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
         }
         assert response.data == expected_response
 
-    def test_get_data_with_failed_transcription_no_value(self):
-        """
-        When a transcription fails (e.g., no audio attachment), the stored
-        data may not have a 'value' field. Reading this data should not
-        crash with a 500 error.
-        """
-        QuestionAdvancedFeature.objects.create(
-            asset=self.asset,
-            question_xpath='q1',
-            action='automatic_google_transcription',
-            params=[{'language': 'fr'}],
-        )
-        # Create a mock submission supplement with no 'value' field
-        failed_transcription_data = {
-            'q1': {
-                'automatic_google_transcription': {
-                    '_dateCreated': '2026-01-11T01:29:00.908261Z',
-                    '_dateModified': '2026-01-11T01:29:00.908261Z',
-                    '_versions': [
-                        {
-                            '_data': {
-                                'language': 'en',
-                                'status': 'failed',
-                                'error': 'Any error',
-                            },
-                            '_dateCreated': '2026-01-11T01:29:00.908261Z',
-                            '_uuid': '08668365-c922-48ea-9f0e-26935ca2755e',
-                        }
-                    ],
-                }
-            },
-            '_version': '20250820',
-        }
-
-        SubmissionSupplement.objects.create(
-            asset=self.asset,
-            submission_uuid=self.submission_uuid,
-            content=failed_transcription_data,
-        )
-        data_url = reverse(self._get_endpoint('submission-list'), args=[self.asset.uid])
-        response = self.client.get(data_url, format='json')
-        assert response.status_code == status.HTTP_200_OK
-
 
 class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
 

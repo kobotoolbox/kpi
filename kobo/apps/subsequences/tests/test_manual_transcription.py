@@ -1,6 +1,5 @@
 import dateutil
 import jsonschema
-
 import pytest
 
 from ..actions.manual_transcription import ManualTranscriptionAction

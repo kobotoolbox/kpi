@@ -458,7 +458,7 @@ def test_transform_data_for_output_with_delete():
             value = data.pop('value')
             mock_service.process_data.return_value = {
                 'value': value,
-                'status': 'complete' if value is not None else 'deleted'
+                'status': 'complete' if value is not None else 'deleted',
             }
             # Reinject value to similate the deletion.
             if value is None:

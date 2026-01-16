@@ -92,8 +92,6 @@ class TestSubmissionStream(TestCase):
             qual_data = supplemental_details.get('Tell_me_a_story').get('qual')
             self.assertEqual(qual_data, {})
 
-
-
     def _create_asset(self):
         owner = get_user_model().objects.create(username='nlp_owner')
 
