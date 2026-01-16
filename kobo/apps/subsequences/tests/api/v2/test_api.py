@@ -808,7 +808,7 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
         )
         # Should fail because there's nothing to delete
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert 'Deletion target not found' in str(response.data)
+        assert 'Subsequence deletion error' in str(response.data)
 
         # Verify no entry was created
         supplement = SubmissionSupplement.objects.filter(

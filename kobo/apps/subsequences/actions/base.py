@@ -10,7 +10,7 @@ from django.utils import timezone
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.subsequences.utils.time import utc_datetime_to_js_str
-from kobo.apps.subsequences.exceptions import DeletionTargetNotFound
+from kobo.apps.subsequences.exceptions import SubsequenceDeletionError
 from kobo.celery import celery_app
 from kpi.exceptions import UsageLimitExceededException
 from kpi.utils.usage_calculator import ServiceUsageCalculator
@@ -429,7 +429,7 @@ class BaseAction:
                 and action_data.get('value') is None
                 and service_response.get('status') == 'deleted'
             ):
-                raise DeletionTargetNotFound
+                raise SubsequenceDeletionError
             # Otherwise, merge the service response into action_data and keep going
             # the validation process.
             dependency_supplemental_data = action_data.pop(self.DEPENDENCY_FIELD, None)
@@ -444,7 +444,7 @@ class BaseAction:
                 not current_version.get(self.VERSION_DATA_FIELD, {}).get('value')
                 and action_data.get('value') is None
             ):
-                raise DeletionTargetNotFound
+                raise SubsequenceDeletionError
             # When this occurs, no acceptance should be recorded.
             accepted = action_data.get('value') is not None
 

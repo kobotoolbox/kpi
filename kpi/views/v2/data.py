@@ -26,7 +26,7 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
 )
 from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_handler
 from kobo.apps.subsequences.exceptions import (
-    DeletionTargetNotFound,
+    SubsequenceDeletionError,
     InvalidAction,
     InvalidXPath,
     TranscriptionNotFound,
@@ -567,8 +567,8 @@ class DataViewSet(
             raise serializers.ValidationError({'detail': 'Invalid action'})
         except InvalidXPath:
             raise serializers.ValidationError({'detail': 'Invalid question name'})
-        except DeletionTargetNotFound:
-            raise serializers.ValidationError({'detail': 'Deletion target not found'})
+        except SubsequenceDeletionError:
+            raise serializers.ValidationError({'detail': 'Subsequence deletion error'})
         except jsonschema.exceptions.ValidationError:
             raise serializers.ValidationError({'detail': 'Invalid payload'})
         except TranscriptionNotFound:

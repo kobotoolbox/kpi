@@ -6,7 +6,7 @@ class AudioTooLongError(Exception):
     pass
 
 
-class DeletionTargetNotFound(Exception):
+class SubsequenceDeletionError(Exception):
     """Raised when attempting to delete a value that doesn't exist."""
     pass
 
