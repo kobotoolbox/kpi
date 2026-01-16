@@ -97,21 +97,29 @@ def run():
 
             to_remove = [org for org in orgs if org.id != keep.id]
 
+            # Transfer asset if the user is not the owner of the kept org
+            if keep.owner_user_object.pk != uid:
+                transfer_member_data_ownership_to_org.delay(uid)
+
             for org in to_remove:
                 with transaction.atomic():
                     revoke_org_asset_perms(org, [uid])
-                    OrganizationUser.objects.filter(organization_id=org.id).delete()
-                    OrganizationOwner.objects.filter(organization_id=org.id).delete()
-                    org.delete()
-                    logging.info(f'Deleted organization {org.id} for user {uid}')
+                    OrganizationUser.objects.filter(
+                        organization_id=org.id, user_id=uid
+                    ).delete()
+
+                    # If no members remain, delete the organization
+                    if org.organization_users.count() < 1:
+                        OrganizationOwner.objects.filter(
+                            organization_id=org.id
+                        ).delete()
+                        org.delete()
+                        logging.info(f'Deleted organization {org.id} for user {uid}')
 
             # Ensure MMO status is consistent for multi-member orgs
             if keep.mmo_override is False and keep.organization_users.count() > 1:
                 keep.mmo_override = True
                 keep.save(update_fields=['mmo_override'])
-
-            # Transfer asset ownership to the kept organization
-            transfer_member_data_ownership_to_org.delay(uid)
 
         total_processed += len(user_ids)
         logging.info(f'Processed {total_processed} users so far.')
