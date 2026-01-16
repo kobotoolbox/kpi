@@ -12,7 +12,7 @@ class NLPUsageCounter(models.Model):
     user = models.ForeignKey(
         User, related_name='nlp_counters', on_delete=models.CASCADE
     )
-    asset = models.ForeignKey('kpi.asset', null=True, on_delete=models.CASCADE)
+    asset = models.ForeignKey('kpi.Asset', null=True, on_delete=models.CASCADE)
     counters = models.JSONField(default=dict)
     total_asr_seconds = models.PositiveIntegerField(default=0)
     total_mt_characters = models.PositiveIntegerField(default=0)
@@ -21,12 +21,13 @@ class NLPUsageCounter(models.Model):
     class Meta:
         constraints = [
             UniqueConstraint(
-                fields=['date', 'user', 'asset'], name='unique_with_asset'
+                fields=['date', 'user', 'asset'],
+                name='nlpusagecounter_unique_with_asset',
             ),
             UniqueConstraint(
                 fields=['date', 'user'],
                 condition=Q(asset=None),
-                name='unique_without_asset',
+                name='nlpusagecounter_unique_without_asset',
             ),
         ]
         indexes = [
