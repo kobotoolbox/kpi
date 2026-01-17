@@ -9,6 +9,7 @@ from django.conf import settings
 from django.utils import timezone
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.subsequences.exceptions import SubsequenceDeletionError
 from kobo.apps.subsequences.utils.time import utc_datetime_to_js_str
 from kobo.celery import celery_app
 from kpi.exceptions import UsageLimitExceededException
@@ -408,6 +409,11 @@ class BaseAction:
         except IndexError:
             current_version = {}
         self.attach_action_dependency(action_data)
+        # Check if user is trying to delete null data
+        if ('value' in action_data and action_data['value'] is None) and (
+            current_version.get(self.VERSION_DATA_FIELD, {}).get('value') is None
+        ):
+            raise SubsequenceDeletionError
 
         if self.action_class_config.automatic:
             # If the action is automatic, run the external process first.
