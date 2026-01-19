@@ -9,6 +9,7 @@ from rest_framework import status
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.mass_emails.user_queries import get_active_users, get_inactive_users
 from kobo.apps.openrosa.apps.logger.models import Instance
+from kobo.apps.trash_bin.utils import move_to_trash
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.utils.object_permission import get_anonymous_user
@@ -183,3 +184,23 @@ class UserActivityQueryTests(BaseTestCase):
         active_users = get_active_users()
         self.assertFalse(user in inactive_users)
         self.assertTrue(user in active_users)
+
+    def test_users_in_trash_excluded_from_inactive_user_query(self):
+        user = self._create_user('active_submission', self.old_date)
+        superuser = User.objects.create_superuser('super')
+
+        # Ensure the user is inactive with an old asset and submission
+        asset = self._create_asset(user, self.old_date, self.old_date)
+        self._create_submission(user, asset, self.old_date, self.old_date)
+        inactive_users = get_inactive_users()
+        active_users = get_active_users()
+        self.assertTrue(user in inactive_users)
+        self.assertFalse(user in active_users)
+        move_to_trash(
+            request_author=superuser,
+            objects_list=[{'pk': user.pk, 'username': user.username}],
+            grace_period=1,
+            trash_type='user',
+        )
+        inactive_users = get_inactive_users()
+        self.assertFalse(user in inactive_users)

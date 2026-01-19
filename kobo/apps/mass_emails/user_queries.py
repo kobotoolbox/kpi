@@ -68,9 +68,18 @@ def get_inactive_users(days: int = 365) -> QuerySet:
         | (Q(last_login__isnull=True) & Q(date_joined__lt=inactivity_threshold))
     )
     active_user_ids = get_users_with_recent_activity(days=days)
+    trashed_user_ids = get_users_inactive_or_in_trash()
+    excluded_users = active_user_ids | trashed_user_ids
     return inactive_users.exclude(
-        Q(id__in=active_user_ids) | Q(username='AnonymousUser')
+        Q(id__in=excluded_users) | Q(username='AnonymousUser')
     )
+
+
+def get_users_inactive_or_in_trash() -> set[int]:
+    results = User.objects.filter(
+        Q(is_active=False) | Q(trash__isnull=False)
+    ).values_list('pk', flat=True)
+    return set(results)
 
 
 def get_users_with_recent_activity(days: int = 365) -> set[int]:
@@ -177,7 +186,9 @@ def get_users_within_range_of_usage_limit(
             if minimum * limit <= usage < maximum * limit:
                 user_ids.add(user_id)
 
-    return User.objects.filter(id__in=user_ids)
+    inactive_users = get_users_inactive_or_in_trash()
+
+    return User.objects.filter(id__in=user_ids).exclude(id__in=inactive_users)
 
 
 def get_users_over_80_percent_of_storage_limit() -> QuerySet:
