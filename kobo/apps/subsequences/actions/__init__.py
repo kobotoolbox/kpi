@@ -17,3 +17,5 @@ ACTIONS = (
 )
 
 ACTION_IDS_TO_CLASSES = {a.ID: a for a in ACTIONS}
+
+ACTION_IDS = [a.ID for a in ACTIONS]
