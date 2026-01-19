@@ -11,7 +11,7 @@ import Button from '#/components/common/button'
 import LanguageSelector from '#/components/languages/languageSelector'
 import type { LanguageBase, LanguageCode } from '#/components/languages/languagesStore'
 import envStore from '#/envStore'
-import bodyStyles from '../../../common/processingBody.module.scss'
+import bodyStyles from '../../common/processingBody.module.scss'
 import NlpUsageLimitBlockModal from './nlpUsageLimitBlockModal'
 import TransxAutomaticButton from './transxAutomaticButton'
 
