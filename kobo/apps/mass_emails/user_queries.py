@@ -29,6 +29,7 @@ def get_active_users(days: int = 365) -> QuerySet:
     - They have logged in or were recently created
     - An asset they own has been modified or created
     - An asset they own has had submissions
+    - They have submitted data to any asset
 
     :param days: int: Threshold number of days (default: 365 days)
 
@@ -53,7 +54,8 @@ def get_inactive_users(days: int = 365) -> QuerySet:
     A user is considered inactive if:
     - They have not logged in within the given period (or never logged in).
     - They have not modified or created an asset within the given period.
-    - They have not modified or have a submission within the given period.
+    - No asset they own has had new or modified submissions within the given period.
+    - They have not submitted data to any asset within the given period.
 
     Note: Users created within the given period who never logged in are not
     considered inactive.
@@ -89,6 +91,7 @@ def get_users_with_recent_activity(days: int = 365) -> set[int]:
     Recent activity includes:
     - An asset they owned being modified
     - An asset they own having submissions added or modified
+    - Submitting data to any asset
 
     :param days: int: Number of days to determine inactivity (default: 365 days)
 
@@ -101,13 +104,24 @@ def get_users_with_recent_activity(days: int = 365) -> set[int]:
         | Q(date_created__gt=inactivity_threshold)
     ).values_list('owner_id', flat=True)
 
-    # Find users who have active submissions within the given period
+    # Find users whose projects have active submissions within the given period
     active_submission_owners = Instance.objects.filter(
         Q(date_modified__gt=inactivity_threshold)
         | Q(date_created__gt=inactivity_threshold)
     ).values_list('xform__user_id', flat=True)
 
-    return set(active_asset_owners) | set(active_submission_owners)
+    # Find users who have submitted data within the given period
+    active_submitters = Instance.objects.filter(
+        Q(date_modified__gt=inactivity_threshold)
+        | Q(date_created__gt=inactivity_threshold),
+        user__isnull=False,
+    ).values_list('user_id', flat=True)
+
+    return (
+        set(active_asset_owners)
+        | set(active_submission_owners)
+        | set(active_submitters)
+    )
 
 
 def get_users_within_range_of_usage_limit(
