@@ -1,6 +1,6 @@
-@use 'scss/colors';
-@use 'scss/mixins';
-@use 'scss/breakpoints';
+@use "scss/colors";
+@use "scss/mixins";
+@use "scss/breakpoints";
 
 .root {
   @include mixins.centerRowFlex;
@@ -31,8 +31,15 @@
     font-size: 18px;
   }
 
-  .count {
+  .countContainer {
+    display: flex;
+    justify-content: flex-end;
+    min-width: 250px;
     margin-left: 50px;
+  }
+
+  .count {
+    text-align: end;
   }
 
   .column.columnMain {

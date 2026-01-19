@@ -9,8 +9,8 @@ import Button from '#/components/common/button'
 import { goToProcessing } from '#/components/processing/routes.utils'
 import { addDefaultUuidPrefix } from '#/utils'
 import styles from './index.module.scss'
+import { Loader } from '@mantine/core'
 
-// TODO: improve schema, AdvancedFeatureResponse.asset doesn't exist for the above.
 // TODO: improve ...
 
 interface Props {
@@ -19,7 +19,6 @@ interface Props {
   xpath: string
 }
 
-// TODO: Fix loading handling to avoid displaying incorrect counts while loading
 /**
  * Component with the current question label and the UI for switching between
  * submissions and questions. It also has means of leaving Single Processing
@@ -93,24 +92,42 @@ export default function SelectSubmission({ assetUid, currentSubmission, xpath }:
     goToProcessing(assetUid, xpath, queryNext.data.submission._uuid, true)
   }
 
-  console.log("previous submission")
-  console.log(queryPrev.data?.submission._uuid)
+  const isLoading = queryPrev.isPending || queryNext.isPending
+
   return (
     <section className={styles.column}>
       <nav className={styles.submissions}>
-        <div className={styles.count}>
-          <strong>
-            {t('Item')}
-            &nbsp;
-            {prevCount + 1}
-          </strong>
-          &nbsp;
-          {t('of ##total_count##').replace('##total_count##', String(count))}
+        <div className={styles.countContainer}>
+          {isLoading ? (
+            <Loader />
+          ) : (
+            <div className={styles.count}>
+              <strong>
+                {t('Item')}
+                &nbsp;
+                {prevCount + 1}
+              </strong>
+              &nbsp;
+              {t('of ##total_count##').replace('##total_count##', String(count))}
+            </div>
+          )}
         </div>
 
-        <Button type='text' size='s' startIcon='arrow-up' onClick={goPrev} isDisabled={!queryPrev.data?.submission} />
+        <Button
+          type='text'
+          size='s'
+          startIcon='arrow-up'
+          onClick={goPrev}
+          isDisabled={!queryPrev.data?.submission || isLoading}
+        />
 
-        <Button type='text' size='s' endIcon='arrow-down' onClick={goNext} isDisabled={!queryNext.data?.submission} />
+        <Button
+          type='text'
+          size='s'
+          endIcon='arrow-down'
+          onClick={goNext}
+          isDisabled={!queryNext.data?.submission || isLoading}
+        />
       </nav>
     </section>
   )
