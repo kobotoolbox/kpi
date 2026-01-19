@@ -3,6 +3,7 @@ from datetime import timedelta
 
 from ddt import data, ddt, unpack
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.timezone import now
 from rest_framework import status
 
@@ -37,7 +38,7 @@ class UserActivityQueryTests(BaseTestCase):
             username=username, last_login=last_login, date_joined=date_joined
         )
 
-    def _create_asset(self, user, created_at, modified_at):
+    def _create_asset(self, user, created_at=None, modified_at=None):
         """
         Helper function to create an Asset for a given user
         """
@@ -54,9 +55,11 @@ class UserActivityQueryTests(BaseTestCase):
         asset = Asset.objects.create(
             content=content_source_asset, owner=user, asset_type='survey'
         )
+        created = created_at or timezone.now()
+        modified = modified_at or timezone.now()
         asset.deploy(backend='mock', active=True)
         Asset.objects.filter(id=asset.id).update(
-            date_created=created_at, date_modified=modified_at
+            date_created=created, date_modified=modified
         )
         return asset
 
@@ -184,6 +187,39 @@ class UserActivityQueryTests(BaseTestCase):
         active_users = get_active_users()
         self.assertFalse(user in inactive_users)
         self.assertTrue(user in active_users)
+
+    def test_user_becomes_active_after_submitting_to_another_users_form(self):
+        """
+        Test that a user who submits data to another user's form
+        is considered active, even if they don't own any assets
+        """
+        # Create asset with a different owner
+        asset_owner = User.objects.create_user(username='asset_owner')
+        asset = self._create_asset(asset_owner)
+
+        # Create submitter with old login and no assets of their own
+        submitter = self._create_user('submitter', self.old_date)
+
+        # Initially the submitter should be inactive
+        inactive_users = get_inactive_users()
+        active_users = get_active_users()
+        self.assertTrue(submitter in inactive_users)
+        self.assertFalse(submitter in active_users)
+
+        # Create a submission to the asset owner's form
+        uuid_ = uuid.uuid4()
+        submission_data = {
+            'q1': 'answer',
+            'meta/instanceID': f'uuid:{uuid_}',
+            '_submitted_by': submitter.username,
+        }
+        asset.deployment.mock_submissions([submission_data])
+
+        # Now the submitter should be active
+        inactive_users = get_inactive_users()
+        active_users = get_active_users()
+        self.assertFalse(submitter in inactive_users)
+        self.assertTrue(submitter in active_users)
 
     def test_users_in_trash_excluded_from_inactive_user_query(self):
         user = self._create_user('active_submission', self.old_date)
