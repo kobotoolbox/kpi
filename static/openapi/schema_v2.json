@@ -16341,40 +16341,57 @@
                         "type": "string"
                     },
                     "_attachments": {
-                        "type": "object",
-                        "properties": {
-                            "download_url": {
-                                "type": "string",
-                                "format": "uri",
-                                "example": "https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/1"
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "download_url": {
+                                    "type": "string",
+                                    "format": "uri",
+                                    "example": "https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/1"
+                                },
+                                "download_large_url": {
+                                    "type": "string",
+                                    "format": "uri",
+                                    "example": "https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/large/"
+                                },
+                                "download_medium_url": {
+                                    "type": "string",
+                                    "format": "uri",
+                                    "example": "https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/medium/"
+                                },
+                                "download_small_url": {
+                                    "type": "string",
+                                    "format": "uri",
+                                    "example": "https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/small/"
+                                },
+                                "mimetype": {
+                                    "type": "string"
+                                },
+                                "media_file_basename": {
+                                    "type": "string"
+                                },
+                                "filename": {
+                                    "type": "string"
+                                },
+                                "uid": {
+                                    "type": "string"
+                                },
+                                "question_xpath": {
+                                    "type": "string"
+                                },
+                                "is_deleted": {
+                                    "type": "boolean"
+                                }
                             },
-                            "download_large_url": {
-                                "type": "string",
-                                "format": "uri",
-                                "example": "https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/large/"
-                            },
-                            "download_medium_url": {
-                                "type": "string",
-                                "format": "uri",
-                                "example": "https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/medium/"
-                            },
-                            "download_small_url": {
-                                "type": "string",
-                                "format": "uri",
-                                "example": "https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/small/"
-                            },
-                            "mimetype": {
-                                "type": "string"
-                            },
-                            "filename": {
-                                "type": "string"
-                            },
-                            "uid": {
-                                "type": "string"
-                            },
-                            "question_xpath": {
-                                "type": "string"
-                            }
+                            "required": [
+                                "download_url",
+                                "filename",
+                                "media_file_basename",
+                                "mimetype",
+                                "question_xpath",
+                                "uid"
+                            ]
                         },
                         "title": " attachments"
                     },
