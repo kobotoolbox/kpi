@@ -14458,13 +14458,25 @@
                     "username"
                 ]
             },
+            "ActionEnum": {
+                "enum": [
+                    "automatic_google_transcription",
+                    "automatic_google_translation",
+                    "manual_transcription",
+                    "manual_translation",
+                    "manual_qual",
+                    "automatic_bedrock_qual"
+                ],
+                "type": "string",
+                "description": "* `automatic_google_transcription` - automatic_google_transcription\n* `automatic_google_translation` - automatic_google_translation\n* `manual_transcription` - manual_transcription\n* `manual_translation` - manual_translation\n* `manual_qual` - manual_qual\n* `automatic_bedrock_qual` - automatic_bedrock_qual"
+            },
             "AdvancedFeaturePostRequest": {
                 "type": "object",
                 "properties": {
-                    "question_xpath": {
-                        "type": "string"
-                    },
                     "action": {
+                        "$ref": "#/components/schemas/ActionEnum"
+                    },
+                    "question_xpath": {
                         "type": "string"
                     },
                     "params": {
@@ -14490,10 +14502,10 @@
             "AdvancedFeatureResponse": {
                 "type": "object",
                 "properties": {
-                    "question_xpath": {
-                        "type": "string"
-                    },
                     "action": {
+                        "$ref": "#/components/schemas/ActionEnum"
+                    },
+                    "question_xpath": {
                         "type": "string"
                     },
                     "params": {

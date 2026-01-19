@@ -9,12 +9,23 @@ The endpoints are grouped by area of intended use. Each category contains relate
 **General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as "assets".
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
-import type { ActionEnum } from './actionEnum'
-import type { AdvancedFeatureResponseParamsItem } from './advancedFeatureResponseParamsItem'
 
-export interface AdvancedFeatureResponse {
-  action: ActionEnum
-  question_xpath: string
-  params: AdvancedFeatureResponseParamsItem[]
-  uid: string
-}
+/**
+ * * `automatic_google_transcription` - automatic_google_transcription
+ * `automatic_google_translation` - automatic_google_translation
+ * `manual_transcription` - manual_transcription
+ * `manual_translation` - manual_translation
+ * `manual_qual` - manual_qual
+ * `automatic_bedrock_qual` - automatic_bedrock_qual
+ */
+export type ActionEnum = (typeof ActionEnum)[keyof typeof ActionEnum]
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ActionEnum = {
+  automatic_google_transcription: 'automatic_google_transcription',
+  automatic_google_translation: 'automatic_google_translation',
+  manual_transcription: 'manual_transcription',
+  manual_translation: 'manual_translation',
+  manual_qual: 'manual_qual',
+  automatic_bedrock_qual: 'automatic_bedrock_qual',
+} as const
