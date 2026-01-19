@@ -8,8 +8,6 @@ from .fields import (
     DataBulkUpdateResultField,
     DataValidationPayloadField,
     DataValidationStatusField,
-    EmptyListField,
-    EmptyObjectField,
     EnketoEditUrlField,
     EnketoViewUrlField,
 )
@@ -56,15 +54,13 @@ DataResponse = inline_serializer_class(
         ),
         '_xform_id_string': serializers.CharField(),
         '_uuid': serializers.CharField(),
-        '_attachments': serializers.ListField(
-            child=DataAttachmentField()
-        ),
+        '_attachments': serializers.ListField(child=DataAttachmentField()),
         '_status': serializers.CharField(),
         '_geolocation': serializers.ListField(
             child=serializers.FloatField(allow_null=True),
             min_length=2,
             max_length=2,
-            allow_null=True
+            allow_null=True,
         ),
         '_submission_time': serializers.DateTimeField(),
         '_tags': serializers.ListField(child=serializers.CharField()),
@@ -76,9 +72,7 @@ DataResponse = inline_serializer_class(
             allow_null=True,
         ),
         '_submitted_by': serializers.CharField(),
-        '_supplementalDetails': serializers.DictField(
-            allow_null=True
-        ),
+        '_supplementalDetails': serializers.DictField(allow_null=True),
     },
 )
 
