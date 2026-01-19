@@ -16306,27 +16306,20 @@
                         "title": " id"
                     },
                     "formhub/uuid": {
-                        "type": "string"
-                    },
-                    "start": {
                         "type": "string",
-                        "format": "date-time"
-                    },
-                    "end": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "Question_A/Enter_your_question": {
-                        "type": "string"
-                    },
-                    "Question_B": {
-                        "type": "string"
+                        "nullable": true
                     },
                     "__version__": {
                         "type": "string",
                         "title": "  version  "
                     },
                     "meta/instanceID": {
+                        "type": "string"
+                    },
+                    "meta/rootUuid": {
+                        "type": "string"
+                    },
+                    "meta/deprecatedID": {
                         "type": "string"
                     },
                     "_xform_id_string": {
@@ -16337,43 +16330,43 @@
                         "type": "string",
                         "title": " uuid"
                     },
-                    "meta/rootUuid": {
-                        "type": "string"
-                    },
                     "_attachments": {
-                        "type": "object",
-                        "properties": {
-                            "download_url": {
-                                "type": "string",
-                                "format": "uri",
-                                "example": "https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/1"
-                            },
-                            "download_large_url": {
-                                "type": "string",
-                                "format": "uri",
-                                "example": "https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/large/"
-                            },
-                            "download_medium_url": {
-                                "type": "string",
-                                "format": "uri",
-                                "example": "https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/medium/"
-                            },
-                            "download_small_url": {
-                                "type": "string",
-                                "format": "uri",
-                                "example": "https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/small/"
-                            },
-                            "mimetype": {
-                                "type": "string"
-                            },
-                            "filename": {
-                                "type": "string"
-                            },
-                            "uid": {
-                                "type": "string"
-                            },
-                            "question_xpath": {
-                                "type": "string"
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "download_url": {
+                                    "type": "string",
+                                    "format": "uri",
+                                    "example": "https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/1"
+                                },
+                                "download_large_url": {
+                                    "type": "string",
+                                    "format": "uri",
+                                    "example": "https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/large/"
+                                },
+                                "download_medium_url": {
+                                    "type": "string",
+                                    "format": "uri",
+                                    "example": "https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/medium/"
+                                },
+                                "download_small_url": {
+                                    "type": "string",
+                                    "format": "uri",
+                                    "example": "https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/small/"
+                                },
+                                "mimetype": {
+                                    "type": "string"
+                                },
+                                "filename": {
+                                    "type": "string"
+                                },
+                                "uid": {
+                                    "type": "string"
+                                },
+                                "question_xpath": {
+                                    "type": "string"
+                                }
                             }
                         },
                         "title": " attachments"
@@ -16384,8 +16377,15 @@
                     },
                     "_geolocation": {
                         "type": "array",
-                        "items": {},
-                        "title": " geolocation"
+                        "items": {
+                            "type": "number",
+                            "format": "double",
+                            "nullable": true
+                        },
+                        "nullable": true,
+                        "title": " geolocation",
+                        "maxItems": 2,
+                        "minItems": 2
                     },
                     "_submission_time": {
                         "type": "string",
@@ -16394,41 +16394,73 @@
                     },
                     "_tags": {
                         "type": "array",
-                        "items": {},
+                        "items": {
+                            "type": "string"
+                        },
                         "title": " tags"
                     },
-                    "Notes": {
+                    "_notes": {
                         "type": "array",
-                        "items": {}
+                        "items": {
+                            "type": "string"
+                        },
+                        "nullable": true,
+                        "title": " notes"
                     },
                     "_validation_status": {
+                        "type": "object",
+                        "properties": {
+                            "timestamp": {
+                                "type": "integer"
+                            },
+                            "uid": {
+                                "type": "string"
+                            },
+                            "by_whom": {
+                                "type": "string"
+                            },
+                            "color": {
+                                "type": "string"
+                            },
+                            "label": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "by_whom",
+                            "label",
+                            "timestamp",
+                            "uid"
+                        ],
+                        "nullable": true,
                         "title": " validation status"
                     },
                     "_submitted_by": {
                         "type": "string",
                         "title": " submitted by"
+                    },
+                    "_supplementalDetails": {
+                        "type": "object",
+                        "additionalProperties": {},
+                        "nullable": true,
+                        "title": " supplementaldetails"
                     }
                 },
                 "required": [
-                    "Notes",
-                    "Question_A/Enter_your_question",
-                    "Question_B",
-                    "__version__",
                     "_attachments",
                     "_geolocation",
                     "_id",
+                    "_notes",
                     "_status",
                     "_submission_time",
                     "_submitted_by",
+                    "_supplementalDetails",
                     "_tags",
                     "_uuid",
                     "_validation_status",
                     "_xform_id_string",
-                    "end",
-                    "formhub/uuid",
                     "meta/instanceID",
-                    "meta/rootUuid",
-                    "start"
+                    "meta/rootUuid"
                 ]
             },
             "DataStatusesUpdate": {
