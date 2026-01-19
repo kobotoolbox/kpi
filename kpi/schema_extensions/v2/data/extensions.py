@@ -48,7 +48,7 @@ class DataAttachmentFieldExtension(OpenApiSerializerFieldExtension):
                         pk='attWNZNwhXK6HDYVkZJSn9jy',
                         suffix='small',
                     ),
-                    'mimetype': {'type': 'string', 'example': 'audio/mpeg'},
+                    'mimetype': {'type': 'string', 'example': 'image/png'},
                     'media_file_basename': build_basic_type(OpenApiTypes.STR),
                     'filename': build_basic_type(OpenApiTypes.STR),
                     'uid': build_basic_type(OpenApiTypes.STR),

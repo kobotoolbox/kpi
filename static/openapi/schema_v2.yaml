@@ -11715,7 +11715,7 @@ components:
                 example: https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/small/
               mimetype:
                 type: string
-                example: audio/mpeg
+                example: image/png
               media_file_basename:
                 type: string
               filename:
