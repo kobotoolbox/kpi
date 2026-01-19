@@ -14246,11 +14246,6 @@
                     },
                     "price_id": {
                         "type": "string"
-                    },
-                    "quantity": {
-                        "type": "integer",
-                        "minimum": 1,
-                        "default": 1
                     }
                 },
                 "required": [
