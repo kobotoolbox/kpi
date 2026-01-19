@@ -139,7 +139,8 @@ class TranscriptionActionMixin:
         return {
             self.col_type: {
                 'languageCode': version_data['_data']['language'],
-                'value': version_data['_data']['value'],
+                'value': version_data['_data'].get('value'),
+                'regionCode': version_data['_data'].get('locale'),
                 SORT_BY_DATE_FIELD: version_data.get(self.DATE_ACCEPTED_FIELD),
             }
         }
@@ -318,7 +319,7 @@ class TranslationActionMixin(RequiresTranscriptionMixin):
             # return a simplified representation
             result[key] = {
                 'languageCode': version_data['_data']['language'],
-                'value': version_data['_data']['value'],
+                'value': version_data['_data'].get('value'),
                 SORT_BY_DATE_FIELD: version_data.get(self.DATE_ACCEPTED_FIELD),
             }
         return result

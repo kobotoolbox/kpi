@@ -193,6 +193,7 @@ def test_transform_data_for_output():
         'transcript': {
             'value': 'bonjour',
             'languageCode': 'fr',
+            'regionCode': None,
             '_sortByDate': retrieved_data['_versions'][0]['_dateAccepted'],
         },
     }
