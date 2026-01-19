@@ -3,10 +3,9 @@ import React from 'react'
 import cx from 'classnames'
 import Button from '#/components/common/button'
 import { userCan } from '#/components/permissions/utils'
-import type { AnyRowTypeName } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import bodyStyles from '../../../common/processingBody.module.scss'
-import { getProcessedFileLabel, getQuestionName } from '../common/utils'
+import { getProcessedFileLabel, getQuestionType } from '../common/utils'
 
 interface Props {
   asset: AssetResponse
@@ -20,7 +19,7 @@ export default function StepBegin({ onNext, asset, questionXpath }: Props) {
       <header className={bodyStyles.header}>
         {t('This ##type## does not have a transcript yet').replace(
           '##type##',
-          getProcessedFileLabel(getQuestionName(asset, questionXpath) as AnyRowTypeName), // TODO: potential bug was always here.
+          getProcessedFileLabel(getQuestionType(asset, questionXpath)),
         )}
       </header>
 

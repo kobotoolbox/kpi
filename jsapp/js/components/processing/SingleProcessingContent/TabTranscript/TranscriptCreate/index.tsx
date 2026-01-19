@@ -3,12 +3,11 @@ import React, { useState } from 'react'
 import cx from 'classnames'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { LanguageCode } from '#/components/languages/languagesStore'
-import type { AnyRowTypeName } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import bodyStyles from '../../../common/processingBody.module.scss'
 import StepSelectLanguage from '../../components/StepSelectLanguage'
-import { getProcessedFileLabel, getQuestionName } from '../common/utils'
+import { getProcessedFileLabel, getQuestionType } from '../common/utils'
 import { getAttachmentForProcessing } from '../transcript.utils'
 import StepBegin from './StepBegin'
 import StepCreateAutomated from './StepCreateAutomated'
@@ -26,7 +25,7 @@ export default function TranscriptCreate({ asset, questionXpath, submission }: P
 
   const languageSelectorTitle = t('Please select the original language of the ##type##').replace(
     '##type##',
-    getProcessedFileLabel(getQuestionName(asset, questionXpath) as AnyRowTypeName), // TODO: potential bug was always here.
+    getProcessedFileLabel(getQuestionType(asset, questionXpath)),
   )
   const attachment = getAttachmentForProcessing(asset, questionXpath, submission)
 
