@@ -1,15 +1,15 @@
 import React from 'react'
 
-import type { _DataSupplementResponseOneOfOneOfAutomaticGoogleTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfOneOfAutomaticGoogleTranscriptionVersionsItem'
-import type { _DataSupplementResponseOneOfOneOfManualTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfOneOfManualTranscriptionVersionsItem'
+import type { _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem'
+import type { _DataSupplementResponseOneOfManualTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualTranscriptionVersionsItem'
 import { AsyncLanguageDisplayLabel } from '#/components/languages/languagesUtils'
 import bodyStyles from '../../../common/processingBody.module.scss'
 import TransxDate from '../../components/transxDate'
 
 interface Props {
   transcriptVersion:
-    | _DataSupplementResponseOneOfOneOfManualTranscriptionVersionsItem
-    | _DataSupplementResponseOneOfOneOfAutomaticGoogleTranscriptionVersionsItem
+    | _DataSupplementResponseOneOfManualTranscriptionVersionsItem
+    | _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem
 }
 
 /** We have this as separate component, because we use it in two places. */

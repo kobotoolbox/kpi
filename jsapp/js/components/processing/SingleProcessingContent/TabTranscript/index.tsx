@@ -1,10 +1,10 @@
 import React from 'react'
 import { useParams } from 'react-router-dom'
-import type { _DataSupplementResponseOneOfOneOfAutomaticGoogleTranscriptionVersionsItemData } from '#/api/models/_dataSupplementResponseOneOfOneOfAutomaticGoogleTranscriptionVersionsItemData'
-import type { _DataSupplementResponseOneOfOneOfAutomaticGoogleTranscriptionVersionsItemDataOneOfThree } from '#/api/models/_dataSupplementResponseOneOfOneOfAutomaticGoogleTranscriptionVersionsItemDataOneOfThree'
-import type { _DataSupplementResponseOneOfOneOfManualTranscriptionVersionsItemData } from '#/api/models/_dataSupplementResponseOneOfOneOfManualTranscriptionVersionsItemData'
+import type { _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItemData } from '#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItemData'
+import type { _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItemDataOneOfThree } from '#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItemDataOneOfThree'
+import type { _DataSupplementResponseOneOfManualTranscriptionVersionsItemData } from '#/api/models/_dataSupplementResponseOneOfManualTranscriptionVersionsItemData'
 import type { DataResponse } from '#/api/models/dataResponse'
-import type { DataSupplementResponseOneOfOneOf } from '#/api/models/dataSupplementResponseOneOfOneOf'
+import type { DataSupplementResponseOneOf } from '#/api/models/dataSupplementResponseOneOf'
 import {
   getAssetsDataListQueryKey,
   getAssetsDataSupplementRetrieveQueryKey,
@@ -17,13 +17,13 @@ import TranscriptCreate from './TranscriptCreate'
 import TranscriptEdit from './TranscriptEdit'
 
 function isTranscriptDataExisting(
-  transcriptData: _DataSupplementResponseOneOfOneOfAutomaticGoogleTranscriptionVersionsItemData,
-): transcriptData is _DataSupplementResponseOneOfOneOfAutomaticGoogleTranscriptionVersionsItemDataOneOfThree
+  transcriptData: _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItemData,
+): transcriptData is _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItemDataOneOfThree
 function isTranscriptDataExisting(
-  transcriptData: Partial<_DataSupplementResponseOneOfOneOfManualTranscriptionVersionsItemData>,
-): transcriptData is _DataSupplementResponseOneOfOneOfManualTranscriptionVersionsItemData & {value: string}
+  transcriptData: Partial<_DataSupplementResponseOneOfManualTranscriptionVersionsItemData>,
+): transcriptData is _DataSupplementResponseOneOfManualTranscriptionVersionsItemData & {value: string}
 function isTranscriptDataExisting(
-  transcriptData: _DataSupplementResponseOneOfOneOfAutomaticGoogleTranscriptionVersionsItemData | Partial<_DataSupplementResponseOneOfOneOfManualTranscriptionVersionsItemData>,
+  transcriptData: _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItemData | Partial<_DataSupplementResponseOneOfManualTranscriptionVersionsItemData>,
 ) {
   return 'value' in transcriptData && typeof transcriptData.value === 'string'
 }
@@ -70,7 +70,7 @@ export default function TranscriptTab() {
 
   const questionSupplement =
     querySupplement.data?.status === 200
-      ? (querySupplement.data.data[xpath!] as DataSupplementResponseOneOfOneOf)
+      ? (querySupplement.data.data[xpath!] as DataSupplementResponseOneOf)
       : undefined
 
   // Backend said, that latest version is the "real version" and to discared the rest.

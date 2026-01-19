@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
-import type { _DataSupplementResponseOneOfOneOfAutomaticGoogleTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfOneOfAutomaticGoogleTranscriptionVersionsItem'
-import type { _DataSupplementResponseOneOfOneOfManualTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfOneOfManualTranscriptionVersionsItem'
+import type { _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem'
+import type { _DataSupplementResponseOneOfManualTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualTranscriptionVersionsItem'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { AssetResponse } from '#/dataInterface'
 import bodyStyles from '../../../common/processingBody.module.scss'
@@ -13,8 +13,8 @@ interface Props {
   questionXpath: string
   submission: DataResponse
   transcriptVersion:
-    | _DataSupplementResponseOneOfOneOfManualTranscriptionVersionsItem
-    | _DataSupplementResponseOneOfOneOfAutomaticGoogleTranscriptionVersionsItem
+    | _DataSupplementResponseOneOfManualTranscriptionVersionsItem
+    | _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem
 }
 
 export default function TranscriptEdit({ asset, questionXpath, submission, transcriptVersion }: Props) {

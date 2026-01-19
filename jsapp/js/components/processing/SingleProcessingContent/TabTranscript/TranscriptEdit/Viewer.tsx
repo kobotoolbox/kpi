@@ -1,6 +1,6 @@
 import React from 'react'
-import type { _DataSupplementResponseOneOfOneOfAutomaticGoogleTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfOneOfAutomaticGoogleTranscriptionVersionsItem'
-import type { _DataSupplementResponseOneOfOneOfManualTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfOneOfManualTranscriptionVersionsItem'
+import type { _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem'
+import type { _DataSupplementResponseOneOfManualTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualTranscriptionVersionsItem'
 import type { DataResponse } from '#/api/models/dataResponse'
 import { queryClient } from '#/api/queryClient'
 import { getAssetsDataSupplementRetrieveQueryKey, useAssetsDataSupplementPartialUpdate } from '#/api/react-query/survey-data'
@@ -17,8 +17,8 @@ import HeaderLanguageAndDate from './headerLanguageAndDate'
 
 interface Props {
   transcriptVersion:
-    | _DataSupplementResponseOneOfOneOfManualTranscriptionVersionsItem
-    | _DataSupplementResponseOneOfOneOfAutomaticGoogleTranscriptionVersionsItem
+    | _DataSupplementResponseOneOfManualTranscriptionVersionsItem
+    | _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem
   asset: AssetResponse
   questionXpath: string
   submission: DataResponse

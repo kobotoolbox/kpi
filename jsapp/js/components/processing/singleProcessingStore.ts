@@ -3,10 +3,10 @@ import alertify from 'alertifyjs'
 import Reflux from 'reflux'
 import { actions } from '#/actions'
 import { destroyConfirm } from '#/alertify'
-import type { _DataSupplementResponseOneOfOneOfAutomaticGoogleTranscriptionVersionsItemDataOneOfThree } from '#/api/models/_dataSupplementResponseOneOfOneOfAutomaticGoogleTranscriptionVersionsItemDataOneOfThree'
-import type { _DataSupplementResponseOneOfOneOfManualTranscriptionVersionsItemData } from '#/api/models/_dataSupplementResponseOneOfOneOfManualTranscriptionVersionsItemData'
+import type { _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItemDataOneOfThree } from '#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItemDataOneOfThree'
+import type { _DataSupplementResponseOneOfManualTranscriptionVersionsItemData } from '#/api/models/_dataSupplementResponseOneOfManualTranscriptionVersionsItemData'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
-import type { DataSupplementResponseOneOfOneOf } from '#/api/models/dataSupplementResponseOneOfOneOf'
+import type { DataSupplementResponseOneOf } from '#/api/models/dataSupplementResponseOneOf'
 import assetStore from '#/assetStore'
 import {
   findRowByXpath,
@@ -478,7 +478,7 @@ class SingleProcessingStore extends Reflux.Store {
   // have confirmed these code changes accomplish what they need to.
   private onFetchProcessingDataCompleted(response: DataSupplementResponse) {
     this.data.transcript = undefined
-    const currentQuestionData = response[this.currentQuestionXpath] as DataSupplementResponseOneOfOneOf
+    const currentQuestionData = response[this.currentQuestionXpath] as DataSupplementResponseOneOf
     if (currentQuestionData) {
       const manualVersions = currentQuestionData?.manual_transcription?._versions
       const acceptedAutomaticVersions = currentQuestionData?.automatic_google_transcription?._versions.filter(
@@ -488,8 +488,8 @@ class SingleProcessingStore extends Reflux.Store {
       const versionToDisplay = allVersions.sort((a, b) => b._dateAccepted!.localeCompare(a._dateAccepted!))[0]
       if (versionToDisplay) {
         const versionToDisplayData = versionToDisplay._data as
-          | _DataSupplementResponseOneOfOneOfAutomaticGoogleTranscriptionVersionsItemDataOneOfThree
-          | _DataSupplementResponseOneOfOneOfManualTranscriptionVersionsItemData
+          | _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItemDataOneOfThree
+          | _DataSupplementResponseOneOfManualTranscriptionVersionsItemData
 
         if (versionToDisplayData.value) {
           const transcriptionData = {

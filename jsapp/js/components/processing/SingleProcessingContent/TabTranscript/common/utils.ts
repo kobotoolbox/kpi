@@ -1,5 +1,5 @@
-import type { _DataSupplementResponseOneOfOneOfAutomaticGoogleTranscriptionVersionsItem } from "#/api/models/_dataSupplementResponseOneOfOneOfAutomaticGoogleTranscriptionVersionsItem"
-import type { _DataSupplementResponseOneOfOneOfManualTranscriptionVersionsItem } from "#/api/models/_dataSupplementResponseOneOfOneOfManualTranscriptionVersionsItem"
+import type { _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem } from "#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem"
+import type { _DataSupplementResponseOneOfManualTranscriptionVersionsItem } from "#/api/models/_dataSupplementResponseOneOfManualTranscriptionVersionsItem"
 import { findRowByXpath, getRowName } from "#/assetUtils"
 import { type AnyRowTypeName, QUESTION_TYPES } from "#/constants"
 import type { AssetResponse } from "#/dataInterface"
@@ -14,9 +14,9 @@ export enum ADVANCED_FEATURES_ACTION {
 
 export const isTranscriptVersionAutomatic = (
   transcriptVersion:
-    | _DataSupplementResponseOneOfOneOfManualTranscriptionVersionsItem
-    | _DataSupplementResponseOneOfOneOfAutomaticGoogleTranscriptionVersionsItem,
-): transcriptVersion is _DataSupplementResponseOneOfOneOfAutomaticGoogleTranscriptionVersionsItem => {
+    | _DataSupplementResponseOneOfManualTranscriptionVersionsItem
+    | _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem,
+): transcriptVersion is _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem => {
   return 'status' in transcriptVersion._data
 }
 
