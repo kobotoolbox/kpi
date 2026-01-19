@@ -1,8 +1,5 @@
 import React from 'react'
 import { useParams } from 'react-router-dom'
-import type { _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItemData } from '#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItemData'
-import type { _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItemDataOneOfThree } from '#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItemDataOneOfThree'
-import type { _DataSupplementResponseOneOfManualTranscriptionVersionsItemData } from '#/api/models/_dataSupplementResponseOneOfManualTranscriptionVersionsItemData'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponseOneOf } from '#/api/models/dataSupplementResponseOneOf'
 import {
@@ -13,20 +10,9 @@ import {
 } from '#/api/react-query/survey-data'
 import assetStore from '#/assetStore'
 import { addDefaultUuidPrefix } from '#/utils'
+import { isSupplementVersionWithValue } from '../../common/utils'
 import TranscriptCreate from './TranscriptCreate'
 import TranscriptEdit from './TranscriptEdit'
-
-function isTranscriptDataExisting(
-  transcriptData: _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItemData,
-): transcriptData is _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItemDataOneOfThree
-function isTranscriptDataExisting(
-  transcriptData: Partial<_DataSupplementResponseOneOfManualTranscriptionVersionsItemData>,
-): transcriptData is _DataSupplementResponseOneOfManualTranscriptionVersionsItemData & {value: string}
-function isTranscriptDataExisting(
-  transcriptData: _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItemData | Partial<_DataSupplementResponseOneOfManualTranscriptionVersionsItemData>,
-) {
-  return 'value' in transcriptData && typeof transcriptData.value === 'string'
-}
 
 interface RouteParams extends Record<string, string | undefined> {
   uid: string
@@ -83,10 +69,15 @@ export default function TranscriptTab() {
 
   console.log('TranscriptTab', transcriptVersion)
 
-  if (
-    transcriptVersion && !!isTranscriptDataExisting(transcriptVersion._data)
-  ) {
-    return <TranscriptEdit asset={asset} questionXpath={xpath} submission={currentSubmission} transcriptVersion={transcriptVersion} />
+  if (transcriptVersion && isSupplementVersionWithValue(transcriptVersion)) {
+    return (
+      <TranscriptEdit
+        asset={asset}
+        questionXpath={xpath}
+        submission={currentSubmission}
+        transcriptVersion={transcriptVersion}
+      />
+    )
   } else {
     return <TranscriptCreate asset={asset} questionXpath={xpath} submission={currentSubmission} />
   }

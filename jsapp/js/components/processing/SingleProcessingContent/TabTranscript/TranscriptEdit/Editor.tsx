@@ -15,11 +15,11 @@ import {
 import Button from '#/components/common/button'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { userCan } from '#/components/permissions/utils'
-import { SUBSEQUENCES_SCHEMA_VERSION } from '#/components/processing/common/constants'
 import type { AssetResponse } from '#/dataInterface'
 import { removeDefaultUuidPrefix } from '#/utils'
+import { ADVANCED_FEATURES_ACTION, SUBSEQUENCES_SCHEMA_VERSION } from '../../../common/constants'
 import bodyStyles from '../../../common/processingBody.module.scss'
-import { ADVANCED_FEATURES_ACTION, isTranscriptVersionAutomatic } from '../common/utils'
+import { isTranscriptVersionAutomatic } from '../common/utils'
 import HeaderLanguageAndDate from './headerLanguageAndDate'
 
 interface Props {

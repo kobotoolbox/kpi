@@ -7,37 +7,34 @@ import {
   type OrganizationsServiceUsageSummary,
   useOrganizationsServiceUsageSummary,
 } from '#/account/usage/useOrganizationsServiceUsageSummary'
-import type { DataResponse } from '#/api/models/dataResponse'
 import Button from '#/components/common/button'
 import LanguageSelector from '#/components/languages/languageSelector'
 import type { LanguageBase, LanguageCode } from '#/components/languages/languagesStore'
-import type { AnyRowTypeName } from '#/constants'
-import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import bodyStyles from '../../../common/processingBody.module.scss'
-import NlpUsageLimitBlockModal from '../../components/nlpUsageLimitBlockModal'
-import TransxAutomaticButton from '../../components/transxAutomaticButton'
-import { getProcessedFileLabel, getQuestionName } from '../common/utils'
-import { getAttachmentForProcessing } from '../transcript.utils'
+import NlpUsageLimitBlockModal from './nlpUsageLimitBlockModal'
+import TransxAutomaticButton from './transxAutomaticButton'
 
 interface Props {
-  asset: AssetResponse
-  questionXpath: string
   onBack: () => void
   onNext: (step: 'manual' | 'automatic') => void
   languageCode: LanguageCode | null
   setLanguageCode: (languageCode: LanguageCode | null) => void
-  submission: DataResponse & Record<string, string>
+  hiddenLanguages?: LanguageCode[]
+  suggestedLanguages: LanguageCode[]
+  titleOverride: string
+  disableAutomatic: boolean
 }
 
 export default function StepSelectLanguage({
-  asset,
-  questionXpath,
   onBack,
   onNext,
   languageCode,
   setLanguageCode,
-  submission,
+  hiddenLanguages = [],
+  suggestedLanguages,
+  titleOverride,
+  disableAutomatic,
 }: Props) {
   const { data: serviceUsageData } = useOrganizationsServiceUsageSummary()
   const [isLimitBlockModalOpen, setIsLimitBlockModalOpen] = useState<boolean>(false)
@@ -78,19 +75,15 @@ export default function StepSelectLanguage({
     }
   }
 
-  const languageSelectorTitle = t('Please select the original language of the ##type##').replace(
-    '##type##',
-    getProcessedFileLabel(getQuestionName(asset, questionXpath) as AnyRowTypeName), // TODO: potential bug was always here.
-  )
   const isAutoEnabled = envStore.data.asr_mt_features_enabled
-  const attachment = getAttachmentForProcessing(asset, questionXpath, submission)
 
   return (
     <div className={cx(bodyStyles.root, bodyStyles.stepConfig)}>
       <LanguageSelector
-        titleOverride={languageSelectorTitle}
+        titleOverride={titleOverride}
         onLanguageChange={handleChangeLanguage}
-        suggestedLanguages={asset.advanced_features?.transcript?.languages ?? []}
+        hiddenLanguages={hiddenLanguages}
+        suggestedLanguages={suggestedLanguages}
       />
 
       <footer className={bodyStyles.footer}>
@@ -108,7 +101,7 @@ export default function StepSelectLanguage({
             onClick={handleClickNextAutomatic}
             selectedLanguage={languageCode}
             type='transcript'
-            disabled={typeof attachment === 'string' || attachment.is_deleted}
+            disabled={disableAutomatic}
           />
           <NlpUsageLimitBlockModal
             isModalOpen={isLimitBlockModalOpen}

@@ -3,12 +3,16 @@ import React, { useState } from 'react'
 import cx from 'classnames'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { LanguageCode } from '#/components/languages/languagesStore'
+import type { AnyRowTypeName } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
+import envStore from '#/envStore'
 import bodyStyles from '../../../common/processingBody.module.scss'
+import StepSelectLanguage from '../../components/StepSelectLanguage'
+import { getProcessedFileLabel, getQuestionName } from '../common/utils'
+import { getAttachmentForProcessing } from '../transcript.utils'
 import StepBegin from './StepBegin'
 import StepCreateAutomated from './StepCreateAutomated'
 import StepCreateManual from './StepCreateManual'
-import StepSelectLanguage from './StepSelectLanguage'
 
 interface Props {
   asset: AssetResponse
@@ -20,7 +24,11 @@ export default function TranscriptCreate({ asset, questionXpath, submission }: P
   const [step, setStep] = useState<'begin' | 'language' | 'manual' | 'automatic'>('begin')
   const [languageCode, setLanguageCode] = useState<null | LanguageCode>(null)
 
-  console.log('TranscriptCreate', asset, questionXpath, submission)
+  const languageSelectorTitle = t('Please select the original language of the ##type##').replace(
+    '##type##',
+    getProcessedFileLabel(getQuestionName(asset, questionXpath) as AnyRowTypeName), // TODO: potential bug was always here.
+  )
+  const attachment = getAttachmentForProcessing(asset, questionXpath, submission)
 
   return (
     <div className={cx(bodyStyles.root, bodyStyles.stepBegin)}>
@@ -31,9 +39,11 @@ export default function TranscriptCreate({ asset, questionXpath, submission }: P
           onNext={(step: 'manual' | 'automatic') => setStep(step)}
           languageCode={languageCode}
           setLanguageCode={setLanguageCode}
-          asset={asset}
-          questionXpath={questionXpath}
-          submission={submission}
+          suggestedLanguages={asset.advanced_features?.transcript?.languages ?? []}
+          titleOverride={languageSelectorTitle}
+          disableAutomatic={
+            !envStore.data.asr_mt_features_enabled || typeof attachment === 'string' || !!attachment.is_deleted
+          }
         />
       )}
       {step === 'manual' && !!languageCode && (
@@ -42,7 +52,8 @@ export default function TranscriptCreate({ asset, questionXpath, submission }: P
           languageCode={languageCode}
           asset={asset}
           questionXpath={questionXpath}
-          submission={submission} />
+          submission={submission}
+        />
       )}
       {step === 'automatic' && !!languageCode && (
         <StepCreateAutomated

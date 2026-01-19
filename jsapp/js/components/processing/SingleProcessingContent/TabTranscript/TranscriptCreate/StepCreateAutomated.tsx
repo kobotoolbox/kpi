@@ -17,11 +17,10 @@ import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import type { LanguageCode, LocaleCode } from '#/components/languages/languagesStore'
 import RegionSelector from '#/components/languages/regionSelector'
-import { SUBSEQUENCES_SCHEMA_VERSION } from '#/components/processing/common/constants'
 import type { AssetResponse } from '#/dataInterface'
 import { getAudioDuration, notify, removeDefaultUuidPrefix } from '#/utils'
+import { ADVANCED_FEATURES_ACTION, SUBSEQUENCES_SCHEMA_VERSION } from '../../../common/constants'
 import bodyStyles from '../../../common/processingBody.module.scss'
-import { ADVANCED_FEATURES_ACTION } from '../common/utils'
 import { getAttachmentForProcessing, secondsToTranscriptionEstimate } from '../transcript.utils'
 
 /** Until the estimate is loaded we display dot dot dot. */
@@ -187,6 +186,7 @@ export default function StepCreateAutomated({ asset, questionXpath, languageCode
       <header className={bodyStyles.header}>{t('Automatic transcription of audio file from')}</header>
 
       <RegionSelector
+      isDisabled={anyPending}
         serviceCode='goog'
         serviceType='transcription'
         rootLanguage={languageCode}
