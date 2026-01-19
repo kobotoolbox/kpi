@@ -1,8 +1,9 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 
 import cx from 'classnames'
 import Button from '#/components/common/button'
 import KoboSelect from '#/components/common/koboSelect'
+import type { KoboSelectOption } from '#/components/common/koboSelect'
 import MultiCheckbox from '#/components/common/multiCheckbox'
 import type { MultiCheckboxItem } from '#/components/common/multiCheckbox'
 import ToggleSwitch from '#/components/common/toggleSwitch'
@@ -15,26 +16,52 @@ import KoboModalHeader from '#/components/modals/koboModalHeader'
 import { getActiveTab } from '#/components/processing/routes.utils'
 import singleProcessingStore, { StaticDisplays } from '#/components/processing/singleProcessingStore'
 import type { DisplaysList } from '#/components/processing/singleProcessingStore'
+import { XML_VALUES_OPTION_VALUE } from '#/constants'
+import type { AssetResponse } from '#/dataInterface'
 import styles from './sidebarDisplaySettings.module.scss'
 
 interface SidebarDisplaySettingsProps {
+  asset: AssetResponse
   selectedDisplays: DisplaysList
   setSelectedDisplays: (displays: DisplaysList) => void
   hiddenQuestions: string[]
   setHiddenQuestions: (questions: string[]) => void
+  questionLabelLanguage: LanguageCode | string
+  setQuestionLabelLanguage: (languageCode: LanguageCode | string) => void
 }
 
 export default function SidebarDisplaySettings({
+  asset,
   selectedDisplays,
   setSelectedDisplays,
   hiddenQuestions,
   setHiddenQuestions,
+  questionLabelLanguage,
+  setQuestionLabelLanguage,
 }: SidebarDisplaySettingsProps) {
   const [store] = useState(() => singleProcessingStore)
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
   const [labelLanguage, setLabelLanguage] = useState<LanguageCode | string>(store.getCurrentlyDisplayedLanguage())
 
-  const displayedLanguageList = store.getDisplayedLanguagesList()
+  const assetLanguageOptions = useMemo<KoboSelectOption[]>(() => {
+    const languageOptions: KoboSelectOption[] = [{ label: t('XML values'), value: XML_VALUES_OPTION_VALUE }]
+
+    const baseLabel = t('Labels')
+    const languages = asset?.summary?.languages
+
+    if (languages && languages.length > 0) {
+      languages.forEach((language) => {
+        languageOptions.push({
+          label: language !== null ? `${baseLabel} - ${language}` : baseLabel,
+          value: language ?? '',
+        })
+      })
+    } else {
+      languageOptions.push({ label: baseLabel, value: '' })
+    }
+
+    return languageOptions
+  }, [asset?.summary?.languages])
 
   const activeTab = getActiveTab()
 
@@ -176,11 +203,11 @@ export default function SidebarDisplaySettings({
                 name='displayedLanguage'
                 type='outline'
                 size='s'
-                options={displayedLanguageList}
-                selectedOption={labelLanguage}
+                options={assetLanguageOptions}
+                selectedOption={questionLabelLanguage}
                 onChange={(languageCode) => {
                   if (languageCode !== null) {
-                    setLabelLanguage(languageCode)
+                    setQuestionLabelLanguage(languageCode)
                   }
                 }}
               />

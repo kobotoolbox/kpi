@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 
 import DocumentTitle from 'react-document-title'
 import { unstable_usePrompt as usePrompt } from 'react-router-dom'
@@ -16,6 +16,7 @@ import CenteredMessage from '#/components/common/centeredMessage.component'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { UNSAVED_CHANGES_WARNING } from '#/protector/protectorConstants'
 import { addDefaultUuidPrefix } from '#/utils'
+import type { LanguageCode } from '../languages/languagesStore'
 import SingleProcessingContent from './SingleProcessingContent'
 import SingleProcessingHeader from './SingleProcessingHeader'
 import SingleProcessingSidebar from './SingleProcessingSidebar'
@@ -42,14 +43,17 @@ const Prompt = () => {
  * everything with nice spinners.
  */
 export default function SingleProcessingRoute({ params: routeParams }: { params: RouteParams }) {
+  // This is for determining the translation we use for survey questions,
+  // so it is separate from processing languages.
+  const [questionLabelLanguage, setQuestionLabelLanguage] = useState<LanguageCode | string>('')
   const { uid, xpath, submissionEditId } = routeParams
+
   if (!uid || !xpath || !submissionEditId) return
 
   // NOTE: This route component is being loaded with PermProtectedRoute so
   // we know that the call to backend to get asset was already made, and
   // thus we can safely assume asset data is present :happy_face:
   const asset = uid ? assetStore.getAsset(uid) : null
-  console.log(asset)
 
   // TODO: remove, for now just logging for debugging.
   const queryAF = useAssetsAdvancedFeaturesList(uid!, {
@@ -78,10 +82,6 @@ export default function SingleProcessingRoute({ params: routeParams }: { params:
     },
   })
 
-  console.log(queryAF.data)
-  console.log(querySupplement.data)
-  console.log(querySubmission.data)
-
   // TODO OpenAPI: DataResponse should be indexable.
   const currentSubmission =
     querySubmission.data?.status === 200 && querySubmission.data.data.results.length > 0
@@ -108,7 +108,13 @@ export default function SingleProcessingRoute({ params: routeParams }: { params:
         </section>
 
         <section className={styles.bottomRight}>
-          <SingleProcessingSidebar submissionId={submissionEditId!} asset={asset} xpath={xpath!} />
+          <SingleProcessingSidebar
+            submissionId={submissionEditId!}
+            asset={asset}
+            xpath={xpath!}
+            questionLabelLanguage={questionLabelLanguage}
+            setQuestionLabelLanguage={setQuestionLabelLanguage}
+          />
         </section>
       </React.Fragment>
     )
@@ -134,9 +140,10 @@ export default function SingleProcessingRoute({ params: routeParams }: { params:
 
         <section className={styles.top}>
           <SingleProcessingHeader
+            asset={asset}
             currentSubmission={currentSubmission}
             currentSubmissionUid={submissionEditId}
-            asset={asset}
+            questionLabelLanguage={questionLabelLanguage}
             xpath={xpath!}
           />
         </section>

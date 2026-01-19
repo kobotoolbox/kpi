@@ -1,8 +1,9 @@
 import React, { useMemo } from 'react'
 
 import classNames from 'classnames'
-import { getRowName, getRowTypeIcon, getTranslatedRowLabel } from '#/assetUtils'
+import { getLanguageIndex, getRowName, getRowTypeIcon, getTranslatedRowLabel } from '#/assetUtils'
 import KoboSelect from '#/components/common/koboSelect'
+import type { LanguageCode } from '#/components/languages/languagesStore'
 import { goToProcessing } from '#/components/processing/routes.utils'
 import { QUESTION_TYPES } from '#/constants'
 import type { AssetResponse, SurveyRow } from '#/dataInterface'
@@ -11,6 +12,7 @@ import styles from './index.module.scss'
 interface Props {
   currentSubmissionUid: string
   asset: AssetResponse
+  questionLabelLanguage: LanguageCode | string
   xpath: string
 }
 
@@ -19,7 +21,7 @@ interface Props {
  * submissions and questions. It also has means of leaving Single Processing
  * via "DONE" button.
  */
-export default function SelectQuestion({ asset, currentSubmissionUid, xpath }: Props) {
+export default function SelectQuestion({ asset, currentSubmissionUid, questionLabelLanguage, xpath }: Props) {
   const onQuestionSelectChange = (newXpath: string | null) => {
     if (newXpath !== null) {
       goToProcessing(asset.uid, xpath, currentSubmissionUid, true)
@@ -31,7 +33,7 @@ export default function SelectQuestion({ asset, currentSubmissionUid, xpath }: P
    */
   const options = useMemo(() => {
     const assetContent = asset.content
-    const languageIndex = 0 // TODO: getLanguageIndex(asset, singleProcessingStore.getCurrentlyDisplayedLanguage())
+    const languageIndex = getLanguageIndex(asset, questionLabelLanguage)
 
     if (!assetContent?.survey) {
       return []
@@ -48,7 +50,7 @@ export default function SelectQuestion({ asset, currentSubmissionUid, xpath }: P
           icon: getRowTypeIcon(question.type),
         }
       })
-  }, [asset.content])
+  }, [asset.content, questionLabelLanguage])
 
   return (
     <section className={classNames(styles.column, styles.columnMain)}>

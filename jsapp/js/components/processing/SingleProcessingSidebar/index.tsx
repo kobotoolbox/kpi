@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 
+import type { LanguageCode } from '#/components/languages/languagesStore'
 import type { AssetResponse } from '#/dataInterface'
 import { getActiveTab } from '../routes.utils'
 import singleProcessingStore, { StaticDisplays, type DisplaysList } from '../singleProcessingStore'
@@ -13,9 +14,17 @@ interface ProcessingSidebarProps {
   xpath: string
   submissionId: string
   asset: AssetResponse
+  questionLabelLanguage: LanguageCode | string
+  setQuestionLabelLanguage: (LanguageCode: LanguageCode | string) => void
 }
 
-export default function ProcessingSidebar({ asset, submissionId, xpath }: ProcessingSidebarProps) {
+export default function ProcessingSidebar({
+  asset,
+  submissionId,
+  xpath,
+  questionLabelLanguage,
+  setQuestionLabelLanguage,
+}: ProcessingSidebarProps) {
   const [store] = useState(() => singleProcessingStore)
 
   const activeTab = getActiveTab()
@@ -42,10 +51,13 @@ export default function ProcessingSidebar({ asset, submissionId, xpath }: Proces
   return (
     <div className={styles.root}>
       <SidebarDisplaySettings
+        asset={asset}
         selectedDisplays={selectedDisplays}
         setSelectedDisplays={setSelectedDisplays}
         hiddenQuestions={hiddenQuestions}
         setHiddenQuestions={setHiddenQuestions}
+        questionLabelLanguage={questionLabelLanguage}
+        setQuestionLabelLanguage={setQuestionLabelLanguage}
       />
       <div className={styles.displays}>
         {Array.from(translations).map((translation) => {
