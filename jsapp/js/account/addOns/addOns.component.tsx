@@ -140,7 +140,7 @@ export default function addOns() {
         <div className={styles.wrapper}>
           <table className={styles.table}>
             <caption className={styles.caption}>
-              <label className={styles.header}>{t('available add-ons')}</label>
+              <label className={styles.addOnsHeader}>{t('available add-ons')}</label>
               <p>
                 {t(
                   `You can add add-ons to increase your usage caps as needed when you are close to or over your plan's limits.`,
