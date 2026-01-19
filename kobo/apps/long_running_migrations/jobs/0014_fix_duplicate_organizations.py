@@ -99,7 +99,7 @@ def run():
 
             # Transfer asset if the user is not the owner of the kept org
             if keep.owner_user_object.pk != uid:
-                transfer_member_data_ownership_to_org.delay(uid)
+                transfer_member_data_ownership_to_org(uid)
 
             for org in to_remove:
                 with transaction.atomic():
