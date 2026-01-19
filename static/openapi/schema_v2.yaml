@@ -2666,6 +2666,7 @@ paths:
                           _uuid: 11111111-1111-1111-1111-111111111111
                           _data:
                             language: fr
+                            locale: fr-CA
                             value: Bonjour
                   summary: Manual Transcription
                 ManualTranslation:
@@ -2682,6 +2683,7 @@ paths:
                             _uuid: 22222222-2222-2222-2222-222222222222
                             _data:
                               language: en
+                              locale: en-CA
                               value: Hello
                             _dependency:
                               _actionId: manual_transcription
@@ -2695,6 +2697,7 @@ paths:
                             _uuid: 33333333-3333-3333-3333-333333333333
                             _data:
                               language: es
+                              locale: es-ES
                               value: Hola
                             _dependency:
                               _actionId: manual_transcription
@@ -2712,6 +2715,7 @@ paths:
                           _uuid: 44444444-4444-4444-4444-444444444444
                           _data:
                             language: en
+                            locale: en-CA
                             status: complete
                             value: Hello world
                           _dateAccepted: '2025-01-01T12:01:00Z'
@@ -2719,6 +2723,7 @@ paths:
                           _uuid: 44444444-4444-4444-4444-444444444444
                           _data:
                             language: en
+                            locale: en-CA
                             status: in_progress
                   summary: Automated Google Transcription
                 AutomatedGoogleTranslation:
@@ -2735,6 +2740,7 @@ paths:
                             _uuid: 88888888-8888-8888-8888-888888888888
                             _data:
                               language: fr
+                              locale: fr-CA
                               status: complete
                               value: Bonjour le monde
                             _dependency:
@@ -2744,6 +2750,7 @@ paths:
                             _uuid: 77777777-7777-7777-7777-777777777777
                             _data:
                               language: fr
+                              locale: fr-CA
                               status: in_progress
                             _dependency:
                               _actionId: automatic_google_transcription
@@ -2752,6 +2759,7 @@ paths:
                             _uuid: 66666666-6666-6666-6666-666666666666
                             _data:
                               language: fr
+                              locale: fr-CA
                               value: null
                               status: deleted
                             _dependency:
@@ -2761,6 +2769,7 @@ paths:
                             _uuid: 55555555-5555-5555-5555-555555555555
                             _data:
                               language: fr
+                              locale: fr-CA
                               status: complete
                               value: Allo la foule
                             _dependency:
@@ -2944,6 +2953,7 @@ paths:
                   question_name_xpath:
                     manual_transcription:
                       language: fr
+                      locale: fr-CA
                       value: Bonjour
                 summary: Manual Transcription
               ManualTranslation:
@@ -2952,6 +2962,7 @@ paths:
                   question_name_xpath:
                     manual_translation:
                       language: en
+                      locale: en-CA
                       value: Hello
                 summary: Manual Translation
               AutomicGoogleTranscription:
@@ -2960,6 +2971,7 @@ paths:
                   question_name_xpath:
                     automatic_google_transcription:
                       language: fr
+                      locale: fr-CA
                 summary: Automic Google Transcription
               AutomicGoogleTranslation:
                 value:
@@ -2967,6 +2979,7 @@ paths:
                   question_name_xpath:
                     automatic_google_translation:
                       language: en
+                      locale: en-CA
                 summary: Automic Google Translation
               DeleteNLPAction:
                 value:
@@ -3059,6 +3072,7 @@ paths:
                           _uuid: 11111111-1111-1111-1111-111111111111
                           _data:
                             language: fr
+                            locale: fr-CA
                             value: Bonjour
                   summary: Manual Transcription
                 ManualTranslation:
@@ -3075,6 +3089,7 @@ paths:
                             _uuid: 22222222-2222-2222-2222-222222222222
                             _data:
                               language: en
+                              locale: en-CA
                               value: Hello
                             _dependency:
                               _actionId: manual_transcription
@@ -3088,6 +3103,7 @@ paths:
                             _uuid: 33333333-3333-3333-3333-333333333333
                             _data:
                               language: es
+                              locale: es-ES
                               value: Hola
                             _dependency:
                               _actionId: manual_transcription
@@ -3105,6 +3121,7 @@ paths:
                           _uuid: 44444444-4444-4444-4444-444444444444
                           _data:
                             language: en
+                            locale: en-CA
                             status: complete
                             value: Hello world
                           _dateAccepted: '2025-01-01T12:01:00Z'
@@ -3112,6 +3129,7 @@ paths:
                           _uuid: 44444444-4444-4444-4444-444444444444
                           _data:
                             language: en
+                            locale: en-CA
                             status: in_progress
                   summary: Automated Google Transcription
                 AutomatedGoogleTranslation:
@@ -3128,6 +3146,7 @@ paths:
                             _uuid: 88888888-8888-8888-8888-888888888888
                             _data:
                               language: fr
+                              locale: fr-CA
                               status: complete
                               value: Bonjour le monde
                             _dependency:
@@ -3137,6 +3156,7 @@ paths:
                             _uuid: 77777777-7777-7777-7777-777777777777
                             _data:
                               language: fr
+                              locale: fr-CA
                               status: in_progress
                             _dependency:
                               _actionId: automatic_google_transcription
@@ -3145,6 +3165,7 @@ paths:
                             _uuid: 66666666-6666-6666-6666-666666666666
                             _data:
                               language: fr
+                              locale: fr-CA
                               value: null
                               status: deleted
                             _dependency:
@@ -3154,6 +3175,7 @@ paths:
                             _uuid: 55555555-5555-5555-5555-555555555555
                             _data:
                               language: fr
+                              locale: fr-CA
                               status: complete
                               value: Allo la foule
                             _dependency:
