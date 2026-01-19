@@ -9,7 +9,6 @@ AdvancedFeatureResponse = inline_serializer_class(
         'question_xpath': serializers.CharField(),
         'action': serializers.CharField(),
         'params': AdvancedFeatureParamsField(),
-        'asset': serializers.CharField(),
         'uid': serializers.CharField(),
     },
 )
