@@ -18,43 +18,55 @@ from kpi.utils.schema_extensions.url_builder import build_url_type
 
 
 class DataAttachmentFieldExtension(OpenApiSerializerFieldExtension):
-    target_class = 'kpi.schema_extensions.v2.data.fields.DataAttachmentField'
+    target_class = 'kpi.schema_extensions.v2.data.fields.DataAttachmentsField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_object_type(
-            properties={
-                'download_url': build_url_type(
-                    viewname='api_v2:attachment-detail',
-                    uid_asset='aTPPUDScaFZkvBzd8FyK4Q',
-                    uid_data='18',
-                    pk='1',
-                ),
-                'download_large_url': build_url_type(
-                    viewname='api_v2:attachment-thumb',
-                    uid_asset='aTPPUDScaFZkvBzd8FyK4Q',
-                    uid_data='18',
-                    pk='attWNZNwhXK6HDYVkZJSn9jy',
-                    suffix='large',
-                ),
-                'download_medium_url': build_url_type(
-                    viewname='api_v2:attachment-thumb',
-                    uid_asset='aTPPUDScaFZkvBzd8FyK4Q',
-                    uid_data='18',
-                    pk='attWNZNwhXK6HDYVkZJSn9jy',
-                    suffix='medium',
-                ),
-                'download_small_url': build_url_type(
-                    viewname='api_v2:attachment-thumb',
-                    uid_asset='aTPPUDScaFZkvBzd8FyK4Q',
-                    uid_data='18',
-                    pk='attWNZNwhXK6HDYVkZJSn9jy',
-                    suffix='small',
-                ),
-                'mimetype': build_basic_type(OpenApiTypes.STR),
-                'filename': build_basic_type(OpenApiTypes.STR),
-                'uid': build_basic_type(OpenApiTypes.STR),
-                'question_xpath': build_basic_type(OpenApiTypes.STR),
-            }
+        return build_array_type(
+            schema=build_object_type(
+                properties={
+                    'download_url': build_url_type(
+                        viewname='api_v2:attachment-detail',
+                        uid_asset='aTPPUDScaFZkvBzd8FyK4Q',
+                        uid_data='18',
+                        pk='1',
+                    ),
+                    'download_large_url': build_url_type(
+                        viewname='api_v2:attachment-thumb',
+                        uid_asset='aTPPUDScaFZkvBzd8FyK4Q',
+                        uid_data='18',
+                        pk='attWNZNwhXK6HDYVkZJSn9jy',
+                        suffix='large',
+                    ),
+                    'download_medium_url': build_url_type(
+                        viewname='api_v2:attachment-thumb',
+                        uid_asset='aTPPUDScaFZkvBzd8FyK4Q',
+                        uid_data='18',
+                        pk='attWNZNwhXK6HDYVkZJSn9jy',
+                        suffix='medium',
+                    ),
+                    'download_small_url': build_url_type(
+                        viewname='api_v2:attachment-thumb',
+                        uid_asset='aTPPUDScaFZkvBzd8FyK4Q',
+                        uid_data='18',
+                        pk='attWNZNwhXK6HDYVkZJSn9jy',
+                        suffix='small',
+                    ),
+                    'mimetype': {'type': 'string', 'example': 'image/png'},
+                    'media_file_basename': build_basic_type(OpenApiTypes.STR),
+                    'filename': build_basic_type(OpenApiTypes.STR),
+                    'uid': build_basic_type(OpenApiTypes.STR),
+                    'question_xpath': build_basic_type(OpenApiTypes.STR),
+                    'is_deleted': build_basic_type(OpenApiTypes.BOOL),
+                },
+                required=[
+                    'download_url',
+                    'mimetype',
+                    'filename',
+                    'uid',
+                    'media_file_basename',
+                    'question_xpath',
+                ],
+            )
         )
 
 

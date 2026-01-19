@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from kpi.utils.schema_extensions.serializers import inline_serializer_class
 from .fields import (
-    DataAttachmentField,
+    DataAttachmentsField,
     DataBulkDeleteField,
     DataBulkUpdatePayloadField,
     DataBulkUpdateResultField,
@@ -54,7 +54,7 @@ DataResponse = inline_serializer_class(
         ),
         '_xform_id_string': serializers.CharField(),
         '_uuid': serializers.CharField(),
-        '_attachments': serializers.ListField(child=DataAttachmentField()),
+        '_attachments': DataAttachmentsField(),
         '_status': serializers.CharField(),
         '_geolocation': serializers.ListField(
             child=serializers.FloatField(allow_null=True),
