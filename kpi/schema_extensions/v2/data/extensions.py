@@ -9,7 +9,7 @@ from drf_spectacular.plumbing import (
 )
 from drf_spectacular.types import OpenApiTypes
 
-from kpi.schema_extensions.v2.generic.schema import GENERIC_STRING_SCHEMA
+from kpi.schema_extensions.v2.generic.schema import GENERIC_STRING_SCHEMA, GENERIC_INT_SCHEMA
 from kpi.utils.schema_extensions.mixins import ComponentRegistrationMixin
 from kpi.utils.schema_extensions.url_builder import build_url_type
 
@@ -727,6 +727,22 @@ class DataValidationPayloadFieldExtension(OpenApiSerializerFieldExtension):
                 ),
                 'validation_status.uid': GENERIC_STRING_SCHEMA,
             }
+        )
+
+
+class DataValidationStatusFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.data.fields.DataValidationStatusField'
+
+    def map_serializer_field(self, auto_schema, direction):
+        return build_object_type(
+            properties={
+                'timestamp': GENERIC_INT_SCHEMA,
+                'uid': GENERIC_STRING_SCHEMA,
+                'by_whom': GENERIC_STRING_SCHEMA,
+                'color': GENERIC_STRING_SCHEMA,
+                'label': GENERIC_STRING_SCHEMA,
+            },
+            required=['timestamp', 'uid', 'label', 'by_whom'],
         )
 
 

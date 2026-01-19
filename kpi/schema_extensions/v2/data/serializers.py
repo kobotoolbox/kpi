@@ -7,6 +7,7 @@ from .fields import (
     DataBulkUpdatePayloadField,
     DataBulkUpdateResultField,
     DataValidationPayloadField,
+    DataValidationStatusField,
     EmptyListField,
     EmptyObjectField,
     EnketoEditUrlField,
@@ -41,24 +42,43 @@ DataResponse = inline_serializer_class(
     name='DataResponse',
     fields={
         '_id': serializers.IntegerField(),
-        'formhub/uuid': serializers.CharField(),
-        'start': serializers.DateTimeField(),
-        'end': serializers.DateTimeField(),
-        'Question_A/Enter_your_question': serializers.CharField(),
-        'Question_B': serializers.CharField(),
-        '__version__': serializers.CharField(),
+        'formhub/uuid': serializers.CharField(
+            required=False,
+            allow_null=True,
+        ),
+        '__version__': serializers.CharField(
+            required=False,
+        ),
         'meta/instanceID': serializers.CharField(),
+        'meta/rootUuid': serializers.CharField(),
+        'meta/deprecatedID': serializers.CharField(
+            required=False,
+        ),
         '_xform_id_string': serializers.CharField(),
         '_uuid': serializers.CharField(),
-        'meta/rootUuid': serializers.CharField(),
-        '_attachments': DataAttachmentField(),
+        '_attachments': serializers.ListField(
+            child=DataAttachmentField()
+        ),
         '_status': serializers.CharField(),
-        '_geolocation': EmptyListField(),
+        '_geolocation': serializers.ListField(
+            child=serializers.FloatField(allow_null=True),
+            min_length=2,
+            max_length=2,
+            allow_null=True
+        ),
         '_submission_time': serializers.DateTimeField(),
-        '_tags': EmptyListField(),
-        'Notes': EmptyListField(),
-        '_validation_status': EmptyObjectField(),
+        '_tags': serializers.ListField(child=serializers.CharField()),
+        '_notes': serializers.ListField(
+            child=serializers.CharField(),  # Renamed from Notes to _notes
+            allow_null=True,
+        ),
+        '_validation_status': DataValidationStatusField(
+            allow_null=True,
+        ),
         '_submitted_by': serializers.CharField(),
+        '_supplementalDetails': serializers.DictField(
+            allow_null=True
+        ),
     },
 )
 
