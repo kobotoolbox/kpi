@@ -15,6 +15,5 @@ export interface AdvancedFeatureResponse {
   question_xpath: string
   action: string
   params: AdvancedFeatureResponseParamsItem[]
-  asset: string
   uid: string
 }

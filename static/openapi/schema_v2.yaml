@@ -10407,13 +10407,10 @@ components:
             anyOf:
             - $ref: '#/components/schemas/NLPActionParams'
             - $ref: '#/components/schemas/QualActionParams'
-        asset:
-          type: string
         uid:
           type: string
       required:
       - action
-      - asset
       - params
       - question_xpath
       - uid

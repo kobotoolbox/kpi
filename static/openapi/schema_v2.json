@@ -14509,16 +14509,12 @@
                             ]
                         }
                     },
-                    "asset": {
-                        "type": "string"
-                    },
                     "uid": {
                         "type": "string"
                     }
                 },
                 "required": [
                     "action",
-                    "asset",
                     "params",
                     "question_xpath",
                     "uid"
