@@ -8,27 +8,44 @@ import {
   useAssetsDataSupplementPartialUpdate,
 } from '#/api/react-query/survey-data'
 import Button from '#/components/common/button'
+import type { LanguageCode } from '#/components/languages/languagesStore'
 import { userCan } from '#/components/permissions/utils'
 import { isSupplementVersionAutomatic } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
 import { removeDefaultUuidPrefix } from '#/utils'
 import { ADVANCED_FEATURES_ACTION, SUBSEQUENCES_SCHEMA_VERSION } from '../../../common/constants'
 import bodyStyles from '../../../common/processingBody.module.scss'
-import HeaderLanguageAndDate from './headerLanguageAndDate'
+import HeaderLanguageAndDate from './HeaderLanguageAndDate'
+import styles from './Viewer.module.scss'
 
 // TODO OpenAPI: PatchedDataSupplementPayloadOneOfOneOfManualTranscription.value is nullable
 
 interface Props {
-  transcriptVersion:
+  translationVersion:
     | _DataSupplementResponseOneOfManualTranscriptionVersionsItem
     | _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem
+  translationVersions: Array<
+    | _DataSupplementResponseOneOfManualTranscriptionVersionsItem
+    | _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem
+  >
   asset: AssetResponse
   questionXpath: string
   submission: DataResponse
   onEdit: () => void
+  onAdd: () => void
+  onChangeLanguageCode: (languageCode: LanguageCode) => void
 }
 
-export default function Viewer({ asset, questionXpath, submission, transcriptVersion, onEdit }: Props) {
+export default function Viewer({
+  asset,
+  questionXpath,
+  submission,
+  translationVersion,
+  translationVersions,
+  onEdit,
+  onAdd,
+  onChangeLanguageCode,
+}: Props) {
   const mutateTrash = useAssetsDataSupplementPartialUpdate({
     mutation: {
       onSettled: () => {
@@ -49,10 +66,10 @@ export default function Viewer({ asset, questionXpath, submission, transcriptVer
       data: {
         _version: SUBSEQUENCES_SCHEMA_VERSION,
         [questionXpath]: {
-          [isSupplementVersionAutomatic(transcriptVersion)
-            ? ADVANCED_FEATURES_ACTION.automatic_google_transcription
-            : ADVANCED_FEATURES_ACTION.manual_transcription]: {
-            language: transcriptVersion._data.language,
+          [isSupplementVersionAutomatic(translationVersion)
+            ? ADVANCED_FEATURES_ACTION.automatic_google_translation
+            : ADVANCED_FEATURES_ACTION.manual_translation]: {
+            language: translationVersion._data.language,
             value: null,
           },
         },
@@ -63,13 +80,38 @@ export default function Viewer({ asset, questionXpath, submission, transcriptVer
   return (
     <>
       <header className={bodyStyles.transxHeader}>
-        <HeaderLanguageAndDate transcriptVersion={transcriptVersion} />
+        <HeaderLanguageAndDate
+          translationVersion={translationVersion}
+          translationVersions={translationVersions}
+          onChangeLanguageCode={onChangeLanguageCode}
+        />
 
         <nav className={bodyStyles.transxHeaderButtons}>
-          <Button type='text' size='s' startIcon='edit' onClick={onEdit} tooltip={t('Edit')} />
+          <Button
+            type='secondary'
+            size='s'
+            startIcon='plus'
+            label={
+              <>
+                <span className={styles.newButtonLabel}>{t('new translation')}</span>
+                <span className={styles.newButtonLabelShort}>{t('new')}</span>
+              </>
+            }
+            onClick={onAdd}
+            isDisabled={!userCan('change_submissions', asset)}
+          />
 
           <Button
-            type='text'
+            type='secondary'
+            size='s'
+            startIcon='edit'
+            onClick={onEdit}
+            tooltip={t('Edit')}
+            isDisabled={!userCan('change_submissions', asset)}
+          />
+
+          <Button
+            type='secondary-danger'
             size='s'
             startIcon='trash'
             onClick={handleTrash}
@@ -81,7 +123,11 @@ export default function Viewer({ asset, questionXpath, submission, transcriptVer
       </header>
 
       <article className={bodyStyles.text} dir='auto'>
-        {'value' in transcriptVersion._data ? transcriptVersion._data.value : '' /** typeguard, should always exist */}
+        {
+          'value' in translationVersion._data
+            ? translationVersion._data.value
+            : '' /** typeguard, should always exist */
+        }
       </article>
     </>
   )

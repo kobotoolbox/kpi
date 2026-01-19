@@ -20,29 +20,30 @@ import type { AssetResponse } from '#/dataInterface'
 import { removeDefaultUuidPrefix } from '#/utils'
 import { ADVANCED_FEATURES_ACTION, SUBSEQUENCES_SCHEMA_VERSION } from '../../../common/constants'
 import bodyStyles from '../../../common/processingBody.module.scss'
-import HeaderLanguageAndDate from './headerLanguageAndDate'
+import HeaderLanguageAndDate from './HeaderLanguageAndDate'
 
 interface Props {
   asset: AssetResponse
   questionXpath: string
   submission: DataResponse
-  transcriptVersion:
+  translationVersion:
     | _DataSupplementResponseOneOfManualTranscriptionVersionsItem
     | _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem
   onBack: () => void
+  onSave: () => void
 }
 
-export default function Editor({ asset, questionXpath, submission, transcriptVersion, onBack }: Props) {
-  const initialValue = 'value' in transcriptVersion._data ? transcriptVersion._data.value : null
+export default function Editor({ asset, questionXpath, submission, translationVersion, onBack, onSave }: Props) {
+  const initialValue = 'value' in translationVersion._data ? translationVersion._data.value : null
   const unacceptedAutomaticTranscript =
-    isSupplementVersionAutomatic(transcriptVersion) && !transcriptVersion._dateAccepted
+    isSupplementVersionAutomatic(translationVersion) && !translationVersion._dateAccepted
   const [value, setValue] = useState(initialValue)
 
   const queryAF = useAssetsAdvancedFeaturesList(asset.uid)
   const advancedFeature =
     queryAF.data?.status === 200
       ? queryAF.data?.data.find(
-          (af) => af.action === ADVANCED_FEATURES_ACTION.manual_transcription && af.question_xpath === questionXpath,
+          (af) => af.action === ADVANCED_FEATURES_ACTION.manual_translation && af.question_xpath === questionXpath,
         )
       : undefined
   console.log(advancedFeature)
@@ -77,7 +78,7 @@ export default function Editor({ asset, questionXpath, submission, transcriptVer
         uidAsset: asset.uid,
         data: {
           question_xpath: questionXpath,
-          action: ADVANCED_FEATURES_ACTION.manual_transcription,
+          action: ADVANCED_FEATURES_ACTION.manual_translation,
           // TODO: OpenAPI shouldn't be double-arrayed.
           params: [
             {
@@ -95,7 +96,7 @@ export default function Editor({ asset, questionXpath, submission, transcriptVer
         uidAsset: asset.uid,
         uidAdvancedFeature: advancedFeature.uid,
         data: {
-          action: ADVANCED_FEATURES_ACTION.manual_transcription, // TODO: OpenAPI PatchedAdvancedFeaturePatchRequest doesn't have this prop typed.
+          action: ADVANCED_FEATURES_ACTION.manual_translation, // TODO: OpenAPI PatchedAdvancedFeaturePatchRequest doesn't have this prop typed.
           question_xpath: questionXpath, // TODO: OpenAPI PatchedAdvancedFeaturePatchRequest doesn't have this prop typed.
           params: advancedFeature.params.concat({
             // TODO: OpenAPI shouldn't be double-arrayed.
@@ -108,30 +109,30 @@ export default function Editor({ asset, questionXpath, submission, transcriptVer
 
   const handleSave = async () => {
     if (!value) return // Just a typeguard, button is disabled.
-    if (value === initialValue && isSupplementVersionAutomatic(transcriptVersion)) {
+    if (value === initialValue && isSupplementVersionAutomatic(translationVersion)) {
       await patch.mutateAsync({
         uidAsset: asset.uid,
         rootUuid: removeDefaultUuidPrefix(submission['meta/rootUuid']),
         data: {
           _version: SUBSEQUENCES_SCHEMA_VERSION,
           [questionXpath]: {
-            [ADVANCED_FEATURES_ACTION.automatic_google_transcription]: {
-              language: transcriptVersion._data.language,
+            [ADVANCED_FEATURES_ACTION.automatic_google_translation]: {
+              language: translationVersion._data.language,
               accepted: true,
-            } as any, // TODO OpenAPI: PatchedDataSupplementPayloadOneOfOneOfAutomaticGoogleTranscription for PATCH shouldn't have `language` prop.
+            } as any, // TODO OpenAPI: PatchedDataSupplementPayloadOneOfOneOfAutomaticGoogleTranslation for PATCH shouldn't have `language` prop.
           },
         },
       })
     } else {
-      await assertManualAdvancedFeature(transcriptVersion._data.language)
+      await assertManualAdvancedFeature(translationVersion._data.language)
       await patch.mutateAsync({
         uidAsset: asset.uid,
         rootUuid: removeDefaultUuidPrefix(submission['meta/rootUuid']),
         data: {
           _version: SUBSEQUENCES_SCHEMA_VERSION,
           [questionXpath]: {
-            [ADVANCED_FEATURES_ACTION.manual_transcription]: {
-              language: transcriptVersion._data.language,
+            [ADVANCED_FEATURES_ACTION.manual_translation]: {
+              language: translationVersion._data.language,
               value: value,
             },
           },
@@ -139,20 +140,20 @@ export default function Editor({ asset, questionXpath, submission, transcriptVer
       })
     }
 
-    onBack()
+    onSave()
   }
 
   const handleDiscard = async () => {
     if (unacceptedAutomaticTranscript) {
-      await assertManualAdvancedFeature(transcriptVersion._data.language)
+      await assertManualAdvancedFeature(translationVersion._data.language)
       await patch.mutateAsync({
         uidAsset: asset.uid,
         rootUuid: removeDefaultUuidPrefix(submission['meta/rootUuid']),
         data: {
           _version: SUBSEQUENCES_SCHEMA_VERSION,
           [questionXpath]: {
-            [ADVANCED_FEATURES_ACTION.automatic_google_transcription]: {
-              language: transcriptVersion._data.language, // TODO OpenAPI & API: why this prop is required at all?
+            [ADVANCED_FEATURES_ACTION.automatic_google_translation]: {
+              language: translationVersion._data.language, // TODO OpenAPI & API: why this prop is required at all?
               value: null, // TODO OpenAPI: is that `null` or `''` to "discard" automatic transcription?
             },
           },
@@ -167,7 +168,7 @@ export default function Editor({ asset, questionXpath, submission, transcriptVer
   return (
     <>
       <header className={bodyStyles.transxHeader}>
-        <HeaderLanguageAndDate transcriptVersion={transcriptVersion} />
+        <HeaderLanguageAndDate translationVersion={translationVersion} />
 
         <nav className={bodyStyles.transxHeaderButtons}>
           <Button
@@ -197,7 +198,7 @@ export default function Editor({ asset, questionXpath, submission, transcriptVer
         className={bodyStyles.textarea}
         value={value || ''}
         onChange={(evt: React.ChangeEvent<HTMLTextAreaElement>) => setValue(evt.target.value)}
-        disabled={false}
+        disabled={patch.isPending}
         dir='auto'
       />
     </>

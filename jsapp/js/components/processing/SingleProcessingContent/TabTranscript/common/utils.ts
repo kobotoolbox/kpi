@@ -1,16 +1,6 @@
-import type { _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem'
-import type { _DataSupplementResponseOneOfManualTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualTranscriptionVersionsItem'
 import { findRowByXpath, getRowName } from '#/assetUtils'
 import { type AnyRowTypeName, QUESTION_TYPES } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
-
-export const isTranscriptVersionAutomatic = (
-  transcriptVersion:
-    | _DataSupplementResponseOneOfManualTranscriptionVersionsItem
-    | _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem,
-): transcriptVersion is _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem => {
-  return 'status' in transcriptVersion._data
-}
 
 export function getQuestionName(asset: AssetResponse, questionXpath: string) {
   if (!asset?.content) return undefined

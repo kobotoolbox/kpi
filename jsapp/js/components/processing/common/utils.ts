@@ -8,3 +8,11 @@ export function isSupplementVersionWithValue<T extends _DataSupplementResponseOn
 ): supplementData is T & { _data: {value: string } } {
   return supplementData._data && 'value' in supplementData._data && typeof supplementData._data.value === 'string'
 }
+
+export const isSupplementVersionAutomatic = (
+  SupplementVersion:
+    | _DataSupplementResponseOneOfManualTranscriptionVersionsItem
+    | _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem,
+): SupplementVersion is _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem => {
+  return 'status' in SupplementVersion._data
+}

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 
 import cx from 'classnames'
 import type { DataResponse } from '#/api/models/dataResponse'
@@ -17,14 +17,10 @@ import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import type { LanguageCode, LocaleCode } from '#/components/languages/languagesStore'
 import RegionSelector from '#/components/languages/regionSelector'
+import { ADVANCED_FEATURES_ACTION, SUBSEQUENCES_SCHEMA_VERSION } from '#/components/processing/common/constants'
 import type { AssetResponse } from '#/dataInterface'
-import { getAudioDuration, notify, removeDefaultUuidPrefix } from '#/utils'
-import { ADVANCED_FEATURES_ACTION, SUBSEQUENCES_SCHEMA_VERSION } from '../../../common/constants'
+import { notify, removeDefaultUuidPrefix } from '#/utils'
 import bodyStyles from '../../../common/processingBody.module.scss'
-import { getAttachmentForProcessing, secondsToTranscriptionEstimate } from '../transcript.utils'
-
-/** Until the estimate is loaded we display dot dot dot. */
-const NO_ESTIMATED_MINUTES = '…'
 
 interface Props {
   asset: AssetResponse
@@ -32,9 +28,17 @@ interface Props {
   languageCode: LanguageCode
   submission: DataResponse & Record<string, string>
   onBack: () => void
+  onCreate: (languageCode: LanguageCode) => void
 }
 
-export default function StepCreateAutomated({ asset, questionXpath, languageCode, submission, onBack }: Props) {
+export default function StepCreateAutomated({
+  asset,
+  questionXpath,
+  languageCode,
+  submission,
+  onBack,
+  onCreate,
+}: Props) {
   const [locale, setLocale] = useState<null | string>(null)
 
   // TODO: remove, for now just logging for debugging.
@@ -44,8 +48,7 @@ export default function StepCreateAutomated({ asset, questionXpath, languageCode
     queryAF.data?.status === 200
       ? queryAF.data?.data.find(
           (af) =>
-            af.action === ADVANCED_FEATURES_ACTION.automatic_google_transcription &&
-            af.question_xpath === questionXpath,
+            af.action === ADVANCED_FEATURES_ACTION.automatic_google_translation && af.question_xpath === questionXpath,
         )
       : undefined
   console.log(advancedFeature)
@@ -61,7 +64,7 @@ export default function StepCreateAutomated({ asset, questionXpath, languageCode
     },
   })
 
-  const mutationCreateAutomaticTranscript = useAssetsDataSupplementPartialUpdate({
+  const mutationCreateAutomaticTranslation = useAssetsDataSupplementPartialUpdate({
     mutation: {
       onSettled: () => {
         queryClient.invalidateQueries({
@@ -91,23 +94,7 @@ export default function StepCreateAutomated({ asset, questionXpath, languageCode
     queryAF.isPending ||
     mutationCreateAF.isPending ||
     mutationPatchAF.isPending ||
-    mutationCreateAutomaticTranscript.isPending
-
-  // When polling for transcript, we need to calculate the estimated time
-  // TODO improvement: check `sidebarSubmissionMedia`, perhaps get a duration in a sync manner, show asap?
-  const [estimate, setEstimate] = useState<string>(NO_ESTIMATED_MINUTES)
-  useEffect(() => {
-    if (mutationCreateAutomaticTranscript.isPending) {
-      const attachment = getAttachmentForProcessing(asset, questionXpath)
-      if (typeof attachment !== 'string') {
-        getAudioDuration(attachment.download_url).then((length: number) => {
-          setEstimate(secondsToTranscriptionEstimate(length))
-        })
-      }
-    } else {
-      setEstimate(NO_ESTIMATED_MINUTES)
-    }
-  }, [mutationCreateAutomaticTranscript.isPending])
+    mutationCreateAutomaticTranslation.isPending
 
   function handleChangeLocale(newVal: LocaleCode | null) {
     setLocale(newVal)
@@ -117,15 +104,15 @@ export default function StepCreateAutomated({ asset, questionXpath, languageCode
     onBack()
   }
 
-  // TODO: cleanup unused methods, search for `requestAutoTranscription`
-  async function handleCreateTranscript() {
+  // TODO: cleanup unused methods, search for `requestAutoTranslation`
+  async function handleCreateTranslation() {
     // Silently under the hook enable advanced features if needed.
     if (!advancedFeature) {
       await mutationCreateAF.mutateAsync({
         uidAsset: asset.uid,
         data: {
           question_xpath: questionXpath,
-          action: ADVANCED_FEATURES_ACTION.automatic_google_transcription,
+          action: ADVANCED_FEATURES_ACTION.automatic_google_translation,
           // TODO: OpenAPI shouldn't be double-arrayed.
           params: [
             {
@@ -143,7 +130,7 @@ export default function StepCreateAutomated({ asset, questionXpath, languageCode
         uidAsset: asset.uid,
         uidAdvancedFeature: advancedFeature.uid,
         data: {
-          action: ADVANCED_FEATURES_ACTION.automatic_google_transcription, // TODO: OpenAPI PatchedAdvancedFeaturePatchRequest doesn't have this prop typed.
+          action: ADVANCED_FEATURES_ACTION.automatic_google_translation, // TODO: OpenAPI PatchedAdvancedFeaturePatchRequest doesn't have this prop typed.
           question_xpath: questionXpath, // TODO: OpenAPI PatchedAdvancedFeaturePatchRequest doesn't have this prop typed.
           params: advancedFeature.params.concat({
             // TODO: OpenAPI shouldn't be double-arrayed.
@@ -153,57 +140,64 @@ export default function StepCreateAutomated({ asset, questionXpath, languageCode
       })
     }
 
-    await mutationCreateAutomaticTranscript.mutateAsync({
+    await mutationCreateAutomaticTranslation.mutateAsync({
       uidAsset: asset.uid,
       rootUuid: removeDefaultUuidPrefix(submission['meta/rootUuid']),
       data: {
         _version: SUBSEQUENCES_SCHEMA_VERSION,
         [questionXpath]: {
-          automatic_google_transcription: { language: languageCode, locale } as any, // TODO: OpenAPI is missing `locale`.
+          automatic_google_translation: { language: languageCode, locale } as any, // TODO: OpenAPI is missing `locale`.
         },
       },
     })
+
+    // TODO: Error handling, e.g. can't translate to language that's the transcript is in.
+
+    onCreate(languageCode)
   }
 
   if (!languageCode) return null
 
-  console.log('TranscriptCreate', locale)
+  console.log('TranslationCreate', locale)
 
-  if (mutationCreateAutomaticTranscript.isPending) {
+  if (mutationCreateAutomaticTranslation.isPending) {
     return (
       <div className={cx(bodyStyles.root, bodyStyles.stepConfig)}>
         <LoadingSpinner type='big' message={false} />
 
-        <header className={bodyStyles.header}>{t('Automatic transcription in progress')}</header>
+        <header className={bodyStyles.header}>{t('Automatic translation in progress')}</header>
 
-        <p>{t('Estimated time for completion: ##estimate##').replace('##estimate##', estimate)}</p>
+        {/*
+          Automatic translation is much faster than automatic transcription, but
+          for the consistency sake we use similar UI here.
+        */}
+        <p>{t('Estimated time for completion: ##estimate##').replace('##estimate##', t('less than a minute'))}</p>
       </div>
     )
   }
 
   return (
     <div className={cx(bodyStyles.root, bodyStyles.stepConfig)}>
-      <header className={bodyStyles.header}>{t('Automatic transcription of audio file from')}</header>
+      <header className={bodyStyles.header}>{t('Automatic translation of transcript to')}</header>
 
       <RegionSelector
         isDisabled={anyPending}
         serviceCode='goog'
-        serviceType='transcription'
+        serviceType='translation'
         rootLanguage={languageCode}
         onRegionChange={handleChangeLocale}
         onCancel={handleClickBack}
       />
 
-      <h2>{t('Transcription provider')}</h2>
+      <h2>{t('Translation provider')}</h2>
 
       <p>
         {t(
-          'Automated transcription is provided by Google Cloud Platform. By ' +
-            'using this service you agree that your audio file will be sent to ' +
-            "Google's servers for the purpose of transcribing. However, it will " +
-            "not be stored on Google's servers beyond the short period needed for " +
-            'completing the transcription, and we do not allow Google to use the ' +
-            'audio for improving its transcription service.',
+          'Automated translation is provided by Google Cloud Platform. By using ' +
+            'this service you agree that your transcript text will be sent to ' +
+            "Google's servers for the purpose of translation. However, it will not " +
+            "be stored on Google's servers beyond the very short period needed for " +
+            'completing the translation.',
         )}
       </p>
 
@@ -214,8 +208,8 @@ export default function StepCreateAutomated({ asset, questionXpath, languageCode
           <Button
             type='primary'
             size='m'
-            label={t('create transcript')}
-            onClick={handleCreateTranscript}
+            label={t('create translation')}
+            onClick={handleCreateTranslation}
             isDisabled={anyPending}
           />
         </div>
