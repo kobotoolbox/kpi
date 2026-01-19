@@ -151,9 +151,9 @@ export default function Editor({ asset, questionXpath, submission, transcriptVer
         data: {
           _version: SUBSEQUENCES_SCHEMA_VERSION,
           [questionXpath]: {
-            [ADVANCED_FEATURES_ACTION.manual_transcription]: {
+            [ADVANCED_FEATURES_ACTION.automatic_google_transcription]: {
               language: transcriptVersion._data.language, // TODO OpenAPI & API: why this prop is required at all?
-              value: null as any, // TODO OpenAPI: is that `null` or `''` to "discard" automatic transcription?
+              value: null, // TODO OpenAPI: is that `null` or `''` to "discard" automatic transcription?
             },
           },
         },
