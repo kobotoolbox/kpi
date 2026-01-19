@@ -220,7 +220,7 @@ class UserActivityQueryTests(BaseTestCase):
         active_users = get_active_users()
         self.assertFalse(submitter in inactive_users)
         self.assertTrue(submitter in active_users)
-    
+
     def test_users_in_trash_excluded_from_inactive_user_query(self):
         user = self._create_user('active_submission', self.old_date)
         superuser = User.objects.create_superuser('super')
