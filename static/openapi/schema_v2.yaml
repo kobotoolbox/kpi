@@ -10377,12 +10377,28 @@ components:
       - user
       - user_uid
       - username
+    ActionEnum:
+      enum:
+      - automatic_google_transcription
+      - automatic_google_translation
+      - manual_transcription
+      - manual_translation
+      - manual_qual
+      - automatic_bedrock_qual
+      type: string
+      description: |-
+        * `automatic_google_transcription` - automatic_google_transcription
+        * `automatic_google_translation` - automatic_google_translation
+        * `manual_transcription` - manual_transcription
+        * `manual_translation` - manual_translation
+        * `manual_qual` - manual_qual
+        * `automatic_bedrock_qual` - automatic_bedrock_qual
     AdvancedFeaturePostRequest:
       type: object
       properties:
-        question_xpath:
-          type: string
         action:
+          $ref: '#/components/schemas/ActionEnum'
+        question_xpath:
           type: string
         params:
           type: array
@@ -10397,9 +10413,9 @@ components:
     AdvancedFeatureResponse:
       type: object
       properties:
-        question_xpath:
-          type: string
         action:
+          $ref: '#/components/schemas/ActionEnum'
+        question_xpath:
           type: string
         params:
           type: array
@@ -10407,13 +10423,10 @@ components:
             anyOf:
             - $ref: '#/components/schemas/NLPActionParams'
             - $ref: '#/components/schemas/QualActionParams'
-        asset:
-          type: string
         uid:
           type: string
       required:
       - action
-      - asset
       - params
       - question_xpath
       - uid

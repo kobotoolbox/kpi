@@ -1,15 +1,14 @@
 from rest_framework import serializers
 
-from kpi.schema_extensions.v2.subsequences.fields import AdvancedFeatureParamsField
 from kpi.utils.schema_extensions.serializers import inline_serializer_class
+from .fields import AdvancedFeatureActionField, AdvancedFeatureParamsField
 
 AdvancedFeatureResponse = inline_serializer_class(
     name='AdvancedFeatureResponse',
     fields={
         'question_xpath': serializers.CharField(),
-        'action': serializers.CharField(),
+        'action': AdvancedFeatureActionField,
         'params': AdvancedFeatureParamsField(),
-        'asset': serializers.CharField(),
         'uid': serializers.CharField(),
     },
 )
@@ -22,7 +21,7 @@ AdvancedFeaturePostRequest = inline_serializer_class(
     name='AdvancedFeaturePostRequest',
     fields={
         'question_xpath': serializers.CharField(),
-        'action': serializers.CharField(),
+        'action': AdvancedFeatureActionField,
         'params': AdvancedFeatureParamsField(),
     },
 )
