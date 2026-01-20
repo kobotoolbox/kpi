@@ -46,6 +46,7 @@ export default function SingleProcessingRoute({ params: routeParams }: { params:
   // This is for determining the translation we use for survey questions,
   // so it is separate from processing languages.
   const [questionLabelLanguage, setQuestionLabelLanguage] = useState<LanguageCode | string>('')
+  const [hasUnsavedWork, setHasUnsavedWork] = useState(false)
   const { uid, xpath, submissionEditId } = routeParams
 
   if (!uid || !xpath || !submissionEditId) return
@@ -110,6 +111,8 @@ export default function SingleProcessingRoute({ params: routeParams }: { params:
               questionXpath={xpath}
               submission={currentSubmission}
               submissionEditId={submissionEditId}
+              hasUnsavedWork={hasUnsavedWork}
+              onUnsavedWorkChange={setHasUnsavedWork}
             />
           ) : (
             <CenteredMessage message={NO_DATA_MESSAGE} />
@@ -154,6 +157,7 @@ export default function SingleProcessingRoute({ params: routeParams }: { params:
             currentSubmissionUid={submissionEditId}
             questionLabelLanguage={questionLabelLanguage}
             xpath={xpath!}
+            hasUnsavedWork={hasUnsavedWork}
           />
         </section>
 

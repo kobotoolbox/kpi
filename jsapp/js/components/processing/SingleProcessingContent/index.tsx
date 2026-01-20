@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 
 import classNames from 'classnames'
 import type { DataResponse } from '#/api/models/dataResponse'
@@ -18,6 +18,8 @@ interface Props {
   questionXpath: string
   submission: DataResponse & Record<string, string>
   submissionEditId: string
+  hasUnsavedWork: boolean
+  onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
 }
 
 /**
@@ -25,9 +27,14 @@ interface Props {
  * navigation and a section for currently selected tab. Content for each of the
  * tabs is built in separate components.
  */
-export default function SingleProcessingContent({ asset, questionXpath, submission, submissionEditId }: Props) {
-  const [hasUnsavedWork, setHasUnsavedWork] = useState(false)
-
+export default function SingleProcessingContent({
+  asset,
+  questionXpath,
+  submission,
+  submissionEditId,
+  hasUnsavedWork,
+  onUnsavedWorkChange,
+}: Props) {
   /** DRY wrapper for protector function. */
   function safeExecute(callback: () => void) {
     protectorHelpers.safeExecute(hasUnsavedWork, callback)
@@ -53,7 +60,7 @@ export default function SingleProcessingContent({ asset, questionXpath, submissi
           questionXpath={questionXpath}
           submission={submission}
           submissionEditId={submissionEditId}
-          onUnsavedWorkChange={setHasUnsavedWork}
+          onUnsavedWorkChange={onUnsavedWorkChange}
         />
       )
     }
@@ -64,7 +71,7 @@ export default function SingleProcessingContent({ asset, questionXpath, submissi
           questionXpath={questionXpath}
           submission={submission}
           submissionEditId={submissionEditId}
-          onUnsavedWorkChange={setHasUnsavedWork}
+          onUnsavedWorkChange={onUnsavedWorkChange}
         />
       )
     }
