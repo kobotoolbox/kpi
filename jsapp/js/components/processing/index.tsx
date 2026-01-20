@@ -4,9 +4,6 @@ import DocumentTitle from 'react-document-title'
 import { unstable_usePrompt as usePrompt } from 'react-router-dom'
 import type { DataResponse } from '#/api/models/dataResponse'
 import {
-  getAssetsAdvancedFeaturesListQueryKey,
-  getAssetsDataListQueryKey,
-  getAssetsDataSupplementRetrieveQueryKey,
   useAssetsAdvancedFeaturesList,
   useAssetsDataList,
   useAssetsDataSupplementRetrieve,
@@ -47,40 +44,20 @@ export default function SingleProcessingRoute({ params: routeParams }: { params:
   // so it is separate from processing languages.
   const [questionLabelLanguage, setQuestionLabelLanguage] = useState<LanguageCode | string>('')
   const [hasUnsavedWork, setHasUnsavedWork] = useState(false)
-  const { uid, xpath, submissionEditId } = routeParams
-
-  if (!uid || !xpath || !submissionEditId) return
+  const { uid: assetId, xpath: questionXpath, submissionEditId: submissionId } = routeParams
 
   // NOTE: This route component is being loaded with PermProtectedRoute so
   // we know that the call to backend to get asset was already made, and
   // thus we can safely assume asset data is present :happy_face:
-  const asset = uid ? assetStore.getAsset(uid) : null
+  const asset = assetId ? assetStore.getAsset(assetId) : null
 
-  const queryAF = useAssetsAdvancedFeaturesList(uid!, {
-    query: {
-      queryKey: getAssetsAdvancedFeaturesListQueryKey(uid!),
-      enabled: !!uid,
-    },
-  })
-
-  const querySupplement = useAssetsDataSupplementRetrieve(uid!, submissionEditId!, {
-    query: {
-      queryKey: getAssetsDataSupplementRetrieveQueryKey(uid!, submissionEditId!),
-      enabled: !!uid,
-    },
-  })
-
-  const params = {
+  const queryAF = useAssetsAdvancedFeaturesList(assetId)
+  const querySupplement = useAssetsDataSupplementRetrieve(assetId, submissionId)
+  const querySubmission = useAssetsDataList(assetId, {
     query: JSON.stringify({
-      $or: [{ 'meta/rootUuid': addDefaultUuidPrefix(submissionEditId!) }, { _uuid: submissionEditId }],
+      $or: [{ 'meta/rootUuid': addDefaultUuidPrefix(submissionId) }, { _uuid: submissionId }],
     }),
-  } as any
-  const querySubmission = useAssetsDataList(uid!, params, {
-    query: {
-      queryKey: getAssetsDataListQueryKey(uid!, params),
-      enabled: !!uid,
-    },
-  })
+  } as any) // TODO OpenAPI: add query prop to the schema.
 
   // TODO OpenAPI: DataResponse should be indexable.
   const submission =
@@ -89,52 +66,11 @@ export default function SingleProcessingRoute({ params: routeParams }: { params:
       : undefined
 
   /** Whether current submission has a response for current question. */
-  const questionHasAnswer = !!(xpath && submission?.[xpath])
-
-  function renderBottom() {
-    if (
-      queryAF.data?.status !== 200 ||
-      querySupplement.data?.status !== 200 ||
-      !asset?.content?.survey ||
-      !submission
-    ) {
-      return <LoadingSpinner />
-    }
-
-    return (
-      <React.Fragment>
-        <section className={styles.bottomLeft}>
-          {questionHasAnswer ? (
-            <SingleProcessingContent
-              asset={asset}
-              questionXpath={xpath}
-              submission={submission}
-              hasUnsavedWork={hasUnsavedWork}
-              onUnsavedWorkChange={setHasUnsavedWork}
-              supplementData={querySupplement.data}
-              advancedFeaturesData={queryAF.data}
-            />
-          ) : (
-            <CenteredMessage message={NO_DATA_MESSAGE} />
-          )}
-        </section>
-
-        <section className={styles.bottomRight}>
-          <SingleProcessingSidebar
-            asset={asset}
-            xpath={xpath!}
-            questionLabelLanguage={questionLabelLanguage}
-            setQuestionLabelLanguage={setQuestionLabelLanguage}
-            submission={submission}
-          />
-        </section>
-      </React.Fragment>
-    )
-  }
-
+  const questionHasAnswer = !!(questionXpath && submission?.[questionXpath])
   const pageTitle = 'Data | KoboToolbox'
 
-  if (queryAF.data?.status !== 200 || querySupplement.data?.status !== 200 || !asset?.content?.survey) {
+  // TODO: Why here was a `asset?.content?.survey` check, can `survey` be empty? Does it matter? If so, a forever spinner won't do.
+  if (!asset || queryAF.data?.status !== 200 || querySupplement.data?.status !== 200 || !submission) {
     return (
       <DocumentTitle title={pageTitle}>
         <section className={styles.root}>
@@ -154,14 +90,42 @@ export default function SingleProcessingRoute({ params: routeParams }: { params:
           <SingleProcessingHeader
             asset={asset}
             submission={submission}
-            currentSubmissionUid={submissionEditId}
+            currentSubmissionUid={submissionId}
             questionLabelLanguage={questionLabelLanguage}
-            xpath={xpath!}
+            xpath={questionXpath}
             hasUnsavedWork={hasUnsavedWork}
           />
         </section>
 
-        <section className={styles.bottom}>{renderBottom()}</section>
+        <section className={styles.bottom}>
+          <React.Fragment>
+            <section className={styles.bottomLeft}>
+              {questionHasAnswer ? (
+                <SingleProcessingContent
+                  asset={asset}
+                  questionXpath={questionXpath}
+                  submission={submission}
+                  hasUnsavedWork={hasUnsavedWork}
+                  onUnsavedWorkChange={setHasUnsavedWork}
+                  supplementData={querySupplement.data}
+                  advancedFeaturesData={queryAF.data}
+                />
+              ) : (
+                <CenteredMessage message={NO_DATA_MESSAGE} />
+              )}
+            </section>
+
+            <section className={styles.bottomRight}>
+              <SingleProcessingSidebar
+                asset={asset}
+                xpath={questionXpath!}
+                questionLabelLanguage={questionLabelLanguage}
+                setQuestionLabelLanguage={setQuestionLabelLanguage}
+                submission={submission}
+              />
+            </section>
+          </React.Fragment>
+        </section>
       </section>
     </DocumentTitle>
   )

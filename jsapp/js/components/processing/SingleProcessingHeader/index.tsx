@@ -25,7 +25,6 @@ interface SingleProcessingHeaderProps {
 export default function SingleProcessingHeader({
   asset,
   submission,
-  currentSubmissionUid,
   questionLabelLanguage,
   xpath,
   hasUnsavedWork,
@@ -35,7 +34,7 @@ export default function SingleProcessingHeader({
       <SelectQuestion
         asset={asset}
         xpath={xpath}
-        currentSubmissionUid={currentSubmissionUid}
+        currentSubmissionUid={submission?.['meta/rootUuid']}
         questionLabelLanguage={questionLabelLanguage}
       />
       <SelectSubmission assetUid={asset.uid} xpath={xpath} submission={submission} />
