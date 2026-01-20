@@ -15,7 +15,7 @@ from kpi.filters import AssetOrderingFilter, SearchFilter
 from kpi.mixins.asset import AssetViewSetListMixin
 from kpi.mixins.object_permission import ObjectPermissionViewSetMixin
 from kpi.models import Asset, ProjectViewExportTask
-from kpi.paginators import DefaultPagination
+from kpi.paginators import FastPagination
 from kpi.permissions import IsAuthenticated
 from kpi.serializers.v2.asset import AssetMetadataListSerializer
 from kpi.serializers.v2.user import UserListSerializer
@@ -144,7 +144,7 @@ class ProjectViewViewSet(
         detail=True,
         methods=['GET'],
         filter_backends=[SearchFilter, AssetOrderingFilter],
-        pagination_class=DefaultPagination.custom_class(fast_count=True),
+        pagination_class=FastPagination,
     )
     def assets(self, request, uid_project_view):
         if not user_has_view_perms(request.user, uid_project_view):

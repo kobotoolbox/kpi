@@ -13,7 +13,7 @@ from kpi.models.import_export_task import (
     ImportExportStatusChoices,
     ProjectHistoryLogExportTask,
 )
-from kpi.paginators import DefaultPagination
+from kpi.paginators import DefaultPagination, FastPagination, NoCountPagination
 from kpi.permissions import IsAuthenticated
 from kpi.renderers import BasicHTMLRenderer
 from kpi.tasks import export_task_in_background
@@ -90,7 +90,7 @@ class AuditLogViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         'model_name__icontains',
         'metadata__icontains',
     ]
-    pagination_class = DefaultPagination.custom_class(no_count=True)
+    pagination_class = NoCountPagination
 
 
 @extend_schema_view(
@@ -300,7 +300,7 @@ class ProjectHistoryLogViewSet(
     model = ProjectHistoryLog
     permission_classes = (ViewProjectHistoryLogsPermission,)
     lookup_field = 'uid'
-    pagination_class = DefaultPagination.custom_class(fast_count=True)
+    pagination_class = FastPagination
 
     def get_queryset(self):
         return self.model.objects.filter(metadata__asset_uid=self.asset_uid).order_by(

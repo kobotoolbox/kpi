@@ -144,7 +144,7 @@ class DefaultPagination(LimitOffsetPagination):
             self.limit = self.default_limit
 
         if self.no_count:
-            items = list(queryset[self.offset:(self.offset + self.limit + 1)])
+            items = list(queryset[self.offset : (self.offset + self.limit + 1)])
             self.has_next = len(items) > self.limit
             return items[: self.limit]
 
@@ -155,7 +155,7 @@ class DefaultPagination(LimitOffsetPagination):
         if self.count == 0 or self.offset > self.count:
             return []
 
-        return list(queryset[self.offset:(self.offset + self.limit)])
+        return list(queryset[self.offset : (self.offset + self.limit)])
 
 
 class AssetPagination(DefaultPagination):
@@ -253,3 +253,31 @@ class AssetPagination(DefaultPagination):
                 'results': schema,
             }
         }
+
+
+
+class NoCountPagination(DefaultPagination):
+    """
+    Pagination without counting total results (faster for large datasets).
+    """
+
+    no_count = True
+
+
+class DataPagination(DefaultPagination):
+    """
+    Pagination for the data viewset
+    """
+
+    default_limit = 100
+    max_limit = settings.SUBMISSION_LIST_LIMIT
+
+
+class FastPagination(DefaultPagination):
+    """
+    Pagination without counting total results (faster for large datasets).
+    """
+
+    fast_count = True
+
+
