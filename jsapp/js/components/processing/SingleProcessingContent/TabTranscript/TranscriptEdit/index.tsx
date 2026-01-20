@@ -15,9 +15,16 @@ interface Props {
   transcriptVersion:
     | _DataSupplementResponseOneOfManualTranscriptionVersionsItem
     | _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem
+  onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
 }
 
-export default function TranscriptEdit({ asset, questionXpath, submission, transcriptVersion }: Props) {
+export default function TranscriptEdit({
+  asset,
+  questionXpath,
+  submission,
+  transcriptVersion,
+  onUnsavedWorkChange,
+}: Props) {
   // If automatic transcript isn't accepted, go directly to edit mode to accept or edit it.
   const [mode, setMode] = useState<'view' | 'edit'>(() =>
     isSupplementVersionAutomatic(transcriptVersion) && !transcriptVersion._dateAccepted ? 'edit' : 'view',
@@ -40,6 +47,7 @@ export default function TranscriptEdit({ asset, questionXpath, submission, trans
           submission={submission}
           transcriptVersion={transcriptVersion}
           onBack={() => setMode('view')}
+          onUnsavedWorkChange={onUnsavedWorkChange}
         />
       )}
     </div>

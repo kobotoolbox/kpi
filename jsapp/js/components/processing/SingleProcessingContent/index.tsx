@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 
 import classNames from 'classnames'
 import type { DataResponse } from '#/api/models/dataResponse'
@@ -7,7 +7,6 @@ import protectorHelpers from '#/protector/protectorHelpers'
 import { PROCESSING_ROUTES } from '#/router/routerConstants'
 
 import { goToTabRoute, isProcessingRouteActive } from '../routes.utils'
-import singleProcessingStore from '../singleProcessingStore'
 
 import TabAnalysis from './TabAnalysis'
 import TabTranscript from './TabTranscript'
@@ -27,9 +26,11 @@ interface Props {
  * tabs is built in separate components.
  */
 export default function SingleProcessingContent({ asset, questionXpath, submission, submissionEditId }: Props) {
+  const [hasUnsavedWork, setHasUnsavedWork] = useState(false)
+
   /** DRY wrapper for protector function. */
   function safeExecute(callback: () => void) {
-    protectorHelpers.safeExecute(singleProcessingStore.hasAnyUnsavedWork(), callback)
+    protectorHelpers.safeExecute(hasUnsavedWork, callback)
   }
 
   function handleTranscriptClick() {
@@ -52,6 +53,7 @@ export default function SingleProcessingContent({ asset, questionXpath, submissi
           questionXpath={questionXpath}
           submission={submission}
           submissionEditId={submissionEditId}
+          onUnsavedWorkChange={setHasUnsavedWork}
         />
       )
     }
@@ -62,6 +64,7 @@ export default function SingleProcessingContent({ asset, questionXpath, submissi
           questionXpath={questionXpath}
           submission={submission}
           submissionEditId={submissionEditId}
+          onUnsavedWorkChange={setHasUnsavedWork}
         />
       )
     }

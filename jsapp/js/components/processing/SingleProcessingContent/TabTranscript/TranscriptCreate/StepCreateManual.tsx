@@ -10,13 +10,21 @@ interface Props {
   submission: DataResponse & Record<string, string>
   languageCode: LanguageCode
   onBack: () => void
+  onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
 }
 
 /**
  * TODO: wrap Editor and display it.
  */
 
-export default function StepCreateManual({ asset, questionXpath, submission, languageCode, onBack }: Props) {
+export default function StepCreateManual({
+  asset,
+  questionXpath,
+  submission,
+  languageCode,
+  onBack,
+  onUnsavedWorkChange,
+}: Props) {
   // TODO: fix styles
   return (
     <Editor
@@ -30,6 +38,7 @@ export default function StepCreateManual({ asset, questionXpath, submission, lan
         _data: { language: languageCode, value: null },
       }}
       onBack={onBack}
+      onUnsavedWorkChange={onUnsavedWorkChange}
     />
   )
 }

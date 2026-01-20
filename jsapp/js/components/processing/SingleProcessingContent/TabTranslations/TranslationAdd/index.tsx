@@ -19,6 +19,7 @@ interface Props {
   languagesExisting: LanguageCode[]
   initialStep?: 'begin' | 'language'
   onCreate: (languageCode: LanguageCode) => void
+  onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
 }
 
 export default function TranslateAdd({
@@ -28,6 +29,7 @@ export default function TranslateAdd({
   languagesExisting,
   initialStep,
   onCreate,
+  onUnsavedWorkChange,
 }: Props) {
   const [step, setStep] = useState<'begin' | 'language' | 'manual' | 'automatic'>(initialStep ?? 'begin')
   const [languageCode, setLanguageCode] = useState<null | LanguageCode>(null)
@@ -55,6 +57,7 @@ export default function TranslateAdd({
           questionXpath={questionXpath}
           submission={submission}
           onCreate={onCreate}
+          onUnsavedWorkChange={onUnsavedWorkChange}
         />
       )}
       {step === 'automatic' && !!languageCode && (

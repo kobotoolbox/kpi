@@ -11,13 +11,22 @@ interface Props {
   languageCode: LanguageCode
   onBack: () => void
   onCreate: (languageCode: LanguageCode) => void
+  onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
 }
 
 /**
  * TODO: wrap Editor and display it.
  */
 
-export default function StepCreateManual({ asset, questionXpath, submission, languageCode, onBack, onCreate }: Props) {
+export default function StepCreateManual({
+  asset,
+  questionXpath,
+  submission,
+  languageCode,
+  onBack,
+  onCreate,
+  onUnsavedWorkChange,
+}: Props) {
   // TODO: fix styles
   return (
     <Editor
@@ -32,6 +41,7 @@ export default function StepCreateManual({ asset, questionXpath, submission, lan
       }}
       onBack={onBack}
       onSave={() => onCreate(languageCode)}
+      onUnsavedWorkChange={onUnsavedWorkChange}
     />
   )
 }

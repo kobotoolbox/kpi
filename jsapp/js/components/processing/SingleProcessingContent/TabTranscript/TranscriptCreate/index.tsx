@@ -17,9 +17,10 @@ interface Props {
   asset: AssetResponse
   questionXpath: string
   submission: DataResponse & Record<string, string>
+  onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
 }
 
-export default function TranscriptCreate({ asset, questionXpath, submission }: Props) {
+export default function TranscriptCreate({ asset, questionXpath, submission, onUnsavedWorkChange }: Props) {
   const [step, setStep] = useState<'begin' | 'language' | 'manual' | 'automatic'>('begin')
   const [languageCode, setLanguageCode] = useState<null | LanguageCode>(null)
 
@@ -52,6 +53,7 @@ export default function TranscriptCreate({ asset, questionXpath, submission }: P
           asset={asset}
           questionXpath={questionXpath}
           submission={submission}
+          onUnsavedWorkChange={onUnsavedWorkChange}
         />
       )}
       {step === 'automatic' && !!languageCode && (

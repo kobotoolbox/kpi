@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import type { _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem'
 import type { _DataSupplementResponseOneOfManualTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualTranscriptionVersionsItem'
 import type { DataResponse } from '#/api/models/dataResponse'
@@ -30,13 +30,26 @@ interface Props {
     | _DataSupplementResponseOneOfManualTranscriptionVersionsItem
     | _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem
   onBack: () => void
+  onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
 }
 
-export default function Editor({ asset, questionXpath, submission, transcriptVersion, onBack }: Props) {
+export default function Editor({
+  asset,
+  questionXpath,
+  submission,
+  transcriptVersion,
+  onBack,
+  onUnsavedWorkChange,
+}: Props) {
   const initialValue = 'value' in transcriptVersion._data ? transcriptVersion._data.value : null
   const unacceptedAutomaticTranscript =
     isSupplementVersionAutomatic(transcriptVersion) && !transcriptVersion._dateAccepted
   const [value, setValue] = useState(initialValue)
+
+  // Track unsaved work when value changes from initial
+  useEffect(() => {
+    onUnsavedWorkChange(value !== initialValue)
+  }, [value, initialValue, onUnsavedWorkChange])
 
   const queryAF = useAssetsAdvancedFeaturesList(asset.uid)
   const advancedFeature =
@@ -139,6 +152,8 @@ export default function Editor({ asset, questionXpath, submission, transcriptVer
       })
     }
 
+    // Clear unsaved work status after successful save
+    onUnsavedWorkChange(false)
     onBack()
   }
 
@@ -161,6 +176,8 @@ export default function Editor({ asset, questionXpath, submission, transcriptVer
       // TODO: add some spinner while this loads.
     }
 
+    // Reset value to initial to clear unsaved work status
+    setValue(initialValue)
     onBack()
   }
 

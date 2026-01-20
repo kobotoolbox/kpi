@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import type { _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem'
 import type { _DataSupplementResponseOneOfManualTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualTranscriptionVersionsItem'
 import type { DataResponse } from '#/api/models/dataResponse'
@@ -31,13 +31,27 @@ interface Props {
     | _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem
   onBack: () => void
   onSave: () => void
+  onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
 }
 
-export default function Editor({ asset, questionXpath, submission, translationVersion, onBack, onSave }: Props) {
+export default function Editor({
+  asset,
+  questionXpath,
+  submission,
+  translationVersion,
+  onBack,
+  onSave,
+  onUnsavedWorkChange,
+}: Props) {
   const initialValue = 'value' in translationVersion._data ? translationVersion._data.value : null
   const unacceptedAutomaticTranscript =
     isSupplementVersionAutomatic(translationVersion) && !translationVersion._dateAccepted
   const [value, setValue] = useState(initialValue)
+
+  // Track unsaved work when value changes from initial
+  useEffect(() => {
+    onUnsavedWorkChange(value !== initialValue)
+  }, [value, initialValue, onUnsavedWorkChange])
 
   const queryAF = useAssetsAdvancedFeaturesList(asset.uid)
   const advancedFeature =
@@ -140,6 +154,8 @@ export default function Editor({ asset, questionXpath, submission, translationVe
       })
     }
 
+    // Clear unsaved work status after successful save
+    onUnsavedWorkChange(false)
     onSave()
   }
 
@@ -162,6 +178,8 @@ export default function Editor({ asset, questionXpath, submission, translationVe
       // TODO: add some spinner while this loads.
     }
 
+    // Reset value to initial to clear unsaved work status
+    setValue(initialValue)
     onBack()
   }
 

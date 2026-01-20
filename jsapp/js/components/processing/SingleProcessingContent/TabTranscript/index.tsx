@@ -12,9 +12,16 @@ interface Props {
   questionXpath: string
   submission: DataResponse & Record<string, string>
   submissionEditId: string
+  onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
 }
 
-export default function TranscriptTab({ asset, questionXpath, submission, submissionEditId }: Props) {
+export default function TranscriptTab({
+  asset,
+  questionXpath,
+  submission,
+  submissionEditId,
+  onUnsavedWorkChange,
+}: Props) {
   const querySupplement = useAssetsDataSupplementRetrieve(asset.uid, submissionEditId, {
     query: {
       queryKey: getAssetsDataSupplementRetrieveQueryKey(asset.uid, submissionEditId),
@@ -44,9 +51,17 @@ export default function TranscriptTab({ asset, questionXpath, submission, submis
         questionXpath={questionXpath}
         submission={submission}
         transcriptVersion={transcriptVersion}
+        onUnsavedWorkChange={onUnsavedWorkChange}
       />
     )
   } else {
-    return <TranscriptCreate asset={asset} questionXpath={questionXpath} submission={submission} />
+    return (
+      <TranscriptCreate
+        asset={asset}
+        questionXpath={questionXpath}
+        submission={submission}
+        onUnsavedWorkChange={onUnsavedWorkChange}
+      />
+    )
   }
 }
