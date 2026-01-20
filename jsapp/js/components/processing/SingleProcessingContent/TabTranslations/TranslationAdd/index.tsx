@@ -4,7 +4,6 @@ import cx from 'classnames'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { assetsAdvancedFeaturesListResponse } from '#/api/react-query/survey-data'
 import type { LanguageCode } from '#/components/languages/languagesStore'
-import singleProcessingStore from '#/components/processing/singleProcessingStore'
 import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import bodyStyles from '../../../common/processingBody.module.scss'
@@ -45,7 +44,7 @@ export default function TranslateAdd({
           onBack={() => setStep('begin')}
           onNext={(step: 'manual' | 'automatic') => setStep(step)}
           hiddenLanguages={languagesExisting}
-          suggestedLanguages={singleProcessingStore.getAssetTranslatableLanguages()}
+          suggestedLanguages={asset.advanced_features?.translation?.languages ?? []}
           languageCode={languageCode}
           setLanguageCode={setLanguageCode}
           titleOverride={t('Please select the language you want to translate to')}
