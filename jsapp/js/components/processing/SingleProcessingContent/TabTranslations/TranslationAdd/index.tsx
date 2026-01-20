@@ -1,12 +1,9 @@
 import React, { useState } from 'react'
-
-import cx from 'classnames'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { assetsAdvancedFeaturesListResponse } from '#/api/react-query/survey-data'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
-import bodyStyles from '../../../common/processingBody.module.scss'
 import StepSelectLanguage from '../../components/StepSelectLanguage'
 import StepBegin from './StepBegin'
 import StepCreateAutomated from './StepCreateAutomated'
@@ -37,7 +34,7 @@ export default function TranslateAdd({
   const [languageCode, setLanguageCode] = useState<null | LanguageCode>(null)
 
   return (
-    <div className={cx(bodyStyles.root, bodyStyles.stepBegin)}>
+    <>
       {step === 'begin' && <StepBegin asset={asset} onNext={() => setStep('language')} />}
       {step === 'language' && (
         <StepSelectLanguage
@@ -74,6 +71,6 @@ export default function TranslateAdd({
           advancedFeaturesData={advancedFeaturesData}
         />
       )}
-    </div>
+    </>
   )
 }

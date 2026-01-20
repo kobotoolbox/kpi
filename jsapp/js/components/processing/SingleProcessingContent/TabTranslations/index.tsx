@@ -82,7 +82,7 @@ export default function TranscriptTab({
   // TODO: Handle acceptable user flow.
 
   return (
-    <div className={bodyStyles.root}>
+    <>
       {(mode === 'add' || !translationVersion) && (
         <TranslationAdd
           asset={asset}
@@ -101,29 +101,33 @@ export default function TranscriptTab({
         />
       )}
       {mode === 'view' && translationVersion && (
-        <Viewer
-          asset={asset}
-          questionXpath={questionXpath}
-          submission={submission}
-          translationVersion={translationVersion}
-          translationVersions={translationVersions}
-          onEdit={() => setMode('edit')}
-          onAdd={() => setMode('add')}
-          onChangeLanguageCode={(languageCode: LanguageCode) => setLanguageCode(languageCode)}
-        />
+        <div className={bodyStyles.root}>
+          <Viewer
+            asset={asset}
+            questionXpath={questionXpath}
+            submission={submission}
+            translationVersion={translationVersion}
+            translationVersions={translationVersions}
+            onEdit={() => setMode('edit')}
+            onAdd={() => setMode('add')}
+            onChangeLanguageCode={(languageCode: LanguageCode) => setLanguageCode(languageCode)}
+          />
+        </div>
       )}
       {mode === 'edit' && translationVersion && (
-        <Editor
-          asset={asset}
-          questionXpath={questionXpath}
-          submission={submission}
-          translationVersion={translationVersions.find(({ _data }) => _data.language === languageCode)!}
-          onBack={() => setMode('view')}
-          onSave={() => setMode('view')}
-          onUnsavedWorkChange={onUnsavedWorkChange}
-          advancedFeaturesData={advancedFeaturesData}
-        />
+        <div className={bodyStyles.root}>
+          <Editor
+            asset={asset}
+            questionXpath={questionXpath}
+            submission={submission}
+            translationVersion={translationVersions.find(({ _data }) => _data.language === languageCode)!}
+            onBack={() => setMode('view')}
+            onSave={() => setMode('view')}
+            onUnsavedWorkChange={onUnsavedWorkChange}
+            advancedFeaturesData={advancedFeaturesData}
+          />
+        </div>
       )}
-    </div>
+    </>
   )
 }

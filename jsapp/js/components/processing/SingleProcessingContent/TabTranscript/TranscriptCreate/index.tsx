@@ -1,12 +1,9 @@
 import React, { useState } from 'react'
-
-import cx from 'classnames'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { assetsAdvancedFeaturesListResponse } from '#/api/react-query/survey-data'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
-import bodyStyles from '../../../common/processingBody.module.scss'
 import StepSelectLanguage from '../../components/StepSelectLanguage'
 import { getProcessedFileLabel, getQuestionType } from '../common/utils'
 import { getAttachmentForProcessing } from '../transcript.utils'
@@ -39,7 +36,7 @@ export default function TranscriptCreate({
   const attachment = getAttachmentForProcessing(asset, questionXpath, submission)
 
   return (
-    <div className={cx(bodyStyles.root, bodyStyles.stepBegin)}>
+    <>
       {step === 'begin' && <StepBegin asset={asset} questionXpath={questionXpath} onNext={() => setStep('language')} />}
       {step === 'language' && (
         <StepSelectLanguage
@@ -75,6 +72,6 @@ export default function TranscriptCreate({
           advancedFeaturesData={advancedFeaturesData}
         />
       )}
-    </div>
+    </>
   )
 }
