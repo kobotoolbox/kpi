@@ -121,8 +121,8 @@ class DataSupplementPayloadExtension(
         return build_object_type(
             additionalProperties=False,
             properties={
-                'manual_transcription': self._nlp_manual_action_schema,
-                'manual_translation': self._nlp_manual_action_schema,
+                'manual_transcription': self._nlp_manual_transcription_action_schema,
+                'manual_translation': self._nlp_manual_translation_action_schema,
                 'automatic_google_transcription': self._nlp_automatic_action_schema,
                 'automatic_google_translation': self._nlp_automatic_action_schema,
                 'qual': self._qual_schema,
@@ -303,7 +303,19 @@ class DataSupplementPayloadExtension(
         )
 
     @property
-    def _nlp_manual_action_schema(self):
+    def _nlp_manual_transcription_action_schema(self):
+
+        return build_object_type(
+            additionalProperties=False,
+            properties={
+                'language': GENERIC_STRING_SCHEMA,
+                'value': {'type': 'string', 'nullable': True},
+            },
+            required=['language', 'value'],
+        )
+
+    @property
+    def _nlp_manual_translation_action_schema(self):
 
         return build_object_type(
             additionalProperties=False,
