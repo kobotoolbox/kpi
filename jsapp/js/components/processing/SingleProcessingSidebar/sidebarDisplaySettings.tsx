@@ -11,7 +11,6 @@ import type { LanguageCode } from '#/components/languages/languagesStore'
 import { AsyncLanguageDisplayLabel } from '#/components/languages/languagesUtils'
 import KoboModal from '#/components/modals/koboModal'
 import KoboModalContent from '#/components/modals/koboModalContent'
-import KoboModalFooter from '#/components/modals/koboModalFooter'
 import KoboModalHeader from '#/components/modals/koboModalHeader'
 import { getActiveTab } from '#/components/processing/routes.utils'
 import singleProcessingStore, { StaticDisplays } from '#/components/processing/singleProcessingStore'
@@ -69,19 +68,6 @@ export default function SidebarDisplaySettings({
     return null
   }
 
-  function getInitialFields(customHiddenQuestions?: string[]) {
-    const allQuestions = store.getAllSidebarQuestions()
-    const hiddenFields = customHiddenQuestions || hiddenQuestions
-
-    // Remove the fields hidden in the store so it persists when
-    // across navigating submissions.
-    const questionsList = allQuestions.filter((question) => !hiddenFields.includes(question.name))
-    return questionsList
-  }
-
-  const [localSelectedDisplays, setLocalSelectedDisplays] = useState<DisplaysList>(() => selectedDisplays)
-  const [selectedFields, setSelectedFields] = useState(() => getInitialFields())
-
   const transcript = store.getTranscript()
   const availableDisplays = store.getAvailableDisplays(activeTab)
 
@@ -107,15 +93,15 @@ export default function SidebarDisplaySettings({
   }
 
   function enableDisplay(displayName: LanguageCode | StaticDisplays) {
-    setLocalSelectedDisplays(Array.from(new Set([...localSelectedDisplays, displayName])))
+    setSelectedDisplays(Array.from(new Set([...selectedDisplays, displayName])))
   }
 
   function disableDisplay(displayName: LanguageCode | StaticDisplays) {
-    setLocalSelectedDisplays(localSelectedDisplays.filter((selectedDisplayName) => selectedDisplayName !== displayName))
+    setSelectedDisplays(selectedDisplays.filter((selectedDisplayName) => selectedDisplayName !== displayName))
   }
 
   function isFieldChecked(questionName: string) {
-    return selectedFields.some((field) => field.name === questionName)
+    return !hiddenQuestions.includes(questionName)
   }
 
   function getCheckboxes() {
@@ -124,40 +110,17 @@ export default function SidebarDisplaySettings({
         label: question.label,
         checked: isFieldChecked(question.name),
         name: question.name,
-        disabled: !localSelectedDisplays.includes(StaticDisplays.Data),
+        disabled: !selectedDisplays.includes(StaticDisplays.Data),
       }
     })
 
     return checkboxes
   }
 
-  // To make the code a little simpler later on, we need an inverse array here
-  // to send to the the display, and a normal array to keep track of the
-  // checkboxes in this modal.
   function onCheckboxesChange(list: MultiCheckboxItem[]) {
-    const newList = list
-      .filter((question) => question.checked)
-      .map((question) => {
-        return { name: question.name, label: question.label }
-      })
-
-    setSelectedFields(newList)
-  }
-
-  function applyFieldsSelection() {
-    const hiddenList =
-      getCheckboxes()
-        .filter((question) => !question.checked)
-        .map((question) => question.name) || []
+    const hiddenList = list.filter((question) => !question.checked).map((question) => question.name)
 
     setHiddenQuestions(hiddenList)
-  }
-
-  function resetFieldsSelection() {
-    // Since we check the store for hidden fields and use that to get our
-    // checkboxes, using `applyFieldsSelection` here would never actually
-    // reset the checkboxes visually so we explicitly set it to empty here.
-    setSelectedFields(getInitialFields([]))
   }
 
   return (
@@ -167,12 +130,7 @@ export default function SidebarDisplaySettings({
         type='text'
         label={t('Display settings')}
         startIcon='settings'
-        onClick={() => {
-          // Reset modals and checkboxes to current state when opening.
-          setLocalSelectedDisplays(selectedDisplays)
-          setSelectedFields(getInitialFields())
-          setIsModalOpen(true)
-        }}
+        onClick={() => setIsModalOpen(true)}
       />
       <KoboModal
         isOpen={isModalOpen}
@@ -181,13 +139,7 @@ export default function SidebarDisplaySettings({
         }}
         size='medium'
       >
-        <KoboModalHeader
-          onRequestCloseByX={() => {
-            setSelectedDisplays(store.getDisplays(activeTab))
-            setSelectedFields(getInitialFields())
-            setIsModalOpen(false)
-          }}
-        >
+        <KoboModalHeader onRequestCloseByX={() => setIsModalOpen(false)}>
           {t('Customize display settings')}
         </KoboModalHeader>
 
@@ -214,7 +166,7 @@ export default function SidebarDisplaySettings({
             </li>
 
             {availableDisplays.map((entry) => {
-              const isEnabled = localSelectedDisplays.includes(entry)
+              const isEnabled = selectedDisplays.includes(entry)
 
               if (entry in StaticDisplays) {
                 const staticDisplay = entry as StaticDisplays
@@ -271,36 +223,6 @@ export default function SidebarDisplaySettings({
             })}
           </ul>
         </KoboModalContent>
-
-        <KoboModalFooter alignment='center'>
-          {/* This button resets the displays for current tab. */}
-          <Button
-            label={t('Reset')}
-            type='secondary-danger'
-            size='m'
-            onClick={() => {
-              // Apply reset to local state of selected displays. This is needed
-              // because the modal component (and its state) is kept alive even
-              // when the modal is closed.
-              resetFieldsSelection()
-              setLocalSelectedDisplays(store.getDisplays(activeTab))
-              setLabelLanguage(store.getCurrentlyDisplayedLanguage())
-            }}
-          />
-
-          {/* Applies current selection of displays to the sidebar. */}
-          <Button
-            label={t('Apply selection')}
-            type='primary'
-            size='m'
-            onClick={() => {
-              applyFieldsSelection()
-              setSelectedDisplays(localSelectedDisplays)
-              store.setCurrentlyDisplayedLanguage(labelLanguage)
-              setIsModalOpen(false)
-            }}
-          />
-        </KoboModalFooter>
       </KoboModal>
     </div>
   )
