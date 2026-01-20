@@ -104,7 +104,16 @@ export default function SingleProcessingRoute({ params: routeParams }: { params:
     return (
       <React.Fragment>
         <section className={styles.bottomLeft}>
-          {questionHasAnswer ? <SingleProcessingContent /> : <CenteredMessage message={NO_DATA_MESSAGE} />}
+          {questionHasAnswer ? (
+            <SingleProcessingContent
+              asset={asset}
+              questionXpath={xpath}
+              submission={currentSubmission}
+              submissionEditId={submissionEditId}
+            />
+          ) : (
+            <CenteredMessage message={NO_DATA_MESSAGE} />
+          )}
         </section>
 
         <section className={styles.bottomRight}>

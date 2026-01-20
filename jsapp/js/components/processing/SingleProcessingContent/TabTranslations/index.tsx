@@ -1,67 +1,36 @@
 import React, { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
 import type { _DataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem } from '#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem'
 import type { _DataSupplementResponseOneOfManualTranslationVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualTranslationVersionsItem'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponseOneOf } from '#/api/models/dataSupplementResponseOneOf'
-import {
-  getAssetsDataListQueryKey,
-  getAssetsDataSupplementRetrieveQueryKey,
-  useAssetsDataList,
-  useAssetsDataSupplementRetrieve,
-} from '#/api/react-query/survey-data'
-import assetStore from '#/assetStore'
+import { getAssetsDataSupplementRetrieveQueryKey, useAssetsDataSupplementRetrieve } from '#/api/react-query/survey-data'
 import type { LanguageCode } from '#/components/languages/languagesStore'
-import { addDefaultUuidPrefix, recordKeys, recordValues } from '#/utils'
+import type { AssetResponse } from '#/dataInterface'
+import { recordKeys, recordValues } from '#/utils'
 import bodyStyles from '../../common/processingBody.module.scss'
 import { isSupplementVersionWithValue } from '../../common/utils'
 import TranslationAdd from './TranslationAdd'
 import Editor from './TranslationEdit/Editor'
 import Viewer from './TranslationEdit/Viewer'
 
-interface RouteParams extends Record<string, string | undefined> {
-  uid: string
-  xpath: string
+interface Props {
+  asset: AssetResponse
+  questionXpath: string
+  submission: DataResponse & Record<string, string>
   submissionEditId: string
 }
 
-export default function TranscriptTab() {
-  const { uid, xpath: questionXpath, submissionEditId } = useParams<RouteParams>()
-
-  const querySupplement = useAssetsDataSupplementRetrieve(uid!, submissionEditId!, {
+export default function TranscriptTab({ asset, questionXpath, submission, submissionEditId }: Props) {
+  const querySupplement = useAssetsDataSupplementRetrieve(asset.uid, submissionEditId, {
     query: {
-      queryKey: getAssetsDataSupplementRetrieveQueryKey(uid!, submissionEditId!),
-      enabled: !!uid,
+      queryKey: getAssetsDataSupplementRetrieveQueryKey(asset.uid, submissionEditId),
+      enabled: !!asset.uid,
     },
   })
-
-  const params = {
-    query: JSON.stringify({
-      $or: [{ 'meta/rootUuid': addDefaultUuidPrefix(submissionEditId!) }, { _uuid: submissionEditId }],
-    }),
-  } as any
-  const querySubmission = useAssetsDataList(uid!, params, {
-    query: {
-      queryKey: getAssetsDataListQueryKey(uid!, params),
-      enabled: !!uid,
-    },
-  })
-  // TODO OpenAPI: DataResponse should be indexable.
-  const currentSubmission =
-    querySubmission.data?.status === 200 && querySubmission.data.data.results.length > 0
-      ? (querySubmission.data.data.results[0] as DataResponse & Record<string, string>)
-      : null
-
-  const asset = uid !== undefined ? assetStore.getAsset(uid) : undefined
-
-  // console.log('TranscriptTab', asset, xpath, currentSubmission)
-  if (!asset) return null // TODO: better error handling
-  if (!questionXpath) return null // TODO: better error handling
-  if (!currentSubmission) return null // TODO: some spinner
 
   const questionSupplement =
     querySupplement.data?.status === 200
-      ? (querySupplement.data.data[questionXpath!] as DataSupplementResponseOneOf)
+      ? (querySupplement.data.data[questionXpath] as DataSupplementResponseOneOf)
       : undefined
 
   // Backend said, that latest version is the "real version" and to discared the rest.
@@ -116,7 +85,7 @@ export default function TranscriptTab() {
         <TranslationAdd
           asset={asset}
           questionXpath={questionXpath}
-          submission={currentSubmission}
+          submission={submission}
           languagesExisting={translationVersions.map(({ _data }) => _data.language)}
           initialStep={translationVersion ? 'language' : 'begin'}
           onCreate={(languageCode: LanguageCode) => {
@@ -131,7 +100,7 @@ export default function TranscriptTab() {
         <Viewer
           asset={asset}
           questionXpath={questionXpath}
-          submission={currentSubmission}
+          submission={submission}
           translationVersion={translationVersion}
           translationVersions={translationVersions}
           onEdit={() => setMode('edit')}
@@ -143,7 +112,7 @@ export default function TranscriptTab() {
         <Editor
           asset={asset}
           questionXpath={questionXpath}
-          submission={currentSubmission}
+          submission={submission}
           translationVersion={translationVersions.find(({ _data }) => _data.language === languageCode)!}
           onBack={() => setMode('view')}
           onSave={() => setMode('view')}

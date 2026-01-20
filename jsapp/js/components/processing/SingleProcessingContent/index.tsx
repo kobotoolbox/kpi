@@ -1,6 +1,8 @@
 import React from 'react'
 
 import classNames from 'classnames'
+import type { DataResponse } from '#/api/models/dataResponse'
+import type { AssetResponse } from '#/dataInterface'
 import protectorHelpers from '#/protector/protectorHelpers'
 import { PROCESSING_ROUTES } from '#/router/routerConstants'
 
@@ -12,43 +14,56 @@ import TabTranscript from './TabTranscript'
 import TabTranslations from './TabTranslations'
 import styles from './index.module.scss'
 
+interface Props {
+  asset: AssetResponse
+  questionXpath: string
+  submission: DataResponse & Record<string, string>
+  submissionEditId: string
+}
+
 /**
  * Displays main content part of Single Processing route. It consists of tabs
  * navigation and a section for currently selected tab. Content for each of the
  * tabs is built in separate components.
  */
-export default class SingleProcessingContent extends React.Component<{}> {
-  private unlisteners: Function[] = []
-
-  componentDidMount() {
-    this.unlisteners.push(singleProcessingStore.listen(this.onSingleProcessingStoreChange, this))
-  }
-
-  componentWillUnmount() {
-    this.unlisteners.forEach((clb) => {
-      clb()
-    })
-  }
-
-  /**
-   * Don't want to store a duplicate of `activeTab` here, so we need to make
-   * the component re-render itself when the store changes :shrug:.
-   */
-  onSingleProcessingStoreChange() {
-    this.forceUpdate()
-  }
-
+export default function SingleProcessingContent({ asset, questionXpath, submission, submissionEditId }: Props) {
   /** DRY wrapper for protector function. */
-  safeExecute(callback: () => void) {
+  function safeExecute(callback: () => void) {
     protectorHelpers.safeExecute(singleProcessingStore.hasAnyUnsavedWork(), callback)
   }
 
-  renderTabContent() {
+  function handleTranscriptClick() {
+    safeExecute(() => goToTabRoute(PROCESSING_ROUTES.TRANSCRIPT))
+  }
+
+  function handleTranslationsClick() {
+    safeExecute(() => goToTabRoute(PROCESSING_ROUTES.TRANSLATIONS))
+  }
+
+  function handleAnalysisClick() {
+    safeExecute(() => goToTabRoute(PROCESSING_ROUTES.ANALYSIS))
+  }
+
+  function renderTabContent() {
     if (isProcessingRouteActive(PROCESSING_ROUTES.TRANSCRIPT)) {
-      return <TabTranscript />
+      return (
+        <TabTranscript
+          asset={asset}
+          questionXpath={questionXpath}
+          submission={submission}
+          submissionEditId={submissionEditId}
+        />
+      )
     }
     if (isProcessingRouteActive(PROCESSING_ROUTES.TRANSLATIONS)) {
-      return <TabTranslations />
+      return (
+        <TabTranslations
+          asset={asset}
+          questionXpath={questionXpath}
+          submission={submission}
+          submissionEditId={submissionEditId}
+        />
+      )
     }
     if (isProcessingRouteActive(PROCESSING_ROUTES.ANALYSIS)) {
       return <TabAnalysis />
@@ -56,43 +71,41 @@ export default class SingleProcessingContent extends React.Component<{}> {
     return null
   }
 
-  render() {
-    return (
-      <section className={styles.root}>
-        <ul className={styles.tabs}>
-          <li
-            className={classNames({
-              [styles.tab]: true,
-              [styles.activeTab]: isProcessingRouteActive(PROCESSING_ROUTES.TRANSCRIPT),
-            })}
-            onClick={this.safeExecute.bind(this, () => goToTabRoute(PROCESSING_ROUTES.TRANSCRIPT))}
-          >
-            {t('Transcript')}
-          </li>
+  return (
+    <section className={styles.root}>
+      <ul className={styles.tabs}>
+        <li
+          className={classNames({
+            [styles.tab]: true,
+            [styles.activeTab]: isProcessingRouteActive(PROCESSING_ROUTES.TRANSCRIPT),
+          })}
+          onClick={handleTranscriptClick}
+        >
+          {t('Transcript')}
+        </li>
 
-          <li
-            className={classNames({
-              [styles.tab]: true,
-              [styles.activeTab]: isProcessingRouteActive(PROCESSING_ROUTES.TRANSLATIONS),
-            })}
-            onClick={this.safeExecute.bind(this, () => goToTabRoute(PROCESSING_ROUTES.TRANSLATIONS))}
-          >
-            {t('Translations')}
-          </li>
+        <li
+          className={classNames({
+            [styles.tab]: true,
+            [styles.activeTab]: isProcessingRouteActive(PROCESSING_ROUTES.TRANSLATIONS),
+          })}
+          onClick={handleTranslationsClick}
+        >
+          {t('Translations')}
+        </li>
 
-          <li
-            className={classNames({
-              [styles.tab]: true,
-              [styles.activeTab]: isProcessingRouteActive(PROCESSING_ROUTES.ANALYSIS),
-            })}
-            onClick={this.safeExecute.bind(this, () => goToTabRoute(PROCESSING_ROUTES.ANALYSIS))}
-          >
-            {t('Analysis')}
-          </li>
-        </ul>
+        <li
+          className={classNames({
+            [styles.tab]: true,
+            [styles.activeTab]: isProcessingRouteActive(PROCESSING_ROUTES.ANALYSIS),
+          })}
+          onClick={handleAnalysisClick}
+        >
+          {t('Analysis')}
+        </li>
+      </ul>
 
-        <section className={styles.body}>{this.renderTabContent()}</section>
-      </section>
-    )
-  }
+      <section className={styles.body}>{renderTabContent()}</section>
+    </section>
+  )
 }

@@ -1,62 +1,30 @@
 import React from 'react'
-import { useParams } from 'react-router-dom'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponseOneOf } from '#/api/models/dataSupplementResponseOneOf'
-import {
-  getAssetsDataListQueryKey,
-  getAssetsDataSupplementRetrieveQueryKey,
-  useAssetsDataList,
-  useAssetsDataSupplementRetrieve,
-} from '#/api/react-query/survey-data'
-import assetStore from '#/assetStore'
-import { addDefaultUuidPrefix } from '#/utils'
+import { getAssetsDataSupplementRetrieveQueryKey, useAssetsDataSupplementRetrieve } from '#/api/react-query/survey-data'
+import type { AssetResponse } from '#/dataInterface'
 import { isSupplementVersionWithValue } from '../../common/utils'
 import TranscriptCreate from './TranscriptCreate'
 import TranscriptEdit from './TranscriptEdit'
 
-interface RouteParams extends Record<string, string | undefined> {
-  uid: string
-  xpath: string
+interface Props {
+  asset: AssetResponse
+  questionXpath: string
+  submission: DataResponse & Record<string, string>
   submissionEditId: string
 }
 
-export default function TranscriptTab() {
-  const { uid, xpath, submissionEditId } = useParams<RouteParams>()
-
-  const querySupplement = useAssetsDataSupplementRetrieve(uid!, submissionEditId!, {
+export default function TranscriptTab({ asset, questionXpath, submission, submissionEditId }: Props) {
+  const querySupplement = useAssetsDataSupplementRetrieve(asset.uid, submissionEditId, {
     query: {
-      queryKey: getAssetsDataSupplementRetrieveQueryKey(uid!, submissionEditId!),
-      enabled: !!uid,
+      queryKey: getAssetsDataSupplementRetrieveQueryKey(asset.uid, submissionEditId),
+      enabled: !!asset.uid,
     },
   })
-
-  const params = {
-    query: JSON.stringify({
-      $or: [{ 'meta/rootUuid': addDefaultUuidPrefix(submissionEditId!) }, { _uuid: submissionEditId }],
-    }),
-  } as any
-  const querySubmission = useAssetsDataList(uid!, params, {
-    query: {
-      queryKey: getAssetsDataListQueryKey(uid!, params),
-      enabled: !!uid,
-    },
-  })
-  // TODO OpenAPI: DataResponse should be indexable.
-  const currentSubmission =
-    querySubmission.data?.status === 200 && querySubmission.data.data.results.length > 0
-      ? (querySubmission.data.data.results[0] as DataResponse & Record<string, string>)
-      : null
-
-  const asset = uid !== undefined ? assetStore.getAsset(uid) : undefined
-
-  // console.log('TranscriptTab', asset, xpath, currentSubmission)
-  if (!asset) return null // TODO: better error handling
-  if (!xpath) return null // TODO: better error handling
-  if (!currentSubmission) return null // TODO: some spinner
 
   const questionSupplement =
     querySupplement.data?.status === 200
-      ? (querySupplement.data.data[xpath!] as DataSupplementResponseOneOf)
+      ? (querySupplement.data.data[questionXpath] as DataSupplementResponseOneOf)
       : undefined
 
   // Backend said, that latest version is the "real version" and to discared the rest.
@@ -73,12 +41,12 @@ export default function TranscriptTab() {
     return (
       <TranscriptEdit
         asset={asset}
-        questionXpath={xpath}
-        submission={currentSubmission}
+        questionXpath={questionXpath}
+        submission={submission}
         transcriptVersion={transcriptVersion}
       />
     )
   } else {
-    return <TranscriptCreate asset={asset} questionXpath={xpath} submission={currentSubmission} />
+    return <TranscriptCreate asset={asset} questionXpath={questionXpath} submission={submission} />
   }
 }
