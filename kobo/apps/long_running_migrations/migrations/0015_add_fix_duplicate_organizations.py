@@ -5,7 +5,7 @@ def add_long_running_migration(apps, schema_editor):
     LongRunningMigration = apps.get_model(
         'long_running_migrations', 'LongRunningMigration'
     )
-    LongRunningMigration.objects.create(name='0014_fix_duplicate_organizations')
+    LongRunningMigration.objects.create(name='0015_fix_duplicate_organizations')
 
 
 def noop(*args, **kwargs):
