@@ -285,6 +285,7 @@ class DataSupplementPayloadExtension(
             additionalProperties=False,
             properties={
                 'language': GENERIC_STRING_SCHEMA,
+                'locale': GENERIC_STRING_SCHEMA,
                 'accepted': {'type': 'boolean'},
             },
             required=['language'],
@@ -297,6 +298,7 @@ class DataSupplementPayloadExtension(
             additionalProperties=False,
             properties={
                 'language': GENERIC_STRING_SCHEMA,
+                'locale': GENERIC_STRING_SCHEMA,
                 'value': GENERIC_STRING_SCHEMA,
             },
             required=['language', 'value'],
@@ -457,6 +459,7 @@ class DataSupplementResponseExtension(
                 additionalProperties=False,
                 properties={
                     'language': GENERIC_STRING_SCHEMA,
+                    'locale': GENERIC_STRING_SCHEMA,
                     'value': {'type': 'string', 'nullable': True},
                 },
                 required=['language', 'value'],
@@ -469,6 +472,7 @@ class DataSupplementResponseExtension(
                     additionalProperties=False,
                     properties={
                         'language': GENERIC_STRING_SCHEMA,
+                        'locale': GENERIC_STRING_SCHEMA,
                         'status': {'type': 'string', 'const': 'in_progress'},
                     },
                     required=['language', 'status'],
@@ -478,6 +482,7 @@ class DataSupplementResponseExtension(
                     additionalProperties=False,
                     properties={
                         'language': GENERIC_STRING_SCHEMA,
+                        'locale': GENERIC_STRING_SCHEMA,
                         'status': {'type': 'string', 'const': 'failed'},
                         'error': {'type': 'string'},
                     },
@@ -488,6 +493,7 @@ class DataSupplementResponseExtension(
                     additionalProperties=False,
                     properties={
                         'language': GENERIC_STRING_SCHEMA,
+                        'locale': GENERIC_STRING_SCHEMA,
                         'status': {'type': 'string', 'const': 'complete'},
                         'value': {'type': 'string'},
                     },
@@ -498,6 +504,7 @@ class DataSupplementResponseExtension(
                     additionalProperties=False,
                     properties={
                         'language': GENERIC_STRING_SCHEMA,
+                        'locale': GENERIC_STRING_SCHEMA,
                         'status': {'type': 'string', 'const': 'deleted'},
                         'value': {'type': 'null'},
                     },

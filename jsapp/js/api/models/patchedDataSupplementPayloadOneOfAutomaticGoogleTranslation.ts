@@ -12,5 +12,6 @@ The endpoints are grouped by area of intended use. Each category contains relate
 
 export type PatchedDataSupplementPayloadOneOfAutomaticGoogleTranslation = {
   language: string
+  locale?: string
   accepted?: boolean
 }

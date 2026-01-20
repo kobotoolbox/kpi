@@ -175,6 +175,18 @@ PATCH /api/v2/assets/<asset_uid>/data/<submission_root_uuid>/supplement/
 {
   "_version": "20250820",
   "audio_question": {
+    "manual_transcription": { "language": "en", "value": "My transcript" }
+  }
+}
+```
+
+### Example: Manual transcription with `locale` (optional)
+You can optionally specify a `locale` to distinguish regional variations (e.g. en-US vs en-GB).
+
+```json
+{
+  "_version": "20250820",
+  "audio_question": {
     "manual_transcription": { "language": "en", "locale": "en-US", "value": "My transcript" }
   }
 }
@@ -370,17 +382,22 @@ Each action has its own expected format:
 
 - **Manual Transcription**
   ```json
+  { "language": "en", "value": "My transcript" }
+  ```
+
+- **Manual Transcription (with `locale`)**
+  ```json
   { "language": "en", "locale": "en-US", "value": "My transcript" }
   ```
 
 - **Manual Translation**
   ```json
-  { "language": "en", "locale": "en-US", "value": "My translation" }
+  { "language": "en", "value": "My translation" }
   ```
 
 - **Automatic Transcription / Automatic Translation**
   ```json
-  { "language": "en", "locale": "en-US" }
+  { "language": "en" }
   ```
 
 - **All actions – delete request**
@@ -405,7 +422,7 @@ It validates the **augmented payload** returned by the external service.
 
 - **Example (complete)**
   ```json
-  { "language": "en", "locale": "en-US", "value": "My automatic result", "status": "complete" }
+  { "language": "en", "value": "My automatic result", "status": "complete" }
   ```
 
 - **Example (in progress)**
@@ -445,7 +462,6 @@ The structure is the same for both manual and automatic actions:
     {
       "_data": {
         "language": "en",
-        "locale": "en-US",
         "value": "My manual transcript"
       },
       "_dateCreated": "2025-08-21T20:57:28Z",
@@ -455,7 +471,6 @@ The structure is the same for both manual and automatic actions:
     {
       "_data": {
         "language": "en",
-        "locale": "en-US",
         "value": "My previous manual transcript"
       },
       "_dateCreated": "2025-08-21T20:55:42Z",
@@ -476,7 +491,6 @@ The structure is the same for both manual and automatic actions:
     {
       "_data": {
         "language": "en",
-        "locale": "en-US",
         "value": "My automatic result",
         "status": "complete"
       },
@@ -487,7 +501,6 @@ The structure is the same for both manual and automatic actions:
     {
       "_data": {
         "language": "en",
-        "locale": "en-US",
         "value": "My previous automatic result",
         "status": "complete"
       },
@@ -567,7 +580,6 @@ In this case, a `_dependency` property is added to the persisted JSON.
     {
       "_data": {
         "language": "fr",
-        "locale": "fr-CA",
         "value": "Mon audio a été traduit automatiquement",
         "status": "complete"
       },

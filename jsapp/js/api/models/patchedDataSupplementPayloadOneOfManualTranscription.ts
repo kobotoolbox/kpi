@@ -12,5 +12,6 @@ The endpoints are grouped by area of intended use. Each category contains relate
 
 export type PatchedDataSupplementPayloadOneOfManualTranscription = {
   language: string
+  locale?: string
   value: string
 }

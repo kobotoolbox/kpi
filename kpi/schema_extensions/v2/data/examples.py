@@ -37,6 +37,17 @@ def _get_data_supplement_patch_payload_request_examples() -> list[OpenApiExample
             value={
                 '_version': '20250820',
                 'question_name_xpath': {
+                    'manual_transcription': {'language': 'fr', 'value': 'Bonjour'}
+                },
+            },
+            request_only=True,
+        ),
+        OpenApiExample(
+            'Manual Transcription (with "locale")',
+            description='The `locale` field is optional.',
+            value={
+                '_version': '20250820',
+                'question_name_xpath': {
                     'manual_transcription': {
                         'language': 'fr', 'locale': 'fr-CA', 'value': 'Bonjour'
                     }
@@ -49,9 +60,7 @@ def _get_data_supplement_patch_payload_request_examples() -> list[OpenApiExample
             value={
                 '_version': '20250820',
                 'question_name_xpath': {
-                    'manual_translation': {
-                        'language': 'en', 'locale': 'en-CA', 'value': 'Hello'
-                    },
+                    'manual_translation': {'language': 'en', 'value': 'Hello'},
                 },
             },
             request_only=True,
@@ -61,9 +70,7 @@ def _get_data_supplement_patch_payload_request_examples() -> list[OpenApiExample
             value={
                 '_version': '20250820',
                 'question_name_xpath': {
-                    'automatic_google_transcription': {
-                        'language': 'fr', 'locale': 'fr-CA'
-                    }
+                    'automatic_google_transcription': {'language': 'fr'}
                 },
             },
             request_only=True,
@@ -73,9 +80,7 @@ def _get_data_supplement_patch_payload_request_examples() -> list[OpenApiExample
             value={
                 '_version': '20250820',
                 'question_name_xpath': {
-                    'automatic_google_translation': {
-                        'language': 'en', 'locale': 'en-CA'
-                    },
+                    'automatic_google_translation': {'language': 'en'},
                 },
             },
             request_only=True,
@@ -210,6 +215,30 @@ def _get_data_supplement_response_examples():
                                 '_uuid': '11111111-1111-1111-1111-111111111111',
                                 '_data': {
                                     'language': 'fr',
+                                    'value': 'Bonjour',
+                                },
+                            }
+                        ],
+                    }
+                },
+            },
+        ),
+        OpenApiExample(
+            name='Manual Transcription (with "locale")',
+            response_only=True,
+            value={
+                '_version': '20250820',
+                'question_name_xpath': {
+                    'manual_transcription': {
+                        '_dateCreated': iso0,
+                        '_dateModified': iso0,
+                        '_versions': [
+                            {
+                                '_dateCreated': iso0,
+                                '_dateAccepted': iso0,
+                                '_uuid': '11111111-1111-1111-1111-111111111111',
+                                '_data': {
+                                    'language': 'fr',
                                     'locale': 'fr-CA',
                                     'value': 'Bonjour',
                                 },
@@ -236,7 +265,6 @@ def _get_data_supplement_response_examples():
                                     '_uuid': '22222222-2222-2222-2222-222222222222',
                                     '_data': {
                                         'language': 'en',
-                                        'locale': 'en-CA',
                                         'value': 'Hello',
                                     },
                                     '_dependency': {
@@ -256,7 +284,6 @@ def _get_data_supplement_response_examples():
                                     '_uuid': '33333333-3333-3333-3333-333333333333',
                                     '_data': {
                                         'language': 'es',
-                                        'locale': 'es-ES',
                                         'value': 'Hola',
                                     },
                                     '_dependency': {
@@ -285,7 +312,6 @@ def _get_data_supplement_response_examples():
                                 '_uuid': '44444444-4444-4444-4444-444444444444',
                                 '_data': {
                                     'language': 'en',
-                                    'locale': 'en-CA',
                                     'status': 'complete',
                                     'value': 'Hello world',
                                 },
@@ -296,7 +322,6 @@ def _get_data_supplement_response_examples():
                                 '_uuid': '44444444-4444-4444-4444-444444444444',
                                 '_data': {
                                     'language': 'en',
-                                    'locale': 'en-CA',
                                     'status': 'in_progress',
                                 },
                             },
@@ -322,7 +347,6 @@ def _get_data_supplement_response_examples():
                                     '_uuid': '88888888-8888-8888-8888-888888888888',
                                     '_data': {
                                         'language': 'fr',
-                                        'locale': 'fr-CA',
                                         'status': 'complete',
                                         'value': 'Bonjour le monde',
                                     },
@@ -336,7 +360,6 @@ def _get_data_supplement_response_examples():
                                     '_uuid': '77777777-7777-7777-7777-777777777777',
                                     '_data': {
                                         'language': 'fr',
-                                        'locale': 'fr-CA',
                                         'status': 'in_progress',
                                     },
                                     '_dependency': {
@@ -349,7 +372,6 @@ def _get_data_supplement_response_examples():
                                     '_uuid': '66666666-6666-6666-6666-666666666666',
                                     '_data': {
                                         'language': 'fr',
-                                        'locale': 'fr-CA',
                                         'value': None,
                                         'status': 'deleted',
                                     },
@@ -363,7 +385,6 @@ def _get_data_supplement_response_examples():
                                     '_uuid': '55555555-5555-5555-5555-555555555555',
                                     '_data': {
                                         'language': 'fr',
-                                        'locale': 'fr-CA',
                                         'status': 'complete',
                                         'value': 'Allo la foule',
                                     },
