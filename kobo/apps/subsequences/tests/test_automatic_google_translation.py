@@ -442,6 +442,46 @@ def test_transform_data_for_output():
     }
 
 
+def test_transform_data_for_output_with_delete():
+    action = _get_action()
+    first = {'language': 'es', 'value': 'Hola'}
+    second = {'language': 'es', 'value': 'Hola otra vez'}
+    third = {'language': 'fr', 'value': 'bonjour'}
+    fourth = {'language': 'es', 'value': None}
+    mock_sup_det = EMPTY_SUPPLEMENT
+    mock_service = MagicMock()
+    with patch(
+        'kobo.apps.subsequences.actions.automatic_google_translation.GoogleTranslationService',  # noqa
+        return_value=mock_service,
+    ):
+        for data in first, second, third, fourth:
+            value = data.pop('value')
+            mock_service.process_data.return_value = {
+                'value': value,
+                'status': 'complete' if value is not None else 'deleted',
+            }
+            # Reinject value to similate the deletion.
+            if value is None:
+                data['value'] = None
+
+            mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, data)
+
+    retrieved_data = action.retrieve_data(mock_sup_det)
+    result = action.transform_data_for_output(retrieved_data)
+    assert result == {
+        ('translation', 'es'): {
+            'value': None,
+            'languageCode': 'es',
+            '_sortByDate': retrieved_data['es']['_versions'][0]['_dateCreated'],
+        },
+        ('translation', 'fr'): {
+            'value': 'bonjour',
+            'languageCode': 'fr',
+            '_sortByDate': None,
+        },
+    }
+
+
 def _get_action(fetch_action_dependencies=True):
     xpath = 'group_name/question_name'  # irrelevant for this test
     params = [{'language': 'fr'}, {'language': 'es'}]

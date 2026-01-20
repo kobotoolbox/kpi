@@ -8,6 +8,7 @@ from ..type_aliases import SimplifiedOutputCandidatesByColumnKey
 
 
 class RequiresTranscriptionMixin:
+
     def get_action_dependencies(self, question_supplemental_data: dict) -> dict:
         """
         Return only the supplemental data required by this action.
@@ -131,9 +132,13 @@ class TranscriptionActionMixin:
         # they should already be in order but there's no way to guarantee it, so
         # sort just in case
         versions_sorted = sorted(
-            versions, key=lambda x: x.get(self.DATE_ACCEPTED_FIELD, ''), reverse=True
+            versions,
+            key=lambda x: self._get_date_field_value(x),
+            reverse=True,
         )
+
         version_data = versions_sorted[0]
+        date_field_value = self._get_date_field_value(version_data) or None
 
         # return a simplified representation
         return {
@@ -141,7 +146,7 @@ class TranscriptionActionMixin:
                 'languageCode': version_data['_data']['language'],
                 'value': version_data['_data'].get('value'),
                 'regionCode': version_data['_data'].get('locale'),
-                SORT_BY_DATE_FIELD: version_data.get(self.DATE_ACCEPTED_FIELD),
+                SORT_BY_DATE_FIELD: date_field_value,
             }
         }
 
@@ -308,10 +313,11 @@ class TranslationActionMixin(RequiresTranscriptionMixin):
             # order by date accepted
             versions_sorted = sorted(
                 versions,
-                key=lambda x: x.get(self.DATE_ACCEPTED_FIELD, ''),
+                key=lambda x: self._get_date_field_value(x),
                 reverse=True,
             )
             version_data = versions_sorted[0]
+            date_field_value = self._get_date_field_value(version_data) or None
 
             # a translation column is identified by 'translation' + language
             key = (self.col_type, language)
@@ -320,6 +326,6 @@ class TranslationActionMixin(RequiresTranscriptionMixin):
             result[key] = {
                 'languageCode': version_data['_data']['language'],
                 'value': version_data['_data'].get('value'),
-                SORT_BY_DATE_FIELD: version_data.get(self.DATE_ACCEPTED_FIELD),
+                SORT_BY_DATE_FIELD: date_field_value,
             }
         return result
