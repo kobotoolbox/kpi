@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react'
 
-import cx from 'classnames'
+import { Box, Flex, Modal, ScrollArea, Stack, Text } from '@mantine/core'
 import Button from '#/components/common/button'
 import KoboSelect from '#/components/common/koboSelect'
 import type { KoboSelectOption } from '#/components/common/koboSelect'
@@ -9,15 +9,11 @@ import type { MultiCheckboxItem } from '#/components/common/multiCheckbox'
 import ToggleSwitch from '#/components/common/toggleSwitch'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { AsyncLanguageDisplayLabel } from '#/components/languages/languagesUtils'
-import KoboModal from '#/components/modals/koboModal'
-import KoboModalContent from '#/components/modals/koboModalContent'
-import KoboModalHeader from '#/components/modals/koboModalHeader'
 import { getActiveTab } from '#/components/processing/routes.utils'
 import singleProcessingStore, { StaticDisplays } from '#/components/processing/singleProcessingStore'
 import type { DisplaysList } from '#/components/processing/singleProcessingStore'
 import { XML_VALUES_OPTION_VALUE } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
-import styles from './sidebarDisplaySettings.module.scss'
 
 interface SidebarDisplaySettingsProps {
   asset: AssetResponse
@@ -77,18 +73,27 @@ export default function SidebarDisplaySettings({
     if (display === StaticDisplays.Transcript) {
       if (transcript) {
         return (
-          <strong className={styles.wrapWithParens}>
+          <Text fw={700} component='span'>
             {t('Original transcript')}
-            &nbsp;
+            {' ('}
             <AsyncLanguageDisplayLabel code={transcript.languageCode} />
-          </strong>
+            {')'}
+          </Text>
         )
       }
       return null
     } else if (display === StaticDisplays.Data) {
-      return <strong>{t('Submission data')}</strong>
+      return (
+        <Text fw={700} component='span'>
+          {t('Submission data')}
+        </Text>
+      )
     } else {
-      return <strong>{t('Original file (Audio)')}</strong>
+      return (
+        <Text fw={700} component='span'>
+          {t('Original file (Audio)')}
+        </Text>
+      )
     }
   }
 
@@ -124,7 +129,7 @@ export default function SidebarDisplaySettings({
   }
 
   return (
-    <div className={styles.root}>
+    <Flex justify='flex-end' align='center' h={48}>
       <Button
         size='m'
         type='text'
@@ -132,24 +137,22 @@ export default function SidebarDisplaySettings({
         startIcon='settings'
         onClick={() => setIsModalOpen(true)}
       />
-      <KoboModal
-        isOpen={isModalOpen}
-        onRequestClose={() => {
-          setIsModalOpen(false)
-        }}
-        size='medium'
+      <Modal
+        opened={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={t('Customize display settings')}
+        size='lg'
+        centered
+        padding='lg'
+        overlayProps={{ backgroundOpacity: 0.55, blur: 3 }}
       >
-        <KoboModalHeader onRequestCloseByX={() => setIsModalOpen(false)}>
-          {t('Customize display settings')}
-        </KoboModalHeader>
-
-        <KoboModalContent>
-          <p className={styles.description}>
+        <Stack gap='lg'>
+          <Text size='md'>
             {t('Select the information you want to display in the side menu to support your analysis.')}
-          </p>
+          </Text>
 
-          <ul className={styles.options}>
-            <li className={styles.display}>
+          <Stack gap='md'>
+            <Box>
               <KoboSelect
                 label={t('Display labels or XML values?')}
                 name='displayedLanguage'
@@ -163,8 +166,7 @@ export default function SidebarDisplaySettings({
                   }
                 }}
               />
-            </li>
-
+            </Box>
             {availableDisplays.map((entry) => {
               const isEnabled = selectedDisplays.includes(entry)
 
@@ -173,7 +175,7 @@ export default function SidebarDisplaySettings({
                 const isSubmissionData = staticDisplay === StaticDisplays.Data
 
                 return (
-                  <li className={cx(styles.display)} key={entry}>
+                  <Box key={entry}>
                     <ToggleSwitch
                       onChange={(isChecked) => {
                         if (isChecked) {
@@ -187,19 +189,26 @@ export default function SidebarDisplaySettings({
                     />
 
                     {isSubmissionData && (
-                      <div className={styles.questionList}>
-                        {t('Select the submission data to display.')}
-                        <div className={styles.checkbox}>
+                      <Box mt='sm' ml={36}>
+                        <Text size='sm' mb='xs'>
+                          {t('Select the submission data to display.')}
+                        </Text>
+                        <ScrollArea
+                          h={160}
+                          p='xs'
+                          bd='1px solid'
+                          style={{ borderColor: 'var(--mantine-color-gray-4)' }}
+                        >
                           <MultiCheckbox type='bare' items={getCheckboxes()} onChange={onCheckboxesChange} />
-                        </div>
-                      </div>
+                        </ScrollArea>
+                      </Box>
                     )}
-                  </li>
+                  </Box>
                 )
               } else {
                 // TODO: Check later to see if translations/languages is working, since now we don't have the data for it.
                 return (
-                  <li className={styles.display} key={entry}>
+                  <Box key={entry}>
                     <ToggleSwitch
                       onChange={(isChecked) => {
                         if (isChecked) {
@@ -210,20 +219,21 @@ export default function SidebarDisplaySettings({
                       }}
                       checked={isEnabled}
                       label={
-                        <strong className={styles.wrapWithParens}>
+                        <Text fw={700} component='span'>
                           {t('Translation')}
-                          &nbsp;
+                          {' ('}
                           <AsyncLanguageDisplayLabel code={entry} />
-                        </strong>
+                          {')'}
+                        </Text>
                       }
                     />
-                  </li>
+                  </Box>
                 )
               }
             })}
-          </ul>
-        </KoboModalContent>
-      </KoboModal>
-    </div>
+          </Stack>
+        </Stack>
+      </Modal>
+    </Flex>
   )
 }
