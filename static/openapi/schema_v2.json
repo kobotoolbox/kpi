@@ -21048,7 +21048,8 @@
                                 "type": "string"
                             },
                             "value": {
-                                "type": "string"
+                                "type": "string",
+                                "nullable": true
                             }
                         },
                         "additionalProperties": false,
@@ -21064,7 +21065,8 @@
                                 "type": "string"
                             },
                             "value": {
-                                "type": "string"
+                                "type": "string",
+                                "nullable": true
                             }
                         },
                         "additionalProperties": false,

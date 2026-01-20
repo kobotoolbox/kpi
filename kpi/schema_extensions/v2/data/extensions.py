@@ -309,7 +309,7 @@ class DataSupplementPayloadExtension(
             additionalProperties=False,
             properties={
                 'language': GENERIC_STRING_SCHEMA,
-                'value': GENERIC_STRING_SCHEMA,
+                'value': {'type': 'string', 'nullable': True},
             },
             required=['language', 'value'],
         )
