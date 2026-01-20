@@ -42,7 +42,8 @@ jobs:
     steps:
     - uses: actions/checkout@v6
       with:
-        fetch-depth: "0"
+        fetch-depth: 0
+        fetch-tags: true
     - name: Find next release tag and branch
       id: version
       run: |

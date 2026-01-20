@@ -1536,6 +1536,24 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(minute=0),
         'options': {'queue': 'kpi_queue'},
     },
+    'fix-stale-submissions-suspended-flag': {
+        'task': (
+            'kobo.apps.openrosa.apps.logger.tasks.fix_stale_submissions_suspended_flag'
+        ),
+        'schedule': crontab(minute='*/15', hour='2-5', day_of_week=0),
+        'description': (
+            'Unlock accounts locked by `sync_storage_counters` task'
+        ),
+        'options': {'queue': 'kpi_low_priority_queue'},
+    },
+    'sync-storage-counters': {
+        'task': 'kobo.apps.openrosa.apps.logger.tasks.sync_storage_counters',
+        'schedule': crontab(minute=30, hour=0, day_of_week=0),
+        'description': (
+            'Synchronize out of sync attachment storage bytes of profile and projects'
+        ),
+        'options': {'queue': 'kpi_low_priority_queue'},
+    },
 }
 
 if STRIPE_ENABLED:
@@ -1596,6 +1614,7 @@ ACCOUNT_FORMS = {
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = False
 ACCOUNT_UNIQUE_EMAIL = False
+ACCOUNT_RATE_LIMITS = False
 ACCOUNT_SESSION_REMEMBER = True
 SOCIALACCOUNT_EMAIL_VERIFICATION = env.str('SOCIALACCOUNT_EMAIL_VERIFICATION', 'none')
 SOCIALACCOUNT_AUTO_SIGNUP = False

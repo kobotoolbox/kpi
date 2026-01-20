@@ -11,12 +11,12 @@ from django.contrib.postgres.indexes import BTreeIndex, GinIndex
 from django.db import models, transaction
 from django.db.models import F, Prefetch, Q
 from django.utils.translation import gettext_lazy as t
-from formpack.utils.flatten_content import flatten_content
-from formpack.utils.json_hash import json_hash
-from formpack.utils.kobo_locking import strip_kobo_locking_profile
 from taggit.managers import TaggableManager, _TaggableManager
 from taggit.utils import require_instance_manager
 
+from formpack.utils.flatten_content import flatten_content
+from formpack.utils.json_hash import json_hash
+from formpack.utils.kobo_locking import strip_kobo_locking_profile
 from kobo.apps.data_collectors.models import DataCollectorGroup
 from kobo.apps.reports.constants import DEFAULT_REPORTS_KEY, SPECIFIC_REPORTS_KEY
 from kobo.apps.subsequences.advanced_features_params_schema import (
@@ -259,7 +259,7 @@ class Asset(
     #   }
     # }
     paired_data = LazyDefaultJSONBField(default=dict)
-    pending_delete = models.BooleanField(default=False)
+    pending_delete = models.BooleanField(default=False, db_index=True)
     # `_deployment_status` is calculated field, therefore should **NOT** be
     # set directly.
     _deployment_status = models.CharField(
@@ -503,6 +503,7 @@ class Asset(
         Can be disabled / skipped by calling with parameter:
         asset.save(adjust_content=False)
         """
+        self.__normalize_settings_and_translations(self.content)
         self._standardize(self.content)
 
         self._make_default_translation_first(self.content)
@@ -1561,6 +1562,39 @@ class Asset(
             and 'data_collector_group_id' in fields
         ):
             self._initial_data_collector_group_id = self.data_collector_group_id
+
+    def __normalize_settings_and_translations(self, content):
+        """
+        Ensures settings are a dictionary, preserves existing translations from the DB,
+        and prevents the 'null' language leak by suffixing plain strings with the
+        default language.
+        """
+        settings_data = content.get('settings', {})
+        if isinstance(settings_data, list):
+            flattened_settings = {}
+            for item in settings_data:
+                if isinstance(item, dict):
+                    flattened_settings.update(item)
+            content['settings'] = flattened_settings
+            settings_data = flattened_settings
+
+        # Get existing translations from DB so they don't disappear
+        existing_translations = []
+        if self.pk:
+            db_instance = Asset.objects.filter(pk=self.pk).only('content').first()
+            if db_instance and 'translations' in db_instance.content:
+                existing_translations = db_instance.content['translations']
+
+        # If payload is empty of translations but DB has them, restore them
+        if not content.get('translations') and existing_translations:
+            content['translations'] = existing_translations
+
+        # Suffix plain hint strings to the default language
+        default_lang = settings_data.get('default_language')
+        if default_lang:
+            for row in content.get('survey', []):
+                if 'hint' in row and isinstance(row['hint'], str):
+                    row[f'hint::{default_lang}'] = row.pop('hint')
 
 
 class UserAssetSubscription(models.Model):
