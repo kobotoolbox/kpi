@@ -14,7 +14,7 @@ import { useRemoveAttachment } from './attachmentsQuery'
 
 interface AttachmentActionsDropdownProps {
   asset: AssetResponse
-  submissionData: SubmissionResponse | DataResponse
+  submission: SubmissionResponse | DataResponse
   attachmentUid: string
   /**
    * Being called after attachment was deleted succesfully. Is meant to be used
@@ -33,7 +33,9 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
   const [isDeletePending, setIsDeletePending] = useState<boolean>(false)
   const removeAttachmentMutation = useRemoveAttachment(props.asset.uid)
 
-  const attachment = (props.submissionData._attachments as any as _DataResponseAttachments[]).find((item) => item.uid === props.attachmentUid)
+  const attachment = (props.submission._attachments as any as _DataResponseAttachments[]).find(
+    (item) => item.uid === props.attachmentUid,
+  )
   if (!attachment) {
     return null
   }
@@ -71,7 +73,7 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
     attachmentTypeName = t('background audio recording')
   }
 
-  const userCanChangeSubmission = userHasPermForSubmission('change_submissions', props.asset, props.submissionData)
+  const userCanChangeSubmission = userHasPermForSubmission('change_submissions', props.asset, props.submission)
 
   return (
     <span className={styles.attachmentActionsDropdown}>

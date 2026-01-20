@@ -10,7 +10,7 @@ import styles from './index.module.scss'
 
 interface SingleProcessingHeaderProps {
   asset: AssetResponse
-  currentSubmission: DataResponse | null
+  submission: DataResponse
   currentSubmissionUid: string
   questionLabelLanguage: LanguageCode | string
   xpath: string
@@ -24,7 +24,7 @@ interface SingleProcessingHeaderProps {
  */
 export default function SingleProcessingHeader({
   asset,
-  currentSubmission,
+  submission,
   currentSubmissionUid,
   questionLabelLanguage,
   xpath,
@@ -38,7 +38,7 @@ export default function SingleProcessingHeader({
         currentSubmissionUid={currentSubmissionUid}
         questionLabelLanguage={questionLabelLanguage}
       />
-      <SelectSubmission assetUid={asset.uid} xpath={xpath} currentSubmission={currentSubmission} />
+      <SelectSubmission assetUid={asset.uid} xpath={xpath} submission={submission} />
       <ButtonReturn assetUid={asset.uid} hasUnsavedWork={hasUnsavedWork} />
     </header>
   )

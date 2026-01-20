@@ -16,7 +16,7 @@ interface ProcessingSidebarProps {
   asset: AssetResponse
   questionLabelLanguage: LanguageCode | string
   setQuestionLabelLanguage: (LanguageCode: LanguageCode | string) => void
-  currentSubmission: (DataResponse & Record<string, string>) | null
+  submission?: DataResponse & Record<string, string>
 }
 
 export default function ProcessingSidebar({
@@ -24,7 +24,7 @@ export default function ProcessingSidebar({
   xpath,
   questionLabelLanguage,
   setQuestionLabelLanguage,
-  currentSubmission,
+  submission,
 }: ProcessingSidebarProps) {
   const [store] = useState(() => singleProcessingStore)
 
@@ -72,7 +72,7 @@ export default function ProcessingSidebar({
         {selectedDisplays.includes(StaticDisplays.Transcript) && transcript && <TransxDisplay transx={transcript} />}
 
         {selectedDisplays.includes(StaticDisplays.Audio) && (
-          <SidebarSubmissionMedia asset={asset} xpath={xpath} currentSubmission={currentSubmission} />
+          <SidebarSubmissionMedia asset={asset} xpath={xpath} submission={submission} />
         )}
 
         {selectedDisplays.includes(StaticDisplays.Data) && (
@@ -81,7 +81,7 @@ export default function ProcessingSidebar({
             xpath={xpath}
             hiddenQuestions={hiddenQuestions}
             questionLabelLanguage={questionLabelLanguage}
-            currentSubmission={currentSubmission}
+            submission={submission}
           />
         )}
 

@@ -14,7 +14,7 @@ interface SidebarSubmissionDataProps {
   asset: AssetResponse
   hiddenQuestions: string[]
   questionLabelLanguage: LanguageCode | string
-  currentSubmission: (DataResponse & Record<string, string>) | null
+  submission?: DataResponse & Record<string, string>
 }
 
 export default function SidebarSubmissionData({
@@ -22,16 +22,14 @@ export default function SidebarSubmissionData({
   xpath,
   hiddenQuestions,
   questionLabelLanguage,
-  currentSubmission,
+  submission,
 }: SidebarSubmissionDataProps) {
-  const submissionData = currentSubmission
-
   if (!asset.content) {
     return null
   }
 
   // If submission data is not ready yet, just don't render the list.
-  if (!submissionData) {
+  if (!submission) {
     return null
   }
 
@@ -51,7 +49,7 @@ export default function SidebarSubmissionData({
       <div className={styles.dataListBody}>
         <SubmissionDataList
           asset={asset}
-          submissionData={submissionData}
+          submission={submission}
           hideQuestions={questionsToHide}
           hideGroups
           questionLabelLanguage={questionLabelLanguage}

@@ -18,7 +18,7 @@ bem.SubmissionDataListQuestion__response = makeBem(bem.SubmissionDataListQuestio
 
 interface SubmissionDataListProps {
   asset: AssetResponse
-  submissionData: DataResponse
+  submission: DataResponse
   /** A list of questions that should be omitted from display. */
   hideQuestions?: string[]
   /** Whether to display the path (the groups) or not. */
@@ -43,7 +43,7 @@ export default class SubmissionDataList extends React.Component<SubmissionDataLi
       return null
     }
 
-    const response = getRowData(question.name, this.props.asset.content.survey || [], this.props.submissionData)
+    const response = getRowData(question.name, this.props.asset.content.survey || [], this.props.submission)
 
     return (
       <bem.SubmissionDataListQuestion key={question.name}>

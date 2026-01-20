@@ -16,18 +16,16 @@ import styles from './sidebarSubmissionMedia.module.scss'
 interface SidebarSubmissionMediaProps {
   xpath: string
   asset: AssetResponse | undefined
-  currentSubmission: (DataResponse & Record<string, string>) | null
+  submission?: DataResponse & Record<string, string>
 }
 
-export default function SidebarSubmissionMedia({ asset, xpath, currentSubmission }: SidebarSubmissionMediaProps) {
-  const submissionData = currentSubmission
-
+export default function SidebarSubmissionMedia({ asset, xpath, submission }: SidebarSubmissionMediaProps) {
   // We need `asset` to proceed.
   if (!asset) {
     return null
   }
 
-  const attachment = getAttachmentForProcessing(asset, xpath, submissionData ?? undefined)
+  const attachment = getAttachmentForProcessing(asset, xpath, submission)
   if (typeof attachment === 'string') {
     return null
   }
@@ -54,15 +52,15 @@ export default function SidebarSubmissionMedia({ asset, xpath, currentSubmission
             mediaURL={attachment.download_url}
             filename={attachment.filename}
             rightHeaderSection={
-              submissionData && (
+              submission && (
                 <AttachmentActionsDropdown
                   asset={asset}
-                  submissionData={submissionData}
+                  submission={submission}
                   attachmentUid={attachment.uid}
                   onDeleted={() => {
                     const deletionParams = {
                       query: JSON.stringify({
-                        $or: [{ 'meta/rootUuid': submissionData._uuid }, { _uuid: submissionData._uuid }],
+                        $or: [{ 'meta/rootUuid': submission._uuid }, { _uuid: submission._uuid }],
                       }),
                     } as any
                     queryClient.invalidateQueries({ queryKey: getAssetsDataListQueryKey(asset!.uid, deletionParams) })

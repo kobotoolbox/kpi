@@ -83,20 +83,20 @@ export default function SingleProcessingRoute({ params: routeParams }: { params:
   })
 
   // TODO OpenAPI: DataResponse should be indexable.
-  const currentSubmission =
+  const submission =
     querySubmission.data?.status === 200 && querySubmission.data.data.results.length > 0
       ? (querySubmission.data.data.results[0] as DataResponse & Record<string, string>)
-      : null
+      : undefined
 
   /** Whether current submission has a response for current question. */
-  const questionHasAnswer = !!(xpath && currentSubmission?.[xpath])
+  const questionHasAnswer = !!(xpath && submission?.[xpath])
 
   function renderBottom() {
     if (
       queryAF.data?.status !== 200 ||
       querySupplement.data?.status !== 200 ||
       !asset?.content?.survey ||
-      !currentSubmission
+      !submission
     ) {
       return <LoadingSpinner />
     }
@@ -108,7 +108,7 @@ export default function SingleProcessingRoute({ params: routeParams }: { params:
             <SingleProcessingContent
               asset={asset}
               questionXpath={xpath}
-              submission={currentSubmission}
+              submission={submission}
               hasUnsavedWork={hasUnsavedWork}
               onUnsavedWorkChange={setHasUnsavedWork}
               supplementData={querySupplement.data}
@@ -125,7 +125,7 @@ export default function SingleProcessingRoute({ params: routeParams }: { params:
             xpath={xpath!}
             questionLabelLanguage={questionLabelLanguage}
             setQuestionLabelLanguage={setQuestionLabelLanguage}
-            currentSubmission={currentSubmission}
+            submission={submission}
           />
         </section>
       </React.Fragment>
@@ -153,7 +153,7 @@ export default function SingleProcessingRoute({ params: routeParams }: { params:
         <section className={styles.top}>
           <SingleProcessingHeader
             asset={asset}
-            currentSubmission={currentSubmission}
+            submission={submission}
             currentSubmissionUid={submissionEditId}
             questionLabelLanguage={questionLabelLanguage}
             xpath={xpath!}

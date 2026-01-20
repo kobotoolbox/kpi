@@ -1,3 +1,4 @@
+import { Loader } from '@mantine/core'
 import React, { useCallback } from 'react'
 import type { DataResponse } from '#/api/models/dataResponse'
 import {
@@ -9,12 +10,11 @@ import Button from '#/components/common/button'
 import { goToProcessing } from '#/components/processing/routes.utils'
 import { addDefaultUuidPrefix } from '#/utils'
 import styles from './index.module.scss'
-import { Loader } from '@mantine/core'
 
 // TODO: improve ...
 
 interface Props {
-  currentSubmission: DataResponse | null
+  submission?: DataResponse
   assetUid: string
   xpath: string
 }
@@ -24,8 +24,8 @@ interface Props {
  * submissions and questions. It also has means of leaving Single Processing
  * via "DONE" button.
  */
-export default function SelectSubmission({ assetUid, currentSubmission, xpath }: Props) {
-  if (!currentSubmission) return
+export default function SelectSubmission({ assetUid, submission, xpath }: Props) {
+  if (!submission) return
 
   // TODO: Ensure query handles cases where submissions have the same submission time
   // We fetch the two submissions before and after the current submission to enable
@@ -56,7 +56,7 @@ export default function SelectSubmission({ assetUid, currentSubmission, xpath }:
     }
   }
 
-  const { _uuid, _submission_time } = currentSubmission
+  const { _uuid, _submission_time } = submission
 
   // Define the params directly in the component body
   const nextParams = getNeighborParams(_uuid, _submission_time, 'next')
@@ -64,7 +64,7 @@ export default function SelectSubmission({ assetUid, currentSubmission, xpath }:
     query: {
       queryKey: getAssetsDataListQueryKey(assetUid, nextParams),
       enabled: !!assetUid,
-      select: useCallback(getNeighborResults, [currentSubmission._uuid]),
+      select: useCallback(getNeighborResults, [submission._uuid]),
     },
   })
 
@@ -73,7 +73,7 @@ export default function SelectSubmission({ assetUid, currentSubmission, xpath }:
     query: {
       queryKey: getAssetsDataListQueryKey(assetUid, prevParams),
       enabled: !!assetUid,
-      select: useCallback(getNeighborResults, [currentSubmission._uuid]),
+      select: useCallback(getNeighborResults, [submission._uuid]),
     },
   })
 
