@@ -41,7 +41,7 @@ export default function TranscriptCreate({
       {step === 'language' && (
         <StepSelectLanguage
           onBack={() => setStep('begin')}
-          onNext={(step: 'manual' | 'automatic') => setStep(step)}
+          onNext={(selectedStep: 'manual' | 'automatic') => setStep(selectedStep)}
           languageCode={languageCode}
           setLanguageCode={setLanguageCode}
           suggestedLanguages={asset.advanced_features?.transcript?.languages ?? []}
