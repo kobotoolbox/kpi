@@ -56,7 +56,6 @@ export default function SingleProcessingRoute({ params: routeParams }: { params:
   // thus we can safely assume asset data is present :happy_face:
   const asset = uid ? assetStore.getAsset(uid) : null
 
-  // TODO: remove, for now just logging for debugging.
   const queryAF = useAssetsAdvancedFeaturesList(uid!, {
     query: {
       queryKey: getAssetsAdvancedFeaturesListQueryKey(uid!),
