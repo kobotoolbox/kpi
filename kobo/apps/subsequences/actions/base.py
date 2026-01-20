@@ -820,7 +820,7 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
             '$defs': {
                 'lang': {'type': 'string', 'enum': self.languages},
                 'locale': {'type': ['string', 'null']},
-                'accepted': {'type': 'boolean'},
+                'accepted': {'const': True},
                 # Only null is permitted for `value`
                 'value_null_only': {'type': 'null'},
             },
