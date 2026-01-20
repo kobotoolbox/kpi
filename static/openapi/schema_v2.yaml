@@ -15052,6 +15052,7 @@ components:
               type: string
             value:
               type: string
+              nullable: true
           additionalProperties: false
           required:
           - language
