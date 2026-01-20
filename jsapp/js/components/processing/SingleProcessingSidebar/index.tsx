@@ -80,6 +80,7 @@ export default function ProcessingSidebar({
             asset={asset}
             xpath={xpath}
             hiddenQuestions={hiddenQuestions}
+            questionLabelLanguage={questionLabelLanguage}
           />
         )}
 

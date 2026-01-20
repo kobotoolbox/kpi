@@ -2,6 +2,7 @@ import React, { useMemo } from 'react'
 
 import { getAssetsDataListQueryKey, useAssetsDataList } from '#/api/react-query/survey-data'
 import { getRowNameByXpath } from '#/assetUtils'
+import type { LanguageCode } from '#/components/languages/languagesStore'
 import SubmissionDataList from '#/components/submissions/submissionDataList'
 import { ADDITIONAL_SUBMISSION_PROPS, META_QUESTION_TYPES } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
@@ -13,6 +14,7 @@ interface SidebarSubmissionDataProps {
   submissionId: string
   asset: AssetResponse
   hiddenQuestions: string[]
+  questionLabelLanguage: LanguageCode | string
 }
 
 export default function SidebarSubmissionData({
@@ -20,6 +22,7 @@ export default function SidebarSubmissionData({
   submissionId,
   xpath,
   hiddenQuestions,
+  questionLabelLanguage,
 }: SidebarSubmissionDataProps) {
   const params = {
     query: JSON.stringify({
@@ -58,7 +61,13 @@ export default function SidebarSubmissionData({
   return (
     <section className={styles.dataList} key='data-list'>
       <div className={styles.dataListBody}>
-        <SubmissionDataList asset={asset} submissionData={submissionData} hideQuestions={questionsToHide} hideGroups />
+        <SubmissionDataList
+          asset={asset}
+          submissionData={submissionData}
+          hideQuestions={questionsToHide}
+          hideGroups
+          questionLabelLanguage={questionLabelLanguage}
+        />
       </div>
     </section>
   )

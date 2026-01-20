@@ -6,9 +6,9 @@ import type { DataResponse } from '#/api/models/dataResponse'
 import { getFlatQuestionsList, getLanguageIndex } from '#/assetUtils'
 import type { FlatQuestion } from '#/assetUtils'
 import bem, { makeBem } from '#/bem'
+import type { LanguageCode } from '#/components/languages/languagesStore'
 import { getRowData } from '#/components/submissions/submissionUtils'
 import type { AssetResponse } from '#/dataInterface'
-import singleProcessingStore from '../processing/singleProcessingStore'
 
 bem.SubmissionDataList = makeBem(null, 'submission-data-list', 'ul')
 bem.SubmissionDataListQuestion = makeBem(null, 'submission-data-list-question', 'li')
@@ -23,6 +23,8 @@ interface SubmissionDataListProps {
   hideQuestions?: string[]
   /** Whether to display the path (the groups) or not. */
   hideGroups?: boolean
+  /** Language code or string to determine which labels to display (or XML values if set to XML_VALUES_OPTION_VALUE). */
+  questionLabelLanguage?: LanguageCode | string
 }
 
 export default class SubmissionDataList extends React.Component<SubmissionDataListProps> {
@@ -63,7 +65,8 @@ export default class SubmissionDataList extends React.Component<SubmissionDataLi
       return null
     }
 
-    const languageIndex = getLanguageIndex(this.props.asset, singleProcessingStore.getCurrentlyDisplayedLanguage())
+    const displayLanguage = this.props.questionLabelLanguage || ''
+    const languageIndex = getLanguageIndex(this.props.asset, displayLanguage)
 
     const items = getFlatQuestionsList(this.props.asset.content.survey, languageIndex)
 

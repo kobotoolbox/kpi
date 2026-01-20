@@ -36,7 +36,6 @@ export default function SidebarDisplaySettings({
 }: SidebarDisplaySettingsProps) {
   const [store] = useState(() => singleProcessingStore)
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
-  const [labelLanguage, setLabelLanguage] = useState<LanguageCode | string>(store.getCurrentlyDisplayedLanguage())
 
   const assetLanguageOptions = useMemo<KoboSelectOption[]>(() => {
     const languageOptions: KoboSelectOption[] = [{ label: t('XML values'), value: XML_VALUES_OPTION_VALUE }]
