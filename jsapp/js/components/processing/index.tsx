@@ -110,9 +110,10 @@ export default function SingleProcessingRoute({ params: routeParams }: { params:
               asset={asset}
               questionXpath={xpath}
               submission={currentSubmission}
-              submissionEditId={submissionEditId}
               hasUnsavedWork={hasUnsavedWork}
               onUnsavedWorkChange={setHasUnsavedWork}
+              supplementData={querySupplement.data}
+              advancedFeaturesData={queryAF.data}
             />
           ) : (
             <CenteredMessage message={NO_DATA_MESSAGE} />
@@ -121,11 +122,11 @@ export default function SingleProcessingRoute({ params: routeParams }: { params:
 
         <section className={styles.bottomRight}>
           <SingleProcessingSidebar
-            submissionId={submissionEditId!}
             asset={asset}
             xpath={xpath!}
             questionLabelLanguage={questionLabelLanguage}
             setQuestionLabelLanguage={setQuestionLabelLanguage}
+            currentSubmission={currentSubmission}
           />
         </section>
       </React.Fragment>

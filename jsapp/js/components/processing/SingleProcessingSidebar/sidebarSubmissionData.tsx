@@ -1,42 +1,30 @@
 import React, { useMemo } from 'react'
 
-import { getAssetsDataListQueryKey, useAssetsDataList } from '#/api/react-query/survey-data'
+import type { DataResponse } from '#/api/models/dataResponse'
 import { getRowNameByXpath } from '#/assetUtils'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import SubmissionDataList from '#/components/submissions/submissionDataList'
 import { ADDITIONAL_SUBMISSION_PROPS, META_QUESTION_TYPES } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
-import { addDefaultUuidPrefix, recordKeys } from '#/utils'
+import { recordKeys } from '#/utils'
 import styles from './sidebarSubmissionData.module.scss'
 
 interface SidebarSubmissionDataProps {
   xpath: string
-  submissionId: string
   asset: AssetResponse
   hiddenQuestions: string[]
   questionLabelLanguage: LanguageCode | string
+  currentSubmission: (DataResponse & Record<string, string>) | null
 }
 
 export default function SidebarSubmissionData({
   asset,
-  submissionId,
   xpath,
   hiddenQuestions,
   questionLabelLanguage,
+  currentSubmission,
 }: SidebarSubmissionDataProps) {
-  const params = {
-    query: JSON.stringify({
-      $or: [{ 'meta/rootUuid': addDefaultUuidPrefix(submissionId!) }, { _uuid: submissionId }],
-    }),
-  } as any
-  const querySubmission = useAssetsDataList(asset!.uid, params, {
-    query: {
-      queryKey: getAssetsDataListQueryKey(asset!.uid, params),
-      enabled: !!asset!.uid,
-    },
-  })
-
-  const submissionData = querySubmission.data?.status === 200 ? querySubmission.data.data.results[0] : undefined
+  const submissionData = currentSubmission
 
   if (!asset.content) {
     return null

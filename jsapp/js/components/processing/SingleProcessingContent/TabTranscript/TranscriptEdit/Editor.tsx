@@ -5,10 +5,10 @@ import type { DataResponse } from '#/api/models/dataResponse'
 import type { NLPActionParamsItem } from '#/api/models/nLPActionParamsItem'
 import { queryClient } from '#/api/queryClient'
 import {
+  type assetsAdvancedFeaturesListResponse,
   getAssetsAdvancedFeaturesListQueryKey,
   getAssetsDataSupplementRetrieveQueryKey,
   useAssetsAdvancedFeaturesCreate,
-  useAssetsAdvancedFeaturesList,
   useAssetsAdvancedFeaturesPartialUpdate,
   useAssetsDataSupplementPartialUpdate,
 } from '#/api/react-query/survey-data'
@@ -31,6 +31,7 @@ interface Props {
     | _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem
   onBack: () => void
   onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
+  advancedFeaturesData: assetsAdvancedFeaturesListResponse | undefined
 }
 
 export default function Editor({
@@ -40,6 +41,7 @@ export default function Editor({
   transcriptVersion,
   onBack,
   onUnsavedWorkChange,
+  advancedFeaturesData,
 }: Props) {
   const initialValue = 'value' in transcriptVersion._data ? transcriptVersion._data.value : null
   const unacceptedAutomaticTranscript =
@@ -51,10 +53,9 @@ export default function Editor({
     onUnsavedWorkChange(value !== initialValue)
   }, [value, initialValue, onUnsavedWorkChange])
 
-  const queryAF = useAssetsAdvancedFeaturesList(asset.uid)
   const advancedFeature =
-    queryAF.data?.status === 200
-      ? queryAF.data?.data.find(
+    advancedFeaturesData?.status === 200
+      ? advancedFeaturesData?.data.find(
           (af) => af.action === ADVANCED_FEATURES_ACTION.manual_transcription && af.question_xpath === questionXpath,
         )
       : undefined

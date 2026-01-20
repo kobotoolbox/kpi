@@ -1,5 +1,6 @@
 import React from 'react'
 import type { DataResponse } from '#/api/models/dataResponse'
+import type { assetsAdvancedFeaturesListResponse } from '#/api/react-query/survey-data'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import type { AssetResponse } from '#/dataInterface'
 import Editor from '../TranscriptEdit/Editor'
@@ -11,6 +12,7 @@ interface Props {
   languageCode: LanguageCode
   onBack: () => void
   onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
+  advancedFeaturesData: assetsAdvancedFeaturesListResponse | undefined
 }
 
 /**
@@ -24,6 +26,7 @@ export default function StepCreateManual({
   languageCode,
   onBack,
   onUnsavedWorkChange,
+  advancedFeaturesData,
 }: Props) {
   // TODO: fix styles
   return (
@@ -39,6 +42,7 @@ export default function StepCreateManual({
       }}
       onBack={onBack}
       onUnsavedWorkChange={onUnsavedWorkChange}
+      advancedFeaturesData={advancedFeaturesData}
     />
   )
 }

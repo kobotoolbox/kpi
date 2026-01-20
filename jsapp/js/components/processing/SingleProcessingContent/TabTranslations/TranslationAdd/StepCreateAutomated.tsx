@@ -6,10 +6,10 @@ import type { NLPActionParamsItem } from '#/api/models/nLPActionParamsItem'
 import { onErrorDefaultHandler } from '#/api/onErrorDefaultHandler'
 import { queryClient } from '#/api/queryClient'
 import {
+  type assetsAdvancedFeaturesListResponse,
   getAssetsAdvancedFeaturesListQueryKey,
   getAssetsDataSupplementRetrieveQueryKey,
   useAssetsAdvancedFeaturesCreate,
-  useAssetsAdvancedFeaturesList,
   useAssetsAdvancedFeaturesPartialUpdate,
   useAssetsDataSupplementPartialUpdate,
 } from '#/api/react-query/survey-data'
@@ -29,6 +29,7 @@ interface Props {
   submission: DataResponse & Record<string, string>
   onBack: () => void
   onCreate: (languageCode: LanguageCode) => void
+  advancedFeaturesData: assetsAdvancedFeaturesListResponse | undefined
 }
 
 export default function StepCreateAutomated({
@@ -38,15 +39,14 @@ export default function StepCreateAutomated({
   submission,
   onBack,
   onCreate,
+  advancedFeaturesData,
 }: Props) {
   const [locale, setLocale] = useState<null | string>(null)
 
   // TODO: remove, for now just logging for debugging.
-  const queryAF = useAssetsAdvancedFeaturesList(asset.uid)
-
   const advancedFeature =
-    queryAF.data?.status === 200
-      ? queryAF.data?.data.find(
+    advancedFeaturesData?.status === 200
+      ? advancedFeaturesData?.data.find(
           (af) =>
             af.action === ADVANCED_FEATURES_ACTION.automatic_google_translation && af.question_xpath === questionXpath,
         )
@@ -91,10 +91,7 @@ export default function StepCreateAutomated({
   })
 
   const anyPending =
-    queryAF.isPending ||
-    mutationCreateAF.isPending ||
-    mutationPatchAF.isPending ||
-    mutationCreateAutomaticTranslation.isPending
+    mutationCreateAF.isPending || mutationPatchAF.isPending || mutationCreateAutomaticTranslation.isPending
 
   function handleChangeLocale(newVal: LocaleCode | null) {
     setLocale(newVal)

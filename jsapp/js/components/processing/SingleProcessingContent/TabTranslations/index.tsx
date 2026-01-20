@@ -3,7 +3,10 @@ import type { _DataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem
 import type { _DataSupplementResponseOneOfManualTranslationVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualTranslationVersionsItem'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponseOneOf } from '#/api/models/dataSupplementResponseOneOf'
-import { getAssetsDataSupplementRetrieveQueryKey, useAssetsDataSupplementRetrieve } from '#/api/react-query/survey-data'
+import type {
+  assetsAdvancedFeaturesListResponse,
+  assetsDataSupplementRetrieveResponse,
+} from '#/api/react-query/survey-data'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import type { AssetResponse } from '#/dataInterface'
 import { recordKeys, recordValues } from '#/utils'
@@ -17,28 +20,21 @@ interface Props {
   asset: AssetResponse
   questionXpath: string
   submission: DataResponse & Record<string, string>
-  submissionEditId: string
   onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
+  supplementData: assetsDataSupplementRetrieveResponse | undefined
+  advancedFeaturesData: assetsAdvancedFeaturesListResponse | undefined
 }
 
 export default function TranscriptTab({
   asset,
   questionXpath,
   submission,
-  submissionEditId,
   onUnsavedWorkChange,
+  supplementData,
+  advancedFeaturesData,
 }: Props) {
-  const querySupplement = useAssetsDataSupplementRetrieve(asset.uid, submissionEditId, {
-    query: {
-      queryKey: getAssetsDataSupplementRetrieveQueryKey(asset.uid, submissionEditId),
-      enabled: !!asset.uid,
-    },
-  })
-
   const questionSupplement =
-    querySupplement.data?.status === 200
-      ? (querySupplement.data.data[questionXpath] as DataSupplementResponseOneOf)
-      : undefined
+    supplementData?.status === 200 ? (supplementData.data[questionXpath] as DataSupplementResponseOneOf) : undefined
 
   // Backend said, that latest version is the "real version" and to discared the rest.
   // This should equal what can be found within `DataResponse._supplementalDetails`.
@@ -68,7 +64,6 @@ export default function TranscriptTab({
   const translationVersion = translationVersions.find(({ _data }) => _data.language === languageCode)
 
   useEffect(() => {
-    if (querySupplement.isPending) return
     if (translationVersion) return
     setLanguageCode(translationVersions[0]?._data.language ?? null)
   }, [translationVersion, setLanguageCode, translationVersions])
@@ -102,6 +97,7 @@ export default function TranscriptTab({
             setLanguageCode(languageCode)
           }}
           onUnsavedWorkChange={onUnsavedWorkChange}
+          advancedFeaturesData={advancedFeaturesData}
         />
       )}
       {mode === 'view' && translationVersion && (
@@ -125,6 +121,7 @@ export default function TranscriptTab({
           onBack={() => setMode('view')}
           onSave={() => setMode('view')}
           onUnsavedWorkChange={onUnsavedWorkChange}
+          advancedFeaturesData={advancedFeaturesData}
         />
       )}
     </div>

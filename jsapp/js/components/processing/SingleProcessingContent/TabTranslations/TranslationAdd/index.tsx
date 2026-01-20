@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 
 import cx from 'classnames'
 import type { DataResponse } from '#/api/models/dataResponse'
+import type { assetsAdvancedFeaturesListResponse } from '#/api/react-query/survey-data'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import singleProcessingStore from '#/components/processing/singleProcessingStore'
 import type { AssetResponse } from '#/dataInterface'
@@ -20,6 +21,7 @@ interface Props {
   initialStep?: 'begin' | 'language'
   onCreate: (languageCode: LanguageCode) => void
   onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
+  advancedFeaturesData: assetsAdvancedFeaturesListResponse | undefined
 }
 
 export default function TranslateAdd({
@@ -30,6 +32,7 @@ export default function TranslateAdd({
   initialStep,
   onCreate,
   onUnsavedWorkChange,
+  advancedFeaturesData,
 }: Props) {
   const [step, setStep] = useState<'begin' | 'language' | 'manual' | 'automatic'>(initialStep ?? 'begin')
   const [languageCode, setLanguageCode] = useState<null | LanguageCode>(null)
@@ -58,6 +61,7 @@ export default function TranslateAdd({
           submission={submission}
           onCreate={onCreate}
           onUnsavedWorkChange={onUnsavedWorkChange}
+          advancedFeaturesData={advancedFeaturesData}
         />
       )}
       {step === 'automatic' && !!languageCode && (
@@ -68,6 +72,7 @@ export default function TranslateAdd({
           questionXpath={questionXpath}
           submission={submission}
           onCreate={onCreate}
+          advancedFeaturesData={advancedFeaturesData}
         />
       )}
     </div>

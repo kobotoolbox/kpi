@@ -2,6 +2,10 @@ import React from 'react'
 
 import classNames from 'classnames'
 import type { DataResponse } from '#/api/models/dataResponse'
+import type {
+  assetsAdvancedFeaturesListResponse,
+  assetsDataSupplementRetrieveResponse,
+} from '#/api/react-query/survey-data'
 import type { AssetResponse } from '#/dataInterface'
 import protectorHelpers from '#/protector/protectorHelpers'
 import { PROCESSING_ROUTES } from '#/router/routerConstants'
@@ -17,9 +21,10 @@ interface Props {
   asset: AssetResponse
   questionXpath: string
   submission: DataResponse & Record<string, string>
-  submissionEditId: string
   hasUnsavedWork: boolean
   onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
+  supplementData: assetsDataSupplementRetrieveResponse | undefined
+  advancedFeaturesData: assetsAdvancedFeaturesListResponse | undefined
 }
 
 /**
@@ -31,9 +36,10 @@ export default function SingleProcessingContent({
   asset,
   questionXpath,
   submission,
-  submissionEditId,
   hasUnsavedWork,
   onUnsavedWorkChange,
+  supplementData,
+  advancedFeaturesData,
 }: Props) {
   /** DRY wrapper for protector function. */
   function safeExecute(callback: () => void) {
@@ -59,8 +65,9 @@ export default function SingleProcessingContent({
           asset={asset}
           questionXpath={questionXpath}
           submission={submission}
-          submissionEditId={submissionEditId}
           onUnsavedWorkChange={onUnsavedWorkChange}
+          supplementData={supplementData}
+          advancedFeaturesData={advancedFeaturesData}
         />
       )
     }
@@ -70,8 +77,9 @@ export default function SingleProcessingContent({
           asset={asset}
           questionXpath={questionXpath}
           submission={submission}
-          submissionEditId={submissionEditId}
           onUnsavedWorkChange={onUnsavedWorkChange}
+          supplementData={supplementData}
+          advancedFeaturesData={advancedFeaturesData}
         />
       )
     }

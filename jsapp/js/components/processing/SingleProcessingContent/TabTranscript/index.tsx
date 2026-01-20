@@ -1,7 +1,10 @@
 import React from 'react'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponseOneOf } from '#/api/models/dataSupplementResponseOneOf'
-import { getAssetsDataSupplementRetrieveQueryKey, useAssetsDataSupplementRetrieve } from '#/api/react-query/survey-data'
+import type {
+  assetsAdvancedFeaturesListResponse,
+  assetsDataSupplementRetrieveResponse,
+} from '#/api/react-query/survey-data'
 import type { AssetResponse } from '#/dataInterface'
 import { isSupplementVersionWithValue } from '../../common/utils'
 import TranscriptCreate from './TranscriptCreate'
@@ -11,28 +14,21 @@ interface Props {
   asset: AssetResponse
   questionXpath: string
   submission: DataResponse & Record<string, string>
-  submissionEditId: string
   onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
+  supplementData: assetsDataSupplementRetrieveResponse | undefined
+  advancedFeaturesData: assetsAdvancedFeaturesListResponse | undefined
 }
 
 export default function TranscriptTab({
   asset,
   questionXpath,
   submission,
-  submissionEditId,
   onUnsavedWorkChange,
+  supplementData,
+  advancedFeaturesData,
 }: Props) {
-  const querySupplement = useAssetsDataSupplementRetrieve(asset.uid, submissionEditId, {
-    query: {
-      queryKey: getAssetsDataSupplementRetrieveQueryKey(asset.uid, submissionEditId),
-      enabled: !!asset.uid,
-    },
-  })
-
   const questionSupplement =
-    querySupplement.data?.status === 200
-      ? (querySupplement.data.data[questionXpath] as DataSupplementResponseOneOf)
-      : undefined
+    supplementData?.status === 200 ? (supplementData.data[questionXpath] as DataSupplementResponseOneOf) : undefined
 
   // Backend said, that latest version is the "real version" and to discared the rest.
   // This should equal what can be found within `DataResponse._supplementalDetails`.
@@ -52,6 +48,7 @@ export default function TranscriptTab({
         submission={submission}
         transcriptVersion={transcriptVersion}
         onUnsavedWorkChange={onUnsavedWorkChange}
+        advancedFeaturesData={advancedFeaturesData}
       />
     )
   } else {
@@ -61,6 +58,7 @@ export default function TranscriptTab({
         questionXpath={questionXpath}
         submission={submission}
         onUnsavedWorkChange={onUnsavedWorkChange}
+        advancedFeaturesData={advancedFeaturesData}
       />
     )
   }

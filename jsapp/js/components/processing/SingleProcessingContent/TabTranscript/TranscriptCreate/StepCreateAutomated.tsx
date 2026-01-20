@@ -6,10 +6,10 @@ import type { NLPActionParamsItem } from '#/api/models/nLPActionParamsItem'
 import { onErrorDefaultHandler } from '#/api/onErrorDefaultHandler'
 import { queryClient } from '#/api/queryClient'
 import {
+  type assetsAdvancedFeaturesListResponse,
   getAssetsAdvancedFeaturesListQueryKey,
   getAssetsDataSupplementRetrieveQueryKey,
   useAssetsAdvancedFeaturesCreate,
-  useAssetsAdvancedFeaturesList,
   useAssetsAdvancedFeaturesPartialUpdate,
   useAssetsDataSupplementPartialUpdate,
 } from '#/api/react-query/survey-data'
@@ -32,17 +32,23 @@ interface Props {
   languageCode: LanguageCode
   submission: DataResponse & Record<string, string>
   onBack: () => void
+  advancedFeaturesData: assetsAdvancedFeaturesListResponse | undefined
 }
 
-export default function StepCreateAutomated({ asset, questionXpath, languageCode, submission, onBack }: Props) {
+export default function StepCreateAutomated({
+  asset,
+  questionXpath,
+  languageCode,
+  submission,
+  onBack,
+  advancedFeaturesData,
+}: Props) {
   const [locale, setLocale] = useState<null | string>(null)
 
   // TODO: remove, for now just logging for debugging.
-  const queryAF = useAssetsAdvancedFeaturesList(asset.uid)
-
   const advancedFeature =
-    queryAF.data?.status === 200
-      ? queryAF.data?.data.find(
+    advancedFeaturesData?.status === 200
+      ? advancedFeaturesData?.data.find(
           (af) =>
             af.action === ADVANCED_FEATURES_ACTION.automatic_google_transcription &&
             af.question_xpath === questionXpath,
@@ -88,10 +94,7 @@ export default function StepCreateAutomated({ asset, questionXpath, languageCode
   })
 
   const anyPending =
-    queryAF.isPending ||
-    mutationCreateAF.isPending ||
-    mutationPatchAF.isPending ||
-    mutationCreateAutomaticTranscript.isPending
+    mutationCreateAF.isPending || mutationPatchAF.isPending || mutationCreateAutomaticTranscript.isPending
 
   // When polling for transcript, we need to calculate the estimated time
   // TODO improvement: check `sidebarSubmissionMedia`, perhaps get a duration in a sync manner, show asap?

@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import type { _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem'
 import type { _DataSupplementResponseOneOfManualTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualTranscriptionVersionsItem'
 import type { DataResponse } from '#/api/models/dataResponse'
+import type { assetsAdvancedFeaturesListResponse } from '#/api/react-query/survey-data'
 import { isSupplementVersionAutomatic } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
 import bodyStyles from '../../../common/processingBody.module.scss'
@@ -16,6 +17,7 @@ interface Props {
     | _DataSupplementResponseOneOfManualTranscriptionVersionsItem
     | _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem
   onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
+  advancedFeaturesData: assetsAdvancedFeaturesListResponse | undefined
 }
 
 export default function TranscriptEdit({
@@ -24,6 +26,7 @@ export default function TranscriptEdit({
   submission,
   transcriptVersion,
   onUnsavedWorkChange,
+  advancedFeaturesData,
 }: Props) {
   // If automatic transcript isn't accepted, go directly to edit mode to accept or edit it.
   const [mode, setMode] = useState<'view' | 'edit'>(() =>
@@ -48,6 +51,7 @@ export default function TranscriptEdit({
           transcriptVersion={transcriptVersion}
           onBack={() => setMode('view')}
           onUnsavedWorkChange={onUnsavedWorkChange}
+          advancedFeaturesData={advancedFeaturesData}
         />
       )}
     </div>

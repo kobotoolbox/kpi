@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 
+import type { DataResponse } from '#/api/models/dataResponse'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import type { AssetResponse } from '#/dataInterface'
 import { getActiveTab } from '../routes.utils'
@@ -12,18 +13,18 @@ import TransxDisplay from './transxDisplay'
 
 interface ProcessingSidebarProps {
   xpath: string
-  submissionId: string
   asset: AssetResponse
   questionLabelLanguage: LanguageCode | string
   setQuestionLabelLanguage: (LanguageCode: LanguageCode | string) => void
+  currentSubmission: (DataResponse & Record<string, string>) | null
 }
 
 export default function ProcessingSidebar({
   asset,
-  submissionId,
   xpath,
   questionLabelLanguage,
   setQuestionLabelLanguage,
+  currentSubmission,
 }: ProcessingSidebarProps) {
   const [store] = useState(() => singleProcessingStore)
 
@@ -71,16 +72,16 @@ export default function ProcessingSidebar({
         {selectedDisplays.includes(StaticDisplays.Transcript) && transcript && <TransxDisplay transx={transcript} />}
 
         {selectedDisplays.includes(StaticDisplays.Audio) && (
-          <SidebarSubmissionMedia submissionId={submissionId} asset={asset} xpath={xpath} />
+          <SidebarSubmissionMedia asset={asset} xpath={xpath} currentSubmission={currentSubmission} />
         )}
 
         {selectedDisplays.includes(StaticDisplays.Data) && (
           <SidebarSubmissionData
-            submissionId={submissionId}
             asset={asset}
             xpath={xpath}
             hiddenQuestions={hiddenQuestions}
             questionLabelLanguage={questionLabelLanguage}
+            currentSubmission={currentSubmission}
           />
         )}
 

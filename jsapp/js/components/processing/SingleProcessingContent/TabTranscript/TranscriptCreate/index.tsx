@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 
 import cx from 'classnames'
 import type { DataResponse } from '#/api/models/dataResponse'
+import type { assetsAdvancedFeaturesListResponse } from '#/api/react-query/survey-data'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
@@ -18,9 +19,16 @@ interface Props {
   questionXpath: string
   submission: DataResponse & Record<string, string>
   onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
+  advancedFeaturesData: assetsAdvancedFeaturesListResponse | undefined
 }
 
-export default function TranscriptCreate({ asset, questionXpath, submission, onUnsavedWorkChange }: Props) {
+export default function TranscriptCreate({
+  asset,
+  questionXpath,
+  submission,
+  onUnsavedWorkChange,
+  advancedFeaturesData,
+}: Props) {
   const [step, setStep] = useState<'begin' | 'language' | 'manual' | 'automatic'>('begin')
   const [languageCode, setLanguageCode] = useState<null | LanguageCode>(null)
 
@@ -54,6 +62,7 @@ export default function TranscriptCreate({ asset, questionXpath, submission, onU
           questionXpath={questionXpath}
           submission={submission}
           onUnsavedWorkChange={onUnsavedWorkChange}
+          advancedFeaturesData={advancedFeaturesData}
         />
       )}
       {step === 'automatic' && !!languageCode && (
@@ -63,6 +72,7 @@ export default function TranscriptCreate({ asset, questionXpath, submission, onU
           asset={asset}
           questionXpath={questionXpath}
           submission={submission}
+          advancedFeaturesData={advancedFeaturesData}
         />
       )}
     </div>
