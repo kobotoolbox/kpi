@@ -38,23 +38,15 @@ export default function SidebarDisplaySettings({
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
 
   const assetLanguageOptions = useMemo<KoboSelectOption[]>(() => {
-    const languageOptions: KoboSelectOption[] = [{ label: t('XML values'), value: XML_VALUES_OPTION_VALUE }]
-
     const baseLabel = t('Labels')
-    const languages = asset?.summary?.languages
-
-    if (languages && languages.length > 0) {
-      languages.forEach((language) => {
-        languageOptions.push({
-          label: language !== null ? `${baseLabel} - ${language}` : baseLabel,
-          value: language ?? '',
-        })
-      })
-    } else {
-      languageOptions.push({ label: baseLabel, value: '' })
-    }
-
-    return languageOptions
+    const languages = asset?.summary?.languages?.length ? asset?.summary?.languages : [null]
+    return [
+      { label: t('XML values'), value: XML_VALUES_OPTION_VALUE },
+      ...languages.map((language) => ({
+        label: language !== null ? `${baseLabel} - ${language}` : baseLabel,
+        value: language ?? '',
+      })),
+    ]
   }, [asset?.summary?.languages])
 
   const activeTab = getActiveTab()
