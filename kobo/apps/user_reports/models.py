@@ -116,7 +116,7 @@ class UserReports(models.Model):
     subscriptions = models.JSONField(default=list)
 
     asset_count = models.IntegerField(default=0)
-    deployed_asset_count = models.IntegerField(default=0)
+    active_project_count = models.IntegerField(default=0)
 
     current_period_start = models.DateTimeField(null=True, blank=True)
     current_period_end = models.DateTimeField(null=True, blank=True)

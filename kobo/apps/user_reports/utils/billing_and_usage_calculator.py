@@ -56,7 +56,11 @@ class BillingAndUsageCalculator:
         if not user_ids:
             return {}
 
-        # Get all-time submission counts
+        # Get all-time submission counts.
+        # Note that records in `DailyXFormSubmissionCounter` are deleted after a
+        # certain period based on the `DAILY_COUNTERS_MAX_DAYS` setting
+        # (default: 366 days, ~12 months). Therefore, this "all-time" value is not
+        # truly all-time, but instead reflects data within the retention period.
         rows = (
             DailyXFormSubmissionCounter.objects.filter(user_id__in=user_ids)
             .values('user_id')
