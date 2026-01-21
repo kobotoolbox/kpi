@@ -35,7 +35,7 @@ from kobo.apps.openrosa.libs.utils.common_tags import META_ROOT_UUID
 from kobo.apps.openrosa.libs.utils.logger_tools import dict2xform
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.project_ownership.utils import create_invite
-from kobo.apps.subsequences.models import SubmissionSupplement
+from kobo.apps.subsequences.models import QuestionAdvancedFeature, SubmissionSupplement
 from kpi.constants import (
     ASSET_TYPE_SURVEY,
     PERM_ADD_SUBMISSIONS,
@@ -1209,6 +1209,212 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
             response = self.client.get(url)
             assert response.status_code == status.HTTP_200_OK
             assert response.data['_submitted_by'] == 'anotheruser'
+
+    def test_get_data_with_failed_transcription_no_value(self):
+        """
+        When a transcription fails (e.g., no audio attachment), the stored
+        data may not have a 'value' field. Reading this data should not
+        crash with a 500 error.
+        """
+
+        QuestionAdvancedFeature.objects.create(
+            asset=self.asset,
+            question_xpath='q1',  # q1 is not an audio question, but works for tests
+            action='automatic_google_transcription',
+            params=[{'language': 'fr'}],
+        )
+        # Create a mock submission supplement with no 'value' field
+        failed_transcription_data = {
+            'q1': {
+                'automatic_google_transcription': {
+                    '_dateCreated': '2026-01-11T01:29:00.908261Z',
+                    '_dateModified': '2026-01-11T01:29:00.908261Z',
+                    '_versions': [
+                        {
+                            '_data': {
+                                'language': 'en',
+                                'status': 'failed',
+                                'error': 'Any error',
+                            },
+                            '_dateCreated': '2026-01-11T01:29:00.908261Z',
+                            '_uuid': '08668365-c922-48ea-9f0e-26935ca2755e',
+                        }
+                    ],
+                }
+            },
+            '_version': '20250820',
+        }
+
+        SubmissionSupplement.objects.create(
+            asset=self.asset,
+            submission_uuid=self.submissions[0]['_uuid'],
+            content=failed_transcription_data,
+        )
+        data_url = reverse(self._get_endpoint('submission-list'), args=[self.asset.uid])
+        response = self.client.get(data_url, format='json')
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_simplified_supplemental_detail_for_delete(self):
+
+        # q1 is not an audio question in the asset, but works fine for this test anyway.
+        QuestionAdvancedFeature.objects.create(
+            asset=self.asset,
+            question_xpath='q1',  # q1 is not an audio question, but works for tests
+            action='automatic_google_transcription',
+            params=[{'language': 'fr'}],
+        )
+        QuestionAdvancedFeature.objects.create(
+            asset=self.asset,
+            question_xpath='q1',
+            action='manual_transcription',
+            params=[{'language': 'fr'}],
+        )
+        # Create a mock submission supplement with the following scenario:
+        # - Question has been manually transcribed
+        # - Question has been automatically transcribed
+        # - Manual transcription has been deleted
+        transcription_data = {
+            'q1': {
+                'automatic_google_transcription': {
+                    '_dateCreated': '2026-01-11T01:29:00.908261Z',
+                    '_dateModified': '2026-01-11T01:29:00.908261Z',
+                    '_versions': [
+                        {
+                            '_data': {
+                                'language': 'fr',
+                                'status': 'completed',
+                                'value': 'Bonjour le monde!',
+                            },
+                            '_dateAccepted': '2026-01-11T01:29:00.908261Z',
+                            '_dateCreated': '2026-01-11T01:29:00.908261Z',
+                            '_uuid': '08668365-c922-48ea-9f0e-26935ca2755e',
+                        }
+                    ],
+                },
+                'manual_transcription': {
+                    '_dateCreated': '2026-01-10T01:29:00.908261Z',
+                    '_dateModified': '2026-01-11T01:30:00.908261Z',
+                    '_versions': [
+                        {
+                            '_data': {
+                                'language': 'en',
+                                'value': None,
+                            },
+                            '_dateCreated': '2026-01-11T01:30:00.908261Z',
+                            '_uuid': '2222222-2222-2222-2222-222222222222',
+                        },
+                        {
+                            '_data': {'language': 'en', 'value': 'Bonjour la foule!'},
+                            '_dateCreated': '2026-01-10T01:29:00.908261Z',
+                            '_dateAccepted': '2026-01-10T01:29:00.908261Z',
+                            '_uuid': '1111111-1111-1111-1111-111111111111',
+                        },
+                    ],
+                },
+            },
+            '_version': '20250820',
+        }
+
+        SubmissionSupplement.objects.create(
+            asset=self.asset,
+            submission_uuid=self.submissions[0]['_uuid'],
+            content=transcription_data,
+        )
+        data_url = reverse(self._get_endpoint('submission-list'), args=[self.asset.uid])
+        response = self.client.get(data_url, format='json')
+        assert response.status_code == status.HTTP_200_OK
+        assert (
+            response.data['results'][0]['_supplementalDetails']['q1']['transcript'][
+                'value'
+            ]
+            is None
+        )
+
+    def test_simplified_supplemental_detail_for_acceptance(self):
+
+        # q1 is not an audio question in the asset, but works fine for this test anyway.
+        QuestionAdvancedFeature.objects.create(
+            asset=self.asset,
+            question_xpath='q1',  # q1 is not an audio question, but works for tests
+            action='automatic_google_transcription',
+            params=[{'language': 'fr'}],
+        )
+        QuestionAdvancedFeature.objects.create(
+            asset=self.asset,
+            question_xpath='q1',
+            action='manual_transcription',
+            params=[{'language': 'fr'}],
+        )
+        # Create a mock submission supplement with the following scenario:
+        # - Question has been manually transcribed
+        # - Question has been automatically transcribed
+        # - Manual transcription has been deleted
+        transcription_data = {
+            'q1': {
+                'automatic_google_transcription': {
+                    '_dateCreated': '2026-01-11T01:29:00.908261Z',
+                    '_dateModified': '2026-01-11T01:29:00.908261Z',
+                    '_versions': [
+                        {
+                            '_data': {
+                                'language': 'fr',
+                                'status': 'completed',
+                                'value': 'Bonjour le monde!',
+                            },
+                            '_dateCreated': '2026-01-11T01:29:00.908261Z',
+                            '_uuid': '08668365-c922-48ea-9f0e-26935ca2755e',
+                        }
+                    ],
+                },
+                'manual_transcription': {
+                    '_dateCreated': '2026-01-10T01:29:00.908261Z',
+                    '_dateModified': '2026-01-10T01:29:00.908261Z',
+                    '_versions': [
+                        {
+                            '_data': {'language': 'en', 'value': 'Bonjour la foule!'},
+                            '_dateCreated': '2026-01-10T01:29:00.908261Z',
+                            '_dateAccepted': '2026-01-10T01:29:00.908261Z',
+                            '_uuid': '1111111-1111-1111-1111-111111111111',
+                        }
+                    ],
+                },
+            },
+            '_version': '20250820',
+        }
+
+        SubmissionSupplement.objects.create(
+            asset=self.asset,
+            submission_uuid=self.submissions[0]['_uuid'],
+            content=transcription_data,
+        )
+        data_url = reverse(self._get_endpoint('submission-list'), args=[self.asset.uid])
+        response = self.client.get(data_url, format='json')
+        assert response.status_code == status.HTTP_200_OK
+        assert (
+            response.data['results'][0]['_supplementalDetails']['q1']['transcript'][
+                'value'
+            ]
+            == 'Bonjour la foule!'
+        )
+
+        transcription_data['q1']['automatic_google_transcription']['_versions'][0][
+            '_dateAccepted'
+        ] = '2026-01-11T01:29:00.908261Z'
+
+        SubmissionSupplement.objects.filter(
+            asset=self.asset,
+            submission_uuid=self.submissions[0]['_uuid'],
+        ).update(content=transcription_data)
+
+        data_url = reverse(self._get_endpoint('submission-list'), args=[self.asset.uid])
+        response = self.client.get(data_url, format='json')
+        assert response.status_code == status.HTTP_200_OK
+        assert (
+            response.data['results'][0]['_supplementalDetails']['q1']['transcript'][
+                'value'
+            ]
+            == 'Bonjour le monde!'
+        )
 
 
 class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase):

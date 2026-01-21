@@ -10,13 +10,22 @@ The endpoints are grouped by area of intended use. Each category contains relate
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 
-export type _DataResponseAttachments = {
-  download_url?: string
-  download_large_url?: string
-  download_medium_url?: string
-  download_small_url?: string
-  mimetype?: string
-  filename?: string
-  uid?: string
-  question_xpath?: string
-}
+/**
+ * * `automatic_google_transcription` - automatic_google_transcription
+ * `automatic_google_translation` - automatic_google_translation
+ * `manual_transcription` - manual_transcription
+ * `manual_translation` - manual_translation
+ * `manual_qual` - manual_qual
+ * `automatic_bedrock_qual` - automatic_bedrock_qual
+ */
+export type ActionEnum = (typeof ActionEnum)[keyof typeof ActionEnum]
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ActionEnum = {
+  automatic_google_transcription: 'automatic_google_transcription',
+  automatic_google_translation: 'automatic_google_translation',
+  manual_transcription: 'manual_transcription',
+  manual_translation: 'manual_translation',
+  manual_qual: 'manual_qual',
+  automatic_bedrock_qual: 'automatic_bedrock_qual',
+} as const

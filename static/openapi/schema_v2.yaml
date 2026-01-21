@@ -10419,12 +10419,28 @@ components:
       - user
       - user_uid
       - username
+    ActionEnum:
+      enum:
+      - automatic_google_transcription
+      - automatic_google_translation
+      - manual_transcription
+      - manual_translation
+      - manual_qual
+      - automatic_bedrock_qual
+      type: string
+      description: |-
+        * `automatic_google_transcription` - automatic_google_transcription
+        * `automatic_google_translation` - automatic_google_translation
+        * `manual_transcription` - manual_transcription
+        * `manual_translation` - manual_translation
+        * `manual_qual` - manual_qual
+        * `automatic_bedrock_qual` - automatic_bedrock_qual
     AdvancedFeaturePostRequest:
       type: object
       properties:
-        question_xpath:
-          type: string
         action:
+          $ref: '#/components/schemas/ActionEnum'
+        question_xpath:
           type: string
         params:
           type: array
@@ -10439,9 +10455,9 @@ components:
     AdvancedFeatureResponse:
       type: object
       properties:
-        question_xpath:
-          type: string
         action:
+          $ref: '#/components/schemas/ActionEnum'
+        question_xpath:
           type: string
         params:
           type: array
@@ -10449,13 +10465,10 @@ components:
             anyOf:
             - $ref: '#/components/schemas/NLPActionParams'
             - $ref: '#/components/schemas/QualActionParams'
-        asset:
-          type: string
         uid:
           type: string
       required:
       - action
-      - asset
       - params
       - question_xpath
       - uid
@@ -11735,32 +11748,46 @@ components:
         meta/rootUuid:
           type: string
         _attachments:
-          type: object
-          properties:
-            download_url:
-              type: string
-              format: uri
-              example: https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/1
-            download_large_url:
-              type: string
-              format: uri
-              example: https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/large/
-            download_medium_url:
-              type: string
-              format: uri
-              example: https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/medium/
-            download_small_url:
-              type: string
-              format: uri
-              example: https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/small/
-            mimetype:
-              type: string
-            filename:
-              type: string
-            uid:
-              type: string
-            question_xpath:
-              type: string
+          type: array
+          items:
+            type: object
+            properties:
+              download_url:
+                type: string
+                format: uri
+                example: https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/1
+              download_large_url:
+                type: string
+                format: uri
+                example: https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/large/
+              download_medium_url:
+                type: string
+                format: uri
+                example: https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/medium/
+              download_small_url:
+                type: string
+                format: uri
+                example: https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/small/
+              mimetype:
+                type: string
+                example: image/png
+              media_file_basename:
+                type: string
+              filename:
+                type: string
+              uid:
+                type: string
+              question_xpath:
+                type: string
+              is_deleted:
+                type: boolean
+            required:
+            - download_url
+            - filename
+            - media_file_basename
+            - mimetype
+            - question_xpath
+            - uid
           title: ' attachments'
         _status:
           type: string
@@ -15077,6 +15104,7 @@ components:
               type: string
             value:
               type: string
+              nullable: true
           additionalProperties: false
           required:
           - language
@@ -15090,6 +15118,7 @@ components:
               type: string
             value:
               type: string
+              nullable: true
           additionalProperties: false
           required:
           - language
