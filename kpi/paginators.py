@@ -5,7 +5,11 @@ from typing import Union
 from django.conf import settings
 from django.db.models.query import QuerySet
 from django_request_cache import cache_for_request
-from rest_framework.pagination import LimitOffsetPagination, _positive_int
+from rest_framework.pagination import (
+    LimitOffsetPagination,
+    _positive_int,
+    PageNumberPagination
+)
 from rest_framework.response import Response
 from rest_framework.reverse import reverse_lazy
 from rest_framework.serializers import SerializerMethodField
@@ -278,3 +282,11 @@ class FastPagination(DefaultPagination):
     """
 
     fast_count = True
+
+
+class TinyPaginated(PageNumberPagination):
+    """
+    Same as Paginated with a small page size
+    """
+
+    page_size = 50
