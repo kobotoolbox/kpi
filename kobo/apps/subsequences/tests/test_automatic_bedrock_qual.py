@@ -5,6 +5,7 @@ from unittest.mock import ANY, DEFAULT, call, patch
 import jsonschema
 import pytest
 from ddt import data, ddt, unpack
+from django.conf import settings
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.reverse import reverse
@@ -32,6 +33,7 @@ from kobo.apps.subsequences.prompts import (
     response_placeholder,
 )
 from kobo.apps.subsequences.tests.utils import MockLLMClient
+from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
 
@@ -436,3 +438,26 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
             [call(ANY, OSS120), call(ANY, ClaudeSonnet)], any_order=False
         )
         assert len(patched_get_response_from_llm.call_args) == 2
+
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    def test_run_external_process_updates_llm_usage(self):
+        today = timezone.now().date()
+        current_counters = NLPUsageCounter.objects.filter(
+            user=self.asset.owner, asset=self.asset, date=today
+        )
+        assert current_counters.count() == 0
+        action_data = {
+            'uuid': 'uuid-qual-text',
+            '_dependency': self._dependency_dict_from_transcript_dict(),
+        }
+        with patch.object(
+            self.action, 'get_response_from_llm', return_value='response'
+        ):
+            self.action.run_external_process({}, {}, action_data=action_data)
+        today = timezone.now().date()
+        counter = NLPUsageCounter.objects.get(
+            user=self.asset.owner, asset=self.asset, date=today
+        )
+        assert counter.counters['bedrock_llm_requests'] == 1
