@@ -335,7 +335,7 @@ class DataSupplementResponseExtension(
                 'manual_translation': self._manual_translation_schema,
                 'automatic_google_transcription': self._automatic_transcription_schema,
                 'automatic_google_translation': self._automatic_translation_schema,
-                'qual': self._qual_schema,
+                'manual_qual': self._qual_schema,
             },
             # At least one of "manual_transcription" or "manual_translation"
             # must be present
@@ -344,7 +344,7 @@ class DataSupplementResponseExtension(
                 {'required': ['manual_translation']},
                 {'required': ['automatic_google_transcription']},
                 {'required': ['automatic_google_translation']},
-                {'required': ['qual']},
+                {'required': ['manual_qual']},
             ],
         )
 

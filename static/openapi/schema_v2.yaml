@@ -12177,7 +12177,7 @@ components:
             - _dateCreated
             - _dateModified
             - _versions
-        qual:
+        manual_qual:
           type: object
           additionalProperties:
             type: object
@@ -12427,7 +12427,7 @@ components:
       - required:
         - automatic_google_translation
       - required:
-        - qual
+        - manual_qual
     DataValidationStatusUpdateResponse:
       type: object
       properties:

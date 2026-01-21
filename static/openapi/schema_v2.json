@@ -17013,7 +17013,7 @@
                             ]
                         }
                     },
-                    "qual": {
+                    "manual_qual": {
                         "type": "object",
                         "additionalProperties": {
                             "type": "object",
@@ -17431,7 +17431,7 @@
                     },
                     {
                         "required": [
-                            "qual"
+                            "manual_qual"
                         ]
                     }
                 ]
