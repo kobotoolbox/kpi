@@ -1,40 +1,41 @@
-import React, { useCallback } from 'react'
+import React from 'react'
 
+import type { _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem'
+import type { _DataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem } from '#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem'
+import type { _DataSupplementResponseOneOfManualTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualTranscriptionVersionsItem'
+import type { _DataSupplementResponseOneOfManualTranslationVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualTranslationVersionsItem'
 import { AsyncLanguageDisplayLabel } from '#/components/languages/languagesUtils'
-import type { Transx } from '#/components/processing/singleProcessingStore'
 import TransxDate from '../SingleProcessingContent/components/transxDate'
 import bodyStyles from '../common/processingBody.module.scss'
 import styles from './transxDisplay.module.scss'
 
 interface TransxDisplayProps {
-  transx: Transx
+  supplementVersion:
+    | _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem
+    | _DataSupplementResponseOneOfManualTranscriptionVersionsItem
+    | _DataSupplementResponseOneOfManualTranslationVersionsItem
+    | _DataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem
 }
 
-export default function TransxDisplay(props: TransxDisplayProps) {
-  const renderLanguageAndDate = useCallback(() => {
-    const source = props.transx
-
-    const contentLanguageCode = source?.languageCode
-    if (contentLanguageCode === undefined) {
-      return null
-    }
-
-    return (
-      <React.Fragment>
-        <AsyncLanguageDisplayLabel code={props.transx.languageCode} />
-
-        <TransxDate dateCreated={source.dateCreated} dateModified={source.dateModified} />
-      </React.Fragment>
-    )
-  }, [])
-
+export default function TransxDisplay({ supplementVersion }: TransxDisplayProps) {
   return (
     <section className={styles.root}>
       <div className={bodyStyles.root}>
-        <header className={bodyStyles.transxHeader}>{renderLanguageAndDate()}</header>
+        <header className={bodyStyles.transxHeader}>
+          {supplementVersion._data.language && (
+            <React.Fragment>
+              <AsyncLanguageDisplayLabel code={supplementVersion._data.language} />
+              <TransxDate
+                dateCreated={supplementVersion._dateCreated}
+                dateModified={(supplementVersion as any)._dateModified}
+              />
+              {/* // TODO OpenAPI: add _dateModified */}
+            </React.Fragment>
+          )}
+        </header>
 
         <article className={bodyStyles.text} dir='auto'>
-          {props.transx.value}
+          {'value' in supplementVersion._data ? supplementVersion._data.value : null}
         </article>
       </div>
     </section>

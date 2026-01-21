@@ -52,7 +52,11 @@ export default function SingleProcessingRoute({ params: routeParams }: { params:
   const asset = assetId ? assetStore.getAsset(assetId) : null
 
   const queryAF = useAssetsAdvancedFeaturesList(assetId)
+  const advancedFeatures = queryAF.data?.status === 200 ? queryAF.data.data : undefined
+
   const querySupplement = useAssetsDataSupplementRetrieve(assetId, submissionId)
+  const supplement = querySupplement.data?.status === 200 ? querySupplement.data.data : undefined
+
   const querySubmission = useAssetsDataList(assetId, {
     query: JSON.stringify({
       $or: [{ 'meta/rootUuid': addDefaultUuidPrefix(submissionId) }, { _uuid: submissionId }],
@@ -70,7 +74,7 @@ export default function SingleProcessingRoute({ params: routeParams }: { params:
   const pageTitle = 'Data | KoboToolbox'
 
   // TODO: Why here was a `asset?.content?.survey` check, can `survey` be empty? Does it matter? If so, a forever spinner won't do.
-  if (!asset || queryAF.data?.status !== 200 || querySupplement.data?.status !== 200 || !submission) {
+  if (!asset || !advancedFeatures || !supplement || !submission) {
     return (
       <DocumentTitle title={pageTitle}>
         <section className={styles.root}>
@@ -107,8 +111,8 @@ export default function SingleProcessingRoute({ params: routeParams }: { params:
                   submission={submission}
                   hasUnsavedWork={hasUnsavedWork}
                   onUnsavedWorkChange={setHasUnsavedWork}
-                  supplementData={querySupplement.data}
-                  advancedFeaturesData={queryAF.data}
+                  supplement={supplement}
+                  advancedFeatures={advancedFeatures}
                 />
               ) : (
                 <CenteredMessage message={NO_DATA_MESSAGE} />
@@ -118,10 +122,11 @@ export default function SingleProcessingRoute({ params: routeParams }: { params:
             <section className={styles.bottomRight}>
               <SingleProcessingSidebar
                 asset={asset}
-                xpath={questionXpath!}
+                questionXpath={questionXpath}
                 questionLabelLanguage={questionLabelLanguage}
                 setQuestionLabelLanguage={setQuestionLabelLanguage}
                 submission={submission}
+                supplement={supplement}
               />
             </section>
           </React.Fragment>

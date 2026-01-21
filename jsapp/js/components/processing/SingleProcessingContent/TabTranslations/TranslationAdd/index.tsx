@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
+import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
-import type { assetsAdvancedFeaturesListResponse } from '#/api/react-query/survey-data'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
@@ -17,7 +17,7 @@ interface Props {
   initialStep?: 'begin' | 'language'
   onCreate: (languageCode: LanguageCode) => void
   onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
-  advancedFeaturesData: assetsAdvancedFeaturesListResponse | undefined
+  advancedFeatures: AdvancedFeatureResponse[]
 }
 
 export default function TranslateAdd({
@@ -28,7 +28,7 @@ export default function TranslateAdd({
   initialStep,
   onCreate,
   onUnsavedWorkChange,
-  advancedFeaturesData,
+  advancedFeatures,
 }: Props) {
   const [step, setStep] = useState<'begin' | 'language' | 'manual' | 'automatic'>(initialStep ?? 'begin')
   const [languageCode, setLanguageCode] = useState<null | LanguageCode>(null)
@@ -57,7 +57,7 @@ export default function TranslateAdd({
           submission={submission}
           onCreate={onCreate}
           onUnsavedWorkChange={onUnsavedWorkChange}
-          advancedFeaturesData={advancedFeaturesData}
+          advancedFeatures={advancedFeatures}
         />
       )}
       {step === 'automatic' && !!languageCode && (
@@ -68,7 +68,7 @@ export default function TranslateAdd({
           questionXpath={questionXpath}
           submission={submission}
           onCreate={onCreate}
-          advancedFeaturesData={advancedFeaturesData}
+          advancedFeatures={advancedFeatures}
         />
       )}
     </>

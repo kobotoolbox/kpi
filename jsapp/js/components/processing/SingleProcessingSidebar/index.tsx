@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react'
-
 import type { DataResponse } from '#/api/models/dataResponse'
+import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import type { AssetResponse } from '#/dataInterface'
+import { getTranscriptFromSupplement, getTranslationsFromSupplement } from '../common/utils'
 import { getActiveTab } from '../routes.utils'
 import singleProcessingStore, { StaticDisplays, type DisplaysList } from '../singleProcessingStore'
 import styles from './index.module.scss'
@@ -12,19 +13,21 @@ import SidebarSubmissionMedia from './sidebarSubmissionMedia'
 import TransxDisplay from './transxDisplay'
 
 interface ProcessingSidebarProps {
-  xpath: string
+  questionXpath: string
   asset: AssetResponse
   questionLabelLanguage: LanguageCode | string
   setQuestionLabelLanguage: (LanguageCode: LanguageCode | string) => void
   submission?: DataResponse & Record<string, string>
+  supplement: DataSupplementResponse
 }
 
 export default function ProcessingSidebar({
   asset,
-  xpath,
+  questionXpath,
   questionLabelLanguage,
   setQuestionLabelLanguage,
   submission,
+  supplement,
 }: ProcessingSidebarProps) {
   const [store] = useState(() => singleProcessingStore)
 
@@ -45,9 +48,8 @@ export default function ProcessingSidebar({
     setSelectedDisplays(store.getDisplays(activeTab))
   }, [activeTab])
 
-  // TODO: query via react-query and orval
-  const translations = store.getTranslations()
-  const transcript = store.getTranscript()
+  const transcriptVersion = getTranscriptFromSupplement(supplement[questionXpath])
+  const translationVersions = getTranslationsFromSupplement(supplement[questionXpath])
 
   return (
     <div className={styles.root}>
@@ -65,24 +67,26 @@ export default function ProcessingSidebar({
         TODO: BUG for some reason I don't see transcript or other translation in the sidebar. I don't have options to
         choose them in the settings modal either.
         */}
-        {Array.from(translations).map((translation) => {
-          if (selectedDisplays.includes(translation.languageCode)) {
-            return <TransxDisplay transx={translation} key={translation.languageCode} />
+        {Array.from(translationVersions).map((translationVersion) => {
+          if (selectedDisplays.includes(translationVersion._data.language)) {
+            return <TransxDisplay supplementVersion={translationVersion} key={translationVersion._data.language} />
           }
 
           return null
         })}
 
-        {selectedDisplays.includes(StaticDisplays.Transcript) && transcript && <TransxDisplay transx={transcript} />}
+        {selectedDisplays.includes(StaticDisplays.Transcript) && transcriptVersion && (
+          <TransxDisplay supplementVersion={transcriptVersion} />
+        )}
 
         {selectedDisplays.includes(StaticDisplays.Audio) && (
-          <SidebarSubmissionMedia asset={asset} xpath={xpath} submission={submission} />
+          <SidebarSubmissionMedia asset={asset} xpath={questionXpath} submission={submission} />
         )}
 
         {selectedDisplays.includes(StaticDisplays.Data) && (
           <SidebarSubmissionData
             asset={asset}
-            xpath={xpath}
+            xpath={questionXpath}
             hiddenQuestions={hiddenQuestions}
             questionLabelLanguage={questionLabelLanguage}
             submission={submission}

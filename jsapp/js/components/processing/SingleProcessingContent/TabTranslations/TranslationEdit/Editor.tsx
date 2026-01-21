@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import type { _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem'
 import type { _DataSupplementResponseOneOfManualTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualTranscriptionVersionsItem'
+import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { NLPActionParamsItem } from '#/api/models/nLPActionParamsItem'
 import { queryClient } from '#/api/queryClient'
 import {
-  type assetsAdvancedFeaturesListResponse,
   getAssetsAdvancedFeaturesListQueryKey,
   getAssetsDataSupplementRetrieveQueryKey,
   useAssetsAdvancedFeaturesCreate,
@@ -32,7 +32,7 @@ interface Props {
   onBack: () => void
   onSave: () => void
   onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
-  advancedFeaturesData: assetsAdvancedFeaturesListResponse | undefined
+  advancedFeatures: AdvancedFeatureResponse[]
 }
 
 export default function Editor({
@@ -43,7 +43,7 @@ export default function Editor({
   onBack,
   onSave,
   onUnsavedWorkChange,
-  advancedFeaturesData,
+  advancedFeatures,
 }: Props) {
   const initialValue = 'value' in translationVersion._data ? translationVersion._data.value : null
   const unacceptedAutomaticTranscript =
@@ -55,13 +55,9 @@ export default function Editor({
     onUnsavedWorkChange(value !== initialValue)
   }, [value, initialValue, onUnsavedWorkChange])
 
-  const advancedFeature =
-    advancedFeaturesData?.status === 200
-      ? advancedFeaturesData?.data.find(
-          (af) => af.action === ADVANCED_FEATURES_ACTION.manual_translation && af.question_xpath === questionXpath,
-        )
-      : undefined
-  console.log(advancedFeature)
+  const advancedFeature = advancedFeatures.find(
+    (af) => af.action === ADVANCED_FEATURES_ACTION.manual_translation && af.question_xpath === questionXpath,
+  )
 
   const patch = useAssetsDataSupplementPartialUpdate({
     mutation: {

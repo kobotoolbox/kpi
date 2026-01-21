@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react'
 
 import cx from 'classnames'
+import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { NLPActionParamsItem } from '#/api/models/nLPActionParamsItem'
 import { onErrorDefaultHandler } from '#/api/onErrorDefaultHandler'
 import { queryClient } from '#/api/queryClient'
 import {
-  type assetsAdvancedFeaturesListResponse,
   getAssetsAdvancedFeaturesListQueryKey,
   getAssetsDataSupplementRetrieveQueryKey,
   useAssetsAdvancedFeaturesCreate,
@@ -32,7 +32,7 @@ interface Props {
   languageCode: LanguageCode
   submission: DataResponse & Record<string, string>
   onBack: () => void
-  advancedFeaturesData: assetsAdvancedFeaturesListResponse | undefined
+  advancedFeatures: AdvancedFeatureResponse[]
 }
 
 export default function StepCreateAutomated({
@@ -41,18 +41,14 @@ export default function StepCreateAutomated({
   languageCode,
   submission,
   onBack,
-  advancedFeaturesData,
+  advancedFeatures,
 }: Props) {
   const [locale, setLocale] = useState<null | string>(null)
 
-  const advancedFeature =
-    advancedFeaturesData?.status === 200
-      ? advancedFeaturesData?.data.find(
-          (af) =>
-            af.action === ADVANCED_FEATURES_ACTION.automatic_google_transcription &&
-            af.question_xpath === questionXpath,
-        )
-      : undefined
+  const advancedFeature = advancedFeatures.find(
+    (af) =>
+      af.action === ADVANCED_FEATURES_ACTION.automatic_google_transcription && af.question_xpath === questionXpath,
+  )
 
   const mutationCreateAF = useAssetsAdvancedFeaturesCreate({
     mutation: {

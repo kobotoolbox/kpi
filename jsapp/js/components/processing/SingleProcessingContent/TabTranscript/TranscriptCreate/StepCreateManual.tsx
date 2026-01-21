@@ -1,7 +1,7 @@
 import cx from 'classnames'
 import React from 'react'
+import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
-import type { assetsAdvancedFeaturesListResponse } from '#/api/react-query/survey-data'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import type { AssetResponse } from '#/dataInterface'
 import bodyStyles from '../../../common/processingBody.module.scss'
@@ -14,7 +14,7 @@ interface Props {
   languageCode: LanguageCode
   onBack: () => void
   onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
-  advancedFeaturesData: assetsAdvancedFeaturesListResponse | undefined
+  advancedFeatures: AdvancedFeatureResponse[]
 }
 
 /**
@@ -28,7 +28,7 @@ export default function StepCreateManual({
   languageCode,
   onBack,
   onUnsavedWorkChange,
-  advancedFeaturesData,
+  advancedFeatures,
 }: Props) {
   return (
     <div className={cx(bodyStyles.root)}>
@@ -48,7 +48,7 @@ export default function StepCreateManual({
         }}
         onBack={onBack}
         onUnsavedWorkChange={onUnsavedWorkChange}
-        advancedFeaturesData={advancedFeaturesData}
+        advancedFeatures={advancedFeatures}
       />
     </div>
   )
