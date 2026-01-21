@@ -14,13 +14,9 @@ import type { AssetsHooksLogsListStatus } from './assetsHooksLogsListStatus'
 export type AssetsHooksLogsListParams = {
   end?: string
   /**
-   * Number of results to return per page.
+   * A page number within the paginated result set.
    */
-  limit?: number
-  /**
-   * The initial index from which to return the results.
-   */
-  offset?: number
+  page?: number
   start?: string
   /**
    * * `0` - Failed
