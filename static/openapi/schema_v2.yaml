@@ -11813,7 +11813,8 @@ components:
         _validation_status:
           oneOf:
           - $ref: '#/components/schemas/DataValidationStatus'
-          - {}
+          - type: object
+            maxProperties: 0
           title: ' validation status'
         _submitted_by:
           type: string

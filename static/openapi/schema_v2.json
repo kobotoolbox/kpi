@@ -16501,7 +16501,10 @@
                             {
                                 "$ref": "#/components/schemas/DataValidationStatus"
                             },
-                            {}
+                            {
+                                "type": "object",
+                                "maxProperties": 0
+                            }
                         ],
                         "title": " validation status"
                     },

@@ -790,7 +790,7 @@ class DataValidationStatusFieldExtension(
         return {
             'oneOf': [
                 validation_status_schema,
-                {},
+                build_object_type(maxProperties=0),
             ]
         }
 
@@ -820,10 +820,8 @@ class GeoLocationFieldExtension(OpenApiSerializerFieldExtension):
 
     def map_serializer_field(self, autho_schema, direction):
         return {
-            "type": "array",
-            "items": {
-                "type": ["number", "null"]
-            },
-            "minItems": 2,
-            "maxItems": 2
+            'type': 'array',
+            'items': {'type': ['number', 'null']},
+            'minItems': 2,
+            'maxItems': 2,
         }
