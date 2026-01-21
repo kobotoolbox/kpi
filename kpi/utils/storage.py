@@ -1,7 +1,34 @@
 import os
 import shutil
 
-from django.core.files.storage import default_storage, FileSystemStorage
+from django.core.files.storage import FileSystemStorage, default_storage
+from storages.backends.s3 import S3Storage
+
+
+def is_filesystem_storage(storage) -> bool:
+    # Case 1: storage *is* a FileSystemStorage
+    if isinstance(storage, FileSystemStorage):
+        return True
+
+    # Case 2: storage is a proxy exposing a backend
+    backend = getattr(storage, 'backend', None)
+    if backend is not None and isinstance(backend, FileSystemStorage):
+        return True
+
+    return False
+
+
+def is_s3_storage(storage) -> bool:
+    # Case 1: storage *is* a S3Storage
+    if isinstance(storage, S3Storage):
+        return True
+
+    # Case 2: storage is a proxy exposing a backend
+    backend = getattr(storage, 'backend', None)
+    if backend is not None and isinstance(backend, S3Storage):
+        return True
+
+    return False
 
 
 def rmdir(directory: str):
@@ -16,7 +43,7 @@ def rmdir(directory: str):
         for directory_ in directories:
             _recursive_delete(os.path.join(path, directory_))
 
-    if isinstance(default_storage, FileSystemStorage):
+    if is_filesystem_storage(default_storage):
         if default_storage.exists(directory):
             shutil.rmtree(default_storage.path(directory))
     else:

@@ -12,6 +12,7 @@ The endpoints are grouped by area of intended use. Each category contains relate
 
 export type _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItemDataOneOfTwo = {
   language: string
+  locale?: string
   status: 'failed'
   error: string
 }

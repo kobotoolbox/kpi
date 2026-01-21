@@ -94,7 +94,9 @@ def test_invalid_user_data_fails_validation():
         # Cannot push a status
         {'language': 'fr', 'status': 'in_progress'},
         # Cannot pass value and accepted at the same time
-        {'language': 'fr', 'value': None, 'accepted': False},
+        {'language': 'fr', 'value': None, 'accepted': True},
+        # Cannot un-accept a translation
+        {'language': 'fr', 'accepted': False}
     ]
 
     for data in invalid_data:
@@ -114,10 +116,8 @@ def test_invalid_automatic_data_fails_validation():
         {},
         # Cannot accept an empty translation
         {'language': 'es', 'accepted': True},
-        # Cannot deny an empty translation
-        {'language': 'es', 'accepted': False},
         # Cannot pass value and accepted at the same time
-        {'language': 'es', 'value': None, 'accepted': False},
+        {'language': 'es', 'value': None, 'accepted': True},
         # Cannot have a value while in progress
         {'language': 'es', 'value': 'Ni idea', 'status': 'in_progress'},
         # Missing error property
@@ -179,7 +179,6 @@ def test_acceptance_does_not_produce_versions():
 
     first = {'language': 'fr', 'value': 'un'}
     second = {'language': 'fr', 'accepted': True}
-    third = {'language': 'fr', 'accepted': False}
     mock_sup_det = EMPTY_SUPPLEMENT
 
     mock_service = MagicMock()
@@ -187,7 +186,7 @@ def test_acceptance_does_not_produce_versions():
         'kobo.apps.subsequences.actions.automatic_google_translation.GoogleTranslationService',  # noqa
         return_value=mock_service,
     ):
-        for data in first, second, third:
+        for data in first, second:
             value = data.get('value', '')
             # The 'value' field is not allowed in the payload, except when its
             # value is None.
@@ -433,6 +432,46 @@ def test_transform_data_for_output():
             'value': 'Hola otra vez',
             'languageCode': 'es',
             '_sortByDate': None,
+        },
+        ('translation', 'fr'): {
+            'value': 'bonjour',
+            'languageCode': 'fr',
+            '_sortByDate': None,
+        },
+    }
+
+
+def test_transform_data_for_output_with_delete():
+    action = _get_action()
+    first = {'language': 'es', 'value': 'Hola'}
+    second = {'language': 'es', 'value': 'Hola otra vez'}
+    third = {'language': 'fr', 'value': 'bonjour'}
+    fourth = {'language': 'es', 'value': None}
+    mock_sup_det = EMPTY_SUPPLEMENT
+    mock_service = MagicMock()
+    with patch(
+        'kobo.apps.subsequences.actions.automatic_google_translation.GoogleTranslationService',  # noqa
+        return_value=mock_service,
+    ):
+        for data in first, second, third, fourth:
+            value = data.pop('value')
+            mock_service.process_data.return_value = {
+                'value': value,
+                'status': 'complete' if value is not None else 'deleted',
+            }
+            # Reinject value to similate the deletion.
+            if value is None:
+                data['value'] = None
+
+            mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, data)
+
+    retrieved_data = action.retrieve_data(mock_sup_det)
+    result = action.transform_data_for_output(retrieved_data)
+    assert result == {
+        ('translation', 'es'): {
+            'value': None,
+            'languageCode': 'es',
+            '_sortByDate': retrieved_data['es']['_versions'][0]['_dateCreated'],
         },
         ('translation', 'fr'): {
             'value': 'bonjour',

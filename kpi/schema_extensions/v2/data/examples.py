@@ -43,6 +43,19 @@ def _get_data_supplement_patch_payload_request_examples() -> list[OpenApiExample
             request_only=True,
         ),
         OpenApiExample(
+            'Manual Transcription (with "locale")',
+            description='The `locale` field is optional.',
+            value={
+                '_version': '20250820',
+                'question_name_xpath': {
+                    'manual_transcription': {
+                        'language': 'fr', 'locale': 'fr-CA', 'value': 'Bonjour'
+                    }
+                },
+            },
+            request_only=True,
+        ),
+        OpenApiExample(
             'Manual Translation',
             value={
                 '_version': '20250820',
@@ -202,6 +215,31 @@ def _get_data_supplement_response_examples():
                                 '_uuid': '11111111-1111-1111-1111-111111111111',
                                 '_data': {
                                     'language': 'fr',
+                                    'value': 'Bonjour',
+                                },
+                            }
+                        ],
+                    }
+                },
+            },
+        ),
+        OpenApiExample(
+            name='Manual Transcription (with "locale")',
+            response_only=True,
+            value={
+                '_version': '20250820',
+                'question_name_xpath': {
+                    'manual_transcription': {
+                        '_dateCreated': iso0,
+                        '_dateModified': iso0,
+                        '_versions': [
+                            {
+                                '_dateCreated': iso0,
+                                '_dateAccepted': iso0,
+                                '_uuid': '11111111-1111-1111-1111-111111111111',
+                                '_data': {
+                                    'language': 'fr',
+                                    'locale': 'fr-CA',
                                     'value': 'Bonjour',
                                 },
                             }

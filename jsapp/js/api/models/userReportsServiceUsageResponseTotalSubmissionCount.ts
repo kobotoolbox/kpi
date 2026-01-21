@@ -10,7 +10,8 @@ The endpoints are grouped by area of intended use. Each category contains relate
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 
-export type _DataSupplementResponseOneOfQualVersionsItemDataOneOfAllOfTwo = {
-  /** @nullable */
-  value?: number | null
+export type UserReportsServiceUsageResponseTotalSubmissionCount = {
+  retention_days?: number
+  cumulative?: number
+  current_period?: number
 }
