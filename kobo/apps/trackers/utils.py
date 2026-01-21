@@ -66,7 +66,8 @@ def update_nlp_counter(
             handle_usage_deduction(organization, UsageType.MT_CHARACTERS, amount)
     if service.endswith(UsageType.LLM_REQUESTS):
         kwargs['total_llm_requests'] = F('total_llm_requests') + amount
-        handle_usage_deduction(organization, UsageType.LLM_REQUESTS, amount)
+        if stripe_enabled and asset_id is not None:
+            handle_usage_deduction(organization, UsageType.LLM_REQUESTS, amount)
 
     NLPUsageCounter.objects.filter(pk=counter_id).update(
         counters=IncrementValue('counters', keyname=service, increment=amount),
