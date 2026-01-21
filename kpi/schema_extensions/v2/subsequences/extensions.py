@@ -29,35 +29,29 @@ class SubsequenceParamsFieldExtension(
 
     def _get_nlp_params_schema(self):
         return {
-            'type': 'array',
-            'items': {
-                'additionalProperties': False,
-                'properties': {
-                    'language': GENERIC_STRING_SCHEMA,
-                },
-                'required': ['language'],
-                'type': 'object',
+            'type': 'object',
+            'additionalProperties': False,
+            'properties': {
+                'language': GENERIC_STRING_SCHEMA,
             },
+            'required': ['language'],
         }
 
     def _get_qual_params_schema(self, auto_schema):
         defs = self._get_qual_defs()
         return {
-            'type': 'array',
-            'items': {
-                'anyOf': [
-                    self._register_schema_component(
-                        auto_schema,
-                        'QualSimpleQuestionParams',
-                        defs['qualSimpleQuestion'],
-                    ),
-                    self._register_schema_component(
-                        auto_schema,
-                        'QualSelectQuestionParams',
-                        defs['qualSelectQuestion'],
-                    ),
-                ]
-            },
+            'anyOf': [
+                self._register_schema_component(
+                    auto_schema,
+                    'QualSimpleQuestionParams',
+                    defs['qualSimpleQuestion'],
+                ),
+                self._register_schema_component(
+                    auto_schema,
+                    'QualSelectQuestionParams',
+                    defs['qualSelectQuestion'],
+                ),
+            ]
         }
 
     def _get_qual_defs(self):
