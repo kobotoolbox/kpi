@@ -2668,6 +2668,22 @@ paths:
                             language: fr
                             value: Bonjour
                   summary: Manual Transcription
+                ManualTranscription(with"locale"):
+                  value:
+                    _version: '20250820'
+                    question_name_xpath:
+                      manual_transcription:
+                        _dateCreated: '2025-01-01T12:00:00Z'
+                        _dateModified: '2025-01-01T12:00:00Z'
+                        _versions:
+                        - _dateCreated: '2025-01-01T12:00:00Z'
+                          _dateAccepted: '2025-01-01T12:00:00Z'
+                          _uuid: 11111111-1111-1111-1111-111111111111
+                          _data:
+                            language: fr
+                            locale: fr-CA
+                            value: Bonjour
+                  summary: Manual Transcription (with "locale")
                 ManualTranslation:
                   value:
                     _version: '20250820'
@@ -2946,6 +2962,16 @@ paths:
                       language: fr
                       value: Bonjour
                 summary: Manual Transcription
+              ManualTranscription(with"locale"):
+                value:
+                  _version: '20250820'
+                  question_name_xpath:
+                    manual_transcription:
+                      language: fr
+                      locale: fr-CA
+                      value: Bonjour
+                summary: Manual Transcription (with "locale")
+                description: The `locale` field is optional.
               ManualTranslation:
                 value:
                   _version: '20250820'
@@ -3061,6 +3087,22 @@ paths:
                             language: fr
                             value: Bonjour
                   summary: Manual Transcription
+                ManualTranscription(with"locale"):
+                  value:
+                    _version: '20250820'
+                    question_name_xpath:
+                      manual_transcription:
+                        _dateCreated: '2025-01-01T12:00:00Z'
+                        _dateModified: '2025-01-01T12:00:00Z'
+                        _versions:
+                        - _dateCreated: '2025-01-01T12:00:00Z'
+                          _dateAccepted: '2025-01-01T12:00:00Z'
+                          _uuid: 11111111-1111-1111-1111-111111111111
+                          _data:
+                            language: fr
+                            locale: fr-CA
+                            value: Bonjour
+                  summary: Manual Transcription (with "locale")
                 ManualTranslation:
                   value:
                     _version: '20250820'
@@ -11841,6 +11883,8 @@ components:
                     properties:
                       language:
                         type: string
+                      locale:
+                        type: string
                       value:
                         type: string
                         nullable: true
@@ -11902,6 +11946,8 @@ components:
                       properties:
                         language:
                           type: string
+                        locale:
+                          type: string
                         value:
                           type: string
                           nullable: true
@@ -11951,6 +11997,8 @@ components:
                       properties:
                         language:
                           type: string
+                        locale:
+                          type: string
                         status:
                           type: string
                           const: in_progress
@@ -11961,6 +12009,8 @@ components:
                     - type: object
                       properties:
                         language:
+                          type: string
+                        locale:
                           type: string
                         status:
                           type: string
@@ -11976,6 +12026,8 @@ components:
                       properties:
                         language:
                           type: string
+                        locale:
+                          type: string
                         status:
                           type: string
                           const: complete
@@ -11989,6 +12041,8 @@ components:
                     - type: object
                       properties:
                         language:
+                          type: string
+                        locale:
                           type: string
                         status:
                           type: string
@@ -12054,6 +12108,8 @@ components:
                         properties:
                           language:
                             type: string
+                          locale:
+                            type: string
                           status:
                             type: string
                             const: in_progress
@@ -12064,6 +12120,8 @@ components:
                       - type: object
                         properties:
                           language:
+                            type: string
+                          locale:
                             type: string
                           status:
                             type: string
@@ -12079,6 +12137,8 @@ components:
                         properties:
                           language:
                             type: string
+                          locale:
+                            type: string
                           status:
                             type: string
                             const: complete
@@ -12092,6 +12152,8 @@ components:
                       - type: object
                         properties:
                           language:
+                            type: string
+                          locale:
                             type: string
                           status:
                             type: string
@@ -15038,6 +15100,8 @@ components:
           properties:
             language:
               type: string
+            locale:
+              type: string
             value:
               type: string
               nullable: true
@@ -15049,6 +15113,8 @@ components:
           type: object
           properties:
             language:
+              type: string
+            locale:
               type: string
             value:
               type: string
@@ -15062,6 +15128,8 @@ components:
           properties:
             language:
               type: string
+            locale:
+              type: string
             accepted:
               type: boolean
           additionalProperties: false
@@ -15071,6 +15139,8 @@ components:
           type: object
           properties:
             language:
+              type: string
+            locale:
               type: string
             accepted:
               type: boolean

@@ -180,6 +180,18 @@ PATCH /api/v2/assets/<asset_uid>/data/<submission_root_uuid>/supplement/
 }
 ```
 
+### Example: Manual transcription with `locale` (optional)
+You can optionally specify a `locale` to distinguish regional variations (e.g. en-US vs en-GB).
+
+```json
+{
+  "_version": "20250820",
+  "audio_question": {
+    "manual_transcription": { "language": "en", "locale": "en-US", "value": "My transcript" }
+  }
+}
+```
+
 #### Example: Qualitative Analysis Text question
 
 ```json
@@ -371,6 +383,11 @@ Each action has its own expected format:
 - **Manual Transcription**
   ```json
   { "language": "en", "value": "My transcript" }
+  ```
+
+- **Manual Transcription (with `locale`)**
+  ```json
+  { "language": "en", "locale": "en-US", "value": "My transcript" }
   ```
 
 - **Manual Translation**
