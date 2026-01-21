@@ -32,7 +32,6 @@ export default function StepCreateManual({
   onUnsavedWorkChange,
   advancedFeaturesData,
 }: Props) {
-  // TODO: fix styles
   return (
     <div className={cx(bodyStyles.root)}>
       <Editor
