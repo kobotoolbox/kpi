@@ -6,7 +6,6 @@ from drf_spectacular.extensions import (
 from drf_spectacular.plumbing import (
     build_array_type,
     build_basic_type,
-    build_choice_field,
     build_object_type,
 )
 from drf_spectacular.types import OpenApiTypes
@@ -754,7 +753,9 @@ class DataValidationPayloadFieldExtension(OpenApiSerializerFieldExtension):
         )
 
 
-class DataValidationStatusFieldExtension(ComponentRegistrationMixin, OpenApiSerializerFieldExtension):
+class DataValidationStatusFieldExtension(
+    ComponentRegistrationMixin, OpenApiSerializerFieldExtension
+):
     target_class = 'kpi.schema_extensions.v2.data.fields.DataValidationStatusField'
 
     def map_serializer_field(self, auto_schema, direction):
@@ -780,12 +781,14 @@ class DataValidationStatusFieldExtension(ComponentRegistrationMixin, OpenApiSeri
                     'label': labels_enum,
                 },
                 'required': ['timestamp', 'uid', 'label', 'by_whom'],
-            }
+            },
         )
-        return {'oneOf': [
-            validation_status_schema,
-            {},
-        ]}
+        return {
+            'oneOf': [
+                validation_status_schema,
+                {},
+            ]
+        }
 
 
 class EnketoEditUrlFieldExtension(OpenApiSerializerFieldExtension):

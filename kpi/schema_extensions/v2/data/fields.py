@@ -1,4 +1,3 @@
-from django.conf import settings
 from drf_spectacular.plumbing import (
     build_array_type,
     build_basic_type,
