@@ -9,6 +9,17 @@ The endpoints are grouped by area of intended use. Each category contains relate
 **General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as "assets".
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
-import type { DataValidationStatus } from './dataValidationStatus'
 
-export type _DataResponseValidationStatus = DataValidationStatus | unknown
+/**
+ * * `validation_status_not_approved` - Not Approved
+ * `validation_status_approved` - Approved
+ * `validation_status_on_hold` - On Hold
+ */
+export type DataValidationStatusUidEnum = (typeof DataValidationStatusUidEnum)[keyof typeof DataValidationStatusUidEnum]
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const DataValidationStatusUidEnum = {
+  validation_status_not_approved: 'validation_status_not_approved',
+  validation_status_approved: 'validation_status_approved',
+  validation_status_on_hold: 'validation_status_on_hold',
+} as const

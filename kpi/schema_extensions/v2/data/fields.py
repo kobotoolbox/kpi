@@ -53,5 +53,7 @@ class EnketoViewUrlField(serializers.URLField):
 
 
 ValidationStatusUidField = serializers.ChoiceField(
-    choices=settings.DEFAULT_VALIDATION_STATUSES, allow_null=False, allow_blank=False
+    choices=settings.DEFAULT_VALIDATION_STATUSES.items(),
+    allow_null=False,
+    allow_blank=False,
 )

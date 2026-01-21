@@ -747,19 +747,33 @@ class DataValidationPayloadFieldExtension(OpenApiSerializerFieldExtension):
         )
 
 
-class DataValidationStatusFieldExtension(OpenApiSerializerFieldExtension):
+class DataValidationStatusFieldExtension(ComponentRegistrationMixin, OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.data.fields.DataValidationStatusField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_object_type(
-            properties={
-                'timestamp': GENERIC_INT_SCHEMA,
-                'uid': build_choice_field(ValidationStatusUidField),
-                'by_whom': GENERIC_STRING_SCHEMA,
-                'label': GENERIC_STRING_SCHEMA,
-            },
-            required=['timestamp', 'uid', 'label', 'by_whom'],
+        uid_enum = self._register_schema_component(
+            auto_schema,
+            'DataValidationStatusUidEnum',
+            build_choice_field(ValidationStatusUidField)
         )
+        validation_status_schema = self._register_schema_component(
+            auto_schema,
+            'DataValidationStatus',
+            {
+                'type': 'object',
+                'properties': {
+                    'timestamp': GENERIC_INT_SCHEMA,
+                    'uid': uid_enum,
+                    'by_whom': GENERIC_STRING_SCHEMA,
+                    'label': GENERIC_STRING_SCHEMA,
+                },
+                'required': ['timestamp', 'uid', 'label', 'by_whom'],
+            }
+        )
+        return {'oneOf': [
+            validation_status_schema,
+            {},
+        ]}
 
 
 class EnketoEditUrlFieldExtension(OpenApiSerializerFieldExtension):

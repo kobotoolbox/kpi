@@ -16428,32 +16428,11 @@
                         "title": " notes"
                     },
                     "_validation_status": {
-                        "type": "object",
-                        "properties": {
-                            "timestamp": {
-                                "type": "integer"
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/DataValidationStatus"
                             },
-                            "uid": {
-                                "enum": [
-                                    "validation_status_not_approved",
-                                    "validation_status_approved",
-                                    "validation_status_on_hold"
-                                ],
-                                "type": "string",
-                                "description": "* `validation_status_not_approved` - validation_status_not_approved\n* `validation_status_approved` - validation_status_approved\n* `validation_status_on_hold` - validation_status_on_hold"
-                            },
-                            "by_whom": {
-                                "type": "string"
-                            },
-                            "label": {
-                                "type": "string"
-                            }
-                        },
-                        "required": [
-                            "by_whom",
-                            "label",
-                            "timestamp",
-                            "uid"
+                            {}
                         ],
                         "title": " validation status"
                     },
@@ -17370,6 +17349,38 @@
                         ]
                     }
                 ]
+            },
+            "DataValidationStatus": {
+                "type": "object",
+                "properties": {
+                    "timestamp": {
+                        "type": "integer"
+                    },
+                    "uid": {
+                        "$ref": "#/components/schemas/DataValidationStatusUidEnum"
+                    },
+                    "by_whom": {
+                        "type": "string"
+                    },
+                    "label": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "timestamp",
+                    "uid",
+                    "label",
+                    "by_whom"
+                ]
+            },
+            "DataValidationStatusUidEnum": {
+                "enum": [
+                    "validation_status_not_approved",
+                    "validation_status_approved",
+                    "validation_status_on_hold"
+                ],
+                "type": "string",
+                "description": "* `validation_status_not_approved` - Not Approved\n* `validation_status_approved` - Approved\n* `validation_status_on_hold` - On Hold"
             },
             "DataValidationStatusUpdateResponse": {
                 "type": "object",

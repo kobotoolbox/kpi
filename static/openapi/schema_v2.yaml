@@ -11766,29 +11766,9 @@ components:
             type: string
           title: ' notes'
         _validation_status:
-          type: object
-          properties:
-            timestamp:
-              type: integer
-            uid:
-              enum:
-              - validation_status_not_approved
-              - validation_status_approved
-              - validation_status_on_hold
-              type: string
-              description: |-
-                * `validation_status_not_approved` - validation_status_not_approved
-                * `validation_status_approved` - validation_status_approved
-                * `validation_status_on_hold` - validation_status_on_hold
-            by_whom:
-              type: string
-            label:
-              type: string
-          required:
-          - by_whom
-          - label
-          - timestamp
-          - uid
+          oneOf:
+          - $ref: '#/components/schemas/DataValidationStatus'
+          - {}
           title: ' validation status'
         _submitted_by:
           type: string
@@ -12388,6 +12368,32 @@ components:
         - automatic_google_translation
       - required:
         - qual
+    DataValidationStatus:
+      type: object
+      properties:
+        timestamp:
+          type: integer
+        uid:
+          $ref: '#/components/schemas/DataValidationStatusUidEnum'
+        by_whom:
+          type: string
+        label:
+          type: string
+      required:
+      - timestamp
+      - uid
+      - label
+      - by_whom
+    DataValidationStatusUidEnum:
+      enum:
+      - validation_status_not_approved
+      - validation_status_approved
+      - validation_status_on_hold
+      type: string
+      description: |-
+        * `validation_status_not_approved` - Not Approved
+        * `validation_status_approved` - Approved
+        * `validation_status_on_hold` - On Hold
     DataValidationStatusUpdateResponse:
       type: object
       properties:
