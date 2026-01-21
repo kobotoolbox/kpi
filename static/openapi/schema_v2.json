@@ -21498,7 +21498,7 @@
                                 }
                             },
                             "validation_status.uid": {
-                                "type": "string"
+                                "$ref": "#/components/schemas/DataValidationStatusUidEnum"
                             }
                         }
                     }

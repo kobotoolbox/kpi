@@ -748,7 +748,9 @@ class DataValidationPayloadFieldExtension(OpenApiSerializerFieldExtension):
                 'submission_ids': build_array_type(
                     schema=build_basic_type(OpenApiTypes.INT)
                 ),
-                'validation_status.uid': GENERIC_STRING_SCHEMA,
+                'validation_status.uid': {
+                    '$ref': '#/components/schemas/DataValidationStatusUidEnum'
+                },
             }
         )
 

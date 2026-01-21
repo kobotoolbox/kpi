@@ -15312,7 +15312,7 @@ components:
               items:
                 type: integer
             validation_status.uid:
-              type: string
+              $ref: '#/components/schemas/DataValidationStatusUidEnum'
     PatchedDeploymentPatchRequest:
       type: object
       properties:
