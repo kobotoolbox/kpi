@@ -50,10 +50,3 @@ class EnketoEditUrlField(serializers.URLField):
 
 class EnketoViewUrlField(serializers.URLField):
     pass
-
-
-ValidationStatusUidField = serializers.ChoiceField(
-    choices=settings.DEFAULT_VALIDATION_STATUSES.items(),
-    allow_null=False,
-    allow_blank=False,
-)

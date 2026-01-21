@@ -12442,22 +12442,22 @@ components:
         by_whom:
           type: string
         label:
-          type: string
+          $ref: '#/components/schemas/DataValidationStatusLabelEnum'
       required:
       - timestamp
       - uid
       - label
       - by_whom
+    DataValidationStatusLabelEnum:
+      enum:
+      - Not Approved
+      - Approved
+      - On Hold
     DataValidationStatusUidEnum:
       enum:
       - validation_status_not_approved
       - validation_status_approved
       - validation_status_on_hold
-      type: string
-      description: |-
-        * `validation_status_not_approved` - Not Approved
-        * `validation_status_approved` - Approved
-        * `validation_status_on_hold` - On Hold
     DataValidationStatusUpdateResponse:
       type: object
       properties:

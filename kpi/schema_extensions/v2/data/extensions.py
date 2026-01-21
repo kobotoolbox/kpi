@@ -1,3 +1,4 @@
+from django.conf import settings
 from drf_spectacular.extensions import (
     OpenApiSerializerExtension,
     OpenApiSerializerFieldExtension,
@@ -16,7 +17,6 @@ from kpi.schema_extensions.v2.generic.schema import (
 )
 from kpi.utils.schema_extensions.mixins import ComponentRegistrationMixin
 from kpi.utils.schema_extensions.url_builder import build_url_type
-from .fields import ValidationStatusUidField
 
 
 class DataAttachmentFieldExtension(OpenApiSerializerFieldExtension):
@@ -761,7 +761,12 @@ class DataValidationStatusFieldExtension(ComponentRegistrationMixin, OpenApiSeri
         uid_enum = self._register_schema_component(
             auto_schema,
             'DataValidationStatusUidEnum',
-            build_choice_field(ValidationStatusUidField)
+            {'enum': list(settings.DEFAULT_VALIDATION_STATUSES.keys())},
+        )
+        labels_enum = self._register_schema_component(
+            auto_schema,
+            'DataValidationStatusLabelEnum',
+            {'enum': list(settings.DEFAULT_VALIDATION_STATUSES.values())},
         )
         validation_status_schema = self._register_schema_component(
             auto_schema,
@@ -772,7 +777,7 @@ class DataValidationStatusFieldExtension(ComponentRegistrationMixin, OpenApiSeri
                     'timestamp': GENERIC_INT_SCHEMA,
                     'uid': uid_enum,
                     'by_whom': GENERIC_STRING_SCHEMA,
-                    'label': GENERIC_STRING_SCHEMA,
+                    'label': labels_enum,
                 },
                 'required': ['timestamp', 'uid', 'label', 'by_whom'],
             }

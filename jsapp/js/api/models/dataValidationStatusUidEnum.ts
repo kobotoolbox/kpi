@@ -10,11 +10,6 @@ The endpoints are grouped by area of intended use. Each category contains relate
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 
-/**
- * * `validation_status_not_approved` - Not Approved
- * `validation_status_approved` - Approved
- * `validation_status_on_hold` - On Hold
- */
 export type DataValidationStatusUidEnum = (typeof DataValidationStatusUidEnum)[keyof typeof DataValidationStatusUidEnum]
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
