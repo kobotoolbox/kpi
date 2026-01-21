@@ -28,7 +28,7 @@ Supports exact matching and range operators (e.g., gte, lte)
 
 **Total Storage/Submissions**
 - service_usage__total_storage_bytes
-- service_usage__total_submission_count__all_time
+- service_usage__total_submission_count__last_12m
 - service_usage__total_submission_count__current_period
 
 **Service Usage Balances**
@@ -50,7 +50,7 @@ Ex: `service_usage__balances__submission__balance_value`
 
 **Asset Count**
 - asset_count
-- deployed_asset_count
+- active_project_count
 
 ## Filterable fields by date:
 Supports exact matching and range operators (e.g., gte, lte)

@@ -33,6 +33,6 @@ UserReportsListResponse = inline_serializer_class(
         'current_service_usage': ServiceUsageResponse(),
         'account_restricted': serializers.BooleanField(),
         'asset_count': serializers.IntegerField(),
-        'deployed_asset_count': serializers.IntegerField(),
+        'active_project_count': serializers.IntegerField(),
     },
 )

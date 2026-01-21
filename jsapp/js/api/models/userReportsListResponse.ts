@@ -37,5 +37,5 @@ export interface UserReportsListResponse {
   current_service_usage: ServiceUsageResponse
   account_restricted: boolean
   asset_count: number
-  deployed_asset_count: number
+  active_project_count: number
 }

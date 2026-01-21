@@ -161,7 +161,7 @@ CREATE_MV_BASE_SQL = f"""
                 END
         ) AS extra_details,
         COALESCE(ua.total_assets, 0) AS asset_count,
-        COALESCE(ua.deployed_assets, 0) AS deployed_asset_count,
+        COALESCE(ua.deployed_assets, 0) AS active_project_count,
         ucpu.current_period_start,
         ucpu.current_period_end,
         jsonb_build_object(
@@ -174,7 +174,7 @@ CREATE_MV_BASE_SQL = f"""
             'total_storage_bytes', COALESCE(ubau.total_storage_bytes, 0),
             'total_submission_count', jsonb_build_object(
                 'current_period', COALESCE(ubau.total_submission_count_current_period, 0),
-                'all_time', COALESCE(ubau.total_submission_count_all_time, 0)
+                'last_12m', COALESCE(ubau.total_submission_count_all_time, 0)
             ),
             'balances', jsonb_build_object(
                 'submission',
