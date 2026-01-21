@@ -11,7 +11,7 @@ from kobo.apps.organizations.models import (
 )
 from kpi.models import Asset
 
-job = import_module('kobo.apps.long_running_migrations.jobs.0014_fix_duplicate_organizations')  # noqa
+job = import_module('kobo.apps.long_running_migrations.jobs.0015_fix_duplicate_organizations')  # noqa
 
 
 class TestFixDuplicateOrgs(TestCase):
