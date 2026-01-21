@@ -911,7 +911,7 @@ Supports exact matching and range operators (e.g., gte, lte)
 
 **Total Storage/Submissions**
 - service_usage__total_storage_bytes
-- service_usage__total_submission_count__last_12m
+- service_usage__total_submission_count__cumulative
 - service_usage__total_submission_count__current_period
 
 **Service Usage Balances**

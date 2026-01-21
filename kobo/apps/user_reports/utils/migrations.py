@@ -124,7 +124,7 @@ CREATE_MV_BASE_SQL = f"""
                 'uid', org.id::text,
                 'role', CASE
                     WHEN EXISTS (
-                        SELECT 1 FROM organizations_organizationowner o 
+                        SELECT 1 FROM organizations_organizationowner o
                         WHERE o.organization_user_id = ou.id
                     ) THEN 'owner'
                     WHEN ou.is_admin IS TRUE THEN 'admin'
@@ -173,8 +173,9 @@ CREATE_MV_BASE_SQL = f"""
             ),
             'total_storage_bytes', COALESCE(ubau.total_storage_bytes, 0),
             'total_submission_count', jsonb_build_object(
-                'current_period', COALESCE(ubau.total_submission_count_current_period, 0),
-                'last_12m', COALESCE(ubau.total_submission_count_all_time, 0)
+                'retention_days', {settings.DAILY_COUNTERS_MAX_DAYS},
+                'cumulative', COALESCE(ubau.total_submission_count_all_time, 0),
+                'current_period', COALESCE(ubau.total_submission_count_current_period, 0)
             ),
             'balances', jsonb_build_object(
                 'submission',
