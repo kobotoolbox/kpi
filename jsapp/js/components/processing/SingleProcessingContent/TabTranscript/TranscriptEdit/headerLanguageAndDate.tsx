@@ -19,6 +19,10 @@ export default function HeaderLanguageAndDate({ transcriptVersion }: Props) {
   return (
     <React.Fragment>
       <label className={bodyStyles.transxHeaderLanguage}>
+        {/*
+        TODO: BUG sometimes when switching between submissions (through the SelectSubmission component), we end up with
+        wrong label being displayed (e.g. "Bangla (en)" or "English (bn)" - mixing 2 letter code with wrong name)
+        */}
         <AsyncLanguageDisplayLabel code={valueLanguageCode} />
       </label>
       <TransxDate

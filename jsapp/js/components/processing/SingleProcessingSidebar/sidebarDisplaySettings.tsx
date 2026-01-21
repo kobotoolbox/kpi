@@ -55,6 +55,8 @@ export default function SidebarDisplaySettings({
     return null
   }
 
+  // TODO: BUG this should be migrated to not use the store. Currently the available displays don't seem to include
+  // transcript and other translations
   const transcript = store.getTranscript()
   const availableDisplays = store.getAvailableDisplays(activeTab)
 

@@ -32,6 +32,10 @@ export default function StepCreateManual({
 }: Props) {
   return (
     <div className={cx(bodyStyles.root)}>
+      {/*
+      TODO: BUG upon clicking "save" when creating transcript, the language selector blinks for a moment.
+      We should rather display some spinner
+      */}
       <Editor
         asset={asset}
         questionXpath={questionXpath}

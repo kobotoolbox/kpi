@@ -61,6 +61,10 @@ export default function ProcessingSidebar({
         setQuestionLabelLanguage={setQuestionLabelLanguage}
       />
       <div className={styles.displays}>
+        {/*
+        TODO: BUG for some reason I don't see transcript or other translation in the sidebar. I don't have options to
+        choose them in the settings modal either.
+        */}
         {Array.from(translations).map((translation) => {
           if (selectedDisplays.includes(translation.languageCode)) {
             return <TransxDisplay transx={translation} key={translation.languageCode} />

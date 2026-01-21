@@ -113,6 +113,13 @@ export default function SelectSubmission({ assetUid, submission, xpath }: Props)
           )}
         </div>
 
+        {/*
+        TODO: BUG language in TabTranscript/HeaderLanguageAndDate doesn't updtate properly when switching submissions.
+        For example, I have one submission with "Bangla (bn)" transcription, and one with "English (en)" transcription.
+        When I use the arrows below to toggle between them, I see "Bangla (en)" or "English (bn)" being displayed for
+        one of the submissions (notice the mix - the two letter code is correct, but name is wrong).
+        */}
+
         <Button
           type='text'
           size='s'

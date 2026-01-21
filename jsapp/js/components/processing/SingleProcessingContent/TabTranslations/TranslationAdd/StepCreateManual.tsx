@@ -34,6 +34,11 @@ export default function StepCreateManual({
 }: Props) {
   return (
     <div className={cx(bodyStyles.root)}>
+      {/*
+      TODO: BUG after creating 2nd (and further) translation, we end up always viewing the 1st translation instead
+      of the one just created. E.g. I have "Spanish" translation, I start adding new translation, choose "Polish", type
+      something and click "Save". When saving finishes, I end up viewing "Spanish" instead of "Polish".
+      */}
       <Editor
         asset={asset}
         questionXpath={questionXpath}
