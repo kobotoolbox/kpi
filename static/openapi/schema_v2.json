@@ -22717,9 +22717,17 @@
                     },
                     "labels": {
                         "type": "object",
+                        "properties": {
+                            "_default": {
+                                "type": "string"
+                            }
+                        },
                         "additionalProperties": {
                             "type": "string"
-                        }
+                        },
+                        "required": [
+                            "_default"
+                        ]
                     },
                     "choices": {
                         "type": "array",
@@ -22729,9 +22737,17 @@
                             "properties": {
                                 "labels": {
                                     "type": "object",
+                                    "properties": {
+                                        "_default": {
+                                            "type": "string"
+                                        }
+                                    },
                                     "additionalProperties": {
                                         "type": "string"
-                                    }
+                                    },
+                                    "required": [
+                                        "_default"
+                                    ]
                                 },
                                 "uuid": {
                                     "type": "string",
@@ -22778,9 +22794,17 @@
                     },
                     "labels": {
                         "type": "object",
+                        "properties": {
+                            "_default": {
+                                "type": "string"
+                            }
+                        },
                         "additionalProperties": {
                             "type": "string"
-                        }
+                        },
+                        "required": [
+                            "_default"
+                        ]
                     },
                     "options": {
                         "type": "object"

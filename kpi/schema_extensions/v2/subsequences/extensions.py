@@ -64,7 +64,11 @@ class SubsequenceParamsFieldExtension(
         definitions = {
             'qualLabels': {
                 'type': 'object',
+                'properties': {
+                    '_default': {'type': 'string'},
+                },
                 'additionalProperties': {'type': 'string'},
+                'required': ['_default'],
             },
             'qualQuestionType': {
                 'type': 'string',

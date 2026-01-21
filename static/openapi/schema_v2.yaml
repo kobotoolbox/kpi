@@ -16186,8 +16186,13 @@ components:
           $ref: '#/components/schemas/QualSelectQuestionParamsTypeEnum'
         labels:
           type: object
+          properties:
+            _default:
+              type: string
           additionalProperties:
             type: string
+          required:
+          - _default
         choices:
           type: array
           items:
@@ -16196,8 +16201,13 @@ components:
             properties:
               labels:
                 type: object
+                properties:
+                  _default:
+                    type: string
                 additionalProperties:
                   type: string
+                required:
+                - _default
               uuid:
                 type: string
                 format: uuid
@@ -16229,8 +16239,13 @@ components:
           $ref: '#/components/schemas/QualSimpleQuestionParamsTypeEnum'
         labels:
           type: object
+          properties:
+            _default:
+              type: string
           additionalProperties:
             type: string
+          required:
+          - _default
         options:
           type: object
       required:
