@@ -10,6 +10,7 @@ The endpoints are grouped by area of intended use. Each category contains relate
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 import type { _DataResponseAttachmentsItem } from './_dataResponseAttachmentsItem'
+import type { _DataResponseGeolocationItem } from './_dataResponseGeolocationItem'
 import type { _DataResponseSupplementalDetails } from './_dataResponseSupplementalDetails'
 import type { _DataResponseValidationStatus } from './_dataResponseValidationStatus'
 
@@ -28,7 +29,7 @@ export interface DataResponse {
    * @minItems 2
    * @maxItems 2
    */
-  _geolocation: (number | null)[]
+  _geolocation: _DataResponseGeolocationItem[]
   _submission_time: string
   _tags: string[]
   _notes: string[]

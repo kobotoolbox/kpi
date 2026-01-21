@@ -67,6 +67,7 @@ class DataAttachmentFieldExtension(OpenApiSerializerFieldExtension):
                     'media_file_basename',
                     'question_xpath',
                 ],
+                additional_properties=False,
             )
         )
 
@@ -783,6 +784,7 @@ class DataValidationStatusFieldExtension(
                     'label': labels_enum,
                 },
                 'required': ['timestamp', 'uid', 'label', 'by_whom'],
+                'additionalProperties': False,
             },
         )
         return {
@@ -811,3 +813,17 @@ class EnketoViewUrlFieldExtension(OpenApiSerializerFieldExtension):
             'enketo_view_link',
             path='/view/f93d2a488a2e35cedc336e84e1bd1edc?instance_id=1824b282-f729-4944-b799-7a805d4564e1&return_url=false',  # noqa
         )
+
+
+class GeoLocationFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.data.fields.GeoLocationField'
+
+    def map_serializer_field(self, autho_schema, direction):
+        return {
+            "type": "array",
+            "items": {
+                "type": ["number", "null"]
+            },
+            "minItems": 2,
+            "maxItems": 2
+        }

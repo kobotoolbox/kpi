@@ -11782,6 +11782,7 @@ components:
             - mimetype
             - question_xpath
             - uid
+            additional_properties: false
           title: ' attachments'
         _status:
           type: string
@@ -11789,12 +11790,12 @@ components:
         _geolocation:
           type: array
           items:
-            type: number
-            format: double
-            nullable: true
-          title: ' geolocation'
-          maxItems: 2
+            type:
+            - number
+            - 'null'
           minItems: 2
+          maxItems: 2
+          title: ' geolocation'
         _submission_time:
           type: string
           format: date-time
@@ -12448,6 +12449,7 @@ components:
       - uid
       - label
       - by_whom
+      additionalProperties: false
     DataValidationStatusLabelEnum:
       enum:
       - Not Approved

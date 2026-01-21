@@ -49,3 +49,7 @@ class EnketoEditUrlField(serializers.URLField):
 
 class EnketoViewUrlField(serializers.URLField):
     pass
+
+
+class GeoLocationField(serializers.ListField):
+    pass

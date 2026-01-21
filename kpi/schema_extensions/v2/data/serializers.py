@@ -10,6 +10,7 @@ from .fields import (
     DataValidationStatusField,
     EnketoEditUrlField,
     EnketoViewUrlField,
+    GeoLocationField,
 )
 
 DataBulkDelete = inline_serializer_class(
@@ -53,11 +54,7 @@ DataResponse = inline_serializer_class(
         '_uuid': serializers.CharField(),
         '_attachments': DataAttachmentsField(),
         '_status': serializers.CharField(),
-        '_geolocation': serializers.ListField(
-            child=serializers.FloatField(allow_null=True),
-            min_length=2,
-            max_length=2,
-        ),
+        '_geolocation': GeoLocationField(),
         '_submission_time': serializers.DateTimeField(),
         '_tags': serializers.ListField(child=serializers.CharField()),
         '_notes': serializers.ListField(

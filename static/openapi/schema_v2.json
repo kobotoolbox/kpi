@@ -16456,7 +16456,8 @@
                                 "mimetype",
                                 "question_xpath",
                                 "uid"
-                            ]
+                            ],
+                            "additional_properties": false
                         },
                         "title": " attachments"
                     },
@@ -16467,13 +16468,14 @@
                     "_geolocation": {
                         "type": "array",
                         "items": {
-                            "type": "number",
-                            "format": "double",
-                            "nullable": true
+                            "type": [
+                                "number",
+                                "null"
+                            ]
                         },
-                        "title": " geolocation",
+                        "minItems": 2,
                         "maxItems": 2,
-                        "minItems": 2
+                        "title": " geolocation"
                     },
                     "_submission_time": {
                         "type": "string",
@@ -17468,7 +17470,8 @@
                     "uid",
                     "label",
                     "by_whom"
-                ]
+                ],
+                "additionalProperties": false
             },
             "DataValidationStatusLabelEnum": {
                 "enum": [
