@@ -10,21 +10,8 @@ The endpoints are grouped by area of intended use. Each category contains relate
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 
-export type AssetsListParams = {
-  /**
-   * Paginate results with limit parameter
-   */
-  limit?: number
-  /**
-   * Paginate results with offset parameter
-   */
-  offset?: number
-  /**
-   * Which field to use when ordering the results.
-   */
-  ordering?: string
-  /**
-   * Filter the results with search query
-   */
-  q?: string
+export type UserReportsServiceUsageResponseTotalSubmissionCount = {
+  retention_days?: number
+  cumulative?: number
+  current_period?: number
 }
