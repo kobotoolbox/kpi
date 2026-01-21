@@ -8455,7 +8455,7 @@ paths:
 
         **Total Storage/Submissions**
         - service_usage__total_storage_bytes
-        - service_usage__total_submission_count__all_time
+        - service_usage__total_submission_count__cumulative
         - service_usage__total_submission_count__current_period
 
         **Service Usage Balances**
@@ -8477,7 +8477,7 @@ paths:
 
         **Asset Count**
         - asset_count
-        - deployed_asset_count
+        - active_project_count
 
         ## Filterable fields by date:
         Supports exact matching and range operators (e.g., gte, lte)
@@ -15106,21 +15106,20 @@ components:
                 type: integer
               default_tax_rates:
                 type: object
-        current_service_usage:
-          $ref: '#/components/schemas/ServiceUsageResponse'
+        service_usage:
+          $ref: '#/components/schemas/UserReportsServiceUsageResponse'
         account_restricted:
           type: boolean
         asset_count:
           type: integer
-        deployed_asset_count:
+        active_project_count:
           type: integer
       required:
       - accepted_tos
       - account_restricted
+      - active_project_count
       - asset_count
-      - current_service_usage
       - date_joined
-      - deployed_asset_count
       - email
       - extra_details
       - first_name
@@ -15131,12 +15130,68 @@ components:
       - last_name
       - mfa_is_active
       - organizations
+      - service_usage
       - social_accounts
       - sso_is_active
       - subscriptions
       - user_uid
       - username
       - validated_email
+    UserReportsServiceUsageResponse:
+      type: object
+      properties:
+        total_nlp_usage:
+          type: object
+          properties:
+            asr_seconds_current_period:
+              type: integer
+            llm_requests_current_period:
+              type: integer
+            mt_characters_current_period:
+              type: integer
+            asr_seconds_all_time:
+              type: integer
+            llm_requests_all_time:
+              type: integer
+            mt_characters_all_time:
+              type: integer
+          required:
+          - asr_seconds_all_time
+          - asr_seconds_current_period
+          - llm_requests_all_time
+          - llm_requests_current_period
+          - mt_characters_all_time
+          - mt_characters_current_period
+        total_storage_bytes:
+          type: integer
+        total_submission_count:
+          type: object
+          properties:
+            retention_days:
+              type: integer
+            cumulative:
+              type: integer
+            current_period:
+              type: integer
+        balances:
+          $ref: '#/components/schemas/ServiceUsageBalances'
+        current_period_start:
+          type: string
+          format: date-time
+        current_period_end:
+          type: string
+          format: date-time
+        last_updated:
+          type: string
+          format: date-time
+      required:
+      - balances
+      - current_period_end
+      - current_period_start
+      - last_updated
+      - total_nlp_usage
+      - total_storage_bytes
+      - total_submission_count
     UserRetrieveResponse:
       type: object
       properties:

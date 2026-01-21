@@ -11647,7 +11647,7 @@
         "/api/v2/user-reports/": {
             "get": {
                 "operationId": "api_v2_user_reports_list",
-                "description": "# List user reports\n\n⚠️ _Only available to superusers_\n\n## Filterable fields by string:\n\nSupports partial filtering\n- username\n- first_name\n- last_name\n- email\n- user_uid\n- organization__name\n- organization__role (e.g., admin, member, owner)\n- organization__website\n- extra_details__data__organization_type\n- `extra_details__data__<field>` (other string fields, e.g., name, sector, country...)\n\n## Filterable fields by int:\n\nSupports exact matching and range operators (e.g., gte, lte)\n\n**Total NLP Usage**\n- service_usage__total_nlp_usage__asr_seconds_all_time\n- service_usage__total_nlp_usage__mt_characters_all_time\n- service_usage__total_nlp_usage__asr_seconds_current_period\n- service_usage__total_nlp_usage__mt_characters_current_period\n\n**Total Storage/Submissions**\n- service_usage__total_storage_bytes\n- service_usage__total_submission_count__all_time\n- service_usage__total_submission_count__current_period\n\n**Service Usage Balances**\n\nPrefix: `service_usage__balances__<metric>__<value>`\n\nMetric:\n- submission\n- asr_seconds\n- mt_characters\n- storage_bytes\n\nValue:\n- balance_value\n- balance_percent\n- effective_limit\n\nEx: `service_usage__balances__submission__balance_value`\n\n**Asset Count**\n- asset_count\n- deployed_asset_count\n\n## Filterable fields by date:\nSupports exact matching and range operators (e.g., gte, lte)\n\n- date_joined\n- last_login\n- last_updated (Represents the last modified timestamp of the materialized view)\n- extra_details__date_removal_requested\n- extra_details__date_removed\n- extra_details_password_date_changed\n\n## Filterable fields by boolean:\n\n- is_superuser\n- is_staff\n- is_active\n- validated_email\n- extra_details__validated_password\n- mfa_is_active\n- sso_is_active\n- accepted_tos\n- extra_details__data__newsletter_subscription\n- service_usage__balances__*metric*__exceeded (metric: submission, asr_seconds, mt_characters, storage_bytes)\n- account_restricted\n\n## Filterable fields by list:\n\nSubscription filtering:\n\nHas subscriptions\n\n`?q=subscriptions__0__id__isnull:False`\n\nNo subscriptions\n\n`?q=subscriptions__0__id__isnull:True`\n\nSubscription id\n\n`?q=subscriptions[]__id:sub_1QwPItAR39rDI89stzLJ040p`\n\nActive subscriptions\n\n`?q=subscriptions[]__status:active`\n",
+                "description": "# List user reports\n\n⚠️ _Only available to superusers_\n\n## Filterable fields by string:\n\nSupports partial filtering\n- username\n- first_name\n- last_name\n- email\n- user_uid\n- organization__name\n- organization__role (e.g., admin, member, owner)\n- organization__website\n- extra_details__data__organization_type\n- `extra_details__data__<field>` (other string fields, e.g., name, sector, country...)\n\n## Filterable fields by int:\n\nSupports exact matching and range operators (e.g., gte, lte)\n\n**Total NLP Usage**\n- service_usage__total_nlp_usage__asr_seconds_all_time\n- service_usage__total_nlp_usage__mt_characters_all_time\n- service_usage__total_nlp_usage__asr_seconds_current_period\n- service_usage__total_nlp_usage__mt_characters_current_period\n\n**Total Storage/Submissions**\n- service_usage__total_storage_bytes\n- service_usage__total_submission_count__cumulative\n- service_usage__total_submission_count__current_period\n\n**Service Usage Balances**\n\nPrefix: `service_usage__balances__<metric>__<value>`\n\nMetric:\n- submission\n- asr_seconds\n- mt_characters\n- storage_bytes\n\nValue:\n- balance_value\n- balance_percent\n- effective_limit\n\nEx: `service_usage__balances__submission__balance_value`\n\n**Asset Count**\n- asset_count\n- active_project_count\n\n## Filterable fields by date:\nSupports exact matching and range operators (e.g., gte, lte)\n\n- date_joined\n- last_login\n- last_updated (Represents the last modified timestamp of the materialized view)\n- extra_details__date_removal_requested\n- extra_details__date_removed\n- extra_details_password_date_changed\n\n## Filterable fields by boolean:\n\n- is_superuser\n- is_staff\n- is_active\n- validated_email\n- extra_details__validated_password\n- mfa_is_active\n- sso_is_active\n- accepted_tos\n- extra_details__data__newsletter_subscription\n- service_usage__balances__*metric*__exceeded (metric: submission, asr_seconds, mt_characters, storage_bytes)\n- account_restricted\n\n## Filterable fields by list:\n\nSubscription filtering:\n\nHas subscriptions\n\n`?q=subscriptions__0__id__isnull:False`\n\nNo subscriptions\n\n`?q=subscriptions__0__id__isnull:True`\n\nSubscription id\n\n`?q=subscriptions[]__id:sub_1QwPItAR39rDI89stzLJ040p`\n\nActive subscriptions\n\n`?q=subscriptions[]__status:active`\n",
                 "parameters": [
                     {
                         "name": "limit",
@@ -20823,8 +20823,8 @@
                             }
                         }
                     },
-                    "current_service_usage": {
-                        "$ref": "#/components/schemas/ServiceUsageResponse"
+                    "service_usage": {
+                        "$ref": "#/components/schemas/UserReportsServiceUsageResponse"
                     },
                     "account_restricted": {
                         "type": "boolean"
@@ -20832,17 +20832,16 @@
                     "asset_count": {
                         "type": "integer"
                     },
-                    "deployed_asset_count": {
+                    "active_project_count": {
                         "type": "integer"
                     }
                 },
                 "required": [
                     "accepted_tos",
                     "account_restricted",
+                    "active_project_count",
                     "asset_count",
-                    "current_service_usage",
                     "date_joined",
-                    "deployed_asset_count",
                     "email",
                     "extra_details",
                     "first_name",
@@ -20853,12 +20852,90 @@
                     "last_name",
                     "mfa_is_active",
                     "organizations",
+                    "service_usage",
                     "social_accounts",
                     "sso_is_active",
                     "subscriptions",
                     "user_uid",
                     "username",
                     "validated_email"
+                ]
+            },
+            "UserReportsServiceUsageResponse": {
+                "type": "object",
+                "properties": {
+                    "total_nlp_usage": {
+                        "type": "object",
+                        "properties": {
+                            "asr_seconds_current_period": {
+                                "type": "integer"
+                            },
+                            "llm_requests_current_period": {
+                                "type": "integer"
+                            },
+                            "mt_characters_current_period": {
+                                "type": "integer"
+                            },
+                            "asr_seconds_all_time": {
+                                "type": "integer"
+                            },
+                            "llm_requests_all_time": {
+                                "type": "integer"
+                            },
+                            "mt_characters_all_time": {
+                                "type": "integer"
+                            }
+                        },
+                        "required": [
+                            "asr_seconds_all_time",
+                            "asr_seconds_current_period",
+                            "llm_requests_all_time",
+                            "llm_requests_current_period",
+                            "mt_characters_all_time",
+                            "mt_characters_current_period"
+                        ]
+                    },
+                    "total_storage_bytes": {
+                        "type": "integer"
+                    },
+                    "total_submission_count": {
+                        "type": "object",
+                        "properties": {
+                            "retention_days": {
+                                "type": "integer"
+                            },
+                            "cumulative": {
+                                "type": "integer"
+                            },
+                            "current_period": {
+                                "type": "integer"
+                            }
+                        }
+                    },
+                    "balances": {
+                        "$ref": "#/components/schemas/ServiceUsageBalances"
+                    },
+                    "current_period_start": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "current_period_end": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "last_updated": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "balances",
+                    "current_period_end",
+                    "current_period_start",
+                    "last_updated",
+                    "total_nlp_usage",
+                    "total_storage_bytes",
+                    "total_submission_count"
                 ]
             },
             "UserRetrieveResponse": {
