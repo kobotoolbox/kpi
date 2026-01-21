@@ -11682,7 +11682,6 @@ components:
           title: ' id'
         formhub/uuid:
           type: string
-          nullable: true
         __version__:
           type: string
           title: '  version  '
@@ -11749,7 +11748,6 @@ components:
             type: number
             format: double
             nullable: true
-          nullable: true
           title: ' geolocation'
           maxItems: 2
           minItems: 2
@@ -11766,7 +11764,6 @@ components:
           type: array
           items:
             type: string
-          nullable: true
           title: ' notes'
         _validation_status:
           type: object
@@ -11774,10 +11771,16 @@ components:
             timestamp:
               type: integer
             uid:
+              enum:
+              - validation_status_not_approved
+              - validation_status_approved
+              - validation_status_on_hold
               type: string
+              description: |-
+                * `validation_status_not_approved` - validation_status_not_approved
+                * `validation_status_approved` - validation_status_approved
+                * `validation_status_on_hold` - validation_status_on_hold
             by_whom:
-              type: string
-            color:
               type: string
             label:
               type: string
@@ -11786,7 +11789,6 @@ components:
           - label
           - timestamp
           - uid
-          nullable: true
           title: ' validation status'
         _submitted_by:
           type: string
@@ -11794,9 +11796,9 @@ components:
         _supplementalDetails:
           type: object
           additionalProperties: {}
-          nullable: true
           title: ' supplementaldetails'
       required:
+      - __version__
       - _attachments
       - _geolocation
       - _id
@@ -11804,7 +11806,6 @@ components:
       - _status
       - _submission_time
       - _submitted_by
-      - _supplementalDetails
       - _tags
       - _uuid
       - _validation_status

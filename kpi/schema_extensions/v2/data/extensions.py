@@ -5,6 +5,7 @@ from drf_spectacular.extensions import (
 from drf_spectacular.plumbing import (
     build_array_type,
     build_basic_type,
+    build_choice_field,
     build_object_type,
 )
 from drf_spectacular.types import OpenApiTypes
@@ -15,6 +16,7 @@ from kpi.schema_extensions.v2.generic.schema import (
 )
 from kpi.utils.schema_extensions.mixins import ComponentRegistrationMixin
 from kpi.utils.schema_extensions.url_builder import build_url_type
+from .fields import ValidationStatusUidField
 
 
 class DataAttachmentFieldExtension(OpenApiSerializerFieldExtension):
@@ -752,9 +754,8 @@ class DataValidationStatusFieldExtension(OpenApiSerializerFieldExtension):
         return build_object_type(
             properties={
                 'timestamp': GENERIC_INT_SCHEMA,
-                'uid': GENERIC_STRING_SCHEMA,
+                'uid': build_choice_field(ValidationStatusUidField),
                 'by_whom': GENERIC_STRING_SCHEMA,
-                'color': GENERIC_STRING_SCHEMA,
                 'label': GENERIC_STRING_SCHEMA,
             },
             required=['timestamp', 'uid', 'label', 'by_whom'],

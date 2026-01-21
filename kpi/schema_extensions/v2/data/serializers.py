@@ -42,11 +42,8 @@ DataResponse = inline_serializer_class(
         '_id': serializers.IntegerField(),
         'formhub/uuid': serializers.CharField(
             required=False,
-            allow_null=True,
         ),
-        '__version__': serializers.CharField(
-            required=False,
-        ),
+        '__version__': serializers.CharField(),
         'meta/instanceID': serializers.CharField(),
         'meta/rootUuid': serializers.CharField(),
         'meta/deprecatedID': serializers.CharField(
@@ -60,19 +57,15 @@ DataResponse = inline_serializer_class(
             child=serializers.FloatField(allow_null=True),
             min_length=2,
             max_length=2,
-            allow_null=True,
         ),
         '_submission_time': serializers.DateTimeField(),
         '_tags': serializers.ListField(child=serializers.CharField()),
         '_notes': serializers.ListField(
-            child=serializers.CharField(),  # Renamed from Notes to _notes
-            allow_null=True,
+            child=serializers.CharField(),
         ),
-        '_validation_status': DataValidationStatusField(
-            allow_null=True,
-        ),
+        '_validation_status': DataValidationStatusField(),
         '_submitted_by': serializers.CharField(),
-        '_supplementalDetails': serializers.DictField(allow_null=True),
+        '_supplementalDetails': serializers.DictField(required=False),
     },
 )
 

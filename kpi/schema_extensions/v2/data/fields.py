@@ -1,3 +1,4 @@
+from django.conf import settings
 from drf_spectacular.plumbing import (
     build_array_type,
     build_basic_type,
@@ -49,3 +50,8 @@ class EnketoEditUrlField(serializers.URLField):
 
 class EnketoViewUrlField(serializers.URLField):
     pass
+
+
+ValidationStatusUidField = serializers.ChoiceField(
+    choices=settings.DEFAULT_VALIDATION_STATUSES, allow_null=False, allow_blank=False
+)

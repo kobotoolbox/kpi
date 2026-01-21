@@ -15,9 +15,8 @@ import type { _DataResponseValidationStatus } from './_dataResponseValidationSta
 
 export interface DataResponse {
   _id: number
-  /** @nullable */
-  'formhub/uuid'?: string | null
-  __version__?: string
+  'formhub/uuid'?: string
+  __version__: string
   'meta/instanceID': string
   'meta/rootUuid': string
   'meta/deprecatedID'?: string
@@ -28,16 +27,12 @@ export interface DataResponse {
   /**
    * @minItems 2
    * @maxItems 2
-   * @nullable
    */
-  _geolocation: (number | null)[] | null
+  _geolocation: (number | null)[]
   _submission_time: string
   _tags: string[]
-  /** @nullable */
-  _notes: string[] | null
-  /** @nullable */
+  _notes: string[]
   _validation_status: _DataResponseValidationStatus
   _submitted_by: string
-  /** @nullable */
-  _supplementalDetails: _DataResponseSupplementalDetails
+  _supplementalDetails?: _DataResponseSupplementalDetails
 }

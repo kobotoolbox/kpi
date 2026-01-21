@@ -10,4 +10,17 @@ The endpoints are grouped by area of intended use. Each category contains relate
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 
-export type _DataResponseSupplementalDetails = { [key: string]: unknown }
+/**
+ * * `validation_status_not_approved` - validation_status_not_approved
+ * `validation_status_approved` - validation_status_approved
+ * `validation_status_on_hold` - validation_status_on_hold
+ */
+export type _DataResponseValidationStatusUid =
+  (typeof _DataResponseValidationStatusUid)[keyof typeof _DataResponseValidationStatusUid]
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const _DataResponseValidationStatusUid = {
+  validation_status_not_approved: 'validation_status_not_approved',
+  validation_status_approved: 'validation_status_approved',
+  validation_status_on_hold: 'validation_status_on_hold',
+} as const
