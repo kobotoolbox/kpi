@@ -356,12 +356,13 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         prompt = self.generate_llm_prompt(action_data)
         error = ''
         self.client = self.create_bedrock_client()
-        update_nlp_counter(
-            'bedrock_llm_requests',
-            1,
-            self.asset.owner_id,
-            self.asset.id,
-        )
+        if settings.STRIPE_ENABLED:
+            update_nlp_counter(
+                'bedrock_llm_requests',
+                1,
+                self.asset.owner_id,
+                self.asset.id,
+            )
         # for now, hardcode OSS to be primary and Claude to be backup
         # eventually this will be configurable
         for index, model in enumerate([OSS120, ClaudeSonnet]):
