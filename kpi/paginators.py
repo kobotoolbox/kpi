@@ -284,7 +284,7 @@ class FastPagination(DefaultPagination):
     fast_count = True
 
 
-class TinyPaginated(PageNumberPagination):
+class TinyPagination(PageNumberPagination):
     """
     Same as Paginated with a small page size
     """
