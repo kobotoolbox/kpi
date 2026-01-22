@@ -14,6 +14,7 @@ class AdvancedFeatureRequestParamsField(serializers.JSONField):
 class AdvancedFeatureCreateResponseParamsField(serializers.JSONField):
     pass
 
+
 AdvancedFeatureActionField = serializers.ChoiceField(
     choices=ACTION_IDS, allow_null=False, allow_blank=False
 )
