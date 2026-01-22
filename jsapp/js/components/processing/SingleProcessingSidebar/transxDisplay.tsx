@@ -1,4 +1,5 @@
 import React from 'react'
+
 import { AsyncLanguageDisplayLabel } from '#/components/languages/languagesUtils'
 import TransxDate from '../SingleProcessingContent/components/transxDate'
 import bodyStyles from '../common/processingBody.module.scss'
@@ -19,7 +20,11 @@ export default function TransxDisplay({ transxVersionItem }: TransxDisplayProps)
           {language && (
             <>
               <AsyncLanguageDisplayLabel code={language} />
-              <TransxDate dateCreated={transxVersionItem._dateCreated} />
+              <TransxDate
+                dateCreated={transxVersionItem._dateCreated}
+                dateModified={(transxVersionItem as any)._dateModified}
+              />
+              {/* // TODO OpenAPI: add _dateModified */}
             </>
           )}
         </header>

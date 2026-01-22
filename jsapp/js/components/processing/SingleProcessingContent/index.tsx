@@ -2,16 +2,14 @@ import React from 'react'
 
 import classNames from 'classnames'
 import type { DataResponse } from '#/api/models/dataResponse'
-import type {
-  assetsAdvancedFeaturesListResponse,
-  assetsDataSupplementRetrieveResponse,
-} from '#/api/react-query/survey-data'
 import type { AssetResponse } from '#/dataInterface'
 import protectorHelpers from '#/protector/protectorHelpers'
 import { PROCESSING_ROUTES } from '#/router/routerConstants'
 
 import { goToTabRoute, isProcessingRouteActive } from '../routes.utils'
 
+import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
+import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import TabAnalysis from './TabAnalysis'
 import TabTranscript from './TabTranscript'
 import TabTranslations from './TabTranslations'
@@ -23,8 +21,8 @@ interface Props {
   submission: DataResponse & Record<string, string>
   hasUnsavedWork: boolean
   onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
-  supplementData: assetsDataSupplementRetrieveResponse | undefined
-  advancedFeaturesData: assetsAdvancedFeaturesListResponse | undefined
+  supplement: DataSupplementResponse
+  advancedFeatures: AdvancedFeatureResponse[]
 }
 
 /**
@@ -38,8 +36,8 @@ export default function SingleProcessingContent({
   submission,
   hasUnsavedWork,
   onUnsavedWorkChange,
-  supplementData,
-  advancedFeaturesData,
+  supplement,
+  advancedFeatures,
 }: Props) {
   /** DRY wrapper for protector function. */
   function safeExecute(callback: () => void) {
@@ -66,8 +64,8 @@ export default function SingleProcessingContent({
           questionXpath={questionXpath}
           submission={submission}
           onUnsavedWorkChange={onUnsavedWorkChange}
-          supplementData={supplementData}
-          advancedFeaturesData={advancedFeaturesData}
+          supplement={supplement}
+          advancedFeatures={advancedFeatures}
         />
       )
     }
@@ -78,8 +76,8 @@ export default function SingleProcessingContent({
           questionXpath={questionXpath}
           submission={submission}
           onUnsavedWorkChange={onUnsavedWorkChange}
-          supplementData={supplementData}
-          advancedFeaturesData={advancedFeaturesData}
+          supplement={supplement}
+          advancedFeatures={advancedFeatures}
         />
       )
     }

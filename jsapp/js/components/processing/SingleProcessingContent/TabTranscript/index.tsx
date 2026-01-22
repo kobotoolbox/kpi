@@ -1,12 +1,9 @@
 import React from 'react'
+import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
-import type { DataSupplementResponseOneOf } from '#/api/models/dataSupplementResponseOneOf'
-import type {
-  assetsAdvancedFeaturesListResponse,
-  assetsDataSupplementRetrieveResponse,
-} from '#/api/react-query/survey-data'
+import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { AssetResponse } from '#/dataInterface'
-import { isSupplementVersionWithValue } from '../../common/utils'
+import { getTranscriptFromSupplement, isSupplementVersionWithValue } from '../../common/utils'
 import TranscriptCreate from './TranscriptCreate'
 import TranscriptEdit from './TranscriptEdit'
 
@@ -15,8 +12,8 @@ interface Props {
   questionXpath: string
   submission: DataResponse & Record<string, string>
   onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
-  supplementData: assetsDataSupplementRetrieveResponse | undefined
-  advancedFeaturesData: assetsAdvancedFeaturesListResponse | undefined
+  supplement: DataSupplementResponse
+  advancedFeatures: AdvancedFeatureResponse[]
 }
 
 export default function TranscriptTab({
@@ -24,19 +21,10 @@ export default function TranscriptTab({
   questionXpath,
   submission,
   onUnsavedWorkChange,
-  supplementData,
-  advancedFeaturesData,
+  supplement,
+  advancedFeatures,
 }: Props) {
-  const questionSupplement =
-    supplementData?.status === 200 ? (supplementData.data[questionXpath] as DataSupplementResponseOneOf) : undefined
-
-  // Backend said, that latest version is the "real version" and to discared the rest.
-  // This should equal what can be found within `DataResponse._supplementalDetails`.
-  // TODO: perhaps use `DataResponse._supplementalDetails` instead?
-  const transcriptVersion = [
-    ...(questionSupplement?.manual_transcription?._versions || []),
-    ...(questionSupplement?.automatic_google_transcription?._versions || []),
-  ].sort((a, b) => (a._dateCreated < b._dateCreated ? 1 : -1))[0]
+  const transcriptVersion = getTranscriptFromSupplement(supplement[questionXpath])
 
   console.log('TranscriptTab', transcriptVersion)
 
@@ -48,7 +36,7 @@ export default function TranscriptTab({
         submission={submission}
         transcriptVersion={transcriptVersion}
         onUnsavedWorkChange={onUnsavedWorkChange}
-        advancedFeaturesData={advancedFeaturesData}
+        advancedFeatures={advancedFeatures}
       />
     )
   } else {
@@ -58,7 +46,7 @@ export default function TranscriptTab({
         questionXpath={questionXpath}
         submission={submission}
         onUnsavedWorkChange={onUnsavedWorkChange}
-        advancedFeaturesData={advancedFeaturesData}
+        advancedFeatures={advancedFeatures}
       />
     )
   }

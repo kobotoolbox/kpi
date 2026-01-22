@@ -1,17 +1,11 @@
 import React, { useEffect, useState } from 'react'
-import type { _DataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem } from '#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem'
-import type { _DataSupplementResponseOneOfManualTranslationVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualTranslationVersionsItem'
+import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
-import type { DataSupplementResponseOneOf } from '#/api/models/dataSupplementResponseOneOf'
-import type {
-  assetsAdvancedFeaturesListResponse,
-  assetsDataSupplementRetrieveResponse,
-} from '#/api/react-query/survey-data'
+import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import type { AssetResponse } from '#/dataInterface'
-import { recordKeys, recordValues } from '#/utils'
 import bodyStyles from '../../common/processingBody.module.scss'
-import { isSupplementVersionWithValue } from '../../common/utils'
+import { getTranslationsFromSupplement } from '../../common/utils'
 import TranslationAdd from './TranslationAdd'
 import Editor from './TranslationEdit/Editor'
 import Viewer from './TranslationEdit/Viewer'
@@ -21,43 +15,19 @@ interface Props {
   questionXpath: string
   submission: DataResponse & Record<string, string>
   onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
-  supplementData: assetsDataSupplementRetrieveResponse | undefined
-  advancedFeaturesData: assetsAdvancedFeaturesListResponse | undefined
+  supplement: DataSupplementResponse
+  advancedFeatures: AdvancedFeatureResponse[]
 }
 
-export default function TranscriptTab({
+export default function TranslationTab({
   asset,
   questionXpath,
   submission,
   onUnsavedWorkChange,
-  supplementData,
-  advancedFeaturesData,
+  supplement,
+  advancedFeatures,
 }: Props) {
-  const questionSupplement =
-    supplementData?.status === 200 ? (supplementData.data[questionXpath] as DataSupplementResponseOneOf) : undefined
-
-  // Backend said, that latest version is the "real version" and to discared the rest.
-  // This should equal what can be found within `DataResponse._supplementalDetails`.
-  const languages = [
-    ...recordKeys(questionSupplement?.manual_translation ?? {}),
-    ...recordKeys(questionSupplement?.automatic_google_translation ?? {}),
-  ] as LanguageCode[]
-  const translationVersions = recordValues(
-    languages.reduce(
-      (map, language) => {
-        map[language] = [
-          ...(questionSupplement?.manual_translation?.[language]?._versions || []),
-          ...(questionSupplement?.automatic_google_translation?.[language]?._versions || []),
-        ].sort((a, b) => (a._dateCreated < b._dateCreated ? 1 : -1))[0]
-        return map
-      },
-      {} as Record<
-        LanguageCode,
-        | _DataSupplementResponseOneOfManualTranslationVersionsItem
-        | _DataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem
-      >,
-    ),
-  ).filter(isSupplementVersionWithValue)
+  const translationVersions = getTranslationsFromSupplement(supplement[questionXpath])
 
   // Selected language Code to display.
   const [languageCode, setLanguageCode] = useState<LanguageCode | null>(null)
@@ -97,7 +67,7 @@ export default function TranscriptTab({
             setLanguageCode(languageCode)
           }}
           onUnsavedWorkChange={onUnsavedWorkChange}
-          advancedFeaturesData={advancedFeaturesData}
+          advancedFeatures={advancedFeatures}
         />
       )}
       {mode === 'view' && translationVersion && (
@@ -124,7 +94,7 @@ export default function TranscriptTab({
             onBack={() => setMode('view')}
             onSave={() => setMode('view')}
             onUnsavedWorkChange={onUnsavedWorkChange}
-            advancedFeaturesData={advancedFeaturesData}
+            advancedFeatures={advancedFeatures}
           />
         </div>
       )}

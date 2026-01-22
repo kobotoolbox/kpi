@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react'
 
 import cx from 'classnames'
+import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { NLPActionParamsItem } from '#/api/models/nLPActionParamsItem'
 import { onErrorDefaultHandler } from '#/api/onErrorDefaultHandler'
 import { queryClient } from '#/api/queryClient'
 import {
-  type assetsAdvancedFeaturesListResponse,
   getAssetsAdvancedFeaturesListQueryKey,
   getAssetsDataSupplementRetrieveQueryKey,
   useAssetsAdvancedFeaturesCreate,
@@ -32,7 +32,7 @@ interface Props {
   languageCode: LanguageCode
   submission: DataResponse & Record<string, string>
   onBack: () => void
-  advancedFeaturesData: assetsAdvancedFeaturesListResponse | undefined
+  advancedFeatures: AdvancedFeatureResponse[]
 }
 
 export default function StepCreateAutomated({
@@ -41,20 +41,14 @@ export default function StepCreateAutomated({
   languageCode,
   submission,
   onBack,
-  advancedFeaturesData,
+  advancedFeatures,
 }: Props) {
   const [locale, setLocale] = useState<null | string>(null)
 
-  // TODO: remove, for now just logging for debugging.
-  const advancedFeature =
-    advancedFeaturesData?.status === 200
-      ? advancedFeaturesData?.data.find(
-          (af) =>
-            af.action === ADVANCED_FEATURES_ACTION.automatic_google_transcription &&
-            af.question_xpath === questionXpath,
-        )
-      : undefined
-  console.log(advancedFeature)
+  const advancedFeature = advancedFeatures.find(
+    (af) =>
+      af.action === ADVANCED_FEATURES_ACTION.automatic_google_transcription && af.question_xpath === questionXpath,
+  )
 
   const mutationCreateAF = useAssetsAdvancedFeaturesCreate({
     mutation: {
@@ -79,7 +73,8 @@ export default function StepCreateAutomated({
       },
       onError: (error, variables, context) => {
         if (error.detail === 'Invalid action') {
-          // TODO: should never happen, gotta check and enable silently.
+          // This should never happen. If you encounter this error, figure out
+          // why advanced feature wasn't enabled silently before transcript request
           notify(
             'Advances Features are not enabled for this language for this form.',
             'error',
@@ -101,7 +96,7 @@ export default function StepCreateAutomated({
   const [estimate, setEstimate] = useState<string>(NO_ESTIMATED_MINUTES)
   useEffect(() => {
     if (mutationCreateAutomaticTranscript.isPending) {
-      const attachment = getAttachmentForProcessing(asset, questionXpath)
+      const attachment = getAttachmentForProcessing(asset, questionXpath, submission)
       if (typeof attachment !== 'string') {
         getAudioDuration(attachment.download_url).then((length: number) => {
           setEstimate(secondsToTranscriptionEstimate(length))
@@ -120,7 +115,6 @@ export default function StepCreateAutomated({
     onBack()
   }
 
-  // TODO: cleanup unused methods, search for `requestAutoTranscription`
   async function handleCreateTranscript() {
     // Silently under the hook enable advanced features if needed.
     if (!advancedFeature) {
@@ -137,7 +131,6 @@ export default function StepCreateAutomated({
           ],
         },
       })
-      // TODO: should I check for locales too or not?
       // TODO: OpenAPI shouldn't be double-arrayed.
     } else if (
       !advancedFeature?.params.find((param) => (param as any as NLPActionParamsItem).language === languageCode)
@@ -169,8 +162,6 @@ export default function StepCreateAutomated({
   }
 
   if (!languageCode) return null
-
-  console.log('TranscriptCreate', locale)
 
   if (mutationCreateAutomaticTranscript.isPending) {
     return (

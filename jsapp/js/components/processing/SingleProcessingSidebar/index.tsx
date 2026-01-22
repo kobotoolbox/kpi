@@ -14,21 +14,21 @@ import SidebarSubmissionMedia from './sidebarSubmissionMedia'
 import TransxDisplay from './transxDisplay'
 
 interface ProcessingSidebarProps {
-  xpath: string
+  questionXpath: string
   asset: AssetResponse
   questionLabelLanguage: LanguageCode | string
   setQuestionLabelLanguage: (LanguageCode: LanguageCode | string) => void
   submission?: DataResponse & Record<string, string>
-  supplementData: DataSupplementResponse
+  supplement: DataSupplementResponse
 }
 
 export default function ProcessingSidebar({
   asset,
-  xpath,
+  questionXpath,
   questionLabelLanguage,
   setQuestionLabelLanguage,
   submission,
-  supplementData,
+  supplement,
 }: ProcessingSidebarProps) {
   const [store] = useState(() => singleProcessingStore)
 
@@ -43,12 +43,12 @@ export default function ProcessingSidebar({
   const [hiddenQuestions, setHiddenQuestions] = useState<string[]>([])
 
   const transcript = useMemo(() => {
-    return getLatestTranscriptVersionItem(supplementData, xpath)
-  }, [supplementData, xpath])
+    return getLatestTranscriptVersionItem(supplement, questionXpath)
+  }, [supplement, questionXpath])
 
   const translations = useMemo(() => {
-    return getAllTranslationsFromSupplementData(supplementData, xpath)
-  }, [supplementData, xpath])
+    return getAllTranslationsFromSupplementData(supplement, questionXpath)
+  }, [supplement, questionXpath])
 
   // Every time user changes the tab, we need to load the stored displays list
   // for that tab.
@@ -71,7 +71,7 @@ export default function ProcessingSidebar({
       <div className={styles.displays}>
         {/* {translations.map((translation) => {
           if (selectedDisplays.includes(translation.language)) {
-            return <TransxDisplay transx={translation} key={translation.language} />
+            return <TransxDisplay transxVersionItem={translation} key={translation.language} />
           }
 
           return null
@@ -82,13 +82,13 @@ export default function ProcessingSidebar({
         )}
 
         {selectedDisplays.includes(StaticDisplays.Audio) && (
-          <SidebarSubmissionMedia asset={asset} xpath={xpath} submission={submission} />
+          <SidebarSubmissionMedia asset={asset} xpath={questionXpath} submission={submission} />
         )}
 
         {selectedDisplays.includes(StaticDisplays.Data) && (
           <SidebarSubmissionData
             asset={asset}
-            xpath={xpath}
+            xpath={questionXpath}
             hiddenQuestions={hiddenQuestions}
             questionLabelLanguage={questionLabelLanguage}
             submission={submission}

@@ -1,6 +1,11 @@
 import type { _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem'
+import type { _DataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem } from '#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem'
 import type { _DataSupplementResponseOneOfManualTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualTranscriptionVersionsItem'
+import type { _DataSupplementResponseOneOfManualTranslationVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualTranslationVersionsItem'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
+import type { DataSupplementResponseOneOf } from '#/api/models/dataSupplementResponseOneOf'
+import type { LanguageCode } from '#/components/languages/languagesStore'
+import { recordKeys, recordValues } from '#/utils'
 import { ADVANCED_FEATURES_ACTION } from './constants'
 import type { OneOfTransx, TranscriptVersionItem, TranslationDataWithValue } from './types'
 
@@ -78,4 +83,38 @@ export const getAllTranslationsFromSupplementData = (supplementData: DataSupplem
   }
 
   return allTranslationVersions
+}
+
+export const getTranscriptFromSupplement = (supplementQuestion: DataSupplementResponseOneOf) => {
+  const transcriptVersion = [
+    ...(supplementQuestion?.manual_transcription?._versions || []),
+    ...(supplementQuestion?.automatic_google_transcription?._versions || []),
+  ].sort((a, b) => (a._dateCreated < b._dateCreated ? 1 : -1))[0]
+
+  return transcriptVersion
+}
+
+export const getTranslationsFromSupplement = (supplementQuestion: DataSupplementResponseOneOf) => {
+  const languages = [
+    ...recordKeys(supplementQuestion?.manual_translation ?? {}),
+    ...recordKeys(supplementQuestion?.automatic_google_translation ?? {}),
+  ] as LanguageCode[]
+  const translationVersions = recordValues(
+    languages.reduce(
+      (map, language) => {
+        map[language] = [
+          ...(supplementQuestion?.manual_translation?.[language]?._versions || []),
+          ...(supplementQuestion?.automatic_google_translation?.[language]?._versions || []),
+        ].sort((a, b) => (a._dateCreated < b._dateCreated ? 1 : -1))[0]
+        return map
+      },
+      {} as Record<
+        LanguageCode,
+        | _DataSupplementResponseOneOfManualTranslationVersionsItem
+        | _DataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem
+      >,
+    ),
+  ).filter(isSupplementVersionWithValue)
+
+  return translationVersions
 }
