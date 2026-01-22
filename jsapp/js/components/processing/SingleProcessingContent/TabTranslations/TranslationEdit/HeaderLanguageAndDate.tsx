@@ -27,6 +27,8 @@ export default function HeaderLanguageAndDate({
 }: Props) {
   const existingTranslations = translationVersions?.filter(isSupplementVersionWithValue)
 
+  console.log('xxx translationVersion', translationVersion)
+
   return (
     <React.Fragment>
       {existingTranslations && onChangeLanguageCode ? (
@@ -46,8 +48,8 @@ export default function HeaderLanguageAndDate({
           <AsyncLanguageDisplayLabel code={translationVersion._data.language} />
         </label>
       )}
-      {/* TODO: BUG when creating new translation, this shows "Invalid date" instead of being hidden */}
-      <TransxDate dateCreated={translationVersion._dateCreated} />
+      {/* TODO OpenAPI: add _dateModified */}
+      {translationVersion._dateCreated !== '' && <TransxDate dateCreated={translationVersion._dateCreated} />}
     </React.Fragment>
   )
 }
