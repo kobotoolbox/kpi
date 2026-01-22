@@ -130,14 +130,14 @@ class DataSupplementPayloadExtension(
                 'manual_translation': self._nlp_manual_action_schema,
                 'automatic_google_transcription': self._nlp_automatic_action_schema,
                 'automatic_google_translation': self._nlp_automatic_action_schema,
-                'qual': self._qual_schema,
+                'manual_qual': self._qual_schema,
             },
             anyOf=[
                 {'required': ['manual_transcription']},
                 {'required': ['manual_translation']},
                 {'required': ['automatic_google_transcription']},
                 {'required': ['automatic_google_translation']},
-                {'required': ['qual']},
+                {'required': ['manual_qual']},
             ],
         )
 

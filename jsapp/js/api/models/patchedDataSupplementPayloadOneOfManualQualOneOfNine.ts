@@ -9,10 +9,11 @@ The endpoints are grouped by area of intended use. Each category contains relate
 **General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as "assets".
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
-import type { PatchedDataSupplementPayloadOneOfQualOneOfAllOf } from './patchedDataSupplementPayloadOneOfQualOneOfAllOf'
-import type { PatchedDataSupplementPayloadOneOfQualOneOfAllOfThree } from './patchedDataSupplementPayloadOneOfQualOneOfAllOfThree'
-import type { PatchedDataSupplementPayloadOneOfQualOneOfAllOfTwo } from './patchedDataSupplementPayloadOneOfQualOneOfAllOfTwo'
+import type { PatchedDataSupplementPayloadOneOfManualQualOneOfNineAllOf } from './patchedDataSupplementPayloadOneOfManualQualOneOfNineAllOf'
+import type { PatchedDataSupplementPayloadOneOfManualQualOneOfNineAllOfThree } from './patchedDataSupplementPayloadOneOfManualQualOneOfNineAllOfThree'
+import type { PatchedDataSupplementPayloadOneOfManualQualOneOfNineAllOfTwo } from './patchedDataSupplementPayloadOneOfManualQualOneOfNineAllOfTwo'
 
-export type PatchedDataSupplementPayloadOneOfQualOneOf = PatchedDataSupplementPayloadOneOfQualOneOfAllOf &
-  PatchedDataSupplementPayloadOneOfQualOneOfAllOfTwo &
-  PatchedDataSupplementPayloadOneOfQualOneOfAllOfThree
+export type PatchedDataSupplementPayloadOneOfManualQualOneOfNine =
+  PatchedDataSupplementPayloadOneOfManualQualOneOfNineAllOf &
+    PatchedDataSupplementPayloadOneOfManualQualOneOfNineAllOfTwo &
+    PatchedDataSupplementPayloadOneOfManualQualOneOfNineAllOfThree
