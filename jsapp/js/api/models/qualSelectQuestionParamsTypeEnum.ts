@@ -10,10 +10,11 @@ The endpoints are grouped by area of intended use. Each category contains relate
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 
-export type TypeCa7Enum = (typeof TypeCa7Enum)[keyof typeof TypeCa7Enum]
+export type QualSelectQuestionParamsTypeEnum =
+  (typeof QualSelectQuestionParamsTypeEnum)[keyof typeof QualSelectQuestionParamsTypeEnum]
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
-export const TypeCa7Enum = {
+export const QualSelectQuestionParamsTypeEnum = {
   qualSelectMultiple: 'qualSelectMultiple',
   qualSelectOne: 'qualSelectOne',
 } as const

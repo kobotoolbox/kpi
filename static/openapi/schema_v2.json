@@ -16369,7 +16369,7 @@
                         "format": "uuid"
                     },
                     "type": {
-                        "$ref": "#/components/schemas/TypeCa7Enum"
+                        "$ref": "#/components/schemas/QualSelectQuestionParamsTypeEnum"
                     },
                     "labels": {
                         "type": "object",
@@ -16433,7 +16433,7 @@
                         "format": "uuid"
                     },
                     "type": {
-                        "$ref": "#/components/schemas/Type8e5Enum"
+                        "$ref": "#/components/schemas/QualSimpleQuestionParamsTypeEnum"
                     },
                     "labels": {
                         "type": "object",
@@ -23010,6 +23010,22 @@
                 "type": "string",
                 "description": "* `always_invoice` - Always invoice\n* `create_prorations` - Create prorations\n* `none` - None"
             },
+            "QualSelectQuestionParamsTypeEnum": {
+                "type": "string",
+                "enum": [
+                    "qualSelectMultiple",
+                    "qualSelectOne"
+                ]
+            },
+            "QualSimpleQuestionParamsTypeEnum": {
+                "type": "string",
+                "enum": [
+                    "qualInteger",
+                    "qualTags",
+                    "qualText",
+                    "qualNote"
+                ]
+            },
             "Recurring": {
                 "type": "object",
                 "properties": {
@@ -23124,7 +23140,7 @@
                         "format": "uuid"
                     },
                     "type": {
-                        "$ref": "#/components/schemas/TypeCa7Enum"
+                        "$ref": "#/components/schemas/QualSelectQuestionParamsTypeEnum"
                     },
                     "labels": {
                         "type": "object",
@@ -23188,7 +23204,7 @@
                         "format": "uuid"
                     },
                     "type": {
-                        "$ref": "#/components/schemas/Type8e5Enum"
+                        "$ref": "#/components/schemas/QualSimpleQuestionParamsTypeEnum"
                     },
                     "labels": {
                         "type": "object",
@@ -23242,7 +23258,7 @@
                         "format": "uuid"
                     },
                     "type": {
-                        "$ref": "#/components/schemas/TypeCa7Enum"
+                        "$ref": "#/components/schemas/QualSelectQuestionParamsTypeEnum"
                     },
                     "labels": {
                         "type": "object",
@@ -23322,7 +23338,7 @@
                         "format": "uuid"
                     },
                     "type": {
-                        "$ref": "#/components/schemas/Type8e5Enum"
+                        "$ref": "#/components/schemas/QualSimpleQuestionParamsTypeEnum"
                     },
                     "labels": {
                         "type": "object",
@@ -24071,22 +24087,6 @@
                 "required": [
                     "code",
                     "name"
-                ]
-            },
-            "Type8e5Enum": {
-                "type": "string",
-                "enum": [
-                    "qualInteger",
-                    "qualTags",
-                    "qualText",
-                    "qualNote"
-                ]
-            },
-            "TypeCa7Enum": {
-                "type": "string",
-                "enum": [
-                    "qualSelectMultiple",
-                    "qualSelectOne"
                 ]
             },
             "UserListResponse": {

@@ -10,10 +10,11 @@ The endpoints are grouped by area of intended use. Each category contains relate
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 
-export type Type8e5Enum = (typeof Type8e5Enum)[keyof typeof Type8e5Enum]
+export type QualSimpleQuestionParamsTypeEnum =
+  (typeof QualSimpleQuestionParamsTypeEnum)[keyof typeof QualSimpleQuestionParamsTypeEnum]
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
-export const Type8e5Enum = {
+export const QualSimpleQuestionParamsTypeEnum = {
   qualInteger: 'qualInteger',
   qualTags: 'qualTags',
   qualText: 'qualText',

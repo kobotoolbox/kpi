@@ -11717,7 +11717,7 @@ components:
           type: string
           format: uuid
         type:
-          $ref: '#/components/schemas/TypeCa7Enum'
+          $ref: '#/components/schemas/QualSelectQuestionParamsTypeEnum'
         labels:
           type: object
           properties:
@@ -11761,7 +11761,7 @@ components:
           type: string
           format: uuid
         type:
-          $ref: '#/components/schemas/Type8e5Enum'
+          $ref: '#/components/schemas/QualSimpleQuestionParamsTypeEnum'
         labels:
           type: object
           properties:
@@ -16383,6 +16383,18 @@ components:
         * `always_invoice` - Always invoice
         * `create_prorations` - Create prorations
         * `none` - None
+    QualSelectQuestionParamsTypeEnum:
+      type: string
+      enum:
+      - qualSelectMultiple
+      - qualSelectOne
+    QualSimpleQuestionParamsTypeEnum:
+      type: string
+      enum:
+      - qualInteger
+      - qualTags
+      - qualText
+      - qualNote
     Recurring:
       type: object
       properties:
@@ -16459,7 +16471,7 @@ components:
           type: string
           format: uuid
         type:
-          $ref: '#/components/schemas/TypeCa7Enum'
+          $ref: '#/components/schemas/QualSelectQuestionParamsTypeEnum'
         labels:
           type: object
           properties:
@@ -16503,7 +16515,7 @@ components:
           type: string
           format: uuid
         type:
-          $ref: '#/components/schemas/Type8e5Enum'
+          $ref: '#/components/schemas/QualSimpleQuestionParamsTypeEnum'
         labels:
           type: object
           properties:
@@ -16537,7 +16549,7 @@ components:
           type: string
           format: uuid
         type:
-          $ref: '#/components/schemas/TypeCa7Enum'
+          $ref: '#/components/schemas/QualSelectQuestionParamsTypeEnum'
         labels:
           type: object
           properties:
@@ -16591,7 +16603,7 @@ components:
           type: string
           format: uuid
         type:
-          $ref: '#/components/schemas/Type8e5Enum'
+          $ref: '#/components/schemas/QualSimpleQuestionParamsTypeEnum'
         labels:
           type: object
           properties:
@@ -17234,18 +17246,6 @@ components:
       required:
       - code
       - name
-    Type8e5Enum:
-      type: string
-      enum:
-      - qualInteger
-      - qualTags
-      - qualText
-      - qualNote
-    TypeCa7Enum:
-      type: string
-      enum:
-      - qualSelectMultiple
-      - qualSelectOne
     UserListResponse:
       type: object
       properties:
