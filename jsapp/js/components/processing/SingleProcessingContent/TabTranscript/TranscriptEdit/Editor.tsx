@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import type { _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem'
 import type { _DataSupplementResponseOneOfManualTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualTranscriptionVersionsItem'
+import { ActionEnum } from '#/api/models/actionEnum'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import { queryClient } from '#/api/queryClient'
@@ -17,7 +18,7 @@ import { userCan } from '#/components/permissions/utils'
 import { isSupplementVersionAutomatic } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
 import { removeDefaultUuidPrefix } from '#/utils'
-import { ADVANCED_FEATURES_ACTION, SUBSEQUENCES_SCHEMA_VERSION } from '../../../common/constants'
+import { SUBSEQUENCES_SCHEMA_VERSION } from '../../../common/constants'
 import bodyStyles from '../../../common/processingBody.module.scss'
 import HeaderLanguageAndDate from './headerLanguageAndDate'
 
@@ -53,7 +54,7 @@ export default function Editor({
   }, [value, initialValue, onUnsavedWorkChange])
 
   const advancedFeature = advancedFeatures.find(
-    (af) => af.action === ADVANCED_FEATURES_ACTION.manual_transcription && af.question_xpath === questionXpath,
+    (af) => af.action === ActionEnum.manual_transcription && af.question_xpath === questionXpath,
   )
   console.log(advancedFeature)
 
@@ -87,7 +88,7 @@ export default function Editor({
         uidAsset: asset.uid,
         data: {
           question_xpath: questionXpath,
-          action: ADVANCED_FEATURES_ACTION.manual_transcription,
+          action: ActionEnum.manual_transcription,
           // TODO: OpenAPI shouldn't be double-arrayed.
           params: [
             {
@@ -103,7 +104,7 @@ export default function Editor({
         uidAsset: asset.uid,
         uidAdvancedFeature: advancedFeature.uid,
         data: {
-          action: ADVANCED_FEATURES_ACTION.manual_transcription, // TODO: OpenAPI PatchedAdvancedFeaturePatchRequest doesn't have this prop typed.
+          action: ActionEnum.manual_transcription, // TODO: OpenAPI PatchedAdvancedFeaturePatchRequest doesn't have this prop typed.
           question_xpath: questionXpath, // TODO: OpenAPI PatchedAdvancedFeaturePatchRequest doesn't have this prop typed.
           params: advancedFeature.params.concat({
             // TODO: OpenAPI shouldn't be double-arrayed.
@@ -123,7 +124,7 @@ export default function Editor({
         data: {
           _version: SUBSEQUENCES_SCHEMA_VERSION,
           [questionXpath]: {
-            [ADVANCED_FEATURES_ACTION.automatic_google_transcription]: {
+            [ActionEnum.automatic_google_transcription]: {
               language: transcriptVersion._data.language,
               accepted: true,
             } as any, // TODO OpenAPI: PatchedDataSupplementPayloadOneOfOneOfAutomaticGoogleTranscription for PATCH shouldn't have `language` prop.
@@ -138,7 +139,7 @@ export default function Editor({
         data: {
           _version: SUBSEQUENCES_SCHEMA_VERSION,
           [questionXpath]: {
-            [ADVANCED_FEATURES_ACTION.manual_transcription]: {
+            [ActionEnum.manual_transcription]: {
               language: transcriptVersion._data.language,
               value: value,
             },
@@ -161,7 +162,7 @@ export default function Editor({
         data: {
           _version: SUBSEQUENCES_SCHEMA_VERSION,
           [questionXpath]: {
-            [ADVANCED_FEATURES_ACTION.automatic_google_transcription]: {
+            [ActionEnum.automatic_google_transcription]: {
               language: transcriptVersion._data.language, // TODO OpenAPI & API: why this prop is required at all?
               value: null, // TODO OpenAPI: is that `null` or `''` to "discard" automatic transcription?
             },

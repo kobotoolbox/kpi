@@ -1,10 +1,10 @@
 import type { _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem'
 import type { _DataSupplementResponseOneOfManualTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualTranscriptionVersionsItem'
+import { ActionEnum } from '#/api/models/actionEnum'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { DataSupplementResponseOneOfManualTranslation } from '#/api/models/dataSupplementResponseOneOfManualTranslation'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { ProcessingTab } from '#/components/processing/routes.utils'
-import { ADVANCED_FEATURES_ACTION } from './constants'
 import type {
   DisplaysList,
   OneOfTransx,
@@ -67,7 +67,7 @@ export const getManualTranscriptsFromSupplementData = (
   supplementData: DataSupplementResponse,
   xpath: string,
 ): OneOfTransx | undefined => {
-  return supplementData[xpath]?.[ADVANCED_FEATURES_ACTION.manual_transcription]
+  return supplementData[xpath]?.[ActionEnum.manual_transcription]
 }
 
 /**
@@ -133,7 +133,7 @@ export const getManualTranslationsFromSupplementData = (
   supplementData: DataSupplementResponse,
   xpath: string,
 ): DataSupplementResponseOneOfManualTranslation | undefined => {
-  return supplementData[xpath]?.[ADVANCED_FEATURES_ACTION.manual_translation]
+  return supplementData[xpath]?.[ActionEnum.manual_translation]
 }
 
 /**

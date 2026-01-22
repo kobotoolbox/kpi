@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 
 import cx from 'classnames'
+import { ActionEnum } from '#/api/models/actionEnum'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import { onErrorDefaultHandler } from '#/api/onErrorDefaultHandler'
@@ -18,7 +19,7 @@ import type { LanguageCode, LocaleCode } from '#/components/languages/languagesS
 import RegionSelector from '#/components/languages/regionSelector'
 import type { AssetResponse } from '#/dataInterface'
 import { getAudioDuration, notify, removeDefaultUuidPrefix } from '#/utils'
-import { ADVANCED_FEATURES_ACTION, SUBSEQUENCES_SCHEMA_VERSION } from '../../../common/constants'
+import { SUBSEQUENCES_SCHEMA_VERSION } from '../../../common/constants'
 import bodyStyles from '../../../common/processingBody.module.scss'
 import { getAttachmentForProcessing, secondsToTranscriptionEstimate } from '../transcript.utils'
 
@@ -45,8 +46,7 @@ export default function StepCreateAutomated({
   const [locale, setLocale] = useState<null | string>(null)
 
   const advancedFeature = advancedFeatures.find(
-    (af) =>
-      af.action === ADVANCED_FEATURES_ACTION.automatic_google_transcription && af.question_xpath === questionXpath,
+    (af) => af.action === ActionEnum.automatic_google_transcription && af.question_xpath === questionXpath,
   )
 
   const mutationCreateAF = useAssetsAdvancedFeaturesCreate({
@@ -121,22 +121,20 @@ export default function StepCreateAutomated({
         uidAsset: asset.uid,
         data: {
           question_xpath: questionXpath,
-          action: ADVANCED_FEATURES_ACTION.automatic_google_transcription,
-          // TODO: OpenAPI shouldn't be double-arrayed.
+          action: ActionEnum.automatic_google_transcription,
           params: [
             {
               language: languageCode,
-            } as any,
+            },
           ],
         },
       })
-      // TODO: OpenAPI shouldn't be double-arrayed.
     } else if (!advancedFeature?.params.find((param) => 'language' in param && param.language === languageCode)) {
       await mutationPatchAF.mutateAsync({
         uidAsset: asset.uid,
         uidAdvancedFeature: advancedFeature.uid,
         data: {
-          action: ADVANCED_FEATURES_ACTION.automatic_google_transcription, // TODO: OpenAPI PatchedAdvancedFeaturePatchRequest doesn't have this prop typed.
+          action: ActionEnum.automatic_google_transcription, // TODO: OpenAPI PatchedAdvancedFeaturePatchRequest doesn't have this prop typed.
           question_xpath: questionXpath, // TODO: OpenAPI PatchedAdvancedFeaturePatchRequest doesn't have this prop typed.
           params: advancedFeature.params.concat({
             // TODO: OpenAPI shouldn't be double-arrayed.

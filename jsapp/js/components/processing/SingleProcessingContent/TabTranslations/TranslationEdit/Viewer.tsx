@@ -1,6 +1,7 @@
 import React from 'react'
 import type { _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem'
 import type { _DataSupplementResponseOneOfManualTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualTranscriptionVersionsItem'
+import { ActionEnum } from '#/api/models/actionEnum'
 import type { DataResponse } from '#/api/models/dataResponse'
 import { queryClient } from '#/api/queryClient'
 import {
@@ -13,7 +14,7 @@ import { userCan } from '#/components/permissions/utils'
 import { isSupplementVersionAutomatic } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
 import { removeDefaultUuidPrefix } from '#/utils'
-import { ADVANCED_FEATURES_ACTION, SUBSEQUENCES_SCHEMA_VERSION } from '../../../common/constants'
+import { SUBSEQUENCES_SCHEMA_VERSION } from '../../../common/constants'
 import bodyStyles from '../../../common/processingBody.module.scss'
 import HeaderLanguageAndDate from './HeaderLanguageAndDate'
 import styles from './Viewer.module.scss'
@@ -67,8 +68,8 @@ export default function Viewer({
         _version: SUBSEQUENCES_SCHEMA_VERSION,
         [questionXpath]: {
           [isSupplementVersionAutomatic(translationVersion)
-            ? ADVANCED_FEATURES_ACTION.automatic_google_translation
-            : ADVANCED_FEATURES_ACTION.manual_translation]: {
+            ? ActionEnum.automatic_google_translation
+            : ActionEnum.manual_translation]: {
             language: translationVersion._data.language,
             value: null,
           },

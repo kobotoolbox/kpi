@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 
 import cx from 'classnames'
+import { ActionEnum } from '#/api/models/actionEnum'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import { onErrorDefaultHandler } from '#/api/onErrorDefaultHandler'
@@ -16,7 +17,7 @@ import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import type { LanguageCode, LocaleCode } from '#/components/languages/languagesStore'
 import RegionSelector from '#/components/languages/regionSelector'
-import { ADVANCED_FEATURES_ACTION, SUBSEQUENCES_SCHEMA_VERSION } from '#/components/processing/common/constants'
+import { SUBSEQUENCES_SCHEMA_VERSION } from '#/components/processing/common/constants'
 import type { AssetResponse } from '#/dataInterface'
 import { notify, removeDefaultUuidPrefix } from '#/utils'
 import bodyStyles from '../../../common/processingBody.module.scss'
@@ -43,7 +44,7 @@ export default function StepCreateAutomated({
   const [locale, setLocale] = useState<null | string>(null)
 
   const advancedFeature = advancedFeatures.find(
-    (af) => af.action === ADVANCED_FEATURES_ACTION.automatic_google_translation && af.question_xpath === questionXpath,
+    (af) => af.action === ActionEnum.automatic_google_translation && af.question_xpath === questionXpath,
   )
 
   const mutationCreateAF = useAssetsAdvancedFeaturesCreate({
@@ -102,7 +103,7 @@ export default function StepCreateAutomated({
         uidAsset: asset.uid,
         data: {
           question_xpath: questionXpath,
-          action: ADVANCED_FEATURES_ACTION.automatic_google_translation,
+          action: ActionEnum.automatic_google_translation,
           // TODO: OpenAPI shouldn't be double-arrayed.
           params: [
             {
@@ -118,7 +119,7 @@ export default function StepCreateAutomated({
         uidAsset: asset.uid,
         uidAdvancedFeature: advancedFeature.uid,
         data: {
-          action: ADVANCED_FEATURES_ACTION.automatic_google_translation, // TODO: OpenAPI PatchedAdvancedFeaturePatchRequest doesn't have this prop typed.
+          action: ActionEnum.automatic_google_translation, // TODO: OpenAPI PatchedAdvancedFeaturePatchRequest doesn't have this prop typed.
           question_xpath: questionXpath, // TODO: OpenAPI PatchedAdvancedFeaturePatchRequest doesn't have this prop typed.
           params: advancedFeature.params.concat({
             // TODO: OpenAPI shouldn't be double-arrayed.
