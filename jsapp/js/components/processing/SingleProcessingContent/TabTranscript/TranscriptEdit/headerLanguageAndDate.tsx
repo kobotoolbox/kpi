@@ -25,6 +25,7 @@ export default function HeaderLanguageAndDate({ transcriptVersion }: Props) {
         */}
         <AsyncLanguageDisplayLabel code={valueLanguageCode} />
       </label>
+      {/* TODO: BUG when creating new transcript, this shows "Invalid date" instead of being hidden */}
       <TransxDate dateCreated={transcriptVersion._dateCreated} /> {/* TODO OpenAPI: add _dateModified */}
     </React.Fragment>
   )

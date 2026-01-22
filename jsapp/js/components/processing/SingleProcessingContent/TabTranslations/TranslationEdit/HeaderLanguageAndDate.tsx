@@ -46,6 +46,7 @@ export default function HeaderLanguageAndDate({
           <AsyncLanguageDisplayLabel code={translationVersion._data.language} />
         </label>
       )}
+      {/* TODO: BUG when creating new translation, this shows "Invalid date" instead of being hidden */}
       <TransxDate dateCreated={translationVersion._dateCreated} />
     </React.Fragment>
   )
