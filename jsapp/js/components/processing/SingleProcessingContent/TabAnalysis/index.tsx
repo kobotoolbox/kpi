@@ -1,7 +1,6 @@
 import React, { useMemo, useReducer, useState, useEffect } from 'react'
 
 import classNames from 'classnames'
-import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import LoadingSpinner from '#/components/common/loadingSpinner'
@@ -12,7 +11,11 @@ import AnalysisContent from './AnalysisContent'
 import AnalysisHeader from './AnalysisHeader'
 import AnalysisQuestionsContext from './common/analysisQuestions.context'
 import { analysisQuestionsReducer, initialState } from './common/analysisQuestions.reducer'
-import { applyUpdateResponseToInternalQuestions, getQuestionsFromSchema } from './common/utils'
+import {
+  type AdvancedFeatureResponseManualQual,
+  applyUpdateResponseToInternalQuestions,
+  convertQuestionsFromSchemaToInternal,
+} from './common/utils'
 
 interface Props {
   asset: AssetResponse
@@ -20,14 +23,14 @@ interface Props {
   submission: DataResponse & Record<string, string>
   onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
   supplement: DataSupplementResponse
-  advancedFeatures: AdvancedFeatureResponse[]
+  advancedFeature: AdvancedFeatureResponseManualQual
 }
 
 /**
  * Displays content of the "Analysis" tab. This component is handling all of
  * the Qualitative Analysis functionality.
  */
-export default function AnalysisTab({ asset, questionXpath, submission, supplement, advancedFeatures }: Props) {
+export default function AnalysisTab({ asset, questionXpath, submission, supplement, advancedFeature }: Props) {
   const [isInitialised, setIsInitialised] = useState(false)
 
   // This is initial setup of reducer that holds all analysis questions with
@@ -46,7 +49,7 @@ export default function AnalysisTab({ asset, questionXpath, submission, suppleme
         questions: applyUpdateResponseToInternalQuestions(
           questionXpath,
           supplement,
-          getQuestionsFromSchema(advancedFeatures),
+          convertQuestionsFromSchemaToInternal(advancedFeature),
         ),
       },
     })
@@ -77,10 +80,16 @@ export default function AnalysisTab({ asset, questionXpath, submission, suppleme
           questionXpath={questionXpath}
           submission={submission}
           supplement={supplement}
-          advancedFeatures={advancedFeatures}
+          advancedFeature={advancedFeature}
         />
 
-        <AnalysisContent asset={asset} questionXpath={questionXpath} submission={submission} />
+        <AnalysisContent
+          asset={asset}
+          questionXpath={questionXpath}
+          advancedFeature={advancedFeature}
+          submission={submission}
+          supplement={supplement}
+        />
       </AnalysisQuestionsContext.Provider>
     </div>
   )

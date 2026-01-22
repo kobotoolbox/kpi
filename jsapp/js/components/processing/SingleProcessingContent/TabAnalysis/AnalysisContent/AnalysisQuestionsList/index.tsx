@@ -6,11 +6,13 @@ import { HTML5Backend } from 'react-dnd-html5-backend'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { AssetResponse } from '#/dataInterface'
 import AnalysisQuestionsContext from '../../common/analysisQuestions.context'
+import type { AdvancedFeatureResponseManualQual } from '../../common/utils'
 import AnalysisQuestionListItem from './AnalysisQuestionListItem'
 import styles from './index.module.scss'
 
 interface Props {
   asset: AssetResponse
+  advancedFeature: AdvancedFeatureResponseManualQual
   questionXpath: string
   submission: DataResponse & Record<string, string>
 }
@@ -20,7 +22,7 @@ interface Props {
  *
  * Also handles questions reordering (configured in `AnalysisQuestionRow`).
  */
-export default function AnalysisQuestionsList({ asset, questionXpath, submission }: Props) {
+export default function AnalysisQuestionsList({ asset, advancedFeature, questionXpath, submission }: Props) {
   const analysisQuestions = useContext(AnalysisQuestionsContext)
   if (!analysisQuestions) {
     return null
@@ -59,6 +61,7 @@ export default function AnalysisQuestionsList({ asset, questionXpath, submission
           return (
             <AnalysisQuestionListItem
               asset={asset}
+              advancedFeature={advancedFeature}
               submission={submission}
               uuid={question.uuid}
               index={index}

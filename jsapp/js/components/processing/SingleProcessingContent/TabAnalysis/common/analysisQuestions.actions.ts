@@ -1,5 +1,5 @@
-import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { AnalysisQuestionInternal, AnalysisQuestionType } from './constants'
+import type { AdvancedFeatureResponseManualQual } from './utils'
 
 export type AnalysisQuestionsAction =
   // Sets all the quetsion with new ones (useful for initialising)
@@ -41,7 +41,7 @@ export type AnalysisQuestionsAction =
       type: 'updateResponseCompleted'
       payload: {
         xpath: string
-        apiResponse: DataSupplementResponse
+        apiResponse: AdvancedFeatureResponseManualQual
       }
     }
   // Unlocks UI after failed API call

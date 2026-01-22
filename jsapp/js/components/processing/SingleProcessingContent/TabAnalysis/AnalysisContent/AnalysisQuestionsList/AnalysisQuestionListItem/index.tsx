@@ -12,7 +12,12 @@ import { DND_TYPES } from '#/constants'
 import type { AssetResponse, FailResponse } from '#/dataInterface'
 import AnalysisQuestionsContext from '../../../common/analysisQuestions.context'
 import type { AnalysisQuestionBase } from '../../../common/constants'
-import { findQuestion, getQuestionsFromSchema, updateSurveyQuestions } from '../../../common/utils'
+import {
+  type AdvancedFeatureResponseManualQual,
+  convertQuestionsFromSchemaToInternal,
+  findQuestion,
+  updateSurveyQuestions,
+} from '../../../common/utils'
 import AnalysisQuestionEditor from './AnalysisQuestionEditor'
 import IntegerResponseForm from './IntegerResponseForm'
 import KeywordSearchResponseForm from './KeywordSearchResponseForm'
@@ -25,6 +30,7 @@ import styles from './index.module.scss'
 
 export interface Props {
   asset: AssetResponse
+  advancedFeature: AdvancedFeatureResponseManualQual
   submission: DataResponse & Record<string, string>
   uuid: string
   index: number
@@ -43,7 +49,7 @@ interface DragItem {
  *
  * Also configures questions reordering.
  */
-export default function AnalysisQuestionListItem({ asset, submission, uuid, index, moveRow }: Props) {
+export default function AnalysisQuestionListItem({ asset, advancedFeature, submission, uuid, index, moveRow }: Props) {
   const analysisQuestions = useContext(AnalysisQuestionsContext)
   if (!analysisQuestions) {
     return null
@@ -155,7 +161,7 @@ export default function AnalysisQuestionListItem({ asset, submission, uuid, inde
           analysisQuestions?.dispatch({
             type: 'applyQuestionsOrderCompleted',
             payload: {
-              questions: getQuestionsFromSchema(response?.advanced_features),
+              questions: convertQuestionsFromSchemaToInternal(advancedFeature),
             },
           })
         } catch (err) {

@@ -6,10 +6,9 @@ import { ActionEnum } from '#/api/models/actionEnum'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { QualActionParams } from '#/api/models/qualActionParams'
-import assetStore from '#/assetStore'
 import { buildSubmissionSupplementUrl, getAssetAdvancedFeatures } from '#/assetUtils'
 import type { Json } from '#/components/common/common.interfaces'
-import type { AssetResponse, FailResponse } from '#/dataInterface'
+import type { FailResponse } from '#/dataInterface'
 import { notify, recordEntries } from '#/utils'
 import { NO_FEATURE_ERROR } from '../../../processingActions'
 import type { AnalysisQuestionsAction } from './analysisQuestions.actions'
@@ -19,9 +18,15 @@ import type {
   AnalysisQuestionSchema,
   AnalysisQuestionType,
   AnalysisResponseUpdateRequest,
-  SubmissionProcessingDataResponse,
 } from './constants'
 import { ANALYSIS_QUESTION_TYPES } from './constants'
+
+export interface AdvancedFeatureResponseManualQual extends AdvancedFeatureResponse {
+  action: typeof ActionEnum.manual_qual
+  question_xpath: string
+  params: QualActionParams[]
+  uid: string
+}
 
 /** Finds given question in state */
 export function findQuestion(uuid: string, state: AnalysisQuestionsState) {
@@ -36,7 +41,7 @@ export function getQuestionTypeDefinition(type: AnalysisQuestionType) {
  * Builds schema definitions from question definitions. Useful for updating
  * questions definitions on endpoint.
  */
-export function convertQuestionsFromInternalToSchema(questions: AnalysisQuestionInternal[]): AnalysisQuestionSchema[] {
+function convertQuestionsFromInternalToSchema(questions: AnalysisQuestionInternal[]): AnalysisQuestionSchema[] {
   return questions.map((question) => {
     return {
       uuid: question.uuid,
@@ -55,7 +60,9 @@ export function convertQuestionsFromInternalToSchema(questions: AnalysisQuestion
  * the analysis questions UI after loading existing question definitions from
  * schema.
  */
-export function convertQuestionsFromSchemaToInternal(af?: AdvancedFeatureResponse): AnalysisQuestionInternal[] {
+export function convertQuestionsFromSchemaToInternal(
+  af?: AdvancedFeatureResponseManualQual,
+): AnalysisQuestionInternal[] {
   return (
     af?.params.map((_question) => {
       const question = _question as QualActionParams
@@ -121,10 +128,6 @@ export function updateSingleQuestionPreservingResponse(
   })
 }
 
-export function getQuestionsFromSchema(advancedFeatures?: AdvancedFeatureResponse[]): AnalysisQuestionInternal[] {
-  return convertQuestionsFromSchemaToInternal(advancedFeatures?.find(({ action }) => action === ActionEnum.manual_qual))
-}
-
 /**
  * A function that updates the question definitions, i.e. the schema in the
  * advanced features of current asset.
@@ -148,7 +151,7 @@ export async function updateSurveyQuestions(assetUid: string, questions: Analysi
 
   // Step 4: Update the data (yay!)
   try {
-    const response = await fetchPatch<AssetResponse>(
+    const response = await fetchPatch<AdvancedFeatureResponseManualQual>(
       endpoints.ASSET_URL.replace(':uid', assetUid),
       { advanced_features: advancedFeatures as Json },
       // The `updateSurveyQuestions` function can fail for other reasons too, so
@@ -164,7 +167,7 @@ export async function updateSurveyQuestions(assetUid: string, questions: Analysi
     // `analysisQuestions.reducer` is using `assetStore` to build the initial
     // list of questions every time user (re-)visits "Analysis" tab.
     // Without this line, user could see some old data.
-    assetStore.onUpdateAssetCompleted(response)
+    // assetStore.onUpdateAssetCompleted(response)
 
     return response
   } catch (err) {
@@ -198,7 +201,7 @@ async function updateResponse(
       },
     }
 
-    const apiResponse = await fetchPostUrl<SubmissionProcessingDataResponse>(
+    const apiResponse = await fetchPostUrl<AdvancedFeatureResponseManualQual>(
       processingUrl,
       payload as Json,
       // We handle the errors in the `updateResponseAndReducer` function.

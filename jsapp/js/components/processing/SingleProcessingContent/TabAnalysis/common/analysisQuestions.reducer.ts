@@ -173,7 +173,7 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
     case 'updateResponseCompleted': {
       const newQuestions = applyUpdateResponseToInternalQuestions(
         action.payload.xpath,
-        action.payload.apiResponse,
+        action.payload.apiResponse as any, // TODO
         state.questions,
       )
 

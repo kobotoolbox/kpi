@@ -14,9 +14,9 @@ import { userCan } from '#/components/permissions/utils'
 import AnalysisQuestionsContext from '../../../common/analysisQuestions.context'
 import type { AnalysisQuestionInternal } from '../../../common/constants'
 import {
+  convertQuestionsFromSchemaToInternal,
   findQuestion,
   getQuestionTypeDefinition,
-  getQuestionsFromSchema,
   updateSurveyQuestions,
 } from '../../../common/utils'
 
@@ -91,7 +91,7 @@ export default function ResponseForm({ asset, uuid, children, onClear }: Props) 
       analysisQuestions?.dispatch({
         type: 'deleteQuestionCompleted',
         payload: {
-          questions: getQuestionsFromSchema(response?.advanced_features),
+          questions: convertQuestionsFromSchemaToInternal(response),
         },
       })
     } catch (err) {

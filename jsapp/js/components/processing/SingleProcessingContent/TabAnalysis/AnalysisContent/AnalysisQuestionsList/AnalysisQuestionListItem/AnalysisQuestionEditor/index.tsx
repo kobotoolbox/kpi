@@ -11,9 +11,9 @@ import { recordKeys } from '#/utils'
 import AnalysisQuestionsContext from '../../../../common/analysisQuestions.context'
 import type { AdditionalFields, AnalysisQuestionInternal } from '../../../../common/constants'
 import {
+  convertQuestionsFromSchemaToInternal,
   findQuestion,
   getQuestionTypeDefinition,
-  getQuestionsFromSchema,
   updateSurveyQuestions,
 } from '../../../../common/utils'
 import KeywordSearchFieldsEditor from './KeywordSearchFieldsEditor'
@@ -127,7 +127,7 @@ export default function AnalysisQuestionEditor({ asset, uuid }: Props) {
 
         // We get all questions in the response, but we only need the one we've
         // just updated
-        const newQuestions = getQuestionsFromSchema(response?.advanced_features)
+        const newQuestions = convertQuestionsFromSchemaToInternal(response)
         const currentNewQuestion = newQuestions.find((item) => item.uuid === uuid)
 
         if (currentNewQuestion) {

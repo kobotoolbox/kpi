@@ -1,7 +1,6 @@
 import React, { useContext } from 'react'
 
 import classNames from 'classnames'
-import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import Button from '#/components/common/button'
@@ -14,13 +13,14 @@ import styles from './AnalysisHeader.module.scss'
 import AnalysisQuestionsContext from './common/analysisQuestions.context'
 import { ANALYSIS_QUESTION_TYPES } from './common/constants'
 import type { AnalysisQuestionTypeDefinition } from './common/constants'
+import type { AdvancedFeatureResponseManualQual } from './common/utils'
 
 interface Props {
   asset: AssetResponse
   questionXpath: string
   submission: DataResponse & Record<string, string>
   supplement: DataSupplementResponse
-  advancedFeatures: AdvancedFeatureResponse[]
+  advancedFeature: AdvancedFeatureResponseManualQual
 }
 
 /**

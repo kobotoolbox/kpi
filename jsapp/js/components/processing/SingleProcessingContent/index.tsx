@@ -8,9 +8,11 @@ import { PROCESSING_ROUTES } from '#/router/routerConstants'
 
 import { goToTabRoute, isProcessingRouteActive } from '../routes.utils'
 
+import { ActionEnum } from '#/api/models/actionEnum'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import TabAnalysis from './TabAnalysis'
+import type { AdvancedFeatureResponseManualQual } from './TabAnalysis/common/utils'
 import TabTranscript from './TabTranscript'
 import TabTranslations from './TabTranslations'
 import styles from './index.module.scss'
@@ -56,6 +58,18 @@ export default function SingleProcessingContent({
     safeExecute(() => goToTabRoute(PROCESSING_ROUTES.ANALYSIS))
   }
 
+  // Use placeholder when there's none. Will upsert anyways.
+  const advancedFeatureAnalysis =
+    advancedFeatures
+      .filter((af) => af.question_xpath === questionXpath)
+      .find((af): af is AdvancedFeatureResponseManualQual => af.action === ActionEnum.manual_qual) ??
+    ({
+      action: ActionEnum.manual_qual,
+      question_xpath: questionXpath,
+      params: [],
+      uid: 'placeholder',
+    } as AdvancedFeatureResponseManualQual)
+
   function renderTabContent() {
     if (isProcessingRouteActive(PROCESSING_ROUTES.TRANSCRIPT)) {
       return (
@@ -89,7 +103,7 @@ export default function SingleProcessingContent({
           submission={submission}
           onUnsavedWorkChange={onUnsavedWorkChange}
           supplement={supplement}
-          advancedFeatures={advancedFeatures}
+          advancedFeature={advancedFeatureAnalysis}
         />
       )
     }
