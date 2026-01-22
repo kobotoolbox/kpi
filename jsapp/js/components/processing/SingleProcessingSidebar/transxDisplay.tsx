@@ -3,15 +3,15 @@ import React from 'react'
 import { AsyncLanguageDisplayLabel } from '#/components/languages/languagesUtils'
 import TransxDate from '../SingleProcessingContent/components/transxDate'
 import bodyStyles from '../common/processingBody.module.scss'
-import type { TranscriptDataWithValue, TranscriptVersionItem } from '../common/types'
+import type { TranscriptVersionItemWithValue, TransxVersionItem } from '../common/types'
 import styles from './transxDisplay.module.scss'
 
 interface TransxDisplayProps {
-  transxVersionItem: TranscriptVersionItem
+  transxVersionItem: TransxVersionItem
 }
 
 export default function TransxDisplay({ transxVersionItem }: TransxDisplayProps) {
-  const { language, value } = transxVersionItem._data as TranscriptDataWithValue
+  const { language, value } = transxVersionItem._data as TranscriptVersionItemWithValue
 
   return (
     <section className={styles.root}>

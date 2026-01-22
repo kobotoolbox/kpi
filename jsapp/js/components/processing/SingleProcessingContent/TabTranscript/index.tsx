@@ -3,7 +3,7 @@ import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureRespon
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { AssetResponse } from '#/dataInterface'
-import { getTranscriptFromSupplement, isSupplementVersionWithValue } from '../../common/utils'
+import { getLatestTranscriptVersionItem, isSupplementVersionWithValue } from '../../common/utils'
 import TranscriptCreate from './TranscriptCreate'
 import TranscriptEdit from './TranscriptEdit'
 
@@ -24,7 +24,7 @@ export default function TranscriptTab({
   supplement,
   advancedFeatures,
 }: Props) {
-  const transcriptVersion = getTranscriptFromSupplement(supplement[questionXpath])
+  const transcriptVersion = getLatestTranscriptVersionItem(supplement, questionXpath)
 
   console.log('TranscriptTab', transcriptVersion)
 

@@ -14,6 +14,8 @@ import singleProcessingStore, { StaticDisplays } from '#/components/processing/s
 import type { DisplaysList } from '#/components/processing/singleProcessingStore'
 import { XML_VALUES_OPTION_VALUE } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
+import { recordValues } from '#/utils'
+import type { TranscriptVersionItem, TranslationVersionItem } from '../common/types'
 
 interface SidebarDisplaySettingsProps {
   asset: AssetResponse
@@ -23,6 +25,8 @@ interface SidebarDisplaySettingsProps {
   setHiddenQuestions: (questions: string[]) => void
   questionLabelLanguage: LanguageCode | string
   setQuestionLabelLanguage: (languageCode: LanguageCode | string) => void
+  transcript: TranscriptVersionItem | undefined
+  translations: TranslationVersionItem[]
 }
 
 export default function SidebarDisplaySettings({
@@ -33,6 +37,8 @@ export default function SidebarDisplaySettings({
   setHiddenQuestions,
   questionLabelLanguage,
   setQuestionLabelLanguage,
+  transcript,
+  translations,
 }: SidebarDisplaySettingsProps) {
   const [store] = useState(() => singleProcessingStore)
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
@@ -51,14 +57,18 @@ export default function SidebarDisplaySettings({
 
   const activeTab = getActiveTab()
 
+  const availableLanguages: LanguageCode[] = useMemo(() => {
+    return translations.map((translation) => translation._data.language)
+  }, [translations])
+
+  const availableDisplays = useMemo<Array<LanguageCode | StaticDisplays>>(() => {
+    const displays: Array<LanguageCode | StaticDisplays> = [...recordValues(StaticDisplays), ...availableLanguages]
+    return displays
+  }, [availableLanguages])
+
   if (activeTab === undefined) {
     return null
   }
-
-  // TODO: BUG this should be migrated to not use the store. Currently the available displays don't seem to include
-  // transcript and other translations
-  const transcript = store.getTranscript()
-  const availableDisplays = store.getAvailableDisplays(activeTab)
 
   // Returns the list of available displays for the current tab.
   // I.e., if we are on the transcript tab, hide the transcript option.
@@ -69,7 +79,7 @@ export default function SidebarDisplaySettings({
           <Text fw={700} component='span'>
             {t('Original transcript')}
             {' ('}
-            <AsyncLanguageDisplayLabel code={transcript.languageCode} />
+            <AsyncLanguageDisplayLabel code={transcript._data.language} />
             {')'}
           </Text>
         )

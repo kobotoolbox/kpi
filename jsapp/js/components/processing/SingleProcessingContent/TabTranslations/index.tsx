@@ -5,7 +5,7 @@ import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import type { AssetResponse } from '#/dataInterface'
 import bodyStyles from '../../common/processingBody.module.scss'
-import { getTranslationsFromSupplement } from '../../common/utils'
+import { getAllTranslationsFromSupplementData } from '../../common/utils'
 import TranslationAdd from './TranslationAdd'
 import Editor from './TranslationEdit/Editor'
 import Viewer from './TranslationEdit/Viewer'
@@ -27,7 +27,7 @@ export default function TranslationTab({
   supplement,
   advancedFeatures,
 }: Props) {
-  const translationVersions = getTranslationsFromSupplement(supplement[questionXpath])
+  const translationVersions = getAllTranslationsFromSupplementData(supplement, questionXpath)
 
   // Selected language Code to display.
   const [languageCode, setLanguageCode] = useState<LanguageCode | null>(null)

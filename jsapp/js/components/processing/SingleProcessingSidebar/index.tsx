@@ -4,9 +4,15 @@ import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import type { AssetResponse } from '#/dataInterface'
-import { getAllTranslationsFromSupplementData, getLatestTranscriptVersionItem } from '../common/utils'
+import { recordValues } from '#/utils'
+import type { DisplaysList } from '../common/types'
+import {
+  StaticDisplays,
+  getAllTranslationsFromSupplementData,
+  getDefaultDisplaysForTab,
+  getLatestTranscriptVersionItem,
+} from '../common/utils'
 import { getActiveTab } from '../routes.utils'
-import singleProcessingStore, { StaticDisplays, type DisplaysList } from '../singleProcessingStore'
 import styles from './index.module.scss'
 import SidebarDisplaySettings from './sidebarDisplaySettings'
 import SidebarSubmissionData from './sidebarSubmissionData'
@@ -30,8 +36,6 @@ export default function ProcessingSidebar({
   submission,
   supplement,
 }: ProcessingSidebarProps) {
-  const [store] = useState(() => singleProcessingStore)
-
   const activeTab = getActiveTab()
 
   if (activeTab === undefined) {
@@ -50,11 +54,16 @@ export default function ProcessingSidebar({
     return getAllTranslationsFromSupplementData(supplement, questionXpath)
   }, [supplement, questionXpath])
 
-  // Every time user changes the tab, we need to load the stored displays list
-  // for that tab.
+  // Every time user changes the tab, we need to load the default static displays list
+  // for that tab, keeping the dynamically selected translations.
   useEffect(() => {
-    //TODO: Move this out of store. This is only using the default values for displays based on activeTab
-    setSelectedDisplays(store.getDisplays(activeTab))
+    const defaultDisplays = getDefaultDisplaysForTab(activeTab)
+    const allStaticDisplays = recordValues(StaticDisplays)
+    const selectedTranslationDisplays = selectedDisplays.filter(
+      (display) => !allStaticDisplays.includes(display as StaticDisplays),
+    )
+    const newSelectedDisplays = [...defaultDisplays, ...selectedTranslationDisplays]
+    setSelectedDisplays(newSelectedDisplays)
   }, [activeTab])
 
   return (
@@ -67,15 +76,17 @@ export default function ProcessingSidebar({
         setHiddenQuestions={setHiddenQuestions}
         questionLabelLanguage={questionLabelLanguage}
         setQuestionLabelLanguage={setQuestionLabelLanguage}
+        transcript={transcript}
+        translations={translations}
       />
       <div className={styles.displays}>
-        {/* {translations.map((translation) => {
-          if (selectedDisplays.includes(translation.language)) {
-            return <TransxDisplay transxVersionItem={translation} key={translation.language} />
+        {translations.map((translation) => {
+          if (selectedDisplays.includes(translation._data.language)) {
+            return <TransxDisplay transxVersionItem={translation} key={translation._data.language} />
           }
 
           return null
-        })} */}
+        })}
 
         {selectedDisplays.includes(StaticDisplays.Transcript) && transcript && (
           <TransxDisplay transxVersionItem={transcript} />

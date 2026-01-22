@@ -4,8 +4,9 @@ import type { _DataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem
 import type { _DataSupplementResponseOneOfManualTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualTranscriptionVersionsItem'
 import type { _DataSupplementResponseOneOfManualTranscriptionVersionsItemData } from '#/api/models/_dataSupplementResponseOneOfManualTranscriptionVersionsItemData'
 import type { _DataSupplementResponseOneOfManualTranslationVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualTranslationVersionsItem'
-import type { _DataSupplementResponseOneOfManualTranslationVersionsItemData } from '#/api/models/_dataSupplementResponseOneOfManualTranslationVersionsItemData'
 import type { _DataSupplementResponseOneOfQualVersionsItem } from '#/api/models/_dataSupplementResponseOneOfQualVersionsItem'
+import type { LanguageCode } from '#/components/languages/languagesStore'
+import type { StaticDisplays } from './utils'
 
 export type OneOfTransx = {
   _versions: Array<
@@ -21,10 +22,16 @@ export type TranscriptVersionItem =
   | _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem
   | _DataSupplementResponseOneOfManualTranscriptionVersionsItem
 
-export type TranscriptDataWithValue =
+export type TranslationVersionItem =
+  | _DataSupplementResponseOneOfManualTranslationVersionsItem
+  | _DataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem
+
+export type QualVersionItem = _DataSupplementResponseOneOfQualVersionsItem
+
+export type TransxVersionItem = TranscriptVersionItem | TranslationVersionItem | QualVersionItem
+
+export type TranscriptVersionItemWithValue =
   | _DataSupplementResponseOneOfManualTranscriptionVersionsItemData
   | _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItemDataOneOfThree
 
-export type TranslationDataWithValue =
-  | _DataSupplementResponseOneOfManualTranslationVersionsItemData
-  | _DataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem['_data']
+export type DisplaysList = Array<LanguageCode | StaticDisplays>
