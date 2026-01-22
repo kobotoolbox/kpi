@@ -189,7 +189,7 @@ export const getAllTranslationsFromSupplementData = (
   Array.from(languageSet).forEach((language) => {
     const versionsForLanguage = allTranslationVersions.filter((version) => version._data.language === language)
     const latestVersion = versionsForLanguage.sort(TransxVersionSortFunction)[0]
-    if (latestVersion) {
+    if (latestVersion && isSupplementVersionWithValue(latestVersion)) {
       latestVersions.push(latestVersion)
     }
   })
