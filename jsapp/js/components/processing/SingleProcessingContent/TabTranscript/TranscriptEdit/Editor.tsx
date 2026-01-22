@@ -56,7 +56,6 @@ export default function Editor({
   const advancedFeature = advancedFeatures.find(
     (af) => af.action === ActionEnum.manual_transcription && af.question_xpath === questionXpath,
   )
-  console.log(advancedFeature)
 
   const patch = useAssetsDataSupplementPartialUpdate({
     mutation: {

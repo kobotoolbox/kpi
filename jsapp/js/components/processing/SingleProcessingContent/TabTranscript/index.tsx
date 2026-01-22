@@ -26,8 +26,6 @@ export default function TranscriptTab({
 }: Props) {
   const transcriptVersion = getLatestTranscriptVersionItem(supplement, questionXpath)
 
-  console.log('TranscriptTab', transcriptVersion)
-
   if (transcriptVersion && isSupplementVersionWithValue(transcriptVersion)) {
     return (
       <TranscriptEdit

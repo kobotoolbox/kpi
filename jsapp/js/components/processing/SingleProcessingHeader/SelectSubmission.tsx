@@ -83,7 +83,6 @@ export default function SelectSubmission({ assetUid, submission, xpath }: Props)
 
   const goPrev = () => {
     if (!queryPrev.data) return
-    console.log(queryPrev.data?.submission._uuid)
     goToProcessing(assetUid, xpath, queryPrev.data.submission._uuid, true)
   }
 

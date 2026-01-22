@@ -669,10 +669,8 @@ class SingleProcessingStore extends Reflux.Store {
         if (this.isAutoTranslationEventApplicable(event)) {
           this.data.exponentialBackoffCount = this.data.exponentialBackoffCount + 1
           this.data.isPollingForTranslation = true
-          console.log('trying to poll!') // TEMP DELETEME
           this.requestAutoTranslation(event.response[this.currentQuestionXpath]!.googlets!.languageCode)
         } else {
-          console.log('no more polling!') // TEMP DELETEME
           this.data.isPollingForTranslation = false
         }
       },

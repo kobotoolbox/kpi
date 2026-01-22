@@ -144,8 +144,6 @@ export default function StepCreateAutomated({
 
   if (!languageCode) return null
 
-  console.log('TranslationCreate', locale)
-
   if (mutationCreateAutomaticTranslation.isPending) {
     return (
       <div className={cx(bodyStyles.root, bodyStyles.stepConfig)}>

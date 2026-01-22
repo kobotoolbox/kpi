@@ -38,8 +38,6 @@ export default function TranslationTab({
     setLanguageCode(translationVersions[0]?._data.language ?? null)
   }, [translationVersion, setLanguageCode, translationVersions])
 
-  console.log('TranslationTab', translationVersions)
-
   // If automatic transcript isn't accepted, go directly to edit mode to accept or edit it.
   const [_mode, setMode] = useState<'view' | 'edit' | 'add'>('view')
   const mode = translationVersions.length > 0 ? _mode : 'add'
