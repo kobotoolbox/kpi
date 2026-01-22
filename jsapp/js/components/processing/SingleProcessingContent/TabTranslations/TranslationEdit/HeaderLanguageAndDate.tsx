@@ -27,8 +27,6 @@ export default function HeaderLanguageAndDate({
 }: Props) {
   const existingTranslations = translationVersions?.filter(isSupplementVersionWithValue)
 
-  console.log('xxx translationVersion', translationVersion)
-
   return (
     <React.Fragment>
       {existingTranslations && onChangeLanguageCode ? (
@@ -48,7 +46,7 @@ export default function HeaderLanguageAndDate({
           <AsyncLanguageDisplayLabel code={translationVersion._data.language} />
         </label>
       )}
-      {/* TODO OpenAPI: add _dateModified */}
+      {/* Note: there is no `_dateModified` here, because modifying through API is just creating a new version */}
       {translationVersion._dateCreated !== '' && <TransxDate dateCreated={translationVersion._dateCreated} />}
     </React.Fragment>
   )

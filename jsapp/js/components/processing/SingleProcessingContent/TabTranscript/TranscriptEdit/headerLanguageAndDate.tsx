@@ -25,7 +25,7 @@ export default function HeaderLanguageAndDate({ transcriptVersion }: Props) {
         */}
         <AsyncLanguageDisplayLabel code={valueLanguageCode} />
       </label>
-      {/* TODO OpenAPI: add _dateModified */}
+      {/* Note: there is no `_dateModified` here, because modifying through API is just creating a new version */}
       {transcriptVersion._dateCreated !== '' && <TransxDate dateCreated={transcriptVersion._dateCreated} />}
     </React.Fragment>
   )
