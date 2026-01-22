@@ -17,7 +17,6 @@ import SingleProcessingContent from './SingleProcessingContent'
 import SingleProcessingHeader from './SingleProcessingHeader'
 import SingleProcessingSidebar from './SingleProcessingSidebar'
 import styles from './index.module.scss'
-import singleProcessingStore from './singleProcessingStore'
 
 // TODO: manually enable `POST /api/v2/assets/{uid_asset}/advanced-features/` for questions for now.
 
@@ -85,9 +84,6 @@ export default function SingleProcessingRoute({ params: routeParams }: { params:
   return (
     <DocumentTitle title={pageTitle}>
       <section className={styles.root}>
-        {/* TODO: move deeper into editor components and condition over the local variables. */}
-        {(singleProcessingStore.hasAnyUnsavedWork() || singleProcessingStore.data.isPollingForTranscript) && <Prompt />}
-
         <section className={styles.top}>
           <SingleProcessingHeader
             asset={asset}

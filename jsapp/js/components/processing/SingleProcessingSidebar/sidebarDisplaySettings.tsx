@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react'
 
 import { Box, Flex, Modal, ScrollArea, Stack, Text } from '@mantine/core'
+import { getFlatQuestionsList, getLanguageIndex } from '#/assetUtils'
 import Button from '#/components/common/button'
 import KoboSelect from '#/components/common/koboSelect'
 import type { KoboSelectOption } from '#/components/common/koboSelect'
@@ -10,12 +11,11 @@ import ToggleSwitch from '#/components/common/toggleSwitch'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { AsyncLanguageDisplayLabel } from '#/components/languages/languagesUtils'
 import { getActiveTab } from '#/components/processing/routes.utils'
-import singleProcessingStore, { StaticDisplays } from '#/components/processing/singleProcessingStore'
-import type { DisplaysList } from '#/components/processing/singleProcessingStore'
 import { XML_VALUES_OPTION_VALUE } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import { recordValues } from '#/utils'
-import type { TranscriptVersionItem, TranslationVersionItem } from '../common/types'
+import type { DisplaysList, TranscriptVersionItem, TranslationVersionItem } from '../common/types'
+import { StaticDisplays } from '../common/utils'
 
 interface SidebarDisplaySettingsProps {
   asset: AssetResponse
@@ -40,7 +40,6 @@ export default function SidebarDisplaySettings({
   transcript,
   translations,
 }: SidebarDisplaySettingsProps) {
-  const [store] = useState(() => singleProcessingStore)
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
 
   const assetLanguageOptions = useMemo<KoboSelectOption[]>(() => {
@@ -113,16 +112,19 @@ export default function SidebarDisplaySettings({
   }
 
   function getCheckboxes() {
-    const checkboxes = store.getAllSidebarQuestions().map((question) => {
-      return {
-        label: question.label,
-        checked: isFieldChecked(question.name),
-        name: question.name,
-        disabled: !selectedDisplays.includes(StaticDisplays.Data),
-      }
-    })
+    if (asset?.content?.survey) {
+      const questionsList = getFlatQuestionsList(
+        asset.content.survey,
+        getLanguageIndex(asset, questionLabelLanguage as LanguageCode),
+      ).map((question) => {
+        // We make an object to show the question label to the user but use the
+        // name internally so it works with duplicate question labels
+        return { name: question.name, label: question.label, checked: isFieldChecked(question.name) }
+      })
+      return questionsList
+    }
 
-    return checkboxes
+    return []
   }
 
   function onCheckboxesChange(list: MultiCheckboxItem[]) {
