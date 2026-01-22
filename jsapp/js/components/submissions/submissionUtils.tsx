@@ -1,6 +1,6 @@
 import clonedeep from 'lodash.clonedeep'
 import get from 'lodash.get'
-import type { _DataResponseAttachments } from '#/api/models/_dataResponseAttachments'
+import type { _DataResponseAttachmentsItem } from '#/api/models/_dataResponseAttachmentsItem'
 import type { DataResponse } from '#/api/models/dataResponse'
 import { getRowName, getSurveyFlatPaths, getTranslatedRowLabel, isRowSpecialLabelHolder } from '#/assetUtils'
 import DeletedAttachment from '#/attachments/deletedAttachment.component'
@@ -30,7 +30,10 @@ import type {
   SurveyRow,
 } from '#/dataInterface'
 import { recordEntries, recordKeys } from '#/utils'
-import { QUAL_NOTE_TYPE, type SubmissionAnalysisResponse } from '../processing/SingleProcessingContent/TabAnalysis/constants'
+import {
+  QUAL_NOTE_TYPE,
+  type SubmissionAnalysisResponse,
+} from '../processing/SingleProcessingContent/TabAnalysis/constants'
 
 export enum DisplayGroupTypeName {
   group_root = 'group_root',
@@ -606,12 +609,11 @@ export function getMediaAttachment(
   fileName: string,
   questionXPath: string,
 ): string | SubmissionAttachment {
-  let mediaAttachment: string | _DataResponseAttachments = t('Could not find ##fileName##').replace(
+  let mediaAttachment: string | _DataResponseAttachmentsItem = t('Could not find ##fileName##').replace(
     '##fileName##',
     fileName,
   )
-
-  ;(submission._attachments as any as _DataResponseAttachments[]).forEach((attachment) => {
+  submission._attachments.forEach((attachment) => {
     if (attachment.question_xpath === questionXPath) {
       // Check if the audio filetype is of type not supported by player and send it to format to mp3
       if (
@@ -652,7 +654,10 @@ export function getMediaAttachment(
  * can be only one transcript), but we need to use paths with languages in it
  * to build Submission Modal and Data Table properly.
  */
-export function getSupplementalDetailsContent(submission: DataResponse | SubmissionResponse, path: string): string | null {
+export function getSupplementalDetailsContent(
+  submission: DataResponse | SubmissionResponse,
+  path: string,
+): string | null {
   const pathParts = getSupplementalPathParts(path)
   const pathArray = [SUPPLEMENTAL_DETAILS_PROP, pathParts.sourceRowPath]
 
@@ -762,15 +767,14 @@ export function markAttachmentAsDeleted(
   targetAttachmentUid: string,
 ): DataResponse | SubmissionResponse {
   const data = clonedeep(submissionData)
-  const targetAttachment = (data._attachments as any as _DataResponseAttachments[]).find((item) => item.uid === targetAttachmentUid)
-
-  ;(data._attachments as any as _DataResponseAttachments[]).forEach((attachment) => {
+  const targetAttachment = data._attachments.find((item) => item.uid === targetAttachmentUid)
+  data._attachments.forEach((attachment) => {
     if (
       attachment.uid === targetAttachment?.uid &&
       attachment.question_xpath === targetAttachment?.question_xpath &&
       attachment.filename === targetAttachment?.filename
     ) {
-      (attachment as any).is_deleted = true
+      attachment.is_deleted = true
     }
   })
 
@@ -852,7 +856,7 @@ export function getMediaCount(selectedSubmissions: DataResponse[] | SubmissionRe
   let totalAudios = 0
 
   selectedSubmissions.forEach((submission) => {
-    (submission._attachments as any as _DataResponseAttachments[]).forEach((attachment) => {
+    submission._attachments.forEach((attachment) => {
       const mimetype = attachment.mimetype!
       if (mimetype.includes('image/')) {
         totalImages++

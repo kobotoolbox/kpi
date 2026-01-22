@@ -1,6 +1,6 @@
 import { FocusTrap, Group, Menu, Modal, Stack } from '@mantine/core'
 import { useState } from 'react'
-import type { _DataResponseAttachments } from '#/api/models/_dataResponseAttachments'
+import type { _DataResponseAttachmentsItem } from '#/api/models/_dataResponseAttachmentsItem'
 import type { DataResponse } from '#/api/models/dataResponse'
 import ActionIcon from '#/components/common/ActionIcon'
 import Button from '#/components/common/ButtonNew'
@@ -33,7 +33,7 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
   const [isDeletePending, setIsDeletePending] = useState<boolean>(false)
   const removeAttachmentMutation = useRemoveAttachment(props.asset.uid)
 
-  const attachment = (props.submission._attachments as any as _DataResponseAttachments[]).find(
+  const attachment = (props.submission._attachments as any as _DataResponseAttachmentsItem[]).find(
     (item) => item.uid === props.attachmentUid,
   )
   if (!attachment) {
@@ -41,7 +41,7 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
   }
 
   // Safety check, ideally parent component should not render this component if attachment is deleted.
-  if ((attachment as SubmissionResponse).is_deleted) {
+  if (attachment.is_deleted) {
     return null
   }
 

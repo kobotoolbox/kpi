@@ -3,7 +3,6 @@ import React, { useState } from 'react'
 import cx from 'classnames'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
-import type { NLPActionParamsItem } from '#/api/models/nLPActionParamsItem'
 import { onErrorDefaultHandler } from '#/api/onErrorDefaultHandler'
 import { queryClient } from '#/api/queryClient'
 import {
@@ -114,9 +113,7 @@ export default function StepCreateAutomated({
       })
       // TODO: should I check for locales too or not?
       // TODO: OpenAPI shouldn't be double-arrayed.
-    } else if (
-      !advancedFeature?.params.find((param) => (param as any as NLPActionParamsItem).language === languageCode)
-    ) {
+    } else if (!advancedFeature?.params.find((param) => 'language' in param && param.language === languageCode)) {
       await mutationPatchAF.mutateAsync({
         uidAsset: asset.uid,
         uidAdvancedFeature: advancedFeature.uid,
