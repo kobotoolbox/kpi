@@ -8,37 +8,22 @@ import styles from './transxDate.module.scss'
  * Returns a human friendly date. Returns empty string if there is no sufficient
  * data provided.
  */
-function getTransxDate(
-  dateCreated?: string,
-  dateModified?: string,
-): {
+function getTransxDate(dateCreated: string): {
   long: string
   short: string
 } {
-  const output = {
-    short: '',
-    long: '',
+  return {
+    long: formatTime(dateCreated),
+    short: formatTimeDateShort(dateCreated),
   }
-
-  if (dateCreated && dateModified) {
-    if (dateCreated !== dateModified) {
-      output.long = t('last modified ##date##').replace('##date##', formatTime(dateModified))
-      output.short = formatTimeDateShort(dateModified)
-    } else {
-      output.long = t('created ##date##').replace('##date##', formatTime(dateCreated))
-      output.short = formatTimeDateShort(dateCreated)
-    }
-  }
-  return output
 }
 
 interface TransxDateProps {
-  dateCreated?: string
-  dateModified?: string
+  dateCreated: string
 }
 
-export default function TransxDate(props: TransxDateProps) {
-  const dateText = getTransxDate(props.dateCreated, props.dateModified)
+export default function TransxDate({ dateCreated }: TransxDateProps) {
+  const dateText = getTransxDate(dateCreated)
 
   return (
     <>

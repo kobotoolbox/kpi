@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 
 import type { DataResponse } from '#/api/models/dataResponse'
+import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import type { AssetResponse } from '#/dataInterface'
+import { getAllTranslationsFromSupplementData, getLatestTranscriptVersionItem } from '../common/utils'
 import { getActiveTab } from '../routes.utils'
 import singleProcessingStore, { StaticDisplays, type DisplaysList } from '../singleProcessingStore'
 import styles from './index.module.scss'
@@ -17,6 +19,7 @@ interface ProcessingSidebarProps {
   questionLabelLanguage: LanguageCode | string
   setQuestionLabelLanguage: (LanguageCode: LanguageCode | string) => void
   submission?: DataResponse & Record<string, string>
+  supplementData: DataSupplementResponse
 }
 
 export default function ProcessingSidebar({
@@ -25,6 +28,7 @@ export default function ProcessingSidebar({
   questionLabelLanguage,
   setQuestionLabelLanguage,
   submission,
+  supplementData,
 }: ProcessingSidebarProps) {
   const [store] = useState(() => singleProcessingStore)
 
@@ -38,16 +42,20 @@ export default function ProcessingSidebar({
   const [selectedDisplays, setSelectedDisplays] = useState<DisplaysList>([])
   const [hiddenQuestions, setHiddenQuestions] = useState<string[]>([])
 
+  const transcript = useMemo(() => {
+    return getLatestTranscriptVersionItem(supplementData, xpath)
+  }, [supplementData, xpath])
+
+  const translations = useMemo(() => {
+    return getAllTranslationsFromSupplementData(supplementData, xpath)
+  }, [supplementData, xpath])
+
   // Every time user changes the tab, we need to load the stored displays list
   // for that tab.
   useEffect(() => {
     //TODO: Move this out of store. This is only using the default values for displays based on activeTab
     setSelectedDisplays(store.getDisplays(activeTab))
   }, [activeTab])
-
-  // TODO: query via react-query and orval
-  const translations = store.getTranslations()
-  const transcript = store.getTranscript()
 
   return (
     <div className={styles.root}>
@@ -61,15 +69,17 @@ export default function ProcessingSidebar({
         setQuestionLabelLanguage={setQuestionLabelLanguage}
       />
       <div className={styles.displays}>
-        {Array.from(translations).map((translation) => {
-          if (selectedDisplays.includes(translation.languageCode)) {
-            return <TransxDisplay transx={translation} key={translation.languageCode} />
+        {/* {translations.map((translation) => {
+          if (selectedDisplays.includes(translation.language)) {
+            return <TransxDisplay transx={translation} key={translation.language} />
           }
 
           return null
-        })}
+        })} */}
 
-        {selectedDisplays.includes(StaticDisplays.Transcript) && transcript && <TransxDisplay transx={transcript} />}
+        {selectedDisplays.includes(StaticDisplays.Transcript) && transcript && (
+          <TransxDisplay transxVersionItem={transcript} />
+        )}
 
         {selectedDisplays.includes(StaticDisplays.Audio) && (
           <SidebarSubmissionMedia asset={asset} xpath={xpath} submission={submission} />

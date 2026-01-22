@@ -46,10 +46,7 @@ export default function HeaderLanguageAndDate({
           <AsyncLanguageDisplayLabel code={translationVersion._data.language} />
         </label>
       )}
-      <TransxDate
-        dateCreated={translationVersion._dateCreated}
-        dateModified={(translationVersion as any)._dateModified} /* TODO OpenAPI: add _dateModified */
-      />
+      <TransxDate dateCreated={translationVersion._dateCreated} />
     </React.Fragment>
   )
 }

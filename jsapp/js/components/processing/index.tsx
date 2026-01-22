@@ -122,6 +122,7 @@ export default function SingleProcessingRoute({ params: routeParams }: { params:
                 questionLabelLanguage={questionLabelLanguage}
                 setQuestionLabelLanguage={setQuestionLabelLanguage}
                 submission={submission}
+                supplementData={querySupplement.data.data}
               />
             </section>
           </React.Fragment>
