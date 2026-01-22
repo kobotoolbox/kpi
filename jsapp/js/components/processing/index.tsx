@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 
 import DocumentTitle from 'react-document-title'
-import { unstable_usePrompt as usePrompt } from 'react-router-dom'
 import {
   useAssetsAdvancedFeaturesList,
   useAssetsDataList,
@@ -10,7 +9,6 @@ import {
 import assetStore from '#/assetStore'
 import CenteredMessage from '#/components/common/centeredMessage.component'
 import LoadingSpinner from '#/components/common/loadingSpinner'
-import { UNSAVED_CHANGES_WARNING } from '#/protector/protectorConstants'
 import { addDefaultUuidPrefix } from '#/utils'
 import type { LanguageCode } from '../languages/languagesStore'
 import SingleProcessingContent from './SingleProcessingContent'
@@ -26,11 +24,6 @@ interface RouteParams extends Record<string, string | undefined> {
   uid: string
   xpath: string
   submissionEditId: string
-}
-
-const Prompt = () => {
-  usePrompt({ message: UNSAVED_CHANGES_WARNING, when: true })
-  return <></>
 }
 
 /**
