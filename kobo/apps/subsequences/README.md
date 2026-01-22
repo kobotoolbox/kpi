@@ -250,7 +250,7 @@ will result in
 }
 ```
 
-### 2.2 Add Submission Supplement
+### 2.3 Add Submission Supplement
 
 You need to PATCH the submission supplement with this payload:
 
@@ -314,12 +314,12 @@ Or use the public documentation endpoints:
 
 ---
 
-### 2.3 Sequence Diagram (End-to-End Flow)
+### 2.4 Sequence Diagram (End-to-End Flow)
 
 This section explains how the system handles a supplement from the initial
 client request, through validation and optional background retries.
 
-#### 2.3.1 Sequence Diagram – End-to-End
+#### 2.4.1 Sequence Diagram – End-to-End
 
 > The diagram shows the synchronous request until the first response.
 
@@ -364,7 +364,7 @@ API-->>Client: 200 OK (or error)
 
 ---
 
-#### 2.3.2 Background Polling with Celery
+#### 2.4.2 Background Polling with Celery
 
 If run_external_process receives a response like:
 
@@ -381,7 +381,7 @@ before persisting the final revision.
 
 ---
 
-#### 2.3.3 Flowchart (Logic inside `revise_data` per Action)
+#### 2.4.3 Flowchart (Logic inside `revise_data` per Action)
 
 > This diagram shows the decision tree when validating and processing a single action payload.
 
