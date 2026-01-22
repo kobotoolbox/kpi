@@ -9,6 +9,7 @@ from django.conf import settings
 from django.utils import timezone
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.subsequences.exceptions import SubsequenceDeletionError
 from kobo.apps.subsequences.utils.time import utc_datetime_to_js_str
 from kobo.celery import celery_app
 from kpi.exceptions import UsageLimitExceededException
@@ -408,6 +409,11 @@ class BaseAction:
         except IndexError:
             current_version = {}
         self.attach_action_dependency(action_data)
+        # Check if user is trying to delete null data
+        if ('value' in action_data and action_data['value'] is None) and (
+            current_version.get(self.VERSION_DATA_FIELD, {}).get('value') is None
+        ):
+            raise SubsequenceDeletionError
 
         if self.action_class_config.automatic:
             # If the action is automatic, run the external process first.
@@ -492,6 +498,22 @@ class BaseAction:
         """
         self.validate_params(incoming_params)
         self.params = incoming_params
+
+    def _get_date_field_value(self, version: dict) -> str:
+        """
+        Return the date used to sort a version.
+
+        If `_data.value` is None, the action was deleted, so the creation date
+        (`_dateCreated`) is used. Otherwise, the acceptance date (`_dateAccepted`)
+        is used.
+        """
+
+        return (
+            version.get(self.DATE_CREATED_FIELD, '')
+            if 'value' in version[self.VERSION_DATA_FIELD]
+            and version[self.VERSION_DATA_FIELD]['value'] is None
+            else version.get(self.DATE_ACCEPTED_FIELD, '')
+        )
 
     def _inject_data_schema(self, destination_schema: dict, skipped_keys: list):
         raise Exception('This method is going away')
@@ -814,7 +836,7 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
             '$defs': {
                 'lang': {'type': 'string', 'enum': self.languages},
                 'locale': {'type': ['string', 'null']},
-                'accepted': {'type': 'boolean'},
+                'accepted': {'const': True},
                 # Only null is permitted for `value`
                 'value_null_only': {'type': 'null'},
             },

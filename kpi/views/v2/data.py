@@ -28,6 +28,7 @@ from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_hand
 from kobo.apps.subsequences.exceptions import (
     InvalidAction,
     InvalidXPath,
+    SubsequenceDeletionError,
     TranscriptionNotFound,
 )
 from kobo.apps.subsequences.models import SubmissionSupplement
@@ -455,6 +456,7 @@ class DataViewSet(
             'user': request.user,
             'format_type': format_type,
             'request': request,
+            'for_output': True,
         }
         filters = self._filter_mongo_query(request)
 
@@ -566,6 +568,8 @@ class DataViewSet(
             raise serializers.ValidationError({'detail': 'Invalid action'})
         except InvalidXPath:
             raise serializers.ValidationError({'detail': 'Invalid question name'})
+        except SubsequenceDeletionError:
+            raise serializers.ValidationError({'detail': 'Subsequence deletion error'})
         except jsonschema.exceptions.ValidationError:
             raise serializers.ValidationError({'detail': 'Invalid payload'})
         except TranscriptionNotFound:

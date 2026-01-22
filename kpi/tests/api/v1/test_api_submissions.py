@@ -153,8 +153,16 @@ class SubmissionApiTests(test_api_submissions.SubmissionApiTests):
     def test_attachments_rewrite(self):
         pass
 
-    @pytest.mark.skip(reason='Rewrite should be used only with v2')
+    @pytest.mark.skip(reason='Inject root uuid should be used only with v2')
     def test_inject_root_uuid_if_not_present(self):
+        pass
+
+    @pytest.mark.skip(reason='Deprecated version')
+    def test_simplified_supplemental_detail_for_delete(self):
+        pass
+
+    @pytest.mark.skip(reason='Deprecated version')
+    def test_simplified_supplemental_detail_for_acceptance(self):
         pass
 
 

@@ -271,6 +271,35 @@ class AssetListApiTests(BaseAssetTestCase):
         results = uids_from_search_results('pk:alrighty')
         self.assertListEqual(results, [])
 
+    def test_numeric_search_for_assets_does_not_crash(self):
+        someuser = User.objects.get(username='someuser')
+
+        asset_int = Asset.objects.create(
+            owner=someuser,
+            name='Project 111',
+            asset_type='survey',
+        )
+
+        asset_float = Asset.objects.create(
+            owner=someuser,
+            name='Project 12.5',
+            asset_type='survey',
+        )
+
+        # Integer-only search
+        resp_int = self.client.get(self.list_url, data={'q': '111'})
+        self.assertEqual(resp_int.status_code, status.HTTP_200_OK)
+
+        result_uids_int = [r['uid'] for r in resp_int.data.get('results', [])]
+        self.assertIn(asset_int.uid, result_uids_int)
+
+        # Float-only search
+        resp_float = self.client.get(self.list_url, data={'q': '12.5'})
+        self.assertEqual(resp_float.status_code, status.HTTP_200_OK)
+
+        result_uids_float = [r['uid'] for r in resp_float.data.get('results', [])]
+        self.assertIn(asset_float.uid, result_uids_float)
+
     def test_assets_ordering(self):
 
         someuser = User.objects.get(username='someuser')

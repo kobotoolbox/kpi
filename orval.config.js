@@ -41,7 +41,7 @@ module.exports = {
       // Orval has a bug that fails to generate imports for $ref in additionalProperties.
       // See https://github.com/orval-labs/orval/issues/1077.
       // This is a workaround. Remove it once the underlying bug is fixed.
-      afterAllFilesWrite: 'node scripts/orval-fix-missing-imports.js',
+      afterAllFilesWrite: 'node scripts/orval-fix-referenced-additional-properties.js',
     },
   },
 }

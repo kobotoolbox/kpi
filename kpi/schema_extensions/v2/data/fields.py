@@ -7,7 +7,7 @@ from drf_spectacular.types import OpenApiTypes
 from rest_framework import serializers
 
 
-class DataAttachmentField(serializers.JSONField):
+class DataAttachmentsField(serializers.ListField):
     pass
 
 

@@ -193,6 +193,30 @@ def test_transform_data_for_output():
         'transcript': {
             'value': 'bonjour',
             'languageCode': 'fr',
+            'regionCode': None,
             '_sortByDate': retrieved_data['_versions'][0]['_dateAccepted'],
+        },
+    }
+
+
+def test_transform_data_for_output_with_delete():
+    xpath = 'group_name/question_name'  # irrelevant for this test
+    params = [{'language': 'fr'}, {'language': 'en'}]
+    action = ManualTranscriptionAction(xpath, params)
+
+    first = {'language': 'en', 'value': 'hello'}
+    second = {'language': 'en', 'value': None}
+
+    mock_sup_det = EMPTY_SUPPLEMENT
+    for data in first, second:
+        mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, data)
+    retrieved_data = action.retrieve_data(mock_sup_det)
+    result = action.transform_data_for_output(retrieved_data)
+    assert result == {
+        'transcript': {
+            'value': None,
+            'languageCode': 'en',
+            'regionCode': None,
+            '_sortByDate': retrieved_data['_versions'][0]['_dateCreated'],
         },
     }

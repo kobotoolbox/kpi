@@ -2668,6 +2668,22 @@ paths:
                             language: fr
                             value: Bonjour
                   summary: Manual Transcription
+                ManualTranscription(with"locale"):
+                  value:
+                    _version: '20250820'
+                    question_name_xpath:
+                      manual_transcription:
+                        _dateCreated: '2025-01-01T12:00:00Z'
+                        _dateModified: '2025-01-01T12:00:00Z'
+                        _versions:
+                        - _dateCreated: '2025-01-01T12:00:00Z'
+                          _dateAccepted: '2025-01-01T12:00:00Z'
+                          _uuid: 11111111-1111-1111-1111-111111111111
+                          _data:
+                            language: fr
+                            locale: fr-CA
+                            value: Bonjour
+                  summary: Manual Transcription (with "locale")
                 ManualTranslation:
                   value:
                     _version: '20250820'
@@ -2946,6 +2962,16 @@ paths:
                       language: fr
                       value: Bonjour
                 summary: Manual Transcription
+              ManualTranscription(with"locale"):
+                value:
+                  _version: '20250820'
+                  question_name_xpath:
+                    manual_transcription:
+                      language: fr
+                      locale: fr-CA
+                      value: Bonjour
+                summary: Manual Transcription (with "locale")
+                description: The `locale` field is optional.
               ManualTranslation:
                 value:
                   _version: '20250820'
@@ -3061,6 +3087,22 @@ paths:
                             language: fr
                             value: Bonjour
                   summary: Manual Transcription
+                ManualTranscription(with"locale"):
+                  value:
+                    _version: '20250820'
+                    question_name_xpath:
+                      manual_transcription:
+                        _dateCreated: '2025-01-01T12:00:00Z'
+                        _dateModified: '2025-01-01T12:00:00Z'
+                        _versions:
+                        - _dateCreated: '2025-01-01T12:00:00Z'
+                          _dateAccepted: '2025-01-01T12:00:00Z'
+                          _uuid: 11111111-1111-1111-1111-111111111111
+                          _data:
+                            language: fr
+                            locale: fr-CA
+                            value: Bonjour
+                  summary: Manual Transcription (with "locale")
                 ManualTranslation:
                   value:
                     _version: '20250820'
@@ -10377,12 +10419,28 @@ components:
       - user
       - user_uid
       - username
+    ActionEnum:
+      enum:
+      - automatic_google_transcription
+      - automatic_google_translation
+      - manual_transcription
+      - manual_translation
+      - manual_qual
+      - automatic_bedrock_qual
+      type: string
+      description: |-
+        * `automatic_google_transcription` - automatic_google_transcription
+        * `automatic_google_translation` - automatic_google_translation
+        * `manual_transcription` - manual_transcription
+        * `manual_translation` - manual_translation
+        * `manual_qual` - manual_qual
+        * `automatic_bedrock_qual` - automatic_bedrock_qual
     AdvancedFeaturePostRequest:
       type: object
       properties:
-        question_xpath:
-          type: string
         action:
+          $ref: '#/components/schemas/ActionEnum'
+        question_xpath:
           type: string
         params:
           type: array
@@ -10397,9 +10455,9 @@ components:
     AdvancedFeatureResponse:
       type: object
       properties:
-        question_xpath:
-          type: string
         action:
+          $ref: '#/components/schemas/ActionEnum'
+        question_xpath:
           type: string
         params:
           type: array
@@ -10407,13 +10465,10 @@ components:
             anyOf:
             - $ref: '#/components/schemas/NLPActionParams'
             - $ref: '#/components/schemas/QualActionParams'
-        asset:
-          type: string
         uid:
           type: string
       required:
       - action
-      - asset
       - params
       - question_xpath
       - uid
@@ -11693,32 +11748,46 @@ components:
         meta/rootUuid:
           type: string
         _attachments:
-          type: object
-          properties:
-            download_url:
-              type: string
-              format: uri
-              example: https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/1
-            download_large_url:
-              type: string
-              format: uri
-              example: https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/large/
-            download_medium_url:
-              type: string
-              format: uri
-              example: https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/medium/
-            download_small_url:
-              type: string
-              format: uri
-              example: https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/small/
-            mimetype:
-              type: string
-            filename:
-              type: string
-            uid:
-              type: string
-            question_xpath:
-              type: string
+          type: array
+          items:
+            type: object
+            properties:
+              download_url:
+                type: string
+                format: uri
+                example: https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/1
+              download_large_url:
+                type: string
+                format: uri
+                example: https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/large/
+              download_medium_url:
+                type: string
+                format: uri
+                example: https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/medium/
+              download_small_url:
+                type: string
+                format: uri
+                example: https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/small/
+              mimetype:
+                type: string
+                example: image/png
+              media_file_basename:
+                type: string
+              filename:
+                type: string
+              uid:
+                type: string
+              question_xpath:
+                type: string
+              is_deleted:
+                type: boolean
+            required:
+            - download_url
+            - filename
+            - media_file_basename
+            - mimetype
+            - question_xpath
+            - uid
           title: ' attachments'
         _status:
           type: string
@@ -11780,12 +11849,64 @@ components:
         $ref: '#/components/schemas/DataSupplementResponseOneOf'
       required:
       - _version
+      patternProperties:
+        ^(?!_version$).*:
+          $ref: '#/components/schemas/DataSupplementResponseOneOf'
     DataSupplementResponseOneOf:
-      oneOf:
-      - type: string
-      - type: object
-        properties:
-          manual_transcription:
+      type: object
+      properties:
+        manual_transcription:
+          type: object
+          properties:
+            _dateCreated:
+              type: string
+              format: date-time
+            _dateModified:
+              type: string
+              format: date-time
+            _versions:
+              type: array
+              items:
+                type: object
+                properties:
+                  _dateCreated:
+                    type: string
+                    format: date-time
+                  _uuid:
+                    type: string
+                    format: uuid
+                  _dateAccepted:
+                    type: string
+                    format: date-time
+                  _data:
+                    type: object
+                    properties:
+                      language:
+                        type: string
+                      locale:
+                        type: string
+                      value:
+                        type: string
+                        nullable: true
+                    additionalProperties: false
+                    required:
+                    - language
+                    - value
+                additionalProperties: false
+                required:
+                - _data
+                - _dateAccepted
+                - _dateCreated
+                - _uuid
+              minLength: 1
+          additionalProperties: false
+          required:
+          - _dateCreated
+          - _dateModified
+          - _versions
+        manual_translation:
+          type: object
+          additionalProperties:
             type: object
             properties:
               _dateCreated:
@@ -11805,6 +11926,18 @@ components:
                     _uuid:
                       type: string
                       format: uuid
+                    _dependency:
+                      type: object
+                      properties:
+                        _actionId:
+                          type: string
+                        _uuid:
+                          type: string
+                          format: uuid
+                      additionalProperties: false
+                      required:
+                      - _actionId
+                      - _uuid
                     _dateAccepted:
                       type: string
                       format: date-time
@@ -11812,6 +11945,8 @@ components:
                       type: object
                       properties:
                         language:
+                          type: string
+                        locale:
                           type: string
                         value:
                           type: string
@@ -11825,6 +11960,7 @@ components:
                   - _data
                   - _dateAccepted
                   - _dateCreated
+                  - _dependency
                   - _uuid
                 minLength: 1
             additionalProperties: false
@@ -11832,69 +11968,106 @@ components:
             - _dateCreated
             - _dateModified
             - _versions
-          manual_translation:
-            type: object
-            additionalProperties:
-              type: object
-              properties:
-                _dateCreated:
-                  type: string
-                  format: date-time
-                _dateModified:
-                  type: string
-                  format: date-time
-                _versions:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      _dateCreated:
-                        type: string
-                        format: date-time
-                      _uuid:
-                        type: string
-                        format: uuid
-                      _dependency:
-                        type: object
-                        properties:
-                          _actionId:
-                            type: string
-                          _uuid:
-                            type: string
-                            format: uuid
-                        additionalProperties: false
-                        required:
-                        - _actionId
-                        - _uuid
-                      _dateAccepted:
-                        type: string
-                        format: date-time
-                      _data:
-                        type: object
-                        properties:
-                          language:
-                            type: string
-                          value:
-                            type: string
-                            nullable: true
-                        additionalProperties: false
-                        required:
-                        - language
-                        - value
-                    additionalProperties: false
-                    required:
-                    - _data
-                    - _dateAccepted
-                    - _dateCreated
-                    - _dependency
-                    - _uuid
-                  minLength: 1
-              additionalProperties: false
-              required:
-              - _dateCreated
-              - _dateModified
-              - _versions
-          automatic_google_transcription:
+        automatic_google_transcription:
+          type: object
+          properties:
+            _dateCreated:
+              type: string
+              format: date-time
+            _dateModified:
+              type: string
+              format: date-time
+            _versions:
+              type: array
+              items:
+                type: object
+                properties:
+                  _dateCreated:
+                    type: string
+                    format: date-time
+                  _uuid:
+                    type: string
+                    format: uuid
+                  _dateAccepted:
+                    type: string
+                    format: date-time
+                  _data:
+                    oneOf:
+                    - type: object
+                      properties:
+                        language:
+                          type: string
+                        locale:
+                          type: string
+                        status:
+                          type: string
+                          const: in_progress
+                      additionalProperties: false
+                      required:
+                      - language
+                      - status
+                    - type: object
+                      properties:
+                        language:
+                          type: string
+                        locale:
+                          type: string
+                        status:
+                          type: string
+                          const: failed
+                        error:
+                          type: string
+                      additionalProperties: false
+                      required:
+                      - error
+                      - language
+                      - status
+                    - type: object
+                      properties:
+                        language:
+                          type: string
+                        locale:
+                          type: string
+                        status:
+                          type: string
+                          const: complete
+                        value:
+                          type: string
+                      additionalProperties: false
+                      required:
+                      - language
+                      - status
+                      - value
+                    - type: object
+                      properties:
+                        language:
+                          type: string
+                        locale:
+                          type: string
+                        status:
+                          type: string
+                          const: deleted
+                        value:
+                          type: 'null'
+                      additionalProperties: false
+                      required:
+                      - language
+                      - status
+                      - value
+                additionalProperties: false
+                required:
+                - _data
+                - _dateCreated
+                - _uuid
+              minLength: 1
+          additionalProperties: false
+          required:
+          - _dateCreated
+          - _dateModified
+          - _versions
+        automatic_google_translation:
+          type: object
+          additionalProperties:
             type: object
             properties:
               _dateCreated:
@@ -11914,6 +12087,18 @@ components:
                     _uuid:
                       type: string
                       format: uuid
+                    _dependency:
+                      type: object
+                      properties:
+                        _actionId:
+                          type: string
+                        _uuid:
+                          type: string
+                          format: uuid
+                      additionalProperties: false
+                      required:
+                      - _actionId
+                      - _uuid
                     _dateAccepted:
                       type: string
                       format: date-time
@@ -11922,6 +12107,8 @@ components:
                       - type: object
                         properties:
                           language:
+                            type: string
+                          locale:
                             type: string
                           status:
                             type: string
@@ -11933,6 +12120,8 @@ components:
                       - type: object
                         properties:
                           language:
+                            type: string
+                          locale:
                             type: string
                           status:
                             type: string
@@ -11948,6 +12137,8 @@ components:
                         properties:
                           language:
                             type: string
+                          locale:
+                            type: string
                           status:
                             type: string
                             const: complete
@@ -11961,6 +12152,8 @@ components:
                       - type: object
                         properties:
                           language:
+                            type: string
+                          locale:
                             type: string
                           status:
                             type: string
@@ -11976,6 +12169,7 @@ components:
                   required:
                   - _data
                   - _dateCreated
+                  - _dependency
                   - _uuid
                 minLength: 1
             additionalProperties: false
@@ -11983,113 +12177,128 @@ components:
             - _dateCreated
             - _dateModified
             - _versions
-          automatic_google_translation:
+        manual_qual:
+          type: object
+          additionalProperties:
             type: object
-            additionalProperties:
-              type: object
-              properties:
-                _dateCreated:
-                  type: string
-                  format: date-time
-                _dateModified:
-                  type: string
-                  format: date-time
-                _versions:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      _dateCreated:
-                        type: string
-                        format: date-time
-                      _uuid:
-                        type: string
-                        format: uuid
-                      _dependency:
-                        type: object
-                        properties:
-                          _actionId:
-                            type: string
-                          _uuid:
-                            type: string
-                            format: uuid
-                        additionalProperties: false
-                        required:
-                        - _actionId
-                        - _uuid
-                      _dateAccepted:
-                        type: string
-                        format: date-time
-                      _data:
-                        oneOf:
+            properties:
+              _dateCreated:
+                type: string
+                format: date-time
+              _dateModified:
+                type: string
+                format: date-time
+              _versions:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    _data:
+                      oneOf:
+                      - allOf:
                         - type: object
                           properties:
-                            language:
+                            uuid:
                               type: string
-                            status:
-                              type: string
-                              const: in_progress
+                              format: uuid
+                            value: {}
                           additionalProperties: false
                           required:
-                          - language
-                          - status
-                        - type: object
-                          properties:
-                            language:
-                              type: string
-                            status:
-                              type: string
-                              const: failed
-                            error:
-                              type: string
-                          additionalProperties: false
-                          required:
-                          - error
-                          - language
-                          - status
-                        - type: object
-                          properties:
-                            language:
-                              type: string
-                            status:
-                              type: string
-                              const: complete
-                            value:
-                              type: string
-                          additionalProperties: false
-                          required:
-                          - language
-                          - status
+                          - uuid
                           - value
                         - type: object
                           properties:
-                            language:
-                              type: string
-                            status:
-                              type: string
-                              const: deleted
                             value:
-                              type: 'null'
+                              type: integer
+                              nullable: true
+                      - allOf:
+                        - type: object
+                          properties:
+                            uuid:
+                              type: string
+                              format: uuid
+                            value: {}
                           additionalProperties: false
                           required:
-                          - language
-                          - status
+                          - uuid
                           - value
-                    additionalProperties: false
-                    required:
-                    - _data
-                    - _dateCreated
-                    - _dependency
-                    - _uuid
-                  minLength: 1
-              additionalProperties: false
-              required:
-              - _dateCreated
-              - _dateModified
-              - _versions
-          qual:
-            type: object
-            additionalProperties:
+                        - type: object
+                          properties:
+                            value:
+                              type: array
+                              items:
+                                type: string
+                                format: uuid
+                      - allOf:
+                        - type: object
+                          properties:
+                            uuid:
+                              type: string
+                              format: uuid
+                            value: {}
+                          additionalProperties: false
+                          required:
+                          - uuid
+                          - value
+                        - type: object
+                          properties:
+                            value:
+                              type: string
+                              format: uuid
+                      - allOf:
+                        - type: object
+                          properties:
+                            uuid:
+                              type: string
+                              format: uuid
+                            value: {}
+                          additionalProperties: false
+                          required:
+                          - uuid
+                          - value
+                        - type: object
+                          properties:
+                            value:
+                              type: array
+                              items:
+                                type: string
+                      - allOf:
+                        - type: object
+                          properties:
+                            uuid:
+                              type: string
+                              format: uuid
+                            value: {}
+                          additionalProperties: false
+                          required:
+                          - uuid
+                          - value
+                        - type: object
+                          properties:
+                            value:
+                              type: string
+                    _dateAccepted:
+                      type: string
+                      format: date-time
+                    _dateCreated:
+                      type: string
+                      format: date-time
+                    _uuid:
+                      type: string
+                      format: uuid
+                  additionalProperties: false
+                  required:
+                  - _data
+                  - _dateCreated
+                  - _uuid
+                minLength: 1
+            additionalProperties: false
+            required:
+            - _dateCreated
+            - _dateModified
+            - _versions
+          patternProperties:
+            ^[0-9a-fA-F-]{36}$:
               type: object
               properties:
                 _dateCreated:
@@ -12207,137 +12416,18 @@ components:
               - _dateCreated
               - _dateModified
               - _versions
-            patternProperties:
-              ^[0-9a-fA-F-]{36}$:
-                type: object
-                properties:
-                  _dateCreated:
-                    type: string
-                    format: date-time
-                  _dateModified:
-                    type: string
-                    format: date-time
-                  _versions:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        _data:
-                          oneOf:
-                          - allOf:
-                            - type: object
-                              properties:
-                                uuid:
-                                  type: string
-                                  format: uuid
-                                value: {}
-                              additionalProperties: false
-                              required:
-                              - uuid
-                              - value
-                            - type: object
-                              properties:
-                                value:
-                                  type: integer
-                                  nullable: true
-                          - allOf:
-                            - type: object
-                              properties:
-                                uuid:
-                                  type: string
-                                  format: uuid
-                                value: {}
-                              additionalProperties: false
-                              required:
-                              - uuid
-                              - value
-                            - type: object
-                              properties:
-                                value:
-                                  type: array
-                                  items:
-                                    type: string
-                                    format: uuid
-                          - allOf:
-                            - type: object
-                              properties:
-                                uuid:
-                                  type: string
-                                  format: uuid
-                                value: {}
-                              additionalProperties: false
-                              required:
-                              - uuid
-                              - value
-                            - type: object
-                              properties:
-                                value:
-                                  type: string
-                                  format: uuid
-                          - allOf:
-                            - type: object
-                              properties:
-                                uuid:
-                                  type: string
-                                  format: uuid
-                                value: {}
-                              additionalProperties: false
-                              required:
-                              - uuid
-                              - value
-                            - type: object
-                              properties:
-                                value:
-                                  type: array
-                                  items:
-                                    type: string
-                          - allOf:
-                            - type: object
-                              properties:
-                                uuid:
-                                  type: string
-                                  format: uuid
-                                value: {}
-                              additionalProperties: false
-                              required:
-                              - uuid
-                              - value
-                            - type: object
-                              properties:
-                                value:
-                                  type: string
-                        _dateAccepted:
-                          type: string
-                          format: date-time
-                        _dateCreated:
-                          type: string
-                          format: date-time
-                        _uuid:
-                          type: string
-                          format: uuid
-                      additionalProperties: false
-                      required:
-                      - _data
-                      - _dateCreated
-                      - _uuid
-                    minLength: 1
-                additionalProperties: false
-                required:
-                - _dateCreated
-                - _dateModified
-                - _versions
-        additionalProperties: false
-        anyOf:
-        - required:
-          - manual_transcription
-        - required:
-          - manual_translation
-        - required:
-          - automatic_google_transcription
-        - required:
-          - automatic_google_translation
-        - required:
-          - qual
+      additionalProperties: false
+      anyOf:
+      - required:
+        - manual_transcription
+      - required:
+        - manual_translation
+      - required:
+        - automatic_google_transcription
+      - required:
+        - automatic_google_translation
+      - required:
+        - manual_qual
     DataValidationStatusUpdateResponse:
       type: object
       properties:
@@ -13628,15 +13718,13 @@ components:
         * `member` - member
         * `owner` - owner
     NLPActionParams:
-      type: array
-      items:
-        additionalProperties: false
-        properties:
-          language:
-            type: string
-        required:
-        - language
-        type: object
+      type: object
+      additionalProperties: false
+      properties:
+        language:
+          type: string
+      required:
+      - language
     NlpUsage:
       type: object
       properties:
@@ -14999,174 +15087,185 @@ components:
         $ref: '#/components/schemas/PatchedDataSupplementPayloadOneOf'
       required:
       - _version
+      patternProperties:
+        ^(?!_version$).*:
+          $ref: '#/components/schemas/PatchedDataSupplementPayloadOneOf'
     PatchedDataSupplementPayloadOneOf:
-      oneOf:
-      - type: string
-      - type: object
-        properties:
-          manual_transcription:
-            type: object
-            properties:
-              language:
-                type: string
-              value:
-                type: string
-            additionalProperties: false
-            required:
-            - language
-            - value
-          manual_translation:
-            type: object
-            properties:
-              language:
-                type: string
-              value:
-                type: string
-            additionalProperties: false
-            required:
-            - language
-            - value
-          automatic_google_transcription:
-            type: object
-            properties:
-              language:
-                type: string
-              accepted:
-                type: boolean
-            additionalProperties: false
-            required:
-            - language
-          automatic_google_translation:
-            type: object
-            properties:
-              language:
-                type: string
-              accepted:
-                type: boolean
-            additionalProperties: false
-            required:
-            - language
-          qual:
-            oneOf:
-            - allOf:
-              - type: object
-                additionalProperties: false
-                properties:
-                  uuid:
+      type: object
+      properties:
+        manual_transcription:
+          type: object
+          properties:
+            language:
+              type: string
+            locale:
+              type: string
+            value:
+              type: string
+              nullable: true
+          additionalProperties: false
+          required:
+          - language
+          - value
+        manual_translation:
+          type: object
+          properties:
+            language:
+              type: string
+            locale:
+              type: string
+            value:
+              type: string
+              nullable: true
+          additionalProperties: false
+          required:
+          - language
+          - value
+        automatic_google_transcription:
+          type: object
+          properties:
+            language:
+              type: string
+            locale:
+              type: string
+            accepted:
+              type: boolean
+          additionalProperties: false
+          required:
+          - language
+        automatic_google_translation:
+          type: object
+          properties:
+            language:
+              type: string
+            locale:
+              type: string
+            accepted:
+              type: boolean
+          additionalProperties: false
+          required:
+          - language
+        qual:
+          oneOf:
+          - allOf:
+            - type: object
+              additionalProperties: false
+              properties:
+                uuid:
+                  type: string
+                  format: uuid
+                value: {}
+              required:
+              - uuid
+              - value
+            - type: object
+              properties:
+                value:
+                  type: integer
+                  nullable: true
+            - type: object
+              properties:
+                uuid:
+                  type: string
+                  format: uuid
+          - allOf:
+            - type: object
+              additionalProperties: false
+              properties:
+                uuid:
+                  type: string
+                  format: uuid
+                value: {}
+              required:
+              - uuid
+              - value
+            - type: object
+              properties:
+                value:
+                  type: string
+            - type: object
+              properties:
+                uuid:
+                  type: string
+                  format: uuid
+          - allOf:
+            - type: object
+              additionalProperties: false
+              properties:
+                uuid:
+                  type: string
+                  format: uuid
+                value: {}
+              required:
+              - uuid
+              - value
+            - type: object
+              properties:
+                value:
+                  type: string
+                  format: uuid
+            - type: object
+              properties:
+                uuid:
+                  type: string
+                  format: uuid
+          - allOf:
+            - type: object
+              additionalProperties: false
+              properties:
+                uuid:
+                  type: string
+                  format: uuid
+                value: {}
+              required:
+              - uuid
+              - value
+            - type: object
+              properties:
+                value:
+                  type: array
+                  items:
                     type: string
                     format: uuid
-                  value: {}
-                required:
-                - uuid
-                - value
-              - type: object
-                properties:
-                  value:
-                    type: integer
-                    nullable: true
-              - type: object
-                properties:
-                  uuid:
+            - type: object
+              properties:
+                uuid:
+                  type: string
+                  format: uuid
+          - allOf:
+            - type: object
+              additionalProperties: false
+              properties:
+                uuid:
+                  type: string
+                  format: uuid
+                value: {}
+              required:
+              - uuid
+              - value
+            - type: object
+              properties:
+                value:
+                  type: array
+                  items:
                     type: string
-                    format: uuid
-            - allOf:
-              - type: object
-                additionalProperties: false
-                properties:
-                  uuid:
-                    type: string
-                    format: uuid
-                  value: {}
-                required:
-                - uuid
-                - value
-              - type: object
-                properties:
-                  value:
-                    type: string
-              - type: object
-                properties:
-                  uuid:
-                    type: string
-                    format: uuid
-            - allOf:
-              - type: object
-                additionalProperties: false
-                properties:
-                  uuid:
-                    type: string
-                    format: uuid
-                  value: {}
-                required:
-                - uuid
-                - value
-              - type: object
-                properties:
-                  value:
-                    type: string
-                    format: uuid
-              - type: object
-                properties:
-                  uuid:
-                    type: string
-                    format: uuid
-            - allOf:
-              - type: object
-                additionalProperties: false
-                properties:
-                  uuid:
-                    type: string
-                    format: uuid
-                  value: {}
-                required:
-                - uuid
-                - value
-              - type: object
-                properties:
-                  value:
-                    type: array
-                    items:
-                      type: string
-                      format: uuid
-              - type: object
-                properties:
-                  uuid:
-                    type: string
-                    format: uuid
-            - allOf:
-              - type: object
-                additionalProperties: false
-                properties:
-                  uuid:
-                    type: string
-                    format: uuid
-                  value: {}
-                required:
-                - uuid
-                - value
-              - type: object
-                properties:
-                  value:
-                    type: array
-                    items:
-                      type: string
-              - type: object
-                properties:
-                  uuid:
-                    type: string
-                    format: uuid
-        additionalProperties: false
-        anyOf:
-        - required:
-          - manual_transcription
-        - required:
-          - manual_translation
-        - required:
-          - automatic_google_transcription
-        - required:
-          - automatic_google_translation
-        - required:
-          - qual
+            - type: object
+              properties:
+                uuid:
+                  type: string
+                  format: uuid
+      additionalProperties: false
+      anyOf:
+      - required:
+        - manual_transcription
+      - required:
+        - manual_translation
+      - required:
+        - automatic_google_transcription
+      - required:
+        - automatic_google_translation
+      - required:
+        - qual
     PatchedDataValidationStatusUpdatePayload:
       type: object
       properties:
@@ -16139,11 +16238,9 @@ components:
         * `create_prorations` - Create prorations
         * `none` - None
     QualActionParams:
-      type: array
-      items:
-        anyOf:
-        - $ref: '#/components/schemas/QualSimpleQuestionParams'
-        - $ref: '#/components/schemas/QualSelectQuestionParams'
+      anyOf:
+      - $ref: '#/components/schemas/QualSimpleQuestionParams'
+      - $ref: '#/components/schemas/QualSelectQuestionParams'
     QualSelectQuestionParams:
       type: object
       additionalProperties: false
@@ -16155,8 +16252,13 @@ components:
           $ref: '#/components/schemas/QualSelectQuestionParamsTypeEnum'
         labels:
           type: object
+          properties:
+            _default:
+              type: string
           additionalProperties:
             type: string
+          required:
+          - _default
         choices:
           type: array
           items:
@@ -16165,8 +16267,13 @@ components:
             properties:
               labels:
                 type: object
+                properties:
+                  _default:
+                    type: string
                 additionalProperties:
                   type: string
+                required:
+                - _default
               uuid:
                 type: string
                 format: uuid
@@ -16198,8 +16305,13 @@ components:
           $ref: '#/components/schemas/QualSimpleQuestionParamsTypeEnum'
         labels:
           type: object
+          properties:
+            _default:
+              type: string
           additionalProperties:
             type: string
+          required:
+          - _default
         options:
           type: object
       required:
