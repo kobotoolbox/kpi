@@ -10,9 +10,10 @@ It covers how the payload is validated through the various schemas (`params_sche
 1. [Class Overview](#1-class-overview)
 2. [Subsequence Workflow](#2-subsequence-workflow)
    1. [Enabling an Action](#21-enabling-an-action)
-   2. [Add Submission Supplement](#22-add-submission-supplement)
-   3. [Sequence Diagram (End-to-End Flow)](#23-sequence-diagram-end-to-end-flow)
-   4. [Flowchart (Logic inside revise_data per Action)](#24-flowchart-logic-inside-revise_data-per-action)
+   2. [Updating and Action](#22-updating-an-action)
+   3. [Add Submission Supplement](#23-add-submission-supplement)
+   4. [Sequence Diagram (End-to-End Flow)](#24-sequence-diagram-end-to-end-flow)
+   5. [Flowchart (Logic inside revise_data per Action)](#243-flowchart-logic-inside-revise_data-per-action)
 3. [Where Schemas Apply](#3-where-schemas-apply)
 
 ---
