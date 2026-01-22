@@ -4,7 +4,7 @@ import TagsInput from 'react-tagsinput'
 import Icon from '#/components/common/icon'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import TransxSelector from '../../../../../../components/transxSelector'
-import singleProcessingStore from '../../../../../../singleProcessingStore'
+import singleProcessingStore, { type Transx } from '../../../../../../singleProcessingStore'
 import AnalysisQuestionsContext from '../../../../common/analysisQuestions.context'
 import type { AdditionalFields } from '../../../../common/constants'
 import styles from './KeywordSearchFieldsEditor.module.scss'
@@ -46,6 +46,27 @@ export default function KeywordSearchFieldsEditor(props: KeywordSearchFieldsEdit
     })
   }
 
+  /**
+   * Returns a list of selectable language codes.
+   * Omits the one currently being edited.
+   */
+  const languageCodes = (() => {
+    const sources = []
+
+    if (singleProcessingStore.data.transcript?.languageCode) {
+      sources.push(singleProcessingStore.data.transcript?.languageCode)
+    }
+
+    singleProcessingStore.data.translations.forEach((translation: Transx) => {
+      if (translation.languageCode !== singleProcessingStore.data.translationDraft?.languageCode) {
+        // TODO: props.fields.source?
+        sources.push(translation.languageCode)
+      }
+    })
+
+    return sources
+  })()
+
   const inputHtmlId = 'keywordSearchFieldsEditor_TagsInput_Input'
 
   return (
@@ -81,7 +102,7 @@ export default function KeywordSearchFieldsEditor(props: KeywordSearchFieldsEdit
         <label className={styles.sideLabel}>{t('Search this transcript/translation:')}</label>
 
         <TransxSelector
-          languageCodes={singleProcessingStore.getSources()}
+          languageCodes={languageCodes}
           selectedLanguage={props.fields.source}
           onChange={onSourceChange}
           size='l'

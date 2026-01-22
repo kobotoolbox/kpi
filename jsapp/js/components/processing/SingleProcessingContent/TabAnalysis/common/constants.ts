@@ -1,3 +1,5 @@
+import type { QualSelectQuestionParamsTypeEnum } from '#/api/models/qualSelectQuestionParamsTypeEnum'
+import type { QualSimpleQuestionParamsTypeEnum } from '#/api/models/qualSimpleQuestionParamsTypeEnum'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import type { IconName } from '#/k-icons'
 
@@ -8,6 +10,8 @@ export const AUTO_SAVE_TYPING_DELAY = 3000
  * we prefix them with `qual_` (coming from "qualitative analysis question").
  */
 export type AnalysisQuestionType =
+  | QualSelectQuestionParamsTypeEnum
+  | QualSimpleQuestionParamsTypeEnum
   | 'qual_auto_keyword_count'
   | 'qual_note'
   | 'qual_integer'

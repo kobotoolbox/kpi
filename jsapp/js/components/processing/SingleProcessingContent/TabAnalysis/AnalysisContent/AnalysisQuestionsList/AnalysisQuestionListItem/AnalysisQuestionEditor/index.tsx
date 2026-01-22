@@ -6,8 +6,7 @@ import { handleApiFail } from '#/api'
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
 import TextBox from '#/components/common/textBox'
-import singleProcessingStore from '#/components/processing/singleProcessingStore'
-import type { FailResponse } from '#/dataInterface'
+import type { AssetResponse, FailResponse } from '#/dataInterface'
 import { recordKeys } from '#/utils'
 import AnalysisQuestionsContext from '../../../../common/analysisQuestions.context'
 import type { AdditionalFields, AnalysisQuestionInternal } from '../../../../common/constants'
@@ -21,7 +20,8 @@ import KeywordSearchFieldsEditor from './KeywordSearchFieldsEditor'
 import SelectXFieldsEditor from './SelectXFieldsEditor'
 import styles from './index.module.scss'
 
-interface AnalysisQuestionEditorProps {
+interface Props {
+  asset: AssetResponse
   uuid: string
 }
 
@@ -30,14 +30,14 @@ interface AnalysisQuestionEditorProps {
  * the code for updating the question label. Some question types also can define
  * custom additional fields. For these we load additional forms.
  */
-export default function AnalysisQuestionEditor(props: AnalysisQuestionEditorProps) {
+export default function AnalysisQuestionEditor({ asset, uuid }: Props) {
   const analysisQuestions = useContext(AnalysisQuestionsContext)
   if (!analysisQuestions) {
     return null
   }
 
   // Get the question data from state (with safety check)
-  const question = findQuestion(props.uuid, analysisQuestions.state)
+  const question = findQuestion(uuid, analysisQuestions.state)
   if (!question) {
     return null
   }
@@ -108,7 +108,7 @@ export default function AnalysisQuestionEditor(props: AnalysisQuestionEditorProp
           const output = clonedeep(aq)
           // If this is the question we're currently editing, let's update what
           // we have in store.
-          if (aq.uuid === props.uuid) {
+          if (aq.uuid === uuid) {
             output.labels = { _default: label }
 
             // Set additional fields if any, or delete if it was removed
@@ -123,12 +123,12 @@ export default function AnalysisQuestionEditor(props: AnalysisQuestionEditorProp
 
       // Step 3: update asset endpoint with new questions
       try {
-        const response = await updateSurveyQuestions(singleProcessingStore.currentAssetUid, updatedQuestions)
+        const response = await updateSurveyQuestions(asset.uid, updatedQuestions)
 
         // We get all questions in the response, but we only need the one we've
         // just updated
         const newQuestions = getQuestionsFromSchema(response?.advanced_features)
-        const currentNewQuestion = newQuestions.find((item) => item.uuid === props.uuid)
+        const currentNewQuestion = newQuestions.find((item) => item.uuid === uuid)
 
         if (currentNewQuestion) {
           // Step 4: update reducer's state with new list after the call finishes
@@ -152,7 +152,7 @@ export default function AnalysisQuestionEditor(props: AnalysisQuestionEditorProp
   function cancelEditing() {
     analysisQuestions?.dispatch({
       type: 'stopEditingQuestion',
-      payload: { uuid: props.uuid },
+      payload: { uuid: uuid },
     })
   }
 

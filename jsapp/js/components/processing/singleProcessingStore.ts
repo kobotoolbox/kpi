@@ -684,26 +684,6 @@ class SingleProcessingStore extends Reflux.Store {
     )
   }
 
-  /**
-   * Returns a list of selectable language codes.
-   * Omits the one currently being edited.
-   */
-  getSources(): string[] {
-    const sources = []
-
-    if (this.data.transcript?.languageCode) {
-      sources.push(this.data.transcript?.languageCode)
-    }
-
-    this.data.translations.forEach((translation: Transx) => {
-      if (translation.languageCode !== this.data.translationDraft?.languageCode) {
-        sources.push(translation.languageCode)
-      }
-    })
-
-    return sources
-  }
-
   setSource(languageCode: LanguageCode) {
     this.data.source = languageCode
     this.trigger(this.data)

@@ -4,21 +4,15 @@ import classnames from 'classnames'
 import type { Identifier, XYCoord } from 'dnd-core'
 import { useDrag, useDrop } from 'react-dnd'
 import { handleApiFail } from '#/api'
-import assetStore from '#/assetStore'
+import type { DataResponse } from '#/api/models/dataResponse'
 import Icon from '#/components/common/icon'
 import InlineMessage from '#/components/common/inlineMessage'
 import { userCan } from '#/components/permissions/utils'
-import singleProcessingStore from '#/components/processing/singleProcessingStore'
 import { DND_TYPES } from '#/constants'
-import type { FailResponse } from '#/dataInterface'
+import type { AssetResponse, FailResponse } from '#/dataInterface'
 import AnalysisQuestionsContext from '../../../common/analysisQuestions.context'
 import type { AnalysisQuestionBase } from '../../../common/constants'
-import {
-  findQuestion,
-  getQuestionsFromSchema,
-  hasManagePermissionsToCurrentAsset,
-  updateSurveyQuestions,
-} from '../../../common/utils'
+import { findQuestion, getQuestionsFromSchema, updateSurveyQuestions } from '../../../common/utils'
 import AnalysisQuestionEditor from './AnalysisQuestionEditor'
 import IntegerResponseForm from './IntegerResponseForm'
 import KeywordSearchResponseForm from './KeywordSearchResponseForm'
@@ -29,7 +23,9 @@ import TagsResponseForm from './TagsResponseForm'
 import TextResponseForm from './TextResponseForm'
 import styles from './index.module.scss'
 
-export interface AnalysisQuestionListItemProps {
+export interface Props {
+  asset: AssetResponse
+  submission: DataResponse & Record<string, string>
   uuid: string
   index: number
   moveRow: (uuid: string, oldIndex: number, newIndex: number) => void
@@ -47,26 +43,25 @@ interface DragItem {
  *
  * Also configures questions reordering.
  */
-export default function AnalysisQuestionListItem(props: AnalysisQuestionListItemProps) {
+export default function AnalysisQuestionListItem({ asset, submission, uuid, index, moveRow }: Props) {
   const analysisQuestions = useContext(AnalysisQuestionsContext)
   if (!analysisQuestions) {
     return null
   }
 
   // Get the question data from state (with safety check)
-  const question = findQuestion(props.uuid, analysisQuestions.state)
+  const question = findQuestion(uuid, analysisQuestions.state)
   if (!question) {
     return null
   }
 
   // Responding to analysis question requires `edit_submissions` permission.
   const hasEditSubmissionsPermissions = (() => {
-    const asset = assetStore.getAsset(singleProcessingStore.currentAssetUid)
     return userCan('change_submissions', asset)
   })()
 
   // Reordering analysis questions requires `manage_asset` permission.
-  const isDragDisabled = analysisQuestions.state.isPending || !hasManagePermissionsToCurrentAsset()
+  const isDragDisabled = analysisQuestions.state.isPending || !userCan('manage_asset', asset)
 
   const previewRef = useRef<HTMLLIElement>(null)
   const dragRef = useRef<HTMLDivElement>(null)
@@ -83,7 +78,7 @@ export default function AnalysisQuestionListItem(props: AnalysisQuestionListItem
         return
       }
       const dragIndex = item.index
-      const hoverIndex = props.index
+      const hoverIndex = index
 
       // Don't replace items with themselves
       if (dragIndex === hoverIndex) {
@@ -117,7 +112,7 @@ export default function AnalysisQuestionListItem(props: AnalysisQuestionListItem
       }
 
       // Time to actually perform the action
-      props.moveRow(props.uuid, dragIndex, hoverIndex)
+      moveRow(uuid, dragIndex, hoverIndex)
 
       // Note: we're mutating the monitor item here!
       // Generally it's better to avoid mutations,
@@ -130,7 +125,7 @@ export default function AnalysisQuestionListItem(props: AnalysisQuestionListItem
   const [{ isDragging }, drag, preview] = useDrag({
     type: DND_TYPES.ANALYSIS_QUESTION,
     item: () => {
-      return { id: props.uuid, index: props.index }
+      return { id: uuid, index: index }
     },
     canDrag: !isDragDisabled,
     collect: (monitor) => {
@@ -154,10 +149,7 @@ export default function AnalysisQuestionListItem(props: AnalysisQuestionListItem
 
         // Step 2: update asset endpoint with new questions
         try {
-          const response = await updateSurveyQuestions(
-            singleProcessingStore.currentAssetUid,
-            analysisQuestions.state.questions,
-          )
+          const response = await updateSurveyQuestions(asset.uid, analysisQuestions.state.questions)
 
           // Step 3: update reducer's state with new list after the call finishes
           analysisQuestions?.dispatch({
@@ -181,31 +173,66 @@ export default function AnalysisQuestionListItem(props: AnalysisQuestionListItem
   const renderItem = useCallback(
     (item: AnalysisQuestionBase) => {
       if (analysisQuestions.state.questionsBeingEdited.includes(item.uuid)) {
-        return <AnalysisQuestionEditor uuid={item.uuid} />
+        return <AnalysisQuestionEditor asset={asset} uuid={item.uuid} />
       } else {
         switch (item.type) {
           case 'qual_auto_keyword_count': {
-            return <KeywordSearchResponseForm uuid={item.uuid} />
+            return <KeywordSearchResponseForm asset={asset} uuid={item.uuid} />
           }
           case 'qual_note': {
             // This question type doesn't have any response, so we display just
             // the header
-            return <ResponseForm uuid={item.uuid} />
+            return <ResponseForm asset={asset} uuid={item.uuid} />
           }
           case 'qual_select_multiple': {
-            return <SelectMultipleResponseForm uuid={item.uuid} canEdit={hasEditSubmissionsPermissions} />
+            return (
+              <SelectMultipleResponseForm
+                asset={asset}
+                submission={submission}
+                uuid={item.uuid}
+                canEdit={hasEditSubmissionsPermissions}
+              />
+            )
           }
           case 'qual_select_one': {
-            return <SelectOneResponseForm uuid={item.uuid} canEdit={hasEditSubmissionsPermissions} />
+            return (
+              <SelectOneResponseForm
+                asset={asset}
+                submission={submission}
+                uuid={item.uuid}
+                canEdit={hasEditSubmissionsPermissions}
+              />
+            )
           }
           case 'qual_tags': {
-            return <TagsResponseForm uuid={item.uuid} canEdit={hasEditSubmissionsPermissions} />
+            return (
+              <TagsResponseForm
+                asset={asset}
+                submission={submission}
+                uuid={item.uuid}
+                canEdit={hasEditSubmissionsPermissions}
+              />
+            )
           }
           case 'qual_integer': {
-            return <IntegerResponseForm uuid={item.uuid} canEdit={hasEditSubmissionsPermissions} />
+            return (
+              <IntegerResponseForm
+                asset={asset}
+                submission={submission}
+                uuid={item.uuid}
+                canEdit={hasEditSubmissionsPermissions}
+              />
+            )
           }
           case 'qual_text': {
-            return <TextResponseForm uuid={item.uuid} canEdit={hasEditSubmissionsPermissions} />
+            return (
+              <TextResponseForm
+                asset={asset}
+                submission={submission}
+                uuid={item.uuid}
+                canEdit={hasEditSubmissionsPermissions}
+              />
+            )
           }
           default: {
             return (

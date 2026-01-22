@@ -1,13 +1,17 @@
 import React, { useContext, useState } from 'react'
 
 import { TagsInput } from '@mantine/core'
+import type { DataResponse } from '#/api/models/dataResponse'
+import type { AssetResponse } from '#/dataInterface'
 // We don't use `KoboTagsInput` here, because we don't want the tags splitting
 // feature it has built in. It's easier for us to use `TagsInput` directly.
 import AnalysisQuestionsContext from '../../../common/analysisQuestions.context'
 import { findQuestion, getQuestionTypeDefinition, updateResponseAndReducer } from '../../../common/utils'
 import ResponseForm from './ResponseForm'
 
-interface TagsResponseFormProps {
+interface Props {
+  asset: AssetResponse
+  submission: DataResponse & Record<string, string>
   uuid: string
   canEdit: boolean
 }
@@ -15,14 +19,14 @@ interface TagsResponseFormProps {
 /**
  * Displays a common header and a tags input.
  */
-export default function TagsResponseForm(props: TagsResponseFormProps) {
+export default function TagsResponseForm({ asset, submission, canEdit, uuid }: Props) {
   const analysisQuestions = useContext(AnalysisQuestionsContext)
   if (!analysisQuestions) {
     return null
   }
 
   // Get the question data from state (with safety check)
-  const question = findQuestion(props.uuid, analysisQuestions.state)
+  const question = findQuestion(uuid, analysisQuestions.state)
   if (!question) {
     return null
   }
@@ -47,12 +51,20 @@ export default function TagsResponseForm(props: TagsResponseFormProps) {
     setResponse(newTags)
 
     // Update endpoint and reducer
-    updateResponseAndReducer(analysisQuestions.dispatch, question.xpath, props.uuid, question.type, newTags)
+    updateResponseAndReducer(
+      analysisQuestions.dispatch,
+      question.xpath,
+      uuid,
+      question.type,
+      newTags,
+      asset.uid,
+      submission['meta/rootUuid'],
+    )
   }
 
   return (
-    <ResponseForm uuid={props.uuid}>
-      <TagsInput value={response} onChange={onTagsChange} acceptValueOnBlur disabled={!props.canEdit} />
+    <ResponseForm asset={asset} uuid={uuid}>
+      <TagsInput value={response} onChange={onTagsChange} acceptValueOnBlur disabled={!canEdit} />
     </ResponseForm>
   )
 }

@@ -1,21 +1,36 @@
 import React, { useContext } from 'react'
 
 import classNames from 'classnames'
+import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
+import type { DataResponse } from '#/api/models/dataResponse'
+import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
 import KoboDropdown from '#/components/common/koboDropdown'
-import singleProcessingStore from '#/components/processing/singleProcessingStore'
+import { userCan } from '#/components/permissions/utils'
+import type { AssetResponse } from '#/dataInterface'
+import { getAllTranslationsFromSupplementData, getLatestTranscriptVersionItem } from '../../common/utils'
 import styles from './AnalysisHeader.module.scss'
 import AnalysisQuestionsContext from './common/analysisQuestions.context'
 import { ANALYSIS_QUESTION_TYPES } from './common/constants'
 import type { AnalysisQuestionTypeDefinition } from './common/constants'
-import { hasManagePermissionsToCurrentAsset } from './common/utils'
+
+interface Props {
+  asset: AssetResponse
+  questionXpath: string
+  submission: DataResponse & Record<string, string>
+  supplement: DataSupplementResponse
+  advancedFeatures: AdvancedFeatureResponse[]
+}
 
 /**
  * This piece of UI is displaying the button/dropdown for adding new questions
  * (definitions). It also has a saving state indicator.
  */
-export default function AnalysisHeader() {
+export default function AnalysisHeader({ asset, questionXpath, supplement }: Props) {
+  const transcriptVersion = getLatestTranscriptVersionItem(supplement, questionXpath)
+  const translationVersions = getAllTranslationsFromSupplementData(supplement, questionXpath)
+
   const analysisQuestions = useContext(AnalysisQuestionsContext)
   if (!analysisQuestions) {
     return null
@@ -32,16 +47,14 @@ export default function AnalysisHeader() {
           // We want to disable the Keyword Search question type when there is
           // no transcript or translation.
           [styles.addQuestionMenuButtonDisabled]:
-            definition.type === 'qual_auto_keyword_count' &&
-            singleProcessingStore.getTranscript() === undefined &&
-            singleProcessingStore.getTranslations().length === 0,
+            definition.type === 'qual_auto_keyword_count' && transcriptVersion && translationVersions.length === 0,
         })}
         key={definition.type}
         onClick={() => {
           analysisQuestions?.dispatch({
             type: 'addQuestion',
             payload: {
-              xpath: singleProcessingStore.currentQuestionXpath,
+              xpath: questionXpath,
               type: definition.type,
             },
           })
@@ -76,7 +89,7 @@ export default function AnalysisHeader() {
         name='qualitative_analysis_add_question'
         // We only allow editing one question at a time, so adding new is not
         // possible until user stops editing
-        isDisabled={!hasManagePermissionsToCurrentAsset() || analysisQuestions?.state.questionsBeingEdited.length !== 0}
+        isDisabled={!userCan('manage_asset', asset) || analysisQuestions?.state.questionsBeingEdited.length !== 0}
       />
 
       <span>

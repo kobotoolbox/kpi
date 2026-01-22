@@ -1,4 +1,5 @@
-import type { AnalysisQuestionInternal, AnalysisQuestionType, SubmissionProcessingDataResponse } from './constants'
+import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
+import type { AnalysisQuestionInternal, AnalysisQuestionType } from './constants'
 
 export type AnalysisQuestionsAction =
   // Sets all the quetsion with new ones (useful for initialising)
@@ -40,7 +41,7 @@ export type AnalysisQuestionsAction =
       type: 'updateResponseCompleted'
       payload: {
         xpath: string
-        apiResponse: SubmissionProcessingDataResponse
+        apiResponse: DataSupplementResponse
       }
     }
   // Unlocks UI after failed API call

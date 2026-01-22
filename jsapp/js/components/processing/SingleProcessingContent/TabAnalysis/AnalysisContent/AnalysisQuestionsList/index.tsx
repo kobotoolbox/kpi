@@ -3,17 +3,24 @@ import React, { useCallback, useContext } from 'react'
 import { DndProvider } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
 
-import singleProcessingStore from '../../../../singleProcessingStore'
+import type { DataResponse } from '#/api/models/dataResponse'
+import type { AssetResponse } from '#/dataInterface'
 import AnalysisQuestionsContext from '../../common/analysisQuestions.context'
 import AnalysisQuestionListItem from './AnalysisQuestionListItem'
 import styles from './index.module.scss'
+
+interface Props {
+  asset: AssetResponse
+  questionXpath: string
+  submission: DataResponse & Record<string, string>
+}
 
 /**
  * Renders a list of questions (`AnalysisQuestionRow`s to be precise).
  *
  * Also handles questions reordering (configured in `AnalysisQuestionRow`).
  */
-export default function AnalysisQuestionsList() {
+export default function AnalysisQuestionsList({ asset, questionXpath, submission }: Props) {
   const analysisQuestions = useContext(AnalysisQuestionsContext)
   if (!analysisQuestions) {
     return null
@@ -34,7 +41,7 @@ export default function AnalysisQuestionsList() {
           // hide them at this point (not filtering the whole list beforehand),
           // because we need the indexes to match the whole list. And FYI all
           // analysis questions live on a single list :)
-          if (question.xpath !== singleProcessingStore.currentQuestionXpath) {
+          if (question.xpath !== questionXpath) {
             return null
           }
 
@@ -49,7 +56,16 @@ export default function AnalysisQuestionsList() {
             return null
           }
 
-          return <AnalysisQuestionListItem uuid={question.uuid} index={index} key={question.uuid} moveRow={moveRow} />
+          return (
+            <AnalysisQuestionListItem
+              asset={asset}
+              submission={submission}
+              uuid={question.uuid}
+              index={index}
+              key={question.uuid}
+              moveRow={moveRow}
+            />
+          )
         })}
       </ul>
     </DndProvider>

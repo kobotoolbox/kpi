@@ -1,11 +1,15 @@
 import { NumberInput } from '@mantine/core'
 import React, { useContext, useState } from 'react'
+import type { DataResponse } from '#/api/models/dataResponse'
+import type { AssetResponse } from '#/dataInterface'
 import AnalysisQuestionsContext from '../../../common/analysisQuestions.context'
 import { AUTO_SAVE_TYPING_DELAY } from '../../../common/constants'
 import { findQuestion, getQuestionTypeDefinition, updateResponseAndReducer } from '../../../common/utils'
 import ResponseForm from './ResponseForm'
 
-interface IntegerResponseFormProps {
+interface Props {
+  asset: AssetResponse
+  submission: DataResponse & Record<string, string>
   uuid: string
   canEdit: boolean
 }
@@ -13,14 +17,14 @@ interface IntegerResponseFormProps {
 /**
  * Displays a common header and an integer text box.
  */
-export default function IntegerResponseForm(props: IntegerResponseFormProps) {
+export default function IntegerResponseForm({ asset, submission, uuid, canEdit }: Props) {
   const analysisQuestions = useContext(AnalysisQuestionsContext)
   if (!analysisQuestions) {
     return null
   }
 
   // Get the question data from state (with safety check)
-  const question = findQuestion(props.uuid, analysisQuestions.state)
+  const question = findQuestion(uuid, analysisQuestions.state)
   if (!question) {
     return null
   }
@@ -44,7 +48,15 @@ export default function IntegerResponseForm(props: IntegerResponseFormProps) {
       return
     }
 
-    updateResponseAndReducer(analysisQuestions.dispatch, question.xpath, props.uuid, question.type, response)
+    updateResponseAndReducer(
+      analysisQuestions.dispatch,
+      question.xpath,
+      uuid,
+      question.type,
+      response,
+      asset.uid,
+      submission['meta/rootUuid'],
+    )
   }
 
   function saveResponseDelayedAndQuietly() {
@@ -60,13 +72,13 @@ export default function IntegerResponseForm(props: IntegerResponseFormProps) {
   }
 
   return (
-    <ResponseForm uuid={props.uuid}>
+    <ResponseForm asset={asset} uuid={uuid}>
       <NumberInput
         value={response}
         onChange={(newResponse) => onInputChange(newResponse.toString())}
         placeholder={t('Type your answer')}
         onBlur={saveResponse}
-        disabled={!props.canEdit}
+        disabled={!canEdit}
       />
     </ResponseForm>
   )

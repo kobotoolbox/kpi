@@ -8,20 +8,20 @@ import { handleApiFail } from '#/api'
 import ActionIcon from '#/components/common/ActionIcon'
 import ButtonNew from '#/components/common/ButtonNew'
 import Icon from '#/components/common/icon'
-import type { FailResponse } from '#/dataInterface'
+import type { AssetResponse, FailResponse } from '#/dataInterface'
 
-import singleProcessingStore from '../../../../../singleProcessingStore'
+import { userCan } from '#/components/permissions/utils'
 import AnalysisQuestionsContext from '../../../common/analysisQuestions.context'
 import type { AnalysisQuestionInternal } from '../../../common/constants'
 import {
   findQuestion,
   getQuestionTypeDefinition,
   getQuestionsFromSchema,
-  hasManagePermissionsToCurrentAsset,
   updateSurveyQuestions,
 } from '../../../common/utils'
 
-interface ResponseFormProps {
+interface Props {
+  asset: AssetResponse
   uuid: string
   /** Adds a clear button with the given logic */
   onClear?: () => unknown
@@ -32,7 +32,7 @@ interface ResponseFormProps {
  * Displays question type icon, name, and an edit and delete buttons (if user
  * has sufficient permissions). Is being used in multiple other components.
  */
-export default function ResponseForm(props: ResponseFormProps) {
+export default function ResponseForm({ asset, uuid, children, onClear }: Props) {
   const [opened, { open, close }] = useDisclosure(false)
   const analysisQuestions = useContext(AnalysisQuestionsContext)
   if (!analysisQuestions) {
@@ -40,7 +40,7 @@ export default function ResponseForm(props: ResponseFormProps) {
   }
 
   // Get the question data from state (with safety check)
-  const question = findQuestion(props.uuid, analysisQuestions.state)
+  const question = findQuestion(uuid, analysisQuestions.state)
   if (!question) {
     return null
   }
@@ -58,14 +58,14 @@ export default function ResponseForm(props: ResponseFormProps) {
   function openQuestionInEditor() {
     analysisQuestions?.dispatch({
       type: 'startEditingQuestion',
-      payload: { uuid: props.uuid },
+      payload: { uuid: uuid },
     })
   }
 
   async function deleteQuestion() {
     analysisQuestions?.dispatch({
       type: 'deleteQuestion',
-      payload: { uuid: props.uuid },
+      payload: { uuid: uuid },
     })
 
     close()
@@ -75,7 +75,7 @@ export default function ResponseForm(props: ResponseFormProps) {
 
     // Step 2: set `deleted` flag on the question
     newQuestions.forEach((item: AnalysisQuestionInternal) => {
-      if (item.uuid === props.uuid) {
+      if (item.uuid === uuid) {
         if (typeof item.options !== 'object') {
           item.options = {}
         }
@@ -85,7 +85,7 @@ export default function ResponseForm(props: ResponseFormProps) {
 
     try {
       // Step 3: update asset endpoint with new questions
-      const response = await updateSurveyQuestions(singleProcessingStore.currentAssetUid, newQuestions)
+      const response = await updateSurveyQuestions(asset.uid, newQuestions)
 
       // Step 4: update reducer's state with new list after the call finishes
       analysisQuestions?.dispatch({
@@ -145,25 +145,25 @@ export default function ResponseForm(props: ResponseFormProps) {
           // We only allow editing one question at a time, so adding new is not
           // possible until user stops editing
           disabled={
-            !hasManagePermissionsToCurrentAsset() ||
+            !userCan('manage_asset', asset) ||
             analysisQuestions.state.questionsBeingEdited.length !== 0 ||
             analysisQuestions.state.isPending
           }
         />
 
-        {props.onClear && <ActionIcon variant='light' size='sm' iconName='close' onClick={props.onClear} />}
+        {onClear && <ActionIcon variant='light' size='sm' iconName='close' onClick={onClear} />}
 
         <ActionIcon
           variant='danger-secondary'
           size='sm'
           iconName='trash'
           onClick={open}
-          disabled={!hasManagePermissionsToCurrentAsset() || analysisQuestions.state.isPending}
+          disabled={!userCan('manage_asset', asset) || analysisQuestions.state.isPending}
         />
       </Group>
 
       {/* Hard coded left padding to account for the 32px icon size + 8px gap */}
-      {props.children && <Box pl={'40px'}>{props.children}</Box>}
+      {children && <Box pl={'40px'}>{children}</Box>}
     </Stack>
   )
 }

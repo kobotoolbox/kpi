@@ -3,26 +3,28 @@ import React, { useContext } from 'react'
 import ButtonNew from '#/components/common/ButtonNew'
 import Badge from '#/components/common/badge'
 
+import type { AssetResponse } from '#/dataInterface'
 import AnalysisQuestionsContext from '../../../common/analysisQuestions.context'
 import { findQuestion, getQuestionTypeDefinition } from '../../../common/utils'
 import ResponseForm from './ResponseForm'
 import styles from './keywordSearchResponseForm.module.scss'
 
 interface KeywordSearchResponseFormProps {
+  asset: AssetResponse
   uuid: string
 }
 
 /**
  * TBD, see https://github.com/kobotoolbox/kpi/issues/4594
  */
-export default function KeywordSearchResponseForm(props: KeywordSearchResponseFormProps) {
+export default function KeywordSearchResponseForm({ asset, uuid }: KeywordSearchResponseFormProps) {
   const analysisQuestions = useContext(AnalysisQuestionsContext)
   if (!analysisQuestions) {
     return null
   }
 
   // Get the question data from state (with safety check)
-  const question = findQuestion(props.uuid, analysisQuestions.state)
+  const question = findQuestion(uuid, analysisQuestions.state)
   if (!question) {
     return null
   }
@@ -42,7 +44,7 @@ export default function KeywordSearchResponseForm(props: KeywordSearchResponseFo
         type: 'initialiseSearchCompleted',
         payload: {
           questions: analysisQuestions?.state.questions.map((item) => {
-            if (item.uuid === props.uuid) {
+            if (item.uuid === uuid) {
               return {
                 ...item,
                 // fake 0-50 response
@@ -66,14 +68,14 @@ export default function KeywordSearchResponseForm(props: KeywordSearchResponseFo
 
     // TODO make actual API call here
     // For now we make a fake response
-    console.log('QA fake API call: initialise search', props.uuid)
+    console.log('QA fake API call: initialise search', uuid)
     setTimeout(() => {
       console.log('QA fake API call: initialise search DONE')
       analysisQuestions?.dispatch({
         type: 'initialiseSearchCompleted',
         payload: {
           questions: analysisQuestions?.state.questions.map((item) => {
-            if (item.uuid === props.uuid) {
+            if (item.uuid === uuid) {
               return {
                 ...item,
                 additionalFields: {
@@ -93,7 +95,7 @@ export default function KeywordSearchResponseForm(props: KeywordSearchResponseFo
   }
 
   return (
-    <ResponseForm uuid={props.uuid}>
+    <ResponseForm asset={asset} uuid={uuid}>
       {(() => {
         if (question.additionalFields?.isSearching) {
           return <span className={styles.loading}>{t('…keyword search in progress')}</span>

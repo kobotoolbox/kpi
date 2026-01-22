@@ -3,11 +3,15 @@ import React, { useContext, useState } from 'react'
 import type { MultiCheckboxItem } from '#/components/common/multiCheckbox'
 import MultiCheckbox from '#/components/common/multiCheckbox'
 
+import type { DataResponse } from '#/api/models/dataResponse'
+import type { AssetResponse } from '#/dataInterface'
 import AnalysisQuestionsContext from '../../../common/analysisQuestions.context'
 import { findQuestion, getQuestionTypeDefinition, updateResponseAndReducer } from '../../../common/utils'
 import ResponseForm from './ResponseForm'
 
-interface SelectMultipleResponseFormProps {
+interface Props {
+  asset: AssetResponse
+  submission: DataResponse & Record<string, string>
   uuid: string
   canEdit: boolean
 }
@@ -16,14 +20,14 @@ interface SelectMultipleResponseFormProps {
  * Displays a common header and a list of checkboxes - each one for the choice
  * available.
  */
-export default function SelectMultipleResponseForm(props: SelectMultipleResponseFormProps) {
+export default function SelectMultipleResponseForm({ asset, submission, uuid, canEdit }: Props) {
   const analysisQuestions = useContext(AnalysisQuestionsContext)
   if (!analysisQuestions) {
     return null
   }
 
   // Get the question data from state (with safety check)
-  const question = findQuestion(props.uuid, analysisQuestions.state)
+  const question = findQuestion(uuid, analysisQuestions.state)
   if (!question) {
     return null
   }
@@ -52,7 +56,15 @@ export default function SelectMultipleResponseForm(props: SelectMultipleResponse
     setResponse(newResponse)
 
     // Update endpoint and reducer
-    updateResponseAndReducer(analysisQuestions.dispatch, question.xpath, props.uuid, question.type, newResponse)
+    updateResponseAndReducer(
+      analysisQuestions.dispatch,
+      question.xpath,
+      uuid,
+      question.type,
+      newResponse,
+      asset.uid,
+      submission['meta/rootUuid'],
+    )
   }
 
   function getCheckboxes(): MultiCheckboxItem[] {
@@ -75,8 +87,8 @@ export default function SelectMultipleResponseForm(props: SelectMultipleResponse
   }
 
   return (
-    <ResponseForm uuid={props.uuid}>
-      <MultiCheckbox type='bare' items={getCheckboxes()} onChange={onCheckboxesChange} disabled={!props.canEdit} />
+    <ResponseForm asset={asset} uuid={uuid}>
+      <MultiCheckbox type='bare' items={getCheckboxes()} onChange={onCheckboxesChange} disabled={!canEdit} />
     </ResponseForm>
   )
 }

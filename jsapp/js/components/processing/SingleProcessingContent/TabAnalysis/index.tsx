@@ -1,27 +1,34 @@
 import React, { useMemo, useReducer, useState, useEffect } from 'react'
 
 import classNames from 'classnames'
-import { fetchGetUrl, handleApiFail } from '#/api'
-import { buildSubmissionSupplementUrl, getAssetAdvancedFeatures } from '#/assetUtils'
-import InlineMessage from '#/components/common/inlineMessage'
+import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
+import type { DataResponse } from '#/api/models/dataResponse'
+import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import singleProcessingStore from '#/components/processing/singleProcessingStore'
-import type { FailResponse } from '#/dataInterface'
+import type { AssetResponse } from '#/dataInterface'
 import bodyStyles from '../../common/processingBody.module.scss'
 import AnalysisContent from './AnalysisContent'
 import AnalysisHeader from './AnalysisHeader'
 import AnalysisQuestionsContext from './common/analysisQuestions.context'
 import { analysisQuestionsReducer, initialState } from './common/analysisQuestions.reducer'
-import type { SubmissionProcessingDataResponse } from './common/constants'
 import { applyUpdateResponseToInternalQuestions, getQuestionsFromSchema } from './common/utils'
+
+interface Props {
+  asset: AssetResponse
+  questionXpath: string
+  submission: DataResponse & Record<string, string>
+  onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
+  supplement: DataSupplementResponse
+  advancedFeatures: AdvancedFeatureResponse[]
+}
 
 /**
  * Displays content of the "Analysis" tab. This component is handling all of
  * the Qualitative Analysis functionality.
  */
-export default function AnalysisTab() {
+export default function AnalysisTab({ asset, questionXpath, submission, supplement, advancedFeatures }: Props) {
   const [isInitialised, setIsInitialised] = useState(false)
-  const [isErrored, setIsErrored] = useState(false)
 
   // This is initial setup of reducer that holds all analysis questions with
   // responses.
@@ -33,50 +40,18 @@ export default function AnalysisTab() {
   // This loads existing questions definitions and respones to build the actual
   // initial data for the reducer.
   useEffect(() => {
-    async function setupQuestions() {
-      // Step 1: get advanced features
-      //
-      // UPDATE ADVANCED FEATURES HACK (PART 1/2):
-      // This relies on a (gray area) HACK that updates the `assetStore` (which
-      // holds the latest advanced features object).
-      // Possible TODO: make a call to get asset here - instead of using existing
-      // data :shrug:
-      const advancedFeatures = getAssetAdvancedFeatures(singleProcessingStore.currentAssetUid)
+    dispatch({
+      type: 'setQuestions',
+      payload: {
+        questions: applyUpdateResponseToInternalQuestions(
+          questionXpath,
+          supplement,
+          getQuestionsFromSchema(advancedFeatures),
+        ),
+      },
+    })
 
-      // Step 2: build question definitions without responses
-      let questions = getQuestionsFromSchema(advancedFeatures)
-
-      // Step 3: get processing url
-      const processingUrl = buildSubmissionSupplementUrl(
-        singleProcessingStore.currentAssetUid,
-        singleProcessingStore.currentSubmissionEditId,
-      )
-
-      // Step 4: get responses for questions and apply them to already built
-      // definitions
-      try {
-        if (processingUrl) {
-          const apiResponse = await fetchGetUrl<SubmissionProcessingDataResponse>(processingUrl)
-
-          questions = applyUpdateResponseToInternalQuestions(
-            singleProcessingStore.currentQuestionXpath,
-            apiResponse,
-            questions,
-          )
-        }
-
-        // Step 5: update reducer
-        dispatch({ type: 'setQuestions', payload: { questions: questions } })
-
-        // Step 6: hide spinner
-        setIsInitialised(true)
-      } catch (err) {
-        handleApiFail(err as FailResponse)
-        setIsInitialised(true)
-        setIsErrored(true)
-      }
-    }
-    setupQuestions()
+    setIsInitialised(true)
   }, [])
 
   useEffect(() => {
@@ -94,20 +69,18 @@ export default function AnalysisTab() {
     )
   }
 
-  if (isErrored) {
-    return (
-      <div className={bodyStyles.root}>
-        <InlineMessage type='error' message={t('Failed to load analysis questions')} />
-      </div>
-    )
-  }
-
   return (
     <div className={classNames(bodyStyles.root, bodyStyles.viewAnalysis)}>
       <AnalysisQuestionsContext.Provider value={contextValue}>
-        <AnalysisHeader />
+        <AnalysisHeader
+          asset={asset}
+          questionXpath={questionXpath}
+          submission={submission}
+          supplement={supplement}
+          advancedFeatures={advancedFeatures}
+        />
 
-        <AnalysisContent />
+        <AnalysisContent asset={asset} questionXpath={questionXpath} submission={submission} />
       </AnalysisQuestionsContext.Provider>
     </div>
   )

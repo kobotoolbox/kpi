@@ -82,7 +82,16 @@ export default function SingleProcessingContent({
       )
     }
     if (isProcessingRouteActive(PROCESSING_ROUTES.ANALYSIS)) {
-      return <TabAnalysis />
+      return (
+        <TabAnalysis
+          asset={asset}
+          questionXpath={questionXpath}
+          submission={submission}
+          onUnsavedWorkChange={onUnsavedWorkChange}
+          supplement={supplement}
+          advancedFeatures={advancedFeatures}
+        />
+      )
     }
     return null
   }

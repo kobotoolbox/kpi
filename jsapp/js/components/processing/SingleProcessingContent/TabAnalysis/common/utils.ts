@@ -2,18 +2,16 @@ import * as Sentry from '@sentry/react'
 import clonedeep from 'lodash.clonedeep'
 import { fetchPatch, fetchPostUrl, handleApiFail } from '#/api'
 import { endpoints } from '#/api.endpoints'
+import { ActionEnum } from '#/api/models/actionEnum'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
+import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { QualActionParams } from '#/api/models/qualActionParams'
 import assetStore from '#/assetStore'
 import { buildSubmissionSupplementUrl, getAssetAdvancedFeatures } from '#/assetUtils'
 import type { Json } from '#/components/common/common.interfaces'
-import { userCan } from '#/components/permissions/utils'
-import type { AssetAdvancedFeatures, AssetResponse, FailResponse } from '#/dataInterface'
+import type { AssetResponse, FailResponse } from '#/dataInterface'
 import { notify, recordEntries } from '#/utils'
-
-import { ADVANCED_FEATURES_ACTION } from '#/components/processing/common/constants'
 import { NO_FEATURE_ERROR } from '../../../processingActions'
-import singleProcessingStore from '../../../singleProcessingStore'
 import type { AnalysisQuestionsAction } from './analysisQuestions.actions'
 import type { AnalysisQuestionsState } from './analysisQuestions.reducer'
 import type {
@@ -85,22 +83,23 @@ export function convertQuestionsFromSchemaToInternal(af?: AdvancedFeatureRespons
  */
 export function applyUpdateResponseToInternalQuestions(
   xpath: string,
-  updateResp: SubmissionProcessingDataResponse,
+  updateResp: DataSupplementResponse,
   questions: AnalysisQuestionInternal[],
 ): AnalysisQuestionInternal[] {
   const newQuestions = clonedeep(questions)
-  const analysisResponses = recordEntries(updateResp[xpath]?.[ADVANCED_FEATURES_ACTION.manual_qual] ?? {})
+  const analysisResponses = recordEntries(updateResp[xpath]?.[ActionEnum.manual_qual] ?? {})
   newQuestions.forEach((question) => {
-    const foundResponse = analysisResponses.find((analResp) => question.uuid === analResp.uuid)
+    const foundResponse = analysisResponses.find(([uuid, _analResp]) => question.uuid === uuid)
 
     if (foundResponse) {
       // QUAL_INTEGER CONVERSION HACK (PART 2/2):
       // Before putting the responses stored on Back end into the reducer, we
       // need to convert `qual_integer` response to string (from integer).
-      if (typeof foundResponse.val === 'number') {
-        question.response = String(foundResponse.val)
+      const value = foundResponse[1]._versions[0]._data.value
+      if (typeof value === 'number') {
+        question.response = String(value)
       } else {
-        question.response = foundResponse.val || ''
+        question.response = value || ''
       }
     }
   })
@@ -122,10 +121,8 @@ export function updateSingleQuestionPreservingResponse(
   })
 }
 
-export function getQuestionsFromSchema(
-  advancedFeatures: AssetAdvancedFeatures | undefined,
-): AnalysisQuestionInternal[] {
-  return convertQuestionsFromSchemaToInternal(advancedFeatures?.qual?.qual_survey || [])
+export function getQuestionsFromSchema(advancedFeatures?: AdvancedFeatureResponse[]): AnalysisQuestionInternal[] {
+  return convertQuestionsFromSchemaToInternal(advancedFeatures?.find(({ action }) => action === ActionEnum.manual_qual))
 }
 
 /**
@@ -238,9 +235,11 @@ export async function updateResponseAndReducer(
   analysisQuestionUuid: string,
   analysisQuestionType: AnalysisQuestionType,
   response: string | string[],
+  assetUid: string,
+  submissionId: string,
 ) {
   // Double check before removing this check (we no longer have to activate NLP features)
-  const processingUrl = buildSubmissionSupplementUrl(singleProcessingStore.currentAssetUid, surveyQuestionXpath)
+  const processingUrl = buildSubmissionSupplementUrl(assetUid, surveyQuestionXpath)
   if (!processingUrl) {
     notify(NO_FEATURE_ERROR, 'error')
     return
@@ -273,7 +272,7 @@ export async function updateResponseAndReducer(
   try {
     const result = await updateResponse(
       processingUrl,
-      singleProcessingStore.currentSubmissionEditId,
+      submissionId,
       surveyQuestionXpath,
       analysisQuestionUuid,
       analysisQuestionType,
@@ -290,9 +289,4 @@ export async function updateResponseAndReducer(
     handleApiFail(err as FailResponse)
     dispatch({ type: 'updateResponseFailed' })
   }
-}
-
-export function hasManagePermissionsToCurrentAsset(): boolean {
-  const asset = assetStore.getAsset(singleProcessingStore.currentAssetUid)
-  return userCan('manage_asset', asset)
 }
