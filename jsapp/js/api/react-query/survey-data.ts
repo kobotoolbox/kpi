@@ -227,7 +227,7 @@ Accepted `action`s include:
 * `manual_translation`
 * `automatic_google_translation`
 * `manual_qual`
-
+* `automatic_bedrock_qual`
 
  */
 export type assetsAdvancedFeaturesCreateResponse201 = {
