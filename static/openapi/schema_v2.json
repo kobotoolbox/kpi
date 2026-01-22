@@ -1155,31 +1155,36 @@
                 "description": "## Get user's assets\n\n\nSearch can be made with `q` parameter.\nSearch filters can be returned with results by passing `metadata=on` to querystring.\n\n\nResults can be sorted with `ordering` parameter, e.g.:\n\n```shell\ncurl -X GET https://kf.kobotoolbox.org/api/v2/assets/?ordering=-name\n```\n\n\nAllowed fields are:\n\n- `asset_type`\n- `date_modified`\n- `date_deployed`\n- `date_modified__date`\n- `date_deployed__date`\n- `name`\n- `settings__sector`\n- `settings__sector__value`\n- `settings__description`\n- `owner__username`\n- `owner__extra_details__data__name`\n- `owner__extra_details__data__organization`\n- `owner__email`\n- `_deployment_status`\n- `subscribers_count`\n\n\nNote: Collections can be displayed first with parameter `collections_first`, e.g.:\n\n```shell\ncurl -X GET https://kf.kobotoolbox.org/api/v2/assets/?collections_first=true&ordering=-name\n```\n",
                 "parameters": [
                     {
+                        "in": "query",
                         "name": "limit",
-                        "required": false,
-                        "in": "query",
-                        "description": "Number of results to return per page.",
                         "schema": {
                             "type": "integer"
-                        }
+                        },
+                        "description": "Paginate results with limit parameter"
                     },
                     {
+                        "in": "query",
                         "name": "offset",
-                        "required": false,
-                        "in": "query",
-                        "description": "The initial index from which to return the results.",
                         "schema": {
                             "type": "integer"
-                        }
+                        },
+                        "description": "Paginate results with offset parameter"
                     },
                     {
-                        "name": "ordering",
-                        "required": false,
                         "in": "query",
-                        "description": "Which field to use when ordering the results.",
+                        "name": "ordering",
                         "schema": {
                             "type": "string"
-                        }
+                        },
+                        "description": "Which field to use when ordering the results."
+                    },
+                    {
+                        "in": "query",
+                        "name": "q",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Filter the results with search query"
                     }
                 ],
                 "tags": [
@@ -3767,6 +3772,30 @@
                                         },
                                         "summary": "Manual Transcription"
                                     },
+                                    "ManualTranscription(with\"locale\")": {
+                                        "value": {
+                                            "_version": "20250820",
+                                            "question_name_xpath": {
+                                                "manual_transcription": {
+                                                    "_dateCreated": "2025-01-01T12:00:00Z",
+                                                    "_dateModified": "2025-01-01T12:00:00Z",
+                                                    "_versions": [
+                                                        {
+                                                            "_dateCreated": "2025-01-01T12:00:00Z",
+                                                            "_dateAccepted": "2025-01-01T12:00:00Z",
+                                                            "_uuid": "11111111-1111-1111-1111-111111111111",
+                                                            "_data": {
+                                                                "language": "fr",
+                                                                "locale": "fr-CA",
+                                                                "value": "Bonjour"
+                                                            }
+                                                        }
+                                                    ]
+                                                }
+                                            }
+                                        },
+                                        "summary": "Manual Transcription (with \"locale\")"
+                                    },
                                     "ManualTranslation": {
                                         "value": {
                                             "_version": "20250820",
@@ -4175,6 +4204,20 @@
                                     },
                                     "summary": "Manual Transcription"
                                 },
+                                "ManualTranscription(with\"locale\")": {
+                                    "value": {
+                                        "_version": "20250820",
+                                        "question_name_xpath": {
+                                            "manual_transcription": {
+                                                "language": "fr",
+                                                "locale": "fr-CA",
+                                                "value": "Bonjour"
+                                            }
+                                        }
+                                    },
+                                    "summary": "Manual Transcription (with \"locale\")",
+                                    "description": "The `locale` field is optional."
+                                },
                                 "ManualTranslation": {
                                     "value": {
                                         "_version": "20250820",
@@ -4344,6 +4387,30 @@
                                             }
                                         },
                                         "summary": "Manual Transcription"
+                                    },
+                                    "ManualTranscription(with\"locale\")": {
+                                        "value": {
+                                            "_version": "20250820",
+                                            "question_name_xpath": {
+                                                "manual_transcription": {
+                                                    "_dateCreated": "2025-01-01T12:00:00Z",
+                                                    "_dateModified": "2025-01-01T12:00:00Z",
+                                                    "_versions": [
+                                                        {
+                                                            "_dateCreated": "2025-01-01T12:00:00Z",
+                                                            "_dateAccepted": "2025-01-01T12:00:00Z",
+                                                            "_uuid": "11111111-1111-1111-1111-111111111111",
+                                                            "_data": {
+                                                                "language": "fr",
+                                                                "locale": "fr-CA",
+                                                                "value": "Bonjour"
+                                                            }
+                                                        }
+                                                    ]
+                                                }
+                                            }
+                                        },
+                                        "summary": "Manual Transcription (with \"locale\")"
                                     },
                                     "ManualTranslation": {
                                         "value": {
@@ -13600,7 +13667,7 @@
         "/api/v2/user-reports/": {
             "get": {
                 "operationId": "api_v2_user_reports_list",
-                "description": "# List user reports\n\n⚠️ _Only available to superusers_\n\n## Filterable fields by string:\n\nSupports partial filtering\n- username\n- first_name\n- last_name\n- email\n- user_uid\n- organization__name\n- organization__role (e.g., admin, member, owner)\n- organization__website\n- extra_details__data__organization_type\n- `extra_details__data__<field>` (other string fields, e.g., name, sector, country...)\n\n## Filterable fields by int:\n\nSupports exact matching and range operators (e.g., gte, lte)\n\n**Total NLP Usage**\n- service_usage__total_nlp_usage__asr_seconds_all_time\n- service_usage__total_nlp_usage__mt_characters_all_time\n- service_usage__total_nlp_usage__asr_seconds_current_period\n- service_usage__total_nlp_usage__mt_characters_current_period\n\n**Total Storage/Submissions**\n- service_usage__total_storage_bytes\n- service_usage__total_submission_count__all_time\n- service_usage__total_submission_count__current_period\n\n**Service Usage Balances**\n\nPrefix: `service_usage__balances__<metric>__<value>`\n\nMetric:\n- submission\n- asr_seconds\n- mt_characters\n- storage_bytes\n\nValue:\n- balance_value\n- balance_percent\n- effective_limit\n\nEx: `service_usage__balances__submission__balance_value`\n\n**Asset Count**\n- asset_count\n- deployed_asset_count\n\n## Filterable fields by date:\nSupports exact matching and range operators (e.g., gte, lte)\n\n- date_joined\n- last_login\n- last_updated (Represents the last modified timestamp of the materialized view)\n- extra_details__date_removal_requested\n- extra_details__date_removed\n- extra_details_password_date_changed\n\n## Filterable fields by boolean:\n\n- is_superuser\n- is_staff\n- is_active\n- validated_email\n- extra_details__validated_password\n- mfa_is_active\n- sso_is_active\n- accepted_tos\n- extra_details__data__newsletter_subscription\n- service_usage__balances__*metric*__exceeded (metric: submission, asr_seconds, mt_characters, storage_bytes)\n- account_restricted\n\n## Filterable fields by list:\n\nSubscription filtering:\n\nHas subscriptions\n\n`?q=subscriptions__0__id__isnull:False`\n\nNo subscriptions\n\n`?q=subscriptions__0__id__isnull:True`\n\nSubscription id\n\n`?q=subscriptions[]__id:sub_1QwPItAR39rDI89stzLJ040p`\n\nActive subscriptions\n\n`?q=subscriptions[]__status:active`\n",
+                "description": "# List user reports\n\n⚠️ _Only available to superusers_\n\n## Filterable fields by string:\n\nSupports partial filtering\n- username\n- first_name\n- last_name\n- email\n- user_uid\n- organization__name\n- organization__role (e.g., admin, member, owner)\n- organization__website\n- extra_details__data__organization_type\n- `extra_details__data__<field>` (other string fields, e.g., name, sector, country...)\n\n## Filterable fields by int:\n\nSupports exact matching and range operators (e.g., gte, lte)\n\n**Total NLP Usage**\n- service_usage__total_nlp_usage__asr_seconds_all_time\n- service_usage__total_nlp_usage__mt_characters_all_time\n- service_usage__total_nlp_usage__asr_seconds_current_period\n- service_usage__total_nlp_usage__mt_characters_current_period\n\n**Total Storage/Submissions**\n- service_usage__total_storage_bytes\n- service_usage__total_submission_count__cumulative\n- service_usage__total_submission_count__current_period\n\n**Service Usage Balances**\n\nPrefix: `service_usage__balances__<metric>__<value>`\n\nMetric:\n- submission\n- asr_seconds\n- mt_characters\n- storage_bytes\n\nValue:\n- balance_value\n- balance_percent\n- effective_limit\n\nEx: `service_usage__balances__submission__balance_value`\n\n**Asset Count**\n- asset_count\n- active_project_count\n\n## Filterable fields by date:\nSupports exact matching and range operators (e.g., gte, lte)\n\n- date_joined\n- last_login\n- last_updated (Represents the last modified timestamp of the materialized view)\n- extra_details__date_removal_requested\n- extra_details__date_removed\n- extra_details_password_date_changed\n\n## Filterable fields by boolean:\n\n- is_superuser\n- is_staff\n- is_active\n- validated_email\n- extra_details__validated_password\n- mfa_is_active\n- sso_is_active\n- accepted_tos\n- extra_details__data__newsletter_subscription\n- service_usage__balances__*metric*__exceeded (metric: submission, asr_seconds, mt_characters, storage_bytes)\n- account_restricted\n\n## Filterable fields by list:\n\nSubscription filtering:\n\nHas subscriptions\n\n`?q=subscriptions__0__id__isnull:False`\n\nNo subscriptions\n\n`?q=subscriptions__0__id__isnull:True`\n\nSubscription id\n\n`?q=subscriptions[]__id:sub_1QwPItAR39rDI89stzLJ040p`\n\nActive subscriptions\n\n`?q=subscriptions[]__status:active`\n",
                 "parameters": [
                     {
                         "name": "limit",
@@ -14458,13 +14525,25 @@
                     "username"
                 ]
             },
+            "ActionEnum": {
+                "enum": [
+                    "automatic_google_transcription",
+                    "automatic_google_translation",
+                    "manual_transcription",
+                    "manual_translation",
+                    "manual_qual",
+                    "automatic_bedrock_qual"
+                ],
+                "type": "string",
+                "description": "* `automatic_google_transcription` - automatic_google_transcription\n* `automatic_google_translation` - automatic_google_translation\n* `manual_transcription` - manual_transcription\n* `manual_translation` - manual_translation\n* `manual_qual` - manual_qual\n* `automatic_bedrock_qual` - automatic_bedrock_qual"
+            },
             "AdvancedFeaturePostRequest": {
                 "type": "object",
                 "properties": {
-                    "question_xpath": {
-                        "type": "string"
-                    },
                     "action": {
+                        "$ref": "#/components/schemas/ActionEnum"
+                    },
+                    "question_xpath": {
                         "type": "string"
                     },
                     "params": {
@@ -14490,10 +14569,10 @@
             "AdvancedFeatureResponse": {
                 "type": "object",
                 "properties": {
-                    "question_xpath": {
-                        "type": "string"
-                    },
                     "action": {
+                        "$ref": "#/components/schemas/ActionEnum"
+                    },
+                    "question_xpath": {
                         "type": "string"
                     },
                     "params": {
@@ -14509,16 +14588,12 @@
                             ]
                         }
                     },
-                    "asset": {
-                        "type": "string"
-                    },
                     "uid": {
                         "type": "string"
                     }
                 },
                 "required": [
                     "action",
-                    "asset",
                     "params",
                     "question_xpath",
                     "uid"
@@ -16341,40 +16416,58 @@
                         "type": "string"
                     },
                     "_attachments": {
-                        "type": "object",
-                        "properties": {
-                            "download_url": {
-                                "type": "string",
-                                "format": "uri",
-                                "example": "https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/1"
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "download_url": {
+                                    "type": "string",
+                                    "format": "uri",
+                                    "example": "https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/1"
+                                },
+                                "download_large_url": {
+                                    "type": "string",
+                                    "format": "uri",
+                                    "example": "https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/large/"
+                                },
+                                "download_medium_url": {
+                                    "type": "string",
+                                    "format": "uri",
+                                    "example": "https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/medium/"
+                                },
+                                "download_small_url": {
+                                    "type": "string",
+                                    "format": "uri",
+                                    "example": "https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/small/"
+                                },
+                                "mimetype": {
+                                    "type": "string",
+                                    "example": "image/png"
+                                },
+                                "media_file_basename": {
+                                    "type": "string"
+                                },
+                                "filename": {
+                                    "type": "string"
+                                },
+                                "uid": {
+                                    "type": "string"
+                                },
+                                "question_xpath": {
+                                    "type": "string"
+                                },
+                                "is_deleted": {
+                                    "type": "boolean"
+                                }
                             },
-                            "download_large_url": {
-                                "type": "string",
-                                "format": "uri",
-                                "example": "https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/large/"
-                            },
-                            "download_medium_url": {
-                                "type": "string",
-                                "format": "uri",
-                                "example": "https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/medium/"
-                            },
-                            "download_small_url": {
-                                "type": "string",
-                                "format": "uri",
-                                "example": "https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/small/"
-                            },
-                            "mimetype": {
-                                "type": "string"
-                            },
-                            "filename": {
-                                "type": "string"
-                            },
-                            "uid": {
-                                "type": "string"
-                            },
-                            "question_xpath": {
-                                "type": "string"
-                            }
+                            "required": [
+                                "download_url",
+                                "filename",
+                                "media_file_basename",
+                                "mimetype",
+                                "question_xpath",
+                                "uid"
+                            ]
                         },
                         "title": " attachments"
                     },
@@ -16499,6 +16592,9 @@
                                                 "language": {
                                                     "type": "string"
                                                 },
+                                                "locale": {
+                                                    "type": "string"
+                                                },
                                                 "value": {
                                                     "type": "string",
                                                     "nullable": true
@@ -16582,6 +16678,9 @@
                                                     "language": {
                                                         "type": "string"
                                                     },
+                                                    "locale": {
+                                                        "type": "string"
+                                                    },
                                                     "value": {
                                                         "type": "string",
                                                         "nullable": true
@@ -16650,6 +16749,9 @@
                                                         "language": {
                                                             "type": "string"
                                                         },
+                                                        "locale": {
+                                                            "type": "string"
+                                                        },
                                                         "status": {
                                                             "type": "string",
                                                             "const": "in_progress"
@@ -16665,6 +16767,9 @@
                                                     "type": "object",
                                                     "properties": {
                                                         "language": {
+                                                            "type": "string"
+                                                        },
+                                                        "locale": {
                                                             "type": "string"
                                                         },
                                                         "status": {
@@ -16688,6 +16793,9 @@
                                                         "language": {
                                                             "type": "string"
                                                         },
+                                                        "locale": {
+                                                            "type": "string"
+                                                        },
                                                         "status": {
                                                             "type": "string",
                                                             "const": "complete"
@@ -16707,6 +16815,9 @@
                                                     "type": "object",
                                                     "properties": {
                                                         "language": {
+                                                            "type": "string"
+                                                        },
+                                                        "locale": {
                                                             "type": "string"
                                                         },
                                                         "status": {
@@ -16799,6 +16910,9 @@
                                                             "language": {
                                                                 "type": "string"
                                                             },
+                                                            "locale": {
+                                                                "type": "string"
+                                                            },
                                                             "status": {
                                                                 "type": "string",
                                                                 "const": "in_progress"
@@ -16814,6 +16928,9 @@
                                                         "type": "object",
                                                         "properties": {
                                                             "language": {
+                                                                "type": "string"
+                                                            },
+                                                            "locale": {
                                                                 "type": "string"
                                                             },
                                                             "status": {
@@ -16837,6 +16954,9 @@
                                                             "language": {
                                                                 "type": "string"
                                                             },
+                                                            "locale": {
+                                                                "type": "string"
+                                                            },
                                                             "status": {
                                                                 "type": "string",
                                                                 "const": "complete"
@@ -16856,6 +16976,9 @@
                                                         "type": "object",
                                                         "properties": {
                                                             "language": {
+                                                                "type": "string"
+                                                            },
+                                                            "locale": {
                                                                 "type": "string"
                                                             },
                                                             "status": {
@@ -16895,7 +17018,7 @@
                             ]
                         }
                     },
-                    "qual": {
+                    "manual_qual": {
                         "type": "object",
                         "additionalProperties": {
                             "type": "object",
@@ -17313,7 +17436,7 @@
                     },
                     {
                         "required": [
-                            "qual"
+                            "manual_qual"
                         ]
                     }
                 ]
@@ -19128,19 +19251,16 @@
                 "description": "* `admin` - admin\n* `member` - member\n* `owner` - owner"
             },
             "NLPActionParams": {
-                "type": "array",
-                "items": {
-                    "additionalProperties": false,
-                    "properties": {
-                        "language": {
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "language"
-                    ],
-                    "type": "object"
-                }
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "language": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "language"
+                ]
             },
             "NlpUsage": {
                 "type": "object",
@@ -21021,8 +21141,12 @@
                             "language": {
                                 "type": "string"
                             },
-                            "value": {
+                            "locale": {
                                 "type": "string"
+                            },
+                            "value": {
+                                "type": "string",
+                                "nullable": true
                             }
                         },
                         "additionalProperties": false,
@@ -21037,8 +21161,12 @@
                             "language": {
                                 "type": "string"
                             },
-                            "value": {
+                            "locale": {
                                 "type": "string"
+                            },
+                            "value": {
+                                "type": "string",
+                                "nullable": true
                             }
                         },
                         "additionalProperties": false,
@@ -21051,6 +21179,9 @@
                         "type": "object",
                         "properties": {
                             "language": {
+                                "type": "string"
+                            },
+                            "locale": {
                                 "type": "string"
                             },
                             "accepted": {
@@ -21066,6 +21197,9 @@
                         "type": "object",
                         "properties": {
                             "language": {
+                                "type": "string"
+                            },
+                            "locale": {
                                 "type": "string"
                             },
                             "accepted": {
@@ -22664,17 +22798,14 @@
                 "description": "* `always_invoice` - Always invoice\n* `create_prorations` - Create prorations\n* `none` - None"
             },
             "QualActionParams": {
-                "type": "array",
-                "items": {
-                    "anyOf": [
-                        {
-                            "$ref": "#/components/schemas/QualSimpleQuestionParams"
-                        },
-                        {
-                            "$ref": "#/components/schemas/QualSelectQuestionParams"
-                        }
-                    ]
-                }
+                "anyOf": [
+                    {
+                        "$ref": "#/components/schemas/QualSimpleQuestionParams"
+                    },
+                    {
+                        "$ref": "#/components/schemas/QualSelectQuestionParams"
+                    }
+                ]
             },
             "QualSelectQuestionParams": {
                 "type": "object",
@@ -22689,9 +22820,17 @@
                     },
                     "labels": {
                         "type": "object",
+                        "properties": {
+                            "_default": {
+                                "type": "string"
+                            }
+                        },
                         "additionalProperties": {
                             "type": "string"
-                        }
+                        },
+                        "required": [
+                            "_default"
+                        ]
                     },
                     "choices": {
                         "type": "array",
@@ -22701,9 +22840,17 @@
                             "properties": {
                                 "labels": {
                                     "type": "object",
+                                    "properties": {
+                                        "_default": {
+                                            "type": "string"
+                                        }
+                                    },
                                     "additionalProperties": {
                                         "type": "string"
-                                    }
+                                    },
+                                    "required": [
+                                        "_default"
+                                    ]
                                 },
                                 "uuid": {
                                     "type": "string",
@@ -22750,9 +22897,17 @@
                     },
                     "labels": {
                         "type": "object",
+                        "properties": {
+                            "_default": {
+                                "type": "string"
+                            }
+                        },
                         "additionalProperties": {
                             "type": "string"
-                        }
+                        },
+                        "required": [
+                            "_default"
+                        ]
                     },
                     "options": {
                         "type": "object"
@@ -24169,8 +24324,8 @@
                             }
                         }
                     },
-                    "current_service_usage": {
-                        "$ref": "#/components/schemas/ServiceUsageResponse"
+                    "service_usage": {
+                        "$ref": "#/components/schemas/UserReportsServiceUsageResponse"
                     },
                     "account_restricted": {
                         "type": "boolean"
@@ -24178,17 +24333,16 @@
                     "asset_count": {
                         "type": "integer"
                     },
-                    "deployed_asset_count": {
+                    "active_project_count": {
                         "type": "integer"
                     }
                 },
                 "required": [
                     "accepted_tos",
                     "account_restricted",
+                    "active_project_count",
                     "asset_count",
-                    "current_service_usage",
                     "date_joined",
-                    "deployed_asset_count",
                     "email",
                     "extra_details",
                     "first_name",
@@ -24199,12 +24353,90 @@
                     "last_name",
                     "mfa_is_active",
                     "organizations",
+                    "service_usage",
                     "social_accounts",
                     "sso_is_active",
                     "subscriptions",
                     "user_uid",
                     "username",
                     "validated_email"
+                ]
+            },
+            "UserReportsServiceUsageResponse": {
+                "type": "object",
+                "properties": {
+                    "total_nlp_usage": {
+                        "type": "object",
+                        "properties": {
+                            "asr_seconds_current_period": {
+                                "type": "integer"
+                            },
+                            "llm_requests_current_period": {
+                                "type": "integer"
+                            },
+                            "mt_characters_current_period": {
+                                "type": "integer"
+                            },
+                            "asr_seconds_all_time": {
+                                "type": "integer"
+                            },
+                            "llm_requests_all_time": {
+                                "type": "integer"
+                            },
+                            "mt_characters_all_time": {
+                                "type": "integer"
+                            }
+                        },
+                        "required": [
+                            "asr_seconds_all_time",
+                            "asr_seconds_current_period",
+                            "llm_requests_all_time",
+                            "llm_requests_current_period",
+                            "mt_characters_all_time",
+                            "mt_characters_current_period"
+                        ]
+                    },
+                    "total_storage_bytes": {
+                        "type": "integer"
+                    },
+                    "total_submission_count": {
+                        "type": "object",
+                        "properties": {
+                            "retention_days": {
+                                "type": "integer"
+                            },
+                            "cumulative": {
+                                "type": "integer"
+                            },
+                            "current_period": {
+                                "type": "integer"
+                            }
+                        }
+                    },
+                    "balances": {
+                        "$ref": "#/components/schemas/ServiceUsageBalances"
+                    },
+                    "current_period_start": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "current_period_end": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "last_updated": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "balances",
+                    "current_period_end",
+                    "current_period_start",
+                    "last_updated",
+                    "total_nlp_usage",
+                    "total_storage_bytes",
+                    "total_submission_count"
                 ]
             },
             "UserRetrieveResponse": {

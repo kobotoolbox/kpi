@@ -15,43 +15,55 @@ from kpi.utils.schema_extensions.url_builder import build_url_type
 
 
 class DataAttachmentFieldExtension(OpenApiSerializerFieldExtension):
-    target_class = 'kpi.schema_extensions.v2.data.fields.DataAttachmentField'
+    target_class = 'kpi.schema_extensions.v2.data.fields.DataAttachmentsField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_object_type(
-            properties={
-                'download_url': build_url_type(
-                    viewname='api_v2:attachment-detail',
-                    uid_asset='aTPPUDScaFZkvBzd8FyK4Q',
-                    uid_data='18',
-                    pk='1',
-                ),
-                'download_large_url': build_url_type(
-                    viewname='api_v2:attachment-thumb',
-                    uid_asset='aTPPUDScaFZkvBzd8FyK4Q',
-                    uid_data='18',
-                    pk='attWNZNwhXK6HDYVkZJSn9jy',
-                    suffix='large',
-                ),
-                'download_medium_url': build_url_type(
-                    viewname='api_v2:attachment-thumb',
-                    uid_asset='aTPPUDScaFZkvBzd8FyK4Q',
-                    uid_data='18',
-                    pk='attWNZNwhXK6HDYVkZJSn9jy',
-                    suffix='medium',
-                ),
-                'download_small_url': build_url_type(
-                    viewname='api_v2:attachment-thumb',
-                    uid_asset='aTPPUDScaFZkvBzd8FyK4Q',
-                    uid_data='18',
-                    pk='attWNZNwhXK6HDYVkZJSn9jy',
-                    suffix='small',
-                ),
-                'mimetype': build_basic_type(OpenApiTypes.STR),
-                'filename': build_basic_type(OpenApiTypes.STR),
-                'uid': build_basic_type(OpenApiTypes.STR),
-                'question_xpath': build_basic_type(OpenApiTypes.STR),
-            }
+        return build_array_type(
+            schema=build_object_type(
+                properties={
+                    'download_url': build_url_type(
+                        viewname='api_v2:attachment-detail',
+                        uid_asset='aTPPUDScaFZkvBzd8FyK4Q',
+                        uid_data='18',
+                        pk='1',
+                    ),
+                    'download_large_url': build_url_type(
+                        viewname='api_v2:attachment-thumb',
+                        uid_asset='aTPPUDScaFZkvBzd8FyK4Q',
+                        uid_data='18',
+                        pk='attWNZNwhXK6HDYVkZJSn9jy',
+                        suffix='large',
+                    ),
+                    'download_medium_url': build_url_type(
+                        viewname='api_v2:attachment-thumb',
+                        uid_asset='aTPPUDScaFZkvBzd8FyK4Q',
+                        uid_data='18',
+                        pk='attWNZNwhXK6HDYVkZJSn9jy',
+                        suffix='medium',
+                    ),
+                    'download_small_url': build_url_type(
+                        viewname='api_v2:attachment-thumb',
+                        uid_asset='aTPPUDScaFZkvBzd8FyK4Q',
+                        uid_data='18',
+                        pk='attWNZNwhXK6HDYVkZJSn9jy',
+                        suffix='small',
+                    ),
+                    'mimetype': {'type': 'string', 'example': 'image/png'},
+                    'media_file_basename': build_basic_type(OpenApiTypes.STR),
+                    'filename': build_basic_type(OpenApiTypes.STR),
+                    'uid': build_basic_type(OpenApiTypes.STR),
+                    'question_xpath': build_basic_type(OpenApiTypes.STR),
+                    'is_deleted': build_basic_type(OpenApiTypes.BOOL),
+                },
+                required=[
+                    'download_url',
+                    'mimetype',
+                    'filename',
+                    'uid',
+                    'media_file_basename',
+                    'question_xpath',
+                ],
+            )
         )
 
 
@@ -285,6 +297,7 @@ class DataSupplementPayloadExtension(
             additionalProperties=False,
             properties={
                 'language': GENERIC_STRING_SCHEMA,
+                'locale': GENERIC_STRING_SCHEMA,
                 'accepted': {'type': 'boolean'},
             },
             required=['language'],
@@ -297,7 +310,8 @@ class DataSupplementPayloadExtension(
             additionalProperties=False,
             properties={
                 'language': GENERIC_STRING_SCHEMA,
-                'value': GENERIC_STRING_SCHEMA,
+                'locale': GENERIC_STRING_SCHEMA,
+                'value': {'type': 'string', 'nullable': True},
             },
             required=['language', 'value'],
         )
@@ -321,7 +335,7 @@ class DataSupplementResponseExtension(
                 'manual_translation': self._manual_translation_schema,
                 'automatic_google_transcription': self._automatic_transcription_schema,
                 'automatic_google_translation': self._automatic_translation_schema,
-                'qual': self._qual_schema,
+                'manual_qual': self._qual_schema,
             },
             # At least one of "manual_transcription" or "manual_translation"
             # must be present
@@ -330,7 +344,7 @@ class DataSupplementResponseExtension(
                 {'required': ['manual_translation']},
                 {'required': ['automatic_google_transcription']},
                 {'required': ['automatic_google_translation']},
-                {'required': ['qual']},
+                {'required': ['manual_qual']},
             ],
         )
 
@@ -457,6 +471,7 @@ class DataSupplementResponseExtension(
                 additionalProperties=False,
                 properties={
                     'language': GENERIC_STRING_SCHEMA,
+                    'locale': GENERIC_STRING_SCHEMA,
                     'value': {'type': 'string', 'nullable': True},
                 },
                 required=['language', 'value'],
@@ -469,6 +484,7 @@ class DataSupplementResponseExtension(
                     additionalProperties=False,
                     properties={
                         'language': GENERIC_STRING_SCHEMA,
+                        'locale': GENERIC_STRING_SCHEMA,
                         'status': {'type': 'string', 'const': 'in_progress'},
                     },
                     required=['language', 'status'],
@@ -478,6 +494,7 @@ class DataSupplementResponseExtension(
                     additionalProperties=False,
                     properties={
                         'language': GENERIC_STRING_SCHEMA,
+                        'locale': GENERIC_STRING_SCHEMA,
                         'status': {'type': 'string', 'const': 'failed'},
                         'error': {'type': 'string'},
                     },
@@ -488,6 +505,7 @@ class DataSupplementResponseExtension(
                     additionalProperties=False,
                     properties={
                         'language': GENERIC_STRING_SCHEMA,
+                        'locale': GENERIC_STRING_SCHEMA,
                         'status': {'type': 'string', 'const': 'complete'},
                         'value': {'type': 'string'},
                     },
@@ -498,6 +516,7 @@ class DataSupplementResponseExtension(
                     additionalProperties=False,
                     properties={
                         'language': GENERIC_STRING_SCHEMA,
+                        'locale': GENERIC_STRING_SCHEMA,
                         'status': {'type': 'string', 'const': 'deleted'},
                         'value': {'type': 'null'},
                     },

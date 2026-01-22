@@ -9,7 +9,7 @@ The endpoints are grouped by area of intended use. Each category contains relate
 **General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as "assets".
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
-import type { _DataResponseAttachments } from './_dataResponseAttachments'
+import type { _DataResponseAttachmentsItem } from './_dataResponseAttachmentsItem'
 
 export type DataResponse = {
   _id: number
@@ -23,7 +23,7 @@ export type DataResponse = {
   _xform_id_string: string
   _uuid: string
   'meta/rootUuid': string
-  _attachments: _DataResponseAttachments
+  _attachments: _DataResponseAttachmentsItem[]
   _status: string
   _geolocation: unknown[]
   _submission_time: string

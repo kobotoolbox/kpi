@@ -202,6 +202,32 @@ def test_transform_data_for_output():
     }
 
 
+def test_transform_data_for_output_with_delete():
+    action = _get_action()
+    first = {'language': 'en', 'value': 'hello'}
+    second = {'language': 'en', 'value': 'hello again'}
+    third = {'language': 'fr', 'value': 'bonjour'}
+    fourth = {'language': 'en', 'value': None}
+    mock_sup_det = EMPTY_SUPPLEMENT
+    for data in first, second, third, fourth:
+        mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, data)
+
+    retrieved_data = action.retrieve_data(mock_sup_det)
+    result = action.transform_data_for_output(retrieved_data)
+    assert result == {
+        ('translation', 'en'): {
+            'value': None,
+            'languageCode': 'en',
+            '_sortByDate': retrieved_data['en']['_versions'][0]['_dateCreated'],
+        },
+        ('translation', 'fr'): {
+            'value': 'bonjour',
+            'languageCode': 'fr',
+            '_sortByDate': retrieved_data['fr']['_versions'][0]['_dateAccepted'],
+        },
+    }
+
+
 def _get_action(fetch_action_dependencies=True):
     xpath = 'group_name/question_name'  # irrelevant for this test
     params = [{'language': 'fr'}, {'language': 'en'}]

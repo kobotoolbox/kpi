@@ -12,6 +12,7 @@ The endpoints are grouped by area of intended use. Each category contains relate
 
 export type _DataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItemDataOneOfFour = {
   language: string
+  locale?: string
   status: 'deleted'
   value: null
 }

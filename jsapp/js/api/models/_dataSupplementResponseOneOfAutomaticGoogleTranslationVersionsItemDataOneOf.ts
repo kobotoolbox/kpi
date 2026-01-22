@@ -12,5 +12,6 @@ The endpoints are grouped by area of intended use. Each category contains relate
 
 export type _DataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItemDataOneOf = {
   language: string
+  locale?: string
   status: 'in_progress'
 }

@@ -816,24 +816,26 @@ paths:
         curl -X GET https://kf.kobotoolbox.org/api/v2/assets/?collections_first=true&ordering=-name
         ```
       parameters:
-      - name: limit
-        required: false
-        in: query
-        description: Number of results to return per page.
+      - in: query
+        name: limit
         schema:
           type: integer
-      - name: offset
-        required: false
-        in: query
-        description: The initial index from which to return the results.
+        description: Paginate results with limit parameter
+      - in: query
+        name: offset
         schema:
           type: integer
-      - name: ordering
-        required: false
-        in: query
-        description: Which field to use when ordering the results.
+        description: Paginate results with offset parameter
+      - in: query
+        name: ordering
         schema:
           type: string
+        description: Which field to use when ordering the results.
+      - in: query
+        name: q
+        schema:
+          type: string
+        description: Filter the results with search query
       tags:
       - Manage projects and library content
       security:
@@ -2668,6 +2670,22 @@ paths:
                             language: fr
                             value: Bonjour
                   summary: Manual Transcription
+                ManualTranscription(with"locale"):
+                  value:
+                    _version: '20250820'
+                    question_name_xpath:
+                      manual_transcription:
+                        _dateCreated: '2025-01-01T12:00:00Z'
+                        _dateModified: '2025-01-01T12:00:00Z'
+                        _versions:
+                        - _dateCreated: '2025-01-01T12:00:00Z'
+                          _dateAccepted: '2025-01-01T12:00:00Z'
+                          _uuid: 11111111-1111-1111-1111-111111111111
+                          _data:
+                            language: fr
+                            locale: fr-CA
+                            value: Bonjour
+                  summary: Manual Transcription (with "locale")
                 ManualTranslation:
                   value:
                     _version: '20250820'
@@ -2946,6 +2964,16 @@ paths:
                       language: fr
                       value: Bonjour
                 summary: Manual Transcription
+              ManualTranscription(with"locale"):
+                value:
+                  _version: '20250820'
+                  question_name_xpath:
+                    manual_transcription:
+                      language: fr
+                      locale: fr-CA
+                      value: Bonjour
+                summary: Manual Transcription (with "locale")
+                description: The `locale` field is optional.
               ManualTranslation:
                 value:
                   _version: '20250820'
@@ -3061,6 +3089,22 @@ paths:
                             language: fr
                             value: Bonjour
                   summary: Manual Transcription
+                ManualTranscription(with"locale"):
+                  value:
+                    _version: '20250820'
+                    question_name_xpath:
+                      manual_transcription:
+                        _dateCreated: '2025-01-01T12:00:00Z'
+                        _dateModified: '2025-01-01T12:00:00Z'
+                        _versions:
+                        - _dateCreated: '2025-01-01T12:00:00Z'
+                          _dateAccepted: '2025-01-01T12:00:00Z'
+                          _uuid: 11111111-1111-1111-1111-111111111111
+                          _data:
+                            language: fr
+                            locale: fr-CA
+                            value: Bonjour
+                  summary: Manual Transcription (with "locale")
                 ManualTranslation:
                   value:
                     _version: '20250820'
@@ -9760,7 +9804,7 @@ paths:
 
         **Total Storage/Submissions**
         - service_usage__total_storage_bytes
-        - service_usage__total_submission_count__all_time
+        - service_usage__total_submission_count__cumulative
         - service_usage__total_submission_count__current_period
 
         **Service Usage Balances**
@@ -9782,7 +9826,7 @@ paths:
 
         **Asset Count**
         - asset_count
-        - deployed_asset_count
+        - active_project_count
 
         ## Filterable fields by date:
         Supports exact matching and range operators (e.g., gte, lte)
@@ -10377,12 +10421,28 @@ components:
       - user
       - user_uid
       - username
+    ActionEnum:
+      enum:
+      - automatic_google_transcription
+      - automatic_google_translation
+      - manual_transcription
+      - manual_translation
+      - manual_qual
+      - automatic_bedrock_qual
+      type: string
+      description: |-
+        * `automatic_google_transcription` - automatic_google_transcription
+        * `automatic_google_translation` - automatic_google_translation
+        * `manual_transcription` - manual_transcription
+        * `manual_translation` - manual_translation
+        * `manual_qual` - manual_qual
+        * `automatic_bedrock_qual` - automatic_bedrock_qual
     AdvancedFeaturePostRequest:
       type: object
       properties:
-        question_xpath:
-          type: string
         action:
+          $ref: '#/components/schemas/ActionEnum'
+        question_xpath:
           type: string
         params:
           type: array
@@ -10397,9 +10457,9 @@ components:
     AdvancedFeatureResponse:
       type: object
       properties:
-        question_xpath:
-          type: string
         action:
+          $ref: '#/components/schemas/ActionEnum'
+        question_xpath:
           type: string
         params:
           type: array
@@ -10407,13 +10467,10 @@ components:
             anyOf:
             - $ref: '#/components/schemas/NLPActionParams'
             - $ref: '#/components/schemas/QualActionParams'
-        asset:
-          type: string
         uid:
           type: string
       required:
       - action
-      - asset
       - params
       - question_xpath
       - uid
@@ -11693,32 +11750,46 @@ components:
         meta/rootUuid:
           type: string
         _attachments:
-          type: object
-          properties:
-            download_url:
-              type: string
-              format: uri
-              example: https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/1
-            download_large_url:
-              type: string
-              format: uri
-              example: https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/large/
-            download_medium_url:
-              type: string
-              format: uri
-              example: https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/medium/
-            download_small_url:
-              type: string
-              format: uri
-              example: https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/small/
-            mimetype:
-              type: string
-            filename:
-              type: string
-            uid:
-              type: string
-            question_xpath:
-              type: string
+          type: array
+          items:
+            type: object
+            properties:
+              download_url:
+                type: string
+                format: uri
+                example: https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/1
+              download_large_url:
+                type: string
+                format: uri
+                example: https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/large/
+              download_medium_url:
+                type: string
+                format: uri
+                example: https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/medium/
+              download_small_url:
+                type: string
+                format: uri
+                example: https://kf.kobotoolbox.org/api/v2/assets/aTPPUDScaFZkvBzd8FyK4Q/data/18/attachments/attWNZNwhXK6HDYVkZJSn9jy/small/
+              mimetype:
+                type: string
+                example: image/png
+              media_file_basename:
+                type: string
+              filename:
+                type: string
+              uid:
+                type: string
+              question_xpath:
+                type: string
+              is_deleted:
+                type: boolean
+            required:
+            - download_url
+            - filename
+            - media_file_basename
+            - mimetype
+            - question_xpath
+            - uid
           title: ' attachments'
         _status:
           type: string
@@ -11814,6 +11885,8 @@ components:
                     properties:
                       language:
                         type: string
+                      locale:
+                        type: string
                       value:
                         type: string
                         nullable: true
@@ -11875,6 +11948,8 @@ components:
                       properties:
                         language:
                           type: string
+                        locale:
+                          type: string
                         value:
                           type: string
                           nullable: true
@@ -11924,6 +11999,8 @@ components:
                       properties:
                         language:
                           type: string
+                        locale:
+                          type: string
                         status:
                           type: string
                           const: in_progress
@@ -11934,6 +12011,8 @@ components:
                     - type: object
                       properties:
                         language:
+                          type: string
+                        locale:
                           type: string
                         status:
                           type: string
@@ -11949,6 +12028,8 @@ components:
                       properties:
                         language:
                           type: string
+                        locale:
+                          type: string
                         status:
                           type: string
                           const: complete
@@ -11962,6 +12043,8 @@ components:
                     - type: object
                       properties:
                         language:
+                          type: string
+                        locale:
                           type: string
                         status:
                           type: string
@@ -12027,6 +12110,8 @@ components:
                         properties:
                           language:
                             type: string
+                          locale:
+                            type: string
                           status:
                             type: string
                             const: in_progress
@@ -12037,6 +12122,8 @@ components:
                       - type: object
                         properties:
                           language:
+                            type: string
+                          locale:
                             type: string
                           status:
                             type: string
@@ -12052,6 +12139,8 @@ components:
                         properties:
                           language:
                             type: string
+                          locale:
+                            type: string
                           status:
                             type: string
                             const: complete
@@ -12065,6 +12154,8 @@ components:
                       - type: object
                         properties:
                           language:
+                            type: string
+                          locale:
                             type: string
                           status:
                             type: string
@@ -12088,7 +12179,7 @@ components:
             - _dateCreated
             - _dateModified
             - _versions
-        qual:
+        manual_qual:
           type: object
           additionalProperties:
             type: object
@@ -12338,7 +12429,7 @@ components:
       - required:
         - automatic_google_translation
       - required:
-        - qual
+        - manual_qual
     DataValidationStatusUpdateResponse:
       type: object
       properties:
@@ -13629,15 +13720,13 @@ components:
         * `member` - member
         * `owner` - owner
     NLPActionParams:
-      type: array
-      items:
-        additionalProperties: false
-        properties:
-          language:
-            type: string
-        required:
-        - language
-        type: object
+      type: object
+      additionalProperties: false
+      properties:
+        language:
+          type: string
+      required:
+      - language
     NlpUsage:
       type: object
       properties:
@@ -15011,8 +15100,11 @@ components:
           properties:
             language:
               type: string
+            locale:
+              type: string
             value:
               type: string
+              nullable: true
           additionalProperties: false
           required:
           - language
@@ -15022,8 +15114,11 @@ components:
           properties:
             language:
               type: string
+            locale:
+              type: string
             value:
               type: string
+              nullable: true
           additionalProperties: false
           required:
           - language
@@ -15032,6 +15127,8 @@ components:
           type: object
           properties:
             language:
+              type: string
+            locale:
               type: string
             accepted:
               type: boolean
@@ -15042,6 +15139,8 @@ components:
           type: object
           properties:
             language:
+              type: string
+            locale:
               type: string
             accepted:
               type: boolean
@@ -16141,11 +16240,9 @@ components:
         * `create_prorations` - Create prorations
         * `none` - None
     QualActionParams:
-      type: array
-      items:
-        anyOf:
-        - $ref: '#/components/schemas/QualSimpleQuestionParams'
-        - $ref: '#/components/schemas/QualSelectQuestionParams'
+      anyOf:
+      - $ref: '#/components/schemas/QualSimpleQuestionParams'
+      - $ref: '#/components/schemas/QualSelectQuestionParams'
     QualSelectQuestionParams:
       type: object
       additionalProperties: false
@@ -16157,8 +16254,13 @@ components:
           $ref: '#/components/schemas/QualSelectQuestionParamsTypeEnum'
         labels:
           type: object
+          properties:
+            _default:
+              type: string
           additionalProperties:
             type: string
+          required:
+          - _default
         choices:
           type: array
           items:
@@ -16167,8 +16269,13 @@ components:
             properties:
               labels:
                 type: object
+                properties:
+                  _default:
+                    type: string
                 additionalProperties:
                   type: string
+                required:
+                - _default
               uuid:
                 type: string
                 format: uuid
@@ -16200,8 +16307,13 @@ components:
           $ref: '#/components/schemas/QualSimpleQuestionParamsTypeEnum'
         labels:
           type: object
+          properties:
+            _default:
+              type: string
           additionalProperties:
             type: string
+          required:
+          - _default
         options:
           type: object
       required:
@@ -17294,21 +17406,20 @@ components:
                 type: integer
               default_tax_rates:
                 type: object
-        current_service_usage:
-          $ref: '#/components/schemas/ServiceUsageResponse'
+        service_usage:
+          $ref: '#/components/schemas/UserReportsServiceUsageResponse'
         account_restricted:
           type: boolean
         asset_count:
           type: integer
-        deployed_asset_count:
+        active_project_count:
           type: integer
       required:
       - accepted_tos
       - account_restricted
+      - active_project_count
       - asset_count
-      - current_service_usage
       - date_joined
-      - deployed_asset_count
       - email
       - extra_details
       - first_name
@@ -17319,12 +17430,68 @@ components:
       - last_name
       - mfa_is_active
       - organizations
+      - service_usage
       - social_accounts
       - sso_is_active
       - subscriptions
       - user_uid
       - username
       - validated_email
+    UserReportsServiceUsageResponse:
+      type: object
+      properties:
+        total_nlp_usage:
+          type: object
+          properties:
+            asr_seconds_current_period:
+              type: integer
+            llm_requests_current_period:
+              type: integer
+            mt_characters_current_period:
+              type: integer
+            asr_seconds_all_time:
+              type: integer
+            llm_requests_all_time:
+              type: integer
+            mt_characters_all_time:
+              type: integer
+          required:
+          - asr_seconds_all_time
+          - asr_seconds_current_period
+          - llm_requests_all_time
+          - llm_requests_current_period
+          - mt_characters_all_time
+          - mt_characters_current_period
+        total_storage_bytes:
+          type: integer
+        total_submission_count:
+          type: object
+          properties:
+            retention_days:
+              type: integer
+            cumulative:
+              type: integer
+            current_period:
+              type: integer
+        balances:
+          $ref: '#/components/schemas/ServiceUsageBalances'
+        current_period_start:
+          type: string
+          format: date-time
+        current_period_end:
+          type: string
+          format: date-time
+        last_updated:
+          type: string
+          format: date-time
+      required:
+      - balances
+      - current_period_end
+      - current_period_start
+      - last_updated
+      - total_nlp_usage
+      - total_storage_bytes
+      - total_submission_count
     UserRetrieveResponse:
       type: object
       properties:
