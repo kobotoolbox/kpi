@@ -2,7 +2,6 @@ import React, { useState } from 'react'
 
 import DocumentTitle from 'react-document-title'
 import { unstable_usePrompt as usePrompt } from 'react-router-dom'
-import type { DataResponse } from '#/api/models/dataResponse'
 import {
   useAssetsAdvancedFeaturesList,
   useAssetsDataList,
@@ -63,10 +62,9 @@ export default function SingleProcessingRoute({ params: routeParams }: { params:
     }),
   } as any) // TODO OpenAPI: add query prop to the schema. See https://linear.app/kobotoolbox/issue/DEV-1626
 
-  // TODO OpenAPI: DataResponse should be indexable.
   const submission =
     querySubmission.data?.status === 200 && querySubmission.data.data.results.length > 0
-      ? (querySubmission.data.data.results[0] as DataResponse & Record<string, string>)
+      ? querySubmission.data.data.results[0]
       : undefined
 
   /** Whether current submission has a response for current question. */

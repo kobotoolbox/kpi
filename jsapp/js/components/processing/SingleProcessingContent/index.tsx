@@ -18,7 +18,7 @@ import styles from './index.module.scss'
 interface Props {
   asset: AssetResponse
   questionXpath: string
-  submission: DataResponse & Record<string, string>
+  submission: DataResponse
   hasUnsavedWork: boolean
   onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
   supplement: DataSupplementResponse

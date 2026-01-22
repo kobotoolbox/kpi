@@ -24,7 +24,7 @@ interface ProcessingSidebarProps {
   asset: AssetResponse
   questionLabelLanguage: LanguageCode | string
   setQuestionLabelLanguage: (LanguageCode: LanguageCode | string) => void
-  submission?: DataResponse & Record<string, string>
+  submission?: DataResponse
   supplement: DataSupplementResponse
 }
 

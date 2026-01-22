@@ -14,7 +14,7 @@ import StepCreateManual from './StepCreateManual'
 interface Props {
   asset: AssetResponse
   questionXpath: string
-  submission: DataResponse & Record<string, string>
+  submission: DataResponse
   onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
   advancedFeatures: AdvancedFeatureResponse[]
 }

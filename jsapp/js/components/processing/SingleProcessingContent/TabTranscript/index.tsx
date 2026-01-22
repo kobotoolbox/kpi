@@ -10,7 +10,7 @@ import TranscriptEdit from './TranscriptEdit'
 interface Props {
   asset: AssetResponse
   questionXpath: string
-  submission: DataResponse & Record<string, string>
+  submission: DataResponse
   onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
   supplement: DataSupplementResponse
   advancedFeatures: AdvancedFeatureResponse[]

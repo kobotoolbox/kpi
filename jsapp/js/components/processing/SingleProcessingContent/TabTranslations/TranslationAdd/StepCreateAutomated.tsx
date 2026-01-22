@@ -26,7 +26,7 @@ interface Props {
   asset: AssetResponse
   questionXpath: string
   languageCode: LanguageCode
-  submission: DataResponse & Record<string, string>
+  submission: DataResponse
   onBack: () => void
   onCreate: (languageCode: LanguageCode) => void
   advancedFeatures: AdvancedFeatureResponse[]

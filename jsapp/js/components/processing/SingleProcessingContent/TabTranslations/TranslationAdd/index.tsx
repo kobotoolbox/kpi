@@ -12,7 +12,7 @@ import StepCreateManual from './StepCreateManual'
 interface Props {
   asset: AssetResponse
   questionXpath: string
-  submission: DataResponse & Record<string, string>
+  submission: DataResponse
   languagesExisting: LanguageCode[]
   initialStep?: 'begin' | 'language'
   onCreate: (languageCode: LanguageCode) => void

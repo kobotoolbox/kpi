@@ -16,7 +16,7 @@ import styles from './sidebarSubmissionMedia.module.scss'
 interface SidebarSubmissionMediaProps {
   xpath: string
   asset: AssetResponse | undefined
-  submission?: DataResponse & Record<string, string>
+  submission?: DataResponse
 }
 
 export default function SidebarSubmissionMedia({ asset, xpath, submission }: SidebarSubmissionMediaProps) {

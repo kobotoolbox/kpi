@@ -14,7 +14,7 @@ interface SidebarSubmissionDataProps {
   asset: AssetResponse
   hiddenQuestions: string[]
   questionLabelLanguage: LanguageCode | string
-  submission?: DataResponse & Record<string, string>
+  submission?: DataResponse
 }
 
 export default function SidebarSubmissionData({

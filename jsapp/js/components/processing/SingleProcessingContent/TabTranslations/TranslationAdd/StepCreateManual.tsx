@@ -10,7 +10,7 @@ import Editor from '../TranslationEdit/Editor'
 interface Props {
   asset: AssetResponse
   questionXpath: string
-  submission: DataResponse & Record<string, string>
+  submission: DataResponse
   languageCode: LanguageCode
   onBack: () => void
   onCreate: (languageCode: LanguageCode) => void
