@@ -134,8 +134,8 @@ export default function StepCreateAutomated({
         uidAsset: asset.uid,
         uidAdvancedFeature: advancedFeature.uid,
         data: {
-          action: ActionEnum.automatic_google_transcription, // TODO: OpenAPI PatchedAdvancedFeaturePatchRequest doesn't have this prop typed.
-          question_xpath: questionXpath, // TODO: OpenAPI PatchedAdvancedFeaturePatchRequest doesn't have this prop typed.
+          action: ActionEnum.automatic_google_transcription, // TODO: OpenAPI PatchedAdvancedFeaturePatchRequest doesn't have this prop typed. See https://linear.app/kobotoolbox/issue/DEV-1627
+          question_xpath: questionXpath, // TODO: OpenAPI PatchedAdvancedFeaturePatchRequest doesn't have this prop typed. https://linear.app/kobotoolbox/issue/DEV-1627
           params: advancedFeature.params.concat({
             // TODO: OpenAPI shouldn't be double-arrayed.
             language: languageCode,
