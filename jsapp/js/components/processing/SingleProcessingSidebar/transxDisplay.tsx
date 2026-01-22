@@ -20,11 +20,7 @@ export default function TransxDisplay({ transxVersionItem }: TransxDisplayProps)
           {language && (
             <>
               <AsyncLanguageDisplayLabel code={language} />
-              <TransxDate
-                dateCreated={transxVersionItem._dateCreated}
-                dateModified={(transxVersionItem as any)._dateModified}
-              />
-              {/* // TODO OpenAPI: add _dateModified */}
+              <TransxDate dateCreated={transxVersionItem._dateCreated} />
             </>
           )}
         </header>
