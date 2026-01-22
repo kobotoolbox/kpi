@@ -16383,25 +16383,17 @@
                     "formhub/uuid": {
                         "type": "string"
                     },
-                    "start": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "end": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "Question_A/Enter_your_question": {
-                        "type": "string"
-                    },
-                    "Question_B": {
-                        "type": "string"
-                    },
                     "__version__": {
                         "type": "string",
                         "title": "  version  "
                     },
                     "meta/instanceID": {
+                        "type": "string"
+                    },
+                    "meta/rootUuid": {
+                        "type": "string"
+                    },
+                    "meta/deprecatedID": {
                         "type": "string"
                     },
                     "_xform_id_string": {
@@ -16411,9 +16403,6 @@
                     "_uuid": {
                         "type": "string",
                         "title": " uuid"
-                    },
-                    "meta/rootUuid": {
-                        "type": "string"
                     },
                     "_attachments": {
                         "type": "array",
@@ -16467,7 +16456,8 @@
                                 "mimetype",
                                 "question_xpath",
                                 "uid"
-                            ]
+                            ],
+                            "additional_properties": false
                         },
                         "title": " attachments"
                     },
@@ -16477,7 +16467,14 @@
                     },
                     "_geolocation": {
                         "type": "array",
-                        "items": {},
+                        "items": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "minItems": 2,
+                        "maxItems": 2,
                         "title": " geolocation"
                     },
                     "_submission_time": {
@@ -16487,29 +16484,46 @@
                     },
                     "_tags": {
                         "type": "array",
-                        "items": {},
+                        "items": {
+                            "type": "string"
+                        },
                         "title": " tags"
                     },
-                    "Notes": {
+                    "_notes": {
                         "type": "array",
-                        "items": {}
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": " notes"
                     },
                     "_validation_status": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/DataValidationStatus"
+                            },
+                            {
+                                "type": "object",
+                                "maxProperties": 0
+                            }
+                        ],
                         "title": " validation status"
                     },
                     "_submitted_by": {
                         "type": "string",
                         "title": " submitted by"
+                    },
+                    "_supplementalDetails": {
+                        "type": "object",
+                        "additionalProperties": {},
+                        "title": " supplementaldetails"
                     }
                 },
                 "required": [
-                    "Notes",
-                    "Question_A/Enter_your_question",
-                    "Question_B",
                     "__version__",
                     "_attachments",
                     "_geolocation",
                     "_id",
+                    "_notes",
                     "_status",
                     "_submission_time",
                     "_submitted_by",
@@ -16517,11 +16531,8 @@
                     "_uuid",
                     "_validation_status",
                     "_xform_id_string",
-                    "end",
-                    "formhub/uuid",
                     "meta/instanceID",
-                    "meta/rootUuid",
-                    "start"
+                    "meta/rootUuid"
                 ]
             },
             "DataStatusesUpdate": {
@@ -17439,6 +17450,44 @@
                             "manual_qual"
                         ]
                     }
+                ]
+            },
+            "DataValidationStatus": {
+                "type": "object",
+                "properties": {
+                    "timestamp": {
+                        "type": "integer"
+                    },
+                    "uid": {
+                        "$ref": "#/components/schemas/DataValidationStatusUidEnum"
+                    },
+                    "by_whom": {
+                        "type": "string"
+                    },
+                    "label": {
+                        "$ref": "#/components/schemas/DataValidationStatusLabelEnum"
+                    }
+                },
+                "required": [
+                    "timestamp",
+                    "uid",
+                    "label",
+                    "by_whom"
+                ],
+                "additionalProperties": false
+            },
+            "DataValidationStatusLabelEnum": {
+                "enum": [
+                    "Not Approved",
+                    "Approved",
+                    "On Hold"
+                ]
+            },
+            "DataValidationStatusUidEnum": {
+                "enum": [
+                    "validation_status_not_approved",
+                    "validation_status_approved",
+                    "validation_status_on_hold"
                 ]
             },
             "DataValidationStatusUpdateResponse": {
@@ -21455,7 +21504,7 @@
                                 }
                             },
                             "validation_status.uid": {
-                                "type": "string"
+                                "$ref": "#/components/schemas/DataValidationStatusUidEnum"
                             }
                         }
                     }

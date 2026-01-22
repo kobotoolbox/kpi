@@ -1,3 +1,4 @@
+from django.conf import settings
 from drf_spectacular.extensions import (
     OpenApiSerializerExtension,
     OpenApiSerializerFieldExtension,
@@ -9,7 +10,10 @@ from drf_spectacular.plumbing import (
 )
 from drf_spectacular.types import OpenApiTypes
 
-from kpi.schema_extensions.v2.generic.schema import GENERIC_STRING_SCHEMA
+from kpi.schema_extensions.v2.generic.schema import (
+    GENERIC_INT_SCHEMA,
+    GENERIC_STRING_SCHEMA,
+)
 from kpi.utils.schema_extensions.mixins import ComponentRegistrationMixin
 from kpi.utils.schema_extensions.url_builder import build_url_type
 
@@ -63,6 +67,7 @@ class DataAttachmentFieldExtension(OpenApiSerializerFieldExtension):
                     'media_file_basename',
                     'question_xpath',
                 ],
+                additional_properties=False,
             )
         )
 
@@ -744,9 +749,50 @@ class DataValidationPayloadFieldExtension(OpenApiSerializerFieldExtension):
                 'submission_ids': build_array_type(
                     schema=build_basic_type(OpenApiTypes.INT)
                 ),
-                'validation_status.uid': GENERIC_STRING_SCHEMA,
+                'validation_status.uid': {
+                    '$ref': '#/components/schemas/DataValidationStatusUidEnum'
+                },
             }
         )
+
+
+class DataValidationStatusFieldExtension(
+    ComponentRegistrationMixin, OpenApiSerializerFieldExtension
+):
+    target_class = 'kpi.schema_extensions.v2.data.fields.DataValidationStatusField'
+
+    def map_serializer_field(self, auto_schema, direction):
+        uid_enum = self._register_schema_component(
+            auto_schema,
+            'DataValidationStatusUidEnum',
+            {'enum': list(settings.DEFAULT_VALIDATION_STATUSES.keys())},
+        )
+        labels_enum = self._register_schema_component(
+            auto_schema,
+            'DataValidationStatusLabelEnum',
+            {'enum': list(settings.DEFAULT_VALIDATION_STATUSES.values())},
+        )
+        validation_status_schema = self._register_schema_component(
+            auto_schema,
+            'DataValidationStatus',
+            {
+                'type': 'object',
+                'properties': {
+                    'timestamp': GENERIC_INT_SCHEMA,
+                    'uid': uid_enum,
+                    'by_whom': GENERIC_STRING_SCHEMA,
+                    'label': labels_enum,
+                },
+                'required': ['timestamp', 'uid', 'label', 'by_whom'],
+                'additionalProperties': False,
+            },
+        )
+        return {
+            'oneOf': [
+                validation_status_schema,
+                build_object_type(maxProperties=0),
+            ]
+        }
 
 
 class EnketoEditUrlFieldExtension(OpenApiSerializerFieldExtension):
@@ -767,3 +813,15 @@ class EnketoViewUrlFieldExtension(OpenApiSerializerFieldExtension):
             'enketo_view_link',
             path='/view/f93d2a488a2e35cedc336e84e1bd1edc?instance_id=1824b282-f729-4944-b799-7a805d4564e1&return_url=false',  # noqa
         )
+
+
+class GeoLocationFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.data.fields.GeoLocationField'
+
+    def map_serializer_field(self, autho_schema, direction):
+        return {
+            'type': 'array',
+            'items': {'type': ['number', 'null']},
+            'minItems': 2,
+            'maxItems': 2,
+        }
