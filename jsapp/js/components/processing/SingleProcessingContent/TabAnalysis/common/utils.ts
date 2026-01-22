@@ -2,15 +2,18 @@ import * as Sentry from '@sentry/react'
 import clonedeep from 'lodash.clonedeep'
 import { fetchPatch, fetchPostUrl, handleApiFail } from '#/api'
 import { endpoints } from '#/api.endpoints'
+import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
+import type { QualActionParams } from '#/api/models/qualActionParams'
 import assetStore from '#/assetStore'
 import { buildSubmissionSupplementUrl, getAssetAdvancedFeatures } from '#/assetUtils'
 import type { Json } from '#/components/common/common.interfaces'
 import { userCan } from '#/components/permissions/utils'
 import type { AssetAdvancedFeatures, AssetResponse, FailResponse } from '#/dataInterface'
-import { notify } from '#/utils'
+import { notify, recordEntries } from '#/utils'
 
-import { NO_FEATURE_ERROR } from '../../processingActions'
-import singleProcessingStore from '../../singleProcessingStore'
+import { ADVANCED_FEATURES_ACTION } from '#/components/processing/common/constants'
+import { NO_FEATURE_ERROR } from '../../../processingActions'
+import singleProcessingStore from '../../../singleProcessingStore'
 import type { AnalysisQuestionsAction } from './analysisQuestions.actions'
 import type { AnalysisQuestionsState } from './analysisQuestions.reducer'
 import type {
@@ -54,23 +57,26 @@ export function convertQuestionsFromInternalToSchema(questions: AnalysisQuestion
  * the analysis questions UI after loading existing question definitions from
  * schema.
  */
-export function convertQuestionsFromSchemaToInternal(questions: AnalysisQuestionSchema[]): AnalysisQuestionInternal[] {
-  return questions.map((question) => {
-    const output: AnalysisQuestionInternal = {
-      xpath: question.xpath,
-      uuid: question.uuid,
-      type: question.type,
-      labels: question.labels,
-      options: question.options,
-      response: '',
-    }
-    if (question.choices) {
-      output.additionalFields = {
-        choices: question.choices,
+export function convertQuestionsFromSchemaToInternal(af?: AdvancedFeatureResponse): AnalysisQuestionInternal[] {
+  return (
+    af?.params.map((_question) => {
+      const question = _question as QualActionParams
+      const output: AnalysisQuestionInternal = {
+        xpath: af.question_xpath,
+        uuid: af.uid, // TODO: is that the correct uid?
+        type: question.type,
+        labels: question.labels,
+        options: question.options,
+        response: '',
       }
-    }
-    return output
-  })
+      if ('choices' in question) {
+        output.additionalFields = {
+          choices: question.choices,
+        }
+      }
+      return output
+    }) ?? []
+  )
 }
 
 /**
@@ -83,7 +89,7 @@ export function applyUpdateResponseToInternalQuestions(
   questions: AnalysisQuestionInternal[],
 ): AnalysisQuestionInternal[] {
   const newQuestions = clonedeep(questions)
-  const analysisResponses = updateResp[xpath]?.qual || []
+  const analysisResponses = recordEntries(updateResp[xpath]?.[ADVANCED_FEATURES_ACTION.manual_qual] ?? {})
   newQuestions.forEach((question) => {
     const foundResponse = analysisResponses.find((analResp) => question.uuid === analResp.uuid)
 

@@ -1,8 +1,8 @@
 import { Radio, Stack } from '@mantine/core'
 import React, { useContext, useState } from 'react'
 import type { RadioOption } from '#/components/common/radio'
-import AnalysisQuestionsContext from '../../analysisQuestions.context'
-import { findQuestion, getQuestionTypeDefinition, updateResponseAndReducer, } from '../../utils'
+import AnalysisQuestionsContext from '../../../common/analysisQuestions.context'
+import { findQuestion, getQuestionTypeDefinition, updateResponseAndReducer } from '../../../common/utils'
 import ResponseForm from './ResponseForm'
 
 interface SelectOneResponseFormProps {

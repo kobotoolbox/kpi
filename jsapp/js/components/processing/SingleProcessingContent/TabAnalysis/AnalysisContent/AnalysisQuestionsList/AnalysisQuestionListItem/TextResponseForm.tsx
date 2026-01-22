@@ -1,19 +1,19 @@
-import { NumberInput } from '@mantine/core'
+import { Textarea } from '@mantine/core'
 import React, { useContext, useState } from 'react'
-import AnalysisQuestionsContext from '../../analysisQuestions.context'
-import { AUTO_SAVE_TYPING_DELAY } from '../../constants'
-import { findQuestion, getQuestionTypeDefinition, updateResponseAndReducer, } from '../../utils'
+import AnalysisQuestionsContext from '../../../common/analysisQuestions.context'
+import { AUTO_SAVE_TYPING_DELAY } from '../../../common/constants'
+import { findQuestion, getQuestionTypeDefinition, updateResponseAndReducer } from '../../../common/utils'
 import ResponseForm from './ResponseForm'
 
-interface IntegerResponseFormProps {
+interface TextResponseFormProps {
   uuid: string
   canEdit: boolean
 }
 
 /**
- * Displays a common header and an integer text box.
+ * Displays a common header and a string text box.
  */
-export default function IntegerResponseForm(props: IntegerResponseFormProps) {
+export default function TextResponseForm(props: TextResponseFormProps) {
   const analysisQuestions = useContext(AnalysisQuestionsContext)
   if (!analysisQuestions) {
     return null
@@ -61,9 +61,11 @@ export default function IntegerResponseForm(props: IntegerResponseFormProps) {
 
   return (
     <ResponseForm uuid={props.uuid}>
-      <NumberInput
+      <Textarea
+        autosize
+        minRows={2}
         value={response}
-        onChange={(newResponse) => onInputChange(newResponse.toString())}
+        onChange={(event) => onInputChange(event.currentTarget.value)}
         placeholder={t('Type your answer')}
         onBlur={saveResponse}
         disabled={!props.canEdit}

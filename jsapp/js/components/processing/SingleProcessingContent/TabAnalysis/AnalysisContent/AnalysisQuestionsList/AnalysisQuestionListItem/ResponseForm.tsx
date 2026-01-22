@@ -10,16 +10,16 @@ import ButtonNew from '#/components/common/ButtonNew'
 import Icon from '#/components/common/icon'
 import type { FailResponse } from '#/dataInterface'
 
-import singleProcessingStore from '../../../../singleProcessingStore'
-import AnalysisQuestionsContext from '../../analysisQuestions.context'
-import type { AnalysisQuestionInternal } from '../../constants'
+import singleProcessingStore from '../../../../../singleProcessingStore'
+import AnalysisQuestionsContext from '../../../common/analysisQuestions.context'
+import type { AnalysisQuestionInternal } from '../../../common/constants'
 import {
-findQuestion,
-getQuestionTypeDefinition,
-getQuestionsFromSchema,
-hasManagePermissionsToCurrentAsset,
-updateSurveyQuestions,
-} from '../../utils'
+  findQuestion,
+  getQuestionTypeDefinition,
+  getQuestionsFromSchema,
+  hasManagePermissionsToCurrentAsset,
+  updateSurveyQuestions,
+} from '../../../common/utils'
 
 interface ResponseFormProps {
   uuid: string

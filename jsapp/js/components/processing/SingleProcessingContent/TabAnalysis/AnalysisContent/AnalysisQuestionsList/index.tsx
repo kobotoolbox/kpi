@@ -3,8 +3,8 @@ import React, { useCallback, useContext } from 'react'
 import { DndProvider } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
 
-import singleProcessingStore from '../../../singleProcessingStore'
-import AnalysisQuestionsContext from '../analysisQuestions.context'
+import singleProcessingStore from '../../../../singleProcessingStore'
+import AnalysisQuestionsContext from '../../common/analysisQuestions.context'
 import AnalysisQuestionListItem from './AnalysisQuestionListItem'
 import styles from './index.module.scss'
 

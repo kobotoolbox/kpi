@@ -11,15 +11,15 @@ import { userCan } from '#/components/permissions/utils'
 import singleProcessingStore from '#/components/processing/singleProcessingStore'
 import { DND_TYPES } from '#/constants'
 import type { FailResponse } from '#/dataInterface'
-import AnalysisQuestionsContext from '../../analysisQuestions.context'
-import type { AnalysisQuestionBase } from '../../constants'
-import AnalysisQuestionEditor from '../../editors/analysisQuestionEditor'
+import AnalysisQuestionsContext from '../../../common/analysisQuestions.context'
+import type { AnalysisQuestionBase } from '../../../common/constants'
 import {
   findQuestion,
   getQuestionsFromSchema,
   hasManagePermissionsToCurrentAsset,
   updateSurveyQuestions,
-} from '../../utils'
+} from '../../../common/utils'
+import AnalysisQuestionEditor from './AnalysisQuestionEditor'
 import IntegerResponseForm from './IntegerResponseForm'
 import KeywordSearchResponseForm from './KeywordSearchResponseForm'
 import SelectMultipleResponseForm from './MultipleResponseForm'

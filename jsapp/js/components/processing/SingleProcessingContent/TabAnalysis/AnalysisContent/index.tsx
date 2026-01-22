@@ -1,10 +1,10 @@
 import React, { useContext } from 'react'
 
-import singleProcessingStore from '../../singleProcessingStore'
+import singleProcessingStore from '../../../singleProcessingStore'
+import AnalysisQuestionsContext from '../common/analysisQuestions.context'
 import AnalysisQuestionsList from './AnalysisQuestionsList'
-import styles from './analysisContent.module.scss'
 import AnalysisContentEmpty from './analysisContentEmpty'
-import AnalysisQuestionsContext from './analysisQuestions.context'
+import styles from './index.module.scss'
 
 /** Displays either a special message for no content, or the list of questions. */
 export default function AnalysisContent() {

@@ -5,11 +5,11 @@ import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
 import KoboDropdown from '#/components/common/koboDropdown'
 import singleProcessingStore from '#/components/processing/singleProcessingStore'
-import styles from './analysisHeader.module.scss'
-import AnalysisQuestionsContext from './analysisQuestions.context'
-import { ANALYSIS_QUESTION_TYPES } from './constants'
-import type { AnalysisQuestionTypeDefinition } from './constants'
-import { hasManagePermissionsToCurrentAsset } from './utils'
+import styles from './AnalysisHeader.module.scss'
+import AnalysisQuestionsContext from './common/analysisQuestions.context'
+import { ANALYSIS_QUESTION_TYPES } from './common/constants'
+import type { AnalysisQuestionTypeDefinition } from './common/constants'
+import { hasManagePermissionsToCurrentAsset } from './common/utils'
 
 /**
  * This piece of UI is displaying the button/dropdown for adding new questions

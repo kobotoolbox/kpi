@@ -3,10 +3,10 @@ import React, { useContext } from 'react'
 import Button from '#/components/common/button'
 import TextBox from '#/components/common/textBox'
 import { generateUuid } from '#/utils'
-import AnalysisQuestionsContext from '../analysisQuestions.context'
-import type { AdditionalFields } from '../constants'
-import { findQuestion } from '../utils'
-import styles from './selectXFieldsEditor.module.scss'
+import AnalysisQuestionsContext from '../../../../common/analysisQuestions.context'
+import type { AdditionalFields } from '../../../../common/constants'
+import { findQuestion } from '../../../../common/utils'
+import styles from './SelectXFieldsEditor.module.scss'
 
 interface SelectXFieldsEditorProps {
   questionUuid: string

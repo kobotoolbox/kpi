@@ -9,12 +9,17 @@ import TextBox from '#/components/common/textBox'
 import singleProcessingStore from '#/components/processing/singleProcessingStore'
 import type { FailResponse } from '#/dataInterface'
 import { recordKeys } from '#/utils'
-import AnalysisQuestionsContext from '../analysisQuestions.context'
-import type { AdditionalFields, AnalysisQuestionInternal } from '../constants'
-import { findQuestion, getQuestionTypeDefinition, getQuestionsFromSchema, updateSurveyQuestions } from '../utils'
-import styles from './analysisQuestionEditor.module.scss'
-import KeywordSearchFieldsEditor from './keywordSearchFieldsEditor'
-import SelectXFieldsEditor from './selectXFieldsEditor'
+import AnalysisQuestionsContext from '../../../../common/analysisQuestions.context'
+import type { AdditionalFields, AnalysisQuestionInternal } from '../../../../common/constants'
+import {
+  findQuestion,
+  getQuestionTypeDefinition,
+  getQuestionsFromSchema,
+  updateSurveyQuestions,
+} from '../../../../common/utils'
+import KeywordSearchFieldsEditor from './KeywordSearchFieldsEditor'
+import SelectXFieldsEditor from './SelectXFieldsEditor'
+import styles from './index.module.scss'
 
 interface AnalysisQuestionEditorProps {
   uuid: string

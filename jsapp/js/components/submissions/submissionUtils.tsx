@@ -4,6 +4,10 @@ import type { _DataResponseAttachmentsItem } from '#/api/models/_dataResponseAtt
 import type { DataResponse } from '#/api/models/dataResponse'
 import { getRowName, getSurveyFlatPaths, getTranslatedRowLabel, isRowSpecialLabelHolder } from '#/assetUtils'
 import DeletedAttachment from '#/attachments/deletedAttachment.component'
+import {
+  QUAL_NOTE_TYPE,
+  type SubmissionAnalysisResponse,
+} from '#/components/processing/SingleProcessingContent/TabAnalysis/common/constants'
 import { getSupplementalPathParts } from '#/components/processing/processingUtils'
 import { getColumnLabel } from '#/components/submissions/tableUtils'
 import { getBackgroundAudioQuestionName } from '#/components/submissions/tableUtils'
@@ -30,10 +34,6 @@ import type {
   SurveyRow,
 } from '#/dataInterface'
 import { recordEntries, recordKeys } from '#/utils'
-import {
-  QUAL_NOTE_TYPE,
-  type SubmissionAnalysisResponse,
-} from '../processing/SingleProcessingContent/TabAnalysis/constants'
 
 export enum DisplayGroupTypeName {
   group_root = 'group_root',

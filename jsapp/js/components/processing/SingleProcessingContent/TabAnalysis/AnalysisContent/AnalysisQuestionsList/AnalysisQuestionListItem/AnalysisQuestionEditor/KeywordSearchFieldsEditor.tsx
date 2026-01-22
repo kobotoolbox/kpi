@@ -3,11 +3,11 @@ import React, { useContext } from 'react'
 import TagsInput from 'react-tagsinput'
 import Icon from '#/components/common/icon'
 import type { LanguageCode } from '#/components/languages/languagesStore'
-import TransxSelector from '../../../components/transxSelector'
-import singleProcessingStore from '../../../singleProcessingStore'
-import AnalysisQuestionsContext from '../analysisQuestions.context'
-import type { AdditionalFields } from '../constants'
-import styles from './keywordSearchFieldsEditor.module.scss'
+import TransxSelector from '../../../../../../components/transxSelector'
+import singleProcessingStore from '../../../../../../singleProcessingStore'
+import AnalysisQuestionsContext from '../../../../common/analysisQuestions.context'
+import type { AdditionalFields } from '../../../../common/constants'
+import styles from './KeywordSearchFieldsEditor.module.scss'
 
 interface KeywordSearchFieldsEditorProps {
   questionUuid: string

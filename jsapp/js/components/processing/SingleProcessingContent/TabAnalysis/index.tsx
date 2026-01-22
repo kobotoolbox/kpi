@@ -8,12 +8,12 @@ import LoadingSpinner from '#/components/common/loadingSpinner'
 import singleProcessingStore from '#/components/processing/singleProcessingStore'
 import type { FailResponse } from '#/dataInterface'
 import bodyStyles from '../../common/processingBody.module.scss'
-import AnalysisContent from './analysisContent'
-import AnalysisHeader from './analysisHeader'
-import AnalysisQuestionsContext from './analysisQuestions.context'
-import { analysisQuestionsReducer, initialState } from './analysisQuestions.reducer'
-import type { SubmissionProcessingDataResponse } from './constants'
-import { applyUpdateResponseToInternalQuestions, getQuestionsFromSchema } from './utils'
+import AnalysisContent from './AnalysisContent'
+import AnalysisHeader from './AnalysisHeader'
+import AnalysisQuestionsContext from './common/analysisQuestions.context'
+import { analysisQuestionsReducer, initialState } from './common/analysisQuestions.reducer'
+import type { SubmissionProcessingDataResponse } from './common/constants'
+import { applyUpdateResponseToInternalQuestions, getQuestionsFromSchema } from './common/utils'
 
 /**
  * Displays content of the "Analysis" tab. This component is handling all of

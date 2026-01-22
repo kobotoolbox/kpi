@@ -3,8 +3,8 @@ import React, { useContext, useState } from 'react'
 import { TagsInput } from '@mantine/core'
 // We don't use `KoboTagsInput` here, because we don't want the tags splitting
 // feature it has built in. It's easier for us to use `TagsInput` directly.
-import AnalysisQuestionsContext from '../../analysisQuestions.context'
-import { findQuestion, getQuestionTypeDefinition, updateResponseAndReducer, } from '../../utils'
+import AnalysisQuestionsContext from '../../../common/analysisQuestions.context'
+import { findQuestion, getQuestionTypeDefinition, updateResponseAndReducer } from '../../../common/utils'
 import ResponseForm from './ResponseForm'
 
 interface TagsResponseFormProps {

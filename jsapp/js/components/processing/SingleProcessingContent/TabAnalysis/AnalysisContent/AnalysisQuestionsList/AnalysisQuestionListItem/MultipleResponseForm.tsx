@@ -3,8 +3,8 @@ import React, { useContext, useState } from 'react'
 import type { MultiCheckboxItem } from '#/components/common/multiCheckbox'
 import MultiCheckbox from '#/components/common/multiCheckbox'
 
-import AnalysisQuestionsContext from '../../analysisQuestions.context'
-import { findQuestion, getQuestionTypeDefinition, updateResponseAndReducer, } from '../../utils'
+import AnalysisQuestionsContext from '../../../common/analysisQuestions.context'
+import { findQuestion, getQuestionTypeDefinition, updateResponseAndReducer } from '../../../common/utils'
 import ResponseForm from './ResponseForm'
 
 interface SelectMultipleResponseFormProps {

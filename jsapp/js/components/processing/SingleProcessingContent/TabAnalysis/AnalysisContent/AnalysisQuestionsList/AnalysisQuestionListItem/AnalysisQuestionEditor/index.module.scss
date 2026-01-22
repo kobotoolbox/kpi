@@ -1,6 +1,6 @@
 @use 'scss/mixins';
 @use 'scss/colors';
-@use '../analysisVariables';
+@use '../../../../analysisVariables';
 
 .header {
   &:not(:last-child) {

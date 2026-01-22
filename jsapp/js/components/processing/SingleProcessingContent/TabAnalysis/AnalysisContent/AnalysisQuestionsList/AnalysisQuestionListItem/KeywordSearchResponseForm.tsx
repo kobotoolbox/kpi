@@ -3,8 +3,8 @@ import React, { useContext } from 'react'
 import ButtonNew from '#/components/common/ButtonNew'
 import Badge from '#/components/common/badge'
 
-import AnalysisQuestionsContext from '../../analysisQuestions.context'
-import { findQuestion, getQuestionTypeDefinition } from '../../utils'
+import AnalysisQuestionsContext from '../../../common/analysisQuestions.context'
+import { findQuestion, getQuestionTypeDefinition } from '../../../common/utils'
 import ResponseForm from './ResponseForm'
 import styles from './keywordSearchResponseForm.module.scss'
 

@@ -13,7 +13,7 @@ import type {
   AnalysisQuestionSchema,
   AnalysisQuestionType,
   SubmissionAnalysisResponse,
-} from '#/components/processing/SingleProcessingContent/TabAnalysis/constants'
+} from '#/components/processing/SingleProcessingContent/TabAnalysis/common/constants'
 import type {
   AssetResponseReportCustom,
   AssetResponseReportStyles,
