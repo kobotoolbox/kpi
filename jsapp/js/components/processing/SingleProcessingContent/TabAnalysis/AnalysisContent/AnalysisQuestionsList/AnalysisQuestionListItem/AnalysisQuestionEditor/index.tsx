@@ -1,28 +1,24 @@
-import React, { useState, useContext } from 'react'
+import React, { useState, useCallback } from 'react'
 
 import { Stack, ThemeIcon } from '@mantine/core'
 import clonedeep from 'lodash.clonedeep'
-import { handleApiFail } from '#/api'
+import type { QualActionParams } from '#/api/models/qualActionParams'
+import type { QualSelectQuestionParamsChoicesItem } from '#/api/models/qualSelectQuestionParamsChoicesItem'
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
 import TextBox from '#/components/common/textBox'
-import type { AssetResponse, FailResponse } from '#/dataInterface'
-import { recordKeys } from '#/utils'
-import AnalysisQuestionsContext from '../../../../common/analysisQuestions.context'
-import type { AdditionalFields, AnalysisQuestionInternal } from '../../../../common/constants'
-import {
-  convertQuestionsFromSchemaToInternal,
-  findQuestion,
-  getQuestionTypeDefinition,
-  updateSurveyQuestions,
-} from '../../../../common/utils'
+import { generateUuid } from '#/utils'
+import { type AdvancedFeatureResponseManualQual, getQuestionTypeDefinition } from '../../../../common/utils'
 import KeywordSearchFieldsEditor from './KeywordSearchFieldsEditor'
 import SelectXFieldsEditor from './SelectXFieldsEditor'
 import styles from './index.module.scss'
 
 interface Props {
-  asset: AssetResponse
-  uuid: string
+  advancedFeature: AdvancedFeatureResponseManualQual
+  qaQuestion: QualActionParams
+  disabled: boolean
+  onSaveQuestion: (params: QualActionParams[]) => Promise<unknown>
+  onCancel: () => unknown
 }
 
 /**
@@ -30,134 +26,84 @@ interface Props {
  * the code for updating the question label. Some question types also can define
  * custom additional fields. For these we load additional forms.
  */
-export default function AnalysisQuestionEditor({ asset, uuid }: Props) {
-  const analysisQuestions = useContext(AnalysisQuestionsContext)
-  if (!analysisQuestions) {
-    return null
-  }
-
-  // Get the question data from state (with safety check)
-  const question = findQuestion(uuid, analysisQuestions.state)
-  if (!question) {
-    return null
-  }
-
+export default function AnalysisQuestionEditor({
+  advancedFeature,
+  qaQuestion,
+  onSaveQuestion,
+  onCancel,
+  disabled,
+}: Props) {
   // Get the question definition (with safety check)
-  const qaDefinition = getQuestionTypeDefinition(question.type)
-  if (!qaDefinition) {
+  const qaQuestionDef = getQuestionTypeDefinition(qaQuestion.type)
+  if (!qaQuestionDef) {
     return null
   }
 
-  const [label, setLabel] = useState<string>(question.labels._default)
-  const [errorMessage, setErrorMessage] = useState<string | undefined>()
-  const [additionalFieldsErrorMessage, setAdditionalFieldsErrorMessage] = useState<string | undefined>()
-  // We need to clone `additionalFields` here to avoid mutating it
-  const [additionalFields, setAdditionalFields] = useState<AdditionalFields | undefined>(
-    question.additionalFields ? clonedeep(question.additionalFields) : undefined,
-  )
+  const [newQaQuestion, setNewQaQuestion] = useState<QualActionParams>(() => clonedeep(qaQuestion))
 
-  function onTextBoxChange(newLabel: string) {
-    setLabel(newLabel)
-    if (newLabel !== '' && errorMessage !== undefined) {
-      setErrorMessage(undefined)
-    }
+  const [errorMessageLabel, setErrorMessageLabel] = useState<string | undefined>()
+  const [errorMessageChoices, setErrorMessageChoices] = useState<string | undefined>()
+
+  const handleChangeLabel = useCallback((newLabel: string) => {
+    setNewQaQuestion(() => ({
+      ...clonedeep(newQaQuestion),
+      labels: {
+        _default: newLabel, // TODO: what about other non-default labels?
+      },
+    }))
+    if (newLabel !== '') setErrorMessageLabel(() => undefined)
+  }, [])
+
+  function handleChangeChoices(choices: QualSelectQuestionParamsChoicesItem[]) {
+    console.log(newQaQuestion, choices)
+    setNewQaQuestion(() => ({
+      ...clonedeep(newQaQuestion),
+      choices,
+    }))
+    // TODO: duplicate validation to determine whenever to keep or remove the error msg.
   }
 
-  function onAdditionalFieldsChange(newFields: AdditionalFields) {
-    setAdditionalFields(newFields)
-    if (additionalFieldsErrorMessage) {
-      setAdditionalFieldsErrorMessage(undefined)
-    }
-  }
-
-  async function saveQuestion() {
+  const handleSubmit = async (evt: React.FormEvent<HTMLFormElement>) => {
+    evt.preventDefault()
     let hasErrors = false
 
     // Check missing label
-    if (label === '') {
-      setErrorMessage(t('Question label cannot be empty'))
+    if (newQaQuestion.labels._default === '') {
+      setErrorMessageLabel(t('Question label cannot be empty'))
       hasErrors = true
     }
 
-    // Check missing additional fields
-    if (
-      // Apply only to questions that has additional fields
-      (qaDefinition?.additionalFieldNames &&
-        // 1. Check if there are no additional fields
-        additionalFields === undefined) ||
-      // 2. Check if the amount of provided additional fields is the same as the
-      // required amount
-      (additionalFields !== undefined &&
-        qaDefinition?.additionalFieldNames?.length !== recordKeys(additionalFields).length) ||
-      // 3. Check if some of the provided fields are empty
-      (additionalFields !== undefined &&
-        qaDefinition?.additionalFieldNames?.some((fieldName) => additionalFields[fieldName]?.length === 0))
-    ) {
-      setAdditionalFieldsErrorMessage(t('Some required fields are missing'))
-      hasErrors = true
-    }
-
-    // Save only if there are no errors
-    if (!hasErrors) {
-      // Step 1: Let the reducer know what we're about to do
-      analysisQuestions?.dispatch({ type: 'updateQuestion' })
-
-      // Step 2: get current questions list, and update current question definition in it
-      const updatedQuestions: AnalysisQuestionInternal[] =
-        analysisQuestions?.state.questions.map((aq) => {
-          const output = clonedeep(aq)
-          // If this is the question we're currently editing, let's update what
-          // we have in store.
-          if (aq.uuid === uuid) {
-            output.labels = { _default: label }
-
-            // Set additional fields if any, or delete if it was removed
-            if (additionalFields) {
-              output.additionalFields = additionalFields
-            } else if (!additionalFields && aq.additionalFields) {
-              delete output.additionalFields
-            }
-          }
-          return output
-        }) || []
-
-      // Step 3: update asset endpoint with new questions
-      try {
-        const response = await updateSurveyQuestions(asset.uid, updatedQuestions)
-
-        // We get all questions in the response, but we only need the one we've
-        // just updated
-        const newQuestions = convertQuestionsFromSchemaToInternal(response)
-        const currentNewQuestion = newQuestions.find((item) => item.uuid === uuid)
-
-        if (currentNewQuestion) {
-          // Step 4: update reducer's state with new list after the call finishes
-          analysisQuestions?.dispatch({
-            type: 'updateQuestionCompleted',
-            payload: { question: currentNewQuestion },
-          })
-        } else {
-          // This should never happen :) I.e. the list of questions from
-          // `response` will include the question, it's just the `.find`
-          // that has a possibility to return `undefined` :shrug:
-          throw new Error('Question not found in the list of questions')
-        }
-      } catch (err) {
-        handleApiFail(err as FailResponse)
-        analysisQuestions?.dispatch({ type: 'udpateQuestionFailed' })
+    // Check missing additional fields and their labels
+    if ('choices' in newQaQuestion) {
+      const choices = newQaQuestion.choices.filter((choice) => !choice.options?.deleted)
+      if (choices.length === 0) {
+        setErrorMessageChoices(t('Some required fields are missing'))
+        hasErrors = true
+      }
+      if (choices.some((choice) => choice.labels._default === '')) {
+        setErrorMessageChoices(t('Some required fields are missing')) // TODO: better error messages?
+        hasErrors = true
       }
     }
+
+    if (hasErrors) return
+
+    const payload = clonedeep(newQaQuestion)
+    if (payload.uuid === 'placeholder') payload.uuid = generateUuid()
+
+    const questionIndex = advancedFeature.params.findIndex((qaQuestion) => qaQuestion.uuid === newQaQuestion.uuid)
+    const newParams = [
+      ...advancedFeature.params.slice(0, questionIndex),
+      payload,
+      ...advancedFeature.params.slice(questionIndex + 1, advancedFeature.params.length),
+    ]
+
+    await onSaveQuestion(newParams)
   }
 
-  function cancelEditing() {
-    analysisQuestions?.dispatch({
-      type: 'stopEditingQuestion',
-      payload: { uuid: uuid },
-    })
-  }
-
-  function onSubmit(evt: React.FormEvent<HTMLFormElement>) {
-    evt.preventDefault()
+  function handleCancel() {
+    setNewQaQuestion(clonedeep(qaQuestion))
+    onCancel()
   }
 
   return (
@@ -165,63 +111,57 @@ export default function AnalysisQuestionEditor({ asset, uuid }: Props) {
     // DEV-1237
     <>
       <header className={styles.header}>
-        <form className={styles.headerForm} onSubmit={onSubmit}>
+        <form className={styles.headerForm} onSubmit={handleSubmit}>
           <ThemeIcon ta={'center'} variant='light-teal'>
-            <Icon name={qaDefinition.icon} size='xl' />
+            <Icon name={qaQuestionDef.icon} size='xl' />
           </ThemeIcon>
 
           <TextBox
-            value={label}
-            onChange={onTextBoxChange}
-            errors={errorMessage}
+            value={newQaQuestion.labels._default}
+            onChange={handleChangeLabel}
+            errors={errorMessageLabel}
             placeholder={t('Type question')}
             className={styles.labelInput}
             renderFocused
             size='m'
           />
 
-          <Button
-            type='primary'
-            size='m'
-            label={t('Save')}
-            onClick={saveQuestion}
-            isPending={analysisQuestions.state.isPending}
-            isSubmit
-          />
+          <Button type='primary' size='m' label={t('Save')} isPending={disabled} isSubmit />
 
-          <Button
-            type='secondary'
-            size='m'
-            label={t('Cancel')}
-            onClick={cancelEditing}
-            isDisabled={analysisQuestions.state.isPending}
-          />
+          <Button type='secondary' size='m' label={t('Cancel')} onClick={handleCancel} isDisabled={disabled} />
         </form>
       </header>
 
-      {qaDefinition.additionalFieldNames && (
+      {'choices' in newQaQuestion && (
         // Hard coded left padding to account for the 32px icon size + 8px gap
         // 0px gap because the children still did not get a mantine refactor so we must respect existing styles
         <Stack pl={'40px'} gap={'0px'}>
-          {question.type === 'qual_auto_keyword_count' && (
+          {(newQaQuestion.type as any) === 'qual_auto_keyword_count' && ( // TODO OpenAPI: DEV-1628
             <KeywordSearchFieldsEditor
-              questionUuid={question.uuid}
-              fields={additionalFields || { source: '', keywords: [] }}
-              onFieldsChange={onAdditionalFieldsChange}
+              questionUuid={newQaQuestion.uuid}
+              fields={{ source: '', keywords: [] }} // TODO
+              onFieldsChange={() => null} // TODO
             />
           )}
 
-          {(question.type === 'qualSelectOne' || question.type === 'qualSelectMultiple') && (
-            <SelectXFieldsEditor
-              questionUuid={question.uuid}
-              fields={additionalFields || { choices: [] }}
-              onFieldsChange={onAdditionalFieldsChange}
-            />
+          {(newQaQuestion.type === 'qualSelectOne' || newQaQuestion.type === 'qualSelectMultiple') && (
+            <SelectXFieldsEditor qaQuestion={newQaQuestion} onChange={handleChangeChoices} disabled={disabled} />
           )}
 
-          {additionalFieldsErrorMessage && <p>{additionalFieldsErrorMessage}</p>}
+          {errorMessageChoices && <p>{errorMessageChoices}</p>}
         </Stack>
       )}
     </>
   )
+}
+
+const a = {
+  params: [
+    { type: 'qualText', uuid: 'c3b0dab6-a689-4fdd-9cb6-e742e7931c15', labels: { _default: 'second' } },
+    { type: 'qualText', uuid: 'placeholder', labels: { _default: 'asdf' }, options: { deleted: true } },
+  ],
+  question_xpath: 'Use_the_camera_s_mic_ne_to_record_a_sound',
+  action: 'manual_qual',
+  asset: 25,
+  uid: 'qafqnZC5DMN8eGWLB4cR4T2h',
 }

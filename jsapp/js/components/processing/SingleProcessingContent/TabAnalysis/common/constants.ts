@@ -202,7 +202,7 @@ export const ANALYSIS_QUESTION_TYPES: AnalysisQuestionTypeDefinition[] = [
     icon: 'tag',
     placeholder: {
       type: 'qualTags',
-      uuid: '',
+      uuid: 'placeholder', // TODO: extract, type & document
       labels: {
         _default: '',
       },
@@ -214,7 +214,7 @@ export const ANALYSIS_QUESTION_TYPES: AnalysisQuestionTypeDefinition[] = [
     icon: 'qt-text',
     placeholder: {
       type: 'qualText',
-      uuid: '',
+      uuid: 'placeholder', // TODO: extract, type & document
       labels: {
         _default: '',
       },
@@ -226,7 +226,7 @@ export const ANALYSIS_QUESTION_TYPES: AnalysisQuestionTypeDefinition[] = [
     icon: 'qt-number',
     placeholder: {
       type: 'qualInteger',
-      uuid: '',
+      uuid: 'placeholder', // TODO: extract, type & document
       labels: {
         _default: '',
       },
@@ -239,7 +239,7 @@ export const ANALYSIS_QUESTION_TYPES: AnalysisQuestionTypeDefinition[] = [
     additionalFieldNames: ['choices'],
     placeholder: {
       type: 'qualSelectOne',
-      uuid: '',
+      uuid: 'placeholder', // TODO: extract, type & document
       labels: {
         _default: '',
       },
@@ -253,7 +253,7 @@ export const ANALYSIS_QUESTION_TYPES: AnalysisQuestionTypeDefinition[] = [
     additionalFieldNames: ['choices'],
     placeholder: {
       type: 'qualSelectMultiple',
-      uuid: '',
+      uuid: 'placeholder', // TODO: extract, type & document
       labels: {
         _default: '',
       },
@@ -266,7 +266,7 @@ export const ANALYSIS_QUESTION_TYPES: AnalysisQuestionTypeDefinition[] = [
     icon: 'qt-note',
     placeholder: {
       type: 'qualNote',
-      uuid: '',
+      uuid: 'placeholder', // TODO: extract, type & document
       labels: {
         _default: '',
       },

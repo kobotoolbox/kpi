@@ -1,94 +1,47 @@
-import React, { useContext, useState } from 'react'
+import React, { useState } from 'react'
+import MultiCheckbox, { type MultiCheckboxItem } from '#/components/common/multiCheckbox'
 
-import type { MultiCheckboxItem } from '#/components/common/multiCheckbox'
-import MultiCheckbox from '#/components/common/multiCheckbox'
-
-import type { DataResponse } from '#/api/models/dataResponse'
-import type { AssetResponse } from '#/dataInterface'
-import AnalysisQuestionsContext from '../../../common/analysisQuestions.context'
-import { findQuestion, getQuestionTypeDefinition, updateResponseAndReducer } from '../../../common/utils'
-import ResponseForm from './ResponseForm'
+import { Radio } from '@mantine/core'
+import type { _DataSupplementResponseOneOfManualQualVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualQualVersionsItem'
+import type { QualSelectQuestionParams } from '#/api/models/qualSelectQuestionParams'
+import { AUTO_SAVE_TYPING_DELAY } from '../../../common/constants'
 
 interface Props {
-  asset: AssetResponse
-  submission: DataResponse & Record<string, string>
-  uuid: string
-  canEdit: boolean
+  qaQuestion: QualSelectQuestionParams
+  qaAnswer?: _DataSupplementResponseOneOfManualQualVersionsItem
+  disabled: boolean
+  onSave: (values: string[]) => Promise<unknown>
 }
 
-/**
- * Displays a common header and a list of checkboxes - each one for the choice
- * available.
- */
-export default function SelectMultipleResponseForm({ asset, submission, uuid, canEdit }: Props) {
-  const analysisQuestions = useContext(AnalysisQuestionsContext)
-  if (!analysisQuestions) {
-    return null
+export default function SelectMultipleResponseForm({ qaQuestion, qaAnswer, onSave, disabled }: Props) {
+  const [values, setValues] = useState<string[]>((qaAnswer?._data.value as string[]) ?? []) // TODO OpenAPI: DEV-1632
+  const [typingTimer, setTypingTimer] = useState<NodeJS.Timeout>()
+
+  const handleSave = async () => {
+    clearTimeout(typingTimer)
+    await onSave(values)
   }
 
-  // Get the question data from state (with safety check)
-  const question = findQuestion(uuid, analysisQuestions.state)
-  if (!question) {
-    return null
-  }
-
-  // Get the question definition (with safety check)
-  const qaDefinition = getQuestionTypeDefinition(question.type)
-  if (!qaDefinition) {
-    return null
-  }
-
-  // This will either be an existing list of selected choices, or an empty list.
-  const initialResponse = Array.isArray(question.response) ? question.response : []
-
-  const [response, setResponse] = useState<string[]>(initialResponse)
-
-  function onCheckboxesChange(items: MultiCheckboxItem[]) {
-    if (!analysisQuestions || !question) {
-      return
-    }
-
-    const newResponse = items.filter((item) => item.checked).map((item) => item.name)
-
-    analysisQuestions?.dispatch({ type: 'hasUnsavedWork' })
-
-    // Update local state
-    setResponse(newResponse)
-
-    // Update endpoint and reducer
-    updateResponseAndReducer(
-      analysisQuestions.dispatch,
-      question.xpath,
-      uuid,
-      question.type,
-      newResponse,
-      asset.uid,
-      submission['meta/rootUuid'],
-    )
-  }
-
-  function getCheckboxes(): MultiCheckboxItem[] {
-    if (question?.additionalFields?.choices) {
-      return (
-        question?.additionalFields?.choices
-          // We hide all choices flagged as deleted…
-          .filter((item) => !item.options?.deleted)
-          // …and then we produce checkbox object of each choice left
-          .map((choice) => {
-            return {
-              name: choice.uuid,
-              label: choice.labels._default,
-              checked: response.includes(choice.uuid),
-            }
-          })
-      )
-    }
-    return []
+  const handleChange = (items: MultiCheckboxItem[]) => {
+    setValues(items.filter((item) => item.checked).map((item) => item.name) as string[])
+    clearTimeout(typingTimer)
+    setTypingTimer(setTimeout(handleSave, AUTO_SAVE_TYPING_DELAY)) // After some seconds we auto save
   }
 
   return (
-    <ResponseForm asset={asset} uuid={uuid}>
-      <MultiCheckbox type='bare' items={getCheckboxes()} onChange={onCheckboxesChange} disabled={!canEdit} />
-    </ResponseForm>
+    <Radio.Group>
+      <MultiCheckbox
+        type='bare'
+        items={qaQuestion.choices
+          .filter((item) => !item.options?.deleted) // We hide all choices flagged as deleted…
+          .map((choice) => ({
+            name: choice.uuid,
+            label: choice.labels._default,
+            checked: values.includes(choice.uuid),
+          }))}
+        onChange={handleChange}
+        disabled={!disabled}
+      />
+    </Radio.Group>
   )
 }

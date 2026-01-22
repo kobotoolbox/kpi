@@ -1,70 +1,33 @@
-import React, { useContext, useState } from 'react'
+import React, { useState } from 'react'
 
-import { TagsInput } from '@mantine/core'
-import type { DataResponse } from '#/api/models/dataResponse'
-import type { AssetResponse } from '#/dataInterface'
-// We don't use `KoboTagsInput` here, because we don't want the tags splitting
-// feature it has built in. It's easier for us to use `TagsInput` directly.
-import AnalysisQuestionsContext from '../../../common/analysisQuestions.context'
-import { findQuestion, getQuestionTypeDefinition, updateResponseAndReducer } from '../../../common/utils'
-import ResponseForm from './ResponseForm'
+import { Radio, TagsInput } from '@mantine/core'
+import type { _DataSupplementResponseOneOfManualQualVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualQualVersionsItem'
+import { AUTO_SAVE_TYPING_DELAY } from '../../../common/constants'
 
 interface Props {
-  asset: AssetResponse
-  submission: DataResponse & Record<string, string>
-  uuid: string
-  canEdit: boolean
+  qaAnswer?: _DataSupplementResponseOneOfManualQualVersionsItem
+  disabled: boolean
+  onSave: (values: string[]) => Promise<unknown>
 }
 
-/**
- * Displays a common header and a tags input.
- */
-export default function TagsResponseForm({ asset, submission, canEdit, uuid }: Props) {
-  const analysisQuestions = useContext(AnalysisQuestionsContext)
-  if (!analysisQuestions) {
-    return null
+export default function SelectMultipleResponseForm({ qaAnswer, onSave, disabled }: Props) {
+  const [values, setValues] = useState<string[]>((qaAnswer?._data.value as string[]) ?? []) // TODO OpenAPI: DEV-1632
+  const [typingTimer, setTypingTimer] = useState<NodeJS.Timeout>()
+
+  const handleSave = async () => {
+    clearTimeout(typingTimer)
+    await onSave(values)
   }
 
-  // Get the question data from state (with safety check)
-  const question = findQuestion(uuid, analysisQuestions.state)
-  if (!question) {
-    return null
-  }
-
-  // Get the question definition (with safety check)
-  const qaDefinition = getQuestionTypeDefinition(question.type)
-  if (!qaDefinition) {
-    return null
-  }
-
-  // This will either be an existing list of tags, or an empty list.
-  const initialResponse = Array.isArray(question.response) ? question.response : []
-
-  const [response, setResponse] = useState<string[]>(initialResponse)
-
-  function onTagsChange(newTags: string[]) {
-    if (!analysisQuestions || !question) {
-      return
-    }
-
-    // Update local state
-    setResponse(newTags)
-
-    // Update endpoint and reducer
-    updateResponseAndReducer(
-      analysisQuestions.dispatch,
-      question.xpath,
-      uuid,
-      question.type,
-      newTags,
-      asset.uid,
-      submission['meta/rootUuid'],
-    )
+  const handleChange = (items: string[]) => {
+    setValues(items)
+    clearTimeout(typingTimer)
+    setTypingTimer(setTimeout(handleSave, AUTO_SAVE_TYPING_DELAY)) // After some seconds we auto save
   }
 
   return (
-    <ResponseForm asset={asset} uuid={uuid}>
-      <TagsInput value={response} onChange={onTagsChange} acceptValueOnBlur disabled={!canEdit} />
-    </ResponseForm>
+    <Radio.Group>
+      <TagsInput value={values} onChange={handleChange} acceptValueOnBlur disabled={disabled} />
+    </Radio.Group>
   )
 }

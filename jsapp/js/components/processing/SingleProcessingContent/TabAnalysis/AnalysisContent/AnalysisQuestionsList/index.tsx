@@ -1,11 +1,11 @@
-import React, { useCallback, useContext } from 'react'
+import React, { useCallback } from 'react'
 
 import { DndProvider } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
 
 import type { DataResponse } from '#/api/models/dataResponse'
+import type { QualActionParams } from '#/api/models/qualActionParams'
 import type { AssetResponse } from '#/dataInterface'
-import AnalysisQuestionsContext from '../../common/analysisQuestions.context'
 import type { AdvancedFeatureResponseManualQual } from '../../common/utils'
 import AnalysisQuestionListItem from './AnalysisQuestionListItem'
 import styles from './index.module.scss'
@@ -14,7 +14,9 @@ interface Props {
   asset: AssetResponse
   advancedFeature: AdvancedFeatureResponseManualQual
   questionXpath: string
-  submission: DataResponse & Record<string, string>
+  submission: DataResponse
+  qaQuestion?: QualActionParams
+  setQaQuestion: (qaQuestion: QualActionParams | undefined) => void
 }
 
 /**
@@ -22,54 +24,62 @@ interface Props {
  *
  * Also handles questions reordering (configured in `AnalysisQuestionRow`).
  */
-export default function AnalysisQuestionsList({ asset, advancedFeature, questionXpath, submission }: Props) {
-  const analysisQuestions = useContext(AnalysisQuestionsContext)
-  if (!analysisQuestions) {
-    return null
-  }
-
+export default function AnalysisQuestionsList({
+  asset,
+  advancedFeature,
+  questionXpath,
+  submission,
+  qaQuestion,
+  setQaQuestion,
+}: Props) {
   const moveRow = useCallback((uuid: string, oldIndex: number, newIndex: number) => {
-    analysisQuestions.dispatch({
-      type: 'reorderQuestion',
-      payload: { uuid: uuid, oldIndex, newIndex },
-    })
+    console.log(uuid, oldIndex, newIndex)
+    // TODO: react query mutation.
+    // analysisQuestions.dispatch({
+    //   type: 'reorderQuestion',
+    //   payload: { uuid: uuid, oldIndex, newIndex },
+    // })
   }, [])
+
+  console.log('AnalysisQuestionsList', qaQuestion, advancedFeature.params)
+
+  const qaQuestions = advancedFeature.params
+    .filter((qaQuestion) => !qaQuestion.options?.deleted) // We hide questions marked as deleted. TODO OpenAPI: is that a thing? DEV-1630
+    // TODO: we temporarily hide Keyword Search from the UI until
+    // https://github.com/kobotoolbox/kpi/issues/4594 is done
+    // TODO OpenAPI: DEV-1628
+    .filter((qaQuestion) => (qaQuestion.type as any) !== 'qual_auto_keyword_count')
 
   return (
     <DndProvider backend={HTML5Backend}>
       <ul className={styles.root}>
-        {analysisQuestions.state.questions.map((question, index: number) => {
-          // We hide analysis questions for other survey questions. We need to
-          // hide them at this point (not filtering the whole list beforehand),
-          // because we need the indexes to match the whole list. And FYI all
-          // analysis questions live on a single list :)
-          if (question.xpath !== questionXpath) {
-            return null
-          }
-
-          // TODO: we temporarily hide Keyword Search from the UI until
-          // https://github.com/kobotoolbox/kpi/issues/4594 is done
-          if (question.type === 'qual_auto_keyword_count') {
-            return null
-          }
-
-          // We hide questions marked as deleted
-          if (question.options?.deleted) {
-            return null
-          }
-
-          return (
-            <AnalysisQuestionListItem
-              asset={asset}
-              advancedFeature={advancedFeature}
-              submission={submission}
-              uuid={question.uuid}
-              index={index}
-              key={question.uuid}
-              moveRow={moveRow}
-            />
-          )
-        })}
+        {qaQuestion && !qaQuestions.some(({ uuid }) => uuid === qaQuestion?.uuid) && (
+          <AnalysisQuestionListItem
+            asset={asset}
+            advancedFeature={advancedFeature}
+            submission={submission}
+            questionXpath={questionXpath}
+            qaQuestion={qaQuestion}
+            setQaQuestion={setQaQuestion}
+            index={0}
+            moveRow={moveRow}
+            editMode
+          />
+        )}
+        {qaQuestions.map((question, index: number) => (
+          <AnalysisQuestionListItem
+            key={question.uuid}
+            asset={asset}
+            advancedFeature={advancedFeature}
+            submission={submission}
+            questionXpath={questionXpath}
+            qaQuestion={question}
+            setQaQuestion={setQaQuestion}
+            index={index}
+            moveRow={moveRow}
+            editMode={question.uuid === qaQuestion?.uuid}
+          />
+        ))}
       </ul>
     </DndProvider>
   )

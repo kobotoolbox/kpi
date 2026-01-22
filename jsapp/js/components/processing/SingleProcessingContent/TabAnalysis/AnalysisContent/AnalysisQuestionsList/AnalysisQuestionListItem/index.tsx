@@ -1,23 +1,18 @@
-import React, { useCallback, useContext, useRef } from 'react'
+import React, { useRef } from 'react'
 
 import classnames from 'classnames'
 import type { Identifier, XYCoord } from 'dnd-core'
 import { useDrag, useDrop } from 'react-dnd'
-import { handleApiFail } from '#/api'
 import type { DataResponse } from '#/api/models/dataResponse'
+import type { PatchedDataSupplementPayloadOneOfQual } from '#/api/models/patchedDataSupplementPayloadOneOfQual'
+import type { QualActionParams } from '#/api/models/qualActionParams'
+import type { QualSelectQuestionParams } from '#/api/models/qualSelectQuestionParams'
 import Icon from '#/components/common/icon'
 import InlineMessage from '#/components/common/inlineMessage'
 import { userCan } from '#/components/permissions/utils'
 import { DND_TYPES } from '#/constants'
-import type { AssetResponse, FailResponse } from '#/dataInterface'
-import AnalysisQuestionsContext from '../../../common/analysisQuestions.context'
-import type { AnalysisQuestionBase } from '../../../common/constants'
-import {
-  type AdvancedFeatureResponseManualQual,
-  convertQuestionsFromSchemaToInternal,
-  findQuestion,
-  updateSurveyQuestions,
-} from '../../../common/utils'
+import type { AssetResponse } from '#/dataInterface'
+import type { AdvancedFeatureResponseManualQual } from '../../../common/utils'
 import AnalysisQuestionEditor from './AnalysisQuestionEditor'
 import IntegerResponseForm from './IntegerResponseForm'
 import KeywordSearchResponseForm from './KeywordSearchResponseForm'
@@ -27,14 +22,22 @@ import SelectOneResponseForm from './SelectOneResponseForm'
 import TagsResponseForm from './TagsResponseForm'
 import TextResponseForm from './TextResponseForm'
 import styles from './index.module.scss'
+import {
+  useAssetsDataSupplementPartialUpdateQaHelper,
+  useAssetsDataSupplementRetrieveQaHelper,
+  useAssetsDataSupplementUpsertQaHelper,
+} from './utils'
 
 export interface Props {
   asset: AssetResponse
   advancedFeature: AdvancedFeatureResponseManualQual
-  submission: DataResponse & Record<string, string>
-  uuid: string
+  questionXpath: string
+  qaQuestion: QualActionParams
+  setQaQuestion: (qualQuestion: QualActionParams | undefined) => void
+  submission: DataResponse
   index: number
   moveRow: (uuid: string, oldIndex: number, newIndex: number) => void
+  editMode: boolean
 }
 
 interface DragItem {
@@ -49,25 +52,45 @@ interface DragItem {
  *
  * Also configures questions reordering.
  */
-export default function AnalysisQuestionListItem({ asset, advancedFeature, submission, uuid, index, moveRow }: Props) {
-  const analysisQuestions = useContext(AnalysisQuestionsContext)
-  if (!analysisQuestions) {
-    return null
+export default function AnalysisQuestionListItem({
+  asset,
+  advancedFeature,
+  questionXpath,
+  qaQuestion,
+  setQaQuestion,
+  submission,
+  index,
+  moveRow,
+  editMode,
+}: Props) {
+  const queryAnswer = useAssetsDataSupplementRetrieveQaHelper(asset, questionXpath, submission, qaQuestion)
+  const [mutationAnswer, onSaveAnswer] = useAssetsDataSupplementPartialUpdateQaHelper(
+    asset,
+    questionXpath,
+    submission,
+    qaQuestion,
+  )
+  const handleSaveAnswer = async (value: PatchedDataSupplementPayloadOneOfQual['value']) => {
+    await onSaveAnswer(value)
   }
 
-  // Get the question data from state (with safety check)
-  const question = findQuestion(uuid, analysisQuestions.state)
-  if (!question) {
-    return null
+  const [mutationQuestion, onSaveQuestion] = useAssetsDataSupplementUpsertQaHelper(asset, advancedFeature)
+  const handleSaveQuestion = async (params: QualActionParams[]) => {
+    await onSaveQuestion(params)
+    setQaQuestion(undefined)
+  }
+  const handleCancelEdit = () => {
+    setQaQuestion(undefined)
   }
 
-  // Responding to analysis question requires `edit_submissions` permission.
-  const hasEditSubmissionsPermissions = (() => {
-    return userCan('change_submissions', asset)
-  })()
+  const disabledAnswer =
+    !userCan('change_submissions', asset) ||
+    queryAnswer.isFetching ||
+    mutationAnswer.isPending ||
+    mutationQuestion.isPending
 
-  // Reordering analysis questions requires `manage_asset` permission.
-  const isDragDisabled = analysisQuestions.state.isPending || !userCan('manage_asset', asset)
+  const disabledQuestion =
+    !userCan('manage_asset', asset) || queryAnswer.isFetching || mutationAnswer.isPending || mutationQuestion.isPending
 
   const previewRef = useRef<HTMLLIElement>(null)
   const dragRef = useRef<HTMLDivElement>(null)
@@ -118,7 +141,7 @@ export default function AnalysisQuestionListItem({ asset, advancedFeature, submi
       }
 
       // Time to actually perform the action
-      moveRow(uuid, dragIndex, hoverIndex)
+      moveRow(qaQuestion.uuid, dragIndex, hoverIndex)
 
       // Note: we're mutating the monitor item here!
       // Generally it's better to avoid mutations,
@@ -131,9 +154,10 @@ export default function AnalysisQuestionListItem({ asset, advancedFeature, submi
   const [{ isDragging }, drag, preview] = useDrag({
     type: DND_TYPES.ANALYSIS_QUESTION,
     item: () => {
-      return { id: uuid, index: index }
+      return { id: qaQuestion.uuid, index: index }
     },
-    canDrag: !isDragDisabled,
+    // Reordering analysis questions requires `manage_asset` permission.
+    canDrag: !disabledQuestion,
     collect: (monitor) => {
       return {
         isDragging: monitor.isDragging(),
@@ -145,122 +169,157 @@ export default function AnalysisQuestionListItem({ asset, advancedFeature, submi
         return
       }
 
-      async function makeCall() {
-        if (!analysisQuestions) {
-          return
-        }
+      // TODO: react-query mutation.
+      console.log(advancedFeature, asset.uid)
+      // async function makeCall() {
+      //   if (!analysisQuestions) {
+      //     return
+      //   }
 
-        // Step 1: Let the reducer know what we're about to do
-        analysisQuestions.dispatch({ type: 'applyQuestionsOrder' })
+      //   // Step 1: Let the reducer know what we're about to do
+      //   analysisQuestions.dispatch({ type: 'applyQuestionsOrder' })
 
-        // Step 2: update asset endpoint with new questions
-        try {
-          const response = await updateSurveyQuestions(asset.uid, analysisQuestions.state.questions)
+      //   // Step 2: update asset endpoint with new questions
+      //   try {
+      //     const response = await updateSurveyQuestions(asset.uid, analysisQuestions.state.questions)
 
-          // Step 3: update reducer's state with new list after the call finishes
-          analysisQuestions?.dispatch({
-            type: 'applyQuestionsOrderCompleted',
-            payload: {
-              questions: convertQuestionsFromSchemaToInternal(advancedFeature),
-            },
-          })
-        } catch (err) {
-          handleApiFail(err as FailResponse)
-          analysisQuestions?.dispatch({ type: 'applyQuestionsOrderFailed' })
-        }
-      }
-      makeCall()
+      //     // Step 3: update reducer's state with new list after the call finishes
+      //     analysisQuestions?.dispatch({
+      //       type: 'applyQuestionsOrderCompleted',
+      //       payload: {
+      //         questions: convertQuestionsFromSchemaToInternal(advancedFeature),
+      //       },
+      //     })
+      //   } catch (err) {
+      //     handleApiFail(err as FailResponse)
+      //     analysisQuestions?.dispatch({ type: 'applyQuestionsOrderFailed' })
+      //   }
+      // }
+      // makeCall()
     },
   })
 
   drag(dragRef)
   drop(preview(previewRef))
 
-  const renderItem = useCallback(
-    (item: AnalysisQuestionBase) => {
-      if (analysisQuestions.state.questionsBeingEdited.includes(item.uuid)) {
-        return <AnalysisQuestionEditor asset={asset} uuid={item.uuid} />
-      } else {
-        switch (item.type) {
-          case 'qual_auto_keyword_count': {
-            return <KeywordSearchResponseForm asset={asset} uuid={item.uuid} />
-          }
-          case 'qualNote': {
-            // This question type doesn't have any response, so we display just
-            // the header
-            return <ResponseForm asset={asset} uuid={item.uuid} />
-          }
-          case 'qualSelectMultiple': {
-            return (
-              <SelectMultipleResponseForm
-                asset={asset}
-                submission={submission}
-                uuid={item.uuid}
-                canEdit={hasEditSubmissionsPermissions}
-              />
-            )
-          }
-          case 'qualSelectOne': {
-            return (
-              <SelectOneResponseForm
-                asset={asset}
-                submission={submission}
-                uuid={item.uuid}
-                canEdit={hasEditSubmissionsPermissions}
-              />
-            )
-          }
-          case 'qualTags': {
-            return (
-              <TagsResponseForm
-                asset={asset}
-                submission={submission}
-                uuid={item.uuid}
-                canEdit={hasEditSubmissionsPermissions}
-              />
-            )
-          }
-          case 'qualInteger': {
-            return (
-              <IntegerResponseForm
-                asset={asset}
-                submission={submission}
-                uuid={item.uuid}
-                canEdit={hasEditSubmissionsPermissions}
-              />
-            )
-          }
-          case 'qualText': {
-            return (
-              <TextResponseForm
-                asset={asset}
-                submission={submission}
-                uuid={item.uuid}
-                canEdit={hasEditSubmissionsPermissions}
-              />
-            )
-          }
-          default: {
-            return (
-              <InlineMessage
-                icon='alert'
-                type='warning'
-                message={t('Unknown question type ##type_name##').replace('##type_name##', item.type)}
-              />
-            )
-          }
-        }
+  const renderItem = () => {
+    if (editMode) {
+      return (
+        <AnalysisQuestionEditor
+          advancedFeature={advancedFeature}
+          qaQuestion={qaQuestion as QualSelectQuestionParams}
+          onSaveQuestion={handleSaveQuestion}
+          disabled={disabledAnswer}
+          onCancel={handleCancelEdit}
+        />
+      )
+    }
+
+    switch (qaQuestion.type) {
+      case 'qual_auto_keyword_count' as any: {
+        // TODO OpenAPI: DEV-1628
+        return <KeywordSearchResponseForm />
       }
-    },
-    [analysisQuestions.state.questionsBeingEdited],
-  )
+      case 'qualNote': {
+        // This question type doesn't have any response, so we display just
+        // the header
+        return (
+          <ResponseForm
+            qaQuestion={qaQuestion}
+            disabled={disabledQuestion} // TODO: or disabledAnswer?
+            onEdit={setQaQuestion}
+            onDelete={async () => console.log('TODO')}
+          />
+        )
+      }
+      case 'qualSelectMultiple': {
+        return (
+          <ResponseForm
+            qaQuestion={qaQuestion}
+            disabled={disabledQuestion}
+            onEdit={setQaQuestion}
+            onDelete={async () => console.log('TODO')}
+          >
+            <SelectMultipleResponseForm
+              qaQuestion={qaQuestion as QualSelectQuestionParams}
+              qaAnswer={queryAnswer.data}
+              disabled={disabledAnswer}
+              onSave={handleSaveAnswer}
+            />
+          </ResponseForm>
+        )
+      }
+      case 'qualSelectOne': {
+        return (
+          <ResponseForm
+            qaQuestion={qaQuestion}
+            disabled={disabledQuestion}
+            onEdit={setQaQuestion}
+            onDelete={async () => console.log('TODO')}
+          >
+            <SelectOneResponseForm
+              qaQuestion={qaQuestion as QualSelectQuestionParams}
+              qaAnswer={queryAnswer.data}
+              disabled={disabledAnswer}
+              onSave={handleSaveAnswer}
+            />
+          </ResponseForm>
+        )
+      }
+      case 'qualTags': {
+        return (
+          <ResponseForm
+            qaQuestion={qaQuestion}
+            disabled={disabledQuestion}
+            onEdit={setQaQuestion}
+            onDelete={async () => console.log('TODO')}
+          >
+            <TagsResponseForm qaAnswer={queryAnswer.data} disabled={disabledAnswer} onSave={handleSaveAnswer} />
+          </ResponseForm>
+        )
+      }
+      case 'qualInteger': {
+        return (
+          <ResponseForm
+            qaQuestion={qaQuestion}
+            disabled={disabledQuestion}
+            onEdit={setQaQuestion}
+            onDelete={async () => console.log('TODO')}
+          >
+            <IntegerResponseForm qaAnswer={queryAnswer.data} disabled={disabledAnswer} onSave={handleSaveAnswer} />
+          </ResponseForm>
+        )
+      }
+      case 'qualText': {
+        return (
+          <ResponseForm
+            qaQuestion={qaQuestion}
+            disabled={disabledQuestion}
+            onEdit={setQaQuestion}
+            onDelete={async () => console.log('TODO')}
+          >
+            <TextResponseForm qaAnswer={queryAnswer.data} disabled={disabledAnswer} onSave={handleSaveAnswer} />
+          </ResponseForm>
+        )
+      }
+      default: {
+        return (
+          <InlineMessage
+            icon='alert'
+            type='warning'
+            message={t('Unknown question type ##type_name##').replace('##type_name##', qaQuestion['type'])}
+          />
+        )
+      }
+    }
+  }
 
   return (
     <li
       className={classnames({
         [styles.root]: true,
         [styles.isBeingDragged]: isDragging,
-        [styles.isDragDisabled]: isDragDisabled,
+        [styles.isDragDisabled]: disabledQuestion,
       })}
       ref={previewRef}
       data-handler-id={handlerId}
@@ -269,7 +328,7 @@ export default function AnalysisQuestionListItem({ asset, advancedFeature, submi
         <Icon name='drag-handle' size='xs' />
       </div>
 
-      <div className={styles.content}>{renderItem(question)}</div>
+      <div className={styles.content}>{renderItem()}</div>
     </li>
   )
 }

@@ -1,120 +1,67 @@
-import React, { useContext } from 'react'
-
+import React from 'react'
+import type { QualSelectQuestionParams } from '#/api/models/qualSelectQuestionParams'
+import type { QualSelectQuestionParamsChoicesItem } from '#/api/models/qualSelectQuestionParamsChoicesItem'
 import Button from '#/components/common/button'
 import TextBox from '#/components/common/textBox'
 import { generateUuid } from '#/utils'
-import AnalysisQuestionsContext from '../../../../common/analysisQuestions.context'
-import type { AdditionalFields } from '../../../../common/constants'
-import { findQuestion } from '../../../../common/utils'
 import styles from './SelectXFieldsEditor.module.scss'
 
-interface SelectXFieldsEditorProps {
-  questionUuid: string
-  fields: AdditionalFields
-  onFieldsChange: (fields: AdditionalFields) => void
+interface Props {
+  qaQuestion: QualSelectQuestionParams
+  onChange: (choices: QualSelectQuestionParamsChoicesItem[]) => void
+  disabled: boolean
 }
 
 /**
  * Displays a form for creating choices for "select x" question types. We only
  * expose editing the choice label to users - the choice uuid is pregenerated.
  */
-export default function SelectXFieldsEditor(props: SelectXFieldsEditorProps) {
-  const analysisQuestions = useContext(AnalysisQuestionsContext)
-  if (!analysisQuestions) {
-    return null
+export default function SelectXFieldsEditor({ qaQuestion, onChange, disabled }: Props) {
+  function handleEditLabel(uuid: string, newLabel: string) {
+    onChange(
+      qaQuestion.choices.map((choice) => ({
+        ...choice,
+        ...(choice.uuid === uuid ? { labels: { _default: newLabel } } : {}),
+      })),
+    )
   }
 
-  // Get the question data from state (with safety check)
-  const question = findQuestion(props.questionUuid, analysisQuestions.state)
-  if (!question) {
-    return null
+  function handleAdd() {
+    onChange([...qaQuestion.choices, { uuid: generateUuid(), labels: { _default: '' } }])
   }
 
-  function updateChoiceLabel(uuid: string, newLabel: string) {
-    props.onFieldsChange({
-      choices: (props.fields.choices || []).map((choice) => {
-        if (choice.uuid === uuid) {
-          return {
-            ...choice,
-            labels: { _default: newLabel },
-          }
-        } else {
-          return choice
-        }
-      }),
-    })
+  /**
+   * FYI: backend handles "missing" choices by marking them with `choice.options.deleted: true` instead of deleting.
+   * FYI: if this deletes a not-yet-saved choice, no harm done and backend never knew about it.
+   */
+  function handleDelete(uuid: string) {
+    onChange(qaQuestion.choices.filter((choice) => choice.uuid !== uuid))
   }
-
-  function addChoice() {
-    props.onFieldsChange({
-      choices: [
-        ...(props.fields.choices || []),
-        {
-          uuid: generateUuid(),
-          labels: { _default: '' },
-        },
-      ],
-    })
-  }
-
-  function deleteChoice(uuid: string) {
-    // When we are going to delete a choice, we need to check if it already
-    // existed in the stored data, or if it was simply created but not saved yet.
-
-    const foundChoice = question?.additionalFields?.choices?.find((item) => item.uuid === uuid)
-
-    if (foundChoice) {
-      // flag it
-      props.onFieldsChange({
-        choices: (props.fields.choices || []).map((choice) => {
-          if (choice.uuid === uuid) {
-            if (typeof choice.options !== 'object') {
-              choice.options = {}
-            }
-            choice.options.deleted = true
-          }
-          return choice
-        }),
-      })
-    } else {
-      // remove it
-      props.onFieldsChange({
-        choices: (props.fields.choices || []).filter((choice) => choice.uuid !== uuid),
-      })
-    }
-  }
-
-  // We hide questions marked as deleted
-  const choicesToDisplay =
-    props.fields.choices?.filter((item) => {
-      if (item.options?.deleted) {
-        return false
-      }
-      return true
-    }) || []
 
   return (
     <>
-      {choicesToDisplay.map((choice) => (
-        <div className={styles.choice} key={choice.uuid}>
-          <TextBox
-            value={choice.labels._default}
-            onChange={(newLabel: string) => updateChoiceLabel(choice.uuid, newLabel)}
-            placeholder={t('Type option name')}
-            className={styles.labelInput}
-            size='m'
-            renderFocused
-          />
+      {qaQuestion.choices
+        .filter((choice) => !choice.options?.deleted) // Filter "deleted" choices.
+        .map((choice) => (
+          <div className={styles.choice} key={choice.uuid}>
+            <TextBox
+              value={choice.labels._default}
+              onChange={(newLabel: string) => handleEditLabel(choice.uuid, newLabel)}
+              placeholder={t('Type option name')}
+              className={styles.labelInput}
+              size='m'
+              renderFocused
+            />
 
-          <Button
-            type='secondary-danger'
-            size='m'
-            startIcon='trash'
-            onClick={() => deleteChoice(choice.uuid)}
-            isDisabled={analysisQuestions.state.isPending}
-          />
-        </div>
-      ))}
+            <Button
+              type='secondary-danger'
+              size='m'
+              startIcon='trash'
+              onClick={() => handleDelete(choice.uuid)}
+              isDisabled={disabled}
+            />
+          </div>
+        ))}
 
       <div className={styles.addOption}>
         <Button
@@ -122,8 +69,8 @@ export default function SelectXFieldsEditor(props: SelectXFieldsEditorProps) {
           size='m'
           startIcon='plus'
           label={t('Add new option')}
-          onClick={addChoice}
-          isDisabled={analysisQuestions.state.isPending}
+          onClick={handleAdd}
+          isDisabled={disabled}
         />
       </div>
     </>

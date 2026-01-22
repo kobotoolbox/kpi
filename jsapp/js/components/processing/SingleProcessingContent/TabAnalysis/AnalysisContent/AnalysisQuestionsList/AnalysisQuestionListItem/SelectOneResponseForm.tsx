@@ -1,97 +1,49 @@
 import { Radio, Stack } from '@mantine/core'
-import React, { useContext, useState } from 'react'
-import type { DataResponse } from '#/api/models/dataResponse'
-import type { RadioOption } from '#/components/common/radio'
-import type { AssetResponse } from '#/dataInterface'
-import AnalysisQuestionsContext from '../../../common/analysisQuestions.context'
-import { findQuestion, getQuestionTypeDefinition, updateResponseAndReducer } from '../../../common/utils'
-import ResponseForm from './ResponseForm'
+import React, { useState, type ChangeEvent } from 'react'
+import type { _DataSupplementResponseOneOfManualQualVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualQualVersionsItem'
+import type { QualSelectQuestionParams } from '#/api/models/qualSelectQuestionParams'
+import { AUTO_SAVE_TYPING_DELAY } from '../../../common/constants'
 
 interface Props {
-  asset: AssetResponse
-  submission: DataResponse & Record<string, string>
-  uuid: string
-  canEdit: boolean
+  qaQuestion: QualSelectQuestionParams
+  qaAnswer?: _DataSupplementResponseOneOfManualQualVersionsItem
+  disabled: boolean
+  onSave: (value: string) => Promise<unknown>
 }
 
-/**
- * Displays a common header and radio input with all available choices.
- */
-export default function SelectOneResponseForm({ asset, submission, canEdit: _canEdit, uuid }: Props) {
-  const analysisQuestions = useContext(AnalysisQuestionsContext)
-  if (!analysisQuestions) {
-    return null
+export default function SelectOneResponseForm({ qaQuestion, qaAnswer, onSave, disabled }: Props) {
+  const [value, setValue] = useState<string>((qaAnswer?._data.value as string) ?? '') // TODO OpenAPI: DEV-1632
+  const [typingTimer, setTypingTimer] = useState<NodeJS.Timeout>()
+
+  const handleSave = async () => {
+    clearTimeout(typingTimer)
+    await onSave(value)
   }
 
-  // Get the question data from state (with safety check)
-  const question = findQuestion(uuid, analysisQuestions.state)
-  if (!question) {
-    return null
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setValue(event.currentTarget.value)
+    clearTimeout(typingTimer)
+    setTypingTimer(setTimeout(handleSave, AUTO_SAVE_TYPING_DELAY)) // After some seconds we auto save
   }
 
-  // Get the question definition (with safety check)
-  const qaDefinition = getQuestionTypeDefinition(question.type)
-  if (!qaDefinition) {
-    return null
-  }
-
-  // This will either be an existing response or an empty string
-  const initialResponse = typeof question.response === 'string' ? question.response : ''
-
-  const [response, setResponse] = useState<string>(initialResponse)
-
-  function onRadioChange(newResponse: string) {
-    if (!analysisQuestions || !question) {
-      return
-    }
-
-    // Update local state
-    setResponse(newResponse)
-
-    // Update endpoint and reducer
-    updateResponseAndReducer(
-      analysisQuestions.dispatch,
-      question.xpath,
-      uuid,
-      question.type,
-      newResponse,
-      asset.uid,
-      submission['meta/rootUuid'],
-    )
-  }
-
-  function getOptions(): RadioOption[] {
-    if (question?.additionalFields?.choices) {
-      return (
-        question?.additionalFields?.choices
-          // We hide all choices flagged as deleted…
-          .filter((item) => !item.options?.deleted)
-          // …and then we produce radio option object of each choice left
-          .map((choice) => {
-            return {
-              value: choice.uuid,
-              label: choice.labels._default,
-            }
-          })
-      )
-    }
-    return []
-  }
+  console.log('SelectOneResponseForm', value, qaQuestion, qaAnswer)
 
   return (
-    <ResponseForm asset={asset} uuid={uuid} onClear={() => setResponse('')}>
-      <Radio.Group>
-        <Stack gap={'xs'}>
-          {getOptions().map((option) => (
+    <Radio.Group>
+      <Stack gap={'xs'} /* TODO: Radio.Group component */>
+        {qaQuestion.choices
+          .filter((item) => !item.options?.deleted) // We hide all choices flagged as deleted…
+          .map((option) => (
             <Radio
-              value={option.value}
-              label={option.label}
-              onChange={(newResponse) => onRadioChange(newResponse.currentTarget.value)}
-              checked={response === option.value}
+              key={option.uuid}
+              value={option.uuid}
+              label={option.labels._default}
+              onChange={handleChange}
+              checked={value === option.uuid} // TODO: sometimes visually not checked, but values checks out :shrug:
+              disabled={disabled}
             />
           ))}
-        </Stack>
-      </Radio.Group>
-    </ResponseForm>
+      </Stack>
+    </Radio.Group>
   )
 }
