@@ -15178,7 +15178,7 @@ components:
           additionalProperties: false
           required:
           - language
-        qual:
+        manual_qual:
           oneOf:
           - allOf:
             - type: object
@@ -15298,7 +15298,7 @@ components:
       - required:
         - automatic_google_translation
       - required:
-        - qual
+        - manual_qual
     PatchedDataValidationStatusUpdatePayload:
       type: object
       properties:

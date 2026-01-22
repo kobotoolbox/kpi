@@ -21260,7 +21260,7 @@
                             "language"
                         ]
                     },
-                    "qual": {
+                    "manual_qual": {
                         "oneOf": [
                             {
                                 "allOf": [
@@ -21478,7 +21478,7 @@
                     },
                     {
                         "required": [
-                            "qual"
+                            "manual_qual"
                         ]
                     }
                 ]

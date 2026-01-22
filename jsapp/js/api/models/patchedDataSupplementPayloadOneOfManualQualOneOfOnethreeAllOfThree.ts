@@ -9,10 +9,7 @@ The endpoints are grouped by area of intended use. Each category contains relate
 **General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as "assets".
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
-import type { PatchedDataSupplementPayloadOneOfQualOneOfFiveAllOf } from './patchedDataSupplementPayloadOneOfQualOneOfFiveAllOf'
-import type { PatchedDataSupplementPayloadOneOfQualOneOfFiveAllOfThree } from './patchedDataSupplementPayloadOneOfQualOneOfFiveAllOfThree'
-import type { PatchedDataSupplementPayloadOneOfQualOneOfFiveAllOfTwo } from './patchedDataSupplementPayloadOneOfQualOneOfFiveAllOfTwo'
 
-export type PatchedDataSupplementPayloadOneOfQualOneOfFive = PatchedDataSupplementPayloadOneOfQualOneOfFiveAllOf &
-  PatchedDataSupplementPayloadOneOfQualOneOfFiveAllOfTwo &
-  PatchedDataSupplementPayloadOneOfQualOneOfFiveAllOfThree
+export type PatchedDataSupplementPayloadOneOfManualQualOneOfOnethreeAllOfThree = {
+  uuid?: string
+}
