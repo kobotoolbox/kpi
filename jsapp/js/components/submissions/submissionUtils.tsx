@@ -133,7 +133,7 @@ export class DisplayResponse {
 /**
  * Returns a sorted object of transcript/translation keys
  *
- * Note: we omit returning `qual_note` questions.
+ * Note: we omit returning `qualNote` questions.
  */
 function sortAnalysisFormJsonKeys(additionalFields: AnalysisFormJsonField[]) {
   const sortedBySource: { [key: string]: string[] } = {}
@@ -694,20 +694,20 @@ export function getSupplementalDetailsContent(
     const foundResponse: SubmissionAnalysisResponse = get(submission, pathArray, {})
 
     if (foundResponse) {
-      // For `qual_select_one` we get object
+      // For `qualSelectOne` we get object
       if (typeof foundResponse.value === 'object' && foundResponse.value !== null && 'labels' in foundResponse.value) {
         return foundResponse.value.labels._default
       }
 
-      // Here we handle both `qual_select_multiple` and `qual_tags`, as both are
+      // Here we handle both `qualSelectMultiple` and `qualTags`, as both are
       // arrays of items
       if (Array.isArray(foundResponse.value) && foundResponse.value.length > 0) {
         const choiceLabels = foundResponse.value.map((item) => {
           if (typeof item === 'object') {
-            // For `qual_select_multiple` we get an array of objects
+            // For `qualSelectMultiple` we get an array of objects
             return item.labels._default
           } else {
-            // For `qual_tags` we get an array of strings
+            // For `qualTags` we get an array of strings
             return item
           }
         })

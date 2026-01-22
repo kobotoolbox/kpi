@@ -211,7 +211,7 @@ export default function AnalysisQuestionEditor({ asset, uuid }: Props) {
             />
           )}
 
-          {(question.type === 'qual_select_one' || question.type === 'qual_select_multiple') && (
+          {(question.type === 'qualSelectOne' || question.type === 'qualSelectMultiple') && (
             <SelectXFieldsEditor
               questionUuid={question.uuid}
               fields={additionalFields || { choices: [] }}

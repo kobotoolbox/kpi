@@ -489,7 +489,7 @@ export function renderQuestionTypeIcon(
  * Injects supplemental details columns next to their respective source rows in
  * a given list of rows. Returns a new updated `rows` list.
  *
- * Note: we omit injecting `qual_note` questions.
+ * Note: we omit injecting `qualNote` questions.
  */
 export function injectSupplementalRowsIntoListOfRows(asset: AssetResponse, rows: Set<string> | Array<string>) {
   if (asset.content?.survey === undefined) {

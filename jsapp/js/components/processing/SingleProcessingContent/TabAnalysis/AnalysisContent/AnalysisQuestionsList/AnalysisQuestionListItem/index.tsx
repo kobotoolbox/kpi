@@ -185,12 +185,12 @@ export default function AnalysisQuestionListItem({ asset, advancedFeature, submi
           case 'qual_auto_keyword_count': {
             return <KeywordSearchResponseForm asset={asset} uuid={item.uuid} />
           }
-          case 'qual_note': {
+          case 'qualNote': {
             // This question type doesn't have any response, so we display just
             // the header
             return <ResponseForm asset={asset} uuid={item.uuid} />
           }
-          case 'qual_select_multiple': {
+          case 'qualSelectMultiple': {
             return (
               <SelectMultipleResponseForm
                 asset={asset}
@@ -200,7 +200,7 @@ export default function AnalysisQuestionListItem({ asset, advancedFeature, submi
               />
             )
           }
-          case 'qual_select_one': {
+          case 'qualSelectOne': {
             return (
               <SelectOneResponseForm
                 asset={asset}
@@ -210,7 +210,7 @@ export default function AnalysisQuestionListItem({ asset, advancedFeature, submi
               />
             )
           }
-          case 'qual_tags': {
+          case 'qualTags': {
             return (
               <TagsResponseForm
                 asset={asset}
@@ -220,7 +220,7 @@ export default function AnalysisQuestionListItem({ asset, advancedFeature, submi
               />
             )
           }
-          case 'qual_integer': {
+          case 'qualInteger': {
             return (
               <IntegerResponseForm
                 asset={asset}
@@ -230,7 +230,7 @@ export default function AnalysisQuestionListItem({ asset, advancedFeature, submi
               />
             )
           }
-          case 'qual_text': {
+          case 'qualText': {
             return (
               <TextResponseForm
                 asset={asset}

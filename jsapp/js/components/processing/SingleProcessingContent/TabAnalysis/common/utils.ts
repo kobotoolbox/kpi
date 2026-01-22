@@ -101,7 +101,7 @@ export function applyUpdateResponseToInternalQuestions(
     if (foundResponse) {
       // QUAL_INTEGER CONVERSION HACK (PART 2/2):
       // Before putting the responses stored on Back end into the reducer, we
-      // need to convert `qual_integer` response to string (from integer).
+      // need to convert `qualInteger` response to string (from integer).
       const value = foundResponse[1]._versions[0]._data.value
       if (typeof value === 'number') {
         question.response = String(value)
@@ -252,17 +252,17 @@ export async function updateResponseAndReducer(
   dispatch({ type: 'updateResponse' })
 
   // Step 2: QUAL_INTEGER CONVERSION HACK (PART 1/2):
-  // For code simplicity (I hope so!) we handle `qual_integer` as string and
+  // For code simplicity (I hope so!) we handle `qualInteger` as string and
   // only convert it to/from actual integer when talking with Back end.
   let actualResponse: string | string[] | number | null = response
-  if (analysisQuestionType === 'qual_integer') {
+  if (analysisQuestionType === 'qualInteger') {
     const actualResponseAsNumber = Number.parseInt(String(response))
     if (Number.isInteger(actualResponseAsNumber)) {
       actualResponse = Number.parseInt(String(response))
     } else {
       if (String(response) !== '') {
         // This really shouldn't happen!
-        Sentry.captureMessage(`Invalid qual_integer response: "${response}"`)
+        Sentry.captureMessage(`Invalid qualInteger response: "${response}"`)
       }
       // An empty response should be represented as `null`. For continuity with
       // existing code, invalid responses are also transformed to `null` before

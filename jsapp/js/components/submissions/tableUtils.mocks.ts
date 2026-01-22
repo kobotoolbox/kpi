@@ -119,7 +119,7 @@ export const assetWithBgAudioAndNLP: AssetResponse = {
     qual: {
       qual_survey: [
         {
-          type: 'qual_select_one',
+          type: 'qualSelectOne',
           uuid: 'e59a3552-c06c-43f2-92f1-8e3607052624',
           scope: 'by_question#survey',
           xpath: 'background-audio',
@@ -192,7 +192,7 @@ export const assetWithBgAudioAndNLP: AssetResponse = {
         label: 'Is this bg audio?',
         name: 'background-audio/e59a3552-c06c-43f2-92f1-8e3607052624',
         dtpath: 'background-audio/e59a3552-c06c-43f2-92f1-8e3607052624',
-        type: 'qual_select_one',
+        type: 'qualSelectOne',
         language: '??',
         source: 'background-audio',
         xpath: 'background-audio/e59a3552-c06c-43f2-92f1-8e3607052624',

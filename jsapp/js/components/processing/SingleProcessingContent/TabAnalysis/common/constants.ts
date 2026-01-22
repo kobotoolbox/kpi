@@ -1,3 +1,4 @@
+import type { QualActionParams } from '#/api/models/qualActionParams'
 import type { QualSelectQuestionParamsTypeEnum } from '#/api/models/qualSelectQuestionParamsTypeEnum'
 import type { QualSimpleQuestionParamsTypeEnum } from '#/api/models/qualSimpleQuestionParamsTypeEnum'
 import type { LanguageCode } from '#/components/languages/languagesStore'
@@ -12,17 +13,11 @@ export const AUTO_SAVE_TYPING_DELAY = 3000
 export type AnalysisQuestionType =
   | QualSelectQuestionParamsTypeEnum
   | QualSimpleQuestionParamsTypeEnum
-  | 'qual_auto_keyword_count'
-  | 'qual_note'
-  | 'qual_integer'
-  | 'qual_select_multiple'
-  | 'qual_select_one'
-  | 'qual_tags'
-  | 'qual_text'
+  | 'qual_auto_keyword_count' // TODO OpenAPI: include `qual_auto_keyword_count` or not? DEV-1628
 
 // We need this singled out as const, because some other parts of code (not
 // related to Qualitative Analysis) need to exclude notes from output.
-export const QUAL_NOTE_TYPE: AnalysisQuestionType = 'qual_note'
+export const QUAL_NOTE_TYPE: AnalysisQuestionType = 'qualNote'
 
 interface AnalysisLabels {
   _default: string
@@ -36,7 +31,7 @@ interface AnalysisLabels {
 interface AnalysisQuestionOptions {
   /**
    * We mark questions as deleted instead of removing them, because we still
-   * need them to understand the data (e.g. we store `qual_select_one` responses
+   * need them to understand the data (e.g. we store `qualSelectOne` responses
    * as `uuid`s of given choice, so without the question definition, there is no
    * way to understand what was selected).
    */
@@ -56,7 +51,7 @@ interface AnalysisQuestionChoice {
  * additional fields being optional, ideally this would be defined at per-type
  * basis with each field being required. Current solution works, but there is
  * a risk (a very tiny risk) of adding incompatible fields to the question (e.g.
- * adding `isSearching` to `qual_select_one`).
+ * adding `isSearching` to `qualSelectOne`).
  */
 export interface AdditionalFields {
   /** A list of keywords to search for. */
@@ -65,7 +60,7 @@ export interface AdditionalFields {
   isSearching?: boolean
   /** The transcript or translation source for the search. */
   source?: LanguageCode
-  /** For the `qual_seleect_one` and `qual_select_multiple` question types */
+  /** For the `qual_seleect_one` and `qualSelectMultiple` question types */
   choices?: AnalysisQuestionChoice[]
 }
 
@@ -90,15 +85,15 @@ export interface AnalysisQuestionSchema extends AnalysisQuestionBase {
  * An instance of analysis question. We use the same object for the question
  * and the response.
  *
- * For example this coulde be a `qual_integer` question with label "How many
+ * For example this coulde be a `qualInteger` question with label "How many
  * pauses did the responded take?" and response "7".
  */
 export interface AnalysisQuestionInternal extends AnalysisQuestionBase {
   additionalFields?: AdditionalFields
   isDraft?: boolean
   /**
-   * Some types use an array of strings (e.g. `qual_select_multiple` and
-   * `qual_tags`).
+   * Some types use an array of strings (e.g. `qualSelectMultiple` and
+   * `qualTags`).
    */
   response: string | string[]
 }
@@ -107,10 +102,10 @@ export interface AnalysisQuestionInternal extends AnalysisQuestionBase {
 export interface AnalysisRequest {
   type: AnalysisQuestionType
   uuid: string
-  /** `null` is for `qual_integer` */
+  /** `null` is for `qualInteger` */
   val: string | string[] | number | null
 } /**
- * This is a response object for `qual_select_one` and `qual_select_multiple`.
+ * This is a response object for `qualSelectOne` and `qualSelectMultiple`.
  * Besides `uuid` of a choice, it also has `labels`. It makes it easier to
  * display these responses in the UI.
  */
@@ -120,11 +115,11 @@ interface AnalysisResponseSelectXValue {
   val: string
 } /**
  * A lot of options, because:
- * - `qual_tags` returns `string[]` (`[]` for empty)
- * - `qual_text` returns `string` (`''` for empty)
- * - `qual_integer` returns `number` (`null` for empty)
- * - `qual_select_one` returns `AnalysisResponseSelectXValue` (dunno for empty, as there's a bug: https://linear.app/kobotoolbox/issue/DEV-40/cant-unselect-qual-select-one-question-response)
- * - `qual_select_multiple` returns `AnalysisResponseSelectXValue[]` (`[]` for empty)
+ * - `qualTags` returns `string[]` (`[]` for empty)
+ * - `qualText` returns `string` (`''` for empty)
+ * - `qualInteger` returns `number` (`null` for empty)
+ * - `qualSelectOne` returns `AnalysisResponseSelectXValue` (dunno for empty, as there's a bug: https://linear.app/kobotoolbox/issue/DEV-40/cant-unselect-qual-select-one-question-response)
+ * - `qualSelectMultiple` returns `AnalysisResponseSelectXValue[]` (`[]` for empty)
  */
 type AnalysisResponseValue =
   | string
@@ -137,8 +132,8 @@ type AnalysisResponseValue =
 /**
  * This is the object that is returned from interacting with the processing
  * endpoint. It's similar to the `SubmissionAnalysisResponse`,
- * but with less detailed `val` - for both `qual_select_one`
- * and `qual_select_multiple` it will return a `string` (an
+ * but with less detailed `val` - for both `qualSelectOne`
+ * and `qualSelectMultiple` it will return a `string` (an
  * `uuid` of choice) and `string[]` (list of `uuid` of selected choices)
  * respectively.
  */
@@ -150,7 +145,7 @@ export interface AnalysisResponse extends AnalysisQuestionBase {
  * This is the object that is returned from interacting with the data endpoint
  * (`/api/v2/assets/:uid/data`), it will be inside the `_supplementalDetails`
  * object for each appropiate submission. It's similar to `AnalysisResponse`,
- * but with more detailed `val` for `qual_select_one` and `qual_select_multiple`
+ * but with more detailed `val` for `qualSelectOne` and `qualSelectMultiple`
  * - containing both `uuid` and `labels` object.
  */
 export interface SubmissionAnalysisResponse extends AnalysisQuestionBase {
@@ -183,7 +178,7 @@ export interface SubmissionProcessingDataResponse {
 
 /**
  * The definition is the object that tells us what kind of questions are
- * internally available for being created, e.g. a `qual_integer` question type.
+ * internally available for being created, e.g. a `qualInteger` question type.
  */
 export interface AnalysisQuestionTypeDefinition {
   type: AnalysisQuestionType
@@ -193,6 +188,7 @@ export interface AnalysisQuestionTypeDefinition {
   isAutomated?: boolean
   /** to see if all required data was provided. */
   additionalFieldNames?: Array<'keywords' | 'source' | 'choices'>
+  placeholder: QualActionParams
 }
 
 /**
@@ -201,36 +197,80 @@ export interface AnalysisQuestionTypeDefinition {
  */
 export const ANALYSIS_QUESTION_TYPES: AnalysisQuestionTypeDefinition[] = [
   {
-    type: 'qual_tags',
+    type: 'qualTags',
     label: t('Tags'),
     icon: 'tag',
+    placeholder: {
+      type: 'qualTags',
+      uuid: '',
+      labels: {
+        _default: '',
+      },
+    },
   },
   {
-    type: 'qual_text',
+    type: 'qualText',
     label: t('Text'),
     icon: 'qt-text',
+    placeholder: {
+      type: 'qualText',
+      uuid: '',
+      labels: {
+        _default: '',
+      },
+    },
   },
   {
-    type: 'qual_integer',
+    type: 'qualInteger',
     label: t('Number'),
     icon: 'qt-number',
+    placeholder: {
+      type: 'qualInteger',
+      uuid: '',
+      labels: {
+        _default: '',
+      },
+    },
   },
   {
-    type: 'qual_select_one',
+    type: 'qualSelectOne',
     label: t('Single choice'),
     icon: 'qt-select-one',
     additionalFieldNames: ['choices'],
+    placeholder: {
+      type: 'qualSelectOne',
+      uuid: '',
+      labels: {
+        _default: '',
+      },
+      choices: [],
+    },
   },
   {
-    type: 'qual_select_multiple',
+    type: 'qualSelectMultiple',
     label: t('Multiple choice'),
     icon: 'qt-select-many',
     additionalFieldNames: ['choices'],
+    placeholder: {
+      type: 'qualSelectMultiple',
+      uuid: '',
+      labels: {
+        _default: '',
+      },
+      choices: [],
+    },
   },
   {
-    type: 'qual_note',
+    type: 'qualNote',
     label: t('Note'),
     icon: 'qt-note',
+    placeholder: {
+      type: 'qualNote',
+      uuid: '',
+      labels: {
+        _default: '',
+      },
+    },
   },
   // TODO: we temporarily hide Keyword Search from the UI until
   // https://github.com/kobotoolbox/kpi/issues/4594 is done

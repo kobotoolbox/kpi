@@ -62,7 +62,7 @@ export const analysisQuestionsReducer: AnalysisQuestionReducerType = (
       const newUuid = generateUuid()
 
       let initialResponse: string | string[] = ''
-      if (action.payload.type === 'qual_tags' || action.payload.type === 'qual_select_multiple') {
+      if (action.payload.type === 'qualTags' || action.payload.type === 'qualSelectMultiple') {
         initialResponse = []
       }
 
