@@ -28,42 +28,42 @@ class TestAutomaticBedrockQual(BaseTestCase):
         action_params = [
             {
                 'type': 'qualInteger',
-                'uuid': 'uuid-qual-integer',
+                'uuid': 'a94c2b17-5f6e-4d88-8b31-2e9a7c6f54d0',
                 'labels': {'_default': 'How many characters appear in the story?'},
             },
             {
                 'type': 'qualSelectMultiple',
-                'uuid': 'uuid-qual-select-multiple',
+                'uuid': 'b1f8c6a9-2d4e-4a73-8c5f-9e0b6d1a2374',
                 'labels': {'_default': 'What themes were present in the story?'},
                 'choices': [
                     {
-                        'uuid': 'uuid-empathy',
+                        'uuid': 'c4a9e2d1-7b6f-4a83-9d5e-1f8c3b2a0647',
                         'labels': {'_default': 'Empathy'},
                     },
                     {
-                        'uuid': 'uuid-apathy',
+                        'uuid': '8e1f2c9a-3d4b-4f6e-8a57-bc0d91e5a234',
                         'labels': {'_default': 'Apathy'},
                     },
                 ],
             },
             {
                 'type': 'qualSelectOne',
-                'uuid': 'uuid-qual-select-one',
+                'uuid': '6d8e4a1f-3b92-4c7a-9f61-0e5c2b7a8d43',
                 'labels': {'_default': 'Was this a first-hand account?'},
                 'choices': [
                     {
-                        'uuid': 'uuid-yes',
+                        'uuid': '6d8e4a1f-3b92-4c7a-9f61-0e5c2b7a8d43',
                         'labels': {'_default': 'Yes'},
                     },
                     {
-                        'uuid': 'uuid-no',
+                        'uuid': 'b1f8c6a9-2d4e-4a73-8c5f-9e0b6d1a2374',
                         'labels': {'_default': 'No'},
                     },
                 ],
             },
             {
                 'type': 'qualText',
-                'uuid': 'uuid-qual-text',
+                'uuid': '3f2a1d6c-8e7b-4f2d-9a1c-6b9e4d8f21a3',
                 'labels': {'_default': 'Add any further remarks'},
             },
         ]
@@ -99,8 +99,8 @@ class TestAutomaticBedrockQual(BaseTestCase):
     )
     @unpack
     def test_valid_params(self, question_type, main_label, choice_label, should_pass):
-        main_uuid = 'main_uuid'
-        choice_uuid = 'choice_uuid'
+        main_uuid = '8c1e2a40-7f9b-4d3e-9a5c-2b6e1d4f9a10'
+        choice_uuid = 'f2a9c4e1-6b3d-4f8a-9c50-7e1b5d3a0a20'
         param = {'uuid': main_uuid}
         if question_type:
             param['type'] = question_type
@@ -120,8 +120,8 @@ class TestAutomaticBedrockQual(BaseTestCase):
         for param in self.feature.params:
             if param['type'] == 'qualNote':
                 continue
-            uuid = param['uuid']
-            self.action.validate_data({'uuid': uuid})
+            uuid_ = param['uuid']
+            self.action.validate_data({'uuid': uuid_})
 
     def test_invalid_user_data_no_uuid(self):
         with pytest.raises(jsonschema.exceptions.ValidationError):
@@ -129,7 +129,9 @@ class TestAutomaticBedrockQual(BaseTestCase):
 
     def test_invalid_user_data_extra_field(self):
         with pytest.raises(jsonschema.exceptions.ValidationError):
-            self.action.validate_data({'uuid': 'uuid-qual-text', 'other': 'stuff'})
+            self.action.validate_data(
+                {'uuid': '3f2a1d6c-8e7b-4f2d-9a1c-6b9e4d8f21a3', 'other': 'stuff'}
+            )
 
     def test_invalid_user_data_type_note(self):
         with pytest.raises(jsonschema.exceptions.ValidationError):
@@ -137,28 +139,52 @@ class TestAutomaticBedrockQual(BaseTestCase):
 
     # uuid, value, status, error, good
     @data(
-        ('uuid-qual-text', 'Hi', 'complete', None, True),
-        ('uuid-qual-text', '', 'complete', None, True),
-        ('uuid-qual-text', None, 'complete', None, False),
-        ('uuid-qual-text', None, 'failed', 'error', True),
-        ('uuid-qual-text', None, 'failed', None, False),
-        ('uuid-qual-text', 'Hi', 'failed', 'error', False),
-        ('uuid-qual-integer', 1, 'complete', None, True),
-        ('uuid-qual-integer', 0, 'complete', None, True),
-        ('uuid-qual-integer', None, 'failed', 'error', True),
-        ('uuid-qual-integer', 1, 'failed', 'error', False),
-        ('uuid-qual-select-one', 'uuid-yes', 'complete', None, True),
-        ('uuid-qual-select-one', '', 'complete', None, True),
-        ('uuid-qual-select-one', None, 'complete', None, False),
-        ('uuid-qual-select-one', 'uuid-bad', 'complete', None, False),
-        ('uuid-qual-select-one', None, 'failed', 'error', True),
-        ('uuid-qual-select-one', 'uuid-yes', 'failed', 'error', False),
-        ('uuid-qual-select-multiple', ['uuid-empathy'], 'complete', None, True),
-        ('uuid-qual-select-multiple', [], 'complete', None, True),
-        ('uuid-qual-select-multiple', None, 'complete', None, False),
-        ('uuid-qual-select-multiple', ['uuid-bad'], 'complete', None, False),
-        ('uuid-qual-select-multiple', None, 'failed', 'error', True),
-        ('uuid-qual-select-multiple', ['uuid-empathy'], 'failed', 'error', False),
+        ('3f2a1d6c-8e7b-4f2d-9a1c-6b9e4d8f21a3', 'Hi', 'complete', None, True),
+        ('3f2a1d6c-8e7b-4f2d-9a1c-6b9e4d8f21a3', '', 'complete', None, True),
+        ('3f2a1d6c-8e7b-4f2d-9a1c-6b9e4d8f21a3', None, 'complete', None, False),
+        ('3f2a1d6c-8e7b-4f2d-9a1c-6b9e4d8f21a3', None, 'failed', 'error', True),
+        ('3f2a1d6c-8e7b-4f2d-9a1c-6b9e4d8f21a3', None, 'failed', None, False),
+        ('3f2a1d6c-8e7b-4f2d-9a1c-6b9e4d8f21a3', 'Hi', 'failed', 'error', False),
+        ('a94c2b17-5f6e-4d88-8b31-2e9a7c6f54d0', 1, 'complete', None, True),
+        ('a94c2b17-5f6e-4d88-8b31-2e9a7c6f54d0', 0, 'complete', None, True),
+        ('a94c2b17-5f6e-4d88-8b31-2e9a7c6f54d0', None, 'failed', 'error', True),
+        ('a94c2b17-5f6e-4d88-8b31-2e9a7c6f54d0', 1, 'failed', 'error', False),
+        (
+            '6d8e4a1f-3b92-4c7a-9f61-0e5c2b7a8d43',
+            '6d8e4a1f-3b92-4c7a-9f61-0e5c2b7a8d43',
+            'complete',
+            None,
+            True,
+        ),
+        ('6d8e4a1f-3b92-4c7a-9f61-0e5c2b7a8d43', '', 'complete', None, True),
+        ('6d8e4a1f-3b92-4c7a-9f61-0e5c2b7a8d43', None, 'complete', None, False),
+        ('6d8e4a1f-3b92-4c7a-9f61-0e5c2b7a8d43', 'uuid-bad', 'complete', None, False),
+        ('6d8e4a1f-3b92-4c7a-9f61-0e5c2b7a8d43', None, 'failed', 'error', True),
+        (
+            '6d8e4a1f-3b92-4c7a-9f61-0e5c2b7a8d43',
+            '6d8e4a1f-3b92-4c7a-9f61-0e5c2b7a8d43',
+            'failed',
+            'error',
+            False,
+        ),
+        (
+            'b1f8c6a9-2d4e-4a73-8c5f-9e0b6d1a2374',
+            ['c4a9e2d1-7b6f-4a83-9d5e-1f8c3b2a0647'],
+            'complete',
+            None,
+            True,
+        ),
+        ('b1f8c6a9-2d4e-4a73-8c5f-9e0b6d1a2374', [], 'complete', None, True),
+        ('b1f8c6a9-2d4e-4a73-8c5f-9e0b6d1a2374', None, 'complete', None, False),
+        ('b1f8c6a9-2d4e-4a73-8c5f-9e0b6d1a2374', ['uuid-bad'], 'complete', None, False),
+        ('b1f8c6a9-2d4e-4a73-8c5f-9e0b6d1a2374', None, 'failed', 'error', True),
+        (
+            'b1f8c6a9-2d4e-4a73-8c5f-9e0b6d1a2374',
+            ['c4a9e2d1-7b6f-4a83-9d5e-1f8c3b2a0647'],
+            'failed',
+            'error',
+            False,
+        ),
     )
     @unpack
     def test_valid_external_data(self, uuid, value, status, error, accept):
@@ -217,7 +243,7 @@ class TestAutomaticBedrockQual(BaseTestCase):
             '_version': '20250820',
             'q1': {
                 Action.AUTOMATIC_BEDROCK_QUAL: {
-                    'uuid': 'uuid-qual-text',
+                    'uuid': '3f2a1d6c-8e7b-4f2d-9a1c-6b9e4d8f21a3',
                 },
             },
         }
@@ -231,9 +257,9 @@ class TestAutomaticBedrockQual(BaseTestCase):
         assert response.status_code == status.HTTP_200_OK
         transcript = response.data['q1'][Action.MANUAL_TRANSCRIPTION]['_versions'][0]
         transcript_uuid = transcript['_uuid']
-        version = response.data['q1'][Action.AUTOMATIC_BEDROCK_QUAL]['uuid-qual-text'][
-            '_versions'
-        ][0]
+        version = response.data['q1'][Action.AUTOMATIC_BEDROCK_QUAL][
+            '3f2a1d6c-8e7b-4f2d-9a1c-6b9e4d8f21a3'
+        ]['_versions'][0]
         version_data = version['_data']
         assert version_data['value'] == 'LLM text'
         assert version_data['status'] == 'complete'
@@ -244,11 +270,11 @@ class TestAutomaticBedrockQual(BaseTestCase):
         today = timezone.now()
         yesterday = today - timedelta(days=1)
         action_data = {
-            'uuid-qual-text': {
+            '3f2a1d6c-8e7b-4f2d-9a1c-6b9e4d8f21a3': {
                 '_versions': [
                     {
                         '_data': {
-                            'uuid': 'uuid-qual-text',
+                            'uuid': '3f2a1d6c-8e7b-4f2d-9a1c-6b9e4d8f21a3',
                             'status': 'failed',
                             'error': 'Something went wrong',
                         },
@@ -256,7 +282,10 @@ class TestAutomaticBedrockQual(BaseTestCase):
                         '_uuid': 'v2',
                     },
                     {
-                        '_data': {'uuid': 'uuid-qual-text', 'value': 'Initial note'},
+                        '_data': {
+                            'uuid': '3f2a1d6c-8e7b-4f2d-9a1c-6b9e4d8f21a3',
+                            'value': 'Initial note',
+                        },
                         '_dateCreated': yesterday.isoformat(),
                         '_dateAccepted': yesterday.isoformat(),
                         '_uuid': 'v1',
@@ -270,7 +299,7 @@ class TestAutomaticBedrockQual(BaseTestCase):
         output = self.action.transform_data_for_output(action_data)
         assert len(output.keys()) == 1
 
-        text_item = output.get(('qual', 'uuid-qual-text'))
+        text_item = output.get(('qual', '3f2a1d6c-8e7b-4f2d-9a1c-6b9e4d8f21a3'))
         # take the initial note because the most recent request to overwrite failed
         assert text_item['value'] == 'Initial note'
         assert 'error' not in text_item

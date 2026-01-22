@@ -590,7 +590,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                         'qual': [
                             {
                                 'type': 'qualText',
-                                'uuid': '12345',
+                                'uuid': 'b2d4f6e9-3a1c-4d83-8c50-7e2b1f9a4d11',
                                 'labels': {'_default': 'Why?'},
                             },
                         ]
@@ -618,7 +618,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             'params': [
                 {
                     'labels': {'_default': 'wherefore?'},
-                    'uuid': '12345',
+                    'uuid': 'b2d4f6e9-3a1c-4d83-8c50-7e2b1f9a4d11',
                     'type': 'qualText',
                 }
             ],
@@ -670,7 +670,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             'params': [
                 {
                     'labels': {'_default': 'wherefore?'},
-                    'uuid': '12345',
+                    'uuid': 'b2d4f6e9-3a1c-4d83-8c50-7e2b1f9a4d11',
                     'type': 'qualText',
                 }
             ]
