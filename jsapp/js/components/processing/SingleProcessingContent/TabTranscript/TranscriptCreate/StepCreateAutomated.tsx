@@ -137,9 +137,8 @@ export default function StepCreateAutomated({
           action: ActionEnum.automatic_google_transcription, // TODO: OpenAPI PatchedAdvancedFeaturePatchRequest doesn't have this prop typed. See https://linear.app/kobotoolbox/issue/DEV-1627
           question_xpath: questionXpath, // TODO: OpenAPI PatchedAdvancedFeaturePatchRequest doesn't have this prop typed. https://linear.app/kobotoolbox/issue/DEV-1627
           params: advancedFeature.params.concat({
-            // TODO: OpenAPI shouldn't be double-arrayed.
             language: languageCode,
-          } as any),
+          }),
         } as any,
       })
     }
@@ -150,7 +149,7 @@ export default function StepCreateAutomated({
       data: {
         _version: SUBSEQUENCES_SCHEMA_VERSION,
         [questionXpath]: {
-          automatic_google_transcription: { language: languageCode, locale } as any, // TODO: OpenAPI is missing `locale`.
+          automatic_google_transcription: { language: languageCode, locale },
         },
       },
     })

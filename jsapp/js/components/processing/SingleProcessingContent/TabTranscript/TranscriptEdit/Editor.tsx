@@ -89,16 +89,14 @@ export default function Editor({
         data: {
           question_xpath: questionXpath,
           action: ActionEnum.manual_transcription,
-          // TODO: OpenAPI shouldn't be double-arrayed.
           params: [
             {
               language: languageCode,
-            } as any,
+            },
           ],
         },
       })
       // TODO: should I check for locales too or not?
-      // TODO: OpenAPI shouldn't be double-arrayed.
     } else if (!advancedFeature?.params.find((param) => 'language' in param && param.language === languageCode)) {
       await mutationPatchAF.mutateAsync({
         uidAsset: asset.uid,
@@ -107,9 +105,8 @@ export default function Editor({
           action: ActionEnum.manual_transcription, // TODO: OpenAPI PatchedAdvancedFeaturePatchRequest doesn't have this prop typed. https://linear.app/kobotoolbox/issue/DEV-1627
           question_xpath: questionXpath, // TODO: OpenAPI PatchedAdvancedFeaturePatchRequest doesn't have this prop typed. https://linear.app/kobotoolbox/issue/DEV-1627
           params: advancedFeature.params.concat({
-            // TODO: OpenAPI shouldn't be double-arrayed.
             language: languageCode,
-          } as any),
+          }),
         } as any,
       })
     }
