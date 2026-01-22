@@ -150,6 +150,106 @@ Or use the public documentation endpoints:
 
 ---
 
+### 2.2 Updating an Action
+
+You can update the params of an action via a PATCH to `/api/v2/assets/{uid_asset}/advanced-features/`
+
+`params` are always additive. That means that if you PATCH a feature with a new param array, the new ones
+will be added to the existing ones. You cannot delete a param via the API.
+
+In the case of NLP actions, this means you can only add languages, not delete.
+For example, given a `manual_transcription` action with `params=[{'language': 'en'}]`, PATCHing the endpoint
+`/api/v2/assets/{uid_asset}/advanced-features/{uid_feature}` with
+```json
+{"params":  [{"language":  "fr"}]}
+```
+will result in
+```json
+{
+  "params": [{"language": "en"}, {"language": "fr"}]
+}
+```
+
+In the case of qualitative analysis questions, any question not present in a PATCH request will be marked as deleted.
+Similarly, for multiple choice questions, if a choice is not present in the PATCH request, it will be marked as deleted.
+The order of the questions will be updated to match the PATCH request, with deleted questions being put at the end.
+For example, given the initial configuration
+```json
+{
+  "params": [
+    {
+      "type": "qualInteger",
+      "uuid": "1a2c8eb0-e2ec-4b3c-942a-c1a5410c081a",
+      "labels": { "_default": "How many characters appear in the story?" }
+    },
+    {
+      "type": "qualSelectOne",
+      "uuid": "1a8b748b-f470-4c40-bc09-ce2b1197f503",
+      "labels": { "_default": "Was this a first-hand account?" },
+      "choices": [
+        { "uuid": "3c7aacdc-8971-482a-9528-68e64730fc99", "labels": { "_default": "Yes" } },
+        { "uuid": "7e31c6a5-5eac-464c-970c-62c383546a94", "labels": { "_default": "No" } }
+      ]
+    }
+  ]
+}
+```
+
+PATCHing the `api/v2/assets/{asset_uid}/advanced-features/{feature_uid}` with
+```json
+{
+  "params": [
+        {
+      "type": "qualText",
+      "uuid": "7b54db17-3a17-4138-aaae-6007866b9c34",
+      "labels": { "_default": "Why did this happen?" }
+    },
+    {
+      "type": "qualSelectOne",
+      "uuid": "1a8b748b-f470-4c40-bc09-ce2b1197f503",
+      "labels": { "_default": "Was this a first-hand account?" },
+      "choices": [
+        { "uuid":  "04d84733-f427-4a5c-b00b-81bca9da7f3c", "labels": { "_default":  "Maybe" } },
+        { "uuid": "3c7aacdc-8971-482a-9528-68e64730fc99", "labels": { "_default": "Yes" } }
+      ]
+    }
+  ]
+}
+```
+
+will result in
+```json
+{
+  "params": [
+        {
+      "type": "qualText",
+      "uuid": "7b54db17-3a17-4138-aaae-6007866b9c34",
+      "labels": { "_default": "Why did this happen?" }
+    },
+    {
+      "type": "qualSelectOne",
+      "uuid": "1a8b748b-f470-4c40-bc09-ce2b1197f503",
+      "labels": { "_default": "Was this a first-hand account?" },
+      "choices": [
+        { "uuid":  "04d84733-f427-4a5c-b00b-81bca9da7f3c", "labels": { "_default":  "Maybe" } },
+        { "uuid": "3c7aacdc-8971-482a-9528-68e64730fc99", "labels": { "_default": "Yes" } },
+        {
+          "uuid": "7e31c6a5-5eac-464c-970c-62c383546a94",
+          "labels": { "_default": "No" },
+          "options": { "deleted":  true }
+        }
+      ]
+    },
+    {
+      "type": "qualInteger",
+      "uuid": "1a2c8eb0-e2ec-4b3c-942a-c1a5410c081a",
+      "labels": { "_default": "How many characters appear in the story?" },
+      "options": { "deleted":  true }
+    }
+  ]
+}
+```
+
 ### 2.2 Add Submission Supplement
 
 You need to PATCH the submission supplement with this payload:
