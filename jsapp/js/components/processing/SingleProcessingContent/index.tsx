@@ -70,46 +70,6 @@ export default function SingleProcessingContent({
       uid: 'placeholder',
     } as AdvancedFeatureResponseManualQual)
 
-  function renderTabContent() {
-    if (isProcessingRouteActive(PROCESSING_ROUTES.TRANSCRIPT)) {
-      return (
-        <TabTranscript
-          asset={asset}
-          questionXpath={questionXpath}
-          submission={submission}
-          onUnsavedWorkChange={onUnsavedWorkChange}
-          supplement={supplement}
-          advancedFeatures={advancedFeatures}
-        />
-      )
-    }
-    if (isProcessingRouteActive(PROCESSING_ROUTES.TRANSLATIONS)) {
-      return (
-        <TabTranslations
-          asset={asset}
-          questionXpath={questionXpath}
-          submission={submission}
-          onUnsavedWorkChange={onUnsavedWorkChange}
-          supplement={supplement}
-          advancedFeatures={advancedFeatures}
-        />
-      )
-    }
-    if (isProcessingRouteActive(PROCESSING_ROUTES.ANALYSIS)) {
-      return (
-        <TabAnalysis
-          asset={asset}
-          questionXpath={questionXpath}
-          submission={submission}
-          onUnsavedWorkChange={onUnsavedWorkChange}
-          supplement={supplement}
-          advancedFeature={advancedFeatureAnalysis}
-        />
-      )
-    }
-    return null
-  }
-
   return (
     <section className={styles.root}>
       <ul className={styles.tabs}>
@@ -144,7 +104,38 @@ export default function SingleProcessingContent({
         </li>
       </ul>
 
-      <section className={styles.body}>{renderTabContent()}</section>
+      <section className={styles.body}>
+        {isProcessingRouteActive(PROCESSING_ROUTES.TRANSCRIPT) && (
+          <TabTranscript
+            asset={asset}
+            questionXpath={questionXpath}
+            submission={submission}
+            onUnsavedWorkChange={onUnsavedWorkChange}
+            supplement={supplement}
+            advancedFeatures={advancedFeatures}
+          />
+        )}
+        {isProcessingRouteActive(PROCESSING_ROUTES.TRANSLATIONS) && (
+          <TabTranslations
+            asset={asset}
+            questionXpath={questionXpath}
+            submission={submission}
+            onUnsavedWorkChange={onUnsavedWorkChange}
+            supplement={supplement}
+            advancedFeatures={advancedFeatures}
+          />
+        )}
+        {isProcessingRouteActive(PROCESSING_ROUTES.ANALYSIS) && (
+          <TabAnalysis
+            asset={asset}
+            questionXpath={questionXpath}
+            submission={submission}
+            onUnsavedWorkChange={onUnsavedWorkChange}
+            supplement={supplement}
+            advancedFeature={advancedFeatureAnalysis}
+          />
+        )}
+      </section>
     </section>
   )
 }
