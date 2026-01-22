@@ -2788,6 +2788,14 @@
                         }
                     },
                     {
+                        "in": "query",
+                        "name": "q",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Filter the results with search query"
+                    },
+                    {
                         "name": "start",
                         "required": false,
                         "in": "query",
