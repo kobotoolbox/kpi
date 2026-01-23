@@ -17,7 +17,7 @@ import type { DataSupplementManualQualDataText } from './dataSupplementManualQua
 
 export type _DataSupplementResponseOneOfManualQualVersionsItemData =
   | DataSupplementManualQualDataInteger
-  | DataSupplementManualQualDataSelectMultiple
-  | DataSupplementManualQualDataSelectOne
-  | DataSupplementManualQualDataTags
   | DataSupplementManualQualDataText
+  | DataSupplementManualQualDataSelectOne
+  | DataSupplementManualQualDataSelectMultiple
+  | DataSupplementManualQualDataTags

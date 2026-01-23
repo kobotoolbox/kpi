@@ -12274,10 +12274,10 @@ components:
                     _data:
                       oneOf:
                       - $ref: '#/components/schemas/DataSupplementManualQualDataInteger'
-                      - $ref: '#/components/schemas/DataSupplementManualQualDataSelectMultiple'
-                      - $ref: '#/components/schemas/DataSupplementManualQualDataSelectOne'
-                      - $ref: '#/components/schemas/DataSupplementManualQualDataTags'
                       - $ref: '#/components/schemas/DataSupplementManualQualDataText'
+                      - $ref: '#/components/schemas/DataSupplementManualQualDataSelectOne'
+                      - $ref: '#/components/schemas/DataSupplementManualQualDataSelectMultiple'
+                      - $ref: '#/components/schemas/DataSupplementManualQualDataTags'
                     _dateAccepted:
                       type: string
                       format: date-time
@@ -12316,10 +12316,10 @@ components:
                       _data:
                         oneOf:
                         - $ref: '#/components/schemas/DataSupplementManualQualDataInteger'
-                        - $ref: '#/components/schemas/DataSupplementManualQualDataSelectMultiple'
-                        - $ref: '#/components/schemas/DataSupplementManualQualDataSelectOne'
-                        - $ref: '#/components/schemas/DataSupplementManualQualDataTags'
                         - $ref: '#/components/schemas/DataSupplementManualQualDataText'
+                        - $ref: '#/components/schemas/DataSupplementManualQualDataSelectOne'
+                        - $ref: '#/components/schemas/DataSupplementManualQualDataSelectMultiple'
+                        - $ref: '#/components/schemas/DataSupplementManualQualDataTags'
                       _dateAccepted:
                         type: string
                         format: date-time
@@ -15098,113 +15098,11 @@ components:
           - language
         manual_qual:
           oneOf:
-          - allOf:
-            - type: object
-              additionalProperties: false
-              properties:
-                uuid:
-                  type: string
-                  format: uuid
-                value: {}
-              required:
-              - uuid
-              - value
-            - type: object
-              properties:
-                value:
-                  type: integer
-                  nullable: true
-            - type: object
-              properties:
-                uuid:
-                  type: string
-                  format: uuid
-          - allOf:
-            - type: object
-              additionalProperties: false
-              properties:
-                uuid:
-                  type: string
-                  format: uuid
-                value: {}
-              required:
-              - uuid
-              - value
-            - type: object
-              properties:
-                value:
-                  type: string
-            - type: object
-              properties:
-                uuid:
-                  type: string
-                  format: uuid
-          - allOf:
-            - type: object
-              additionalProperties: false
-              properties:
-                uuid:
-                  type: string
-                  format: uuid
-                value: {}
-              required:
-              - uuid
-              - value
-            - type: object
-              properties:
-                value:
-                  type: string
-                  format: uuid
-            - type: object
-              properties:
-                uuid:
-                  type: string
-                  format: uuid
-          - allOf:
-            - type: object
-              additionalProperties: false
-              properties:
-                uuid:
-                  type: string
-                  format: uuid
-                value: {}
-              required:
-              - uuid
-              - value
-            - type: object
-              properties:
-                value:
-                  type: array
-                  items:
-                    type: string
-                    format: uuid
-            - type: object
-              properties:
-                uuid:
-                  type: string
-                  format: uuid
-          - allOf:
-            - type: object
-              additionalProperties: false
-              properties:
-                uuid:
-                  type: string
-                  format: uuid
-                value: {}
-              required:
-              - uuid
-              - value
-            - type: object
-              properties:
-                value:
-                  type: array
-                  items:
-                    type: string
-            - type: object
-              properties:
-                uuid:
-                  type: string
-                  format: uuid
+          - $ref: '#/components/schemas/DataSupplementManualQualDataInteger'
+          - $ref: '#/components/schemas/DataSupplementManualQualDataText'
+          - $ref: '#/components/schemas/DataSupplementManualQualDataSelectOne'
+          - $ref: '#/components/schemas/DataSupplementManualQualDataSelectMultiple'
+          - $ref: '#/components/schemas/DataSupplementManualQualDataTags'
       additionalProperties: false
       anyOf:
       - required:
