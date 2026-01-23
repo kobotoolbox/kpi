@@ -35,7 +35,9 @@ def poll_run_external_process(
     from .actions.base import BaseAction
 
     Asset = apps.get_model('kpi', 'Asset')  # noqa: N806
-    SubmissionSupplement = apps.get_model('subsequences', 'SubmissionSupplement')  # noqa: N806
+    SubmissionSupplement = apps.get_model(
+        'subsequences', 'SubmissionSupplement'
+    )  # noqa: N806
     incoming_data = {
         '_version': SCHEMA_VERSIONS[0],
         question_xpath: {action_id: action_data},
@@ -57,7 +59,9 @@ def poll_run_external_process_failure(sender=None, **kwargs):
 
     # Avoid circular import
     Asset = apps.get_model('kpi', 'Asset')  # noqa: N806
-    SubmissionSupplement = apps.get_model('subsequences', 'SubmissionSupplement')  # noqa: N806
+    SubmissionSupplement = apps.get_model(
+        'subsequences', 'SubmissionSupplement'
+    )  # noqa: N806
 
     asset_id = kwargs['kwargs']['asset_id']
     error = str(kwargs['exception'])
