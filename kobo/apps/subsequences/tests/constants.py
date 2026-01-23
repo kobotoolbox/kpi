@@ -41,11 +41,6 @@ CHOICE_A_Q2_UUID = 'a7d6b1e9-0c3f-4a25-8e84-9f2c5d418b21'
 CHOICE_B_Q2_UUID = '5f0b3c8a-2e1d-4a9f-8c76-41d9e6b72531'
 
 # -----------------------------------------------------------------------------
-# test_project_history_logs.py UUIDs
-# -----------------------------------------------------------------------------
-PROJECT_HISTORY_QUAL_TEXT_UUID = 'b2d4f6e9-3a1c-4d83-8c50-7e2b1f9a4d11'
-
-# -----------------------------------------------------------------------------
 # test_api.py UUIDs
 # -----------------------------------------------------------------------------
 API_TEST_TRANSCRIPTION_UUID = 'c3f2a1d6-8e7b-4f2d-9a1c-6b9e4d8f2112'
@@ -62,7 +57,9 @@ BEDROCK_QUAL_TEXT_UUID = '3f2a1d6c-8e7b-4f2d-9a1c-6b9e4d8f21a3'
 # Choice UUIDs
 BEDROCK_CHOICE_EMPATHY_UUID = 'c4a9e2d1-7b6f-4a83-9d5e-1f8c3b2a0647'
 BEDROCK_CHOICE_APATHY_UUID = '8e1f2c9a-3d4b-4f6e-8a57-bc0d91e5a234'
-# Note: Yes choice reuses BEDROCK_QUAL_SELECT_ONE_UUID, No choice reuses BEDROCK_QUAL_SELECT_MULTIPLE_UUID
+# Note:
+# - Yes choice reuses BEDROCK_QUAL_SELECT_ONE_UUID,
+# - No choice reuses BEDROCK_QUAL_SELECT_MULTIPLE_UUID
 
 # Validation test UUIDs
 BEDROCK_VALIDATION_MAIN_UUID = '8c1e2a40-7f9b-4d3e-9a5c-2b6e1d4f9a10'

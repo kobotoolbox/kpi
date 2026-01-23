@@ -18,6 +18,7 @@ from rest_framework.reverse import reverse as drf_reverse
 
 from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import ProjectHistoryLog
+from kobo.apps.audit_log.tests.constants import PROJECT_HISTORY_QUAL_TEXT_UUID
 from kobo.apps.audit_log.tests.test_models import BaseAuditLogTestCase
 from kobo.apps.data_collectors.models import DataCollector, DataCollectorGroup
 from kobo.apps.hook.models import Hook
@@ -30,7 +31,6 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
 from kobo.apps.openrosa.libs.utils.logger_tools import dict2xform
 from kobo.apps.subsequences.constants import Action
 from kobo.apps.subsequences.models import QuestionAdvancedFeature
-from kobo.apps.subsequences.tests.constants import PROJECT_HISTORY_QUAL_TEXT_UUID
 from kpi.constants import (
     ASSET_TYPE_TEMPLATE,
     CLONE_ARG_NAME,

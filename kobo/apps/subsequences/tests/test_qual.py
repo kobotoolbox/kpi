@@ -179,9 +179,7 @@ class Fix:
                     {'$ref': '#/$defs/qualInteger'},
                     {
                         'type': 'object',
-                        'properties': {
-                            'uuid': {'const': FIX_QUAL_INTEGER_UUID}
-                        },
+                        'properties': {'uuid': {'const': FIX_QUAL_INTEGER_UUID}},
                     },
                 ]
             },
@@ -232,9 +230,7 @@ class Fix:
                     {'$ref': '#/$defs/qualTags'},
                     {
                         'type': 'object',
-                        'properties': {
-                            'uuid': {'const': FIX_QUAL_TAGS_UUID}
-                        },
+                        'properties': {'uuid': {'const': FIX_QUAL_TAGS_UUID}},
                     },
                 ]
             },
@@ -244,9 +240,7 @@ class Fix:
                     {'$ref': '#/$defs/qualText'},
                     {
                         'type': 'object',
-                        'properties': {
-                            'uuid': {'const': FIX_QUAL_TEXT_UUID}
-                        },
+                        'properties': {'uuid': {'const': FIX_QUAL_TEXT_UUID}},
                     },
                 ]
             },
@@ -632,9 +626,7 @@ def test_invalid_result_fails_validation():
     working_result = deepcopy(Fix.expected_result_after_filled_and_empty_responses)
 
     # erroneously add '_dateModified' onto a version
-    first_version = working_result[FIX_QUAL_INTEGER_UUID]['_versions'][
-        0
-    ]
+    first_version = working_result[FIX_QUAL_INTEGER_UUID]['_versions'][0]
     first_version['_dateModified'] = first_version['_dateCreated']
 
     with pytest.raises(jsonschema.exceptions.ValidationError):
@@ -760,18 +752,14 @@ class TestQualActionMethods(TestCase):
         integer_field = next(f for f in output_fields if f['type'] == 'qualInteger')
         assert integer_field['label'] == 'Number of themes'
         assert (
-            integer_field['name']
-            == f'{self.source_xpath}/{METHOD_QUAL_INTEGER_UUID}'
+            integer_field['name'] == f'{self.source_xpath}/{METHOD_QUAL_INTEGER_UUID}'
         )
         assert 'choices' not in integer_field
 
         # Test text question (no choices)
         text_field = next(f for f in output_fields if f['type'] == 'qualText')
         assert text_field['label'] == 'Summary Notes'
-        assert (
-            text_field['name']
-            == f'{self.source_xpath}/{METHOD_QUAL_TEXT_UUID}'
-        )
+        assert text_field['name'] == f'{self.source_xpath}/{METHOD_QUAL_TEXT_UUID}'
         assert 'choices' not in text_field
 
         # Test select one (with choices)
@@ -931,17 +919,13 @@ class TestQualActionMethods(TestCase):
 
         # Verify first choice
         shelter_item = next(
-            i
-            for i in select_multi_value
-            if i['uuid'] == METHOD_CHOICE_SHELTER_UUID
+            i for i in select_multi_value if i['uuid'] == METHOD_CHOICE_SHELTER_UUID
         )
         assert shelter_item['labels'] == {'_default': 'Shelter', 'ar': 'مأوى'}
 
         # Verify second choice
         medical_item = next(
-            i
-            for i in select_multi_value
-            if i['uuid'] == METHOD_CHOICE_MEDICAL_UUID
+            i for i in select_multi_value if i['uuid'] == METHOD_CHOICE_MEDICAL_UUID
         )
         assert medical_item['labels'] == {'_default': 'Medical', 'ar': 'طبي'}
 
