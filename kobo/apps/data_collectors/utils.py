@@ -59,7 +59,10 @@ def set_data_collector_enketo_links(token: str, xform_id_strings: list[str]):
         try:
             redis_client.rename(old_id_key, get_redis_key_for_enketo_id(new_id))
         except redis.exceptions.ResponseError as e:
-            raise Exception(f'Attempt to rename non-existent key {old_id_key}') from e
+            # reraise the redis error with a more helpful message
+            raise redis.exceptions.ResponseError(
+                'Attempt to rename non-existent' f' key {old_id_key}'
+            ) from e
 
 
 def remove_data_collector_enketo_links(token: str, xform_id_strings: list[str] = None):

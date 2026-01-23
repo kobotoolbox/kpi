@@ -49,12 +49,14 @@ class DataCollectorTokenAuthentication(BaseAuthentication):
             collector = DataCollector.objects.get(token=key)
             server_user = DataCollectorUser()
             group = collector.group
+            server_user.name = collector.name
+            server_user.uid = collector.uid
             if group:
                 server_user.assets = list(group.assets.values_list('uid', flat=True))
-                server_user.name = collector.name
-                server_user.uid = collector.uid
                 server_user.group_uid = group.uid
                 server_user.group_name = group.name
+            else:
+                server_user.assets = []
             return server_user, key
         except DataCollector.DoesNotExist:
             raise AuthenticationFailed('Invalid token.')
