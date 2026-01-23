@@ -49,7 +49,9 @@ def _get_data_supplement_patch_payload_request_examples() -> list[OpenApiExample
                 '_version': '20250820',
                 'question_name_xpath': {
                     'manual_transcription': {
-                        'language': 'fr', 'locale': 'fr-CA', 'value': 'Bonjour'
+                        'language': 'fr',
+                        'locale': 'fr-CA',
+                        'value': 'Bonjour',
                     }
                 },
             },
@@ -100,7 +102,7 @@ def _get_data_supplement_patch_payload_request_examples() -> list[OpenApiExample
             value={
                 '_version': '20250820',
                 'question_name_xpath': {
-                    '<action_id>': {'language': '<language>', 'value': None},
+                    'manual_qual': {'language': '<language>', 'value': None},
                 },
             },
             request_only=True,
@@ -122,7 +124,7 @@ def _get_data_supplement_patch_payload_request_examples() -> list[OpenApiExample
             request_only=True,
         ),
         OpenApiExample(
-            'Manual Qualitative Analysis – Integer Question',
+            'Manual – Integer Question',
             value={
                 '_version': '20250820',
                 'question_name_xpath': {
@@ -135,7 +137,7 @@ def _get_data_supplement_patch_payload_request_examples() -> list[OpenApiExample
             request_only=True,
         ),
         OpenApiExample(
-            'Manual Qualitative Analysis – Text Question',
+            'Manual – Text Question',
             value={
                 '_version': '20250820',
                 'question_name_xpath': {
@@ -148,7 +150,7 @@ def _get_data_supplement_patch_payload_request_examples() -> list[OpenApiExample
             request_only=True,
         ),
         OpenApiExample(
-            'Manual Qualitative Analysis – Single Choice Question',
+            'Manual – Single Choice Question',
             value={
                 '_version': '20250820',
                 'question_name_xpath': {
@@ -161,7 +163,7 @@ def _get_data_supplement_patch_payload_request_examples() -> list[OpenApiExample
             request_only=True,
         ),
         OpenApiExample(
-            'Manual Qualitative Analysis – Multiple Choice Question',
+            'Manual – Multiple Choice Question',
             value={
                 '_version': '20250820',
                 'question_name_xpath': {
@@ -184,6 +186,18 @@ def _get_data_supplement_patch_payload_request_examples() -> list[OpenApiExample
                     'manual_qual': {
                         'uuid': '44444444-4444-4444-4444-444444444444',
                         'value': ['tag1', 'tag2'],
+                    }
+                },
+            },
+            request_only=True,
+        ),
+        OpenApiExample(
+            'Automatic Qualitative Analysis – Any Question',
+            value={
+                '_version': '20250820',
+                'question_name_xpath': {
+                    'automatic_bedrock_qual': {
+                        'uuid': '44444444-4444-4444-4444-444444444444',
                     }
                 },
             },
@@ -400,12 +414,12 @@ def _get_data_supplement_response_examples():
             },
         ),
         OpenApiExample(
-            name='Manual Qualitative Analysis – Integer Question',
+            name='Manual or Qualitative Analysis – Integer Question',
             response_only=True,
             value={
                 '_version': '20250820',
                 'question_name_xpath': {
-                    'manual_qual': {
+                    '<action_id>': {
                         '66666666-6666-6666-6666-666666666666': {
                             '_dateCreated': iso0,
                             '_dateModified': iso0,
@@ -424,14 +438,16 @@ def _get_data_supplement_response_examples():
                     }
                 },
             },
+            description='`<action_id>` may be one of `manual_qual`'
+            ' or `automatic_bedrock_qual`',
         ),
         OpenApiExample(
-            name='Manual Qualitative Analysis – Text Question',
+            name='Manual or Qualitative Analysis – Text Question',
             response_only=True,
             value={
                 '_version': '20250820',
                 'question_name_xpath': {
-                    'manual_qual': {
+                    '<action_id>': {
                         'aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff': {
                             '_dateCreated': iso0,
                             '_dateModified': iso0,
@@ -450,9 +466,11 @@ def _get_data_supplement_response_examples():
                     }
                 },
             },
+            description='`<action_id>` may be one of `manual_qual`'
+            ' or `automatic_bedrock_qual`',
         ),
         OpenApiExample(
-            name='Manual Qualitative Analysis – Single Choice Question',
+            name='Manual or Qualitative Analysis – Single Choice Question',
             response_only=True,
             value={
                 '_version': '20250820',
@@ -476,9 +494,11 @@ def _get_data_supplement_response_examples():
                     }
                 },
             },
+            description='`<action_id>` may be one of `manual_qual`'
+            ' or `automatic_bedrock_qual`',
         ),
         OpenApiExample(
-            name='Manual Qualitative Analysis – Multiple Choice Question',
+            name='Manual or Qualitative Analysis – Multiple Choice Question',
             response_only=True,
             value={
                 '_version': '20250820',
@@ -505,6 +525,8 @@ def _get_data_supplement_response_examples():
                     }
                 },
             },
+            description='`<action_id>` may be one of `manual_qual`'
+            ' or `automatic_bedrock_qual`',
         ),
         OpenApiExample(
             name='Manual Qualitative Analysis – Tags Question',

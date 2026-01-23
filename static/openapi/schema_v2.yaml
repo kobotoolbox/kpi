@@ -1144,7 +1144,7 @@ paths:
                     * `automatic_google_translation`
                 QualitativeAnalysis-SimpleTypes:
                   value:
-                  - action: manual_qual
+                  - action: <action_id>
                     question_xpath: q1
                     params:
                     - type: <question_type>
@@ -1153,11 +1153,12 @@ paths:
                         _default: Qualitative analysis result
                     uid: qa123456789AbCdEfGhIjklm
                   summary: Qualitative Analysis - Simple Types
-                  description: "`<question_type>` can be any of:\n\n* `qualText` \n\
-                    * `qualInteger` \n* `qualTags` \n* `qualNote` \n"
+                  description: "`<action_id>` can be either `manual_qual` or `automatic_bedrock_qual`\n\
+                    \n`<question_type>` can be any of:\n\n* `qualText` \n* `qualInteger`\
+                    \ \n* `qualTags` \n* `qualNote` \n"
                 QualitativeAnalysis-SingleChoiceQuestion:
                   value:
-                  - action: manual_qual
+                  - action: <action_id>
                     question_xpath: q1
                     params:
                     - type: qualSelectOne
@@ -1176,9 +1177,11 @@ paths:
                           _default: Low
                     uid: qa123456789AbCdEfGhIjklm
                   summary: Qualitative Analysis - Single Choice Question
+                  description: |
+                    `<action_id>` can be either `manual_qual` or `automatic_bedrock_qual`
                 QualitativeAnalysis-MultipleChoiceQuestion:
                   value:
-                  - action: manual_qual
+                  - action: <action_id>
                     question_xpath: q1
                     params:
                     - type: qualSelectMultiple
@@ -1197,6 +1200,8 @@ paths:
                           _default: Medical
                     uid: qa123456789AbCdEfGhIjklm
                   summary: Qualitative Analysis - Multiple Choice Question
+                  description: |
+                    `<action_id>` can be either `manual_qual`or `automatic_bedrock_qual`
           description: null
         '404':
           content:
@@ -1211,7 +1216,7 @@ paths:
           description: ''
     post:
       operationId: api_v2_assets_advanced_features_create
-      description: |+
+      description: |
         ## Add an advanced action to an asset
 
         Enables a new type of advanced action on a question in the asset.
@@ -1224,7 +1229,7 @@ paths:
         * `manual_translation`
         * `automatic_google_translation`
         * `manual_qual`
-
+        * `automatic_bedrock_qual`
       parameters:
       - in: path
         name: uid_asset
@@ -1257,7 +1262,7 @@ paths:
                   * `automatic_google_translation`
               QualitativeAnalysis-SimpleTypes:
                 value:
-                  action: manual_qual
+                  action: <action_id>
                   question_xpath: q1
                   params:
                   - type: <question_type>
@@ -1265,11 +1270,12 @@ paths:
                     labels:
                       _default: Qualitative analysis result
                 summary: Qualitative Analysis - Simple Types
-                description: "`<question_type>` can be any of:\n\n* `qualText` \n\
-                  * `qualInteger` \n* `qualTags` \n* `qualNote` \n"
+                description: "`<action_id>` can be either `manual_qual` or `automatic_bedrock_qual`\n\
+                  \n`<question_type>` can be any of:\n\n* `qualText` \n* `qualInteger`\
+                  \ \n* `qualTags` \n* `qualNote` \n"
               QualitativeAnalysis-SingleChoiceQuestion:
                 value:
-                  action: manual_qual
+                  action: <action_id>
                   question_xpath: q1
                   params:
                   - type: qualSelectOne
@@ -1287,9 +1293,11 @@ paths:
                       labels:
                         _default: Low
                 summary: Qualitative Analysis - Single Choice Question
+                description: |
+                  `<action_id>` can be either `manual_qual` or `automatic_bedrock_qual`
               QualitativeAnalysis-MultipleChoiceQuestion:
                 value:
-                  action: manual_qual
+                  action: <action_id>
                   question_xpath: q1
                   params:
                   - type: qualSelectMultiple
@@ -1307,6 +1315,8 @@ paths:
                       labels:
                         _default: Medical
                 summary: Qualitative Analysis - Multiple Choice Question
+                description: |
+                  `<action_id>` can be either `manual_qual` or `automatic_bedrock_qual`
         required: true
       security:
       - BasicAuth: []
@@ -1392,7 +1402,7 @@ paths:
                     * `automatic_google_translation`
                 QualitativeAnalysis-SimpleTypes:
                   value:
-                    action: manual_qual
+                    action: <action_id>
                     question_xpath: q1
                     params:
                     - type: <question_type>
@@ -1401,11 +1411,12 @@ paths:
                         _default: Qualitative analysis result
                     uid: qa123456789AbCdEfGhIjklm
                   summary: Qualitative Analysis - Simple Types
-                  description: "`<question_type>` can be any of:\n\n* `qualText` \n\
-                    * `qualInteger` \n* `qualTags` \n* `qualNote` \n"
+                  description: "`<action_id>` can be either `manual_qual` or `automatic_bedrock_qual`\n\
+                    \n`<question_type>` can be any of:\n\n* `qualText` \n* `qualInteger`\
+                    \ \n* `qualTags` \n* `qualNote` \n"
                 QualitativeAnalysis-SingleChoiceQuestion:
                   value:
-                    action: manual_qual
+                    action: <action_id>
                     question_xpath: q1
                     params:
                     - type: qualSelectOne
@@ -1424,9 +1435,11 @@ paths:
                           _default: Low
                     uid: qa123456789AbCdEfGhIjklm
                   summary: Qualitative Analysis - Single Choice Question
+                  description: |
+                    `<action_id>` can be either `manual_qual` or `automatic_bedrock_qual`
                 QualitativeAnalysis-MultipleChoiceQuestion:
                   value:
-                    action: manual_qual
+                    action: <action_id>
                     question_xpath: q1
                     params:
                     - type: qualSelectMultiple
@@ -1445,6 +1458,8 @@ paths:
                           _default: Medical
                     uid: qa123456789AbCdEfGhIjklm
                   summary: Qualitative Analysis - Multiple Choice Question
+                  description: |
+                    `<action_id>` can be either `manual_qual`or `automatic_bedrock_qual`
           description: null
         '404':
           content:
@@ -1505,7 +1520,7 @@ paths:
                   * `automatic_google_translation`
               QualitativeAnalysis-SimpleTypes:
                 value:
-                  action: manual_qual
+                  action: <action_id>
                   question_xpath: q1
                   params:
                   - type: <question_type>
@@ -1513,11 +1528,12 @@ paths:
                     labels:
                       _default: Qualitative analysis result
                 summary: Qualitative Analysis - Simple Types
-                description: "`<question_type>` can be any of:\n\n* `qualText` \n\
-                  * `qualInteger` \n* `qualTags` \n* `qualNote` \n"
+                description: "`<action_id>` can be either `manual_qual` or `automatic_bedrock_qual`\n\
+                  \n`<question_type>` can be any of:\n\n* `qualText` \n* `qualInteger`\
+                  \ \n* `qualTags` \n* `qualNote` \n"
               QualitativeAnalysis-SingleChoiceQuestion:
                 value:
-                  action: manual_qual
+                  action: <action_id>
                   question_xpath: q1
                   params:
                   - type: qualSelectOne
@@ -1535,9 +1551,11 @@ paths:
                       labels:
                         _default: Low
                 summary: Qualitative Analysis - Single Choice Question
+                description: |
+                  `<action_id>` can be either `manual_qual` or `automatic_bedrock_qual`
               QualitativeAnalysis-MultipleChoiceQuestion:
                 value:
-                  action: manual_qual
+                  action: <action_id>
                   question_xpath: q1
                   params:
                   - type: qualSelectMultiple
@@ -1555,6 +1573,8 @@ paths:
                       labels:
                         _default: Medical
                 summary: Qualitative Analysis - Multiple Choice Question
+                description: |
+                  `<action_id>` can be either `manual_qual` or `automatic_bedrock_qual`
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -1583,7 +1603,7 @@ paths:
                     * `automatic_google_translation`
                 QualitativeAnalysis-SimpleTypes:
                   value:
-                    action: manual_qual
+                    action: <action_id>
                     question_xpath: q1
                     params:
                     - type: <question_type>
@@ -1592,11 +1612,12 @@ paths:
                         _default: Qualitative analysis result
                     uid: qa123456789AbCdEfGhIjklm
                   summary: Qualitative Analysis - Simple Types
-                  description: "`<question_type>` can be any of:\n\n* `qualText` \n\
-                    * `qualInteger` \n* `qualTags` \n* `qualNote` \n"
+                  description: "`<action_id>` can be either `manual_qual` or `automatic_bedrock_qual`\n\
+                    \n`<question_type>` can be any of:\n\n* `qualText` \n* `qualInteger`\
+                    \ \n* `qualTags` \n* `qualNote` \n"
                 QualitativeAnalysis-SingleChoiceQuestion:
                   value:
-                    action: manual_qual
+                    action: <action_id>
                     question_xpath: q1
                     params:
                     - type: qualSelectOne
@@ -1615,9 +1636,11 @@ paths:
                           _default: Low
                     uid: qa123456789AbCdEfGhIjklm
                   summary: Qualitative Analysis - Single Choice Question
+                  description: |
+                    `<action_id>` can be either `manual_qual` or `automatic_bedrock_qual`
                 QualitativeAnalysis-MultipleChoiceQuestion:
                   value:
-                    action: manual_qual
+                    action: <action_id>
                     question_xpath: q1
                     params:
                     - type: qualSelectMultiple
@@ -1636,6 +1659,8 @@ paths:
                           _default: Medical
                     uid: qa123456789AbCdEfGhIjklm
                   summary: Qualitative Analysis - Multiple Choice Question
+                  description: |
+                    `<action_id>` can be either `manual_qual`or `automatic_bedrock_qual`
           description: null
         '404':
           content:
@@ -2783,11 +2808,11 @@ paths:
                               _actionId: automatic_google_transcription
                               _uuid: 44444444-4444-4444-4444-444444444444
                   summary: Automated Google Translation
-                ManualQualitativeAnalysis–IntegerQuestion:
+                ManualOrQualitativeAnalysis–IntegerQuestion:
                   value:
                     _version: '20250820'
                     question_name_xpath:
-                      manual_qual:
+                      <action_id>:
                         66666666-6666-6666-6666-666666666666:
                           _dateCreated: '2025-01-01T12:00:00Z'
                           _dateModified: '2025-01-01T12:00:00Z'
@@ -2798,12 +2823,13 @@ paths:
                               uuid: 66666666-6666-6666-6666-666666666666
                               value: 42
                             _uuid: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
-                  summary: Manual Qualitative Analysis – Integer Question
-                ManualQualitativeAnalysis–TextQuestion:
+                  summary: Manual or Qualitative Analysis – Integer Question
+                  description: '`<action_id>` may be one of `manual_qual` or `automatic_bedrock_qual`'
+                ManualOrQualitativeAnalysis–TextQuestion:
                   value:
                     _version: '20250820'
                     question_name_xpath:
-                      manual_qual:
+                      <action_id>:
                         aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff:
                           _dateCreated: '2025-01-01T12:00:00Z'
                           _dateModified: '2025-01-01T12:00:00Z'
@@ -2814,8 +2840,9 @@ paths:
                               uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
                               value: This is a qualitative text response.
                             _uuid: 12121212-3434-5656-7878-909090909090
-                  summary: Manual Qualitative Analysis – Text Question
-                ManualQualitativeAnalysis–SingleChoiceQuestion:
+                  summary: Manual or Qualitative Analysis – Text Question
+                  description: '`<action_id>` may be one of `manual_qual` or `automatic_bedrock_qual`'
+                ManualOrQualitativeAnalysis–SingleChoiceQuestion:
                   value:
                     _version: '20250820'
                     question_name_xpath:
@@ -2830,8 +2857,9 @@ paths:
                               uuid: 77777777-7777-7777-7777-777777777777
                               value: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
                             _uuid: bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
-                  summary: Manual Qualitative Analysis – Single Choice Question
-                ManualQualitativeAnalysis–MultipleChoiceQuestion:
+                  summary: Manual or Qualitative Analysis – Single Choice Question
+                  description: '`<action_id>` may be one of `manual_qual` or `automatic_bedrock_qual`'
+                ManualOrQualitativeAnalysis–MultipleChoiceQuestion:
                   value:
                     _version: '20250820'
                     question_name_xpath:
@@ -2848,7 +2876,8 @@ paths:
                               - aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
                               - bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
                             _uuid: 99999999-9999-9999-9999-999999999999
-                  summary: Manual Qualitative Analysis – Multiple Choice Question
+                  summary: Manual or Qualitative Analysis – Multiple Choice Question
+                  description: '`<action_id>` may be one of `manual_qual` or `automatic_bedrock_qual`'
                 ManualQualitativeAnalysis–TagsQuestion:
                   value:
                     _version: '20250820'
@@ -2998,7 +3027,7 @@ paths:
                 value:
                   _version: '20250820'
                   question_name_xpath:
-                    <action_id>:
+                    manual_qual:
                       language: <language>
                       value: null
                 summary: Delete NLP action
@@ -3017,31 +3046,31 @@ paths:
                 description: '`<action_id>` can be any of `automatic_google_transcription`
                   or `automatic_google_translation`.<br>`<language>` is the language
                   code, e.g. `en`.<br>`accepted` is a boolean. It can `true` or `false`.'
-              ManualQualitativeAnalysis–IntegerQuestion:
+              Manual–IntegerQuestion:
                 value:
                   _version: '20250820'
                   question_name_xpath:
                     manual_qual:
                       uuid: 11111111-1111-1111-1111-111111111111
                       value: 42
-                summary: Manual Qualitative Analysis – Integer Question
-              ManualQualitativeAnalysis–TextQuestion:
+                summary: Manual – Integer Question
+              Manual–TextQuestion:
                 value:
                   _version: '20250820'
                   question_name_xpath:
                     manual_qual:
                       uuid: 22222222-2222-2222-2222-222222222222
                       value: example-text
-                summary: Manual Qualitative Analysis – Text Question
-              ManualQualitativeAnalysis–SingleChoiceQuestion:
+                summary: Manual – Text Question
+              Manual–SingleChoiceQuestion:
                 value:
                   _version: '20250820'
                   question_name_xpath:
                     manual_qual:
                       uuid: 33333333-3333-3333-3333-333333333333
                       value: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
-                summary: Manual Qualitative Analysis – Single Choice Question
-              ManualQualitativeAnalysis–MultipleChoiceQuestion:
+                summary: Manual – Single Choice Question
+              Manual–MultipleChoiceQuestion:
                 value:
                   _version: '20250820'
                   question_name_xpath:
@@ -3050,7 +3079,7 @@ paths:
                       value:
                       - aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
                       - bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
-                summary: Manual Qualitative Analysis – Multiple Choice Question
+                summary: Manual – Multiple Choice Question
               ManualQualitativeAnalysis–TagsQuestion:
                 value:
                   _version: '20250820'
@@ -3061,6 +3090,13 @@ paths:
                       - tag1
                       - tag2
                 summary: Manual Qualitative Analysis – Tags Question
+              AutomaticQualitativeAnalysis–AnyQuestion:
+                value:
+                  _version: '20250820'
+                  question_name_xpath:
+                    automatic_bedrock_qual:
+                      uuid: 44444444-4444-4444-4444-444444444444
+                summary: Automatic Qualitative Analysis – Any Question
         required: true
       security:
       - BasicAuth: []
@@ -3202,11 +3238,11 @@ paths:
                               _actionId: automatic_google_transcription
                               _uuid: 44444444-4444-4444-4444-444444444444
                   summary: Automated Google Translation
-                ManualQualitativeAnalysis–IntegerQuestion:
+                ManualOrQualitativeAnalysis–IntegerQuestion:
                   value:
                     _version: '20250820'
                     question_name_xpath:
-                      manual_qual:
+                      <action_id>:
                         66666666-6666-6666-6666-666666666666:
                           _dateCreated: '2025-01-01T12:00:00Z'
                           _dateModified: '2025-01-01T12:00:00Z'
@@ -3217,12 +3253,13 @@ paths:
                               uuid: 66666666-6666-6666-6666-666666666666
                               value: 42
                             _uuid: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
-                  summary: Manual Qualitative Analysis – Integer Question
-                ManualQualitativeAnalysis–TextQuestion:
+                  summary: Manual or Qualitative Analysis – Integer Question
+                  description: '`<action_id>` may be one of `manual_qual` or `automatic_bedrock_qual`'
+                ManualOrQualitativeAnalysis–TextQuestion:
                   value:
                     _version: '20250820'
                     question_name_xpath:
-                      manual_qual:
+                      <action_id>:
                         aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff:
                           _dateCreated: '2025-01-01T12:00:00Z'
                           _dateModified: '2025-01-01T12:00:00Z'
@@ -3233,8 +3270,9 @@ paths:
                               uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
                               value: This is a qualitative text response.
                             _uuid: 12121212-3434-5656-7878-909090909090
-                  summary: Manual Qualitative Analysis – Text Question
-                ManualQualitativeAnalysis–SingleChoiceQuestion:
+                  summary: Manual or Qualitative Analysis – Text Question
+                  description: '`<action_id>` may be one of `manual_qual` or `automatic_bedrock_qual`'
+                ManualOrQualitativeAnalysis–SingleChoiceQuestion:
                   value:
                     _version: '20250820'
                     question_name_xpath:
@@ -3249,8 +3287,9 @@ paths:
                               uuid: 77777777-7777-7777-7777-777777777777
                               value: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
                             _uuid: bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
-                  summary: Manual Qualitative Analysis – Single Choice Question
-                ManualQualitativeAnalysis–MultipleChoiceQuestion:
+                  summary: Manual or Qualitative Analysis – Single Choice Question
+                  description: '`<action_id>` may be one of `manual_qual` or `automatic_bedrock_qual`'
+                ManualOrQualitativeAnalysis–MultipleChoiceQuestion:
                   value:
                     _version: '20250820'
                     question_name_xpath:
@@ -3267,7 +3306,8 @@ paths:
                               - aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
                               - bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
                             _uuid: 99999999-9999-9999-9999-999999999999
-                  summary: Manual Qualitative Analysis – Multiple Choice Question
+                  summary: Manual or Qualitative Analysis – Multiple Choice Question
+                  description: '`<action_id>` may be one of `manual_qual` or `automatic_bedrock_qual`'
                 ManualQualitativeAnalysis–TagsQuestion:
                   value:
                     _version: '20250820'
@@ -12416,6 +12456,245 @@ components:
               - _dateCreated
               - _dateModified
               - _versions
+        automatic_bedrock_qual:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              _dateCreated:
+                type: string
+                format: date-time
+              _dateModified:
+                type: string
+                format: date-time
+              _versions:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    _data:
+                      oneOf:
+                      - allOf:
+                        - type: object
+                          properties:
+                            uuid:
+                              type: string
+                              format: uuid
+                            value: {}
+                          additionalProperties: false
+                          required:
+                          - uuid
+                          - value
+                        - type: object
+                          properties:
+                            value:
+                              type: integer
+                              nullable: true
+                      - allOf:
+                        - type: object
+                          properties:
+                            uuid:
+                              type: string
+                              format: uuid
+                            value: {}
+                          additionalProperties: false
+                          required:
+                          - uuid
+                          - value
+                        - type: object
+                          properties:
+                            value:
+                              type: array
+                              items:
+                                type: string
+                                format: uuid
+                      - allOf:
+                        - type: object
+                          properties:
+                            uuid:
+                              type: string
+                              format: uuid
+                            value: {}
+                          additionalProperties: false
+                          required:
+                          - uuid
+                          - value
+                        - type: object
+                          properties:
+                            value:
+                              type: string
+                              format: uuid
+                      - allOf:
+                        - type: object
+                          properties:
+                            uuid:
+                              type: string
+                              format: uuid
+                            value: {}
+                          additionalProperties: false
+                          required:
+                          - uuid
+                          - value
+                        - type: object
+                          properties:
+                            value:
+                              type: array
+                              items:
+                                type: string
+                      - allOf:
+                        - type: object
+                          properties:
+                            uuid:
+                              type: string
+                              format: uuid
+                            value: {}
+                          additionalProperties: false
+                          required:
+                          - uuid
+                          - value
+                        - type: object
+                          properties:
+                            value:
+                              type: string
+                    _dateAccepted:
+                      type: string
+                      format: date-time
+                    _dateCreated:
+                      type: string
+                      format: date-time
+                    _uuid:
+                      type: string
+                      format: uuid
+                  additionalProperties: false
+                  required:
+                  - _data
+                  - _dateCreated
+                  - _uuid
+                minLength: 1
+            additionalProperties: false
+            required:
+            - _dateCreated
+            - _dateModified
+            - _versions
+          patternProperties:
+            ^[0-9a-fA-F-]{36}$:
+              type: object
+              properties:
+                _dateCreated:
+                  type: string
+                  format: date-time
+                _dateModified:
+                  type: string
+                  format: date-time
+                _versions:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      _data:
+                        oneOf:
+                        - allOf:
+                          - type: object
+                            properties:
+                              uuid:
+                                type: string
+                                format: uuid
+                              value: {}
+                            additionalProperties: false
+                            required:
+                            - uuid
+                            - value
+                          - type: object
+                            properties:
+                              value:
+                                type: integer
+                                nullable: true
+                        - allOf:
+                          - type: object
+                            properties:
+                              uuid:
+                                type: string
+                                format: uuid
+                              value: {}
+                            additionalProperties: false
+                            required:
+                            - uuid
+                            - value
+                          - type: object
+                            properties:
+                              value:
+                                type: array
+                                items:
+                                  type: string
+                                  format: uuid
+                        - allOf:
+                          - type: object
+                            properties:
+                              uuid:
+                                type: string
+                                format: uuid
+                              value: {}
+                            additionalProperties: false
+                            required:
+                            - uuid
+                            - value
+                          - type: object
+                            properties:
+                              value:
+                                type: string
+                                format: uuid
+                        - allOf:
+                          - type: object
+                            properties:
+                              uuid:
+                                type: string
+                                format: uuid
+                              value: {}
+                            additionalProperties: false
+                            required:
+                            - uuid
+                            - value
+                          - type: object
+                            properties:
+                              value:
+                                type: array
+                                items:
+                                  type: string
+                        - allOf:
+                          - type: object
+                            properties:
+                              uuid:
+                                type: string
+                                format: uuid
+                              value: {}
+                            additionalProperties: false
+                            required:
+                            - uuid
+                            - value
+                          - type: object
+                            properties:
+                              value:
+                                type: string
+                      _dateAccepted:
+                        type: string
+                        format: date-time
+                      _dateCreated:
+                        type: string
+                        format: date-time
+                      _uuid:
+                        type: string
+                        format: uuid
+                    additionalProperties: false
+                    required:
+                    - _data
+                    - _dateCreated
+                    - _uuid
+                  minLength: 1
+              additionalProperties: false
+              required:
+              - _dateCreated
+              - _dateModified
+              - _versions
       additionalProperties: false
       anyOf:
       - required:
@@ -12428,6 +12707,8 @@ components:
         - automatic_google_translation
       - required:
         - manual_qual
+      - required:
+        - automatic_bedrock_qual
     DataValidationStatusUpdateResponse:
       type: object
       properties:

@@ -1633,7 +1633,7 @@
                                     "QualitativeAnalysis-SimpleTypes": {
                                         "value": [
                                             {
-                                                "action": "manual_qual",
+                                                "action": "<action_id>",
                                                 "question_xpath": "q1",
                                                 "params": [
                                                     {
@@ -1648,12 +1648,12 @@
                                             }
                                         ],
                                         "summary": "Qualitative Analysis - Simple Types",
-                                        "description": "`<question_type>` can be any of:\n\n* `qualText` \n* `qualInteger` \n* `qualTags` \n* `qualNote` \n"
+                                        "description": "`<action_id>` can be either `manual_qual` or `automatic_bedrock_qual`\n\n`<question_type>` can be any of:\n\n* `qualText` \n* `qualInteger` \n* `qualTags` \n* `qualNote` \n"
                                     },
                                     "QualitativeAnalysis-SingleChoiceQuestion": {
                                         "value": [
                                             {
-                                                "action": "manual_qual",
+                                                "action": "<action_id>",
                                                 "question_xpath": "q1",
                                                 "params": [
                                                     {
@@ -1687,12 +1687,13 @@
                                                 "uid": "qa123456789AbCdEfGhIjklm"
                                             }
                                         ],
-                                        "summary": "Qualitative Analysis - Single Choice Question"
+                                        "summary": "Qualitative Analysis - Single Choice Question",
+                                        "description": "`<action_id>` can be either `manual_qual` or `automatic_bedrock_qual`\n"
                                     },
                                     "QualitativeAnalysis-MultipleChoiceQuestion": {
                                         "value": [
                                             {
-                                                "action": "manual_qual",
+                                                "action": "<action_id>",
                                                 "question_xpath": "q1",
                                                 "params": [
                                                     {
@@ -1726,7 +1727,8 @@
                                                 "uid": "qa123456789AbCdEfGhIjklm"
                                             }
                                         ],
-                                        "summary": "Qualitative Analysis - Multiple Choice Question"
+                                        "summary": "Qualitative Analysis - Multiple Choice Question",
+                                        "description": "`<action_id>` can be either `manual_qual`or `automatic_bedrock_qual`\n"
                                     }
                                 }
                             }
@@ -1755,7 +1757,7 @@
             },
             "post": {
                 "operationId": "api_v2_assets_advanced_features_create",
-                "description": "## Add an advanced action to an asset\n\nEnables a new type of advanced action on a question in the asset.\n* `action`, `params`, and `question_xpath` are required\n* `params` must match the expected param_schema of the `action`\n\nAccepted `action`s include:\n* `manual_transcription`\n* `automatic_google_transcription`\n* `manual_translation`\n* `automatic_google_translation`\n* `manual_qual`\n\n",
+                "description": "## Add an advanced action to an asset\n\nEnables a new type of advanced action on a question in the asset.\n* `action`, `params`, and `question_xpath` are required\n* `params` must match the expected param_schema of the `action`\n\nAccepted `action`s include:\n* `manual_transcription`\n* `automatic_google_transcription`\n* `manual_translation`\n* `automatic_google_translation`\n* `manual_qual`\n* `automatic_bedrock_qual`\n",
                 "parameters": [
                     {
                         "in": "path",
@@ -1795,7 +1797,7 @@
                                 },
                                 "QualitativeAnalysis-SimpleTypes": {
                                     "value": {
-                                        "action": "manual_qual",
+                                        "action": "<action_id>",
                                         "question_xpath": "q1",
                                         "params": [
                                             {
@@ -1808,11 +1810,11 @@
                                         ]
                                     },
                                     "summary": "Qualitative Analysis - Simple Types",
-                                    "description": "`<question_type>` can be any of:\n\n* `qualText` \n* `qualInteger` \n* `qualTags` \n* `qualNote` \n"
+                                    "description": "`<action_id>` can be either `manual_qual` or `automatic_bedrock_qual`\n\n`<question_type>` can be any of:\n\n* `qualText` \n* `qualInteger` \n* `qualTags` \n* `qualNote` \n"
                                 },
                                 "QualitativeAnalysis-SingleChoiceQuestion": {
                                     "value": {
-                                        "action": "manual_qual",
+                                        "action": "<action_id>",
                                         "question_xpath": "q1",
                                         "params": [
                                             {
@@ -1844,11 +1846,12 @@
                                             }
                                         ]
                                     },
-                                    "summary": "Qualitative Analysis - Single Choice Question"
+                                    "summary": "Qualitative Analysis - Single Choice Question",
+                                    "description": "`<action_id>` can be either `manual_qual` or `automatic_bedrock_qual`\n"
                                 },
                                 "QualitativeAnalysis-MultipleChoiceQuestion": {
                                     "value": {
-                                        "action": "manual_qual",
+                                        "action": "<action_id>",
                                         "question_xpath": "q1",
                                         "params": [
                                             {
@@ -1880,7 +1883,8 @@
                                             }
                                         ]
                                     },
-                                    "summary": "Qualitative Analysis - Multiple Choice Question"
+                                    "summary": "Qualitative Analysis - Multiple Choice Question",
+                                    "description": "`<action_id>` can be either `manual_qual` or `automatic_bedrock_qual`\n"
                                 }
                             }
                         }
@@ -2011,7 +2015,7 @@
                                     },
                                     "QualitativeAnalysis-SimpleTypes": {
                                         "value": {
-                                            "action": "manual_qual",
+                                            "action": "<action_id>",
                                             "question_xpath": "q1",
                                             "params": [
                                                 {
@@ -2025,11 +2029,11 @@
                                             "uid": "qa123456789AbCdEfGhIjklm"
                                         },
                                         "summary": "Qualitative Analysis - Simple Types",
-                                        "description": "`<question_type>` can be any of:\n\n* `qualText` \n* `qualInteger` \n* `qualTags` \n* `qualNote` \n"
+                                        "description": "`<action_id>` can be either `manual_qual` or `automatic_bedrock_qual`\n\n`<question_type>` can be any of:\n\n* `qualText` \n* `qualInteger` \n* `qualTags` \n* `qualNote` \n"
                                     },
                                     "QualitativeAnalysis-SingleChoiceQuestion": {
                                         "value": {
-                                            "action": "manual_qual",
+                                            "action": "<action_id>",
                                             "question_xpath": "q1",
                                             "params": [
                                                 {
@@ -2062,11 +2066,12 @@
                                             ],
                                             "uid": "qa123456789AbCdEfGhIjklm"
                                         },
-                                        "summary": "Qualitative Analysis - Single Choice Question"
+                                        "summary": "Qualitative Analysis - Single Choice Question",
+                                        "description": "`<action_id>` can be either `manual_qual` or `automatic_bedrock_qual`\n"
                                     },
                                     "QualitativeAnalysis-MultipleChoiceQuestion": {
                                         "value": {
-                                            "action": "manual_qual",
+                                            "action": "<action_id>",
                                             "question_xpath": "q1",
                                             "params": [
                                                 {
@@ -2099,7 +2104,8 @@
                                             ],
                                             "uid": "qa123456789AbCdEfGhIjklm"
                                         },
-                                        "summary": "Qualitative Analysis - Multiple Choice Question"
+                                        "summary": "Qualitative Analysis - Multiple Choice Question",
+                                        "description": "`<action_id>` can be either `manual_qual`or `automatic_bedrock_qual`\n"
                                     }
                                 }
                             }
@@ -2177,7 +2183,7 @@
                                 },
                                 "QualitativeAnalysis-SimpleTypes": {
                                     "value": {
-                                        "action": "manual_qual",
+                                        "action": "<action_id>",
                                         "question_xpath": "q1",
                                         "params": [
                                             {
@@ -2190,11 +2196,11 @@
                                         ]
                                     },
                                     "summary": "Qualitative Analysis - Simple Types",
-                                    "description": "`<question_type>` can be any of:\n\n* `qualText` \n* `qualInteger` \n* `qualTags` \n* `qualNote` \n"
+                                    "description": "`<action_id>` can be either `manual_qual` or `automatic_bedrock_qual`\n\n`<question_type>` can be any of:\n\n* `qualText` \n* `qualInteger` \n* `qualTags` \n* `qualNote` \n"
                                 },
                                 "QualitativeAnalysis-SingleChoiceQuestion": {
                                     "value": {
-                                        "action": "manual_qual",
+                                        "action": "<action_id>",
                                         "question_xpath": "q1",
                                         "params": [
                                             {
@@ -2226,11 +2232,12 @@
                                             }
                                         ]
                                     },
-                                    "summary": "Qualitative Analysis - Single Choice Question"
+                                    "summary": "Qualitative Analysis - Single Choice Question",
+                                    "description": "`<action_id>` can be either `manual_qual` or `automatic_bedrock_qual`\n"
                                 },
                                 "QualitativeAnalysis-MultipleChoiceQuestion": {
                                     "value": {
-                                        "action": "manual_qual",
+                                        "action": "<action_id>",
                                         "question_xpath": "q1",
                                         "params": [
                                             {
@@ -2262,7 +2269,8 @@
                                             }
                                         ]
                                     },
-                                    "summary": "Qualitative Analysis - Multiple Choice Question"
+                                    "summary": "Qualitative Analysis - Multiple Choice Question",
+                                    "description": "`<action_id>` can be either `manual_qual` or `automatic_bedrock_qual`\n"
                                 }
                             }
                         }
@@ -2303,7 +2311,7 @@
                                     },
                                     "QualitativeAnalysis-SimpleTypes": {
                                         "value": {
-                                            "action": "manual_qual",
+                                            "action": "<action_id>",
                                             "question_xpath": "q1",
                                             "params": [
                                                 {
@@ -2317,11 +2325,11 @@
                                             "uid": "qa123456789AbCdEfGhIjklm"
                                         },
                                         "summary": "Qualitative Analysis - Simple Types",
-                                        "description": "`<question_type>` can be any of:\n\n* `qualText` \n* `qualInteger` \n* `qualTags` \n* `qualNote` \n"
+                                        "description": "`<action_id>` can be either `manual_qual` or `automatic_bedrock_qual`\n\n`<question_type>` can be any of:\n\n* `qualText` \n* `qualInteger` \n* `qualTags` \n* `qualNote` \n"
                                     },
                                     "QualitativeAnalysis-SingleChoiceQuestion": {
                                         "value": {
-                                            "action": "manual_qual",
+                                            "action": "<action_id>",
                                             "question_xpath": "q1",
                                             "params": [
                                                 {
@@ -2354,11 +2362,12 @@
                                             ],
                                             "uid": "qa123456789AbCdEfGhIjklm"
                                         },
-                                        "summary": "Qualitative Analysis - Single Choice Question"
+                                        "summary": "Qualitative Analysis - Single Choice Question",
+                                        "description": "`<action_id>` can be either `manual_qual` or `automatic_bedrock_qual`\n"
                                     },
                                     "QualitativeAnalysis-MultipleChoiceQuestion": {
                                         "value": {
-                                            "action": "manual_qual",
+                                            "action": "<action_id>",
                                             "question_xpath": "q1",
                                             "params": [
                                                 {
@@ -2391,7 +2400,8 @@
                                             ],
                                             "uid": "qa123456789AbCdEfGhIjklm"
                                         },
-                                        "summary": "Qualitative Analysis - Multiple Choice Question"
+                                        "summary": "Qualitative Analysis - Multiple Choice Question",
+                                        "description": "`<action_id>` can be either `manual_qual`or `automatic_bedrock_qual`\n"
                                     }
                                 }
                             }
@@ -3939,11 +3949,11 @@
                                         },
                                         "summary": "Automated Google Translation"
                                     },
-                                    "ManualQualitativeAnalysis–IntegerQuestion": {
+                                    "ManualOrQualitativeAnalysis–IntegerQuestion": {
                                         "value": {
                                             "_version": "20250820",
                                             "question_name_xpath": {
-                                                "manual_qual": {
+                                                "<action_id>": {
                                                     "66666666-6666-6666-6666-666666666666": {
                                                         "_dateCreated": "2025-01-01T12:00:00Z",
                                                         "_dateModified": "2025-01-01T12:00:00Z",
@@ -3962,13 +3972,14 @@
                                                 }
                                             }
                                         },
-                                        "summary": "Manual Qualitative Analysis – Integer Question"
+                                        "summary": "Manual or Qualitative Analysis – Integer Question",
+                                        "description": "`<action_id>` may be one of `manual_qual` or `automatic_bedrock_qual`"
                                     },
-                                    "ManualQualitativeAnalysis–TextQuestion": {
+                                    "ManualOrQualitativeAnalysis–TextQuestion": {
                                         "value": {
                                             "_version": "20250820",
                                             "question_name_xpath": {
-                                                "manual_qual": {
+                                                "<action_id>": {
                                                     "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff": {
                                                         "_dateCreated": "2025-01-01T12:00:00Z",
                                                         "_dateModified": "2025-01-01T12:00:00Z",
@@ -3987,9 +3998,10 @@
                                                 }
                                             }
                                         },
-                                        "summary": "Manual Qualitative Analysis – Text Question"
+                                        "summary": "Manual or Qualitative Analysis – Text Question",
+                                        "description": "`<action_id>` may be one of `manual_qual` or `automatic_bedrock_qual`"
                                     },
-                                    "ManualQualitativeAnalysis–SingleChoiceQuestion": {
+                                    "ManualOrQualitativeAnalysis–SingleChoiceQuestion": {
                                         "value": {
                                             "_version": "20250820",
                                             "question_name_xpath": {
@@ -4012,9 +4024,10 @@
                                                 }
                                             }
                                         },
-                                        "summary": "Manual Qualitative Analysis – Single Choice Question"
+                                        "summary": "Manual or Qualitative Analysis – Single Choice Question",
+                                        "description": "`<action_id>` may be one of `manual_qual` or `automatic_bedrock_qual`"
                                     },
-                                    "ManualQualitativeAnalysis–MultipleChoiceQuestion": {
+                                    "ManualOrQualitativeAnalysis–MultipleChoiceQuestion": {
                                         "value": {
                                             "_version": "20250820",
                                             "question_name_xpath": {
@@ -4040,7 +4053,8 @@
                                                 }
                                             }
                                         },
-                                        "summary": "Manual Qualitative Analysis – Multiple Choice Question"
+                                        "summary": "Manual or Qualitative Analysis – Multiple Choice Question",
+                                        "description": "`<action_id>` may be one of `manual_qual` or `automatic_bedrock_qual`"
                                     },
                                     "ManualQualitativeAnalysis–TagsQuestion": {
                                         "value": {
@@ -4251,7 +4265,7 @@
                                     "value": {
                                         "_version": "20250820",
                                         "question_name_xpath": {
-                                            "<action_id>": {
+                                            "manual_qual": {
                                                 "language": "<language>",
                                                 "value": null
                                             }
@@ -4273,7 +4287,7 @@
                                     "summary": "Accept automatic NLP action",
                                     "description": "`<action_id>` can be any of `automatic_google_transcription` or `automatic_google_translation`.<br>`<language>` is the language code, e.g. `en`.<br>`accepted` is a boolean. It can `true` or `false`."
                                 },
-                                "ManualQualitativeAnalysis–IntegerQuestion": {
+                                "Manual–IntegerQuestion": {
                                     "value": {
                                         "_version": "20250820",
                                         "question_name_xpath": {
@@ -4283,9 +4297,9 @@
                                             }
                                         }
                                     },
-                                    "summary": "Manual Qualitative Analysis – Integer Question"
+                                    "summary": "Manual – Integer Question"
                                 },
-                                "ManualQualitativeAnalysis–TextQuestion": {
+                                "Manual–TextQuestion": {
                                     "value": {
                                         "_version": "20250820",
                                         "question_name_xpath": {
@@ -4295,9 +4309,9 @@
                                             }
                                         }
                                     },
-                                    "summary": "Manual Qualitative Analysis – Text Question"
+                                    "summary": "Manual – Text Question"
                                 },
-                                "ManualQualitativeAnalysis–SingleChoiceQuestion": {
+                                "Manual–SingleChoiceQuestion": {
                                     "value": {
                                         "_version": "20250820",
                                         "question_name_xpath": {
@@ -4307,9 +4321,9 @@
                                             }
                                         }
                                     },
-                                    "summary": "Manual Qualitative Analysis – Single Choice Question"
+                                    "summary": "Manual – Single Choice Question"
                                 },
-                                "ManualQualitativeAnalysis–MultipleChoiceQuestion": {
+                                "Manual–MultipleChoiceQuestion": {
                                     "value": {
                                         "_version": "20250820",
                                         "question_name_xpath": {
@@ -4322,7 +4336,7 @@
                                             }
                                         }
                                     },
-                                    "summary": "Manual Qualitative Analysis – Multiple Choice Question"
+                                    "summary": "Manual – Multiple Choice Question"
                                 },
                                 "ManualQualitativeAnalysis–TagsQuestion": {
                                     "value": {
@@ -4338,6 +4352,17 @@
                                         }
                                     },
                                     "summary": "Manual Qualitative Analysis – Tags Question"
+                                },
+                                "AutomaticQualitativeAnalysis–AnyQuestion": {
+                                    "value": {
+                                        "_version": "20250820",
+                                        "question_name_xpath": {
+                                            "automatic_bedrock_qual": {
+                                                "uuid": "44444444-4444-4444-4444-444444444444"
+                                            }
+                                        }
+                                    },
+                                    "summary": "Automatic Qualitative Analysis – Any Question"
                                 }
                             }
                         }
@@ -4555,11 +4580,11 @@
                                         },
                                         "summary": "Automated Google Translation"
                                     },
-                                    "ManualQualitativeAnalysis–IntegerQuestion": {
+                                    "ManualOrQualitativeAnalysis–IntegerQuestion": {
                                         "value": {
                                             "_version": "20250820",
                                             "question_name_xpath": {
-                                                "manual_qual": {
+                                                "<action_id>": {
                                                     "66666666-6666-6666-6666-666666666666": {
                                                         "_dateCreated": "2025-01-01T12:00:00Z",
                                                         "_dateModified": "2025-01-01T12:00:00Z",
@@ -4578,13 +4603,14 @@
                                                 }
                                             }
                                         },
-                                        "summary": "Manual Qualitative Analysis – Integer Question"
+                                        "summary": "Manual or Qualitative Analysis – Integer Question",
+                                        "description": "`<action_id>` may be one of `manual_qual` or `automatic_bedrock_qual`"
                                     },
-                                    "ManualQualitativeAnalysis–TextQuestion": {
+                                    "ManualOrQualitativeAnalysis–TextQuestion": {
                                         "value": {
                                             "_version": "20250820",
                                             "question_name_xpath": {
-                                                "manual_qual": {
+                                                "<action_id>": {
                                                     "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff": {
                                                         "_dateCreated": "2025-01-01T12:00:00Z",
                                                         "_dateModified": "2025-01-01T12:00:00Z",
@@ -4603,9 +4629,10 @@
                                                 }
                                             }
                                         },
-                                        "summary": "Manual Qualitative Analysis – Text Question"
+                                        "summary": "Manual or Qualitative Analysis – Text Question",
+                                        "description": "`<action_id>` may be one of `manual_qual` or `automatic_bedrock_qual`"
                                     },
-                                    "ManualQualitativeAnalysis–SingleChoiceQuestion": {
+                                    "ManualOrQualitativeAnalysis–SingleChoiceQuestion": {
                                         "value": {
                                             "_version": "20250820",
                                             "question_name_xpath": {
@@ -4628,9 +4655,10 @@
                                                 }
                                             }
                                         },
-                                        "summary": "Manual Qualitative Analysis – Single Choice Question"
+                                        "summary": "Manual or Qualitative Analysis – Single Choice Question",
+                                        "description": "`<action_id>` may be one of `manual_qual` or `automatic_bedrock_qual`"
                                     },
-                                    "ManualQualitativeAnalysis–MultipleChoiceQuestion": {
+                                    "ManualOrQualitativeAnalysis–MultipleChoiceQuestion": {
                                         "value": {
                                             "_version": "20250820",
                                             "question_name_xpath": {
@@ -4656,7 +4684,8 @@
                                                 }
                                             }
                                         },
-                                        "summary": "Manual Qualitative Analysis – Multiple Choice Question"
+                                        "summary": "Manual or Qualitative Analysis – Multiple Choice Question",
+                                        "description": "`<action_id>` may be one of `manual_qual` or `automatic_bedrock_qual`"
                                     },
                                     "ManualQualitativeAnalysis–TagsQuestion": {
                                         "value": {
@@ -17405,6 +17434,399 @@
                                 ]
                             }
                         }
+                    },
+                    "automatic_bedrock_qual": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "object",
+                            "properties": {
+                                "_dateCreated": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                },
+                                "_dateModified": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                },
+                                "_versions": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "properties": {
+                                            "_data": {
+                                                "oneOf": [
+                                                    {
+                                                        "allOf": [
+                                                            {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "uuid": {
+                                                                        "type": "string",
+                                                                        "format": "uuid"
+                                                                    },
+                                                                    "value": {}
+                                                                },
+                                                                "additionalProperties": false,
+                                                                "required": [
+                                                                    "uuid",
+                                                                    "value"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "value": {
+                                                                        "type": "integer",
+                                                                        "nullable": true
+                                                                    }
+                                                                }
+                                                            }
+                                                        ]
+                                                    },
+                                                    {
+                                                        "allOf": [
+                                                            {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "uuid": {
+                                                                        "type": "string",
+                                                                        "format": "uuid"
+                                                                    },
+                                                                    "value": {}
+                                                                },
+                                                                "additionalProperties": false,
+                                                                "required": [
+                                                                    "uuid",
+                                                                    "value"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "value": {
+                                                                        "type": "array",
+                                                                        "items": {
+                                                                            "type": "string",
+                                                                            "format": "uuid"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        ]
+                                                    },
+                                                    {
+                                                        "allOf": [
+                                                            {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "uuid": {
+                                                                        "type": "string",
+                                                                        "format": "uuid"
+                                                                    },
+                                                                    "value": {}
+                                                                },
+                                                                "additionalProperties": false,
+                                                                "required": [
+                                                                    "uuid",
+                                                                    "value"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "value": {
+                                                                        "type": "string",
+                                                                        "format": "uuid"
+                                                                    }
+                                                                }
+                                                            }
+                                                        ]
+                                                    },
+                                                    {
+                                                        "allOf": [
+                                                            {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "uuid": {
+                                                                        "type": "string",
+                                                                        "format": "uuid"
+                                                                    },
+                                                                    "value": {}
+                                                                },
+                                                                "additionalProperties": false,
+                                                                "required": [
+                                                                    "uuid",
+                                                                    "value"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "value": {
+                                                                        "type": "array",
+                                                                        "items": {
+                                                                            "type": "string"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        ]
+                                                    },
+                                                    {
+                                                        "allOf": [
+                                                            {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "uuid": {
+                                                                        "type": "string",
+                                                                        "format": "uuid"
+                                                                    },
+                                                                    "value": {}
+                                                                },
+                                                                "additionalProperties": false,
+                                                                "required": [
+                                                                    "uuid",
+                                                                    "value"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "type": "object",
+                                                                "properties": {
+                                                                    "value": {
+                                                                        "type": "string"
+                                                                    }
+                                                                }
+                                                            }
+                                                        ]
+                                                    }
+                                                ]
+                                            },
+                                            "_dateAccepted": {
+                                                "type": "string",
+                                                "format": "date-time"
+                                            },
+                                            "_dateCreated": {
+                                                "type": "string",
+                                                "format": "date-time"
+                                            },
+                                            "_uuid": {
+                                                "type": "string",
+                                                "format": "uuid"
+                                            }
+                                        },
+                                        "additionalProperties": false,
+                                        "required": [
+                                            "_data",
+                                            "_dateCreated",
+                                            "_uuid"
+                                        ]
+                                    },
+                                    "minLength": 1
+                                }
+                            },
+                            "additionalProperties": false,
+                            "required": [
+                                "_dateCreated",
+                                "_dateModified",
+                                "_versions"
+                            ]
+                        },
+                        "patternProperties": {
+                            "^[0-9a-fA-F-]{36}$": {
+                                "type": "object",
+                                "properties": {
+                                    "_dateCreated": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                    },
+                                    "_dateModified": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                    },
+                                    "_versions": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "_data": {
+                                                    "oneOf": [
+                                                        {
+                                                            "allOf": [
+                                                                {
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "uuid": {
+                                                                            "type": "string",
+                                                                            "format": "uuid"
+                                                                        },
+                                                                        "value": {}
+                                                                    },
+                                                                    "additionalProperties": false,
+                                                                    "required": [
+                                                                        "uuid",
+                                                                        "value"
+                                                                    ]
+                                                                },
+                                                                {
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "value": {
+                                                                            "type": "integer",
+                                                                            "nullable": true
+                                                                        }
+                                                                    }
+                                                                }
+                                                            ]
+                                                        },
+                                                        {
+                                                            "allOf": [
+                                                                {
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "uuid": {
+                                                                            "type": "string",
+                                                                            "format": "uuid"
+                                                                        },
+                                                                        "value": {}
+                                                                    },
+                                                                    "additionalProperties": false,
+                                                                    "required": [
+                                                                        "uuid",
+                                                                        "value"
+                                                                    ]
+                                                                },
+                                                                {
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "value": {
+                                                                            "type": "array",
+                                                                            "items": {
+                                                                                "type": "string",
+                                                                                "format": "uuid"
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            ]
+                                                        },
+                                                        {
+                                                            "allOf": [
+                                                                {
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "uuid": {
+                                                                            "type": "string",
+                                                                            "format": "uuid"
+                                                                        },
+                                                                        "value": {}
+                                                                    },
+                                                                    "additionalProperties": false,
+                                                                    "required": [
+                                                                        "uuid",
+                                                                        "value"
+                                                                    ]
+                                                                },
+                                                                {
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "value": {
+                                                                            "type": "string",
+                                                                            "format": "uuid"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            ]
+                                                        },
+                                                        {
+                                                            "allOf": [
+                                                                {
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "uuid": {
+                                                                            "type": "string",
+                                                                            "format": "uuid"
+                                                                        },
+                                                                        "value": {}
+                                                                    },
+                                                                    "additionalProperties": false,
+                                                                    "required": [
+                                                                        "uuid",
+                                                                        "value"
+                                                                    ]
+                                                                },
+                                                                {
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "value": {
+                                                                            "type": "array",
+                                                                            "items": {
+                                                                                "type": "string"
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            ]
+                                                        },
+                                                        {
+                                                            "allOf": [
+                                                                {
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "uuid": {
+                                                                            "type": "string",
+                                                                            "format": "uuid"
+                                                                        },
+                                                                        "value": {}
+                                                                    },
+                                                                    "additionalProperties": false,
+                                                                    "required": [
+                                                                        "uuid",
+                                                                        "value"
+                                                                    ]
+                                                                },
+                                                                {
+                                                                    "type": "object",
+                                                                    "properties": {
+                                                                        "value": {
+                                                                            "type": "string"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            ]
+                                                        }
+                                                    ]
+                                                },
+                                                "_dateAccepted": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                },
+                                                "_dateCreated": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                },
+                                                "_uuid": {
+                                                    "type": "string",
+                                                    "format": "uuid"
+                                                }
+                                            },
+                                            "additionalProperties": false,
+                                            "required": [
+                                                "_data",
+                                                "_dateCreated",
+                                                "_uuid"
+                                            ]
+                                        },
+                                        "minLength": 1
+                                    }
+                                },
+                                "additionalProperties": false,
+                                "required": [
+                                    "_dateCreated",
+                                    "_dateModified",
+                                    "_versions"
+                                ]
+                            }
+                        }
                     }
                 },
                 "additionalProperties": false,
@@ -17432,6 +17854,11 @@
                     {
                         "required": [
                             "manual_qual"
+                        ]
+                    },
+                    {
+                        "required": [
+                            "automatic_bedrock_qual"
                         ]
                     }
                 ]

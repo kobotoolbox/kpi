@@ -27,7 +27,7 @@ def get_advanced_features_create_examples() -> list[OpenApiExample]:
         OpenApiExample(
             'Qualitative Analysis - Simple Types',
             value={
-                'action': 'manual_qual',
+                'action': '<action_id>',
                 'question_xpath': 'q1',
                 'params': [
                     {
@@ -40,6 +40,8 @@ def get_advanced_features_create_examples() -> list[OpenApiExample]:
                 ],
             },
             description=(
+                '`<action_id>` can be either `manual_qual`'
+                ' or `automatic_bedrock_qual`\n\n'
                 '`<question_type>` can be any of:'
                 '\n\n'
                 '* `qualText` \n'
@@ -52,7 +54,7 @@ def get_advanced_features_create_examples() -> list[OpenApiExample]:
         OpenApiExample(
             'Qualitative Analysis - Single Choice Question',
             value={
-                'action': 'manual_qual',
+                'action': '<action_id>',
                 'question_xpath': 'q1',
                 'params': [
                     {
@@ -85,11 +87,13 @@ def get_advanced_features_create_examples() -> list[OpenApiExample]:
                 ],
             },
             request_only=True,
+            description='`<action_id>` can be either `manual_qual`'
+            ' or `automatic_bedrock_qual`\n',
         ),
         OpenApiExample(
             'Qualitative Analysis - Multiple Choice Question',
             value={
-                'action': 'manual_qual',
+                'action': '<action_id>',
                 'question_xpath': 'q1',
                 'params': [
                     {
@@ -114,6 +118,8 @@ def get_advanced_features_create_examples() -> list[OpenApiExample]:
                 ],
             },
             request_only=True,
+            description='`<action_id>` can be either `manual_qual`'
+            ' or `automatic_bedrock_qual`\n',
         ),
     ]
 
@@ -145,7 +151,7 @@ def get_advanced_features_list_examples() -> list[OpenApiExample]:
         OpenApiExample(
             'Qualitative Analysis - Simple Types',
             value={
-                'action': 'manual_qual',
+                'action': '<action_id>',
                 'question_xpath': 'q1',
                 'params': [
                     {
@@ -159,6 +165,8 @@ def get_advanced_features_list_examples() -> list[OpenApiExample]:
                 'uid': 'qa123456789AbCdEfGhIjklm',
             },
             description=(
+                '`<action_id>` can be either `manual_qual`'
+                ' or `automatic_bedrock_qual`\n\n'
                 '`<question_type>` can be any of:'
                 '\n\n'
                 '* `qualText` \n'
@@ -171,7 +179,7 @@ def get_advanced_features_list_examples() -> list[OpenApiExample]:
         OpenApiExample(
             'Qualitative Analysis - Single Choice Question',
             value={
-                'action': 'manual_qual',
+                'action': '<action_id>',
                 'question_xpath': 'q1',
                 'params': [
                     {
@@ -205,11 +213,13 @@ def get_advanced_features_list_examples() -> list[OpenApiExample]:
                 'uid': 'qa123456789AbCdEfGhIjklm',
             },
             response_only=True,
+            description='`<action_id>` can be either `manual_qual`'
+            ' or `automatic_bedrock_qual`\n',
         ),
         OpenApiExample(
             'Qualitative Analysis - Multiple Choice Question',
             value={
-                'action': 'manual_qual',
+                'action': '<action_id>',
                 'question_xpath': 'q1',
                 'params': [
                     {
@@ -235,5 +245,7 @@ def get_advanced_features_list_examples() -> list[OpenApiExample]:
                 'uid': 'qa123456789AbCdEfGhIjklm',
             },
             response_only=True,
+            description='`<action_id>` can be either `manual_qual`'
+            'or `automatic_bedrock_qual`\n',
         ),
     ]
