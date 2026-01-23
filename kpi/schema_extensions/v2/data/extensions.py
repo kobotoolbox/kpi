@@ -129,7 +129,7 @@ class DataSupplementPayloadExtension(
                 'manual_translation': self._nlp_manual_action_schema,
                 'automatic_google_transcription': self._nlp_automatic_action_schema,
                 'automatic_google_translation': self._nlp_automatic_action_schema,
-                'manual_qual': self._qual_schema,
+                'manual_qual': self._qual_schema(auto_schema),
 
             },
             anyOf=[
@@ -338,7 +338,7 @@ class DataSupplementResponseExtension(
                 'manual_translation': self._manual_translation_schema,
                 'automatic_google_transcription': self._automatic_transcription_schema,
                 'automatic_google_translation': self._automatic_translation_schema,
-                'manual_qual': self._qual_schema,
+                'manual_qual': self._qual_schema(auto_schema),
             },
             # At least one of "manual_transcription" or "manual_translation"
             # must be present

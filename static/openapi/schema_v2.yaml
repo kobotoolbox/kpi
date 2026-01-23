@@ -11850,6 +11850,73 @@ components:
           type: string
       required:
       - detail
+    DataSupplementManualQualDataInteger:
+      type: object
+      properties:
+        value:
+          type: integer
+          nullable: true
+        uuid:
+          type: string
+          format: uuid
+      required:
+      - uuid
+      - value
+      additionalProperties: false
+    DataSupplementManualQualDataSelectMultiple:
+      type: object
+      properties:
+        value:
+          type: array
+          items:
+            type: string
+            format: uuid
+        uuid:
+          type: string
+          format: uuid
+      required:
+      - uuid
+      - value
+      additionalProperties: false
+    DataSupplementManualQualDataSelectOne:
+      type: object
+      properties:
+        value:
+          type: string
+          format: uuid
+        uuid:
+          type: string
+          format: uuid
+      required:
+      - uuid
+      - value
+      additionalProperties: false
+    DataSupplementManualQualDataTags:
+      type: object
+      properties:
+        value:
+          type: array
+          items:
+            type: string
+        uuid:
+          type: string
+          format: uuid
+      required:
+      - uuid
+      - value
+      additionalProperties: false
+    DataSupplementManualQualDataText:
+      type: object
+      properties:
+        value:
+          type: string
+        uuid:
+          type: string
+          format: uuid
+      required:
+      - uuid
+      - value
+      additionalProperties: false
     DataSupplementResponse:
       type: object
       properties:
@@ -12206,88 +12273,11 @@ components:
                   properties:
                     _data:
                       oneOf:
-                      - allOf:
-                        - type: object
-                          properties:
-                            uuid:
-                              type: string
-                              format: uuid
-                            value: {}
-                          additionalProperties: false
-                          required:
-                          - uuid
-                          - value
-                        - type: object
-                          properties:
-                            value:
-                              type: integer
-                              nullable: true
-                      - allOf:
-                        - type: object
-                          properties:
-                            uuid:
-                              type: string
-                              format: uuid
-                            value: {}
-                          additionalProperties: false
-                          required:
-                          - uuid
-                          - value
-                        - type: object
-                          properties:
-                            value:
-                              type: array
-                              items:
-                                type: string
-                                format: uuid
-                      - allOf:
-                        - type: object
-                          properties:
-                            uuid:
-                              type: string
-                              format: uuid
-                            value: {}
-                          additionalProperties: false
-                          required:
-                          - uuid
-                          - value
-                        - type: object
-                          properties:
-                            value:
-                              type: string
-                              format: uuid
-                      - allOf:
-                        - type: object
-                          properties:
-                            uuid:
-                              type: string
-                              format: uuid
-                            value: {}
-                          additionalProperties: false
-                          required:
-                          - uuid
-                          - value
-                        - type: object
-                          properties:
-                            value:
-                              type: array
-                              items:
-                                type: string
-                      - allOf:
-                        - type: object
-                          properties:
-                            uuid:
-                              type: string
-                              format: uuid
-                            value: {}
-                          additionalProperties: false
-                          required:
-                          - uuid
-                          - value
-                        - type: object
-                          properties:
-                            value:
-                              type: string
+                      - $ref: '#/components/schemas/DataSupplementManualQualDataInteger'
+                      - $ref: '#/components/schemas/DataSupplementManualQualDataSelectMultiple'
+                      - $ref: '#/components/schemas/DataSupplementManualQualDataSelectOne'
+                      - $ref: '#/components/schemas/DataSupplementManualQualDataTags'
+                      - $ref: '#/components/schemas/DataSupplementManualQualDataText'
                     _dateAccepted:
                       type: string
                       format: date-time
@@ -12325,88 +12315,11 @@ components:
                     properties:
                       _data:
                         oneOf:
-                        - allOf:
-                          - type: object
-                            properties:
-                              uuid:
-                                type: string
-                                format: uuid
-                              value: {}
-                            additionalProperties: false
-                            required:
-                            - uuid
-                            - value
-                          - type: object
-                            properties:
-                              value:
-                                type: integer
-                                nullable: true
-                        - allOf:
-                          - type: object
-                            properties:
-                              uuid:
-                                type: string
-                                format: uuid
-                              value: {}
-                            additionalProperties: false
-                            required:
-                            - uuid
-                            - value
-                          - type: object
-                            properties:
-                              value:
-                                type: array
-                                items:
-                                  type: string
-                                  format: uuid
-                        - allOf:
-                          - type: object
-                            properties:
-                              uuid:
-                                type: string
-                                format: uuid
-                              value: {}
-                            additionalProperties: false
-                            required:
-                            - uuid
-                            - value
-                          - type: object
-                            properties:
-                              value:
-                                type: string
-                                format: uuid
-                        - allOf:
-                          - type: object
-                            properties:
-                              uuid:
-                                type: string
-                                format: uuid
-                              value: {}
-                            additionalProperties: false
-                            required:
-                            - uuid
-                            - value
-                          - type: object
-                            properties:
-                              value:
-                                type: array
-                                items:
-                                  type: string
-                        - allOf:
-                          - type: object
-                            properties:
-                              uuid:
-                                type: string
-                                format: uuid
-                              value: {}
-                            additionalProperties: false
-                            required:
-                            - uuid
-                            - value
-                          - type: object
-                            properties:
-                              value:
-                                type: string
+                        - $ref: '#/components/schemas/DataSupplementManualQualDataInteger'
+                        - $ref: '#/components/schemas/DataSupplementManualQualDataSelectMultiple'
+                        - $ref: '#/components/schemas/DataSupplementManualQualDataSelectOne'
+                        - $ref: '#/components/schemas/DataSupplementManualQualDataTags'
+                        - $ref: '#/components/schemas/DataSupplementManualQualDataText'
                       _dateAccepted:
                         type: string
                         format: date-time
