@@ -393,8 +393,7 @@ class DataSupplementResponseExtension(
     def _automatic_translation_schema(self):
         return self._build_translation_schema(include_status=True)
 
-    @classmethod
-    def _build_transcription_schema(cls, include_status=False):
+    def _build_transcription_schema(self, include_status=False):
         """
         Transcription Schema:
         _versions list where each item has a nested `_data` object.
@@ -427,8 +426,7 @@ class DataSupplementResponseExtension(
             required=['_dateCreated', '_dateModified', '_versions'],
         )
 
-    @classmethod
-    def _build_translation_schema(cls, include_status=False):
+    def _build_translation_schema(self, include_status=False):
         """
         Translation Schema:
         Map<LanguageCode, ActionObject>.
@@ -465,8 +463,7 @@ class DataSupplementResponseExtension(
 
         return build_object_type(additionalProperties=inner_action_schema)
 
-    @classmethod
-    def _get_data_content_schema(cls, include_status=False):
+    def _get_data_content_schema(self, include_status=False):
         """
         Common Schema for the nested `_data` object found in versions.
         """
@@ -530,8 +527,7 @@ class DataSupplementResponseExtension(
             ]
         }
 
-    @classmethod
-    def _get_dependency_schema(cls):
+    def _get_dependency_schema(self):
 
         return build_object_type(
             additionalProperties=False,
@@ -549,106 +545,120 @@ class DataSupplementResponseExtension(
         """
 
         # ---------------------------------------------------------------------
-        # qualCommon
-        # ---------------------------------------------------------------------
-        qual_common = build_object_type(
-            additionalProperties=False,
-            properties={
-                'uuid': self.UUID_STR,
-                # "value" is intentionally untyped here: it will be refined
-                # by the specific qual* schemas below.
-                'value': {},
-            },
-            required=['uuid', 'value'],
-        )
-
-        # ---------------------------------------------------------------------
         # qualInteger
         #   properties: { value: integer | null }
         # ---------------------------------------------------------------------
-        qual_integer = {
-            'type': 'object',
-            'properties': {
-                'value': {
-                    'type': 'integer',
-                    'nullable': True,
+        qual_integer = self._register_schema_component(
+            auto_schema,
+            'DataSupplementManualQualDataInteger',
+            {
+                'type': 'object',
+                'properties': {
+                    'value': {
+                        'type': 'integer',
+                        'nullable': True,
+                    },
+                    'uuid': self.UUID_STR,
                 },
+                'additionalProperties': False,
             },
-        }
+        )
 
         # ---------------------------------------------------------------------
         # qualSelectMultiple
         #   properties: { value: ['507129be-2aee-4fb9-8ddd-ac766ba35f46', ...] }
         # ---------------------------------------------------------------------
-        qual_select_multiple = {
-            'type': 'object',
-            'properties': {
-                'value': {
-                    'type': 'array',
-                    'items': self.UUID_STR,
+        qual_select_multiple = self._register_schema_component(
+            auto_schema,
+            'DataSupplementManualQualDataInteger',
+            {
+                'type': 'object',
+                'properties': {
+                    'value': {
+                        'type': 'array',
+                        'items': self.UUID_STR,
+                    },
+                    'uuid': self.UUID_STR,
                 },
+                'additionalProperties': False,
             },
-        }
+        )
 
         # ---------------------------------------------------------------------
         # qualSelectOne
         #   properties: { value: '0bbdb149-c85c-46c2-ad31-583377c423da' }
         # ---------------------------------------------------------------------
-        qual_select_one = {
-            'type': 'object',
-            'properties': {
-                'value': self.UUID_STR,
+        qual_select_one = self._register_schema_component(
+            auto_schema,
+            'DataSupplementManualQualDataInteger',
+            {
+                'type': 'object',
+                'properties': {
+                    'value': self.UUID_STR,
+                    'uuid': self.UUID_STR,
+                },
+                'additionalProperties': False,
             },
-        }
+        )
 
         # ---------------------------------------------------------------------
         # qualTags
         #   properties: { value: [string, ...] }
         # ---------------------------------------------------------------------
-        qual_tags = {
-            'type': 'object',
-            'properties': {
-                'value': {
-                    'type': 'array',
-                    'items': {
-                        'type': 'string',
+        qual_tags = self._register_schema_component(
+            auto_schema,
+            'DataSupplementManualQualDataInteger',
+            {
+                'type': 'object',
+                'properties': {
+                    'value': {
+                        'type': 'array',
+                        'items': {
+                            'type': 'string',
+                        },
                     },
+                    'uuid': self.UUID_STR,
                 },
+                'additionalProperties': False,
             },
-        }
+        )
 
         # ---------------------------------------------------------------------
         # qualText
         #   properties: { value: string }
         # ---------------------------------------------------------------------
-        qual_text = {
-            'type': 'object',
-            'properties': {
-                'value': {
-                    'type': 'string',
+        qual_text = self._register_schema_component(
+            auto_schema,
+            'DataSupplementManualQualDataInteger',
+            {
+                'type': 'object',
+                'properties': {
+                    'value': {
+                        'type': 'string',
+                    },
+                    'uuid': self.UUID_STR,
                 },
+                'additionalProperties': False,
             },
-        }
+        )
 
         # ---------------------------------------------------------------------
         # dataSchema
         #   oneOf:
-        #     - allOf: [qualCommon, qualInteger]
-        #     - allOf: [qualCommon, qualSelectMultiple]
-        #     - allOf: [qualCommon, qualSelectOne]
-        #     - allOf: [qualCommon, qualTags]
-        #     - allOf: [qualCommon, qualText]
+        #     - qualInteger
+        #     - qualSelectMultiple
+        #     - qualSelectOne
+        #     - qualTags
+        #     - qualText
         #
-        # We *do not* enforce "uuid: const <some-specific-uuid>" here
-        # because in your use case UUIDs are dynamic (1..n).
         # ---------------------------------------------------------------------
         data_schema = {
             'oneOf': [
-                {'allOf': [qual_common, qual_integer]},
-                {'allOf': [qual_common, qual_select_multiple]},
-                {'allOf': [qual_common, qual_select_one]},
-                {'allOf': [qual_common, qual_tags]},
-                {'allOf': [qual_common, qual_text]},
+                qual_integer,
+                qual_select_multiple,
+                qual_select_one,
+                qual_tags,
+                qual_text,
             ]
         }
 
