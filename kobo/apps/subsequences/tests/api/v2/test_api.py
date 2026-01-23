@@ -140,7 +140,8 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
         now_iso = now.isoformat().replace('+00:00', 'Z')
         with freeze_time(now):
             with patch(
-                'kobo.apps.subsequences.actions.base.uuid.uuid4', return_value='uuid1'
+                'kobo.apps.subsequences.actions.base.uuid.uuid4',
+                return_value='c3f2a1d6-8e7b-4f2d-9a1c-6b9e4d8f2112',
             ):
                 response = self.client.patch(
                     self.supplement_details_url, data=payload, format='json'
@@ -160,7 +161,7 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
                             },
                             '_dateAccepted': now_iso,
                             '_dateCreated': now_iso,
-                            '_uuid': 'uuid1',
+                            '_uuid': 'c3f2a1d6-8e7b-4f2d-9a1c-6b9e4d8f2112',
                         }
                     ],
                 },

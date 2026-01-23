@@ -355,17 +355,29 @@ class BaseAction:
         return {}
 
     def validate_external_data(self, data):
-        jsonschema.validate(data, self.external_data_schema)
+        jsonschema.validate(
+            data,
+            self.external_data_schema,
+            format_checker=jsonschema.FormatChecker(),
+        )
 
     def validate_data(self, data):
-        jsonschema.validate(data, self.data_schema)
+        jsonschema.validate(
+            data, self.data_schema, format_checker=jsonschema.FormatChecker()
+        )
 
     @classmethod
     def validate_params(cls, params):
-        jsonschema.validate(params, cls.params_schema)
+        jsonschema.validate(
+            params, cls.params_schema, format_checker=jsonschema.FormatChecker()
+        )
 
     def validate_result(self, result):
-        jsonschema.validate(result, self.result_schema)
+        jsonschema.validate(
+            result,
+            self.result_schema,
+            format_checker=jsonschema.FormatChecker(),
+        )
 
     @property
     def result_schema(self):

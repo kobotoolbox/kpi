@@ -397,19 +397,19 @@ class TestVersioning(TestCase):
         qualdict = {
             'qual_survey': [
                 {
-                    'uuid': 'q1',
+                    'uuid': '8a2c7d1f-9b3e-4a83-9c50-6e1d3b7a2f08',
                     'xpath': '/a',
                     'type': 'qual_text',
                     'labels': {'_default': 'A1'},
                 },
                 {
-                    'uuid': 'q2',
+                    'uuid': '9b6a4e1f-2c3d-4a85-8f97-5d0e7c1b2609',
                     'xpath': '/a',
                     'type': 'qual_text',
                     'labels': {'_default': 'A2'},
                 },
                 {
-                    'uuid': 'q3',
+                    'uuid': 'a1b2c3d4-9f12-4abc-94d3-fe7823cb8e10',
                     'xpath': '/b',
                     'type': 'qual_integer',
                     'labels': {'_default': 'B1'},
@@ -426,11 +426,14 @@ class TestVersioning(TestCase):
         qa_a = created[0]
         assert qa_a.question_xpath == '/a'
         assert len(qa_a.params) == 2
-        assert {p['uuid'] for p in qa_a.params} == {'q1', 'q2'}
+        assert {p['uuid'] for p in qa_a.params} == {
+            '8a2c7d1f-9b3e-4a83-9c50-6e1d3b7a2f08',
+            '9b6a4e1f-2c3d-4a85-8f97-5d0e7c1b2609',
+        }
 
         qa_b = created[1]
         assert len(qa_b.params) == 1
-        assert qa_b.params[0]['uuid'] == 'q3'
+        assert qa_b.params[0]['uuid'] == 'a1b2c3d4-9f12-4abc-94d3-fe7823cb8e10'
 
     def test_convert_qual_params_invalid(self):
 
@@ -471,7 +474,7 @@ class TestVersioning(TestCase):
             ).exists()
 
         # qual
-        for q in ['q1', 'q2']:
+        for idx, q in enumerate(['q1', 'q2']):
             qaf = all_asset_advanced_features.get(
                 action=Action.MANUAL_QUAL, question_xpath=q
             )
@@ -482,25 +485,34 @@ class TestVersioning(TestCase):
                 params[0],
                 expected_type='qualInteger',
                 expected_label='Integer?',
-                expected_uuid=f'qual_integer_{q}',
+                expected_uuid=f'f3b7a4e2-8d9c-4f1a-9b6e-2c5d1e7048a{idx}',
             )
             # qual_note
             self._check_expected_params(
                 params[1],
                 expected_type='qualNote',
                 expected_label='Note',
-                expected_uuid=f'qual_note_{q}',
+                expected_uuid=f'0f3a9d2c-6e14-4b87-8c5a-71e2b4d9f06{idx}',
             )
             # qual_select_multiple
             self._check_expected_params(
                 params[2],
                 expected_type='qualSelectMultiple',
                 expected_label='Multiple?',
-                expected_uuid=f'qual_select_multiple_{q}',
+                expected_uuid=f'c2e1f9a6-4b8d-4f37-9a05-3d7b6c508e1{idx}',
                 expected_choices=[
-                    {'labels': {'_default': 'Green'}, 'uuid': f'green_{q}'},
-                    {'labels': {'_default': 'Red'}, 'uuid': f'red_{q}'},
-                    {'labels': {'_default': 'Blue'}, 'uuid': f'blue_{q}'},
+                    {
+                        'labels': {'_default': 'Green'},
+                        'uuid': f'9b6a4e1f-2c3d-4a85-8f97-5d0e7c1b262{idx}',
+                    },
+                    {
+                        'labels': {'_default': 'Red'},
+                        'uuid': f'4e8c2d1a-9f3b-4c76-8a50-b7d6e591023{idx}',
+                    },
+                    {
+                        'labels': {'_default': 'Blue'},
+                        'uuid': f'7a5c9b3e-1d2f-4e84-8b06-6f1d0a924c4{idx}',
+                    },
                 ],
             )
             # qual_select_one
@@ -508,10 +520,16 @@ class TestVersioning(TestCase):
                 params[3],
                 expected_type='qualSelectOne',
                 expected_label='Single?',
-                expected_uuid=f'qual_select_one_{q}',
+                expected_uuid=f'6d8e4a1f-3b92-4c7a-9f61-0e5c2b7a8d4{idx}',
                 expected_choices=[
-                    {'labels': {'_default': 'A'}, 'uuid': f'a_{q}'},
-                    {'labels': {'_default': 'B'}, 'uuid': f'b_{q}'},
+                    {
+                        'labels': {'_default': 'A'},
+                        'uuid': f'a7d6b1e9-0c3f-4a25-8e84-9f2c5d418b2{idx}',
+                    },
+                    {
+                        'labels': {'_default': 'B'},
+                        'uuid': f'5f0b3c8a-2e1d-4a9f-8c76-41d9e6b7253{idx}',
+                    },
                 ],
             )
 
@@ -520,7 +538,7 @@ class TestVersioning(TestCase):
                 params[4],
                 expected_type='qualTags',
                 expected_label='Tags?',
-                expected_uuid=f'qual_tags_{q}',
+                expected_uuid=f'b6d1f7c9-4e8a-4c2d-9f30-7a5e9c8b14d{idx}',
             )
 
             # qual_text
@@ -528,7 +546,7 @@ class TestVersioning(TestCase):
                 params[5],
                 expected_type='qualText',
                 expected_label='Text?',
-                expected_uuid=f'qual_text_{q}',
+                expected_uuid=f'a8c9e7d4-1f2b-4a6d-9c3e-5b704d2e1f9{idx}',
             )
 
     def test_saving_asset_only_calls_migrate_once(self):
