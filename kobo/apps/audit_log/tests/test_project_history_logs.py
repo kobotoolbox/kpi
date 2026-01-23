@@ -8,6 +8,7 @@ from xml.etree import ElementTree as ET
 import responses
 from ddt import data, ddt, unpack
 from django.conf import settings
+from kobo.apps.subsequences.tests.test_uuids import UUID_QUAL_WHY
 from django.contrib.auth.models import AnonymousUser
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import override_settings
@@ -590,7 +591,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                         'qual': [
                             {
                                 'type': 'qualText',
-                                'uuid': 'b2d4f6e9-3a1c-4d83-8c50-7e2b1f9a4d11',
+                                'uuid': UUID_QUAL_WHY,
                                 'labels': {'_default': 'Why?'},
                             },
                         ]
@@ -618,7 +619,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             'params': [
                 {
                     'labels': {'_default': 'wherefore?'},
-                    'uuid': 'b2d4f6e9-3a1c-4d83-8c50-7e2b1f9a4d11',
+                    'uuid': UUID_QUAL_WHY,
                     'type': 'qualText',
                 }
             ],
@@ -670,7 +671,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             'params': [
                 {
                     'labels': {'_default': 'wherefore?'},
-                    'uuid': 'b2d4f6e9-3a1c-4d83-8c50-7e2b1f9a4d11',
+                    'uuid': UUID_QUAL_WHY,
                     'type': 'qualText',
                 }
             ]

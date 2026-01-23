@@ -14,6 +14,18 @@ from kobo.apps.subsequences.actions.automatic_bedrock_qual import (
 )
 from kobo.apps.subsequences.constants import Action
 from kobo.apps.subsequences.models import QuestionAdvancedFeature
+from kobo.apps.subsequences.tests.test_uuids import (
+    UUID_BEDROCK_INTEGER,
+    UUID_BEDROCK_SELECT_MULTIPLE,
+    UUID_BEDROCK_SELECT_ONE,
+    UUID_BEDROCK_TEXT,
+    UUID_CHOICE_APATHY,
+    UUID_CHOICE_EMPATHY,
+    UUID_CHOICE_NO,
+    UUID_CHOICE_YES,
+    UUID_TEST_CHOICE,
+    UUID_TEST_MAIN,
+)
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
 
@@ -28,42 +40,42 @@ class TestAutomaticBedrockQual(BaseTestCase):
         action_params = [
             {
                 'type': 'qualInteger',
-                'uuid': 'a94c2b17-5f6e-4d88-8b31-2e9a7c6f54d0',
+                'uuid': UUID_BEDROCK_INTEGER,
                 'labels': {'_default': 'How many characters appear in the story?'},
             },
             {
                 'type': 'qualSelectMultiple',
-                'uuid': 'b1f8c6a9-2d4e-4a73-8c5f-9e0b6d1a2374',
+                'uuid': UUID_BEDROCK_SELECT_MULTIPLE,
                 'labels': {'_default': 'What themes were present in the story?'},
                 'choices': [
                     {
-                        'uuid': 'c4a9e2d1-7b6f-4a83-9d5e-1f8c3b2a0647',
+                        'uuid': UUID_CHOICE_EMPATHY,
                         'labels': {'_default': 'Empathy'},
                     },
                     {
-                        'uuid': '8e1f2c9a-3d4b-4f6e-8a57-bc0d91e5a234',
+                        'uuid': UUID_CHOICE_APATHY,
                         'labels': {'_default': 'Apathy'},
                     },
                 ],
             },
             {
                 'type': 'qualSelectOne',
-                'uuid': '6d8e4a1f-3b92-4c7a-9f61-0e5c2b7a8d43',
+                'uuid': UUID_BEDROCK_SELECT_ONE,
                 'labels': {'_default': 'Was this a first-hand account?'},
                 'choices': [
                     {
-                        'uuid': '6d8e4a1f-3b92-4c7a-9f61-0e5c2b7a8d43',
+                        'uuid': UUID_CHOICE_YES,
                         'labels': {'_default': 'Yes'},
                     },
                     {
-                        'uuid': 'b1f8c6a9-2d4e-4a73-8c5f-9e0b6d1a2374',
+                        'uuid': UUID_CHOICE_NO,
                         'labels': {'_default': 'No'},
                     },
                 ],
             },
             {
                 'type': 'qualText',
-                'uuid': '3f2a1d6c-8e7b-4f2d-9a1c-6b9e4d8f21a3',
+                'uuid': UUID_BEDROCK_TEXT,
                 'labels': {'_default': 'Add any further remarks'},
             },
         ]
@@ -99,8 +111,8 @@ class TestAutomaticBedrockQual(BaseTestCase):
     )
     @unpack
     def test_valid_params(self, question_type, main_label, choice_label, should_pass):
-        main_uuid = '8c1e2a40-7f9b-4d3e-9a5c-2b6e1d4f9a10'
-        choice_uuid = 'f2a9c4e1-6b3d-4f8a-9c50-7e1b5d3a0a20'
+        main_uuid = UUID_TEST_MAIN
+        choice_uuid = UUID_TEST_CHOICE
         param = {'uuid': main_uuid}
         if question_type:
             param['type'] = question_type
@@ -130,7 +142,7 @@ class TestAutomaticBedrockQual(BaseTestCase):
     def test_invalid_user_data_extra_field(self):
         with pytest.raises(jsonschema.exceptions.ValidationError):
             self.action.validate_data(
-                {'uuid': '3f2a1d6c-8e7b-4f2d-9a1c-6b9e4d8f21a3', 'other': 'stuff'}
+                {'uuid': UUID_BEDROCK_TEXT, 'other': 'stuff'}
             )
 
     def test_invalid_user_data_type_note(self):
@@ -139,48 +151,48 @@ class TestAutomaticBedrockQual(BaseTestCase):
 
     # uuid, value, status, error, good
     @data(
-        ('3f2a1d6c-8e7b-4f2d-9a1c-6b9e4d8f21a3', 'Hi', 'complete', None, True),
-        ('3f2a1d6c-8e7b-4f2d-9a1c-6b9e4d8f21a3', '', 'complete', None, True),
-        ('3f2a1d6c-8e7b-4f2d-9a1c-6b9e4d8f21a3', None, 'complete', None, False),
-        ('3f2a1d6c-8e7b-4f2d-9a1c-6b9e4d8f21a3', None, 'failed', 'error', True),
-        ('3f2a1d6c-8e7b-4f2d-9a1c-6b9e4d8f21a3', None, 'failed', None, False),
-        ('3f2a1d6c-8e7b-4f2d-9a1c-6b9e4d8f21a3', 'Hi', 'failed', 'error', False),
-        ('a94c2b17-5f6e-4d88-8b31-2e9a7c6f54d0', 1, 'complete', None, True),
-        ('a94c2b17-5f6e-4d88-8b31-2e9a7c6f54d0', 0, 'complete', None, True),
-        ('a94c2b17-5f6e-4d88-8b31-2e9a7c6f54d0', None, 'failed', 'error', True),
-        ('a94c2b17-5f6e-4d88-8b31-2e9a7c6f54d0', 1, 'failed', 'error', False),
+        (UUID_BEDROCK_TEXT, 'Hi', 'complete', None, True),
+        (UUID_BEDROCK_TEXT, '', 'complete', None, True),
+        (UUID_BEDROCK_TEXT, None, 'complete', None, False),
+        (UUID_BEDROCK_TEXT, None, 'failed', 'error', True),
+        (UUID_BEDROCK_TEXT, None, 'failed', None, False),
+        (UUID_BEDROCK_TEXT, 'Hi', 'failed', 'error', False),
+        (UUID_BEDROCK_INTEGER, 1, 'complete', None, True),
+        (UUID_BEDROCK_INTEGER, 0, 'complete', None, True),
+        (UUID_BEDROCK_INTEGER, None, 'failed', 'error', True),
+        (UUID_BEDROCK_INTEGER, 1, 'failed', 'error', False),
         (
-            '6d8e4a1f-3b92-4c7a-9f61-0e5c2b7a8d43',
-            '6d8e4a1f-3b92-4c7a-9f61-0e5c2b7a8d43',
+            UUID_BEDROCK_SELECT_ONE,
+            UUID_CHOICE_YES,
             'complete',
             None,
             True,
         ),
-        ('6d8e4a1f-3b92-4c7a-9f61-0e5c2b7a8d43', '', 'complete', None, True),
-        ('6d8e4a1f-3b92-4c7a-9f61-0e5c2b7a8d43', None, 'complete', None, False),
-        ('6d8e4a1f-3b92-4c7a-9f61-0e5c2b7a8d43', 'uuid-bad', 'complete', None, False),
-        ('6d8e4a1f-3b92-4c7a-9f61-0e5c2b7a8d43', None, 'failed', 'error', True),
+        (UUID_BEDROCK_SELECT_ONE, '', 'complete', None, True),
+        (UUID_BEDROCK_SELECT_ONE, None, 'complete', None, False),
+        (UUID_BEDROCK_SELECT_ONE, 'uuid-bad', 'complete', None, False),
+        (UUID_BEDROCK_SELECT_ONE, None, 'failed', 'error', True),
         (
-            '6d8e4a1f-3b92-4c7a-9f61-0e5c2b7a8d43',
-            '6d8e4a1f-3b92-4c7a-9f61-0e5c2b7a8d43',
+            UUID_BEDROCK_SELECT_ONE,
+            UUID_CHOICE_YES,
             'failed',
             'error',
             False,
         ),
         (
-            'b1f8c6a9-2d4e-4a73-8c5f-9e0b6d1a2374',
-            ['c4a9e2d1-7b6f-4a83-9d5e-1f8c3b2a0647'],
+            UUID_BEDROCK_SELECT_MULTIPLE,
+            [UUID_CHOICE_EMPATHY],
             'complete',
             None,
             True,
         ),
-        ('b1f8c6a9-2d4e-4a73-8c5f-9e0b6d1a2374', [], 'complete', None, True),
-        ('b1f8c6a9-2d4e-4a73-8c5f-9e0b6d1a2374', None, 'complete', None, False),
-        ('b1f8c6a9-2d4e-4a73-8c5f-9e0b6d1a2374', ['uuid-bad'], 'complete', None, False),
-        ('b1f8c6a9-2d4e-4a73-8c5f-9e0b6d1a2374', None, 'failed', 'error', True),
+        (UUID_BEDROCK_SELECT_MULTIPLE, [], 'complete', None, True),
+        (UUID_BEDROCK_SELECT_MULTIPLE, None, 'complete', None, False),
+        (UUID_BEDROCK_SELECT_MULTIPLE, ['uuid-bad'], 'complete', None, False),
+        (UUID_BEDROCK_SELECT_MULTIPLE, None, 'failed', 'error', True),
         (
-            'b1f8c6a9-2d4e-4a73-8c5f-9e0b6d1a2374',
-            ['c4a9e2d1-7b6f-4a83-9d5e-1f8c3b2a0647'],
+            UUID_BEDROCK_SELECT_MULTIPLE,
+            [UUID_CHOICE_EMPATHY],
             'failed',
             'error',
             False,
@@ -243,7 +255,7 @@ class TestAutomaticBedrockQual(BaseTestCase):
             '_version': '20250820',
             'q1': {
                 Action.AUTOMATIC_BEDROCK_QUAL: {
-                    'uuid': '3f2a1d6c-8e7b-4f2d-9a1c-6b9e4d8f21a3',
+                    'uuid': UUID_BEDROCK_TEXT,
                 },
             },
         }
@@ -258,7 +270,7 @@ class TestAutomaticBedrockQual(BaseTestCase):
         transcript = response.data['q1'][Action.MANUAL_TRANSCRIPTION]['_versions'][0]
         transcript_uuid = transcript['_uuid']
         version = response.data['q1'][Action.AUTOMATIC_BEDROCK_QUAL][
-            '3f2a1d6c-8e7b-4f2d-9a1c-6b9e4d8f21a3'
+            UUID_BEDROCK_TEXT
         ]['_versions'][0]
         version_data = version['_data']
         assert version_data['value'] == 'LLM text'
@@ -270,11 +282,11 @@ class TestAutomaticBedrockQual(BaseTestCase):
         today = timezone.now()
         yesterday = today - timedelta(days=1)
         action_data = {
-            '3f2a1d6c-8e7b-4f2d-9a1c-6b9e4d8f21a3': {
+            UUID_BEDROCK_TEXT: {
                 '_versions': [
                     {
                         '_data': {
-                            'uuid': '3f2a1d6c-8e7b-4f2d-9a1c-6b9e4d8f21a3',
+                            'uuid': UUID_BEDROCK_TEXT,
                             'status': 'failed',
                             'error': 'Something went wrong',
                         },
@@ -283,7 +295,7 @@ class TestAutomaticBedrockQual(BaseTestCase):
                     },
                     {
                         '_data': {
-                            'uuid': '3f2a1d6c-8e7b-4f2d-9a1c-6b9e4d8f21a3',
+                            'uuid': UUID_BEDROCK_TEXT,
                             'value': 'Initial note',
                         },
                         '_dateCreated': yesterday.isoformat(),
@@ -299,7 +311,7 @@ class TestAutomaticBedrockQual(BaseTestCase):
         output = self.action.transform_data_for_output(action_data)
         assert len(output.keys()) == 1
 
-        text_item = output.get(('qual', '3f2a1d6c-8e7b-4f2d-9a1c-6b9e4d8f21a3'))
+        text_item = output.get(('qual', UUID_BEDROCK_TEXT))
         # take the initial note because the most recent request to overwrite failed
         assert text_item['value'] == 'Initial note'
         assert 'error' not in text_item
