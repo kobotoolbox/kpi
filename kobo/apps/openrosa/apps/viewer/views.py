@@ -7,7 +7,6 @@ from urllib.parse import quote as urlquote
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.core.files.storage import FileSystemStorage
 from django.db.models import Q
 from django.http import (
     HttpResponse,
@@ -34,6 +33,7 @@ from kobo.apps.openrosa.libs.utils.viewer_tools import export_def_from_filename
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
+from kpi.utils.storage import is_filesystem_storage
 
 media_file_logger = logging.getLogger('media_files')
 
@@ -165,7 +165,7 @@ def export_download(request, username, id_string, export_type, filename):
 
     ext, mime_type = export_def_from_filename(export.filename)
 
-    if not isinstance(default_storage, FileSystemStorage):
+    if not is_filesystem_storage(default_storage):
         return HttpResponseRedirect(default_storage.url(export.filepath))
 
     basename = os.path.splitext(export.filename)[0]
@@ -288,7 +288,7 @@ def attachment_url(request, size='medium'):
             # - When using S3 Storage, traffic is multiplied by 2.
             #    S3 -> Nginx -> User
             response = HttpResponse()
-            if not isinstance(default_storage, FileSystemStorage):
+            if not is_filesystem_storage(default_storage):
                 # Double-encode the S3 URL to take advantage of NGINX's
                 # otherwise troublesome automatic decoding
                 protected_url = '/protected-s3/{}'.format(urlquote(media_url))

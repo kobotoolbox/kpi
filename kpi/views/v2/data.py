@@ -154,6 +154,15 @@ from kpi.utils.xml import (
             require_auth=False,
             raise_access_forbidden=False,
         ),
+        parameters=[
+            OpenApiParameter(
+                name='q',
+                type=str,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description='Filter the results with search query',
+            ),
+        ],
     ),
     retrieve=extend_schema(
         description=read_md('kpi', 'data/retrieve.md'),

@@ -816,24 +816,26 @@ paths:
         curl -X GET https://kf.kobotoolbox.org/api/v2/assets/?collections_first=true&ordering=-name
         ```
       parameters:
-      - name: limit
-        required: false
-        in: query
-        description: Number of results to return per page.
+      - in: query
+        name: limit
         schema:
           type: integer
-      - name: offset
-        required: false
-        in: query
-        description: The initial index from which to return the results.
+        description: Paginate results with limit parameter
+      - in: query
+        name: offset
         schema:
           type: integer
-      - name: ordering
-        required: false
-        in: query
-        description: Which field to use when ordering the results.
+        description: Paginate results with offset parameter
+      - in: query
+        name: ordering
         schema:
           type: string
+        description: Which field to use when ordering the results.
+      - in: query
+        name: q
+        schema:
+          type: string
+        description: Filter the results with search query
       tags:
       - Manage projects and library content
       security:
@@ -1176,7 +1178,7 @@ paths:
                           _default: Low
                     uid: qa123456789AbCdEfGhIjklm
                   summary: Qualitative Analysis - Single Choice Question
-                QualitativeAnalysis-MultipleChoiceQuestion:
+                QualitativeAnalysis-MultipleChoiceQuestion(withDeletedChoice):
                   value:
                   - action: manual_qual
                     question_xpath: q1
@@ -1189,6 +1191,8 @@ paths:
                       - uuid: xxxxxxxx-bbbb-cccc-dddd-eeeeffffffff
                         labels:
                           _default: Shelter
+                        options:
+                          deleted: true
                       - uuid: zzzzzzzz-bbbb-cccc-dddd-eeeeffffffff
                         labels:
                           _default: Food
@@ -1196,7 +1200,23 @@ paths:
                         labels:
                           _default: Medical
                     uid: qa123456789AbCdEfGhIjklm
-                  summary: Qualitative Analysis - Multiple Choice Question
+                  summary: Qualitative Analysis - Multiple Choice Question (with deleted
+                    choice)
+                QualitativeAnalysis-SimpleTypes-DeletedQuestion:
+                  value:
+                  - action: manual_qual
+                    question_xpath: q1
+                    params:
+                    - type: <question_type>
+                      uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
+                      labels:
+                        _default: Qualitative analysis result
+                    options:
+                      deleted: true
+                    uid: qa123456789AbCdEfGhIjklm
+                  summary: Qualitative Analysis - Simple Types - Deleted question
+                  description: "`<question_type>` can be any of:\n\n* `qualText` \n\
+                    * `qualInteger` \n* `qualTags` \n* `qualNote` \n"
           description: null
         '404':
           content:
@@ -1316,7 +1336,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AdvancedFeatureResponse'
+                $ref: '#/components/schemas/AdvancedFeatureCreateResponse'
           description: null
         '404':
           content:
@@ -1424,7 +1444,7 @@ paths:
                           _default: Low
                     uid: qa123456789AbCdEfGhIjklm
                   summary: Qualitative Analysis - Single Choice Question
-                QualitativeAnalysis-MultipleChoiceQuestion:
+                QualitativeAnalysis-MultipleChoiceQuestion(withDeletedChoice):
                   value:
                     action: manual_qual
                     question_xpath: q1
@@ -1437,6 +1457,8 @@ paths:
                       - uuid: xxxxxxxx-bbbb-cccc-dddd-eeeeffffffff
                         labels:
                           _default: Shelter
+                        options:
+                          deleted: true
                       - uuid: zzzzzzzz-bbbb-cccc-dddd-eeeeffffffff
                         labels:
                           _default: Food
@@ -1444,7 +1466,23 @@ paths:
                         labels:
                           _default: Medical
                     uid: qa123456789AbCdEfGhIjklm
-                  summary: Qualitative Analysis - Multiple Choice Question
+                  summary: Qualitative Analysis - Multiple Choice Question (with deleted
+                    choice)
+                QualitativeAnalysis-SimpleTypes-DeletedQuestion:
+                  value:
+                    action: manual_qual
+                    question_xpath: q1
+                    params:
+                    - type: <question_type>
+                      uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
+                      labels:
+                        _default: Qualitative analysis result
+                    options:
+                      deleted: true
+                    uid: qa123456789AbCdEfGhIjklm
+                  summary: Qualitative Analysis - Simple Types - Deleted question
+                  description: "`<question_type>` can be any of:\n\n* `qualText` \n\
+                    * `qualInteger` \n* `qualTags` \n* `qualNote` \n"
           description: null
         '404':
           content:
@@ -1615,7 +1653,7 @@ paths:
                           _default: Low
                     uid: qa123456789AbCdEfGhIjklm
                   summary: Qualitative Analysis - Single Choice Question
-                QualitativeAnalysis-MultipleChoiceQuestion:
+                QualitativeAnalysis-MultipleChoiceQuestion(withDeletedChoice):
                   value:
                     action: manual_qual
                     question_xpath: q1
@@ -1628,6 +1666,8 @@ paths:
                       - uuid: xxxxxxxx-bbbb-cccc-dddd-eeeeffffffff
                         labels:
                           _default: Shelter
+                        options:
+                          deleted: true
                       - uuid: zzzzzzzz-bbbb-cccc-dddd-eeeeffffffff
                         labels:
                           _default: Food
@@ -1635,7 +1675,23 @@ paths:
                         labels:
                           _default: Medical
                     uid: qa123456789AbCdEfGhIjklm
-                  summary: Qualitative Analysis - Multiple Choice Question
+                  summary: Qualitative Analysis - Multiple Choice Question (with deleted
+                    choice)
+                QualitativeAnalysis-SimpleTypes-DeletedQuestion:
+                  value:
+                    action: manual_qual
+                    question_xpath: q1
+                    params:
+                    - type: <question_type>
+                      uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
+                      labels:
+                        _default: Qualitative analysis result
+                    options:
+                      deleted: true
+                    uid: qa123456789AbCdEfGhIjklm
+                  summary: Qualitative Analysis - Simple Types - Deleted question
+                  description: "`<question_type>` can be any of:\n\n* `qualText` \n\
+                    * `qualInteger` \n* `qualTags` \n* `qualNote` \n"
           description: null
         '404':
           content:
@@ -1969,6 +2025,11 @@ paths:
         description: Number of results to return per page.
         schema:
           type: integer
+      - in: query
+        name: q
+        schema:
+          type: string
+        description: Filter the results with search query
       - name: start
         required: false
         in: query
@@ -9802,7 +9863,7 @@ paths:
 
         **Total Storage/Submissions**
         - service_usage__total_storage_bytes
-        - service_usage__total_submission_count__all_time
+        - service_usage__total_submission_count__cumulative
         - service_usage__total_submission_count__current_period
 
         **Service Usage Balances**
@@ -9824,7 +9885,7 @@ paths:
 
         **Asset Count**
         - asset_count
-        - deployed_asset_count
+        - active_project_count
 
         ## Filterable fields by date:
         Supports exact matching and range operators (e.g., gte, lte)
@@ -10435,6 +10496,26 @@ components:
         * `manual_translation` - manual_translation
         * `manual_qual` - manual_qual
         * `automatic_bedrock_qual` - automatic_bedrock_qual
+    AdvancedFeatureCreateResponse:
+      type: object
+      properties:
+        action:
+          $ref: '#/components/schemas/ActionEnum'
+        question_xpath:
+          type: string
+        params:
+          type: array
+          items:
+            anyOf:
+            - $ref: '#/components/schemas/CreateResponseNLPActionParams'
+            - $ref: '#/components/schemas/CreateResponseQualActionParams'
+        uid:
+          type: string
+      required:
+      - action
+      - params
+      - question_xpath
+      - uid
     AdvancedFeaturePostRequest:
       type: object
       properties:
@@ -10446,8 +10527,8 @@ components:
           type: array
           items:
             anyOf:
-            - $ref: '#/components/schemas/NLPActionParams'
-            - $ref: '#/components/schemas/QualActionParams'
+            - $ref: '#/components/schemas/RequestNLPActionParams'
+            - $ref: '#/components/schemas/RequestQualActionParams'
       required:
       - action
       - params
@@ -10463,8 +10544,8 @@ components:
           type: array
           items:
             anyOf:
-            - $ref: '#/components/schemas/NLPActionParams'
-            - $ref: '#/components/schemas/QualActionParams'
+            - $ref: '#/components/schemas/ResponseNLPActionParams'
+            - $ref: '#/components/schemas/ResponseQualActionParams'
         uid:
           type: string
       required:
@@ -11621,6 +11702,84 @@ components:
         - file_type
         - metadata
         - user
+    CreateResponseNLPActionParams:
+      type: object
+      additionalProperties: false
+      properties:
+        language:
+          type: string
+      required:
+      - language
+    CreateResponseQualActionParams:
+      anyOf:
+      - $ref: '#/components/schemas/CreateResponseQualSimpleQuestionParams'
+      - $ref: '#/components/schemas/CreateResponseQualSelectQuestionParams'
+    CreateResponseQualSelectQuestionParams:
+      type: object
+      additionalProperties: false
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/QualSelectQuestionParamsTypeEnum'
+        labels:
+          type: object
+          properties:
+            _default:
+              type: string
+          additionalProperties:
+            type: string
+          required:
+          - _default
+        choices:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              labels:
+                type: object
+                properties:
+                  _default:
+                    type: string
+                additionalProperties:
+                  type: string
+                required:
+                - _default
+              uuid:
+                type: string
+                format: uuid
+            required:
+            - labels
+            - uuid
+      required:
+      - uuid
+      - type
+      - labels
+      - choices
+    CreateResponseQualSimpleQuestionParams:
+      type: object
+      additionalProperties: false
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/QualSimpleQuestionParamsTypeEnum'
+        labels:
+          type: object
+          properties:
+            _default:
+              type: string
+          additionalProperties:
+            type: string
+          required:
+          - _default
+      required:
+      - uuid
+      - type
+      - labels
     CustomAssetUsage:
       type: object
       properties:
@@ -11724,20 +11883,14 @@ components:
           title: ' id'
         formhub/uuid:
           type: string
-        start:
-          type: string
-          format: date-time
-        end:
-          type: string
-          format: date-time
-        Question_A/Enter_your_question:
-          type: string
-        Question_B:
-          type: string
         __version__:
           type: string
           title: '  version  '
         meta/instanceID:
+          type: string
+        meta/rootUuid:
+          type: string
+        meta/deprecatedID:
           type: string
         _xform_id_string:
           type: string
@@ -11745,8 +11898,6 @@ components:
         _uuid:
           type: string
           title: ' uuid'
-        meta/rootUuid:
-          type: string
         _attachments:
           type: array
           items:
@@ -11788,13 +11939,19 @@ components:
             - mimetype
             - question_xpath
             - uid
+            additional_properties: false
           title: ' attachments'
         _status:
           type: string
           title: ' status'
         _geolocation:
           type: array
-          items: {}
+          items:
+            type:
+            - number
+            - 'null'
+          minItems: 2
+          maxItems: 2
           title: ' geolocation'
         _submission_time:
           type: string
@@ -11802,24 +11959,33 @@ components:
           title: ' submission time'
         _tags:
           type: array
-          items: {}
+          items:
+            type: string
           title: ' tags'
-        Notes:
+        _notes:
           type: array
-          items: {}
+          items:
+            type: string
+          title: ' notes'
         _validation_status:
+          oneOf:
+          - $ref: '#/components/schemas/DataValidationStatus'
+          - type: object
+            maxProperties: 0
           title: ' validation status'
         _submitted_by:
           type: string
           title: ' submitted by'
+        _supplementalDetails:
+          type: object
+          additionalProperties: {}
+          title: ' supplementaldetails'
       required:
-      - Notes
-      - Question_A/Enter_your_question
-      - Question_B
       - __version__
       - _attachments
       - _geolocation
       - _id
+      - _notes
       - _status
       - _submission_time
       - _submitted_by
@@ -11827,11 +11993,8 @@ components:
       - _uuid
       - _validation_status
       - _xform_id_string
-      - end
-      - formhub/uuid
       - meta/instanceID
       - meta/rootUuid
-      - start
     DataStatusesUpdate:
       type: object
       properties:
@@ -12428,6 +12591,33 @@ components:
         - automatic_google_translation
       - required:
         - manual_qual
+    DataValidationStatus:
+      type: object
+      properties:
+        timestamp:
+          type: integer
+        uid:
+          $ref: '#/components/schemas/DataValidationStatusUidEnum'
+        by_whom:
+          type: string
+        label:
+          $ref: '#/components/schemas/DataValidationStatusLabelEnum'
+      required:
+      - timestamp
+      - uid
+      - label
+      - by_whom
+      additionalProperties: false
+    DataValidationStatusLabelEnum:
+      enum:
+      - Not Approved
+      - Approved
+      - On Hold
+    DataValidationStatusUidEnum:
+      enum:
+      - validation_status_not_approved
+      - validation_status_approved
+      - validation_status_on_hold
     DataValidationStatusUpdateResponse:
       type: object
       properties:
@@ -13717,14 +13907,6 @@ components:
         * `admin` - admin
         * `member` - member
         * `owner` - owner
-    NLPActionParams:
-      type: object
-      additionalProperties: false
-      properties:
-        language:
-          type: string
-      required:
-      - language
     NlpUsage:
       type: object
       properties:
@@ -14925,8 +15107,8 @@ components:
           type: array
           items:
             anyOf:
-            - $ref: '#/components/schemas/NLPActionParams'
-            - $ref: '#/components/schemas/QualActionParams'
+            - $ref: '#/components/schemas/RequestNLPActionParams'
+            - $ref: '#/components/schemas/RequestQualActionParams'
     PatchedAssetPatchRequest:
       oneOf:
       - type: object
@@ -15145,7 +15327,7 @@ components:
           additionalProperties: false
           required:
           - language
-        qual:
+        manual_qual:
           oneOf:
           - allOf:
             - type: object
@@ -15265,7 +15447,7 @@ components:
       - required:
         - automatic_google_translation
       - required:
-        - qual
+        - manual_qual
     PatchedDataValidationStatusUpdatePayload:
       type: object
       properties:
@@ -15282,7 +15464,7 @@ components:
               items:
                 type: integer
             validation_status.uid:
-              type: string
+              $ref: '#/components/schemas/DataValidationStatusUidEnum'
     PatchedDeploymentPatchRequest:
       type: object
       properties:
@@ -16237,87 +16419,11 @@ components:
         * `always_invoice` - Always invoice
         * `create_prorations` - Create prorations
         * `none` - None
-    QualActionParams:
-      anyOf:
-      - $ref: '#/components/schemas/QualSimpleQuestionParams'
-      - $ref: '#/components/schemas/QualSelectQuestionParams'
-    QualSelectQuestionParams:
-      type: object
-      additionalProperties: false
-      properties:
-        uuid:
-          type: string
-          format: uuid
-        type:
-          $ref: '#/components/schemas/QualSelectQuestionParamsTypeEnum'
-        labels:
-          type: object
-          properties:
-            _default:
-              type: string
-          additionalProperties:
-            type: string
-          required:
-          - _default
-        choices:
-          type: array
-          items:
-            type: object
-            additionalProperties: false
-            properties:
-              labels:
-                type: object
-                properties:
-                  _default:
-                    type: string
-                additionalProperties:
-                  type: string
-                required:
-                - _default
-              uuid:
-                type: string
-                format: uuid
-              options:
-                type: object
-            required:
-            - labels
-            - uuid
-        options:
-          type: object
-      required:
-      - uuid
-      - type
-      - labels
-      - choices
     QualSelectQuestionParamsTypeEnum:
       type: string
       enum:
       - qualSelectMultiple
       - qualSelectOne
-    QualSimpleQuestionParams:
-      type: object
-      additionalProperties: false
-      properties:
-        uuid:
-          type: string
-          format: uuid
-        type:
-          $ref: '#/components/schemas/QualSimpleQuestionParamsTypeEnum'
-        labels:
-          type: object
-          properties:
-            _default:
-              type: string
-          additionalProperties:
-            type: string
-          required:
-          - _default
-        options:
-          type: object
-      required:
-      - uuid
-      - type
-      - labels
     QualSimpleQuestionParamsTypeEnum:
       type: string
       enum:
@@ -16381,6 +16487,177 @@ components:
       - count
       - list
       - url
+    RequestNLPActionParams:
+      type: object
+      additionalProperties: false
+      properties:
+        language:
+          type: string
+      required:
+      - language
+    RequestQualActionParams:
+      anyOf:
+      - $ref: '#/components/schemas/RequestQualSimpleQuestionParams'
+      - $ref: '#/components/schemas/RequestQualSelectQuestionParams'
+    RequestQualSelectQuestionParams:
+      type: object
+      additionalProperties: false
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/QualSelectQuestionParamsTypeEnum'
+        labels:
+          type: object
+          properties:
+            _default:
+              type: string
+          additionalProperties:
+            type: string
+          required:
+          - _default
+        choices:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              labels:
+                type: object
+                properties:
+                  _default:
+                    type: string
+                additionalProperties:
+                  type: string
+                required:
+                - _default
+              uuid:
+                type: string
+                format: uuid
+            required:
+            - labels
+            - uuid
+      required:
+      - uuid
+      - type
+      - labels
+      - choices
+    RequestQualSimpleQuestionParams:
+      type: object
+      additionalProperties: false
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/QualSimpleQuestionParamsTypeEnum'
+        labels:
+          type: object
+          properties:
+            _default:
+              type: string
+          additionalProperties:
+            type: string
+          required:
+          - _default
+      required:
+      - uuid
+      - type
+      - labels
+    ResponseNLPActionParams:
+      type: object
+      additionalProperties: false
+      properties:
+        language:
+          type: string
+      required:
+      - language
+    ResponseQualActionParams:
+      anyOf:
+      - $ref: '#/components/schemas/ResponseQualSimpleQuestionParams'
+      - $ref: '#/components/schemas/ResponseQualSelectQuestionParams'
+    ResponseQualSelectQuestionParams:
+      type: object
+      additionalProperties: false
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/QualSelectQuestionParamsTypeEnum'
+        labels:
+          type: object
+          properties:
+            _default:
+              type: string
+          additionalProperties:
+            type: string
+          required:
+          - _default
+        choices:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              labels:
+                type: object
+                properties:
+                  _default:
+                    type: string
+                additionalProperties:
+                  type: string
+                required:
+                - _default
+              uuid:
+                type: string
+                format: uuid
+              options:
+                type: object
+                properties:
+                  deleted:
+                    type: boolean
+            required:
+            - labels
+            - uuid
+        options:
+          type: object
+          properties:
+            deleted:
+              type: boolean
+      required:
+      - uuid
+      - type
+      - labels
+      - choices
+    ResponseQualSimpleQuestionParams:
+      type: object
+      additionalProperties: false
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/QualSimpleQuestionParamsTypeEnum'
+        labels:
+          type: object
+          properties:
+            _default:
+              type: string
+          additionalProperties:
+            type: string
+          required:
+          - _default
+        options:
+          type: object
+          properties:
+            deleted:
+              type: boolean
+      required:
+      - uuid
+      - type
+      - labels
     ServiceUsageBalanceData:
       type: object
       properties:
@@ -17404,21 +17681,20 @@ components:
                 type: integer
               default_tax_rates:
                 type: object
-        current_service_usage:
-          $ref: '#/components/schemas/ServiceUsageResponse'
+        service_usage:
+          $ref: '#/components/schemas/UserReportsServiceUsageResponse'
         account_restricted:
           type: boolean
         asset_count:
           type: integer
-        deployed_asset_count:
+        active_project_count:
           type: integer
       required:
       - accepted_tos
       - account_restricted
+      - active_project_count
       - asset_count
-      - current_service_usage
       - date_joined
-      - deployed_asset_count
       - email
       - extra_details
       - first_name
@@ -17429,12 +17705,68 @@ components:
       - last_name
       - mfa_is_active
       - organizations
+      - service_usage
       - social_accounts
       - sso_is_active
       - subscriptions
       - user_uid
       - username
       - validated_email
+    UserReportsServiceUsageResponse:
+      type: object
+      properties:
+        total_nlp_usage:
+          type: object
+          properties:
+            asr_seconds_current_period:
+              type: integer
+            llm_requests_current_period:
+              type: integer
+            mt_characters_current_period:
+              type: integer
+            asr_seconds_all_time:
+              type: integer
+            llm_requests_all_time:
+              type: integer
+            mt_characters_all_time:
+              type: integer
+          required:
+          - asr_seconds_all_time
+          - asr_seconds_current_period
+          - llm_requests_all_time
+          - llm_requests_current_period
+          - mt_characters_all_time
+          - mt_characters_current_period
+        total_storage_bytes:
+          type: integer
+        total_submission_count:
+          type: object
+          properties:
+            retention_days:
+              type: integer
+            cumulative:
+              type: integer
+            current_period:
+              type: integer
+        balances:
+          $ref: '#/components/schemas/ServiceUsageBalances'
+        current_period_start:
+          type: string
+          format: date-time
+        current_period_end:
+          type: string
+          format: date-time
+        last_updated:
+          type: string
+          format: date-time
+      required:
+      - balances
+      - current_period_end
+      - current_period_start
+      - last_updated
+      - total_nlp_usage
+      - total_storage_bytes
+      - total_submission_count
     UserRetrieveResponse:
       type: object
       properties:

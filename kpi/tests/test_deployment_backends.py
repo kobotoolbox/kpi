@@ -11,6 +11,7 @@ from kpi.deployment_backends.kc_access.storage import (
 from kpi.exceptions import DeploymentDataException
 from kpi.models.asset import Asset, AssetFile
 from kpi.models.asset_version import AssetVersion
+from kpi.utils.storage import is_filesystem_storage
 
 
 class CreateDeployment(TestCase):
@@ -196,7 +197,7 @@ class MockDeployment(TestCase):
             ).first()
 
             assert default_kobocat_storage.exists(str(meta_data.data_file))
-            if default_storage.__class__.__name__ == 'FileSystemStorage':
+            if is_filesystem_storage(default_storage):
                 assert not default_storage.exists(str(meta_data.data_file))
 
             with default_kobocat_storage.open(
