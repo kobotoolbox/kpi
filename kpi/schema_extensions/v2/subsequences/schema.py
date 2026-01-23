@@ -2,7 +2,8 @@ SIMPLE_QUESTION_TYPE_ENUM = [
     'qualInteger',
     'qualTags',
     'qualText',
-    'qualNote'
+    'qualNote',
+    'qualAutoKeywordCount',
 ]
 
 SELECT_QUESTION_TYPE_ENUM = [

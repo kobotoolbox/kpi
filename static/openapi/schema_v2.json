@@ -23080,7 +23080,8 @@
                     "qualInteger",
                     "qualTags",
                     "qualText",
-                    "qualNote"
+                    "qualNote",
+                    "qualAutoKeywordCount"
                 ]
             },
             "Recurring": {

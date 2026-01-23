@@ -3,6 +3,7 @@ from drf_spectacular.plumbing import build_array_type
 
 from kpi.schema_extensions.v2.generic.schema import GENERIC_STRING_SCHEMA
 from kpi.utils.schema_extensions.mixins import ComponentRegistrationMixin
+from .schema import SELECT_QUESTION_TYPE_ENUM, SIMPLE_QUESTION_TYPE_ENUM
 
 
 class SubsequenceParamsFieldExtension(
@@ -67,30 +68,15 @@ class SubsequenceParamsFieldExtension(
             },
             'qualQuestionType': {
                 'type': 'string',
-                'enum': [
-                    'qualInteger',
-                    'qualSelectMultiple',
-                    'qualSelectOne',
-                    'qualTags',
-                    'qualText',
-                    'qualNote',  # Takes no response data
-                ],
+                'enum': SIMPLE_QUESTION_TYPE_ENUM + SELECT_QUESTION_TYPE_ENUM,
             },
             'qualSimpleQuestionType': {
                 'type': 'string',
-                'enum': [
-                    'qualInteger',
-                    'qualTags',
-                    'qualText',
-                    'qualNote',
-                ],
+                'enum': SIMPLE_QUESTION_TYPE_ENUM,
             },
             'qualSelectQuestionType': {
                 'type': 'string',
-                'enum': [
-                    'qualSelectMultiple',
-                    'qualSelectOne',
-                ],
+                'enum': SELECT_QUESTION_TYPE_ENUM,
             },
             'qualUuid': {'type': 'string', 'format': 'uuid'},
         }
