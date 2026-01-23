@@ -30,6 +30,7 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
 from kobo.apps.openrosa.libs.utils.logger_tools import dict2xform
 from kobo.apps.subsequences.constants import Action
 from kobo.apps.subsequences.models import QuestionAdvancedFeature
+from kobo.apps.subsequences.tests.constants import PROJECT_HISTORY_QUAL_TEXT_UUID
 from kpi.constants import (
     ASSET_TYPE_TEMPLATE,
     CLONE_ARG_NAME,
@@ -590,7 +591,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                         'qual': [
                             {
                                 'type': 'qualText',
-                                'uuid': 'b2d4f6e9-3a1c-4d83-8c50-7e2b1f9a4d11',
+                                'uuid': PROJECT_HISTORY_QUAL_TEXT_UUID,
                                 'labels': {'_default': 'Why?'},
                             },
                         ]
@@ -618,7 +619,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             'params': [
                 {
                     'labels': {'_default': 'wherefore?'},
-                    'uuid': 'b2d4f6e9-3a1c-4d83-8c50-7e2b1f9a4d11',
+                    'uuid': PROJECT_HISTORY_QUAL_TEXT_UUID,
                     'type': 'qualText',
                 }
             ],
@@ -670,7 +671,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             'params': [
                 {
                     'labels': {'_default': 'wherefore?'},
-                    'uuid': 'b2d4f6e9-3a1c-4d83-8c50-7e2b1f9a4d11',
+                    'uuid': PROJECT_HISTORY_QUAL_TEXT_UUID,
                     'type': 'qualText',
                 }
             ]

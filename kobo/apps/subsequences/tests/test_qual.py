@@ -9,7 +9,38 @@ from freezegun import freeze_time
 from rest_framework.exceptions import ValidationError
 
 from ..actions.manual_qual import ManualQualAction
-from .constants import EMPTY_SUBMISSION
+from .constants import (
+    EMPTY_SUBMISSION,
+    FIX_CHOICE_APATHY_UUID,
+    FIX_CHOICE_COMPETITION_UUID,
+    FIX_CHOICE_EMPATHY_UUID,
+    FIX_CHOICE_NO_UUID,
+    FIX_CHOICE_YES_UUID,
+    FIX_QUAL_INTEGER_UUID,
+    FIX_QUAL_NOTE_UUID,
+    FIX_QUAL_SELECT_MULTIPLE_UUID,
+    FIX_QUAL_SELECT_ONE_UUID,
+    FIX_QUAL_TAGS_UUID,
+    FIX_QUAL_TEXT_UUID,
+    METHOD_CHOICE_BLUE_UUID,
+    METHOD_CHOICE_FOOD_UUID,
+    METHOD_CHOICE_GREEN_UUID,
+    METHOD_CHOICE_HIGH_UUID,
+    METHOD_CHOICE_LOW_UUID,
+    METHOD_CHOICE_MEDICAL_UUID,
+    METHOD_CHOICE_MEDIUM_UUID,
+    METHOD_CHOICE_PURPLE_UUID,
+    METHOD_CHOICE_RED_UUID,
+    METHOD_CHOICE_SHELTER_UUID,
+    METHOD_COLORS_QUESTION_UUID,
+    METHOD_HIDE_QUESTION_UUID,
+    METHOD_NEW_QUESTION_UUID,
+    METHOD_QUAL_INTEGER_UUID,
+    METHOD_QUAL_SELECT_MULTIPLE_UUID,
+    METHOD_QUAL_SELECT_ONE_UUID,
+    METHOD_QUAL_TEXT_UUID,
+    METHOD_UNHIDE_QUESTION_UUID,
+)
 
 
 class Fix:
@@ -37,56 +68,56 @@ class Fix:
     action_params = [
         {
             'type': 'qualInteger',
-            'uuid': '1a2c8eb0-e2ec-4b3c-942a-c1a5410c081a',
+            'uuid': FIX_QUAL_INTEGER_UUID,
             'labels': {'_default': 'How many characters appear in the story?'},
         },
         {
             'type': 'qualSelectMultiple',
-            'uuid': '2e30bec7-4843-43c7-98bc-13114af230c5',
+            'uuid': FIX_QUAL_SELECT_MULTIPLE_UUID,
             'labels': {'_default': 'What themes were present in the story?'},
             'choices': [
                 {
-                    'uuid': '2e24e6b4-bc3b-4e8e-b0cd-d8d3b9ca15b6',
+                    'uuid': FIX_CHOICE_EMPATHY_UUID,
                     'labels': {'_default': 'Empathy'},
                 },
                 {
-                    'uuid': 'cb82919d-2948-4ccf-a488-359c5d5ee53a',
+                    'uuid': FIX_CHOICE_COMPETITION_UUID,
                     'labels': {'_default': 'Competition'},
                 },
                 {
-                    'uuid': '8effe3b1-619e-4ada-be45-ebcea5af0aaf',
+                    'uuid': FIX_CHOICE_APATHY_UUID,
                     'labels': {'_default': 'Apathy'},
                 },
             ],
         },
         {
             'type': 'qualSelectOne',
-            'uuid': '1a8b748b-f470-4c40-bc09-ce2b1197f503',
+            'uuid': FIX_QUAL_SELECT_ONE_UUID,
             'labels': {'_default': 'Was this a first-hand account?'},
             'choices': [
                 {
-                    'uuid': '3c7aacdc-8971-482a-9528-68e64730fc99',
+                    'uuid': FIX_CHOICE_YES_UUID,
                     'labels': {'_default': 'Yes'},
                 },
                 {
-                    'uuid': '7e31c6a5-5eac-464c-970c-62c383546a94',
+                    'uuid': FIX_CHOICE_NO_UUID,
                     'labels': {'_default': 'No'},
                 },
             ],
         },
         {
             'type': 'qualTags',
-            'uuid': 'e9b4e6d1-fdbb-4dc9-8b10-a9c3c388322f',
+            'uuid': FIX_QUAL_TAGS_UUID,
             'labels': {'_default': 'Tag any landmarks mentioned in the story'},
         },
         {
             'type': 'qualText',
-            'uuid': '83acf2a7-8edc-4fd8-8b9f-f832ca3f18ad',
+            'uuid': FIX_QUAL_TEXT_UUID,
             'labels': {'_default': 'Add any further remarks'},
         },
         {
             'type': 'qualNote',
-            'uuid': '5ef11d48-d7a3-432e-af83-8c2e9b1feb72',
+            'uuid': FIX_QUAL_NOTE_UUID,
             'labels': {'_default': 'Thanks for your diligence'},
         },
     ]
@@ -149,7 +180,7 @@ class Fix:
                     {
                         'type': 'object',
                         'properties': {
-                            'uuid': {'const': '1a2c8eb0-e2ec-4b3c-942a-c1a5410c081a'}
+                            'uuid': {'const': FIX_QUAL_INTEGER_UUID}
                         },
                     },
                 ]
@@ -161,13 +192,13 @@ class Fix:
                     {
                         'type': 'object',
                         'properties': {
-                            'uuid': {'const': '2e30bec7-4843-43c7-98bc-13114af230c5'},
+                            'uuid': {'const': FIX_QUAL_SELECT_MULTIPLE_UUID},
                             'value': {
                                 'items': {
                                     'enum': [
-                                        '2e24e6b4-bc3b-4e8e-b0cd-d8d3b9ca15b6',
-                                        'cb82919d-2948-4ccf-a488-359c5d5ee53a',
-                                        '8effe3b1-619e-4ada-be45-ebcea5af0aaf',
+                                        FIX_CHOICE_EMPATHY_UUID,
+                                        FIX_CHOICE_COMPETITION_UUID,
+                                        FIX_CHOICE_APATHY_UUID,
                                     ],
                                 },
                                 'type': 'array',
@@ -183,11 +214,11 @@ class Fix:
                     {
                         'type': 'object',
                         'properties': {
-                            'uuid': {'const': '1a8b748b-f470-4c40-bc09-ce2b1197f503'},
+                            'uuid': {'const': FIX_QUAL_SELECT_ONE_UUID},
                             'value': {
                                 'enum': [
-                                    '3c7aacdc-8971-482a-9528-68e64730fc99',
-                                    '7e31c6a5-5eac-464c-970c-62c383546a94',
+                                    FIX_CHOICE_YES_UUID,
+                                    FIX_CHOICE_NO_UUID,
                                     '',
                                 ]
                             },
@@ -202,7 +233,7 @@ class Fix:
                     {
                         'type': 'object',
                         'properties': {
-                            'uuid': {'const': 'e9b4e6d1-fdbb-4dc9-8b10-a9c3c388322f'}
+                            'uuid': {'const': FIX_QUAL_TAGS_UUID}
                         },
                     },
                 ]
@@ -214,7 +245,7 @@ class Fix:
                     {
                         'type': 'object',
                         'properties': {
-                            'uuid': {'const': '83acf2a7-8edc-4fd8-8b9f-f832ca3f18ad'}
+                            'uuid': {'const': FIX_QUAL_TEXT_UUID}
                         },
                     },
                 ]
@@ -226,12 +257,12 @@ class Fix:
         'type': 'object',
         'additionalProperties': False,
         'properties': {
-            '1a2c8eb0-e2ec-4b3c-942a-c1a5410c081a': {'$ref': '#/$defs/dataActionKey'},
-            '2e30bec7-4843-43c7-98bc-13114af230c5': {'$ref': '#/$defs/dataActionKey'},
-            '1a8b748b-f470-4c40-bc09-ce2b1197f503': {'$ref': '#/$defs/dataActionKey'},
-            'e9b4e6d1-fdbb-4dc9-8b10-a9c3c388322f': {'$ref': '#/$defs/dataActionKey'},
-            '83acf2a7-8edc-4fd8-8b9f-f832ca3f18ad': {'$ref': '#/$defs/dataActionKey'},
-            '5ef11d48-d7a3-432e-af83-8c2e9b1feb72': {'$ref': '#/$defs/dataActionKey'},
+            FIX_QUAL_INTEGER_UUID: {'$ref': '#/$defs/dataActionKey'},
+            FIX_QUAL_SELECT_MULTIPLE_UUID: {'$ref': '#/$defs/dataActionKey'},
+            FIX_QUAL_SELECT_ONE_UUID: {'$ref': '#/$defs/dataActionKey'},
+            FIX_QUAL_TAGS_UUID: {'$ref': '#/$defs/dataActionKey'},
+            FIX_QUAL_TEXT_UUID: {'$ref': '#/$defs/dataActionKey'},
+            FIX_QUAL_NOTE_UUID: {'$ref': '#/$defs/dataActionKey'},
         },
         '$defs': {
             'dataActionKey': {
@@ -277,57 +308,57 @@ class Fix:
 
     valid_filled_responses = [
         {
-            'uuid': '1a2c8eb0-e2ec-4b3c-942a-c1a5410c081a',
+            'uuid': FIX_QUAL_INTEGER_UUID,
             # type is qualInteger
             'value': 3,
         },
         {
-            'uuid': '2e30bec7-4843-43c7-98bc-13114af230c5',
+            'uuid': FIX_QUAL_SELECT_MULTIPLE_UUID,
             # type is qualSelectMultiple
             'value': [
-                '2e24e6b4-bc3b-4e8e-b0cd-d8d3b9ca15b6',
-                'cb82919d-2948-4ccf-a488-359c5d5ee53a',
+                FIX_CHOICE_EMPATHY_UUID,
+                FIX_CHOICE_COMPETITION_UUID,
             ],
         },
         {
-            'uuid': '1a8b748b-f470-4c40-bc09-ce2b1197f503',
+            'uuid': FIX_QUAL_SELECT_ONE_UUID,
             # type is qualSelectOne
-            'value': '7e31c6a5-5eac-464c-970c-62c383546a94',
+            'value': FIX_CHOICE_NO_UUID,
         },
         {
-            'uuid': 'e9b4e6d1-fdbb-4dc9-8b10-a9c3c388322f',
+            'uuid': FIX_QUAL_TAGS_UUID,
             # type is qualTags
             'value': ['Quinobequin', 'Doughboy Donuts'],
         },
         {
-            'uuid': '83acf2a7-8edc-4fd8-8b9f-f832ca3f18ad',
+            'uuid': FIX_QUAL_TEXT_UUID,
             # type is qualText
             'value': 'As the eagle and the wild goose see it',
         },
     ]
     valid_empty_responses = [
         {
-            'uuid': '1a2c8eb0-e2ec-4b3c-942a-c1a5410c081a',
+            'uuid': FIX_QUAL_INTEGER_UUID,
             # type is qualInteger
             'value': None,
         },
         {
-            'uuid': '2e30bec7-4843-43c7-98bc-13114af230c5',
+            'uuid': FIX_QUAL_SELECT_MULTIPLE_UUID,
             # type is qualSelectMultiple
             'value': [],
         },
         {
-            'uuid': '1a8b748b-f470-4c40-bc09-ce2b1197f503',
+            'uuid': FIX_QUAL_SELECT_ONE_UUID,
             # type is qualSelectOne
             'value': '',
         },
         {
-            'uuid': 'e9b4e6d1-fdbb-4dc9-8b10-a9c3c388322f',
+            'uuid': FIX_QUAL_TAGS_UUID,
             # type is qualTags
             'value': [],
         },
         {
-            'uuid': '83acf2a7-8edc-4fd8-8b9f-f832ca3f18ad',
+            'uuid': FIX_QUAL_TEXT_UUID,
             # type is qualText
             'value': '',
         },
@@ -339,42 +370,42 @@ class Fix:
             'value': 'missing uuid!',
         },
         {
-            'uuid': '83acf2a7-8edc-4fd8-8b9f-f832ca3f18ad',
+            'uuid': FIX_QUAL_TEXT_UUID,
             # type is qualText
             # missing value!
         },
         {
-            'uuid': '5ef11d48-d7a3-432e-af83-8c2e9b1feb72',
+            'uuid': FIX_QUAL_NOTE_UUID,
             # type is qualNote
             'value': 'unexpected response!',  # notes take no responses
         },
         {
-            'uuid': '1a2c8eb0-e2ec-4b3c-942a-c1a5410c081a',
+            'uuid': FIX_QUAL_INTEGER_UUID,
             # type is qualInteger
             'value': 'not an integer',
         },
         {
-            'uuid': '2e30bec7-4843-43c7-98bc-13114af230c5',
+            'uuid': FIX_QUAL_SELECT_MULTIPLE_UUID,
             # type is qualSelectMultiple
             'value': 'not an array',
         },
         {
-            'uuid': '1a8b748b-f470-4c40-bc09-ce2b1197f503',
+            'uuid': FIX_QUAL_SELECT_ONE_UUID,
             # type is qualSelectOne
             'value': ['unexpected array'],
         },
         {
-            'uuid': 'e9b4e6d1-fdbb-4dc9-8b10-a9c3c388322f',
+            'uuid': FIX_QUAL_TAGS_UUID,
             # type is qualTags
             'value': 'not an array',
         },
         {
-            'uuid': '83acf2a7-8edc-4fd8-8b9f-f832ca3f18ad',
+            'uuid': FIX_QUAL_TEXT_UUID,
             # type is qualText
             'value': ['unexpected array'],
         },
         {
-            'uuid': '83acf2a7-8edc-4fd8-8b9f-f832ca3f18ad',
+            'uuid': FIX_QUAL_TEXT_UUID,
             'type': 'qualText',
             'value': 'the type is not to be included as an attribute',
         },
@@ -407,13 +438,13 @@ class Fix:
         '15ccc864-0e83-48f2-be1d-dc2adb9297f4',
     ]
     expected_result_after_filled_and_empty_responses = {
-        '1a2c8eb0-e2ec-4b3c-942a-c1a5410c081a': {
+        FIX_QUAL_INTEGER_UUID: {
             '_dateCreated': '2025-01-01T11:11:11Z',
             '_dateModified': '2025-01-02T11:11:11Z',
             '_versions': [
                 {
                     '_data': {
-                        'uuid': '1a2c8eb0-e2ec-4b3c-942a-c1a5410c081a',
+                        'uuid': FIX_QUAL_INTEGER_UUID,
                         'value': None,  # Deleted response recorded last
                     },
                     '_dateCreated': '2025-01-02T11:11:11Z',
@@ -421,7 +452,7 @@ class Fix:
                 },
                 {
                     '_data': {
-                        'uuid': '1a2c8eb0-e2ec-4b3c-942a-c1a5410c081a',
+                        'uuid': FIX_QUAL_INTEGER_UUID,
                         'value': 3,  # Filled response recorded first
                     },
                     '_dateCreated': '2025-01-01T11:11:11Z',
@@ -430,13 +461,13 @@ class Fix:
                 },
             ],
         },
-        '2e30bec7-4843-43c7-98bc-13114af230c5': {
+        FIX_QUAL_SELECT_MULTIPLE_UUID: {
             '_dateCreated': '2025-02-01T11:11:11Z',
             '_dateModified': '2025-02-02T11:11:11Z',
             '_versions': [
                 {
                     '_data': {
-                        'uuid': '2e30bec7-4843-43c7-98bc-13114af230c5',
+                        'uuid': FIX_QUAL_SELECT_MULTIPLE_UUID,
                         'value': [],
                     },
                     '_dateCreated': '2025-02-02T11:11:11Z',
@@ -445,10 +476,10 @@ class Fix:
                 },
                 {
                     '_data': {
-                        'uuid': '2e30bec7-4843-43c7-98bc-13114af230c5',
+                        'uuid': FIX_QUAL_SELECT_MULTIPLE_UUID,
                         'value': [
-                            '2e24e6b4-bc3b-4e8e-b0cd-d8d3b9ca15b6',
-                            'cb82919d-2948-4ccf-a488-359c5d5ee53a',
+                            FIX_CHOICE_EMPATHY_UUID,
+                            FIX_CHOICE_COMPETITION_UUID,
                         ],
                     },
                     '_dateCreated': '2025-02-01T11:11:11Z',
@@ -457,13 +488,13 @@ class Fix:
                 },
             ],
         },
-        '1a8b748b-f470-4c40-bc09-ce2b1197f503': {
+        FIX_QUAL_SELECT_ONE_UUID: {
             '_dateCreated': '2025-03-01T11:11:11Z',
             '_dateModified': '2025-03-02T11:11:11Z',
             '_versions': [
                 {
                     '_data': {
-                        'uuid': '1a8b748b-f470-4c40-bc09-ce2b1197f503',
+                        'uuid': FIX_QUAL_SELECT_ONE_UUID,
                         'value': '',
                     },
                     '_dateCreated': '2025-03-02T11:11:11Z',
@@ -472,8 +503,8 @@ class Fix:
                 },
                 {
                     '_data': {
-                        'uuid': '1a8b748b-f470-4c40-bc09-ce2b1197f503',
-                        'value': '7e31c6a5-5eac-464c-970c-62c383546a94',
+                        'uuid': FIX_QUAL_SELECT_ONE_UUID,
+                        'value': FIX_CHOICE_NO_UUID,
                     },
                     '_dateCreated': '2025-03-01T11:11:11Z',
                     '_dateAccepted': '2025-03-01T11:11:11Z',
@@ -481,13 +512,13 @@ class Fix:
                 },
             ],
         },
-        'e9b4e6d1-fdbb-4dc9-8b10-a9c3c388322f': {
+        FIX_QUAL_TAGS_UUID: {
             '_dateCreated': '2025-04-01T11:11:11Z',
             '_dateModified': '2025-04-02T11:11:11Z',
             '_versions': [
                 {
                     '_data': {
-                        'uuid': 'e9b4e6d1-fdbb-4dc9-8b10-a9c3c388322f',
+                        'uuid': FIX_QUAL_TAGS_UUID,
                         'value': [],
                     },
                     '_dateCreated': '2025-04-02T11:11:11Z',
@@ -496,7 +527,7 @@ class Fix:
                 },
                 {
                     '_data': {
-                        'uuid': 'e9b4e6d1-fdbb-4dc9-8b10-a9c3c388322f',
+                        'uuid': FIX_QUAL_TAGS_UUID,
                         'value': ['Quinobequin', 'Doughboy Donuts'],
                     },
                     '_dateCreated': '2025-04-01T11:11:11Z',
@@ -505,13 +536,13 @@ class Fix:
                 },
             ],
         },
-        '83acf2a7-8edc-4fd8-8b9f-f832ca3f18ad': {
+        FIX_QUAL_TEXT_UUID: {
             '_dateCreated': '2025-05-01T11:11:11Z',
             '_dateModified': '2025-05-02T11:11:11Z',
             '_versions': [
                 {
                     '_data': {
-                        'uuid': '83acf2a7-8edc-4fd8-8b9f-f832ca3f18ad',
+                        'uuid': FIX_QUAL_TEXT_UUID,
                         'value': '',
                     },
                     '_dateCreated': '2025-05-02T11:11:11Z',
@@ -520,7 +551,7 @@ class Fix:
                 },
                 {
                     '_data': {
-                        'uuid': '83acf2a7-8edc-4fd8-8b9f-f832ca3f18ad',
+                        'uuid': FIX_QUAL_TEXT_UUID,
                         'value': 'As the eagle and the wild goose see it',
                     },
                     '_dateCreated': '2025-05-01T11:11:11Z',
@@ -541,7 +572,7 @@ def test_param_validation():
     invalid_params = [
         {
             'type': 'qualSelectMultiple',
-            'uuid': '2e30bec7-4843-43c7-98bc-13114af230c5',
+            'uuid': FIX_QUAL_SELECT_MULTIPLE_UUID,
             'labels': {'_default': 'What themes were present in the story?'},
             # Oops, no choices!
         }
@@ -601,7 +632,7 @@ def test_invalid_result_fails_validation():
     working_result = deepcopy(Fix.expected_result_after_filled_and_empty_responses)
 
     # erroneously add '_dateModified' onto a version
-    first_version = working_result['1a2c8eb0-e2ec-4b3c-942a-c1a5410c081a']['_versions'][
+    first_version = working_result[FIX_QUAL_INTEGER_UUID]['_versions'][
         0
     ]
     first_version['_dateModified'] = first_version['_dateCreated']
@@ -652,48 +683,48 @@ class TestQualActionMethods(TestCase):
     action_params = [
         {
             'type': 'qualInteger',
-            'uuid': 'a7d3e9c2-5b1f-4a86-8c40-9e2d1b7f3c30',
+            'uuid': METHOD_QUAL_INTEGER_UUID,
             'labels': {'_default': 'Number of themes', 'fr': 'Nombre de thèmes'},
         },
         {
             'type': 'qualText',
-            'uuid': 'c1f9a2d4-6b8e-4a73-9c50-2e7b4d1f8a60',
+            'uuid': METHOD_QUAL_TEXT_UUID,
             'labels': {'_default': 'Summary Notes'},
         },
         {
             'type': 'qualSelectOne',
-            'uuid': '9e3b7a2c-5f1d-4c86-8a50-b2d4f6e91c70',
+            'uuid': METHOD_QUAL_SELECT_ONE_UUID,
             'labels': {'_default': 'Urgency Level', 'es': 'Nivel de Urgencia'},
             'choices': [
                 {
-                    'uuid': 'a4d9f7b6-1e2c-4a85-9c50-8b3f6e2d1a50',
+                    'uuid': METHOD_CHOICE_HIGH_UUID,
                     'labels': {'_default': 'High', 'fr': 'Élevé', 'es': 'Alto'},
                 },
                 {
-                    'uuid': '5c7e1a9f-2b6d-4c84-8a50-4d3f2e9b6c60',
+                    'uuid': METHOD_CHOICE_MEDIUM_UUID,
                     'labels': {'_default': 'Medium', 'fr': 'Moyen', 'es': 'Medio'},
                 },
                 {
-                    'uuid': 'e1a4b9c7-6f2d-4a83-9e50-5d8c3f7b1a70',
+                    'uuid': METHOD_CHOICE_LOW_UUID,
                     'labels': {'_default': 'Low', 'fr': 'Bas', 'es': 'Bajo'},
                 },
             ],
         },
         {
             'type': 'qualSelectMultiple',
-            'uuid': '7e1b9c2a-4f6d-4c83-8a50-d3f2e9b6c140',
+            'uuid': METHOD_QUAL_SELECT_MULTIPLE_UUID,
             'labels': {'_default': 'Tags'},
             'choices': [
                 {
-                    'uuid': '3b6f1d7a-2e4c-4a83-9c50-f9b8e2a1d990',
+                    'uuid': METHOD_CHOICE_SHELTER_UUID,
                     'labels': {'_default': 'Shelter', 'ar': 'مأوى'},
                 },
                 {
-                    'uuid': '1f3a9c2e-4b7d-4a86-9c50-2e7b4d1f8a01',
+                    'uuid': METHOD_CHOICE_FOOD_UUID,
                     'labels': {'_default': 'Food', 'ar': 'طعام'},
                 },
                 {
-                    'uuid': '4c8e2d1a-9f3b-4c76-8a50-b7d6e5910204',
+                    'uuid': METHOD_CHOICE_MEDICAL_UUID,
                     'labels': {'_default': 'Medical', 'ar': 'طبي'},
                 },
             ],
@@ -730,7 +761,7 @@ class TestQualActionMethods(TestCase):
         assert integer_field['label'] == 'Number of themes'
         assert (
             integer_field['name']
-            == f'{self.source_xpath}/a7d3e9c2-5b1f-4a86-8c40-9e2d1b7f3c30'
+            == f'{self.source_xpath}/{METHOD_QUAL_INTEGER_UUID}'
         )
         assert 'choices' not in integer_field
 
@@ -739,7 +770,7 @@ class TestQualActionMethods(TestCase):
         assert text_field['label'] == 'Summary Notes'
         assert (
             text_field['name']
-            == f'{self.source_xpath}/c1f9a2d4-6b8e-4a73-9c50-2e7b4d1f8a60'
+            == f'{self.source_xpath}/{METHOD_QUAL_TEXT_UUID}'
         )
         assert 'choices' not in text_field
 
@@ -750,14 +781,14 @@ class TestQualActionMethods(TestCase):
         assert select_one_field['label'] == 'Urgency Level'
         assert (
             select_one_field['name']
-            == f'{self.source_xpath}/9e3b7a2c-5f1d-4c86-8a50-b2d4f6e91c70'
+            == f'{self.source_xpath}/{METHOD_QUAL_SELECT_ONE_UUID}'
         )
         assert 'choices' in select_one_field
         assert len(select_one_field['choices']) == 3
 
         # Verify choice structure
         high_choice = select_one_field['choices'][0]
-        assert high_choice['uuid'] == 'a4d9f7b6-1e2c-4a85-9c50-8b3f6e2d1a50'
+        assert high_choice['uuid'] == METHOD_CHOICE_HIGH_UUID
         assert high_choice['labels'] == {
             '_default': 'High',
             'fr': 'Élevé',
@@ -775,7 +806,7 @@ class TestQualActionMethods(TestCase):
         shelter_choice = next(
             c
             for c in select_multi_field['choices']
-            if c['uuid'] == '3b6f1d7a-2e4c-4a83-9c50-f9b8e2a1d990'
+            if c['uuid'] == METHOD_CHOICE_SHELTER_UUID
         )
         assert shelter_choice['labels'] == {'_default': 'Shelter', 'ar': 'مأوى'}
 
@@ -793,11 +824,11 @@ class TestQualActionMethods(TestCase):
 
         action_data = {
             # Integer question
-            'a7d3e9c2-5b1f-4a86-8c40-9e2d1b7f3c30': {
+            METHOD_QUAL_INTEGER_UUID: {
                 '_versions': [
                     {
                         '_data': {
-                            'uuid': 'a7d3e9c2-5b1f-4a86-8c40-9e2d1b7f3c30',
+                            'uuid': METHOD_QUAL_INTEGER_UUID,
                             'value': 5,
                         },
                         '_dateCreated': '2025-11-24T10:00:00Z',
@@ -809,11 +840,11 @@ class TestQualActionMethods(TestCase):
                 '_dateModified': '2025-11-24T10:00:00Z',
             },
             # Text question
-            'c1f9a2d4-6b8e-4a73-9c50-2e7b4d1f8a60': {
+            METHOD_QUAL_TEXT_UUID: {
                 '_versions': [
                     {
                         '_data': {
-                            'uuid': 'c1f9a2d4-6b8e-4a73-9c50-2e7b4d1f8a60',
+                            'uuid': METHOD_QUAL_TEXT_UUID,
                             'value': 'Family needs immediate shelter and medical care',
                         },
                         '_dateCreated': '2025-11-24T10:05:00Z',
@@ -825,12 +856,12 @@ class TestQualActionMethods(TestCase):
                 '_dateModified': '2025-11-24T10:05:00Z',
             },
             # Select one question
-            '9e3b7a2c-5f1d-4c86-8a50-b2d4f6e91c70': {
+            METHOD_QUAL_SELECT_ONE_UUID: {
                 '_versions': [
                     {
                         '_data': {
-                            'uuid': '9e3b7a2c-5f1d-4c86-8a50-b2d4f6e91c70',
-                            'value': 'a4d9f7b6-1e2c-4a85-9c50-8b3f6e2d1a50',
+                            'uuid': METHOD_QUAL_SELECT_ONE_UUID,
+                            'value': METHOD_CHOICE_HIGH_UUID,
                         },
                         '_dateCreated': '2025-11-24T10:10:00Z',
                         '_dateAccepted': '2025-11-24T10:10:00Z',
@@ -841,14 +872,14 @@ class TestQualActionMethods(TestCase):
                 '_dateModified': '2025-11-24T10:10:00Z',
             },
             # Select multiple question
-            '7e1b9c2a-4f6d-4c83-8a50-d3f2e9b6c140': {
+            METHOD_QUAL_SELECT_MULTIPLE_UUID: {
                 '_versions': [
                     {
                         '_data': {
-                            'uuid': '7e1b9c2a-4f6d-4c83-8a50-d3f2e9b6c140',
+                            'uuid': METHOD_QUAL_SELECT_MULTIPLE_UUID,
                             'value': [
-                                '3b6f1d7a-2e4c-4a83-9c50-f9b8e2a1d990',
-                                '4c8e2d1a-9f3b-4c76-8a50-b7d6e5910204',
+                                METHOD_CHOICE_SHELTER_UUID,
+                                METHOD_CHOICE_MEDICAL_UUID,
                             ],
                         },
                         '_dateCreated': '2025-11-24T10:15:00Z',
@@ -867,24 +898,24 @@ class TestQualActionMethods(TestCase):
         assert len(output.keys()) == 4
 
         # Test integer question
-        int_item = output.get(('qual', 'a7d3e9c2-5b1f-4a86-8c40-9e2d1b7f3c30'))
+        int_item = output.get(('qual', METHOD_QUAL_INTEGER_UUID))
         assert int_item is not None
         assert int_item['value'] == 5
         assert int_item['type'] == 'qualInteger'
         assert int_item['xpath'] == self.source_xpath
 
         # Test text question
-        text_item = output.get(('qual', 'c1f9a2d4-6b8e-4a73-9c50-2e7b4d1f8a60'))
+        text_item = output.get(('qual', METHOD_QUAL_TEXT_UUID))
         assert text_item is not None
         assert text_item['value'] == 'Family needs immediate shelter and medical care'
         assert text_item['type'] == 'qualText'
 
         # Test select one - UUID transformed to object with labels
-        select_one_item = output.get(('qual', '9e3b7a2c-5f1d-4c86-8a50-b2d4f6e91c70'))
+        select_one_item = output.get(('qual', METHOD_QUAL_SELECT_ONE_UUID))
         assert select_one_item is not None
         select_one_value = select_one_item['value']
         assert isinstance(select_one_value, dict)
-        assert select_one_value['uuid'] == 'a4d9f7b6-1e2c-4a85-9c50-8b3f6e2d1a50'
+        assert select_one_value['uuid'] == METHOD_CHOICE_HIGH_UUID
         assert select_one_value['labels'] == {
             '_default': 'High',
             'fr': 'Élevé',
@@ -892,7 +923,7 @@ class TestQualActionMethods(TestCase):
         }
 
         # Test select multiple - array of UUIDs transformed to array of objects
-        select_multi_item = output.get(('qual', '7e1b9c2a-4f6d-4c83-8a50-d3f2e9b6c140'))
+        select_multi_item = output.get(('qual', METHOD_QUAL_SELECT_MULTIPLE_UUID))
         assert select_multi_item is not None
         select_multi_value = select_multi_item['value']
         assert isinstance(select_multi_value, list)
@@ -902,7 +933,7 @@ class TestQualActionMethods(TestCase):
         shelter_item = next(
             i
             for i in select_multi_value
-            if i['uuid'] == '3b6f1d7a-2e4c-4a83-9c50-f9b8e2a1d990'
+            if i['uuid'] == METHOD_CHOICE_SHELTER_UUID
         )
         assert shelter_item['labels'] == {'_default': 'Shelter', 'ar': 'مأوى'}
 
@@ -910,7 +941,7 @@ class TestQualActionMethods(TestCase):
         medical_item = next(
             i
             for i in select_multi_value
-            if i['uuid'] == '4c8e2d1a-9f3b-4c76-8a50-b7d6e5910204'
+            if i['uuid'] == METHOD_CHOICE_MEDICAL_UUID
         )
         assert medical_item['labels'] == {'_default': 'Medical', 'ar': 'طبي'}
 
@@ -922,11 +953,11 @@ class TestQualActionMethods(TestCase):
         action = ManualQualAction(self.source_xpath, self.action_params)
 
         action_data = {
-            'c1f9a2d4-6b8e-4a73-9c50-2e7b4d1f8a60': {
+            METHOD_QUAL_TEXT_UUID: {
                 '_versions': [
                     {
                         '_data': {
-                            'uuid': 'c1f9a2d4-6b8e-4a73-9c50-2e7b4d1f8a60',
+                            'uuid': METHOD_QUAL_TEXT_UUID,
                             'value': 'Initial note',
                         },
                         '_dateCreated': '2025-11-24T09:00:00Z',
@@ -935,7 +966,7 @@ class TestQualActionMethods(TestCase):
                     },
                     {
                         '_data': {
-                            'uuid': 'c1f9a2d4-6b8e-4a73-9c50-2e7b4d1f8a60',
+                            'uuid': METHOD_QUAL_TEXT_UUID,
                             'value': 'Revised note',
                         },
                         '_dateCreated': '2025-11-24T10:00:00Z',
@@ -944,7 +975,7 @@ class TestQualActionMethods(TestCase):
                     },
                     {
                         '_data': {
-                            'uuid': 'c1f9a2d4-6b8e-4a73-9c50-2e7b4d1f8a60',
+                            'uuid': METHOD_QUAL_TEXT_UUID,
                             'value': 'Final note',
                         },
                         '_dateCreated': '2025-11-24T11:00:00Z',
@@ -960,46 +991,46 @@ class TestQualActionMethods(TestCase):
         output = action.transform_data_for_output(action_data)
         assert len(output.keys()) == 1
 
-        text_item = output.get(('qual', 'c1f9a2d4-6b8e-4a73-9c50-2e7b4d1f8a60'))
+        text_item = output.get(('qual', METHOD_QUAL_TEXT_UUID))
         assert text_item['value'] == 'Final note'
 
     def test_update_params_sets_missing_questions_to_deleted_and_moved_to_the_end(self):
         params = [
             {
                 'type': 'qualInteger',
-                'uuid': 'a7d3e9c2-5b1f-4a86-8c40-9e2d1b7f3c30',
+                'uuid': METHOD_QUAL_INTEGER_UUID,
                 'labels': {'_default': 'Number of themes', 'fr': 'Nombre de thèmes'},
             }
         ]
         action = ManualQualAction(self.source_xpath, params=params)
         new_question = {
-            'uuid': '3b6c9e4f-8a2d-4f75-9c50-7d3a2e1b4f03',
+            'uuid': METHOD_NEW_QUESTION_UUID,
             'type': 'qualInteger',
             'labels': {'_default': 'How many?'},
         }
         action.update_params([new_question])
         assert len(action.params) == 2
-        assert action.params[0]['uuid'] == '3b6c9e4f-8a2d-4f75-9c50-7d3a2e1b4f03'
-        assert action.params[1]['uuid'] == 'a7d3e9c2-5b1f-4a86-8c40-9e2d1b7f3c30'
+        assert action.params[0]['uuid'] == METHOD_NEW_QUESTION_UUID
+        assert action.params[1]['uuid'] == METHOD_QUAL_INTEGER_UUID
         assert action.params[1]['options'][action.DELETED_OPTION] is True
 
     def test_update_params_modify_choices(self):
         params = [
             {
                 'type': 'qualSelectMultiple',
-                'uuid': 'c8f2b6a4-1d7e-4c95-8a50-9e3d1b7a2f80',
+                'uuid': METHOD_COLORS_QUESTION_UUID,
                 'labels': {'_default': 'Which colors?'},
                 'choices': [
                     {
-                        'uuid': '2a7d1e9c-5b3f-4c82-8a50-6c8f3a2b1d02',
+                        'uuid': METHOD_CHOICE_RED_UUID,
                         'labels': {'_default': 'Red'},
                     },
                     {
-                        'uuid': '5d1f7c9b-4e8a-4c2d-9f30-7a5e9c8b1405',
+                        'uuid': METHOD_CHOICE_BLUE_UUID,
                         'labels': {'_default': 'Blue'},
                     },
                     {
-                        'uuid': '6e2b8a7d-1c9f-4d63-9e50-6c1f3a82b906',
+                        'uuid': METHOD_CHOICE_PURPLE_UUID,
                         'labels': {'_default': 'Purple'},
                     },
                 ],
@@ -1009,19 +1040,19 @@ class TestQualActionMethods(TestCase):
         # remove 'Red', relabel 'Blue', move 'Purple', add 'Green'
         new_question = {
             'type': 'qualSelectMultiple',
-            'uuid': 'c8f2b6a4-1d7e-4c95-8a50-9e3d1b7a2f80',
+            'uuid': METHOD_COLORS_QUESTION_UUID,
             'labels': {'_default': 'Which colors?'},
             'choices': [
                 {
-                    'uuid': '6e2b8a7d-1c9f-4d63-9e50-6c1f3a82b906',
+                    'uuid': METHOD_CHOICE_PURPLE_UUID,
                     'labels': {'_default': 'Purple'},
                 },
                 {
-                    'uuid': '5d1f7c9b-4e8a-4c2d-9f30-7a5e9c8b1405',
+                    'uuid': METHOD_CHOICE_BLUE_UUID,
                     'labels': {'_default': 'Cerulean'},
                 },
                 {
-                    'uuid': '7f1d8b3a-5e9c-4a26-8c50-2b6d4e9f7307',
+                    'uuid': METHOD_CHOICE_GREEN_UUID,
                     'labels': {'_default': 'Green'},
                 },
             ],
@@ -1030,16 +1061,16 @@ class TestQualActionMethods(TestCase):
         assert len(action.params) == 1
         choices = action.params[0]['choices']
         # "Purple" is first
-        assert choices[0]['uuid'] == '6e2b8a7d-1c9f-4d63-9e50-6c1f3a82b906'
+        assert choices[0]['uuid'] == METHOD_CHOICE_PURPLE_UUID
         assert choices[0]['labels']['_default'] == 'Purple'
         # "Blue" -> "Cerulean"
-        assert choices[1]['uuid'] == '5d1f7c9b-4e8a-4c2d-9f30-7a5e9c8b1405'
+        assert choices[1]['uuid'] == METHOD_CHOICE_BLUE_UUID
         assert choices[1]['labels']['_default'] == 'Cerulean'
         # Add "Green"
-        assert choices[2]['uuid'] == '7f1d8b3a-5e9c-4a26-8c50-2b6d4e9f7307'
+        assert choices[2]['uuid'] == METHOD_CHOICE_GREEN_UUID
         assert choices[2]['labels']['_default'] == 'Green'
         # Hide "Red"
-        assert choices[3]['uuid'] == '2a7d1e9c-5b3f-4c82-8a50-6c8f3a2b1d02'
+        assert choices[3]['uuid'] == METHOD_CHOICE_RED_UUID
         assert choices[3]['labels']['_default'] == 'Red'
         assert choices[3]['options'][action.DELETED_OPTION] is True
 
@@ -1047,13 +1078,13 @@ class TestQualActionMethods(TestCase):
         params = [
             {
                 'type': 'qualInteger',
-                'uuid': 'a7d3e9c2-5b1f-4a86-8c40-9e2d1b7f3c30',
+                'uuid': METHOD_QUAL_INTEGER_UUID,
                 'labels': {'_default': 'Number of themes', 'fr': 'Nombre de thèmes'},
             }
         ]
         action = ManualQualAction(self.source_xpath, params=params)
         new_question = {
-            'uuid': 'a7d3e9c2-5b1f-4a86-8c40-9e2d1b7f3c30',
+            'uuid': METHOD_QUAL_INTEGER_UUID,
             'type': 'qualText',
             'labels': {'_default': 'How many?'},
         }
@@ -1064,52 +1095,52 @@ class TestQualActionMethods(TestCase):
         params = [
             {
                 'type': 'qualInteger',
-                'uuid': 'a7d3e9c2-5b1f-4a86-8c40-9e2d1b7f3c30',
+                'uuid': METHOD_QUAL_INTEGER_UUID,
                 'labels': {'_default': 'Number of themes', 'fr': 'Nombre de thèmes'},
             }
         ]
         action = ManualQualAction(self.source_xpath, params=params)
         new_question = {
-            'uuid': 'a7d3e9c2-5b1f-4a86-8c40-9e2d1b7f3c30',
+            'uuid': METHOD_QUAL_INTEGER_UUID,
             'type': 'qualInteger',
             'labels': {'_default': 'How many?'},
         }
         action.update_params([new_question])
         assert len(action.params) == 1
-        assert action.params[0]['uuid'] == 'a7d3e9c2-5b1f-4a86-8c40-9e2d1b7f3c30'
+        assert action.params[0]['uuid'] == METHOD_QUAL_INTEGER_UUID
         assert action.params[0]['labels'] == {'_default': 'How many?'}
 
     def test_update_params_change_deleted_option(self):
         params = [
             {
                 'type': 'qualInteger',
-                'uuid': 'd4b1f7e9-2a3c-4d85-9c60-5e8a1b3f7d40',
+                'uuid': METHOD_HIDE_QUESTION_UUID,
                 'labels': {'_default': 'How many?'},
             },
             {
                 'type': 'qualInteger',
-                'uuid': '8b6a4e3f-9c1d-4d72-8e50-2f7c1a9b6e20',
+                'uuid': METHOD_UNHIDE_QUESTION_UUID,
                 'labels': {'_default': 'How many more?'},
                 'options': {ManualQualAction.DELETED_OPTION: True},
             },
         ]
         action = ManualQualAction(self.source_xpath, params=params)
         hide_question = {
-            'uuid': 'd4b1f7e9-2a3c-4d85-9c60-5e8a1b3f7d40',
+            'uuid': METHOD_HIDE_QUESTION_UUID,
             'type': 'qualInteger',
             'labels': {'_default': 'How many?'},
             'options': {ManualQualAction.DELETED_OPTION: True},
         }
         unhide_question = {
-            'uuid': '8b6a4e3f-9c1d-4d72-8e50-2f7c1a9b6e20',
+            'uuid': METHOD_UNHIDE_QUESTION_UUID,
             'type': 'qualInteger',
             'labels': {'_default': 'How many more?'},
         }
         action.update_params([hide_question, unhide_question])
         assert len(action.params) == 2
-        assert action.params[0]['uuid'] == 'd4b1f7e9-2a3c-4d85-9c60-5e8a1b3f7d40'
+        assert action.params[0]['uuid'] == METHOD_HIDE_QUESTION_UUID
         assert action.params[0]['options'][action.DELETED_OPTION] is True
-        assert action.params[1]['uuid'] == '8b6a4e3f-9c1d-4d72-8e50-2f7c1a9b6e20'
+        assert action.params[1]['uuid'] == METHOD_UNHIDE_QUESTION_UUID
         # the entire options dictionary will actually go away, which is equivalent
         # to setting 'deleted' to False
         assert (
