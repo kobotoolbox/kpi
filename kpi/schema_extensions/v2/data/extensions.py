@@ -130,7 +130,6 @@ class DataSupplementPayloadExtension(
                 'automatic_google_transcription': self._nlp_automatic_action_schema,
                 'automatic_google_translation': self._nlp_automatic_action_schema,
                 'manual_qual': self._qual_schema(auto_schema),
-
             },
             anyOf=[
                 {'required': ['manual_transcription']},
@@ -373,11 +372,15 @@ class DataSupplementResponseExtension(
             # to generate a union type for dynamic values while keeping `_version`
             # correctly typed, without changing the backend response format.
             additionalProperties=self._register_schema_component(
-                auto_schema, 'DataSupplementResponseOneOf', self.question_schema(auto_schema)
+                auto_schema,
+                'DataSupplementResponseOneOf',
+                self.question_schema(auto_schema),
             ),
             patternProperties={
                 '^(?!_version$).*': self._register_schema_component(
-                    auto_schema, 'DataSupplementResponseOneOf', self.question_schema(auto_schema)
+                    auto_schema,
+                    'DataSupplementResponseOneOf',
+                    self.question_schema(auto_schema),
                 ),
             },
             required=['_version'],
