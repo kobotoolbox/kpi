@@ -14,7 +14,12 @@ AdvancedFeatureResponse = inline_serializer_class(
 )
 
 AdvancedFeaturePatchRequest = inline_serializer_class(
-    name='AdvancedFeaturePatchRequest', fields={'params': AdvancedFeatureParamsField()}
+    name='AdvancedFeaturePatchRequest',
+    fields={
+        'action': AdvancedFeatureActionField,
+        'question_xpath': serializers.CharField(),
+        'params': AdvancedFeatureParamsField()
+    }
 )
 
 AdvancedFeaturePostRequest = inline_serializer_class(

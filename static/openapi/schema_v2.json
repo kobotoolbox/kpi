@@ -20934,6 +20934,12 @@
             "PatchedAdvancedFeaturePatchRequest": {
                 "type": "object",
                 "properties": {
+                    "action": {
+                        "$ref": "#/components/schemas/ActionEnum"
+                    },
+                    "question_xpath": {
+                        "type": "string"
+                    },
                     "params": {
                         "type": "array",
                         "items": {
