@@ -50,21 +50,35 @@ class BaseAutomaticNLPAction {
   +get_nlp_service_class() [abstract]
 }
 
+class BaseQualAction {
+  +data_schema [property]
+  +result_schema [property]
+  +get_output_fields()
+  +transform_data_for_output()
+  +update_params()
+}
+
 %% ==== Concrete ====
 class ManualTranscription
 class ManualTranslation
 class AutomaticGoogleTranscription
 class AutomaticGoogleTranslation
+class ManualQual
+class AutomaticBedrockQual
 
 %% ==== Mixins (provide result_schema) ====
+class RequiresTranscriptionMixin {
+  +attach_action_dependency()
+  +get_action_dependencies()
+}
 class TranscriptionActionMixin {
   +result_schema [property]
 }
 class TranslationActionMixin {
-  +attach_action_dependency()
-  +get_action_dependencies()
   +result_schema [property]
+  +transform_data_for_output()
 }
+
 
 %% ==== Inheritance (bases) ====
 BaseAction <|-- BaseManualNLPAction
@@ -75,12 +89,16 @@ BaseManualNLPAction <|-- ManualTranscription
 BaseManualNLPAction <|-- ManualTranslation
 BaseAutomaticNLPAction <|-- AutomaticGoogleTranscription
 BaseAutomaticNLPAction <|-- AutomaticGoogleTranslation
+BaseQualAction <|-- ManualQual
+BaseQualAction <|-- AutomaticBedrockQual
 
 %% ==== Mixins -> Concretes ====
 TranscriptionActionMixin <.. ManualTranscription : mixin
 TranscriptionActionMixin <.. AutomaticGoogleTranscription : mixin
 TranslationActionMixin  <.. ManualTranslation : mixin
 TranslationActionMixin  <.. AutomaticGoogleTranslation : mixin
+RequiresTranscriptionMixin  <.. ManualTranslation : mixin
+RequiresTranscriptionMixin  <.. AutomaticGoogleTranslation : mixin
 ```
 
 ---
@@ -405,7 +423,7 @@ Each action has its own expected format:
   { "language": "en", "value": null }
   ```
 
-- **Qualitative Analysis**
+- **Manual Qualitative Analysis**
   ```json
   {
     "uuid": "q_uuid",
@@ -413,16 +431,38 @@ Each action has its own expected format:
   }
   ```
 
+- **Automatic Qualitative Analysis**
+  ```json
+  {
+    "uuid": "q_uuid"
+  }
+  ```
+
 ---
 
 ### 3.3 `external_data_schema`
 
-Used only for **automatic actions** (`BaseAutomaticNLPAction`).
+Used only for **automatic actions**.
 It validates the **augmented payload** returned by the external service.
 
-- **Example (complete)**
+- **Example: Automatic Google Transcription/Translation (complete)**
   ```json
   { "language": "en", "value": "My automatic result", "status": "complete" }
+  ```
+
+- **Example: Automatic Bedrock Qual (complete)**
+  ```json
+  { "uuid": "q_uuid", "value": "LLM response", "status": "complete" }
+  ```
+
+- **Example Automatic Google Transcription/Translation (failed)**
+  ```json
+  { "language": "en", "status": "failed", "error": "Could not process action" }
+  ```
+
+- **Example: Automatic Bedrock Qual (complete)**
+  ```json
+  { "uuid": "q_uuid", "status": "failed", "error": "LLM returned unparseable response" }
   ```
 
 - **Example (in progress)**
@@ -435,10 +475,7 @@ It validates the **augmented payload** returned by the external service.
   { "language": "en", "status": "deleted", "value": null }
   ```
 
-- **Example (failed)**
-  ```json
-  { "language": "en", "status": "failed", "error": "Could not process action" }
-  ```
+
 
 ---
 
@@ -512,7 +549,7 @@ The structure is the same for both manual and automatic actions:
 }
 ```
 
-**Qualitative Analysis Action Example**
+**Manual Qualitative Analysis Action Example**
 
 ```json
 {
@@ -522,7 +559,7 @@ The structure is the same for both manual and automatic actions:
     "_versions": [
       {
         "_data": {
-          "uuid": "q1_uuid_here",
+          "uuid": "manual_qa_q1_uuid_here",
           "value": "sentiment_pos"
         },
         "_dateCreated": "2025-08-21T20:57:28Z",
@@ -531,7 +568,7 @@ The structure is the same for both manual and automatic actions:
       },
       {
         "_data": {
-          "uuid": "q1_uuid_here",
+          "uuid": "manual_qa_q1_uuid_here",
           "value": "sentiment_neg"
         },
         "_dateCreated": "2025-08-21T20:55:42Z",
@@ -546,8 +583,57 @@ The structure is the same for both manual and automatic actions:
     "_versions": [
       {
         "_data": {
-          "uuid": "q2_uuid_here",
+          "uuid": "manual_qa_q2_uuid_here",
           "value": 8
+        },
+        "_dateCreated": "2025-08-21T20:57:28Z",
+        "_dateAccepted": "2025-08-21T20:57:28Z",
+        "_uuid": "91ab5f30-0f73-4e2e-b91f-8ad2f67a4729"
+      }
+    ]
+  }
+}
+```
+
+**Automatic Bedrock Qualitative Analysis Action Example**
+
+```json
+{
+  "q1_uuid_here": {
+    "_dateCreated": "2025-08-21T20:55:42Z",
+    "_dateModified": "2025-08-21T20:57:28Z",
+    "_versions": [
+      {
+        "_data": {
+          "uuid": "automatic_qa_q1_uuid_here",
+          "value": "sentiment_pos",
+          "status": "complete"
+        },
+        "_dateCreated": "2025-08-21T20:57:28Z",
+        "_dateAccepted": "2025-08-21T20:57:28Z",
+        "_uuid": "4dcf9c9f-e503-4e5c-81f5-74250b295001"
+      },
+      {
+        "_data": {
+          "uuid": "automatic_qa_q1_uuid_here",
+          "value": "sentiment_neg",
+          "value": "complete"
+        },
+        "_dateCreated": "2025-08-21T20:55:42Z",
+        "_dateAccepted": "2025-08-21T20:55:42Z",
+        "_uuid": "850e6359-50e8-4252-9895-e9669a27b1ea"
+      }
+    ]
+  },
+  "q2_uuid_here": {
+    "_dateCreated": "2025-08-21T20:55:42Z",
+    "_dateModified": "2025-08-21T20:57:28Z",
+    "_versions": [
+      {
+        "_data": {
+          "uuid": "automatic_qa_q2_uuid_here",
+          "value": 8,
+          "status": "complete"
         },
         "_dateCreated": "2025-08-21T20:57:28Z",
         "_dateAccepted": "2025-08-21T20:57:28Z",
@@ -594,6 +680,30 @@ In this case, a `_dependency` property is added to the persisted JSON.
 }
 ```
 
-- The `_dependency` object references the transcription result that the translation was built upon.
+**Example: Automatic QA result depending on an Automatic Transcription**
+
+```json
+{
+  "_dateCreated": "2025-09-01T12:15:42Z",
+  "_dateModified": "2025-09-01T12:17:28Z",
+  "_versions": [
+    {
+      "_data": {
+        "uuid": "qa-q1-uuid",
+        "value": "The LLM said the answer is 'frogs'",
+        "status": "complete"
+      },
+      "_dateCreated": "2025-09-01T12:17:28Z",
+      "_uuid": "91ab5f30-0f73-4e2e-b91f-8ad2f67a4729",
+      "_dependency": {
+        "_uuid": "4dcf9c9f-e503-4e5c-81f5-74250b295001",
+        "_actionId": "automatic_google_transcription"
+      }
+    }
+  ]
+}
+```
+
+- The `_dependency` object references the transcription result that was sent to the third party for automatic processing.
 - It reuses the UUID and action ID from the transcription’s persisted result, ensuring referential integrity.
-- This allows clients to trace back a translation to the exact transcription version it relied on.
+- This allows clients to trace back an automatic action to the exact transcription version it relied on.
