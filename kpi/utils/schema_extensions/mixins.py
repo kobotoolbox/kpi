@@ -1,4 +1,4 @@
-from drf_spectacular.plumbing import ResolvedComponent
+from drf_spectacular.plumbing import ResolvedComponent, ComponentIdentity
 
 
 class ComponentRegistrationMixin:
@@ -16,7 +16,7 @@ class ComponentRegistrationMixin:
             name=name,
             type=ResolvedComponent.SCHEMA,
             schema=schema,
-            object=self,
+            object=ComponentIdentity(name),
         )
 
         auto_schema.registry.register_on_missing(component)
