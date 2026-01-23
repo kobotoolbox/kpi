@@ -1962,7 +1962,7 @@ CACHES = {
 }
 
 # How long to retain cached responses for kpi endpoints
-ENDPOINT_CACHE_DURATION = env.int('ENDPOINT_CACHE_DURATION', 60 * 1)  # 15 minutes
+ENDPOINT_CACHE_DURATION = env.int('ENDPOINT_CACHE_DURATION', 60 * 15)  # 15 minutes
 
 ENV = None
 
