@@ -287,57 +287,6 @@ class DataSupplementPayloadExtension(
         )
 
     def _qual_schema(self, references):
-        qual_defs = {
-            'qualCommon': {
-                'type': 'object',
-                'additionalProperties': False,
-                'properties': {
-                    'uuid': self.UUID_STR,
-                    'value': {},
-                },
-                'required': ['uuid', 'value'],
-            },
-            'qualInteger': {
-                'type': 'object',
-                'properties': {
-                    'value': {
-                        'type': 'integer',
-                        'nullable': True,
-                    },
-                },
-            },
-            'qualText': {
-                'type': 'object',
-                'properties': {
-                    'value': {'type': 'string'},
-                },
-            },
-            'qualSelectOne': {
-                'type': 'object',
-                'properties': {
-                    'value': self.UUID_STR,
-                },
-            },
-            'qualSelectMultiple': {
-                'type': 'object',
-                'properties': {
-                    'value': {
-                        'type': 'array',
-                        'items': self.UUID_STR,
-                    },
-                },
-            },
-            'qualTags': {
-                'type': 'object',
-                'properties': {
-                    'value': {
-                        'type': 'array',
-                        'items': {'type': 'string'},
-                    },
-                },
-            },
-        }
-
         return {
             'oneOf': [
                 references['qual_integer'],
