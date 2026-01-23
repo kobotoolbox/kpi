@@ -27,7 +27,8 @@ from ..type_aliases import (
 * three jsonschemas:
   1. (check!) one to validate the parameters used to configure the action
     * `ADVANCED_FEATURES_PARAMS_SCHEMA`
-  2. (check!) one to validate users' requests to invoke the action, which many contain content (e.g. a manual transcript)
+  2. (check!) one to validate users' requests to invoke the action, which many contain
+    content (e.g. a manual transcript)
     * the result of `modify_jsonschema()`
   3. one to validate the result of the action - the result of `modify_jsonschema()`
     * OH NO, this doesn't happen at all yet
@@ -35,7 +36,8 @@ from ..type_aliases import (
 """
 
 """
-idea of example content in asset.advanced_features (what kind of actions are activated per question)
+idea of example content in asset.advanced_features (what kind of actions are activated
+per question)
 {
     '_version': '20250820',
     '_schema': {
@@ -457,7 +459,9 @@ class BaseAction:
             # dependency (with '_actionId' and '_uuid') and drop all other fields
             # (e.g., 'value', 'language', timestamps).
             dependency_supplemental_data = {
-                self.ACTION_ID_FIELD: dependency_supplemental_data[self.ACTION_ID_FIELD],
+                self.ACTION_ID_FIELD: dependency_supplemental_data[
+                    self.ACTION_ID_FIELD
+                ],
                 self.UUID_FIELD: dependency_supplemental_data[self.UUID_FIELD],
             }
 
@@ -778,7 +782,8 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
                     },
                     'then': {'not': {'required': ['value']}},
                 },
-                # If status == "deleted" → "value" optional, but if present it MUST be null
+                # If status == "deleted" → "value" optional,
+                # but if present it MUST be null
                 'rule_value_null_only_when_deleted': {
                     'if': {
                         'required': ['status'],
@@ -804,7 +809,8 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
                     'then': {'required': ['error']},
                     'else': {'not': {'required': ['error']}},
                 },
-                # If status == "complete" → accepted allowed but optional; else forbid it
+                # If status == "complete" → accepted allowed but optional;
+                # else forbid it
                 'rule_accepted_only_when_complete': {
                     'if': {
                         'required': ['status'],
@@ -822,12 +828,14 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
         Schema rules:
 
         - `language` is required.
-        - `value` is optional but, if present, it MUST be `null` (no other type allowed).
+        - `value` is optional but, if present, it MUST be `null`
+           (no other type allowed).
         - `accepted` is optional.
         - Mutual exclusion: `accepted` and `value` cannot be present at the same time.
           * If `value` is present (and thus equals null), `accepted` must be absent.
           * If `accepted` is present, `value` must be absent.
-        - No additional properties are allowed beyond: `language`, `locale`, `value`, `accepted`.
+        - No additional properties are allowed beyond:
+          `language`, `locale`, `value`, `accepted`.
         """
 
         return {
