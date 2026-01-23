@@ -19,6 +19,8 @@ import type {
   UseQueryResult,
 } from '@tanstack/react-query'
 
+import type { AdvancedFeatureCreateResponse } from '../models/advancedFeatureCreateResponse'
+
 import type { AdvancedFeaturePostRequest } from '../models/advancedFeaturePostRequest'
 
 import type { AdvancedFeatureResponse } from '../models/advancedFeatureResponse'
@@ -231,7 +233,7 @@ Accepted `action`s include:
 
  */
 export type assetsAdvancedFeaturesCreateResponse201 = {
-  data: AdvancedFeatureResponse
+  data: AdvancedFeatureCreateResponse
   status: 201
 }
 
