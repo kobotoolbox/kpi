@@ -108,14 +108,61 @@ def check_lxml_fromstring(
 def edit_submission_xml(
     xml_parsed: 'xml.etree.ElementTree.Element',
     path: str,
-    value: str,
+    value: Union[str, list],
 ) -> None:
     """
     Edit submission XML with an XPath and new value, creating a new tree
     element if the path doesn't yet exist.
     """
-    element = get_or_create_element(xml_parsed, path)
-    element.text = value
+    if isinstance(value, list):
+        _edit_repeat_group(xml_parsed, path, value)
+    else:
+        element = get_or_create_element(xml_parsed, path)
+        element.text = value
+
+
+def _edit_repeat_group(
+    xml_parsed: ET.Element,
+    repeat_group_path: str,
+    items: list,
+) -> None:
+    """
+    Replace all existing repeat group elements with new ones from the items list.
+    """
+    path_parts = repeat_group_path.split('/')
+    repeat_tag = path_parts[-1]
+    parent_path = '/'.join(path_parts[:-1])
+
+    if parent_path:
+        parent_el = get_or_create_element(xml_parsed, parent_path)
+    else:
+        parent_el = xml_parsed
+
+    existing_repeats = parent_el.findall(repeat_tag)
+    for existing in existing_repeats:
+        parent_el.remove(existing)
+
+    for item in items:
+        repeat_el = ET.Element(repeat_tag)
+        parent_el.append(repeat_el)
+
+        for full_path, field_value in item.items():
+            relative_path = _extract_relative_path(full_path, repeat_group_path)
+
+            if isinstance(field_value, list):
+                _edit_repeat_group(repeat_el, relative_path, field_value)
+            else:
+                field_el = get_or_create_element(repeat_el, relative_path)
+                field_el.text = str(field_value) if field_value is not None else ''
+
+
+def _extract_relative_path(full_path: str, repeat_group_path: str) -> str:
+    """
+    Extract the relative path within a repeat group.
+    """
+    if full_path.startswith(repeat_group_path + '/'):
+        return full_path[len(repeat_group_path) + 1:]
+    return full_path.split('/')[-1]
 
 
 def fromstring_preserve_root_xmlns(
