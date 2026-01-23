@@ -504,11 +504,17 @@ class TestVersioning(TestCase):
         # Create UUID lists for q1 (idx=0) and q2 (idx=1)
         uuid_qual_integer = [UUID_QUAL_INTEGER_Q1, UUID_QUAL_INTEGER_Q2]
         uuid_qual_note = [UUID_QUAL_NOTE_Q1, UUID_QUAL_NOTE_Q2]
-        uuid_qual_select_multiple = [UUID_QUAL_SELECT_MULTIPLE_Q1, UUID_QUAL_SELECT_MULTIPLE_Q2]
+        uuid_qual_select_multiple = [
+            UUID_QUAL_SELECT_MULTIPLE_Q1,
+            UUID_QUAL_SELECT_MULTIPLE_Q2,
+        ]
         uuid_choice_green = [UUID_CHOICE_GREEN_Q1, UUID_CHOICE_GREEN_Q2]
         uuid_choice_red = [UUID_CHOICE_RED_Q1, UUID_CHOICE_RED_Q2]
         uuid_choice_blue = [UUID_CHOICE_BLUE_Q1, UUID_CHOICE_BLUE_Q2]
-        uuid_qual_select_one = [UUID_QUAL_SELECT_ONE_Q1, UUID_QUAL_SELECT_ONE_Q2]
+        uuid_qual_select_one = [
+            UUID_QUAL_SELECT_ONE_Q1,
+            UUID_QUAL_SELECT_ONE_Q2,
+        ]
         uuid_choice_a = [UUID_CHOICE_A_Q1, UUID_CHOICE_A_Q2]
         uuid_choice_b = [UUID_CHOICE_B_Q1, UUID_CHOICE_B_Q2]
         uuid_qual_tags = [UUID_QUAL_TAGS_Q1, UUID_QUAL_TAGS_Q2]
