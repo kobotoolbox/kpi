@@ -1,3 +1,6 @@
+from typing import Any
+
+from drf_spectacular.openapi import AutoSchema
 from drf_spectacular.plumbing import ResolvedComponent, ComponentIdentity
 
 
@@ -11,12 +14,18 @@ class ComponentRegistrationMixin:
     the serializer extension that defines it.
     """
 
-    def _register_schema_component(self, auto_schema, name, schema):
+    def _register_schema_component(
+        self,
+        auto_schema: AutoSchema,
+        name: str,
+        schema: dict,
+        query_object: Any=None
+    ):
         component = ResolvedComponent(
             name=name,
             type=ResolvedComponent.SCHEMA,
             schema=schema,
-            object=ComponentIdentity(name),
+            object=query_object or ComponentIdentity(name),
         )
 
         auto_schema.registry.register_on_missing(component)
