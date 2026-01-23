@@ -19,7 +19,7 @@ class ComponentRegistrationMixin:
         auto_schema: AutoSchema,
         name: str,
         schema: dict,
-        query_object: Any=None
+        query_object: Any = None
     ):
         component = ResolvedComponent(
             name=name,
