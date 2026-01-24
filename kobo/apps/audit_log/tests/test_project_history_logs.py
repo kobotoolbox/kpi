@@ -18,6 +18,7 @@ from rest_framework.reverse import reverse as drf_reverse
 
 from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import ProjectHistoryLog
+from kobo.apps.audit_log.tests.constants import PROJECT_HISTORY_QUAL_TEXT_UUID
 from kobo.apps.audit_log.tests.test_models import BaseAuditLogTestCase
 from kobo.apps.data_collectors.models import DataCollector, DataCollectorGroup
 from kobo.apps.hook.models import Hook
@@ -590,7 +591,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                         'qual': [
                             {
                                 'type': 'qualText',
-                                'uuid': 'b2d4f6e9-3a1c-4d83-8c50-7e2b1f9a4d11',
+                                'uuid': PROJECT_HISTORY_QUAL_TEXT_UUID,
                                 'labels': {'_default': 'Why?'},
                             },
                         ]
@@ -618,7 +619,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             'params': [
                 {
                     'labels': {'_default': 'wherefore?'},
-                    'uuid': 'b2d4f6e9-3a1c-4d83-8c50-7e2b1f9a4d11',
+                    'uuid': PROJECT_HISTORY_QUAL_TEXT_UUID,
                     'type': 'qualText',
                 }
             ],
@@ -670,7 +671,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             'params': [
                 {
                     'labels': {'_default': 'wherefore?'},
-                    'uuid': 'b2d4f6e9-3a1c-4d83-8c50-7e2b1f9a4d11',
+                    'uuid': PROJECT_HISTORY_QUAL_TEXT_UUID,
                     'type': 'qualText',
                 }
             ]
