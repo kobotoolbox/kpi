@@ -883,6 +883,255 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
         # Should fail because there's nothing to delete
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
+    def test_cannot_translate_deleted_manual_transcription(self):
+        """
+        Verify that if a user deletes a manual transcript, a subsequent translation
+        request fails, even if an older valid version exists
+        """
+        QuestionAdvancedFeature.objects.create(
+            asset=self.asset,
+            question_xpath='q1',
+            action='manual_transcription',
+            params=[{'language': 'en'}],
+        )
+        QuestionAdvancedFeature.objects.create(
+            asset=self.asset,
+            question_xpath='q1',
+            action='manual_translation',
+            params=[{'language': 'es'}],
+        )
+
+        # Add a valid transcript
+        transcript_payload = {
+            '_version': '20250820',
+            'q1': {
+                'manual_transcription': {
+                    'language': 'en',
+                    'value': 'Hello World',
+                },
+            },
+        }
+        self.client.patch(
+            self.supplement_details_url, data=transcript_payload, format='json'
+        )
+
+        # Delete the transcript
+        delete_payload = {
+            '_version': '20250820',
+            'q1': {
+                'manual_transcription': {
+                    'language': 'en',
+                    'value': None,
+                },
+            },
+        }
+        self.client.patch(
+            self.supplement_details_url, data=delete_payload, format='json'
+        )
+
+        # Attempt to translate
+        translation_payload = {
+            '_version': '20250820',
+            'q1': {
+                'manual_translation': {
+                    'language': 'es',
+                    'value': 'Hola Mundo',
+                },
+            },
+        }
+        response = self.client.patch(
+            self.supplement_details_url, data=translation_payload, format='json'
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert 'Cannot translate without transcription' in str(response.data)
+
+    def test_cannot_translate_deleted_automatic_transcription(self):
+        """
+        Verify that if an automatic transcript is marked as 'deleted',
+        translation is blocked
+        """
+        QuestionAdvancedFeature.objects.create(
+            asset=self.asset,
+            question_xpath='q1',
+            action='automatic_google_transcription',
+            params=[{'language': 'en'}],
+        )
+        QuestionAdvancedFeature.objects.create(
+            asset=self.asset,
+            question_xpath='q1',
+            action='automatic_google_translation',
+            params=[{'language': 'es'}],
+        )
+
+        # Add a 'deleted' transcript
+        deleted_transcript_data = {
+            'q1': {
+                'automatic_google_transcription': {
+                    '_dateCreated': '2026-01-01T12:00:00Z',
+                    '_dateModified': '2026-01-01T12:00:00Z',
+                    '_versions': [
+                        {
+                            '_data': {
+                                'language': 'en',
+                                'status': 'deleted',
+                                'value': None
+                            },
+                            '_dateCreated': '2026-01-01T12:00:00Z',
+                            '_uuid': 'uuid-deleted-version',
+                        },
+                        {
+                            '_data': {
+                                'language': 'en',
+                                'status': 'complete',
+                                'value': 'Old valid text'
+                            },
+                            '_dateCreated': '2026-01-01T11:00:00Z',
+                            '_dateAccepted': '2026-01-01T11:05:00Z',
+                            '_uuid': 'uuid-old-valid-version',
+                        }
+                    ],
+                }
+            },
+            '_version': '20250820',
+        }
+
+        SubmissionSupplement.objects.create(
+            asset=self.asset,
+            submission_uuid=self.submission_uuid,
+            content=deleted_transcript_data,
+        )
+
+        # Attempt to translate
+        translation_payload = {
+            '_version': '20250820',
+            'q1': {
+                'automatic_google_translation': {
+                    'language': 'es'
+                }
+            },
+        }
+
+        # Mock the service so the API call attempts to proceed
+        mock_service = MagicMock()
+        mock_service.process_data.return_value = {'status': 'in_progress'}
+
+        with patch(
+            'kobo.apps.subsequences.actions.automatic_google_translation.GoogleTranslationService',  # noqa
+            return_value=mock_service
+        ):
+            response = self.client.patch(
+                self.supplement_details_url, data=translation_payload, format='json'
+            )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert 'Cannot translate without transcription' in str(response.data)
+
+    def test_translation_falls_back_to_automatic_when_manual_deleted(self):
+        """
+        Verify that if a user deletes a manual transcript, the system falls back
+        to the valid automatic transcript if one exists
+        """
+        QuestionAdvancedFeature.objects.create(
+            asset=self.asset,
+            question_xpath='q1',
+            action='automatic_google_transcription',
+            params=[{'language': 'en'}],
+        )
+        QuestionAdvancedFeature.objects.create(
+            asset=self.asset,
+            question_xpath='q1',
+            action='manual_transcription',
+            params=[{'language': 'en'}],
+        )
+        QuestionAdvancedFeature.objects.create(
+            asset=self.asset,
+            question_xpath='q1',
+            action='manual_translation',
+            params=[{'language': 'es'}],
+        )
+
+        # Create a supplement with both automatic and manual transcripts,
+        # where the manual one is deleted
+        auto_uuid = 'uuid-auto-valid'
+        manual_uuid = 'uuid-manual-deleted'
+
+        supplement_content = {
+            'q1': {
+                'automatic_google_transcription': {
+                    '_dateCreated': '2025-01-01T10:00:00Z',
+                    '_dateModified': '2025-01-01T10:00:00Z',
+                    '_versions': [
+                        {
+                            '_data': {
+                                'language': 'en',
+                                'status': 'complete',
+                                'value': 'Auto text'
+                            },
+                            '_dateCreated': '2025-01-01T10:00:00Z',
+                            '_dateAccepted': '2025-01-01T10:00:00Z',
+                            '_uuid': auto_uuid,
+                        }
+                    ],
+                },
+                'manual_transcription': {
+                    '_dateCreated': '2025-01-02T12:00:00Z',
+                    '_dateModified': '2025-01-02T12:00:00Z',
+                    '_versions': [
+                        {
+                            '_data': {
+                                'language': 'en',
+                                'value': None
+                            },
+                            '_dateCreated': '2025-01-02T12:00:00Z',
+                            '_uuid': manual_uuid,
+                        },
+                        {
+                            '_data': {
+                                'language': 'en',
+                                'value': 'Manual text'
+                            },
+                            '_dateCreated': '2025-01-01T11:00:00Z',
+                            '_dateAccepted': '2025-01-01T11:00:00Z',
+                            '_uuid': 'uuid-manual-history',
+                        }
+                    ],
+                }
+            },
+            '_version': '20250820',
+        }
+
+        SubmissionSupplement.objects.create(
+            asset=self.asset,
+            submission_uuid=self.submission_uuid,
+            content=supplement_content,
+        )
+
+        # Attempt to translate
+        payload = {
+            '_version': '20250820',
+            'q1': {
+                'manual_translation': {
+                    'language': 'es',
+                    'value': 'Hola Mundo',
+                },
+            },
+        }
+
+        response = self.client.patch(
+            self.supplement_details_url, data=payload, format='json'
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+
+        # The translation should link to the automatic transcription (auto_uuid)
+        # because the manual one is deleted
+        translation_data = response.data['q1']['manual_translation']['es']
+        latest_version = translation_data['_versions'][0]
+        dependency = latest_version['_dependency']
+        assert dependency['_uuid'] == auto_uuid
+        assert dependency['_actionId'] == 'automatic_google_transcription'
+
 
 @ddt
 class SubmissionSupplementAPIUsageLimitsTestCase(SubsequenceBaseTestCase):

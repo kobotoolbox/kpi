@@ -78,6 +78,19 @@ class RequiresTranscriptionMixin:
         for action_id, action_supplemental_data in self._action_dependencies.items():
 
             versions = action_supplemental_data.get(self.VERSION_FIELD) or []
+            if not versions:
+                continue
+
+            latest_data = versions[0].get(self.VERSION_DATA_FIELD)
+            is_deleted = (
+                latest_data.get('value') is None
+                or latest_data.get('status') == 'deleted'
+            )
+
+            # Do not consider deleted transcriptions
+            if is_deleted:
+                continue
+
             for version in versions:
                 # Skip versions without an acceptance timestamp.
                 accepted_raw = version.get(self.DATE_ACCEPTED_FIELD)
