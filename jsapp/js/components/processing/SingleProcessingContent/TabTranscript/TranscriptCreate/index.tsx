@@ -56,6 +56,7 @@ export default function TranscriptCreate({
           setLanguageCode={setLanguageCode}
           suggestedLanguages={asset.advanced_features?.transcript?.languages ?? []}
           titleOverride={languageSelectorTitle}
+          singleManualButtonLabel={t('transcribe')}
           disableAutomatic={
             !envStore.data.asr_mt_features_enabled || typeof attachment === 'string' || !!attachment.is_deleted
           }

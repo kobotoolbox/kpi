@@ -24,6 +24,8 @@ interface Props {
   hiddenLanguages?: LanguageCode[]
   suggestedLanguages: LanguageCode[]
   titleOverride: string
+  /** The label for "create manual" button that is being displayed if automatic functionality is not being enabled */
+  singleManualButtonLabel: string
   disableAutomatic: boolean
 }
 
@@ -37,6 +39,7 @@ export default function StepSelectLanguage({
   hiddenLanguages = [],
   suggestedLanguages,
   titleOverride,
+  singleManualButtonLabel,
   disableAutomatic,
 }: Props) {
   const { data: serviceUsageData } = useOrganizationsServiceUsageSummary()
@@ -101,7 +104,7 @@ export default function StepSelectLanguage({
           <Button
             type='secondary'
             size='m'
-            label={isAutoEnabled ? t('manual') : t('transcribe')}
+            label={isAutoEnabled ? t('manual') : singleManualButtonLabel}
             onClick={handleClickNextManual}
             isDisabled={languageCode === null}
           />
