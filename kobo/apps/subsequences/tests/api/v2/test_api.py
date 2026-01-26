@@ -1055,11 +1055,9 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
             params=[{'language': 'es'}],
         )
 
-        # Create a supplement with both automatic and manual transcripts,
-        # where the manual one is deleted
-        auto_uuid = 'uuid-auto-valid'
-        manual_uuid = 'uuid-manual-deleted'
-
+        auto_uuid = str(uuid.uuid4())
+        manual_uuid = str(uuid.uuid4())
+        manual_history_uuid = str(uuid.uuid4())
         supplement_content = {
             'q1': {
                 'automatic_google_transcription': {
@@ -1097,7 +1095,7 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
                             },
                             '_dateCreated': '2025-01-01T11:00:00Z',
                             '_dateAccepted': '2025-01-01T11:00:00Z',
-                            '_uuid': 'uuid-manual-history',
+                            '_uuid': manual_history_uuid,
                         }
                     ],
                 }
