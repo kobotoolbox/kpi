@@ -7,6 +7,9 @@ class AdvancedFeatureParamsField(serializers.JSONField):
     pass
 
 
-AdvancedFeatureActionField = serializers.ChoiceField(
-    choices=ACTION_IDS, allow_null=False, allow_blank=False
-)
+class AdvancedFeatureActionField(serializers.ChoiceField):
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('choices', ACTION_IDS)
+        kwargs.setdefault('allow_null', False)
+        kwargs.setdefault('allow_blank', False)
+        super().__init__(*args, **kwargs)
