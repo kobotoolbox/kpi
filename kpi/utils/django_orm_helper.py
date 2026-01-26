@@ -164,7 +164,8 @@ class UpdateJSONFieldAttributes(Func):
     Usage:
         # Root merge (non-destructive)
         MyModel.objects.update(
-            data=UpdateJSONFieldAttributes('data', updates={'feature_flags': {'x': True}})
+            data=UpdateJSONFieldAttributes('data',
+                updates={'feature_flags': {'x': True}})
         )
 
         # Nested merge (dict)

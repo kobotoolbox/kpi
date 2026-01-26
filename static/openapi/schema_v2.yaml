@@ -16431,6 +16431,7 @@ components:
       - qualTags
       - qualText
       - qualNote
+      - qualAutoKeywordCount
     Recurring:
       type: object
       properties:

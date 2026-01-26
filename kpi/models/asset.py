@@ -763,7 +763,8 @@ class Asset(
     def has_advanced_features(self):
         if self.advanced_features is None:
             return False
-        # FIXME: has dubious utility with new advanced_features that always have `_version`?
+        # FIXME: has dubious utility with new advanced_features
+        # that always have `_version`?
         return len(self.advanced_features) > 0
 
     def has_subscribed_user(self, user_id):

@@ -19,4 +19,5 @@ export const QualSimpleQuestionParamsTypeEnum = {
   qualTags: 'qualTags',
   qualText: 'qualText',
   qualNote: 'qualNote',
+  qualAutoKeywordCount: 'qualAutoKeywordCount',
 } as const
