@@ -1025,8 +1025,8 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
 
     def test_translation_does_not_falls_back_to_automatic_when_manual_deleted(self):
         """
-        Verify that if a user deletes a manual transcript, the system falls back
-        to the valid automatic transcript if one exists
+        Verify that deleting a manual transcript does not cause the system to
+        fall back to an existing automatic transcript
         """
         QuestionAdvancedFeature.objects.create(
             asset=self.asset,
