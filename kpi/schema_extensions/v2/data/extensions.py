@@ -740,6 +740,18 @@ class DataSupplementResponseExtension(
         return self._build_translation_schema(include_status=False)
 
 
+class DataResponseXMLExtension(OpenApiSerializerExtension):
+    target_class = 'kpi.schema_extensions.v2.data.serializers.DataResponseXML'
+
+    def map_serializer(self, auto_schema, direction):
+        schema = super().map_serializer(auto_schema, direction)
+        #schema['xml'] = {
+        #    'name': 'a6yF5dEN4WfjHfRi3VJnsU',
+        #    'namespace': 'http://openrosa.org/javarosa',
+        #}
+        return schema
+
+
 class DataValidationPayloadFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.data.fields.DataValidationPayloadField'
 

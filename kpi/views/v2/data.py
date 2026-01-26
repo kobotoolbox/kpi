@@ -7,7 +7,9 @@ import requests
 from django.conf import settings
 from django.http import Http404, HttpResponseRedirect
 from django.utils.translation import gettext_lazy as t
-from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view, \
+    OpenApiResponse, OpenApiExample
 from pymongo.errors import OperationFailure
 from rest_framework import renderers, serializers, status
 from rest_framework.decorators import action
@@ -73,7 +75,7 @@ from kpi.schema_extensions.v2.data.serializers import (
     DataValidationStatusUpdatePayload,
     DataValidationStatusUpdateResponse,
     EnketoEditResponse,
-    EnketoViewResponse,
+    EnketoViewResponse, DataResponseXML,
 )
 from kpi.serializers.v2.data import DataBulkActionsValidator
 from kpi.utils.log import logging
@@ -148,12 +150,16 @@ from kpi.utils.xml import (
     list=extend_schema(
         description=read_md('kpi', 'data/list.md'),
         request=None,
-        responses=open_api_200_ok_response(
-            DataResponse,
-            validate_payload=False,
-            require_auth=False,
-            raise_access_forbidden=False,
-        ),
+        responses={
+            **open_api_200_ok_response(
+                DataResponse,
+                media_type='application/json',
+                validate_payload=False,
+                require_auth=False,
+                raise_access_forbidden=False,
+            ),
+            (200, 'text/xml'): DataResponseXML,
+        },
         parameters=[
             OpenApiParameter(
                 name='q',
@@ -167,12 +173,16 @@ from kpi.utils.xml import (
     retrieve=extend_schema(
         description=read_md('kpi', 'data/retrieve.md'),
         request=None,
-        responses=open_api_200_ok_response(
-            DataResponse,
-            validate_payload=False,
-            require_auth=False,
-            raise_access_forbidden=False,
-        ),
+        responses={
+            **open_api_200_ok_response(
+                DataResponse,
+                media_type='application/json',
+                validate_payload=False,
+                require_auth=False,
+                raise_access_forbidden=False,
+            ),
+            (200, 'text/xml'): DataResponseXML,
+        },
         parameters=[
             OpenApiParameter(
                 name='id',

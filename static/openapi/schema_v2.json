@@ -2907,9 +2907,9 @@
                                     "$ref": "#/components/schemas/PaginatedDataResponseList"
                                 }
                             },
-                            "application/xml": {
+                            "text/xml": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/PaginatedDataResponseList"
+                                    "$ref": "#/components/schemas/PaginatedDataResponseXMLList"
                                 }
                             }
                         },
@@ -2991,9 +2991,9 @@
                                     "$ref": "#/components/schemas/DataResponse"
                                 }
                             },
-                            "application/xml": {
+                            "text/xml": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/DataResponse"
+                                    "$ref": "#/components/schemas/DataResponseXML"
                                 }
                             }
                         },
@@ -16768,6 +16768,76 @@
                     "meta/rootUuid"
                 ]
             },
+            "DataResponseXML": {
+                "type": "object",
+                "properties": {
+                    "formhub": {
+                        "$ref": "#/components/schemas/DataResponseXMLFormhub"
+                    },
+                    "__version__": {
+                        "type": "string",
+                        "title": "  version  "
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/DataResponseXMLMeta"
+                    },
+                    "_geolocation": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/DataResponseXMLGeoLocation"
+                            }
+                        ],
+                        "title": " geolocation"
+                    }
+                },
+                "required": [
+                    "__version__",
+                    "_geolocation",
+                    "meta"
+                ]
+            },
+            "DataResponseXMLFormhub": {
+                "type": "object",
+                "properties": {
+                    "uuid": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "uuid"
+                ]
+            },
+            "DataResponseXMLGeoLocation": {
+                "type": "object",
+                "properties": {
+                    "latitude": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "longitude": {
+                        "type": "number",
+                        "format": "double"
+                    }
+                },
+                "required": [
+                    "latitude",
+                    "longitude"
+                ]
+            },
+            "DataResponseXMLMeta": {
+                "type": "object",
+                "properties": {
+                    "instanceID": {
+                        "type": "string"
+                    },
+                    "deprecatedID": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "instanceID"
+                ]
+            },
             "DataStatusesUpdate": {
                 "type": "object",
                 "properties": {
@@ -20171,6 +20241,37 @@
                         "type": "array",
                         "items": {
                             "$ref": "#/components/schemas/DataResponse"
+                        }
+                    }
+                }
+            },
+            "PaginatedDataResponseXMLList": {
+                "type": "object",
+                "required": [
+                    "count",
+                    "results"
+                ],
+                "properties": {
+                    "count": {
+                        "type": "integer",
+                        "example": 123
+                    },
+                    "next": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?start=400&limit=100"
+                    },
+                    "previous": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?start=200&limit=100"
+                    },
+                    "results": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/DataResponseXML"
                         }
                     }
                 }
