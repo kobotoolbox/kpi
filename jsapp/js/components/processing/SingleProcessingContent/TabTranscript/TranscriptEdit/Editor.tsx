@@ -30,6 +30,7 @@ interface Props {
     | _DataSupplementResponseOneOfManualTranscriptionVersionsItem
     | _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem
   onBack: () => void
+  onSave?: () => void
   onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
   advancedFeatures: AdvancedFeatureResponse[]
 }
@@ -40,6 +41,7 @@ export default function Editor({
   submission,
   transcriptVersion,
   onBack,
+  onSave,
   onUnsavedWorkChange,
   advancedFeatures,
 }: Props) {
@@ -146,6 +148,9 @@ export default function Editor({
 
     // Clear unsaved work status after successful save
     onUnsavedWorkChange(false)
+    if (onSave) {
+      onSave()
+    }
   }
 
   const handleDiscard = async () => {

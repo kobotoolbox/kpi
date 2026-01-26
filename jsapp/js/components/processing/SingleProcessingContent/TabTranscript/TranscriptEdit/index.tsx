@@ -50,6 +50,7 @@ export default function TranscriptEdit({
           submission={submission}
           transcriptVersion={transcriptVersion}
           onBack={() => setMode('view')}
+          onSave={() => setMode('view')}
           onUnsavedWorkChange={onUnsavedWorkChange}
           advancedFeatures={advancedFeatures}
         />
