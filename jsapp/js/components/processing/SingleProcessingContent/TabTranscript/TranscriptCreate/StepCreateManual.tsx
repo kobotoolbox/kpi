@@ -17,10 +17,6 @@ interface Props {
   advancedFeatures: AdvancedFeatureResponse[]
 }
 
-/**
- * TODO: wrap Editor and display it.
- */
-
 export default function StepCreateManual({
   asset,
   questionXpath,
