@@ -14,6 +14,16 @@ from kobo.apps.subsequences.actions.automatic_bedrock_qual import (
 )
 from kobo.apps.subsequences.constants import Action
 from kobo.apps.subsequences.models import QuestionAdvancedFeature
+from kobo.apps.subsequences.tests.constants import (
+    BEDROCK_CHOICE_APATHY_UUID,
+    BEDROCK_CHOICE_EMPATHY_UUID,
+    BEDROCK_QUAL_INTEGER_UUID,
+    BEDROCK_QUAL_SELECT_MULTIPLE_UUID,
+    BEDROCK_QUAL_SELECT_ONE_UUID,
+    BEDROCK_QUAL_TEXT_UUID,
+    BEDROCK_VALIDATION_CHOICE_UUID,
+    BEDROCK_VALIDATION_MAIN_UUID,
+)
 from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
 
@@ -28,42 +38,42 @@ class TestAutomaticBedrockQual(BaseTestCase):
         action_params = [
             {
                 'type': 'qualInteger',
-                'uuid': 'uuid-qual-integer',
+                'uuid': BEDROCK_QUAL_INTEGER_UUID,
                 'labels': {'_default': 'How many characters appear in the story?'},
             },
             {
                 'type': 'qualSelectMultiple',
-                'uuid': 'uuid-qual-select-multiple',
+                'uuid': BEDROCK_QUAL_SELECT_MULTIPLE_UUID,
                 'labels': {'_default': 'What themes were present in the story?'},
                 'choices': [
                     {
-                        'uuid': 'uuid-empathy',
+                        'uuid': BEDROCK_CHOICE_EMPATHY_UUID,
                         'labels': {'_default': 'Empathy'},
                     },
                     {
-                        'uuid': 'uuid-apathy',
+                        'uuid': BEDROCK_CHOICE_APATHY_UUID,
                         'labels': {'_default': 'Apathy'},
                     },
                 ],
             },
             {
                 'type': 'qualSelectOne',
-                'uuid': 'uuid-qual-select-one',
+                'uuid': BEDROCK_QUAL_SELECT_ONE_UUID,
                 'labels': {'_default': 'Was this a first-hand account?'},
                 'choices': [
                     {
-                        'uuid': 'uuid-yes',
+                        'uuid': BEDROCK_QUAL_SELECT_ONE_UUID,
                         'labels': {'_default': 'Yes'},
                     },
                     {
-                        'uuid': 'uuid-no',
+                        'uuid': BEDROCK_QUAL_SELECT_MULTIPLE_UUID,
                         'labels': {'_default': 'No'},
                     },
                 ],
             },
             {
                 'type': 'qualText',
-                'uuid': 'uuid-qual-text',
+                'uuid': BEDROCK_QUAL_TEXT_UUID,
                 'labels': {'_default': 'Add any further remarks'},
             },
         ]
@@ -99,8 +109,8 @@ class TestAutomaticBedrockQual(BaseTestCase):
     )
     @unpack
     def test_valid_params(self, question_type, main_label, choice_label, should_pass):
-        main_uuid = 'main_uuid'
-        choice_uuid = 'choice_uuid'
+        main_uuid = BEDROCK_VALIDATION_MAIN_UUID
+        choice_uuid = BEDROCK_VALIDATION_CHOICE_UUID
         param = {'uuid': main_uuid}
         if question_type:
             param['type'] = question_type
@@ -120,8 +130,8 @@ class TestAutomaticBedrockQual(BaseTestCase):
         for param in self.feature.params:
             if param['type'] == 'qualNote':
                 continue
-            uuid = param['uuid']
-            self.action.validate_data({'uuid': uuid})
+            uuid_ = param['uuid']
+            self.action.validate_data({'uuid': uuid_})
 
     def test_invalid_user_data_no_uuid(self):
         with pytest.raises(jsonschema.exceptions.ValidationError):
@@ -129,7 +139,9 @@ class TestAutomaticBedrockQual(BaseTestCase):
 
     def test_invalid_user_data_extra_field(self):
         with pytest.raises(jsonschema.exceptions.ValidationError):
-            self.action.validate_data({'uuid': 'uuid-qual-text', 'other': 'stuff'})
+            self.action.validate_data(
+                {'uuid': BEDROCK_QUAL_TEXT_UUID, 'other': 'stuff'}
+            )
 
     def test_invalid_user_data_type_note(self):
         with pytest.raises(jsonschema.exceptions.ValidationError):
@@ -137,28 +149,52 @@ class TestAutomaticBedrockQual(BaseTestCase):
 
     # uuid, value, status, error, good
     @data(
-        ('uuid-qual-text', 'Hi', 'complete', None, True),
-        ('uuid-qual-text', '', 'complete', None, True),
-        ('uuid-qual-text', None, 'complete', None, False),
-        ('uuid-qual-text', None, 'failed', 'error', True),
-        ('uuid-qual-text', None, 'failed', None, False),
-        ('uuid-qual-text', 'Hi', 'failed', 'error', False),
-        ('uuid-qual-integer', 1, 'complete', None, True),
-        ('uuid-qual-integer', 0, 'complete', None, True),
-        ('uuid-qual-integer', None, 'failed', 'error', True),
-        ('uuid-qual-integer', 1, 'failed', 'error', False),
-        ('uuid-qual-select-one', 'uuid-yes', 'complete', None, True),
-        ('uuid-qual-select-one', '', 'complete', None, True),
-        ('uuid-qual-select-one', None, 'complete', None, False),
-        ('uuid-qual-select-one', 'uuid-bad', 'complete', None, False),
-        ('uuid-qual-select-one', None, 'failed', 'error', True),
-        ('uuid-qual-select-one', 'uuid-yes', 'failed', 'error', False),
-        ('uuid-qual-select-multiple', ['uuid-empathy'], 'complete', None, True),
-        ('uuid-qual-select-multiple', [], 'complete', None, True),
-        ('uuid-qual-select-multiple', None, 'complete', None, False),
-        ('uuid-qual-select-multiple', ['uuid-bad'], 'complete', None, False),
-        ('uuid-qual-select-multiple', None, 'failed', 'error', True),
-        ('uuid-qual-select-multiple', ['uuid-empathy'], 'failed', 'error', False),
+        (BEDROCK_QUAL_TEXT_UUID, 'Hi', 'complete', None, True),
+        (BEDROCK_QUAL_TEXT_UUID, '', 'complete', None, True),
+        (BEDROCK_QUAL_TEXT_UUID, None, 'complete', None, False),
+        (BEDROCK_QUAL_TEXT_UUID, None, 'failed', 'error', True),
+        (BEDROCK_QUAL_TEXT_UUID, None, 'failed', None, False),
+        (BEDROCK_QUAL_TEXT_UUID, 'Hi', 'failed', 'error', False),
+        (BEDROCK_QUAL_INTEGER_UUID, 1, 'complete', None, True),
+        (BEDROCK_QUAL_INTEGER_UUID, 0, 'complete', None, True),
+        (BEDROCK_QUAL_INTEGER_UUID, None, 'failed', 'error', True),
+        (BEDROCK_QUAL_INTEGER_UUID, 1, 'failed', 'error', False),
+        (
+            BEDROCK_QUAL_SELECT_ONE_UUID,
+            BEDROCK_QUAL_SELECT_ONE_UUID,
+            'complete',
+            None,
+            True,
+        ),
+        (BEDROCK_QUAL_SELECT_ONE_UUID, '', 'complete', None, True),
+        (BEDROCK_QUAL_SELECT_ONE_UUID, None, 'complete', None, False),
+        (BEDROCK_QUAL_SELECT_ONE_UUID, 'uuid-bad', 'complete', None, False),
+        (BEDROCK_QUAL_SELECT_ONE_UUID, None, 'failed', 'error', True),
+        (
+            BEDROCK_QUAL_SELECT_ONE_UUID,
+            BEDROCK_QUAL_SELECT_ONE_UUID,
+            'failed',
+            'error',
+            False,
+        ),
+        (
+            BEDROCK_QUAL_SELECT_MULTIPLE_UUID,
+            [BEDROCK_CHOICE_EMPATHY_UUID],
+            'complete',
+            None,
+            True,
+        ),
+        (BEDROCK_QUAL_SELECT_MULTIPLE_UUID, [], 'complete', None, True),
+        (BEDROCK_QUAL_SELECT_MULTIPLE_UUID, None, 'complete', None, False),
+        (BEDROCK_QUAL_SELECT_MULTIPLE_UUID, ['uuid-bad'], 'complete', None, False),
+        (BEDROCK_QUAL_SELECT_MULTIPLE_UUID, None, 'failed', 'error', True),
+        (
+            BEDROCK_QUAL_SELECT_MULTIPLE_UUID,
+            [BEDROCK_CHOICE_EMPATHY_UUID],
+            'failed',
+            'error',
+            False,
+        ),
     )
     @unpack
     def test_valid_external_data(self, uuid, value, status, error, accept):
@@ -217,7 +253,7 @@ class TestAutomaticBedrockQual(BaseTestCase):
             '_version': '20250820',
             'q1': {
                 Action.AUTOMATIC_BEDROCK_QUAL: {
-                    'uuid': 'uuid-qual-text',
+                    'uuid': BEDROCK_QUAL_TEXT_UUID,
                 },
             },
         }
@@ -231,9 +267,9 @@ class TestAutomaticBedrockQual(BaseTestCase):
         assert response.status_code == status.HTTP_200_OK
         transcript = response.data['q1'][Action.MANUAL_TRANSCRIPTION]['_versions'][0]
         transcript_uuid = transcript['_uuid']
-        version = response.data['q1'][Action.AUTOMATIC_BEDROCK_QUAL]['uuid-qual-text'][
-            '_versions'
-        ][0]
+        version = response.data['q1'][Action.AUTOMATIC_BEDROCK_QUAL][
+            BEDROCK_QUAL_TEXT_UUID
+        ]['_versions'][0]
         version_data = version['_data']
         assert version_data['value'] == 'LLM text'
         assert version_data['status'] == 'complete'
@@ -244,11 +280,11 @@ class TestAutomaticBedrockQual(BaseTestCase):
         today = timezone.now()
         yesterday = today - timedelta(days=1)
         action_data = {
-            'uuid-qual-text': {
+            BEDROCK_QUAL_TEXT_UUID: {
                 '_versions': [
                     {
                         '_data': {
-                            'uuid': 'uuid-qual-text',
+                            'uuid': BEDROCK_QUAL_TEXT_UUID,
                             'status': 'failed',
                             'error': 'Something went wrong',
                         },
@@ -256,7 +292,10 @@ class TestAutomaticBedrockQual(BaseTestCase):
                         '_uuid': 'v2',
                     },
                     {
-                        '_data': {'uuid': 'uuid-qual-text', 'value': 'Initial note'},
+                        '_data': {
+                            'uuid': BEDROCK_QUAL_TEXT_UUID,
+                            'value': 'Initial note',
+                        },
                         '_dateCreated': yesterday.isoformat(),
                         '_dateAccepted': yesterday.isoformat(),
                         '_uuid': 'v1',
@@ -270,7 +309,7 @@ class TestAutomaticBedrockQual(BaseTestCase):
         output = self.action.transform_data_for_output(action_data)
         assert len(output.keys()) == 1
 
-        text_item = output.get(('qual', 'uuid-qual-text'))
+        text_item = output.get(('qual', BEDROCK_QUAL_TEXT_UUID))
         # take the initial note because the most recent request to overwrite failed
         assert text_item['value'] == 'Initial note'
         assert 'error' not in text_item

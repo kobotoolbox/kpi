@@ -20,7 +20,10 @@ from kobo.apps.subsequences.actions.automatic_google_transcription import (
 )
 from kobo.apps.subsequences.models import QuestionAdvancedFeature, SubmissionSupplement
 from kobo.apps.subsequences.tests.api.v2.base import SubsequenceBaseTestCase
-from kobo.apps.subsequences.tests.constants import QUESTION_SUPPLEMENT
+from kobo.apps.subsequences.tests.constants import (
+    API_TEST_TRANSCRIPTION_UUID,
+    QUESTION_SUPPLEMENT,
+)
 from kpi.utils.xml import (
     edit_submission_xml,
     fromstring_preserve_root_xmlns,
@@ -140,7 +143,8 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
         now_iso = now.isoformat().replace('+00:00', 'Z')
         with freeze_time(now):
             with patch(
-                'kobo.apps.subsequences.actions.base.uuid.uuid4', return_value='uuid1'
+                'kobo.apps.subsequences.actions.base.uuid.uuid4',
+                return_value=API_TEST_TRANSCRIPTION_UUID,
             ):
                 response = self.client.patch(
                     self.supplement_details_url, data=payload, format='json'
@@ -160,7 +164,7 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
                             },
                             '_dateAccepted': now_iso,
                             '_dateCreated': now_iso,
-                            '_uuid': 'uuid1',
+                            '_uuid': API_TEST_TRANSCRIPTION_UUID,
                         }
                     ],
                 },

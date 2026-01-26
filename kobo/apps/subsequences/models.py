@@ -51,14 +51,14 @@ class SubmissionSupplement(AbstractTimeStampedModel):
                 raise InvalidAction
             incoming_data = migrated_data
 
-        submission_uuid = remove_uuid_prefix(submission[SUBMISSION_UUID_FIELD])  # constant?
+        submission_uuid = remove_uuid_prefix(
+            submission[SUBMISSION_UUID_FIELD]
+        )  # constant?
         supplemental_data = SubmissionSupplement.objects.get_or_create(
             asset=asset, submission_uuid=submission_uuid
         )[
             0
         ].content  # lock it?
-
-        retrieved_supplemental_data = {}
 
         for question_xpath, data_for_this_question in incoming_data.items():
             if question_xpath == '_version':

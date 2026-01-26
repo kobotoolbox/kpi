@@ -17,6 +17,7 @@ from kpi.schema_extensions.v2.subsequences.examples import (
     get_advanced_features_list_examples,
 )
 from kpi.schema_extensions.v2.subsequences.serializers import (
+    AdvancedFeatureCreateResponse,
     AdvancedFeaturePatchRequest,
     AdvancedFeaturePostRequest,
     AdvancedFeatureResponse,
@@ -47,7 +48,7 @@ from kpi.versioning import APIV2Versioning
         description=read_md('subsequences', 'subsequences/create.md'),
         request={'application/json': AdvancedFeaturePostRequest},
         responses=open_api_201_created_response(
-            AdvancedFeatureResponse,
+            AdvancedFeatureCreateResponse,
             require_auth=False,
             raise_access_forbidden=False,
         ),

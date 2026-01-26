@@ -124,7 +124,7 @@ class BaseQualAction(BaseAction):
         },
     }
     shared_definitions = {
-        'qualUuid': {'type': 'string', 'minLength': 1},
+        'qualUuid': {'type': 'string', 'format': 'uuid'},
     }
 
     # JSON Schemas
