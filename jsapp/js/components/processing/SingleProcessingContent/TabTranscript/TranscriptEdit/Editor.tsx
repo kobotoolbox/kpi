@@ -146,7 +146,6 @@ export default function Editor({
 
     // Clear unsaved work status after successful save
     onUnsavedWorkChange(false)
-    onBack()
   }
 
   const handleDiscard = async () => {
