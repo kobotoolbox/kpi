@@ -1031,7 +1031,7 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert 'Cannot translate without transcription' in str(response.data)
 
-    def test_translation_falls_back_to_automatic_when_manual_deleted(self):
+    def test_translation_does_not_falls_back_to_automatic_when_manual_deleted(self):
         """
         Verify that if a user deletes a manual transcript, the system falls back
         to the valid automatic transcript if one exists
@@ -1124,15 +1124,8 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
             self.supplement_details_url, data=payload, format='json'
         )
 
-        assert response.status_code == status.HTTP_200_OK
-
-        # The translation should link to the automatic transcription (auto_uuid)
-        # because the manual one is deleted
-        translation_data = response.data['q1']['manual_translation']['es']
-        latest_version = translation_data['_versions'][0]
-        dependency = latest_version['_dependency']
-        assert dependency['_uuid'] == auto_uuid
-        assert dependency['_actionId'] == 'automatic_google_transcription'
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert 'Cannot translate without transcription' in str(response.data)
 
 
 @ddt

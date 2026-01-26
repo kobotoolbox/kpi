@@ -89,7 +89,7 @@ class RequiresTranscriptionMixin:
 
             # Do not consider deleted transcriptions
             if is_deleted:
-                continue
+                raise TranscriptionNotFound
 
             for version in versions:
                 # Skip versions without an acceptance timestamp.
