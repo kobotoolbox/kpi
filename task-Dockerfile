@@ -1,5 +1,8 @@
+# WIP Dockerfile for this PR.
+# Not intended for merge into main.
+# ---------------------------------
 #####################################
-# The Dockerfile has 4 stages now:  #
+# This Dockerfile has 4 stages now: #
 #  1. 📦 Node 'npm-install'         #
 #  2. 🏗️ Node 'webpack-build-prod'  #
 #  3. 📦 Python 'pip-dependencies'  #

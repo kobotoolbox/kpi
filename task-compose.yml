@@ -1,0 +1,24 @@
+# WIP services for testing dockerfiles on this branch.
+# Not intended for merge into main.
+
+services:
+  mk:
+    build:       {  context: ., dockerfile: task-Dockerfile }
+    networks:    [ mk-network ]
+  
+  # Previous versions
+
+  mk-node-2:  # bind-mounts node_modules instead of copying it
+    build:       {  context: ., dockerfile: task-node-2-Dockerfile }
+    networks:    [ mk-network ]
+
+  mk-node:
+    build:       {  context: ., dockerfile: task-node-Dockerfile }
+    networks:    [ mk-network ]
+
+  
+
+
+networks: 
+  mk-network:
+    driver: bridge

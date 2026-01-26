@@ -1,0 +1,102 @@
+# WIP Dockerfile for this PR.
+# Not intended for merge into main.
+# ---------------------------------
+
+#######################
+# 📦 Node npm install #
+#######################
+
+FROM node:20.19-bookworm-slim AS npm-install
+WORKDIR /srv/src/kpi
+
+# our non-root user, 1000:1000
+RUN chown node:node .
+
+# copy seldom updated sources, used in post-install step
+COPY --chown=node:node --parents \
+    jsapp/k-icons-css-template.hbs \
+    jsapp/svg-icons/ \
+    .
+
+# copy sources affecting npm install or post-install steps
+COPY --chown=node:node --parents \
+    patches/                  \
+    scripts/copy_fonts.sh     \
+    scripts/generate_icons.js \
+    scripts/hints.js          \
+    .browserslistrc    \
+    package.json       \
+    package-lock.json  \
+    .
+
+# use non-root user for install, remove .npm cache
+USER node
+RUN npm clean-install \
+    && npm cache clean --force
+
+# results in /srv/src/kpi/:
+#   all copied sources, plus the generated:
+#   + jsapp/fonts/
+#   + msw-mocks/
+#   + node_modules/
+
+################################
+# 🏗️ Node webpack build (prod) #
+################################
+FROM node:20.19-bookworm-slim AS webpack-build-prod
+WORKDIR /srv/src/kpi
+RUN chown node:node .
+
+# get webpack build inputs from the npm-install stage
+# (mainly package.json, and fonts)
+# (but we'll bind mount node_modules later instead of copying it)
+COPY --from=npm-install --parents \
+    /srv/src/kpi/./jsapp/fonts/   \
+    /srv/src/kpi/./msw-mocks/     \
+    /srv/src/kpi/./jsapp/k-icons-css-template.hbs \
+    /srv/src/kpi/./jsapp/svg-icons/               \
+    /srv/src/kpi/./patches/                       \
+    /srv/src/kpi/./.browserslistrc                \
+    /srv/src/kpi/./package.json                   \
+    /srv/src/kpi/./package-lock.json              \
+    .
+
+# get the rest of the webpack build inputs
+# (that aren't included above)
+COPY --chown=node:node --parents \
+    jsapp/img/      \
+    jsapp/js/       \
+    jsapp/scss/     \
+    jsapp/xlform/   \
+    jsapp/postcss.config.cjs \
+    scripts/        \
+    webpack/        \
+    .babelrc.json   \
+    .gitignore      \
+    .node-version   \
+    .nvmrc          \
+    .swcrc          \
+    orval.config.js \
+    tsconfig.json   \
+    .
+
+# intermediate results in /srv/src/kpi:
+# everything needed to build the frontend, except node_modules
+
+# build the prod webpack app
+# (just the app, quickly)
+# borrow node_modules from npm-install stage
+USER node
+RUN --mount=from=npm-install,source=/srv/src/kpi/node_modules,target=/srv/src/kpi/node_modules \
+    SKIP_TS_CHECK=true          \
+    ./node_modules/.bin/webpack \
+    --config webpack/prod.config.js
+
+# results in /srv/src/kpi/:
+#   all copied (src) files, plus the generated:
+#   + jsapp/compiled/*
+#   + webpack-stats.json
+# 
+#   The webpack-build-prod stage doesn't include node_modules in the image;
+#   To use node_modules in another build stage, mount it (or copy it) from npm-install
+
