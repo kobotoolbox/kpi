@@ -9,5 +9,9 @@ class OrganizationsField(serializers.JSONField):
     pass
 
 
+class SubmissionCountField(serializers.JSONField):
+    pass
+
+
 class SubscriptionsField(serializers.JSONField):
     pass
