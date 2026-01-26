@@ -13,11 +13,13 @@ import {
   useAssetsAdvancedFeaturesPartialUpdate,
   useAssetsDataSupplementPartialUpdate,
 } from '#/api/react-query/survey-data'
+import Alert from '#/components/common/alert'
 import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import type { LanguageCode, LocaleCode } from '#/components/languages/languagesStore'
 import RegionSelector from '#/components/languages/regionSelector'
 import { SUBSEQUENCES_SCHEMA_VERSION } from '#/components/processing/common/constants'
+import { getLatestAutomaticTranslationVersionItem } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
 import { notify, removeDefaultUuidPrefix } from '#/utils'
 import bodyStyles from '../../../common/processingBody.module.scss'
@@ -42,6 +44,7 @@ export default function StepCreateAutomated({
   advancedFeatures,
 }: Props) {
   const [locale, setLocale] = useState<null | string>(null)
+  const [errorMessage, setErrorMessage] = useState<null | string>(null)
 
   const advancedFeature = advancedFeatures.find(
     (af) => af.action === ActionEnum.automatic_google_translation && af.question_xpath === questionXpath,
@@ -67,6 +70,17 @@ export default function StepCreateAutomated({
             removeDefaultUuidPrefix(submission['meta/rootUuid']),
           ),
         })
+      },
+      onSuccess: (response) => {
+        setErrorMessage(null)
+        // Make sure we are handling `DataSupplementResponse` here
+        if ('_version' in response.data) {
+          // If latest automatic translation for current language has `error` property, we display that error inline
+          const latestTranslation = getLatestAutomaticTranslationVersionItem(response.data, questionXpath, languageCode)
+          if (latestTranslation?._data && 'error' in latestTranslation?._data) {
+            setErrorMessage(latestTranslation._data.error)
+          }
+        }
       },
       onError: (error, variables, context) => {
         if (error.detail === 'Invalid action') {
@@ -184,6 +198,14 @@ export default function StepCreateAutomated({
             'completing the translation.',
         )}
       </p>
+
+      {errorMessage && (
+        <div>
+          <Alert iconName='alert' type='error'>
+            {errorMessage}
+          </Alert>
+        </div>
+      )}
 
       <footer className={bodyStyles.footer}>
         <div className={bodyStyles.footerCenterButtons}>
