@@ -21,7 +21,7 @@ interface Props {
   advancedFeatures: AdvancedFeatureResponse[]
 }
 
-export default function TranslateAdd({
+export default function TranslationAdd({
   asset,
   questionXpath,
   submission,
