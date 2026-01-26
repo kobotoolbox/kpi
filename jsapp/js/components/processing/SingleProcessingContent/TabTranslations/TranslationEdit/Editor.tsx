@@ -61,13 +61,21 @@ export default function Editor({
 
   const patch = useAssetsDataSupplementPartialUpdate({
     mutation: {
-      onSettled: () => {
-        queryClient.invalidateQueries({
-          queryKey: getAssetsDataSupplementRetrieveQueryKey(
-            asset.uid,
-            removeDefaultUuidPrefix(submission['meta/rootUuid']),
-          ),
+      onSettled: (newSupplementData) => {
+        const queryKey = getAssetsDataSupplementRetrieveQueryKey(
+          asset.uid,
+          removeDefaultUuidPrefix(submission['meta/rootUuid']),
+        )
+        // TODO: BUG check out why this doesn't fix the issue
+        // Update the stored data immediately. This helps out with the flow of creating new translation, ensuring the
+        // newly created translation exists in `supplement` data at `SingleProcessingRoute` that is being passed down to
+        // `TranslationTab` and allowing newly created translation to be preselected immediately after creation.
+        queryClient.setQueryData([queryKey], () => {
+          return newSupplementData
         })
+
+        // TODO: if/when above works, do we still need to invalidate query?
+        queryClient.invalidateQueries({ queryKey: queryKey })
       },
     },
   })

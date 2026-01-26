@@ -34,6 +34,9 @@ export default function TranslationTab({
   const translationVersion = translationVersions.find(({ _data }) => _data.language === languageCode)
 
   useEffect(() => {
+    // TODO: BUG after creating new translation, the languageCode is new, but `supplement` doesn't have the new
+    // translation yet, thus `translationVersion` doesn't exist here, and the code is pre-selecting the first
+    // translation as default action. See TODO: BUG comment at `…/TabTranslations/TranslationEdit/Editor.tsx`
     if (translationVersion) return
     setLanguageCode(translationVersions[0]?._data.language ?? null)
   }, [translationVersion, setLanguageCode, translationVersions])
@@ -59,9 +62,9 @@ export default function TranslationTab({
           languagesExisting={translationVersions.map(({ _data }) => _data.language)}
           initialStep={translationVersion ? 'language' : 'begin'}
           onCreate={(languageCode: LanguageCode) => {
-            // TODO: I can't get it working so that it sets the newly created language the selected one.
-            // must be some race condition between query fetching new supplements and checks above checking for nulls.
             setMode('view')
+            // TODO: BUG I can't get it working so that it sets the newly created language the selected one. See comment
+            // at `useEffect` above.
             setLanguageCode(languageCode)
           }}
           onUnsavedWorkChange={onUnsavedWorkChange}
