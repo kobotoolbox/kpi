@@ -61,19 +61,24 @@ export default function Editor({
 
   const patch = useAssetsDataSupplementPartialUpdate({
     mutation: {
-      onSettled: (newSupplementData) => {
-        const queryKey = getAssetsDataSupplementRetrieveQueryKey(
-          asset.uid,
-          removeDefaultUuidPrefix(submission['meta/rootUuid']),
-        )
+      onSettled: () => {
+        queryClient.invalidateQueries({
+          queryKey: getAssetsDataSupplementRetrieveQueryKey(
+            asset.uid,
+            removeDefaultUuidPrefix(submission['meta/rootUuid']),
+          ),
+        })
+      },
+      onSuccess: (newSupplementData) => {
         // Update the stored data immediately. This helps out with the flow of creating new translation, ensuring the
         // newly created translation exists in `supplement` data at `SingleProcessingRoute` that is being passed down to
         // `TranslationTab` and allowing newly created translation to be preselected immediately after creation.
-        queryClient.setQueryData(queryKey, () => {
-          return newSupplementData
-        })
-
-        queryClient.invalidateQueries({ queryKey: queryKey })
+        queryClient.setQueryData(
+          getAssetsDataSupplementRetrieveQueryKey(asset.uid, removeDefaultUuidPrefix(submission['meta/rootUuid'])),
+          () => {
+            return newSupplementData
+          },
+        )
       },
     },
   })
