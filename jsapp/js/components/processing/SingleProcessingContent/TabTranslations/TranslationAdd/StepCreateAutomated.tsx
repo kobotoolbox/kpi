@@ -146,7 +146,7 @@ export default function StepCreateAutomated({
       data: {
         _version: SUBSEQUENCES_SCHEMA_VERSION,
         [questionXpath]: {
-          automatic_google_translation: { language: languageCode, locale } as any, // TODO: OpenAPI is missing `locale`.
+          automatic_google_translation: { language: languageCode, locale },
         },
       },
     })
