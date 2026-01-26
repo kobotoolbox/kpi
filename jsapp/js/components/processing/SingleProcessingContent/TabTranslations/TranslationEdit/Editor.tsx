@@ -73,7 +73,6 @@ export default function Editor({
           return newSupplementData
         })
 
-        // TODO: if/when above works, do we still need to invalidate query?
         queryClient.invalidateQueries({ queryKey: queryKey })
       },
     },
