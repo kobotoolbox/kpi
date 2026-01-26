@@ -14622,11 +14622,11 @@
             "AdvancedFeatureCreateResponse": {
                 "type": "object",
                 "properties": {
-                    "action": {
-                        "$ref": "#/components/schemas/ActionEnum"
-                    },
                     "question_xpath": {
                         "type": "string"
+                    },
+                    "action": {
+                        "$ref": "#/components/schemas/ActionEnum"
                     },
                     "params": {
                         "type": "array",
@@ -14655,11 +14655,11 @@
             "AdvancedFeaturePostRequest": {
                 "type": "object",
                 "properties": {
-                    "action": {
-                        "$ref": "#/components/schemas/ActionEnum"
-                    },
                     "question_xpath": {
                         "type": "string"
+                    },
+                    "action": {
+                        "$ref": "#/components/schemas/ActionEnum"
                     },
                     "params": {
                         "type": "array",
@@ -14684,11 +14684,11 @@
             "AdvancedFeatureResponse": {
                 "type": "object",
                 "properties": {
-                    "action": {
-                        "$ref": "#/components/schemas/ActionEnum"
-                    },
                     "question_xpath": {
                         "type": "string"
+                    },
+                    "action": {
+                        "$ref": "#/components/schemas/ActionEnum"
                     },
                     "params": {
                         "type": "array",
