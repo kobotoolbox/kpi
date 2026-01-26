@@ -982,7 +982,7 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
                                 'value': None
                             },
                             '_dateCreated': '2026-01-01T12:00:00Z',
-                            '_uuid': 'uuid-deleted-version',
+                            '_uuid': str(uuid.uuid4())
                         },
                         {
                             '_data': {
@@ -992,7 +992,7 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
                             },
                             '_dateCreated': '2026-01-01T11:00:00Z',
                             '_dateAccepted': '2026-01-01T11:05:00Z',
-                            '_uuid': 'uuid-old-valid-version',
+                            '_uuid': str(uuid.uuid4())
                         }
                     ],
                 }
@@ -1016,17 +1016,9 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
             },
         }
 
-        # Mock the service so the API call attempts to proceed
-        mock_service = MagicMock()
-        mock_service.process_data.return_value = {'status': 'in_progress'}
-
-        with patch(
-            'kobo.apps.subsequences.actions.automatic_google_translation.GoogleTranslationService',  # noqa
-            return_value=mock_service
-        ):
-            response = self.client.patch(
-                self.supplement_details_url, data=translation_payload, format='json'
-            )
+        response = self.client.patch(
+            self.supplement_details_url, data=translation_payload, format='json'
+        )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert 'Cannot translate without transcription' in str(response.data)
