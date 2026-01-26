@@ -66,7 +66,7 @@ export default function Editor({
           asset.uid,
           removeDefaultUuidPrefix(submission['meta/rootUuid']),
         )
-        // TODO: BUG check out why this doesn't fix the issue
+        // TODO PRESELECT BUG: check out why this doesn't fix the issue
         // Update the stored data immediately. This helps out with the flow of creating new translation, ensuring the
         // newly created translation exists in `supplement` data at `SingleProcessingRoute` that is being passed down to
         // `TranslationTab` and allowing newly created translation to be preselected immediately after creation.
