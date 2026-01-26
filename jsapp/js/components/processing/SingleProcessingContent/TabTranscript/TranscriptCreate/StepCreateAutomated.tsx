@@ -169,6 +169,11 @@ export default function StepCreateAutomated({
     )
   }
 
+  // During a short moment after mutation finishes, we want to avoid blinking of previous UI
+  if (mutationCreateAutomaticTranscript.isSuccess) {
+    return null
+  }
+
   return (
     <div className={cx(bodyStyles.root, bodyStyles.stepConfig)}>
       <header className={bodyStyles.header}>{t('Automatic transcription of audio file from')}</header>
