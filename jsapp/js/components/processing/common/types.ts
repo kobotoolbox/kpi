@@ -35,3 +35,10 @@ export type TranscriptVersionItemWithValue =
   | _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItemDataOneOfThree
 
 export type DisplaysList = Array<LanguageCode | StaticDisplays>
+
+export enum CreateSteps {
+  Begin = 'begin',
+  Language = 'language',
+  Manual = 'manual',
+  Automatic = 'automatic',
+}

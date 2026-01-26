@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { LanguageCode } from '#/components/languages/languagesStore'
+import { CreateSteps } from '#/components/processing/common/types'
 import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import StepSelectLanguage from '../../components/StepSelectLanguage'
@@ -26,7 +27,7 @@ export default function TranscriptCreate({
   onUnsavedWorkChange,
   advancedFeatures,
 }: Props) {
-  const [step, setStep] = useState<'begin' | 'language' | 'manual' | 'automatic'>('begin')
+  const [step, setStep] = useState<CreateSteps>(CreateSteps.Begin)
   const [languageCode, setLanguageCode] = useState<null | LanguageCode>(null)
 
   const languageSelectorTitle = t('Please select the original language of the ##type##').replace(
@@ -37,11 +38,13 @@ export default function TranscriptCreate({
 
   return (
     <>
-      {step === 'begin' && <StepBegin asset={asset} questionXpath={questionXpath} onNext={() => setStep('language')} />}
-      {step === 'language' && (
+      {step === CreateSteps.Begin && (
+        <StepBegin asset={asset} questionXpath={questionXpath} onNext={() => setStep(CreateSteps.Language)} />
+      )}
+      {step === CreateSteps.Language && (
         <StepSelectLanguage
-          onBack={() => setStep('begin')}
-          onNext={(selectedStep: 'manual' | 'automatic') => setStep(selectedStep)}
+          onBack={() => setStep(CreateSteps.Begin)}
+          onNext={(selectedStep: CreateSteps.Manual | CreateSteps.Automatic) => setStep(selectedStep)}
           languageCode={languageCode}
           setLanguageCode={setLanguageCode}
           suggestedLanguages={asset.advanced_features?.transcript?.languages ?? []}
@@ -51,9 +54,9 @@ export default function TranscriptCreate({
           }
         />
       )}
-      {step === 'manual' && !!languageCode && (
+      {step === CreateSteps.Manual && !!languageCode && (
         <StepCreateManual
-          onBack={() => setStep('language')}
+          onBack={() => setStep(CreateSteps.Language)}
           languageCode={languageCode}
           asset={asset}
           questionXpath={questionXpath}
@@ -62,9 +65,9 @@ export default function TranscriptCreate({
           advancedFeatures={advancedFeatures}
         />
       )}
-      {step === 'automatic' && !!languageCode && (
+      {step === CreateSteps.Automatic && !!languageCode && (
         <StepCreateAutomated
-          onBack={() => setStep('language')}
+          onBack={() => setStep(CreateSteps.Language)}
           languageCode={languageCode}
           asset={asset}
           questionXpath={questionXpath}

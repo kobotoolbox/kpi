@@ -12,12 +12,13 @@ import LanguageSelector from '#/components/languages/languageSelector'
 import type { LanguageBase, LanguageCode } from '#/components/languages/languagesStore'
 import envStore from '#/envStore'
 import bodyStyles from '../../common/processingBody.module.scss'
+import { CreateSteps } from '../../common/types'
 import NlpUsageLimitBlockModal from './nlpUsageLimitBlockModal'
 import TransxAutomaticButton from './transxAutomaticButton'
 
 interface Props {
   onBack: () => void
-  onNext: (step: 'manual' | 'automatic') => void
+  onNext: (step: CreateSteps.Manual | CreateSteps.Automatic) => void
   languageCode: LanguageCode | null
   setLanguageCode: (languageCode: LanguageCode | null) => void
   hiddenLanguages?: LanguageCode[]
@@ -66,14 +67,14 @@ export default function StepSelectLanguage({
   }
 
   function handleClickNextManual() {
-    onNext('manual')
+    onNext(CreateSteps.Manual)
   }
 
   function handleClickNextAutomatic() {
     if (usageLimitBlock) {
       setIsLimitBlockModalOpen(true)
     } else {
-      onNext('automatic')
+      onNext(CreateSteps.Automatic)
     }
   }
 

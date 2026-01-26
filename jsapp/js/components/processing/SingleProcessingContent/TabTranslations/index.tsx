@@ -5,6 +5,7 @@ import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import type { AssetResponse } from '#/dataInterface'
 import bodyStyles from '../../common/processingBody.module.scss'
+import { CreateSteps } from '../../common/types'
 import { getAllTranslationsFromSupplementData } from '../../common/utils'
 import TranslationAdd from './TranslationAdd'
 import Editor from './TranslationEdit/Editor'
@@ -60,7 +61,7 @@ export default function TranslationTab({
           questionXpath={questionXpath}
           submission={submission}
           languagesExisting={translationVersions.map(({ _data }) => _data.language)}
-          initialStep={translationVersion ? 'language' : 'begin'}
+          initialStep={translationVersion ? CreateSteps.Language : CreateSteps.Begin}
           onCreate={(languageCode: LanguageCode) => {
             setMode('view')
             // TODO: BUG I can't get it working so that it sets the newly created language the selected one. See comment

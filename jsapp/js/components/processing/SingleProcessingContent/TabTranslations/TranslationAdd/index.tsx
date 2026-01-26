@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { LanguageCode } from '#/components/languages/languagesStore'
+import { CreateSteps } from '#/components/processing/common/types'
 import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import StepSelectLanguage from '../../components/StepSelectLanguage'
@@ -14,7 +15,7 @@ interface Props {
   questionXpath: string
   submission: DataResponse
   languagesExisting: LanguageCode[]
-  initialStep?: 'begin' | 'language'
+  initialStep?: CreateSteps.Begin | CreateSteps.Language
   onCreate: (languageCode: LanguageCode) => void
   onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
   advancedFeatures: AdvancedFeatureResponse[]
@@ -30,16 +31,16 @@ export default function TranslateAdd({
   onUnsavedWorkChange,
   advancedFeatures,
 }: Props) {
-  const [step, setStep] = useState<'begin' | 'language' | 'manual' | 'automatic'>(initialStep ?? 'begin')
+  const [step, setStep] = useState<CreateSteps>(initialStep ?? CreateSteps.Begin)
   const [languageCode, setLanguageCode] = useState<null | LanguageCode>(null)
 
   return (
     <>
-      {step === 'begin' && <StepBegin asset={asset} onNext={() => setStep('language')} />}
-      {step === 'language' && (
+      {step === CreateSteps.Begin && <StepBegin asset={asset} onNext={() => setStep(CreateSteps.Language)} />}
+      {step === CreateSteps.Language && (
         <StepSelectLanguage
-          onBack={() => setStep('begin')}
-          onNext={(step: 'manual' | 'automatic') => setStep(step)}
+          onBack={() => setStep(CreateSteps.Begin)}
+          onNext={(step: CreateSteps.Manual | CreateSteps.Automatic) => setStep(step)}
           hiddenLanguages={languagesExisting}
           suggestedLanguages={asset.advanced_features?.translation?.languages ?? []}
           languageCode={languageCode}
@@ -49,9 +50,9 @@ export default function TranslateAdd({
           disableAutomatic={!envStore.data.asr_mt_features_enabled}
         />
       )}
-      {step === 'manual' && !!languageCode && (
+      {step === CreateSteps.Manual && !!languageCode && (
         <StepCreateManual
-          onBack={() => setStep('language')}
+          onBack={() => setStep(CreateSteps.Language)}
           languageCode={languageCode}
           asset={asset}
           questionXpath={questionXpath}
@@ -61,9 +62,9 @@ export default function TranslateAdd({
           advancedFeatures={advancedFeatures}
         />
       )}
-      {step === 'automatic' && !!languageCode && (
+      {step === CreateSteps.Automatic && !!languageCode && (
         <StepCreateAutomated
-          onBack={() => setStep('language')}
+          onBack={() => setStep(CreateSteps.Language)}
           languageCode={languageCode}
           asset={asset}
           questionXpath={questionXpath}
