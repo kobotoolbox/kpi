@@ -34,12 +34,12 @@ def update_enketo_links(sender, instance, **kwargs):
 
 
 @receiver(pre_delete, sender=DataCollector)
-def remove_enketo_links_on_delete(sender, instance, **kwargs):
+def remove_enketo_links_on_delete_data_collector(sender, instance, **kwargs):
     remove_data_collector_enketo_links(instance.token)
 
 
 @receiver(pre_delete, sender=DataCollectorGroup)
-def remove_enketo_links_on_delete(sender, instance, **kwargs):
+def remove_enketo_links_on_delete_data_collector_group(sender, instance, **kwargs):
     for data_collector in instance.data_collectors.all():
         remove_data_collector_enketo_links(data_collector.token)
 
