@@ -35,9 +35,6 @@ export default function TranslationTab({
   const translationVersion = translationVersions.find(({ _data }) => _data.language === languageCode)
 
   useEffect(() => {
-    // TODO PRESELECT BUG: after creating new translation, the languageCode is new, but `supplement` doesn't have the new
-    // translation yet, thus `translationVersion` doesn't exist here, and the code is pre-selecting the first
-    // translation as default action. See TODO PRESELECT BUG comment at `…/TabTranslations/TranslationEdit/Editor.tsx`
     if (translationVersion) return
     setLanguageCode(translationVersions[0]?._data.language ?? null)
   }, [translationVersion, setLanguageCode, translationVersions])
@@ -64,8 +61,6 @@ export default function TranslationTab({
           initialStep={translationVersion ? CreateSteps.Language : CreateSteps.Begin}
           onCreate={(languageCode: LanguageCode) => {
             setMode('view')
-            // TODO PRESELECT BUG: I can't get it working so that it sets the newly created language the selected one.
-            // See comment at `useEffect` above.
             setLanguageCode(languageCode)
           }}
           onUnsavedWorkChange={onUnsavedWorkChange}
