@@ -67,10 +67,10 @@ export default function Viewer({ asset, questionXpath, submission, transcriptVer
         <HeaderLanguageAndDate transcriptVersion={transcriptVersion} />
 
         <nav className={bodyStyles.transxHeaderButtons}>
-          <Button type='text' size='s' startIcon='edit' onClick={onEdit} tooltip={t('Edit')} />
+          <Button type='secondary' size='s' startIcon='edit' onClick={onEdit} tooltip={t('Edit')} />
 
           <Button
-            type='text'
+            type='secondary-danger'
             size='s'
             startIcon='trash'
             onClick={handleTrash}
