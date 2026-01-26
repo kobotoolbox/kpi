@@ -29,8 +29,6 @@ interface Props {
   disableAutomatic: boolean
 }
 
-// TODO: BUG we need this to know if the context is transcript or translation, so we can display proper manual button
-// label and pass it on to TransxAutomaticButton
 export default function StepSelectLanguage({
   onBack,
   onNext,
