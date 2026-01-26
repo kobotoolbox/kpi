@@ -44,6 +44,7 @@ export default function TranslateAdd({
           suggestedLanguages={asset.advanced_features?.translation?.languages ?? []}
           languageCode={languageCode}
           setLanguageCode={setLanguageCode}
+          // TODO: BUG we display button with "transcribe" label instead of "translate", see TODO comment inside StepSelectLanguage
           titleOverride={t('Please select the language you want to translate to')}
           disableAutomatic={!envStore.data.asr_mt_features_enabled}
         />
