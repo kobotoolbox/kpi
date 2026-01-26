@@ -34,6 +34,13 @@ export default function TranslateAdd({
   const [step, setStep] = useState<CreateSteps>(initialStep ?? CreateSteps.Begin)
   const [languageCode, setLanguageCode] = useState<null | LanguageCode>(null)
 
+  function goBackToLanguageStep() {
+    // TODO HACKFIX: Because `LanguageSelector` is not a controlled component, the selected language inside of it and
+    // the one we have here might become out of sync. Let's ensure we clear it out when re-displaying language step)
+    setLanguageCode(null)
+    setStep(CreateSteps.Language)
+  }
+
   return (
     <>
       {step === CreateSteps.Begin && <StepBegin asset={asset} onNext={() => setStep(CreateSteps.Language)} />}
@@ -52,7 +59,7 @@ export default function TranslateAdd({
       )}
       {step === CreateSteps.Manual && !!languageCode && (
         <StepCreateManual
-          onBack={() => setStep(CreateSteps.Language)}
+          onBack={goBackToLanguageStep}
           languageCode={languageCode}
           asset={asset}
           questionXpath={questionXpath}
@@ -64,7 +71,7 @@ export default function TranslateAdd({
       )}
       {step === CreateSteps.Automatic && !!languageCode && (
         <StepCreateAutomated
-          onBack={() => setStep(CreateSteps.Language)}
+          onBack={goBackToLanguageStep}
           languageCode={languageCode}
           asset={asset}
           questionXpath={questionXpath}

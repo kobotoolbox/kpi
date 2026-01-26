@@ -36,6 +36,13 @@ export default function TranscriptCreate({
   )
   const attachment = getAttachmentForProcessing(asset, questionXpath, submission)
 
+  function goBackToLanguageStep() {
+    // TODO HACKFIX: Because `LanguageSelector` is not a controlled component, the selected language inside of it and
+    // the one we have here might become out of sync. Let's ensure we clear it out when re-displaying language step)
+    setLanguageCode(null)
+    setStep(CreateSteps.Language)
+  }
+
   return (
     <>
       {step === CreateSteps.Begin && (
@@ -56,7 +63,7 @@ export default function TranscriptCreate({
       )}
       {step === CreateSteps.Manual && !!languageCode && (
         <StepCreateManual
-          onBack={() => setStep(CreateSteps.Language)}
+          onBack={goBackToLanguageStep}
           languageCode={languageCode}
           asset={asset}
           questionXpath={questionXpath}
@@ -67,7 +74,7 @@ export default function TranscriptCreate({
       )}
       {step === CreateSteps.Automatic && !!languageCode && (
         <StepCreateAutomated
-          onBack={() => setStep(CreateSteps.Language)}
+          onBack={goBackToLanguageStep}
           languageCode={languageCode}
           asset={asset}
           questionXpath={questionXpath}

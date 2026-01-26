@@ -8,7 +8,7 @@ import {
   useOrganizationsServiceUsageSummary,
 } from '#/account/usage/useOrganizationsServiceUsageSummary'
 import Button from '#/components/common/button'
-import LanguageSelector from '#/components/languages/languageSelector'
+import LanguageSelector, { resetAllLanguageSelectors } from '#/components/languages/languageSelector'
 import type { LanguageBase, LanguageCode } from '#/components/languages/languagesStore'
 import envStore from '#/envStore'
 import bodyStyles from '../../common/processingBody.module.scss'
@@ -62,8 +62,13 @@ export default function StepSelectLanguage({
   }
 
   const handleClickBack = () => {
-    setLanguageCode(null)
-    onBack()
+    // When clicking "back" we either unselect the language (inner component "back" action) through a special component
+    // function , or if no language is selected, we let the parent know (the parent flow "back" action).
+    if (languageCode !== null) {
+      resetAllLanguageSelectors()
+    } else {
+      onBack()
+    }
   }
 
   function handleClickNextManual() {
