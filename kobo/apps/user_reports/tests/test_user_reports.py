@@ -164,7 +164,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         service_usage = someuser_data['service_usage']
         # Assert total usage counts from the snapshot
         self.assertEqual(service_usage['total_submission_count']['current_period'], 15)
-        self.assertEqual(service_usage['total_submission_count']['all_time'], 150)
+        self.assertEqual(service_usage['total_submission_count']['cumulative'], 150)
         self.assertEqual(service_usage['total_storage_bytes'], 200000000)
         self.assertEqual(
             service_usage['total_nlp_usage']['asr_seconds_current_period'], 100
