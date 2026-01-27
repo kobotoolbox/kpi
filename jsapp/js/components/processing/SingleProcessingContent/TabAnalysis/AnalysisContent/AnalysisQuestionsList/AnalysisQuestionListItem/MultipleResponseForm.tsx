@@ -23,9 +23,10 @@ export default function SelectMultipleResponseForm({ qaQuestion, qaAnswer, onSav
   }
 
   const handleChange = (items: MultiCheckboxItem[]) => {
-    setValues(items.filter((item) => item.checked).map((item) => item.name) as string[])
+    const newValues = items.filter((item) => item.checked).map((item) => item.name) as string[]
+    setValues(newValues)
     clearTimeout(typingTimer)
-    setTypingTimer(setTimeout(handleSave, AUTO_SAVE_TYPING_DELAY)) // After some seconds we auto save
+    setTypingTimer(setTimeout(() => onSave(newValues), AUTO_SAVE_TYPING_DELAY))
   }
 
   return (
@@ -40,7 +41,7 @@ export default function SelectMultipleResponseForm({ qaQuestion, qaAnswer, onSav
             checked: values.includes(choice.uuid),
           }))}
         onChange={handleChange}
-        disabled={!disabled}
+        disabled={disabled}
       />
     </Radio.Group>
   )
