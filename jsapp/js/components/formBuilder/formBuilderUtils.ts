@@ -213,7 +213,7 @@ export function koboMatrixParser(params: KoboMatrixParserParams): KoboMatrixPars
   // add open/close tags for kobomatrix groups
   for (var i = 0; i < surveyLength; i++) {
     if (content.survey[i].type === 'kobomatrix') {
-      content.survey[i].type = GroupTypeEndName.end_kobomatrix
+      content.survey[i].type = GroupTypeBeginName.begin_kobomatrix
       content.survey[i].appearance = 'field-list'
       surveyLength++
       content.survey.splice(i + 1, 0, { type: GroupTypeEndName.end_kobomatrix, $kuid: `/${content.survey[i].$kuid}` })
