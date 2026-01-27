@@ -2,7 +2,7 @@
 # Not intended to merge to main, delete before merging.
 tasks:
   mk:
-    desc: Build the test image + Run bash in it
+    desc: Build the task-Dockerfile image + Run bash in it
     cmds:
      - task: mk-dc
      - task: mk-bash
@@ -17,6 +17,12 @@ tasks:
     cmd: '{{.COMPOSE}} run --rm {{.BASH_ENV}} {{.SERVICE}} bash'
     ignore_error: true
     dir:  .
+
+  mk-node:
+    desc: Build and run the task-node-Dockerfile
+    cmds:
+     - { task: mk-dc,   vars: { SERVICE: mk-node } }
+     - { task: mk-bash, vars: { SERVICE: mk-node } }
 
 
 vars: {
