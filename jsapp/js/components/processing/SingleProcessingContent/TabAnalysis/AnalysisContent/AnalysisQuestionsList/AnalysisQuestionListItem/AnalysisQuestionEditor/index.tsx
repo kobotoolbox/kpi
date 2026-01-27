@@ -92,11 +92,20 @@ export default function AnalysisQuestionEditor({
     if (payload.uuid === 'placeholder') payload.uuid = generateUuid()
 
     const questionIndex = advancedFeature.params.findIndex((qaQuestion) => qaQuestion.uuid === newQaQuestion.uuid)
-    const newParams = [
-      ...advancedFeature.params.slice(0, questionIndex),
-      payload,
-      ...advancedFeature.params.slice(questionIndex + 1, advancedFeature.params.length),
-    ]
+
+    let newParams: QualActionParams[]
+
+    if (questionIndex === -1) {
+      // Question doesn't exist yet (new question), add it to the end
+      newParams = [...advancedFeature.params, payload]
+    } else {
+      // Question exists (editing), replace it at its index
+      newParams = [
+        ...advancedFeature.params.slice(0, questionIndex),
+        payload,
+        ...advancedFeature.params.slice(questionIndex + 1),
+      ]
+    }
 
     await onSaveQuestion(newParams)
   }
