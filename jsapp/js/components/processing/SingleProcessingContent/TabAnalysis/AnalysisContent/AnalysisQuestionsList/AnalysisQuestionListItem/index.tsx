@@ -221,7 +221,7 @@ export default function AnalysisQuestionListItem({
         return (
           <ResponseForm
             qaQuestion={qaQuestion}
-            disabled={disabledQuestion} // TODO: or disabledAnswer?
+            disabled={disabledQuestion}
             onEdit={setQaQuestion}
             onDelete={handleDeleteQuestion}
           />
