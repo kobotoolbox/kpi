@@ -17,7 +17,13 @@ class AdvancedFeatureCreateResponseParamsField(serializers.JSONField):
 
 class AdvancedFeatureActionField(serializers.ChoiceField):
     def __init__(self, *args, **kwargs):
-        kwargs.setdefault('choices', ACTION_IDS)
-        kwargs.setdefault('allow_null', False)
-        kwargs.setdefault('allow_blank', False)
-        super().__init__(*args, **kwargs)
+        if any(key in kwargs for key in ('choices', 'allow_null', 'allow_blank')):
+            raise TypeError('choices/allow_null/allow_blank cannot be overridden')
+
+        super().__init__(
+            choices=ACTION_IDS,
+            allow_null=False,
+            allow_blank=False,
+            *args,
+            **kwargs,
+        )
