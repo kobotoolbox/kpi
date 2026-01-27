@@ -9,7 +9,36 @@ from django.utils import timezone
 from freezegun import freeze_time
 
 from kobo.apps.subsequences.constants import Action
-from kobo.apps.subsequences.tests.constants import OLD_STYLE_ADVANCED_FEATURES
+from kobo.apps.subsequences.tests.constants import (
+    CHOICE_A_Q1_UUID,
+    CHOICE_A_Q2_UUID,
+    CHOICE_B_Q1_UUID,
+    CHOICE_B_Q2_UUID,
+    CHOICE_BLUE_Q1_UUID,
+    CHOICE_BLUE_Q2_UUID,
+    CHOICE_GREEN_Q1_UUID,
+    CHOICE_GREEN_Q2_UUID,
+    CHOICE_RED_Q1_UUID,
+    CHOICE_RED_Q2_UUID,
+    OLD_STYLE_ADVANCED_FEATURES,
+    QUAL_INTEGER_Q1_UUID,
+    QUAL_INTEGER_Q2_UUID,
+    QUAL_NOTE_Q1_UUID,
+    QUAL_NOTE_Q2_UUID,
+    QUAL_SELECT_MULTIPLE_Q1_UUID,
+    QUAL_SELECT_MULTIPLE_Q2_UUID,
+    QUAL_SELECT_ONE_Q1_UUID,
+    QUAL_SELECT_ONE_Q2_UUID,
+    QUAL_TAGS_Q1_UUID,
+    QUAL_TAGS_Q2_UUID,
+    QUAL_TEXT_Q1_UUID,
+    QUAL_TEXT_Q2_UUID,
+    VERSIONING_QUAL_A1_UUID,
+    VERSIONING_QUAL_A2_UUID,
+    VERSIONING_QUAL_B1_UUID,
+    VERSIONING_QUAL_INTEGER_UUID,
+    VERSIONING_QUAL_TEXT_UUID,
+)
 from kobo.apps.subsequences.utils.versioning import (
     _determine_source_transcript,
     _new_revision_from_old,
@@ -225,12 +254,12 @@ class TestVersioning(TestCase):
                     {
                         'val': 'music123',
                         'type': 'qual_text',
-                        'uuid': '09327944-d4a4-4d59-9316-1250cf0799a4',
+                        'uuid': VERSIONING_QUAL_TEXT_UUID,
                     },
                     {
                         'val': 2,
                         'type': 'qual_integer',
-                        'uuid': 'f57b263f-695c-4d74-88cb-14f1536f617c',
+                        'uuid': VERSIONING_QUAL_INTEGER_UUID,
                     },
                 ],
             }
@@ -324,13 +353,13 @@ class TestVersioning(TestCase):
                     }
                 },
                 'manual_qual': {
-                    '09327944-d4a4-4d59-9316-1250cf0799a4': {
+                    VERSIONING_QUAL_TEXT_UUID: {
                         '_dateCreated': now.isoformat(),
                         '_dateModified': now.isoformat(),
                         '_versions': [
                             {
                                 '_data': {
-                                    'uuid': '09327944-d4a4-4d59-9316-1250cf0799a4',
+                                    'uuid': VERSIONING_QUAL_TEXT_UUID,
                                     'value': 'music123',
                                 },
                                 '_dateCreated': now.isoformat(),
@@ -339,13 +368,13 @@ class TestVersioning(TestCase):
                             }
                         ],
                     },
-                    'f57b263f-695c-4d74-88cb-14f1536f617c': {
+                    VERSIONING_QUAL_INTEGER_UUID: {
                         '_dateCreated': now.isoformat(),
                         '_dateModified': now.isoformat(),
                         '_versions': [
                             {
                                 '_data': {
-                                    'uuid': 'f57b263f-695c-4d74-88cb-14f1536f617c',
+                                    'uuid': VERSIONING_QUAL_INTEGER_UUID,
                                     'value': 2,
                                 },
                                 '_dateCreated': now.isoformat(),
@@ -397,19 +426,19 @@ class TestVersioning(TestCase):
         qualdict = {
             'qual_survey': [
                 {
-                    'uuid': 'q1',
+                    'uuid': VERSIONING_QUAL_A1_UUID,
                     'xpath': '/a',
                     'type': 'qual_text',
                     'labels': {'_default': 'A1'},
                 },
                 {
-                    'uuid': 'q2',
+                    'uuid': VERSIONING_QUAL_A2_UUID,
                     'xpath': '/a',
                     'type': 'qual_text',
                     'labels': {'_default': 'A2'},
                 },
                 {
-                    'uuid': 'q3',
+                    'uuid': VERSIONING_QUAL_B1_UUID,
                     'xpath': '/b',
                     'type': 'qual_integer',
                     'labels': {'_default': 'B1'},
@@ -426,11 +455,14 @@ class TestVersioning(TestCase):
         qa_a = created[0]
         assert qa_a.question_xpath == '/a'
         assert len(qa_a.params) == 2
-        assert {p['uuid'] for p in qa_a.params} == {'q1', 'q2'}
+        assert {p['uuid'] for p in qa_a.params} == {
+            VERSIONING_QUAL_A1_UUID,
+            VERSIONING_QUAL_A2_UUID,
+        }
 
         qa_b = created[1]
         assert len(qa_b.params) == 1
-        assert qa_b.params[0]['uuid'] == 'q3'
+        assert qa_b.params[0]['uuid'] == VERSIONING_QUAL_B1_UUID
 
     def test_convert_qual_params_invalid(self):
 
@@ -471,7 +503,36 @@ class TestVersioning(TestCase):
             ).exists()
 
         # qual
-        for q in ['q1', 'q2']:
+        q1_q2_uuids = [
+            {
+                'integer': QUAL_INTEGER_Q1_UUID,
+                'note': QUAL_NOTE_Q1_UUID,
+                'select_multiple': QUAL_SELECT_MULTIPLE_Q1_UUID,
+                'select_one': QUAL_SELECT_ONE_Q1_UUID,
+                'tags': QUAL_TAGS_Q1_UUID,
+                'text': QUAL_TEXT_Q1_UUID,
+                'choice_green': CHOICE_GREEN_Q1_UUID,
+                'choice_red': CHOICE_RED_Q1_UUID,
+                'choice_blue': CHOICE_BLUE_Q1_UUID,
+                'choice_a': CHOICE_A_Q1_UUID,
+                'choice_b': CHOICE_B_Q1_UUID,
+            },
+            {
+                'integer': QUAL_INTEGER_Q2_UUID,
+                'note': QUAL_NOTE_Q2_UUID,
+                'select_multiple': QUAL_SELECT_MULTIPLE_Q2_UUID,
+                'select_one': QUAL_SELECT_ONE_Q2_UUID,
+                'tags': QUAL_TAGS_Q2_UUID,
+                'text': QUAL_TEXT_Q2_UUID,
+                'choice_green': CHOICE_GREEN_Q2_UUID,
+                'choice_red': CHOICE_RED_Q2_UUID,
+                'choice_blue': CHOICE_BLUE_Q2_UUID,
+                'choice_a': CHOICE_A_Q2_UUID,
+                'choice_b': CHOICE_B_Q2_UUID,
+            },
+        ]
+        for idx, q in enumerate(['q1', 'q2']):
+            uuids = q1_q2_uuids[idx]
             qaf = all_asset_advanced_features.get(
                 action=Action.MANUAL_QUAL, question_xpath=q
             )
@@ -482,25 +543,34 @@ class TestVersioning(TestCase):
                 params[0],
                 expected_type='qualInteger',
                 expected_label='Integer?',
-                expected_uuid=f'qual_integer_{q}',
+                expected_uuid=uuids['integer'],
             )
             # qual_note
             self._check_expected_params(
                 params[1],
                 expected_type='qualNote',
                 expected_label='Note',
-                expected_uuid=f'qual_note_{q}',
+                expected_uuid=uuids['note'],
             )
             # qual_select_multiple
             self._check_expected_params(
                 params[2],
                 expected_type='qualSelectMultiple',
                 expected_label='Multiple?',
-                expected_uuid=f'qual_select_multiple_{q}',
+                expected_uuid=uuids['select_multiple'],
                 expected_choices=[
-                    {'labels': {'_default': 'Green'}, 'uuid': f'green_{q}'},
-                    {'labels': {'_default': 'Red'}, 'uuid': f'red_{q}'},
-                    {'labels': {'_default': 'Blue'}, 'uuid': f'blue_{q}'},
+                    {
+                        'labels': {'_default': 'Green'},
+                        'uuid': uuids['choice_green'],
+                    },
+                    {
+                        'labels': {'_default': 'Red'},
+                        'uuid': uuids['choice_red'],
+                    },
+                    {
+                        'labels': {'_default': 'Blue'},
+                        'uuid': uuids['choice_blue'],
+                    },
                 ],
             )
             # qual_select_one
@@ -508,10 +578,16 @@ class TestVersioning(TestCase):
                 params[3],
                 expected_type='qualSelectOne',
                 expected_label='Single?',
-                expected_uuid=f'qual_select_one_{q}',
+                expected_uuid=uuids['select_one'],
                 expected_choices=[
-                    {'labels': {'_default': 'A'}, 'uuid': f'a_{q}'},
-                    {'labels': {'_default': 'B'}, 'uuid': f'b_{q}'},
+                    {
+                        'labels': {'_default': 'A'},
+                        'uuid': uuids['choice_a'],
+                    },
+                    {
+                        'labels': {'_default': 'B'},
+                        'uuid': uuids['choice_b'],
+                    },
                 ],
             )
 
@@ -520,7 +596,7 @@ class TestVersioning(TestCase):
                 params[4],
                 expected_type='qualTags',
                 expected_label='Tags?',
-                expected_uuid=f'qual_tags_{q}',
+                expected_uuid=uuids['tags'],
             )
 
             # qual_text
@@ -528,7 +604,7 @@ class TestVersioning(TestCase):
                 params[5],
                 expected_type='qualText',
                 expected_label='Text?',
-                expected_uuid=f'qual_text_{q}',
+                expected_uuid=uuids['text'],
             )
 
     def test_saving_asset_only_calls_migrate_once(self):

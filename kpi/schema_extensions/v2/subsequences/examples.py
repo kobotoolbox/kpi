@@ -207,7 +207,7 @@ def get_advanced_features_list_examples() -> list[OpenApiExample]:
             response_only=True,
         ),
         OpenApiExample(
-            'Qualitative Analysis - Multiple Choice Question',
+            'Qualitative Analysis - Multiple Choice Question (with deleted choice)',
             value={
                 'action': 'manual_qual',
                 'question_xpath': 'q1',
@@ -220,6 +220,7 @@ def get_advanced_features_list_examples() -> list[OpenApiExample]:
                             {
                                 'uuid': 'xxxxxxxx-bbbb-cccc-dddd-eeeeffffffff',
                                 'labels': {'_default': 'Shelter'},
+                                'options': {'deleted': True},
                             },
                             {
                                 'uuid': 'zzzzzzzz-bbbb-cccc-dddd-eeeeffffffff',
@@ -234,6 +235,33 @@ def get_advanced_features_list_examples() -> list[OpenApiExample]:
                 ],
                 'uid': 'qa123456789AbCdEfGhIjklm',
             },
+            response_only=True,
+        ),
+        OpenApiExample(
+            'Qualitative Analysis - Simple Types - Deleted question',
+            value={
+                'action': 'manual_qual',
+                'question_xpath': 'q1',
+                'params': [
+                    {
+                        'type': '<question_type>',
+                        'uuid': 'aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff',
+                        'labels': {
+                            '_default': 'Qualitative analysis result',
+                        },
+                    },
+                ],
+                'options': {'deleted': True},
+                'uid': 'qa123456789AbCdEfGhIjklm',
+            },
+            description=(
+                '`<question_type>` can be any of:'
+                '\n\n'
+                '* `qualText` \n'
+                '* `qualInteger` \n'
+                '* `qualTags` \n'
+                '* `qualNote` \n'
+            ),
             response_only=True,
         ),
     ]

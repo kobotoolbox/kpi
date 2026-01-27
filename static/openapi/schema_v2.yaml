@@ -1178,7 +1178,7 @@ paths:
                           _default: Low
                     uid: qa123456789AbCdEfGhIjklm
                   summary: Qualitative Analysis - Single Choice Question
-                QualitativeAnalysis-MultipleChoiceQuestion:
+                QualitativeAnalysis-MultipleChoiceQuestion(withDeletedChoice):
                   value:
                   - action: manual_qual
                     question_xpath: q1
@@ -1191,6 +1191,8 @@ paths:
                       - uuid: xxxxxxxx-bbbb-cccc-dddd-eeeeffffffff
                         labels:
                           _default: Shelter
+                        options:
+                          deleted: true
                       - uuid: zzzzzzzz-bbbb-cccc-dddd-eeeeffffffff
                         labels:
                           _default: Food
@@ -1198,7 +1200,23 @@ paths:
                         labels:
                           _default: Medical
                     uid: qa123456789AbCdEfGhIjklm
-                  summary: Qualitative Analysis - Multiple Choice Question
+                  summary: Qualitative Analysis - Multiple Choice Question (with deleted
+                    choice)
+                QualitativeAnalysis-SimpleTypes-DeletedQuestion:
+                  value:
+                  - action: manual_qual
+                    question_xpath: q1
+                    params:
+                    - type: <question_type>
+                      uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
+                      labels:
+                        _default: Qualitative analysis result
+                    options:
+                      deleted: true
+                    uid: qa123456789AbCdEfGhIjklm
+                  summary: Qualitative Analysis - Simple Types - Deleted question
+                  description: "`<question_type>` can be any of:\n\n* `qualText` \n\
+                    * `qualInteger` \n* `qualTags` \n* `qualNote` \n"
           description: null
         '404':
           content:
@@ -1318,7 +1336,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AdvancedFeatureResponse'
+                $ref: '#/components/schemas/AdvancedFeatureCreateResponse'
           description: null
         '404':
           content:
@@ -1426,7 +1444,7 @@ paths:
                           _default: Low
                     uid: qa123456789AbCdEfGhIjklm
                   summary: Qualitative Analysis - Single Choice Question
-                QualitativeAnalysis-MultipleChoiceQuestion:
+                QualitativeAnalysis-MultipleChoiceQuestion(withDeletedChoice):
                   value:
                     action: manual_qual
                     question_xpath: q1
@@ -1439,6 +1457,8 @@ paths:
                       - uuid: xxxxxxxx-bbbb-cccc-dddd-eeeeffffffff
                         labels:
                           _default: Shelter
+                        options:
+                          deleted: true
                       - uuid: zzzzzzzz-bbbb-cccc-dddd-eeeeffffffff
                         labels:
                           _default: Food
@@ -1446,7 +1466,23 @@ paths:
                         labels:
                           _default: Medical
                     uid: qa123456789AbCdEfGhIjklm
-                  summary: Qualitative Analysis - Multiple Choice Question
+                  summary: Qualitative Analysis - Multiple Choice Question (with deleted
+                    choice)
+                QualitativeAnalysis-SimpleTypes-DeletedQuestion:
+                  value:
+                    action: manual_qual
+                    question_xpath: q1
+                    params:
+                    - type: <question_type>
+                      uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
+                      labels:
+                        _default: Qualitative analysis result
+                    options:
+                      deleted: true
+                    uid: qa123456789AbCdEfGhIjklm
+                  summary: Qualitative Analysis - Simple Types - Deleted question
+                  description: "`<question_type>` can be any of:\n\n* `qualText` \n\
+                    * `qualInteger` \n* `qualTags` \n* `qualNote` \n"
           description: null
         '404':
           content:
@@ -1617,7 +1653,7 @@ paths:
                           _default: Low
                     uid: qa123456789AbCdEfGhIjklm
                   summary: Qualitative Analysis - Single Choice Question
-                QualitativeAnalysis-MultipleChoiceQuestion:
+                QualitativeAnalysis-MultipleChoiceQuestion(withDeletedChoice):
                   value:
                     action: manual_qual
                     question_xpath: q1
@@ -1630,6 +1666,8 @@ paths:
                       - uuid: xxxxxxxx-bbbb-cccc-dddd-eeeeffffffff
                         labels:
                           _default: Shelter
+                        options:
+                          deleted: true
                       - uuid: zzzzzzzz-bbbb-cccc-dddd-eeeeffffffff
                         labels:
                           _default: Food
@@ -1637,7 +1675,23 @@ paths:
                         labels:
                           _default: Medical
                     uid: qa123456789AbCdEfGhIjklm
-                  summary: Qualitative Analysis - Multiple Choice Question
+                  summary: Qualitative Analysis - Multiple Choice Question (with deleted
+                    choice)
+                QualitativeAnalysis-SimpleTypes-DeletedQuestion:
+                  value:
+                    action: manual_qual
+                    question_xpath: q1
+                    params:
+                    - type: <question_type>
+                      uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
+                      labels:
+                        _default: Qualitative analysis result
+                    options:
+                      deleted: true
+                    uid: qa123456789AbCdEfGhIjklm
+                  summary: Qualitative Analysis - Simple Types - Deleted question
+                  description: "`<question_type>` can be any of:\n\n* `qualText` \n\
+                    * `qualInteger` \n* `qualTags` \n* `qualNote` \n"
           description: null
         '404':
           content:
@@ -10442,6 +10496,26 @@ components:
         * `manual_translation` - manual_translation
         * `manual_qual` - manual_qual
         * `automatic_bedrock_qual` - automatic_bedrock_qual
+    AdvancedFeatureCreateResponse:
+      type: object
+      properties:
+        action:
+          $ref: '#/components/schemas/ActionEnum'
+        question_xpath:
+          type: string
+        params:
+          type: array
+          items:
+            anyOf:
+            - $ref: '#/components/schemas/CreateResponseNLPActionParams'
+            - $ref: '#/components/schemas/CreateResponseQualActionParams'
+        uid:
+          type: string
+      required:
+      - action
+      - params
+      - question_xpath
+      - uid
     AdvancedFeaturePostRequest:
       type: object
       properties:
@@ -10453,8 +10527,8 @@ components:
           type: array
           items:
             anyOf:
-            - $ref: '#/components/schemas/NLPActionParams'
-            - $ref: '#/components/schemas/QualActionParams'
+            - $ref: '#/components/schemas/RequestNLPActionParams'
+            - $ref: '#/components/schemas/RequestQualActionParams'
       required:
       - action
       - params
@@ -10470,8 +10544,8 @@ components:
           type: array
           items:
             anyOf:
-            - $ref: '#/components/schemas/NLPActionParams'
-            - $ref: '#/components/schemas/QualActionParams'
+            - $ref: '#/components/schemas/ResponseNLPActionParams'
+            - $ref: '#/components/schemas/ResponseQualActionParams'
         uid:
           type: string
       required:
@@ -11628,6 +11702,84 @@ components:
         - file_type
         - metadata
         - user
+    CreateResponseNLPActionParams:
+      type: object
+      additionalProperties: false
+      properties:
+        language:
+          type: string
+      required:
+      - language
+    CreateResponseQualActionParams:
+      anyOf:
+      - $ref: '#/components/schemas/CreateResponseQualSimpleQuestionParams'
+      - $ref: '#/components/schemas/CreateResponseQualSelectQuestionParams'
+    CreateResponseQualSelectQuestionParams:
+      type: object
+      additionalProperties: false
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/QualSelectQuestionParamsTypeEnum'
+        labels:
+          type: object
+          properties:
+            _default:
+              type: string
+          additionalProperties:
+            type: string
+          required:
+          - _default
+        choices:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              labels:
+                type: object
+                properties:
+                  _default:
+                    type: string
+                additionalProperties:
+                  type: string
+                required:
+                - _default
+              uuid:
+                type: string
+                format: uuid
+            required:
+            - labels
+            - uuid
+      required:
+      - uuid
+      - type
+      - labels
+      - choices
+    CreateResponseQualSimpleQuestionParams:
+      type: object
+      additionalProperties: false
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/QualSimpleQuestionParamsTypeEnum'
+        labels:
+          type: object
+          properties:
+            _default:
+              type: string
+          additionalProperties:
+            type: string
+          required:
+          - _default
+      required:
+      - uuid
+      - type
+      - labels
     CustomAssetUsage:
       type: object
       properties:
@@ -13668,14 +13820,6 @@ components:
         * `admin` - admin
         * `member` - member
         * `owner` - owner
-    NLPActionParams:
-      type: object
-      additionalProperties: false
-      properties:
-        language:
-          type: string
-      required:
-      - language
     NlpUsage:
       type: object
       properties:
@@ -14876,8 +15020,8 @@ components:
           type: array
           items:
             anyOf:
-            - $ref: '#/components/schemas/NLPActionParams'
-            - $ref: '#/components/schemas/QualActionParams'
+            - $ref: '#/components/schemas/RequestNLPActionParams'
+            - $ref: '#/components/schemas/RequestQualActionParams'
     PatchedAssetPatchRequest:
       oneOf:
       - type: object
@@ -16086,87 +16230,11 @@ components:
         * `always_invoice` - Always invoice
         * `create_prorations` - Create prorations
         * `none` - None
-    QualActionParams:
-      anyOf:
-      - $ref: '#/components/schemas/QualSimpleQuestionParams'
-      - $ref: '#/components/schemas/QualSelectQuestionParams'
-    QualSelectQuestionParams:
-      type: object
-      additionalProperties: false
-      properties:
-        uuid:
-          type: string
-          format: uuid
-        type:
-          $ref: '#/components/schemas/QualSelectQuestionParamsTypeEnum'
-        labels:
-          type: object
-          properties:
-            _default:
-              type: string
-          additionalProperties:
-            type: string
-          required:
-          - _default
-        choices:
-          type: array
-          items:
-            type: object
-            additionalProperties: false
-            properties:
-              labels:
-                type: object
-                properties:
-                  _default:
-                    type: string
-                additionalProperties:
-                  type: string
-                required:
-                - _default
-              uuid:
-                type: string
-                format: uuid
-              options:
-                type: object
-            required:
-            - labels
-            - uuid
-        options:
-          type: object
-      required:
-      - uuid
-      - type
-      - labels
-      - choices
     QualSelectQuestionParamsTypeEnum:
       type: string
       enum:
       - qualSelectMultiple
       - qualSelectOne
-    QualSimpleQuestionParams:
-      type: object
-      additionalProperties: false
-      properties:
-        uuid:
-          type: string
-          format: uuid
-        type:
-          $ref: '#/components/schemas/QualSimpleQuestionParamsTypeEnum'
-        labels:
-          type: object
-          properties:
-            _default:
-              type: string
-          additionalProperties:
-            type: string
-          required:
-          - _default
-        options:
-          type: object
-      required:
-      - uuid
-      - type
-      - labels
     QualSimpleQuestionParamsTypeEnum:
       type: string
       enum:
@@ -16174,6 +16242,7 @@ components:
       - qualTags
       - qualText
       - qualNote
+      - qualAutoKeywordCount
     Recurring:
       type: object
       properties:
@@ -16230,6 +16299,177 @@ components:
       - count
       - list
       - url
+    RequestNLPActionParams:
+      type: object
+      additionalProperties: false
+      properties:
+        language:
+          type: string
+      required:
+      - language
+    RequestQualActionParams:
+      anyOf:
+      - $ref: '#/components/schemas/RequestQualSimpleQuestionParams'
+      - $ref: '#/components/schemas/RequestQualSelectQuestionParams'
+    RequestQualSelectQuestionParams:
+      type: object
+      additionalProperties: false
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/QualSelectQuestionParamsTypeEnum'
+        labels:
+          type: object
+          properties:
+            _default:
+              type: string
+          additionalProperties:
+            type: string
+          required:
+          - _default
+        choices:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              labels:
+                type: object
+                properties:
+                  _default:
+                    type: string
+                additionalProperties:
+                  type: string
+                required:
+                - _default
+              uuid:
+                type: string
+                format: uuid
+            required:
+            - labels
+            - uuid
+      required:
+      - uuid
+      - type
+      - labels
+      - choices
+    RequestQualSimpleQuestionParams:
+      type: object
+      additionalProperties: false
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/QualSimpleQuestionParamsTypeEnum'
+        labels:
+          type: object
+          properties:
+            _default:
+              type: string
+          additionalProperties:
+            type: string
+          required:
+          - _default
+      required:
+      - uuid
+      - type
+      - labels
+    ResponseNLPActionParams:
+      type: object
+      additionalProperties: false
+      properties:
+        language:
+          type: string
+      required:
+      - language
+    ResponseQualActionParams:
+      anyOf:
+      - $ref: '#/components/schemas/ResponseQualSimpleQuestionParams'
+      - $ref: '#/components/schemas/ResponseQualSelectQuestionParams'
+    ResponseQualSelectQuestionParams:
+      type: object
+      additionalProperties: false
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/QualSelectQuestionParamsTypeEnum'
+        labels:
+          type: object
+          properties:
+            _default:
+              type: string
+          additionalProperties:
+            type: string
+          required:
+          - _default
+        choices:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              labels:
+                type: object
+                properties:
+                  _default:
+                    type: string
+                additionalProperties:
+                  type: string
+                required:
+                - _default
+              uuid:
+                type: string
+                format: uuid
+              options:
+                type: object
+                properties:
+                  deleted:
+                    type: boolean
+            required:
+            - labels
+            - uuid
+        options:
+          type: object
+          properties:
+            deleted:
+              type: boolean
+      required:
+      - uuid
+      - type
+      - labels
+      - choices
+    ResponseQualSimpleQuestionParams:
+      type: object
+      additionalProperties: false
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/QualSimpleQuestionParamsTypeEnum'
+        labels:
+          type: object
+          properties:
+            _default:
+              type: string
+          additionalProperties:
+            type: string
+          required:
+          - _default
+        options:
+          type: object
+          properties:
+            deleted:
+              type: boolean
+      required:
+      - uuid
+      - type
+      - labels
     ServiceUsageBalanceData:
       type: object
       properties:

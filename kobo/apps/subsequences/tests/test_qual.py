@@ -9,7 +9,38 @@ from freezegun import freeze_time
 from rest_framework.exceptions import ValidationError
 
 from ..actions.manual_qual import ManualQualAction
-from .constants import EMPTY_SUBMISSION
+from .constants import (
+    EMPTY_SUBMISSION,
+    FIX_CHOICE_APATHY_UUID,
+    FIX_CHOICE_COMPETITION_UUID,
+    FIX_CHOICE_EMPATHY_UUID,
+    FIX_CHOICE_NO_UUID,
+    FIX_CHOICE_YES_UUID,
+    FIX_QUAL_INTEGER_UUID,
+    FIX_QUAL_NOTE_UUID,
+    FIX_QUAL_SELECT_MULTIPLE_UUID,
+    FIX_QUAL_SELECT_ONE_UUID,
+    FIX_QUAL_TAGS_UUID,
+    FIX_QUAL_TEXT_UUID,
+    METHOD_CHOICE_BLUE_UUID,
+    METHOD_CHOICE_FOOD_UUID,
+    METHOD_CHOICE_GREEN_UUID,
+    METHOD_CHOICE_HIGH_UUID,
+    METHOD_CHOICE_LOW_UUID,
+    METHOD_CHOICE_MEDICAL_UUID,
+    METHOD_CHOICE_MEDIUM_UUID,
+    METHOD_CHOICE_PURPLE_UUID,
+    METHOD_CHOICE_RED_UUID,
+    METHOD_CHOICE_SHELTER_UUID,
+    METHOD_COLORS_QUESTION_UUID,
+    METHOD_HIDE_QUESTION_UUID,
+    METHOD_NEW_QUESTION_UUID,
+    METHOD_QUAL_INTEGER_UUID,
+    METHOD_QUAL_SELECT_MULTIPLE_UUID,
+    METHOD_QUAL_SELECT_ONE_UUID,
+    METHOD_QUAL_TEXT_UUID,
+    METHOD_UNHIDE_QUESTION_UUID,
+)
 
 
 class Fix:
@@ -37,56 +68,56 @@ class Fix:
     action_params = [
         {
             'type': 'qualInteger',
-            'uuid': '1a2c8eb0-e2ec-4b3c-942a-c1a5410c081a',
+            'uuid': FIX_QUAL_INTEGER_UUID,
             'labels': {'_default': 'How many characters appear in the story?'},
         },
         {
             'type': 'qualSelectMultiple',
-            'uuid': '2e30bec7-4843-43c7-98bc-13114af230c5',
+            'uuid': FIX_QUAL_SELECT_MULTIPLE_UUID,
             'labels': {'_default': 'What themes were present in the story?'},
             'choices': [
                 {
-                    'uuid': '2e24e6b4-bc3b-4e8e-b0cd-d8d3b9ca15b6',
+                    'uuid': FIX_CHOICE_EMPATHY_UUID,
                     'labels': {'_default': 'Empathy'},
                 },
                 {
-                    'uuid': 'cb82919d-2948-4ccf-a488-359c5d5ee53a',
+                    'uuid': FIX_CHOICE_COMPETITION_UUID,
                     'labels': {'_default': 'Competition'},
                 },
                 {
-                    'uuid': '8effe3b1-619e-4ada-be45-ebcea5af0aaf',
+                    'uuid': FIX_CHOICE_APATHY_UUID,
                     'labels': {'_default': 'Apathy'},
                 },
             ],
         },
         {
             'type': 'qualSelectOne',
-            'uuid': '1a8b748b-f470-4c40-bc09-ce2b1197f503',
+            'uuid': FIX_QUAL_SELECT_ONE_UUID,
             'labels': {'_default': 'Was this a first-hand account?'},
             'choices': [
                 {
-                    'uuid': '3c7aacdc-8971-482a-9528-68e64730fc99',
+                    'uuid': FIX_CHOICE_YES_UUID,
                     'labels': {'_default': 'Yes'},
                 },
                 {
-                    'uuid': '7e31c6a5-5eac-464c-970c-62c383546a94',
+                    'uuid': FIX_CHOICE_NO_UUID,
                     'labels': {'_default': 'No'},
                 },
             ],
         },
         {
             'type': 'qualTags',
-            'uuid': 'e9b4e6d1-fdbb-4dc9-8b10-a9c3c388322f',
+            'uuid': FIX_QUAL_TAGS_UUID,
             'labels': {'_default': 'Tag any landmarks mentioned in the story'},
         },
         {
             'type': 'qualText',
-            'uuid': '83acf2a7-8edc-4fd8-8b9f-f832ca3f18ad',
+            'uuid': FIX_QUAL_TEXT_UUID,
             'labels': {'_default': 'Add any further remarks'},
         },
         {
             'type': 'qualNote',
-            'uuid': '5ef11d48-d7a3-432e-af83-8c2e9b1feb72',
+            'uuid': FIX_QUAL_NOTE_UUID,
             'labels': {'_default': 'Thanks for your diligence'},
         },
     ]
@@ -96,8 +127,8 @@ class Fix:
     expected_data_schema = {
         '$schema': 'https://json-schema.org/draft/2020-12/schema',
         '$defs': {
-            # TODO: use `'format': 'uuid'` and move to global?
-            'qualUuid': {'type': 'string', 'minLength': 1},
+            # TODO: move to global?
+            'qualUuid': {'type': 'string', 'format': 'uuid'},
             'qualCommon': {
                 'type': 'object',
                 'additionalProperties': False,
@@ -148,9 +179,7 @@ class Fix:
                     {'$ref': '#/$defs/qualInteger'},
                     {
                         'type': 'object',
-                        'properties': {
-                            'uuid': {'const': '1a2c8eb0-e2ec-4b3c-942a-c1a5410c081a'}
-                        },
+                        'properties': {'uuid': {'const': FIX_QUAL_INTEGER_UUID}},
                     },
                 ]
             },
@@ -161,13 +190,13 @@ class Fix:
                     {
                         'type': 'object',
                         'properties': {
-                            'uuid': {'const': '2e30bec7-4843-43c7-98bc-13114af230c5'},
+                            'uuid': {'const': FIX_QUAL_SELECT_MULTIPLE_UUID},
                             'value': {
                                 'items': {
                                     'enum': [
-                                        '2e24e6b4-bc3b-4e8e-b0cd-d8d3b9ca15b6',
-                                        'cb82919d-2948-4ccf-a488-359c5d5ee53a',
-                                        '8effe3b1-619e-4ada-be45-ebcea5af0aaf',
+                                        FIX_CHOICE_EMPATHY_UUID,
+                                        FIX_CHOICE_COMPETITION_UUID,
+                                        FIX_CHOICE_APATHY_UUID,
                                     ],
                                 },
                                 'type': 'array',
@@ -183,11 +212,11 @@ class Fix:
                     {
                         'type': 'object',
                         'properties': {
-                            'uuid': {'const': '1a8b748b-f470-4c40-bc09-ce2b1197f503'},
+                            'uuid': {'const': FIX_QUAL_SELECT_ONE_UUID},
                             'value': {
                                 'enum': [
-                                    '3c7aacdc-8971-482a-9528-68e64730fc99',
-                                    '7e31c6a5-5eac-464c-970c-62c383546a94',
+                                    FIX_CHOICE_YES_UUID,
+                                    FIX_CHOICE_NO_UUID,
                                     '',
                                 ]
                             },
@@ -201,9 +230,7 @@ class Fix:
                     {'$ref': '#/$defs/qualTags'},
                     {
                         'type': 'object',
-                        'properties': {
-                            'uuid': {'const': 'e9b4e6d1-fdbb-4dc9-8b10-a9c3c388322f'}
-                        },
+                        'properties': {'uuid': {'const': FIX_QUAL_TAGS_UUID}},
                     },
                 ]
             },
@@ -213,9 +240,7 @@ class Fix:
                     {'$ref': '#/$defs/qualText'},
                     {
                         'type': 'object',
-                        'properties': {
-                            'uuid': {'const': '83acf2a7-8edc-4fd8-8b9f-f832ca3f18ad'}
-                        },
+                        'properties': {'uuid': {'const': FIX_QUAL_TEXT_UUID}},
                     },
                 ]
             },
@@ -226,12 +251,12 @@ class Fix:
         'type': 'object',
         'additionalProperties': False,
         'properties': {
-            '1a2c8eb0-e2ec-4b3c-942a-c1a5410c081a': {'$ref': '#/$defs/dataActionKey'},
-            '2e30bec7-4843-43c7-98bc-13114af230c5': {'$ref': '#/$defs/dataActionKey'},
-            '1a8b748b-f470-4c40-bc09-ce2b1197f503': {'$ref': '#/$defs/dataActionKey'},
-            'e9b4e6d1-fdbb-4dc9-8b10-a9c3c388322f': {'$ref': '#/$defs/dataActionKey'},
-            '83acf2a7-8edc-4fd8-8b9f-f832ca3f18ad': {'$ref': '#/$defs/dataActionKey'},
-            '5ef11d48-d7a3-432e-af83-8c2e9b1feb72': {'$ref': '#/$defs/dataActionKey'},
+            FIX_QUAL_INTEGER_UUID: {'$ref': '#/$defs/dataActionKey'},
+            FIX_QUAL_SELECT_MULTIPLE_UUID: {'$ref': '#/$defs/dataActionKey'},
+            FIX_QUAL_SELECT_ONE_UUID: {'$ref': '#/$defs/dataActionKey'},
+            FIX_QUAL_TAGS_UUID: {'$ref': '#/$defs/dataActionKey'},
+            FIX_QUAL_TEXT_UUID: {'$ref': '#/$defs/dataActionKey'},
+            FIX_QUAL_NOTE_UUID: {'$ref': '#/$defs/dataActionKey'},
         },
         '$defs': {
             'dataActionKey': {
@@ -277,57 +302,57 @@ class Fix:
 
     valid_filled_responses = [
         {
-            'uuid': '1a2c8eb0-e2ec-4b3c-942a-c1a5410c081a',
+            'uuid': FIX_QUAL_INTEGER_UUID,
             # type is qualInteger
             'value': 3,
         },
         {
-            'uuid': '2e30bec7-4843-43c7-98bc-13114af230c5',
+            'uuid': FIX_QUAL_SELECT_MULTIPLE_UUID,
             # type is qualSelectMultiple
             'value': [
-                '2e24e6b4-bc3b-4e8e-b0cd-d8d3b9ca15b6',
-                'cb82919d-2948-4ccf-a488-359c5d5ee53a',
+                FIX_CHOICE_EMPATHY_UUID,
+                FIX_CHOICE_COMPETITION_UUID,
             ],
         },
         {
-            'uuid': '1a8b748b-f470-4c40-bc09-ce2b1197f503',
+            'uuid': FIX_QUAL_SELECT_ONE_UUID,
             # type is qualSelectOne
-            'value': '7e31c6a5-5eac-464c-970c-62c383546a94',
+            'value': FIX_CHOICE_NO_UUID,
         },
         {
-            'uuid': 'e9b4e6d1-fdbb-4dc9-8b10-a9c3c388322f',
+            'uuid': FIX_QUAL_TAGS_UUID,
             # type is qualTags
             'value': ['Quinobequin', 'Doughboy Donuts'],
         },
         {
-            'uuid': '83acf2a7-8edc-4fd8-8b9f-f832ca3f18ad',
+            'uuid': FIX_QUAL_TEXT_UUID,
             # type is qualText
             'value': 'As the eagle and the wild goose see it',
         },
     ]
     valid_empty_responses = [
         {
-            'uuid': '1a2c8eb0-e2ec-4b3c-942a-c1a5410c081a',
+            'uuid': FIX_QUAL_INTEGER_UUID,
             # type is qualInteger
             'value': None,
         },
         {
-            'uuid': '2e30bec7-4843-43c7-98bc-13114af230c5',
+            'uuid': FIX_QUAL_SELECT_MULTIPLE_UUID,
             # type is qualSelectMultiple
             'value': [],
         },
         {
-            'uuid': '1a8b748b-f470-4c40-bc09-ce2b1197f503',
+            'uuid': FIX_QUAL_SELECT_ONE_UUID,
             # type is qualSelectOne
             'value': '',
         },
         {
-            'uuid': 'e9b4e6d1-fdbb-4dc9-8b10-a9c3c388322f',
+            'uuid': FIX_QUAL_TAGS_UUID,
             # type is qualTags
             'value': [],
         },
         {
-            'uuid': '83acf2a7-8edc-4fd8-8b9f-f832ca3f18ad',
+            'uuid': FIX_QUAL_TEXT_UUID,
             # type is qualText
             'value': '',
         },
@@ -339,42 +364,42 @@ class Fix:
             'value': 'missing uuid!',
         },
         {
-            'uuid': '83acf2a7-8edc-4fd8-8b9f-f832ca3f18ad',
+            'uuid': FIX_QUAL_TEXT_UUID,
             # type is qualText
             # missing value!
         },
         {
-            'uuid': '5ef11d48-d7a3-432e-af83-8c2e9b1feb72',
+            'uuid': FIX_QUAL_NOTE_UUID,
             # type is qualNote
             'value': 'unexpected response!',  # notes take no responses
         },
         {
-            'uuid': '1a2c8eb0-e2ec-4b3c-942a-c1a5410c081a',
+            'uuid': FIX_QUAL_INTEGER_UUID,
             # type is qualInteger
             'value': 'not an integer',
         },
         {
-            'uuid': '2e30bec7-4843-43c7-98bc-13114af230c5',
+            'uuid': FIX_QUAL_SELECT_MULTIPLE_UUID,
             # type is qualSelectMultiple
             'value': 'not an array',
         },
         {
-            'uuid': '1a8b748b-f470-4c40-bc09-ce2b1197f503',
+            'uuid': FIX_QUAL_SELECT_ONE_UUID,
             # type is qualSelectOne
             'value': ['unexpected array'],
         },
         {
-            'uuid': 'e9b4e6d1-fdbb-4dc9-8b10-a9c3c388322f',
+            'uuid': FIX_QUAL_TAGS_UUID,
             # type is qualTags
             'value': 'not an array',
         },
         {
-            'uuid': '83acf2a7-8edc-4fd8-8b9f-f832ca3f18ad',
+            'uuid': FIX_QUAL_TEXT_UUID,
             # type is qualText
             'value': ['unexpected array'],
         },
         {
-            'uuid': '83acf2a7-8edc-4fd8-8b9f-f832ca3f18ad',
+            'uuid': FIX_QUAL_TEXT_UUID,
             'type': 'qualText',
             'value': 'the type is not to be included as an attribute',
         },
@@ -407,13 +432,13 @@ class Fix:
         '15ccc864-0e83-48f2-be1d-dc2adb9297f4',
     ]
     expected_result_after_filled_and_empty_responses = {
-        '1a2c8eb0-e2ec-4b3c-942a-c1a5410c081a': {
+        FIX_QUAL_INTEGER_UUID: {
             '_dateCreated': '2025-01-01T11:11:11Z',
             '_dateModified': '2025-01-02T11:11:11Z',
             '_versions': [
                 {
                     '_data': {
-                        'uuid': '1a2c8eb0-e2ec-4b3c-942a-c1a5410c081a',
+                        'uuid': FIX_QUAL_INTEGER_UUID,
                         'value': None,  # Deleted response recorded last
                     },
                     '_dateCreated': '2025-01-02T11:11:11Z',
@@ -421,7 +446,7 @@ class Fix:
                 },
                 {
                     '_data': {
-                        'uuid': '1a2c8eb0-e2ec-4b3c-942a-c1a5410c081a',
+                        'uuid': FIX_QUAL_INTEGER_UUID,
                         'value': 3,  # Filled response recorded first
                     },
                     '_dateCreated': '2025-01-01T11:11:11Z',
@@ -430,13 +455,13 @@ class Fix:
                 },
             ],
         },
-        '2e30bec7-4843-43c7-98bc-13114af230c5': {
+        FIX_QUAL_SELECT_MULTIPLE_UUID: {
             '_dateCreated': '2025-02-01T11:11:11Z',
             '_dateModified': '2025-02-02T11:11:11Z',
             '_versions': [
                 {
                     '_data': {
-                        'uuid': '2e30bec7-4843-43c7-98bc-13114af230c5',
+                        'uuid': FIX_QUAL_SELECT_MULTIPLE_UUID,
                         'value': [],
                     },
                     '_dateCreated': '2025-02-02T11:11:11Z',
@@ -445,10 +470,10 @@ class Fix:
                 },
                 {
                     '_data': {
-                        'uuid': '2e30bec7-4843-43c7-98bc-13114af230c5',
+                        'uuid': FIX_QUAL_SELECT_MULTIPLE_UUID,
                         'value': [
-                            '2e24e6b4-bc3b-4e8e-b0cd-d8d3b9ca15b6',
-                            'cb82919d-2948-4ccf-a488-359c5d5ee53a',
+                            FIX_CHOICE_EMPATHY_UUID,
+                            FIX_CHOICE_COMPETITION_UUID,
                         ],
                     },
                     '_dateCreated': '2025-02-01T11:11:11Z',
@@ -457,13 +482,13 @@ class Fix:
                 },
             ],
         },
-        '1a8b748b-f470-4c40-bc09-ce2b1197f503': {
+        FIX_QUAL_SELECT_ONE_UUID: {
             '_dateCreated': '2025-03-01T11:11:11Z',
             '_dateModified': '2025-03-02T11:11:11Z',
             '_versions': [
                 {
                     '_data': {
-                        'uuid': '1a8b748b-f470-4c40-bc09-ce2b1197f503',
+                        'uuid': FIX_QUAL_SELECT_ONE_UUID,
                         'value': '',
                     },
                     '_dateCreated': '2025-03-02T11:11:11Z',
@@ -472,8 +497,8 @@ class Fix:
                 },
                 {
                     '_data': {
-                        'uuid': '1a8b748b-f470-4c40-bc09-ce2b1197f503',
-                        'value': '7e31c6a5-5eac-464c-970c-62c383546a94',
+                        'uuid': FIX_QUAL_SELECT_ONE_UUID,
+                        'value': FIX_CHOICE_NO_UUID,
                     },
                     '_dateCreated': '2025-03-01T11:11:11Z',
                     '_dateAccepted': '2025-03-01T11:11:11Z',
@@ -481,13 +506,13 @@ class Fix:
                 },
             ],
         },
-        'e9b4e6d1-fdbb-4dc9-8b10-a9c3c388322f': {
+        FIX_QUAL_TAGS_UUID: {
             '_dateCreated': '2025-04-01T11:11:11Z',
             '_dateModified': '2025-04-02T11:11:11Z',
             '_versions': [
                 {
                     '_data': {
-                        'uuid': 'e9b4e6d1-fdbb-4dc9-8b10-a9c3c388322f',
+                        'uuid': FIX_QUAL_TAGS_UUID,
                         'value': [],
                     },
                     '_dateCreated': '2025-04-02T11:11:11Z',
@@ -496,7 +521,7 @@ class Fix:
                 },
                 {
                     '_data': {
-                        'uuid': 'e9b4e6d1-fdbb-4dc9-8b10-a9c3c388322f',
+                        'uuid': FIX_QUAL_TAGS_UUID,
                         'value': ['Quinobequin', 'Doughboy Donuts'],
                     },
                     '_dateCreated': '2025-04-01T11:11:11Z',
@@ -505,13 +530,13 @@ class Fix:
                 },
             ],
         },
-        '83acf2a7-8edc-4fd8-8b9f-f832ca3f18ad': {
+        FIX_QUAL_TEXT_UUID: {
             '_dateCreated': '2025-05-01T11:11:11Z',
             '_dateModified': '2025-05-02T11:11:11Z',
             '_versions': [
                 {
                     '_data': {
-                        'uuid': '83acf2a7-8edc-4fd8-8b9f-f832ca3f18ad',
+                        'uuid': FIX_QUAL_TEXT_UUID,
                         'value': '',
                     },
                     '_dateCreated': '2025-05-02T11:11:11Z',
@@ -520,7 +545,7 @@ class Fix:
                 },
                 {
                     '_data': {
-                        'uuid': '83acf2a7-8edc-4fd8-8b9f-f832ca3f18ad',
+                        'uuid': FIX_QUAL_TEXT_UUID,
                         'value': 'As the eagle and the wild goose see it',
                     },
                     '_dateCreated': '2025-05-01T11:11:11Z',
@@ -541,9 +566,23 @@ def test_param_validation():
     invalid_params = [
         {
             'type': 'qualSelectMultiple',
-            'uuid': '2e30bec7-4843-43c7-98bc-13114af230c5',
+            'uuid': FIX_QUAL_SELECT_MULTIPLE_UUID,
             'labels': {'_default': 'What themes were present in the story?'},
             # Oops, no choices!
+        }
+    ]
+    with pytest.raises(jsonschema.exceptions.ValidationError):
+        # Instantiation must validate params
+        ManualQualAction(
+            source_question_xpath=Fix.fake_question_xpath, params=invalid_params
+        )
+
+    invalid_params = [
+        {
+            'type': 'qualText',
+            'uuid': 'not-an-uuid',
+            'labels': {'_default': 'What themes were present in the story?'},
+            # Oops, no uuid is not a real uuid!
         }
     ]
     with pytest.raises(jsonschema.exceptions.ValidationError):
@@ -587,9 +626,7 @@ def test_invalid_result_fails_validation():
     working_result = deepcopy(Fix.expected_result_after_filled_and_empty_responses)
 
     # erroneously add '_dateModified' onto a version
-    first_version = working_result['1a2c8eb0-e2ec-4b3c-942a-c1a5410c081a']['_versions'][
-        0
-    ]
+    first_version = working_result[FIX_QUAL_INTEGER_UUID]['_versions'][0]
     first_version['_dateModified'] = first_version['_dateCreated']
 
     with pytest.raises(jsonschema.exceptions.ValidationError):
@@ -638,45 +675,48 @@ class TestQualActionMethods(TestCase):
     action_params = [
         {
             'type': 'qualInteger',
-            'uuid': 'qual-integer-uuid',
+            'uuid': METHOD_QUAL_INTEGER_UUID,
             'labels': {'_default': 'Number of themes', 'fr': 'Nombre de thèmes'},
         },
         {
             'type': 'qualText',
-            'uuid': 'qual-text-uuid',
+            'uuid': METHOD_QUAL_TEXT_UUID,
             'labels': {'_default': 'Summary Notes'},
         },
         {
             'type': 'qualSelectOne',
-            'uuid': 'qual-select-one-uuid',
+            'uuid': METHOD_QUAL_SELECT_ONE_UUID,
             'labels': {'_default': 'Urgency Level', 'es': 'Nivel de Urgencia'},
             'choices': [
                 {
-                    'uuid': 'choice-high-uuid',
+                    'uuid': METHOD_CHOICE_HIGH_UUID,
                     'labels': {'_default': 'High', 'fr': 'Élevé', 'es': 'Alto'},
                 },
                 {
-                    'uuid': 'choice-medium-uuid',
+                    'uuid': METHOD_CHOICE_MEDIUM_UUID,
                     'labels': {'_default': 'Medium', 'fr': 'Moyen', 'es': 'Medio'},
                 },
                 {
-                    'uuid': 'choice-low-uuid',
+                    'uuid': METHOD_CHOICE_LOW_UUID,
                     'labels': {'_default': 'Low', 'fr': 'Bas', 'es': 'Bajo'},
                 },
             ],
         },
         {
             'type': 'qualSelectMultiple',
-            'uuid': 'qual-select-multi-uuid',
+            'uuid': METHOD_QUAL_SELECT_MULTIPLE_UUID,
             'labels': {'_default': 'Tags'},
             'choices': [
                 {
-                    'uuid': 'tag-shelter-uuid',
+                    'uuid': METHOD_CHOICE_SHELTER_UUID,
                     'labels': {'_default': 'Shelter', 'ar': 'مأوى'},
                 },
-                {'uuid': 'tag-food-uuid', 'labels': {'_default': 'Food', 'ar': 'طعام'}},
                 {
-                    'uuid': 'tag-medical-uuid',
+                    'uuid': METHOD_CHOICE_FOOD_UUID,
+                    'labels': {'_default': 'Food', 'ar': 'طعام'},
+                },
+                {
+                    'uuid': METHOD_CHOICE_MEDICAL_UUID,
                     'labels': {'_default': 'Medical', 'ar': 'طبي'},
                 },
             ],
@@ -711,13 +751,15 @@ class TestQualActionMethods(TestCase):
         # Test integer question (no choices)
         integer_field = next(f for f in output_fields if f['type'] == 'qualInteger')
         assert integer_field['label'] == 'Number of themes'
-        assert integer_field['name'] == f'{self.source_xpath}/qual-integer-uuid'
+        assert (
+            integer_field['name'] == f'{self.source_xpath}/{METHOD_QUAL_INTEGER_UUID}'
+        )
         assert 'choices' not in integer_field
 
         # Test text question (no choices)
         text_field = next(f for f in output_fields if f['type'] == 'qualText')
         assert text_field['label'] == 'Summary Notes'
-        assert text_field['name'] == f'{self.source_xpath}/qual-text-uuid'
+        assert text_field['name'] == f'{self.source_xpath}/{METHOD_QUAL_TEXT_UUID}'
         assert 'choices' not in text_field
 
         # Test select one (with choices)
@@ -725,13 +767,16 @@ class TestQualActionMethods(TestCase):
             f for f in output_fields if f['type'] == 'qualSelectOne'
         )
         assert select_one_field['label'] == 'Urgency Level'
-        assert select_one_field['name'] == f'{self.source_xpath}/qual-select-one-uuid'
+        assert (
+            select_one_field['name']
+            == f'{self.source_xpath}/{METHOD_QUAL_SELECT_ONE_UUID}'
+        )
         assert 'choices' in select_one_field
         assert len(select_one_field['choices']) == 3
 
         # Verify choice structure
         high_choice = select_one_field['choices'][0]
-        assert high_choice['uuid'] == 'choice-high-uuid'
+        assert high_choice['uuid'] == METHOD_CHOICE_HIGH_UUID
         assert high_choice['labels'] == {
             '_default': 'High',
             'fr': 'Élevé',
@@ -747,7 +792,9 @@ class TestQualActionMethods(TestCase):
 
         # Verify multilingual choice labels
         shelter_choice = next(
-            c for c in select_multi_field['choices'] if c['uuid'] == 'tag-shelter-uuid'
+            c
+            for c in select_multi_field['choices']
+            if c['uuid'] == METHOD_CHOICE_SHELTER_UUID
         )
         assert shelter_choice['labels'] == {'_default': 'Shelter', 'ar': 'مأوى'}
 
@@ -765,10 +812,13 @@ class TestQualActionMethods(TestCase):
 
         action_data = {
             # Integer question
-            'qual-integer-uuid': {
+            METHOD_QUAL_INTEGER_UUID: {
                 '_versions': [
                     {
-                        '_data': {'uuid': 'qual-integer-uuid', 'value': 5},
+                        '_data': {
+                            'uuid': METHOD_QUAL_INTEGER_UUID,
+                            'value': 5,
+                        },
                         '_dateCreated': '2025-11-24T10:00:00Z',
                         '_dateAccepted': '2025-11-24T10:00:00Z',
                         '_uuid': 'v1',
@@ -778,11 +828,11 @@ class TestQualActionMethods(TestCase):
                 '_dateModified': '2025-11-24T10:00:00Z',
             },
             # Text question
-            'qual-text-uuid': {
+            METHOD_QUAL_TEXT_UUID: {
                 '_versions': [
                     {
                         '_data': {
-                            'uuid': 'qual-text-uuid',
+                            'uuid': METHOD_QUAL_TEXT_UUID,
                             'value': 'Family needs immediate shelter and medical care',
                         },
                         '_dateCreated': '2025-11-24T10:05:00Z',
@@ -794,12 +844,12 @@ class TestQualActionMethods(TestCase):
                 '_dateModified': '2025-11-24T10:05:00Z',
             },
             # Select one question
-            'qual-select-one-uuid': {
+            METHOD_QUAL_SELECT_ONE_UUID: {
                 '_versions': [
                     {
                         '_data': {
-                            'uuid': 'qual-select-one-uuid',
-                            'value': 'choice-high-uuid',
+                            'uuid': METHOD_QUAL_SELECT_ONE_UUID,
+                            'value': METHOD_CHOICE_HIGH_UUID,
                         },
                         '_dateCreated': '2025-11-24T10:10:00Z',
                         '_dateAccepted': '2025-11-24T10:10:00Z',
@@ -810,12 +860,15 @@ class TestQualActionMethods(TestCase):
                 '_dateModified': '2025-11-24T10:10:00Z',
             },
             # Select multiple question
-            'qual-select-multi-uuid': {
+            METHOD_QUAL_SELECT_MULTIPLE_UUID: {
                 '_versions': [
                     {
                         '_data': {
-                            'uuid': 'qual-select-multi-uuid',
-                            'value': ['tag-shelter-uuid', 'tag-medical-uuid'],
+                            'uuid': METHOD_QUAL_SELECT_MULTIPLE_UUID,
+                            'value': [
+                                METHOD_CHOICE_SHELTER_UUID,
+                                METHOD_CHOICE_MEDICAL_UUID,
+                            ],
                         },
                         '_dateCreated': '2025-11-24T10:15:00Z',
                         '_dateAccepted': '2025-11-24T10:15:00Z',
@@ -833,24 +886,24 @@ class TestQualActionMethods(TestCase):
         assert len(output.keys()) == 4
 
         # Test integer question
-        int_item = output.get(('qual', 'qual-integer-uuid'))
+        int_item = output.get(('qual', METHOD_QUAL_INTEGER_UUID))
         assert int_item is not None
         assert int_item['value'] == 5
         assert int_item['type'] == 'qualInteger'
         assert int_item['xpath'] == self.source_xpath
 
         # Test text question
-        text_item = output.get(('qual', 'qual-text-uuid'))
+        text_item = output.get(('qual', METHOD_QUAL_TEXT_UUID))
         assert text_item is not None
         assert text_item['value'] == 'Family needs immediate shelter and medical care'
         assert text_item['type'] == 'qualText'
 
         # Test select one - UUID transformed to object with labels
-        select_one_item = output.get(('qual', 'qual-select-one-uuid'))
+        select_one_item = output.get(('qual', METHOD_QUAL_SELECT_ONE_UUID))
         assert select_one_item is not None
         select_one_value = select_one_item['value']
         assert isinstance(select_one_value, dict)
-        assert select_one_value['uuid'] == 'choice-high-uuid'
+        assert select_one_value['uuid'] == METHOD_CHOICE_HIGH_UUID
         assert select_one_value['labels'] == {
             '_default': 'High',
             'fr': 'Élevé',
@@ -858,7 +911,7 @@ class TestQualActionMethods(TestCase):
         }
 
         # Test select multiple - array of UUIDs transformed to array of objects
-        select_multi_item = output.get(('qual', 'qual-select-multi-uuid'))
+        select_multi_item = output.get(('qual', METHOD_QUAL_SELECT_MULTIPLE_UUID))
         assert select_multi_item is not None
         select_multi_value = select_multi_item['value']
         assert isinstance(select_multi_value, list)
@@ -866,13 +919,13 @@ class TestQualActionMethods(TestCase):
 
         # Verify first choice
         shelter_item = next(
-            i for i in select_multi_value if i['uuid'] == 'tag-shelter-uuid'
+            i for i in select_multi_value if i['uuid'] == METHOD_CHOICE_SHELTER_UUID
         )
         assert shelter_item['labels'] == {'_default': 'Shelter', 'ar': 'مأوى'}
 
         # Verify second choice
         medical_item = next(
-            i for i in select_multi_value if i['uuid'] == 'tag-medical-uuid'
+            i for i in select_multi_value if i['uuid'] == METHOD_CHOICE_MEDICAL_UUID
         )
         assert medical_item['labels'] == {'_default': 'Medical', 'ar': 'طبي'}
 
@@ -884,22 +937,31 @@ class TestQualActionMethods(TestCase):
         action = ManualQualAction(self.source_xpath, self.action_params)
 
         action_data = {
-            'qual-text-uuid': {
+            METHOD_QUAL_TEXT_UUID: {
                 '_versions': [
                     {
-                        '_data': {'uuid': 'qual-text-uuid', 'value': 'Initial note'},
+                        '_data': {
+                            'uuid': METHOD_QUAL_TEXT_UUID,
+                            'value': 'Initial note',
+                        },
                         '_dateCreated': '2025-11-24T09:00:00Z',
                         '_dateAccepted': '2025-11-24T09:00:00Z',
                         '_uuid': 'v1',
                     },
                     {
-                        '_data': {'uuid': 'qual-text-uuid', 'value': 'Revised note'},
+                        '_data': {
+                            'uuid': METHOD_QUAL_TEXT_UUID,
+                            'value': 'Revised note',
+                        },
                         '_dateCreated': '2025-11-24T10:00:00Z',
                         '_dateAccepted': '2025-11-24T10:00:00Z',
                         '_uuid': 'v2',
                     },
                     {
-                        '_data': {'uuid': 'qual-text-uuid', 'value': 'Final note'},
+                        '_data': {
+                            'uuid': METHOD_QUAL_TEXT_UUID,
+                            'value': 'Final note',
+                        },
                         '_dateCreated': '2025-11-24T11:00:00Z',
                         '_dateAccepted': '2025-11-24T09:30:00Z',
                         '_uuid': 'v3',
@@ -913,39 +975,48 @@ class TestQualActionMethods(TestCase):
         output = action.transform_data_for_output(action_data)
         assert len(output.keys()) == 1
 
-        text_item = output.get(('qual', 'qual-text-uuid'))
+        text_item = output.get(('qual', METHOD_QUAL_TEXT_UUID))
         assert text_item['value'] == 'Final note'
 
     def test_update_params_sets_missing_questions_to_deleted_and_moved_to_the_end(self):
         params = [
             {
                 'type': 'qualInteger',
-                'uuid': 'qual-integer-uuid',
+                'uuid': METHOD_QUAL_INTEGER_UUID,
                 'labels': {'_default': 'Number of themes', 'fr': 'Nombre de thèmes'},
             }
         ]
         action = ManualQualAction(self.source_xpath, params=params)
         new_question = {
-            'uuid': 'new_question',
+            'uuid': METHOD_NEW_QUESTION_UUID,
             'type': 'qualInteger',
             'labels': {'_default': 'How many?'},
         }
         action.update_params([new_question])
         assert len(action.params) == 2
-        assert action.params[0]['uuid'] == 'new_question'
-        assert action.params[1]['uuid'] == 'qual-integer-uuid'
+        assert action.params[0]['uuid'] == METHOD_NEW_QUESTION_UUID
+        assert action.params[1]['uuid'] == METHOD_QUAL_INTEGER_UUID
         assert action.params[1]['options'][action.DELETED_OPTION] is True
 
     def test_update_params_modify_choices(self):
         params = [
             {
                 'type': 'qualSelectMultiple',
-                'uuid': 'qual-choice-uuid',
+                'uuid': METHOD_COLORS_QUESTION_UUID,
                 'labels': {'_default': 'Which colors?'},
                 'choices': [
-                    {'uuid': 'choice-red-uuid', 'labels': {'_default': 'Red'}},
-                    {'uuid': 'choice-blue-uuid', 'labels': {'_default': 'Blue'}},
-                    {'uuid': 'choice-purple-uuid', 'labels': {'_default': 'Purple'}},
+                    {
+                        'uuid': METHOD_CHOICE_RED_UUID,
+                        'labels': {'_default': 'Red'},
+                    },
+                    {
+                        'uuid': METHOD_CHOICE_BLUE_UUID,
+                        'labels': {'_default': 'Blue'},
+                    },
+                    {
+                        'uuid': METHOD_CHOICE_PURPLE_UUID,
+                        'labels': {'_default': 'Purple'},
+                    },
                 ],
             }
         ]
@@ -953,28 +1024,37 @@ class TestQualActionMethods(TestCase):
         # remove 'Red', relabel 'Blue', move 'Purple', add 'Green'
         new_question = {
             'type': 'qualSelectMultiple',
-            'uuid': 'qual-choice-uuid',
+            'uuid': METHOD_COLORS_QUESTION_UUID,
             'labels': {'_default': 'Which colors?'},
             'choices': [
-                {'uuid': 'choice-purple-uuid', 'labels': {'_default': 'Purple'}},
-                {'uuid': 'choice-blue-uuid', 'labels': {'_default': 'Cerulean'}},
-                {'uuid': 'choice-green-uuid', 'labels': {'_default': 'Green'}},
+                {
+                    'uuid': METHOD_CHOICE_PURPLE_UUID,
+                    'labels': {'_default': 'Purple'},
+                },
+                {
+                    'uuid': METHOD_CHOICE_BLUE_UUID,
+                    'labels': {'_default': 'Cerulean'},
+                },
+                {
+                    'uuid': METHOD_CHOICE_GREEN_UUID,
+                    'labels': {'_default': 'Green'},
+                },
             ],
         }
         action.update_params([new_question])
         assert len(action.params) == 1
         choices = action.params[0]['choices']
         # "Purple" is first
-        assert choices[0]['uuid'] == 'choice-purple-uuid'
+        assert choices[0]['uuid'] == METHOD_CHOICE_PURPLE_UUID
         assert choices[0]['labels']['_default'] == 'Purple'
         # "Blue" -> "Cerulean"
-        assert choices[1]['uuid'] == 'choice-blue-uuid'
+        assert choices[1]['uuid'] == METHOD_CHOICE_BLUE_UUID
         assert choices[1]['labels']['_default'] == 'Cerulean'
         # Add "Green"
-        assert choices[2]['uuid'] == 'choice-green-uuid'
+        assert choices[2]['uuid'] == METHOD_CHOICE_GREEN_UUID
         assert choices[2]['labels']['_default'] == 'Green'
         # Hide "Red"
-        assert choices[3]['uuid'] == 'choice-red-uuid'
+        assert choices[3]['uuid'] == METHOD_CHOICE_RED_UUID
         assert choices[3]['labels']['_default'] == 'Red'
         assert choices[3]['options'][action.DELETED_OPTION] is True
 
@@ -982,13 +1062,13 @@ class TestQualActionMethods(TestCase):
         params = [
             {
                 'type': 'qualInteger',
-                'uuid': 'qual-integer-uuid',
+                'uuid': METHOD_QUAL_INTEGER_UUID,
                 'labels': {'_default': 'Number of themes', 'fr': 'Nombre de thèmes'},
             }
         ]
         action = ManualQualAction(self.source_xpath, params=params)
         new_question = {
-            'uuid': 'qual-integer-uuid',
+            'uuid': METHOD_QUAL_INTEGER_UUID,
             'type': 'qualText',
             'labels': {'_default': 'How many?'},
         }
@@ -999,52 +1079,52 @@ class TestQualActionMethods(TestCase):
         params = [
             {
                 'type': 'qualInteger',
-                'uuid': 'qual-integer-uuid',
+                'uuid': METHOD_QUAL_INTEGER_UUID,
                 'labels': {'_default': 'Number of themes', 'fr': 'Nombre de thèmes'},
             }
         ]
         action = ManualQualAction(self.source_xpath, params=params)
         new_question = {
-            'uuid': 'qual-integer-uuid',
+            'uuid': METHOD_QUAL_INTEGER_UUID,
             'type': 'qualInteger',
             'labels': {'_default': 'How many?'},
         }
         action.update_params([new_question])
         assert len(action.params) == 1
-        assert action.params[0]['uuid'] == 'qual-integer-uuid'
+        assert action.params[0]['uuid'] == METHOD_QUAL_INTEGER_UUID
         assert action.params[0]['labels'] == {'_default': 'How many?'}
 
     def test_update_params_change_deleted_option(self):
         params = [
             {
                 'type': 'qualInteger',
-                'uuid': 'qual-hide-me',
+                'uuid': METHOD_HIDE_QUESTION_UUID,
                 'labels': {'_default': 'How many?'},
             },
             {
                 'type': 'qualInteger',
-                'uuid': 'qual-unhide-me',
+                'uuid': METHOD_UNHIDE_QUESTION_UUID,
                 'labels': {'_default': 'How many more?'},
                 'options': {ManualQualAction.DELETED_OPTION: True},
             },
         ]
         action = ManualQualAction(self.source_xpath, params=params)
         hide_question = {
-            'uuid': 'qual-hide-me',
+            'uuid': METHOD_HIDE_QUESTION_UUID,
             'type': 'qualInteger',
             'labels': {'_default': 'How many?'},
             'options': {ManualQualAction.DELETED_OPTION: True},
         }
         unhide_question = {
-            'uuid': 'qual-unhide-me',
+            'uuid': METHOD_UNHIDE_QUESTION_UUID,
             'type': 'qualInteger',
             'labels': {'_default': 'How many more?'},
         }
         action.update_params([hide_question, unhide_question])
         assert len(action.params) == 2
-        assert action.params[0]['uuid'] == 'qual-hide-me'
+        assert action.params[0]['uuid'] == METHOD_HIDE_QUESTION_UUID
         assert action.params[0]['options'][action.DELETED_OPTION] is True
-        assert action.params[1]['uuid'] == 'qual-unhide-me'
+        assert action.params[1]['uuid'] == METHOD_UNHIDE_QUESTION_UUID
         # the entire options dictionary will actually go away, which is equivalent
         # to setting 'deleted' to False
         assert (
