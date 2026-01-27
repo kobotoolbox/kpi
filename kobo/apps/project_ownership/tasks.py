@@ -275,6 +275,8 @@ def task_restarter():
     # PENDING tasks were never started so don't consider them "stuck" even if they are
     # very old
 
+    is_accepted = Q(transfer__invite__status=InviteStatusChoices.ACCEPTED)
+
     stopped_in_progress_tasks = Q(
         date_modified__lte=resume_threshold,
         date_created__gt=stuck_threshold,
@@ -288,9 +290,12 @@ def task_restarter():
         date_modified__lte=resume_threshold,
     ) & ~Q(status_type=TransferStatusTypeChoices.ATTACHMENTS)
 
-    for transfer_status in TransferStatus.objects.filter(
-        stopped_in_progress_tasks | still_pending_tasks
-    ).order_by('date_modified'):
+    queryset = TransferStatus.objects.filter(
+        (stopped_in_progress_tasks | still_pending_tasks),
+        is_accepted
+    ).order_by('date_modified')
+
+    for transfer_status in queryset:
         transfer_id = transfer_status.transfer_id
         if transfer_status.status_type == TransferStatusTypeChoices.GLOBAL:
             full_transfer_pks.add(transfer_id)

@@ -6,6 +6,7 @@ from ddt import data, ddt, unpack
 from django.test import TestCase, override_settings
 from django.utils import timezone
 from freezegun import freeze_time
+from kobo.apps.project_ownership.models.choices import InviteStatusChoices
 from model_bakery import baker
 
 from kpi.models import Asset
@@ -32,18 +33,39 @@ class ProjectOwnershipTasksTestCase(TestCase):
         self.anotheruser = User.objects.get(username='anotheruser')
         self.asset = Asset.objects.get(pk=1)
 
-    def create_standard_transfer(self, asset=None):
+    def create_standard_transfer(self, asset=None, invite_status=InviteStatusChoices.ACCEPTED):
         transfer_asset = asset or self.asset
-        invite = Invite.objects.create(sender=self.someuser, recipient=self.anotheruser)
+        invite = Invite.objects.create(sender=self.someuser, recipient=self.anotheruser, status=invite_status)
         return Transfer.objects.create(invite=invite, asset=transfer_asset)
 
-    def test_task_restarter_restarts_pending_transfers(self):
+    def test_task_restarter_ignores_unaccepted_pending_transfers(self):
+        """
+        Ensure that even if a transfer is old/stale, it is ignored
+        if the recipient has not yet clicked the 'Accept' link.
+        """
+        resume_cutoff = timezone.now() - timedelta(minutes=15)
+        with freeze_time(resume_cutoff):
+            # Invite is PENDING
+            self.create_standard_transfer(invite_status=InviteStatusChoices.PENDING)
+
+        with patch.object(Transfer, 'transfer_project') as patched_transfer:
+            with patch(
+                'kobo.apps.project_ownership.tasks.async_task.delay'
+            ) as patched_task:
+                task_restarter()
+
+        # Verification: Neither the main transfer nor subtasks should run
+        patched_transfer.assert_not_called()
+        patched_task.assert_not_called()
+
+    def test_task_restarter_restarts_accepted_pending_transfers(self):
         # we don't count pending transfers as "stuck", so they can be created before
         # the stuck threshold
         resume_cutoff = timezone.now() - timedelta(minutes=15)
         with freeze_time(resume_cutoff):
             # entire transfer is waiting in PENDING
-            self.create_standard_transfer()
+            # Invite is ACCEPTED (the 'correct' state for a restart)
+            self.create_standard_transfer(invite_status=InviteStatusChoices.ACCEPTED)
 
         with patch.object(Transfer, 'transfer_project') as patched_transfer:
             with patch(
