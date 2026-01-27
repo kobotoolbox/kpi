@@ -1,5 +1,5 @@
-@use 'scss/colors';
-@use '../../../analysisVariables';
+@use "scss/colors";
+@use "../../../analysisVariables";
 
 .root {
   display: flex;
@@ -35,11 +35,17 @@
 
   // We make the handle area bigger by adding this invisible element
   &::after {
-    content: '';
+    content: "";
     width: calc(200% + analysisVariables.$icon-size);
     height: calc(100% + analysisVariables.$rows-gap);
     position: absolute;
     top: analysisVariables.$rows-gap * -0.5;
     left: calc(-50% - analysisVariables.$icon-size * 0.5);
+  }
+
+  &.dragHandleDisabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    pointer-events: none;
   }
 }

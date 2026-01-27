@@ -25,6 +25,7 @@ import styles from './index.module.scss'
 import {
   useAssetsDataSupplementDeleteQaHelper,
   useAssetsDataSupplementPartialUpdateQaHelper,
+  useAssetsDataSupplementReorderQaHelper,
   useAssetsDataSupplementRetrieveQaHelper,
   useAssetsDataSupplementUpsertQaHelper,
 } from './utils'
@@ -39,6 +40,7 @@ export interface Props {
   index: number
   moveRow: (uuid: string, oldIndex: number, newIndex: number) => void
   editMode: boolean
+  isAnyQuestionBeingEdited: boolean
 }
 
 interface DragItem {
@@ -63,6 +65,7 @@ export default function AnalysisQuestionListItem({
   index,
   moveRow,
   editMode,
+  isAnyQuestionBeingEdited,
 }: Props) {
   const queryAnswer = useAssetsDataSupplementRetrieveQaHelper(asset, questionXpath, submission, qaQuestion)
   const [mutationAnswer, onSaveAnswer] = useAssetsDataSupplementPartialUpdateQaHelper(
@@ -89,19 +92,26 @@ export default function AnalysisQuestionListItem({
     await onDeleteQuestion(qaQuestionToDelete)
   }
 
+  const [mutationReorder, onReorderQuestions] = useAssetsDataSupplementReorderQaHelper(asset, advancedFeature)
+  const handleReorderQuestions = async (reorderedParams: QualActionParams[]) => {
+    await onReorderQuestions(reorderedParams)
+  }
+
   const disabledAnswer =
     !userCan('change_submissions', asset) ||
     queryAnswer.isFetching ||
     mutationAnswer.isPending ||
     mutationQuestion.isPending ||
-    mutationDelete.isPending
+    mutationDelete.isPending ||
+    mutationReorder.isPending
 
   const disabledQuestion =
     !userCan('manage_asset', asset) ||
     queryAnswer.isFetching ||
     mutationAnswer.isPending ||
     mutationQuestion.isPending ||
-    mutationDelete.isPending
+    mutationDelete.isPending ||
+    mutationReorder.isPending
 
   const previewRef = useRef<HTMLLIElement>(null)
   const dragRef = useRef<HTMLDivElement>(null)
@@ -168,45 +178,23 @@ export default function AnalysisQuestionListItem({
       return { id: qaQuestion.uuid, index: index }
     },
     // Reordering analysis questions requires `manage_asset` permission.
-    canDrag: !disabledQuestion,
+    // Also disable dragging when any question is being edited or created.
+    canDrag: !disabledQuestion && !isAnyQuestionBeingEdited,
     collect: (monitor) => {
       return {
         isDragging: monitor.isDragging(),
       }
     },
-    end: (_item, monitor) => {
+    end: async (_item, monitor) => {
       // Make sure we only accept drops on target
       if (!monitor.didDrop()) {
         return
       }
 
-      // TODO: react-query mutation.
-      console.log(advancedFeature, asset.uid)
-      // async function makeCall() {
-      //   if (!analysisQuestions) {
-      //     return
-      //   }
-
-      //   // Step 1: Let the reducer know what we're about to do
-      //   analysisQuestions.dispatch({ type: 'applyQuestionsOrder' })
-
-      //   // Step 2: update asset endpoint with new questions
-      //   try {
-      //     const response = await updateSurveyQuestions(asset.uid, analysisQuestions.state.questions)
-
-      //     // Step 3: update reducer's state with new list after the call finishes
-      //     analysisQuestions?.dispatch({
-      //       type: 'applyQuestionsOrderCompleted',
-      //       payload: {
-      //         questions: convertQuestionsFromSchemaToInternal(advancedFeature),
-      //       },
-      //     })
-      //   } catch (err) {
-      //     handleApiFail(err as FailResponse)
-      //     analysisQuestions?.dispatch({ type: 'applyQuestionsOrderFailed' })
-      //   }
-      // }
-      // makeCall()
+      // Save the reordered questions to the backend
+      // The moveRow callback has already updated the visual order in the parent component
+      // Here we persist that change to the backend using the current params order
+      await handleReorderQuestions(advancedFeature.params)
     },
   })
 
@@ -335,7 +323,13 @@ export default function AnalysisQuestionListItem({
       ref={previewRef}
       data-handler-id={handlerId}
     >
-      <div className={styles.dragHandle} ref={dragRef}>
+      <div
+        className={classnames({
+          [styles.dragHandle]: true,
+          [styles.dragHandleDisabled]: isAnyQuestionBeingEdited,
+        })}
+        ref={dragRef}
+      >
         <Icon name='drag-handle' size='xs' />
       </div>
 

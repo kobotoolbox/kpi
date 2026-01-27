@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react'
+import React, { useCallback, useState } from 'react'
 
 import { DndProvider } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
@@ -32,23 +32,38 @@ export default function AnalysisQuestionsList({
   qaQuestion,
   setQaQuestion,
 }: Props) {
-  const moveRow = useCallback((uuid: string, oldIndex: number, newIndex: number) => {
-    console.log(uuid, oldIndex, newIndex)
-    // TODO: react query mutation.
-    // analysisQuestions.dispatch({
-    //   type: 'reorderQuestion',
-    //   payload: { uuid: uuid, oldIndex, newIndex },
-    // })
+  // Local state to avoid flickering on reordering (optimistic UI)
+  const [localParams, setLocalParams] = useState<QualActionParams[]>(advancedFeature.params)
+
+  // Update local params when advancedFeature changes (e.g., after backend update)
+  React.useEffect(() => {
+    setLocalParams(advancedFeature.params)
+  }, [advancedFeature.params])
+
+  const moveRow = useCallback((_uuid: string, oldIndex: number, newIndex: number) => {
+    setLocalParams((prevParams) => {
+      const newParams = [...prevParams]
+      const [movedItem] = newParams.splice(oldIndex, 1)
+      newParams.splice(newIndex, 0, movedItem)
+      return newParams
+    })
   }, [])
 
   console.log('AnalysisQuestionsList', qaQuestion, advancedFeature.params)
 
-  const qaQuestions = advancedFeature.params
+  const localAdvancedFeature: AdvancedFeatureResponseManualQual = {
+    ...advancedFeature,
+    params: localParams,
+  }
+
+  const qaQuestions = localParams
     .filter((qaQuestion) => !qaQuestion.options?.deleted) // We hide questions marked as deleted. TODO OpenAPI: is that a thing? DEV-1630
     // TODO: we temporarily hide Keyword Search from the UI until
     // https://github.com/kobotoolbox/kpi/issues/4594 is done
     // TODO OpenAPI: DEV-1628
     .filter((qaQuestion) => (qaQuestion.type as any) !== 'qual_auto_keyword_count')
+
+  const isAnyQuestionBeingEdited = !!qaQuestion
 
   return (
     <DndProvider backend={HTML5Backend}>
@@ -56,30 +71,34 @@ export default function AnalysisQuestionsList({
         {qaQuestion && !qaQuestions.some(({ uuid }) => uuid === qaQuestion?.uuid) && (
           <AnalysisQuestionListItem
             asset={asset}
-            advancedFeature={advancedFeature}
+            advancedFeature={localAdvancedFeature}
             submission={submission}
-            questionXpath={questionXpath}
             qaQuestion={qaQuestion}
             setQaQuestion={setQaQuestion}
-            index={0}
+            questionXpath={questionXpath}
+            index={-1}
             moveRow={moveRow}
             editMode
+            isAnyQuestionBeingEdited={isAnyQuestionBeingEdited}
           />
         )}
-        {qaQuestions.map((question, index: number) => (
-          <AnalysisQuestionListItem
-            key={question.uuid}
-            asset={asset}
-            advancedFeature={advancedFeature}
-            submission={submission}
-            questionXpath={questionXpath}
-            qaQuestion={question}
-            setQaQuestion={setQaQuestion}
-            index={index}
-            moveRow={moveRow}
-            editMode={question.uuid === qaQuestion?.uuid}
-          />
-        ))}
+        {qaQuestions.map((qaQuestionItem, index) => {
+          return (
+            <AnalysisQuestionListItem
+              key={qaQuestionItem.uuid}
+              asset={asset}
+              advancedFeature={localAdvancedFeature}
+              submission={submission}
+              qaQuestion={qaQuestionItem}
+              setQaQuestion={setQaQuestion}
+              questionXpath={questionXpath}
+              index={index}
+              moveRow={moveRow}
+              editMode={qaQuestion?.uuid === qaQuestionItem.uuid}
+              isAnyQuestionBeingEdited={isAnyQuestionBeingEdited}
+            />
+          )
+        })}
       </ul>
     </DndProvider>
   )

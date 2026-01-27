@@ -183,3 +183,33 @@ export const useAssetsDataSupplementDeleteQaHelper = (
 
   return [mutationPatch, handleDelete] as const
 }
+
+export const useAssetsDataSupplementReorderQaHelper = (
+  asset: AssetResponse,
+  advancedFeature: AdvancedFeatureResponseManualQual,
+  options: Parameters<typeof useAssetsAdvancedFeaturesPartialUpdate>[0] = {},
+) => {
+  const mutationPatch = useAssetsAdvancedFeaturesPartialUpdate({
+    mutation: {
+      onSettled: () => {
+        queryClient.invalidateQueries({
+          queryKey: getAssetsAdvancedFeaturesListQueryKey(asset.uid),
+        })
+      },
+      ...(options as Parameters<typeof useAssetsAdvancedFeaturesPartialUpdate>[0])?.mutation,
+    },
+    request: options?.request,
+  })
+
+  const handleReorder = (reorderedParams: QualActionParams[]) => {
+    return mutationPatch.mutateAsync({
+      uidAsset: asset.uid,
+      uidAdvancedFeature: advancedFeature.uid,
+      data: {
+        params: reorderedParams,
+      },
+    })
+  }
+
+  return [mutationPatch, handleReorder] as const
+}
