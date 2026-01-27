@@ -291,8 +291,7 @@ def task_restarter():
     ) & ~Q(status_type=TransferStatusTypeChoices.ATTACHMENTS)
 
     queryset = TransferStatus.objects.filter(
-        (stopped_in_progress_tasks | still_pending_tasks),
-        is_accepted
+        (stopped_in_progress_tasks | still_pending_tasks), is_accepted
     ).order_by('date_modified')
 
     for transfer_status in queryset:

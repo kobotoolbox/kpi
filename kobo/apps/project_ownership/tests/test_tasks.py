@@ -6,9 +6,9 @@ from ddt import data, ddt, unpack
 from django.test import TestCase, override_settings
 from django.utils import timezone
 from freezegun import freeze_time
-from kobo.apps.project_ownership.models.choices import InviteStatusChoices
 from model_bakery import baker
 
+from kobo.apps.project_ownership.models.choices import InviteStatusChoices
 from kpi.models import Asset
 from ...kobo_auth.shortcuts import User
 from ..models import (
@@ -33,9 +33,13 @@ class ProjectOwnershipTasksTestCase(TestCase):
         self.anotheruser = User.objects.get(username='anotheruser')
         self.asset = Asset.objects.get(pk=1)
 
-    def create_standard_transfer(self, asset=None, invite_status=InviteStatusChoices.ACCEPTED):
+    def create_standard_transfer(
+        self, asset=None, invite_status=InviteStatusChoices.ACCEPTED
+    ):
         transfer_asset = asset or self.asset
-        invite = Invite.objects.create(sender=self.someuser, recipient=self.anotheruser, status=invite_status)
+        invite = Invite.objects.create(
+            sender=self.someuser, recipient=self.anotheruser, status=invite_status
+        )
         return Transfer.objects.create(invite=invite, asset=transfer_asset)
 
     def test_task_restarter_ignores_unaccepted_pending_transfers(self):
