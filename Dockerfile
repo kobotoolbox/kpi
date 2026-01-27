@@ -1,9 +1,5 @@
 # If you update this base image, make sure to update the base runners
 # in .github/workflows/ to the corresponding Ubuntu version
-
-######################
-# Python build stage #
-######################
 FROM ghcr.io/astral-sh/uv:python3.10-bookworm AS build-python
 
 
@@ -15,50 +11,7 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 COPY ./dependencies/pip/requirements.txt "${TMP_DIR}/pip_dependencies.txt"
 RUN uv pip sync "${TMP_DIR}/pip_dependencies.txt" 1>/dev/null
 
-####################
-# Node build stage #
-####################
-FROM node:20.19-bookworm-slim AS build-node
-ENV KPI_SRC_DIR=/srv/src/kpi \
-    TMP_DIR=/srv/tmp
-WORKDIR "${KPI_SRC_DIR}"
 
-# Use a non-root user
-RUN addgroup -S kobo && adduser -S -G kobo kobo
-
-# Install npm dependencies & run post-install steps
-COPY --chown=kobo:kobo scripts ./scripts
-COPY --chown=kobo:kobo patches ./patches
-COPY --chown=kobo:kobo \
-    .browserslistrc \
-    package.json \
-    package-lock.json \
-    ./
-RUN mkdir -p "${TMP_DIR}/.npm" && \
-    npm config set cache "${TMP_DIR}/.npm" --global && \
-    mkdir -p "./jsapp/fonts" && \
-    npm ci && \
-    npm cache clean --force
-
-# Build the frontend
-COPY --chown=kobo:kobo test    ./test
-COPY --chown=kobo:kobo static  ./static
-COPY --chown=kobo:kobo webpack ./webpack
-COPY --chown=kobo:kobo jsapp   ./jsapp
-COPY --chown=kobo:kobo \
-    .browserslistrc \
-    .babelrc.json \
-    .swcrc \
-    package.json \
-    package-lock.json \
-    tsconfig.json \
-    ./
-RUN SKIP_TS_CHECK=true \
-    npm run build:app
-
-######################
-# KPI dev/prod image #
-######################
 FROM ghcr.io/astral-sh/uv:python3.10-bookworm-slim
 
 ENV DEBIAN_FRONTEND=noninteractive

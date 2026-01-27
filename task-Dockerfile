@@ -2,24 +2,6 @@
 # Not intended for merge into main.
 # ---------------------------------
 
-# If you update this base image, make sure to update the base runners
-# in .github/workflows/ to the corresponding Ubuntu version
-
-######################
-# 🐍 Python packages #
-######################
-# FROM ghcr.io/astral-sh/uv:python3.10-bookworm AS build-python
-
-# ENV VIRTUAL_ENV=/opt/venv \
-#     TMP_DIR=/srv/tmp
-
-# RUN python -m venv "$VIRTUAL_ENV"
-# ENV PATH="$VIRTUAL_ENV/bin:$PATH"
-# COPY ./dependencies/pip/requirements.txt "${TMP_DIR}/pip_dependencies.txt"
-# RUN uv pip sync "${TMP_DIR}/pip_dependencies.txt" 1>/dev/null
-
-# ------------------------------------------
-
 #######################
 # 📦 Node npm install #
 #######################
@@ -30,126 +12,67 @@ WORKDIR /srv/src/kpi
 # our non-root user, 1000:1000
 RUN chown node:node .
 
-# copy sources seldom updated, used by a post-install step
+# copy seldom updated sources, used in post-install step
 COPY --chown=node:node --parents \
-    ./jsapp/k-icons-css-template.hbs \
-    ./jsapp/svg-icons \
-    ./
+    jsapp/k-icons-css-template.hbs \
+    jsapp/svg-icons/ \
+    .
 
 # copy sources affecting npm install or post-install steps
 COPY --chown=node:node --parents \
-    ./scripts \
-    ./patches \
-    ./.browserslistrc \
-    ./package.json \
-    ./package-lock.json \
-    ./
+    patches/                  \
+    scripts/copy_fonts.sh     \
+    scripts/generate_icons.js \
+    scripts/hints.js          \
+    .browserslistrc    \
+    package.json       \
+    package-lock.json  \
+    .
 
 # use non-root user for install, remove .npm cache
 USER node
 RUN npm clean-install \
     && npm cache clean --force
 
-#########################
-# 🏗️ Node webpack build #
-#########################
-FROM node:20.19-bookworm-slim AS webpack-build
+# results:
+#   + jsapp/fonts/
+#   + msw-mocks/
+#   + node_modules/
+
+################################
+# 🏗️ Node webpack build (prod) #
+################################
+FROM node:20.19-bookworm-slim AS webpack-build-prod
 WORKDIR /srv/src/kpi
 RUN chown node:node .
 
-#
-# TODO: MUST REMOVE SOME THINGS FROM DOCKERIGNORE
-#       FOR THIS TO WORK
-#
-#       SINCE DOCKERIGNORE APPLIES TO STAGED BUILDS TOO
-#
-#       PYTHON APP CONTAINER COPY COMMANDS WILL NEED
-#       TO CHANGE TOO
+# copy sources from the npm-install stage
+COPY --from=npm-install /srv/src/kpi/ .
 
-#
-# NOTE: some here are included twice, and some
-#       are included convenience in python
-#       developer builds,
-#       and some are skipped because we
-#       don't do them in this docker stage
-#
-#       TODO: recheck
-# 
-
-# copy all sources from the workspace
-# that could plausibly affect the webpack app
+# copy any other sources that the webpack prod will use
 COPY --chown=node:node --parents \
-    jsapp/img    \
-    jsapp/js     \
-    jsapp/scss   \
-    jsapp/xlform \
+    jsapp/img/      \
+    jsapp/js/       \
+    jsapp/scss/     \
+    jsapp/xlform/   \
     jsapp/postcss.config.cjs \
-    patches      \
-    static       \
-    scripts      \
-    webpack      \
+    scripts/        \
+    webpack/        \
     .babelrc.json   \
-    .browserslistrc \
     .gitignore      \
     .node-version   \
     .nvmrc          \
     .swcrc          \
     orval.config.js \
-    package.json    \
-    package-lock.json \
     tsconfig.json   \
     .
 
+# build the prod webpack app (fast path)
 USER node
-    
+RUN SKIP_TS_CHECK=true          \
+    ./node_modules/.bin/webpack \
+    --config webpack/prod.config.js
 
-# maybe: test, jsapp/jest? 
-
-#########################################
-# 🕳️ storybook build (skipping for now) #
-#########################################
-
-
-
-
-
-
-
-
-
-
-
-# 💡 IDEA: do post-install stuff manually in a different
-#        step to improve caching
-
-
-#
-# ❓ .dockerignore is ignoring webpack-stats.json
-#    and it also ignores staticfiles, etc.
-#    
-#    will this be a problem for my multi-stage build?
-#    it would have to be solved by modifying the Python dockerfile
-#    to exclude certain copies directly.
-
-#    meaning these things would have to be copied 
-
-# jsapp: fonts, svg-icons, k-icons-css-template.hbs
-# msw-mocks, node_modules, package-lock.json, package.json, patches, scripts, .browserslistrc
-
-# https://docs.docker.com/reference/dockerfile/#copy---exclude:~:text=COPY%20something%20/something.-,If%20the%20source%20is%20a%20directory%2C%20the%20contents%20of%20the%20directory,onto%20an%20existing%20file%2C%20in%20which%20case%20an%20error%20is%20raised.,-If%20the%20source%20is
-# If the source is a directory, the contents of the directory are copied, 
-# including filesystem metadata. The directory itself isn't copied, only its contents. 
-# If it contains subdirectories, these are also copied, 
-# and merged with any existing directories at the destination. 
-
-# 👓 Any conflicts are resolved in favor of the content being added 👓
-
-# on a file-by-file basis, except if you're trying to copy a directory 
-
-# onto an existing file, in which case an error is raised.
-
-
-
-# copy from build context sources used by web build
-
-# 
+# results:
+#   + jsapp/compiled/
+#   + webpack-stats.json
