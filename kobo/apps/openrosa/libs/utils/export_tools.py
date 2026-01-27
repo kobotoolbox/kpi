@@ -7,7 +7,6 @@ from datetime import date, datetime, time, timedelta
 from bson import json_util
 from django.conf import settings
 from django.core.files.base import File
-from django.core.files.storage import FileSystemStorage
 from django.core.files.temp import NamedTemporaryFile
 from django.shortcuts import render
 from django.utils.text import slugify
@@ -42,6 +41,7 @@ from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
 from kpi.utils.mongo_helper import MongoHelper
+from kpi.utils.storage import is_filesystem_storage
 
 # this is Mongo Collection where we will store the parsed submissions
 xform_instances = settings.MONGO_DB.instances
@@ -806,7 +806,7 @@ def _get_absolute_filename(filename: str) -> str:
     # - Get a unique filename if filename already exists on storage
 
     # Copied from `FileSystemStorage._save()` 😢
-    if isinstance(default_storage, FileSystemStorage):
+    if is_filesystem_storage(default_storage):
         full_path = default_storage.path(filename)
 
         # Create any intermediate directories that do not exist.
