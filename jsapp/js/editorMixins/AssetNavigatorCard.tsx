@@ -2,7 +2,7 @@ import { Badge, Card, Group, Stack, Text } from '@mantine/core'
 import React from 'react'
 import type { Asset } from '#/api/models/asset'
 import { AssetTypeEnum } from '#/api/models/assetTypeEnum'
-import { parseTagString } from '#/assetParserUtils'
+import { parseTags } from '#/assetParserUtils'
 import AssetName from '#/components/common/assetName'
 import Icon from '#/components/common/icon'
 
@@ -17,7 +17,7 @@ export default function AssetNavigatorCard(props: AssetNavigatorCardProps) {
   const summary = props.asset.summary || {}
   const rowCount = summary.row_count
   const labels = summary.labels || []
-  const tags = parseTagString(props.asset.tag_string || '')
+  const tags = parseTags(props.asset).tags
 
   return (
     <Card

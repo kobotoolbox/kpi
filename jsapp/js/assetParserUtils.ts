@@ -1,13 +1,10 @@
 import type { AssetContentSettings, AssetResponse } from '#/dataInterface'
+import type { Asset } from './api/models/asset'
 
-export function parseTags(asset: AssetResponse) {
+export function parseTags(asset: Asset | AssetResponse) {
   return {
-    tags: parseTagString(asset.tag_string),
+    tags: asset.tag_string?.split(',').filter((tg) => tg.length !== 0) || [],
   }
-}
-
-export function parseTagString(tagString: string) {
-  return tagString.split(',').filter((tg) => tg.length !== 0)
 }
 
 function parseSettings(asset: AssetResponse) {
