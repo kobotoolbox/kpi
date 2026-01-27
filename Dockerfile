@@ -137,6 +137,7 @@ RUN adduser --disabled-password --gecos '' "$UWSGI_USER"
 ###########################
 
 COPY . "${KPI_SRC_DIR}"
+# TODO: update this copy to be more selective.
 
 ###########################
 # Copy virtualenv         #
@@ -207,7 +208,15 @@ RUN chown -R "${UWSGI_USER}:${UWSGI_GROUP}" ${KPI_SRC_DIR}/emails/ && \
     chown -R "${UWSGI_USER}:${UWSGI_GROUP}" ${TMP_DIR} && \
     chown -R root:root "${TMP_DIR}/.npm"
 
-
 EXPOSE 8000
 
 CMD ["/bin/bash", "docker/entrypoint.sh"]
+
+
+
+
+# MODIFYING
+
+#  - [ ] setting the global install chown for uwysgi, etc.
+#  - [ ] maybe using a non-root user for lots of these things to prevent
+#        permissions errors from happening

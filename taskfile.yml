@@ -2,17 +2,18 @@
 # Not intended to merge to main, delete before merging.
 tasks:
   mk:
+    desc: Build the test image + Run bash in it
     cmds:
      - task: mk-dc
      - task: mk-bash
 
-  # Build the image
   mk-dc:
+    desc: Build the test image
     cmd: '{{.COMPOSE}} build {{.SERVICE}}'
     dir:  .
 
-  # Run 'bash' in the container (to check on stuff)
   mk-bash: 
+    desc: Run 'bash' in the container (to check on stuff)
     cmd: '{{.COMPOSE}} run --rm {{.BASH_ENV}} {{.SERVICE}} bash'
     ignore_error: true
     dir:  .
