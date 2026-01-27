@@ -16779,6 +16779,100 @@
                     "detail"
                 ]
             },
+            "DataSupplementManualQualDataInteger": {
+                "type": "object",
+                "properties": {
+                    "value": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "uuid": {
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                },
+                "required": [
+                    "uuid",
+                    "value"
+                ],
+                "additionalProperties": false
+            },
+            "DataSupplementManualQualDataSelectMultiple": {
+                "type": "object",
+                "properties": {
+                    "value": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    "uuid": {
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                },
+                "required": [
+                    "uuid",
+                    "value"
+                ],
+                "additionalProperties": false
+            },
+            "DataSupplementManualQualDataSelectOne": {
+                "type": "object",
+                "properties": {
+                    "value": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "uuid": {
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                },
+                "required": [
+                    "uuid",
+                    "value"
+                ],
+                "additionalProperties": false
+            },
+            "DataSupplementManualQualDataTags": {
+                "type": "object",
+                "properties": {
+                    "value": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "uuid": {
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                },
+                "required": [
+                    "uuid",
+                    "value"
+                ],
+                "additionalProperties": false
+            },
+            "DataSupplementManualQualDataText": {
+                "type": "object",
+                "properties": {
+                    "value": {
+                        "type": "string"
+                    },
+                    "uuid": {
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                },
+                "required": [
+                    "uuid",
+                    "value"
+                ],
+                "additionalProperties": false
+            },
             "DataSupplementResponse": {
                 "type": "object",
                 "properties": {
@@ -17283,148 +17377,19 @@
                                             "_data": {
                                                 "oneOf": [
                                                     {
-                                                        "allOf": [
-                                                            {
-                                                                "type": "object",
-                                                                "properties": {
-                                                                    "uuid": {
-                                                                        "type": "string",
-                                                                        "format": "uuid"
-                                                                    },
-                                                                    "value": {}
-                                                                },
-                                                                "additionalProperties": false,
-                                                                "required": [
-                                                                    "uuid",
-                                                                    "value"
-                                                                ]
-                                                            },
-                                                            {
-                                                                "type": "object",
-                                                                "properties": {
-                                                                    "value": {
-                                                                        "type": "integer",
-                                                                        "nullable": true
-                                                                    }
-                                                                }
-                                                            }
-                                                        ]
+                                                        "$ref": "#/components/schemas/DataSupplementManualQualDataInteger"
                                                     },
                                                     {
-                                                        "allOf": [
-                                                            {
-                                                                "type": "object",
-                                                                "properties": {
-                                                                    "uuid": {
-                                                                        "type": "string",
-                                                                        "format": "uuid"
-                                                                    },
-                                                                    "value": {}
-                                                                },
-                                                                "additionalProperties": false,
-                                                                "required": [
-                                                                    "uuid",
-                                                                    "value"
-                                                                ]
-                                                            },
-                                                            {
-                                                                "type": "object",
-                                                                "properties": {
-                                                                    "value": {
-                                                                        "type": "array",
-                                                                        "items": {
-                                                                            "type": "string",
-                                                                            "format": "uuid"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            }
-                                                        ]
+                                                        "$ref": "#/components/schemas/DataSupplementManualQualDataText"
                                                     },
                                                     {
-                                                        "allOf": [
-                                                            {
-                                                                "type": "object",
-                                                                "properties": {
-                                                                    "uuid": {
-                                                                        "type": "string",
-                                                                        "format": "uuid"
-                                                                    },
-                                                                    "value": {}
-                                                                },
-                                                                "additionalProperties": false,
-                                                                "required": [
-                                                                    "uuid",
-                                                                    "value"
-                                                                ]
-                                                            },
-                                                            {
-                                                                "type": "object",
-                                                                "properties": {
-                                                                    "value": {
-                                                                        "type": "string",
-                                                                        "format": "uuid"
-                                                                    }
-                                                                }
-                                                            }
-                                                        ]
+                                                        "$ref": "#/components/schemas/DataSupplementManualQualDataSelectOne"
                                                     },
                                                     {
-                                                        "allOf": [
-                                                            {
-                                                                "type": "object",
-                                                                "properties": {
-                                                                    "uuid": {
-                                                                        "type": "string",
-                                                                        "format": "uuid"
-                                                                    },
-                                                                    "value": {}
-                                                                },
-                                                                "additionalProperties": false,
-                                                                "required": [
-                                                                    "uuid",
-                                                                    "value"
-                                                                ]
-                                                            },
-                                                            {
-                                                                "type": "object",
-                                                                "properties": {
-                                                                    "value": {
-                                                                        "type": "array",
-                                                                        "items": {
-                                                                            "type": "string"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            }
-                                                        ]
+                                                        "$ref": "#/components/schemas/DataSupplementManualQualDataSelectMultiple"
                                                     },
                                                     {
-                                                        "allOf": [
-                                                            {
-                                                                "type": "object",
-                                                                "properties": {
-                                                                    "uuid": {
-                                                                        "type": "string",
-                                                                        "format": "uuid"
-                                                                    },
-                                                                    "value": {}
-                                                                },
-                                                                "additionalProperties": false,
-                                                                "required": [
-                                                                    "uuid",
-                                                                    "value"
-                                                                ]
-                                                            },
-                                                            {
-                                                                "type": "object",
-                                                                "properties": {
-                                                                    "value": {
-                                                                        "type": "string"
-                                                                    }
-                                                                }
-                                                            }
-                                                        ]
+                                                        "$ref": "#/components/schemas/DataSupplementManualQualDataTags"
                                                     }
                                                 ]
                                             },
@@ -17478,148 +17443,19 @@
                                                 "_data": {
                                                     "oneOf": [
                                                         {
-                                                            "allOf": [
-                                                                {
-                                                                    "type": "object",
-                                                                    "properties": {
-                                                                        "uuid": {
-                                                                            "type": "string",
-                                                                            "format": "uuid"
-                                                                        },
-                                                                        "value": {}
-                                                                    },
-                                                                    "additionalProperties": false,
-                                                                    "required": [
-                                                                        "uuid",
-                                                                        "value"
-                                                                    ]
-                                                                },
-                                                                {
-                                                                    "type": "object",
-                                                                    "properties": {
-                                                                        "value": {
-                                                                            "type": "integer",
-                                                                            "nullable": true
-                                                                        }
-                                                                    }
-                                                                }
-                                                            ]
+                                                            "$ref": "#/components/schemas/DataSupplementManualQualDataInteger"
                                                         },
                                                         {
-                                                            "allOf": [
-                                                                {
-                                                                    "type": "object",
-                                                                    "properties": {
-                                                                        "uuid": {
-                                                                            "type": "string",
-                                                                            "format": "uuid"
-                                                                        },
-                                                                        "value": {}
-                                                                    },
-                                                                    "additionalProperties": false,
-                                                                    "required": [
-                                                                        "uuid",
-                                                                        "value"
-                                                                    ]
-                                                                },
-                                                                {
-                                                                    "type": "object",
-                                                                    "properties": {
-                                                                        "value": {
-                                                                            "type": "array",
-                                                                            "items": {
-                                                                                "type": "string",
-                                                                                "format": "uuid"
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                }
-                                                            ]
+                                                            "$ref": "#/components/schemas/DataSupplementManualQualDataText"
                                                         },
                                                         {
-                                                            "allOf": [
-                                                                {
-                                                                    "type": "object",
-                                                                    "properties": {
-                                                                        "uuid": {
-                                                                            "type": "string",
-                                                                            "format": "uuid"
-                                                                        },
-                                                                        "value": {}
-                                                                    },
-                                                                    "additionalProperties": false,
-                                                                    "required": [
-                                                                        "uuid",
-                                                                        "value"
-                                                                    ]
-                                                                },
-                                                                {
-                                                                    "type": "object",
-                                                                    "properties": {
-                                                                        "value": {
-                                                                            "type": "string",
-                                                                            "format": "uuid"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            ]
+                                                            "$ref": "#/components/schemas/DataSupplementManualQualDataSelectOne"
                                                         },
                                                         {
-                                                            "allOf": [
-                                                                {
-                                                                    "type": "object",
-                                                                    "properties": {
-                                                                        "uuid": {
-                                                                            "type": "string",
-                                                                            "format": "uuid"
-                                                                        },
-                                                                        "value": {}
-                                                                    },
-                                                                    "additionalProperties": false,
-                                                                    "required": [
-                                                                        "uuid",
-                                                                        "value"
-                                                                    ]
-                                                                },
-                                                                {
-                                                                    "type": "object",
-                                                                    "properties": {
-                                                                        "value": {
-                                                                            "type": "array",
-                                                                            "items": {
-                                                                                "type": "string"
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                }
-                                                            ]
+                                                            "$ref": "#/components/schemas/DataSupplementManualQualDataSelectMultiple"
                                                         },
                                                         {
-                                                            "allOf": [
-                                                                {
-                                                                    "type": "object",
-                                                                    "properties": {
-                                                                        "uuid": {
-                                                                            "type": "string",
-                                                                            "format": "uuid"
-                                                                        },
-                                                                        "value": {}
-                                                                    },
-                                                                    "additionalProperties": false,
-                                                                    "required": [
-                                                                        "uuid",
-                                                                        "value"
-                                                                    ]
-                                                                },
-                                                                {
-                                                                    "type": "object",
-                                                                    "properties": {
-                                                                        "value": {
-                                                                            "type": "string"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            ]
+                                                            "$ref": "#/components/schemas/DataSupplementManualQualDataTags"
                                                         }
                                                     ]
                                                 },
@@ -21490,193 +21326,19 @@
                     "manual_qual": {
                         "oneOf": [
                             {
-                                "allOf": [
-                                    {
-                                        "type": "object",
-                                        "additionalProperties": false,
-                                        "properties": {
-                                            "uuid": {
-                                                "type": "string",
-                                                "format": "uuid"
-                                            },
-                                            "value": {}
-                                        },
-                                        "required": [
-                                            "uuid",
-                                            "value"
-                                        ]
-                                    },
-                                    {
-                                        "type": "object",
-                                        "properties": {
-                                            "value": {
-                                                "type": "integer",
-                                                "nullable": true
-                                            }
-                                        }
-                                    },
-                                    {
-                                        "type": "object",
-                                        "properties": {
-                                            "uuid": {
-                                                "type": "string",
-                                                "format": "uuid"
-                                            }
-                                        }
-                                    }
-                                ]
+                                "$ref": "#/components/schemas/DataSupplementManualQualDataInteger"
                             },
                             {
-                                "allOf": [
-                                    {
-                                        "type": "object",
-                                        "additionalProperties": false,
-                                        "properties": {
-                                            "uuid": {
-                                                "type": "string",
-                                                "format": "uuid"
-                                            },
-                                            "value": {}
-                                        },
-                                        "required": [
-                                            "uuid",
-                                            "value"
-                                        ]
-                                    },
-                                    {
-                                        "type": "object",
-                                        "properties": {
-                                            "value": {
-                                                "type": "string"
-                                            }
-                                        }
-                                    },
-                                    {
-                                        "type": "object",
-                                        "properties": {
-                                            "uuid": {
-                                                "type": "string",
-                                                "format": "uuid"
-                                            }
-                                        }
-                                    }
-                                ]
+                                "$ref": "#/components/schemas/DataSupplementManualQualDataText"
                             },
                             {
-                                "allOf": [
-                                    {
-                                        "type": "object",
-                                        "additionalProperties": false,
-                                        "properties": {
-                                            "uuid": {
-                                                "type": "string",
-                                                "format": "uuid"
-                                            },
-                                            "value": {}
-                                        },
-                                        "required": [
-                                            "uuid",
-                                            "value"
-                                        ]
-                                    },
-                                    {
-                                        "type": "object",
-                                        "properties": {
-                                            "value": {
-                                                "type": "string",
-                                                "format": "uuid"
-                                            }
-                                        }
-                                    },
-                                    {
-                                        "type": "object",
-                                        "properties": {
-                                            "uuid": {
-                                                "type": "string",
-                                                "format": "uuid"
-                                            }
-                                        }
-                                    }
-                                ]
+                                "$ref": "#/components/schemas/DataSupplementManualQualDataSelectOne"
                             },
                             {
-                                "allOf": [
-                                    {
-                                        "type": "object",
-                                        "additionalProperties": false,
-                                        "properties": {
-                                            "uuid": {
-                                                "type": "string",
-                                                "format": "uuid"
-                                            },
-                                            "value": {}
-                                        },
-                                        "required": [
-                                            "uuid",
-                                            "value"
-                                        ]
-                                    },
-                                    {
-                                        "type": "object",
-                                        "properties": {
-                                            "value": {
-                                                "type": "array",
-                                                "items": {
-                                                    "type": "string",
-                                                    "format": "uuid"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        "type": "object",
-                                        "properties": {
-                                            "uuid": {
-                                                "type": "string",
-                                                "format": "uuid"
-                                            }
-                                        }
-                                    }
-                                ]
+                                "$ref": "#/components/schemas/DataSupplementManualQualDataSelectMultiple"
                             },
                             {
-                                "allOf": [
-                                    {
-                                        "type": "object",
-                                        "additionalProperties": false,
-                                        "properties": {
-                                            "uuid": {
-                                                "type": "string",
-                                                "format": "uuid"
-                                            },
-                                            "value": {}
-                                        },
-                                        "required": [
-                                            "uuid",
-                                            "value"
-                                        ]
-                                    },
-                                    {
-                                        "type": "object",
-                                        "properties": {
-                                            "value": {
-                                                "type": "array",
-                                                "items": {
-                                                    "type": "string"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        "type": "object",
-                                        "properties": {
-                                            "uuid": {
-                                                "type": "string",
-                                                "format": "uuid"
-                                            }
-                                        }
-                                    }
-                                ]
+                                "$ref": "#/components/schemas/DataSupplementManualQualDataTags"
                             }
                         ]
                     }
