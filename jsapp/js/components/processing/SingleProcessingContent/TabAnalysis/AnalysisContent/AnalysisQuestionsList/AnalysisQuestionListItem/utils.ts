@@ -63,7 +63,15 @@ export const useAssetsDataSupplementPartialUpdateQaHelper = (
 ) => {
   const mutationSave = useAssetsDataSupplementPartialUpdate({
     mutation: {
-      onSettled: () => {
+      onSuccess: (data) => {
+        // Update the cache directly instead of invalidating to prevent flickering
+        queryClient.setQueryData(
+          getAssetsDataSupplementRetrieveQueryKey(asset.uid, removeDefaultUuidPrefix(submission['meta/rootUuid'])),
+          data,
+        )
+      },
+      onError: () => {
+        // On error, invalidate to refetch and ensure we have the correct server state
         queryClient.invalidateQueries({
           queryKey: getAssetsDataSupplementRetrieveQueryKey(
             asset.uid,

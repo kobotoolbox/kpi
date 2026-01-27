@@ -99,16 +99,12 @@ export default function AnalysisQuestionListItem({
 
   const disabledAnswer =
     !userCan('change_submissions', asset) ||
-    queryAnswer.isFetching ||
-    mutationAnswer.isPending ||
     mutationQuestion.isPending ||
     mutationDelete.isPending ||
     mutationReorder.isPending
 
   const disabledQuestion =
     !userCan('manage_asset', asset) ||
-    queryAnswer.isFetching ||
-    mutationAnswer.isPending ||
     mutationQuestion.isPending ||
     mutationDelete.isPending ||
     mutationReorder.isPending
