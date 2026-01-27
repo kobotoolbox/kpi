@@ -12,7 +12,7 @@ AdvancedFeatureResponse = inline_serializer_class(
     name='AdvancedFeatureResponse',
     fields={
         'question_xpath': serializers.CharField(),
-        'action': AdvancedFeatureActionField,
+        'action': AdvancedFeatureActionField(),
         'params': AdvancedFeatureResponseParamsField(),
         'uid': serializers.CharField(),
     },
@@ -22,7 +22,7 @@ AdvancedFeatureCreateResponse = inline_serializer_class(
     name='AdvancedFeatureCreateResponse',
     fields={
         'question_xpath': serializers.CharField(),
-        'action': AdvancedFeatureActionField,
+        'action': AdvancedFeatureActionField(),
         'params': AdvancedFeatureCreateResponseParamsField(),
         'uid': serializers.CharField(),
     },
@@ -30,14 +30,18 @@ AdvancedFeatureCreateResponse = inline_serializer_class(
 
 AdvancedFeaturePatchRequest = inline_serializer_class(
     name='AdvancedFeaturePatchRequest',
-    fields={'params': AdvancedFeatureRequestParamsField()},
+    fields={
+        'action': AdvancedFeatureActionField(),
+        'question_xpath': serializers.CharField(),
+        'params': AdvancedFeatureRequestParamsField()
+    }
 )
 
 AdvancedFeaturePostRequest = inline_serializer_class(
     name='AdvancedFeaturePostRequest',
     fields={
         'question_xpath': serializers.CharField(),
-        'action': AdvancedFeatureActionField,
+        'action': AdvancedFeatureActionField(),
         'params': AdvancedFeatureRequestParamsField(),
     },
 )
