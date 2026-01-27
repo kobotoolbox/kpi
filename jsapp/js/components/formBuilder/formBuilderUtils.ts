@@ -148,12 +148,18 @@ export function nullifyTranslations(
       // case 2: imported asset has form default language but not as first, so
       // we need to reorder things
       const defaultLangIndex = data.translations.indexOf(formDefaultLang)
-      data.translations.unshift(data.translations.splice(defaultLangIndex, 1)[0])
+
+      // Remove default lang, then place it at the beginning
+      data.translations.splice(data.translations.indexOf(formDefaultLang), 1)
+      data.translations.unshift(formDefaultLang)
+
       data.survey.forEach((row: FlatRow) => {
         translatedProps.forEach((translatedProp) => {
           const transletedPropArr = row[translatedProp] as string[]
           if (transletedPropArr) {
-            transletedPropArr.unshift(transletedPropArr.splice(defaultLangIndex, 1)[0])
+            // Pick the default lang translation, then place it at the beginning
+            const defaultLangTranslation = transletedPropArr.splice(defaultLangIndex, 1)[0]
+            transletedPropArr.unshift(defaultLangTranslation)
           }
         })
       })
