@@ -39,6 +39,7 @@ import type { IconName } from '#/k-icons'
 import sessionStore from '#/stores/session'
 import { ANON_USERNAME_URL } from '#/users/utils'
 import { currentLang, recordKeys } from '#/utils'
+import type { Asset } from './api/models/asset'
 
 /**
  * Removes whitespace from tags. Returns list of cleaned up tags.
@@ -170,7 +171,7 @@ interface DisplayNameObj {
  * containing final name and all useful data. Most of the times you should use
  * `getAssetDisplayName(…).final`.
  */
-export function getAssetDisplayName(asset?: AssetResponse | ProjectViewAsset): DisplayNameObj {
+export function getAssetDisplayName(asset?: Asset | AssetResponse | ProjectViewAsset): DisplayNameObj {
   const emptyName = t('untitled')
 
   const output: DisplayNameObj = {

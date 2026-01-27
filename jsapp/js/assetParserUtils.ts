@@ -2,8 +2,12 @@ import type { AssetContentSettings, AssetResponse } from '#/dataInterface'
 
 export function parseTags(asset: AssetResponse) {
   return {
-    tags: asset.tag_string.split(',').filter((tg) => tg.length !== 0),
+    tags: parseTagString(asset.tag_string),
   }
+}
+
+export function parseTagString(tagString: string) {
+  return tagString.split(',').filter((tg) => tg.length !== 0)
 }
 
 function parseSettings(asset: AssetResponse) {
