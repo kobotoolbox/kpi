@@ -37,9 +37,9 @@ export default function ResponseForm({ qaQuestion, children, onClear, disabled, 
     onEdit(qaQuestion)
   }
 
-  const handleDelete = () => {
-    onDelete(qaQuestion)
-    // TODO: PATCH `options.deleted: true`.
+  const handleDelete = async () => {
+    await onDelete(qaQuestion)
+    close()
   }
 
   return (

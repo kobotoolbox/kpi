@@ -23,6 +23,7 @@ import TagsResponseForm from './TagsResponseForm'
 import TextResponseForm from './TextResponseForm'
 import styles from './index.module.scss'
 import {
+  useAssetsDataSupplementDeleteQaHelper,
   useAssetsDataSupplementPartialUpdateQaHelper,
   useAssetsDataSupplementRetrieveQaHelper,
   useAssetsDataSupplementUpsertQaHelper,
@@ -83,14 +84,24 @@ export default function AnalysisQuestionListItem({
     setQaQuestion(undefined)
   }
 
+  const [mutationDelete, onDeleteQuestion] = useAssetsDataSupplementDeleteQaHelper(asset, advancedFeature)
+  const handleDeleteQuestion = async (qaQuestionToDelete: QualActionParams) => {
+    await onDeleteQuestion(qaQuestionToDelete)
+  }
+
   const disabledAnswer =
     !userCan('change_submissions', asset) ||
     queryAnswer.isFetching ||
     mutationAnswer.isPending ||
-    mutationQuestion.isPending
+    mutationQuestion.isPending ||
+    mutationDelete.isPending
 
   const disabledQuestion =
-    !userCan('manage_asset', asset) || queryAnswer.isFetching || mutationAnswer.isPending || mutationQuestion.isPending
+    !userCan('manage_asset', asset) ||
+    queryAnswer.isFetching ||
+    mutationAnswer.isPending ||
+    mutationQuestion.isPending ||
+    mutationDelete.isPending
 
   const previewRef = useRef<HTMLLIElement>(null)
   const dragRef = useRef<HTMLDivElement>(null)
@@ -228,7 +239,7 @@ export default function AnalysisQuestionListItem({
             qaQuestion={qaQuestion}
             disabled={disabledQuestion} // TODO: or disabledAnswer?
             onEdit={setQaQuestion}
-            onDelete={async () => console.log('TODO')}
+            onDelete={handleDeleteQuestion}
           />
         )
       }
@@ -238,7 +249,7 @@ export default function AnalysisQuestionListItem({
             qaQuestion={qaQuestion}
             disabled={disabledQuestion}
             onEdit={setQaQuestion}
-            onDelete={async () => console.log('TODO')}
+            onDelete={handleDeleteQuestion}
           >
             <SelectMultipleResponseForm
               qaQuestion={qaQuestion as QualSelectQuestionParams}
@@ -255,7 +266,7 @@ export default function AnalysisQuestionListItem({
             qaQuestion={qaQuestion}
             disabled={disabledQuestion}
             onEdit={setQaQuestion}
-            onDelete={async () => console.log('TODO')}
+            onDelete={handleDeleteQuestion}
           >
             <SelectOneResponseForm
               qaQuestion={qaQuestion as QualSelectQuestionParams}
@@ -272,7 +283,7 @@ export default function AnalysisQuestionListItem({
             qaQuestion={qaQuestion}
             disabled={disabledQuestion}
             onEdit={setQaQuestion}
-            onDelete={async () => console.log('TODO')}
+            onDelete={handleDeleteQuestion}
           >
             <TagsResponseForm qaAnswer={queryAnswer.data} disabled={disabledAnswer} onSave={handleSaveAnswer} />
           </ResponseForm>
@@ -284,7 +295,7 @@ export default function AnalysisQuestionListItem({
             qaQuestion={qaQuestion}
             disabled={disabledQuestion}
             onEdit={setQaQuestion}
-            onDelete={async () => console.log('TODO')}
+            onDelete={handleDeleteQuestion}
           >
             <IntegerResponseForm qaAnswer={queryAnswer.data} disabled={disabledAnswer} onSave={handleSaveAnswer} />
           </ResponseForm>
@@ -296,7 +307,7 @@ export default function AnalysisQuestionListItem({
             qaQuestion={qaQuestion}
             disabled={disabledQuestion}
             onEdit={setQaQuestion}
-            onDelete={async () => console.log('TODO')}
+            onDelete={handleDeleteQuestion}
           >
             <TextResponseForm qaAnswer={queryAnswer.data} disabled={disabledAnswer} onSave={handleSaveAnswer} />
           </ResponseForm>

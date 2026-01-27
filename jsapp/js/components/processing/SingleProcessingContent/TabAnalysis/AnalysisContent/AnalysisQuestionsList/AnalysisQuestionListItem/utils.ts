@@ -148,3 +148,38 @@ export const useAssetsDataSupplementUpsertQaHelper = (
 
   return [isCreate ? mutationCreate : mutationPatch, handleUpsert] as const
 }
+
+export const useAssetsDataSupplementDeleteQaHelper = (
+  asset: AssetResponse,
+  advancedFeature: AdvancedFeatureResponseManualQual,
+  options: Parameters<typeof useAssetsAdvancedFeaturesPartialUpdate>[0] = {},
+) => {
+  const mutationPatch = useAssetsAdvancedFeaturesPartialUpdate({
+    mutation: {
+      onSettled: () => {
+        queryClient.invalidateQueries({
+          queryKey: getAssetsAdvancedFeaturesListQueryKey(asset.uid),
+        })
+      },
+      ...(options as Parameters<typeof useAssetsAdvancedFeaturesPartialUpdate>[0])?.mutation,
+    },
+    request: options?.request,
+  })
+
+  const handleDelete = (qaQuestionToDelete: QualActionParams) => {
+    // Mark the question as deleted by setting options.deleted to true
+    const updatedParams = advancedFeature.params.map((param) =>
+      param.uuid === qaQuestionToDelete.uuid ? { ...param, options: { ...param.options, deleted: true } } : param,
+    )
+
+    return mutationPatch.mutateAsync({
+      uidAsset: asset.uid,
+      uidAdvancedFeature: advancedFeature.uid,
+      data: {
+        params: updatedParams,
+      },
+    })
+  }
+
+  return [mutationPatch, handleDelete] as const
+}
