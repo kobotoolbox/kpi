@@ -1,0 +1,38 @@
+# WIP Dockerfile for this PR.
+# Not intended for merge into main.
+# ---------------------------------
+
+####################
+# Node npm install #
+####################
+FROM node:20.19-bookworm-slim AS npm-install
+WORKDIR /srv/src/kpi
+
+# our non-root user, 1000:1000
+RUN chown node:node .
+
+# copy sources seldom updated, used by a post-install step
+COPY --chown=node:node --parents \
+    ./jsapp/k-icons-css-template.hbs \
+    ./jsapp/svg-icons \
+    ./
+
+# copy sources affecting npm install or post-install steps
+COPY --chown=node:node --parents \
+    ./scripts \
+    ./patches \
+    ./.browserslistrc \
+    ./package.json \
+    ./package-lock.json \
+    ./
+
+USER node
+RUN npm clean-install
+# - 👓 RUN npm clean-install && npm cache clean --force
+
+# ❓ TODO: verify that this change is safe (1/27)
+#    - ❌ removed `npm cache clean --force` after install;
+#      👓 check layers to see if there's waste
+#    - ❌ removed npm config set cache directory
+#         would it be needed by the python host mode?
+#    - ❓ is it OK to chown the kpi folder? seems so

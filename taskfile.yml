@@ -1,0 +1,30 @@
+# Dev scripts 
+# Not intended to merge to main, delete before merging.
+tasks:
+  mk:
+    cmds:
+     - task: mk-dc
+     - task: mk-bash
+
+  # Build the image
+  mk-dc:
+    cmd: '{{.COMPOSE}} build {{.SERVICE}}'
+    dir:  .
+
+  # Run 'bash' in the container (to check on stuff)
+  mk-bash: 
+    cmd: '{{.COMPOSE}} run --rm {{.BASH_ENV}} {{.SERVICE}} bash'
+    ignore_error: true
+    dir:  .
+
+
+vars: {
+  COMPOSE: 'docker compose --file task-compose.yml ',
+  SERVICE: 'mk',
+
+  BASH_ENV: ' -e TERM=xterm-256color ',
+}
+
+# Optionally include other taskfile commands from higher workspace
+includes: { other: { taskfile: ../taskfile.yml, optional: true, flatten: true } }
+version: '3'
