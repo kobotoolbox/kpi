@@ -153,15 +153,34 @@ export const getAutomaticTranslationsFromSupplementData = (
 }
 
 /**
+ * Gets the most recent translation version for a specific field and language.
+ *
+ * @param supplementData - The supplement data object
+ * @param xpath - The field xpath to retrieve transcript for
+ * @param languageCode
+ * @returns The most recent transcript version, or undefined if none exist
+ */
+export const getLatestAutomaticTranslationVersionItem = (
+  supplementData: DataSupplementResponse,
+  xpath: string,
+  languageCode: LanguageCode,
+): TranslationVersionItem | undefined => {
+  const allTranslations = getAllTranslationsFromSupplementData(supplementData, xpath, true)
+  return allTranslations.find((translation) => translation._data.language === languageCode)
+}
+
+/**
  * Returns an array of the latest TranslationVersionItem for each language found in the supplement data.
  *
  * @param supplementData - The supplement data object
  * @param xpath - The field xpath to retrieve translations for
+ * @param [includeWithoutValue] - Whether to return latest versions that are failed etc.
  * @returns Array of the most recent translation version for each language
  */
 export const getAllTranslationsFromSupplementData = (
   supplementData: DataSupplementResponse,
   xpath: string,
+  includeWithoutValue?: true,
 ): TranslationVersionItem[] => {
   const translations = [
     getManualTranslationsFromSupplementData(supplementData, xpath),
@@ -189,7 +208,7 @@ export const getAllTranslationsFromSupplementData = (
   Array.from(languageSet).forEach((language) => {
     const versionsForLanguage = allTranslationVersions.filter((version) => version._data.language === language)
     const latestVersion = versionsForLanguage.sort(TransxVersionSortFunction)[0]
-    if (latestVersion && isSupplementVersionWithValue(latestVersion)) {
+    if (latestVersion && (isSupplementVersionWithValue(latestVersion) || includeWithoutValue)) {
       latestVersions.push(latestVersion)
     }
   })
