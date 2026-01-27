@@ -30,10 +30,9 @@ export default function AssetNavigator() {
   const [selectedCollection, setSelectedCollection] = useState<string | null>(null)
   const [isExpanded, setIsExpanded] = useState(false)
 
-  // --- Data Fetching via Orval Hooks ---
-
-  // 1. Fetch Tags for the MultiSelect filter
-  // Note if `limit` is too big (e.g. 9999) it causes a deadly timeout whenever Form Builder displays the aside Library search
+  // Step 1. Fetch Tags for the MultiSelect filter
+  // Note: if `limit` is too big (e.g. `9999`) it causes a deadly timeout whenever Form Builder displays the aside Library
+  // search, so we use `100`.
   const { data: tagsResponse } = useTagsList({ limit: 100 })
   const tagsOptions = useMemo(() => {
     if (tagsResponse?.data && 'results' in tagsResponse.data) {
@@ -48,12 +47,12 @@ export default function AssetNavigator() {
 
   if (tagsResponse?.data && 'next' in tagsResponse.data) {
     if (tagsResponse.data.next) {
-      // We want to not if there are any users who have more than 100 tags
+      // We want to know if there are any users who have more than 100 tags
       Sentry.captureMessage('MAX_TAGS_EXCEEDED: Too many tags')
     }
   }
 
-  // 2. Fetch Collections for the Select filter
+  // Step 2. Fetch Collections for the Select filter
   const { data: collectionsResponse } = useAssetsList({
     q: COMMON_QUERIES.c,
     limit: 200,
@@ -67,16 +66,16 @@ export default function AssetNavigator() {
     }))
   }, [collectionsResponse])
 
-  // 3. Fetch Main Assets List
+  // Step 3. Fetch Main Assets List
   const assetQueryParams = useMemo(() => {
     const parts: string[] = []
 
-    // Step 1. Include search phrase
+    // Include search phrase
     if (debouncedSearch) {
       parts.push(`(${debouncedSearch})`)
     }
 
-    // Step 2. Include tags filtering
+    // Include tags filtering
     if (selectedTags.length > 0) {
       // BUG: this doesn't work correctly - it does filter one tag, but if multiple are selected it returns zero values
       // See discussion: https://chat.kobotoolbox.org/#narrow/channel/4-Kobo-Dev/topic/Filtering.20assets.20by.20tags/near/772253
@@ -84,12 +83,12 @@ export default function AssetNavigator() {
       parts.push(`(${tagQuery})`)
     }
 
-    // Step 3. Include filtering by collection (parent)
+    // Include filtering by collection (parent)
     if (selectedCollection) {
       parts.push(`parent__uid:"${selectedCollection}"`)
     }
 
-    // Step 4. Ensure we are only getting library items that make sense here (questions, blocks, and templates)
+    // Ensure we are only getting library items that make sense here (questions, blocks, and templates)
     parts.push(COMMON_QUERIES.qbt)
 
     return {
@@ -107,7 +106,7 @@ export default function AssetNavigator() {
     ordering: '-date_modified',
   })
 
-  // 4. Active drag and drop of found assets
+  // Step 4. Setup drag and drop of found assets
   const assetsListRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
     activateSortable()
@@ -138,7 +137,7 @@ export default function AssetNavigator() {
 
   return (
     <Stack gap='sm' h='100%'>
-      {/* Row 1: Search Box */}
+      {/* Searchbox */}
       <TextInput
         placeholder='Search…'
         leftSection={<Icon name='search' />}
@@ -146,7 +145,7 @@ export default function AssetNavigator() {
         onChange={(event) => setSearchQuery(event.currentTarget.value)}
       />
 
-      {/* Row 2: Tags Select */}
+      {/* Tags filtering */}
       <MultiSelect
         data={tagsOptions}
         value={selectedTags}
@@ -160,7 +159,7 @@ export default function AssetNavigator() {
         comboboxProps={{ withinPortal: false }}
       />
 
-      {/* Row 3: Collection Select */}
+      {/* Collection filtering */}
       <Select
         data={collectionOptions}
         value={selectedCollection}
@@ -170,7 +169,7 @@ export default function AssetNavigator() {
         clearable
       />
 
-      {/* Row 4: Stats & Toggle */}
+      {/* Total count & toggle expanded info */}
       <Group justify='space-between' align='center'>
         <Text size='sm' fw={500}>
           {assetsResponse?.data.results?.length || 0} assets found
@@ -184,7 +183,7 @@ export default function AssetNavigator() {
         />
       </Group>
 
-      {/* Row 5: Results List */}
+      {/* Results */}
       {isLoading ? (
         <Center py='xl'>
           <Loader size='sm' />
