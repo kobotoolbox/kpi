@@ -59,7 +59,6 @@ export default function SingleProcessingContent({
   }
 
   // Use placeholder when there's none. Will upsert anyways.
-  // TODO: filter `options.deleted` ones. See DEV-1630
   const advancedFeatureAnalysis =
     advancedFeatures
       .filter((af) => af.question_xpath === questionXpath)
