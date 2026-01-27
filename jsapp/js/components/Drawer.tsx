@@ -51,11 +51,11 @@ export default function Drawer() {
     <bem.KDrawer>
       <bem.KDrawer__primaryIcons>
         <NavLink to={PROJECTS_ROUTES.MY_PROJECTS} className='k-drawer__link' data-tip={t('Projects')}>
-          <Icon name='projects' />
+          <Icon name='projects' size='inherit' />
         </NavLink>
 
         <NavLink to={ROUTES.LIBRARY} className='k-drawer__link' data-tip={t('Library')}>
-          <Icon name='library' />
+          <Icon name='library' size='inherit' />
         </NavLink>
       </bem.KDrawer__primaryIcons>
 
