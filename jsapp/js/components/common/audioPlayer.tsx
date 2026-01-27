@@ -127,7 +127,7 @@ class AudioPlayer extends React.Component<AudioPlayerProps, AudioPlayerState> {
             <bem.AudioPlayer__nameIcon>
               <Icon name='file-audio' size='m' />
             </bem.AudioPlayer__nameIcon>
-            <label>{this.name}</label>
+            <label title={this.name}>{this.name}</label>
 
             {this.props.rightHeaderSection && (
               <div className='audio-player__name__right-section'>{this.props.rightHeaderSection}</div>
