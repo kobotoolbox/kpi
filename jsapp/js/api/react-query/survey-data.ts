@@ -51,8 +51,6 @@ import type { DataBulkUpdateResponse } from '../models/dataBulkUpdateResponse'
 
 import type { DataResponse } from '../models/dataResponse'
 
-import type { DataResponseXML } from '../models/dataResponseXML'
-
 import type { DataStatusesUpdate } from '../models/dataStatusesUpdate'
 
 import type { DataSupplementResponse } from '../models/dataSupplementResponse'
@@ -80,8 +78,6 @@ import type { ExternalResponse } from '../models/externalResponse'
 import type { FilesResponse } from '../models/filesResponse'
 
 import type { PaginatedDataResponseList } from '../models/paginatedDataResponseList'
-
-import type { PaginatedDataResponseXMLList } from '../models/paginatedDataResponseXMLList'
 
 import type { PaginatedExportResponseList } from '../models/paginatedExportResponseList'
 
@@ -827,20 +823,12 @@ export type assetsDataListResponse200 = {
   status: 200
 }
 
-export type assetsDataListResponse200 = {
-  data: PaginatedDataResponseXMLList
-  status: 200
-}
-
 export type assetsDataListResponse404 = {
   data: ErrorDetail
   status: 404
 }
 
-export type assetsDataListResponseComposite =
-  | assetsDataListResponse200
-  | assetsDataListResponse200
-  | assetsDataListResponse404
+export type assetsDataListResponseComposite = assetsDataListResponse200 | assetsDataListResponse404
 
 export type assetsDataListResponse = assetsDataListResponseComposite & {
   headers: Headers
@@ -955,20 +943,12 @@ export type assetsDataRetrieveResponse200 = {
   status: 200
 }
 
-export type assetsDataRetrieveResponse200 = {
-  data: DataResponseXML
-  status: 200
-}
-
 export type assetsDataRetrieveResponse404 = {
   data: ErrorDetail
   status: 404
 }
 
-export type assetsDataRetrieveResponseComposite =
-  | assetsDataRetrieveResponse200
-  | assetsDataRetrieveResponse200
-  | assetsDataRetrieveResponse404
+export type assetsDataRetrieveResponseComposite = assetsDataRetrieveResponse200 | assetsDataRetrieveResponse404
 
 export type assetsDataRetrieveResponse = assetsDataRetrieveResponseComposite & {
   headers: Headers
