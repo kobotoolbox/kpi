@@ -1,3 +1,8 @@
+// Note: please be cautious in trusting those types. They should be fine, but AI helped build them.
+//
+// Context: this types definition file was built with AI assistance to significantly cut the time on building them.
+// It was reviewed by a dev, but one who doesn't have full understanding of Backbone, plus Form Builder code written in
+// CoffeeScript is quite old and rarely maintained - increasing the risk of having errors in here.
 import * as Backbone from 'backbone'
 
 /** Base configuration for the XLForm model structure */
