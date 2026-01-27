@@ -154,11 +154,10 @@ class MongoHelper:
         if limit is not None:
             cursor.limit(limit)
 
-        if sort is not None and len(sort) == 1:
-            sort = MongoHelper.to_safe_dict(sort, reading=True)
-            sort_key = list(sort.keys())[0]
-            sort_dir = int(sort[sort_key])  # -1 for desc, 1 for asc
-            cursor.sort(sort_key, sort_dir)
+        if sort is not None:
+            sorts = MongoHelper.to_safe_dict(sort, reading=True)
+            sort_params = [(key, int(val)) for key, val in sorts.items()]
+            cursor.sort(sort_params)
 
         # set batch size
         cursor.batch_size = cls.DEFAULT_BATCHSIZE
