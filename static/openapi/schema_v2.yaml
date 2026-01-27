@@ -10499,10 +10499,10 @@ components:
     AdvancedFeatureCreateResponse:
       type: object
       properties:
-        action:
-          $ref: '#/components/schemas/ActionEnum'
         question_xpath:
           type: string
+        action:
+          $ref: '#/components/schemas/ActionEnum'
         params:
           type: array
           items:
@@ -10519,10 +10519,10 @@ components:
     AdvancedFeaturePostRequest:
       type: object
       properties:
-        action:
-          $ref: '#/components/schemas/ActionEnum'
         question_xpath:
           type: string
+        action:
+          $ref: '#/components/schemas/ActionEnum'
         params:
           type: array
           items:
@@ -10536,10 +10536,10 @@ components:
     AdvancedFeatureResponse:
       type: object
       properties:
-        action:
-          $ref: '#/components/schemas/ActionEnum'
         question_xpath:
           type: string
+        action:
+          $ref: '#/components/schemas/ActionEnum'
         params:
           type: array
           items:
@@ -15103,6 +15103,10 @@ components:
     PatchedAdvancedFeaturePatchRequest:
       type: object
       properties:
+        action:
+          $ref: '#/components/schemas/ActionEnum'
+        question_xpath:
+          type: string
         params:
           type: array
           items:
