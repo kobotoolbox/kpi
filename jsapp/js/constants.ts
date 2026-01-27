@@ -97,14 +97,30 @@ export const PROJECT_SETTINGS_CONTEXTS = Object.freeze({
   REPLACE: 'replaceProject',
 })
 
-export const update_states = {
+export type UpdateStatesKey = 'UNSAVED_CHANGES' | 'UP_TO_DATE' | 'PENDING_UPDATE' | 'SAVE_FAILED'
+export type UpdateStatesValue = -1 | true | false | 'SAVE_FAILED'
+
+export const update_states: Record<UpdateStatesKey, UpdateStatesValue> = {
   UNSAVED_CHANGES: -1,
   UP_TO_DATE: true,
   PENDING_UPDATE: false,
   SAVE_FAILED: 'SAVE_FAILED',
 }
 
-export const AVAILABLE_FORM_STYLES = [
+export type FormStyleName =
+  | ''
+  | 'theme-grid no-text-transform'
+  | 'theme-grid'
+  | 'pages'
+  | 'theme-grid pages no-text-transform'
+  | 'theme-grid pages'
+
+export interface FormStyleDefinition {
+  value: FormStyleName
+  label: string
+}
+
+export const AVAILABLE_FORM_STYLES: FormStyleDefinition[] = [
   { value: '', label: t('Default - single page') },
   { value: 'theme-grid no-text-transform', label: t('Grid theme') },
   { value: 'theme-grid', label: t('Grid theme with headings in ALL CAPS') },
@@ -130,7 +146,7 @@ export enum AssetTypeName {
   collection = 'collection',
 }
 
-interface AssetTypeDefinition {
+export interface AssetTypeDefinition {
   id: AssetTypeName
   label: string
 }
