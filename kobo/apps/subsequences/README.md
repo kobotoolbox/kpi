@@ -10,8 +10,9 @@ It covers how the payload is validated through the various schemas (`params_sche
 1. [Class Overview](#1-class-overview)
 2. [Subsequence Workflow](#2-subsequence-workflow)
    1. [Enabling an Action](#21-enabling-an-action)
-   2. [Updating and Action](#22-updating-an-action)
+   2. [Updating an Action](#22-updating-an-action)
    3. [Add Submission Supplement](#23-add-submission-supplement)
+   4. [Remove Submission Supplement](#23-deleting-a-submission-supplement)
    4. [Sequence Diagram (End-to-End Flow)](#24-sequence-diagram-end-to-end-flow)
    5. [Flowchart (Logic inside revise_data per Action)](#243-flowchart-logic-inside-revise_data-per-action)
 3. [Where Schemas Apply](#3-where-schemas-apply)
@@ -312,6 +313,107 @@ Or use the public documentation endpoints:
 
 - Global Server: [API documentation](https://kf.kobotoolbox.org/api/v2/docs/?q=/api/v2/assets/{uid_asset}/data/{id}/supplement/)
 - EU Server: [API documentation](https://eu.kobotoolbox.org/api/v2/docs/?q=/api/v2/assets/{uid_asset}/data/{id}/supplement/)
+
+### 2.4 Deleting a Submission Supplement
+
+To delete a submission supplement, you need to PATCH the submission supplement
+with the appropriate null or empty value.
+
+
+#### Example: Deleting a manual transcription in English
+
+```json
+{
+  "_version": "20250820",
+  "audio_question": {
+    "manual_transcription": { "language": "en", "value": null }
+  }
+}
+```
+
+### Example: Deleting a manual transcription with `locale` (optional)
+You can optionally specify a `locale` to distinguish regional variations (e.g. en-US vs en-GB).
+
+```json
+{
+  "_version": "20250820",
+  "audio_question": {
+    "manual_transcription": { "language": "en", "locale": "en-US", "value": null }
+  }
+}
+```
+
+#### Example: Qualitative Analysis text question
+
+```json
+{
+  "_version": "20250820",
+  "text_question": {
+    "manual_qual": {
+      "uuid": "q_uuid",
+      "value": ""
+    }
+  }
+}
+```
+
+#### Example: Qualitative Analysis integer question
+
+```json
+{
+  "_version": "20250820",
+  "text_question": {
+    "manual_qual": {
+      "uuid": "q_uuid",
+      "value": null
+    }
+  }
+}
+```
+
+#### Example: Qualitative Analysis select one question
+
+```json
+{
+  "_version": "20250820",
+  "text_question": {
+    "manual_qual": {
+      "uuid": "q_uuid",
+      "value": ""
+    }
+  }
+}
+```
+
+#### Example: Qualitative Analysis select multiple question
+
+```json
+{
+  "_version": "20250820",
+  "text_question": {
+    "manual_qual": {
+      "uuid": "q_uuid",
+      "value": []
+    }
+  }
+}
+```
+
+#### Example: Qualitative Analysis tags question
+
+```json
+{
+  "_version": "20250820",
+  "text_question": {
+    "manual_qual": {
+      "uuid": "q_uuid",
+      "value": []
+    }
+  }
+}
+```
+
+
 
 ---
 
