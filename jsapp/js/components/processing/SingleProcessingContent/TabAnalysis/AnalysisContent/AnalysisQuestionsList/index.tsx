@@ -49,8 +49,6 @@ export default function AnalysisQuestionsList({
     })
   }, [])
 
-  console.log('AnalysisQuestionsList', qaQuestion, advancedFeature.params)
-
   const localAdvancedFeature: AdvancedFeatureResponseManualQual = {
     ...advancedFeature,
     params: localParams,

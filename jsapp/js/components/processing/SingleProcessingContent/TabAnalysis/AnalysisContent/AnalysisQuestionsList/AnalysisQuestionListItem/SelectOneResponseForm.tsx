@@ -26,8 +26,6 @@ export default function SelectOneResponseForm({ qaQuestion, qaAnswer, onSave, di
     setTypingTimer(setTimeout(handleSave, AUTO_SAVE_TYPING_DELAY)) // After some seconds we auto save
   }
 
-  console.log('SelectOneResponseForm', value, qaQuestion, qaAnswer)
-
   return (
     <Radio.Group>
       <Stack gap={'xs'} /* TODO: Radio.Group component */>
