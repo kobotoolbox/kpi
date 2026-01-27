@@ -669,7 +669,7 @@ export default Object.assign(
                 type='text'
                 size='m'
                 onClick={this.toggleAsideLibrarySearch.bind(this)}
-                tooltip={t('Insert cascading select')}
+                tooltip={t('Add an item from the library')}
                 tooltipPosition='left'
                 startIcon={this.state.asideLibrarySearchVisible ? 'close' : 'library'}
                 label={t('Add from Library')}
@@ -683,7 +683,7 @@ export default Object.assign(
                 type='text'
                 size='m'
                 onClick={this.toggleAsideLayoutSettings.bind(this)}
-                tooltip={t('Insert cascading select')}
+                tooltip={this.hasMetadataAndDetails() ? t('Change form layout and settings') : t('Change form layout')}
                 tooltipPosition='left'
                 startIcon={this.state.asideLayoutSettingsVisible ? 'close' : 'settings'}
                 label={this.hasMetadataAndDetails() ? t('Layout & Settings') : t('Layout')}
