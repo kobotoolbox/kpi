@@ -11,122 +11,16 @@ from drf_spectacular.plumbing import (
 from drf_spectacular.types import OpenApiTypes
 
 from kpi.schema_extensions.v2.generic.schema import (
+    GENERIC_DATETIME_SCHEMA,
     GENERIC_INT_SCHEMA,
     GENERIC_STRING_SCHEMA,
-    UUID_STR,
+    GENERIC_UUID_SCHEMA,
 )
-from kpi.utils.schema_extensions.mixins import ComponentRegistrationMixin
+from kpi.utils.schema_extensions.mixins import (
+    ComponentRegistrationMixin,
+    QualComponentsRegistrationMixin,
+)
 from kpi.utils.schema_extensions.url_builder import build_url_type
-
-
-def _register_common_components(component_registrator, auto_schema):
-    references = {}
-    # ---------------------------------------------------------------------
-    # qualInteger
-    #   properties: { value: integer | null }
-    # ---------------------------------------------------------------------
-    references['qual_integer'] = component_registrator._register_schema_component(
-        auto_schema,
-        'DataSupplementManualQualDataInteger',
-        {
-            'type': 'object',
-            'properties': {
-                'value': {
-                    'type': 'integer',
-                    'nullable': True,
-                },
-                'uuid': UUID_STR,
-            },
-            'required': ['uuid', 'value'],
-            'additionalProperties': False,
-        },
-    )
-
-    # ---------------------------------------------------------------------
-    # qualSelectMultiple
-    #   properties: { value: ['507129be-2aee-4fb9-8ddd-ac766ba35f46', ...] }
-    # ---------------------------------------------------------------------
-    references['qual_select_multiple'] = (
-        component_registrator._register_schema_component(
-            auto_schema,
-            'DataSupplementManualQualDataSelectMultiple',
-            {
-                'type': 'object',
-                'properties': {
-                    'value': {
-                        'type': 'array',
-                        'items': component_registrator.UUID_STR,
-                    },
-                    'uuid': UUID_STR,
-                },
-                'required': ['uuid', 'value'],
-                'additionalProperties': False,
-            },
-        )
-    )
-
-    # ---------------------------------------------------------------------
-    # qualSelectOne
-    #   properties: { value: '0bbdb149-c85c-46c2-ad31-583377c423da' }
-    # ---------------------------------------------------------------------
-    references['qual_select_one'] = component_registrator._register_schema_component(
-        auto_schema,
-        'DataSupplementManualQualDataSelectOne',
-        {
-            'type': 'object',
-            'properties': {
-                'value': UUID_STR,
-                'uuid': UUID_STR,
-            },
-            'required': ['uuid', 'value'],
-            'additionalProperties': False,
-        },
-    )
-
-    # ---------------------------------------------------------------------
-    # qualTags
-    #   properties: { value: [string, ...] }
-    # ---------------------------------------------------------------------
-    references['qual_tags'] = component_registrator._register_schema_component(
-        auto_schema,
-        'DataSupplementManualQualDataTags',
-        {
-            'type': 'object',
-            'properties': {
-                'value': {
-                    'type': 'array',
-                    'items': {
-                        'type': 'string',
-                    },
-                },
-                'uuid': UUID_STR,
-            },
-            'required': ['uuid', 'value'],
-            'additionalProperties': False,
-        },
-    )
-
-    # ---------------------------------------------------------------------
-    # qualText
-    #   properties: { value: string }
-    # ---------------------------------------------------------------------
-    references['qual_text'] = component_registrator._register_schema_component(
-        auto_schema,
-        'DataSupplementManualQualDataText',
-        {
-            'type': 'object',
-            'properties': {
-                'value': {
-                    'type': 'string',
-                },
-                'uuid': UUID_STR,
-            },
-            'required': ['uuid', 'value'],
-            'additionalProperties': False,
-        },
-    )
-
-    return references
 
 
 class DataAttachmentFieldExtension(OpenApiSerializerFieldExtension):
@@ -224,12 +118,9 @@ class DataBulkUpdateResultFieldExtension(OpenApiSerializerFieldExtension):
 
 
 class DataSupplementPayloadExtension(
-    ComponentRegistrationMixin, OpenApiSerializerExtension
+    QualComponentsRegistrationMixin, OpenApiSerializerExtension
 ):
     target_class = 'kpi.schema_extensions.v2.data.serializers.DataSupplementPayload'
-
-    DATETIME = build_basic_type(OpenApiTypes.DATETIME)
-    UUID_STR = {'type': 'string', 'format': 'uuid'}
 
     def question_schema(self, references):
         return build_object_type(
@@ -251,7 +142,9 @@ class DataSupplementPayloadExtension(
         )
 
     def map_serializer(self, auto_schema, direction):
-        references = _register_common_components(self, auto_schema)
+
+        references = self._register_qual_schema_components(auto_schema)
+
         return build_object_type(
             properties={
                 '_version': {
@@ -325,12 +218,9 @@ class DataSupplementPayloadExtension(
 
 
 class DataSupplementResponseExtension(
-    ComponentRegistrationMixin, OpenApiSerializerExtension
+    QualComponentsRegistrationMixin, OpenApiSerializerExtension
 ):
     target_class = 'kpi.schema_extensions.v2.data.serializers.DataSupplementResponse'
-
-    DATETIME = build_basic_type(OpenApiTypes.DATETIME)
-    UUID_STR = {'type': 'string', 'format': 'uuid'}
 
     def question_schema(self, references):
 
@@ -355,7 +245,7 @@ class DataSupplementResponseExtension(
         )
 
     def map_serializer(self, auto_schema, direction):
-        references = _register_common_components(self, auto_schema)
+        references = self._register_qual_schema_components(auto_schema)
         return build_object_type(
             properties={
                 '_version': {
@@ -413,9 +303,9 @@ class DataSupplementResponseExtension(
         version_item = build_object_type(
             additionalProperties=False,
             properties={
-                '_dateCreated': self.DATETIME,
-                '_uuid': self.UUID_STR,
-                '_dateAccepted': self.DATETIME,
+                '_dateCreated': GENERIC_DATETIME_SCHEMA,
+                '_uuid': GENERIC_UUID_SCHEMA,
+                '_dateAccepted': GENERIC_DATETIME_SCHEMA,
                 '_data': self._get_data_content_schema(include_status=include_status),
             },
             required=required_fields,
@@ -424,8 +314,8 @@ class DataSupplementResponseExtension(
         return build_object_type(
             additionalProperties=False,
             properties={
-                '_dateCreated': self.DATETIME,
-                '_dateModified': self.DATETIME,
+                '_dateCreated': GENERIC_DATETIME_SCHEMA,
+                '_dateModified': GENERIC_DATETIME_SCHEMA,
                 '_versions': build_array_type(schema=version_item, min_length=1),
             },
             required=['_dateCreated', '_dateModified', '_versions'],
@@ -447,10 +337,10 @@ class DataSupplementResponseExtension(
         version_item = build_object_type(
             additionalProperties=False,
             properties={
-                '_dateCreated': self.DATETIME,
-                '_uuid': self.UUID_STR,
+                '_dateCreated': GENERIC_DATETIME_SCHEMA,
+                '_uuid': GENERIC_UUID_SCHEMA,
                 '_dependency': self._get_dependency_schema(),
-                '_dateAccepted': self.DATETIME,
+                '_dateAccepted': GENERIC_DATETIME_SCHEMA,
                 '_data': self._get_data_content_schema(include_status=include_status),
             },
             required=required_fields,
@@ -459,8 +349,8 @@ class DataSupplementResponseExtension(
         inner_action_schema = build_object_type(
             additionalProperties=False,
             properties={
-                '_dateCreated': self.DATETIME,
-                '_dateModified': self.DATETIME,
+                '_dateCreated': GENERIC_DATETIME_SCHEMA,
+                '_dateModified': GENERIC_DATETIME_SCHEMA,
                 '_versions': build_array_type(schema=version_item, min_length=1),
             },
             required=['_dateCreated', '_dateModified', '_versions'],
@@ -538,7 +428,7 @@ class DataSupplementResponseExtension(
             additionalProperties=False,
             properties={
                 '_actionId': GENERIC_STRING_SCHEMA,
-                '_uuid': self.UUID_STR,
+                '_uuid': GENERIC_UUID_SCHEMA,
             },
             required=['_actionId', '_uuid'],
         )
@@ -584,9 +474,9 @@ class DataSupplementResponseExtension(
             additionalProperties=False,
             properties={
                 '_data': data_schema,
-                '_dateAccepted': self.DATETIME,
-                '_dateCreated': self.DATETIME,
-                '_uuid': self.UUID_STR,
+                '_dateAccepted': GENERIC_DATETIME_SCHEMA,
+                '_dateCreated': GENERIC_DATETIME_SCHEMA,
+                '_uuid': GENERIC_UUID_SCHEMA,
             },
             required=['_data', '_dateCreated', '_uuid'],
         )
@@ -605,8 +495,8 @@ class DataSupplementResponseExtension(
         data_action_key = build_object_type(
             additionalProperties=False,
             properties={
-                '_dateCreated': self.DATETIME,
-                '_dateModified': self.DATETIME,
+                '_dateCreated': GENERIC_DATETIME_SCHEMA,
+                '_dateModified': GENERIC_DATETIME_SCHEMA,
                 '_versions': build_array_type(
                     schema=data_action_version,
                     min_length=1,
