@@ -153,3 +153,11 @@ class TestDataCollector(BaseTestCase):
         asset.refresh_from_db()
         assert asset.data_collector_group is None
         patched_remove_links.assert_called_once_with(data_collector.token)
+
+    @patch('kobo.apps.data_collectors.signals.remove_data_collector_enketo_links')
+    def test_delete_data_collector_group_removes_enketo_links(self, patched_remove):
+        data_collector_0 = DataCollector.objects.create(
+            name='DC0', group=self.data_collector_group
+        )
+        self.data_collector_group.delete()
+        patched_remove.assert_called_once_with(data_collector_0.token)

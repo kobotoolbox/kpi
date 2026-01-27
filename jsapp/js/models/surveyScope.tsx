@@ -2,18 +2,28 @@ import findIndex from 'lodash.findindex'
 import isEmpty from 'lodash.isempty'
 import map from 'lodash.map'
 import { unnullifyTranslations } from '#/components/formBuilder/formBuilderUtils'
-import { ASSET_TYPES, CHOICE_LISTS, QUESTION_TYPES } from '#/constants'
+import { ASSET_TYPES, type AssetTypeDefinition, CHOICE_LISTS, QUESTION_TYPES } from '#/constants'
+import type { AssetContent } from '#/dataInterface'
 import { notify } from '#/utils'
+import type { BaseRow, Row } from '../../xlform/src/model.row'
+import type { FlatChoice, FlatRow, FlatSurvey, Survey } from '../../xlform/src/model.survey'
+import type { Group } from '../../xlform/src/model.surveyFragment'
 import { actions } from '../actions'
 
 class SurveyScope {
-  constructor({ survey, rawSurvey, assetType }) {
-    this.survey = survey
-    this.rawSurvey = rawSurvey
-    this.assetType = assetType
+  survey: Survey
+  // SurveyScope is being passed on in some Form Builder code. We don't use `rawSurvey` or `assetType` here directly, but
+  // some code expects it to be here.
+  rawSurvey?: AssetContent
+  assetType: AssetTypeDefinition | null
+
+  constructor(params: { survey: Survey; rawSurvey?: AssetContent; assetType: AssetTypeDefinition | null }) {
+    this.survey = params.survey
+    this.rawSurvey = params.rawSurvey
+    this.assetType = params.assetType
   }
 
-  addItemToLibrary(row, assetContent) {
+  addItemToLibrary(row: Row | Group, assetContent: AssetContent) {
     const surv = this.survey.toFlatJSON()
     /*
      * Apply translations "hack" again for saving single questions to library
@@ -22,21 +32,21 @@ class SurveyScope {
      */
     const unnullifiedContent = JSON.parse(unnullifyTranslations(JSON.stringify(surv), assetContent))
 
-    if (row.constructor.kls === 'Row') {
+    if ((row.constructor as typeof BaseRow).kls === 'Row') {
       this.addQuestionToLibrary(row, unnullifiedContent)
     } else {
       this.addGroupToLibrary(row, unnullifiedContent)
     }
   }
 
-  addQuestionToLibrary(row, unnullifiedContent) {
+  addQuestionToLibrary(row: Row | Group, unnullifiedContent: FlatSurvey) {
     const rowJSON = row.toJSON2()
 
     const question = unnullifiedContent.survey.find((s) => s.$kuid === rowJSON.$kuid)
 
     let choices
     if (rowJSON.type === QUESTION_TYPES.select_one.id || rowJSON.type === QUESTION_TYPES.select_multiple.id) {
-      choices = unnullifiedContent.choices.filter((s) => s.list_name === rowJSON.select_from_list_name)
+      choices = unnullifiedContent.choices?.filter((s) => s.list_name === rowJSON.select_from_list_name)
     }
 
     const content = JSON.stringify({
@@ -55,9 +65,9 @@ class SurveyScope {
       })
   }
 
-  addGroupToLibrary(row, unnullifiedContent) {
-    let contents = []
-    let choices = []
+  addGroupToLibrary(row: Row | Group, unnullifiedContent: FlatSurvey) {
+    let contents: FlatRow[] = []
+    let choices: FlatChoice[] = []
     const groupKuid = row.toJSON2().$kuid
 
     if (!isEmpty(unnullifiedContent.survey)) {
@@ -75,12 +85,12 @@ class SurveyScope {
       const contents_kuids = map(contents, '$kuid')
       const selectSurveyContents = unnullifiedContent.survey.filter(
         (content) =>
-          [QUESTION_TYPES.select_one.id, QUESTION_TYPES.select_multiple.id].indexOf(content.type) > -1 &&
+          (content.type === QUESTION_TYPES.select_one.id || content.type === QUESTION_TYPES.select_multiple.id) &&
           contents_kuids.indexOf(content['$kuid']) > -1,
       )
       if (selectSurveyContents.length > 0) {
         const selectListNames = map(selectSurveyContents, CHOICE_LISTS.SELECT)
-        choices = unnullifiedContent.choices.filter((choice) => selectListNames.indexOf(choice.list_name) > -1)
+        choices = unnullifiedContent.choices?.filter((choice) => selectListNames.indexOf(choice.list_name) > -1) || []
       }
     }
 
@@ -101,16 +111,16 @@ class SurveyScope {
       })
   }
 
-  handleItem({ position, itemUid, groupId }) {
-    if (!itemUid) {
+  handleItem(data: { position: number; itemUid: string; groupId?: string }) {
+    if (!data.itemUid) {
       throw new Error('itemUid not provided!')
     }
 
     actions.survey.addExternalItemAtPosition({
-      position: position,
-      uid: itemUid,
+      position: data.position,
+      uid: data.itemUid,
       survey: this.survey,
-      groupId: groupId,
+      groupId: data.groupId,
     })
   }
 }

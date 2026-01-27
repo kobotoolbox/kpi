@@ -1,7 +1,7 @@
 from django.db.models.signals import post_delete, post_save, pre_delete
 from django.dispatch import receiver
 
-from kobo.apps.data_collectors.models import DataCollector
+from kobo.apps.data_collectors.models import DataCollector, DataCollectorGroup
 from kobo.apps.data_collectors.utils import (
     remove_data_collector_enketo_links,
     rename_data_collector_enketo_links,
@@ -35,8 +35,14 @@ def update_enketo_links(sender, instance, **kwargs):
 
 
 @receiver(pre_delete, sender=DataCollector)
-def remove_enketo_links_on_delete(sender, instance, **kwargs):
+def remove_enketo_links_on_delete_data_collector(sender, instance, **kwargs):
     remove_data_collector_enketo_links(instance.token)
+
+
+@receiver(pre_delete, sender=DataCollectorGroup)
+def remove_enketo_links_on_delete_data_collector_group(sender, instance, **kwargs):
+    for data_collector in instance.data_collectors.all():
+        remove_data_collector_enketo_links(data_collector.token)
 
 
 @receiver(post_delete, sender=ObjectPermission)
