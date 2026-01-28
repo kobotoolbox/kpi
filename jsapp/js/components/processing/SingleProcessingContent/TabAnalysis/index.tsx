@@ -3,7 +3,7 @@ import React, { useState } from 'react'
 import classNames from 'classnames'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
-import type { QualActionParams } from '#/api/models/qualActionParams'
+import type { ResponseQualActionParams } from '#/api/models/responseQualActionParams'
 import type { AssetResponse } from '#/dataInterface'
 import bodyStyles from '../../common/processingBody.module.scss'
 import AnalysisContent from './AnalysisContent'
@@ -24,7 +24,7 @@ interface Props {
  * the Qualitative Analysis functionality.
  */
 export default function AnalysisTab({ asset, questionXpath, submission, supplement, advancedFeature }: Props) {
-  const [qaQuestion, setQaQuestion] = useState<QualActionParams | undefined>(undefined)
+  const [qaQuestion, setQaQuestion] = useState<ResponseQualActionParams | undefined>(undefined)
 
   return (
     <div className={classNames(bodyStyles.root, bodyStyles.viewAnalysis)}>

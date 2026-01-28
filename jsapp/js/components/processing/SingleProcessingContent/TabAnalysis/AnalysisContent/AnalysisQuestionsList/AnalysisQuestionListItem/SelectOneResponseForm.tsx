@@ -1,9 +1,9 @@
 import React from 'react'
-import type { QualSelectQuestionParams } from '#/api/models/qualSelectQuestionParams'
+import type { ResponseQualSelectQuestionParams } from '#/api/models/responseQualSelectQuestionParams'
 import RadioGroup from './RadioGroup'
 
 interface Props {
-  qaQuestion: QualSelectQuestionParams
+  qaQuestion: ResponseQualSelectQuestionParams
   disabled: boolean
   onSave: (value: string) => Promise<unknown>
   value: string

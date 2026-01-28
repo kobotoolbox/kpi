@@ -4,7 +4,7 @@ import classNames from 'classnames'
 import cloneDeep from 'lodash.clonedeep'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
-import type { QualActionParams } from '#/api/models/qualActionParams'
+import type { ResponseQualActionParams } from '#/api/models/responseQualActionParams'
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
 import KoboDropdown from '#/components/common/koboDropdown'
@@ -21,8 +21,8 @@ interface Props {
   submission: DataResponse
   supplement: DataSupplementResponse
   advancedFeature: AdvancedFeatureResponseManualQual
-  qaQuestion?: QualActionParams
-  setQaQuestion: (qaQuestion: QualActionParams | undefined) => void
+  qaQuestion?: ResponseQualActionParams
+  setQaQuestion: (qaQuestion: ResponseQualActionParams | undefined) => void
 }
 
 /**

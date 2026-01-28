@@ -7,17 +7,17 @@ import ActionIcon from '#/components/common/ActionIcon'
 import ButtonNew from '#/components/common/ButtonNew'
 import Icon from '#/components/common/icon'
 
-import type { QualActionParams } from '#/api/models/qualActionParams'
+import type { ResponseQualActionParams } from '#/api/models/responseQualActionParams'
 import { getQuestionTypeDefinition } from '../../../common/utils'
 
 interface Props {
   children?: React.ReactNode
-  qaQuestion: QualActionParams
+  qaQuestion: ResponseQualActionParams
   /** Adds a clear button with the given logic */
   onClear?: () => unknown
   disabled: boolean
-  onEdit: (qaQuestion: QualActionParams) => unknown
-  onDelete: (qaQuestion: QualActionParams) => Promise<unknown>
+  onEdit: (qaQuestion: ResponseQualActionParams) => unknown
+  onDelete: (qaQuestion: ResponseQualActionParams) => Promise<unknown>
 }
 
 /**

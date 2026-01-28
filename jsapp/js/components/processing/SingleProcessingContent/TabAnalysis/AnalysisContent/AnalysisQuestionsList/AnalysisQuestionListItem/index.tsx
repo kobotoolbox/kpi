@@ -4,9 +4,8 @@ import classnames from 'classnames'
 import type { Identifier, XYCoord } from 'dnd-core'
 import { useDrag, useDrop } from 'react-dnd'
 import type { DataResponse } from '#/api/models/dataResponse'
-import type { PatchedDataSupplementPayloadOneOfQual } from '#/api/models/patchedDataSupplementPayloadOneOfQual'
-import type { QualActionParams } from '#/api/models/qualActionParams'
-import type { QualSelectQuestionParams } from '#/api/models/qualSelectQuestionParams'
+import type { PatchedDataSupplementPayloadOneOfManualQual } from '#/api/models/patchedDataSupplementPayloadOneOfManualQual'
+import type { ResponseQualActionParams } from '#/api/models/responseQualActionParams'
 import Icon from '#/components/common/icon'
 import InlineMessage from '#/components/common/inlineMessage'
 import { userCan } from '#/components/permissions/utils'
@@ -34,8 +33,8 @@ export interface Props {
   asset: AssetResponse
   advancedFeature: AdvancedFeatureResponseManualQual
   questionXpath: string
-  qaQuestion: QualActionParams
-  setQaQuestion: (qualQuestion: QualActionParams | undefined) => void
+  qaQuestion: ResponseQualActionParams
+  setQaQuestion: (qualQuestion: ResponseQualActionParams | undefined) => void
   submission: DataResponse
   index: number
   moveRow: (uuid: string, oldIndex: number, newIndex: number) => void
@@ -79,12 +78,12 @@ export default function AnalysisQuestionListItem({
     submission,
     qaQuestion,
   )
-  const handleSaveAnswer = async (value: PatchedDataSupplementPayloadOneOfQual['value']) => {
+  const handleSaveAnswer = async (value: PatchedDataSupplementPayloadOneOfManualQual['value']) => {
     await onSaveAnswer(value)
   }
 
   const [mutationQuestion, onSaveQuestion] = useAssetsDataSupplementUpsertQaHelper(asset, advancedFeature)
-  const handleSaveQuestion = async (params: QualActionParams[]) => {
+  const handleSaveQuestion = async (params: ResponseQualActionParams[]) => {
     await onSaveQuestion(params)
     setQaQuestion(undefined)
   }
@@ -93,12 +92,12 @@ export default function AnalysisQuestionListItem({
   }
 
   const [mutationDelete, onDeleteQuestion] = useAssetsDataSupplementDeleteQaHelper(asset, advancedFeature)
-  const handleDeleteQuestion = async (qaQuestionToDelete: QualActionParams) => {
+  const handleDeleteQuestion = async (qaQuestionToDelete: ResponseQualActionParams) => {
     await onDeleteQuestion(qaQuestionToDelete)
   }
 
   const [mutationReorder, onReorderQuestions] = useAssetsDataSupplementReorderQaHelper(asset, advancedFeature)
-  const handleReorderQuestions = async (reorderedParams: QualActionParams[]) => {
+  const handleReorderQuestions = async (reorderedParams: ResponseQualActionParams[]) => {
     await onReorderQuestions(reorderedParams)
   }
 
@@ -207,7 +206,7 @@ export default function AnalysisQuestionListItem({
       return (
         <AnalysisQuestionEditor
           advancedFeature={advancedFeature}
-          qaQuestion={qaQuestion as QualSelectQuestionParams}
+          qaQuestion={qaQuestion}
           onSaveQuestion={handleSaveQuestion}
           disabled={disabledAnswer}
           onCancel={handleCancelEdit}
@@ -241,7 +240,7 @@ export default function AnalysisQuestionListItem({
             onDelete={handleDeleteQuestion}
           >
             <SelectMultipleResponseForm
-              qaQuestion={qaQuestion as QualSelectQuestionParams}
+              qaQuestion={qaQuestion}
               qaAnswer={queryAnswer.data}
               disabled={disabledAnswer}
               onSave={handleSaveAnswer}
@@ -276,7 +275,7 @@ export default function AnalysisQuestionListItem({
             onClear={handleClearSelection}
           >
             <SelectOneResponseForm
-              qaQuestion={qaQuestion as QualSelectQuestionParams}
+              qaQuestion={qaQuestion}
               disabled={disabledAnswer}
               onSave={handleRadioSave}
               value={currentValue}

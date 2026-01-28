@@ -2,8 +2,8 @@ import React, { useState, useCallback } from 'react'
 
 import { Stack, ThemeIcon } from '@mantine/core'
 import clonedeep from 'lodash.clonedeep'
-import type { QualActionParams } from '#/api/models/qualActionParams'
-import type { QualSelectQuestionParamsChoicesItem } from '#/api/models/qualSelectQuestionParamsChoicesItem'
+import type { ResponseQualActionParams } from '#/api/models/responseQualActionParams'
+import type { ResponseQualSelectQuestionParamsChoicesItem } from '#/api/models/responseQualSelectQuestionParamsChoicesItem'
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
 import TextBox from '#/components/common/textBox'
@@ -15,9 +15,9 @@ import styles from './index.module.scss'
 
 interface Props {
   advancedFeature: AdvancedFeatureResponseManualQual
-  qaQuestion: QualActionParams
+  qaQuestion: ResponseQualActionParams
   disabled: boolean
-  onSaveQuestion: (params: QualActionParams[]) => Promise<unknown>
+  onSaveQuestion: (params: ResponseQualActionParams[]) => Promise<unknown>
   onCancel: () => unknown
 }
 
@@ -39,7 +39,7 @@ export default function AnalysisQuestionEditor({
     return null
   }
 
-  const [newQaQuestion, setNewQaQuestion] = useState<QualActionParams>(() => clonedeep(qaQuestion))
+  const [newQaQuestion, setNewQaQuestion] = useState<ResponseQualActionParams>(() => clonedeep(qaQuestion))
 
   const [errorMessageLabel, setErrorMessageLabel] = useState<string | undefined>()
   const [errorMessageChoices, setErrorMessageChoices] = useState<string | undefined>()
@@ -54,7 +54,7 @@ export default function AnalysisQuestionEditor({
     if (newLabel !== '') setErrorMessageLabel(() => undefined)
   }, [])
 
-  function handleChangeChoices(choices: QualSelectQuestionParamsChoicesItem[]) {
+  function handleChangeChoices(choices: ResponseQualSelectQuestionParamsChoicesItem[]) {
     console.log(newQaQuestion, choices)
     setNewQaQuestion(() => ({
       ...clonedeep(newQaQuestion),
@@ -93,7 +93,7 @@ export default function AnalysisQuestionEditor({
 
     const questionIndex = advancedFeature.params.findIndex((qaQuestion) => qaQuestion.uuid === newQaQuestion.uuid)
 
-    let newParams: QualActionParams[]
+    let newParams: ResponseQualActionParams[]
 
     if (questionIndex === -1) {
       // Question doesn't exist yet (new question), add it to the end

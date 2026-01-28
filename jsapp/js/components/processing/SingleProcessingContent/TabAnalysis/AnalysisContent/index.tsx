@@ -1,7 +1,7 @@
 import React from 'react'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
-import type { QualActionParams } from '#/api/models/qualActionParams'
+import type { ResponseQualActionParams } from '#/api/models/responseQualActionParams'
 import type { AssetResponse } from '#/dataInterface'
 import type { AdvancedFeatureResponseManualQual } from '../common/utils'
 import AnalysisQuestionsList from './AnalysisQuestionsList'
@@ -14,8 +14,8 @@ interface Props {
   advancedFeature: AdvancedFeatureResponseManualQual
   submission: DataResponse
   supplement: DataSupplementResponse
-  qaQuestion?: QualActionParams
-  setQaQuestion: (qaQuestion: QualActionParams | undefined) => void
+  qaQuestion?: ResponseQualActionParams
+  setQaQuestion: (qaQuestion: ResponseQualActionParams | undefined) => void
 }
 
 /** Displays either a special message for no content, or the list of questions. */

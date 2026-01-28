@@ -3,11 +3,11 @@ import MultiCheckbox, { type MultiCheckboxItem } from '#/components/common/multi
 
 import { Radio } from '@mantine/core'
 import type { _DataSupplementResponseOneOfManualQualVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualQualVersionsItem'
-import type { QualSelectQuestionParams } from '#/api/models/qualSelectQuestionParams'
+import type { ResponseQualSelectQuestionParams } from '#/api/models/responseQualSelectQuestionParams'
 import { AUTO_SAVE_TYPING_DELAY } from '../../../common/constants'
 
 interface Props {
-  qaQuestion: QualSelectQuestionParams
+  qaQuestion: ResponseQualSelectQuestionParams
   qaAnswer?: _DataSupplementResponseOneOfManualQualVersionsItem
   disabled: boolean
   onSave: (values: string[]) => Promise<unknown>

@@ -1,6 +1,6 @@
-import type { QualActionParams } from '#/api/models/qualActionParams'
 import type { QualSelectQuestionParamsTypeEnum } from '#/api/models/qualSelectQuestionParamsTypeEnum'
 import type { QualSimpleQuestionParamsTypeEnum } from '#/api/models/qualSimpleQuestionParamsTypeEnum'
+import type { ResponseQualActionParams } from '#/api/models/responseQualActionParams'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import type { IconName } from '#/k-icons'
 
@@ -188,7 +188,7 @@ export interface AnalysisQuestionTypeDefinition {
   isAutomated?: boolean
   /** to see if all required data was provided. */
   additionalFieldNames?: Array<'keywords' | 'source' | 'choices'>
-  placeholder: QualActionParams
+  placeholder: ResponseQualActionParams
 }
 
 /**

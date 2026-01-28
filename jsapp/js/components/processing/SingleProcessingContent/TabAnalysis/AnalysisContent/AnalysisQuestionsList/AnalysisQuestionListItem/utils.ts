@@ -2,8 +2,8 @@ import { useCallback } from 'react'
 import type { _DataSupplementResponseOneOfManualQualVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualQualVersionsItem'
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { DataResponse } from '#/api/models/dataResponse'
-import type { PatchedDataSupplementPayloadOneOfQual } from '#/api/models/patchedDataSupplementPayloadOneOfQual'
-import type { QualActionParams } from '#/api/models/qualActionParams'
+import type { PatchedDataSupplementPayloadOneOfManualQual } from '#/api/models/patchedDataSupplementPayloadOneOfManualQual'
+import type { ResponseQualActionParams } from '#/api/models/responseQualActionParams'
 import { queryClient } from '#/api/queryClient'
 import {
   type assetsDataSupplementRetrieveResponse,
@@ -23,7 +23,7 @@ export const useAssetsDataSupplementRetrieveQaHelper = (
   asset: AssetResponse,
   questionXpath: string,
   submission: DataResponse,
-  qaQuestion: QualActionParams,
+  qaQuestion: ResponseQualActionParams,
   options: Parameters<typeof useAssetsDataSupplementRetrieve>[2] = {},
 ) => {
   const queryQaAnswer = useAssetsDataSupplementRetrieve(
@@ -58,7 +58,7 @@ export const useAssetsDataSupplementPartialUpdateQaHelper = (
   asset: AssetResponse,
   questionXpath: string,
   submission: DataResponse,
-  qaQuestion: QualActionParams,
+  qaQuestion: ResponseQualActionParams,
   options: Parameters<typeof useAssetsDataSupplementPartialUpdate>[0] = {},
 ) => {
   const mutationSave = useAssetsDataSupplementPartialUpdate({
@@ -84,17 +84,17 @@ export const useAssetsDataSupplementPartialUpdateQaHelper = (
     request: options?.request,
   })
 
-  const handleSave = (value: PatchedDataSupplementPayloadOneOfQual['value']) => {
+  const handleSave = (value: PatchedDataSupplementPayloadOneOfManualQual['value']) => {
     return mutationSave.mutateAsync({
       uidAsset: asset.uid,
       rootUuid: removeDefaultUuidPrefix(submission['meta/rootUuid']),
       data: {
         _version: SUBSEQUENCES_SCHEMA_VERSION,
         [questionXpath]: {
-          [ActionEnum.manual_qual as any as 'qual']: {
+          [ActionEnum.manual_qual]: {
             uuid: qaQuestion.uuid,
             value,
-          }, // TODO OpenAPI: PatchedDataSupplementPayloadOneOf should have `manual_qual`
+          },
         },
       },
     })
@@ -133,7 +133,7 @@ export const useAssetsDataSupplementUpsertQaHelper = (
     request: options?.request,
   })
 
-  const handleUpsert = (params: QualActionParams[]) => {
+  const handleUpsert = (params: ResponseQualActionParams[]) => {
     if (isCreate) {
       return mutationCreate.mutateAsync({
         uidAsset: asset.uid,
@@ -174,7 +174,7 @@ export const useAssetsDataSupplementDeleteQaHelper = (
     request: options?.request,
   })
 
-  const handleDelete = (qaQuestionToDelete: QualActionParams) => {
+  const handleDelete = (qaQuestionToDelete: ResponseQualActionParams) => {
     // Mark the question as deleted by setting options.deleted to true
     const updatedParams = advancedFeature.params.map((param) =>
       param.uuid === qaQuestionToDelete.uuid ? { ...param, options: { ...param.options, deleted: true } } : param,
@@ -209,7 +209,7 @@ export const useAssetsDataSupplementReorderQaHelper = (
     request: options?.request,
   })
 
-  const handleReorder = (reorderedParams: QualActionParams[]) => {
+  const handleReorder = (reorderedParams: ResponseQualActionParams[]) => {
     return mutationPatch.mutateAsync({
       uidAsset: asset.uid,
       uidAdvancedFeature: advancedFeature.uid,
