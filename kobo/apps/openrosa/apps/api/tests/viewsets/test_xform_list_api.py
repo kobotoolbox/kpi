@@ -818,7 +818,7 @@ class TestXFormListApiAsDataCollector(TestXFormListApiBase):
         if token_type == 'valid':
             return self.data_collector.token
         elif token_type == 'invalid':
-            return 'badtoken'
+            return 'bad_token'
         else:
             return self.data_collector_no_assets.token
 
