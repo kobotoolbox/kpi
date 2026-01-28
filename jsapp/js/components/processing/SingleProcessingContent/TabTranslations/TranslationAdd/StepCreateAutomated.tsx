@@ -44,7 +44,6 @@ export default function StepCreateAutomated({
   advancedFeatures,
 }: Props) {
   const [locale, setLocale] = useState<null | string>(null)
-  const [errorMessage, setErrorMessage] = useState<null | string>(null)
 
   const advancedFeature = advancedFeatures.find(
     (af) => af.action === ActionEnum.automatic_google_translation && af.question_xpath === questionXpath,
@@ -71,17 +70,6 @@ export default function StepCreateAutomated({
           ),
         })
       },
-      onSuccess: (response) => {
-        setErrorMessage(null)
-        // Make sure we are handling `DataSupplementResponse` here
-        if ('_version' in response.data) {
-          // If latest automatic translation for current language has `error` property, we display that error inline
-          const latestTranslation = getLatestAutomaticTranslationVersionItem(response.data, questionXpath, languageCode)
-          if (latestTranslation?._data && 'error' in latestTranslation?._data) {
-            setErrorMessage(latestTranslation._data.error)
-          }
-        }
-      },
       onError: (error, variables, context) => {
         if (error.detail === 'Invalid action') {
           // TODO: should never happen, gotta check and enable silently.
@@ -97,6 +85,20 @@ export default function StepCreateAutomated({
       },
     },
   })
+
+  const latestAutomaticTranslation =
+    mutationCreateAutomaticTranslation.data?.status === 200
+      ? getLatestAutomaticTranslationVersionItem(
+          mutationCreateAutomaticTranslation.data?.data,
+          questionXpath,
+          languageCode,
+        )?._data
+      : undefined
+  const errorMessage =
+    latestAutomaticTranslation &&
+    'status' in latestAutomaticTranslation &&
+    latestAutomaticTranslation.status === 'failed' &&
+    latestAutomaticTranslation.error
 
   const anyPending =
     mutationCreateAF.isPending || mutationPatchAF.isPending || mutationCreateAutomaticTranslation.isPending
