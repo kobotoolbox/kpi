@@ -13,7 +13,7 @@ interface Props {
   submission: DataResponse
   languageCode: LanguageCode
   onBack: () => void
-  onCreate: (languageCode: LanguageCode) => void
+  onCreate: (languageCode: LanguageCode, context: 'automated' | 'manual') => void
   onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
   advancedFeatures: AdvancedFeatureResponse[]
 }
@@ -43,9 +43,10 @@ export default function StepCreateManual({
           _dateCreated: '',
           _dateAccepted: '',
           _data: { language: languageCode, value: null },
+          _dependency: { _actionId: '', _uuid: '' },
         }}
         onBack={onBack}
-        onSave={() => onCreate(languageCode)}
+        onSave={() => onCreate(languageCode, 'manual')}
         onUnsavedWorkChange={onUnsavedWorkChange}
         advancedFeatures={advancedFeatures}
       />

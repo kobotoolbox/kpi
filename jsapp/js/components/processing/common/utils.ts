@@ -1,5 +1,7 @@
 import type { _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem'
+import type { _DataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem } from '#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem'
 import type { _DataSupplementResponseOneOfManualTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualTranscriptionVersionsItem'
+import type { _DataSupplementResponseOneOfManualTranslationVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualTranslationVersionsItem'
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { DataSupplementResponseOneOfManualTranslation } from '#/api/models/dataSupplementResponseOneOfManualTranslation'
@@ -37,6 +39,8 @@ export function isSupplementVersionWithValue<
  */
 export const isSupplementVersionAutomatic = (
   SupplementVersion:
+    | _DataSupplementResponseOneOfManualTranslationVersionsItem
+    | _DataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem
     | _DataSupplementResponseOneOfManualTranscriptionVersionsItem
     | _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem,
 ): SupplementVersion is _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem => {

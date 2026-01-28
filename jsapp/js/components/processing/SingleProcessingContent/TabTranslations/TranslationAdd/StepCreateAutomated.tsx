@@ -26,7 +26,7 @@ interface Props {
   languageCode: LanguageCode
   submission: DataResponse
   onBack: () => void
-  onCreate: (languageCode: LanguageCode) => void
+  onCreate: (languageCode: LanguageCode, context: 'automated' | 'manual') => void
   advancedFeatures: AdvancedFeatureResponse[]
 }
 
@@ -119,7 +119,7 @@ export default function StepCreateAutomated({
 
     // TODO: Error handling, e.g. can't translate to language that's the transcript is in.
 
-    onCreate(languageCode)
+    onCreate(languageCode, 'automated')
   }
 
   if (!languageCode) return null

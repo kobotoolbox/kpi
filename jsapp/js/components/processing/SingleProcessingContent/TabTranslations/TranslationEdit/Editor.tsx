@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import type { _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem'
-import type { _DataSupplementResponseOneOfManualTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualTranscriptionVersionsItem'
+import type { _DataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem } from '#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem'
+import type { _DataSupplementResponseOneOfManualTranslationVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualTranslationVersionsItem'
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
@@ -24,8 +24,8 @@ interface Props {
   questionXpath: string
   submission: DataResponse
   translationVersion:
-    | _DataSupplementResponseOneOfManualTranscriptionVersionsItem
-    | _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem
+    | _DataSupplementResponseOneOfManualTranslationVersionsItem
+    | _DataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem
   onBack: () => void
   onSave: () => void
   onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
@@ -43,7 +43,7 @@ export default function Editor({
   advancedFeatures,
 }: Props) {
   const initialValue = 'value' in translationVersion._data ? translationVersion._data.value : null
-  const unacceptedAutomaticTranscript =
+  const isUnacceptedAutomaticTranslation =
     isSupplementVersionAutomatic(translationVersion) && !translationVersion._dateAccepted
   const [value, setValue] = useState(initialValue)
 
@@ -130,7 +130,7 @@ export default function Editor({
   }
 
   const handleDiscard = async () => {
-    if (unacceptedAutomaticTranscript) {
+    if (isUnacceptedAutomaticTranslation) {
       await assertManualAdvancedFeature(translationVersion._data.language)
       await patch.mutateAsync({
         uidAsset: asset.uid,
@@ -140,7 +140,7 @@ export default function Editor({
           [questionXpath]: {
             [ActionEnum.automatic_google_translation]: {
               language: translationVersion._data.language, // TODO OpenAPI & API: why this prop is required at all?
-              value: null, // TODO OpenAPI: is that `null` or `''` to "discard" automatic transcription?
+              value: null, // TODO OpenAPI: is that `null` or `''` to "discard" automatic translation?
             },
           },
         },
@@ -175,7 +175,7 @@ export default function Editor({
             isPending={patch.isPending}
             isDisabled={
               !value ||
-              (value === initialValue && !unacceptedAutomaticTranscript) ||
+              (value === initialValue && !isUnacceptedAutomaticTranslation) ||
               !userCan('change_submissions', asset)
             }
           />

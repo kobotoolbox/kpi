@@ -6,7 +6,7 @@ import type { LanguageCode } from '#/components/languages/languagesStore'
 import type { AssetResponse } from '#/dataInterface'
 import bodyStyles from '../../common/processingBody.module.scss'
 import { CreateSteps } from '../../common/types'
-import { getAllTranslationsFromSupplementData } from '../../common/utils'
+import { getAllTranslationsFromSupplementData, isSupplementVersionAutomatic } from '../../common/utils'
 import TranslationAdd from './TranslationAdd'
 import Editor from './TranslationEdit/Editor'
 import Viewer from './TranslationEdit/Viewer'
@@ -30,7 +30,7 @@ export default function TranslationTab({
 }: Props) {
   const translationVersions = getAllTranslationsFromSupplementData(supplement, questionXpath)
 
-  // Selected language Code to display.
+  // Selected language code to display.
   const [languageCode, setLanguageCode] = useState<LanguageCode | null>(null)
   const translationVersion = translationVersions.find(({ _data }) => _data.language === languageCode)
 
@@ -39,9 +39,19 @@ export default function TranslationTab({
     setLanguageCode(translationVersions[0]?._data.language ?? null)
   }, [translationVersion, setLanguageCode, translationVersions])
 
-  // If automatic transcript isn't accepted, go directly to edit mode to accept or edit it.
   const [_mode, setMode] = useState<'view' | 'edit' | 'add'>('view')
-  const mode = translationVersions.length > 0 ? _mode : 'add'
+  const mode = (() => {
+    if (translationVersion && isSupplementVersionAutomatic(translationVersion) && !translationVersion._dateAccepted) {
+      // If automatic translation isn't accepted, go directly to edit mode to accept or edit it.
+      return 'edit'
+    } else if (translationVersions.length === 0) {
+      // If there are no translations go directly to add mode
+      return 'add'
+    } else {
+      // Otherwise default to whatever user action lead to
+      return _mode
+    }
+  })()
 
   // I wonder what's the userflow to end up in the edit view to accept unaccepted translation.
   // The difference is that now unaccepted translations persist beyond user leaving the screen.
@@ -59,9 +69,24 @@ export default function TranslationTab({
           submission={submission}
           languagesExisting={translationVersions.map(({ _data }) => _data.language)}
           initialStep={translationVersion ? CreateSteps.Language : CreateSteps.Begin}
-          onCreate={(languageCode: LanguageCode) => {
-            setMode('view')
+          translationVersions={translationVersions}
+          onCreate={(languageCode: LanguageCode, context: 'automated' | 'manual') => {
+            // After creating automated translation, go straight into 'edit' mode
+            if (context === 'automated') {
+              setMode('edit')
+            } else {
+              setMode('view')
+            }
             setLanguageCode(languageCode)
+          }}
+          onBack={() => {
+            // This ensures we don't get back to "begin" step when abandoning the creation of new translation if we
+            // already have some translation
+            if (translationVersions.length > 0) {
+              setMode('view')
+            } else {
+              setMode('add')
+            }
           }}
           onUnsavedWorkChange={onUnsavedWorkChange}
           advancedFeatures={advancedFeatures}

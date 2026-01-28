@@ -1,7 +1,7 @@
 import React from 'react'
 
-import type { _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem'
-import type { _DataSupplementResponseOneOfManualTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualTranscriptionVersionsItem'
+import type { _DataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem } from '#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem'
+import type { _DataSupplementResponseOneOfManualTranslationVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualTranslationVersionsItem'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { AsyncLanguageDisplayLabel } from '#/components/languages/languagesUtils'
 import { isSupplementVersionWithValue } from '#/components/processing/common/utils'
@@ -11,11 +11,11 @@ import TransxDate from '../../components/transxDate'
 
 interface Props {
   translationVersion:
-    | _DataSupplementResponseOneOfManualTranscriptionVersionsItem
-    | _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem
+    | _DataSupplementResponseOneOfManualTranslationVersionsItem
+    | _DataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem
   translationVersions?: Array<
-    | _DataSupplementResponseOneOfManualTranscriptionVersionsItem
-    | _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem
+    | _DataSupplementResponseOneOfManualTranslationVersionsItem
+    | _DataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem
   >
   onChangeLanguageCode?: (languageCode: LanguageCode) => void
 }
