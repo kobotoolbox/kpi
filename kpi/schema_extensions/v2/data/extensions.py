@@ -1,3 +1,4 @@
+from django.conf import settings
 from drf_spectacular.extensions import (
     OpenApiSerializerExtension,
     OpenApiSerializerFieldExtension,
@@ -9,8 +10,16 @@ from drf_spectacular.plumbing import (
 )
 from drf_spectacular.types import OpenApiTypes
 
-from kpi.schema_extensions.v2.generic.schema import GENERIC_STRING_SCHEMA
-from kpi.utils.schema_extensions.mixins import ComponentRegistrationMixin
+from kpi.schema_extensions.v2.generic.schema import (
+    GENERIC_DATETIME_SCHEMA,
+    GENERIC_INT_SCHEMA,
+    GENERIC_STRING_SCHEMA,
+    GENERIC_UUID_SCHEMA,
+)
+from kpi.utils.schema_extensions.mixins import (
+    ComponentRegistrationMixin,
+    QualComponentsRegistrationMixin,
+)
 from kpi.utils.schema_extensions.url_builder import build_url_type
 
 
@@ -63,6 +72,7 @@ class DataAttachmentFieldExtension(OpenApiSerializerFieldExtension):
                     'media_file_basename',
                     'question_xpath',
                 ],
+                additional_properties=False,
             )
         )
 
@@ -108,16 +118,11 @@ class DataBulkUpdateResultFieldExtension(OpenApiSerializerFieldExtension):
 
 
 class DataSupplementPayloadExtension(
-    ComponentRegistrationMixin, OpenApiSerializerExtension
+    QualComponentsRegistrationMixin, OpenApiSerializerExtension
 ):
     target_class = 'kpi.schema_extensions.v2.data.serializers.DataSupplementPayload'
 
-    DATETIME = build_basic_type(OpenApiTypes.DATETIME)
-    UUID_STR = {'type': 'string', 'format': 'uuid'}
-
-    @property
-    def question_schema(self):
-
+    def question_schema(self, references):
         return build_object_type(
             additionalProperties=False,
             properties={
@@ -125,18 +130,20 @@ class DataSupplementPayloadExtension(
                 'manual_translation': self._nlp_manual_action_schema,
                 'automatic_google_transcription': self._nlp_automatic_action_schema,
                 'automatic_google_translation': self._nlp_automatic_action_schema,
-                'qual': self._qual_schema,
+                'manual_qual': self._qual_schema(references),
             },
             anyOf=[
                 {'required': ['manual_transcription']},
                 {'required': ['manual_translation']},
                 {'required': ['automatic_google_transcription']},
                 {'required': ['automatic_google_translation']},
-                {'required': ['qual']},
+                {'required': ['manual_qual']},
             ],
         )
 
     def map_serializer(self, auto_schema, direction):
+
+        references = self._register_qual_schema_components(auto_schema)
 
         return build_object_type(
             properties={
@@ -160,133 +167,26 @@ class DataSupplementPayloadExtension(
             additionalProperties=self._register_schema_component(
                 auto_schema,
                 'PatchedDataSupplementPayloadOneOf',
-                self.question_schema,
+                self.question_schema(references),
             ),
             patternProperties={
                 '^(?!_version$).*': self._register_schema_component(
                     auto_schema,
                     'PatchedDataSupplementPayloadOneOf',
-                    self.question_schema,
+                    self.question_schema(references),
                 ),
             },
             required=['_version'],
         )
 
-    @property
-    def _qual_schema(self):
-        qual_defs = {
-            'qualCommon': {
-                'type': 'object',
-                'additionalProperties': False,
-                'properties': {
-                    'uuid': self.UUID_STR,
-                    'value': {},
-                },
-                'required': ['uuid', 'value'],
-            },
-            'qualInteger': {
-                'type': 'object',
-                'properties': {
-                    'value': {
-                        'type': 'integer',
-                        'nullable': True,
-                    },
-                },
-            },
-            'qualText': {
-                'type': 'object',
-                'properties': {
-                    'value': {'type': 'string'},
-                },
-            },
-            'qualSelectOne': {
-                'type': 'object',
-                'properties': {
-                    'value': self.UUID_STR,
-                },
-            },
-            'qualSelectMultiple': {
-                'type': 'object',
-                'properties': {
-                    'value': {
-                        'type': 'array',
-                        'items': self.UUID_STR,
-                    },
-                },
-            },
-            'qualTags': {
-                'type': 'object',
-                'properties': {
-                    'value': {
-                        'type': 'array',
-                        'items': {'type': 'string'},
-                    },
-                },
-            },
-        }
-
+    def _qual_schema(self, references):
         return {
             'oneOf': [
-                {
-                    'allOf': [
-                        qual_defs['qualCommon'],
-                        qual_defs['qualInteger'],
-                        {
-                            'type': 'object',
-                            'properties': {
-                                'uuid': self.UUID_STR,
-                            },
-                        },
-                    ],
-                },
-                {
-                    'allOf': [
-                        qual_defs['qualCommon'],
-                        qual_defs['qualText'],
-                        {
-                            'type': 'object',
-                            'properties': {
-                                'uuid': self.UUID_STR,
-                            },
-                        },
-                    ],
-                },
-                {
-                    'allOf': [
-                        qual_defs['qualCommon'],
-                        qual_defs['qualSelectOne'],
-                        {
-                            'type': 'object',
-                            'properties': {
-                                'uuid': self.UUID_STR,
-                            },
-                        },
-                    ],
-                },
-                {
-                    'allOf': [
-                        qual_defs['qualCommon'],
-                        qual_defs['qualSelectMultiple'],
-                        {
-                            'type': 'object',
-                            'properties': {
-                                'uuid': self.UUID_STR,
-                            },
-                        },
-                    ],
-                },
-                {
-                    'allOf': [
-                        qual_defs['qualCommon'],
-                        qual_defs['qualTags'],
-                        {
-                            'type': 'object',
-                            'properties': {
-                                'uuid': self.UUID_STR,
-                            },
-                        },
-                    ],
-                },
+                references['qual_integer'],
+                references['qual_text'],
+                references['qual_select_one'],
+                references['qual_select_multiple'],
+                references['qual_tags'],
             ],
         }
 
@@ -318,15 +218,11 @@ class DataSupplementPayloadExtension(
 
 
 class DataSupplementResponseExtension(
-    ComponentRegistrationMixin, OpenApiSerializerExtension
+    QualComponentsRegistrationMixin, OpenApiSerializerExtension
 ):
     target_class = 'kpi.schema_extensions.v2.data.serializers.DataSupplementResponse'
 
-    DATETIME = build_basic_type(OpenApiTypes.DATETIME)
-    UUID_STR = {'type': 'string', 'format': 'uuid'}
-
-    @property
-    def question_schema(self):
+    def question_schema(self, references):
 
         return build_object_type(
             additionalProperties=False,
@@ -335,7 +231,7 @@ class DataSupplementResponseExtension(
                 'manual_translation': self._manual_translation_schema,
                 'automatic_google_transcription': self._automatic_transcription_schema,
                 'automatic_google_translation': self._automatic_translation_schema,
-                'manual_qual': self._qual_schema,
+                'manual_qual': self._qual_schema(references),
             },
             # At least one of "manual_transcription" or "manual_translation"
             # must be present
@@ -349,7 +245,7 @@ class DataSupplementResponseExtension(
         )
 
     def map_serializer(self, auto_schema, direction):
-
+        references = self._register_qual_schema_components(auto_schema)
         return build_object_type(
             properties={
                 '_version': {
@@ -370,11 +266,15 @@ class DataSupplementResponseExtension(
             # to generate a union type for dynamic values while keeping `_version`
             # correctly typed, without changing the backend response format.
             additionalProperties=self._register_schema_component(
-                auto_schema, 'DataSupplementResponseOneOf', self.question_schema
+                auto_schema,
+                'DataSupplementResponseOneOf',
+                self.question_schema(references),
             ),
             patternProperties={
                 '^(?!_version$).*': self._register_schema_component(
-                    auto_schema, 'DataSupplementResponseOneOf', self.question_schema
+                    auto_schema,
+                    'DataSupplementResponseOneOf',
+                    self.question_schema(references),
                 ),
             },
             required=['_version'],
@@ -388,8 +288,7 @@ class DataSupplementResponseExtension(
     def _automatic_translation_schema(self):
         return self._build_translation_schema(include_status=True)
 
-    @classmethod
-    def _build_transcription_schema(cls, include_status=False):
+    def _build_transcription_schema(self, include_status=False):
         """
         Transcription Schema:
         _versions list where each item has a nested `_data` object.
@@ -404,10 +303,10 @@ class DataSupplementResponseExtension(
         version_item = build_object_type(
             additionalProperties=False,
             properties={
-                '_dateCreated': cls.DATETIME,
-                '_uuid': cls.UUID_STR,
-                '_dateAccepted': cls.DATETIME,
-                '_data': cls._get_data_content_schema(include_status=include_status),
+                '_dateCreated': GENERIC_DATETIME_SCHEMA,
+                '_uuid': GENERIC_UUID_SCHEMA,
+                '_dateAccepted': GENERIC_DATETIME_SCHEMA,
+                '_data': self._get_data_content_schema(include_status=include_status),
             },
             required=required_fields,
         )
@@ -415,15 +314,14 @@ class DataSupplementResponseExtension(
         return build_object_type(
             additionalProperties=False,
             properties={
-                '_dateCreated': cls.DATETIME,
-                '_dateModified': cls.DATETIME,
+                '_dateCreated': GENERIC_DATETIME_SCHEMA,
+                '_dateModified': GENERIC_DATETIME_SCHEMA,
                 '_versions': build_array_type(schema=version_item, min_length=1),
             },
             required=['_dateCreated', '_dateModified', '_versions'],
         )
 
-    @classmethod
-    def _build_translation_schema(cls, include_status=False):
+    def _build_translation_schema(self, include_status=False):
         """
         Translation Schema:
         Map<LanguageCode, ActionObject>.
@@ -439,11 +337,11 @@ class DataSupplementResponseExtension(
         version_item = build_object_type(
             additionalProperties=False,
             properties={
-                '_dateCreated': cls.DATETIME,
-                '_uuid': cls.UUID_STR,
-                '_dependency': cls._get_dependency_schema(),
-                '_dateAccepted': cls.DATETIME,
-                '_data': cls._get_data_content_schema(include_status=include_status),
+                '_dateCreated': GENERIC_DATETIME_SCHEMA,
+                '_uuid': GENERIC_UUID_SCHEMA,
+                '_dependency': self._get_dependency_schema(),
+                '_dateAccepted': GENERIC_DATETIME_SCHEMA,
+                '_data': self._get_data_content_schema(include_status=include_status),
             },
             required=required_fields,
         )
@@ -451,8 +349,8 @@ class DataSupplementResponseExtension(
         inner_action_schema = build_object_type(
             additionalProperties=False,
             properties={
-                '_dateCreated': cls.DATETIME,
-                '_dateModified': cls.DATETIME,
+                '_dateCreated': GENERIC_DATETIME_SCHEMA,
+                '_dateModified': GENERIC_DATETIME_SCHEMA,
                 '_versions': build_array_type(schema=version_item, min_length=1),
             },
             required=['_dateCreated', '_dateModified', '_versions'],
@@ -460,8 +358,7 @@ class DataSupplementResponseExtension(
 
         return build_object_type(additionalProperties=inner_action_schema)
 
-    @classmethod
-    def _get_data_content_schema(cls, include_status=False):
+    def _get_data_content_schema(self, include_status=False):
         """
         Common Schema for the nested `_data` object found in versions.
         """
@@ -525,125 +422,39 @@ class DataSupplementResponseExtension(
             ]
         }
 
-    @classmethod
-    def _get_dependency_schema(cls):
+    def _get_dependency_schema(self):
 
         return build_object_type(
             additionalProperties=False,
             properties={
                 '_actionId': GENERIC_STRING_SCHEMA,
-                '_uuid': cls.UUID_STR,
+                '_uuid': GENERIC_UUID_SCHEMA,
             },
             required=['_actionId', '_uuid'],
         )
 
-    @property
-    def _qual_schema(self):
+    def _qual_schema(self, references):
         """
         Build the OpenAPI schema for the `qual` field.
         """
 
         # ---------------------------------------------------------------------
-        # qualCommon
-        # ---------------------------------------------------------------------
-        qual_common = build_object_type(
-            additionalProperties=False,
-            properties={
-                'uuid': self.UUID_STR,
-                # "value" is intentionally untyped here: it will be refined
-                # by the specific qual* schemas below.
-                'value': {},
-            },
-            required=['uuid', 'value'],
-        )
-
-        # ---------------------------------------------------------------------
-        # qualInteger
-        #   properties: { value: integer | null }
-        # ---------------------------------------------------------------------
-        qual_integer = {
-            'type': 'object',
-            'properties': {
-                'value': {
-                    'type': 'integer',
-                    'nullable': True,
-                },
-            },
-        }
-
-        # ---------------------------------------------------------------------
-        # qualSelectMultiple
-        #   properties: { value: ['507129be-2aee-4fb9-8ddd-ac766ba35f46', ...] }
-        # ---------------------------------------------------------------------
-        qual_select_multiple = {
-            'type': 'object',
-            'properties': {
-                'value': {
-                    'type': 'array',
-                    'items': self.UUID_STR,
-                },
-            },
-        }
-
-        # ---------------------------------------------------------------------
-        # qualSelectOne
-        #   properties: { value: '0bbdb149-c85c-46c2-ad31-583377c423da' }
-        # ---------------------------------------------------------------------
-        qual_select_one = {
-            'type': 'object',
-            'properties': {
-                'value': self.UUID_STR,
-            },
-        }
-
-        # ---------------------------------------------------------------------
-        # qualTags
-        #   properties: { value: [string, ...] }
-        # ---------------------------------------------------------------------
-        qual_tags = {
-            'type': 'object',
-            'properties': {
-                'value': {
-                    'type': 'array',
-                    'items': {
-                        'type': 'string',
-                    },
-                },
-            },
-        }
-
-        # ---------------------------------------------------------------------
-        # qualText
-        #   properties: { value: string }
-        # ---------------------------------------------------------------------
-        qual_text = {
-            'type': 'object',
-            'properties': {
-                'value': {
-                    'type': 'string',
-                },
-            },
-        }
-
-        # ---------------------------------------------------------------------
         # dataSchema
         #   oneOf:
-        #     - allOf: [qualCommon, qualInteger]
-        #     - allOf: [qualCommon, qualSelectMultiple]
-        #     - allOf: [qualCommon, qualSelectOne]
-        #     - allOf: [qualCommon, qualTags]
-        #     - allOf: [qualCommon, qualText]
+        #     - qualInteger
+        #     - qualSelectMultiple
+        #     - qualSelectOne
+        #     - qualTags
+        #     - qualText
         #
-        # We *do not* enforce "uuid: const <some-specific-uuid>" here
-        # because in your use case UUIDs are dynamic (1..n).
         # ---------------------------------------------------------------------
         data_schema = {
             'oneOf': [
-                {'allOf': [qual_common, qual_integer]},
-                {'allOf': [qual_common, qual_select_multiple]},
-                {'allOf': [qual_common, qual_select_one]},
-                {'allOf': [qual_common, qual_tags]},
-                {'allOf': [qual_common, qual_text]},
+                references['qual_integer'],
+                references['qual_text'],
+                references['qual_select_one'],
+                references['qual_select_multiple'],
+                references['qual_tags'],
             ]
         }
 
@@ -663,9 +474,9 @@ class DataSupplementResponseExtension(
             additionalProperties=False,
             properties={
                 '_data': data_schema,
-                '_dateAccepted': self.DATETIME,
-                '_dateCreated': self.DATETIME,
-                '_uuid': self.UUID_STR,
+                '_dateAccepted': GENERIC_DATETIME_SCHEMA,
+                '_dateCreated': GENERIC_DATETIME_SCHEMA,
+                '_uuid': GENERIC_UUID_SCHEMA,
             },
             required=['_data', '_dateCreated', '_uuid'],
         )
@@ -684,8 +495,8 @@ class DataSupplementResponseExtension(
         data_action_key = build_object_type(
             additionalProperties=False,
             properties={
-                '_dateCreated': self.DATETIME,
-                '_dateModified': self.DATETIME,
+                '_dateCreated': GENERIC_DATETIME_SCHEMA,
+                '_dateModified': GENERIC_DATETIME_SCHEMA,
                 '_versions': build_array_type(
                     schema=data_action_version,
                     min_length=1,
@@ -744,9 +555,50 @@ class DataValidationPayloadFieldExtension(OpenApiSerializerFieldExtension):
                 'submission_ids': build_array_type(
                     schema=build_basic_type(OpenApiTypes.INT)
                 ),
-                'validation_status.uid': GENERIC_STRING_SCHEMA,
+                'validation_status.uid': {
+                    '$ref': '#/components/schemas/DataValidationStatusUidEnum'
+                },
             }
         )
+
+
+class DataValidationStatusFieldExtension(
+    ComponentRegistrationMixin, OpenApiSerializerFieldExtension
+):
+    target_class = 'kpi.schema_extensions.v2.data.fields.DataValidationStatusField'
+
+    def map_serializer_field(self, auto_schema, direction):
+        uid_enum = self._register_schema_component(
+            auto_schema,
+            'DataValidationStatusUidEnum',
+            {'enum': list(settings.DEFAULT_VALIDATION_STATUSES.keys())},
+        )
+        labels_enum = self._register_schema_component(
+            auto_schema,
+            'DataValidationStatusLabelEnum',
+            {'enum': list(settings.DEFAULT_VALIDATION_STATUSES.values())},
+        )
+        validation_status_schema = self._register_schema_component(
+            auto_schema,
+            'DataValidationStatus',
+            {
+                'type': 'object',
+                'properties': {
+                    'timestamp': GENERIC_INT_SCHEMA,
+                    'uid': uid_enum,
+                    'by_whom': GENERIC_STRING_SCHEMA,
+                    'label': labels_enum,
+                },
+                'required': ['timestamp', 'uid', 'label', 'by_whom'],
+                'additionalProperties': False,
+            },
+        )
+        return {
+            'oneOf': [
+                validation_status_schema,
+                build_object_type(maxProperties=0),
+            ]
+        }
 
 
 class EnketoEditUrlFieldExtension(OpenApiSerializerFieldExtension):
@@ -767,3 +619,15 @@ class EnketoViewUrlFieldExtension(OpenApiSerializerFieldExtension):
             'enketo_view_link',
             path='/view/f93d2a488a2e35cedc336e84e1bd1edc?instance_id=1824b282-f729-4944-b799-7a805d4564e1&return_url=false',  # noqa
         )
+
+
+class GeoLocationFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.data.fields.GeoLocationField'
+
+    def map_serializer_field(self, autho_schema, direction):
+        return {
+            'type': 'array',
+            'items': {'type': ['number', 'null']},
+            'minItems': 2,
+            'maxItems': 2,
+        }

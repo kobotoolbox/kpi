@@ -10,25 +10,30 @@ The endpoints are grouped by area of intended use. Each category contains relate
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 import type { _DataResponseAttachmentsItem } from './_dataResponseAttachmentsItem'
+import type { _DataResponseGeolocationItem } from './_dataResponseGeolocationItem'
+import type { _DataResponseSupplementalDetails } from './_dataResponseSupplementalDetails'
+import type { _DataResponseValidationStatus } from './_dataResponseValidationStatus'
 
 export type DataResponse = {
   _id: number
-  'formhub/uuid': string
-  start: string
-  end: string
-  'Question_A/Enter_your_question': string
-  Question_B: string
+  'formhub/uuid'?: string
   __version__: string
   'meta/instanceID': string
+  'meta/rootUuid': string
+  'meta/deprecatedID'?: string
   _xform_id_string: string
   _uuid: string
-  'meta/rootUuid': string
   _attachments: _DataResponseAttachmentsItem[]
   _status: string
-  _geolocation: unknown[]
+  /**
+   * @minItems 2
+   * @maxItems 2
+   */
+  _geolocation: _DataResponseGeolocationItem[]
   _submission_time: string
-  _tags: unknown[]
-  Notes: unknown[]
-  _validation_status: unknown
+  _tags: string[]
+  _notes: string[]
+  _validation_status: _DataResponseValidationStatus
   _submitted_by: string
+  _supplementalDetails?: _DataResponseSupplementalDetails
 } & Record<string, unknown> // Hack. TODO: handle the type that it isn't.

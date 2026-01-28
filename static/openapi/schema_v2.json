@@ -1694,7 +1694,7 @@
                                         ],
                                         "summary": "Qualitative Analysis - Single Choice Question"
                                     },
-                                    "QualitativeAnalysis-MultipleChoiceQuestion": {
+                                    "QualitativeAnalysis-MultipleChoiceQuestion(withDeletedChoice)": {
                                         "value": [
                                             {
                                                 "action": "manual_qual",
@@ -1711,6 +1711,9 @@
                                                                 "uuid": "xxxxxxxx-bbbb-cccc-dddd-eeeeffffffff",
                                                                 "labels": {
                                                                     "_default": "Shelter"
+                                                                },
+                                                                "options": {
+                                                                    "deleted": true
                                                                 }
                                                             },
                                                             {
@@ -1731,7 +1734,30 @@
                                                 "uid": "qa123456789AbCdEfGhIjklm"
                                             }
                                         ],
-                                        "summary": "Qualitative Analysis - Multiple Choice Question"
+                                        "summary": "Qualitative Analysis - Multiple Choice Question (with deleted choice)"
+                                    },
+                                    "QualitativeAnalysis-SimpleTypes-DeletedQuestion": {
+                                        "value": [
+                                            {
+                                                "action": "manual_qual",
+                                                "question_xpath": "q1",
+                                                "params": [
+                                                    {
+                                                        "type": "<question_type>",
+                                                        "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
+                                                        "labels": {
+                                                            "_default": "Qualitative analysis result"
+                                                        }
+                                                    }
+                                                ],
+                                                "options": {
+                                                    "deleted": true
+                                                },
+                                                "uid": "qa123456789AbCdEfGhIjklm"
+                                            }
+                                        ],
+                                        "summary": "Qualitative Analysis - Simple Types - Deleted question",
+                                        "description": "`<question_type>` can be any of:\n\n* `qualText` \n* `qualInteger` \n* `qualTags` \n* `qualNote` \n"
                                     }
                                 }
                             }
@@ -1905,7 +1931,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/AdvancedFeatureResponse"
+                                    "$ref": "#/components/schemas/AdvancedFeatureCreateResponse"
                                 }
                             }
                         },
@@ -2069,7 +2095,7 @@
                                         },
                                         "summary": "Qualitative Analysis - Single Choice Question"
                                     },
-                                    "QualitativeAnalysis-MultipleChoiceQuestion": {
+                                    "QualitativeAnalysis-MultipleChoiceQuestion(withDeletedChoice)": {
                                         "value": {
                                             "action": "manual_qual",
                                             "question_xpath": "q1",
@@ -2085,6 +2111,9 @@
                                                             "uuid": "xxxxxxxx-bbbb-cccc-dddd-eeeeffffffff",
                                                             "labels": {
                                                                 "_default": "Shelter"
+                                                            },
+                                                            "options": {
+                                                                "deleted": true
                                                             }
                                                         },
                                                         {
@@ -2104,7 +2133,28 @@
                                             ],
                                             "uid": "qa123456789AbCdEfGhIjklm"
                                         },
-                                        "summary": "Qualitative Analysis - Multiple Choice Question"
+                                        "summary": "Qualitative Analysis - Multiple Choice Question (with deleted choice)"
+                                    },
+                                    "QualitativeAnalysis-SimpleTypes-DeletedQuestion": {
+                                        "value": {
+                                            "action": "manual_qual",
+                                            "question_xpath": "q1",
+                                            "params": [
+                                                {
+                                                    "type": "<question_type>",
+                                                    "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
+                                                    "labels": {
+                                                        "_default": "Qualitative analysis result"
+                                                    }
+                                                }
+                                            ],
+                                            "options": {
+                                                "deleted": true
+                                            },
+                                            "uid": "qa123456789AbCdEfGhIjklm"
+                                        },
+                                        "summary": "Qualitative Analysis - Simple Types - Deleted question",
+                                        "description": "`<question_type>` can be any of:\n\n* `qualText` \n* `qualInteger` \n* `qualTags` \n* `qualNote` \n"
                                     }
                                 }
                             }
@@ -2361,7 +2411,7 @@
                                         },
                                         "summary": "Qualitative Analysis - Single Choice Question"
                                     },
-                                    "QualitativeAnalysis-MultipleChoiceQuestion": {
+                                    "QualitativeAnalysis-MultipleChoiceQuestion(withDeletedChoice)": {
                                         "value": {
                                             "action": "manual_qual",
                                             "question_xpath": "q1",
@@ -2377,6 +2427,9 @@
                                                             "uuid": "xxxxxxxx-bbbb-cccc-dddd-eeeeffffffff",
                                                             "labels": {
                                                                 "_default": "Shelter"
+                                                            },
+                                                            "options": {
+                                                                "deleted": true
                                                             }
                                                         },
                                                         {
@@ -2396,7 +2449,28 @@
                                             ],
                                             "uid": "qa123456789AbCdEfGhIjklm"
                                         },
-                                        "summary": "Qualitative Analysis - Multiple Choice Question"
+                                        "summary": "Qualitative Analysis - Multiple Choice Question (with deleted choice)"
+                                    },
+                                    "QualitativeAnalysis-SimpleTypes-DeletedQuestion": {
+                                        "value": {
+                                            "action": "manual_qual",
+                                            "question_xpath": "q1",
+                                            "params": [
+                                                {
+                                                    "type": "<question_type>",
+                                                    "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
+                                                    "labels": {
+                                                        "_default": "Qualitative analysis result"
+                                                    }
+                                                }
+                                            ],
+                                            "options": {
+                                                "deleted": true
+                                            },
+                                            "uid": "qa123456789AbCdEfGhIjklm"
+                                        },
+                                        "summary": "Qualitative Analysis - Simple Types - Deleted question",
+                                        "description": "`<question_type>` can be any of:\n\n* `qualText` \n* `qualInteger` \n* `qualTags` \n* `qualNote` \n"
                                     }
                                 }
                             }
@@ -2786,6 +2860,14 @@
                         "schema": {
                             "type": "integer"
                         }
+                    },
+                    {
+                        "in": "query",
+                        "name": "q",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Filter the results with search query"
                     },
                     {
                         "name": "start",
@@ -14537,24 +14619,57 @@
                 "type": "string",
                 "description": "* `automatic_google_transcription` - automatic_google_transcription\n* `automatic_google_translation` - automatic_google_translation\n* `manual_transcription` - manual_transcription\n* `manual_translation` - manual_translation\n* `manual_qual` - manual_qual\n* `automatic_bedrock_qual` - automatic_bedrock_qual"
             },
-            "AdvancedFeaturePostRequest": {
+            "AdvancedFeatureCreateResponse": {
                 "type": "object",
                 "properties": {
-                    "action": {
-                        "$ref": "#/components/schemas/ActionEnum"
-                    },
                     "question_xpath": {
                         "type": "string"
+                    },
+                    "action": {
+                        "$ref": "#/components/schemas/ActionEnum"
                     },
                     "params": {
                         "type": "array",
                         "items": {
                             "anyOf": [
                                 {
-                                    "$ref": "#/components/schemas/NLPActionParams"
+                                    "$ref": "#/components/schemas/CreateResponseNLPActionParams"
                                 },
                                 {
-                                    "$ref": "#/components/schemas/QualActionParams"
+                                    "$ref": "#/components/schemas/CreateResponseQualActionParams"
+                                }
+                            ]
+                        }
+                    },
+                    "uid": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "action",
+                    "params",
+                    "question_xpath",
+                    "uid"
+                ]
+            },
+            "AdvancedFeaturePostRequest": {
+                "type": "object",
+                "properties": {
+                    "question_xpath": {
+                        "type": "string"
+                    },
+                    "action": {
+                        "$ref": "#/components/schemas/ActionEnum"
+                    },
+                    "params": {
+                        "type": "array",
+                        "items": {
+                            "anyOf": [
+                                {
+                                    "$ref": "#/components/schemas/RequestNLPActionParams"
+                                },
+                                {
+                                    "$ref": "#/components/schemas/RequestQualActionParams"
                                 }
                             ]
                         }
@@ -14569,21 +14684,21 @@
             "AdvancedFeatureResponse": {
                 "type": "object",
                 "properties": {
-                    "action": {
-                        "$ref": "#/components/schemas/ActionEnum"
-                    },
                     "question_xpath": {
                         "type": "string"
+                    },
+                    "action": {
+                        "$ref": "#/components/schemas/ActionEnum"
                     },
                     "params": {
                         "type": "array",
                         "items": {
                             "anyOf": [
                                 {
-                                    "$ref": "#/components/schemas/NLPActionParams"
+                                    "$ref": "#/components/schemas/ResponseNLPActionParams"
                                 },
                                 {
-                                    "$ref": "#/components/schemas/QualActionParams"
+                                    "$ref": "#/components/schemas/ResponseQualActionParams"
                                 }
                             ]
                         }
@@ -16231,6 +16346,124 @@
                     }
                 ]
             },
+            "CreateResponseNLPActionParams": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "language": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "language"
+                ]
+            },
+            "CreateResponseQualActionParams": {
+                "anyOf": [
+                    {
+                        "$ref": "#/components/schemas/CreateResponseQualSimpleQuestionParams"
+                    },
+                    {
+                        "$ref": "#/components/schemas/CreateResponseQualSelectQuestionParams"
+                    }
+                ]
+            },
+            "CreateResponseQualSelectQuestionParams": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "uuid": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "type": {
+                        "$ref": "#/components/schemas/QualSelectQuestionParamsTypeEnum"
+                    },
+                    "labels": {
+                        "type": "object",
+                        "properties": {
+                            "_default": {
+                                "type": "string"
+                            }
+                        },
+                        "additionalProperties": {
+                            "type": "string"
+                        },
+                        "required": [
+                            "_default"
+                        ]
+                    },
+                    "choices": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                                "labels": {
+                                    "type": "object",
+                                    "properties": {
+                                        "_default": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    },
+                                    "required": [
+                                        "_default"
+                                    ]
+                                },
+                                "uuid": {
+                                    "type": "string",
+                                    "format": "uuid"
+                                }
+                            },
+                            "required": [
+                                "labels",
+                                "uuid"
+                            ]
+                        }
+                    }
+                },
+                "required": [
+                    "uuid",
+                    "type",
+                    "labels",
+                    "choices"
+                ]
+            },
+            "CreateResponseQualSimpleQuestionParams": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "uuid": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "type": {
+                        "$ref": "#/components/schemas/QualSimpleQuestionParamsTypeEnum"
+                    },
+                    "labels": {
+                        "type": "object",
+                        "properties": {
+                            "_default": {
+                                "type": "string"
+                            }
+                        },
+                        "additionalProperties": {
+                            "type": "string"
+                        },
+                        "required": [
+                            "_default"
+                        ]
+                    }
+                },
+                "required": [
+                    "uuid",
+                    "type",
+                    "labels"
+                ]
+            },
             "CustomAssetUsage": {
                 "type": "object",
                 "properties": {
@@ -16383,25 +16616,17 @@
                     "formhub/uuid": {
                         "type": "string"
                     },
-                    "start": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "end": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "Question_A/Enter_your_question": {
-                        "type": "string"
-                    },
-                    "Question_B": {
-                        "type": "string"
-                    },
                     "__version__": {
                         "type": "string",
                         "title": "  version  "
                     },
                     "meta/instanceID": {
+                        "type": "string"
+                    },
+                    "meta/rootUuid": {
+                        "type": "string"
+                    },
+                    "meta/deprecatedID": {
                         "type": "string"
                     },
                     "_xform_id_string": {
@@ -16411,9 +16636,6 @@
                     "_uuid": {
                         "type": "string",
                         "title": " uuid"
-                    },
-                    "meta/rootUuid": {
-                        "type": "string"
                     },
                     "_attachments": {
                         "type": "array",
@@ -16467,7 +16689,8 @@
                                 "mimetype",
                                 "question_xpath",
                                 "uid"
-                            ]
+                            ],
+                            "additional_properties": false
                         },
                         "title": " attachments"
                     },
@@ -16477,7 +16700,14 @@
                     },
                     "_geolocation": {
                         "type": "array",
-                        "items": {},
+                        "items": {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
+                        },
+                        "minItems": 2,
+                        "maxItems": 2,
                         "title": " geolocation"
                     },
                     "_submission_time": {
@@ -16487,29 +16717,46 @@
                     },
                     "_tags": {
                         "type": "array",
-                        "items": {},
+                        "items": {
+                            "type": "string"
+                        },
                         "title": " tags"
                     },
-                    "Notes": {
+                    "_notes": {
                         "type": "array",
-                        "items": {}
+                        "items": {
+                            "type": "string"
+                        },
+                        "title": " notes"
                     },
                     "_validation_status": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/DataValidationStatus"
+                            },
+                            {
+                                "type": "object",
+                                "maxProperties": 0
+                            }
+                        ],
                         "title": " validation status"
                     },
                     "_submitted_by": {
                         "type": "string",
                         "title": " submitted by"
+                    },
+                    "_supplementalDetails": {
+                        "type": "object",
+                        "additionalProperties": {},
+                        "title": " supplementaldetails"
                     }
                 },
                 "required": [
-                    "Notes",
-                    "Question_A/Enter_your_question",
-                    "Question_B",
                     "__version__",
                     "_attachments",
                     "_geolocation",
                     "_id",
+                    "_notes",
                     "_status",
                     "_submission_time",
                     "_submitted_by",
@@ -16517,11 +16764,8 @@
                     "_uuid",
                     "_validation_status",
                     "_xform_id_string",
-                    "end",
-                    "formhub/uuid",
                     "meta/instanceID",
-                    "meta/rootUuid",
-                    "start"
+                    "meta/rootUuid"
                 ]
             },
             "DataStatusesUpdate": {
@@ -16534,6 +16778,100 @@
                 "required": [
                     "detail"
                 ]
+            },
+            "DataSupplementManualQualDataInteger": {
+                "type": "object",
+                "properties": {
+                    "value": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "uuid": {
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                },
+                "required": [
+                    "uuid",
+                    "value"
+                ],
+                "additionalProperties": false
+            },
+            "DataSupplementManualQualDataSelectMultiple": {
+                "type": "object",
+                "properties": {
+                    "value": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    "uuid": {
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                },
+                "required": [
+                    "uuid",
+                    "value"
+                ],
+                "additionalProperties": false
+            },
+            "DataSupplementManualQualDataSelectOne": {
+                "type": "object",
+                "properties": {
+                    "value": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "uuid": {
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                },
+                "required": [
+                    "uuid",
+                    "value"
+                ],
+                "additionalProperties": false
+            },
+            "DataSupplementManualQualDataTags": {
+                "type": "object",
+                "properties": {
+                    "value": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "uuid": {
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                },
+                "required": [
+                    "uuid",
+                    "value"
+                ],
+                "additionalProperties": false
+            },
+            "DataSupplementManualQualDataText": {
+                "type": "object",
+                "properties": {
+                    "value": {
+                        "type": "string"
+                    },
+                    "uuid": {
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                },
+                "required": [
+                    "uuid",
+                    "value"
+                ],
+                "additionalProperties": false
             },
             "DataSupplementResponse": {
                 "type": "object",
@@ -17039,148 +17377,19 @@
                                             "_data": {
                                                 "oneOf": [
                                                     {
-                                                        "allOf": [
-                                                            {
-                                                                "type": "object",
-                                                                "properties": {
-                                                                    "uuid": {
-                                                                        "type": "string",
-                                                                        "format": "uuid"
-                                                                    },
-                                                                    "value": {}
-                                                                },
-                                                                "additionalProperties": false,
-                                                                "required": [
-                                                                    "uuid",
-                                                                    "value"
-                                                                ]
-                                                            },
-                                                            {
-                                                                "type": "object",
-                                                                "properties": {
-                                                                    "value": {
-                                                                        "type": "integer",
-                                                                        "nullable": true
-                                                                    }
-                                                                }
-                                                            }
-                                                        ]
+                                                        "$ref": "#/components/schemas/DataSupplementManualQualDataInteger"
                                                     },
                                                     {
-                                                        "allOf": [
-                                                            {
-                                                                "type": "object",
-                                                                "properties": {
-                                                                    "uuid": {
-                                                                        "type": "string",
-                                                                        "format": "uuid"
-                                                                    },
-                                                                    "value": {}
-                                                                },
-                                                                "additionalProperties": false,
-                                                                "required": [
-                                                                    "uuid",
-                                                                    "value"
-                                                                ]
-                                                            },
-                                                            {
-                                                                "type": "object",
-                                                                "properties": {
-                                                                    "value": {
-                                                                        "type": "array",
-                                                                        "items": {
-                                                                            "type": "string",
-                                                                            "format": "uuid"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            }
-                                                        ]
+                                                        "$ref": "#/components/schemas/DataSupplementManualQualDataText"
                                                     },
                                                     {
-                                                        "allOf": [
-                                                            {
-                                                                "type": "object",
-                                                                "properties": {
-                                                                    "uuid": {
-                                                                        "type": "string",
-                                                                        "format": "uuid"
-                                                                    },
-                                                                    "value": {}
-                                                                },
-                                                                "additionalProperties": false,
-                                                                "required": [
-                                                                    "uuid",
-                                                                    "value"
-                                                                ]
-                                                            },
-                                                            {
-                                                                "type": "object",
-                                                                "properties": {
-                                                                    "value": {
-                                                                        "type": "string",
-                                                                        "format": "uuid"
-                                                                    }
-                                                                }
-                                                            }
-                                                        ]
+                                                        "$ref": "#/components/schemas/DataSupplementManualQualDataSelectOne"
                                                     },
                                                     {
-                                                        "allOf": [
-                                                            {
-                                                                "type": "object",
-                                                                "properties": {
-                                                                    "uuid": {
-                                                                        "type": "string",
-                                                                        "format": "uuid"
-                                                                    },
-                                                                    "value": {}
-                                                                },
-                                                                "additionalProperties": false,
-                                                                "required": [
-                                                                    "uuid",
-                                                                    "value"
-                                                                ]
-                                                            },
-                                                            {
-                                                                "type": "object",
-                                                                "properties": {
-                                                                    "value": {
-                                                                        "type": "array",
-                                                                        "items": {
-                                                                            "type": "string"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            }
-                                                        ]
+                                                        "$ref": "#/components/schemas/DataSupplementManualQualDataSelectMultiple"
                                                     },
                                                     {
-                                                        "allOf": [
-                                                            {
-                                                                "type": "object",
-                                                                "properties": {
-                                                                    "uuid": {
-                                                                        "type": "string",
-                                                                        "format": "uuid"
-                                                                    },
-                                                                    "value": {}
-                                                                },
-                                                                "additionalProperties": false,
-                                                                "required": [
-                                                                    "uuid",
-                                                                    "value"
-                                                                ]
-                                                            },
-                                                            {
-                                                                "type": "object",
-                                                                "properties": {
-                                                                    "value": {
-                                                                        "type": "string"
-                                                                    }
-                                                                }
-                                                            }
-                                                        ]
+                                                        "$ref": "#/components/schemas/DataSupplementManualQualDataTags"
                                                     }
                                                 ]
                                             },
@@ -17234,148 +17443,19 @@
                                                 "_data": {
                                                     "oneOf": [
                                                         {
-                                                            "allOf": [
-                                                                {
-                                                                    "type": "object",
-                                                                    "properties": {
-                                                                        "uuid": {
-                                                                            "type": "string",
-                                                                            "format": "uuid"
-                                                                        },
-                                                                        "value": {}
-                                                                    },
-                                                                    "additionalProperties": false,
-                                                                    "required": [
-                                                                        "uuid",
-                                                                        "value"
-                                                                    ]
-                                                                },
-                                                                {
-                                                                    "type": "object",
-                                                                    "properties": {
-                                                                        "value": {
-                                                                            "type": "integer",
-                                                                            "nullable": true
-                                                                        }
-                                                                    }
-                                                                }
-                                                            ]
+                                                            "$ref": "#/components/schemas/DataSupplementManualQualDataInteger"
                                                         },
                                                         {
-                                                            "allOf": [
-                                                                {
-                                                                    "type": "object",
-                                                                    "properties": {
-                                                                        "uuid": {
-                                                                            "type": "string",
-                                                                            "format": "uuid"
-                                                                        },
-                                                                        "value": {}
-                                                                    },
-                                                                    "additionalProperties": false,
-                                                                    "required": [
-                                                                        "uuid",
-                                                                        "value"
-                                                                    ]
-                                                                },
-                                                                {
-                                                                    "type": "object",
-                                                                    "properties": {
-                                                                        "value": {
-                                                                            "type": "array",
-                                                                            "items": {
-                                                                                "type": "string",
-                                                                                "format": "uuid"
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                }
-                                                            ]
+                                                            "$ref": "#/components/schemas/DataSupplementManualQualDataText"
                                                         },
                                                         {
-                                                            "allOf": [
-                                                                {
-                                                                    "type": "object",
-                                                                    "properties": {
-                                                                        "uuid": {
-                                                                            "type": "string",
-                                                                            "format": "uuid"
-                                                                        },
-                                                                        "value": {}
-                                                                    },
-                                                                    "additionalProperties": false,
-                                                                    "required": [
-                                                                        "uuid",
-                                                                        "value"
-                                                                    ]
-                                                                },
-                                                                {
-                                                                    "type": "object",
-                                                                    "properties": {
-                                                                        "value": {
-                                                                            "type": "string",
-                                                                            "format": "uuid"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            ]
+                                                            "$ref": "#/components/schemas/DataSupplementManualQualDataSelectOne"
                                                         },
                                                         {
-                                                            "allOf": [
-                                                                {
-                                                                    "type": "object",
-                                                                    "properties": {
-                                                                        "uuid": {
-                                                                            "type": "string",
-                                                                            "format": "uuid"
-                                                                        },
-                                                                        "value": {}
-                                                                    },
-                                                                    "additionalProperties": false,
-                                                                    "required": [
-                                                                        "uuid",
-                                                                        "value"
-                                                                    ]
-                                                                },
-                                                                {
-                                                                    "type": "object",
-                                                                    "properties": {
-                                                                        "value": {
-                                                                            "type": "array",
-                                                                            "items": {
-                                                                                "type": "string"
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                }
-                                                            ]
+                                                            "$ref": "#/components/schemas/DataSupplementManualQualDataSelectMultiple"
                                                         },
                                                         {
-                                                            "allOf": [
-                                                                {
-                                                                    "type": "object",
-                                                                    "properties": {
-                                                                        "uuid": {
-                                                                            "type": "string",
-                                                                            "format": "uuid"
-                                                                        },
-                                                                        "value": {}
-                                                                    },
-                                                                    "additionalProperties": false,
-                                                                    "required": [
-                                                                        "uuid",
-                                                                        "value"
-                                                                    ]
-                                                                },
-                                                                {
-                                                                    "type": "object",
-                                                                    "properties": {
-                                                                        "value": {
-                                                                            "type": "string"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            ]
+                                                            "$ref": "#/components/schemas/DataSupplementManualQualDataTags"
                                                         }
                                                     ]
                                                 },
@@ -17439,6 +17519,44 @@
                             "manual_qual"
                         ]
                     }
+                ]
+            },
+            "DataValidationStatus": {
+                "type": "object",
+                "properties": {
+                    "timestamp": {
+                        "type": "integer"
+                    },
+                    "uid": {
+                        "$ref": "#/components/schemas/DataValidationStatusUidEnum"
+                    },
+                    "by_whom": {
+                        "type": "string"
+                    },
+                    "label": {
+                        "$ref": "#/components/schemas/DataValidationStatusLabelEnum"
+                    }
+                },
+                "required": [
+                    "timestamp",
+                    "uid",
+                    "label",
+                    "by_whom"
+                ],
+                "additionalProperties": false
+            },
+            "DataValidationStatusLabelEnum": {
+                "enum": [
+                    "Not Approved",
+                    "Approved",
+                    "On Hold"
+                ]
+            },
+            "DataValidationStatusUidEnum": {
+                "enum": [
+                    "validation_status_not_approved",
+                    "validation_status_approved",
+                    "validation_status_on_hold"
                 ]
             },
             "DataValidationStatusUpdateResponse": {
@@ -19250,18 +19368,6 @@
                 "type": "string",
                 "description": "* `admin` - admin\n* `member` - member\n* `owner` - owner"
             },
-            "NLPActionParams": {
-                "type": "object",
-                "additionalProperties": false,
-                "properties": {
-                    "language": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "language"
-                ]
-            },
             "NlpUsage": {
                 "type": "object",
                 "properties": {
@@ -20885,15 +20991,21 @@
             "PatchedAdvancedFeaturePatchRequest": {
                 "type": "object",
                 "properties": {
+                    "action": {
+                        "$ref": "#/components/schemas/ActionEnum"
+                    },
+                    "question_xpath": {
+                        "type": "string"
+                    },
                     "params": {
                         "type": "array",
                         "items": {
                             "anyOf": [
                                 {
-                                    "$ref": "#/components/schemas/NLPActionParams"
+                                    "$ref": "#/components/schemas/RequestNLPActionParams"
                                 },
                                 {
-                                    "$ref": "#/components/schemas/QualActionParams"
+                                    "$ref": "#/components/schemas/RequestQualActionParams"
                                 }
                             ]
                         }
@@ -21211,196 +21323,22 @@
                             "language"
                         ]
                     },
-                    "qual": {
+                    "manual_qual": {
                         "oneOf": [
                             {
-                                "allOf": [
-                                    {
-                                        "type": "object",
-                                        "additionalProperties": false,
-                                        "properties": {
-                                            "uuid": {
-                                                "type": "string",
-                                                "format": "uuid"
-                                            },
-                                            "value": {}
-                                        },
-                                        "required": [
-                                            "uuid",
-                                            "value"
-                                        ]
-                                    },
-                                    {
-                                        "type": "object",
-                                        "properties": {
-                                            "value": {
-                                                "type": "integer",
-                                                "nullable": true
-                                            }
-                                        }
-                                    },
-                                    {
-                                        "type": "object",
-                                        "properties": {
-                                            "uuid": {
-                                                "type": "string",
-                                                "format": "uuid"
-                                            }
-                                        }
-                                    }
-                                ]
+                                "$ref": "#/components/schemas/DataSupplementManualQualDataInteger"
                             },
                             {
-                                "allOf": [
-                                    {
-                                        "type": "object",
-                                        "additionalProperties": false,
-                                        "properties": {
-                                            "uuid": {
-                                                "type": "string",
-                                                "format": "uuid"
-                                            },
-                                            "value": {}
-                                        },
-                                        "required": [
-                                            "uuid",
-                                            "value"
-                                        ]
-                                    },
-                                    {
-                                        "type": "object",
-                                        "properties": {
-                                            "value": {
-                                                "type": "string"
-                                            }
-                                        }
-                                    },
-                                    {
-                                        "type": "object",
-                                        "properties": {
-                                            "uuid": {
-                                                "type": "string",
-                                                "format": "uuid"
-                                            }
-                                        }
-                                    }
-                                ]
+                                "$ref": "#/components/schemas/DataSupplementManualQualDataText"
                             },
                             {
-                                "allOf": [
-                                    {
-                                        "type": "object",
-                                        "additionalProperties": false,
-                                        "properties": {
-                                            "uuid": {
-                                                "type": "string",
-                                                "format": "uuid"
-                                            },
-                                            "value": {}
-                                        },
-                                        "required": [
-                                            "uuid",
-                                            "value"
-                                        ]
-                                    },
-                                    {
-                                        "type": "object",
-                                        "properties": {
-                                            "value": {
-                                                "type": "string",
-                                                "format": "uuid"
-                                            }
-                                        }
-                                    },
-                                    {
-                                        "type": "object",
-                                        "properties": {
-                                            "uuid": {
-                                                "type": "string",
-                                                "format": "uuid"
-                                            }
-                                        }
-                                    }
-                                ]
+                                "$ref": "#/components/schemas/DataSupplementManualQualDataSelectOne"
                             },
                             {
-                                "allOf": [
-                                    {
-                                        "type": "object",
-                                        "additionalProperties": false,
-                                        "properties": {
-                                            "uuid": {
-                                                "type": "string",
-                                                "format": "uuid"
-                                            },
-                                            "value": {}
-                                        },
-                                        "required": [
-                                            "uuid",
-                                            "value"
-                                        ]
-                                    },
-                                    {
-                                        "type": "object",
-                                        "properties": {
-                                            "value": {
-                                                "type": "array",
-                                                "items": {
-                                                    "type": "string",
-                                                    "format": "uuid"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        "type": "object",
-                                        "properties": {
-                                            "uuid": {
-                                                "type": "string",
-                                                "format": "uuid"
-                                            }
-                                        }
-                                    }
-                                ]
+                                "$ref": "#/components/schemas/DataSupplementManualQualDataSelectMultiple"
                             },
                             {
-                                "allOf": [
-                                    {
-                                        "type": "object",
-                                        "additionalProperties": false,
-                                        "properties": {
-                                            "uuid": {
-                                                "type": "string",
-                                                "format": "uuid"
-                                            },
-                                            "value": {}
-                                        },
-                                        "required": [
-                                            "uuid",
-                                            "value"
-                                        ]
-                                    },
-                                    {
-                                        "type": "object",
-                                        "properties": {
-                                            "value": {
-                                                "type": "array",
-                                                "items": {
-                                                    "type": "string"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        "type": "object",
-                                        "properties": {
-                                            "uuid": {
-                                                "type": "string",
-                                                "format": "uuid"
-                                            }
-                                        }
-                                    }
-                                ]
+                                "$ref": "#/components/schemas/DataSupplementManualQualDataTags"
                             }
                         ]
                     }
@@ -21429,7 +21367,7 @@
                     },
                     {
                         "required": [
-                            "qual"
+                            "manual_qual"
                         ]
                     }
                 ]
@@ -21455,7 +21393,7 @@
                                 }
                             },
                             "validation_status.uid": {
-                                "type": "string"
+                                "$ref": "#/components/schemas/DataValidationStatusUidEnum"
                             }
                         }
                     }
@@ -22797,126 +22735,11 @@
                 "type": "string",
                 "description": "* `always_invoice` - Always invoice\n* `create_prorations` - Create prorations\n* `none` - None"
             },
-            "QualActionParams": {
-                "anyOf": [
-                    {
-                        "$ref": "#/components/schemas/QualSimpleQuestionParams"
-                    },
-                    {
-                        "$ref": "#/components/schemas/QualSelectQuestionParams"
-                    }
-                ]
-            },
-            "QualSelectQuestionParams": {
-                "type": "object",
-                "additionalProperties": false,
-                "properties": {
-                    "uuid": {
-                        "type": "string",
-                        "format": "uuid"
-                    },
-                    "type": {
-                        "$ref": "#/components/schemas/QualSelectQuestionParamsTypeEnum"
-                    },
-                    "labels": {
-                        "type": "object",
-                        "properties": {
-                            "_default": {
-                                "type": "string"
-                            }
-                        },
-                        "additionalProperties": {
-                            "type": "string"
-                        },
-                        "required": [
-                            "_default"
-                        ]
-                    },
-                    "choices": {
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "additionalProperties": false,
-                            "properties": {
-                                "labels": {
-                                    "type": "object",
-                                    "properties": {
-                                        "_default": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "additionalProperties": {
-                                        "type": "string"
-                                    },
-                                    "required": [
-                                        "_default"
-                                    ]
-                                },
-                                "uuid": {
-                                    "type": "string",
-                                    "format": "uuid"
-                                },
-                                "options": {
-                                    "type": "object"
-                                }
-                            },
-                            "required": [
-                                "labels",
-                                "uuid"
-                            ]
-                        }
-                    },
-                    "options": {
-                        "type": "object"
-                    }
-                },
-                "required": [
-                    "uuid",
-                    "type",
-                    "labels",
-                    "choices"
-                ]
-            },
             "QualSelectQuestionParamsTypeEnum": {
                 "type": "string",
                 "enum": [
                     "qualSelectMultiple",
                     "qualSelectOne"
-                ]
-            },
-            "QualSimpleQuestionParams": {
-                "type": "object",
-                "additionalProperties": false,
-                "properties": {
-                    "uuid": {
-                        "type": "string",
-                        "format": "uuid"
-                    },
-                    "type": {
-                        "$ref": "#/components/schemas/QualSimpleQuestionParamsTypeEnum"
-                    },
-                    "labels": {
-                        "type": "object",
-                        "properties": {
-                            "_default": {
-                                "type": "string"
-                            }
-                        },
-                        "additionalProperties": {
-                            "type": "string"
-                        },
-                        "required": [
-                            "_default"
-                        ]
-                    },
-                    "options": {
-                        "type": "object"
-                    }
-                },
-                "required": [
-                    "uuid",
-                    "type",
-                    "labels"
                 ]
             },
             "QualSimpleQuestionParamsTypeEnum": {
@@ -22925,7 +22748,8 @@
                     "qualInteger",
                     "qualTags",
                     "qualText",
-                    "qualNote"
+                    "qualNote",
+                    "qualAutoKeywordCount"
                 ]
             },
             "Recurring": {
@@ -23009,6 +22833,266 @@
                     "count",
                     "list",
                     "url"
+                ]
+            },
+            "RequestNLPActionParams": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "language": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "language"
+                ]
+            },
+            "RequestQualActionParams": {
+                "anyOf": [
+                    {
+                        "$ref": "#/components/schemas/RequestQualSimpleQuestionParams"
+                    },
+                    {
+                        "$ref": "#/components/schemas/RequestQualSelectQuestionParams"
+                    }
+                ]
+            },
+            "RequestQualSelectQuestionParams": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "uuid": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "type": {
+                        "$ref": "#/components/schemas/QualSelectQuestionParamsTypeEnum"
+                    },
+                    "labels": {
+                        "type": "object",
+                        "properties": {
+                            "_default": {
+                                "type": "string"
+                            }
+                        },
+                        "additionalProperties": {
+                            "type": "string"
+                        },
+                        "required": [
+                            "_default"
+                        ]
+                    },
+                    "choices": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                                "labels": {
+                                    "type": "object",
+                                    "properties": {
+                                        "_default": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    },
+                                    "required": [
+                                        "_default"
+                                    ]
+                                },
+                                "uuid": {
+                                    "type": "string",
+                                    "format": "uuid"
+                                }
+                            },
+                            "required": [
+                                "labels",
+                                "uuid"
+                            ]
+                        }
+                    }
+                },
+                "required": [
+                    "uuid",
+                    "type",
+                    "labels",
+                    "choices"
+                ]
+            },
+            "RequestQualSimpleQuestionParams": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "uuid": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "type": {
+                        "$ref": "#/components/schemas/QualSimpleQuestionParamsTypeEnum"
+                    },
+                    "labels": {
+                        "type": "object",
+                        "properties": {
+                            "_default": {
+                                "type": "string"
+                            }
+                        },
+                        "additionalProperties": {
+                            "type": "string"
+                        },
+                        "required": [
+                            "_default"
+                        ]
+                    }
+                },
+                "required": [
+                    "uuid",
+                    "type",
+                    "labels"
+                ]
+            },
+            "ResponseNLPActionParams": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "language": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "language"
+                ]
+            },
+            "ResponseQualActionParams": {
+                "anyOf": [
+                    {
+                        "$ref": "#/components/schemas/ResponseQualSimpleQuestionParams"
+                    },
+                    {
+                        "$ref": "#/components/schemas/ResponseQualSelectQuestionParams"
+                    }
+                ]
+            },
+            "ResponseQualSelectQuestionParams": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "uuid": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "type": {
+                        "$ref": "#/components/schemas/QualSelectQuestionParamsTypeEnum"
+                    },
+                    "labels": {
+                        "type": "object",
+                        "properties": {
+                            "_default": {
+                                "type": "string"
+                            }
+                        },
+                        "additionalProperties": {
+                            "type": "string"
+                        },
+                        "required": [
+                            "_default"
+                        ]
+                    },
+                    "choices": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                                "labels": {
+                                    "type": "object",
+                                    "properties": {
+                                        "_default": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    },
+                                    "required": [
+                                        "_default"
+                                    ]
+                                },
+                                "uuid": {
+                                    "type": "string",
+                                    "format": "uuid"
+                                },
+                                "options": {
+                                    "type": "object",
+                                    "properties": {
+                                        "deleted": {
+                                            "type": "boolean"
+                                        }
+                                    }
+                                }
+                            },
+                            "required": [
+                                "labels",
+                                "uuid"
+                            ]
+                        }
+                    },
+                    "options": {
+                        "type": "object",
+                        "properties": {
+                            "deleted": {
+                                "type": "boolean"
+                            }
+                        }
+                    }
+                },
+                "required": [
+                    "uuid",
+                    "type",
+                    "labels",
+                    "choices"
+                ]
+            },
+            "ResponseQualSimpleQuestionParams": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "uuid": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "type": {
+                        "$ref": "#/components/schemas/QualSimpleQuestionParamsTypeEnum"
+                    },
+                    "labels": {
+                        "type": "object",
+                        "properties": {
+                            "_default": {
+                                "type": "string"
+                            }
+                        },
+                        "additionalProperties": {
+                            "type": "string"
+                        },
+                        "required": [
+                            "_default"
+                        ]
+                    },
+                    "options": {
+                        "type": "object",
+                        "properties": {
+                            "deleted": {
+                                "type": "boolean"
+                            }
+                        }
+                    }
+                },
+                "required": [
+                    "uuid",
+                    "type",
+                    "labels"
                 ]
             },
             "ServiceUsageBalanceData": {

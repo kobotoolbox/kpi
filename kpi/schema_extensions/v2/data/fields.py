@@ -31,6 +31,10 @@ class DataValidationPayloadField(serializers.JSONField):
     pass
 
 
+class DataValidationStatusField(serializers.JSONField):
+    pass
+
+
 class EmptyListField(serializers.ListField):
     build_array_type(schema=build_basic_type(OpenApiTypes.STR))
 
@@ -44,4 +48,8 @@ class EnketoEditUrlField(serializers.URLField):
 
 
 class EnketoViewUrlField(serializers.URLField):
+    pass
+
+
+class GeoLocationField(serializers.ListField):
     pass
