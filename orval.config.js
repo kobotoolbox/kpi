@@ -36,6 +36,11 @@ module.exports = {
     },
     input: {
       target: './static/openapi/schema_v2.yaml',
+      override: {
+        // Strip XML responses before Orval generation.
+        // The frontend only consumes JSON.
+        transformer: './scripts/orval-strip-xml.js',
+      },
     },
     hooks: {
       // Orval has a bug that fails to generate imports for $ref in additionalProperties.

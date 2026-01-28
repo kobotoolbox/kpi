@@ -66,6 +66,7 @@ from kpi.schema_extensions.v2.data.serializers import (
     DataBulkUpdate,
     DataBulkUpdateResponse,
     DataResponse,
+    DataResponseXML,
     DataStatusesUpdate,
     DataSupplementPayload,
     DataSupplementResponse,
@@ -148,12 +149,16 @@ from kpi.utils.xml import (
     list=extend_schema(
         description=read_md('kpi', 'data/list.md'),
         request=None,
-        responses=open_api_200_ok_response(
-            DataResponse,
-            validate_payload=False,
-            require_auth=False,
-            raise_access_forbidden=False,
-        ),
+        responses={
+            **open_api_200_ok_response(
+                DataResponse,
+                media_type='application/json',
+                validate_payload=False,
+                require_auth=False,
+                raise_access_forbidden=False,
+            ),
+            (200, 'text/xml'): DataResponseXML,
+        },
         parameters=[
             OpenApiParameter(
                 name='q',
@@ -167,12 +172,16 @@ from kpi.utils.xml import (
     retrieve=extend_schema(
         description=read_md('kpi', 'data/retrieve.md'),
         request=None,
-        responses=open_api_200_ok_response(
-            DataResponse,
-            validate_payload=False,
-            require_auth=False,
-            raise_access_forbidden=False,
-        ),
+        responses={
+            **open_api_200_ok_response(
+                DataResponse,
+                media_type='application/json',
+                validate_payload=False,
+                require_auth=False,
+                raise_access_forbidden=False,
+            ),
+            (200, 'text/xml'): DataResponseXML,
+        },
         parameters=[
             OpenApiParameter(
                 name='id',
