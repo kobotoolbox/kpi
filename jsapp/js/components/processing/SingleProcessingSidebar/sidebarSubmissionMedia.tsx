@@ -19,7 +19,7 @@ interface SidebarSubmissionMediaProps {
 
 export default function SidebarSubmissionMedia({ asset, xpath, submission }: SidebarSubmissionMediaProps) {
   // We need `asset` to proceed.
-  if (!asset) {
+  if (!asset?.content) {
     return null
   }
 
@@ -35,7 +35,7 @@ export default function SidebarSubmissionMedia({ asset, xpath, submission }: Sid
     )
   }
 
-  switch (findRowByXpath(asset?.content!, xpath)?.type) {
+  switch (findRowByXpath(asset.content, xpath)?.type) {
     case QUESTION_TYPES.audio.id:
     case QUESTION_TYPES['background-audio'].id:
       return (

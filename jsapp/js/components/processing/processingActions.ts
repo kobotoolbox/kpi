@@ -8,11 +8,11 @@
 import clonedeep from 'lodash.clonedeep'
 import Reflux from 'reflux'
 import { actions } from '#/actions'
+import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import { buildSubmissionSupplementUrl, getAssetAdvancedFeatures } from '#/assetUtils'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import type { AssetAdvancedFeatures, AssetResponse, FailResponse } from '#/dataInterface'
 import { notify, recordValues } from '#/utils'
-import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 
 /**
  * A safety check error message for calls made with assets that don't have
