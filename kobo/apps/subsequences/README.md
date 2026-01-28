@@ -87,7 +87,7 @@ TranslationActionMixin  <.. AutomaticGoogleTranslation : mixin
 
 ---
 
-## 2. Subsequence Workflow
+## 2. Subsequence Workflow - API
 
 ### 2.1 Enabling an Action
 
@@ -154,7 +154,7 @@ Or use the public documentation endpoints:
 
 ### 2.2 Updating an Action
 
-You can update the params of an action via a PATCH to `/api/v2/assets/{uid_asset}/advanced-features/`
+You can update the params of an action via a PATCH to `/api/v2/assets/{uid_asset}/advanced-features/{uid_feature}`
 
 `params` are always additive. That means that if you PATCH a feature with a new param array, the new ones
 will be added to the existing ones. You cannot delete a param via the API.
@@ -413,11 +413,127 @@ You can optionally specify a `locale` to distinguish regional variations (e.g. e
 }
 ```
 
+### 2.5 Example user flows
 
+#### 2.5.1 Automatic transcription
+
+1. Enable automatic transcription in English
+`POST /api/v2/assets/{uid_asset}/advanced-features/`
+```json
+{
+  "question_xpath": "audio_question",
+  "action": "automatic_google_transcription",
+  "params": [{"language": "en"}]
+}
+```
+Response:
+```json
+{
+  "question_xpath":"q1",
+  "action":"automatic_google_transcription",
+  "params":[{"language":"en"}],
+  "uid":"qaftnQRw6ZBNbNc9n7MSWzvx"
+}
+```
+2. Request an automatic transcription in Spanish
+`PATCH /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
+```json
+{
+  "_version": "20250820",
+  "audio_question": {
+    "automatic_google_transcription": {
+      "language": "es"
+    }
+  }
+}
+```
+Response:
+`400 - Invalid payload`
+3. Enable automatic transcription in Spanish
+`PATCH /api/v2/assets/{uid_asset}/advanced-features/{uid_feature}`
+```json
+{
+  "params": [{"language": "es"}]
+}
+```
+Response:
+```json
+{
+  "params":[{"language":"en"},{"language":"es"}],
+  "question_xpath":"q1",
+  "action":"automatic_google_transcription",
+  "asset":27,
+  "uid":"qaftnQRw6ZBNbNc9n7MSWzvx"
+}
+```
+4. Request automatic transcription in Spanish
+`PATCH /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
+```json
+{
+  "_version": "20250820",
+  "audio_question": {
+    "automatic_google_transcription": {
+      "language": "es"
+    }
+  }
+}
+```
+Response:
+```json
+{
+  "q1": {
+    "automatic_google_transcription": {
+      "_dateCreated":"2026-01-28T15:07:53.666960Z",
+      "_dateModified":"2026-01-28T15:07:53.666960Z",
+      "_versions": [
+        {
+          "_data": {
+            "language":"es","status":"in_progress"
+          },
+          "_dateCreated":"2026-01-28T15:07:53.666960Z",
+          "_uuid":"8df4a7f5-a05e-49a8-8620-d53dc0377535"
+        }
+      ]
+    }
+  },
+  "_version":"20250820"
+}
+```
+5. Poll to see if the transcription is done yet
+`GET /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
+Response:
+```json
+{
+   "q1":{
+      "automatic_google_transcription":{
+         "_versions":[
+            {
+               "_data":{
+                  "value":"This is a transcription",
+                  "status":"complete",
+                  "language":"es"
+               },
+               "_uuid":"9adfb1cf-0b21-4cb6-9ade-6a6bdd9cc830",
+               "_dateCreated":"2026-01-28T15:21:17.091030Z"
+            },
+           {
+             "_data": {
+               "status": "in_progress",
+               "language": "es"
+             },
+             "_uuid": "148381b2-ea51-4085-9968-acbb8608e749",
+             "_dateCreated": "2026-01-28T15:21:06.416445Z"
+           }
+         ],
+        "_version":"20250820"
+      }
+   }
+}
+```
 
 ---
 
-### 2.4 Sequence Diagram (End-to-End Flow)
+### 2.4 Sequence Workflow - Backend (End-to-End Flow)
 
 This section explains how the system handles a supplement from the initial
 client request, through validation and optional background retries.
