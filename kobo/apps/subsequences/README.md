@@ -8,13 +8,24 @@ It covers how the payload is validated through the various schemas (`params_sche
 ## Table of Contents
 
 1. [Class Overview](#1-class-overview)
-2. [Subsequence Workflow](#2-subsequence-workflow)
-   1. [Enabling an Action](#21-enabling-an-action)
-   2. [Updating and Action](#22-updating-an-action)
-   3. [Add Submission Supplement](#23-add-submission-supplement)
-   4. [Sequence Diagram (End-to-End Flow)](#24-sequence-diagram-end-to-end-flow)
-   5. [Flowchart (Logic inside revise_data per Action)](#243-flowchart-logic-inside-revise_data-per-action)
-3. [Where Schemas Apply](#3-where-schemas-apply)
+2. [Subsequence Workflow - API](#2-subsequence-workflow---api)
+   1. [Enabling an action](#21-enabling-an-action)
+   2. [Updating an action](#22-updating-an-action)
+   3. [Add submission supplement](#23-add-submission-supplement)
+   4. [Remove submission supplement](#24-deleting-a-submission-supplement)
+   5. [Example user flows](#25-example-user-flows)
+      1. [Automatic transcription](#251-automatic-transcription)
+      2. [Manual transcription/translation](#252-manual-transcriptiontranslation)
+3. [Subsequence Workflow - Backend](#3-sequence-workflow---backend-end-to-end-flow)
+   1. [Sequence diagram](#31-sequence-diagram--end-to-end)
+   2. [Background polling with celery](#32-background-polling-with-celery)
+   3. [Revise data flowchart](#33-flowchart-logic-inside-revise_data-per-action)
+4. [Where Schemas Apply](#4-where-schemas-apply)
+   1. [Parameters](#41-params_schema)
+   2. [Data](#42-data_schema)
+   3. [External data](#43-external_data_schema)
+   4. [Results](#44-result_schema)
+   5. [Results with dependencies](#45-result_schema-with-dependencies)
 
 ---
 
@@ -48,7 +59,7 @@ class BaseAutomaticNLPAction {
   +data_schema [property]
   +get_action_dependencies() [abstract]
   +run_external_process()
-  +get_nlp_service_class() [abstract]
+  +get_dnlp_service_class() [abstract]
 }
 
 %% ==== Concrete ====
@@ -86,7 +97,7 @@ TranslationActionMixin  <.. AutomaticGoogleTranslation : mixin
 
 ---
 
-## 2. Subsequence Workflow
+## 2. Subsequence Workflow - API
 
 ### 2.1 Enabling an Action
 
@@ -153,7 +164,7 @@ Or use the public documentation endpoints:
 
 ### 2.2 Updating an Action
 
-You can update the params of an action via a PATCH to `/api/v2/assets/{uid_asset}/advanced-features/`
+You can update the params of an action via a PATCH to `/api/v2/assets/{uid_asset}/advanced-features/{uid_feature}`
 
 `params` are always additive. That means that if you PATCH a feature with a new param array, the new ones
 will be added to the existing ones. You cannot delete a param via the API.
@@ -313,14 +324,484 @@ Or use the public documentation endpoints:
 - Global Server: [API documentation](https://kf.kobotoolbox.org/api/v2/docs/?q=/api/v2/assets/{uid_asset}/data/{id}/supplement/)
 - EU Server: [API documentation](https://eu.kobotoolbox.org/api/v2/docs/?q=/api/v2/assets/{uid_asset}/data/{id}/supplement/)
 
+### 2.4 Deleting a Submission Supplement
+
+To delete a submission supplement, you need to PATCH the submission supplement
+with the appropriate null or empty value.
+
+
+#### Example: Deleting a manual transcription in English
+
+```json
+{
+  "_version": "20250820",
+  "audio_question": {
+    "manual_transcription": { "language": "en", "value": null }
+  }
+}
+```
+
+### Example: Deleting a manual transcription with `locale` (optional)
+You can optionally specify a `locale` to distinguish regional variations (e.g. en-US vs en-GB).
+
+```json
+{
+  "_version": "20250820",
+  "audio_question": {
+    "manual_transcription": { "language": "en", "locale": "en-US", "value": null }
+  }
+}
+```
+
+#### Example: Qualitative Analysis text question
+
+```json
+{
+  "_version": "20250820",
+  "text_question": {
+    "manual_qual": {
+      "uuid": "q_uuid",
+      "value": ""
+    }
+  }
+}
+```
+
+#### Example: Qualitative Analysis integer question
+
+```json
+{
+  "_version": "20250820",
+  "text_question": {
+    "manual_qual": {
+      "uuid": "q_uuid",
+      "value": null
+    }
+  }
+}
+```
+
+#### Example: Qualitative Analysis select one question
+
+```json
+{
+  "_version": "20250820",
+  "text_question": {
+    "manual_qual": {
+      "uuid": "q_uuid",
+      "value": ""
+    }
+  }
+}
+```
+
+#### Example: Qualitative Analysis select multiple question
+
+```json
+{
+  "_version": "20250820",
+  "text_question": {
+    "manual_qual": {
+      "uuid": "q_uuid",
+      "value": []
+    }
+  }
+}
+```
+
+#### Example: Qualitative Analysis tags question
+
+```json
+{
+  "_version": "20250820",
+  "text_question": {
+    "manual_qual": {
+      "uuid": "q_uuid",
+      "value": []
+    }
+  }
+}
+```
+
+### 2.5 Example user flows
+
+#### 2.5.1 Automatic transcription
+
+1. Enable automatic transcription in English
+`POST /api/v2/assets/{uid_asset}/advanced-features/`
+```json
+{
+  "question_xpath": "audio_question",
+  "action": "automatic_google_transcription",
+  "params": [{"language": "en"}]
+}
+```
+Response:
+```json
+{
+  "question_xpath":"audio_question",
+  "action":"automatic_google_transcription",
+  "params":[{"language":"en"}],
+  "uid":"qaftnQRw6ZBNbNc9n7MSWzvx"
+}
+```
+
+2. Request an automatic transcription in Spanish
+`PATCH /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
+```json
+{
+  "_version": "20250820",
+  "audio_question": {
+    "automatic_google_transcription": {
+      "language": "es"
+    }
+  }
+}
+```
+Response:
+`400 - Invalid payload`
+
+3. Enable automatic transcription in Spanish
+`PATCH /api/v2/assets/{uid_asset}/advanced-features/{uid_feature}/`
+```json
+{
+  "params": [{"language": "es"}]
+}
+```
+Response:
+```json
+{
+  "params":[{"language":"en"},{"language":"es"}],
+  "question_xpath":"audio_question",
+  "action":"automatic_google_transcription",
+  "asset":27,
+  "uid":"qaftnQRw6ZBNbNc9n7MSWzvx"
+}
+```
+
+4. Request automatic transcription in Spanish
+`PATCH /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
+```json
+{
+  "_version": "20250820",
+  "audio_question": {
+    "automatic_google_transcription": {
+      "language": "es"
+    }
+  }
+}
+```
+Response:
+```json
+{
+  "audio_question": {
+    "automatic_google_transcription": {
+      "_dateCreated":"2026-01-28T15:07:53.666960Z",
+      "_dateModified":"2026-01-28T15:07:53.666960Z",
+      "_versions": [
+        {
+          "_data": {
+            "language":"es","status":"in_progress"
+          },
+          "_dateCreated":"2026-01-28T15:07:53.666960Z",
+          "_uuid":"8df4a7f5-a05e-49a8-8620-d53dc0377535"
+        }
+      ]
+    }
+  },
+  "_version":"20250820"
+}
+```
+
+5. Poll to see if the transcription is done yet
+`GET /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
+Response:
+```json
+{
+   "audio_question":{
+      "automatic_google_transcription":{
+         "_versions":[
+            {
+               "_data":{
+                  "value":"Hola mundo",
+                  "status":"complete",
+                  "language":"es"
+               },
+               "_uuid":"9adfb1cf-0b21-4cb6-9ade-6a6bdd9cc830",
+               "_dateCreated":"2026-01-28T15:21:17.091030Z"
+            },
+           {
+             "_data": {
+               "status": "in_progress",
+               "language": "es"
+             },
+             "_uuid": "148381b2-ea51-4085-9968-acbb8608e749",
+             "_dateCreated": "2026-01-28T15:21:06.416445Z"
+           }
+         ],
+        "_version":"20250820"
+      }
+   }
+}
+```
+
+6. Accept the transcript
+`PATCH /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
+```json
+{
+  "_version": "20250820",
+  "audio_question": {
+    "automatic_google_transcription": {
+      "language": "es",
+      "accepted": true
+    }
+  }
+}
+```
+Response:
+```json
+{
+   "audio_question":{
+      "automatic_google_transcription":{
+         "_versions":[
+            {
+               "_data":{
+                  "value":"Hola mundo",
+                  "status":"complete",
+                  "language":"es"
+               },
+               "_uuid":"9adfb1cf-0b21-4cb6-9ade-6a6bdd9cc830",
+               "_dateCreated":"2026-01-28T15:21:17.091030Z",
+               "_dateAccepted":"2026-01028T15:30:34.034124Z"
+            },
+           {
+             "_data": {
+               "status": "in_progress",
+               "language": "es"
+             },
+             "_uuid": "148381b2-ea51-4085-9968-acbb8608e749",
+             "_dateCreated": "2026-01-28T15:21:06.416445Z"
+           }
+         ],
+        "_version":"20250820"
+      }
+   }
+}
+```
+
+7. Delete the transcript
+`PATCH /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
+```json
+{
+  "_version": "20250820",
+  "audio_question": {
+    "automatic_google_transcription": {
+      "language": "es",
+      "value": null
+    }
+  }
+}
+```
+Response:
+```json
+{
+   "audio_question":{
+      "automatic_google_transcription":{
+         "_versions":[
+           {
+             "_data": {
+               "language": "es",
+               "value": null,
+               "status": "deleted"
+             },
+             "_uuid":"4c227cd5-0d8b-4143-b60e-52a85e83dea6",
+             "_dateCreated":"2026-01-28T15:59:42.921507Z"
+           },
+           {
+               "_data":{
+                  "value":"Hola mundo",
+                  "status":"complete",
+                  "language":"es"
+               },
+               "_uuid":"9adfb1cf-0b21-4cb6-9ade-6a6bdd9cc830",
+               "_dateCreated":"2026-01-28T15:21:17.091030Z",
+               "_dateAccepted":"2026-01028T15:30:34.034124Z"
+           },
+           {
+             "_data": {
+               "status": "in_progress",
+               "language": "es"
+             },
+             "_uuid": "148381b2-ea51-4085-9968-acbb8608e749",
+             "_dateCreated": "2026-01-28T15:21:06.416445Z"
+           }
+         ],
+        "_version":"20250820"
+      }
+   }
+}
+```
+
+#### 2.5.2 Manual transcription/translation
+
+1. Enable manual transcription in English
+`POST /api/v2/assets/{uid_asset}/advanced-features/`
+```json
+{
+  "question_xpath": "audio_question",
+  "action": "manual_transcription",
+  "params": [{"language": "en"}]
+}
+```
+Response:
+```json
+{
+  "question_xpath":"audio_question",
+  "action":"manual_transcription",
+  "params":[{"language":"en"}],
+  "uid":"qaftnQRw6ZBNbNc9n7MSWzvx"
+}
+```
+
+2. Enable manual translation in Spanish
+`POST /api/v2/assets/{uid_asset}/advanced-features/`
+```json
+{
+  "question_xpath": "audio_question",
+  "action": "manual_translation",
+  "params": [{"language": "es"}]
+}
+```
+Response:
+```json
+{
+  "params":[{"language":"es"}],
+  "question_xpath":"audio_question",
+  "action":"manual_translation",
+  "asset":27,
+  "uid":"qafAfeIAse99SnGxi0ini"
+}
+```
+
+3. Request manual translation in Spanish
+`PATCH /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
+```json
+{
+  "_version": "20250820",
+  "audio_question": {
+    "manual_translation": {
+      "language": "es",
+      "value": "Hola mundo!"
+    }
+  }
+}
+```
+Response:
+`400 - Cannot translate without transcription`
+
+4. Add transcript in English
+`PATCH /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
+```json
+{
+  "_version": "20250820",
+  "audio_question": {
+    "manual_transcription": {
+      "language": "en",
+      "value": "Hello world!"
+    }
+  }
+}
+```
+Response:
+```json
+{
+  "audio_question": {
+    "manual_transcription": {
+       "_versions":[
+          {
+             "_data":{
+                "value":"Hello world!",
+                "language":"en"
+             },
+             "_uuid":"9cc2ac6d-4835-4935-b776-1f268c1b8e8d",
+             "_dateCreated":"2026-01-28T16:08:16.297609Z",
+             "_dateAccepted":"2026-01-28T16:08:16.297609Z"
+          }
+       ],
+       "_dateCreated":"2026-01-28T16:08:16.297609Z",
+       "_dateModified":"2026-01-28T16:08:16.297609Z"
+    }
+  },
+  "_version":"20250820"
+}
+```
+
+5. Add a translation in Spanish
+`PATCH /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
+```json
+{
+  "_version": "20250820",
+  "audio_question": {
+    "manual_translation": {
+      "language": "es",
+      "value": "Hola mundo!"
+    }
+  }
+}
+```
+Response:
+```json
+{
+   "q1":{
+      "manual_transcription":{
+        "_dateCreated":"2026-01-28T16:08:16.297609Z",
+         "_dateModified":"2026-01-28T16:08:16.297609Z",
+         "_versions":[
+            {
+               "_data":{
+                  "value":"Hello world!",
+                  "language":"en"
+               },
+               "_uuid":"9cc2ac6d-4835-4935-b776-1f268c1b8e8d",
+               "_dateCreated":"2026-01-28T16:08:16.297609Z",
+               "_dateAccepted":"2026-01-28T16:08:16.297609Z"
+            }
+         ]
+      },
+      "manual_translation":{
+         "es":{
+            "_dateCreated":"2026-01-28T16:09:12.468809Z",
+            "_dateModified":"2026-01-28T16:09:12.468809Z",
+            "_versions":[
+               {
+                  "_data":{
+                     "language":"es",
+                     "value":"Hola mundo!"
+                  },
+                  "_dateCreated":"2026-01-28T16:09:12.468809Z",
+                  "_uuid":"63f4cfba-3fd9-41ca-bc3b-d3efe7822545",
+                  "_dependency":{
+                     "_actionId":"manual_transcription",
+                     "_uuid":"9cc2ac6d-4835-4935-b776-1f268c1b8e8d"
+                  },
+                  "_dateAccepted":"2026-01-28T16:09:12.468809Z"
+               }
+            ]
+         }
+      }
+   },
+   "_version":"20250820"
+}
+```
+
 ---
 
-### 2.4 Sequence Diagram (End-to-End Flow)
+## 3 Sequence Workflow - Backend (End-to-End Flow)
 
 This section explains how the system handles a supplement from the initial
 client request, through validation and optional background retries.
 
-#### 2.4.1 Sequence Diagram – End-to-End
+### 3.1 Sequence Diagram – End-to-End
 
 > The diagram shows the synchronous request until the first response.
 
@@ -365,7 +846,7 @@ API-->>Client: 200 OK (or error)
 
 ---
 
-#### 2.4.2 Background Polling with Celery
+### 3.2 Background Polling with Celery
 
 If run_external_process receives a response like:
 
@@ -382,7 +863,7 @@ before persisting the final revision.
 
 ---
 
-#### 2.4.3 Flowchart (Logic inside `revise_data` per Action)
+### 3.3 Flowchart (Logic inside `revise_data` per Action)
 
 > This diagram shows the decision tree when validating and processing a single action payload.
 
@@ -424,7 +905,7 @@ flowchart TB
 
 ---
 
-## 3. Where Schemas Apply
+## 4. Where Schemas Apply
 
 Every action relies on a set of schemas to validate its lifecycle:
 - **`params_schema`** – defines how the action is instantiated and configured on the Asset.
@@ -434,7 +915,7 @@ Every action relies on a set of schemas to validate its lifecycle:
 
 ---
 
-### 3.1 `params_schema`
+### 4.1 `params_schema`
 
 Defined on all classes inheriting from `BaseAction`.
 It describes the configuration stored on a `QuestionAdvancedFeature` when an action is enabled.
@@ -476,7 +957,7 @@ It describes the configuration stored on a `QuestionAdvancedFeature` when an act
 
 ---
 
-### 3.2 `data_schema`
+### 4.2 `data_schema`
 
 Validates the **client payload** sent for a supplement.
 Each action has its own expected format:
@@ -516,7 +997,7 @@ Each action has its own expected format:
 
 ---
 
-### 3.3 `external_data_schema`
+### 4.3 `external_data_schema`
 
 Used only for **automatic actions** (`BaseAutomaticNLPAction`).
 It validates the **augmented payload** returned by the external service.
@@ -543,7 +1024,7 @@ It validates the **augmented payload** returned by the external service.
 
 ---
 
-### 3.4 `result_schema`
+### 4.4 `result_schema`
 
 Validates the **revision JSON** persisted in the database.
 The structure is the same for both manual and automatic actions:
@@ -665,7 +1146,7 @@ The structure is the same for both manual and automatic actions:
 
 ---
 
-### 3.5 `result_schema` with dependencies
+### 4.5 `result_schema` with dependencies
 
 Some actions depend on the result of other actions.
 For example, a **translation** action requires an existing **transcription**.
