@@ -272,7 +272,7 @@ class DataViewSet(
 
         deployment = self._get_deployment()
         original_submission = self._get_submission_by_id_or_uuid(
-            pk, request, fields=['_id', deployment.SUBMISSION_ROOT_UUID_XPATH]
+            pk, request, fields=['_id'], as_owner=True
         )
         submission_id = original_submission['_id']
 
@@ -327,7 +327,9 @@ class DataViewSet(
     )
     def enketo_edit(self, request, pk, *args, **kwargs):
 
-        submission = self._get_submission_by_id_or_uuid(pk, request, fields=['_id'])
+        submission = self._get_submission_by_id_or_uuid(
+            pk, request, fields=['_id'], as_owner=True
+        )
         submission_id = submission['_id']
 
         enketo_response = self._get_enketo_link(request, submission_id, 'edit')
@@ -366,7 +368,9 @@ class DataViewSet(
     )
     def enketo_view(self, request, pk, *args, **kwargs):
 
-        submission = self._get_submission_by_id_or_uuid(pk, request, fields=['_id'])
+        submission = self._get_submission_by_id_or_uuid(
+            pk, request, fields=['_id'], as_owner=True
+        )
         submission_id = submission['_id']
 
         enketo_response = self._get_enketo_link(request, submission_id, 'view')
@@ -507,7 +511,9 @@ class DataViewSet(
     )
     def validation_status(self, request, pk, *args, **kwargs):
         deployment = self._get_deployment()
-        submission = self._get_submission_by_id_or_uuid(pk, request, fields=['_id'])
+        submission = self._get_submission_by_id_or_uuid(
+            pk, request, fields=['_id'], as_owner=True
+        )
         submission_id = submission['_id']
 
         if request.method == 'GET':
@@ -833,12 +839,19 @@ class DataViewSet(
         request: Request,
         format_type: str = 'json',
         fields: list = None,
+        as_owner: bool = False,
     ) -> dict:
 
         deployment = self._get_deployment()
 
+
         params = {
-            'user': request.user,
+            # `as_owner` bypasses permission checks inside `get_submissions`
+            # (notably for partial submissions).
+            # Any action in this viewset calling `_get_submission_by_id_or_uuid` with
+            # `as_owner=True` must rely on the permission class to enforce access
+            # control.
+            'user': self.asset.owner if as_owner else request.user,
             'format_type': format_type,
             'request': request,
         }
