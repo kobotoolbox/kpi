@@ -29,4 +29,5 @@ CALCULATED_HASH_CACHE_EXPIRATION = 5
 SHELL_PLUS_PRINT_SQL_TRUNCATE = None
 RUNSERVER_PLUS_PRINT_SQL_TRUNCATE = None
 
-GS_BUCKET_NAME = 'kobo-transcription-test' # manually enable automated transcription/translation
+# manually enable automated transcription/translation
+GS_BUCKET_NAME = 'kobo-transcription-test'
