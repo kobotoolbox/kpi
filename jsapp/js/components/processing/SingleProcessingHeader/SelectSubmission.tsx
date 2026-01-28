@@ -11,8 +11,6 @@ import { goToProcessing } from '#/components/processing/routes.utils'
 import { addDefaultUuidPrefix } from '#/utils'
 import styles from './index.module.scss'
 
-// TODO: improve ...
-
 interface Props {
   submission?: DataResponse
   assetUid: string
@@ -27,23 +25,34 @@ interface Props {
 export default function SelectSubmission({ assetUid, submission, xpath }: Props) {
   if (!submission) return
 
-  // TODO: Ensure query handles cases where submissions have the same submission time
-  // We fetch the two submissions before and after the current submission to enable
-  // back and forth navigation, provide a count of total submissions and current
-  // position in list
   function getNeighborParams(uid: string, time: string, direction: 'next' | 'prev') {
     const isNext = direction === 'next'
     const formattedUiD = addDefaultUuidPrefix(uid)
+    const op = isNext ? '$lt' : '$gt'
+    const sortDir = isNext ? -1 : 1
+
     return {
       limit: 1,
       start: 0,
       query: JSON.stringify({
-        $expr: {
-          $ne: [{ $ifNull: ['$meta/rootUuid', '$meta/instanceID'] }, formattedUiD],
-        },
-        _submission_time: isNext ? { $lt: time } : { $gt: time },
+        $or: [
+          { _submission_time: { [op]: time } },
+          {
+            $and: [
+              { _submission_time: time },
+              {
+                $expr: {
+                  [op]: [{ $ifNull: ['$meta/rootUuid', '$meta/instanceID'] }, formattedUiD],
+                },
+              },
+            ],
+          },
+        ],
       }),
-      sort: JSON.stringify({ _submission_time: isNext ? -1 : 1 }),
+      sort: JSON.stringify({
+        _submission_time: sortDir,
+        _uuid: sortDir,
+      }),
     }
   }
 
@@ -58,13 +67,12 @@ export default function SelectSubmission({ assetUid, submission, xpath }: Props)
 
   const { _uuid, _submission_time } = submission
 
-  // Define the params directly in the component body
   const nextParams = getNeighborParams(_uuid, _submission_time, 'next')
   const queryNext = useAssetsDataList(assetUid!, nextParams, {
     query: {
       queryKey: getAssetsDataListQueryKey(assetUid, nextParams),
       enabled: !!assetUid,
-      select: useCallback(getNeighborResults, [submission._uuid]),
+      select: useCallback(getNeighborResults, [_uuid, _submission_time]),
     },
   })
 
@@ -73,7 +81,7 @@ export default function SelectSubmission({ assetUid, submission, xpath }: Props)
     query: {
       queryKey: getAssetsDataListQueryKey(assetUid, prevParams),
       enabled: !!assetUid,
-      select: useCallback(getNeighborResults, [submission._uuid]),
+      select: useCallback(getNeighborResults, [_uuid, _submission_time]),
     },
   })
 
