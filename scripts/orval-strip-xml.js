@@ -24,14 +24,12 @@ module.exports = function transformer(spec) {
         if (!content || typeof content !== 'object') continue
 
         // Detect JSON response (covers application/json and vendor +json types)
-        const hasJson = Object.keys(content).some(
-          type => type === 'application/json' || type.endsWith('+json')
-        )
+        const hasJson = Object.keys(content).some((type) => type === 'application/json' || type.endsWith('+json'))
 
         if (!hasJson) continue
 
         // Remove XML only if JSON is present
-        ;['application/xml', 'text/xml'].forEach(contentType => {
+        ;['application/xml', 'text/xml'].forEach((contentType) => {
           if (content[contentType]) delete content[contentType]
         })
       }

@@ -7,9 +7,7 @@ import requests
 from django.conf import settings
 from django.http import Http404, HttpResponseRedirect
 from django.utils.translation import gettext_lazy as t
-from drf_spectacular.types import OpenApiTypes
-from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view, \
-    OpenApiResponse, OpenApiExample
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from pymongo.errors import OperationFailure
 from rest_framework import renderers, serializers, status
 from rest_framework.decorators import action
@@ -68,6 +66,7 @@ from kpi.schema_extensions.v2.data.serializers import (
     DataBulkUpdate,
     DataBulkUpdateResponse,
     DataResponse,
+    DataResponseXML,
     DataStatusesUpdate,
     DataSupplementPayload,
     DataSupplementResponse,
@@ -75,7 +74,7 @@ from kpi.schema_extensions.v2.data.serializers import (
     DataValidationStatusUpdatePayload,
     DataValidationStatusUpdateResponse,
     EnketoEditResponse,
-    EnketoViewResponse, DataResponseXML,
+    EnketoViewResponse,
 )
 from kpi.serializers.v2.data import DataBulkActionsValidator
 from kpi.utils.log import logging
