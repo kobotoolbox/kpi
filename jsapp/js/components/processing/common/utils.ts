@@ -58,6 +58,74 @@ const TransxVersionSortFunction = (a: TransxVersionItem, b: TransxVersionItem): 
   return a._dateCreated < b._dateCreated ? 1 : -1
 }
 
+/**
+ * Returns all transcript versions (both manual and automatic) for given question
+ */
+export const getAllTranscriptVersions = (supplementData: DataSupplementResponse, xpath: string) => {
+  return [
+    ...(supplementData[xpath]?.manual_transcription?._versions || []),
+    ...(supplementData[xpath]?.automatic_google_transcription?._versions || []),
+  ]
+}
+
+/**
+ * Checks if given version item is a transcript
+ */
+export const isVersionItemTranscript = (
+  supplementData: DataSupplementResponse,
+  xpath: string,
+  transxVersion: TransxVersionItem,
+): boolean => {
+  return getAllTranscriptVersions(supplementData, xpath).some((transcript) => transcript._uuid === transxVersion._uuid)
+}
+
+/**
+ * Returns all translation versions (both manual and automatic) for given question for all languages (flat list)
+ */
+export const getAllTranslationVersions = (supplementData: DataSupplementResponse, xpath: string) => {
+  const translations = [
+    getManualTranslationsFromSupplementData(supplementData, xpath),
+    ...getAutomaticTranslationsFromSupplementData(supplementData, xpath).map(([, value]) => value),
+  ].filter(Boolean)
+
+  const allTranslationVersions: TranslationVersionItem[] = []
+
+  for (const translation of translations) {
+    if (!translation) continue
+    for (const value of Object.values(translation)) {
+      if (value?._versions) {
+        allTranslationVersions.push(...value._versions)
+      }
+    }
+  }
+  return allTranslationVersions
+}
+
+/**
+ * Returns all translation versions (both manual and automatic) for given question for given language
+ */
+export const getAllTranslationVersionsForLanguage = (
+  supplementData: DataSupplementResponse,
+  xpath: string,
+  languageCode: LanguageCode,
+) => {
+  return getAllTranslationVersions(supplementData, xpath).filter(
+    (translation) => translation._data.language === languageCode,
+  )
+}
+
+/**
+ * Checks if given version item is a translation
+ */
+export const isVersionItemTranslation = (
+  supplementData: DataSupplementResponse,
+  xpath: string,
+  transxVersion: TransxVersionItem,
+): boolean => {
+  const allTranslationVersions = getAllTranslationVersions(supplementData, xpath)
+  return allTranslationVersions.some((translation) => translation._uuid === transxVersion._uuid)
+}
+
 // Transcriptions
 
 /**

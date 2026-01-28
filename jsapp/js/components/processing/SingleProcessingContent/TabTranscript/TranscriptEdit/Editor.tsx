@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
+import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import {
   useAssetsAdvancedFeaturesCreate,
   useAssetsAdvancedFeaturesPartialUpdate,
@@ -22,6 +23,7 @@ interface Props {
   asset: AssetResponse
   questionXpath: string
   submission: DataResponse
+  supplement: DataSupplementResponse
   transcriptVersion: TranscriptVersionItem
   onBack: () => void
   onSave?: () => void
@@ -33,6 +35,7 @@ export default function Editor({
   asset,
   questionXpath,
   submission,
+  supplement,
   transcriptVersion,
   onBack,
   onSave,
@@ -155,7 +158,7 @@ export default function Editor({
   return (
     <>
       <header className={bodyStyles.transxHeader}>
-        <HeaderLanguageAndDate transcriptVersion={transcriptVersion} />
+        <HeaderLanguageAndDate transcriptVersion={transcriptVersion} supplement={supplement} xpath={questionXpath} />
 
         <nav className={bodyStyles.transxHeaderButtons}>
           <Button

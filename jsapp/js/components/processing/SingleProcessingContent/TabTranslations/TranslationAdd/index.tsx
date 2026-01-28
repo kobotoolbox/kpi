@@ -3,6 +3,7 @@ import type { _DataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem
 import type { _DataSupplementResponseOneOfManualTranslationVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualTranslationVersionsItem'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
+import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { CreateSteps } from '#/components/processing/common/types'
 import type { AssetResponse } from '#/dataInterface'
@@ -16,6 +17,7 @@ interface Props {
   asset: AssetResponse
   questionXpath: string
   submission: DataResponse
+  supplement: DataSupplementResponse
   languagesExisting: LanguageCode[]
   initialStep?: CreateSteps.Begin | CreateSteps.Language
   translationVersions: Array<
@@ -32,6 +34,7 @@ export default function TranslationAdd({
   asset,
   questionXpath,
   submission,
+  supplement,
   languagesExisting,
   initialStep,
   translationVersions,
@@ -90,6 +93,7 @@ export default function TranslationAdd({
           asset={asset}
           questionXpath={questionXpath}
           submission={submission}
+          supplement={supplement}
           onCreate={onCreate}
           onUnsavedWorkChange={onUnsavedWorkChange}
           advancedFeatures={advancedFeatures}

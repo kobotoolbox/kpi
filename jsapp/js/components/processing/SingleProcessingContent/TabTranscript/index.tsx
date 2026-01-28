@@ -32,6 +32,7 @@ export default function TranscriptTab({
         asset={asset}
         questionXpath={questionXpath}
         submission={submission}
+        supplement={supplement}
         transcriptVersion={transcriptVersion}
         onUnsavedWorkChange={onUnsavedWorkChange}
         advancedFeatures={advancedFeatures}
@@ -43,6 +44,7 @@ export default function TranscriptTab({
         asset={asset}
         questionXpath={questionXpath}
         submission={submission}
+        supplement={supplement}
         onUnsavedWorkChange={onUnsavedWorkChange}
         advancedFeatures={advancedFeatures}
       />

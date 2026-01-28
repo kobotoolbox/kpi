@@ -1,6 +1,7 @@
 import React from 'react'
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { DataResponse } from '#/api/models/dataResponse'
+import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import { useAssetsDataSupplementPartialUpdate } from '#/api/react-query/survey-data'
 import Button from '#/components/common/button'
 import { userCan } from '#/components/permissions/utils'
@@ -19,10 +20,11 @@ interface Props {
   asset: AssetResponse
   questionXpath: string
   submission: DataResponse
+  supplement: DataSupplementResponse
   onEdit: () => void
 }
 
-export default function Viewer({ asset, questionXpath, submission, transcriptVersion, onEdit }: Props) {
+export default function Viewer({ asset, questionXpath, submission, supplement, transcriptVersion, onEdit }: Props) {
   const mutateTrash = useAssetsDataSupplementPartialUpdate()
 
   const handleTrash = () => {
@@ -46,7 +48,7 @@ export default function Viewer({ asset, questionXpath, submission, transcriptVer
   return (
     <>
       <header className={bodyStyles.transxHeader}>
-        <HeaderLanguageAndDate transcriptVersion={transcriptVersion} />
+        <HeaderLanguageAndDate transcriptVersion={transcriptVersion} supplement={supplement} xpath={questionXpath} />
 
         <nav className={bodyStyles.transxHeaderButtons}>
           <Button type='secondary' size='s' startIcon='edit' onClick={onEdit} tooltip={t('Edit')} />

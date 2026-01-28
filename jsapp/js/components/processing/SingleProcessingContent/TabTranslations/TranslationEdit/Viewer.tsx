@@ -3,6 +3,7 @@ import type { _DataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem
 import type { _DataSupplementResponseOneOfManualTranslationVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualTranslationVersionsItem'
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { DataResponse } from '#/api/models/dataResponse'
+import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import { useAssetsDataSupplementPartialUpdate } from '#/api/react-query/survey-data'
 import Button from '#/components/common/button'
 import type { LanguageCode } from '#/components/languages/languagesStore'
@@ -28,6 +29,7 @@ interface Props {
   asset: AssetResponse
   questionXpath: string
   submission: DataResponse
+  supplement: DataSupplementResponse
   onEdit: () => void
   onAdd: () => void
   onChangeLanguageCode: (languageCode: LanguageCode) => void
@@ -37,6 +39,7 @@ export default function Viewer({
   asset,
   questionXpath,
   submission,
+  supplement,
   translationVersion,
   translationVersions,
   onEdit,
@@ -67,6 +70,8 @@ export default function Viewer({
     <>
       <header className={bodyStyles.transxHeader}>
         <HeaderLanguageAndDate
+          supplement={supplement}
+          xpath={questionXpath}
           translationVersion={translationVersion}
           translationVersions={translationVersions}
           onChangeLanguageCode={onChangeLanguageCode}

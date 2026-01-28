@@ -4,6 +4,7 @@ import type { _DataSupplementResponseOneOfManualTranslationVersionsItem } from '
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
+import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import {
   useAssetsAdvancedFeaturesCreate,
   useAssetsAdvancedFeaturesPartialUpdate,
@@ -23,6 +24,7 @@ interface Props {
   asset: AssetResponse
   questionXpath: string
   submission: DataResponse
+  supplement: DataSupplementResponse
   translationVersion:
     | _DataSupplementResponseOneOfManualTranslationVersionsItem
     | _DataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem
@@ -36,6 +38,7 @@ export default function Editor({
   asset,
   questionXpath,
   submission,
+  supplement,
   translationVersion,
   onBack,
   onSave,
@@ -156,7 +159,7 @@ export default function Editor({
   return (
     <>
       <header className={bodyStyles.transxHeader}>
-        <HeaderLanguageAndDate translationVersion={translationVersion} />
+        <HeaderLanguageAndDate translationVersion={translationVersion} supplement={supplement} xpath={questionXpath} />
 
         <nav className={bodyStyles.transxHeaderButtons}>
           <Button

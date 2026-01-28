@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
+import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { CreateSteps } from '#/components/processing/common/types'
 import type { AssetResponse } from '#/dataInterface'
@@ -16,6 +17,7 @@ interface Props {
   asset: AssetResponse
   questionXpath: string
   submission: DataResponse
+  supplement: DataSupplementResponse
   onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
   advancedFeatures: AdvancedFeatureResponse[]
 }
@@ -24,6 +26,7 @@ export default function TranscriptCreate({
   asset,
   questionXpath,
   submission,
+  supplement,
   onUnsavedWorkChange,
   advancedFeatures,
 }: Props) {
@@ -69,6 +72,7 @@ export default function TranscriptCreate({
           asset={asset}
           questionXpath={questionXpath}
           submission={submission}
+          supplement={supplement}
           onUnsavedWorkChange={onUnsavedWorkChange}
           advancedFeatures={advancedFeatures}
         />

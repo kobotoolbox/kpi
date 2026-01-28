@@ -2,6 +2,7 @@ import cx from 'classnames'
 import React from 'react'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
+import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import type { AssetResponse } from '#/dataInterface'
 import bodyStyles from '../../../common/processingBody.module.scss'
@@ -11,6 +12,7 @@ interface Props {
   asset: AssetResponse
   questionXpath: string
   submission: DataResponse
+  supplement: DataSupplementResponse
   languageCode: LanguageCode
   onBack: () => void
   onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
@@ -21,6 +23,7 @@ export default function StepCreateManual({
   asset,
   questionXpath,
   submission,
+  supplement,
   languageCode,
   onBack,
   onUnsavedWorkChange,
@@ -32,6 +35,7 @@ export default function StepCreateManual({
         asset={asset}
         questionXpath={questionXpath}
         submission={submission}
+        supplement={supplement}
         transcriptVersion={{
           _uuid: '',
           _dateCreated: '',

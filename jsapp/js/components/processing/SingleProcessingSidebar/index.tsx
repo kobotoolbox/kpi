@@ -82,14 +82,21 @@ export default function ProcessingSidebar({
       <div className={styles.displays}>
         {translations.map((translation) => {
           if (selectedDisplays.includes(translation._data.language)) {
-            return <TransxDisplay transxVersionItem={translation} key={translation._data.language} />
+            return (
+              <TransxDisplay
+                transxVersion={translation}
+                supplement={supplement}
+                xpath={questionXpath}
+                key={translation._data.language}
+              />
+            )
           }
 
           return null
         })}
 
         {selectedDisplays.includes(StaticDisplays.Transcript) && transcript && (
-          <TransxDisplay transxVersionItem={transcript} />
+          <TransxDisplay transxVersion={transcript} supplement={supplement} xpath={questionXpath} />
         )}
 
         {selectedDisplays.includes(StaticDisplays.Audio) && (

@@ -67,6 +67,7 @@ export default function TranslationTab({
           asset={asset}
           questionXpath={questionXpath}
           submission={submission}
+          supplement={supplement}
           languagesExisting={translationVersions.map(({ _data }) => _data.language)}
           initialStep={translationVersion ? CreateSteps.Language : CreateSteps.Begin}
           translationVersions={translationVersions}
@@ -98,6 +99,7 @@ export default function TranslationTab({
             asset={asset}
             questionXpath={questionXpath}
             submission={submission}
+            supplement={supplement}
             translationVersion={translationVersion}
             translationVersions={translationVersions}
             onEdit={() => setMode('edit')}
@@ -112,6 +114,7 @@ export default function TranslationTab({
             asset={asset}
             questionXpath={questionXpath}
             submission={submission}
+            supplement={supplement}
             translationVersion={translationVersions.find(({ _data }) => _data.language === languageCode)!}
             onBack={() => setMode('view')}
             onSave={() => setMode('view')}

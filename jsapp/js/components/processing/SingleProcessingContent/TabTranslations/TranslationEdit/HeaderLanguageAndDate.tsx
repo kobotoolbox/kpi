@@ -1,7 +1,5 @@
 import React from 'react'
-
-import type { _DataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem } from '#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem'
-import type { _DataSupplementResponseOneOfManualTranslationVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualTranslationVersionsItem'
+import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { AsyncLanguageDisplayLabel } from '#/components/languages/languagesUtils'
 import type { TranslationVersionItem } from '#/components/processing/common/types'
@@ -11,12 +9,16 @@ import TransxSelector from '../../../components/transxSelector'
 import TransxDate from '../../components/transxDate'
 
 interface Props {
+  supplement: DataSupplementResponse
+  xpath: string
   translationVersion: TranslationVersionItem
   translationVersions?: TranslationVersionItem[]
   onChangeLanguageCode?: (languageCode: LanguageCode) => void
 }
 
 export default function HeaderLanguageAndDate({
+  supplement,
+  xpath,
   translationVersion,
   translationVersions,
   onChangeLanguageCode,
@@ -42,8 +44,7 @@ export default function HeaderLanguageAndDate({
           <AsyncLanguageDisplayLabel code={translationVersion._data.language} />
         </label>
       )}
-      {/* Note: there is no `_dateModified` here, because modifying through API is just creating a new version */}
-      {translationVersion._dateCreated !== '' && <TransxDate dateCreated={translationVersion._dateCreated} />}
+      <TransxDate transxVersion={translationVersion} supplement={supplement} xpath={xpath} />
     </React.Fragment>
   )
 }

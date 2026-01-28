@@ -1,5 +1,6 @@
 import React from 'react'
 
+import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import { AsyncLanguageDisplayLabel } from '#/components/languages/languagesUtils'
 import TransxDate from '../SingleProcessingContent/components/transxDate'
 import bodyStyles from '../common/processingBody.module.scss'
@@ -7,11 +8,13 @@ import type { TranscriptVersionItemWithValue, TransxVersionItem } from '../commo
 import styles from './transxDisplay.module.scss'
 
 interface TransxDisplayProps {
-  transxVersionItem: TransxVersionItem
+  transxVersion: TransxVersionItem
+  supplement: DataSupplementResponse
+  xpath: string
 }
 
-export default function TransxDisplay({ transxVersionItem }: TransxDisplayProps) {
-  const { language, value } = transxVersionItem._data as TranscriptVersionItemWithValue
+export default function TransxDisplay({ transxVersion, supplement, xpath }: TransxDisplayProps) {
+  const { language, value } = transxVersion._data as TranscriptVersionItemWithValue
 
   return (
     <section className={styles.root}>
@@ -20,7 +23,7 @@ export default function TransxDisplay({ transxVersionItem }: TransxDisplayProps)
           {language && (
             <>
               <AsyncLanguageDisplayLabel code={language} />
-              <TransxDate dateCreated={transxVersionItem._dateCreated} />
+              <TransxDate transxVersion={transxVersion} supplement={supplement} xpath={xpath} />
             </>
           )}
         </header>
