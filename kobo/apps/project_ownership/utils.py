@@ -30,10 +30,7 @@ def create_invite(
     TransferStatus = apps.get_model('project_ownership', 'TransferStatus')
 
     with transaction.atomic():
-        invite = InviteModel(sender=sender, recipient=recipient)
-        if invite.auto_accept_invites:
-            invite.status = InviteStatusChoices.ACCEPTED
-        invite.save()
+        invite = InviteModel.objects.create(sender=sender, recipient=recipient)
         transfers = Transfer.objects.bulk_create(
             [Transfer(invite=invite, asset=asset) for asset in assets]
         )
@@ -48,7 +45,9 @@ def create_invite(
                 )
         TransferStatus.objects.bulk_create(statuses)
 
-    if not invite.auto_accept_invites:
+    if invite.auto_accept_invites:
+        update_invite(invite, status=InviteStatusChoices.ACCEPTED)
+    else:
         invite.send_invite_email()
 
     return invite

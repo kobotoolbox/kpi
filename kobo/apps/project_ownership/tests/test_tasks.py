@@ -9,6 +9,7 @@ from freezegun import freeze_time
 from model_bakery import baker
 
 from kobo.apps.project_ownership.models.choices import InviteStatusChoices
+from kobo.apps.project_ownership.models.invite import InviteType
 from kpi.models import Asset
 from ...kobo_auth.shortcuts import User
 from ..models import (
@@ -61,6 +62,28 @@ class ProjectOwnershipTasksTestCase(TestCase):
         # Verification: Neither the main transfer nor subtasks should run
         patched_transfer.assert_not_called()
         patched_task.assert_not_called()
+
+    def test_task_restarter_restarts_pending_org_transfers(self):
+        resume_cutoff = timezone.now() - timedelta(minutes=15)
+        with freeze_time(resume_cutoff):
+            # Use the base models.Model.save() approach to bypass
+            # manager .create() logic
+            invite = Invite(
+                sender=self.someuser,
+                recipient=self.anotheruser,
+                invite_type=InviteType.ORG_MEMBERSHIP,
+                status=InviteStatusChoices.PENDING,
+            )
+            invite.save()
+
+            _ = Transfer.objects.create(invite=invite, asset=self.asset)
+
+        with patch.object(Transfer, 'transfer_project') as patched_transfer:
+            task_restarter()
+
+        # This SHOULD be called because the 'excluded_pending_user_ownership_invites'
+        # filter specifically only ignores USER_OWNERSHIP_TRANSFER + PENDING.
+        patched_transfer.assert_called_once()
 
     def test_task_restarter_restarts_accepted_pending_transfers(self):
         # we don't count pending transfers as "stuck", so they can be created before
