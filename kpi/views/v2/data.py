@@ -1,6 +1,5 @@
 import copy
 import json
-import re
 
 import requests
 from django.conf import settings
@@ -101,10 +100,10 @@ from kpi.utils.xml import (
         parameters=[
             OpenApiParameter(
                 name='id',
-                type=int,
+                type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
-                description='ID of the data',
+                description='Integer ID (PK) or rootUuid',
             ),
         ],
     ),
@@ -120,10 +119,10 @@ from kpi.utils.xml import (
         parameters=[
             OpenApiParameter(
                 name='id',
-                type=int,
+                type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
-                description='ID of the data',
+                description='Integer ID (PK) or rootUuid',
             ),
         ],
     ),
@@ -149,10 +148,10 @@ from kpi.utils.xml import (
         parameters=[
             OpenApiParameter(
                 name='id',
-                type=int,
+                type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
-                description='ID of the data',
+                description='Integer ID (PK) or rootUuid',
             ),
         ],
     ),
@@ -311,10 +310,10 @@ class DataViewSet(
         parameters=[
             OpenApiParameter(
                 name='id',
-                type=int,
+                type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
-                description='ID of the data',
+                description='Integer ID (PK) or rootUuid',
             ),
         ],
     )
@@ -352,10 +351,10 @@ class DataViewSet(
         parameters=[
             OpenApiParameter(
                 name='id',
-                type=int,
+                type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
-                description='ID of the data',
+                description='Integer ID (PK) or rootUuid',
             ),
         ],
     )
@@ -459,10 +458,10 @@ class DataViewSet(
         parameters=[
             OpenApiParameter(
                 name='id',
-                type=int,
+                type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
-                description='ID of the data',
+                description='Integer ID (PK) or rootUuid',
             ),
         ],
     )
@@ -476,10 +475,10 @@ class DataViewSet(
         parameters=[
             OpenApiParameter(
                 name='id',
-                type=int,
+                type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
-                description='ID of the data',
+                description='Integer ID (PK) or rootUuid',
             ),
         ],
     )
@@ -496,10 +495,10 @@ class DataViewSet(
         parameters=[
             OpenApiParameter(
                 name='id',
-                type=int,
+                type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
-                description='ID of the data',
+                description='Integer ID (PK) or rootUuid',
             ),
         ],
     )
@@ -832,7 +831,6 @@ class DataViewSet(
             }
         )
 
-
     def _get_submission_by_id_or_uuid(
         self,
         submission_id_or_uuid,
@@ -843,7 +841,6 @@ class DataViewSet(
     ) -> dict:
 
         deployment = self._get_deployment()
-
 
         params = {
             # `as_owner` bypasses permission checks inside `get_submissions`

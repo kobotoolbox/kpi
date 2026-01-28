@@ -1,22 +1,28 @@
 ## Get a specific submission
-It is also possible to specify the format.
 
-`id` can be the primary key of the submission or its `uuid`.
-Please note that using the `uuid` may match **several** submissions, only
+`{id}` can be:
+
+- The primary key of the submission
+- Its `_uuid` <sup>1</sup>
+- Its `rootUuid` (without "uuid:" prefix)
+
+<sup>1</sup> Please note that using the `_uuid` may match **several** submissions, only
 the first match will be returned.
 
+
+It is also possible to specify the format.
+
 ```shell
-curl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid}/data/{id}.xml
-curl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid}/data/{id}.json
+curl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid_asset}/data/{id}.xml
+curl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid_asset}/data/{id}.json
 ```
 
 or
 
 ```shell
-curl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid}/data/{id}/?format=xml
-curl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid}/data/{id}/?format=json
+curl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid_asset}/data/{id}/?format=xml
+curl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid_asset}/data/{id}/?format=json
 ```
-
 
 ### ⚠️ Note: DRF-Spectacular Limitation
 

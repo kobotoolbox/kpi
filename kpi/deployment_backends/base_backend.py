@@ -21,8 +21,10 @@ from rest_framework.pagination import _positive_int as positive_int
 from shortuuid import ShortUUID
 
 from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
-from kobo.apps.openrosa.apps.logger.xform_instance_parser import add_uuid_prefix, \
-    remove_uuid_prefix
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
+    add_uuid_prefix,
+    remove_uuid_prefix,
+)
 from kobo.apps.openrosa.libs.utils.common_tags import META_INSTANCE_ID, META_ROOT_UUID
 from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_handler
 from kpi.constants import (
