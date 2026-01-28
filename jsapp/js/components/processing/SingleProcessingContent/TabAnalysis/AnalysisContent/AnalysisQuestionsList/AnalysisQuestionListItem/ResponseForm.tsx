@@ -81,7 +81,7 @@ export default function ResponseForm({ qaQuestion, children, onClear, disabled, 
 
         {onClear && (
           <ButtonNew variant='light' size='sm' onClick={onClear}>
-            {t('Clear selection')}
+            {t('Clear')}
           </ButtonNew>
         )}
 
