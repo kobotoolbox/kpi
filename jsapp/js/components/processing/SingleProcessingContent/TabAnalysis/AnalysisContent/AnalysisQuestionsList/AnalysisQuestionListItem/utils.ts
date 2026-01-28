@@ -61,28 +61,7 @@ export const useAssetsDataSupplementPartialUpdateQaHelper = (
   qaQuestion: ResponseQualActionParams,
   options: Parameters<typeof useAssetsDataSupplementPartialUpdate>[0] = {},
 ) => {
-  const mutationSave = useAssetsDataSupplementPartialUpdate({
-    mutation: {
-      onSuccess: (data) => {
-        // Update the cache directly instead of invalidating to prevent flickering
-        queryClient.setQueryData(
-          getAssetsDataSupplementRetrieveQueryKey(asset.uid, removeDefaultUuidPrefix(submission['meta/rootUuid'])),
-          data,
-        )
-      },
-      onError: () => {
-        // On error, invalidate to refetch and ensure we have the correct server state
-        queryClient.invalidateQueries({
-          queryKey: getAssetsDataSupplementRetrieveQueryKey(
-            asset.uid,
-            removeDefaultUuidPrefix(submission['meta/rootUuid']),
-          ),
-        })
-      },
-      ...options?.mutation,
-    },
-    request: options?.request,
-  })
+  const mutationSave = useAssetsDataSupplementPartialUpdate(options)
 
   const handleSave = (value: PatchedDataSupplementPayloadOneOfManualQual['value']) => {
     return mutationSave.mutateAsync({
