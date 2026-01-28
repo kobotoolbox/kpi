@@ -593,7 +593,7 @@ class DataViewSet(
             )
         except jsonschema.exceptions.ValidationError:
             # TODO: more descriptive errors
-            raise serializers.ValidationError({'detail': f'Invalid payload'})
+            raise serializers.ValidationError({'detail': 'Invalid payload'})
         except TranscriptionNotFound:
             raise serializers.ValidationError(
                 {'detail': 'Cannot translate without transcription'}
