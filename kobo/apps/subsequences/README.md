@@ -449,6 +449,7 @@ Response:
 ```
 Response:
 `400 - Invalid payload`
+
 3. Enable automatic transcription in Spanish
 `PATCH /api/v2/assets/{uid_asset}/advanced-features/{uid_feature}/`
 ```json
@@ -466,6 +467,7 @@ Response:
   "uid":"qaftnQRw6ZBNbNc9n7MSWzvx"
 }
 ```
+
 4. Request automatic transcription in Spanish
 `PATCH /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
 ```json
@@ -499,6 +501,7 @@ Response:
   "_version":"20250820"
 }
 ```
+
 5. Poll to see if the transcription is done yet
 `GET /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
 Response:
@@ -575,8 +578,7 @@ Response:
 }
 ```
 
-
-6. Delete the transcript
+7. Delete the transcript
 `PATCH /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
 ```json
 {
@@ -590,7 +592,6 @@ Response:
 }
 ```
 Response:
-
 ```json
 {
    "audio_question":{
@@ -630,7 +631,7 @@ Response:
 }
 ```
 
-#### 2.5.1 Manual transcription/translation
+#### 2.5.2 Manual transcription/translation
 
 1. Enable manual transcription in English
 `POST /api/v2/assets/{uid_asset}/advanced-features/`
@@ -650,7 +651,8 @@ Response:
   "uid":"qaftnQRw6ZBNbNc9n7MSWzvx"
 }
 ```
-3. Enable manual translation in Spanish
+
+2. Enable manual translation in Spanish
 `POST /api/v2/assets/{uid_asset}/advanced-features/`
 ```json
 {
@@ -669,7 +671,8 @@ Response:
   "uid":"qafAfeIAse99SnGxi0ini"
 }
 ```
-4. Request manual translation in Spanish
+
+3. Request manual translation in Spanish
 `PATCH /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
 ```json
 {
@@ -684,7 +687,8 @@ Response:
 ```
 Response:
 `400 - Cannot translate without transcription`
-5. Add transcript in English
+
+4. Add transcript in English
 `PATCH /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
 ```json
 {
@@ -697,7 +701,7 @@ Response:
   }
 }
 ```
-
+Response:
 ```json
 {
   "audio_question": {
@@ -721,6 +725,7 @@ Response:
   "_version":"20250820"
 }
 ```
+
 5. Add a translation in Spanish
 `PATCH /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
 ```json
@@ -778,7 +783,6 @@ Response:
    "_version":"20250820"
 }
 ```
-
 
 ---
 
