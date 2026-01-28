@@ -14,7 +14,7 @@ import type { _DataResponseGeolocationItem } from './_dataResponseGeolocationIte
 import type { _DataResponseSupplementalDetails } from './_dataResponseSupplementalDetails'
 import type { _DataResponseValidationStatus } from './_dataResponseValidationStatus'
 
-export type DataResponse = {
+export interface DataResponse {
   _id: number
   'formhub/uuid'?: string
   __version__: string
@@ -36,4 +36,4 @@ export type DataResponse = {
   _validation_status: _DataResponseValidationStatus
   _submitted_by: string
   _supplementalDetails?: _DataResponseSupplementalDetails
-} & Record<string, unknown> // Hack. TODO: handle the type that it isn't.
+}

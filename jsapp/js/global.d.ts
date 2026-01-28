@@ -268,3 +268,33 @@ interface Window {
   isStorybook?: boolean
   expect?: Function
 }
+
+/**
+ * Temporary workaround: remove after merging DEV-1573
+ */
+declare module '#/api/models/dataResponse' {
+  export interface DataResponse {
+    _id: number
+    'formhub/uuid'?: string
+    __version__: string
+    'meta/instanceID': string
+    'meta/rootUuid': string
+    'meta/deprecatedID'?: string
+    _xform_id_string: string
+    _uuid: string
+    _attachments: _DataResponseAttachmentsItem[]
+    _status: string
+    /**
+     * @minItems 2
+     * @maxItems 2
+     */
+    _geolocation: _DataResponseGeolocationItem[]
+    _submission_time: string
+    _tags: string[]
+    _notes: string[]
+    _validation_status: _DataResponseValidationStatus
+    _submitted_by: string
+    _supplementalDetails?: _DataResponseSupplementalDetails
+    [questionXpath: string]: any
+  }
+}

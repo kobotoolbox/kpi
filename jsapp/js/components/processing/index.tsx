@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 
 import DocumentTitle from 'react-document-title'
+import type { DataResponse } from '#/api/models/dataResponse'
 import {
   useAssetsAdvancedFeaturesList,
   useAssetsDataList,
@@ -54,7 +55,7 @@ export default function SingleProcessingRoute({ params: routeParams }: { params:
     }),
   } as any) // TODO OpenAPI: add query prop to the schema. See https://linear.app/kobotoolbox/issue/DEV-1626
 
-  const submission =
+  const submission: DataResponse | undefined =
     querySubmission.data?.status === 200 && querySubmission.data.data.results.length > 0
       ? querySubmission.data.data.results[0]
       : undefined
