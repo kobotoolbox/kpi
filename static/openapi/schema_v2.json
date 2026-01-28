@@ -1981,7 +1981,7 @@
         "/api/v2/assets/{uid_asset}/data/{id}/": {
             "get": {
                 "operationId": "api_v2_assets_data_retrieve",
-                "description": "## Get a specific submission\nIt is also possible to specify the format.\n\n`id` can be the primary key of the submission or its `uuid`.\nPlease note that using the `uuid` may match **several** submissions, only\nthe first match will be returned.\n\n```shell\ncurl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid}/data/{id}.xml\ncurl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid}/data/{id}.json\n```\n\nor\n\n```shell\ncurl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid}/data/{id}/?format=xml\ncurl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid}/data/{id}/?format=json\n```\n\n\n### ⚠️ Note: DRF-Spectacular Limitation\n\nDue to limitations in **DRF-Spectacular**, the `ACCEPT` headers do not sync properly with the request. As a result, all responses will default to `application/json`, regardless of the specified format.\n\nThis means that while alternative formats (like XML) are technically supported and will work via command-line tools (e.g., `curl`), **they will not work** when trying out the endpoint directly from the documentation page.\n\nWe’ve still included the header to show supported formats, but keep in mind:\n**Only `application/json` will be used in the docs UI.**\n",
+                "description": "## Get a specific submission\n\n`{id}` can be:\n\n- The primary key of the submission\n- Its `_uuid` <sup>1</sup>\n- Its `rootUuid` (without \"uuid:\" prefix)\n\n<sup>1</sup> Please note that using the `_uuid` may match **several** submissions, only\nthe first match will be returned.\n\n\nIt is also possible to specify the format.\n\n```shell\ncurl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid_asset}/data/{id}.xml\ncurl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid_asset}/data/{id}.json\n```\n\nor\n\n```shell\ncurl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid_asset}/data/{id}/?format=xml\ncurl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid_asset}/data/{id}/?format=json\n```\n\n### ⚠️ Note: DRF-Spectacular Limitation\n\nDue to limitations in **DRF-Spectacular**, the `ACCEPT` headers do not sync properly with the request. As a result, all responses will default to `application/json`, regardless of the specified format.\n\nThis means that while alternative formats (like XML) are technically supported and will work via command-line tools (e.g., `curl`), **they will not work** when trying out the endpoint directly from the documentation page.\n\nWe’ve still included the header to show supported formats, but keep in mind:\n**Only `application/json` will be used in the docs UI.**\n",
                 "parameters": [
                     {
                         "in": "query",
@@ -1999,9 +1999,9 @@
                         "in": "path",
                         "name": "id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         },
-                        "description": "ID of the data",
+                        "description": "Integer ID (PK) or rootUuid",
                         "required": true
                     },
                     {
@@ -2069,9 +2069,9 @@
                         "in": "path",
                         "name": "id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         },
-                        "description": "ID of the data",
+                        "description": "Integer ID (PK) or rootUuid",
                         "required": true
                     },
                     {
@@ -2123,15 +2123,15 @@
         "/api/v2/assets/{uid_asset}/data/{id}/duplicate/": {
             "post": {
                 "operationId": "api_v2_assets_data_duplicate_create",
-                "description": "## Duplicate submission\nDuplicates the data of a submission\n",
+                "description": "## Duplicate submission\n\nDuplicates the data of a submission\n\n`{id}` can be:\n\n- The primary key of the submission\n- Its `_uuid` <sup>1</sup>\n- Its `rootUuid` (without \"uuid:\" prefix)\n\n<sup>1</sup> Please note that using the `_uuid` may match **several** submissions, only\nthe first match will be returned.\n",
                 "parameters": [
                     {
                         "in": "path",
                         "name": "id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         },
-                        "description": "ID of the data",
+                        "description": "Integer ID (PK) or rootUuid",
                         "required": true
                     },
                     {
@@ -2200,15 +2200,15 @@
         "/api/v2/assets/{uid_asset}/data/{id}/edit/": {
             "get": {
                 "operationId": "api_v2_assets_data_edit_retrieve",
-                "description": "## Get submission url of enketo in edit mode\n\nNote: Some variation of this url exists:\n\n`/api/v2/assets/{uid_asset}/data/{id}/edit/`: deprecated, use the next one.\n\n`/api/v2/assets/{uid_asset}/data/{id}/enketo/edit/`: return the url of the enketo submission (as seen in the response example).\n\n`/api/v2/assets/{uid_asset}/data/{id}/enketo/redirect/edit/`: redirect to the enketo url submission with a 302 HTTP code.\n",
+                "description": "## Get submission url of enketo in edit mode\n\n`{id}` can be:\n\n- The primary key of the submission\n- Its `_uuid` <sup>1</sup>\n- Its `rootUuid` (without \"uuid:\" prefix)\n\n<sup>1</sup> Please note that using the `_uuid` may match **several** submissions, only\nthe first match will be returned.\n\nNote: Some variation of this url exists:\n\n`/api/v2/assets/{uid_asset}/data/{id}/edit/`: deprecated, use the next one.\n\n`/api/v2/assets/{uid_asset}/data/{id}/enketo/edit/`: return the url of the enketo submission (as seen in the response example).\n\n`/api/v2/assets/{uid_asset}/data/{id}/enketo/redirect/edit/`: redirect to the enketo url submission with a 302 HTTP code.\n",
                 "parameters": [
                     {
                         "in": "path",
                         "name": "id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         },
-                        "description": "ID of the data",
+                        "description": "Integer ID (PK) or rootUuid",
                         "required": true
                     },
                     {
@@ -2285,15 +2285,15 @@
         "/api/v2/assets/{uid_asset}/data/{id}/enketo/edit/": {
             "get": {
                 "operationId": "api_v2_assets_data_enketo_edit_retrieve",
-                "description": "## Get submission url of enketo in edit mode\n\nNote: Some variation of this url exists:\n\n`/api/v2/assets/{uid_asset}/data/{id}/edit/`: deprecated, use the next one.\n\n`/api/v2/assets/{uid_asset}/data/{id}/enketo/edit/`: return the url of the enketo submission (as seen in the response example).\n\n`/api/v2/assets/{uid_asset}/data/{id}/enketo/redirect/edit/`: redirect to the enketo url submission with a 302 HTTP code.\n",
+                "description": "## Get submission url of enketo in edit mode\n\n`{id}` can be:\n\n- The primary key of the submission\n- Its `_uuid` <sup>1</sup>\n- Its `rootUuid` (without \"uuid:\" prefix)\n\n<sup>1</sup> Please note that using the `_uuid` may match **several** submissions, only\nthe first match will be returned.\n\nNote: Some variation of this url exists:\n\n`/api/v2/assets/{uid_asset}/data/{id}/edit/`: deprecated, use the next one.\n\n`/api/v2/assets/{uid_asset}/data/{id}/enketo/edit/`: return the url of the enketo submission (as seen in the response example).\n\n`/api/v2/assets/{uid_asset}/data/{id}/enketo/redirect/edit/`: redirect to the enketo url submission with a 302 HTTP code.\n",
                 "parameters": [
                     {
                         "in": "path",
                         "name": "id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         },
-                        "description": "ID of the data",
+                        "description": "Integer ID (PK) or rootUuid",
                         "required": true
                     },
                     {
@@ -2370,15 +2370,15 @@
         "/api/v2/assets/{uid_asset}/data/{id}/enketo/redirect/edit/": {
             "get": {
                 "operationId": "api_v2_assets_data_enketo_redirect_edit_retrieve",
-                "description": "## Get submission url of enketo in edit mode\n\nNote: Some variation of this url exists:\n\n`/api/v2/assets/{uid_asset}/data/{id}/edit/`: deprecated, use the next one.\n\n`/api/v2/assets/{uid_asset}/data/{id}/enketo/edit/`: return the url of the enketo submission (as seen in the response example).\n\n`/api/v2/assets/{uid_asset}/data/{id}/enketo/redirect/edit/`: redirect to the enketo url submission with a 302 HTTP code.\n",
+                "description": "## Get submission url of enketo in edit mode\n\n`{id}` can be:\n\n- The primary key of the submission\n- Its `_uuid` <sup>1</sup>\n- Its `rootUuid` (without \"uuid:\" prefix)\n\n<sup>1</sup> Please note that using the `_uuid` may match **several** submissions, only\nthe first match will be returned.\n\nNote: Some variation of this url exists:\n\n`/api/v2/assets/{uid_asset}/data/{id}/edit/`: deprecated, use the next one.\n\n`/api/v2/assets/{uid_asset}/data/{id}/enketo/edit/`: return the url of the enketo submission (as seen in the response example).\n\n`/api/v2/assets/{uid_asset}/data/{id}/enketo/redirect/edit/`: redirect to the enketo url submission with a 302 HTTP code.\n",
                 "parameters": [
                     {
                         "in": "path",
                         "name": "id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         },
-                        "description": "ID of the data",
+                        "description": "Integer ID (PK) or rootUuid",
                         "required": true
                     },
                     {
@@ -2455,15 +2455,15 @@
         "/api/v2/assets/{uid_asset}/data/{id}/enketo/redirect/view/": {
             "get": {
                 "operationId": "api_v2_assets_data_enketo_redirect_view_retrieve",
-                "description": "## Get submission url of enketo in preview mode\n\nNote: Some variation of this url exists:\n\n`/api/v2/assets/{uid_asset}/data/{id}/enketo/view/`: return the url of the enketo submission (as seen in the response example).\n\n`/api/v2/assets/{uid_asset}/data/{id}/enketo/redirect/view/`: redirect to the enketo url submission with a 302 code.\n",
+                "description": "## Get submission url of enketo in preview mode\n\n`{id}` can be:\n\n- The primary key of the submission\n- Its `_uuid` <sup>1</sup>\n- Its `rootUuid` (without \"uuid:\" prefix)\n\n<sup>1</sup> Please note that using the `_uuid` may match **several** submissions, only\nthe first match will be returned.\n\nNote: Some variation of this url exists:\n\n`/api/v2/assets/{uid_asset}/data/{id}/enketo/view/`: return the url of the enketo submission (as seen in the response example).\n\n`/api/v2/assets/{uid_asset}/data/{id}/enketo/redirect/view/`: redirect to the enketo url submission with a 302 code.\n",
                 "parameters": [
                     {
                         "in": "path",
                         "name": "id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         },
-                        "description": "ID of the data",
+                        "description": "Integer ID (PK) or rootUuid",
                         "required": true
                     },
                     {
@@ -2540,15 +2540,15 @@
         "/api/v2/assets/{uid_asset}/data/{id}/enketo/view/": {
             "get": {
                 "operationId": "api_v2_assets_data_enketo_view_retrieve",
-                "description": "## Get submission url of enketo in preview mode\n\nNote: Some variation of this url exists:\n\n`/api/v2/assets/{uid_asset}/data/{id}/enketo/view/`: return the url of the enketo submission (as seen in the response example).\n\n`/api/v2/assets/{uid_asset}/data/{id}/enketo/redirect/view/`: redirect to the enketo url submission with a 302 code.\n",
+                "description": "## Get submission url of enketo in preview mode\n\n`{id}` can be:\n\n- The primary key of the submission\n- Its `_uuid` <sup>1</sup>\n- Its `rootUuid` (without \"uuid:\" prefix)\n\n<sup>1</sup> Please note that using the `_uuid` may match **several** submissions, only\nthe first match will be returned.\n\nNote: Some variation of this url exists:\n\n`/api/v2/assets/{uid_asset}/data/{id}/enketo/view/`: return the url of the enketo submission (as seen in the response example).\n\n`/api/v2/assets/{uid_asset}/data/{id}/enketo/redirect/view/`: redirect to the enketo url submission with a 302 code.\n",
                 "parameters": [
                     {
                         "in": "path",
                         "name": "id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         },
-                        "description": "ID of the data",
+                        "description": "Integer ID (PK) or rootUuid",
                         "required": true
                     },
                     {
@@ -2631,9 +2631,9 @@
                         "in": "path",
                         "name": "id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         },
-                        "description": "ID of the data",
+                        "description": "Integer ID (PK) or rootUuid",
                         "required": true
                     },
                     {
@@ -2696,9 +2696,9 @@
                         "in": "path",
                         "name": "id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         },
-                        "description": "ID of the data",
+                        "description": "Integer ID (PK) or rootUuid",
                         "required": true
                     },
                     {
@@ -2770,9 +2770,9 @@
                         "in": "path",
                         "name": "id",
                         "schema": {
-                            "type": "integer"
+                            "type": "string"
                         },
-                        "description": "ID of the data",
+                        "description": "Integer ID (PK) or rootUuid",
                         "required": true
                     },
                     {
