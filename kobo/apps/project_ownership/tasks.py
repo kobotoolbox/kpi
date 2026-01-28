@@ -12,6 +12,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as t
 
+from kobo.apps.project_ownership.models.invite import InviteType
 from kobo.celery import celery_app
 from kpi.utils.mailer import EmailMessage, Mailer
 from .exceptions import AsyncTaskException, TransferStillPendingException
@@ -281,16 +282,27 @@ def task_restarter():
         status=TransferStatusChoices.IN_PROGRESS,
     ) & ~Q(status_type=TransferStatusTypeChoices.GLOBAL)
 
+    excluded_pending_user_ownership_invites = Q(
+        transfer__invite__invite_type=InviteType.USER_OWNERSHIP_TRANSFER,
+        transfer__invite__status=InviteStatusChoices.PENDING,
+    )
+
     # Don't start pending attachment tasks independently.
     # The submission task should take care of it
-    still_pending_tasks = Q(
-        status=TransferStatusChoices.PENDING,
-        date_modified__lte=resume_threshold,
-    ) & ~Q(status_type=TransferStatusTypeChoices.ATTACHMENTS)
+    still_pending_tasks = (
+        Q(
+            status=TransferStatusChoices.PENDING,
+            date_modified__lte=resume_threshold,
+        )
+        & ~Q(status_type=TransferStatusTypeChoices.ATTACHMENTS) # noqa
+        & ~excluded_pending_user_ownership_invites # noqa
+    )
 
-    for transfer_status in TransferStatus.objects.filter(
+    queryset = TransferStatus.objects.filter(
         stopped_in_progress_tasks | still_pending_tasks
-    ).order_by('date_modified'):
+    ).order_by('date_modified')
+
+    for transfer_status in queryset:
         transfer_id = transfer_status.transfer_id
         if transfer_status.status_type == TransferStatusTypeChoices.GLOBAL:
             full_transfer_pks.add(transfer_id)
