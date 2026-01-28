@@ -7,7 +7,6 @@ import type { DataResponse } from '#/api/models/dataResponse'
 import { queryClient } from '#/api/queryClient'
 import {
   getAssetsAdvancedFeaturesListQueryKey,
-  getAssetsDataSupplementRetrieveQueryKey,
   useAssetsAdvancedFeaturesCreate,
   useAssetsAdvancedFeaturesPartialUpdate,
   useAssetsDataSupplementPartialUpdate,
@@ -59,29 +58,7 @@ export default function Editor({
     (af) => af.action === ActionEnum.manual_translation && af.question_xpath === questionXpath,
   )
 
-  const patch = useAssetsDataSupplementPartialUpdate({
-    mutation: {
-      onSettled: () => {
-        queryClient.invalidateQueries({
-          queryKey: getAssetsDataSupplementRetrieveQueryKey(
-            asset.uid,
-            removeDefaultUuidPrefix(submission['meta/rootUuid']),
-          ),
-        })
-      },
-      onSuccess: (newSupplementData) => {
-        // Update the stored data immediately. This helps out with the flow of creating new translation, ensuring the
-        // newly created translation exists in `supplement` data at `SingleProcessingRoute` that is being passed down to
-        // `TranslationTab` and allowing newly created translation to be preselected immediately after creation.
-        queryClient.setQueryData(
-          getAssetsDataSupplementRetrieveQueryKey(asset.uid, removeDefaultUuidPrefix(submission['meta/rootUuid'])),
-          () => {
-            return newSupplementData
-          },
-        )
-      },
-    },
-  })
+  const patch = useAssetsDataSupplementPartialUpdate()
 
   const mutationCreateAF = useAssetsAdvancedFeaturesCreate({
     mutation: {

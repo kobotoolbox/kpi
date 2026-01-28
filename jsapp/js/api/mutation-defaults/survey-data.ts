@@ -6,8 +6,12 @@ import {
 import { recordEntries, recordKeys } from '#/utils'
 import { ActionEnum } from '../models/actionEnum'
 import type { DataSupplementResponseOneOfManualQual } from '../models/dataSupplementResponseOneOfManualQual'
+import type { DataSupplementResponseOneOfManualTranscription } from '../models/dataSupplementResponseOneOfManualTranscription'
+import type { DataSupplementResponseOneOfManualTranslation } from '../models/dataSupplementResponseOneOfManualTranslation'
 import type { PatchedDataSupplementPayloadOneOf } from '../models/patchedDataSupplementPayloadOneOf'
 import type { PatchedDataSupplementPayloadOneOfManualQual } from '../models/patchedDataSupplementPayloadOneOfManualQual'
+import type { PatchedDataSupplementPayloadOneOfManualTranscription } from '../models/patchedDataSupplementPayloadOneOfManualTranscription'
+import type { PatchedDataSupplementPayloadOneOfManualTranslation } from '../models/patchedDataSupplementPayloadOneOfManualTranslation'
 import { queryClient } from '../queryClient'
 import { optimisticallyUpdateItem } from './common'
 
@@ -66,13 +70,90 @@ queryClient.setMutationDefaults(
               snapshots: [itemSnapshot],
             }
           }
-          case ActionEnum.automatic_google_transcription:
+          case ActionEnum.manual_transcription: {
+            const itemSnapshot = await optimisticallyUpdateItem<assetsDataSupplementRetrieveResponse>(
+              getAssetsDataSupplementRetrieveQueryKey(uidAsset, rootUuid),
+              (response) =>
+                ({
+                  ...response,
+                  data: {
+                    ...response?.data,
+                    ...(response?.status === 200
+                      ? {
+                          [questionXpath]: {
+                            ...response?.data?.[questionXpath],
+                            [action]: {
+                              ...response?.data?.[questionXpath]?.[action],
+                              _versions: [
+                                {
+                                  _uuid: '<server-generated-not-used>',
+                                  _data: datum as PatchedDataSupplementPayloadOneOfManualTranscription,
+                                  _dateCreated: new Date().toISOString(),
+                                }, // Note: this is the actual optimistally added object.
+                                ...(response?.data?.[questionXpath]?.[action]?._versions ?? []),
+                              ],
+                            } as DataSupplementResponseOneOfManualTranscription,
+                          },
+                        }
+                      : {}),
+                  },
+                }) as assetsDataSupplementRetrieveResponse,
+            )
+
+            return {
+              snapshots: [itemSnapshot],
+            }
+          }
+          case ActionEnum.manual_translation: {
+            const { language } = datum as PatchedDataSupplementPayloadOneOfManualTranslation
+            const itemSnapshot = await optimisticallyUpdateItem<assetsDataSupplementRetrieveResponse>(
+              getAssetsDataSupplementRetrieveQueryKey(uidAsset, rootUuid),
+              (response) =>
+                ({
+                  ...response,
+                  data: {
+                    ...response?.data,
+                    ...(response?.status === 200
+                      ? {
+                          [questionXpath]: {
+                            ...response?.data?.[questionXpath],
+                            [action]: {
+                              ...response?.data?.[questionXpath]?.[action],
+                              [language]: {
+                                ...response?.data?.[questionXpath]?.[action]?.[language],
+                                _versions: [
+                                  {
+                                    _uuid: '<server-generated-not-used>',
+                                    _data: datum as PatchedDataSupplementPayloadOneOfManualTranslation,
+                                    _dateCreated: new Date().toISOString(),
+                                  }, // Note: this is the actual optimistally added object.
+                                  ...(response?.data?.[questionXpath]?.[action]?.[language]?._versions ?? []),
+                                ],
+                              },
+                            } as DataSupplementResponseOneOfManualTranslation,
+                          },
+                        }
+                      : {}),
+                  },
+                }) as assetsDataSupplementRetrieveResponse,
+            )
+
+            return {
+              snapshots: [itemSnapshot],
+            }
+          }
           case ActionEnum.automatic_google_translation:
-          case ActionEnum.manual_transcription:
-          case ActionEnum.manual_translation:
+          case ActionEnum.automatic_google_transcription:
           default: {
             // TODO: optimistic updates for all.
-            return
+            const itemSnapshot = await optimisticallyUpdateItem<assetsDataSupplementRetrieveResponse>(
+              getAssetsDataSupplementRetrieveQueryKey(uidAsset, rootUuid),
+              (response) => response,
+            )
+
+            return {
+              snapshots: [itemSnapshot],
+            }
           }
         }
       },

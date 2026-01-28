@@ -4,11 +4,9 @@ import cx from 'classnames'
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
-import { onErrorDefaultHandler } from '#/api/onErrorDefaultHandler'
 import { queryClient } from '#/api/queryClient'
 import {
   getAssetsAdvancedFeaturesListQueryKey,
-  getAssetsDataSupplementRetrieveQueryKey,
   useAssetsAdvancedFeaturesCreate,
   useAssetsAdvancedFeaturesPartialUpdate,
   useAssetsDataSupplementPartialUpdate,
@@ -21,7 +19,7 @@ import RegionSelector from '#/components/languages/regionSelector'
 import { SUBSEQUENCES_SCHEMA_VERSION } from '#/components/processing/common/constants'
 import { getLatestAutomaticTranslationVersionItem } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
-import { notify, removeDefaultUuidPrefix } from '#/utils'
+import { removeDefaultUuidPrefix } from '#/utils'
 import bodyStyles from '../../../common/processingBody.module.scss'
 
 interface Props {
@@ -60,31 +58,7 @@ export default function StepCreateAutomated({
     },
   })
 
-  const mutationCreateAutomaticTranslation = useAssetsDataSupplementPartialUpdate({
-    mutation: {
-      onSettled: () => {
-        queryClient.invalidateQueries({
-          queryKey: getAssetsDataSupplementRetrieveQueryKey(
-            asset.uid,
-            removeDefaultUuidPrefix(submission['meta/rootUuid']),
-          ),
-        })
-      },
-      onError: (error, variables, context) => {
-        if (error.detail === 'Invalid action') {
-          // TODO: should never happen, gotta check and enable silently.
-          notify(
-            'Advances Features are not enabled for this language for this form.',
-            'error',
-            {},
-            `${error.name}: ${error.message} | ${error.detail}`,
-          )
-        } else {
-          onErrorDefaultHandler(error, variables, context)
-        }
-      },
-    },
-  })
+  const mutationCreateAutomaticTranslation = useAssetsDataSupplementPartialUpdate()
 
   const latestAutomaticTranslation =
     mutationCreateAutomaticTranslation.data?.status === 200

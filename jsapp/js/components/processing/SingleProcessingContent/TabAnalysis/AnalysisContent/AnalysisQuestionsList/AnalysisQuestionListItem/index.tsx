@@ -1,16 +1,28 @@
-import React, { useRef, useState } from 'react'
+import React, { useCallback, useRef, useState } from 'react'
 
 import classnames from 'classnames'
 import type { Identifier, XYCoord } from 'dnd-core'
 import { useDrag, useDrop } from 'react-dnd'
+import type { _DataSupplementResponseOneOfManualQualVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualQualVersionsItem'
+import { ActionEnum } from '#/api/models/actionEnum'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { PatchedDataSupplementPayloadOneOfManualQual } from '#/api/models/patchedDataSupplementPayloadOneOfManualQual'
 import type { ResponseQualActionParams } from '#/api/models/responseQualActionParams'
+import {
+  type assetsDataSupplementRetrieveResponse,
+  getAssetsDataSupplementRetrieveQueryKey,
+  useAssetsAdvancedFeaturesCreate,
+  useAssetsAdvancedFeaturesPartialUpdate,
+  useAssetsDataSupplementPartialUpdate,
+  useAssetsDataSupplementRetrieve,
+} from '#/api/react-query/survey-data'
 import Icon from '#/components/common/icon'
 import InlineMessage from '#/components/common/inlineMessage'
 import { userCan } from '#/components/permissions/utils'
+import { SUBSEQUENCES_SCHEMA_VERSION } from '#/components/processing/common/constants'
 import { DND_TYPES } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
+import { removeDefaultUuidPrefix } from '#/utils'
 import type { AdvancedFeatureResponseManualQual } from '../../../common/utils'
 import AnalysisQuestionEditor from './AnalysisQuestionEditor'
 import IntegerResponseForm from './IntegerResponseForm'
@@ -21,13 +33,6 @@ import SelectOneResponseForm from './SelectOneResponseForm'
 import TagsResponseForm from './TagsResponseForm'
 import TextResponseForm from './TextResponseForm'
 import styles from './index.module.scss'
-import {
-  useAssetsDataSupplementDeleteQaHelper,
-  useAssetsDataSupplementPartialUpdateQaHelper,
-  useAssetsDataSupplementReorderQaHelper,
-  useAssetsDataSupplementRetrieveQaHelper,
-  useAssetsDataSupplementUpsertQaHelper,
-} from './utils'
 
 export interface Props {
   asset: AssetResponse
@@ -66,52 +71,103 @@ export default function AnalysisQuestionListItem({
   editMode,
   isAnyQuestionBeingEdited,
 }: Props) {
-  const queryAnswer = useAssetsDataSupplementRetrieveQaHelper(asset, questionXpath, submission, qaQuestion)
+  const rootUuid = removeDefaultUuidPrefix(submission['meta/rootUuid'])
+
+  const queryAnswer = useAssetsDataSupplementRetrieve(asset.uid, rootUuid, {
+    query: {
+      staleTime: Number.POSITIVE_INFINITY,
+      queryKey: getAssetsDataSupplementRetrieveQueryKey(asset.uid, rootUuid),
+      select: useCallback(
+        (
+          data: assetsDataSupplementRetrieveResponse,
+        ): _DataSupplementResponseOneOfManualQualVersionsItem | undefined => {
+          if (data.status !== 200) return // typeguard, should never happen
+          return data.data[questionXpath].manual_qual?.[qaQuestion.uuid]?._versions[0]
+        },
+        [questionXpath, qaQuestion.uuid],
+      ),
+    },
+  })
 
   // Local state for optimistic UI of SelectOne radio button value
   // this is needed so that the "clear" button works immediately without waiting for server response
   const [localRadioValue, setLocalRadioValue] = useState<string | undefined>()
 
-  const [mutationAnswer, onSaveAnswer] = useAssetsDataSupplementPartialUpdateQaHelper(
-    asset,
-    questionXpath,
-    submission,
-    qaQuestion,
-  )
+  const mutationSaveAnswer = useAssetsDataSupplementPartialUpdate()
+  const mutationCreateQuestion = useAssetsAdvancedFeaturesCreate()
+  const mutationPatchQuestion = useAssetsAdvancedFeaturesPartialUpdate()
+
   const handleSaveAnswer = async (value: PatchedDataSupplementPayloadOneOfManualQual['value']) => {
-    await onSaveAnswer(value)
+    await mutationSaveAnswer.mutateAsync({
+      uidAsset: asset.uid,
+      rootUuid: rootUuid,
+      data: {
+        _version: SUBSEQUENCES_SCHEMA_VERSION,
+        [questionXpath]: {
+          [ActionEnum.manual_qual]: {
+            uuid: qaQuestion.uuid,
+            value,
+          },
+        },
+      },
+    })
   }
 
-  const [mutationQuestion, onSaveQuestion] = useAssetsDataSupplementUpsertQaHelper(asset, advancedFeature)
-  const handleSaveQuestion = async (params: ResponseQualActionParams[]) => {
-    await onSaveQuestion(params)
-    setQaQuestion(undefined)
+  const isCreate = advancedFeature.uid === 'placeholder' // TODO: extract, type & document
+
+  const handleSaveQuestion = (params: ResponseQualActionParams[]) => {
+    if (isCreate) {
+      return mutationCreateQuestion.mutateAsync({
+        uidAsset: asset.uid,
+        data: {
+          action: ActionEnum.manual_qual,
+          question_xpath: advancedFeature.question_xpath,
+          params: params,
+        },
+      })
+    } else {
+      return mutationPatchQuestion.mutateAsync({
+        uidAsset: asset.uid,
+        uidAdvancedFeature: advancedFeature.uid,
+        data: {
+          params: params,
+        },
+      })
+    }
   }
   const handleCancelEdit = () => {
     setQaQuestion(undefined)
   }
 
-  const [mutationDelete, onDeleteQuestion] = useAssetsDataSupplementDeleteQaHelper(asset, advancedFeature)
-  const handleDeleteQuestion = async (qaQuestionToDelete: ResponseQualActionParams) => {
-    await onDeleteQuestion(qaQuestionToDelete)
+  const handleDeleteQuestion = (qaQuestionToDelete: ResponseQualActionParams) => {
+    // Mark the question as deleted by setting options.deleted to true
+    const updatedParams = advancedFeature.params.map((param) =>
+      param.uuid === qaQuestionToDelete.uuid ? { ...param, options: { ...param.options, deleted: true } } : param,
+    )
+
+    return mutationPatchQuestion.mutateAsync({
+      uidAsset: asset.uid,
+      uidAdvancedFeature: advancedFeature.uid,
+      data: {
+        params: updatedParams,
+      },
+    })
   }
 
-  const [mutationReorder, onReorderQuestions] = useAssetsDataSupplementReorderQaHelper(asset, advancedFeature)
-  const handleReorderQuestions = async (reorderedParams: ResponseQualActionParams[]) => {
-    await onReorderQuestions(reorderedParams)
+  const handleReorderQuestions = (reorderedParams: ResponseQualActionParams[]) => {
+    return mutationPatchQuestion.mutateAsync({
+      uidAsset: asset.uid,
+      uidAdvancedFeature: advancedFeature.uid,
+      data: {
+        params: reorderedParams,
+      },
+    })
   }
 
   const disabledAnswer =
-    !userCan('change_submissions', asset) ||
-    mutationQuestion.isPending ||
-    mutationDelete.isPending ||
-    mutationReorder.isPending
-
+    !userCan('change_submissions', asset) || mutationCreateQuestion.isPending || mutationPatchQuestion.isPending
   const disabledQuestion =
-    !userCan('manage_asset', asset) ||
-    mutationQuestion.isPending ||
-    mutationDelete.isPending ||
-    mutationReorder.isPending
+    !userCan('manage_asset', asset) || mutationCreateQuestion.isPending || mutationPatchQuestion.isPending
 
   const previewRef = useRef<HTMLLIElement>(null)
   const dragRef = useRef<HTMLDivElement>(null)

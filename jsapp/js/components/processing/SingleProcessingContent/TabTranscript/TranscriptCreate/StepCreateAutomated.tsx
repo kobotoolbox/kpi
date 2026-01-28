@@ -4,11 +4,9 @@ import cx from 'classnames'
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
-import { onErrorDefaultHandler } from '#/api/onErrorDefaultHandler'
 import { queryClient } from '#/api/queryClient'
 import {
   getAssetsAdvancedFeaturesListQueryKey,
-  getAssetsDataSupplementRetrieveQueryKey,
   useAssetsAdvancedFeaturesCreate,
   useAssetsAdvancedFeaturesPartialUpdate,
   useAssetsDataSupplementPartialUpdate,
@@ -18,7 +16,7 @@ import LoadingSpinner from '#/components/common/loadingSpinner'
 import type { LanguageCode, LocaleCode } from '#/components/languages/languagesStore'
 import RegionSelector from '#/components/languages/regionSelector'
 import type { AssetResponse } from '#/dataInterface'
-import { getAudioDuration, notify, removeDefaultUuidPrefix } from '#/utils'
+import { getAudioDuration, removeDefaultUuidPrefix } from '#/utils'
 import { SUBSEQUENCES_SCHEMA_VERSION } from '../../../common/constants'
 import bodyStyles from '../../../common/processingBody.module.scss'
 import { getAttachmentForProcessing, secondsToTranscriptionEstimate } from '../transcript.utils'
@@ -60,32 +58,7 @@ export default function StepCreateAutomated({
     },
   })
 
-  const mutationCreateAutomaticTranscript = useAssetsDataSupplementPartialUpdate({
-    mutation: {
-      onSettled: () => {
-        queryClient.invalidateQueries({
-          queryKey: getAssetsDataSupplementRetrieveQueryKey(
-            asset.uid,
-            removeDefaultUuidPrefix(submission['meta/rootUuid']),
-          ),
-        })
-      },
-      onError: (error, variables, context) => {
-        if (error.detail === 'Invalid action') {
-          // This should never happen. If you encounter this error, figure out
-          // why advanced feature wasn't enabled silently before transcript request
-          notify(
-            'Advances Features are not enabled for this language for this form.',
-            'error',
-            {},
-            `${error.name}: ${error.message} | ${error.detail}`,
-          )
-        } else {
-          onErrorDefaultHandler(error, variables, context)
-        }
-      },
-    },
-  })
+  const mutationCreateAutomaticTranscript = useAssetsDataSupplementPartialUpdate()
 
   const anyPending =
     mutationCreateAF.isPending || mutationPatchAF.isPending || mutationCreateAutomaticTranscript.isPending

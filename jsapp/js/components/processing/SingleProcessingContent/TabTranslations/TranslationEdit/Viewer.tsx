@@ -3,11 +3,7 @@ import type { _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsIt
 import type { _DataSupplementResponseOneOfManualTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualTranscriptionVersionsItem'
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { DataResponse } from '#/api/models/dataResponse'
-import { queryClient } from '#/api/queryClient'
-import {
-  getAssetsDataSupplementRetrieveQueryKey,
-  useAssetsDataSupplementPartialUpdate,
-} from '#/api/react-query/survey-data'
+import { useAssetsDataSupplementPartialUpdate } from '#/api/react-query/survey-data'
 import Button from '#/components/common/button'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { userCan } from '#/components/permissions/utils'
@@ -47,18 +43,7 @@ export default function Viewer({
   onAdd,
   onChangeLanguageCode,
 }: Props) {
-  const mutateTrash = useAssetsDataSupplementPartialUpdate({
-    mutation: {
-      onSettled: () => {
-        queryClient.invalidateQueries({
-          queryKey: getAssetsDataSupplementRetrieveQueryKey(
-            asset.uid,
-            removeDefaultUuidPrefix(submission['meta/rootUuid']),
-          ),
-        })
-      },
-    },
-  })
+  const mutateTrash = useAssetsDataSupplementPartialUpdate()
 
   const handleTrash = () => {
     mutateTrash.mutateAsync({

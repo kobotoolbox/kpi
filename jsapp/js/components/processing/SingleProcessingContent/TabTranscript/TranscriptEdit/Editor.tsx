@@ -7,7 +7,6 @@ import type { DataResponse } from '#/api/models/dataResponse'
 import { queryClient } from '#/api/queryClient'
 import {
   getAssetsAdvancedFeaturesListQueryKey,
-  getAssetsDataSupplementRetrieveQueryKey,
   useAssetsAdvancedFeaturesCreate,
   useAssetsAdvancedFeaturesPartialUpdate,
   useAssetsDataSupplementPartialUpdate,
@@ -59,18 +58,7 @@ export default function Editor({
     (af) => af.action === ActionEnum.manual_transcription && af.question_xpath === questionXpath,
   )
 
-  const patch = useAssetsDataSupplementPartialUpdate({
-    mutation: {
-      onSettled: () => {
-        queryClient.invalidateQueries({
-          queryKey: getAssetsDataSupplementRetrieveQueryKey(
-            asset.uid,
-            removeDefaultUuidPrefix(submission['meta/rootUuid']),
-          ),
-        })
-      },
-    },
-  })
+  const patch = useAssetsDataSupplementPartialUpdate()
 
   const mutationCreateAF = useAssetsAdvancedFeaturesCreate({
     mutation: {
