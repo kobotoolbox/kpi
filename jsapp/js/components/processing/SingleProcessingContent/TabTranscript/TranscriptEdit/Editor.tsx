@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import type { _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem'
-import type { _DataSupplementResponseOneOfManualTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualTranscriptionVersionsItem'
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
@@ -12,6 +10,7 @@ import {
 import Button from '#/components/common/button'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { userCan } from '#/components/permissions/utils'
+import type { TranscriptVersionItem } from '#/components/processing/common/types'
 import { isSupplementVersionAutomatic } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
 import { removeDefaultUuidPrefix } from '#/utils'
@@ -23,9 +22,7 @@ interface Props {
   asset: AssetResponse
   questionXpath: string
   submission: DataResponse
-  transcriptVersion:
-    | _DataSupplementResponseOneOfManualTranscriptionVersionsItem
-    | _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem
+  transcriptVersion: TranscriptVersionItem
   onBack: () => void
   onSave?: () => void
   onUnsavedWorkChange: (hasUnsavedWork: boolean) => void

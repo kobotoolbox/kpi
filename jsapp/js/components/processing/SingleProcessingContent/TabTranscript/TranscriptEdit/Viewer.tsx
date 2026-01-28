@@ -1,11 +1,10 @@
 import React from 'react'
-import type { _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem'
-import type { _DataSupplementResponseOneOfManualTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualTranscriptionVersionsItem'
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { DataResponse } from '#/api/models/dataResponse'
 import { useAssetsDataSupplementPartialUpdate } from '#/api/react-query/survey-data'
 import Button from '#/components/common/button'
 import { userCan } from '#/components/permissions/utils'
+import type { TranscriptVersionItem } from '#/components/processing/common/types'
 import { isSupplementVersionAutomatic } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
 import { removeDefaultUuidPrefix } from '#/utils'
@@ -16,9 +15,7 @@ import HeaderLanguageAndDate from './headerLanguageAndDate'
 // TODO OpenAPI: PatchedDataSupplementPayloadOneOfOneOfManualTranscription.value is nullable
 
 interface Props {
-  transcriptVersion:
-    | _DataSupplementResponseOneOfManualTranscriptionVersionsItem
-    | _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem
+  transcriptVersion: TranscriptVersionItem
   asset: AssetResponse
   questionXpath: string
   submission: DataResponse

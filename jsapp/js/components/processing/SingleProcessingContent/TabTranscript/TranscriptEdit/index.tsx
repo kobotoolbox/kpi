@@ -1,8 +1,7 @@
 import React, { useState } from 'react'
-import type { _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem'
-import type { _DataSupplementResponseOneOfManualTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualTranscriptionVersionsItem'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
+import type { TranscriptVersionItem } from '#/components/processing/common/types'
 import { isSupplementVersionAutomatic } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
 import bodyStyles from '../../../common/processingBody.module.scss'
@@ -13,9 +12,7 @@ interface Props {
   asset: AssetResponse
   questionXpath: string
   submission: DataResponse
-  transcriptVersion:
-    | _DataSupplementResponseOneOfManualTranscriptionVersionsItem
-    | _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem
+  transcriptVersion: TranscriptVersionItem
   onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
   advancedFeatures: AdvancedFeatureResponse[]
 }

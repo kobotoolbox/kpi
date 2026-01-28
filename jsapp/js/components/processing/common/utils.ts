@@ -92,6 +92,7 @@ export const getAutomaticTranscriptsFromSupplementData = (
 
 /**
  * Retrieves all transcriptions (manual and automatic) for a specific field from supplement data.
+ * Including ones without values?
  *
  * @param supplementData - The supplement data object
  * @param xpath - The field xpath to retrieve transcriptions for
@@ -160,9 +161,9 @@ export const getAutomaticTranslationsFromSupplementData = (
  * Gets the most recent translation version for a specific field and language.
  *
  * @param supplementData - The supplement data object
- * @param xpath - The field xpath to retrieve transcript for
+ * @param xpath - The field xpath to retrieve translation for
  * @param languageCode
- * @returns The most recent transcript version, or undefined if none exist
+ * @returns The most recent translation version, or undefined if none exist
  */
 export const getLatestAutomaticTranslationVersionItem = (
   supplementData: DataSupplementResponse,
