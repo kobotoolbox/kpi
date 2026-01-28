@@ -2,6 +2,7 @@ import { FocusTrap, Group, Menu, Modal, Stack } from '@mantine/core'
 import { useState } from 'react'
 import type { _DataResponseAttachmentsItem } from '#/api/models/_dataResponseAttachmentsItem'
 import type { DataResponse } from '#/api/models/dataResponse'
+import { useAssetsAttachmentsDestroy } from '#/api/react-query/survey-data'
 import ActionIcon from '#/components/common/ActionIcon'
 import Button from '#/components/common/ButtonNew'
 import Icon from '#/components/common/icon'
@@ -10,7 +11,6 @@ import { QuestionTypeName } from '#/constants'
 import type { AssetResponse, SubmissionResponse } from '#/dataInterface'
 import { notify } from '#/utils'
 import styles from './AttachmentActionsDropdown.module.scss'
-import { useRemoveAttachment } from './attachmentsQuery'
 
 interface AttachmentActionsDropdownProps {
   asset: AssetResponse
@@ -21,7 +21,7 @@ interface AttachmentActionsDropdownProps {
    * by parent component to reflect this change in the data it holds, and
    * possibly in other places in UI.
    */
-  onDeleted: () => void
+  onDeleted?: () => void
 }
 
 /**
@@ -31,7 +31,7 @@ interface AttachmentActionsDropdownProps {
 export default function AttachmentActionsDropdown(props: AttachmentActionsDropdownProps) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false)
   const [isDeletePending, setIsDeletePending] = useState<boolean>(false)
-  const removeAttachmentMutation = useRemoveAttachment(props.asset.uid)
+  const removeAttachmentMutation = useAssetsAttachmentsDestroy()
 
   const attachment = (props.submission._attachments as any as _DataResponseAttachmentsItem[]).find(
     (item) => item.uid === props.attachmentUid,
@@ -49,12 +49,10 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
     setIsDeletePending(true)
 
     try {
-      await removeAttachmentMutation.mutateAsync(String(attachment.uid))
+      await removeAttachmentMutation.mutateAsync({ uidAsset: props.asset.uid, id: attachment.uid as any }) // TODO: number or string?
       setIsDeleteModalOpen(false)
       notify(t('##Attachment_type## deleted').replace('##Attachment_type##', attachmentTypeName))
-      props.onDeleted()
-    } catch (e) {
-      notify(t('An error occurred while removing the attachment'), 'error')
+      props.onDeleted?.()
     } finally {
       setIsDeletePending(false)
     }

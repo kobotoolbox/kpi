@@ -4,6 +4,9 @@ import {
   getAssetsAdvancedFeaturesListQueryKey,
   getAssetsAdvancedFeaturesPartialUpdateMutationOptions,
   getAssetsAdvancedFeaturesRetrieveQueryKey,
+  getAssetsAttachmentsBulkDestroyMutationOptions,
+  getAssetsAttachmentsDestroyMutationOptions,
+  getAssetsDataListQueryKey,
   getAssetsDataSupplementPartialUpdateMutationOptions,
   getAssetsDataSupplementRetrieveQueryKey,
 } from '#/api/react-query/survey-data'
@@ -17,7 +20,7 @@ import type { PatchedDataSupplementPayloadOneOfManualQual } from '../models/patc
 import type { PatchedDataSupplementPayloadOneOfManualTranscription } from '../models/patchedDataSupplementPayloadOneOfManualTranscription'
 import type { PatchedDataSupplementPayloadOneOfManualTranslation } from '../models/patchedDataSupplementPayloadOneOfManualTranslation'
 import { queryClient } from '../queryClient'
-import { invalidateItem, optimisticallyUpdateItem } from './common'
+import { invalidateItem, invalidatePaginatedList, optimisticallyUpdateItem } from './common'
 
 queryClient.setMutationDefaults(
   getAssetsAdvancedFeaturesCreateMutationOptions().mutationKey!,
@@ -37,6 +40,38 @@ queryClient.setMutationDefaults(
       onSettled: (_data, _error, { uidAsset, uidAdvancedFeature }) => {
         invalidateItem(getAssetsAdvancedFeaturesListQueryKey(uidAsset))
         invalidateItem(getAssetsAdvancedFeaturesRetrieveQueryKey(uidAsset, uidAdvancedFeature))
+      },
+    },
+  }),
+)
+
+queryClient.setMutationDefaults(
+  getAssetsAttachmentsDestroyMutationOptions().mutationKey!,
+  getAssetsAttachmentsDestroyMutationOptions({
+    mutation: {
+      // TODO: this could be easily upgraded to an optimistic update.
+      onSettled: (_data, _error, { uidAsset }) => {
+        // Note: we could target the query that gets the specific submission, but that's not enough.
+        // There could be any other queries that accidentally include the mutated submission.
+        // Thus, invalidate them all.
+        // TODO: add a new helper that could interate through a list and invalidate only caches that contain the item.
+        invalidatePaginatedList(getAssetsDataListQueryKey(uidAsset))
+      },
+    },
+  }),
+)
+
+queryClient.setMutationDefaults(
+  getAssetsAttachmentsBulkDestroyMutationOptions().mutationKey!,
+  getAssetsAttachmentsBulkDestroyMutationOptions({
+    mutation: {
+      // TODO: this could be easily upgraded to an optimistic update.
+      onSettled: (_data, _error, { uidAsset }) => {
+        // Note: we could target the query that gets the specific submission, but that's not enough.
+        // There could be any other queries that accidentally include the mutated submission.
+        // Thus, invalidate them all.
+        // TODO: add a new helper that could interate through a list and invalidate only caches that contain the item.
+        invalidatePaginatedList(getAssetsDataListQueryKey(uidAsset))
       },
     },
   }),

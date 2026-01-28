@@ -2,8 +2,6 @@ import React from 'react'
 
 import cx from 'classnames'
 import type { DataResponse } from '#/api/models/dataResponse'
-import { queryClient } from '#/api/queryClient'
-import { getAssetsDataListQueryKey } from '#/api/react-query/survey-data'
 import { findRowByXpath } from '#/assetUtils'
 import AttachmentActionsDropdown from '#/attachments/AttachmentActionsDropdown'
 import DeletedAttachment from '#/attachments/deletedAttachment.component'
@@ -53,19 +51,7 @@ export default function SidebarSubmissionMedia({ asset, xpath, submission }: Sid
             filename={attachment.filename}
             rightHeaderSection={
               submission && (
-                <AttachmentActionsDropdown
-                  asset={asset}
-                  submission={submission}
-                  attachmentUid={attachment.uid}
-                  onDeleted={() => {
-                    const deletionParams = {
-                      query: JSON.stringify({
-                        $or: [{ 'meta/rootUuid': submission._uuid }, { _uuid: submission._uuid }],
-                      }),
-                    } as any
-                    queryClient.invalidateQueries({ queryKey: getAssetsDataListQueryKey(asset!.uid, deletionParams) })
-                  }}
-                />
+                <AttachmentActionsDropdown asset={asset} submission={submission} attachmentUid={attachment.uid} />
               )
             }
           />
