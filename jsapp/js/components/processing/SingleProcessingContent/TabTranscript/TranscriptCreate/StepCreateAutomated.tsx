@@ -4,9 +4,7 @@ import cx from 'classnames'
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
-import { queryClient } from '#/api/queryClient'
 import {
-  getAssetsAdvancedFeaturesListQueryKey,
   useAssetsAdvancedFeaturesCreate,
   useAssetsAdvancedFeaturesPartialUpdate,
   useAssetsDataSupplementPartialUpdate,
@@ -47,16 +45,8 @@ export default function StepCreateAutomated({
     (af) => af.action === ActionEnum.automatic_google_transcription && af.question_xpath === questionXpath,
   )
 
-  const mutationCreateAF = useAssetsAdvancedFeaturesCreate({
-    mutation: {
-      onSettled: () => queryClient.invalidateQueries({ queryKey: getAssetsAdvancedFeaturesListQueryKey(asset.uid) }),
-    },
-  })
-  const mutationPatchAF = useAssetsAdvancedFeaturesPartialUpdate({
-    mutation: {
-      onSettled: () => queryClient.invalidateQueries({ queryKey: getAssetsAdvancedFeaturesListQueryKey(asset.uid) }),
-    },
-  })
+  const mutationCreateAF = useAssetsAdvancedFeaturesCreate()
+  const mutationPatchAF = useAssetsAdvancedFeaturesPartialUpdate()
 
   const mutationCreateAutomaticTranscript = useAssetsDataSupplementPartialUpdate()
 

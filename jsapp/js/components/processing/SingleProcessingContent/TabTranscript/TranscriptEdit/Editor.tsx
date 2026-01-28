@@ -4,9 +4,7 @@ import type { _DataSupplementResponseOneOfManualTranscriptionVersionsItem } from
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
-import { queryClient } from '#/api/queryClient'
 import {
-  getAssetsAdvancedFeaturesListQueryKey,
   useAssetsAdvancedFeaturesCreate,
   useAssetsAdvancedFeaturesPartialUpdate,
   useAssetsDataSupplementPartialUpdate,
@@ -60,16 +58,8 @@ export default function Editor({
 
   const patch = useAssetsDataSupplementPartialUpdate()
 
-  const mutationCreateAF = useAssetsAdvancedFeaturesCreate({
-    mutation: {
-      onSettled: () => queryClient.invalidateQueries({ queryKey: getAssetsAdvancedFeaturesListQueryKey(asset.uid) }),
-    },
-  })
-  const mutationPatchAF = useAssetsAdvancedFeaturesPartialUpdate({
-    mutation: {
-      onSettled: () => queryClient.invalidateQueries({ queryKey: getAssetsAdvancedFeaturesListQueryKey(asset.uid) }),
-    },
-  })
+  const mutationCreateAF = useAssetsAdvancedFeaturesCreate()
+  const mutationPatchAF = useAssetsAdvancedFeaturesPartialUpdate()
   const assertManualAdvancedFeature = async (languageCode: LanguageCode) => {
     // Silently under the hook enable advanced features if needed.
     if (!advancedFeature) {

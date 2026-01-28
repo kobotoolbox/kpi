@@ -1,5 +1,9 @@
 import {
   type assetsDataSupplementRetrieveResponse,
+  getAssetsAdvancedFeaturesCreateMutationOptions,
+  getAssetsAdvancedFeaturesListQueryKey,
+  getAssetsAdvancedFeaturesPartialUpdateMutationOptions,
+  getAssetsAdvancedFeaturesRetrieveQueryKey,
   getAssetsDataSupplementPartialUpdateMutationOptions,
   getAssetsDataSupplementRetrieveQueryKey,
 } from '#/api/react-query/survey-data'
@@ -13,7 +17,30 @@ import type { PatchedDataSupplementPayloadOneOfManualQual } from '../models/patc
 import type { PatchedDataSupplementPayloadOneOfManualTranscription } from '../models/patchedDataSupplementPayloadOneOfManualTranscription'
 import type { PatchedDataSupplementPayloadOneOfManualTranslation } from '../models/patchedDataSupplementPayloadOneOfManualTranslation'
 import { queryClient } from '../queryClient'
-import { optimisticallyUpdateItem } from './common'
+import { invalidateItem, optimisticallyUpdateItem } from './common'
+
+queryClient.setMutationDefaults(
+  getAssetsAdvancedFeaturesCreateMutationOptions().mutationKey!,
+  getAssetsAdvancedFeaturesCreateMutationOptions({
+    mutation: {
+      onSettled: (_data, _error, { uidAsset }) => {
+        invalidateItem(getAssetsAdvancedFeaturesListQueryKey(uidAsset))
+      },
+    },
+  }),
+)
+
+queryClient.setMutationDefaults(
+  getAssetsAdvancedFeaturesPartialUpdateMutationOptions().mutationKey!,
+  getAssetsAdvancedFeaturesPartialUpdateMutationOptions({
+    mutation: {
+      onSettled: (_data, _error, { uidAsset, uidAdvancedFeature }) => {
+        invalidateItem(getAssetsAdvancedFeaturesListQueryKey(uidAsset))
+        invalidateItem(getAssetsAdvancedFeaturesRetrieveQueryKey(uidAsset, uidAdvancedFeature))
+      },
+    },
+  }),
+)
 
 queryClient.setMutationDefaults(
   getAssetsDataSupplementPartialUpdateMutationOptions().mutationKey!,
