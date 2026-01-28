@@ -19,7 +19,10 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 from kobo.apps.audit_log.base_views import AuditLoggedViewSet
 from kobo.apps.audit_log.models import AuditType
 from kobo.apps.audit_log.utils import SubmissionUpdate
-from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
+    add_uuid_prefix,
+    remove_uuid_prefix,
+)
 from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_handler
 from kpi.authentication import EnketoSessionAuthentication
 from kpi.constants import (
@@ -266,12 +269,12 @@ class DataViewSet(
         """
         Creates a duplicate of the submission with a given `pk`
         """
+
         deployment = self._get_deployment()
-        # Coerce to int because the back end only finds matches with the same type
-        submission_id = positive_int(pk)
-        original_submission = deployment.get_submission(
-            submission_id=submission_id, user=request.user, fields=['_id', '_uuid']
+        original_submission = self._get_submission_by_id_or_uuid(
+            pk, request, fields=['_id', deployment.SUBMISSION_ROOT_UUID_XPATH]
         )
+        submission_id = original_submission['_id']
 
         with http_open_rosa_error_handler(
             lambda: deployment.duplicate_submission(
@@ -288,7 +291,8 @@ class DataViewSet(
             else:
                 duplicate_submission = handler.func_return
                 deployment.copy_submission_extras(
-                    original_submission['_uuid'], duplicate_submission['_uuid']
+                    original_submission[deployment.SUBMISSION_ROOT_UUID_XPATH],
+                    duplicate_submission[deployment.SUBMISSION_ROOT_UUID_XPATH],
                 )
                 response = {
                     'data': duplicate_submission,
@@ -322,7 +326,10 @@ class DataViewSet(
         renderer_classes=[renderers.JSONRenderer],
     )
     def enketo_edit(self, request, pk, *args, **kwargs):
-        submission_id = positive_int(pk)
+
+        submission = self._get_submission_by_id_or_uuid(pk, request, fields=['_id'])
+        submission_id = submission['_id']
+
         enketo_response = self._get_enketo_link(request, submission_id, 'edit')
         if enketo_response.status_code in (
             status.HTTP_201_CREATED, status.HTTP_200_OK
@@ -358,7 +365,10 @@ class DataViewSet(
         renderer_classes=[renderers.JSONRenderer],
     )
     def enketo_view(self, request, pk, *args, **kwargs):
-        submission_id = positive_int(pk)
+
+        submission = self._get_submission_by_id_or_uuid(pk, request, fields=['_id'])
+        submission_id = submission['_id']
+
         enketo_response = self._get_enketo_link(request, submission_id, 'view')
         return self._handle_enketo_redirect(request, enketo_response, *args, **kwargs)
 
@@ -420,46 +430,16 @@ class DataViewSet(
         Warning when using the UUID. Submissions can have the same uuid because
         there is no unique constraint on this field. The first occurrence
         will be returned.
+
+        # TODO Stop support `_uuid` and use `meta/rootUuid` instead.
+        #   `meta/rootUuid` is unique per project.
         """
+
         format_type = kwargs.get('format', request.GET.get('format', 'json'))
-        deployment = self._get_deployment()
-        params = {
-            'user': request.user,
-            'format_type': format_type,
-            'request': request,
-        }
-        filters = self._filter_mongo_query(request)
+        submission = self._get_submission_by_id_or_uuid(
+            pk, request, format_type=format_type
+        )
 
-        # Unfortunately, Django expects that the URL parameter is `pk`,
-        # its name cannot be changed (easily).
-        submission_id_or_uuid = pk
-        try:
-            submission_id_or_uuid = positive_int(submission_id_or_uuid)
-        except ValueError:
-            if not re.match(
-                r'[a-z\d]{8}-([a-z\d]{4}-){3}[a-z\d]{12}', submission_id_or_uuid
-            ):
-                raise Http404
-
-            try:
-                query = json.loads(filters.pop('query', '{}'))
-            except json.JSONDecodeError:
-                raise serializers.ValidationError(
-                    {'query': t('Value must be valid JSON.')}
-                )
-            query['_uuid'] = submission_id_or_uuid
-            filters['query'] = query
-        else:
-            params['submission_ids'] = [submission_id_or_uuid]
-
-        # Join all parameters to be passed to `deployment.get_submissions()`
-        params.update(filters)
-
-        submissions = deployment.get_submissions(**params)
-        if not submissions:
-            raise Http404
-
-        submission = list(submissions)[0]
         return Response(submission)
 
     @extend_schema(
@@ -527,8 +507,9 @@ class DataViewSet(
     )
     def validation_status(self, request, pk, *args, **kwargs):
         deployment = self._get_deployment()
-        # Coerce to int because back end only finds matches with same type
-        submission_id = positive_int(pk)
+        submission = self._get_submission_by_id_or_uuid(pk, request, fields=['_id'])
+        submission_id = submission['_id']
+
         if request.method == 'GET':
             json_response = deployment.get_validation_status(
                 submission_id=submission_id,
@@ -844,6 +825,67 @@ class DataViewSet(
                 'version_uid': version_uid,
             }
         )
+
+
+    def _get_submission_by_id_or_uuid(
+        self,
+        submission_id_or_uuid,
+        request: Request,
+        format_type: str = 'json',
+        fields: list = None,
+    ) -> dict:
+
+        deployment = self._get_deployment()
+
+        params = {
+            'user': request.user,
+            'format_type': format_type,
+            'request': request,
+        }
+        if fields:
+            params['fields'] = fields
+
+        filters = self._filter_mongo_query(request)
+
+        # Unfortunately, Django expects that the URL parameter is `pk`,
+        # and its name cannot be changed (easily).
+        try:
+            submission_id_or_uuid = positive_int(submission_id_or_uuid)
+        except ValueError:
+            submission_id_or_uuid = add_uuid_prefix(submission_id_or_uuid)
+
+            try:
+                query = json.loads(filters.pop('query', '{}'))
+            except json.JSONDecodeError:
+                raise serializers.ValidationError(
+                    {'query': t('Value must be valid JSON.')}
+                )
+            # TODO Remove `$or` when rootUuid are all backfilled.
+            uuid_query = {
+                '$or': [
+                    {'meta/rootUuid': submission_id_or_uuid},
+                    {'meta/instanceID': submission_id_or_uuid},
+                ]
+            }
+
+            # If query already has conditions, combine with $and
+            if query and isinstance(query, dict) and query != {}:
+                query = {'$and': [query, uuid_query]}
+            else:
+                query = uuid_query
+
+            filters['query'] = query
+        else:
+            params['submission_ids'] = [submission_id_or_uuid]
+
+        # Join all parameters to be passed to `deployment.get_submissions()`
+        params.update(filters)
+
+        submissions = deployment.get_submissions(**params)
+        try:
+            return list(submissions)[0]
+        except IndexError:
+            raise Http404
 
     def _handle_enketo_redirect(self, request, enketo_response, *args, **kwargs):
         if request.path.strip('/').split('/')[-2] == 'redirect':
