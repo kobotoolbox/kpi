@@ -23,6 +23,7 @@ export default function SelectMultipleResponseForm({ qaQuestion, qaAnswer, onSav
   }
 
   const handleChange = (items: MultiCheckboxItem[]) => {
+    // Use new variable/reference to ensure state is updated before saving
     const newValues = items.filter((item) => item.checked).map((item) => item.name) as string[]
     setValues(newValues)
     clearTimeout(typingTimer)
