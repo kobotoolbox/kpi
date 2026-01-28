@@ -1,4 +1,4 @@
-import React, { useRef } from 'react'
+import React, { useRef, useState } from 'react'
 
 import classnames from 'classnames'
 import type { Identifier, XYCoord } from 'dnd-core'
@@ -68,6 +68,11 @@ export default function AnalysisQuestionListItem({
   isAnyQuestionBeingEdited,
 }: Props) {
   const queryAnswer = useAssetsDataSupplementRetrieveQaHelper(asset, questionXpath, submission, qaQuestion)
+
+  // Local state for optimistic UI of SelectOne radio button value
+  // this is needed so that the "clear" button works immediately without waiting for server response
+  const [localRadioValue, setLocalRadioValue] = useState<string | undefined>()
+
   const [mutationAnswer, onSaveAnswer] = useAssetsDataSupplementPartialUpdateQaHelper(
     asset,
     questionXpath,
@@ -245,18 +250,36 @@ export default function AnalysisQuestionListItem({
         )
       }
       case 'qualSelectOne': {
+        // Use local state if available, otherwise fall back to server data
+        const currentValue =
+          localRadioValue !== undefined ? localRadioValue : (queryAnswer.data?._data?.value as string)
+        const hasValue = !!currentValue
+
+        const handleClearSelection = hasValue
+          ? async () => {
+              setLocalRadioValue('')
+              await handleSaveAnswer('')
+            }
+          : undefined
+
+        const handleRadioSave = async (value: string) => {
+          setLocalRadioValue(value)
+          await handleSaveAnswer(value)
+        }
+
         return (
           <ResponseForm
             qaQuestion={qaQuestion}
             disabled={disabledQuestion}
             onEdit={setQaQuestion}
             onDelete={handleDeleteQuestion}
+            onClear={handleClearSelection}
           >
             <SelectOneResponseForm
               qaQuestion={qaQuestion as QualSelectQuestionParams}
-              qaAnswer={queryAnswer.data}
               disabled={disabledAnswer}
-              onSave={handleSaveAnswer}
+              onSave={handleRadioSave}
+              value={currentValue}
             />
           </ResponseForm>
         )

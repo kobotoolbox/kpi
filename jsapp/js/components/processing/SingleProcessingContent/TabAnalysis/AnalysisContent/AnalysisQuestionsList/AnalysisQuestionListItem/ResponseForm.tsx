@@ -79,6 +79,12 @@ export default function ResponseForm({ qaQuestion, children, onClear, disabled, 
           {qaQuestion.labels._default}
         </Text>
 
+        {onClear && (
+          <ButtonNew variant='light' size='sm' onClick={onClear}>
+            {t('Clear selection')}
+          </ButtonNew>
+        )}
+
         <ActionIcon
           variant='light'
           size='sm'
@@ -88,8 +94,6 @@ export default function ResponseForm({ qaQuestion, children, onClear, disabled, 
           // possible until user stops editing
           disabled={disabled}
         />
-
-        {onClear && <ActionIcon variant='light' size='sm' iconName='close' onClick={onClear} />}
 
         <ActionIcon variant='danger-secondary' size='sm' iconName='trash' onClick={open} disabled={disabled} />
       </Group>
