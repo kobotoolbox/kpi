@@ -392,7 +392,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
 
   onSetMapStylesCompleted() {
     // asset is updated, no need to store oberriden styles as they are identical
-    this.setState({ overridenStyles: undefined })
+    this.setState({ overridenStyles: undefined})
   }
 
   /**
@@ -415,6 +415,9 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     // TODO: support area / line geodata questions
     // See: https://github.com/kobotoolbox/kpi/issues/3913
     let selectedQuestion = this.props.asset.map_styles.selectedQuestion || null
+    if (this.state.overridenStyles?.selectedQuestion) {
+      selectedQuestion = this.state.overridenStyles.selectedQuestion
+    }
 
     this.props.asset.content?.survey?.forEach((row) => {
       if (
@@ -423,7 +426,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
         selectedQuestion === row.label[0] &&
         row.type !== QUESTION_TYPES.geopoint.id
       ) {
-        selectedQuestion = null //Ignore if not a geopoint question type
+        selectedQuestion = '' //Ignore if not a geopoint question type
       }
     })
 
@@ -445,16 +448,18 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     dataInterface
       .getSubmissions(this.props.asset.uid, queryLimit, 0, sort, fq)
       .done((data: PaginatedResponse<SubmissionResponse>) => {
-        const results = data.results
+        let results = data.results
         if (selectedQuestion) {
-          results.forEach((row, i) => {
-            if (selectedQuestion && row[selectedQuestion]) {
-              const coordsArray: string[] = String(row[selectedQuestion]).split(' ')
-              results[i]._geolocation[0] = Number.parseInt(coordsArray[0])
-              results[i]._geolocation[1] = Number.parseInt(coordsArray[1])
-            }
-          })
+          let sq: string = selectedQuestion
+          results = results.filter((row) => row[sq])
         }
+        results.forEach((row, i) => {
+          if (selectedQuestion && row[selectedQuestion]) {
+            const coordsArray: string[] = String(row[selectedQuestion]).split(' ')
+            results[i]._geolocation[0] = Number.parseInt(coordsArray[0])
+            results[i]._geolocation[1] = Number.parseInt(coordsArray[1])
+          }
+        })
 
         this.setState({ submissions: results }, () => {
           this.buildMarkers(map)
