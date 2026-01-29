@@ -268,6 +268,10 @@ RUN chown -R "${UWSGI_USER}:${UWSGI_GROUP}" ${KPI_SRC_DIR}/emails/ && \
 #     /srv/src/kpi/./node_modules/  \
 #     .
 
+# Add node_modules/.bin to PATH,
+# in case scripts are relying on it.
+ENV PATH=$PATH:${KPI_NODE_PATH}/.bin
+
 EXPOSE 8000
 
 CMD ["/bin/bash", "docker/entrypoint.sh"]
