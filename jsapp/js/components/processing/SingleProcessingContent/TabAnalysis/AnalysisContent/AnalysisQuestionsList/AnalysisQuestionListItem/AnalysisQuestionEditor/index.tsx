@@ -48,19 +48,21 @@ export default function AnalysisQuestionEditor({
     setNewQaQuestion(() => ({
       ...clonedeep(newQaQuestion),
       labels: {
-        _default: newLabel, // TODO: what about other non-default labels?
+        _default: newLabel,
       },
     }))
     if (newLabel !== '') setErrorMessageLabel(() => undefined)
   }, [])
 
   function handleChangeChoices(choices: ResponseQualSelectQuestionParamsChoicesItem[]) {
-    console.log(newQaQuestion, choices)
     setNewQaQuestion(() => ({
       ...clonedeep(newQaQuestion),
       choices,
     }))
-    // TODO: duplicate validation to determine whenever to keep or remove the error msg.
+    const choicesFiltered = choices.filter((choice) => !choice.options?.deleted)
+    if (choicesFiltered.length > 0 && choicesFiltered.every((choice) => choice.labels._default !== '')) {
+      setErrorMessageChoices(() => undefined)
+    }
   }
 
   const handleSubmit = async (evt: React.FormEvent<HTMLFormElement>) => {
@@ -81,7 +83,7 @@ export default function AnalysisQuestionEditor({
         hasErrors = true
       }
       if (choices.some((choice) => choice.labels._default === '')) {
-        setErrorMessageChoices(t('Some required fields are missing')) // TODO: better error messages?
+        setErrorMessageChoices(t('Some required fields are missing'))
         hasErrors = true
       }
     }
