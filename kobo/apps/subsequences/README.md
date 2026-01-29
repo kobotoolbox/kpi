@@ -35,451 +35,451 @@ How these selections are determined varies by feature.
 
 1. Enable automatic transcription in English - adds an (empty) column to the submission table
 `POST /api/v2/assets/{uid_asset}/advanced-features/`
+  
+      <details><summary>Request</summary>
+      
+      ```json
+      {
+        "question_xpath": "audio_question",
+        "action": "automatic_google_transcription",
+        "params": [{"language": "en"}]
+      }
+      ```
 
-<details><summary>Request</summary>
+      </details>
 
-```json
-{
-  "question_xpath": "audio_question",
-  "action": "automatic_google_transcription",
-  "params": [{"language": "en"}]
-}
-```
-</details>
-
-<details><summary>Response</summary>
-
-```json
-{
-  "question_xpath":"audio_question",
-  "action":"automatic_google_transcription",
-  "params":[{"language":"en"}],
-  "uid":"qaftnQRw6ZBNbNc9n7MSWzvx"
-}
-```
-</details>
+      <details><summary>Response</summary>
+      
+      ```json
+      {
+        "question_xpath":"audio_question",
+        "action":"automatic_google_transcription",
+        "params":[{"language":"en"}],
+        "uid":"qaftnQRw6ZBNbNc9n7MSWzvx"
+      }
+      ```
+      </details>
 
 2. Request an automatic transcription in Spanish
 `PATCH /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
 
-<details><summary>Request</summary>
+      <details><summary>Request</summary>
+      
+      ```json
+      {
+        "_version": "20250820",
+        "audio_question": {
+          "automatic_google_transcription": {
+            "language": "es"
+          }
+        }
+      }
+      ```
+      </details>
 
-```json
-{
-  "_version": "20250820",
-  "audio_question": {
-    "automatic_google_transcription": {
-      "language": "es"
-    }
-  }
-}
-```
-</details>
-
-<details><summary>Response</summary>
-`400 - Invalid payload`
-</details>
+      <details><summary>Response</summary>
+      `400 - Invalid payload`
+      </details>
 
 3. Enable automatic transcription in Spanish - adds an (empty) column to the submission table
 `PATCH /api/v2/assets/{uid_asset}/advanced-features/{uid_feature}/`
 
-<details><summary>Request</summary>
+      <details><summary>Request</summary>
+      
+      ```json
+      {
+        "params": [{"language": "es"}]
+      }
+      ```
+      </details>
 
-```json
-{
-  "params": [{"language": "es"}]
-}
-```
-</details>
-
-<details><summary>Response</summary>
-
-```json
-{
-  "params":[{"language":"en"},{"language":"es"}],
-  "question_xpath":"audio_question",
-  "action":"automatic_google_transcription",
-  "asset":27,
-  "uid":"qaftnQRw6ZBNbNc9n7MSWzvx"
-}
-```
-</details>
+      <details><summary>Response</summary>
+      
+      ```json
+      {
+        "params":[{"language":"en"},{"language":"es"}],
+        "question_xpath":"audio_question",
+        "action":"automatic_google_transcription",
+        "asset":27,
+        "uid":"qaftnQRw6ZBNbNc9n7MSWzvx"
+      }
+      ```
+      </details>
 
 
 4. Request automatic transcription in Spanish
 `PATCH /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
 
-<details><summary>Request</summary>
-
-```json
-{
-  "_version": "20250820",
-  "audio_question": {
-    "automatic_google_transcription": {
-      "language": "es"
-    }
-  }
-}
-```
-</details>
-
-<details><summary>Response</summary>
-
-```json
-{
-  "audio_question": {
-    "automatic_google_transcription": {
-      "_dateCreated":"2026-01-28T15:07:53.666960Z",
-      "_dateModified":"2026-01-28T15:07:53.666960Z",
-      "_versions": [
-        {
-          "_data": {
-            "language":"es","status":"in_progress"
-          },
-          "_dateCreated":"2026-01-28T15:07:53.666960Z",
-          "_uuid":"8df4a7f5-a05e-49a8-8620-d53dc0377535"
+      <details><summary>Request</summary>
+      
+      ```json
+      {
+        "_version": "20250820",
+        "audio_question": {
+          "automatic_google_transcription": {
+            "language": "es"
+          }
         }
-      ]
-    }
-  },
-  "_version":"20250820"
-}
-```
-</details>
+      }
+      ```
+      </details>
+      
+      <details><summary>Response</summary>
+      
+      ```json
+      {
+        "audio_question": {
+          "automatic_google_transcription": {
+            "_dateCreated":"2026-01-28T15:07:53.666960Z",
+            "_dateModified":"2026-01-28T15:07:53.666960Z",
+            "_versions": [
+              {
+                "_data": {
+                  "language":"es","status":"in_progress"
+                },
+                "_dateCreated":"2026-01-28T15:07:53.666960Z",
+                "_uuid":"8df4a7f5-a05e-49a8-8620-d53dc0377535"
+              }
+            ]
+          }
+        },
+        "_version":"20250820"
+      }
+      ```
+      </details>
 
 5. Poll to see if the transcription is done yet
 `GET /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
-Response:
 
-<details><summary>Response</summary>
-
-```json
-{
-   "audio_question":{
-      "automatic_google_transcription":{
-         "_versions":[
-            {
-               "_data":{
-                  "value":"Hola mundo",
-                  "status":"complete",
-                  "language":"es"
-               },
-               "_uuid":"9adfb1cf-0b21-4cb6-9ade-6a6bdd9cc830",
-               "_dateCreated":"2026-01-28T15:21:17.091030Z"
-            },
-           {
-             "_data": {
-               "status": "in_progress",
-               "language": "es"
-             },
-             "_uuid": "148381b2-ea51-4085-9968-acbb8608e749",
-             "_dateCreated": "2026-01-28T15:21:06.416445Z"
-           }
-         ],
-        "_version":"20250820"
+      <details><summary>Response</summary>
+      
+      ```json
+      {
+         "audio_question":{
+            "automatic_google_transcription":{
+               "_versions":[
+                  {
+                     "_data":{
+                        "value":"Hola mundo",
+                        "status":"complete",
+                        "language":"es"
+                     },
+                     "_uuid":"9adfb1cf-0b21-4cb6-9ade-6a6bdd9cc830",
+                     "_dateCreated":"2026-01-28T15:21:17.091030Z"
+                  },
+                 {
+                   "_data": {
+                     "status": "in_progress",
+                     "language": "es"
+                   },
+                   "_uuid": "148381b2-ea51-4085-9968-acbb8608e749",
+                   "_dateCreated": "2026-01-28T15:21:06.416445Z"
+                 }
+               ],
+              "_version":"20250820"
+            }
+         }
       }
-   }
-}
-```
-</details>
+      ```
+      </details>
 
 6. Accept the transcript - Spanish transcript is now filled in the submission row
 `PATCH /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
 
-<details><summary>Request</summary>
-
-```json
-{
-  "_version": "20250820",
-  "audio_question": {
-    "automatic_google_transcription": {
-      "language": "es",
-      "accepted": true
-    }
-  }
-}
-```
-</details><summary>Response</summary>
-
-<details>
-
-```json
-{
-   "audio_question":{
-      "automatic_google_transcription":{
-         "_versions":[
-            {
-               "_data":{
-                  "value":"Hola mundo",
-                  "status":"complete",
-                  "language":"es"
-               },
-               "_uuid":"9adfb1cf-0b21-4cb6-9ade-6a6bdd9cc830",
-               "_dateCreated":"2026-01-28T15:21:17.091030Z",
-               "_dateAccepted":"2026-01028T15:30:34.034124Z"
-            },
-           {
-             "_data": {
-               "status": "in_progress",
-               "language": "es"
-             },
-             "_uuid": "148381b2-ea51-4085-9968-acbb8608e749",
-             "_dateCreated": "2026-01-28T15:21:06.416445Z"
-           }
-         ],
-        "_version":"20250820"
+      <details><summary>Request</summary>
+      
+      ```json
+      {
+        "_version": "20250820",
+        "audio_question": {
+          "automatic_google_transcription": {
+            "language": "es",
+            "accepted": true
+          }
+        }
       }
-   }
-}
-```
-</details>
+      ```
+      </details><summary>Response</summary>
+      
+      <details>
+      
+      ```json
+      {
+         "audio_question":{
+            "automatic_google_transcription":{
+               "_versions":[
+                  {
+                     "_data":{
+                        "value":"Hola mundo",
+                        "status":"complete",
+                        "language":"es"
+                     },
+                     "_uuid":"9adfb1cf-0b21-4cb6-9ade-6a6bdd9cc830",
+                     "_dateCreated":"2026-01-28T15:21:17.091030Z",
+                     "_dateAccepted":"2026-01028T15:30:34.034124Z"
+                  },
+                 {
+                   "_data": {
+                     "status": "in_progress",
+                     "language": "es"
+                   },
+                   "_uuid": "148381b2-ea51-4085-9968-acbb8608e749",
+                   "_dateCreated": "2026-01-28T15:21:06.416445Z"
+                 }
+               ],
+              "_version":"20250820"
+            }
+         }
+      }
+      ```
+      </details>
 
 7. Delete the transcript - removes the Spanish transcript from the submission row
 `PATCH /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
 
-<details><summary>Request</summary>
-
-```json
-{
-  "_version": "20250820",
-  "audio_question": {
-    "automatic_google_transcription": {
-      "language": "es",
-      "value": null
-    }
-  }
-}
-```
-</details>
-
-<details><summary>Response</summary>
-
-```json
-{
-   "audio_question":{
-      "automatic_google_transcription":{
-         "_versions":[
-           {
-             "_data": {
-               "language": "es",
-               "value": null,
-               "status": "deleted"
-             },
-             "_uuid":"4c227cd5-0d8b-4143-b60e-52a85e83dea6",
-             "_dateCreated":"2026-01-28T15:59:42.921507Z"
-           },
-           {
-               "_data":{
-                  "value":"Hola mundo",
-                  "status":"complete",
-                  "language":"es"
-               },
-               "_uuid":"9adfb1cf-0b21-4cb6-9ade-6a6bdd9cc830",
-               "_dateCreated":"2026-01-28T15:21:17.091030Z",
-               "_dateAccepted":"2026-01028T15:30:34.034124Z"
-           },
-           {
-             "_data": {
-               "status": "in_progress",
-               "language": "es"
-             },
-             "_uuid": "148381b2-ea51-4085-9968-acbb8608e749",
-             "_dateCreated": "2026-01-28T15:21:06.416445Z"
-           }
-         ],
-        "_version":"20250820"
+      <details><summary>Request</summary>
+      
+      ```json
+      {
+        "_version": "20250820",
+        "audio_question": {
+          "automatic_google_transcription": {
+            "language": "es",
+            "value": null
+          }
+        }
       }
-   }
-}
-```
-</details>
+      ```
+      </details>
+      
+      <details><summary>Response</summary>
+      
+      ```json
+      {
+         "audio_question":{
+            "automatic_google_transcription":{
+               "_versions":[
+                 {
+                   "_data": {
+                     "language": "es",
+                     "value": null,
+                     "status": "deleted"
+                   },
+                   "_uuid":"4c227cd5-0d8b-4143-b60e-52a85e83dea6",
+                   "_dateCreated":"2026-01-28T15:59:42.921507Z"
+                 },
+                 {
+                     "_data":{
+                        "value":"Hola mundo",
+                        "status":"complete",
+                        "language":"es"
+                     },
+                     "_uuid":"9adfb1cf-0b21-4cb6-9ade-6a6bdd9cc830",
+                     "_dateCreated":"2026-01-28T15:21:17.091030Z",
+                     "_dateAccepted":"2026-01028T15:30:34.034124Z"
+                 },
+                 {
+                   "_data": {
+                     "status": "in_progress",
+                     "language": "es"
+                   },
+                   "_uuid": "148381b2-ea51-4085-9968-acbb8608e749",
+                   "_dateCreated": "2026-01-28T15:21:06.416445Z"
+                 }
+               ],
+              "_version":"20250820"
+            }
+         }
+      }
+      ```
+      </details>
 
 #### Manual transcription/translation
 
 1. Enable manual transcription in English - adds an (empty) column to the submission table
 `POST /api/v2/assets/{uid_asset}/advanced-features/`
 
-<details><summary>Request</summary>
-
-```json
-{
-  "question_xpath": "audio_question",
-  "action": "manual_transcription",
-  "params": [{"language": "en"}]
-}
-```
-</details>
-
-<details><summary>Response</summary>
-
-```json
-{
-  "question_xpath":"audio_question",
-  "action":"manual_transcription",
-  "params":[{"language":"en"}],
-  "uid":"qaftnQRw6ZBNbNc9n7MSWzvx"
-}
-```
-</details>
+      <details><summary>Request</summary>
+      
+      ```json
+      {
+        "question_xpath": "audio_question",
+        "action": "manual_transcription",
+        "params": [{"language": "en"}]
+      }
+      ```
+      </details>
+      
+      <details><summary>Response</summary>
+      
+      ```json
+      {
+        "question_xpath":"audio_question",
+        "action":"manual_transcription",
+        "params":[{"language":"en"}],
+        "uid":"qaftnQRw6ZBNbNc9n7MSWzvx"
+      }
+      ```
+      </details>
 
 
 2. Enable manual translation in Spanish - adds an (empty) column to the submission table
 `POST /api/v2/assets/{uid_asset}/advanced-features/`
 
-<details><summary>Request</summary>
-
-```json
-{
-  "question_xpath": "audio_question",
-  "action": "manual_translation",
-  "params": [{"language": "es"}]
-}
-```
-</details>
-
-<details><summary>Response</summary>
-
-```json
-{
-  "params":[{"language":"es"}],
-  "question_xpath":"audio_question",
-  "action":"manual_translation",
-  "asset":27,
-  "uid":"qafAfeIAse99SnGxi0ini"
-}
-```
-</details>
+      <details><summary>Request</summary>
+      
+      ```json
+      {
+        "question_xpath": "audio_question",
+        "action": "manual_translation",
+        "params": [{"language": "es"}]
+      }
+      ```
+      </details>
+      
+      <details><summary>Response</summary>
+      
+      ```json
+      {
+        "params":[{"language":"es"}],
+        "question_xpath":"audio_question",
+        "action":"manual_translation",
+        "asset":27,
+        "uid":"qafAfeIAse99SnGxi0ini"
+      }
+      ```
+      </details>
 
 3. Request manual translation in Spanish
 `PATCH /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
 
-<details><summary>Requestion</summary>
-
-```json
-{
-  "_version": "20250820",
-  "audio_question": {
-    "manual_translation": {
-      "language": "es",
-      "value": "Hola mundo!"
-    }
-  }
-}
-```
-</details>
-
-<details><summary>Response</summary>
-`400 - Cannot translate without transcription`
-</details>
+      <details><summary>Requestion</summary>
+      
+      ```json
+      {
+        "_version": "20250820",
+        "audio_question": {
+          "manual_translation": {
+            "language": "es",
+            "value": "Hola mundo!"
+          }
+        }
+      }
+      ```
+      </details>
+      
+      <details><summary>Response</summary>
+      `400 - Cannot translate without transcription`
+      </details>
 
 4. Add transcript in English - English transcript is now shown in the submission row
 `PATCH /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
 
-<details><summary>Request</summary>
-
-```json
-{
-  "_version": "20250820",
-  "audio_question": {
-    "manual_transcription": {
-      "language": "en",
-      "value": "Hello world!"
-    }
-  }
-}
-```
-</details>
-
-<details><summary>Response</summary>
-
-```json
-{
-  "audio_question": {
-    "manual_transcription": {
-       "_versions":[
-          {
-             "_data":{
-                "value":"Hello world!",
-                "language":"en"
-             },
-             "_uuid":"9cc2ac6d-4835-4935-b776-1f268c1b8e8d",
-             "_dateCreated":"2026-01-28T16:08:16.297609Z",
-             "_dateAccepted":"2026-01-28T16:08:16.297609Z"
+      <details><summary>Request</summary>
+      
+      ```json
+      {
+        "_version": "20250820",
+        "audio_question": {
+          "manual_transcription": {
+            "language": "en",
+            "value": "Hello world!"
           }
-       ],
-       "_dateCreated":"2026-01-28T16:08:16.297609Z",
-       "_dateModified":"2026-01-28T16:08:16.297609Z"
-    }
-  },
-  "_version":"20250820"
-}
-```
-</details>
+        }
+      }
+      ```
+      </details>
+      
+      <details><summary>Response</summary>
+      
+      ```json
+      {
+        "audio_question": {
+          "manual_transcription": {
+             "_versions":[
+                {
+                   "_data":{
+                      "value":"Hello world!",
+                      "language":"en"
+                   },
+                   "_uuid":"9cc2ac6d-4835-4935-b776-1f268c1b8e8d",
+                   "_dateCreated":"2026-01-28T16:08:16.297609Z",
+                   "_dateAccepted":"2026-01-28T16:08:16.297609Z"
+                }
+             ],
+             "_dateCreated":"2026-01-28T16:08:16.297609Z",
+             "_dateModified":"2026-01-28T16:08:16.297609Z"
+          }
+        },
+        "_version":"20250820"
+      }
+      ```
+      </details>
 
 5. Add a translation in Spanish - Spanish translation now shown in the submission row
 `PATCH /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
 
-<details><summary>Request</summary>
-
-```json
-{
-  "_version": "20250820",
-  "audio_question": {
-    "manual_translation": {
-      "language": "es",
-      "value": "Hola mundo!"
-    }
-  }
-}
-```
-</details>
-
-<details><summary>Response</summary>
-
-```json
-{
-   "q1":{
-      "manual_transcription":{
-        "_dateCreated":"2026-01-28T16:08:16.297609Z",
-         "_dateModified":"2026-01-28T16:08:16.297609Z",
-         "_versions":[
-            {
-               "_data":{
-                  "value":"Hello world!",
-                  "language":"en"
-               },
-               "_uuid":"9cc2ac6d-4835-4935-b776-1f268c1b8e8d",
-               "_dateCreated":"2026-01-28T16:08:16.297609Z",
-               "_dateAccepted":"2026-01-28T16:08:16.297609Z"
-            }
-         ]
-      },
-      "manual_translation":{
-         "es":{
-            "_dateCreated":"2026-01-28T16:09:12.468809Z",
-            "_dateModified":"2026-01-28T16:09:12.468809Z",
-            "_versions":[
-               {
-                  "_data":{
-                     "language":"es",
-                     "value":"Hola mundo!"
-                  },
-                  "_dateCreated":"2026-01-28T16:09:12.468809Z",
-                  "_uuid":"63f4cfba-3fd9-41ca-bc3b-d3efe7822545",
-                  "_dependency":{
-                     "_actionId":"manual_transcription",
-                     "_uuid":"9cc2ac6d-4835-4935-b776-1f268c1b8e8d"
-                  },
-                  "_dateAccepted":"2026-01-28T16:09:12.468809Z"
-               }
-            ]
-         }
+      <details><summary>Request</summary>
+      
+      ```json
+      {
+        "_version": "20250820",
+        "audio_question": {
+          "manual_translation": {
+            "language": "es",
+            "value": "Hola mundo!"
+          }
+        }
       }
-   },
-   "_version":"20250820"
-}
-```
-</details>
+      ```
+      </details>
+      
+      <details><summary>Response</summary>
+      
+      ```json
+      {
+         "q1":{
+            "manual_transcription":{
+              "_dateCreated":"2026-01-28T16:08:16.297609Z",
+               "_dateModified":"2026-01-28T16:08:16.297609Z",
+               "_versions":[
+                  {
+                     "_data":{
+                        "value":"Hello world!",
+                        "language":"en"
+                     },
+                     "_uuid":"9cc2ac6d-4835-4935-b776-1f268c1b8e8d",
+                     "_dateCreated":"2026-01-28T16:08:16.297609Z",
+                     "_dateAccepted":"2026-01-28T16:08:16.297609Z"
+                  }
+               ]
+            },
+            "manual_translation":{
+               "es":{
+                  "_dateCreated":"2026-01-28T16:09:12.468809Z",
+                  "_dateModified":"2026-01-28T16:09:12.468809Z",
+                  "_versions":[
+                     {
+                        "_data":{
+                           "language":"es",
+                           "value":"Hola mundo!"
+                        },
+                        "_dateCreated":"2026-01-28T16:09:12.468809Z",
+                        "_uuid":"63f4cfba-3fd9-41ca-bc3b-d3efe7822545",
+                        "_dependency":{
+                           "_actionId":"manual_transcription",
+                           "_uuid":"9cc2ac6d-4835-4935-b776-1f268c1b8e8d"
+                        },
+                        "_dateAccepted":"2026-01-28T16:09:12.468809Z"
+                     }
+                  ]
+               }
+            }
+         },
+         "_version":"20250820"
+      }
+      ```
+      </details>
 
 
 ---
@@ -491,16 +491,16 @@ Response:
 
 <details><summary>Request</summary>
 
-```json
-{
-  "question_xpath": "audio_question",
-  "action": "manual_transcription",
-  "params": [
-    {"language": "en"}
-  ]
-}
-```
-</details>
+      ```json
+      {
+        "question_xpath": "audio_question",
+        "action": "manual_transcription",
+        "params": [
+          {"language": "en"}
+        ]
+      }
+      ```
+      </details>
 
 
 ## 3 Sequence Workflow - Backend (End-to-End Flow)
