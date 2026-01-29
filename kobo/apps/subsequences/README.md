@@ -27,6 +27,7 @@ For any given question, for any submission, there is only
 How these selections are determined varies by feature.
 * For transcripts and translations, the selected version is the most recently *accepted*, manual or automatic
   ** Notable exception: if there is a version marked "deleted", either manual or automatic, with a *creation* date after the most recently accepted version, the value will be empty
+  ** Manual transcripts/translations are automatically accepted on creation, automatic ones must be explicitly accepted by request
 * For QA questions, the selected version is the most recently *created* response
 
 ### Examples
@@ -147,7 +148,7 @@ How these selections are determined varies by feature.
       ```
       </details>
 
-5. Poll to see if the transcription is done yet
+5. Poll to see if the transcription is done yet - transcript is still empty in the row because it has not yet been accepted
 `GET /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
 
       <details><summary>Response</summary>
