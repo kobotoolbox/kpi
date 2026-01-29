@@ -1,10 +1,10 @@
-#####################################
-# The Dockerfile has 4 stages now:  #
-#  1. 📦 Node 'npm-install'         #
-#  2. 🏗️ Node 'webpack-build-prod'  #
-#  3. 📦 Python 'pip-dependencies'  #
-#  4. 🐍 Python 'kpi-django-app'    #
-#####################################
+#########################################
+# The Dockerfile has 4 stages now:      #
+#  1. 📦 Node 'npm-install'             #
+#  2. 🛠️ Node 'webpack-build-prod'      #
+#  3. 🐍 Python 'pip-dependencies'      #
+#  4. 🧰 KPI production image 'kpi-app' #
+#########################################
 
 # If you update a base image, make sure to update the
 # runners in .github/workflows/ to the corresponding 
@@ -56,7 +56,7 @@ RUN npm clean-install \
 
 ################################
 #                              #
-# 🏗️ Node 'webpack-build-prod' #
+# 🛠️ Node 'webpack-build-prod' #
 #                              #
 ################################
 FROM node:20.19-bookworm-slim AS webpack-build-prod
@@ -112,7 +112,7 @@ RUN --mount=from=npm-install,source=/srv/src/kpi/node_modules,target=/srv/src/kp
 
 ################################
 #                              #
-# 📦 Python 'pip-dependencies' #
+# 🐍 Python 'pip-dependencies' #
 #                              #
 ################################
 FROM ghcr.io/astral-sh/uv:python3.10-bookworm AS pip-dependencies
@@ -123,12 +123,12 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 COPY ./dependencies/pip/requirements.txt "${TMP_DIR}/pip_dependencies.txt"
 RUN uv pip sync "${TMP_DIR}/pip_dependencies.txt" 1>/dev/null
 
-###########################################
-#                                         #
-# 🐍 Python / kpi container (build & run) #
-#                                         #
-###########################################
-FROM ghcr.io/astral-sh/uv:python3.10-bookworm-slim AS kpi-django-app
+#####################################
+#                                   #
+# 🧰 KPI production image 'kpi-app' #
+#                                   #
+#####################################
+FROM ghcr.io/astral-sh/uv:python3.10-bookworm-slim AS kpi-app
 
 ENV DEBIAN_FRONTEND=noninteractive \
     LANG=en_US.UTF-8 \
@@ -267,6 +267,7 @@ RUN chown -R "${UWSGI_USER}:${UWSGI_GROUP}" ${KPI_SRC_DIR}/emails/ && \
 # COPY --from=npm-install --parents \
 #     /srv/src/kpi/./node_modules/  \
 #     .
+# ################################
 
 # Add node_modules/.bin to PATH,
 # in case scripts are relying on it.
