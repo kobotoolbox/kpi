@@ -31,6 +31,7 @@ def update_enketo_links(sender, instance, **kwargs):
     # now that we may have enketo links, keep track of the token we used to create
     # them so we can remove later if necessary
     instance._initial_token = instance.token
+    instance._initial_group_id = instance.group_id
 
 
 @receiver(pre_delete, sender=DataCollector)
