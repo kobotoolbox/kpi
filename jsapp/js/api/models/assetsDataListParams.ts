@@ -20,7 +20,7 @@ export type AssetsDataListParams = {
   /**
    * Filter the results with search query
    */
-  q?: string
+  query?: string
   /**
    * The initial index from which to return the results.
    */
