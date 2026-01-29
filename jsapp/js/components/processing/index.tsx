@@ -17,8 +17,6 @@ import SingleProcessingHeader from './SingleProcessingHeader'
 import SingleProcessingSidebar from './SingleProcessingSidebar'
 import styles from './index.module.scss'
 
-// TODO: manually enable `POST /api/v2/assets/{uid_asset}/advanced-features/` for questions for now.
-
 const NO_DATA_MESSAGE = t('There is no data for this question for the current submission')
 
 interface RouteParams extends Record<string, string | undefined> {
