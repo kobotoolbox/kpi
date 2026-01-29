@@ -138,17 +138,22 @@ def fix_stale_submissions_suspended_flag():
     Task to fix stale `submissions_suspended` flag to ensure that accounts are
     not indefinitely locked, preventing users from accessing or collecting their
     data.
-
-    Note:
-    - This task is **not** automatically included in the periodic tasks.
-    - If the task `sync_storage_counters` is added to the periodic tasks,
-      this task should also be manually added to ensure consistency
-      in the system's storage management and cleanup process.
     """
 
     redis_client = get_redis_connection()
     lock = redis_client.hgetall(SUBMISSIONS_SUSPENDED_HEARTBEAT_KEY)
+
+    def _release_all_locks():
+        if UserProfile.objects.filter(submissions_suspended=True).exists():
+            logging.warning(
+                'Some profiles still have the `submission_suspended` flag enabled.'
+            )
+            UserProfile.objects.filter(submissions_suspended=True).update(
+                submissions_suspended=False
+            )
+
     if not lock:
+        _release_all_locks()
         return
 
     usernames = []
@@ -167,12 +172,11 @@ def fix_stale_submissions_suspended_flag():
 
     if usernames:
         UserProfile.objects.filter(user__username__in=usernames).update(
-            metadata=ReplaceValues(
-                'metadata',
-                updates={'submissions_suspended': False},
-            ),
+            submissions_suspended=False
         )
         redis_client.hdel(SUBMISSIONS_SUSPENDED_HEARTBEAT_KEY, *usernames)
+    else:
+        _release_all_locks()
 
 
 @celery_app.task(
