@@ -14,7 +14,7 @@ interface Props {
 }
 
 export default function SelectMultipleResponseForm({ qaQuestion, qaAnswer, onSave, disabled }: Props) {
-  const [values, setValues] = useState<string[]>((qaAnswer?._data.value as string[]) ?? []) // TODO OpenAPI: DEV-1632
+  const [values, setValues] = useState<string[]>((qaAnswer?._data.value as string[]) ?? [])
   const [typingTimer, setTypingTimer] = useState<NodeJS.Timeout>()
 
   const handleSave = async () => {

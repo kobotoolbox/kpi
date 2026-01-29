@@ -1,7 +1,6 @@
 import type { ActionEnum } from '#/api/models/actionEnum'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { ResponseQualActionParams } from '#/api/models/responseQualActionParams'
-import type { AnalysisQuestionType } from './constants'
 import { ANALYSIS_QUESTION_TYPES } from './constants'
 
 export interface AdvancedFeatureResponseManualQual extends AdvancedFeatureResponse {
@@ -11,6 +10,6 @@ export interface AdvancedFeatureResponseManualQual extends AdvancedFeatureRespon
   uid: string
 }
 
-export function getQuestionTypeDefinition(type: AnalysisQuestionType) {
+export function getQuestionTypeDefinition(type: ResponseQualActionParams['type']) {
   return ANALYSIS_QUESTION_TYPES.find((definition) => definition.type === type)
 }

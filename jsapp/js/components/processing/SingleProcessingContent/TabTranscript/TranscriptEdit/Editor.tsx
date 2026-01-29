@@ -75,14 +75,13 @@ export default function Editor({
           ],
         },
       })
-      // TODO: should I check for locales too or not?
     } else if (!advancedFeature?.params.find((param) => 'language' in param && param.language === languageCode)) {
       await mutationPatchAF.mutateAsync({
         uidAsset: asset.uid,
         uidAdvancedFeature: advancedFeature.uid,
         data: {
-          action: ActionEnum.manual_transcription, // TODO: OpenAPI PatchedAdvancedFeaturePatchRequest doesn't have this prop typed. https://linear.app/kobotoolbox/issue/DEV-1627
-          question_xpath: questionXpath, // TODO: OpenAPI PatchedAdvancedFeaturePatchRequest doesn't have this prop typed. https://linear.app/kobotoolbox/issue/DEV-1627
+          action: ActionEnum.manual_transcription,
+          question_xpath: questionXpath,
           params: advancedFeature.params.concat({
             language: languageCode,
           }),
@@ -103,7 +102,7 @@ export default function Editor({
             [ActionEnum.automatic_google_transcription]: {
               language: transcriptVersion._data.language,
               accepted: true,
-            } as any, // TODO OpenAPI: PatchedDataSupplementPayloadOneOfOneOfAutomaticGoogleTranscription for PATCH shouldn't have `language` prop.
+            },
           },
         },
       })
@@ -141,8 +140,8 @@ export default function Editor({
           _version: SUBSEQUENCES_SCHEMA_VERSION,
           [questionXpath]: {
             [ActionEnum.automatic_google_transcription]: {
-              language: transcriptVersion._data.language, // TODO OpenAPI & API: why this prop is required at all?
-              value: null, // TODO OpenAPI: is that `null` or `''` to "discard" automatic transcription?
+              language: transcriptVersion._data.language,
+              value: null,
             },
           },
         },

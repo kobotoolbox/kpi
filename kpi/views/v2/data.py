@@ -161,7 +161,7 @@ from kpi.utils.xml import (
         },
         parameters=[
             OpenApiParameter(
-                name='q',
+                name='query',
                 type=str,
                 location=OpenApiParameter.QUERY,
                 required=False,

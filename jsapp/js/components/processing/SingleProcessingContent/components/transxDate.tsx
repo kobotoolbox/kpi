@@ -19,6 +19,11 @@ interface TransxDateProps {
 }
 
 export default function TransxDate({ transxVersion, supplement, xpath }: TransxDateProps) {
+  // When drafting manual transx, there is no date to be shown
+  if (transxVersion._dateCreated === '') {
+    return null
+  }
+
   // Note: we don't use any `_dateModified` here, because modifying through API is just creating a new version
   const shortDate = formatTimeDateShort(transxVersion._dateCreated)
   const longDateRaw = formatTime(transxVersion._dateCreated)

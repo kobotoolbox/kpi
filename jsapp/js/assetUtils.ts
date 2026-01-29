@@ -5,8 +5,6 @@
 
 import React from 'react'
 import { isRtlLang } from 'rtl-detect'
-
-import assetStore from '#/assetStore'
 import permConfig from '#/components/permissions/permConfig'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { QUAL_NOTE_TYPE } from '#/components/processing/SingleProcessingContent/TabAnalysis/common/constants'
@@ -638,29 +636,6 @@ export function removeInvalidChars(str: string) {
   return (str = String(str || '').replace(regex, ''))
 }
 
-export function getAssetAdvancedFeatures(assetUid: string) {
-  const foundAsset = assetStore.getAsset(assetUid)
-  if (foundAsset) {
-    return foundAsset.advanced_features
-  }
-  return undefined
-}
-
-// This url returns `ProcessingDataResponse`
-export function buildSubmissionSupplementUrl(assetUid: string, submissionUid: string): string | undefined {
-  return `${ROOT_URL}/api/v2/assets/${assetUid}/data/${submissionUid}/supplement/`
-}
-
-export function getProcessableRowXpaths(assetUid: string) {
-  const foundAsset = assetStore.getAsset(assetUid)
-  return foundAsset?.content?.survey
-    ?.filter(
-      (row) =>
-        !!row.$xpath && (row.type === QUESTION_TYPES.audio.id || row.type === QUESTION_TYPES['background-audio'].id),
-    )
-    .map((row) => row.$xpath as string)
-}
-
 /**
  * Whether the form has background audio enabled. This means that there is
  * a possibility that the submission could have a background audio recording.
@@ -694,7 +669,4 @@ export default {
   isSelfOwned,
   renderQuestionTypeIcon,
   removeInvalidChars,
-  getProcessableRowXpaths,
-  getAssetAdvancedFeatures,
-  buildSubmissionSupplementUrl,
 }
