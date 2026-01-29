@@ -165,14 +165,3 @@ export default function AnalysisQuestionEditor({
     </>
   )
 }
-
-const a = {
-  params: [
-    { type: 'qualText', uuid: 'c3b0dab6-a689-4fdd-9cb6-e742e7931c15', labels: { _default: 'second' } },
-    { type: 'qualText', uuid: 'placeholder', labels: { _default: 'asdf' }, options: { deleted: true } },
-  ],
-  question_xpath: 'Use_the_camera_s_mic_ne_to_record_a_sound',
-  action: 'manual_qual',
-  asset: 25,
-  uid: 'qafqnZC5DMN8eGWLB4cR4T2h',
-}
