@@ -63,36 +63,30 @@ FROM node:20.19-bookworm-slim AS webpack-build-prod
 WORKDIR /srv/src/kpi
 RUN chown node:node .
 
-# Copy some webpack build inputs from the
-# 'npm-install' stage. (mainly package.json, and fonts)
+# Copy inputs from the 'npm-install' stage.
+# (These were generated during post-install.)
 COPY --from=npm-install --parents \
     /srv/src/kpi/./jsapp/fonts/   \
     /srv/src/kpi/./msw-mocks/     \
-    /srv/src/kpi/./jsapp/k-icons-css-template.hbs \
-    /srv/src/kpi/./jsapp/svg-icons/               \
-    /srv/src/kpi/./patches/                       \
-    /srv/src/kpi/./.browserslistrc                \
-    /srv/src/kpi/./package.json                   \
-    /srv/src/kpi/./package-lock.json              \
     .
 
-# Copy the rest of the webpack build inputs from the
+# Copy other webpack build inputs from the
 # build context.
 COPY --chown=node:node --parents \
-    jsapp/img/      \
-    jsapp/js/       \
-    jsapp/scss/     \
-    jsapp/xlform/   \
-    jsapp/postcss.config.cjs \
-    scripts/        \
-    webpack/        \
-    .babelrc.json   \
-    .gitignore      \
-    .node-version   \
-    .nvmrc          \
-    .swcrc          \
-    orval.config.js \
-    tsconfig.json   \
+    jsapp/            \
+    patches/          \
+    scripts/          \
+    webpack/          \
+    .babelrc.json     \
+    .browserslistrc   \
+    .gitignore        \
+    .node-version     \
+    .nvmrc            \
+    .swcrc            \
+    orval.config.js   \
+    package.json      \
+    package-lock.json \
+    tsconfig.json     \
     .
 
 # We now have everything we need in /src/srv/kpi/ to
@@ -210,8 +204,7 @@ RUN adduser --disabled-password --gecos '' "$UWSGI_USER"
 #################################################
 RUN mkdir -p "${TMP_DIR}/.npm" && \
     npm config set cache "${TMP_DIR}/.npm" --global && \
-    npm clean-install --global --production \
-        github:mgol/check-dependencies#bfc3d06ba7d52b5ea9770f708d882526488eeb7d && \
+    npm install --global --production github:mgol/check-dependencies#bfc3d06ba7d52b5ea9770f708d882526488eeb7d && \
     npm cache clean --force
 
 ###############################################
