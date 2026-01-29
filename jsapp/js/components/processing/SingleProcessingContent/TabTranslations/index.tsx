@@ -30,6 +30,8 @@ export default function TranslationTab({
 }: Props) {
   const translationVersions = getAllTranslationsFromSupplementData(supplement, questionXpath)
 
+  // TODO: force preselect translationVersion that is not accepted (setLanguageCode)
+
   // Selected language code to display.
   const [languageCode, setLanguageCode] = useState<LanguageCode | null>(null)
   const translationVersion = translationVersions.find(({ _data }) => _data.language === languageCode)
