@@ -23,16 +23,6 @@ from kobo.apps.subsequences.constants import (
     Action,
 )
 from kobo.apps.subsequences.models import QuestionAdvancedFeature
-from kobo.apps.subsequences.tests.constants import (
-    BEDROCK_CHOICE_APATHY_UUID,
-    BEDROCK_CHOICE_EMPATHY_UUID,
-    BEDROCK_QUAL_INTEGER_UUID,
-    BEDROCK_QUAL_SELECT_MULTIPLE_UUID,
-    BEDROCK_QUAL_SELECT_ONE_UUID,
-    BEDROCK_QUAL_TEXT_UUID,
-    BEDROCK_VALIDATION_CHOICE_UUID,
-    BEDROCK_VALIDATION_MAIN_UUID,
-)
 from kobo.apps.subsequences.prompts import (
     PROMPTS_BY_QUESTION_TYPE,
     InvalidResponseFromLLMException,
@@ -41,6 +31,18 @@ from kobo.apps.subsequences.prompts import (
     example_format_placeholder,
     num_choice_placeholder,
     response_placeholder,
+)
+from kobo.apps.subsequences.tests.constants import (
+    BEDROCK_CHOICE_APATHY_UUID,
+    BEDROCK_CHOICE_EMPATHY_UUID,
+    BEDROCK_CHOICE_NO_UUID,
+    BEDROCK_CHOICE_YES_UUID,
+    BEDROCK_QUAL_INTEGER_UUID,
+    BEDROCK_QUAL_SELECT_MULTIPLE_UUID,
+    BEDROCK_QUAL_SELECT_ONE_UUID,
+    BEDROCK_QUAL_TEXT_UUID,
+    BEDROCK_VALIDATION_CHOICE_UUID,
+    BEDROCK_VALIDATION_MAIN_UUID,
 )
 from kobo.apps.subsequences.tests.utils import MockLLMClient
 from kobo.apps.trackers.models import NLPUsageCounter
@@ -184,7 +186,7 @@ class TestBedrockAutomaticBedrockQual(BaseAutomaticBedrockQualTestCase):
         (BEDROCK_QUAL_INTEGER_UUID, 1, 'failed', 'error', False),
         (
             BEDROCK_QUAL_SELECT_ONE_UUID,
-            BEDROCK_QUAL_SELECT_ONE_UUID,
+            BEDROCK_CHOICE_YES_UUID,
             'complete',
             None,
             True,
@@ -195,7 +197,7 @@ class TestBedrockAutomaticBedrockQual(BaseAutomaticBedrockQualTestCase):
         (BEDROCK_QUAL_SELECT_ONE_UUID, None, 'failed', 'error', True),
         (
             BEDROCK_QUAL_SELECT_ONE_UUID,
-            BEDROCK_QUAL_SELECT_ONE_UUID,
+            BEDROCK_CHOICE_NO_UUID,
             'failed',
             'error',
             False,
@@ -213,7 +215,7 @@ class TestBedrockAutomaticBedrockQual(BaseAutomaticBedrockQualTestCase):
         (BEDROCK_QUAL_SELECT_MULTIPLE_UUID, None, 'failed', 'error', True),
         (
             BEDROCK_QUAL_SELECT_MULTIPLE_UUID,
-            [BEDROCK_CHOICE_EMPATHY_UUID],
+            [BEDROCK_CHOICE_APATHY_UUID],
             'failed',
             'error',
             False,
@@ -329,12 +331,13 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
         question = self._get_question(uuid)
         return question['labels']['_default']
 
-    @data('uuid-qual-text', 'uuid-qual-integer')
+    @data(BEDROCK_QUAL_TEXT_UUID, BEDROCK_QUAL_INTEGER_UUID)
     def test_generate_llm_prompt_without_choices(self, qa_question_uuid):
         mock_templates_by_type = {
-            QUESTION_TYPE_INTEGER: f'integer transcript: {response_placeholder},'
+            QUESTION_TYPE_INTEGER: f'{BEDROCK_QUAL_INTEGER_UUID} '
+            f'transcript: {response_placeholder},'
             f' qa question: {analysis_question_placeholder}',
-            QUESTION_TYPE_TEXT: f'text transcript: {response_placeholder},'
+            QUESTION_TYPE_TEXT: f'{BEDROCK_QUAL_TEXT_UUID} transcript: {response_placeholder},'
             f' qa question: {analysis_question_placeholder}',
         }
         transcript_text = self.transcript_dict['_data']['value']
@@ -344,23 +347,22 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
         }
         with patch.dict(PROMPTS_BY_QUESTION_TYPE, mock_templates_by_type):
             prompt = self.action.generate_llm_prompt(action_data)
-        short_type = qa_question_uuid.split('-')[-1]
         question_text = self._get_question_text_by_uuid(qa_question_uuid)
         expected = (
-            f'{short_type} transcript: {transcript_text},'
+            f'{qa_question_uuid} transcript: {transcript_text},'
             f' qa question: {question_text}'
         )
         assert prompt == expected
 
-    @data('uuid-qual-select-one', 'uuid-qual-select-multiple')
+    @data(BEDROCK_QUAL_SELECT_ONE_UUID, BEDROCK_QUAL_SELECT_MULTIPLE_UUID)
     def test_generate_llm_prompt_with_choices(self, qa_question_uuid):
         mock_templates_by_type = {
-            QUESTION_TYPE_SELECT_ONE: f'one transcript: {response_placeholder},'
+            QUESTION_TYPE_SELECT_ONE: f'{BEDROCK_QUAL_SELECT_ONE_UUID} transcript: {response_placeholder},'
             f' qa question: {analysis_question_placeholder},'
             f' choices: {choices_list_placeholder},'
             f' count: {num_choice_placeholder},'
             f' format: {example_format_placeholder}',
-            QUESTION_TYPE_SELECT_MULTIPLE: f'multiple'
+            QUESTION_TYPE_SELECT_MULTIPLE: f'{BEDROCK_QUAL_SELECT_MULTIPLE_UUID}'
             f' transcript: {response_placeholder},'
             f' qa question: {analysis_question_placeholder},'
             f' choices: {choices_list_placeholder},'
@@ -387,10 +389,9 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
                     return_value='example format string',
                 ):
                     prompt = self.action.generate_llm_prompt(action_data)
-        short_type = qa_question_uuid.split('-')[-1]
         expected_choices_string = ','.join(choices_labels)
         assert prompt == (
-            f'{short_type} transcript: {transcript_text},'
+            f'{qa_question_uuid} transcript: {transcript_text},'
             f' qa question: {question_text},'
             f' choices: {expected_choices_string},'
             f' count: {choice_count},'
@@ -399,10 +400,10 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
 
     @data(
         # question uuid, parsing method name
-        ('uuid-qual-text', 'parse_text_response'),
-        ('uuid-qual-select-one', 'parse_choices_response'),
-        ('uuid-qual-select-multiple', 'parse_choices_response'),
-        ('uuid-qual-integer', 'parse_integer_response'),
+        (BEDROCK_QUAL_TEXT_UUID, 'parse_text_response'),
+        (BEDROCK_QUAL_SELECT_ONE_UUID, 'parse_choices_response'),
+        (BEDROCK_QUAL_SELECT_MULTIPLE_UUID, 'parse_choices_response'),
+        (BEDROCK_QUAL_INTEGER_UUID, 'parse_integer_response'),
     )
     @unpack
     def test_errors_from_external_process(self, question_uuid, method_to_patch):
@@ -426,7 +427,7 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
             f' count: {num_choice_placeholder}',
         }
         action_data = {
-            'uuid': 'uuid-qual-select-multiple',
+            'uuid': BEDROCK_QUAL_SELECT_MULTIPLE_UUID,
             '_dependency': self._dependency_dict_from_transcript_dict(),
         }
         self.feature.params[1]['choices'][0]['options'] = {'deleted': True}
@@ -442,7 +443,7 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
 
     def test_run_external_process_does_not_call_default_if_primary_succeeds(self):
         action_data = {
-            'uuid': 'uuid-qual-text',
+            'uuid': BEDROCK_QUAL_TEXT_UUID,
             '_dependency': self._dependency_dict_from_transcript_dict(),
         }
         with patch.object(
@@ -456,7 +457,7 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
 
     def test_run_external_process_calls_default_if_primary_fails(self):
         action_data = {
-            'uuid': 'uuid-qual-text',
+            'uuid': BEDROCK_QUAL_TEXT_UUID,
             '_dependency': self._dependency_dict_from_transcript_dict(),
         }
         with patch.object(
@@ -488,7 +489,7 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
         )
         assert current_counters.count() == 0
         action_data = {
-            'uuid': 'uuid-qual-text',
+            'uuid': BEDROCK_QUAL_TEXT_UUID,
             '_dependency': self._dependency_dict_from_transcript_dict(),
         }
         with patch.object(
