@@ -45,7 +45,7 @@ How these selections are determined varies by feature.
 }
 ```
 </details>
-<details>Response<summary></summary>
+<details><summary>Response</summary>
 
 ```json
 {
