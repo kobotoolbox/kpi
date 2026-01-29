@@ -177,9 +177,9 @@ RUN apt-get -qq update && \
 RUN echo 'en_US.UTF-8 UTF-8' > /etc/locale.gen && \
     locale-gen && dpkg-reconfigure locales -f noninteractive
 
-###########################################
-# Set environnment variables and workdir. #
-###########################################
+##########################################
+# Set environment variables and workdir. #
+##########################################
 
 # Note: NGINX_STATIC_DIR is the mountpoint of a volume
 #    shared with the `nginx` container.
@@ -206,10 +206,12 @@ RUN adduser --disabled-password --gecos '' "$UWSGI_USER"
 
 #################################################
 # Set up Node for kobo-docker lifecycle scripts #
+#   (see ./docker/entrypoint.sh)                #
 #################################################
 RUN mkdir -p "${TMP_DIR}/.npm" && \
     npm config set cache "${TMP_DIR}/.npm" --global && \
-    npm install -g check-dependencies@1 && \
+    npm clean-install --global --production \
+        github:mgol/check-dependencies#bfc3d06ba7d52b5ea9770f708d882526488eeb7d && \
     npm cache clean --force
 
 ###############################################
