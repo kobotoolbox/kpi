@@ -10,7 +10,7 @@ import type { MultiCheckboxItem } from '#/components/common/multiCheckbox'
 import ToggleSwitch from '#/components/common/toggleSwitch'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { AsyncLanguageDisplayLabel } from '#/components/languages/languagesUtils'
-import { getActiveTab } from '#/components/processing/routes.utils'
+import { ProcessingTab, getActiveTab } from '#/components/processing/routes.utils'
 import { XML_VALUES_OPTION_VALUE } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import { recordValues } from '#/utils'
@@ -61,16 +61,28 @@ export default function SidebarDisplaySettings({
   }, [translations])
 
   const availableDisplays = useMemo<Array<LanguageCode | StaticDisplays>>(() => {
-    const displays: Array<LanguageCode | StaticDisplays> = [...recordValues(StaticDisplays), ...availableLanguages]
+    let displays: Array<LanguageCode | StaticDisplays> = [...recordValues(StaticDisplays), ...availableLanguages]
+
+    // Filter out transcript if we are on the transcript tab or if it was deleted
+    if (
+      activeTab === ProcessingTab.Transcript ||
+      !transcript?._data ||
+      'value' in transcript?._data === false ||
+      transcript?._data.value === null
+    ) {
+      displays = displays.filter((display) => display !== StaticDisplays.Transcript)
+    }
+
     return displays
-  }, [availableLanguages])
+  }, [availableLanguages, activeTab, transcript])
 
   if (activeTab === undefined) {
     return null
   }
 
-  // Returns the list of available displays for the current tab.
-  // I.e., if we are on the transcript tab, hide the transcript option.
+  /**
+   * Returns label for toggle for given display.
+   */
   function getStaticDisplayText(display: StaticDisplays) {
     if (display === StaticDisplays.Transcript) {
       if (transcript) {
@@ -211,7 +223,6 @@ export default function SidebarDisplaySettings({
                   </Box>
                 )
               } else {
-                // TODO: Check later to see if translations/languages is working, since now we don't have the data for it.
                 return (
                   <Box key={entry}>
                     <ToggleSwitch
