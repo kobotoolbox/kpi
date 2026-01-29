@@ -8,7 +8,6 @@ import {
 } from '#/api/react-query/survey-data'
 import Button from '#/components/common/button'
 import { goToProcessing } from '#/components/processing/routes.utils'
-import { addDefaultUuidPrefix } from '#/utils'
 import styles from './index.module.scss'
 
 interface Props {
@@ -25,23 +24,22 @@ interface Props {
 export default function SelectSubmission({ assetUid, submission, xpath }: Props) {
   if (!submission) return
 
-  // TODO: Ensure query handles cases where submissions have the same submission time, see DEV-1645.
-  // We fetch the two submissions before and after the current submission to enable
-  // back and forth navigation, provide a count of total submissions and current
-  // position in list
-  function getNeighborParams(uid: string, time: string, direction: 'next' | 'prev') {
-    const isNext = direction === 'next'
-    const formattedUiD = addDefaultUuidPrefix(uid)
+  // Because submission times are only accurate to the second,_id
+  // is the only easy way to figure out where a submission is on
+  // an intuitively ordered list of submissions. If we decide to stop using
+  // _id, we will need to consult with backend team for other solutions
+  function getNeighborParams(id: number, direction: 'next' | 'prev') {
+    const isNext = direction === 'next' // Next = Older (Down)
+    const op = isNext ? '$lt' : '$gt'
+    const sortDir = isNext ? -1 : 1
+
     return {
       limit: 1,
       start: 0,
       query: JSON.stringify({
-        $expr: {
-          $ne: [{ $ifNull: ['$meta/rootUuid', '$meta/instanceID'] }, formattedUiD],
-        },
-        _submission_time: isNext ? { $lt: time } : { $gt: time },
+        _id: { [op]: id },
       }),
-      sort: JSON.stringify({ _submission_time: isNext ? -1 : 1 }),
+      sort: JSON.stringify({ _id: sortDir }),
     }
   }
 
@@ -56,22 +54,21 @@ export default function SelectSubmission({ assetUid, submission, xpath }: Props)
 
   const { _uuid, _submission_time } = submission
 
-  // Define the params directly in the component body
-  const nextParams = getNeighborParams(_uuid, _submission_time, 'next')
+  const nextParams = getNeighborParams(submission._id, 'next')
   const queryNext = useAssetsDataList(assetUid!, nextParams, {
     query: {
       queryKey: getAssetsDataListQueryKey(assetUid, nextParams),
       enabled: !!assetUid,
-      select: useCallback(getNeighborResults, [submission._uuid]),
+      select: useCallback(getNeighborResults, [_uuid, _submission_time]),
     },
   })
 
-  const prevParams = getNeighborParams(_uuid, _submission_time, 'prev')
+  const prevParams = getNeighborParams(submission._id, 'prev')
   const queryPrev = useAssetsDataList(assetUid!, prevParams, {
     query: {
       queryKey: getAssetsDataListQueryKey(assetUid, prevParams),
       enabled: !!assetUid,
-      select: useCallback(getNeighborResults, [submission._uuid]),
+      select: useCallback(getNeighborResults, [_uuid, _submission_time]),
     },
   })
 
