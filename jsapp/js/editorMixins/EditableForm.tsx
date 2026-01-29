@@ -64,7 +64,7 @@ import {
 import SurveyScope from '../models/surveyScope'
 import { type SurveyStateStoreData, stores } from '../stores'
 import { escapeHtml, recordKeys } from '../utils'
-import AssetNavigator from './assetNavigator'
+import AssetNavigator from './AssetNavigator'
 
 const ErrorMessage = makeBem(null, 'error-message')
 const ErrorMessage__strong = makeBem(null, 'error-message__header', 'strong')
