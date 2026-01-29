@@ -36,6 +36,7 @@ How these selections are determined varies by feature.
 1. Enable automatic transcription in English - adds an (empty) column to the submission table
 `POST /api/v2/assets/{uid_asset}/advanced-features/`
 <details><summary>Request</summary>
+
 ```json
 {
   "question_xpath": "audio_question",
@@ -45,6 +46,7 @@ How these selections are determined varies by feature.
 ```
 </details>
 <details>Response<summary></summary>
+
 ```json
 {
   "question_xpath":"audio_question",
@@ -58,6 +60,7 @@ How these selections are determined varies by feature.
 2. Request an automatic transcription in Spanish
 `PATCH /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
 <details><summary>Request</summary>
+
 ```json
 {
   "_version": "20250820",
@@ -76,6 +79,7 @@ How these selections are determined varies by feature.
 3. Enable automatic transcription in Spanish - adds an (empty) column to the submission table
 `PATCH /api/v2/assets/{uid_asset}/advanced-features/{uid_feature}/`
 <details><summary>Request</summary>
+
 ```json
 {
   "params": [{"language": "es"}]
@@ -83,6 +87,7 @@ How these selections are determined varies by feature.
 ```
 </details>
 <details><summary>Response</summary>
+
 ```json
 {
   "params":[{"language":"en"},{"language":"es"}],
@@ -98,6 +103,7 @@ How these selections are determined varies by feature.
 4. Request automatic transcription in Spanish
 `PATCH /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
 <details><summary>Request</summary>
+
 ```json
 {
   "_version": "20250820",
@@ -110,6 +116,7 @@ How these selections are determined varies by feature.
 ```
 </details>
 <details><summary>Response</summary>
+
 ```json
 {
   "audio_question": {
@@ -136,6 +143,7 @@ How these selections are determined varies by feature.
 `GET /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
 Response:
 <details><summary>Response</summary>
+
 ```json
 {
    "audio_question":{
@@ -169,6 +177,7 @@ Response:
 6. Accept the transcript - Spanish transcript is now filled in the submission row
 `PATCH /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
 <details><summary>Request</summary>
+
 ```json
 {
   "_version": "20250820",
@@ -182,6 +191,7 @@ Response:
 ```
 </details><summary>Response</summary>
 <details>
+
 ```json
 {
    "audio_question":{
@@ -216,6 +226,7 @@ Response:
 7. Delete the transcript - removes the Spanish transcript from the submission row
 `PATCH /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
 <details><summary>Request</summary>
+
 ```json
 {
   "_version": "20250820",
@@ -229,6 +240,7 @@ Response:
 ```
 </details>
 <details><summary>Response</summary>
+
 ```json
 {
    "audio_question":{
@@ -274,6 +286,7 @@ Response:
 1. Enable manual transcription in English - adds an (empty) column to the submission table
 `POST /api/v2/assets/{uid_asset}/advanced-features/`
 <details><summary>Request</summary>
+
 ```json
 {
   "question_xpath": "audio_question",
@@ -283,6 +296,7 @@ Response:
 ```
 </details>
 <details><summary>Response</summary>
+
 ```json
 {
   "question_xpath":"audio_question",
@@ -297,6 +311,7 @@ Response:
 2. Enable manual translation in Spanish - adds an (empty) column to the submission table
 `POST /api/v2/assets/{uid_asset}/advanced-features/`
 <details><summary>Request</summary>
+
 ```json
 {
   "question_xpath": "audio_question",
@@ -306,6 +321,7 @@ Response:
 ```
 </details>
 <details><summary>Response</summary>
+
 ```json
 {
   "params":[{"language":"es"}],
@@ -320,6 +336,7 @@ Response:
 3. Request manual translation in Spanish
 `PATCH /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
 <details><summary>Requestion</summary>
+
 ```json
 {
   "_version": "20250820",
@@ -339,6 +356,7 @@ Response:
 4. Add transcript in English - English transcript is now shown in the submission row
 `PATCH /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
 <details><summary>Request</summary>
+
 ```json
 {
   "_version": "20250820",
@@ -352,6 +370,7 @@ Response:
 ```
 </details>
 <details><summary>Response</summary>
+
 ```json
 {
   "audio_question": {
@@ -379,6 +398,7 @@ Response:
 5. Add a translation in Spanish - Spanish translation now shown in the submission row
 `PATCH /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
 <details><summary>Request</summary>
+
 ```json
 {
   "_version": "20250820",
@@ -392,6 +412,7 @@ Response:
 ```
 </details>
 <details><summary>Response</summary>
+
 ```json
 {
    "q1":{
@@ -445,6 +466,7 @@ Response:
 1. Enable manual QA on the question - adds an (empty) column to the submission table
 `POST /api/v2/assets/{uid_asset}/advanced-features/`
 <details><summary>Request</summary>
+
 ```json
 {
   "question_xpath": "audio_question",
