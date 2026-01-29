@@ -11,7 +11,6 @@ import type { PermissionCodename } from '#/components/permissions/permConstants'
 import type { ProjectTransferAssetDetail } from '#/components/permissions/transferProjects/transferProjects.api'
 import type {
   AnalysisQuestionSchema,
-  AnalysisQuestionType,
   SubmissionAnalysisResponse,
 } from '#/components/processing/SingleProcessingContent/TabAnalysis/common/constants'
 import type {
@@ -25,6 +24,7 @@ import type { AnyRowTypeName, AssetFileType, AssetTypeName } from '#/constants'
 import type { UserResponse } from '#/users/userExistence.store'
 import type { AccountFieldsValues } from './account/account.constants'
 import { endpoints } from './api.endpoints'
+import type { ResponseQualActionParams } from './api/models/responseQualActionParams'
 import type { HookAuthLevelName, HookExportTypeName } from './components/RESTServices/RESTServicesForm'
 import type { Json } from './components/common/common.interfaces'
 import type { TransxObject } from './components/processing/processingActions'
@@ -646,7 +646,7 @@ export interface AnalysisFormJsonField {
   label: string
   name: string
   dtpath: string
-  type: AnalysisQuestionType | 'transcript' | 'translation'
+  type: ResponseQualActionParams['type'] | 'transcript' | 'translation'
   /** Two letter language code or ?? for qualitative analysis questions */
   language: string | '??'
   source: string

@@ -60,7 +60,7 @@ export default function AnalysisHeader({ asset, questionXpath, supplement, qaQue
                     [styles.addQuestionMenuButton]: true,
                     // We want to disable the Keyword Search question type when there is no transcript or translation.
                     [styles.addQuestionMenuButtonDisabled]:
-                      questionDef.type === 'qual_auto_keyword_count' &&
+                      questionDef.type === 'qualAutoKeywordCount' &&
                       transcriptVersion &&
                       translationVersions.length === 0,
                   })}

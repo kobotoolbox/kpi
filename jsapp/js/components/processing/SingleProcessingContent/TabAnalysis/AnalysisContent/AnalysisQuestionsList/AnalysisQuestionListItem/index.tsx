@@ -271,8 +271,7 @@ export default function AnalysisQuestionListItem({
     }
 
     switch (qaQuestion.type) {
-      case 'qual_auto_keyword_count' as any: {
-        // TODO OpenAPI: DEV-1628
+      case 'qualAutoKeywordCount': {
         return <KeywordSearchResponseForm />
       }
       case 'qualNote': {

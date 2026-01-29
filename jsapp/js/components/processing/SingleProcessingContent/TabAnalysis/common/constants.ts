@@ -1,23 +1,12 @@
-import type { QualSelectQuestionParamsTypeEnum } from '#/api/models/qualSelectQuestionParamsTypeEnum'
-import type { QualSimpleQuestionParamsTypeEnum } from '#/api/models/qualSimpleQuestionParamsTypeEnum'
 import type { ResponseQualActionParams } from '#/api/models/responseQualActionParams'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import type { IconName } from '#/k-icons'
 
 export const AUTO_SAVE_TYPING_DELAY = 3000
 
-/**
- * To differentiate these question types from the ones we use in Form Builder,
- * we prefix them with `qual_` (coming from "qualitative analysis question").
- */
-export type AnalysisQuestionType =
-  | QualSelectQuestionParamsTypeEnum
-  | QualSimpleQuestionParamsTypeEnum
-  | 'qual_auto_keyword_count' // TODO OpenAPI: include `qual_auto_keyword_count` or not? DEV-1628
-
 // We need this singled out as const, because some other parts of code (not
 // related to Qualitative Analysis) need to exclude notes from output.
-export const QUAL_NOTE_TYPE: AnalysisQuestionType = 'qualNote'
+export const QUAL_NOTE_TYPE: ResponseQualActionParams['type'] = 'qualNote'
 
 interface AnalysisLabels {
   _default: string
@@ -56,7 +45,7 @@ interface AnalysisQuestionChoice {
 export interface AdditionalFields {
   /** A list of keywords to search for. */
   keywords?: string[]
-  /** Used for `qual_auto_keyword_count` question to indicate search in progress. */
+  /** Used for `qualAutoKeywordCount` question to indicate search in progress. */
   isSearching?: boolean
   /** The transcript or translation source for the search. */
   source?: LanguageCode
@@ -66,7 +55,7 @@ export interface AdditionalFields {
 
 /** Analysis question definition base type containing all common properties. */
 export interface AnalysisQuestionBase {
-  type: AnalysisQuestionType
+  type: ResponseQualActionParams['type']
   labels: AnalysisLabels
   uuid: string
   options?: AnalysisQuestionOptions
@@ -100,7 +89,7 @@ export interface AnalysisQuestionInternal extends AnalysisQuestionBase {
 
 /** Analysis question response (to a question defined as `uuid`) from Back end. */
 export interface AnalysisRequest {
-  type: AnalysisQuestionType
+  type: ResponseQualActionParams['type']
   uuid: string
   /** `null` is for `qualInteger` */
   val: string | string[] | number | null
@@ -180,8 +169,8 @@ export interface SubmissionProcessingDataResponse {
  * The definition is the object that tells us what kind of questions are
  * internally available for being created, e.g. a `qualInteger` question type.
  */
-export interface AnalysisQuestionTypeDefinition {
-  type: AnalysisQuestionType
+export interface ResponseQualActionParamsDefinition {
+  type: ResponseQualActionParams['type']
   label: string
   icon: IconName
   /** Tells the UI to display it in separate section in dropdown. */
@@ -195,7 +184,7 @@ export interface AnalysisQuestionTypeDefinition {
  * Note: the order here matters - it influnces the order of the dropdown for
  * adding questions and possibly other UI elements.
  */
-export const ANALYSIS_QUESTION_TYPES: AnalysisQuestionTypeDefinition[] = [
+export const ANALYSIS_QUESTION_TYPES: ResponseQualActionParamsDefinition[] = [
   {
     type: 'qualTags',
     label: t('Tags'),
@@ -274,11 +263,18 @@ export const ANALYSIS_QUESTION_TYPES: AnalysisQuestionTypeDefinition[] = [
   },
   // TODO: we temporarily hide Keyword Search from the UI until
   // https://github.com/kobotoolbox/kpi/issues/4594 is done
-  // {
-  //   type: 'qual_auto_keyword_count',
-  //   label: t('Keyword search'),
-  //   icon: 'tag',
-  //   isAutomated: true,
-  //   additionalFieldNames: ['keywords', 'source'],
-  // },
+  {
+    type: 'qualAutoKeywordCount',
+    label: t('Keyword search'),
+    icon: 'tag',
+    isAutomated: true,
+    additionalFieldNames: ['keywords', 'source'],
+    placeholder: {
+      type: 'qualAutoKeywordCount',
+      uuid: 'placeholder', // TODO: extract, type & document
+      labels: {
+        _default: '',
+      },
+    },
+  },
 ]

@@ -141,18 +141,18 @@ export default function AnalysisQuestionEditor({
         </form>
       </header>
 
+      {newQaQuestion.type === 'qualAutoKeywordCount' && (
+        <KeywordSearchFieldsEditor
+          questionUuid={newQaQuestion.uuid}
+          fields={{ source: '', keywords: [] }} // TODO
+          onFieldsChange={() => null} // TODO
+        />
+      )}
+
       {'choices' in newQaQuestion && (
         // Hard coded left padding to account for the 32px icon size + 8px gap
         // 0px gap because the children still did not get a mantine refactor so we must respect existing styles
         <Stack pl={'40px'} gap={'0px'}>
-          {(newQaQuestion.type as any) === 'qual_auto_keyword_count' && ( // TODO OpenAPI: DEV-1628
-            <KeywordSearchFieldsEditor
-              questionUuid={newQaQuestion.uuid}
-              fields={{ source: '', keywords: [] }} // TODO
-              onFieldsChange={() => null} // TODO
-            />
-          )}
-
           {(newQaQuestion.type === 'qualSelectOne' || newQaQuestion.type === 'qualSelectMultiple') && (
             <SelectXFieldsEditor qaQuestion={newQaQuestion} onChange={handleChangeChoices} disabled={disabled} />
           )}
