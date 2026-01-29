@@ -12,10 +12,14 @@ import {
 } from '#/api/react-query/survey-data'
 import { recordEntries, recordKeys } from '#/utils'
 import { ActionEnum } from '../models/actionEnum'
+import type { DataSupplementResponseOneOfAutomaticGoogleTranscription } from '../models/dataSupplementResponseOneOfAutomaticGoogleTranscription'
+import type { DataSupplementResponseOneOfAutomaticGoogleTranslation } from '../models/dataSupplementResponseOneOfAutomaticGoogleTranslation'
 import type { DataSupplementResponseOneOfManualQual } from '../models/dataSupplementResponseOneOfManualQual'
 import type { DataSupplementResponseOneOfManualTranscription } from '../models/dataSupplementResponseOneOfManualTranscription'
 import type { DataSupplementResponseOneOfManualTranslation } from '../models/dataSupplementResponseOneOfManualTranslation'
 import type { PatchedDataSupplementPayloadOneOf } from '../models/patchedDataSupplementPayloadOneOf'
+import type { PatchedDataSupplementPayloadOneOfAutomaticGoogleTranscription } from '../models/patchedDataSupplementPayloadOneOfAutomaticGoogleTranscription'
+import type { PatchedDataSupplementPayloadOneOfAutomaticGoogleTranslation } from '../models/patchedDataSupplementPayloadOneOfAutomaticGoogleTranslation'
 import type { PatchedDataSupplementPayloadOneOfManualQual } from '../models/patchedDataSupplementPayloadOneOfManualQual'
 import type { PatchedDataSupplementPayloadOneOfManualTranscription } from '../models/patchedDataSupplementPayloadOneOfManualTranscription'
 import type { PatchedDataSupplementPayloadOneOfManualTranslation } from '../models/patchedDataSupplementPayloadOneOfManualTranslation'
@@ -204,20 +208,102 @@ queryClient.setMutationDefaults(
               snapshots: [itemSnapshot],
             }
           }
-          case ActionEnum.automatic_google_translation:
-          case ActionEnum.automatic_google_transcription:
-          default: {
-            // TODO: optimistic updates for all.
+          case ActionEnum.automatic_google_transcription: {
             const itemSnapshot = await optimisticallyUpdateItem<assetsDataSupplementRetrieveResponse>(
               getAssetsDataSupplementRetrieveQueryKey(uidAsset, rootUuid),
-              (response) => response,
+              (response) =>
+                ({
+                  ...response,
+                  data: {
+                    ...response?.data,
+                    ...(response?.status === 200
+                      ? {
+                          [questionXpath]: {
+                            ...response?.data?.[questionXpath],
+                            [action]: {
+                              ...response?.data?.[questionXpath]?.[action],
+                              _versions: [
+                                {
+                                  _uuid: '<server-generated-not-used>',
+                                  _data: {
+                                    ...(datum as PatchedDataSupplementPayloadOneOfAutomaticGoogleTranscription),
+                                    status: 'in_progress',
+                                  },
+                                  _dateCreated: new Date().toISOString(),
+                                }, // Note: this is the actual optimistally added object.
+                                ...(response?.data?.[questionXpath]?.[action]?._versions ?? []),
+                              ],
+                            } as DataSupplementResponseOneOfAutomaticGoogleTranscription,
+                          },
+                        }
+                      : {}),
+                  },
+                }) as assetsDataSupplementRetrieveResponse,
             )
 
             return {
               snapshots: [itemSnapshot],
             }
           }
+          case ActionEnum.automatic_google_translation: {
+            const { language } = datum as PatchedDataSupplementPayloadOneOfAutomaticGoogleTranslation
+            const itemSnapshot = await optimisticallyUpdateItem<assetsDataSupplementRetrieveResponse>(
+              getAssetsDataSupplementRetrieveQueryKey(uidAsset, rootUuid),
+              (response) =>
+                ({
+                  ...response,
+                  data: {
+                    ...response?.data,
+                    ...(response?.status === 200
+                      ? {
+                          [questionXpath]: {
+                            ...response?.data?.[questionXpath],
+                            [action]: {
+                              ...response?.data?.[questionXpath]?.[action],
+                              [language]: {
+                                ...response?.data?.[questionXpath]?.[action]?.[language],
+                                _versions: [
+                                  {
+                                    _uuid: '<server-generated-not-used>',
+                                    _data: {
+                                      ...(datum as PatchedDataSupplementPayloadOneOfAutomaticGoogleTranslation),
+                                      status: 'in_progress',
+                                    },
+                                    _dateCreated: new Date().toISOString(),
+                                  }, // Note: this is the actual optimistally added object.
+                                  ...(response?.data?.[questionXpath]?.[action]?.[language]?._versions ?? []),
+                                ],
+                              },
+                            } as DataSupplementResponseOneOfAutomaticGoogleTranslation,
+                          },
+                        }
+                      : {}),
+                  },
+                }) as assetsDataSupplementRetrieveResponse,
+            )
+
+            return {
+              snapshots: [itemSnapshot],
+            }
+          }
+          default: {
+            throw new Error(`Unknown action "${action}" is not handled.`)
+          }
         }
+      },
+      /**
+       * Good example of a Direct Update, for cases when mutation returns the whole response.
+       *
+       * Note: use `onSettled` instead of `onSuccess` to be executed AFTER global invalidation logic
+       * in order to cancel it. See more `onSettledInvalidateSnapshots`.
+       *
+       * See more at https://tkdodo.eu/blog/mastering-mutations-in-react-query#direct-updates
+       */
+      onSettled: async (response, error, { rootUuid, uidAsset }, _context) => {
+        if (error) return
+        const queryKey = getAssetsDataSupplementRetrieveQueryKey(uidAsset, rootUuid)
+        queryClient.cancelQueries({ queryKey, exact: true })
+        queryClient.setQueryData(queryKey, response)
       },
     },
   }),
