@@ -10,7 +10,7 @@ interface Props {
 }
 
 export default function TextResponseForm({ qaAnswer, onSave, disabled }: Props) {
-  const [value, setValue] = useState<string>((qaAnswer?._data.value as string) ?? '') // TODO OpenAPI: DEV-1632
+  const [value, setValue] = useState<string>((qaAnswer?._data.value as string) ?? '')
   const [typingTimer, setTypingTimer] = useState<NodeJS.Timeout>()
 
   const handleSave = async () => {

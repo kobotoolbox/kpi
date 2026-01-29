@@ -6,16 +6,16 @@ import { AUTO_SAVE_TYPING_DELAY } from '../../../common/constants'
 interface Props {
   qaAnswer?: _DataSupplementResponseOneOfManualQualVersionsItem
   disabled: boolean
-  onSave: (value: number) => Promise<unknown>
+  onSave: (value: number | null) => Promise<unknown>
 }
 
 export default function IntegerResponseForm({ qaAnswer, onSave, disabled }: Props) {
-  const [value, setValue] = useState<number>((qaAnswer?._data.value as number) ?? undefined) // TODO OpenAPI: DEV-1632
+  const [value, setValue] = useState<number | undefined>((qaAnswer?._data.value as number) ?? undefined)
   const [typingTimer, setTypingTimer] = useState<NodeJS.Timeout>()
 
   const handleSave = async () => {
     clearTimeout(typingTimer)
-    await onSave(value)
+    await onSave(value ?? null)
   }
 
   const handleChange = (value: string | number) => {

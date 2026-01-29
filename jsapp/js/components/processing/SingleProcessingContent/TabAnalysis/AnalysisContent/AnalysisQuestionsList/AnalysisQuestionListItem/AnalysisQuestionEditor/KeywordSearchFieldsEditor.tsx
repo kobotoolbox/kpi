@@ -1,10 +1,9 @@
 import React from 'react'
-import type { AdditionalFields } from '../../../../common/constants'
 
 interface Props {
   questionUuid: string
-  fields: AdditionalFields
-  onFieldsChange: (fields: AdditionalFields) => void
+  fields: unknown
+  onFieldsChange: (fields: unknown) => void
 }
 
 /**
