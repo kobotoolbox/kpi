@@ -17,8 +17,6 @@ import SingleProcessingHeader from './SingleProcessingHeader'
 import SingleProcessingSidebar from './SingleProcessingSidebar'
 import styles from './index.module.scss'
 
-const NO_DATA_MESSAGE = t('There is no data for this question for the current submission')
-
 interface RouteParams extends Record<string, string | undefined> {
   uid: string
   xpath: string
@@ -101,7 +99,7 @@ export default function SingleProcessingRoute({ params: routeParams }: { params:
                   advancedFeatures={advancedFeatures}
                 />
               ) : (
-                <CenteredMessage message={NO_DATA_MESSAGE} />
+                <CenteredMessage message={t('There is no data for this question for the current submission')} />
               )}
             </section>
 
