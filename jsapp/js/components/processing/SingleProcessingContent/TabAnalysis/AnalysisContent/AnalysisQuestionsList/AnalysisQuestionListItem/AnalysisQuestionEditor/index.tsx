@@ -7,6 +7,7 @@ import type { ResponseQualSelectQuestionParamsChoicesItem } from '#/api/models/r
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
 import TextBox from '#/components/common/textBox'
+import { LOCALLY_EDITED_PLACEHOLDER_UUID } from '#/components/processing/common/constants'
 import { generateUuid } from '#/utils'
 import { type AdvancedFeatureResponseManualQual, getQuestionTypeDefinition } from '../../../../common/utils'
 import KeywordSearchFieldsEditor from './KeywordSearchFieldsEditor'
@@ -91,7 +92,7 @@ export default function AnalysisQuestionEditor({
     if (hasErrors) return
 
     const payload = clonedeep(newQaQuestion)
-    if (payload.uuid === 'placeholder') payload.uuid = generateUuid()
+    if (payload.uuid === LOCALLY_EDITED_PLACEHOLDER_UUID) payload.uuid = generateUuid()
 
     const questionIndex = advancedFeature.params.findIndex((qaQuestion) => qaQuestion.uuid === newQaQuestion.uuid)
 

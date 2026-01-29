@@ -11,6 +11,7 @@ import { goToTabRoute, isProcessingRouteActive } from '../routes.utils'
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
+import { LOCALLY_EDITED_PLACEHOLDER_UUID } from '../common/constants'
 import TabAnalysis from './TabAnalysis'
 import type { AdvancedFeatureResponseManualQual } from './TabAnalysis/common/utils'
 import TabTranscript from './TabTranscript'
@@ -67,7 +68,7 @@ export default function SingleProcessingContent({
       action: ActionEnum.manual_qual,
       question_xpath: questionXpath,
       params: [],
-      uid: 'placeholder', // TODO: extract, type & document
+      uid: LOCALLY_EDITED_PLACEHOLDER_UUID,
     } as AdvancedFeatureResponseManualQual)
 
   return (

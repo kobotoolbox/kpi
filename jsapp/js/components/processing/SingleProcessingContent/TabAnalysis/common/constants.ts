@@ -1,4 +1,5 @@
 import type { ResponseQualActionParams } from '#/api/models/responseQualActionParams'
+import { LOCALLY_EDITED_PLACEHOLDER_UUID } from '#/components/processing/common/constants'
 import type { IconName } from '#/k-icons'
 
 export const AUTO_SAVE_TYPING_DELAY = 3000
@@ -113,7 +114,7 @@ export const ANALYSIS_QUESTION_TYPES: ResponseQualActionParamsDefinition[] = [
     icon: 'tag',
     placeholder: {
       type: 'qualTags',
-      uuid: 'placeholder', // TODO: extract, type & document
+      uuid: LOCALLY_EDITED_PLACEHOLDER_UUID,
       labels: {
         _default: '',
       },
@@ -125,7 +126,7 @@ export const ANALYSIS_QUESTION_TYPES: ResponseQualActionParamsDefinition[] = [
     icon: 'qt-text',
     placeholder: {
       type: 'qualText',
-      uuid: 'placeholder', // TODO: extract, type & document
+      uuid: LOCALLY_EDITED_PLACEHOLDER_UUID,
       labels: {
         _default: '',
       },
@@ -137,7 +138,7 @@ export const ANALYSIS_QUESTION_TYPES: ResponseQualActionParamsDefinition[] = [
     icon: 'qt-number',
     placeholder: {
       type: 'qualInteger',
-      uuid: 'placeholder', // TODO: extract, type & document
+      uuid: LOCALLY_EDITED_PLACEHOLDER_UUID,
       labels: {
         _default: '',
       },
@@ -150,7 +151,7 @@ export const ANALYSIS_QUESTION_TYPES: ResponseQualActionParamsDefinition[] = [
     additionalFieldNames: ['choices'],
     placeholder: {
       type: 'qualSelectOne',
-      uuid: 'placeholder', // TODO: extract, type & document
+      uuid: LOCALLY_EDITED_PLACEHOLDER_UUID,
       labels: {
         _default: '',
       },
@@ -164,7 +165,7 @@ export const ANALYSIS_QUESTION_TYPES: ResponseQualActionParamsDefinition[] = [
     additionalFieldNames: ['choices'],
     placeholder: {
       type: 'qualSelectMultiple',
-      uuid: 'placeholder', // TODO: extract, type & document
+      uuid: LOCALLY_EDITED_PLACEHOLDER_UUID,
       labels: {
         _default: '',
       },
@@ -177,7 +178,7 @@ export const ANALYSIS_QUESTION_TYPES: ResponseQualActionParamsDefinition[] = [
     icon: 'qt-note',
     placeholder: {
       type: 'qualNote',
-      uuid: 'placeholder', // TODO: extract, type & document
+      uuid: LOCALLY_EDITED_PLACEHOLDER_UUID,
       labels: {
         _default: '',
       },
@@ -193,7 +194,7 @@ export const ANALYSIS_QUESTION_TYPES: ResponseQualActionParamsDefinition[] = [
     additionalFieldNames: ['keywords', 'source'],
     placeholder: {
       type: 'qualAutoKeywordCount',
-      uuid: 'placeholder', // TODO: extract, type & document
+      uuid: LOCALLY_EDITED_PLACEHOLDER_UUID,
       labels: {
         _default: '',
       },
