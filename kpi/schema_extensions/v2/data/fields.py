@@ -7,7 +7,7 @@ from drf_spectacular.types import OpenApiTypes
 from rest_framework import serializers
 
 
-class DataAttachmentField(serializers.JSONField):
+class DataAttachmentsField(serializers.ListField):
     pass
 
 
@@ -23,7 +23,15 @@ class DataBulkUpdateResultField(serializers.ListField):
     pass
 
 
+class DataSupplementPayloadField(serializers.JSONField):
+    pass
+
+
 class DataValidationPayloadField(serializers.JSONField):
+    pass
+
+
+class DataValidationStatusField(serializers.JSONField):
     pass
 
 
@@ -40,4 +48,8 @@ class EnketoEditUrlField(serializers.URLField):
 
 
 class EnketoViewUrlField(serializers.URLField):
+    pass
+
+
+class GeoLocationField(serializers.ListField):
     pass

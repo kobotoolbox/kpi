@@ -58,6 +58,9 @@ class MongoHelper:
         '$options',
         '$all',
         '$elemMatch',
+        '$ne',
+        '$expr',
+        '$ifNull',
     ]
 
     ENCODING_SUBSTITUTIONS = [

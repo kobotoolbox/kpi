@@ -21,6 +21,7 @@ from kobo.apps.openrosa.libs.utils.viewer_tools import (
     get_client_ip,
     get_human_readable_client_user_agent,
 )
+from kobo.apps.subsequences.constants import Action
 from kpi.constants import (
     ACCESS_LOG_LOGINAS_AUTH_TYPE,
     ACCESS_LOG_SUBMISSION_AUTH_TYPE,
@@ -405,7 +406,9 @@ class ProjectHistoryLog(AuditLog):
             'submissions': cls._create_from_submission_request,
             'submissions-list': cls._create_from_submission_request,
             'submission-detail': cls._create_from_submission_request,
-            'advanced-submission-post': cls._create_from_submission_extra_request,
+            'submission-supplement': cls._create_from_submission_extra_request,
+            'advanced-features-list': cls._create_from_question_advanced_feature_request,  # noqa
+            'advanced-features-detail': cls._create_from_question_advanced_feature_request,  # noqa
         }
         url_name = request.resolver_match.url_name
         method = url_name_to_action.get(url_name, None)
@@ -574,7 +577,7 @@ class ProjectHistoryLog(AuditLog):
             'settings': cls._handle_settings_change,
             'data_sharing': cls._handle_sharing_change,
             'content': cls._handle_content_change,
-            'advanced_features.qual.qual_survey': cls._handle_qa_change,
+            'advanced_features._actionConfigs': cls._handle_qa_change,
         }
 
         # additional metadata should generally follow the pattern
@@ -668,7 +671,11 @@ class ProjectHistoryLog(AuditLog):
 
     @classmethod
     def _create_from_submission_extra_request(cls, request):
-        s_uuid = request._data['submission']
+        try:
+            s_uuid = request.resolver_match.kwargs['pk']
+        except KeyError:
+            s_uuid = request.resolver_match.kwargs['root_uuid']
+
         # have to fetch the instance here because we don't have access to it
         # anywhere else in the request
         instance = Instance.objects.filter(
@@ -799,6 +806,32 @@ class ProjectHistoryLog(AuditLog):
                 )
             )
         ProjectHistoryLog.objects.bulk_create(logs)
+
+    @classmethod
+    def _create_from_question_advanced_feature_request(cls, request):
+        initial_data = getattr(request, 'initial_data', None)
+        updated_data = getattr(request, 'updated_data', None)
+        source_data = updated_data if updated_data else initial_data
+        asset_uid = request.resolver_match.kwargs['uid_asset']
+        if not source_data:
+            return
+        if source_data.get('action') != Action.MANUAL_QUAL:
+            return
+        owner = source_data.pop('asset.owner.username')
+        object_id = source_data.pop('object_id')
+        metadata = {
+            'asset_uid': asset_uid,
+            'log_subtype': PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+            'ip_address': get_client_ip(request),
+            'source': get_human_readable_client_user_agent(request),
+            'project_owner': owner,
+        }
+        action = AuditAction.UPDATE_QA
+        metadata['qa'] = {PROJECT_HISTORY_LOG_METADATA_FIELD_NEW: source_data['params']}
+        user = get_database_user(request.user)
+        ProjectHistoryLog.objects.create(
+            user=user, object_id=object_id, action=action, metadata=metadata
+        )
 
     @classmethod
     def _create_from_v1_export(cls, request):
