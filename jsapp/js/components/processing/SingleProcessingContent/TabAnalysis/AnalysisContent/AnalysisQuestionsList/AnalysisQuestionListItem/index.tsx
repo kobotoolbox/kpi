@@ -19,7 +19,7 @@ import {
 import Icon from '#/components/common/icon'
 import InlineMessage from '#/components/common/inlineMessage'
 import { userCan } from '#/components/permissions/utils'
-import { SUBSEQUENCES_SCHEMA_VERSION } from '#/components/processing/common/constants'
+import { LOCALLY_EDITED_PLACEHOLDER_UUID, SUBSEQUENCES_SCHEMA_VERSION } from '#/components/processing/common/constants'
 import { DND_TYPES } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import { removeDefaultUuidPrefix } from '#/utils'
@@ -113,7 +113,7 @@ export default function AnalysisQuestionListItem({
     })
   }
 
-  const isCreate = advancedFeature.uid === 'placeholder' // TODO: extract, type & document
+  const isCreate = advancedFeature.uid === LOCALLY_EDITED_PLACEHOLDER_UUID
 
   const handleSaveQuestion = (params: ResponseQualActionParams[]) => {
     if (isCreate) {
@@ -135,6 +135,7 @@ export default function AnalysisQuestionListItem({
       })
     }
   }
+
   const handleCancelEdit = () => {
     setQaQuestion(undefined)
   }
@@ -258,6 +259,7 @@ export default function AnalysisQuestionListItem({
   drop(preview(previewRef))
 
   const renderItem = () => {
+    // TODO: after creating question successfuly, we should close the editor
     if (editMode) {
       return (
         <AnalysisQuestionEditor
@@ -271,8 +273,7 @@ export default function AnalysisQuestionListItem({
     }
 
     switch (qaQuestion.type) {
-      case 'qual_auto_keyword_count' as any: {
-        // TODO OpenAPI: DEV-1628
+      case 'qualAutoKeywordCount': {
         return <KeywordSearchResponseForm />
       }
       case 'qualNote': {

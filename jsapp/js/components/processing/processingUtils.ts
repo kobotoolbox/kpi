@@ -1,8 +1,5 @@
 import type { LanguageCode } from '#/components/languages/languagesStore'
-import { QuestionTypeName, SUPPLEMENTAL_DETAILS_PROP } from '#/constants'
-
-/** Single Processing is capable of handling these question types. */
-export const PROCESSING_QUESTION_TYPES = [QuestionTypeName.audio, QuestionTypeName['background-audio']]
+import { SUPPLEMENTAL_DETAILS_PROP } from '#/constants'
 
 type SupplementalPathPartsType = 'transcript' | 'translation' | 'qual'
 
@@ -31,6 +28,8 @@ interface SupplementalPathParts {
  * Receives one of paths leading to a supplemental detail and breaks it down to
  * a more meaningful data. e.g. `_supplementalDetails/Who_was_that/translation_pl` or
  * `_supplementalDetails/outer_group/middle_group/inner_group/What_did_you_hear/transcript_pl`
+ *
+ * Useful for building datatable columns.
  */
 export function getSupplementalPathParts(path: string): SupplementalPathParts {
   const pathArr = path.split('/')

@@ -34,11 +34,13 @@ export default function AnalysisHeader({ asset, questionXpath, supplement, qaQue
   const translationVersions = getAllTranslationsFromSupplementData(supplement, questionXpath)
 
   const manualQuestionDefs = ANALYSIS_QUESTION_TYPES.filter((definition) => !definition.isAutomated)
-  const automatedQuestionDefs = ANALYSIS_QUESTION_TYPES.filter((definition) => definition.isAutomated)
+  // TODO: we hide Keyword Search from the UI until https://github.com/kobotoolbox/kpi/issues/4594 is done
+  // const automatedQuestionDefs = ANALYSIS_QUESTION_TYPES.filter((definition) => definition.isAutomated)
   const questionDefs = [
     ...manualQuestionDefs,
-    ...(automatedQuestionDefs.length > 0 ? [t('Automated analysis')] : []),
-    ...automatedQuestionDefs,
+    // TODO: we hide Keyword Search from the UI until https://github.com/kobotoolbox/kpi/issues/4594 is done
+    // ...(automatedQuestionDefs.length > 0 ? [t('Automated analysis')] : []),
+    // ...automatedQuestionDefs,
   ]
 
   return (
@@ -60,7 +62,7 @@ export default function AnalysisHeader({ asset, questionXpath, supplement, qaQue
                     [styles.addQuestionMenuButton]: true,
                     // We want to disable the Keyword Search question type when there is no transcript or translation.
                     [styles.addQuestionMenuButtonDisabled]:
-                      questionDef.type === 'qual_auto_keyword_count' &&
+                      questionDef.type === 'qualAutoKeywordCount' &&
                       transcriptVersion &&
                       translationVersions.length === 0,
                   })}

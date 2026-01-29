@@ -11,8 +11,6 @@ import { goToProcessing } from '#/components/processing/routes.utils'
 import { addDefaultUuidPrefix } from '#/utils'
 import styles from './index.module.scss'
 
-// TODO: improve ...
-
 interface Props {
   submission?: DataResponse
   assetUid: string
@@ -27,7 +25,7 @@ interface Props {
 export default function SelectSubmission({ assetUid, submission, xpath }: Props) {
   if (!submission) return
 
-  // TODO: Ensure query handles cases where submissions have the same submission time
+  // TODO: Ensure query handles cases where submissions have the same submission time, see DEV-1645.
   // We fetch the two submissions before and after the current submission to enable
   // back and forth navigation, provide a count of total submissions and current
   // position in list

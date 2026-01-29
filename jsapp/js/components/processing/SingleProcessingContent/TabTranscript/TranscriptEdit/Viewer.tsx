@@ -13,8 +13,6 @@ import { SUBSEQUENCES_SCHEMA_VERSION } from '../../../common/constants'
 import bodyStyles from '../../../common/processingBody.module.scss'
 import HeaderLanguageAndDate from './headerLanguageAndDate'
 
-// TODO OpenAPI: PatchedDataSupplementPayloadOneOfOneOfManualTranscription.value is nullable
-
 interface Props {
   transcriptVersion: TranscriptVersionItem
   asset: AssetResponse
