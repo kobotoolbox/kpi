@@ -35,9 +35,9 @@ How these selections are determined varies by feature.
 
 1. Enable automatic transcription in English - adds an (empty) column to the submission table
 `POST /api/v2/assets/{uid_asset}/advanced-features/`
-  
+
       <details><summary>Request</summary>
-      
+
       ```json
       {
         "question_xpath": "audio_question",
@@ -49,7 +49,7 @@ How these selections are determined varies by feature.
       </details>
 
       <details><summary>Response</summary>
-      
+
       ```json
       {
         "question_xpath":"audio_question",
@@ -64,7 +64,7 @@ How these selections are determined varies by feature.
 `PATCH /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
 
       <details><summary>Request</summary>
-      
+
       ```json
       {
         "_version": "20250820",
@@ -85,7 +85,7 @@ How these selections are determined varies by feature.
 `PATCH /api/v2/assets/{uid_asset}/advanced-features/{uid_feature}/`
 
       <details><summary>Request</summary>
-      
+
       ```json
       {
         "params": [{"language": "es"}]
@@ -94,7 +94,7 @@ How these selections are determined varies by feature.
       </details>
 
       <details><summary>Response</summary>
-      
+
       ```json
       {
         "params":[{"language":"en"},{"language":"es"}],
@@ -106,12 +106,11 @@ How these selections are determined varies by feature.
       ```
       </details>
 
-
 4. Request automatic transcription in Spanish
 `PATCH /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
 
       <details><summary>Request</summary>
-      
+
       ```json
       {
         "_version": "20250820",
@@ -123,9 +122,9 @@ How these selections are determined varies by feature.
       }
       ```
       </details>
-      
+
       <details><summary>Response</summary>
-      
+
       ```json
       {
         "audio_question": {
@@ -152,7 +151,7 @@ How these selections are determined varies by feature.
 `GET /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
 
       <details><summary>Response</summary>
-      
+
       ```json
       {
          "audio_question":{
@@ -187,7 +186,7 @@ How these selections are determined varies by feature.
 `PATCH /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
 
       <details><summary>Request</summary>
-      
+
       ```json
       {
         "_version": "20250820",
@@ -200,9 +199,9 @@ How these selections are determined varies by feature.
       }
       ```
       </details><summary>Response</summary>
-      
+
       <details>
-      
+
       ```json
       {
          "audio_question":{
@@ -238,7 +237,7 @@ How these selections are determined varies by feature.
 `PATCH /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
 
       <details><summary>Request</summary>
-      
+
       ```json
       {
         "_version": "20250820",
@@ -251,9 +250,9 @@ How these selections are determined varies by feature.
       }
       ```
       </details>
-      
+
       <details><summary>Response</summary>
-      
+
       ```json
       {
          "audio_question":{
@@ -300,7 +299,7 @@ How these selections are determined varies by feature.
 `POST /api/v2/assets/{uid_asset}/advanced-features/`
 
       <details><summary>Request</summary>
-      
+
       ```json
       {
         "question_xpath": "audio_question",
@@ -309,9 +308,9 @@ How these selections are determined varies by feature.
       }
       ```
       </details>
-      
+
       <details><summary>Response</summary>
-      
+
       ```json
       {
         "question_xpath":"audio_question",
@@ -322,12 +321,11 @@ How these selections are determined varies by feature.
       ```
       </details>
 
-
 2. Enable manual translation in Spanish - adds an (empty) column to the submission table
 `POST /api/v2/assets/{uid_asset}/advanced-features/`
 
       <details><summary>Request</summary>
-      
+
       ```json
       {
         "question_xpath": "audio_question",
@@ -336,9 +334,9 @@ How these selections are determined varies by feature.
       }
       ```
       </details>
-      
+
       <details><summary>Response</summary>
-      
+
       ```json
       {
         "params":[{"language":"es"}],
@@ -354,7 +352,7 @@ How these selections are determined varies by feature.
 `PATCH /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
 
       <details><summary>Requestion</summary>
-      
+
       ```json
       {
         "_version": "20250820",
@@ -367,7 +365,7 @@ How these selections are determined varies by feature.
       }
       ```
       </details>
-      
+
       <details><summary>Response</summary>
       `400 - Cannot translate without transcription`
       </details>
@@ -376,7 +374,7 @@ How these selections are determined varies by feature.
 `PATCH /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
 
       <details><summary>Request</summary>
-      
+
       ```json
       {
         "_version": "20250820",
@@ -389,9 +387,9 @@ How these selections are determined varies by feature.
       }
       ```
       </details>
-      
+
       <details><summary>Response</summary>
-      
+
       ```json
       {
         "audio_question": {
@@ -420,7 +418,7 @@ How these selections are determined varies by feature.
 `PATCH /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
 
       <details><summary>Request</summary>
-      
+
       ```json
       {
         "_version": "20250820",
@@ -433,9 +431,9 @@ How these selections are determined varies by feature.
       }
       ```
       </details>
-      
+
       <details><summary>Response</summary>
-      
+
       ```json
       {
          "q1":{
