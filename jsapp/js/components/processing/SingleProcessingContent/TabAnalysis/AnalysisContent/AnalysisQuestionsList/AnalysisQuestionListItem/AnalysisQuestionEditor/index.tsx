@@ -99,8 +99,8 @@ export default function AnalysisQuestionEditor({
     let newParams: ResponseQualActionParams[]
 
     if (questionIndex === -1) {
-      // Question doesn't exist yet (new question), add it to the end
-      newParams = [...advancedFeature.params, payload]
+      // Question doesn't exist yet (new question), add it at the top
+      newParams = [payload, ...advancedFeature.params]
     } else {
       // Question exists (editing), replace it at its index
       newParams = [
