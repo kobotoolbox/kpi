@@ -115,9 +115,9 @@ export default function AnalysisQuestionListItem({
 
   const isCreate = advancedFeature.uid === LOCALLY_EDITED_PLACEHOLDER_UUID
 
-  const handleSaveQuestion = (params: ResponseQualActionParams[]) => {
+  const handleSaveQuestion = async (params: ResponseQualActionParams[]) => {
     if (isCreate) {
-      return mutationCreateQuestion.mutateAsync({
+      await mutationCreateQuestion.mutateAsync({
         uidAsset: asset.uid,
         data: {
           action: ActionEnum.manual_qual,
@@ -126,7 +126,7 @@ export default function AnalysisQuestionListItem({
         },
       })
     } else {
-      return mutationPatchQuestion.mutateAsync({
+      await mutationPatchQuestion.mutateAsync({
         uidAsset: asset.uid,
         uidAdvancedFeature: advancedFeature.uid,
         data: {
@@ -134,25 +134,28 @@ export default function AnalysisQuestionListItem({
         },
       })
     }
+    console.log('adf')
+    setQaQuestion(undefined)
   }
 
   const handleCancelEdit = () => {
     setQaQuestion(undefined)
   }
 
-  const handleDeleteQuestion = (qaQuestionToDelete: ResponseQualActionParams) => {
+  const handleDeleteQuestion = async (qaQuestionToDelete: ResponseQualActionParams) => {
     // Mark the question as deleted by setting options.deleted to true
     const updatedParams = advancedFeature.params.map((param) =>
       param.uuid === qaQuestionToDelete.uuid ? { ...param, options: { ...param.options, deleted: true } } : param,
     )
 
-    return mutationPatchQuestion.mutateAsync({
+    await mutationPatchQuestion.mutateAsync({
       uidAsset: asset.uid,
       uidAdvancedFeature: advancedFeature.uid,
       data: {
         params: updatedParams,
       },
     })
+    setQaQuestion(undefined)
   }
 
   const handleReorderQuestions = (reorderedParams: ResponseQualActionParams[]) => {
