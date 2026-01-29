@@ -25,9 +25,12 @@ interface Props {
 export default function SelectSubmission({ assetUid, submission, xpath }: Props) {
   if (!submission) return
 
-  function getNeighborParams(uid: string, time: string, direction: 'next' | 'prev') {
-    const isNext = direction === 'next'
-    const formattedUiD = addDefaultUuidPrefix(uid)
+  // Because submission times are only accurate to the second,_id
+  // is the only easy way to figure out where a submission is on
+  // an intuitively ordered list of submissions. If we decide to stop using
+  // _id, we will need to consult with backend team for other solutions
+  function getNeighborParams(id: number, direction: 'next' | 'prev') {
+    const isNext = direction === 'next' // Next = Older (Down)
     const op = isNext ? '$lt' : '$gt'
     const sortDir = isNext ? -1 : 1
 
@@ -35,24 +38,9 @@ export default function SelectSubmission({ assetUid, submission, xpath }: Props)
       limit: 1,
       start: 0,
       query: JSON.stringify({
-        $or: [
-          { _submission_time: { [op]: time } },
-          {
-            $and: [
-              { _submission_time: time },
-              {
-                $expr: {
-                  [op]: [{ $ifNull: ['$meta/rootUuid', '$meta/instanceID'] }, formattedUiD],
-                },
-              },
-            ],
-          },
-        ],
+        _id: { [op]: id },
       }),
-      sort: JSON.stringify({
-        _submission_time: sortDir,
-        _uuid: sortDir,
-      }),
+      sort: JSON.stringify({ _id: sortDir }),
     }
   }
 
@@ -67,7 +55,7 @@ export default function SelectSubmission({ assetUid, submission, xpath }: Props)
 
   const { _uuid, _submission_time } = submission
 
-  const nextParams = getNeighborParams(_uuid, _submission_time, 'next')
+  const nextParams = getNeighborParams(submission._id, 'next')
   const queryNext = useAssetsDataList(assetUid!, nextParams, {
     query: {
       queryKey: getAssetsDataListQueryKey(assetUid, nextParams),
@@ -76,7 +64,7 @@ export default function SelectSubmission({ assetUid, submission, xpath }: Props)
     },
   })
 
-  const prevParams = getNeighborParams(_uuid, _submission_time, 'prev')
+  const prevParams = getNeighborParams(submission._id, 'prev')
   const queryPrev = useAssetsDataList(assetUid!, prevParams, {
     query: {
       queryKey: getAssetsDataListQueryKey(assetUid, prevParams),
