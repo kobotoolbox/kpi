@@ -287,15 +287,7 @@ queryClient.setMutationDefaults(
             }
           }
           default: {
-            // TODO: optimistic updates for all.
-            const itemSnapshot = await optimisticallyUpdateItem<assetsDataSupplementRetrieveResponse>(
-              getAssetsDataSupplementRetrieveQueryKey(uidAsset, rootUuid),
-              (response) => response,
-            )
-
-            return {
-              snapshots: [itemSnapshot],
-            }
+            throw new Error(`Unknown action "${action}" is not handled.`)
           }
         }
       },
