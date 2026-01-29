@@ -20,9 +20,9 @@ In general, the user flow for advanced features (aka subsequences) is as follows
 ### Selected response
 
 For any given question, for any submission, there is only
-1. One selected transcript
-2. One selected translation per language
-3. One selected response to each QA question
+* One selected transcript
+* One selected translation per language
+* One selected response to each QA question
 
 How these selections are determined varies by feature.
 * For transcripts and translations, the selected version is the most recently *accepted*, manual or automatic
