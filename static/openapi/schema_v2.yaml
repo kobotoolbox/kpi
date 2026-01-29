@@ -2026,7 +2026,7 @@ paths:
         schema:
           type: integer
       - in: query
-        name: q
+        name: query
         schema:
           type: string
         description: Filter the results with search query

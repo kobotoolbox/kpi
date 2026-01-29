@@ -2863,7 +2863,7 @@
                     },
                     {
                         "in": "query",
-                        "name": "q",
+                        "name": "query",
                         "schema": {
                             "type": "string"
                         },
