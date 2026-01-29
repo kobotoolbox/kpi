@@ -27,7 +27,6 @@ import { endpoints } from './api.endpoints'
 import type { ResponseQualActionParams } from './api/models/responseQualActionParams'
 import type { HookAuthLevelName, HookExportTypeName } from './components/RESTServices/RESTServicesForm'
 import type { Json } from './components/common/common.interfaces'
-import type { TransxObject } from './components/processing/processingActions'
 import type {
   ExportFormatName,
   ExportMultiOptionName,
@@ -192,6 +191,22 @@ export interface SubmissionAttachment {
   uid: string
   /** Marks the attachment as deleted. If `true`, all the `*_url` will return 404. */
   is_deleted?: boolean
+}
+
+interface TransxObject {
+  languageCode: LanguageCode
+  value: string
+  dateCreated: string
+  dateModified: string
+  /** The source of the `value` text. */
+  engine?: string
+  /** The history of edits. */
+  revisions?: Array<{
+    dateModified: string
+    engine?: string
+    languageCode: LanguageCode
+    value: string
+  }>
 }
 
 export interface SubmissionSupplementalDetails {
@@ -535,17 +550,7 @@ interface AssetSummary {
   naming_conflicts?: string[]
 }
 
-interface AdvancedSubmissionSchema {
-  type: 'string' | 'object'
-  $description: string
-  url?: string
-  properties?: AdvancedSubmissionSchemaDefinition
-  additionalProperties?: boolean
-  required?: string[]
-  definitions?: AdvancedSubmissionSchemaDefinition
-}
-
-export interface AssetAdvancedFeatures {
+interface AssetAdvancedFeatures {
   transcript?: {
     /** List of question names */
     values?: string[]
@@ -562,17 +567,6 @@ export interface AssetAdvancedFeatures {
     qual_survey?: AnalysisQuestionSchema[]
   }
 }
-
-interface AdvancedSubmissionSchemaDefinitionValue {
-  type?: 'string' | 'object'
-  description?: string
-  properties?: { [name: string]: {} }
-  additionalProperties?: boolean
-  required?: string[]
-  anyOf?: Array<{ $ref: string }>
-  allOf?: Array<{ $ref: string }>
-}
-type AdvancedSubmissionSchemaDefinition = Record<string, AdvancedSubmissionSchemaDefinitionValue>
 
 export interface TableSortBySetting {
   fieldId: string
