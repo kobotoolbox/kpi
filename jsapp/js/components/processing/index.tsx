@@ -53,7 +53,7 @@ export default function SingleProcessingRoute({ params: routeParams }: { params:
     query: JSON.stringify({
       $or: [{ 'meta/rootUuid': addDefaultUuidPrefix(submissionId) }, { _uuid: submissionId }],
     }),
-  } as any) // TODO OpenAPI: add query prop to the schema. See https://linear.app/kobotoolbox/issue/DEV-1626
+  })
 
   const submission: DataResponse | undefined =
     querySubmission.data?.status === 200 && querySubmission.data.data.results.length > 0
