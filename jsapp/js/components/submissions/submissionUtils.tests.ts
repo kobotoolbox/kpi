@@ -138,7 +138,7 @@ describe('getSupplementalDetailsContent', () => {
     chai.expect(test).to.equal('Comment vas-tu mon cher ami?')
   })
 
-  it('should return analysis question value properly for qual_select_multiple', () => {
+  it('should return analysis question value properly for qualSelectMultiple', () => {
     const test = getSupplementalDetailsContent(
       submissionWithSupplementalDetails,
       '_supplementalDetails/Secret_password_as_an_audio_file/1a89e0da-3344-4b5d-b919-ab8b072e0918',
@@ -146,7 +146,7 @@ describe('getSupplementalDetailsContent', () => {
     chai.expect(test).to.equal('First, Third')
   })
 
-  it('should return analysis question value properly for qual_tags', () => {
+  it('should return analysis question value properly for qualTags', () => {
     const test = getSupplementalDetailsContent(
       submissionWithSupplementalDetails,
       '_supplementalDetails/Secret_password_as_an_audio_file/b05f29f7-8b58-4dd7-8695-c29cb04f3f7a',
@@ -154,7 +154,7 @@ describe('getSupplementalDetailsContent', () => {
     chai.expect(test).to.equal('best, things, ever recorder by human, 3')
   })
 
-  it('should return analysis question value properly for qual_integer', () => {
+  it('should return analysis question value properly for qualInteger', () => {
     const test = getSupplementalDetailsContent(
       submissionWithSupplementalDetails,
       '_supplementalDetails/Secret_password_as_an_audio_file/97fd5387-ac2b-4108-b5b4-37fa91ae0e22',
@@ -221,14 +221,14 @@ describe('removeEmptyFromSupplementalDetails', () => {
         qual: {
           123: {
             value: '',
-            type: 'qual_text',
+            type: 'qualText',
             uuid: '123',
             labels: { _default: 'foo' },
             xpath: '',
           },
           234: {
             value: 'foo',
-            type: 'qual_text',
+            type: 'qualText',
             uuid: '234',
             labels: { _default: 'foo' },
             xpath: '',
@@ -236,7 +236,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
           345: {
             value: 'bar',
             options: { deleted: true },
-            type: 'qual_text',
+            type: 'qualText',
             uuid: '345',
             labels: { _default: 'foo' },
             xpath: '345',
@@ -252,7 +252,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
         qual: {
           234: {
             value: 'foo',
-            type: 'qual_text',
+            type: 'qualText',
             uuid: '234',
             labels: { _default: 'foo' },
             xpath: '',
@@ -268,7 +268,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
         qual: {
           123: {
             value: '',
-            type: 'qual_text',
+            type: 'qualText',
             labels: { _default: 'foo' },
             uuid: '123',
             xpath: '',
@@ -276,7 +276,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
           234: {
             value: 'bar',
             options: { deleted: true },
-            type: 'qual_text',
+            type: 'qualText',
             labels: { _default: 'foo' },
             uuid: '234',
             xpath: '',
@@ -309,7 +309,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
         qual: {
           123: {
             value: 'foo',
-            type: 'qual_text',
+            type: 'qualText',
             labels: { _default: 'foo' },
             uuid: '123',
             xpath: '',
@@ -329,21 +329,21 @@ describe('removeEmptyFromSupplementalDetails', () => {
         qual: {
           123: {
             value: '',
-            type: 'qual_text',
+            type: 'qualText',
             labels: { _default: 'foo' },
             uuid: '123',
             xpath: '',
           },
           234: {
             value: [],
-            type: 'qual_text',
+            type: 'qualText',
             labels: { _default: 'foo' },
             uuid: '234',
             xpath: '',
           },
           345: {
             value: null,
-            type: 'qual_text',
+            type: 'qualText',
             labels: { _default: 'foo' },
             uuid: '345',
             xpath: '',
@@ -351,14 +351,14 @@ describe('removeEmptyFromSupplementalDetails', () => {
           456: {
             value: 'foo',
             options: { deleted: true },
-            type: 'qual_text',
+            type: 'qualText',
             labels: { _default: 'foo' },
             uuid: '456',
             xpath: '',
           },
           567: {
             value: 'bar',
-            type: 'qual_text',
+            type: 'qualText',
             labels: { _default: 'foo' },
             uuid: '567',
             xpath: '',
@@ -374,7 +374,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
         qual: {
           567: {
             value: 'bar',
-            type: 'qual_text',
+            type: 'qualText',
             labels: { _default: 'foo' },
             uuid: '567',
             xpath: '',

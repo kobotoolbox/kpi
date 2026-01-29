@@ -9,7 +9,7 @@ import { isRtlLang } from 'rtl-detect'
 import assetStore from '#/assetStore'
 import permConfig from '#/components/permissions/permConfig'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
-import { QUAL_NOTE_TYPE } from '#/components/processing/analysis/constants'
+import { QUAL_NOTE_TYPE } from '#/components/processing/SingleProcessingContent/TabAnalysis/common/constants'
 import type { AnyRowTypeName, AssetTypeName } from '#/constants'
 import { QuestionTypeName } from '#/constants'
 import {
@@ -38,7 +38,7 @@ import envStore from '#/envStore'
 import type { IconName } from '#/k-icons'
 import sessionStore from '#/stores/session'
 import { ANON_USERNAME_URL } from '#/users/utils'
-import { currentLang, recordKeys } from '#/utils'
+import { currentLang } from '#/utils'
 
 /**
  * Removes whitespace from tags. Returns list of cleaned up tags.
@@ -489,7 +489,7 @@ export function renderQuestionTypeIcon(
  * Injects supplemental details columns next to their respective source rows in
  * a given list of rows. Returns a new updated `rows` list.
  *
- * Note: we omit injecting `qual_note` questions.
+ * Note: we omit injecting `qualNote` questions.
  */
 export function injectSupplementalRowsIntoListOfRows(asset: AssetResponse, rows: Set<string> | Array<string>) {
   if (asset.content?.survey === undefined) {
@@ -647,51 +647,18 @@ export function getAssetAdvancedFeatures(assetUid: string) {
 }
 
 // This url returns `ProcessingDataResponse`
-export function getAssetProcessingUrl(assetUid: string): string | undefined {
+export function buildSubmissionSupplementUrl(assetUid: string, submissionUid: string): string | undefined {
+  return `${ROOT_URL}/api/v2/assets/${assetUid}/data/${submissionUid}/supplement/`
+}
+
+export function getProcessableRowXpaths(assetUid: string) {
   const foundAsset = assetStore.getAsset(assetUid)
-  if (foundAsset) {
-    return foundAsset.advanced_submission_schema?.url
-  }
-  return undefined
-}
-
-// This url returns `SubmissionProcessingDataResponse`
-export function getAssetSubmissionProcessingUrl(assetUid: string, submission: string) {
-  const processingUrl = getAssetProcessingUrl(assetUid)
-  if (processingUrl) {
-    return processingUrl + '?submission=' + submission
-  }
-  return undefined
-}
-
-/** Returns a list of all rows (their `xpath`s) activated for advanced features. */
-export function getAssetProcessingRows(assetUid: string) {
-  const foundAsset = assetStore.getAsset(assetUid)
-  if (foundAsset?.advanced_submission_schema?.properties) {
-    const rows: string[] = []
-    recordKeys(foundAsset.advanced_submission_schema.properties).forEach((propertyName) => {
-      if (foundAsset.advanced_submission_schema?.properties !== undefined) {
-        const propertyObj = foundAsset.advanced_submission_schema.properties[propertyName]
-        // NOTE: we assume that the properties will hold only a special string
-        // "submission" property and one object property for each
-        // processing-enabled row.
-        if (propertyObj.type === 'object') {
-          rows.push(propertyName)
-        }
-      }
-    })
-    return rows
-  }
-  return undefined
-}
-
-export function isRowProcessingEnabled(assetUid: string, xpath: string) {
-  const processingRows = getAssetProcessingRows(assetUid)
-  return Array.isArray(processingRows) && processingRows.includes(xpath)
-}
-
-export function isAssetProcessingActivated(assetUid: string) {
-  return getAssetProcessingUrl(assetUid) !== undefined
+  return foundAsset?.content?.survey
+    ?.filter(
+      (row) =>
+        !!row.$xpath && (row.type === QUESTION_TYPES.audio.id || row.type === QUESTION_TYPES['background-audio'].id),
+    )
+    .map((row) => row.$xpath as string)
 }
 
 /**
@@ -727,9 +694,7 @@ export default {
   isSelfOwned,
   renderQuestionTypeIcon,
   removeInvalidChars,
+  getProcessableRowXpaths,
   getAssetAdvancedFeatures,
-  getAssetProcessingUrl,
-  getAssetProcessingRows,
-  isRowProcessingEnabled,
-  isAssetProcessingActivated,
+  buildSubmissionSupplementUrl,
 }

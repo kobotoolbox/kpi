@@ -8,7 +8,8 @@
 import clonedeep from 'lodash.clonedeep'
 import Reflux from 'reflux'
 import { actions } from '#/actions'
-import { getAssetAdvancedFeatures, getAssetProcessingUrl } from '#/assetUtils'
+import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
+import { buildSubmissionSupplementUrl, getAssetAdvancedFeatures } from '#/assetUtils'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import type { AssetAdvancedFeatures, AssetResponse, FailResponse } from '#/dataInterface'
 import { notify, recordValues } from '#/utils'
@@ -207,11 +208,11 @@ type GetProcessingDataFn = (assetUid: string, submissionEditId: string) => void
 interface GetProcessingDataDefinition extends GetProcessingDataFn {
   listen: (fn: GetProcessingDataFn) => void
   started: ListenableCallback<() => void>
-  completed: ListenableCallback<ProcessingDataResponse>
+  completed: ListenableCallback<DataSupplementResponse>
   failed: ListenableCallback<FailResponse | string>
 }
 processingActions.getProcessingData.listen((assetUid, submissionEditId) => {
-  const processingUrl = getAssetProcessingUrl(assetUid)
+  const processingUrl = buildSubmissionSupplementUrl(assetUid, submissionEditId)
   if (processingUrl === undefined) {
     processingActions.getProcessingData.failed(NO_FEATURE_ERROR)
   } else {
@@ -220,7 +221,6 @@ processingActions.getProcessingData.listen((assetUid, submissionEditId) => {
       contentType: 'application/json',
       method: 'GET',
       url: processingUrl,
-      data: { submission: submissionEditId },
     })
       .done(processingActions.getProcessingData.completed)
       .fail(processingActions.getProcessingData.failed)
@@ -243,20 +243,18 @@ function setTranscriptInnerMethod(
   languageCode: LanguageCode,
   value: string,
 ) {
-  const processingUrl = getAssetProcessingUrl(assetUid)
+  const processingUrl = buildSubmissionSupplementUrl(assetUid, submissionEditId)
   if (processingUrl === undefined) {
     processingActions.setTranscript.failed(NO_FEATURE_ERROR)
   } else {
     const data: TranscriptRequest = {
-      submission: submissionEditId,
-    }
-    data[xpath] = {
-      transcript: {
-        value: value,
-        languageCode: languageCode,
+      [xpath]: {
+        transcript: {
+          value: value,
+          languageCode: languageCode,
+        },
       },
     }
-
     $.ajax({
       dataType: 'json',
       contentType: 'application/json',
@@ -352,20 +350,18 @@ interface DeleteTranscriptDefinition extends DeleteTranscriptFn {
   failed: ListenableCallback<FailResponse | string>
 }
 processingActions.deleteTranscript.listen((assetUid, xpath, submissionEditId) => {
-  const processingUrl = getAssetProcessingUrl(assetUid)
+  const processingUrl = buildSubmissionSupplementUrl(assetUid, submissionEditId)
   if (processingUrl === undefined) {
     processingActions.deleteTranscript.failed(NO_FEATURE_ERROR)
   } else {
     const data: TranscriptRequest = {
-      submission: submissionEditId,
-    }
-    data[xpath] = {
-      transcript: {
-        value: DELETE_CHAR,
-        languageCode: '',
+      [xpath]: {
+        transcript: {
+          value: DELETE_CHAR,
+          languageCode: '',
+        },
       },
     }
-
     $.ajax({
       dataType: 'json',
       contentType: 'application/json',
@@ -411,13 +407,10 @@ interface RequestAutoTranscriptionDefinition extends RequestAutoTranscriptionFn 
   failed: ListenableCallback<FailResponse | string>
 }
 processingActions.requestAutoTranscription.listen((assetUid, xpath, submissionEditId, languageCode, regionCode) => {
-  const processingUrl = getAssetProcessingUrl(assetUid)
+  const processingUrl = buildSubmissionSupplementUrl(assetUid, submissionEditId)
   if (processingUrl === undefined) {
     processingActions.requestAutoTranscription.failed(NO_FEATURE_ERROR)
   } else {
-    const data: AutoTranscriptRequest = {
-      submission: submissionEditId,
-    }
     const autoparams: AutoTranscriptRequestEngineParams = {
       status: 'requested',
     }
@@ -427,8 +420,10 @@ processingActions.requestAutoTranscription.listen((assetUid, xpath, submissionEd
     if (regionCode) {
       autoparams.regionCode = regionCode
     }
-    data[xpath] = {
-      googlets: autoparams,
+    const data: AutoTranscriptRequest = {
+      [xpath]: {
+        googlets: autoparams,
+      },
     }
 
     $.ajax({
@@ -465,12 +460,7 @@ function pickTranslationsFromProcessingDataResponse(response: ProcessingDataResp
 }
 
 /** A function that builds translation data object for processing endpoint. */
-function getTranslationDataObject(
-  xpath: string,
-  submissionEditId: string,
-  languageCode: LanguageCode,
-  value: string,
-): TranslationRequest {
+function getTranslationDataObject(xpath: string, languageCode: LanguageCode, value: string): TranslationRequest {
   // Sorry for this object being built in such a lengthy way, but it is needed
   // so for typings.
   const translationsObj: TranslationsRequestObject = {}
@@ -479,10 +469,9 @@ function getTranslationDataObject(
     languageCode: languageCode,
   }
   const data: TranslationRequest = {
-    submission: submissionEditId,
-  }
-  data[xpath] = {
-    translation: translationsObj,
+    [xpath]: {
+      translation: translationsObj,
+    },
   }
   return data
 }
@@ -498,11 +487,11 @@ function setTranslationInnerMethod(
   languageCode: LanguageCode,
   value: string,
 ) {
-  const processingUrl = getAssetProcessingUrl(assetUid)
+  const processingUrl = buildSubmissionSupplementUrl(assetUid, submissionEditId)
   if (processingUrl === undefined) {
     processingActions.setTranslation.failed(NO_FEATURE_ERROR)
   } else {
-    const data = getTranslationDataObject(xpath, submissionEditId, languageCode, value)
+    const data = getTranslationDataObject(xpath, languageCode, value)
     $.ajax({
       dataType: 'json',
       contentType: 'application/json',
@@ -603,11 +592,11 @@ interface DeleteTranslationDefinition extends DeleteTranslationFn {
   failed: ListenableCallback<FailResponse | string>
 }
 processingActions.deleteTranslation.listen((assetUid, xpath, submissionEditId, languageCode) => {
-  const processingUrl = getAssetProcessingUrl(assetUid)
+  const processingUrl = buildSubmissionSupplementUrl(assetUid, submissionEditId)
   if (processingUrl === undefined) {
     processingActions.deleteTranslation.failed(NO_FEATURE_ERROR)
   } else {
-    const data = getTranslationDataObject(xpath, submissionEditId, languageCode, DELETE_CHAR)
+    const data = getTranslationDataObject(xpath, languageCode, DELETE_CHAR)
     $.ajax({
       dataType: 'json',
       contentType: 'application/json',
@@ -649,17 +638,16 @@ interface RequestAutoTranslationDefinition extends RequestAutoTranslationFn {
   failed: ListenableCallback<FailResponse | string>
 }
 processingActions.requestAutoTranslation.listen((assetUid, xpath, submissionEditId, languageCode) => {
-  const processingUrl = getAssetProcessingUrl(assetUid)
+  const processingUrl = buildSubmissionSupplementUrl(assetUid, submissionEditId)
   if (processingUrl === undefined) {
     processingActions.requestAutoTranslation.failed(NO_FEATURE_ERROR)
   } else {
     const data: AutoTranslationRequest = {
-      submission: submissionEditId,
-    }
-    data[xpath] = {
-      googletx: {
-        status: 'requested',
-        languageCode: languageCode,
+      [xpath]: {
+        googletx: {
+          status: 'requested',
+          languageCode: languageCode,
+        },
       },
     }
 
