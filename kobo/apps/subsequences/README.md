@@ -35,6 +35,7 @@ How these selections are determined varies by feature.
 
 1. Enable automatic transcription in English - adds an (empty) column to the submission table
 `POST /api/v2/assets/{uid_asset}/advanced-features/`
+
 ><details><summary>Request</summary>
 
 ```json
@@ -45,6 +46,7 @@ How these selections are determined varies by feature.
 }
 ```
 </details>
+
 ><details><summary>Response</summary>
 
 ```json
@@ -59,6 +61,7 @@ How these selections are determined varies by feature.
 
 2. Request an automatic transcription in Spanish
 `PATCH /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
+
 ><details><summary>Request</summary>
 
 ```json
@@ -72,12 +75,14 @@ How these selections are determined varies by feature.
 }
 ```
 </details>
+
 ><details><summary>Response</summary>
 `400 - Invalid payload`
 </details>
 
 3. Enable automatic transcription in Spanish - adds an (empty) column to the submission table
 `PATCH /api/v2/assets/{uid_asset}/advanced-features/{uid_feature}/`
+
 ><details><summary>Request</summary>
 
 ```json
@@ -86,6 +91,7 @@ How these selections are determined varies by feature.
 }
 ```
 </details>
+
 ><details><summary>Response</summary>
 
 ```json
@@ -102,6 +108,7 @@ How these selections are determined varies by feature.
 
 4. Request automatic transcription in Spanish
 `PATCH /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
+
 ><details><summary>Request</summary>
 
 ```json
@@ -115,6 +122,7 @@ How these selections are determined varies by feature.
 }
 ```
 </details>
+
 ><details><summary>Response</summary>
 
 ```json
@@ -142,6 +150,7 @@ How these selections are determined varies by feature.
 5. Poll to see if the transcription is done yet
 `GET /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
 Response:
+
 ><details><summary>Response</summary>
 
 ```json
@@ -176,6 +185,7 @@ Response:
 
 6. Accept the transcript - Spanish transcript is now filled in the submission row
 `PATCH /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
+
 ><details><summary>Request</summary>
 
 ```json
@@ -190,6 +200,7 @@ Response:
 }
 ```
 </details><summary>Response</summary>
+
 ><details>
 
 ```json
@@ -225,6 +236,7 @@ Response:
 
 7. Delete the transcript - removes the Spanish transcript from the submission row
 `PATCH /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
+
 ><details><summary>Request</summary>
 
 ```json
@@ -239,6 +251,7 @@ Response:
 }
 ```
 </details>
+
 ><details><summary>Response</summary>
 
 ```json
@@ -285,6 +298,7 @@ Response:
 
 1. Enable manual transcription in English - adds an (empty) column to the submission table
 `POST /api/v2/assets/{uid_asset}/advanced-features/`
+
 ><details><summary>Request</summary>
 
 ```json
@@ -295,6 +309,7 @@ Response:
 }
 ```
 </details>
+
 ><details><summary>Response</summary>
 
 ```json
@@ -310,6 +325,7 @@ Response:
 
 2. Enable manual translation in Spanish - adds an (empty) column to the submission table
 `POST /api/v2/assets/{uid_asset}/advanced-features/`
+
 ><details><summary>Request</summary>
 
 ```json
@@ -320,6 +336,7 @@ Response:
 }
 ```
 </details>
+
 ><details><summary>Response</summary>
 
 ```json
@@ -335,6 +352,7 @@ Response:
 
 3. Request manual translation in Spanish
 `PATCH /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
+
 ><details><summary>Requestion</summary>
 
 ```json
@@ -349,12 +367,14 @@ Response:
 }
 ```
 </details>
+
 ><details><summary>Response</summary>
 `400 - Cannot translate without transcription`
 </details>
 
 4. Add transcript in English - English transcript is now shown in the submission row
 `PATCH /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
+
 ><details><summary>Request</summary>
 
 ```json
@@ -369,6 +389,7 @@ Response:
 }
 ```
 </details>
+
 ><details><summary>Response</summary>
 
 ```json
@@ -397,6 +418,7 @@ Response:
 
 5. Add a translation in Spanish - Spanish translation now shown in the submission row
 `PATCH /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
+
 ><details><summary>Request</summary>
 
 ```json
@@ -411,6 +433,7 @@ Response:
 }
 ```
 </details>
+
 ><details><summary>Response</summary>
 
 ```json
@@ -465,6 +488,7 @@ Response:
 
 1. Enable manual QA on the question - adds an (empty) column to the submission table
 `POST /api/v2/assets/{uid_asset}/advanced-features/`
+
 ><details><summary>Request</summary>
 
 ```json
