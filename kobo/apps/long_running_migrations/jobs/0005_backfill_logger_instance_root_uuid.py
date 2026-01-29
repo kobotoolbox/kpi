@@ -12,7 +12,7 @@ from kobo.apps.openrosa.apps.logger.models import Instance, XForm
 from kpi.utils.database import use_db
 from kpi.utils.log import logging
 
-CHUNK_SIZE = settings.LONG_RUNNING_MIGRATION_BATCH_SIZE
+CHUNK_SIZE = 100  # Try to be gentle with the database even it takes longer to proceed.
 
 
 def run():
@@ -26,6 +26,9 @@ def run():
     with use_db(settings.OPENROSA_DB_ALIAS):
         while xforms := get_xforms_queryset(last_xform_id):
             for xform in xforms:
+                logging.info(
+                    f'[LRM 0005] - XForm #{xform.pk} ({xform.id_string}) - In Progress'
+                )
                 last_instance_id = 0
                 error = False
                 while instances := get_instances_queryset(last_instance_id, xform.pk):
@@ -36,6 +39,10 @@ def run():
 
                 if not error:
                     xform.tags.add('kobo-root-uuid-success')
+
+                logging.info(
+                    f'[LRM 0005] - XForm #{xform.pk} ({xform.id_string}) - Done'
+                )
 
         # Clean up tags while retaining failed entries for future manual review
         TaggedItem.objects.filter(tag__name='kobo-root-uuid-success').delete()
