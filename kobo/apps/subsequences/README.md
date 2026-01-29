@@ -7,9 +7,14 @@ It covers how the payload is validated through the various schemas (`params_sche
 
 ## Table of Contents
 
-2. [Subsequence User Flow]
+1. [Subsequence user flow](#subsequence-user-flow)
+   1. [Selected response](#selected-response)
+   2. [Examples](#examples)
+      1. [Automatic transcription](#automatic-transcription)
+      2. [Manual transcription/translation](#manual-transcriptiontranslation)
+      3. [Qualitative analysis](#qualitative-analysis-questions)
 
-## Subsequence User Flow
+## Subsequence user flow
 
 In general, the user flow for advanced features (aka subsequences) is as follows:
 1. Enable the desired feature on the survey question
@@ -481,8 +486,6 @@ How these selections are determined varies by feature.
       </details>
 
 
----
-
 #### Qualitative analysis questions
 
 1. Enable manual QA on the question - adds an (empty) column to the submission table
@@ -499,7 +502,7 @@ How these selections are determined varies by feature.
         ]
       }
       ```
-      </details>
+</details>
 
 
 ## 3 Sequence Workflow - Backend (End-to-End Flow)
