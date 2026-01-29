@@ -135,6 +135,7 @@ export default function AnalysisQuestionListItem({
       })
     }
   }
+
   const handleCancelEdit = () => {
     setQaQuestion(undefined)
   }
@@ -258,6 +259,7 @@ export default function AnalysisQuestionListItem({
   drop(preview(previewRef))
 
   const renderItem = () => {
+    // TODO: after creating question successfuly, we should close the editor
     if (editMode) {
       return (
         <AnalysisQuestionEditor
