@@ -413,9 +413,9 @@ class MongoHelper:
                 else:
                     fields[cls.SUBMISSION_UUID] = 1
 
-            # `cls.SUBMISSION_ROOT_UUID` needs to be present. Otherwise,
-            # it is injected on the fly with the wrong value, i.e.: it becomes a copy
-            # of `uuid`.
+            # `cls.SUBMISSION_ROOT_UUID` must be included in the query.
+            # If missing, it is injected on the fly using `_uuid`, which can lead to
+            # incorrect values for edited submissions (the root UUID never changes).
             if cls.SUBMISSION_ROOT_UUID not in fields:
                 if isinstance(fields, list):
                     fields.append(cls.SUBMISSION_ROOT_UUID)

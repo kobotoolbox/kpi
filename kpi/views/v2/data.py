@@ -1,5 +1,6 @@
 import copy
 import json
+from typing import Union
 
 import requests
 from django.conf import settings
@@ -242,8 +243,11 @@ class DataViewSet(
 
     def destroy(self, request, pk, *args, **kwargs):
         deployment = self._get_deployment()
-        # Coerce to int because back end only finds matches with same type
-        submission_id = positive_int(pk)
+        submission = self._get_submission_by_id_or_root_uuid(
+            pk, request, fields=['_id'], as_owner=True
+        )
+        # Coerce to int because the back end only finds matches with the same type
+        submission_id = int(submission['_id'])
 
         if deployment.delete_submission(submission_id, user=request.user):
             response = {
@@ -270,7 +274,7 @@ class DataViewSet(
         """
 
         deployment = self._get_deployment()
-        original_submission = self._get_submission_by_id_or_uuid(
+        original_submission = self._get_submission_by_id_or_root_uuid(
             pk, request, fields=['_id'], as_owner=True
         )
         submission_id = original_submission['_id']
@@ -326,7 +330,7 @@ class DataViewSet(
     )
     def enketo_edit(self, request, pk, *args, **kwargs):
 
-        submission = self._get_submission_by_id_or_uuid(
+        submission = self._get_submission_by_id_or_root_uuid(
             pk, request, fields=['_id'], as_owner=True
         )
         submission_id = submission['_id']
@@ -367,7 +371,7 @@ class DataViewSet(
     )
     def enketo_view(self, request, pk, *args, **kwargs):
 
-        submission = self._get_submission_by_id_or_uuid(
+        submission = self._get_submission_by_id_or_root_uuid(
             pk, request, fields=['_id'], as_owner=True
         )
         submission_id = submission['_id']
@@ -429,17 +433,10 @@ class DataViewSet(
     def retrieve(self, request, pk, *args, **kwargs):
         """
         Retrieve a submission by its primary key or its UUID.
-
-        Warning when using the UUID. Submissions can have the same uuid because
-        there is no unique constraint on this field. The first occurrence
-        will be returned.
-
-        # TODO Stop support `_uuid` and use `meta/rootUuid` instead.
-        #   `meta/rootUuid` is unique per project.
         """
 
         format_type = kwargs.get('format', request.GET.get('format', 'json'))
-        submission = self._get_submission_by_id_or_uuid(
+        submission = self._get_submission_by_id_or_root_uuid(
             pk, request, format_type=format_type
         )
 
@@ -510,10 +507,11 @@ class DataViewSet(
     )
     def validation_status(self, request, pk, *args, **kwargs):
         deployment = self._get_deployment()
-        submission = self._get_submission_by_id_or_uuid(
+        submission = self._get_submission_by_id_or_root_uuid(
             pk, request, fields=['_id'], as_owner=True
         )
-        submission_id = submission['_id']
+        # Coerce to int because the back end only finds matches with the same type
+        submission_id = int(submission['_id'])
 
         if request.method == 'GET':
             json_response = deployment.get_validation_status(
@@ -831,22 +829,45 @@ class DataViewSet(
             }
         )
 
-    def _get_submission_by_id_or_uuid(
+    def _get_submission_by_id_or_root_uuid(
         self,
-        submission_id_or_uuid,
+        submission_id_or_root_uuid: Union[str, int],
         request: Request,
         format_type: str = 'json',
         fields: list = None,
         as_owner: bool = False,
     ) -> dict:
+        """
+        Retrieve a single submission using either its integer primary key or a UUID.
+
+        Django REST Framework requires the URL parameter to be named `pk`, even
+        though this endpoint supports multiple lookup strategies:
+
+        - Integer values are treated as submission primary keys.
+        - Non-integer values are treated as UUIDs and resolved via MongoDB.
+
+        UUID lookup prefers `meta/rootUuid` (unique per project) and temporarily
+        falls back to `meta/instanceID` for legacy data.
+
+        When `as_owner=True`, permission checks inside `get_submissions()` are
+        bypassed; callers must rely on the permission classes to enforce access
+        control.
+
+        Returns:
+            dict: The first matching submission.
+
+        Raises:
+            Http404: If no submission matches the provided identifier.
+            ValidationError: If an invalid MongoDB query is provided.
+        """
 
         deployment = self._get_deployment()
 
         params = {
             # `as_owner` bypasses permission checks inside `get_submissions`
             # (notably for partial submissions).
-            # Any action in this viewset calling `_get_submission_by_id_or_uuid` with
-            # `as_owner=True` must rely on the permission class to enforce access
+            # Any action in this viewset calling `_get_submission_by_id_or_root_uuid`
+            # with `as_owner=True` must rely on the permission class to enforce access
             # control.
             'user': self.asset.owner if as_owner else request.user,
             'format_type': format_type,
@@ -857,12 +878,10 @@ class DataViewSet(
 
         filters = self._filter_mongo_query(request)
 
-        # Unfortunately, Django expects that the URL parameter is `pk`,
-        # and its name cannot be changed (easily).
         try:
-            submission_id_or_uuid = positive_int(submission_id_or_uuid)
+            submission_id_or_root_uuid = positive_int(submission_id_or_root_uuid)
         except ValueError:
-            submission_id_or_uuid = add_uuid_prefix(submission_id_or_uuid)
+            submission_id_or_root_uuid = add_uuid_prefix(submission_id_or_root_uuid)
 
             try:
                 query = json.loads(filters.pop('query', '{}'))
@@ -870,11 +889,22 @@ class DataViewSet(
                 raise serializers.ValidationError(
                     {'query': t('Value must be valid JSON.')}
                 )
-            # TODO Remove `$or` when rootUuid are all backfilled.
+            # Older data may have `meta/rootUuid` set to NULL.
+            # The long-running migration `0005` is responsible for backfilling
+            # `meta/rootUuid` for all existing submissions.
+            #
+            # Until this migration is fully applied everywhere, we must fall back
+            # to `meta/instanceID`. This fallback is temporary and potentially
+            # unsafe because `instanceID` is NOT guaranteed to be unique per project.
+            #
+            # Once all submissions have a populated `meta/rootUuid`, this `$or`
+            # condition can be removed and lookups should rely exclusively on
+            # `meta/rootUuid`.
+
             uuid_query = {
                 '$or': [
-                    {'meta/rootUuid': submission_id_or_uuid},
-                    {'meta/instanceID': submission_id_or_uuid},
+                    {'meta/rootUuid': submission_id_or_root_uuid},
+                    {'meta/instanceID': submission_id_or_root_uuid},
                 ]
             }
 
@@ -886,7 +916,7 @@ class DataViewSet(
 
             filters['query'] = query
         else:
-            params['submission_ids'] = [submission_id_or_uuid]
+            params['submission_ids'] = [submission_id_or_root_uuid]
 
         # Join all parameters to be passed to `deployment.get_submissions()`
         params.update(filters)
