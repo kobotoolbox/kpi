@@ -8,7 +8,6 @@ import {
 } from '#/api/react-query/survey-data'
 import Button from '#/components/common/button'
 import { goToProcessing } from '#/components/processing/routes.utils'
-import { addDefaultUuidPrefix } from '#/utils'
 import styles from './index.module.scss'
 
 interface Props {
