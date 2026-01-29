@@ -9,9 +9,7 @@ from django.db.models import OuterRef, Subquery, Sum, Value
 from django.db.models.functions import Coalesce
 from django_redis import get_redis_connection
 
-from kobo.apps.openrosa.apps.logger.constants import (
-    SUBMISSIONS_SUSPENDED_HEARTBEAT_KEY
-)
+from kobo.apps.openrosa.apps.logger.constants import SUBMISSIONS_SUSPENDED_HEARTBEAT_KEY
 from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kobo.apps.openrosa.apps.main.models.user_profile import UserProfile
