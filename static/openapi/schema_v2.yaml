@@ -2073,24 +2073,30 @@ paths:
       operationId: api_v2_assets_data_retrieve
       description: |
         ## Get a specific submission
-        It is also possible to specify the format.
 
-        `id` can be the primary key of the submission or its `uuid`.
-        Please note that using the `uuid` may match **several** submissions, only
+        `{id}` can be:
+
+        - The primary key of the submission
+        - Its `_uuid` <sup>1</sup>
+        - Its `rootUuid` (without "uuid:" prefix)
+
+        <sup>1</sup> Please note that using the `_uuid` may match **several** submissions, only
         the first match will be returned.
 
+
+        It is also possible to specify the format.
+
         ```shell
-        curl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid}/data/{id}.xml
-        curl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid}/data/{id}.json
+        curl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid_asset}/data/{id}.xml
+        curl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid_asset}/data/{id}.json
         ```
 
         or
 
         ```shell
-        curl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid}/data/{id}/?format=xml
-        curl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid}/data/{id}/?format=json
+        curl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid_asset}/data/{id}/?format=xml
+        curl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid_asset}/data/{id}/?format=json
         ```
-
 
         ### ⚠️ Note: DRF-Spectacular Limitation
 
@@ -2112,8 +2118,8 @@ paths:
       - in: path
         name: id
         schema:
-          type: integer
-        description: ID of the data
+          type: string
+        description: Integer ID (PK) or rootUuid
         required: true
       - in: path
         name: uid_asset
@@ -2155,8 +2161,8 @@ paths:
       - in: path
         name: id
         schema:
-          type: integer
-        description: ID of the data
+          type: string
+        description: Integer ID (PK) or rootUuid
         required: true
       - in: path
         name: uid_asset
@@ -2188,13 +2194,23 @@ paths:
       operationId: api_v2_assets_data_duplicate_create
       description: |
         ## Duplicate submission
+
         Duplicates the data of a submission
+
+        `{id}` can be:
+
+        - The primary key of the submission
+        - Its `_uuid` <sup>1</sup>
+        - Its `rootUuid` (without "uuid:" prefix)
+
+        <sup>1</sup> Please note that using the `_uuid` may match **several** submissions, only
+        the first match will be returned.
       parameters:
       - in: path
         name: id
         schema:
-          type: integer
-        description: ID of the data
+          type: string
+        description: Integer ID (PK) or rootUuid
         required: true
       - in: path
         name: uid_asset
@@ -2237,6 +2253,15 @@ paths:
       description: |
         ## Get submission url of enketo in edit mode
 
+        `{id}` can be:
+
+        - The primary key of the submission
+        - Its `_uuid` <sup>1</sup>
+        - Its `rootUuid` (without "uuid:" prefix)
+
+        <sup>1</sup> Please note that using the `_uuid` may match **several** submissions, only
+        the first match will be returned.
+
         Note: Some variation of this url exists:
 
         `/api/v2/assets/{uid_asset}/data/{id}/edit/`: deprecated, use the next one.
@@ -2248,8 +2273,8 @@ paths:
       - in: path
         name: id
         schema:
-          type: integer
-        description: ID of the data
+          type: string
+        description: Integer ID (PK) or rootUuid
         required: true
       - in: path
         name: uid_asset
@@ -2297,6 +2322,15 @@ paths:
       description: |
         ## Get submission url of enketo in edit mode
 
+        `{id}` can be:
+
+        - The primary key of the submission
+        - Its `_uuid` <sup>1</sup>
+        - Its `rootUuid` (without "uuid:" prefix)
+
+        <sup>1</sup> Please note that using the `_uuid` may match **several** submissions, only
+        the first match will be returned.
+
         Note: Some variation of this url exists:
 
         `/api/v2/assets/{uid_asset}/data/{id}/edit/`: deprecated, use the next one.
@@ -2308,8 +2342,8 @@ paths:
       - in: path
         name: id
         schema:
-          type: integer
-        description: ID of the data
+          type: string
+        description: Integer ID (PK) or rootUuid
         required: true
       - in: path
         name: uid_asset
@@ -2357,6 +2391,15 @@ paths:
       description: |
         ## Get submission url of enketo in edit mode
 
+        `{id}` can be:
+
+        - The primary key of the submission
+        - Its `_uuid` <sup>1</sup>
+        - Its `rootUuid` (without "uuid:" prefix)
+
+        <sup>1</sup> Please note that using the `_uuid` may match **several** submissions, only
+        the first match will be returned.
+
         Note: Some variation of this url exists:
 
         `/api/v2/assets/{uid_asset}/data/{id}/edit/`: deprecated, use the next one.
@@ -2368,8 +2411,8 @@ paths:
       - in: path
         name: id
         schema:
-          type: integer
-        description: ID of the data
+          type: string
+        description: Integer ID (PK) or rootUuid
         required: true
       - in: path
         name: uid_asset
@@ -2417,6 +2460,15 @@ paths:
       description: |
         ## Get submission url of enketo in preview mode
 
+        `{id}` can be:
+
+        - The primary key of the submission
+        - Its `_uuid` <sup>1</sup>
+        - Its `rootUuid` (without "uuid:" prefix)
+
+        <sup>1</sup> Please note that using the `_uuid` may match **several** submissions, only
+        the first match will be returned.
+
         Note: Some variation of this url exists:
 
         `/api/v2/assets/{uid_asset}/data/{id}/enketo/view/`: return the url of the enketo submission (as seen in the response example).
@@ -2426,8 +2478,8 @@ paths:
       - in: path
         name: id
         schema:
-          type: integer
-        description: ID of the data
+          type: string
+        description: Integer ID (PK) or rootUuid
         required: true
       - in: path
         name: uid_asset
@@ -2475,6 +2527,15 @@ paths:
       description: |
         ## Get submission url of enketo in preview mode
 
+        `{id}` can be:
+
+        - The primary key of the submission
+        - Its `_uuid` <sup>1</sup>
+        - Its `rootUuid` (without "uuid:" prefix)
+
+        <sup>1</sup> Please note that using the `_uuid` may match **several** submissions, only
+        the first match will be returned.
+
         Note: Some variation of this url exists:
 
         `/api/v2/assets/{uid_asset}/data/{id}/enketo/view/`: return the url of the enketo submission (as seen in the response example).
@@ -2484,8 +2545,8 @@ paths:
       - in: path
         name: id
         schema:
-          type: integer
-        description: ID of the data
+          type: string
+        description: Integer ID (PK) or rootUuid
         required: true
       - in: path
         name: uid_asset
@@ -2537,8 +2598,8 @@ paths:
       - in: path
         name: id
         schema:
-          type: integer
-        description: ID of the data
+          type: string
+        description: Integer ID (PK) or rootUuid
         required: true
       - in: path
         name: uid_asset
@@ -2583,14 +2644,8 @@ paths:
       - in: path
         name: id
         schema:
-          type: integer
-        description: ID of the data (when applicable)
-        required: true
-      - in: path
-        name: submission_id_or_root_uuid
-        schema:
           type: string
-        description: Submission identifier
+        description: Integer ID (PK) or rootUuid
         required: true
       - in: path
         name: uid_asset
@@ -2634,8 +2689,8 @@ paths:
       - in: path
         name: id
         schema:
-          type: integer
-        description: ID of the data
+          type: string
+        description: Integer ID (PK) or rootUuid
         required: true
       - in: path
         name: uid_asset

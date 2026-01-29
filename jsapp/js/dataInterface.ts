@@ -20,7 +20,7 @@ import type {
 } from '#/components/reports/reportsConstants'
 import type { SortValues } from '#/components/submissions/tableConstants'
 import type { ValidationStatusName } from '#/components/submissions/validationStatus.constants'
-import type { AnyRowTypeName, AssetFileType, AssetTypeName } from '#/constants'
+import type { AnyRowTypeName, AssetFileType, AssetTypeName, FormStyleName } from '#/constants'
 import type { UserResponse } from '#/users/userExistence.store'
 import type { AccountFieldsValues } from './account/account.constants'
 import { endpoints } from './api.endpoints'
@@ -493,7 +493,7 @@ export interface AssetContentSettings {
   name?: string
   version?: string
   id_string?: string
-  style?: string
+  style?: FormStyleName
   form_id?: string
   title?: string
   'kobo--lock_all'?: boolean
@@ -511,10 +511,13 @@ export interface AssetContent {
   schema?: string
   survey?: SurveyRow[]
   choices?: SurveyChoice[]
+  // TODO: verify if array case is ever happening
   settings?: AssetContentSettings | AssetContentSettings[]
   translated?: string[]
   /** A list of languages. */
   translations?: Array<string | null>
+  // TODO: this is the default language, verify why we have this as it should be accessible from `translations` array :shrug:
+  translations_0?: string | null
   /** A list of all availavble locking profiles */
   'kobo--locking-profiles'?: AssetLockingProfileDefinition[]
 }
@@ -607,7 +610,7 @@ export interface AssetSettings {
 }
 
 /** This is the asset object Frontend uses with the endpoints. */
-interface AssetRequestObject {
+export interface AssetRequestObject {
   // NOTE: there might be a few properties in AssetResponse that should be here,
   // so please feel free to move them when you encounter a typing error.
   parent: string | null
@@ -745,7 +748,8 @@ export interface AssetResponse extends AssetRequestObject {
   subscribers_count: number
   status: string
   access_types: string[] | null
-  files?: any[]
+  /** If there are no files this will be empty array */
+  files: AssetResponseFile[]
 
   // TODO: think about creating a new interface for asset that is being extended
   // on frontend.
@@ -757,6 +761,35 @@ export interface AssetResponse extends AssetRequestObject {
   settings__form_id?: string
   settings__title?: string
   project_ownership: ProjectTransferAssetDetail | null
+}
+
+export interface AssetResponseFile {
+  uid: string
+  url: string
+  /** asset url */
+  asset: string
+  /** user url */
+  user: string
+  user__username: string
+  file_type: 'form_media' | string
+  description: 'default' | string
+  date_created: string
+  /** url */
+  content: string
+  metadata: {
+    hash: string
+    filename: string
+    mimetype:
+      | 'image/jpeg'
+      | 'video/quicktime'
+      | 'audio/mpeg'
+      | 'text/plain'
+      | 'image/jpeg'
+      | 'image/jpeg'
+      | 'audio/mpeg'
+      | 'audio/x-m4a'
+      | string
+  }
 }
 
 /** This is the asset object returned by project-views endpoint. */

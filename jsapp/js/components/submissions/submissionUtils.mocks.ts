@@ -122,6 +122,7 @@ export const simpleSurveyAsset = {
   permissions: [],
   export_settings: [],
   data_sharing: {},
+  files: [],
 } as const satisfies AssetResponse
 
 export const simpleSurveySubmission = {
@@ -343,6 +344,7 @@ export const repeatSurveyAsset = {
   permissions: [],
   export_settings: [],
   data_sharing: {},
+  files: [],
 } as const satisfies AssetResponse
 
 // NOTE: the second repeat submission has no First_name and Middle_name to test stuff better
@@ -542,6 +544,7 @@ export const nestedRepeatSurveyAsset = {
   permissions: [],
   export_settings: [],
   data_sharing: {},
+  files: [],
 } as const satisfies AssetResponse
 
 export const nestedRepeatSurveySubmission = {
@@ -837,6 +840,7 @@ export const matrixSurveyAsset = {
   permissions: [],
   export_settings: [],
   data_sharing: {},
+  files: [],
 } as const satisfies AssetResponse
 
 export const matrixSurveySubmission = {
@@ -1139,6 +1143,7 @@ export const groupsSurveyAsset = {
   permissions: [],
   export_settings: [],
   data_sharing: {},
+  files: [],
 } as const satisfies AssetResponse
 
 export const groupsSurveySubmission = {
@@ -1720,6 +1725,7 @@ export const everythingSurveyAsset = {
   permissions: [],
   export_settings: [],
   data_sharing: {},
+  files: [],
 } as const satisfies AssetResponse
 
 export const everythingSurveySubmission = {
@@ -2173,6 +2179,7 @@ export const matrixRepeatSurveyAsset = {
   permissions: [],
   export_settings: [],
   data_sharing: {},
+  files: [],
 } as const satisfies AssetResponse
 
 export const matrixRepeatSurveySubmission = {
@@ -2959,6 +2966,7 @@ export const assetWithSupplementalDetails = {
   access_types: null,
   data_sharing: {},
   paired_data: 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/paired-data/',
+  files: [],
 } as const satisfies AssetResponse
 
 export const submissionWithSupplementalDetails = {

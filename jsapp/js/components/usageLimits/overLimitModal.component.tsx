@@ -79,6 +79,7 @@ function OverLimitModal(props: OverLimitModalProps) {
     setShow(props.show)
   }, [props.show])
 
+  // Careful: using `useOrganizationAssumed` because parent component `LimitNotifications` will handle fetching it.
   const [organization] = useOrganizationAssumed()
 
   if (!envStore.isReady || !props.limits.length) {

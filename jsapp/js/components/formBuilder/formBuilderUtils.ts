@@ -1,14 +1,15 @@
 import clonedeep from 'lodash.clonedeep'
-import { ASSET_TYPES } from '#/constants'
+import { ASSET_TYPES, type AssetTypeName, GroupTypeBeginName, GroupTypeEndName } from '#/constants'
+import type { AssetContent } from '#/dataInterface'
+import type { KoboMatrixPlainData } from '#/formbuild/containers/KoboMatrix'
 import { recordKeys } from '#/utils'
+import type { FlatRow, FlatSurvey, Survey } from '../../../xlform/src/model.survey'
 
 /**
  * Asset type could be either the loaded asset type (editing an existing form)
  * or the desired asset type (creating a new form)
- *
- * @returns {object|null} one of ASSET_TYPES
  */
-export function getFormBuilderAssetType(assetType, desiredAssetType) {
+export function getFormBuilderAssetType(assetType?: AssetTypeName, desiredAssetType?: AssetTypeName) {
   if (assetType && ASSET_TYPES[assetType]) {
     return ASSET_TYPES[assetType]
   } else if (desiredAssetType && ASSET_TYPES[desiredAssetType]) {
@@ -17,7 +18,7 @@ export function getFormBuilderAssetType(assetType, desiredAssetType) {
   return null
 }
 
-export function surveyToValidJson(survey) {
+export function surveyToValidJson(survey: Survey) {
   // HACK: This is done as a fix for https://github.com/kobotoolbox/kpi/pull/735
   // I'm not entirely sure what this is about but definitely BAD CODE™!
   //
@@ -30,14 +31,13 @@ export function surveyToValidJson(survey) {
 
 /**
  * This function reverses what `nullifyTranslations` did to the form data.
- * @param {string} surveyDataJSON
- * @param {object} assetContent
- * @return {string} fixed surveyDataJSON
  */
-export function unnullifyTranslations(surveyDataJSON, assetContent) {
-  const surveyData = JSON.parse(surveyDataJSON)
+export function unnullifyTranslations(surveyDataJSON: string, assetContent: AssetContent) {
+  // Here we assume that parsed JSON will be `FlatSurvey`. If we ever pass some other string in here, the code would
+  // crash. If this ever happens, let's add some checks.
+  const surveyData: FlatSurvey = JSON.parse(surveyDataJSON)
 
-  let translatedProps = []
+  let translatedProps: string[] = []
   if (assetContent.translated) {
     translatedProps = assetContent.translated
   }
@@ -94,6 +94,11 @@ export function unnullifyTranslations(surveyDataJSON, assetContent) {
  * @property {Array<string|null>} translations - Modified translations.
  * @property {Array<string|null>} translations_0 - The original default language name.
  */
+interface NullifiedTranslations {
+  survey: FlatRow[]
+  translations: Array<string | null>
+  translations_0?: string | null
+}
 
 /**
  * A function that adjust the translations data to the Form Builder code.
@@ -105,9 +110,14 @@ export function unnullifyTranslations(surveyDataJSON, assetContent) {
  * @param {object} baseSurvey
  * @return {NullifiedTranslations}
  */
-export function nullifyTranslations(translations, translatedProps, survey, baseSurvey) {
-  const data = {
-    survey: clonedeep(survey),
+export function nullifyTranslations(
+  translations: Array<string | null>,
+  translatedProps: string[],
+  survey: FlatRow[],
+  baseSurvey: FlatSurvey,
+): NullifiedTranslations {
+  const data: NullifiedTranslations = {
+    survey: clonedeep(survey) as FlatRow[],
     translations: clonedeep(translations),
   }
 
@@ -138,12 +148,18 @@ export function nullifyTranslations(translations, translatedProps, survey, baseS
       // case 2: imported asset has form default language but not as first, so
       // we need to reorder things
       const defaultLangIndex = data.translations.indexOf(formDefaultLang)
-      data.translations.unshift(data.translations.pop(defaultLangIndex))
-      data.survey.forEach((row) => {
+
+      // Remove default lang, then place it at the beginning
+      data.translations.splice(data.translations.indexOf(formDefaultLang), 1)
+      data.translations.unshift(formDefaultLang)
+
+      data.survey.forEach((row: FlatRow) => {
         translatedProps.forEach((translatedProp) => {
-          const transletedPropArr = row[translatedProp]
+          const transletedPropArr = row[translatedProp] as string[]
           if (transletedPropArr) {
-            transletedPropArr.unshift(transletedPropArr.pop(defaultLangIndex))
+            // Pick the default lang translation, then place it at the beginning
+            const defaultLangTranslation = transletedPropArr.splice(defaultLangIndex, 1)[0]
+            transletedPropArr.unshift(defaultLangTranslation)
           }
         })
       })
@@ -154,7 +170,7 @@ export function nullifyTranslations(translations, translatedProps, survey, baseS
       // force it onto the asset as the first language and try setting some
       // meaningful property value
       data.translations.unshift(formDefaultLang)
-      data.survey.forEach((row) => {
+      data.survey.forEach((row: FlatRow) => {
         translatedProps.forEach((translatedProp) => {
           if (row[translatedProp]) {
             let propVal = null
@@ -179,23 +195,34 @@ export function nullifyTranslations(translations, translatedProps, survey, baseS
   return data
 }
 
-export function koboMatrixParser(params) {
-  let content = {}
-  if (params.content) content = JSON.parse(params.content)
-  if (params.source) content = JSON.parse(params.source)
+export interface KoboMatrixParserParams {
+  content?: string
+  source?: string
+}
+
+export function koboMatrixParser(params: KoboMatrixParserParams): KoboMatrixParserParams {
+  let content: Partial<FlatSurvey> = {}
+  const rawData = params.content || params.source
+
+  if (!rawData) return params
+  try {
+    content = JSON.parse(rawData)
+  } catch (e) {
+    return params
+  }
 
   if (!content.survey) return params
 
-  var hasMatrix = false
-  var surveyLength = content.survey.length
+  let hasMatrix = false
+  let surveyLength = content.survey.length
 
   // add open/close tags for kobomatrix groups
   for (var i = 0; i < surveyLength; i++) {
     if (content.survey[i].type === 'kobomatrix') {
-      content.survey[i].type = 'begin_kobomatrix'
+      content.survey[i].type = GroupTypeBeginName.begin_kobomatrix
       content.survey[i].appearance = 'field-list'
       surveyLength++
-      content.survey.splice(i + 1, 0, { type: 'end_kobomatrix', $kuid: `/${content.survey[i].$kuid}` })
+      content.survey.splice(i + 1, 0, { type: GroupTypeEndName.end_kobomatrix, $kuid: `/${content.survey[i].$kuid}` })
     }
   }
 
@@ -207,15 +234,15 @@ export function koboMatrixParser(params) {
       var matrix = localStorage.getItem(`koboMatrix.${content.survey[i].$kuid}`)
 
       if (matrix != null) {
-        matrix = JSON.parse(matrix)
-        for (var kuid of matrix.cols) {
+        const matrixData = JSON.parse(matrix) as KoboMatrixPlainData
+        for (var kuid of matrixData.cols) {
           i++
           surveyLength++
-          content.survey.splice(i, 0, matrix[kuid])
+          content.survey.splice(i, 0, matrixData[kuid])
         }
 
-        for (var k of recordKeys(matrix.choices)) {
-          content.choices.push(matrix.choices[k])
+        for (var k of recordKeys(matrixData.choices)) {
+          content.choices?.push(matrixData.choices[k])
         }
       }
       // TODO: handle corrupt matrix data
@@ -235,12 +262,12 @@ export function koboMatrixParser(params) {
  *
  * For given semicolon-separated (or comma-separated) string of parameters, it returns an object.
  */
-export function readParameters(str) {
+export function readParameters(str: string) {
   if (typeof str !== 'string') {
     return null
   }
 
-  const params = {}
+  const params: { [key: string]: string } = {}
 
   let separator = ' '
   if (str.includes(';')) {
@@ -273,8 +300,8 @@ export function readParameters(str) {
  * 3. blacklists "seed" for some reason
  * …and finally returns a single string of semicolon-separated parameters.
  */
-export function writeParameters(obj) {
-  const params = []
+export function writeParameters(obj: { [key: string]: string }) {
+  const params: string[] = []
   recordKeys(obj).forEach((key) => {
     if (obj[key] !== undefined && obj[key] !== null) {
       let value = obj[key]
