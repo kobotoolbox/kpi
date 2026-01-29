@@ -9,6 +9,9 @@ It supports the same action types as the GET endpoint:
 
 The PATCH payload follows the same per-question structure as the GET response.
 
+To delete a submission supplement, you need to PATCH the submission supplement
+with the appropriate null or empty value.
+
 ⚠️ In this documentation, request and response examples present each action in
 isolation for clarity. In practice, multiple actions may be combined within the same
 payload or response, including for the same question, and a single submission may

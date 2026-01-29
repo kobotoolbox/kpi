@@ -49,7 +49,9 @@ def _get_data_supplement_patch_payload_request_examples() -> list[OpenApiExample
                 '_version': '20250820',
                 'question_name_xpath': {
                     'manual_transcription': {
-                        'language': 'fr', 'locale': 'fr-CA', 'value': 'Bonjour'
+                        'language': 'fr',
+                        'locale': 'fr-CA',
+                        'value': 'Bonjour',
                     }
                 },
             },
@@ -133,6 +135,7 @@ def _get_data_supplement_patch_payload_request_examples() -> list[OpenApiExample
                 },
             },
             request_only=True,
+            description='Set `value` to `null` to delete.',
         ),
         OpenApiExample(
             'Manual Qualitative Analysis – Text Question',
@@ -159,6 +162,7 @@ def _get_data_supplement_patch_payload_request_examples() -> list[OpenApiExample
                 },
             },
             request_only=True,
+            description='Set `value` to the empty string `""` to delete.',
         ),
         OpenApiExample(
             'Manual Qualitative Analysis – Multiple Choice Question',
@@ -175,6 +179,7 @@ def _get_data_supplement_patch_payload_request_examples() -> list[OpenApiExample
                 },
             },
             request_only=True,
+            description='Set `value` to the empty string `""` to delete.',
         ),
         OpenApiExample(
             'Manual Qualitative Analysis – Tags Question',
@@ -188,6 +193,7 @@ def _get_data_supplement_patch_payload_request_examples() -> list[OpenApiExample
                 },
             },
             request_only=True,
+            description='Set `value` an empty array `[]` to delete.'
         ),
     ]
 

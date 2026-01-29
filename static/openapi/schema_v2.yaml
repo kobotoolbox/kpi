@@ -1501,6 +1501,14 @@ paths:
         ## Update an advanced action on an asset
 
         Update the params of an advanced action on a question in the asset.
+        `params` are always additive. That means that if you PATCH a feature with a new param array, the new ones
+        will be added to the existing ones. You cannot delete a param via the API.
+
+        In the case of NLP actions, this means you can only add languages, not delete.
+        In the case of QA analysis questions, you should send the full set questions and choices in the desired order. Any existing
+        choices or questions in the existing params not present in the new ones will be marked as deleted, but not actually removed from the data.
+        Deleted questions and choices will be placed at the end of the relevant list.
+
         * `params` is required
         * `params` must match the expected param_schema of the action being updated
 
@@ -2990,6 +2998,9 @@ paths:
 
         The PATCH payload follows the same per-question structure as the GET response.
 
+        To delete a submission supplement, you need to PATCH the submission supplement
+        with the appropriate null or empty value.
+
         ⚠️ In this documentation, request and response examples present each action in
         isolation for clarity. In practice, multiple actions may be combined within the same
         payload or response, including for the same question, and a single submission may
@@ -3086,6 +3097,7 @@ paths:
                       uuid: 11111111-1111-1111-1111-111111111111
                       value: 42
                 summary: Manual Qualitative Analysis – Integer Question
+                description: Set `value` to `null` to delete.
               ManualQualitativeAnalysis–TextQuestion:
                 value:
                   _version: '20250820'
@@ -3102,6 +3114,7 @@ paths:
                       uuid: 33333333-3333-3333-3333-333333333333
                       value: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
                 summary: Manual Qualitative Analysis – Single Choice Question
+                description: Set `value` to the empty string `""` to delete.
               ManualQualitativeAnalysis–MultipleChoiceQuestion:
                 value:
                   _version: '20250820'
@@ -3112,6 +3125,7 @@ paths:
                       - aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
                       - bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
                 summary: Manual Qualitative Analysis – Multiple Choice Question
+                description: Set `value` to the empty string `""` to delete.
               ManualQualitativeAnalysis–TagsQuestion:
                 value:
                   _version: '20250820'
@@ -3122,6 +3136,7 @@ paths:
                       - tag1
                       - tag2
                 summary: Manual Qualitative Analysis – Tags Question
+                description: Set `value` an empty array `[]` to delete.
         required: true
       security:
       - BasicAuth: []
