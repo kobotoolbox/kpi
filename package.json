@@ -246,7 +246,7 @@
     "fix:css": "npm run lint:css -- --fix",
     "show-icons": "opn jsapp/fonts/k-icons.html",
     "generate-icons": "node ./scripts/generate_icons.js",
-    "copy-fonts": "python3 ./scripts/copy_fonts.py && npm run generate-icons",
+    "copy-fonts": "./scripts/copy_fonts.sh && npm run generate-icons",
     "hint": "node ./scripts/hints.js",
     "storybook": "npm run storybook:watch",
     "storybook:launch": "npx http-server storybook-static --port 6006 --silent",
