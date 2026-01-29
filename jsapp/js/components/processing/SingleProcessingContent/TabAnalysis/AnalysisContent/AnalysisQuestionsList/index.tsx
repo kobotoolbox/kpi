@@ -55,11 +55,10 @@ export default function AnalysisQuestionsList({
   }
 
   const qaQuestions = localParams
-    .filter((qaQuestion) => !qaQuestion.options?.deleted) // We hide questions marked as deleted. TODO OpenAPI: is that a thing? DEV-1630
+    .filter((qaQuestion) => !qaQuestion.options?.deleted)
     // TODO: we temporarily hide Keyword Search from the UI until
     // https://github.com/kobotoolbox/kpi/issues/4594 is done
-    // TODO OpenAPI: DEV-1628
-    .filter((qaQuestion) => (qaQuestion.type as any) !== 'qual_auto_keyword_count')
+    .filter((qaQuestion) => qaQuestion.type !== 'qualAutoKeywordCount')
 
   const isAnyQuestionBeingEdited = !!qaQuestion
 

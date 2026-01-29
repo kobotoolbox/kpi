@@ -7,6 +7,7 @@ import type { ResponseQualSelectQuestionParamsChoicesItem } from '#/api/models/r
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
 import TextBox from '#/components/common/textBox'
+import { LOCALLY_EDITED_PLACEHOLDER_UUID } from '#/components/processing/common/constants'
 import { generateUuid } from '#/utils'
 import { type AdvancedFeatureResponseManualQual, getQuestionTypeDefinition } from '../../../../common/utils'
 import KeywordSearchFieldsEditor from './KeywordSearchFieldsEditor'
@@ -48,19 +49,21 @@ export default function AnalysisQuestionEditor({
     setNewQaQuestion(() => ({
       ...clonedeep(newQaQuestion),
       labels: {
-        _default: newLabel, // TODO: what about other non-default labels?
+        _default: newLabel,
       },
     }))
     if (newLabel !== '') setErrorMessageLabel(() => undefined)
   }, [])
 
   function handleChangeChoices(choices: ResponseQualSelectQuestionParamsChoicesItem[]) {
-    console.log(newQaQuestion, choices)
     setNewQaQuestion(() => ({
       ...clonedeep(newQaQuestion),
       choices,
     }))
-    // TODO: duplicate validation to determine whenever to keep or remove the error msg.
+    const choicesFiltered = choices.filter((choice) => !choice.options?.deleted)
+    if (choicesFiltered.length > 0 && choicesFiltered.every((choice) => choice.labels._default !== '')) {
+      setErrorMessageChoices(() => undefined)
+    }
   }
 
   const handleSubmit = async (evt: React.FormEvent<HTMLFormElement>) => {
@@ -81,7 +84,7 @@ export default function AnalysisQuestionEditor({
         hasErrors = true
       }
       if (choices.some((choice) => choice.labels._default === '')) {
-        setErrorMessageChoices(t('Some required fields are missing')) // TODO: better error messages?
+        setErrorMessageChoices(t('Some required fields are missing'))
         hasErrors = true
       }
     }
@@ -89,15 +92,15 @@ export default function AnalysisQuestionEditor({
     if (hasErrors) return
 
     const payload = clonedeep(newQaQuestion)
-    if (payload.uuid === 'placeholder') payload.uuid = generateUuid()
+    if (payload.uuid === LOCALLY_EDITED_PLACEHOLDER_UUID) payload.uuid = generateUuid()
 
     const questionIndex = advancedFeature.params.findIndex((qaQuestion) => qaQuestion.uuid === newQaQuestion.uuid)
 
     let newParams: ResponseQualActionParams[]
 
     if (questionIndex === -1) {
-      // Question doesn't exist yet (new question), add it to the end
-      newParams = [...advancedFeature.params, payload]
+      // Question doesn't exist yet (new question), add it at the top
+      newParams = [payload, ...advancedFeature.params]
     } else {
       // Question exists (editing), replace it at its index
       newParams = [
@@ -141,18 +144,18 @@ export default function AnalysisQuestionEditor({
         </form>
       </header>
 
+      {newQaQuestion.type === 'qualAutoKeywordCount' && (
+        <KeywordSearchFieldsEditor
+          questionUuid={newQaQuestion.uuid}
+          fields={{ source: '', keywords: [] }} // TODO
+          onFieldsChange={() => null} // TODO
+        />
+      )}
+
       {'choices' in newQaQuestion && (
         // Hard coded left padding to account for the 32px icon size + 8px gap
         // 0px gap because the children still did not get a mantine refactor so we must respect existing styles
         <Stack pl={'40px'} gap={'0px'}>
-          {(newQaQuestion.type as any) === 'qual_auto_keyword_count' && ( // TODO OpenAPI: DEV-1628
-            <KeywordSearchFieldsEditor
-              questionUuid={newQaQuestion.uuid}
-              fields={{ source: '', keywords: [] }} // TODO
-              onFieldsChange={() => null} // TODO
-            />
-          )}
-
           {(newQaQuestion.type === 'qualSelectOne' || newQaQuestion.type === 'qualSelectMultiple') && (
             <SelectXFieldsEditor qaQuestion={newQaQuestion} onChange={handleChangeChoices} disabled={disabled} />
           )}
@@ -162,15 +165,4 @@ export default function AnalysisQuestionEditor({
       )}
     </>
   )
-}
-
-const a = {
-  params: [
-    { type: 'qualText', uuid: 'c3b0dab6-a689-4fdd-9cb6-e742e7931c15', labels: { _default: 'second' } },
-    { type: 'qualText', uuid: 'placeholder', labels: { _default: 'asdf' }, options: { deleted: true } },
-  ],
-  question_xpath: 'Use_the_camera_s_mic_ne_to_record_a_sound',
-  action: 'manual_qual',
-  asset: 25,
-  uid: 'qafqnZC5DMN8eGWLB4cR4T2h',
 }

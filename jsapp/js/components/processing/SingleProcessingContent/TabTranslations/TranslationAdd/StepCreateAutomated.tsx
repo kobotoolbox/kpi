@@ -75,7 +75,6 @@ export default function StepCreateAutomated({
     onBack()
   }
 
-  // TODO: cleanup unused methods, search for `requestAutoTranslation`
   async function handleCreateTranslation() {
     // Silently under the hook enable advanced features if needed.
     if (!advancedFeature) {
@@ -91,14 +90,13 @@ export default function StepCreateAutomated({
           ],
         },
       })
-      // TODO: should I check for locales too or not?
     } else if (!advancedFeature?.params.find((param) => 'language' in param && param.language === languageCode)) {
       await mutationPatchAF.mutateAsync({
         uidAsset: asset.uid,
         uidAdvancedFeature: advancedFeature.uid,
         data: {
-          action: ActionEnum.automatic_google_translation, // TODO: OpenAPI PatchedAdvancedFeaturePatchRequest doesn't have this prop typed. https://linear.app/kobotoolbox/issue/DEV-1627
-          question_xpath: questionXpath, // TODO: OpenAPI PatchedAdvancedFeaturePatchRequest doesn't have this prop typed. https://linear.app/kobotoolbox/issue/DEV-1627
+          action: ActionEnum.automatic_google_translation,
+          question_xpath: questionXpath,
           params: advancedFeature.params.concat({
             language: languageCode,
           }),
@@ -116,8 +114,6 @@ export default function StepCreateAutomated({
         },
       },
     })
-
-    // TODO: Error handling, e.g. can't translate to language that's the transcript is in.
 
     onCreate(languageCode, 'automated')
   }

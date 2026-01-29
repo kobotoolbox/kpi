@@ -53,8 +53,6 @@ export default function StepCreateAutomated({
   const anyPending =
     mutationCreateAF.isPending || mutationPatchAF.isPending || mutationCreateAutomaticTranscript.isPending
 
-  // When polling for transcript, we need to calculate the estimated time
-  // TODO improvement: check `sidebarSubmissionMedia`, perhaps get a duration in a sync manner, show asap?
   const [estimate, setEstimate] = useState<string>(NO_ESTIMATED_MINUTES)
   useEffect(() => {
     if (mutationCreateAutomaticTranscript.isPending) {
@@ -97,8 +95,8 @@ export default function StepCreateAutomated({
         uidAsset: asset.uid,
         uidAdvancedFeature: advancedFeature.uid,
         data: {
-          action: ActionEnum.automatic_google_transcription, // TODO: OpenAPI PatchedAdvancedFeaturePatchRequest doesn't have this prop typed. See https://linear.app/kobotoolbox/issue/DEV-1627
-          question_xpath: questionXpath, // TODO: OpenAPI PatchedAdvancedFeaturePatchRequest doesn't have this prop typed. https://linear.app/kobotoolbox/issue/DEV-1627
+          action: ActionEnum.automatic_google_transcription,
+          question_xpath: questionXpath,
           params: advancedFeature.params.concat({
             language: languageCode,
           }),

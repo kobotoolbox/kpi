@@ -16,8 +16,6 @@ import bodyStyles from '../../../common/processingBody.module.scss'
 import HeaderLanguageAndDate from './HeaderLanguageAndDate'
 import styles from './Viewer.module.scss'
 
-// TODO OpenAPI: PatchedDataSupplementPayloadOneOfOneOfManualTranslation.value is nullable
-
 interface Props {
   translationVersion:
     | _DataSupplementResponseOneOfManualTranslationVersionsItem

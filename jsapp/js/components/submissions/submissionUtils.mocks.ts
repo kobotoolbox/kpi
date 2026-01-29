@@ -2581,7 +2581,7 @@ export const assetWithSupplementalDetails = {
           ],
         },
         {
-          type: 'qual_auto_keyword_count',
+          type: 'qualAutoKeywordCount',
           uuid: 'd4813284-d928-43b7-bde5-133eabe76024',
           xpath: 'Use_the_camera_s_mic_ne_to_record_a_sound',
           scope: 'by_question#survey',
