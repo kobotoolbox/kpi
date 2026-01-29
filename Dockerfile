@@ -259,15 +259,15 @@ RUN chown -R "${UWSGI_USER}:${UWSGI_GROUP}" ${KPI_SRC_DIR}/emails/ && \
     chown -R "${UWSGI_USER}:${UWSGI_GROUP}" ${TMP_DIR} && \
     chown -R root:root "${TMP_DIR}/.npm"
 
-# ################################
-# # TMP NOTE, 2026/01/29         #
-# # If you needed to, you could  #
-# # copy node_modules here, too. #
-# ################################
-# COPY --from=npm-install --parents \
-#     /srv/src/kpi/./node_modules/  \
-#     .
-# ################################
+# ##############################################################
+# # TMP 2026/01/29 - kpi#6498                                  #
+# #   Retain a copy of node_modules in the KPI container,      #
+# #   so that people don't have to update their workflows yet. #
+# ##############################################################
+COPY --from=npm-install --parents \
+    /srv/src/kpi/./node_modules/  \
+    .
+# ##############################################################
 
 # Add node_modules/.bin to PATH,
 # in case scripts are relying on it.
