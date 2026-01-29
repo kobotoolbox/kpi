@@ -54,7 +54,7 @@ export const isSupplementVersionAutomatic = (
  * @param b - Second version item
  * @returns Comparison result for sorting
  */
-const TransxVersionSortFunction = (a: TransxVersionItem, b: TransxVersionItem): number => {
+export const TransxVersionSortFunction = (a: TransxVersionItem, b: TransxVersionItem): number => {
   return a._dateCreated < b._dateCreated ? 1 : -1
 }
 
@@ -236,10 +236,12 @@ export const getAutomaticTranslationsFromSupplementData = (
 export const getLatestAutomaticTranslationVersionItem = (
   supplementData: DataSupplementResponse,
   xpath: string,
-  languageCode: LanguageCode,
+  languageCode?: LanguageCode,
+  includeWithoutValue = true,
 ): TranslationVersionItem | undefined => {
-  const allTranslations = getAllTranslationsFromSupplementData(supplementData, xpath, true)
-  return allTranslations.find((translation) => translation._data.language === languageCode)
+  const allTranslations = getAllTranslationsFromSupplementData(supplementData, xpath, includeWithoutValue)
+  const filtered = allTranslations.filter((translation) => !languageCode || translation._data.language === languageCode)
+  return filtered.sort(TransxVersionSortFunction)[0] as TranslationVersionItem | undefined
 }
 
 /**
@@ -253,7 +255,7 @@ export const getLatestAutomaticTranslationVersionItem = (
 export const getAllTranslationsFromSupplementData = (
   supplementData: DataSupplementResponse,
   xpath: string,
-  includeWithoutValue?: true,
+  includeWithoutValue = true,
 ): TranslationVersionItem[] => {
   const translations = [
     getManualTranslationsFromSupplementData(supplementData, xpath),

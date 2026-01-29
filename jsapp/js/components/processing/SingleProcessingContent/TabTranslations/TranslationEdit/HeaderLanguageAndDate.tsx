@@ -3,7 +3,7 @@ import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { AsyncLanguageDisplayLabel } from '#/components/languages/languagesUtils'
 import type { TranslationVersionItem } from '#/components/processing/common/types'
-import { isSupplementVersionWithValue } from '#/components/processing/common/utils'
+import { TransxVersionSortFunction, isSupplementVersionWithValue } from '#/components/processing/common/utils'
 import bodyStyles from '../../../common/processingBody.module.scss'
 import TransxSelector from '../../../components/transxSelector'
 import TransxDate from '../../components/transxDate'
@@ -23,7 +23,10 @@ export default function HeaderLanguageAndDate({
   translationVersions,
   onChangeLanguageCode,
 }: Props) {
-  const existingTranslations = translationVersions?.filter(isSupplementVersionWithValue)
+  const existingTranslations = translationVersions
+    ?.filter(isSupplementVersionWithValue)
+    .sort(TransxVersionSortFunction)
+    .reverse()
 
   return (
     <React.Fragment>
