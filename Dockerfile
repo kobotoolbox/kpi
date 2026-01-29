@@ -259,6 +259,15 @@ RUN chown -R "${UWSGI_USER}:${UWSGI_GROUP}" ${KPI_SRC_DIR}/emails/ && \
     chown -R "${UWSGI_USER}:${UWSGI_GROUP}" ${TMP_DIR} && \
     chown -R root:root "${TMP_DIR}/.npm"
 
+# ################################
+# # TMP NOTE, 2026/01/29         #
+# # If you needed to, you could  #
+# # copy node_modules here, too. #
+# ################################
+# COPY --from=npm-install --parents \
+#     /srv/src/kpi/./node_modules/  \
+#     .
+
 EXPOSE 8000
 
 CMD ["/bin/bash", "docker/entrypoint.sh"]
