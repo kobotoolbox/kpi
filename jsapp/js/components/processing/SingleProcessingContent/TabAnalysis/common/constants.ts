@@ -186,18 +186,18 @@ export const ANALYSIS_QUESTION_TYPES: ResponseQualActionParamsDefinition[] = [
   },
   // TODO: we temporarily hide Keyword Search from the UI until
   // https://github.com/kobotoolbox/kpi/issues/4594 is done
-  {
-    type: 'qualAutoKeywordCount',
-    label: t('Keyword search'),
-    icon: 'tag',
-    isAutomated: true,
-    additionalFieldNames: ['keywords', 'source'],
-    placeholder: {
-      type: 'qualAutoKeywordCount',
-      uuid: LOCALLY_EDITED_PLACEHOLDER_UUID,
-      labels: {
-        _default: '',
-      },
-    },
-  },
+  // {
+  //   type: 'qualAutoKeywordCount',
+  //   label: t('Keyword search'),
+  //   icon: 'tag',
+  //   isAutomated: true,
+  //   additionalFieldNames: ['keywords', 'source'],
+  //   placeholder: {
+  //     type: 'qualAutoKeywordCount',
+  //     uuid: LOCALLY_EDITED_PLACEHOLDER_UUID,
+  //     labels: {
+  //       _default: '',
+  //     },
+  //   },
+  // },
 ]
