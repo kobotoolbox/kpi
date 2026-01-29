@@ -60,7 +60,9 @@ export default function SingleProcessingRoute({ params: routeParams }: { params:
   const questionHasAnswer = !!(questionXpath && submission?.[questionXpath])
   const pageTitle = 'Data | KoboToolbox'
 
-  // TODO: Why here was a `asset?.content?.survey` check, can `survey` be empty? Does it matter? If so, a forever spinner won't do.
+  // We had `assset?.content?.survey` check here. In theory it could be undefined, but I don't think it's possible to
+  // access processing UI with an asset that wasn't deployed and have submissions - all that needs `.survey`.
+  // We do need it for some parts of processing UI, but we already safeguard ourselves in each place we do use it.
   if (!asset || !advancedFeatures || !supplement || !submission) {
     return (
       <DocumentTitle title={pageTitle}>
