@@ -291,6 +291,20 @@ queryClient.setMutationDefaults(
           }
         }
       },
+      /**
+       * Good example of a Direct Update, for cases when mutation returns the whole response.
+       *
+       * Note: use `onSettled` instead of `onSuccess` to be executed AFTER global invalidation logic
+       * in order to cancel it. See more `onSettledInvalidateSnapshots`.
+       *
+       * See more at https://tkdodo.eu/blog/mastering-mutations-in-react-query#direct-updates
+       */
+      onSettled: async (response, error, { rootUuid, uidAsset }, _context) => {
+        if (error) return
+        const queryKey = getAssetsDataSupplementRetrieveQueryKey(uidAsset, rootUuid)
+        queryClient.cancelQueries({ queryKey, exact: true })
+        queryClient.setQueryData(queryKey, response)
+      },
     },
   }),
 )
