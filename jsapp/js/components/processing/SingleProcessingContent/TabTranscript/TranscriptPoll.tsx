@@ -1,15 +1,22 @@
 import cx from 'classnames'
 import React, { useEffect, useState } from 'react'
 import type { DataResponse } from '#/api/models/dataResponse'
-import { useAssetsDataSupplementRetrieve } from '#/api/react-query/survey-data'
+import {
+  getAssetsDataSupplementRetrieveQueryKey,
+  useAssetsAdvancedFeaturesCreate,
+  useAssetsAdvancedFeaturesPartialUpdate,
+  useAssetsDataSupplementPartialUpdate,
+  useAssetsDataSupplementRetrieve,
+} from '#/api/react-query/survey-data'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import type { AssetResponse } from '#/dataInterface'
 import { getAudioDuration, removeDefaultUuidPrefix } from '#/utils'
-import bodyStyles from '../../../common/processingBody.module.scss'
-import { getAttachmentForProcessing, secondsToTranscriptionEstimate } from '../transcript.utils'
+import bodyStyles from '../../common/processingBody.module.scss'
+import { getAttachmentForProcessing, secondsToTranscriptionEstimate } from './transcript.utils'
 
 /** Until the estimate is loaded we display dot dot dot. */
 const NO_ESTIMATED_MINUTES = '…'
+const POLL_INTERVAL = 3000
 
 interface Props {
   asset: AssetResponse
@@ -20,27 +27,43 @@ interface Props {
 export default function AutomaticTranscriptionInProgress({ asset, questionXpath, submission }: Props) {
   const [estimate, setEstimate] = useState<string>(NO_ESTIMATED_MINUTES)
 
+  const mutationCreateAF = useAssetsAdvancedFeaturesCreate()
+  const mutationPatchAF = useAssetsAdvancedFeaturesPartialUpdate()
+  const mutationCreateAutomaticTranscript = useAssetsDataSupplementPartialUpdate()
+  const mutationPending =
+    mutationCreateAF.isPending || mutationPatchAF.isPending || mutationCreateAutomaticTranscript.isPending
+
+  // Don't race mutations, mutation response will Directly Update this.
   const querySupplement = useAssetsDataSupplementRetrieve(
     asset.uid,
     removeDefaultUuidPrefix(submission['meta/rootUuid']),
+    {
+      query: {
+        queryKey: getAssetsDataSupplementRetrieveQueryKey(
+          asset.uid,
+          removeDefaultUuidPrefix(submission['meta/rootUuid']),
+        ),
+        enabled: !mutationPending,
+      },
+    },
   )
 
-  // Poll for transcription status every 3 seconds
   useEffect(() => {
+    if (mutationPending) return // Start polling only after the initial mutation(s) are done.
     let timeoutId: NodeJS.Timeout
 
     const pollTranscriptionStatus = () => {
       querySupplement.refetch()
-      timeoutId = setTimeout(pollTranscriptionStatus, 3000)
+      timeoutId = setTimeout(pollTranscriptionStatus, POLL_INTERVAL)
     }
 
     // Start the first poll
-    timeoutId = setTimeout(pollTranscriptionStatus, 3000)
+    timeoutId = setTimeout(pollTranscriptionStatus, POLL_INTERVAL)
 
     return () => {
       clearTimeout(timeoutId)
     }
-  }, [querySupplement])
+  }, [querySupplement, mutationPending])
 
   useEffect(() => {
     const attachment = getAttachmentForProcessing(asset, questionXpath, submission)

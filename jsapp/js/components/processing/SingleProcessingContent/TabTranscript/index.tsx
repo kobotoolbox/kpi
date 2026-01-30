@@ -10,8 +10,8 @@ import {
   isSupplementVersionWithValue,
 } from '../../common/utils'
 import TranscriptCreate from './TranscriptCreate'
-import AutomaticTranscriptionInProgress from './TranscriptCreate/AutomaticTranscriptionInProgress'
 import TranscriptEdit from './TranscriptEdit'
+import TranscriptPoll from './TranscriptPoll'
 
 type VersionOfAutomaticTranscript = _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem
 
@@ -39,9 +39,8 @@ export default function TranscriptTab({
     isSupplementVersionAutomatic(transcriptVersion) &&
     (transcriptVersion as VersionOfAutomaticTranscript)?._data?.status === 'in_progress'
   ) {
-    return <AutomaticTranscriptionInProgress asset={asset} questionXpath={questionXpath} submission={submission} />
+    return <TranscriptPoll asset={asset} questionXpath={questionXpath} submission={submission} />
   }
-
   if (transcriptVersion && isSupplementVersionWithValue(transcriptVersion)) {
     return (
       <TranscriptEdit
