@@ -1,4 +1,5 @@
 import React from 'react'
+import { destroyConfirm } from '#/alertify'
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
@@ -26,21 +27,23 @@ export default function Viewer({ asset, questionXpath, submission, supplement, t
   const mutateTrash = useAssetsDataSupplementPartialUpdate()
 
   const handleTrash = () => {
-    mutateTrash.mutateAsync({
-      uidAsset: asset.uid,
-      rootUuid: removeDefaultUuidPrefix(submission['meta/rootUuid']),
-      data: {
-        _version: SUBSEQUENCES_SCHEMA_VERSION,
-        [questionXpath]: {
-          [isSupplementVersionAutomatic(transcriptVersion)
-            ? ActionEnum.automatic_google_transcription
-            : ActionEnum.manual_transcription]: {
-            language: transcriptVersion._data.language,
-            value: null,
+    destroyConfirm(() => {
+      mutateTrash.mutateAsync({
+        uidAsset: asset.uid,
+        rootUuid: removeDefaultUuidPrefix(submission['meta/rootUuid']),
+        data: {
+          _version: SUBSEQUENCES_SCHEMA_VERSION,
+          [questionXpath]: {
+            [isSupplementVersionAutomatic(transcriptVersion)
+              ? ActionEnum.automatic_google_transcription
+              : ActionEnum.manual_transcription]: {
+              language: transcriptVersion._data.language,
+              value: null,
+            },
           },
         },
-      },
-    })
+      })
+    }, t('Delete transcription?'))
   }
 
   return (
