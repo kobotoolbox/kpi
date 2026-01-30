@@ -20,6 +20,7 @@ interface Props {
   supplement: DataSupplementResponse
   onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
   advancedFeatures: AdvancedFeatureResponse[]
+  setIsTranscribing: (isTranscribing: boolean) => void
 }
 
 export default function TranscriptCreate({
@@ -29,6 +30,7 @@ export default function TranscriptCreate({
   supplement,
   onUnsavedWorkChange,
   advancedFeatures,
+  setIsTranscribing,
 }: Props) {
   const [step, setStep] = useState<CreateSteps>(CreateSteps.Begin)
   const [languageCode, setLanguageCode] = useState<null | LanguageCode>(null)
@@ -85,6 +87,7 @@ export default function TranscriptCreate({
           questionXpath={questionXpath}
           submission={submission}
           advancedFeatures={advancedFeatures}
+          setIsTranscribing={setIsTranscribing}
         />
       )}
     </>

@@ -24,6 +24,7 @@ interface Props {
   submission: DataResponse
   onBack: () => void
   advancedFeatures: AdvancedFeatureResponse[]
+  setIsTranscribing: (isTranscribing: boolean) => void
 }
 
 export default function StepCreateAutomated({
@@ -33,6 +34,7 @@ export default function StepCreateAutomated({
   submission,
   onBack,
   advancedFeatures,
+  setIsTranscribing,
 }: Props) {
   const [locale, setLocale] = useState<null | string>(null)
 
@@ -57,6 +59,11 @@ export default function StepCreateAutomated({
   }
 
   async function handleCreateTranscript() {
+    // Set transcribing flag immediately for instant UI feedback
+    setIsTranscribing(true)
+
+    // TODO: Check for mutation errors to handle and setIsTranscribing to false again
+
     // Silently under the hook enable advanced features if needed.
     if (!advancedFeature) {
       await mutationCreateAF.mutateAsync({
