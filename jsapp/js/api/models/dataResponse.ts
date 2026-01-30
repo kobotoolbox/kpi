@@ -9,26 +9,31 @@ The endpoints are grouped by area of intended use. Each category contains relate
 **General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as "assets".
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
-import type { _DataResponseAttachments } from './_dataResponseAttachments'
+import type { _DataResponseAttachmentsItem } from './_dataResponseAttachmentsItem'
+import type { _DataResponseGeolocationItem } from './_dataResponseGeolocationItem'
+import type { _DataResponseSupplementalDetails } from './_dataResponseSupplementalDetails'
+import type { _DataResponseValidationStatus } from './_dataResponseValidationStatus'
 
 export interface DataResponse {
   _id: number
-  'formhub/uuid': string
-  start: string
-  end: string
-  'Question_A/Enter_your_question': string
-  Question_B: string
+  'formhub/uuid'?: string
   __version__: string
   'meta/instanceID': string
+  'meta/rootUuid': string
+  'meta/deprecatedID'?: string
   _xform_id_string: string
   _uuid: string
-  'meta/rootUuid': string
-  _attachments: _DataResponseAttachments
+  _attachments: _DataResponseAttachmentsItem[]
   _status: string
-  _geolocation: unknown[]
+  /**
+   * @minItems 2
+   * @maxItems 2
+   */
+  _geolocation: _DataResponseGeolocationItem[]
   _submission_time: string
-  _tags: unknown[]
-  Notes: unknown[]
-  _validation_status: unknown
+  _tags: string[]
+  _notes: string[]
+  _validation_status: _DataResponseValidationStatus
   _submitted_by: string
+  _supplementalDetails?: _DataResponseSupplementalDetails
 }

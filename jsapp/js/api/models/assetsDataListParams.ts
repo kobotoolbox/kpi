@@ -18,6 +18,10 @@ export type AssetsDataListParams = {
    */
   limit?: number
   /**
+   * Filter the results with search query
+   */
+  query?: string
+  /**
    * The initial index from which to return the results.
    */
   start?: number

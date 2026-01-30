@@ -2,6 +2,7 @@
 // ^^ eslint doesn't understand direct exports.
 
 export * from './user-team-organization-usage'
+export * from './survey-data'
 
 /**
  * Write at least invalidation for every mutation in use.

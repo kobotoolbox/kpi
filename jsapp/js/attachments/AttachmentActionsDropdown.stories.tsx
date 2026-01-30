@@ -12,7 +12,7 @@ const meta: Meta<typeof AttachmentActionsDropdown> = {
   component: AttachmentActionsDropdown,
   argTypes: {
     asset: { control: 'object' },
-    submissionData: {
+    submission: {
       control: 'object',
       description:
         'To see what happens when attachment is deleted, please add `is_deleted=true` flag to the attachment object in the data.',
@@ -54,7 +54,7 @@ export const Default: StoryObj<typeof AttachmentActionsDropdown> = {
   args: {
     asset: mockAsset,
     attachmentUid: mockAttachmentUid,
-    submissionData: mockSubmission,
+    submission: mockSubmission,
     onDeleted: () => console.log('Attachment deleted'),
   },
 }

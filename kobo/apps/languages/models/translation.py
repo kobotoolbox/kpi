@@ -3,18 +3,17 @@ from django.contrib import admin
 from django.db import models
 from django.db.models import Q
 
+from ..exceptions import LanguageNotSupported
 from .base import (
     BaseLanguageService,
     BaseLanguageServiceAdmin,
     BaseLanguageServiceM2M,
 )
-from ..exceptions import LanguageNotSupported
 
 
 class TranslationService(BaseLanguageService):
 
     def get_language_code(self, value: str) -> str:
-
         try:
             through_obj = TranslationServiceLanguageM2M.objects.get(
                 Q(region__code=value) |

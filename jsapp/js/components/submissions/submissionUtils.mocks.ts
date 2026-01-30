@@ -2532,7 +2532,7 @@ export const assetWithSupplementalDetails = {
     qual: {
       qual_survey: [
         {
-          type: 'qual_text',
+          type: 'qualText',
           uuid: 'ab0e40e1-fbcc-43e9-9d00-b9b3314089cb',
           xpath: 'Use_the_camera_s_mic_ne_to_record_a_sound',
           scope: 'by_question#survey',
@@ -2541,7 +2541,7 @@ export const assetWithSupplementalDetails = {
           },
         },
         {
-          type: 'qual_integer',
+          type: 'qualInteger',
           uuid: '97fd5387-ac2b-4108-b5b4-37fa91ae0e22',
           xpath: 'Use_the_camera_s_mic_ne_to_record_a_sound',
           scope: 'by_question#survey',
@@ -2550,7 +2550,7 @@ export const assetWithSupplementalDetails = {
           },
         },
         {
-          type: 'qual_tags',
+          type: 'qualTags',
           uuid: 'b05f29f7-8b58-4dd7-8695-c29cb04f3f7a',
           xpath: 'Use_the_camera_s_mic_ne_to_record_a_sound',
           scope: 'by_question#survey',
@@ -2559,7 +2559,7 @@ export const assetWithSupplementalDetails = {
           },
         },
         {
-          type: 'qual_select_multiple',
+          type: 'qualSelectMultiple',
           uuid: '1a89e0da-3344-4b5d-b919-ab8b072e0918',
           xpath: 'Use_the_camera_s_mic_ne_to_record_a_sound',
           scope: 'by_question#survey',
@@ -2588,7 +2588,7 @@ export const assetWithSupplementalDetails = {
           ],
         },
         {
-          type: 'qual_auto_keyword_count',
+          type: 'qualAutoKeywordCount',
           uuid: 'd4813284-d928-43b7-bde5-133eabe76024',
           xpath: 'Use_the_camera_s_mic_ne_to_record_a_sound',
           scope: 'by_question#survey',
@@ -2597,7 +2597,7 @@ export const assetWithSupplementalDetails = {
           },
         },
         {
-          type: 'qual_tags',
+          type: 'qualTags',
           uuid: '056c8f57-0733-4669-a84e-aa9726ffbf6b',
           xpath: 'Use_the_camera_s_mic_ne_to_record_a_sound',
           scope: 'by_question#survey',
@@ -2606,167 +2606,6 @@ export const assetWithSupplementalDetails = {
           },
         },
       ],
-    },
-  },
-  advanced_submission_schema: {
-    type: 'object',
-    $description:
-      'PATCH or POST a matching JSON structure to a submission and it will be stored and processed accordingly.',
-    url: 'http://kf.kobo.local/advanced_submission_post/aDDywpeYGnvuDLTeiveyxZ',
-    properties: {
-      submission: {
-        type: 'string',
-        description: 'the uuid of the submission',
-      },
-      A_video_WTF: {
-        type: 'object',
-        properties: {
-          transcript: {
-            $ref: '#/definitions/transcript',
-          },
-          translated: {
-            $ref: '#/definitions/translation',
-          },
-        },
-        additionalProperties: false,
-      },
-      Secret_password_as_an_audio_file: {
-        type: 'object',
-        properties: {
-          transcript: {
-            $ref: '#/definitions/transcript',
-          },
-          translated: {
-            $ref: '#/definitions/translation',
-          },
-        },
-        additionalProperties: false,
-      },
-      Your_name_here: {
-        type: 'object',
-        properties: {
-          translated: {
-            $ref: '#/definitions/translation',
-          },
-        },
-        additionalProperties: false,
-      },
-    },
-    additionalProperties: false,
-    required: ['submission'],
-    definitions: {
-      transcript: {
-        type: 'object',
-        properties: {
-          value: {
-            type: 'string',
-          },
-          engine: {
-            type: 'string',
-          },
-          dateCreated: {
-            type: 'string',
-            format: 'date-time',
-          },
-          dateModified: {
-            type: 'string',
-            format: 'date-time',
-          },
-          languageCode: {
-            type: 'string',
-          },
-          revisions: {
-            type: 'array',
-            items: {
-              $ref: '#/definitions/transcriptRevision',
-            },
-          },
-        },
-        additionalProperties: false,
-        required: ['value'],
-      },
-      transcriptRevision: {
-        type: 'object',
-        properties: {
-          value: {
-            type: 'string',
-          },
-          engine: {
-            type: 'string',
-          },
-          dateModified: {
-            type: 'string',
-            format: 'date-time',
-          },
-          languageCode: {
-            type: 'string',
-          },
-        },
-        additionalProperties: false,
-        required: ['value'],
-      },
-      xtranslation: {
-        type: 'object',
-        additionalProperties: false,
-        required: ['value', 'languageCode'],
-        properties: {
-          value: {
-            type: 'string',
-          },
-          engine: {
-            type: 'string',
-          },
-          dateCreated: {
-            type: 'string',
-            format: 'date-time',
-          },
-          dateModified: {
-            type: 'string',
-            format: 'date-time',
-          },
-          languageCode: {
-            type: 'string',
-          },
-          revisions: {
-            type: 'array',
-            items: {
-              $ref: '#/definitions/translationRevision',
-            },
-          },
-        },
-      },
-      translation: {
-        type: 'object',
-        properties: {
-          pl: {
-            $ref: '#/definitions/xtranslation',
-          },
-          de: {
-            $ref: '#/definitions/xtranslation',
-          },
-        },
-        additionalProperties: false,
-      },
-      translationRevision: {
-        type: 'object',
-        properties: {
-          value: {
-            type: 'string',
-          },
-          engine: {
-            type: 'string',
-          },
-          dateModified: {
-            type: 'string',
-            format: 'date-time',
-          },
-          languageCode: {
-            type: 'string',
-          },
-        },
-        additionalProperties: false,
-        required: ['value'],
-      },
     },
   },
   analysis_form_json: {
@@ -3201,30 +3040,30 @@ export const submissionWithSupplementalDetails = {
           languageCode: 'pl',
         },
       },
-      qual: [
-        {
-          val: ['best', 'things', 'ever recorder by human', '3'],
-          type: 'qual_tags',
+      qual: {
+        'b05f29f7-8b58-4dd7-8695-c29cb04f3f7a': {
+          value: ['best', 'things', 'ever recorder by human', '3'],
+          type: 'qualTags',
           uuid: 'b05f29f7-8b58-4dd7-8695-c29cb04f3f7a',
           labels: { _default: 'Another tag question here?' },
           xpath: '',
         },
-        {
-          val: 12345,
-          type: 'qual_integer',
+        '97fd5387-ac2b-4108-b5b4-37fa91ae0e22': {
+          value: 12345,
+          type: 'qualInteger',
           uuid: '97fd5387-ac2b-4108-b5b4-37fa91ae0e22',
           labels: { _default: 'Another integer question here?' },
           xpath: '',
         },
-        {
-          val: 'a thing',
-          type: 'qual_text',
+        'ab0e40e1-fbcc-43e9-9d00-b9b3314089cb': {
+          value: 'a thing',
+          type: 'qualText',
           uuid: 'ab0e40e1-fbcc-43e9-9d00-b9b3314089cb',
           labels: { _default: 'Another text question here?' },
           xpath: '',
         },
-        {
-          val: [
+        '1a89e0da-3344-4b5d-b919-ab8b072e0918': {
+          value: [
             {
               labels: {
                 _default: 'First',
@@ -3238,31 +3077,31 @@ export const submissionWithSupplementalDetails = {
               val: 'fa63c403-2a26-426c-97d6-9b8cfc277545',
             },
           ],
-          type: 'qual_select_multiple',
+          type: 'qualSelectMultiple',
           uuid: '1a89e0da-3344-4b5d-b919-ab8b072e0918',
           labels: { _default: 'Another select question here?' },
           xpath: '',
         },
-        {
-          val: ['wow', 'this works', 'f me', 'alpha beta gamma'],
-          type: 'qual_tags',
+        '056c8f57-0733-4669-a84e-aa9726ffbf6b': {
+          value: ['wow', 'this works', 'f me', 'alpha beta gamma'],
+          type: 'qualTags',
           uuid: '056c8f57-0733-4669-a84e-aa9726ffbf6b',
           labels: { _default: 'Another tag question here?' },
           xpath: '',
         },
-        {
-          val: {
+        '6f230992-b0c4-4cf4-a4a3-a5bd5b50ab4d': {
+          value: {
             labels: {
               _default: 'Yes',
             },
             val: '33f4e83d-4bd7-4dbc-b80b-94cac72944fb',
           },
-          type: 'qual_select_one',
+          type: 'qualSelectOne',
           uuid: '6f230992-b0c4-4cf4-a4a3-a5bd5b50ab4d',
           labels: { _default: 'Another select question here?' },
           xpath: '',
         },
-      ],
+      },
     },
   },
 } as const satisfies SubmissionResponse
@@ -3301,10 +3140,10 @@ export const submissionWithNestedSupplementalDetails = {
   _submitted_by: null,
   _supplementalDetails: {
     'level_a/level_b/level_c/sounds': {
-      qual: [
-        {
-          val: ['first', 'second', 'third', 'fourth', 'fifth'],
-          type: 'qual_tags',
+      qual: {
+        '5dc7f202-8103-43a8-a48f-8f9b3c8f955f': {
+          value: ['first', 'second', 'third', 'fourth', 'fifth'],
+          type: 'qualTags',
           uuid: '5dc7f202-8103-43a8-a48f-8f9b3c8f955f',
           scope: 'by_question#survey',
           xpath: 'level_a/level_b/level_c/sounds',
@@ -3312,7 +3151,7 @@ export const submissionWithNestedSupplementalDetails = {
             _default: 'What kind?',
           },
         },
-      ],
+      },
       transcript: {
         value: 'How are you doing my dear friend?',
         revisions: [],

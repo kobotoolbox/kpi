@@ -158,11 +158,6 @@ export default function Usage() {
       <LimitNotifications accountPage />
       <header className={styles.header}>
         <h2 className={styles.headerText}>{t('Your usage')}</h2>
-        {typeof usageQuery.data.data.lastUpdated === 'string' && (
-          <p className={styles.updated}>
-            {t('Last update: ##LAST_UPDATE_TIME##').replace('##LAST_UPDATE_TIME##', usageQuery.data.data.lastUpdated)}
-          </p>
-        )}
       </header>
       {limits.stripeEnabled && <YourPlan />}
       <Group align='stretch'>

@@ -28,6 +28,9 @@ const onErrorRestoreSnapshots = (
  * - If server response will match current cache, then not even a re-render will happen. Better be safe and confirm.
  * - If server response will NOT match current cache, then it will update cache and re-render accordingly.
  *
+ * Note: global and query's `onSuccess` is called BEFORE global and query's `onSettled`.
+ * In order to cancel invalidation's query, it must be within `onSettled`.
+ *
  * To be used together with {@link optimisticallyUpdateList} and {@link optimisticallyUpdateItem}.
  */
 const onSettledInvalidateSnapshots = (
@@ -41,7 +44,6 @@ const onSettledInvalidateSnapshots = (
   // re-fetch of current invalidation may overwrite next mutation's optimistic update with outdated value.
   // See more at https://tkdodo.eu/blog/concurrent-optimistic-updates-in-react-query.
   if (queryClient.isMutating({ mutationKey: mutation.options.mutationKey }) !== 1) return
-
   for (const [snapshotKey] of (context as CommonContext)?.snapshots ?? [])
     queryClient.invalidateQueries({ queryKey: snapshotKey })
 }
