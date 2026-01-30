@@ -756,6 +756,18 @@ class DataValidationPayloadFieldExtension(OpenApiSerializerFieldExtension):
         )
 
 
+
+class DataSupplementalDetailsFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.data.fields.DataSupplementalDetailsField'
+
+    def map_serializer_field(self, auto_schema, direction):
+        return build_object_type(
+            properties={
+            }
+        )
+
+
+
 class DataValidationStatusFieldExtension(
     ComponentRegistrationMixin, OpenApiSerializerFieldExtension
 ):
