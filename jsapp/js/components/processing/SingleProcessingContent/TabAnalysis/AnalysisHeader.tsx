@@ -3,6 +3,7 @@ import React from 'react'
 import { useIsMutating } from '@tanstack/react-query'
 import classNames from 'classnames'
 import cloneDeep from 'lodash.clonedeep'
+import { unstable_usePrompt as usePrompt } from 'react-router-dom'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { ResponseQualActionParams } from '#/api/models/responseQualActionParams'
@@ -11,6 +12,7 @@ import Icon from '#/components/common/icon'
 import KoboDropdown from '#/components/common/koboDropdown'
 import { userCan } from '#/components/permissions/utils'
 import type { AssetResponse } from '#/dataInterface'
+import { UNSAVED_CHANGES_WARNING } from '#/protector/protectorConstants'
 import { getAllTranslationsFromSupplementData, getLatestTranscriptVersionItem } from '../../common/utils'
 import styles from './AnalysisHeader.module.scss'
 import { ANALYSIS_QUESTION_TYPES } from './common/constants'
@@ -37,6 +39,10 @@ export default function AnalysisHeader({ asset, questionXpath, supplement, qaQue
   // Note: Technically correct would be to filter for the 3 specific mutations we are interested in,
   //       but practically what else user would mutate in the meantime and no filter effectively is the same.
   const activeMutationCount = useIsMutating()
+  usePrompt({
+    when: activeMutationCount > 1,
+    message: UNSAVED_CHANGES_WARNING,
+  })
 
   const manualQuestionDefs = ANALYSIS_QUESTION_TYPES.filter((definition) => !definition.isAutomated)
   // TODO: we hide Keyword Search from the UI until https://github.com/kobotoolbox/kpi/issues/4594 is done
