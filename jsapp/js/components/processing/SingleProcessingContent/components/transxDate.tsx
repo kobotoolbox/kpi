@@ -30,8 +30,8 @@ export default function TransxDate({ transxVersion, supplement, xpath }: TransxD
 
   const longDate = useMemo(() => {
     // Step 1. if transxVersion is an unaccepted automated one, show "generated".
-    // This works because `_dependency` exist only on items that are automated
-    if (!transxVersion._dateAccepted && '_dependency' in transxVersion) {
+    // This works because `status` exist only on items that are automated
+    if (!transxVersion._dateAccepted && 'status' in transxVersion._data) {
       return t('generated ##date##').replace('##date##', longDateRaw)
     }
 
