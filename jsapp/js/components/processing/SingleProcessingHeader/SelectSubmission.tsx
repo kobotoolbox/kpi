@@ -1,5 +1,5 @@
 import { Loader } from '@mantine/core'
-import React, { useCallback } from 'react'
+import React from 'react'
 import type { DataResponse } from '#/api/models/dataResponse'
 import {
   type assetsDataListResponse,
@@ -9,6 +9,15 @@ import {
 import Button from '#/components/common/button'
 import { goToProcessing } from '#/components/processing/routes.utils'
 import styles from './index.module.scss'
+
+const selectNeighborResults = (data: assetsDataListResponse) => {
+  if (data.status !== 200) return
+  if (!data.data.results.length) return
+  return {
+    submission: data.data.results[0],
+    count: data.data.count,
+  }
+}
 
 interface Props {
   submission?: DataResponse
@@ -43,30 +52,21 @@ export default function SelectSubmission({ assetUid, submission, xpath }: Props)
     }
   }
 
-  function getNeighborResults(data: assetsDataListResponse) {
-    if (data.status !== 200) return
-    if (!data.data.results.length) return
-    return {
-      submission: data.data.results[0],
-      count: data.data.count,
-    }
-  }
-
   const nextParams = getNeighborParams(submission._id, 'next')
-  const queryNext = useAssetsDataList(assetUid!, nextParams, {
+  const queryNext = useAssetsDataList(assetUid, nextParams, {
     query: {
       queryKey: getAssetsDataListQueryKey(assetUid, nextParams),
       enabled: !!assetUid,
-      select: useCallback(getNeighborResults, [submission['meta/rootUuid'], submission._submission_time]),
+      select: selectNeighborResults,
     },
   })
 
   const prevParams = getNeighborParams(submission._id, 'prev')
-  const queryPrev = useAssetsDataList(assetUid!, prevParams, {
+  const queryPrev = useAssetsDataList(assetUid, prevParams, {
     query: {
       queryKey: getAssetsDataListQueryKey(assetUid, prevParams),
       enabled: !!assetUid,
-      select: useCallback(getNeighborResults, [submission['meta/rootUuid'], submission._submission_time]),
+      select: selectNeighborResults,
     },
   })
 
