@@ -172,8 +172,8 @@ export const getAllTranscriptsFromSupplementData = (
 ): Array<OneOfTransx> => {
   return [
     getManualTranscriptsFromSupplementData(supplementData, xpath),
-    ...getAutomaticTranscriptsFromSupplementData(supplementData, xpath).map(([, value]) => value),
-  ].filter(Boolean) as Array<OneOfTransx>
+    ...getAutomaticTranscriptsFromSupplementData(supplementData, xpath).map(([, oneOfTransx]) => oneOfTransx),
+  ].filter((oneOfTransx): oneOfTransx is OneOfTransx => !!oneOfTransx)
 }
 
 /**
@@ -187,10 +187,9 @@ export const getLatestTranscriptVersionItem = (
   supplementData: DataSupplementResponse,
   xpath: string,
 ): TranscriptVersionItem | undefined => {
-  const allTranscripts = getAllTranscriptsFromSupplementData(supplementData, xpath)
-  return allTranscripts.flatMap((transcript) => transcript._versions).sort(TransxVersionSortFunction)[0] as
-    | TranscriptVersionItem
-    | undefined
+  return getAllTranscriptsFromSupplementData(supplementData, xpath)
+    .flatMap((transcript) => transcript._versions)
+    .sort(TransxVersionSortFunction)[0] as TranscriptVersionItem | undefined
 }
 
 // Translations
