@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 
 import cx from 'classnames'
 import { ActionEnum } from '#/api/models/actionEnum'
@@ -10,17 +10,12 @@ import {
   useAssetsDataSupplementPartialUpdate,
 } from '#/api/react-query/survey-data'
 import Button from '#/components/common/button'
-import LoadingSpinner from '#/components/common/loadingSpinner'
 import type { LanguageCode, LocaleCode } from '#/components/languages/languagesStore'
 import RegionSelector from '#/components/languages/regionSelector'
 import type { AssetResponse } from '#/dataInterface'
-import { getAudioDuration, removeDefaultUuidPrefix } from '#/utils'
+import { removeDefaultUuidPrefix } from '#/utils'
 import { SUBSEQUENCES_SCHEMA_VERSION } from '../../../common/constants'
 import bodyStyles from '../../../common/processingBody.module.scss'
-import { getAttachmentForProcessing, secondsToTranscriptionEstimate } from '../transcript.utils'
-
-/** Until the estimate is loaded we display dot dot dot. */
-const NO_ESTIMATED_MINUTES = '…'
 
 interface Props {
   asset: AssetResponse
@@ -52,20 +47,6 @@ export default function StepCreateAutomated({
 
   const anyPending =
     mutationCreateAF.isPending || mutationPatchAF.isPending || mutationCreateAutomaticTranscript.isPending
-
-  const [estimate, setEstimate] = useState<string>(NO_ESTIMATED_MINUTES)
-  useEffect(() => {
-    if (mutationCreateAutomaticTranscript.isPending) {
-      const attachment = getAttachmentForProcessing(asset, questionXpath, submission)
-      if (typeof attachment !== 'string') {
-        getAudioDuration(attachment.download_url).then((length: number) => {
-          setEstimate(secondsToTranscriptionEstimate(length))
-        })
-      }
-    } else {
-      setEstimate(NO_ESTIMATED_MINUTES)
-    }
-  }, [mutationCreateAutomaticTranscript.isPending])
 
   function handleChangeLocale(newVal: LocaleCode | null) {
     setLocale(newVal)
@@ -118,20 +99,8 @@ export default function StepCreateAutomated({
 
   if (!languageCode) return null
 
-  if (mutationCreateAutomaticTranscript.isPending) {
-    return (
-      <div className={cx(bodyStyles.root, bodyStyles.stepConfig)}>
-        <LoadingSpinner type='big' message={false} />
-
-        <header className={bodyStyles.header}>{t('Automatic transcription in progress')}</header>
-
-        <p>{t('Estimated time for completion: ##estimate##').replace('##estimate##', estimate)}</p>
-      </div>
-    )
-  }
-
-  // During a short moment after mutation finishes, we want to avoid blinking of previous UI
-  if (mutationCreateAutomaticTranscript.isSuccess) {
+  // During mutation and after success, let parent handle the view
+  if (mutationCreateAutomaticTranscript.isPending || mutationCreateAutomaticTranscript.isSuccess) {
     return null
   }
 

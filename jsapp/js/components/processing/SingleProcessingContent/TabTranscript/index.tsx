@@ -1,11 +1,19 @@
 import React from 'react'
+import type { _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { AssetResponse } from '#/dataInterface'
-import { getLatestTranscriptVersionItem, isSupplementVersionWithValue } from '../../common/utils'
+import {
+  getLatestTranscriptVersionItem,
+  isSupplementVersionAutomatic,
+  isSupplementVersionWithValue,
+} from '../../common/utils'
 import TranscriptCreate from './TranscriptCreate'
+import AutomaticTranscriptionInProgress from './TranscriptCreate/AutomaticTranscriptionInProgress'
 import TranscriptEdit from './TranscriptEdit'
+
+type VersionOfAutomaticTranscript = _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem
 
 interface Props {
   asset: AssetResponse
@@ -38,6 +46,12 @@ export default function TranscriptTab({
         advancedFeatures={advancedFeatures}
       />
     )
+  } else if (
+    transcriptVersion &&
+    isSupplementVersionAutomatic(transcriptVersion) &&
+    (transcriptVersion as VersionOfAutomaticTranscript)?._data?.status === 'in_progress'
+  ) {
+    return <AutomaticTranscriptionInProgress asset={asset} questionXpath={questionXpath} submission={submission} />
   } else {
     return (
       <TranscriptCreate
