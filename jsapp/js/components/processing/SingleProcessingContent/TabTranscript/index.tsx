@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import type { _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
@@ -32,19 +32,12 @@ export default function TranscriptTab({
   supplement,
   advancedFeatures,
 }: Props) {
-  const [isTranscribing, setIsTranscribing] = useState(false)
   const transcriptVersion = getLatestTranscriptVersionItem(supplement, questionXpath)
-
-  useEffect(() => {
-    if (isTranscribing && transcriptVersion && isSupplementVersionWithValue(transcriptVersion)) {
-      setIsTranscribing(false)
-    }
-  }, [isTranscribing, transcriptVersion])
 
   if (
     transcriptVersion &&
     isSupplementVersionAutomatic(transcriptVersion) &&
-    (isTranscribing || (transcriptVersion as VersionOfAutomaticTranscript)?._data?.status === 'in_progress')
+    (transcriptVersion as VersionOfAutomaticTranscript)?._data?.status === 'in_progress'
   ) {
     return <AutomaticTranscriptionInProgress asset={asset} questionXpath={questionXpath} submission={submission} />
   }
@@ -61,17 +54,16 @@ export default function TranscriptTab({
         advancedFeatures={advancedFeatures}
       />
     )
-  } else {
-    return (
-      <TranscriptCreate
-        asset={asset}
-        questionXpath={questionXpath}
-        submission={submission}
-        supplement={supplement}
-        onUnsavedWorkChange={onUnsavedWorkChange}
-        advancedFeatures={advancedFeatures}
-        setIsTranscribing={setIsTranscribing}
-      />
-    )
   }
+
+  return (
+    <TranscriptCreate
+      asset={asset}
+      questionXpath={questionXpath}
+      submission={submission}
+      supplement={supplement}
+      onUnsavedWorkChange={onUnsavedWorkChange}
+      advancedFeatures={advancedFeatures}
+    />
+  )
 }
