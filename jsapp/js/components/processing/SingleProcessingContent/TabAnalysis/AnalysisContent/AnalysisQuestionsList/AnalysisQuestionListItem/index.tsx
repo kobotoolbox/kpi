@@ -93,9 +93,9 @@ export default function AnalysisQuestionListItem({
   // this is needed so that the "clear" button works immediately without waiting for server response
   const [localRadioValue, setLocalRadioValue] = useState<string | undefined>()
 
-  const mutationSaveAnswer = useAssetsDataSupplementPartialUpdate()
-  const mutationCreateQuestion = useAssetsAdvancedFeaturesCreate()
-  const mutationPatchQuestion = useAssetsAdvancedFeaturesPartialUpdate()
+  const mutationSaveAnswer = useAssetsDataSupplementPartialUpdate({ mutation: { scope: { id: 'qa-answer' } } })
+  const mutationCreateQuestion = useAssetsAdvancedFeaturesCreate({ mutation: { scope: { id: 'qa-question' } } })
+  const mutationPatchQuestion = useAssetsAdvancedFeaturesPartialUpdate({ mutation: { scope: { id: 'qa-question' } } })
 
   const handleSaveAnswer = async (value: PatchedDataSupplementPayloadOneOfManualQual['value']) => {
     await mutationSaveAnswer.mutateAsync({
