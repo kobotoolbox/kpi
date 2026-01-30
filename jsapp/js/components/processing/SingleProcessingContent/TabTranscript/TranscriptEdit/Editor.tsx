@@ -106,10 +106,6 @@ export default function Editor({
           },
         },
       })
-      // Clear unsaved work status and go back to view mode after accepting
-      onUnsavedWorkChange(false)
-      onSave?.()
-      onBack()
     } else {
       await assertManualAdvancedFeature(transcriptVersion._data.language)
       await patch.mutateAsync({
@@ -125,9 +121,12 @@ export default function Editor({
           },
         },
       })
-      // Clear unsaved work status after successful save
-      onUnsavedWorkChange(false)
-      onSave?.()
+    }
+
+    // Clear unsaved work status after successful save
+    onUnsavedWorkChange(false)
+    if (onSave) {
+      onSave()
     }
   }
 
