@@ -1,12 +1,10 @@
-import React, { useEffect, useState } from 'react'
-
-import { useQuery } from '@tanstack/react-query'
 import cx from 'classnames'
+import React, { useEffect, useState } from 'react'
 import type { DataResponse } from '#/api/models/dataResponse'
-import { getAssetsDataSupplementRetrieveQueryOptions } from '#/api/react-query/survey-data'
+import { useAssetsDataSupplementRetrieve } from '#/api/react-query/survey-data'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import type { AssetResponse } from '#/dataInterface'
-import { getAudioDuration } from '#/utils'
+import { getAudioDuration, removeDefaultUuidPrefix } from '#/utils'
 import bodyStyles from '../../../common/processingBody.module.scss'
 import { getAttachmentForProcessing, secondsToTranscriptionEstimate } from '../transcript.utils'
 
@@ -22,9 +20,10 @@ interface Props {
 export default function AutomaticTranscriptionInProgress({ asset, questionXpath, submission }: Props) {
   const [estimate, setEstimate] = useState<string>(NO_ESTIMATED_MINUTES)
 
-  console.log('AutomaticTranscriptionInProgress render')
-
-  const querySupplement = useQuery(getAssetsDataSupplementRetrieveQueryOptions(asset.uid, submission._uuid))
+  const querySupplement = useAssetsDataSupplementRetrieve(
+    asset.uid,
+    removeDefaultUuidPrefix(submission['meta/rootUuid']),
+  )
 
   // Poll for transcription status every 3 seconds
   useEffect(() => {
