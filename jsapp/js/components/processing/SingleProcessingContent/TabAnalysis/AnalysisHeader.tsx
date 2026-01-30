@@ -1,5 +1,6 @@
 import React from 'react'
 
+import { useIsMutating } from '@tanstack/react-query'
 import classNames from 'classnames'
 import cloneDeep from 'lodash.clonedeep'
 import type { DataResponse } from '#/api/models/dataResponse'
@@ -32,6 +33,10 @@ interface Props {
 export default function AnalysisHeader({ asset, questionXpath, supplement, qaQuestion, setQaQuestion }: Props) {
   const transcriptVersion = getLatestTranscriptVersionItem(supplement, questionXpath)
   const translationVersions = getAllTranslationsFromSupplementData(supplement, questionXpath)
+
+  // Note: Technically correct would be to filter for the 3 specific mutations we are interested in,
+  //       but practically what else user would mutate in the meantime and no filter effectively is the same.
+  const isMutating = useIsMutating() > 0
 
   const manualQuestionDefs = ANALYSIS_QUESTION_TYPES.filter((definition) => !definition.isAutomated)
   // TODO: we hide Keyword Search from the UI until https://github.com/kobotoolbox/kpi/issues/4594 is done
@@ -84,10 +89,9 @@ export default function AnalysisHeader({ asset, questionXpath, supplement, qaQue
       />
 
       <span>
-        {/* TODO: indicator based on queries and mutations deeper down the line. */}
-        {/* {!analysisQuestions.state.isPending && qaQuestion && t('Unsaved changes')} */}
-        {/* {analysisQuestions.state.isPending && t('Saving…')} */}
-        {/* {!analysisQuestions.state.isPending && !qaQuestion && t('Saved')} */}
+        {isMutating && t('Saving…')}
+        {!isMutating && qaQuestion && t('Unsaved changes')}
+        {!isMutating && !qaQuestion && t('Saved')}
       </span>
     </header>
   )
