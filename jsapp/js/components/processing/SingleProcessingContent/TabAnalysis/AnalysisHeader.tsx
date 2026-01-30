@@ -1,5 +1,6 @@
 import React from 'react'
 
+import { Badge } from '@mantine/core'
 import { useIsMutating } from '@tanstack/react-query'
 import classNames from 'classnames'
 import cloneDeep from 'lodash.clonedeep'
@@ -89,10 +90,26 @@ export default function AnalysisHeader({ asset, questionXpath, supplement, qaQue
       />
 
       <span>
-        {activeMutationCount === 1 && t('Saving…')}
-        {activeMutationCount > 1 && t('Saving (##count##)…').replace('##count##', String(activeMutationCount))}
-        {activeMutationCount === 0 && qaQuestion && t('Unsaved changes')}
-        {activeMutationCount === 0 && !qaQuestion && t('Saved')}
+        {activeMutationCount === 1 && (
+          <Badge color='#fff7e6' styles={{ label: { color: '#B85A00' } }}>
+            {t('Saving…')}
+          </Badge>
+        )}
+        {activeMutationCount > 1 && (
+          <Badge color='#fff7e6' styles={{ label: { color: '#B85A00' } }}>
+            {t('Saving (##count##)…').replace('##count##', String(activeMutationCount))}
+          </Badge>
+        )}
+        {activeMutationCount === 0 && qaQuestion && (
+          <Badge color='#fff7e6' styles={{ label: { color: '#B85A00' } }}>
+            {t('Unsaved changes')}
+          </Badge>
+        )}
+        {activeMutationCount === 0 && !qaQuestion && (
+          <Badge color='#d5f5f6' styles={{ label: { color: '#047481' } }}>
+            {t('Saved')}
+          </Badge>
+        )}
       </span>
     </header>
   )
