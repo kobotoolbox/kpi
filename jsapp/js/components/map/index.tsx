@@ -392,6 +392,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
 
   onSetMapStylesCompleted() {
     // asset is updated, no need to store oberriden styles as they are identical
+    console.log('asset:', this.props.asset)
     this.setState({ overridenStyles: undefined})
   }
 
@@ -414,9 +415,12 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
   requestData(map: L.Map, nextViewBy = '') {
     // TODO: support area / line geodata questions
     // See: https://github.com/kobotoolbox/kpi/issues/3913
-    let selectedQuestion = this.props.asset.map_styles.selectedQuestion || null
+
+    let selectedQuestion: string | null = null
     if (this.state.overridenStyles?.selectedQuestion) {
       selectedQuestion = this.state.overridenStyles.selectedQuestion
+    } else {
+      selectedQuestion = this.props.asset.map_styles.selectedQuestion || null
     }
 
     this.props.asset.content?.survey?.forEach((row) => {
@@ -426,7 +430,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
         selectedQuestion === row.label[0] &&
         row.type !== QUESTION_TYPES.geopoint.id
       ) {
-        selectedQuestion = '' //Ignore if not a geopoint question type
+        selectedQuestion = null //Ignore if not a geopoint question type
       }
     })
 
@@ -450,8 +454,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       .done((data: PaginatedResponse<SubmissionResponse>) => {
         let results = data.results
         if (selectedQuestion) {
-          let sq: string = selectedQuestion
-          results = results.filter((row) => row[sq])
+          results = results.filter((row) => row[selectedQuestion as string])
         }
         results.forEach((row, i) => {
           if (selectedQuestion && row[selectedQuestion]) {
@@ -834,6 +837,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     })
   }
 
+  /** Note: selected questions are considered a "map style" and is updated in the state here */
   overrideStyles(mapStyles: AssetMapStyles) {
     this.setState(
       {
