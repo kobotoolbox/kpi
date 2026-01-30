@@ -12,8 +12,9 @@ import {
 import Button from '#/components/common/button'
 import type { LanguageCode, LocaleCode } from '#/components/languages/languagesStore'
 import RegionSelector from '#/components/languages/regionSelector'
+import { getLatestTranscriptVersionItem } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
-import { removeDefaultUuidPrefix } from '#/utils'
+import { notify, removeDefaultUuidPrefix } from '#/utils'
 import { SUBSEQUENCES_SCHEMA_VERSION } from '../../../common/constants'
 import bodyStyles from '../../../common/processingBody.module.scss'
 
@@ -42,8 +43,21 @@ export default function StepCreateAutomated({
 
   const mutationCreateAF = useAssetsAdvancedFeaturesCreate()
   const mutationPatchAF = useAssetsAdvancedFeaturesPartialUpdate()
-
-  const mutationCreateAutomaticTranscript = useAssetsDataSupplementPartialUpdate()
+  const mutationCreateAutomaticTranscript = useAssetsDataSupplementPartialUpdate({
+    mutation: {
+      onSuccess(response, _variables, _context) {
+        if (response.status !== 200) return // just a typeguard, shouldn't happen in `onSuccess`.
+        const transcriptVersion = getLatestTranscriptVersionItem(response.data, questionXpath)
+        if (
+          transcriptVersion?._data &&
+          'status' in transcriptVersion?._data &&
+          transcriptVersion?._data.status === 'failed'
+        ) {
+          notify(transcriptVersion?._data.error, 'error', {}, transcriptVersion?._data.error)
+        }
+      },
+    },
+  })
 
   const anyPending =
     mutationCreateAF.isPending || mutationPatchAF.isPending || mutationCreateAutomaticTranscript.isPending
