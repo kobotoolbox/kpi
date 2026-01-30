@@ -1,4 +1,5 @@
 import React from 'react'
+import { destroyConfirm } from '#/alertify'
 import type { _DataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem } from '#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem'
 import type { _DataSupplementResponseOneOfManualTranslationVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualTranslationVersionsItem'
 import { ActionEnum } from '#/api/models/actionEnum'
@@ -47,21 +48,23 @@ export default function Viewer({
   const mutateTrash = useAssetsDataSupplementPartialUpdate()
 
   const handleTrash = () => {
-    mutateTrash.mutateAsync({
-      uidAsset: asset.uid,
-      rootUuid: removeDefaultUuidPrefix(submission['meta/rootUuid']),
-      data: {
-        _version: SUBSEQUENCES_SCHEMA_VERSION,
-        [questionXpath]: {
-          [isSupplementVersionAutomatic(translationVersion)
-            ? ActionEnum.automatic_google_translation
-            : ActionEnum.manual_translation]: {
-            language: translationVersion._data.language,
-            value: null,
+    destroyConfirm(() => {
+      mutateTrash.mutateAsync({
+        uidAsset: asset.uid,
+        rootUuid: removeDefaultUuidPrefix(submission['meta/rootUuid']),
+        data: {
+          _version: SUBSEQUENCES_SCHEMA_VERSION,
+          [questionXpath]: {
+            [isSupplementVersionAutomatic(translationVersion)
+              ? ActionEnum.automatic_google_translation
+              : ActionEnum.manual_translation]: {
+              language: translationVersion._data.language,
+              value: null,
+            },
           },
         },
-      },
-    })
+      })
+    }, t('Delete translation?'))
   }
 
   return (
