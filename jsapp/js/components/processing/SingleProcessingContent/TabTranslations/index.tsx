@@ -6,7 +6,11 @@ import type { LanguageCode } from '#/components/languages/languagesStore'
 import type { AssetResponse } from '#/dataInterface'
 import bodyStyles from '../../common/processingBody.module.scss'
 import { CreateSteps } from '../../common/types'
-import { getAllTranslationsFromSupplementData, isSupplementVersionAutomatic } from '../../common/utils'
+import {
+  getAllTranslationsFromSupplementData,
+  getLatestAutomaticTranslationVersionItem,
+  isSupplementVersionAutomatic,
+} from '../../common/utils'
 import TranslationAdd from './TranslationAdd'
 import Editor from './TranslationEdit/Editor'
 import Viewer from './TranslationEdit/Viewer'
@@ -28,7 +32,7 @@ export default function TranslationTab({
   supplement,
   advancedFeatures,
 }: Props) {
-  const translationVersions = getAllTranslationsFromSupplementData(supplement, questionXpath)
+  const translationVersions = getAllTranslationsFromSupplementData(supplement, questionXpath, false)
 
   // Selected language code to display.
   const [languageCode, setLanguageCode] = useState<LanguageCode | null>(null)
@@ -36,8 +40,14 @@ export default function TranslationTab({
 
   useEffect(() => {
     if (translationVersion) return
-    setLanguageCode(translationVersions[0]?._data.language ?? null)
-  }, [translationVersion, setLanguageCode, translationVersions])
+    // Get latest translation if current selected is not available
+    const latestTranslation = getLatestAutomaticTranslationVersionItem(supplement, questionXpath, undefined, false)
+    if (!latestTranslation) {
+      setLanguageCode(null)
+      return
+    }
+    setLanguageCode(latestTranslation?._data.language ?? null)
+  }, [translationVersion, setLanguageCode, supplement, questionXpath])
 
   const [_mode, setMode] = useState<'view' | 'edit' | 'add'>('view')
   const mode = (() => {
@@ -117,7 +127,11 @@ export default function TranslationTab({
             supplement={supplement}
             translationVersion={translationVersions.find(({ _data }) => _data.language === languageCode)!}
             onBack={() => setMode('view')}
-            onSave={() => setMode('view')}
+            onSave={() => {
+              setMode('view')
+              // Invalidate language to force re-selection and reload of latest version
+              setLanguageCode(null)
+            }}
             onUnsavedWorkChange={onUnsavedWorkChange}
             advancedFeatures={advancedFeatures}
           />
