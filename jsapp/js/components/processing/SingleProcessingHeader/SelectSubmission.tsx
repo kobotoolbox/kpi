@@ -52,14 +52,12 @@ export default function SelectSubmission({ assetUid, submission, xpath }: Props)
     }
   }
 
-  const { _uuid, _submission_time } = submission
-
   const nextParams = getNeighborParams(submission._id, 'next')
   const queryNext = useAssetsDataList(assetUid!, nextParams, {
     query: {
       queryKey: getAssetsDataListQueryKey(assetUid, nextParams),
       enabled: !!assetUid,
-      select: useCallback(getNeighborResults, [_uuid, _submission_time]),
+      select: useCallback(getNeighborResults, [submission['meta/rootUuid'], submission._submission_time]),
     },
   })
 
@@ -68,7 +66,7 @@ export default function SelectSubmission({ assetUid, submission, xpath }: Props)
     query: {
       queryKey: getAssetsDataListQueryKey(assetUid, prevParams),
       enabled: !!assetUid,
-      select: useCallback(getNeighborResults, [_uuid, _submission_time]),
+      select: useCallback(getNeighborResults, [submission['meta/rootUuid'], submission._submission_time]),
     },
   })
 
@@ -78,12 +76,12 @@ export default function SelectSubmission({ assetUid, submission, xpath }: Props)
 
   const goPrev = () => {
     if (!queryPrev.data) return
-    goToProcessing(assetUid, xpath, queryPrev.data.submission._uuid, true)
+    goToProcessing(assetUid, xpath, queryPrev.data.submission['meta/rootUuid'], true)
   }
 
   const goNext = () => {
     if (!queryNext.data) return
-    goToProcessing(assetUid, xpath, queryNext.data.submission._uuid, true)
+    goToProcessing(assetUid, xpath, queryNext.data.submission['meta/rootUuid'], true)
   }
 
   const isLoading = queryPrev.isPending || queryNext.isPending
