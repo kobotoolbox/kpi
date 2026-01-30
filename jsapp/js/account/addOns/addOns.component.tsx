@@ -72,7 +72,7 @@ export default function addOns() {
     return (
       <table className={styles.table}>
         <caption className={`${styles.caption} ${styles.purchasedAddOns}`}>
-          <label className={styles.header}>{label}</label>
+          <label className={styles.addOnsHeader}>{label}</label>
         </caption>
         <tbody>
           {addOns.map((product) => {
