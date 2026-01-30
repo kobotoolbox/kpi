@@ -36,7 +36,7 @@ export default function AnalysisHeader({ asset, questionXpath, supplement, qaQue
 
   // Note: Technically correct would be to filter for the 3 specific mutations we are interested in,
   //       but practically what else user would mutate in the meantime and no filter effectively is the same.
-  const isMutating = useIsMutating() > 0
+  const activeMutationCount = useIsMutating()
 
   const manualQuestionDefs = ANALYSIS_QUESTION_TYPES.filter((definition) => !definition.isAutomated)
   // TODO: we hide Keyword Search from the UI until https://github.com/kobotoolbox/kpi/issues/4594 is done
@@ -89,9 +89,10 @@ export default function AnalysisHeader({ asset, questionXpath, supplement, qaQue
       />
 
       <span>
-        {isMutating && t('Saving…')}
-        {!isMutating && qaQuestion && t('Unsaved changes')}
-        {!isMutating && !qaQuestion && t('Saved')}
+        {activeMutationCount === 1 && t('Saving…')}
+        {activeMutationCount > 1 && t('Saving (##count##)…').replace('##count##', String(activeMutationCount))}
+        {activeMutationCount === 0 && qaQuestion && t('Unsaved changes')}
+        {activeMutationCount === 0 && !qaQuestion && t('Saved')}
       </span>
     </header>
   )

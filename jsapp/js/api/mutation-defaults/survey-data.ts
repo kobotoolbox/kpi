@@ -297,13 +297,20 @@ queryClient.setMutationDefaults(
        * Note: use `onSettled` instead of `onSuccess` to be executed AFTER global invalidation logic
        * in order to cancel it. See more `onSettledInvalidateSnapshots`.
        *
+       * Note: in case of **both** Optimistic Update and Direct Update, check for parallel mutations.
+       * Do not Direcly Update an old value over a newer value already set by newer mutation's Optimistic Update.
+       *
        * See more at https://tkdodo.eu/blog/mastering-mutations-in-react-query#direct-updates
        */
       onSettled: async (response, error, { rootUuid, uidAsset }, _context) => {
         if (error) return
         const queryKey = getAssetsDataSupplementRetrieveQueryKey(uidAsset, rootUuid)
         queryClient.cancelQueries({ queryKey, exact: true })
-        queryClient.setQueryData(queryKey, response)
+
+        const mutationKey = getAssetsDataSupplementPartialUpdateMutationOptions().mutationKey!
+        if (!queryClient.isMutating({ mutationKey })) {
+          queryClient.setQueryData(queryKey, response)
+        }
       },
     },
   }),
