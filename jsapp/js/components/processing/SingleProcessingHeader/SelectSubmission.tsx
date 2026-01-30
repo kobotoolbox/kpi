@@ -8,6 +8,7 @@ import {
 } from '#/api/react-query/survey-data'
 import Button from '#/components/common/button'
 import { goToProcessing } from '#/components/processing/routes.utils'
+import { removeDefaultUuidPrefix } from '#/utils'
 import styles from './index.module.scss'
 
 const selectNeighborResults = (data: assetsDataListResponse) => {
@@ -76,12 +77,12 @@ export default function SelectSubmission({ assetUid, submission, xpath }: Props)
 
   const goPrev = () => {
     if (!queryPrev.data) return
-    goToProcessing(assetUid, xpath, queryPrev.data.submission['meta/rootUuid'], true)
+    goToProcessing(assetUid, xpath, removeDefaultUuidPrefix(queryPrev.data.submission['meta/rootUuid']), true)
   }
 
   const goNext = () => {
     if (!queryNext.data) return
-    goToProcessing(assetUid, xpath, queryNext.data.submission['meta/rootUuid'], true)
+    goToProcessing(assetUid, xpath, removeDefaultUuidPrefix(queryNext.data.submission['meta/rootUuid']), true)
   }
 
   const isLoading = queryPrev.isPending || queryNext.isPending
