@@ -108,15 +108,19 @@ CREATE_MV_BASE_SQL = f"""
             WHERE ued_tos.user_id = au.id
             AND ued_tos.private_data ? 'last_tos_accept_time'
         ) AS accepted_tos,
-        COALESCE(
-            jsonb_agg(
-                jsonb_build_object(
-                    'id', sa.id,
-                    'provider', sa.provider,
-                    'uid', sa.uid
-                )
-            ) FILTER (WHERE sa.id IS NOT NULL),
-            '[]'::jsonb
+        (
+            SELECT COALESCE(
+                jsonb_agg(
+                    jsonb_build_object(
+                        'id', s.id,
+                        'provider', s.provider,
+                        'uid', s.uid
+                    )
+                ),
+                '[]'::jsonb
+            )
+            FROM socialaccount_socialaccount s
+            WHERE s.user_id = au.id
         ) AS social_accounts,
         CASE
             WHEN org.id IS NOT NULL THEN jsonb_build_object(

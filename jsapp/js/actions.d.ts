@@ -1,3 +1,6 @@
+import type { Survey } from '../../xlform/src/model.survey'
+import type { AssetResponse, FailResponse } from './dataInterface'
+
 /**
  * NOTE: all the actions groups definitions are both functions and objects with
  * nested functions.
@@ -74,14 +77,20 @@ interface DeleteAssetDefinition extends Function {
 }
 
 interface DeleteAssetCompletedDefinition extends Function {
-  (response: AssetResponse): void
-  listen: (callback: (response: AssetResponse) => void) => Function
+  (response: { uid: string; assetType: AssetTypeName }): void
+  listen: (callback: (response: { uid: string; assetType: AssetTypeName }) => void) => Function
+}
+
+export interface UpdateAssetDefinitionParams {
+  onComplete: (response: AssetResponse) => void
+  onFail: (response: FailResponse) => void
 }
 
 interface UpdateAssetDefinition extends Function {
-  (uid: string, values: any, params?: any): void
+  (uid: string, values: Partial<AssetRequestObject>, params?: UpdateAssetDefinitionParams): void
   completed: UpdateAssetCompletedDefinition
   failed: GenericFailedDefinition
+  triggerAsync: (uid: string, values: any, params?: UpdateAssetDefinitionParams) => Promise
 }
 
 interface UpdateAssetCompletedDefinition extends Function {
@@ -182,11 +191,15 @@ interface GetUserCompletedDefinition extends Function {
 interface SetAssetPublicDefinition extends Function {
   (asset: AssetResponse, shouldSetAnonPerms: boolean): void
   completed: SetAssetPublicCompletedDefinition
-  failed: GenericFailedDefinition
+  failed: SetAssetPublicFailedDefinition
 }
 interface SetAssetPublicCompletedDefinition extends Function {
   (assetUid: string, shouldSetAnonPerms: boolean): void
   listen: (callback: (assetUid: string, shouldSetAnonPerms: boolean) => void) => Function
+}
+interface SetAssetPublicFailedDefinition extends Function {
+  (assetUid: string): void
+  listen: (callback: (assetUid: string) => void) => Function
 }
 
 interface RemoveAssetPermissionDefinition extends Function {
@@ -275,21 +288,62 @@ interface MapSetMapStylesStartedDefinition extends Function {
   listen: (callback: (assetUid: string, upcomingMapSettings: AssetMapStyles) => void) => Function
 }
 
+interface CreateResourceDefinition extends Function {
+  (params: Partial<AssetRequestObject>): void
+  completed: CreateResourceCompletedDefinition
+  failed: GenericFailedDefinition
+  triggerAsync: (params: Partial<AssetRequestObject>) => Promise
+}
+interface CreateResourceCompletedDefinition extends Function {
+  (response: any): void
+  listen: (callback: (response: any) => void) => Function
+}
+
+interface SurveyAddExternalItemParams {
+  position: number
+  uid: string
+  survey: Survey
+  groupId: string | undefined
+}
+interface SurveyAddExternalItemDefinition extends Function {
+  (params: SurveyAddExternalItemParams): void
+  completed: SurveyAddExternalItemCompletedDefinition
+  failed: GenericFailedDefinition
+  triggerAsync: (params: SurveyAddExternalItemParams) => Promise
+}
+interface SurveyAddExternalItemCompletedDefinition extends Function {
+  (response: any): void
+  listen: (callback: (response: any) => void) => Function
+}
+
+interface UnsubscribeFromCollectionDefinition extends Function {
+  (assetUid: string): void
+  listen: (callback: (assetUid: string) => void) => Function
+  completed: UnsubscribeFromCollectionCompletedDefinition
+  failed: GenericFailedDefinition
+}
+interface UnsubscribeFromCollectionCompletedDefinition extends Function {
+  (response: any): void
+  listen: (callback: (response: any) => void) => Function
+}
+
 // NOTE: as you use more actions in your ts files, please extend this namespace,
 // for now we are defining only the ones we need.
-export namespace actions {
-  const navigation: {
+export declare const actions: {
+  navigation: {
     routeUpdate: GenericCallbackDefinition
   }
-  const auth: {
+  auth: {
     verifyLogin: {
       loggedin: GenericCallbackDefinition
     }
     changePassword: GenericDefinition
   }
-  const survey: object
-  const search: object
-  const resources: {
+  survey: {
+    addExternalItemAtPosition: SurveyAddExternalItemDefinition
+  }
+  search: object
+  resources: {
     createImport: GenericDefinition
     loadAsset: LoadAssetDefinition
     deployAsset: GenericDefinition
@@ -298,7 +352,7 @@ export namespace actions {
     cloneAsset: GenericDefinition
     deleteAsset: DeleteAssetDefinition
     listTags: GenericDefinition
-    createResource: GenericDefinition
+    createResource: CreateResourceDefinition
     updateAsset: UpdateAssetDefinition
     updateSubmissionValidationStatus: UpdateSubmissionValidationStatusDefinition
     removeSubmissionValidationStatus: RemoveSubmissionValidationStatusDefinition
@@ -307,7 +361,7 @@ export namespace actions {
     refreshTableSubmissions: GenericDefinition
     getAssetFiles: ResourcesGetAssetFilesDefinition
   }
-  const hooks: {
+  hooks: {
     add: GenericDefinition
     update: GenericDefinition
     delete: GenericDefinition
@@ -316,20 +370,20 @@ export namespace actions {
     retryLog: GenericDefinition
     retryLogs: GenericDefinition
   }
-  const misc: {
+  misc: {
     getUser: GetUserDefinition
   }
-  const reports: {
+  reports: {
     setStyle: ReportsSetStyleDefinition
     setCustom: ReportsSetCustomDefinition
   }
-  const table: {
+  table: {
     updateSettings: TableUpdateSettingsDefinition
   }
-  const map: {
+  map: {
     setMapStyles: MapSetMapStylesDefinition
   }
-  const permissions: {
+  permissions: {
     getConfig: GenericDefinition
     copyPermissionsFrom: GenericDefinition
     removeAssetPermission: RemoveAssetPermissionDefinition
@@ -338,13 +392,24 @@ export namespace actions {
     getAssetPermissions: GenericDefinition
     setAssetPublic: SetAssetPublicDefinition
   }
-  const help: {
+  help: {
     getInAppMessages: GenericDefinition
     setMessageAcknowledged: GenericDefinition
     setMessageReadTime: GenericDefinition
   }
-  const library: any
-  const submissions: {
+  library: {
+    getCollections: GenericDefinition
+    moveToCollection: GenericDefinition
+    subscribeToCollection: GenericDefinition
+    unsubscribeFromCollection: UnsubscribeFromCollectionDefinition
+    searchMyCollectionAssets: GenericDefinition
+    searchMyCollectionMetadata: GenericDefinition
+    searchMyLibraryAssets: GenericDefinition
+    searchMyLibraryMetadata: GenericDefinition
+    searchPublicCollections: GenericDefinition
+    searchPublicCollectionsMetadata: GenericDefinition
+  }
+  submissions: {
     getSubmission: GetSubmissionDefinition
     getSubmissionByUuid: GetSubmissionDefinition
     getSubmissions: GetSubmissionsDefinition
@@ -354,8 +419,8 @@ export namespace actions {
     bulkPatchValues: GenericDefinition
     bulkDelete: GenericDefinition
   }
-  const media: object
-  const exports: {
+  media: object
+  exports: {
     getExport: GetExportDefinition
     getExports: GenericDefinition
     createExport: GenericDefinition
@@ -365,7 +430,7 @@ export namespace actions {
     createExportSetting: GenericDefinition
     deleteExportSetting: GenericDefinition
   }
-  const dataShare: {
+  dataShare: {
     attachToSource: GenericDefinition
     detachSource: GenericDefinition
     getAttachedSources: GenericDefinition
