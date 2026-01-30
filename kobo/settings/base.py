@@ -177,6 +177,7 @@ MIDDLEWARE = [
     'django_userforeignkey.middleware.UserForeignKeyMiddleware',
     'django_request_cache.middleware.RequestCacheMiddleware',
     'author.middlewares.AuthorDefaultBackendMiddleware',
+    'hub.middleware.V1AccessLoggingMiddleware',
 ]
 
 

@@ -1,6 +1,7 @@
 # coding: utf-8
 import json
 import unittest
+from unittest.mock import patch
 from urllib.parse import unquote_plus
 
 from django.urls import reverse
@@ -61,7 +62,8 @@ class AssetListApiTests(test_api_assets.AssetListApiTests):
     def test_list_can_load_with_desynchronized_assets(self):
         pass
 
-    def test_query_counts(self):
+    @patch('hub.models.v1_user_tracker.V1UserTracker.objects.update_or_create')
+    def test_query_counts(self, mock_tracker):
         # expected query counts are different in v1 and v2 so override the test here
         self.create_asset()
 
