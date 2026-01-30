@@ -309,9 +309,10 @@ queryClient.setMutationDefaults(
         queryClient.cancelQueries({ queryKey, exact: true })
 
         const mutationKey = getAssetsDataSupplementPartialUpdateMutationOptions().mutationKey!
-        if (queryClient.isMutating({ mutationKey }) !== 1) {
-          queryClient.setQueryData(queryKey, response)
-        }
+        if (queryClient.isMutating({ mutationKey }) > 1) return
+
+        console.log('onSettled', response)
+        queryClient.setQueryData(queryKey, response)
       },
     },
   }),

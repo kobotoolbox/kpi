@@ -1,11 +1,12 @@
 import cx from 'classnames'
 import React, { useEffect, useState } from 'react'
 import type { DataResponse } from '#/api/models/dataResponse'
+import { queryClient } from '#/api/queryClient'
 import {
+  getAssetsAdvancedFeaturesCreateMutationOptions,
+  getAssetsDataSupplementPartialUpdateMutationOptions,
   getAssetsDataSupplementRetrieveQueryKey,
-  useAssetsAdvancedFeaturesCreate,
-  useAssetsAdvancedFeaturesPartialUpdate,
-  useAssetsDataSupplementPartialUpdate,
+  getAssetsPairedDataPartialUpdateMutationOptions,
   useAssetsDataSupplementRetrieve,
 } from '#/api/react-query/survey-data'
 import LoadingSpinner from '#/components/common/loadingSpinner'
@@ -27,11 +28,12 @@ interface Props {
 export default function AutomaticTranscriptionInProgress({ asset, questionXpath, submission }: Props) {
   const [estimate, setEstimate] = useState<string>(NO_ESTIMATED_MINUTES)
 
-  const mutationCreateAF = useAssetsAdvancedFeaturesCreate()
-  const mutationPatchAF = useAssetsAdvancedFeaturesPartialUpdate()
-  const mutationCreateAutomaticTranscript = useAssetsDataSupplementPartialUpdate()
   const mutationPending =
-    mutationCreateAF.isPending || mutationPatchAF.isPending || mutationCreateAutomaticTranscript.isPending
+    queryClient.isMutating({ mutationKey: getAssetsAdvancedFeaturesCreateMutationOptions().mutationKey! }) > 0 ||
+    queryClient.isMutating({ mutationKey: getAssetsPairedDataPartialUpdateMutationOptions().mutationKey! }) > 0 ||
+    queryClient.isMutating({ mutationKey: getAssetsDataSupplementPartialUpdateMutationOptions().mutationKey! }) > 0
+
+  console.log('mutationPending', mutationPending)
 
   // Don't race mutations, mutation response will Directly Update this.
   const querySupplement = useAssetsDataSupplementRetrieve(
@@ -43,6 +45,7 @@ export default function AutomaticTranscriptionInProgress({ asset, questionXpath,
           asset.uid,
           removeDefaultUuidPrefix(submission['meta/rootUuid']),
         ),
+        staleTime: Number.POSITIVE_INFINITY,
         enabled: !mutationPending,
       },
     },
@@ -58,6 +61,7 @@ export default function AutomaticTranscriptionInProgress({ asset, questionXpath,
     }
 
     // Start the first poll
+    // TODO: smarter time based on _dateCreated and estimate
     timeoutId = setTimeout(pollTranscriptionStatus, POLL_INTERVAL)
 
     return () => {
