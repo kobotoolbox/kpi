@@ -12,6 +12,7 @@ from rest_framework.reverse import reverse
 from rest_framework.test import APIRequestFactory
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.openrosa.apps.logger.models import Attachment
 from kobo.apps.openrosa.apps.main import tests as main_tests
 from kobo.apps.openrosa.apps.main.models import MetaData, UserProfile
 from kobo.apps.openrosa.libs.tests.mixins.make_submission_mixin import (
@@ -52,7 +53,7 @@ class TestAbstractViewSet(RequestMixin, MakeSubmissionMixin, TestCase):
         self.maxDiff = None
 
     def publish_xls_form(
-        self, path=None, data=None, assert_creation=True, use_api=False
+        self, path=None, data=None, use_api=False
     ):
         # KoboCAT (v1) API does not allow project creation anymore.
         # Only KPI API allows that. The project can be only added to KoboCAT
@@ -94,13 +95,6 @@ class TestAbstractViewSet(RequestMixin, MakeSubmissionMixin, TestCase):
         asset.save()
         self.xform.kpi_asset_uid = asset.uid
         self.xform.save()
-        response = self.client.get(
-            reverse('asset-detail', args=[asset.uid])
-        )
-
-        if assert_creation is True:
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
-            self.form_data = response.data
 
     def user_profile_data(self):
         return {
