@@ -20,5 +20,5 @@ export type AssetsDataListParams = {
   /**
    * The initial index from which to return the results.
    */
-  start?: number
+  offset?: number
 }
