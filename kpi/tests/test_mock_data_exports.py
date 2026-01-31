@@ -580,10 +580,10 @@ class MockDataExports(MockDataExportsBase):
             ]
         }
         expected_lines = [
-            '"start";"end";"Do you descend from an ancestral unicellular organism?";"_uuid";"_index"',
-            '"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"No";"48583952-1892-4931-8d9c-869e7b49bafb";"1"',
-            '"2017-10-23T05:41:14.000-04:00";"2017-10-23T05:41:32.000-04:00";"No";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2"',
-            '"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Yes";"3f15cdfe-3eab-4678-8352-7806febf158d";"3"',
+            '"start";"end";"Do you descend from an ancestral unicellular organism?";"_uuid";"meta/rootUuid";"_index"',
+            '"2017-10-23T05:40:39.000-04:00";"2017-10-23T05:41:13.000-04:00";"No";"48583952-1892-4931-8d9c-869e7b49bafb";"uuid:48583952-1892-4931-8d9c-869e7b49bafb";"1"',
+            '"2017-10-23T05:41:14.000-04:00";"2017-10-23T05:41:32.000-04:00";"No";"317ba7b7-bea4-4a8c-8620-a483c3079c4b";"uuid:317ba7b7-bea4-4a8c-8620-a483c3079c4b";"2"',
+            '"2017-10-23T05:41:32.000-04:00";"2017-10-23T05:42:05.000-04:00";"Yes";"3f15cdfe-3eab-4678-8352-7806febf158d";"uuid:3f15cdfe-3eab-4678-8352-7806febf158d";"3"',
         ]
         self.run_csv_export_test(expected_lines, export_options)
 
@@ -1139,6 +1139,7 @@ class MockDataExports(MockDataExportsBase):
                     'end',
                     'Do you descend from an ancestral unicellular organism?',
                     '_uuid',
+                    'meta/rootUuid',
                     '_index',
                 ],
                 [
@@ -1146,6 +1147,7 @@ class MockDataExports(MockDataExportsBase):
                     '2017-10-23T05:41:13.000-04:00',
                     'No',
                     '48583952-1892-4931-8d9c-869e7b49bafb',
+                    'uuid:48583952-1892-4931-8d9c-869e7b49bafb',
                     1.0,
                 ],
                 [
@@ -1153,6 +1155,7 @@ class MockDataExports(MockDataExportsBase):
                     '2017-10-23T05:41:32.000-04:00',
                     'No',
                     '317ba7b7-bea4-4a8c-8620-a483c3079c4b',
+                    'uuid:317ba7b7-bea4-4a8c-8620-a483c3079c4b',
                     2.0,
                 ],
                 [
@@ -1160,6 +1163,7 @@ class MockDataExports(MockDataExportsBase):
                     '2017-10-23T05:42:05.000-04:00',
                     'Yes',
                     '3f15cdfe-3eab-4678-8352-7806febf158d',
+                    'uuid:3f15cdfe-3eab-4678-8352-7806febf158d',
                     3.0,
                 ],
             ]
@@ -1181,24 +1185,28 @@ class MockDataExports(MockDataExportsBase):
                     'end',
                     'Do you descend from an ancestral unicellular organism?',
                     '_uuid',
+                    'meta/rootUuid',
                 ],
                 [
                     '2017-10-23T05:40:39.000-04:00',
                     '2017-10-23T05:41:13.000-04:00',
                     'No',
                     '48583952-1892-4931-8d9c-869e7b49bafb',
+                    'uuid:48583952-1892-4931-8d9c-869e7b49bafb',
                 ],
                 [
                     '2017-10-23T05:41:14.000-04:00',
                     '2017-10-23T05:41:32.000-04:00',
                     'No',
                     '317ba7b7-bea4-4a8c-8620-a483c3079c4b',
+                    'uuid:317ba7b7-bea4-4a8c-8620-a483c3079c4b',
                 ],
                 [
                     '2017-10-23T05:41:32.000-04:00',
                     '2017-10-23T05:42:05.000-04:00',
                     'Yes',
                     '3f15cdfe-3eab-4678-8352-7806febf158d',
+                    'uuid:3f15cdfe-3eab-4678-8352-7806febf158d',
                 ],
             ]
         }
@@ -1213,11 +1221,12 @@ class MockDataExports(MockDataExportsBase):
         media_url = submission['_attachments'][0]['download_url']
         expected_data = {
             asset_name: [
-                ['Submit an image', 'Submit an image_URL', '_uuid'],
+                ['Submit an image', 'Submit an image_URL', '_uuid', 'meta/rootUuid'],
                 [
                     'audio_conversion_test_image.jpg',
                     media_url,
                     'f80be949-89b5-4af1-a42d-7d292b2bc0cd',
+                    'uuid:f80be949-89b5-4af1-a42d-7d292b2bc0cd',
                 ],
             ]
         }
@@ -1235,11 +1244,13 @@ class MockDataExports(MockDataExportsBase):
                 [
                     '_uuid',
                     '_submission_time',
+                    'meta/rootUuid',
                     '_index',
                 ],
                 [
                     'f80be949-89b5-4af1-a29d-7d292b2bc0cd',
                     '2021-06-30T22:12:56',
+                    'uuid:f80be949-89b5-4af1-a29d-7d292b2bc0cd',
                     1.0,
                 ],
             ],
@@ -1274,7 +1285,7 @@ class MockDataExports(MockDataExportsBase):
                     '',
                     '',
                     '',
-                    '',
+                    'uuid:f80be949-89b5-4af1-a29d-7d292b2bc0cd',
                 ],
                 [
                     'Augustus',
@@ -1290,7 +1301,7 @@ class MockDataExports(MockDataExportsBase):
                     '',
                     '',
                     '',
-                    '',
+                    'uuid:f80be949-89b5-4af1-a29d-7d292b2bc0cd',
                 ],
             ],
         }

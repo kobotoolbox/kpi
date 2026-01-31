@@ -170,7 +170,12 @@ class Invite(AbstractTimeStampedModel):
 class OrgMembershipAutoInviteManager(models.Manager):
 
     def create(self, **kwargs):
-        return super().create(invite_type=InviteType.ORG_MEMBERSHIP, **kwargs)
+        _ = kwargs.pop('status', InviteStatusChoices.ACCEPTED)
+        return super().create(
+            invite_type=InviteType.ORG_MEMBERSHIP,
+            status=InviteStatusChoices.ACCEPTED,
+            **kwargs,
+        )
 
     def get_queryset(self):
         return super().get_queryset().filter(invite_type=InviteType.ORG_MEMBERSHIP)
