@@ -36,7 +36,7 @@ from kpi.exceptions import (
     ObjectDeploymentDoesNotExist,
 )
 from kpi.models import Asset
-from kpi.paginators import DefaultPagination
+from kpi.paginators import DataPagination
 from kpi.permissions import (
     DuplicateSubmissionPermission,
     EditLinkSubmissionPermission,
@@ -202,10 +202,7 @@ class DataViewSet(
         SubmissionXMLRenderer,
     )
     permission_classes = (SubmissionPermission,)
-    pagination_class = DefaultPagination.custom_class(
-        default_limit=100,
-        max_limit=settings.SUBMISSION_LIST_LIMIT,
-    )
+    pagination_class = DataPagination
     log_type = AuditType.PROJECT_HISTORY
     logged_fields = []
 
