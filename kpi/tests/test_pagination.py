@@ -80,4 +80,4 @@ class TestNoCountPagination(TestCase):
         response = self.view(request)
 
         assert 'count' not in response.data
-        assert data[default_limit : default_limit * 2] == response.data['results']
+        assert data[default_limit:(default_limit * 2)] == response.data['results']

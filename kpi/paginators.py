@@ -28,7 +28,7 @@ class DefaultPagination(LimitOffsetPagination):
 
     limit_query_param = 'limit'
     default_limit = settings.REST_FRAMEWORK['PAGE_SIZE']
-    max_limit = 1000  #  Reasonable maximum limit to avoid sending full querysets
+    max_limit = 1000  # Reasonable maximum limit to avoid sending full querysets
 
     page_query_param = 'page'
     page_size_query_param = 'page_size'
@@ -44,7 +44,10 @@ class DefaultPagination(LimitOffsetPagination):
         if limit is None:
             limit = self.default_limit
 
-        return _positive_int(limit, strict=True, cutoff=self.max_limit)
+        try:
+            return _positive_int(limit, strict=True, cutoff=self.max_limit)
+        except (ValueError, TypeError):
+            return self.default_limit
 
     def get_offset(self, request):
         page_number = self.get_page_number(request)
@@ -55,8 +58,10 @@ class DefaultPagination(LimitOffsetPagination):
         )
         if offset is None and page_number:
             offset = (page_number - 1) * self.get_page_size(request)
-
-        return _positive_int(offset, strict=True)
+        try:
+            return _positive_int(offset, strict=True)
+        except (ValueError, TypeError):
+            return None
 
     def get_page_number(self, request):
         try:
@@ -85,6 +90,8 @@ class DefaultPagination(LimitOffsetPagination):
         self.request = request
         self.limit = self.get_limit(request)
         self.offset = self.get_offset(request)
+        if not self.offset:
+            self.offset = 0
 
         self.count = self.get_count(queryset)
         if self.count > self.limit and self.template is not None:
@@ -93,7 +100,7 @@ class DefaultPagination(LimitOffsetPagination):
         if self.count == 0 or self.offset > self.count:
             return []
 
-        return list(queryset[self.offset : (self.offset + self.limit)])
+        return list(queryset[self.offset:(self.offset + self.limit)])
 
 
 class AssetPagination(DefaultPagination):
@@ -245,6 +252,8 @@ class NoCountPagination(DefaultPagination):
             return None
 
         self.offset = self.get_offset(request)
+        if not self.offset:
+            self.offset = 0
 
         # Peek one item beyond the current page to see if a next page exists
         items = list(queryset[self.offset:self.offset + self.limit + 1])
