@@ -1,4 +1,3 @@
-import contextlib
 from collections import OrderedDict
 from typing import Union
 
@@ -7,13 +6,13 @@ from django.db.models.query import QuerySet
 from django_request_cache import cache_for_request
 from rest_framework.pagination import (
     LimitOffsetPagination,
+    PageNumberPagination,
     _positive_int,
-    PageNumberPagination
 )
 from rest_framework.response import Response
 from rest_framework.reverse import reverse_lazy
 from rest_framework.serializers import SerializerMethodField
-from rest_framework.utils.urls import remove_query_param, replace_query_param
+from rest_framework.utils.urls import replace_query_param
 
 
 class DefaultPagination(LimitOffsetPagination):
@@ -24,56 +23,42 @@ class DefaultPagination(LimitOffsetPagination):
 
     Adds 'root' to the wrapping response object.
     """
+
     root = SerializerMethodField('get_parent_url', read_only=True)
+
+    limit_query_param = 'limit'
+    default_limit = settings.REST_FRAMEWORK['PAGE_SIZE']
+    max_limit = 1000  #  Reasonable maximum limit to avoid sending full querysets
+
     page_query_param = 'page'
+    page_size_query_param = 'page_size'
     page_size = settings.REST_FRAMEWORK['PAGE_SIZE']
-    page_size_query_param = None
-    no_count = False
-    fast_count = False
-
-    def get_count(self, queryset):
-        """
-        This custom function raises NotImplementedError if self.no_count equals True.
-        If fast_count is enabled, it does a faster counting for DISTINCT queries on
-        large tables. It only looks at the primary key field, avoiding expensive
-        DISTINCTs comparing several fields. This may not work for queries with lots of
-        joins, especially with one-to-many or many-to-many type relationships.
-        If fast_count is disabled, it runs the parent class get_count method.
-        """
-        if self.no_count:
-            raise NotImplementedError(
-                'DefaultPagination class with attribute no_count=True'
-            )
-        if self.fast_count:
-            if queryset.query.distinct:
-                return queryset.only('pk').count()
-
-        return super().get_count(queryset)
+    max_page_size = settings.REST_FRAMEWORK['PAGE_SIZE']
 
     def get_parent_url(self, obj):
         return reverse_lazy('api-root', request=self.context.get('request'))
 
     def get_limit(self, request):
-        if self.limit_query_param:
-            with contextlib.suppress(KeyError, ValueError):
-                return _positive_int(
-                    request.query_params[self.limit_query_param],
-                    strict=True,
-                    cutoff=self.max_limit,
-                )
+        page_number = self.get_page_number(request)
+        limit = request.query_params.get(self.limit_query_param)
+        if limit is None and page_number:
+            limit = self.get_page_size(request)
+        if limit is None:
+            limit = self.default_limit
 
-        return None
+        return _positive_int(limit, strict=True, cutoff=self.max_limit)
 
     def get_offset(self, request):
-        with contextlib.suppress(ValueError, TypeError):
-            offset = (
-                request.query_params.get('offset')
-                or request.query_params.get('start')
-                or request.query_params.get(self.offset_query_param)
-            )
-            return _positive_int(offset)
+        page_number = self.get_page_number(request)
+        offset = (
+            request.query_params.get('offset')
+            or request.query_params.get('start')
+            or request.query_params.get(self.offset_query_param)
+        )
+        if offset is None and page_number:
+            offset = (page_number - 1) * self.get_page_size(request)
 
-        return None
+        return _positive_int(offset, strict=True)
 
     def get_page_number(self, request):
         try:
@@ -82,50 +67,14 @@ class DefaultPagination(LimitOffsetPagination):
             return None
 
     def get_page_size(self, request):
-        if self.page_size_query_param:
-            with contextlib.suppress(KeyError, ValueError):
-                return _positive_int(
-                    request.query_params[self.page_size_query_param],
-                    strict=True,
-                    cutoff=self.max_page_size,
-                )
-        return self.page_size
-
-    def get_paginated_response_schema(self, schema):
-        response_schema = super().get_paginated_response_schema(schema)
-        if self.no_count:
-            response_schema['required'].remove('count')
-            del response_schema['properties']['count']
-        return response_schema
-
-    def get_paginated_response(self, data):
-        if self.no_count:
-            return Response(
-                {
-                    'next': self.get_next_link(),
-                    'previous': self.get_previous_link(),
-                    'results': data,
-                }
+        try:
+            return _positive_int(
+                request.query_params.get(self.page_size_query_param, self.page_size),
+                strict=True,
+                cutoff=self.max_page_size,
             )
-
-        return super().get_paginated_response(data)
-
-    def get_next_link(self):
-        if self.no_count:
-            if not self.has_next:
-                return None
-            url = self.request.build_absolute_uri()
-            url = replace_query_param(url, self.limit_query_param, self.limit)
-            offset = self.offset + self.limit
-            return replace_query_param(url, self.offset_query_param, offset)
-
-        url = super().get_next_link()
-        return remove_query_param(url, self.page_query_param)
-
-    def get_previous_link(self):
-        url = super().get_previous_link()
-        url = remove_query_param(url, self.page_query_param)
-        return url
+        except (ValueError, TypeError):
+            return None
 
     @classmethod
     def custom_class(cls, **kwargs):
@@ -136,21 +85,6 @@ class DefaultPagination(LimitOffsetPagination):
         self.request = request
         self.limit = self.get_limit(request)
         self.offset = self.get_offset(request)
-        page_number = self.get_page_number(request)
-
-        if page_number and not self.limit and not self.offset:
-            self.offset = (page_number - 1) * self.get_page_size(request)
-            self.limit = self.get_page_size(request)
-
-        if not self.offset:
-            self.offset = 0
-        if not self.limit:
-            self.limit = self.default_limit
-
-        if self.no_count:
-            items = list(queryset[self.offset:(self.offset + self.limit + 1)])
-            self.has_next = len(items) > self.limit
-            return items[: self.limit]
 
         self.count = self.get_count(queryset)
         if self.count > self.limit and self.template is not None:
@@ -159,7 +93,7 @@ class DefaultPagination(LimitOffsetPagination):
         if self.count == 0 or self.offset > self.count:
             return []
 
-        return list(queryset[self.offset:(self.offset + self.limit)])
+        return list(queryset[self.offset : (self.offset + self.limit)])
 
 
 class AssetPagination(DefaultPagination):
@@ -261,10 +195,47 @@ class AssetPagination(DefaultPagination):
 
 class NoCountPagination(DefaultPagination):
     """
-    Pagination without counting total results (faster for large datasets).
+    Omits the 'count' field to avoid expensive COUNT(*) queries.
     """
 
-    no_count = True
+    def get_paginated_response_schema(self, schema):
+        response_schema = super().get_paginated_response_schema(schema)
+        response_schema['required'].remove('count')
+        del response_schema['properties']['count']
+        return response_schema
+
+    def get_paginated_response(self, data):
+        return Response(
+            {
+                'next': self.get_next_link(),
+                'previous': self.get_previous_link(),
+                'results': data,
+            }
+        )
+
+    def paginate_queryset(self, queryset, request, view=None):
+        self.request = request
+
+        self.limit = self.get_limit(request)
+        if self.limit is None:
+            return None
+
+        self.offset = self.get_offset(request)
+
+        # Peek one item beyond the current page to see if a next page exists
+        items = list(queryset[self.offset:self.offset + self.limit + 1])
+        self.has_next = len(items) > self.limit
+        return items[:self.limit]
+
+    def get_next_link(self):
+        if not self.has_next:
+            return None
+
+        url = self.request.build_absolute_uri()
+        url = replace_query_param(url, self.limit_query_param, self.limit)
+
+        offset = self.offset + self.limit
+        return replace_query_param(url, self.offset_query_param, offset)
 
 
 class DataPagination(DefaultPagination):
@@ -278,10 +249,17 @@ class DataPagination(DefaultPagination):
 
 class FastPagination(DefaultPagination):
     """
-    Pagination without counting total results (faster for large datasets).
+    Pagination class optimized for faster counting for DISTINCT queries on large tables.
+
+    This class overrides the get_count() method to only look at the primary key field,
+    avoiding expensive DISTINCTs comparing several fields. This may not work for queries
+    with lots of joins, especially with one-to-many or many-to-many type relationships.
     """
 
-    fast_count = True
+    def get_count(self, queryset):
+        if queryset.query.distinct:
+            return queryset.only('pk').count()
+        return super().get_count(queryset)
 
 
 class TinyPagination(PageNumberPagination):
