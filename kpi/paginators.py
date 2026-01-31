@@ -193,6 +193,30 @@ class AssetPagination(DefaultPagination):
         }
 
 
+class DataPagination(DefaultPagination):
+    """
+    Pagination for the data viewset
+    """
+
+    default_limit = 100
+    max_limit = settings.SUBMISSION_LIST_LIMIT
+
+
+class FastPagination(DefaultPagination):
+    """
+    Pagination class optimized for faster counting for DISTINCT queries on large tables.
+
+    This class overrides the get_count() method to only look at the primary key field,
+    avoiding expensive DISTINCTs comparing several fields. This may not work for queries
+    with lots of joins, especially with one-to-many or many-to-many type relationships.
+    """
+
+    def get_count(self, queryset):
+        if queryset.query.distinct:
+            return queryset.only('pk').count()
+        return super().get_count(queryset)
+
+
 class NoCountPagination(DefaultPagination):
     """
     Omits the 'count' field to avoid expensive COUNT(*) queries.
@@ -236,30 +260,6 @@ class NoCountPagination(DefaultPagination):
 
         offset = self.offset + self.limit
         return replace_query_param(url, self.offset_query_param, offset)
-
-
-class DataPagination(DefaultPagination):
-    """
-    Pagination for the data viewset
-    """
-
-    default_limit = 100
-    max_limit = settings.SUBMISSION_LIST_LIMIT
-
-
-class FastPagination(DefaultPagination):
-    """
-    Pagination class optimized for faster counting for DISTINCT queries on large tables.
-
-    This class overrides the get_count() method to only look at the primary key field,
-    avoiding expensive DISTINCTs comparing several fields. This may not work for queries
-    with lots of joins, especially with one-to-many or many-to-many type relationships.
-    """
-
-    def get_count(self, queryset):
-        if queryset.query.distinct:
-            return queryset.only('pk').count()
-        return super().get_count(queryset)
 
 
 class TinyPagination(PageNumberPagination):
