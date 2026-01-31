@@ -41,9 +41,9 @@ class TestDefaultPagination(TestCase):
         self.view = generics.ListAPIView.as_view(
             serializer_class=PassThroughSerializer,
             queryset=range(1, 101),
-            pagination_class=DefaultPagination.custom_class(page_size=5),
+            pagination_class=DefaultPagination,
         )
-        request = self.request_factory.get('/', {'page': 2})
+        request = self.request_factory.get('/', {'page': 2, 'page_size': 5})
         response = self.view(request)
 
         assert response.data['results'] == [6, 7, 8, 9, 10]
@@ -68,7 +68,7 @@ class TestNoCountPagination(TestCase):
             assert 'count' not in response.data
             assert len(response.data['results']) == NoCountPagination.default_limit
 
-    def test_pagination_with_page(self):
+    def test_nocount_with_page_params(self):
         default_limit = NoCountPagination.default_limit
         data = list(range(1, default_limit * 3))
         self.view = generics.ListAPIView.as_view(

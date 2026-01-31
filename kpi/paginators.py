@@ -32,8 +32,6 @@ class DefaultPagination(LimitOffsetPagination):
 
     page_query_param = 'page'
     page_size_query_param = 'page_size'
-    page_size = settings.REST_FRAMEWORK['PAGE_SIZE']
-    max_page_size = settings.REST_FRAMEWORK['PAGE_SIZE']
 
     def get_parent_url(self, obj):
         return reverse_lazy('api-root', request=self.context.get('request'))
@@ -69,9 +67,11 @@ class DefaultPagination(LimitOffsetPagination):
     def get_page_size(self, request):
         try:
             return _positive_int(
-                request.query_params.get(self.page_size_query_param, self.page_size),
+                request.query_params.get(
+                    self.page_size_query_param, self.default_limit
+                ),
                 strict=True,
-                cutoff=self.max_page_size,
+                cutoff=self.max_limit,
             )
         except (ValueError, TypeError):
             return None
