@@ -392,7 +392,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
 
   onSetMapStylesCompleted() {
     // asset is updated, no need to store oberriden styles as they are identical
-    this.setState({ overridenStyles: undefined})
+    this.setState({ overridenStyles: undefined })
   }
 
   /**
