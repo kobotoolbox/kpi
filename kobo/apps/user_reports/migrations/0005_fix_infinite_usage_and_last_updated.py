@@ -32,6 +32,7 @@ def apply_fix(apps, schema_editor):
         )
         return
 
+    # This pulls the *latest* SQL from your updated migrations.py
     schema_editor.execute(DROP_MV_SQL)
     schema_editor.execute(CREATE_MV_SQL)
     schema_editor.execute(CREATE_INDEXES_SQL)
@@ -39,8 +40,8 @@ def apply_fix(apps, schema_editor):
 
 class Migration(migrations.Migration):
     atomic = False
-    dependencies = [('user_reports', '0003_fix_user_role_scopping')]
+    dependencies = [('user_reports', '0004_fix_social_accounts_aggregation')]
 
     operations = [
-        migrations.RunPython(migrations.RunPython.noop, migrations.RunPython.noop),
+        migrations.RunPython(apply_fix, reverse_code=migrations.RunPython.noop),
     ]

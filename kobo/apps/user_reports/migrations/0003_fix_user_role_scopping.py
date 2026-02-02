@@ -15,9 +15,9 @@ def apply_fix(apps, schema_editor):
             f"""
             ⚠️ ATTENTION ⚠️
             Drop the existing materialized view
-            
+
             {DROP_MV_SQL}
-            
+
             Run the SQL query below in PostgreSQL directly to create the materialized view:
 
             {CREATE_MV_SQL}
@@ -42,5 +42,5 @@ class Migration(migrations.Migration):
     dependencies = [('user_reports', '0002_create_user_reports_mv')]
 
     operations = [
-        migrations.RunPython(apply_fix, reverse_code=migrations.RunPython.noop),
+        migrations.RunPython(migrations.RunPython.noop, migrations.RunPython.noop),
     ]
