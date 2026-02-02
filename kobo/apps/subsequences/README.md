@@ -214,9 +214,9 @@ How these selections are determined varies by feature.
         }
       }
       ```
-      </details><summary>Response</summary>
+      </details>
 
-      <details>
+      <details><summary>Response</summary>
 
       ```json
       {
