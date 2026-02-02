@@ -7,8 +7,6 @@ from django.contrib.auth.models import AnonymousUser, Permission
 from django.core.files.base import ContentFile
 from django.test import TestCase
 from django_digest.test import DigestAuth
-from rest_framework import status
-from rest_framework.reverse import reverse
 from rest_framework.test import APIRequestFactory
 
 from kobo.apps.kobo_auth.shortcuts import User
