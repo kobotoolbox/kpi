@@ -1,3 +1,9 @@
+# syntax=docker/dockerfile:1
+# ^  This tells BuildKit to pull the latest stable version
+#    of the Dockerfile syntax before the build.
+#    Improves compatibility for CI runners, which might be
+#    running a slightly older version of docker.
+
 #########################################
 # The Dockerfile has 4 stages now:      #
 #  1. 📦 Node 'npm-install'             #
