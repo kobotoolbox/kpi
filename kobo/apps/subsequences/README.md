@@ -442,7 +442,7 @@ How these selections are determined varies by feature.
 
       ```json
       {
-         "q1":{
+         "audio_question":{
             "manual_transcription":{
               "_dateCreated":"2026-01-28T16:08:16.297609Z",
                "_dateModified":"2026-01-28T16:08:16.297609Z",
@@ -488,22 +488,181 @@ How these selections are determined varies by feature.
 
 #### Qualitative analysis questions
 
-1. Enable manual QA on the question - adds an (empty) column to the submission table
+1. Add QA questions to the audio question - adds (empty) column or columns to the submission table
 `POST /api/v2/assets/{uid_asset}/advanced-features/`
 
 <details><summary>Request</summary>
 
       ```json
       {
-        "question_xpath": "audio_question",
-        "action": "manual_transcription",
-        "params": [
-          {"language": "en"}
+        "question_xpath":"audio_question",
+        "action":"manual_qual",
+        "params":[
+          {
+            "type":"qualSelectOne",
+            "uuid":"7d51e4d4-5ff5-4db7-b70f-a1861a149593",
+            "labels":{
+              "_default": "Did the respondant eat cheesecake?"
+            },
+            "choices":[
+              {
+                "uuid":"qqqqqqqq-bbbb-cccc-dddd-eeeeffffffff",
+                "labels":{
+                  "_default":"Yes"
+                }
+              },
+              {
+                "uuid":"hhhhhhhh-bbbb-cccc-dddd-eeeeffffffff",
+                "labels":{
+                  "_default":"No"
+                }
+              }
+            ]
+          },
+          {
+            "type": "qualInteger",
+            "uuid": "a65e272b-4ba6-4487-a33e-d96f6f73d9a3",
+            "labels": {
+              "_default": "How many pieces of cheesecake did they eat?"
+            }
+          }
         ]
       }
       ```
 </details>
 
+<details><summary>Response</summary>
+
+      ```json
+      {
+        "uid": "qafAe1kj394RRfsla4ior",
+        "question_xpath":"audio_question",
+        "action":"manual_qual",
+        "params":[
+          {
+            "type":"qualSelectOne",
+            "uuid":"7d51e4d4-5ff5-4db7-b70f-a1861a149593",
+            "labels":{
+              "_default": "Did the respondant eat cheesecake?"
+            },
+            "choices":[
+              {
+                "uuid":"qqqqqqqq-bbbb-cccc-dddd-eeeeffffffff",
+                "labels":{
+                  "_default":"Yes"
+                }
+              },
+              {
+                "uuid":"hhhhhhhh-bbbb-cccc-dddd-eeeeffffffff",
+                "labels":{
+                  "_default":"No"
+                }
+              }
+            ]
+          },
+          {
+            "type": "qualInteger",
+            "uuid": "a65e272b-4ba6-4487-a33e-d96f6f73d9a3",
+            "labels": {
+              "_default": "How many pieces of cheesecake did they eat?"
+            }
+          }
+        ]
+      }
+      ```
+
+</details>
+
+2. Add a response - Response will be shown in the submission row
+`PATCH /api/v2/assets/{uid_asset}/data/submissions/{uid_submission}/supplement/`
+
+<details><summary>Request</summary>
+
+      ```json
+      {
+        "_version": "20250820",
+        "audio_question": {
+          "manual_qual": {
+            "uuid": "7d51e4d4-5ff5-4db7-b70f-a1861a149593",
+            "value": "qqqqqqqq-bbbb-cccc-dddd-eeeeffffffff"
+          }
+        }
+      }
+      ```
+</details>
+
+<details><summary>Response</summary>
+
+      ```json
+      "audio_question":{
+        "manual_qual":{
+          "7d51e4d4-5ff5-4db7-b70f-a1861a149593": {
+            "_dateCreated":"2026-01-28T16:08:16.297609Z",
+            "_dateModified":"2026-01-28T16:08:16.297609Z",
+            "_versions":[
+              {
+                "_data":{
+                  "value": "qqqqqqqq-bbbb-cccc-dddd-eeeeffffffff"
+                },
+                "_uuid":"9cc2ac6d-4835-4935-b776-1f268c1b8e8d",
+                "_dateCreated":"2026-01-28T16:08:16.297609Z",
+                "_dateAccepted":"2026-01-28T16:08:16.297609Z"
+              }
+            ]
+          }
+        }
+      }
+      ```
+</details>
+
+3. Delete the answer - Response no longer shown in the submission row
+
+<details><summary>Request</summary>
+
+      ```json
+      {
+        "_version": "20250820",
+        "audio_question": {
+          "manual_qual": {
+            "uuid": "7d51e4d4-5ff5-4db7-b70f-a1861a149593",
+            "value": ""
+          }
+        }
+      }
+      ```
+</details>
+
+<details><summary>Response</summary>
+
+      ```json
+      "audio_question":{
+        "manual_qual":{
+          "7d51e4d4-5ff5-4db7-b70f-a1861a149593": {
+            "_dateCreated":"2026-01-28T16:08:16.297609Z",
+            "_dateModified":"2026-01-28T16:08:16.297609Z",
+            "_versions":
+              {
+                "_data":{
+                  "value": ""
+                },
+                "_uuid":"1e7e1cd1-a1af-4ba0-a982-c37f2a55c229",
+                "_dateCreated":"2026-01-28T16:10:16.297609Z",
+                "_dateAccepted":"2026-01-28T16:10:16.297609Z"
+              },
+              {
+                "_data":{
+                  "value": "qqqqqqqq-bbbb-cccc-dddd-eeeeffffffff"
+                },
+                "_uuid":"9cc2ac6d-4835-4935-b776-1f268c1b8e8d",
+                "_dateCreated":"2026-01-28T16:08:16.297609Z",
+                "_dateAccepted":"2026-01-28T16:08:16.297609Z"
+              }
+            ]
+          }
+        }
+      }
+      ```
+</details>
 
 ## 3 Sequence Workflow - Backend (End-to-End Flow)
 
