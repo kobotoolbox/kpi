@@ -634,7 +634,7 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
 
 class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
 
-    def test_cannot_patch_if_question_has_no_configured_actions(self):
+    def test_cannot_patch_if_question_does_not_have_action_configured(self):
         payload = {
             '_version': '20250820',
             'q1': {
@@ -650,41 +650,37 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
             self.supplement_details_url, data=payload, format='json'
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert 'Invalid action' in str(response.data)
-
-    def test_cannot_patch_if_action_is_invalid(self):
-        # Activate manual transcription (even though payload asks for translation)
-        payload = {
-            '_version': '20250820',
-            'q1': {
-                'manual_translation': {
-                    'language': 'es',
-                    'value': 'buenas noches',
-                },
-            },
-        }
-
-        # No actions activated for q1
-        response = self.client.patch(
-            self.supplement_details_url, data=payload, format='json'
+        assert (
+            'This action does not exist or is not configured for this question'
+            in str(response.data)
         )
 
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert 'Invalid action' in str(response.data)
-
-        # Activate manual transcription (even if payload asks for translation)
+    def test_cannot_patch_if_action_is_invalid(self):
         QuestionAdvancedFeature.objects.create(
             asset=self.asset,
             question_xpath='q1',
             action='manual_transcription',
             params=[{'language': 'es'}],
         )
+        payload = {
+            '_version': '20250820',
+            'q1': {
+                'bananas': {
+                    'language': 'es',
+                    'value': 'buenas noches',
+                },
+            },
+        }
 
         response = self.client.patch(
             self.supplement_details_url, data=payload, format='json'
         )
+
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert 'Invalid action' in str(response.data)
+        assert (
+            'This action does not exist or is not configured for this question'
+            in str(response.data)
+        )
 
     def test_cannot_patch_with_invalid_payload(self):
         QuestionAdvancedFeature.objects.create(
@@ -697,7 +693,7 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
         payload = {
             '_version': '20250820',
             'q1': {
-                'manual_translation': {
+                'manual_transcription': {
                     'languageCode': 'es',  # wrong attribute
                     'value': 'buenas noches',
                 },
@@ -709,7 +705,7 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert 'Invalid action' in str(response.data)
+        assert 'Invalid payload' in str(response.data)
 
     def test_cannot_accept_incomplete_automatic_transcription(self):
         # Set up the asset to allow automatic google transcription
@@ -812,7 +808,7 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
         )
         # Should fail because there's nothing to delete
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert 'Subsequence deletion error' in str(response.data)
+        assert 'Attempt to delete non-existent value' in str(response.data)
 
         # Verify no entry was created
         supplement = SubmissionSupplement.objects.filter(
