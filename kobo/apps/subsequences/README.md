@@ -16,7 +16,7 @@ It covers how the payload is validated through the various schemas (`params_sche
 2. [Subsequence workflow](#subsequence-workflow---backend-end-to-end-flow)
    1. [Sequence diagram](#sequence-diagram--end-to-end)
    2. [Background polling with celery](#background-polling-with-celery)
-   3. [revise_data - flowchart](#revise_data---flowchart-)
+   3. [revise_data - flowchart](#revise_data---flowchart)
 3. [Where schemas apply](#where-schemas-apply)
    1. [params_schema](#params_schema)
    2. [data_schema](#data_schema)
