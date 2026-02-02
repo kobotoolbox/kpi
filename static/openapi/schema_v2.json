@@ -2216,8 +2216,6 @@
                             "examples": {
                                 "NLPAdvancedFeatures": {
                                     "value": {
-                                        "action": "<action_id>",
-                                        "question_xpath": "q1",
                                         "params": [
                                             {
                                                 "language": "es"
@@ -2232,8 +2230,6 @@
                                 },
                                 "QualitativeAnalysis-SimpleTypes": {
                                     "value": {
-                                        "action": "manual_qual",
-                                        "question_xpath": "q1",
                                         "params": [
                                             {
                                                 "type": "<question_type>",
@@ -2249,8 +2245,6 @@
                                 },
                                 "QualitativeAnalysis-SingleChoiceQuestion": {
                                     "value": {
-                                        "action": "manual_qual",
-                                        "question_xpath": "q1",
                                         "params": [
                                             {
                                                 "type": "qualSelectOne",
@@ -2285,8 +2279,6 @@
                                 },
                                 "QualitativeAnalysis-MultipleChoiceQuestion": {
                                     "value": {
-                                        "action": "manual_qual",
-                                        "question_xpath": "q1",
                                         "params": [
                                             {
                                                 "type": "qualSelectMultiple",

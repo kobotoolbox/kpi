@@ -1536,8 +1536,6 @@ paths:
             examples:
               NLPAdvancedFeatures:
                 value:
-                  action: <action_id>
-                  question_xpath: q1
                   params:
                   - language: es
                   - language: fr
@@ -1551,8 +1549,6 @@ paths:
                   * `automatic_google_translation`
               QualitativeAnalysis-SimpleTypes:
                 value:
-                  action: manual_qual
-                  question_xpath: q1
                   params:
                   - type: <question_type>
                     uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
@@ -1563,8 +1559,6 @@ paths:
                   * `qualInteger` \n* `qualTags` \n* `qualNote` \n"
               QualitativeAnalysis-SingleChoiceQuestion:
                 value:
-                  action: manual_qual
-                  question_xpath: q1
                   params:
                   - type: qualSelectOne
                     uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
@@ -1583,8 +1577,6 @@ paths:
                 summary: Qualitative Analysis - Single Choice Question
               QualitativeAnalysis-MultipleChoiceQuestion:
                 value:
-                  action: manual_qual
-                  question_xpath: q1
                   params:
                   - type: qualSelectMultiple
                     uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
