@@ -135,8 +135,12 @@ class Fix:
                 'properties': {
                     'uuid': {'$ref': '#/$defs/qualUuid'},
                     'value': {},
+                    'verified': {'type': 'boolean'},
                 },
-                'required': ['uuid', 'value'],
+                'oneOf': [
+                    {'required': ['uuid', 'value'], 'not': {'required': ['verified']}},
+                    {'required': ['uuid', 'verified'], 'not': {'required': ['value']}},
+                ],
             },
             'qualInteger': {
                 'type': 'object',
@@ -329,6 +333,10 @@ class Fix:
             # type is qualText
             'value': 'As the eagle and the wild goose see it',
         },
+        {
+            'uuid': FIX_QUAL_TEXT_UUID,
+            'verified': True,
+        },
     ]
     valid_empty_responses = [
         {
@@ -403,6 +411,11 @@ class Fix:
             'type': 'qualText',
             'value': 'the type is not to be included as an attribute',
         },
+        {
+            'uuid': FIX_QUAL_TEXT_UUID,
+            'value': 'Verified and value should not both be present',
+            'verified': True,
+        }
     ]
 
     # Results, including multiple versions of responses
