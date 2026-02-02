@@ -491,7 +491,7 @@ How these selections are determined varies by feature.
 1. Add QA questions to the audio question - adds (empty) column or columns to the submission table
 `POST /api/v2/assets/{uid_asset}/advanced-features/`
 
-<details><summary>Request</summary>
+      <details><summary>Request</summary>
 
       ```json
       {
@@ -529,9 +529,9 @@ How these selections are determined varies by feature.
         ]
       }
       ```
-</details>
+      </details>
 
-<details><summary>Response</summary>
+      <details><summary>Response</summary>
 
       ```json
       {
@@ -571,12 +571,12 @@ How these selections are determined varies by feature.
       }
       ```
 
-</details>
+      </details>
 
 2. Add a response - Response will be shown in the submission row
 `PATCH /api/v2/assets/{uid_asset}/data/submissions/{uid_submission}/supplement/`
 
-<details><summary>Request</summary>
+      <details><summary>Request</summary>
 
       ```json
       {
@@ -589,9 +589,9 @@ How these selections are determined varies by feature.
         }
       }
       ```
-</details>
+      </details>
 
-<details><summary>Response</summary>
+      <details><summary>Response</summary>
 
       ```json
       "audio_question":{
@@ -613,11 +613,11 @@ How these selections are determined varies by feature.
         }
       }
       ```
-</details>
+      </details>
 
 3. Delete the answer - Response no longer shown in the submission row
 
-<details><summary>Request</summary>
+      <details><summary>Request</summary>
 
       ```json
       {
@@ -630,9 +630,9 @@ How these selections are determined varies by feature.
         }
       }
       ```
-</details>
+      </details>
 
-<details><summary>Response</summary>
+      <details><summary>Response</summary>
 
       ```json
       "audio_question":{
@@ -662,7 +662,7 @@ How these selections are determined varies by feature.
         }
       }
       ```
-</details>
+      </details>
 
 ## 3 Sequence Workflow - Backend (End-to-End Flow)
 
