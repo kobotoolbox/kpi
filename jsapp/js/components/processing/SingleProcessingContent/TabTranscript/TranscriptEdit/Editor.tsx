@@ -163,7 +163,7 @@ export default function Editor({
           <Button
             type='secondary'
             size='s'
-            label={value === initialValue ? t('Back') : t('Discard')}
+            label={value !== initialValue || unacceptedAutomaticTranscript ? t('Discard') : t('Back')}
             onClick={handleDiscard}
             isDisabled={patch.isPending || !userCan('change_submissions', asset)}
           />

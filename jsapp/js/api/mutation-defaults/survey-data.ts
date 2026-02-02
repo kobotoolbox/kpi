@@ -18,7 +18,6 @@ import type { DataSupplementResponseOneOfManualQual } from '../models/dataSupple
 import type { DataSupplementResponseOneOfManualTranscription } from '../models/dataSupplementResponseOneOfManualTranscription'
 import type { DataSupplementResponseOneOfManualTranslation } from '../models/dataSupplementResponseOneOfManualTranslation'
 import type { PatchedDataSupplementPayloadOneOf } from '../models/patchedDataSupplementPayloadOneOf'
-import type { PatchedDataSupplementPayloadOneOfAutomaticGoogleTranscription } from '../models/patchedDataSupplementPayloadOneOfAutomaticGoogleTranscription'
 import type { PatchedDataSupplementPayloadOneOfAutomaticGoogleTranslation } from '../models/patchedDataSupplementPayloadOneOfAutomaticGoogleTranslation'
 import type { PatchedDataSupplementPayloadOneOfManualQual } from '../models/patchedDataSupplementPayloadOneOfManualQual'
 import type { PatchedDataSupplementPayloadOneOfManualTranscription } from '../models/patchedDataSupplementPayloadOneOfManualTranscription'
@@ -209,6 +208,7 @@ queryClient.setMutationDefaults(
             }
           }
           case ActionEnum.automatic_google_transcription: {
+            const datumTyped = datum as PatchedDataSupplementPayloadOneOfAutomaticGoogleTranslation
             const itemSnapshot = await optimisticallyUpdateItem<assetsDataSupplementRetrieveResponse>(
               getAssetsDataSupplementRetrieveQueryKey(uidAsset, rootUuid),
               (response) =>
@@ -226,8 +226,8 @@ queryClient.setMutationDefaults(
                                 {
                                   _uuid: '<server-generated-not-used>',
                                   _data: {
-                                    ...(datum as PatchedDataSupplementPayloadOneOfAutomaticGoogleTranscription),
-                                    status: 'in_progress',
+                                    ...datumTyped,
+                                    ...((datumTyped as any).value !== null ? { status: 'in_progress' } : {}), // TODO OpenAPI types, see DEV-????
                                   },
                                   _dateCreated: new Date().toISOString(),
                                 }, // Note: this is the actual optimistally added object.
@@ -246,7 +246,8 @@ queryClient.setMutationDefaults(
             }
           }
           case ActionEnum.automatic_google_translation: {
-            const { language } = datum as PatchedDataSupplementPayloadOneOfAutomaticGoogleTranslation
+            const datumTyped = datum as PatchedDataSupplementPayloadOneOfAutomaticGoogleTranslation
+            const { language } = datumTyped
             const itemSnapshot = await optimisticallyUpdateItem<assetsDataSupplementRetrieveResponse>(
               getAssetsDataSupplementRetrieveQueryKey(uidAsset, rootUuid),
               (response) =>
@@ -266,8 +267,8 @@ queryClient.setMutationDefaults(
                                   {
                                     _uuid: '<server-generated-not-used>',
                                     _data: {
-                                      ...(datum as PatchedDataSupplementPayloadOneOfAutomaticGoogleTranslation),
-                                      status: 'in_progress',
+                                      ...datumTyped,
+                                      ...((datumTyped as any).value !== null ? { status: 'in_progress' } : {}), // TODO OpenAPI types, see DEV-????
                                     },
                                     _dateCreated: new Date().toISOString(),
                                   }, // Note: this is the actual optimistally added object.
@@ -308,9 +309,9 @@ queryClient.setMutationDefaults(
         queryClient.cancelQueries({ queryKey, exact: true })
 
         const mutationKey = getAssetsDataSupplementPartialUpdateMutationOptions().mutationKey!
-        if (queryClient.isMutating({ mutationKey }) !== 1) {
-          queryClient.setQueryData(queryKey, response)
-        }
+        if (queryClient.isMutating({ mutationKey }) > 1) return
+
+        queryClient.setQueryData(queryKey, response)
       },
     },
   }),
