@@ -13,6 +13,16 @@ It covers how the payload is validated through the various schemas (`params_sche
       1. [Automatic transcription](#automatic-transcription)
       2. [Manual transcription/translation](#manual-transcriptiontranslation)
       3. [Qualitative analysis](#qualitative-analysis-questions)
+2. [Subsequence workflow](#subsequence-workflow---backend-end-to-end-flow)
+   1. [Sequence diagram](#sequence-diagram--end-to-end)
+   2. [Background polling with celery](#background-polling-with-celery)
+   3. [revise_data - flowchart](#revise_data---flowchart-)
+3. [Where schemas apply](#where-schemas-apply)
+   1. [params_schema](#params_schema)
+   2. [data_schema](#data_schema)
+   3. [external_data_schema](#external_data_schema)
+   4. [result_schema](#result_schema)
+   5. [result_schema with dependencies](#result_schema-with-dependencies)
 
 ## Subsequence user flow
 
@@ -594,21 +604,23 @@ How these selections are determined varies by feature.
       <details><summary>Response</summary>
 
       ```json
-      "audio_question":{
-        "manual_qual":{
-          "7d51e4d4-5ff5-4db7-b70f-a1861a149593": {
-            "_dateCreated":"2026-01-28T16:08:16.297609Z",
-            "_dateModified":"2026-01-28T16:08:16.297609Z",
-            "_versions":[
-              {
-                "_data":{
-                  "value": "qqqqqqqq-bbbb-cccc-dddd-eeeeffffffff"
-                },
-                "_uuid":"9cc2ac6d-4835-4935-b776-1f268c1b8e8d",
-                "_dateCreated":"2026-01-28T16:08:16.297609Z",
-                "_dateAccepted":"2026-01-28T16:08:16.297609Z"
-              }
-            ]
+      {
+        "audio_question":{
+          "manual_qual":{
+            "7d51e4d4-5ff5-4db7-b70f-a1861a149593": {
+              "_dateCreated":"2026-01-28T16:08:16.297609Z",
+              "_dateModified":"2026-01-28T16:08:16.297609Z",
+              "_versions":[
+                {
+                  "_data":{
+                    "value": "qqqqqqqq-bbbb-cccc-dddd-eeeeffffffff"
+                  },
+                  "_uuid":"9cc2ac6d-4835-4935-b776-1f268c1b8e8d",
+                  "_dateCreated":"2026-01-28T16:08:16.297609Z",
+                  "_dateAccepted":"2026-01-28T16:08:16.297609Z"
+                }
+              ]
+            }
           }
         }
       }
@@ -616,6 +628,7 @@ How these selections are determined varies by feature.
       </details>
 
 3. Delete the answer - Response no longer shown in the submission row
+`PATCH /api/v2/assets/{uid_asset}/data/submissions/{uid_submission}/supplement/`
 
       <details><summary>Request</summary>
 
@@ -635,41 +648,43 @@ How these selections are determined varies by feature.
       <details><summary>Response</summary>
 
       ```json
-      "audio_question":{
-        "manual_qual":{
-          "7d51e4d4-5ff5-4db7-b70f-a1861a149593": {
-            "_dateCreated":"2026-01-28T16:08:16.297609Z",
-            "_dateModified":"2026-01-28T16:08:16.297609Z",
-            "_versions":
-              {
-                "_data":{
-                  "value": ""
+      {
+        "audio_question":{
+          "manual_qual":{
+            "7d51e4d4-5ff5-4db7-b70f-a1861a149593": {
+              "_dateCreated":"2026-01-28T16:08:16.297609Z",
+              "_dateModified":"2026-01-28T16:08:16.297609Z",
+              "_versions": [
+                {
+                  "_data":{
+                    "value": ""
+                  },
+                  "_uuid":"1e7e1cd1-a1af-4ba0-a982-c37f2a55c229",
+                  "_dateCreated":"2026-01-28T16:10:16.297609Z",
+                  "_dateAccepted":"2026-01-28T16:10:16.297609Z"
                 },
-                "_uuid":"1e7e1cd1-a1af-4ba0-a982-c37f2a55c229",
-                "_dateCreated":"2026-01-28T16:10:16.297609Z",
-                "_dateAccepted":"2026-01-28T16:10:16.297609Z"
-              },
-              {
-                "_data":{
-                  "value": "qqqqqqqq-bbbb-cccc-dddd-eeeeffffffff"
-                },
-                "_uuid":"9cc2ac6d-4835-4935-b776-1f268c1b8e8d",
-                "_dateCreated":"2026-01-28T16:08:16.297609Z",
-                "_dateAccepted":"2026-01-28T16:08:16.297609Z"
-              }
-            ]
+                {
+                  "_data":{
+                    "value": "qqqqqqqq-bbbb-cccc-dddd-eeeeffffffff"
+                  },
+                  "_uuid":"9cc2ac6d-4835-4935-b776-1f268c1b8e8d",
+                  "_dateCreated":"2026-01-28T16:08:16.297609Z",
+                  "_dateAccepted":"2026-01-28T16:08:16.297609Z"
+                }
+              ]
+            }
           }
         }
       }
       ```
       </details>
 
-## 3 Sequence Workflow - Backend (End-to-End Flow)
+## Subsequence workflow - backend (end-to-end flow)
 
 This section explains how the system handles a supplement from the initial
 client request, through validation and optional background retries.
 
-### 3.1 Sequence Diagram – End-to-End
+### Sequence diagram – end-to-end
 
 > The diagram shows the synchronous request until the first response.
 
@@ -714,7 +729,7 @@ API-->>Client: 200 OK (or error)
 
 ---
 
-### 3.2 Background Polling with Celery
+### Background polling with celery
 
 If run_external_process receives a response like:
 
@@ -731,7 +746,7 @@ before persisting the final revision.
 
 ---
 
-### 3.3 Flowchart (Logic inside `revise_data` per Action)
+### `revise_data` - flowchart
 
 > This diagram shows the decision tree when validating and processing a single action payload.
 
@@ -773,7 +788,7 @@ flowchart TB
 
 ---
 
-## 4. Where Schemas Apply
+## Where schemas apply
 
 Every action relies on a set of schemas to validate its lifecycle:
 - **`params_schema`** – defines how the action is instantiated and configured on the Asset.
@@ -783,7 +798,7 @@ Every action relies on a set of schemas to validate its lifecycle:
 
 ---
 
-### 4.1 `params_schema`
+### `params_schema`
 
 Defined on all classes inheriting from `BaseAction`.
 It describes the configuration stored on a `QuestionAdvancedFeature` when an action is enabled.
@@ -825,7 +840,7 @@ It describes the configuration stored on a `QuestionAdvancedFeature` when an act
 
 ---
 
-### 4.2 `data_schema`
+### data_schema`
 
 Validates the **client payload** sent for a supplement.
 Each action has its own expected format:
@@ -865,7 +880,7 @@ Each action has its own expected format:
 
 ---
 
-### 4.3 `external_data_schema`
+### `external_data_schema`
 
 Used only for **automatic actions** (`BaseAutomaticNLPAction`).
 It validates the **augmented payload** returned by the external service.
@@ -892,7 +907,7 @@ It validates the **augmented payload** returned by the external service.
 
 ---
 
-### 4.4 `result_schema`
+### `result_schema`
 
 Validates the **revision JSON** persisted in the database.
 The structure is the same for both manual and automatic actions:
@@ -1014,7 +1029,7 @@ The structure is the same for both manual and automatic actions:
 
 ---
 
-### 4.5 `result_schema` with dependencies
+### `result_schema` with dependencies
 
 Some actions depend on the result of other actions.
 For example, a **translation** action requires an existing **transcription**.
