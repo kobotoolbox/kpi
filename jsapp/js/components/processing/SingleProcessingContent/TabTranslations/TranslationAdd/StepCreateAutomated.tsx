@@ -17,7 +17,7 @@ import RegionSelector from '#/components/languages/regionSelector'
 import { SUBSEQUENCES_SCHEMA_VERSION } from '#/components/processing/common/constants'
 import { getLatestAutomaticTranslationVersionItem } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
-import { removeDefaultUuidPrefix } from '#/utils'
+import { notify, removeDefaultUuidPrefix } from '#/utils'
 import bodyStyles from '../../../common/processingBody.module.scss'
 
 interface Props {
@@ -47,8 +47,21 @@ export default function StepCreateAutomated({
 
   const mutationCreateAF = useAssetsAdvancedFeaturesCreate()
   const mutationPatchAF = useAssetsAdvancedFeaturesPartialUpdate()
-
-  const mutationCreateAutomaticTranslation = useAssetsDataSupplementPartialUpdate()
+  const mutationCreateAutomaticTranslation = useAssetsDataSupplementPartialUpdate({
+    mutation: {
+      onSuccess(response, _variables, _context) {
+        if (response.status !== 200) return // just a typeguard, shouldn't happen in `onSuccess`.
+        const translationVersion = getLatestAutomaticTranslationVersionItem(response.data, questionXpath, languageCode)
+        if (
+          translationVersion?._data &&
+          'status' in translationVersion?._data &&
+          translationVersion?._data.status === 'failed'
+        ) {
+          notify(translationVersion?._data.error, 'error', {}, translationVersion?._data.error)
+        }
+      },
+    },
+  })
 
   const latestAutomaticTranslation =
     mutationCreateAutomaticTranslation.data?.status === 200
