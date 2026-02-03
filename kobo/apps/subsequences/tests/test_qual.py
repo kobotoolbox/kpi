@@ -276,8 +276,9 @@ class Fix:
                             'properties': {
                                 '_data': {'$ref': '#/$defs/dataSchema'},
                                 '_dateCreated': {'$ref': '#/$defs/dateTime'},
-                                '_dateAccepted': {'$ref': '#/$defs/dateTime'},
+                                '_dateVerified': {'$ref': '#/$defs/dateTime'},
                                 '_uuid': {'$ref': '#/$defs/uuid'},
+                                'verified': {'type': 'boolean'},
                             },
                             'required': ['_data', '_dateCreated', '_uuid'],
                         },
@@ -463,7 +464,6 @@ class Fix:
                         'value': 3,  # Filled response recorded first
                     },
                     '_dateCreated': '2025-01-01T11:11:11Z',
-                    '_dateAccepted': '2025-01-01T11:11:11Z',
                     '_uuid': 'a9a817c0-7208-4063-bab6-93c0a3a7615b',
                 },
             ],
@@ -478,7 +478,6 @@ class Fix:
                         'value': [],
                     },
                     '_dateCreated': '2025-02-02T11:11:11Z',
-                    '_dateAccepted': '2025-02-02T11:11:11Z',
                     '_uuid': '409c690e-d148-4d80-8c73-51be941b33b0',
                 },
                 {
@@ -490,7 +489,6 @@ class Fix:
                         ],
                     },
                     '_dateCreated': '2025-02-01T11:11:11Z',
-                    '_dateAccepted': '2025-02-01T11:11:11Z',
                     '_uuid': '20dd5185-ee43-451f-8759-2f5185c3c912',
                 },
             ],
@@ -505,7 +503,6 @@ class Fix:
                         'value': '',
                     },
                     '_dateCreated': '2025-03-02T11:11:11Z',
-                    '_dateAccepted': '2025-03-02T11:11:11Z',
                     '_uuid': '5799f662-76d7-49ab-9a1c-ae2c7d502a78',
                 },
                 {
@@ -514,7 +511,6 @@ class Fix:
                         'value': FIX_CHOICE_NO_UUID,
                     },
                     '_dateCreated': '2025-03-01T11:11:11Z',
-                    '_dateAccepted': '2025-03-01T11:11:11Z',
                     '_uuid': '49fbd509-e042-44ce-843c-db04485a0096',
                 },
             ],
@@ -529,7 +525,6 @@ class Fix:
                         'value': [],
                     },
                     '_dateCreated': '2025-04-02T11:11:11Z',
-                    '_dateAccepted': '2025-04-02T11:11:11Z',
                     '_uuid': '64e59cc1-adaf-47a3-a068-550854d8f98f',
                 },
                 {
@@ -538,7 +533,6 @@ class Fix:
                         'value': ['Quinobequin', 'Doughboy Donuts'],
                     },
                     '_dateCreated': '2025-04-01T11:11:11Z',
-                    '_dateAccepted': '2025-04-01T11:11:11Z',
                     '_uuid': 'c4fa8263-50c0-4252-9c9b-216ca338be13',
                 },
             ],
@@ -553,7 +547,6 @@ class Fix:
                         'value': '',
                     },
                     '_dateCreated': '2025-05-02T11:11:11Z',
-                    '_dateAccepted': '2025-05-02T11:11:11Z',
                     '_uuid': '15ccc864-0e83-48f2-be1d-dc2adb9297f4',
                 },
                 {
@@ -562,7 +555,6 @@ class Fix:
                         'value': 'As the eagle and the wild goose see it',
                     },
                     '_dateCreated': '2025-05-01T11:11:11Z',
-                    '_dateAccepted': '2025-05-01T11:11:11Z',
                     '_uuid': '909c62cf-d544-4926-8839-7f035c6c7483',
                 },
             ],

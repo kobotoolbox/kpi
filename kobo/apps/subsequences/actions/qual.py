@@ -246,8 +246,9 @@ class BaseQualAction(BaseAction):
                                 'properties': {
                                     '_data': {'$ref': '#/$defs/dataSchema'},
                                     '_dateCreated': {'$ref': '#/$defs/dateTime'},
-                                    '_dateAccepted': {'$ref': '#/$defs/dateTime'},
+                                    '_dateVerified': {'$ref': '#/$defs/dateTime'},
                                     '_uuid': {'$ref': '#/$defs/uuid'},
+                                    'verified': {'type': 'boolean'},
                                 },
                                 'required': ['_data', '_dateCreated', '_uuid'],
                             },
