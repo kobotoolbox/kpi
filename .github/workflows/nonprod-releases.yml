@@ -55,11 +55,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # 2026-02-02 - TEMPORARY
-      - name: Try installing docker v29.1.5
-        uses: docker/setup-docker-action@v4
-        with: { version: v29.1.5 }
-
       - name: build image
         run: |
           CI_COMMIT_REF_NAME_SANITIZED=${GITHUB_REF_NAME/\#/-}
