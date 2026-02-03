@@ -82,7 +82,7 @@ export default function AnalysisQuestionListItem({
           data: assetsDataSupplementRetrieveResponse,
         ): _DataSupplementResponseOneOfManualQualVersionsItem | undefined => {
           if (data.status !== 200) return // typeguard, should never happen
-          return data.data[questionXpath].manual_qual?.[qaQuestion.uuid]?._versions[0]
+          return data.data[questionXpath]?.manual_qual?.[qaQuestion.uuid]?._versions[0]
         },
         [questionXpath, qaQuestion.uuid],
       ),
