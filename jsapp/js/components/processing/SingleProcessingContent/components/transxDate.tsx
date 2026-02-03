@@ -25,8 +25,8 @@ export default function TransxDate({ transxVersion, supplement, xpath }: TransxD
   }
 
   // Note: we don't use any `_dateModified` here, because modifying through API is just creating a new version
-  const shortDate = formatTimeDateShort(transxVersion._dateCreated)
-  const longDateRaw = formatTime(transxVersion._dateCreated)
+  const shortDate = formatTimeDateShort(transxVersion._dateAccepted ?? transxVersion._dateCreated)
+  const longDateRaw = formatTime(transxVersion._dateAccepted ?? transxVersion._dateCreated)
 
   const longDate = useMemo(() => {
     // Step 1. if transxVersion is an unaccepted automated one, show "generated".
