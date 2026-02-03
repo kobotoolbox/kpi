@@ -20,7 +20,6 @@ from kobo.celery import celery_app
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
-from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
 from kpi.utils.log import logging
 from ..main.models import UserProfile
 from .constants import SUBMISSIONS_SUSPENDED_HEARTBEAT_KEY

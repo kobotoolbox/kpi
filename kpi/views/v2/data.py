@@ -480,7 +480,10 @@ class DataViewSet(
 
         format_type = kwargs.get('format', request.GET.get('format', 'json'))
         submission = self._get_submission_by_id_or_root_uuid(
-            pk, request, format_type=format_type, for_output=True,
+            pk,
+            request,
+            format_type=format_type,
+            for_output=True,
         )
         return Response(submission)
 

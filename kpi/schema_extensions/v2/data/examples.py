@@ -49,7 +49,9 @@ def _get_data_supplement_patch_payload_request_examples() -> list[OpenApiExample
                 '_version': '20250820',
                 'question_name_xpath': {
                     'manual_transcription': {
-                        'language': 'fr', 'locale': 'fr-CA', 'value': 'Bonjour'
+                        'language': 'fr',
+                        'locale': 'fr-CA',
+                        'value': 'Bonjour',
                     }
                 },
             },

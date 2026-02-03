@@ -3,7 +3,6 @@ from drf_spectacular.plumbing import build_array_type
 
 from kpi.schema_extensions.v2.generic.schema import GENERIC_STRING_SCHEMA
 from kpi.utils.schema_extensions.mixins import ComponentRegistrationMixin
-
 from .schema import SELECT_QUESTION_TYPE_ENUM, SIMPLE_QUESTION_TYPE_ENUM
 
 

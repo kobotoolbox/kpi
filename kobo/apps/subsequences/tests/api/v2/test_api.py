@@ -979,21 +979,21 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
                             '_data': {
                                 'language': 'en',
                                 'status': 'deleted',
-                                'value': None
+                                'value': None,
                             },
                             '_dateCreated': '2026-01-01T12:00:00Z',
-                            '_uuid': str(uuid.uuid4())
+                            '_uuid': str(uuid.uuid4()),
                         },
                         {
                             '_data': {
                                 'language': 'en',
                                 'status': 'complete',
-                                'value': 'Old valid text'
+                                'value': 'Old valid text',
                             },
                             '_dateCreated': '2026-01-01T11:00:00Z',
                             '_dateAccepted': '2026-01-01T11:05:00Z',
-                            '_uuid': str(uuid.uuid4())
-                        }
+                            '_uuid': str(uuid.uuid4()),
+                        },
                     ],
                 }
             },
@@ -1009,11 +1009,7 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
         # Attempt to translate
         translation_payload = {
             '_version': '20250820',
-            'q1': {
-                'automatic_google_translation': {
-                    'language': 'es'
-                }
-            },
+            'q1': {'automatic_google_translation': {'language': 'es'}},
         }
 
         response = self.client.patch(
@@ -1060,7 +1056,7 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
                             '_data': {
                                 'language': 'en',
                                 'status': 'complete',
-                                'value': 'Auto text'
+                                'value': 'Auto text',
                             },
                             '_dateCreated': '2025-01-01T10:00:00Z',
                             '_dateAccepted': '2025-01-01T10:00:00Z',
@@ -1073,24 +1069,18 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
                     '_dateModified': '2025-01-02T12:00:00Z',
                     '_versions': [
                         {
-                            '_data': {
-                                'language': 'en',
-                                'value': None
-                            },
+                            '_data': {'language': 'en', 'value': None},
                             '_dateCreated': '2025-01-02T12:00:00Z',
                             '_uuid': manual_uuid,
                         },
                         {
-                            '_data': {
-                                'language': 'en',
-                                'value': 'Manual text'
-                            },
+                            '_data': {'language': 'en', 'value': 'Manual text'},
                             '_dateCreated': '2025-01-01T11:00:00Z',
                             '_dateAccepted': '2025-01-01T11:00:00Z',
                             '_uuid': manual_history_uuid,
-                        }
+                        },
                     ],
-                }
+                },
             },
             '_version': '20250820',
         }
