@@ -25,7 +25,7 @@ class AssetStore extends Reflux.Store {
     actions.resources.deleteAsset.completed.listen(this.onDeleteAssetCompleted.bind(this))
   }
 
-  onDeleteAssetCompleted(resp: AssetResponse) {
+  onDeleteAssetCompleted(resp: { uid: string }) {
     delete this.data[resp.uid]
     this.trigger(this.data)
   }

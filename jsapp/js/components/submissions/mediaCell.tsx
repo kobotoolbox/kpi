@@ -38,7 +38,7 @@ interface MediaCellProps {
   submissionIndex: number
   /** Total submissions for text questions. */
   submissionTotal: number
-  submissionData: SubmissionResponse
+  submission: SubmissionResponse
   asset: AssetResponse
 }
 
@@ -82,7 +82,7 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
           this.props.mediaName,
           this.props.submissionIndex,
           this.props.submissionTotal,
-          this.props.submissionData,
+          this.props.submission,
           this.props.asset,
         ),
       })
@@ -95,7 +95,7 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
     mediaName: string,
     submissionIndex: number,
     submissionTotal: number,
-    submissionData: SubmissionResponse,
+    submission: SubmissionResponse,
     asset: AssetResponse,
   ) {
     let titleText = null
@@ -124,7 +124,7 @@ class MediaCell extends React.Component<MediaCellProps, {}> {
         <bem.TableMediaPreviewHeader__options>
           <AttachmentActionsDropdown
             asset={asset}
-            submissionData={submissionData}
+            submission={submission}
             attachmentUid={attachment.uid}
             onDeleted={() => {
               // Trigger refresh on the Data Table and close the modal

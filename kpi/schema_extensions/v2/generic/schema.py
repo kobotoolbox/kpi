@@ -77,4 +77,8 @@ GENERIC_INT_SCHEMA = build_basic_type(OpenApiTypes.INT)
 
 GENERIC_OBJECT_SCHEMA = build_object_type(properties={})
 
+GENERIC_UUID_SCHEMA = {'type': 'string', 'format': 'uuid'}
+
+GENERIC_DATETIME_SCHEMA = build_basic_type(OpenApiTypes.DATETIME)
+
 USER_URL_SCHEMA = build_url_type('api_v2:user-kpi-detail', username='bob')

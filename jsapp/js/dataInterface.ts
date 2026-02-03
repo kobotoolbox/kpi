@@ -10,24 +10,23 @@ import type { AssetLockingProfileDefinition } from '#/components/locking/locking
 import type { PermissionCodename } from '#/components/permissions/permConstants'
 import type { ProjectTransferAssetDetail } from '#/components/permissions/transferProjects/transferProjects.api'
 import type {
+  AnalysisQuestionSchema,
+  SubmissionAnalysisResponse,
+} from '#/components/processing/SingleProcessingContent/TabAnalysis/common/constants'
+import type {
   AssetResponseReportCustom,
   AssetResponseReportStyles,
   ReportsPaginatedResponse,
 } from '#/components/reports/reportsConstants'
 import type { SortValues } from '#/components/submissions/tableConstants'
 import type { ValidationStatusName } from '#/components/submissions/validationStatus.constants'
-import type { AnyRowTypeName, AssetFileType, AssetTypeName } from '#/constants'
+import type { AnyRowTypeName, AssetFileType, AssetTypeName, FormStyleName } from '#/constants'
 import type { UserResponse } from '#/users/userExistence.store'
 import type { AccountFieldsValues } from './account/account.constants'
 import { endpoints } from './api.endpoints'
+import type { ResponseQualActionParams } from './api/models/responseQualActionParams'
 import type { HookAuthLevelName, HookExportTypeName } from './components/RESTServices/RESTServicesForm'
 import type { Json } from './components/common/common.interfaces'
-import type {
-  AnalysisQuestionSchema,
-  AnalysisQuestionType,
-  SubmissionAnalysisResponse,
-} from './components/processing/analysis/constants'
-import type { TransxObject } from './components/processing/processingActions'
 import type {
   ExportFormatName,
   ExportMultiOptionName,
@@ -177,6 +176,9 @@ interface ProcessingResponseData {
 
 export type GetProcessingSubmissionsResponse = PaginatedResponse<ProcessingResponseData>
 
+/**
+ * @deprecated use _DataResponseAttachments from Orval instead.
+ */
 export interface SubmissionAttachment {
   download_url: string
   download_large_url: string
@@ -189,6 +191,22 @@ export interface SubmissionAttachment {
   uid: string
   /** Marks the attachment as deleted. If `true`, all the `*_url` will return 404. */
   is_deleted?: boolean
+}
+
+interface TransxObject {
+  languageCode: LanguageCode
+  value: string
+  dateCreated: string
+  dateModified: string
+  /** The source of the `value` text. */
+  engine?: string
+  /** The history of edits. */
+  revisions?: Array<{
+    dateModified: string
+    engine?: string
+    languageCode: LanguageCode
+    value: string
+  }>
 }
 
 export interface SubmissionSupplementalDetails {
@@ -239,6 +257,8 @@ export interface SubmissionResponseValueObject {
 
 /**
  * A list of responses to form questions plus some submission metadata
+ *
+ * @deprecated - use DataResponse from Orval instead.
  */
 export interface SubmissionResponse extends SubmissionResponseValueObject {
   __version__: string
@@ -473,7 +493,7 @@ export interface AssetContentSettings {
   name?: string
   version?: string
   id_string?: string
-  style?: string
+  style?: FormStyleName
   form_id?: string
   title?: string
   'kobo--lock_all'?: boolean
@@ -491,10 +511,13 @@ export interface AssetContent {
   schema?: string
   survey?: SurveyRow[]
   choices?: SurveyChoice[]
+  // TODO: verify if array case is ever happening
   settings?: AssetContentSettings | AssetContentSettings[]
   translated?: string[]
   /** A list of languages. */
   translations?: Array<string | null>
+  // TODO: this is the default language, verify why we have this as it should be accessible from `translations` array :shrug:
+  translations_0?: string | null
   /** A list of all availavble locking profiles */
   'kobo--locking-profiles'?: AssetLockingProfileDefinition[]
 }
@@ -530,17 +553,7 @@ interface AssetSummary {
   naming_conflicts?: string[]
 }
 
-interface AdvancedSubmissionSchema {
-  type: 'string' | 'object'
-  $description: string
-  url?: string
-  properties?: AdvancedSubmissionSchemaDefinition
-  additionalProperties?: boolean
-  required?: string[]
-  definitions?: AdvancedSubmissionSchemaDefinition
-}
-
-export interface AssetAdvancedFeatures {
+interface AssetAdvancedFeatures {
   transcript?: {
     /** List of question names */
     values?: string[]
@@ -557,17 +570,6 @@ export interface AssetAdvancedFeatures {
     qual_survey?: AnalysisQuestionSchema[]
   }
 }
-
-interface AdvancedSubmissionSchemaDefinitionValue {
-  type?: 'string' | 'object'
-  description?: string
-  properties?: { [name: string]: {} }
-  additionalProperties?: boolean
-  required?: string[]
-  anyOf?: Array<{ $ref: string }>
-  allOf?: Array<{ $ref: string }>
-}
-type AdvancedSubmissionSchemaDefinition = Record<string, AdvancedSubmissionSchemaDefinitionValue>
 
 export interface TableSortBySetting {
   fieldId: string
@@ -608,7 +610,7 @@ export interface AssetSettings {
 }
 
 /** This is the asset object Frontend uses with the endpoints. */
-interface AssetRequestObject {
+export interface AssetRequestObject {
   // NOTE: there might be a few properties in AssetResponse that should be here,
   // so please feel free to move them when you encounter a typing error.
   parent: string | null
@@ -630,7 +632,6 @@ interface AssetRequestObject {
   }
   paired_data?: string
   advanced_features?: AssetAdvancedFeatures
-  advanced_submission_schema?: AdvancedSubmissionSchema
 }
 
 export type AssetDownloads = Array<{
@@ -642,7 +643,7 @@ export interface AnalysisFormJsonField {
   label: string
   name: string
   dtpath: string
-  type: AnalysisQuestionType | 'transcript' | 'translation'
+  type: ResponseQualActionParams['type'] | 'transcript' | 'translation'
   /** Two letter language code or ?? for qualitative analysis questions */
   language: string | '??'
   source: string
@@ -747,7 +748,8 @@ export interface AssetResponse extends AssetRequestObject {
   subscribers_count: number
   status: string
   access_types: string[] | null
-  files?: any[]
+  /** If there are no files this will be empty array */
+  files: AssetResponseFile[]
 
   // TODO: think about creating a new interface for asset that is being extended
   // on frontend.
@@ -759,6 +761,35 @@ export interface AssetResponse extends AssetRequestObject {
   settings__form_id?: string
   settings__title?: string
   project_ownership: ProjectTransferAssetDetail | null
+}
+
+export interface AssetResponseFile {
+  uid: string
+  url: string
+  /** asset url */
+  asset: string
+  /** user url */
+  user: string
+  user__username: string
+  file_type: 'form_media' | string
+  description: 'default' | string
+  date_created: string
+  /** url */
+  content: string
+  metadata: {
+    hash: string
+    filename: string
+    mimetype:
+      | 'image/jpeg'
+      | 'video/quicktime'
+      | 'audio/mpeg'
+      | 'text/plain'
+      | 'image/jpeg'
+      | 'image/jpeg'
+      | 'audio/mpeg'
+      | 'audio/x-m4a'
+      | string
+  }
 }
 
 /** This is the asset object returned by project-views endpoint. */

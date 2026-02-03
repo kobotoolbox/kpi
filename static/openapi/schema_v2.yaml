@@ -2026,7 +2026,7 @@ paths:
         schema:
           type: integer
       - in: query
-        name: q
+        name: query
         schema:
           type: string
         description: Filter the results with search query
@@ -2053,9 +2053,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedDataResponseList'
-            application/xml:
+            text/xml:
               schema:
-                $ref: '#/components/schemas/PaginatedDataResponseList'
+                $ref: '#/components/schemas/PaginatedDataResponseXMLList'
           description: null
         '404':
           content:
@@ -2073,24 +2073,30 @@ paths:
       operationId: api_v2_assets_data_retrieve
       description: |
         ## Get a specific submission
-        It is also possible to specify the format.
 
-        `id` can be the primary key of the submission or its `uuid`.
-        Please note that using the `uuid` may match **several** submissions, only
+        `{id}` can be:
+
+        - The primary key of the submission
+        - Its `_uuid` <sup>1</sup>
+        - Its `rootUuid` (without "uuid:" prefix)
+
+        <sup>1</sup> Please note that using the `_uuid` may match **several** submissions, only
         the first match will be returned.
 
+
+        It is also possible to specify the format.
+
         ```shell
-        curl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid}/data/{id}.xml
-        curl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid}/data/{id}.json
+        curl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid_asset}/data/{id}.xml
+        curl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid_asset}/data/{id}.json
         ```
 
         or
 
         ```shell
-        curl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid}/data/{id}/?format=xml
-        curl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid}/data/{id}/?format=json
+        curl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid_asset}/data/{id}/?format=xml
+        curl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid_asset}/data/{id}/?format=json
         ```
-
 
         ### ⚠️ Note: DRF-Spectacular Limitation
 
@@ -2112,8 +2118,8 @@ paths:
       - in: path
         name: id
         schema:
-          type: integer
-        description: ID of the data
+          type: string
+        description: Integer ID (PK) or rootUuid
         required: true
       - in: path
         name: uid_asset
@@ -2132,9 +2138,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DataResponse'
-            application/xml:
+            text/xml:
               schema:
-                $ref: '#/components/schemas/DataResponse'
+                $ref: '#/components/schemas/DataResponseXML'
           description: null
         '404':
           content:
@@ -2155,8 +2161,8 @@ paths:
       - in: path
         name: id
         schema:
-          type: integer
-        description: ID of the data
+          type: string
+        description: Integer ID (PK) or rootUuid
         required: true
       - in: path
         name: uid_asset
@@ -2188,13 +2194,23 @@ paths:
       operationId: api_v2_assets_data_duplicate_create
       description: |
         ## Duplicate submission
+
         Duplicates the data of a submission
+
+        `{id}` can be:
+
+        - The primary key of the submission
+        - Its `_uuid` <sup>1</sup>
+        - Its `rootUuid` (without "uuid:" prefix)
+
+        <sup>1</sup> Please note that using the `_uuid` may match **several** submissions, only
+        the first match will be returned.
       parameters:
       - in: path
         name: id
         schema:
-          type: integer
-        description: ID of the data
+          type: string
+        description: Integer ID (PK) or rootUuid
         required: true
       - in: path
         name: uid_asset
@@ -2237,6 +2253,15 @@ paths:
       description: |
         ## Get submission url of enketo in edit mode
 
+        `{id}` can be:
+
+        - The primary key of the submission
+        - Its `_uuid` <sup>1</sup>
+        - Its `rootUuid` (without "uuid:" prefix)
+
+        <sup>1</sup> Please note that using the `_uuid` may match **several** submissions, only
+        the first match will be returned.
+
         Note: Some variation of this url exists:
 
         `/api/v2/assets/{uid_asset}/data/{id}/edit/`: deprecated, use the next one.
@@ -2248,8 +2273,8 @@ paths:
       - in: path
         name: id
         schema:
-          type: integer
-        description: ID of the data
+          type: string
+        description: Integer ID (PK) or rootUuid
         required: true
       - in: path
         name: uid_asset
@@ -2297,6 +2322,15 @@ paths:
       description: |
         ## Get submission url of enketo in edit mode
 
+        `{id}` can be:
+
+        - The primary key of the submission
+        - Its `_uuid` <sup>1</sup>
+        - Its `rootUuid` (without "uuid:" prefix)
+
+        <sup>1</sup> Please note that using the `_uuid` may match **several** submissions, only
+        the first match will be returned.
+
         Note: Some variation of this url exists:
 
         `/api/v2/assets/{uid_asset}/data/{id}/edit/`: deprecated, use the next one.
@@ -2308,8 +2342,8 @@ paths:
       - in: path
         name: id
         schema:
-          type: integer
-        description: ID of the data
+          type: string
+        description: Integer ID (PK) or rootUuid
         required: true
       - in: path
         name: uid_asset
@@ -2357,6 +2391,15 @@ paths:
       description: |
         ## Get submission url of enketo in edit mode
 
+        `{id}` can be:
+
+        - The primary key of the submission
+        - Its `_uuid` <sup>1</sup>
+        - Its `rootUuid` (without "uuid:" prefix)
+
+        <sup>1</sup> Please note that using the `_uuid` may match **several** submissions, only
+        the first match will be returned.
+
         Note: Some variation of this url exists:
 
         `/api/v2/assets/{uid_asset}/data/{id}/edit/`: deprecated, use the next one.
@@ -2368,8 +2411,8 @@ paths:
       - in: path
         name: id
         schema:
-          type: integer
-        description: ID of the data
+          type: string
+        description: Integer ID (PK) or rootUuid
         required: true
       - in: path
         name: uid_asset
@@ -2417,6 +2460,15 @@ paths:
       description: |
         ## Get submission url of enketo in preview mode
 
+        `{id}` can be:
+
+        - The primary key of the submission
+        - Its `_uuid` <sup>1</sup>
+        - Its `rootUuid` (without "uuid:" prefix)
+
+        <sup>1</sup> Please note that using the `_uuid` may match **several** submissions, only
+        the first match will be returned.
+
         Note: Some variation of this url exists:
 
         `/api/v2/assets/{uid_asset}/data/{id}/enketo/view/`: return the url of the enketo submission (as seen in the response example).
@@ -2426,8 +2478,8 @@ paths:
       - in: path
         name: id
         schema:
-          type: integer
-        description: ID of the data
+          type: string
+        description: Integer ID (PK) or rootUuid
         required: true
       - in: path
         name: uid_asset
@@ -2475,6 +2527,15 @@ paths:
       description: |
         ## Get submission url of enketo in preview mode
 
+        `{id}` can be:
+
+        - The primary key of the submission
+        - Its `_uuid` <sup>1</sup>
+        - Its `rootUuid` (without "uuid:" prefix)
+
+        <sup>1</sup> Please note that using the `_uuid` may match **several** submissions, only
+        the first match will be returned.
+
         Note: Some variation of this url exists:
 
         `/api/v2/assets/{uid_asset}/data/{id}/enketo/view/`: return the url of the enketo submission (as seen in the response example).
@@ -2484,8 +2545,8 @@ paths:
       - in: path
         name: id
         schema:
-          type: integer
-        description: ID of the data
+          type: string
+        description: Integer ID (PK) or rootUuid
         required: true
       - in: path
         name: uid_asset
@@ -2537,8 +2598,8 @@ paths:
       - in: path
         name: id
         schema:
-          type: integer
-        description: ID of the data
+          type: string
+        description: Integer ID (PK) or rootUuid
         required: true
       - in: path
         name: uid_asset
@@ -2583,14 +2644,8 @@ paths:
       - in: path
         name: id
         schema:
-          type: integer
-        description: ID of the data (when applicable)
-        required: true
-      - in: path
-        name: submission_id_or_root_uuid
-        schema:
           type: string
-        description: Submission identifier
+        description: Integer ID (PK) or rootUuid
         required: true
       - in: path
         name: uid_asset
@@ -2634,8 +2689,8 @@ paths:
       - in: path
         name: id
         schema:
-          type: integer
-        description: ID of the data
+          type: string
+        description: Integer ID (PK) or rootUuid
         required: true
       - in: path
         name: uid_asset
@@ -10506,10 +10561,10 @@ components:
     AdvancedFeatureCreateResponse:
       type: object
       properties:
-        action:
-          $ref: '#/components/schemas/ActionEnum'
         question_xpath:
           type: string
+        action:
+          $ref: '#/components/schemas/ActionEnum'
         params:
           type: array
           items:
@@ -10526,10 +10581,10 @@ components:
     AdvancedFeaturePostRequest:
       type: object
       properties:
-        action:
-          $ref: '#/components/schemas/ActionEnum'
         question_xpath:
           type: string
+        action:
+          $ref: '#/components/schemas/ActionEnum'
         params:
           type: array
           items:
@@ -10543,10 +10598,10 @@ components:
     AdvancedFeatureResponse:
       type: object
       properties:
-        action:
-          $ref: '#/components/schemas/ActionEnum'
         question_xpath:
           type: string
+        action:
+          $ref: '#/components/schemas/ActionEnum'
         params:
           type: array
           items:
@@ -12002,6 +12057,52 @@ components:
       - _xform_id_string
       - meta/instanceID
       - meta/rootUuid
+    DataResponseXML:
+      type: object
+      properties:
+        formhub:
+          $ref: '#/components/schemas/DataResponseXMLFormhub'
+        __version__:
+          type: string
+          title: '  version  '
+        meta:
+          $ref: '#/components/schemas/DataResponseXMLMeta'
+        _geolocation:
+          allOf:
+          - $ref: '#/components/schemas/DataResponseXMLGeoLocation'
+          title: ' geolocation'
+      required:
+      - __version__
+      - _geolocation
+      - meta
+    DataResponseXMLFormhub:
+      type: object
+      properties:
+        uuid:
+          type: string
+      required:
+      - uuid
+    DataResponseXMLGeoLocation:
+      type: object
+      properties:
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+      required:
+      - latitude
+      - longitude
+    DataResponseXMLMeta:
+      type: object
+      properties:
+        instanceID:
+          type: string
+        deprecatedID:
+          type: string
+      required:
+      - instanceID
     DataStatusesUpdate:
       type: object
       properties:
@@ -12009,6 +12110,73 @@ components:
           type: string
       required:
       - detail
+    DataSupplementManualQualDataInteger:
+      type: object
+      properties:
+        value:
+          type: integer
+          nullable: true
+        uuid:
+          type: string
+          format: uuid
+      required:
+      - uuid
+      - value
+      additionalProperties: false
+    DataSupplementManualQualDataSelectMultiple:
+      type: object
+      properties:
+        value:
+          type: array
+          items:
+            type: string
+            format: uuid
+        uuid:
+          type: string
+          format: uuid
+      required:
+      - uuid
+      - value
+      additionalProperties: false
+    DataSupplementManualQualDataSelectOne:
+      type: object
+      properties:
+        value:
+          type: string
+          format: uuid
+        uuid:
+          type: string
+          format: uuid
+      required:
+      - uuid
+      - value
+      additionalProperties: false
+    DataSupplementManualQualDataTags:
+      type: object
+      properties:
+        value:
+          type: array
+          items:
+            type: string
+        uuid:
+          type: string
+          format: uuid
+      required:
+      - uuid
+      - value
+      additionalProperties: false
+    DataSupplementManualQualDataText:
+      type: object
+      properties:
+        value:
+          type: string
+        uuid:
+          type: string
+          format: uuid
+      required:
+      - uuid
+      - value
+      additionalProperties: false
     DataSupplementResponse:
       type: object
       properties:
@@ -12365,88 +12533,11 @@ components:
                   properties:
                     _data:
                       oneOf:
-                      - allOf:
-                        - type: object
-                          properties:
-                            uuid:
-                              type: string
-                              format: uuid
-                            value: {}
-                          additionalProperties: false
-                          required:
-                          - uuid
-                          - value
-                        - type: object
-                          properties:
-                            value:
-                              type: integer
-                              nullable: true
-                      - allOf:
-                        - type: object
-                          properties:
-                            uuid:
-                              type: string
-                              format: uuid
-                            value: {}
-                          additionalProperties: false
-                          required:
-                          - uuid
-                          - value
-                        - type: object
-                          properties:
-                            value:
-                              type: array
-                              items:
-                                type: string
-                                format: uuid
-                      - allOf:
-                        - type: object
-                          properties:
-                            uuid:
-                              type: string
-                              format: uuid
-                            value: {}
-                          additionalProperties: false
-                          required:
-                          - uuid
-                          - value
-                        - type: object
-                          properties:
-                            value:
-                              type: string
-                              format: uuid
-                      - allOf:
-                        - type: object
-                          properties:
-                            uuid:
-                              type: string
-                              format: uuid
-                            value: {}
-                          additionalProperties: false
-                          required:
-                          - uuid
-                          - value
-                        - type: object
-                          properties:
-                            value:
-                              type: array
-                              items:
-                                type: string
-                      - allOf:
-                        - type: object
-                          properties:
-                            uuid:
-                              type: string
-                              format: uuid
-                            value: {}
-                          additionalProperties: false
-                          required:
-                          - uuid
-                          - value
-                        - type: object
-                          properties:
-                            value:
-                              type: string
+                      - $ref: '#/components/schemas/DataSupplementManualQualDataInteger'
+                      - $ref: '#/components/schemas/DataSupplementManualQualDataText'
+                      - $ref: '#/components/schemas/DataSupplementManualQualDataSelectOne'
+                      - $ref: '#/components/schemas/DataSupplementManualQualDataSelectMultiple'
+                      - $ref: '#/components/schemas/DataSupplementManualQualDataTags'
                     _dateAccepted:
                       type: string
                       format: date-time
@@ -12484,88 +12575,11 @@ components:
                     properties:
                       _data:
                         oneOf:
-                        - allOf:
-                          - type: object
-                            properties:
-                              uuid:
-                                type: string
-                                format: uuid
-                              value: {}
-                            additionalProperties: false
-                            required:
-                            - uuid
-                            - value
-                          - type: object
-                            properties:
-                              value:
-                                type: integer
-                                nullable: true
-                        - allOf:
-                          - type: object
-                            properties:
-                              uuid:
-                                type: string
-                                format: uuid
-                              value: {}
-                            additionalProperties: false
-                            required:
-                            - uuid
-                            - value
-                          - type: object
-                            properties:
-                              value:
-                                type: array
-                                items:
-                                  type: string
-                                  format: uuid
-                        - allOf:
-                          - type: object
-                            properties:
-                              uuid:
-                                type: string
-                                format: uuid
-                              value: {}
-                            additionalProperties: false
-                            required:
-                            - uuid
-                            - value
-                          - type: object
-                            properties:
-                              value:
-                                type: string
-                                format: uuid
-                        - allOf:
-                          - type: object
-                            properties:
-                              uuid:
-                                type: string
-                                format: uuid
-                              value: {}
-                            additionalProperties: false
-                            required:
-                            - uuid
-                            - value
-                          - type: object
-                            properties:
-                              value:
-                                type: array
-                                items:
-                                  type: string
-                        - allOf:
-                          - type: object
-                            properties:
-                              uuid:
-                                type: string
-                                format: uuid
-                              value: {}
-                            additionalProperties: false
-                            required:
-                            - uuid
-                            - value
-                          - type: object
-                            properties:
-                              value:
-                                type: string
+                        - $ref: '#/components/schemas/DataSupplementManualQualDataInteger'
+                        - $ref: '#/components/schemas/DataSupplementManualQualDataText'
+                        - $ref: '#/components/schemas/DataSupplementManualQualDataSelectOne'
+                        - $ref: '#/components/schemas/DataSupplementManualQualDataSelectMultiple'
+                        - $ref: '#/components/schemas/DataSupplementManualQualDataTags'
                       _dateAccepted:
                         type: string
                         format: date-time
@@ -14384,6 +14398,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/DataResponse'
+    PaginatedDataResponseXMLList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?start=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?start=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/DataResponseXML'
     PaginatedEmailAddressList:
       type: object
       required:
@@ -15110,6 +15147,10 @@ components:
     PatchedAdvancedFeaturePatchRequest:
       type: object
       properties:
+        action:
+          $ref: '#/components/schemas/ActionEnum'
+        question_xpath:
+          type: string
         params:
           type: array
           items:
@@ -15336,113 +15377,11 @@ components:
           - language
         manual_qual:
           oneOf:
-          - allOf:
-            - type: object
-              additionalProperties: false
-              properties:
-                uuid:
-                  type: string
-                  format: uuid
-                value: {}
-              required:
-              - uuid
-              - value
-            - type: object
-              properties:
-                value:
-                  type: integer
-                  nullable: true
-            - type: object
-              properties:
-                uuid:
-                  type: string
-                  format: uuid
-          - allOf:
-            - type: object
-              additionalProperties: false
-              properties:
-                uuid:
-                  type: string
-                  format: uuid
-                value: {}
-              required:
-              - uuid
-              - value
-            - type: object
-              properties:
-                value:
-                  type: string
-            - type: object
-              properties:
-                uuid:
-                  type: string
-                  format: uuid
-          - allOf:
-            - type: object
-              additionalProperties: false
-              properties:
-                uuid:
-                  type: string
-                  format: uuid
-                value: {}
-              required:
-              - uuid
-              - value
-            - type: object
-              properties:
-                value:
-                  type: string
-                  format: uuid
-            - type: object
-              properties:
-                uuid:
-                  type: string
-                  format: uuid
-          - allOf:
-            - type: object
-              additionalProperties: false
-              properties:
-                uuid:
-                  type: string
-                  format: uuid
-                value: {}
-              required:
-              - uuid
-              - value
-            - type: object
-              properties:
-                value:
-                  type: array
-                  items:
-                    type: string
-                    format: uuid
-            - type: object
-              properties:
-                uuid:
-                  type: string
-                  format: uuid
-          - allOf:
-            - type: object
-              additionalProperties: false
-              properties:
-                uuid:
-                  type: string
-                  format: uuid
-                value: {}
-              required:
-              - uuid
-              - value
-            - type: object
-              properties:
-                value:
-                  type: array
-                  items:
-                    type: string
-            - type: object
-              properties:
-                uuid:
-                  type: string
-                  format: uuid
+          - $ref: '#/components/schemas/DataSupplementManualQualDataInteger'
+          - $ref: '#/components/schemas/DataSupplementManualQualDataText'
+          - $ref: '#/components/schemas/DataSupplementManualQualDataSelectOne'
+          - $ref: '#/components/schemas/DataSupplementManualQualDataSelectMultiple'
+          - $ref: '#/components/schemas/DataSupplementManualQualDataTags'
       additionalProperties: false
       anyOf:
       - required:

@@ -1,6 +1,6 @@
 import copy
 import json
-import re
+from typing import Union
 
 import jsonschema
 import requests
@@ -66,6 +66,7 @@ from kpi.schema_extensions.v2.data.serializers import (
     DataBulkUpdate,
     DataBulkUpdateResponse,
     DataResponse,
+    DataResponseXML,
     DataStatusesUpdate,
     DataSupplementPayload,
     DataSupplementResponse,
@@ -119,10 +120,10 @@ from kpi.utils.xml import (
         parameters=[
             OpenApiParameter(
                 name='id',
-                type=int,
+                type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
-                description='ID of the data',
+                description='Integer ID (PK) or rootUuid',
             ),
         ],
     ),
@@ -138,25 +139,29 @@ from kpi.utils.xml import (
         parameters=[
             OpenApiParameter(
                 name='id',
-                type=int,
+                type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
-                description='ID of the data',
+                description='Integer ID (PK) or rootUuid',
             ),
         ],
     ),
     list=extend_schema(
         description=read_md('kpi', 'data/list.md'),
         request=None,
-        responses=open_api_200_ok_response(
-            DataResponse,
-            validate_payload=False,
-            require_auth=False,
-            raise_access_forbidden=False,
-        ),
+        responses={
+            **open_api_200_ok_response(
+                DataResponse,
+                media_type='application/json',
+                validate_payload=False,
+                require_auth=False,
+                raise_access_forbidden=False,
+            ),
+            (200, 'text/xml'): DataResponseXML,
+        },
         parameters=[
             OpenApiParameter(
-                name='q',
+                name='query',
                 type=str,
                 location=OpenApiParameter.QUERY,
                 required=False,
@@ -167,19 +172,23 @@ from kpi.utils.xml import (
     retrieve=extend_schema(
         description=read_md('kpi', 'data/retrieve.md'),
         request=None,
-        responses=open_api_200_ok_response(
-            DataResponse,
-            validate_payload=False,
-            require_auth=False,
-            raise_access_forbidden=False,
-        ),
+        responses={
+            **open_api_200_ok_response(
+                DataResponse,
+                media_type='application/json',
+                validate_payload=False,
+                require_auth=False,
+                raise_access_forbidden=False,
+            ),
+            (200, 'text/xml'): DataResponseXML,
+        },
         parameters=[
             OpenApiParameter(
                 name='id',
-                type=int,
+                type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
-                description='ID of the data',
+                description='Integer ID (PK) or rootUuid',
             ),
         ],
     ),
@@ -272,8 +281,11 @@ class DataViewSet(
 
     def destroy(self, request, pk, *args, **kwargs):
         deployment = self._get_deployment()
-        # Coerce to int because back end only finds matches with the same type
-        submission_id = positive_int(pk)
+        submission = self._get_submission_by_id_or_root_uuid(
+            pk, request, fields=['_id'], as_owner=True
+        )
+        # Coerce to int because the back end only finds matches with the same type
+        submission_id = int(submission['_id'])
 
         if deployment.delete_submission(submission_id, user=request.user):
             response = {
@@ -298,14 +310,13 @@ class DataViewSet(
         """
         Creates a duplicate of the submission with a given `pk`
         """
+
         deployment = self._get_deployment()
-        # Coerce to int because the back end only finds matches with the same type
-        submission_id = positive_int(pk)
-        original_submission = deployment.get_submission(
-            submission_id=submission_id,
-            user=request.user,
-            fields=['_id', '_uuid'],
+        original_submission = self._get_submission_by_id_or_root_uuid(
+            pk, request, fields=['_id'], as_owner=True
         )
+        # Coerce to int because the back end only finds matches with the same type
+        submission_id = int(original_submission['_id'])
 
         with http_open_rosa_error_handler(
             lambda: deployment.duplicate_submission(
@@ -322,7 +333,8 @@ class DataViewSet(
             else:
                 duplicate_submission = handler.func_return
                 deployment.copy_submission_extras(
-                    original_submission['_uuid'], duplicate_submission['_uuid']
+                    original_submission[deployment.SUBMISSION_ROOT_UUID_XPATH],
+                    duplicate_submission[deployment.SUBMISSION_ROOT_UUID_XPATH],
                 )
                 response = {
                     'data': duplicate_submission,
@@ -341,10 +353,10 @@ class DataViewSet(
         parameters=[
             OpenApiParameter(
                 name='id',
-                type=int,
+                type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
-                description='ID of the data',
+                description='Integer ID (PK) or rootUuid',
             ),
         ],
     )
@@ -356,7 +368,12 @@ class DataViewSet(
         renderer_classes=[renderers.JSONRenderer],
     )
     def enketo_edit(self, request, pk, *args, **kwargs):
-        submission_id = positive_int(pk)
+
+        submission = self._get_submission_by_id_or_root_uuid(
+            pk, request, fields=['_id'], as_owner=True
+        )
+        submission_id = submission['_id']
+
         enketo_response = self._get_enketo_link(request, submission_id, 'edit')
         if enketo_response.status_code in (
             status.HTTP_201_CREATED, status.HTTP_200_OK
@@ -377,10 +394,10 @@ class DataViewSet(
         parameters=[
             OpenApiParameter(
                 name='id',
-                type=int,
+                type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
-                description='ID of the data',
+                description='Integer ID (PK) or rootUuid',
             ),
         ],
     )
@@ -392,7 +409,12 @@ class DataViewSet(
         renderer_classes=[renderers.JSONRenderer],
     )
     def enketo_view(self, request, pk, *args, **kwargs):
-        submission_id = positive_int(pk)
+
+        submission = self._get_submission_by_id_or_root_uuid(
+            pk, request, fields=['_id'], as_owner=True
+        )
+        submission_id = submission['_id']
+
         enketo_response = self._get_enketo_link(request, submission_id, 'view')
         return self._handle_enketo_redirect(request, enketo_response, *args, **kwargs)
 
@@ -454,51 +476,15 @@ class DataViewSet(
     def retrieve(self, request, pk, *args, **kwargs):
         """
         Retrieve a submission by its primary key or its UUID.
-
-        Warning when using the UUID. Submissions can have the same uuid because
-        there is no unique constraint on this field. The first occurrence
-        will be returned.
         """
+
         format_type = kwargs.get('format', request.GET.get('format', 'json'))
-        deployment = self._get_deployment()
-        params = {
-            'user': request.user,
-            'format_type': format_type,
-            'request': request,
-            'for_output': True,
-        }
-        filters = self._filter_mongo_query(request)
-
-        # Unfortunately, Django expects that the URL parameter is `pk`,
-        # its name cannot be changed (easily).
-        submission_id_or_uuid = pk
-        try:
-            submission_id_or_uuid = positive_int(pk)
-        except ValueError:
-            if not re.match(
-                r'[a-z\d]{8}-([a-z\d]{4}-){3}[a-z\d]{12}', submission_id_or_uuid
-            ):
-                raise Http404
-
-            try:
-                query = json.loads(filters.pop('query', '{}'))
-            except json.JSONDecodeError:
-                raise serializers.ValidationError(
-                    {'query': t('Value must be valid JSON.')}
-                )
-            query['_uuid'] = submission_id_or_uuid
-            filters['query'] = query
-        else:
-            params['submission_ids'] = [submission_id_or_uuid]
-
-        # Join all parameters to be passed to `deployment.get_submissions()`
-        params.update(filters)
-
-        submissions = deployment.get_submissions(**params)
-        if not submissions:
-            raise Http404
-
-        submission = list(submissions)[0]
+        submission = self._get_submission_by_id_or_root_uuid(
+            pk,
+            request,
+            format_type=format_type,
+            for_output=True,
+        )
         return Response(submission)
 
     @extend_schema(
@@ -613,11 +599,11 @@ class DataViewSet(
         ),
         parameters=[
             OpenApiParameter(
-                name='submission_id_or_root_uuid',
+                name='id',
                 type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
-                description='Submission identifier',
+                description='Integer ID (PK) or rootUuid',
             ),
         ],
     )
@@ -631,10 +617,10 @@ class DataViewSet(
         parameters=[
             OpenApiParameter(
                 name='id',
-                type=int,
+                type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
-                description='ID of the data',
+                description='Integer ID (PK) or rootUuid',
             ),
         ],
     )
@@ -651,10 +637,10 @@ class DataViewSet(
         parameters=[
             OpenApiParameter(
                 name='id',
-                type=int,
+                type=str,
                 location=OpenApiParameter.PATH,
                 required=True,
-                description='ID of the data',
+                description='Integer ID (PK) or rootUuid',
             ),
         ],
     )
@@ -666,8 +652,12 @@ class DataViewSet(
     )
     def validation_status(self, request, pk, *args, **kwargs):
         deployment = self._get_deployment()
+        submission = self._get_submission_by_id_or_root_uuid(
+            pk, request, fields=['_id'], as_owner=True
+        )
         # Coerce to int because the back end only finds matches with the same type
-        submission_id = positive_int(pk)
+        submission_id = int(submission['_id'])
+
         if request.method == 'GET':
             json_response = deployment.get_validation_status(
                 submission_id=submission_id,
@@ -983,6 +973,106 @@ class DataViewSet(
                 'version_uid': version_uid,
             }
         )
+
+    def _get_submission_by_id_or_root_uuid(
+        self,
+        submission_id_or_root_uuid: Union[str, int],
+        request: Request,
+        format_type: str = 'json',
+        fields: list = None,
+        as_owner: bool = False,
+        for_output: bool = False,
+    ) -> dict:
+        """
+        Retrieve a single submission using either its integer primary key or a UUID.
+
+        Django REST Framework requires the URL parameter to be named `pk`, even
+        though this endpoint supports multiple lookup strategies:
+
+        - Integer values are treated as submission primary keys.
+        - Non-integer values are treated as UUIDs and resolved via MongoDB.
+
+        UUID lookup prefers `meta/rootUuid` (unique per project) and temporarily
+        falls back to `meta/instanceID` for legacy data.
+
+        When `as_owner=True`, permission checks inside `get_submissions()` are
+        bypassed; callers must rely on the permission classes to enforce access
+        control.
+
+        Returns:
+            dict: The first matching submission.
+
+        Raises:
+            Http404: If no submission matches the provided identifier.
+            ValidationError: If an invalid MongoDB query is provided.
+        """
+
+        deployment = self._get_deployment()
+
+        params = {
+            # `as_owner` bypasses permission checks inside `get_submissions`
+            # (notably for partial submissions).
+            # Any action in this viewset calling `_get_submission_by_id_or_root_uuid`
+            # with `as_owner=True` must rely on the permission class to enforce access
+            # control.
+            'user': self.asset.owner if as_owner else request.user,
+            'format_type': format_type,
+            'request': request,
+            'for_output': for_output,
+        }
+        if fields:
+            params['fields'] = fields
+
+        filters = self._filter_mongo_query(request)
+
+        try:
+            submission_id_or_root_uuid = positive_int(submission_id_or_root_uuid)
+        except ValueError:
+            submission_id_or_root_uuid = add_uuid_prefix(submission_id_or_root_uuid)
+
+            try:
+                query = json.loads(filters.pop('query', '{}'))
+            except json.JSONDecodeError:
+                raise serializers.ValidationError(
+                    {'query': t('Value must be valid JSON.')}
+                )
+            # Older data may have `meta/rootUuid` set to NULL.
+            # The long-running migration `0005` is responsible for backfilling
+            # `meta/rootUuid` for all existing submissions.
+            #
+            # Until this migration is fully applied everywhere, we must fall back
+            # to `meta/instanceID`. This fallback is temporary and potentially
+            # unsafe because `instanceID` is NOT guaranteed to be unique per project.
+            #
+            # Once all submissions have a populated `meta/rootUuid`, this `$or`
+            # condition can be removed and lookups should rely exclusively on
+            # `meta/rootUuid`.
+
+            uuid_query = {
+                '$or': [
+                    {'meta/rootUuid': submission_id_or_root_uuid},
+                    {'meta/instanceID': submission_id_or_root_uuid},
+                ]
+            }
+
+            # If query already has conditions, combine with $and
+            if query and isinstance(query, dict) and query != {}:
+                query = {'$and': [query, uuid_query]}
+            else:
+                query = uuid_query
+
+            filters['query'] = query
+        else:
+            params['submission_ids'] = [submission_id_or_root_uuid]
+
+        # Join all parameters to be passed to `deployment.get_submissions()`
+        params.update(filters)
+
+        submissions = deployment.get_submissions(**params)
+        try:
+            return list(submissions)[0]
+        except IndexError:
+            raise Http404
 
     def _handle_enketo_redirect(self, request, enketo_response, *args, **kwargs):
         if request.path.strip('/').split('/')[-2] == 'redirect':

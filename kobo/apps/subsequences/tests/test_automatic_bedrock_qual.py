@@ -9,9 +9,7 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.reverse import reverse
 
-from kobo.apps.subsequences.actions.automatic_bedrock_qual import (
-    AutomaticBedrockQual,
-)
+from kobo.apps.subsequences.actions.automatic_bedrock_qual import AutomaticBedrockQual
 from kobo.apps.subsequences.constants import Action
 from kobo.apps.subsequences.models import QuestionAdvancedFeature
 from kobo.apps.subsequences.tests.constants import (

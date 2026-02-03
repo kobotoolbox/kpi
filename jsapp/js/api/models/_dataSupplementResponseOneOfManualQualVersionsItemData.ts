@@ -9,15 +9,15 @@ The endpoints are grouped by area of intended use. Each category contains relate
 **General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as "assets".
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
-import type { _DataSupplementResponseOneOfManualQualVersionsItemDataOneOf } from './_dataSupplementResponseOneOfManualQualVersionsItemDataOneOf'
-import type { _DataSupplementResponseOneOfManualQualVersionsItemDataOneOfFour } from './_dataSupplementResponseOneOfManualQualVersionsItemDataOneOfFour'
-import type { _DataSupplementResponseOneOfManualQualVersionsItemDataOneOfOnethree } from './_dataSupplementResponseOneOfManualQualVersionsItemDataOneOfOnethree'
-import type { _DataSupplementResponseOneOfManualQualVersionsItemDataOneOfOnezero } from './_dataSupplementResponseOneOfManualQualVersionsItemDataOneOfOnezero'
-import type { _DataSupplementResponseOneOfManualQualVersionsItemDataOneOfSeven } from './_dataSupplementResponseOneOfManualQualVersionsItemDataOneOfSeven'
+import type { DataSupplementManualQualDataInteger } from './dataSupplementManualQualDataInteger'
+import type { DataSupplementManualQualDataSelectMultiple } from './dataSupplementManualQualDataSelectMultiple'
+import type { DataSupplementManualQualDataSelectOne } from './dataSupplementManualQualDataSelectOne'
+import type { DataSupplementManualQualDataTags } from './dataSupplementManualQualDataTags'
+import type { DataSupplementManualQualDataText } from './dataSupplementManualQualDataText'
 
 export type _DataSupplementResponseOneOfManualQualVersionsItemData =
-  | _DataSupplementResponseOneOfManualQualVersionsItemDataOneOf
-  | _DataSupplementResponseOneOfManualQualVersionsItemDataOneOfFour
-  | _DataSupplementResponseOneOfManualQualVersionsItemDataOneOfSeven
-  | _DataSupplementResponseOneOfManualQualVersionsItemDataOneOfOnezero
-  | _DataSupplementResponseOneOfManualQualVersionsItemDataOneOfOnethree
+  | DataSupplementManualQualDataInteger
+  | DataSupplementManualQualDataText
+  | DataSupplementManualQualDataSelectOne
+  | DataSupplementManualQualDataSelectMultiple
+  | DataSupplementManualQualDataTags

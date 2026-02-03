@@ -66,6 +66,43 @@ DataResponse = inline_serializer_class(
     },
 )
 
+
+DataResponseXMLFormhubSerializer = inline_serializer_class(
+    name='DataResponseXMLFormhubSerializer',
+    fields={
+        'uuid': serializers.CharField(),
+    },
+)
+
+DataResponseXMLGeoLocationSerializer = inline_serializer_class(
+    name='DataResponseXMLGeoLocationSerializer',
+    fields={
+        'latitude': serializers.FloatField(),
+        'longitude': serializers.FloatField(),
+    },
+)
+
+
+DataResponseXMLMetaSerializer = inline_serializer_class(
+    name='DataResponseXMLMetaSerializer',
+    fields={
+        'instanceID': serializers.CharField(),
+        'deprecatedID': serializers.CharField(required=False),
+    },
+)
+
+
+DataResponseXML = inline_serializer_class(
+    name='DataResponseXML',
+    fields={
+        'formhub': DataResponseXMLFormhubSerializer(required=False),
+        '__version__': serializers.CharField(),
+        'meta': DataResponseXMLMetaSerializer(),
+        '_geolocation': DataResponseXMLGeoLocationSerializer(),
+    },
+)
+
+
 DataStatusesUpdate = inline_serializer_class(
     name='DataStatusesUpdate',
     fields={

@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from unittest.mock import patch
 
 import pytest
+from allauth.socialaccount.models import SocialAccount
 from django.conf import settings
 from django.core.cache import cache
 from django.db import connection
@@ -116,6 +117,54 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
             user_with_sub['subscriptions'][0]['metadata']['organization_id'],
             self.subscription.metadata['organization_id'],
         )
+
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    def test_social_accounts_are_not_duplicated_with_multiple_subscriptions(self):
+        """
+        Ensure that social accounts are not duplicated when a user is attached to
+        multiple subscriptions
+        """
+        from djstripe.enums import BillingScheme
+        from djstripe.models import Customer
+
+        SocialAccount.objects.create(
+            user=self.someuser,
+            provider='acted',
+            uid='test-social-uid',
+        )
+
+        customer = baker.make(Customer, subscriber=self.organization)
+
+        # Create two subscriptions for same organization
+        baker.make(
+            'djstripe.Subscription',
+            customer=customer,
+            items__price__livemode=False,
+            items__price__billing_scheme=BillingScheme.per_unit,
+            livemode=False,
+            metadata={'organization_id': str(self.organization.id)},
+        )
+        baker.make(
+            'djstripe.Subscription',
+            customer=customer,
+            items__price__livemode=False,
+            items__price__billing_scheme=BillingScheme.per_unit,
+            livemode=False,
+            metadata={'organization_id': str(self.organization.id)},
+        )
+
+        refresh_user_reports_materialized_view(concurrently=False)
+
+        data = self._get_someuser_data()
+
+        social = data['social_accounts']
+        subs = data['subscriptions']
+
+        self.assertEqual(len(subs), 2)
+        self.assertEqual(len(social), 1)
+        self.assertEqual(social[0]['uid'], 'test-social-uid')
 
     def test_service_usage_data_is_correctly_returned(self):
         """

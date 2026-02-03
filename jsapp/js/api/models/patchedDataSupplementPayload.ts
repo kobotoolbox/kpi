@@ -11,6 +11,8 @@ The endpoints are grouped by area of intended use. Each category contains relate
  */
 
 import type { PatchedDataSupplementPayloadOneOf } from './patchedDataSupplementPayloadOneOf'
-export type PatchedDataSupplementPayload = {
-  _version: string
-} & Record<string, PatchedDataSupplementPayloadOneOf>
+export type PatchedDataSupplementPayload =
+  | {
+      _version: string
+    }
+  | Record<string, PatchedDataSupplementPayloadOneOf>

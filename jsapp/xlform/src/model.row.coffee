@@ -80,6 +80,7 @@ module.exports = do ->
       survey_arr.push @toJSON2()
       return
 
+    # TODO: see if we need both toJSON* methods, and if yes, please describe both (differences)
     toJSON2: ->
       outObj = {}
       for [key, val] in @attributesArray()
