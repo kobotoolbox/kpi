@@ -121,4 +121,4 @@ jobs:
     secrets: inherit
     with:
       topic: "deployments to ${{ github.ref_name }}"
-      content: ":warning: ~~@_*devs*~~ @**Phil Edwards**, your [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed on `${{ github.ref_name }}` at [\"$COMMIT_TITLE\"](${{ github.event.compare }})"
+      content: ":warning: @*devs*, [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed on `${{ github.ref_name }}` at [\"$COMMIT_TITLE\"](${{ github.event.compare }})"
