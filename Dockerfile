@@ -1,6 +1,6 @@
-# syntax=docker/dockerfile:1.2
-# ^  Tell BuildKit to use the latest 1.2.x version
-#    of the Dockerfile syntax, from the stable channel.
+# syntax=docker/dockerfile:labs
+# ^  Tell BuildKit to pull the latest 'labs' version
+#    of the Dockerfile syntax before the build.
 #    -  Access newer BuildKit syntax features, e.g. `COPY --parents`
 #      https://docs.docker.com/build/buildkit/frontend/#dockerfile-frontend
 #    - Improve compatibility for CI runners, which might be
