@@ -1,8 +1,10 @@
-# syntax=docker/dockerfile:1
-# ^  This tells BuildKit to pull the latest stable version
+# syntax=docker/dockerfile:labs
+# ^  Tell BuildKit to pull the latest 'labs' version
 #    of the Dockerfile syntax before the build.
-#    Improves compatibility for CI runners, which might be
-#    running a slightly older version of docker.
+#    -  Access newer BuildKit syntax features, e.g. `COPY --parents`
+#      https://docs.docker.com/build/buildkit/frontend/#dockerfile-frontend
+#    - Improve compatibility for CI runners, which might be
+#      running a slightly older version of docker.
 
 #########################################
 # The Dockerfile has 4 stages now:      #
