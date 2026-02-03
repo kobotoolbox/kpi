@@ -4,11 +4,7 @@ from typing import Union
 from django.conf import settings
 from django.db.models.query import QuerySet
 from django_request_cache import cache_for_request
-from rest_framework.pagination import (
-    LimitOffsetPagination,
-    PageNumberPagination,
-    _positive_int,
-)
+from rest_framework.pagination import LimitOffsetPagination, _positive_int
 from rest_framework.response import Response
 from rest_framework.reverse import reverse_lazy
 from rest_framework.serializers import SerializerMethodField
@@ -29,6 +25,8 @@ class DefaultPagination(LimitOffsetPagination):
     limit_query_param = 'limit'
     default_limit = settings.REST_FRAMEWORK['PAGE_SIZE']
     max_limit = 1000  # Reasonable maximum limit to avoid sending full querysets
+
+    offset_query_param = 'start'
 
     page_query_param = 'page'
     page_size_query_param = 'page_size'
@@ -52,8 +50,8 @@ class DefaultPagination(LimitOffsetPagination):
     def get_offset(self, request):
         page_number = self.get_page_number(request)
         offset = (
-            request.query_params.get('offset')
-            or request.query_params.get('start')
+            request.query_params.get('start')
+            or request.query_params.get('offset')
             or request.query_params.get(self.offset_query_param)
         )
         if offset is None and page_number:
@@ -81,11 +79,6 @@ class DefaultPagination(LimitOffsetPagination):
         except (ValueError, TypeError):
             return None
 
-    @classmethod
-    def custom_class(cls, **kwargs):
-        class_name = kwargs.pop('class_name', 'CustomPagination')
-        return type(class_name, (cls,), kwargs)
-
     def paginate_queryset(self, queryset, request, view=None):
         self.request = request
         self.limit = self.get_limit(request)
@@ -100,7 +93,7 @@ class DefaultPagination(LimitOffsetPagination):
         if self.count == 0 or self.offset > self.count:
             return []
 
-        return list(queryset[self.offset:(self.offset + self.limit)])
+        return list(queryset[self.offset : (self.offset + self.limit)])
 
 
 class AssetPagination(DefaultPagination):
@@ -269,11 +262,3 @@ class NoCountPagination(DefaultPagination):
 
         offset = self.offset + self.limit
         return replace_query_param(url, self.offset_query_param, offset)
-
-
-class TinyPagination(PageNumberPagination):
-    """
-    Same as Paginated with a small page size
-    """
-
-    page_size = 50

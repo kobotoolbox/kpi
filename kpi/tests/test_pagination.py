@@ -15,32 +15,26 @@ class PassThroughSerializer(serializers.BaseSerializer):
 class TestDefaultPagination(TestCase):
     def setUp(self):
         self.request_factory = APIRequestFactory()
-
-    def test_custom_pagination_attributes(self):
-        CustomClass = DefaultPagination.custom_class(
-            page_size=123, custom_parameter='abc'
-        )
-        assert CustomClass.custom_parameter == 'abc'
-        assert CustomClass.page_size == 123
+        self.queryset_len = DefaultPagination.default_limit * 3
 
     def test_with_start_offset(self):
         self.view = generics.ListAPIView.as_view(
             serializer_class=PassThroughSerializer,
-            queryset=range(1, 101),
-            pagination_class=DefaultPagination.custom_class(default_limit=5),
+            queryset=range(1, self.queryset_len),
+            pagination_class=DefaultPagination,
         )
         request = self.request_factory.get('/', {'start': 20})
         response = self.view(request)
-        assert response.data['results'] == [21, 22, 23, 24, 25]
+        assert response.data['results'][0:5] == [21, 22, 23, 24, 25]
 
         request = self.request_factory.get('/', {'offset': 30})
         response = self.view(request)
-        assert response.data['results'] == [31, 32, 33, 34, 35]
+        assert response.data['results'][0:5] == [31, 32, 33, 34, 35]
 
     def test_pagination_with_page(self):
         self.view = generics.ListAPIView.as_view(
             serializer_class=PassThroughSerializer,
-            queryset=range(1, 101),
+            queryset=range(1, self.queryset_len),
             pagination_class=DefaultPagination,
         )
         request = self.request_factory.get('/', {'page': 2, 'page_size': 5})
@@ -80,4 +74,4 @@ class TestNoCountPagination(TestCase):
         response = self.view(request)
 
         assert 'count' not in response.data
-        assert data[default_limit:(default_limit * 2)] == response.data['results']
+        assert data[default_limit : (default_limit * 2)] == response.data['results']
