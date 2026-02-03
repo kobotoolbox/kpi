@@ -310,8 +310,8 @@ To learn more, visit `/api/v2/docs/` on your KoboToolbox server.
 
 Or use the public documentation endpoints:
 
-- Global Server: [API documentation](https://kf.kobotoolbox.org/api/v2/docs/?q=/api/v2/assets/{uid_asset}/data/{id}/supplement/)
-- EU Server: [API documentation](https://eu.kobotoolbox.org/api/v2/docs/?q=/api/v2/assets/{uid_asset}/data/{id}/supplement/)
+- Global Server: [API documentation](https://kf.kobotoolbox.org/api/v2/docs/?q=/api/v2/assets/{uid_asset}/data/{root_uuid}/supplement/)
+- EU Server: [API documentation](https://eu.kobotoolbox.org/api/v2/docs/?q=/api/v2/assets/{uid_asset}/data/{root_uuid}/supplement/)
 
 ---
 
