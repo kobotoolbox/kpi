@@ -63,12 +63,11 @@ export default function TranslationTab({
     }
   })()
 
-  // I wonder what's the userflow to end up in the edit view to accept unaccepted translation.
-  // The difference is that now unaccepted translations persist beyond user leaving the screen.
-  // Potentially, there may be multiple unaccepted translations.
-  // I *guess* that to keep it simple, we should force edit view upon the user for the unaccepted translation,
-  // and thus forbidding to create another unaccepted translations.
-  // TODO: Handle acceptable user flow.
+  // The useEffect roundabout way of setting currently selected `languageCode` and thus `translationVersion` will
+  // produce a flicker of begin button in case there are translations.
+  // Workaround: don't show anything for the first render, nothing is better than a flicker of the wrong thing.
+  // TODO: untangle and simplify the state management for the mode.
+  if (!languageCode) return
 
   return (
     <>
