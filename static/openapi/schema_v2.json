@@ -15,16 +15,25 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
                     },
                     {
-                        "name": "offset",
+                        "name": "page",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "required": false,
+                        "in": "query",
+                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
                         "schema": {
                             "type": "integer"
                         }
@@ -34,6 +43,15 @@
                         "name": "q",
                         "schema": {
                             "type": "string"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
+                        "schema": {
+                            "type": "integer"
                         }
                     }
                 ],
@@ -202,16 +220,25 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
                     },
                     {
-                        "name": "offset",
+                        "name": "page",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "required": false,
+                        "in": "query",
+                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
                         "schema": {
                             "type": "integer"
                         }
@@ -221,6 +248,15 @@
                         "name": "q",
                         "schema": {
                             "type": "string"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
+                        "schema": {
+                            "type": "integer"
                         }
                     }
                 ],
@@ -371,16 +407,34 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
                     },
                     {
-                        "name": "offset",
+                        "name": "page",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "required": false,
+                        "in": "query",
+                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -874,16 +928,34 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
                     },
                     {
-                        "name": "offset",
+                        "name": "page",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "required": false,
+                        "in": "query",
+                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -1091,16 +1163,34 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
                     },
                     {
-                        "name": "offset",
+                        "name": "page",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "required": false,
+                        "in": "query",
+                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -1179,12 +1269,39 @@
                         "description": "Which field to use when ordering the results."
                     },
                     {
+                        "name": "page",
+                        "required": false,
+                        "in": "query",
+                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "required": false,
+                        "in": "query",
+                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
                         "in": "query",
                         "name": "q",
                         "schema": {
                             "type": "string"
                         },
                         "description": "Filter the results with search query"
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
+                        "schema": {
+                            "type": "integer"
+                        }
                     }
                 ],
                 "tags": [
@@ -1800,16 +1917,34 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
                     },
                     {
-                        "name": "offset",
+                        "name": "page",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "required": false,
+                        "in": "query",
+                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -1906,16 +2041,34 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
                     },
                     {
-                        "name": "offset",
+                        "name": "page",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "required": false,
+                        "in": "query",
+                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -3607,16 +3760,34 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
                     },
                     {
-                        "name": "offset",
+                        "name": "page",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "required": false,
+                        "in": "query",
+                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -4086,16 +4257,7 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "offset",
-                        "required": false,
-                        "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -4107,6 +4269,33 @@
                         "description": "Which field to use when ordering the results.",
                         "schema": {
                             "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "required": false,
+                        "in": "query",
+                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "required": false,
+                        "in": "query",
+                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
+                        "schema": {
+                            "type": "integer"
                         }
                     },
                     {
@@ -4456,16 +4645,34 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
                     },
                     {
-                        "name": "offset",
+                        "name": "page",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "required": false,
+                        "in": "query",
+                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -4838,16 +5045,25 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
                     },
                     {
-                        "name": "offset",
+                        "name": "page",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "required": false,
+                        "in": "query",
+                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
                         "schema": {
                             "type": "integer"
                         }
@@ -4857,6 +5073,15 @@
                         "name": "q",
                         "schema": {
                             "type": "string"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
+                        "schema": {
+                            "type": "integer"
                         }
                     },
                     {
@@ -5091,16 +5316,34 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
                     },
                     {
-                        "name": "offset",
+                        "name": "page",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "required": false,
+                        "in": "query",
+                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -5490,28 +5733,55 @@
         "/api/v2/assets/{uid_asset}/hooks/{uid_hook}/logs/": {
             "get": {
                 "operationId": "api_v2_assets_hooks_logs_list",
-                "description": "## List logs of an external services endpoints accessible to requesting user\n\nWhere:\n* `asset_uid` - is the unique identifier of a specific asset\n* `hook_uid` - is the unique identifier of a specific external service\n* `uid` - is the unique identifier of a specific log\n\nUse the `status` query parameter to filter logs by numeric status:\n* `status=0`: hook has failed after exhausting all retries\n* `status=1`: hook is still pending\n* `status=2`: hook has succeeded\n\nUse the `start` and `end` query parameters to filter logs by date range, providing ISO-8601 date strings (e.g. '2022-01-14', '2022-01-21 06:51:04', '2022-01-21T06:51:08.144004+02:00').\nNote that `start` is inclusive, while `end` is exclusive.\nTime zone is assumed to be UTC. If provided, it needs to be in '+00:00' format ('Z' is not supported). Watch out for url encoding for the '+' character (%2B).\n",
+                "description": "## List logs of an external services endpoints accessible to requesting user\n\nWhere:\n* `asset_uid` - is the unique identifier of a specific asset\n* `hook_uid` - is the unique identifier of a specific external service\n* `uid` - is the unique identifier of a specific log\n\nUse the `status` query parameter to filter logs by numeric status:\n* `status=0`: hook has failed after exhausting all retries\n* `status=1`: hook is still pending\n* `status=2`: hook has succeeded\n\nUse the `start_date` and `end_date` query parameters to filter logs by date range,\nproviding ISO-8601 date strings (e.g. '2022-01-14', '2022-01-21 06:51:04',\n'2022-01-21T06:51:08.144004+02:00'). Time zone is assumed to be UTC. If provided, it\nneeds to be in '+00:00' format ('Z' is not supported). Watch out for url encoding for\nthe '+' character (%2B).\n\nNote that `start` is inclusive, while `end` is exclusive.\n\nThe `page` query parameter is deprecated, use `start` and `limit` instead.\n",
                 "parameters": [
                     {
                         "in": "query",
-                        "name": "end",
+                        "name": "end_date",
                         "schema": {
                             "type": "string",
                             "format": "date-time"
                         }
                     },
                     {
+                        "name": "limit",
+                        "required": false,
+                        "in": "query",
+                        "description": "Number of results to return per page. Use with `start`.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
                         "name": "page",
                         "required": false,
                         "in": "query",
-                        "description": "A page number within the paginated result set.",
+                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "required": false,
+                        "in": "query",
+                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
                     },
                     {
                         "in": "query",
-                        "name": "start",
+                        "name": "start_date",
                         "schema": {
                             "type": "string",
                             "format": "date-time"
@@ -5891,16 +6161,34 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
                     },
                     {
-                        "name": "offset",
+                        "name": "page",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "required": false,
+                        "in": "query",
+                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -7203,16 +7491,34 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
                     },
                     {
-                        "name": "offset",
+                        "name": "page",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "required": false,
+                        "in": "query",
+                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -7593,16 +7899,25 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
                     },
                     {
-                        "name": "offset",
+                        "name": "page",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "required": false,
+                        "in": "query",
+                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
                         "schema": {
                             "type": "integer"
                         }
@@ -7612,6 +7927,15 @@
                         "name": "q",
                         "schema": {
                             "type": "string"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
+                        "schema": {
+                            "type": "integer"
                         }
                     }
                 ],
@@ -7685,16 +8009,34 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
                     },
                     {
-                        "name": "offset",
+                        "name": "page",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "required": false,
+                        "in": "query",
+                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -7925,16 +8267,34 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
                     },
                     {
-                        "name": "offset",
+                        "name": "page",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "required": false,
+                        "in": "query",
+                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -8067,16 +8427,34 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
                     },
                     {
-                        "name": "offset",
+                        "name": "page",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "required": false,
+                        "in": "query",
+                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -8419,16 +8797,34 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
                     },
                     {
-                        "name": "offset",
+                        "name": "page",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "required": false,
+                        "in": "query",
+                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -8854,16 +9250,34 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
                     },
                     {
-                        "name": "offset",
+                        "name": "page",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "required": false,
+                        "in": "query",
+                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -9245,16 +9659,34 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
                     },
                     {
-                        "name": "offset",
+                        "name": "page",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "required": false,
+                        "in": "query",
+                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -9335,16 +9767,25 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
                     },
                     {
-                        "name": "offset",
+                        "name": "page",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "required": false,
+                        "in": "query",
+                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
                         "schema": {
                             "type": "integer"
                         }
@@ -9354,6 +9795,15 @@
                         "name": "q",
                         "schema": {
                             "type": "string"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
+                        "schema": {
+                            "type": "integer"
                         }
                     }
                 ],
@@ -9555,7 +10005,7 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -9568,10 +10018,28 @@
                         }
                     },
                     {
-                        "name": "offset",
+                        "name": "page",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "required": false,
+                        "in": "query",
+                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -10053,16 +10521,34 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
                     },
                     {
-                        "name": "offset",
+                        "name": "page",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "required": false,
+                        "in": "query",
+                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -10695,16 +11181,34 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
                     },
                     {
-                        "name": "offset",
+                        "name": "page",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "required": false,
+                        "in": "query",
+                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -10939,16 +11443,34 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
                     },
                     {
-                        "name": "offset",
+                        "name": "page",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "required": false,
+                        "in": "query",
+                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -10988,16 +11510,34 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
                     },
                     {
-                        "name": "offset",
+                        "name": "page",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "required": false,
+                        "in": "query",
+                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -11093,16 +11633,34 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
                     },
                     {
-                        "name": "offset",
+                        "name": "page",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "required": false,
+                        "in": "query",
+                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -11362,16 +11920,25 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
                     },
                     {
-                        "name": "offset",
+                        "name": "page",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "required": false,
+                        "in": "query",
+                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
                         "schema": {
                             "type": "integer"
                         }
@@ -11381,6 +11948,15 @@
                         "name": "q",
                         "schema": {
                             "type": "string"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
+                        "schema": {
+                            "type": "integer"
                         }
                     }
                 ],
@@ -11511,16 +12087,25 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
                     },
                     {
-                        "name": "offset",
+                        "name": "page",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "required": false,
+                        "in": "query",
+                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
                         "schema": {
                             "type": "integer"
                         }
@@ -11530,6 +12115,15 @@
                         "name": "q",
                         "schema": {
                             "type": "string"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
+                        "schema": {
+                            "type": "integer"
                         }
                     }
                 ],
@@ -11682,16 +12276,7 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "offset",
-                        "required": false,
-                        "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -11703,6 +12288,33 @@
                         "description": "Which field to use when ordering the results.",
                         "schema": {
                             "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "required": false,
+                        "in": "query",
+                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "required": false,
+                        "in": "query",
+                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
+                        "schema": {
+                            "type": "integer"
                         }
                     }
                 ],
@@ -12116,16 +12728,34 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
                     },
                     {
-                        "name": "offset",
+                        "name": "page",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "required": false,
+                        "in": "query",
+                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -12260,16 +12890,34 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
                     },
                     {
-                        "name": "offset",
+                        "name": "page",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "required": false,
+                        "in": "query",
+                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -16616,13 +17264,13 @@
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "http://api.example.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "http://api.example.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -16647,13 +17295,13 @@
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "http://api.example.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "http://api.example.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -16754,13 +17402,13 @@
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "http://api.example.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "http://api.example.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -16785,13 +17433,13 @@
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "http://api.example.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "http://api.example.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -16816,13 +17464,13 @@
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "http://api.example.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "http://api.example.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -16842,13 +17490,13 @@
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "http://api.example.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "http://api.example.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -16873,13 +17521,13 @@
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "http://api.example.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "http://api.example.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -16904,13 +17552,13 @@
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "http://api.example.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "http://api.example.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -16935,13 +17583,13 @@
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "http://api.example.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "http://api.example.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -16966,13 +17614,13 @@
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "http://api.example.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "http://api.example.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -16997,13 +17645,13 @@
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "http://api.example.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "http://api.example.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -17028,13 +17676,13 @@
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "http://api.example.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "http://api.example.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -17059,13 +17707,13 @@
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "http://api.example.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "http://api.example.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -17090,13 +17738,13 @@
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "http://api.example.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "http://api.example.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -17121,13 +17769,13 @@
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?page=4"
+                        "example": "http://api.example.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?page=2"
+                        "example": "http://api.example.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -17152,13 +17800,13 @@
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "http://api.example.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "http://api.example.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -17183,13 +17831,13 @@
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "http://api.example.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "http://api.example.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -17214,13 +17862,13 @@
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "http://api.example.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "http://api.example.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -17245,13 +17893,13 @@
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "http://api.example.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "http://api.example.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -17276,13 +17924,13 @@
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "http://api.example.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "http://api.example.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -17307,13 +17955,13 @@
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "http://api.example.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "http://api.example.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -17338,13 +17986,13 @@
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "http://api.example.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "http://api.example.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -17369,13 +18017,13 @@
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "http://api.example.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "http://api.example.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -17400,13 +18048,13 @@
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "http://api.example.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "http://api.example.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -17426,13 +18074,13 @@
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "http://api.example.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "http://api.example.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -17457,13 +18105,13 @@
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "http://api.example.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "http://api.example.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -17488,13 +18136,13 @@
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "http://api.example.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "http://api.example.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -17519,13 +18167,13 @@
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "http://api.example.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "http://api.example.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -17550,13 +18198,13 @@
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "http://api.example.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "http://api.example.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -17581,13 +18229,13 @@
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "http://api.example.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "http://api.example.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -17612,13 +18260,13 @@
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "http://api.example.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "http://api.example.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -17638,13 +18286,13 @@
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "http://api.example.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "http://api.example.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -17669,13 +18317,13 @@
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "http://api.example.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "http://api.example.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -17700,13 +18348,13 @@
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "http://api.example.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "http://api.example.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -17731,13 +18379,13 @@
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "http://api.example.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "http://api.example.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -17788,13 +18436,13 @@
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "http://api.example.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "http://api.example.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -17819,13 +18467,13 @@
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "http://api.example.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "http://api.example.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",

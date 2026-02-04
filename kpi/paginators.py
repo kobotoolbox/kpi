@@ -92,7 +92,7 @@ class DefaultPagination(LimitOffsetPagination):
         if self.count == 0 or self.offset > self.count:
             return []
 
-        return list(queryset[self.offset : (self.offset + self.limit)])
+        return list(queryset[self.offset:(self.offset + self.limit)])
 
     def get_schema_operation_parameters(self, view):
         schema = [
@@ -100,14 +100,14 @@ class DefaultPagination(LimitOffsetPagination):
                 'name': 'start',
                 'required': False,
                 'in': 'query',
-                'description': 'Index of the first item to return (0-indexed). Use with `limit`.',  # noqa E501
+                'description': 'The initial index from which to return the results. Use with `limit`.',  # noqa E501
                 'schema': {'type': 'integer'},
             },
             {
                 'name': self.limit_query_param,
                 'required': False,
                 'in': 'query',
-                'description': 'Maximum number of results to return. Use with `start`.',
+                'description': 'Number of results to return per page. Use with `start`.',
                 'schema': {'type': 'integer'},
             },
             {
@@ -121,7 +121,7 @@ class DefaultPagination(LimitOffsetPagination):
                 'name': self.page_size_query_param,
                 'required': False,
                 'in': 'query',
-                'description': 'Deprecated parameter. Number of results to return per page when using page-based pagination.',  # noqa E501
+                'description': 'Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.',  # noqa E501
                 'schema': {'type': 'integer'},
             },
         ]
@@ -131,7 +131,7 @@ class DefaultPagination(LimitOffsetPagination):
                     'name': self.offset_query_param,
                     'required': False,
                     'in': 'query',
-                    'description': 'Deprecated alias of `start`. Index of the first item to return (0-indexed).',  # noqa E501
+                    'description': 'Deprecated alias of `start`.',
                     'schema': {'type': 'integer'},
                 }
             )
