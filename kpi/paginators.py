@@ -25,7 +25,6 @@ class DefaultPagination(LimitOffsetPagination):
     limit_query_param = 'limit'
     default_limit = settings.REST_FRAMEWORK['PAGE_SIZE']
     max_limit = 1000  # Reasonable maximum limit to avoid sending full querysets
-
     offset_query_param = 'start'
 
     page_query_param = 'page'
@@ -94,6 +93,50 @@ class DefaultPagination(LimitOffsetPagination):
             return []
 
         return list(queryset[self.offset : (self.offset + self.limit)])
+
+    def get_schema_operation_parameters(self, view):
+        schema = [
+            {
+                'name': 'start',
+                'required': False,
+                'in': 'query',
+                'description': 'Index of the first item to return (0-indexed). Use with `limit`.',  # noqa E501
+                'schema': {'type': 'integer'},
+            },
+            {
+                'name': self.limit_query_param,
+                'required': False,
+                'in': 'query',
+                'description': 'Maximum number of results to return. Use with `start`.',
+                'schema': {'type': 'integer'},
+            },
+            {
+                'name': self.page_query_param,
+                'required': False,
+                'in': 'query',
+                'description': 'Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.',  # noqa E501
+                'schema': {'type': 'integer'},
+            },
+            {
+                'name': self.page_size_query_param,
+                'required': False,
+                'in': 'query',
+                'description': 'Deprecated parameter. Number of results to return per page when using page-based pagination.',  # noqa E501
+                'schema': {'type': 'integer'},
+            },
+        ]
+        if self.offset_query_param != 'start':
+            schema.append(
+                {
+                    'name': self.offset_query_param,
+                    'required': False,
+                    'in': 'query',
+                    'description': 'Deprecated alias of `start`. Index of the first item to return (0-indexed).',  # noqa E501
+                    'schema': {'type': 'integer'},
+                }
+            )
+
+        return schema
 
 
 class AssetPagination(DefaultPagination):
