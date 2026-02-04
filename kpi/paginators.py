@@ -107,7 +107,7 @@ class DefaultPagination(LimitOffsetPagination):
                 'name': self.limit_query_param,
                 'required': False,
                 'in': 'query',
-                'description': 'Number of results to return per page. Use with `start`.',
+                'description': 'Number of results to return per page. Use with `start`.',  # noqa E501
                 'schema': {'type': 'integer'},
             },
             {
