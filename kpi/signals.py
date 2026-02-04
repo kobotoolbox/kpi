@@ -90,7 +90,7 @@ def update_data_collector_group(
                 pk=instance._initial_data_collector_group_id
             )
             for data_collector in old_dcg.data_collectors.all():
-                instance.deployment.remove_data_collector_enketo_links(
+                instance.deployment.remove_enketo_links_for_single_data_collector(
                     data_collector.token
                 )
         if instance.data_collector_group_id:

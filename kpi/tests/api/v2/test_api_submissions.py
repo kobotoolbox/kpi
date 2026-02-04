@@ -7,6 +7,7 @@ import unittest
 import uuid
 from datetime import datetime
 from unittest import mock
+from unittest.mock import patch
 from zoneinfo import ZoneInfo
 
 import lxml
@@ -66,6 +67,7 @@ from kpi.tests.utils.transaction import immediate_on_commit
 from kpi.tests.utils.xml import get_form_and_submission_tag_names
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.fuzzy_int import FuzzyInt
+from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_anonymous_user
 from kpi.utils.xml import (
     edit_submission_xml,
@@ -429,7 +431,8 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         response = self.client.post(self.submission_list_url, data=submission)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_query_counts_for_list_submissions(self):
+    @patch('hub.models.v1_user_tracker.V1UserTracker.objects.update_or_create')
+    def test_query_counts_for_list_submissions(self, mock_tracker):
         # query count differs when stripe is enabled/disabled
         with self.assertNumQueries(FuzzyInt(16, 17)):
             # regular
@@ -452,7 +455,8 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
                 },
             )
 
-    def test_query_count_does_not_increase_with_more_submissions(self):
+    @patch('hub.models.v1_user_tracker.V1UserTracker.objects.update_or_create')
+    def test_query_count_does_not_increase_with_more_submissions(self, mock_tracker):
         with CaptureQueriesContext(connection) as context:
             self.client.get(self.submission_list_url, {'format': 'json'})
         count = context.final_queries - context.initial_queries
@@ -753,6 +757,38 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         response = self.client.get(url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['_id'], submission['_id'])
+
+    def test_retrieve_submission_by_root_uuid(self):
+        """
+        someuser is the owner of the project.
+        someuser can view one of their submission.
+        """
+
+        submission = settings.MONGO_DB.instances.find_one(
+            {'_id': self.submissions[0]['_id']}
+        )
+
+        # fake edit
+        old_uuid = submission['meta/instanceID']
+        submission['meta/deprecatedID'] = old_uuid
+        submission['meta/rootUuid'] = old_uuid
+        submission['meta/instanceID'] = 'foo:bar'
+        submission['_uuid'] = 'foo:bar'
+        MongoHelper.replace_one(submission)
+
+        url = reverse(
+            self._get_endpoint('submission-detail'),
+            kwargs={
+                'uid_asset': self.asset.uid,
+                'pk': submission['meta/rootUuid'],
+            },
+        )
+
+        response = self.client.get(url, {'format': 'json'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['_id'], submission['_id'])
+        self.assertEqual(response.data['_uuid'], 'foo:bar')
+        self.assertEqual(response.data['meta/rootUuid'], old_uuid)
 
     def test_retrieve_submission_not_shared_as_anotheruser(self):
         """

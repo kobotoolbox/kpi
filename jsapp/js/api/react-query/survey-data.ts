@@ -488,24 +488,30 @@ export function useAssetsDataList<TData = Awaited<ReturnType<typeof assetsDataLi
 
 /**
  * ## Get a specific submission
-It is also possible to specify the format.
 
-`id` can be the primary key of the submission or its `uuid`.
-Please note that using the `uuid` may match **several** submissions, only
+`{id}` can be:
+
+- The primary key of the submission
+- Its `_uuid` <sup>1</sup>
+- Its `rootUuid` (without "uuid:" prefix)
+
+<sup>1</sup> Please note that using the `_uuid` may match **several** submissions, only
 the first match will be returned.
 
+
+It is also possible to specify the format.
+
 ```shell
-curl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid}/data/{id}.xml
-curl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid}/data/{id}.json
+curl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid_asset}/data/{id}.xml
+curl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid_asset}/data/{id}.json
 ```
 
 or
 
 ```shell
-curl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid}/data/{id}/?format=xml
-curl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid}/data/{id}/?format=json
+curl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid_asset}/data/{id}/?format=xml
+curl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid_asset}/data/{id}/?format=json
 ```
-
 
 ### ⚠️ Note: DRF-Spectacular Limitation
 
@@ -533,7 +539,7 @@ export type assetsDataRetrieveResponse = assetsDataRetrieveResponseComposite & {
   headers: Headers
 }
 
-export const getAssetsDataRetrieveUrl = (uidAsset: string, id: number, params?: AssetsDataRetrieveParams) => {
+export const getAssetsDataRetrieveUrl = (uidAsset: string, id: string, params?: AssetsDataRetrieveParams) => {
   const normalizedParams = new URLSearchParams()
 
   Object.entries(params || {}).forEach(([key, value]) => {
@@ -551,7 +557,7 @@ export const getAssetsDataRetrieveUrl = (uidAsset: string, id: number, params?: 
 
 export const assetsDataRetrieve = async (
   uidAsset: string,
-  id: number,
+  id: string,
   params?: AssetsDataRetrieveParams,
   options?: RequestInit,
 ): Promise<assetsDataRetrieveResponse> => {
@@ -561,7 +567,7 @@ export const assetsDataRetrieve = async (
   })
 }
 
-export const getAssetsDataRetrieveQueryKey = (uidAsset: string, id: number, params?: AssetsDataRetrieveParams) => {
+export const getAssetsDataRetrieveQueryKey = (uidAsset: string, id: string, params?: AssetsDataRetrieveParams) => {
   return ['api', 'v2', 'assets', uidAsset, 'data', id, ...(params ? [params] : [])] as const
 }
 
@@ -570,7 +576,7 @@ export const getAssetsDataRetrieveQueryOptions = <
   TError = ErrorDetail,
 >(
   uidAsset: string,
-  id: number,
+  id: string,
   params?: AssetsDataRetrieveParams,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetsDataRetrieve>>, TError, TData>
@@ -596,7 +602,7 @@ export type AssetsDataRetrieveQueryError = ErrorDetail
 
 export function useAssetsDataRetrieve<TData = Awaited<ReturnType<typeof assetsDataRetrieve>>, TError = ErrorDetail>(
   uidAsset: string,
-  id: number,
+  id: string,
   params?: AssetsDataRetrieveParams,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetsDataRetrieve>>, TError, TData>
@@ -632,13 +638,13 @@ export type assetsDataDestroyResponse = assetsDataDestroyResponseComposite & {
   headers: Headers
 }
 
-export const getAssetsDataDestroyUrl = (uidAsset: string, id: number) => {
+export const getAssetsDataDestroyUrl = (uidAsset: string, id: string) => {
   return `/api/v2/assets/${uidAsset}/data/${id}/`
 }
 
 export const assetsDataDestroy = async (
   uidAsset: string,
-  id: number,
+  id: string,
   options?: RequestInit,
 ): Promise<assetsDataDestroyResponse> => {
   return fetchWithAuth<assetsDataDestroyResponse>(getAssetsDataDestroyUrl(uidAsset, id), {
@@ -651,14 +657,14 @@ export const getAssetsDataDestroyMutationOptions = <TError = ErrorDetail, TConte
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsDataDestroy>>,
     TError,
-    { uidAsset: string; id: number },
+    { uidAsset: string; id: string },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof assetsDataDestroy>>,
   TError,
-  { uidAsset: string; id: number },
+  { uidAsset: string; id: string },
   TContext
 > => {
   const mutationKey = ['assetsDataDestroy']
@@ -670,7 +676,7 @@ export const getAssetsDataDestroyMutationOptions = <TError = ErrorDetail, TConte
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof assetsDataDestroy>>,
-    { uidAsset: string; id: number }
+    { uidAsset: string; id: string }
   > = (props) => {
     const { uidAsset, id } = props ?? {}
 
@@ -688,7 +694,7 @@ export const useAssetsDataDestroy = <TError = ErrorDetail, TContext = unknown>(o
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsDataDestroy>>,
     TError,
-    { uidAsset: string; id: number },
+    { uidAsset: string; id: string },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
@@ -699,7 +705,17 @@ export const useAssetsDataDestroy = <TError = ErrorDetail, TContext = unknown>(o
 }
 /**
  * ## Duplicate submission
+
 Duplicates the data of a submission
+
+`{id}` can be:
+
+- The primary key of the submission
+- Its `_uuid` <sup>1</sup>
+- Its `rootUuid` (without "uuid:" prefix)
+
+<sup>1</sup> Please note that using the `_uuid` may match **several** submissions, only
+the first match will be returned.
 
  */
 export type assetsDataDuplicateCreateResponse200 = {
@@ -720,13 +736,13 @@ export type assetsDataDuplicateCreateResponse = assetsDataDuplicateCreateRespons
   headers: Headers
 }
 
-export const getAssetsDataDuplicateCreateUrl = (uidAsset: string, id: number) => {
+export const getAssetsDataDuplicateCreateUrl = (uidAsset: string, id: string) => {
   return `/api/v2/assets/${uidAsset}/data/${id}/duplicate/`
 }
 
 export const assetsDataDuplicateCreate = async (
   uidAsset: string,
-  id: number,
+  id: string,
   dataBulkDelete: DataBulkDelete,
   options?: RequestInit,
 ): Promise<assetsDataDuplicateCreateResponse> => {
@@ -742,14 +758,14 @@ export const getAssetsDataDuplicateCreateMutationOptions = <TError = ErrorDetail
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsDataDuplicateCreate>>,
     TError,
-    { uidAsset: string; id: number; data: DataBulkDelete },
+    { uidAsset: string; id: string; data: DataBulkDelete },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof assetsDataDuplicateCreate>>,
   TError,
-  { uidAsset: string; id: number; data: DataBulkDelete },
+  { uidAsset: string; id: string; data: DataBulkDelete },
   TContext
 > => {
   const mutationKey = ['assetsDataDuplicateCreate']
@@ -761,7 +777,7 @@ export const getAssetsDataDuplicateCreateMutationOptions = <TError = ErrorDetail
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof assetsDataDuplicateCreate>>,
-    { uidAsset: string; id: number; data: DataBulkDelete }
+    { uidAsset: string; id: string; data: DataBulkDelete }
   > = (props) => {
     const { uidAsset, id, data } = props ?? {}
 
@@ -779,7 +795,7 @@ export const useAssetsDataDuplicateCreate = <TError = ErrorDetail, TContext = un
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsDataDuplicateCreate>>,
     TError,
-    { uidAsset: string; id: number; data: DataBulkDelete },
+    { uidAsset: string; id: string; data: DataBulkDelete },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
@@ -790,6 +806,15 @@ export const useAssetsDataDuplicateCreate = <TError = ErrorDetail, TContext = un
 }
 /**
  * ## Get submission url of enketo in edit mode
+
+`{id}` can be:
+
+- The primary key of the submission
+- Its `_uuid` <sup>1</sup>
+- Its `rootUuid` (without "uuid:" prefix)
+
+<sup>1</sup> Please note that using the `_uuid` may match **several** submissions, only
+the first match will be returned.
 
 Note: Some variation of this url exists:
 
@@ -818,13 +843,13 @@ export type assetsDataEditRetrieveResponse = assetsDataEditRetrieveResponseCompo
   headers: Headers
 }
 
-export const getAssetsDataEditRetrieveUrl = (uidAsset: string, id: number) => {
+export const getAssetsDataEditRetrieveUrl = (uidAsset: string, id: string) => {
   return `/api/v2/assets/${uidAsset}/data/${id}/edit/`
 }
 
 export const assetsDataEditRetrieve = async (
   uidAsset: string,
-  id: number,
+  id: string,
   options?: RequestInit,
 ): Promise<assetsDataEditRetrieveResponse> => {
   return fetchWithAuth<assetsDataEditRetrieveResponse>(getAssetsDataEditRetrieveUrl(uidAsset, id), {
@@ -833,7 +858,7 @@ export const assetsDataEditRetrieve = async (
   })
 }
 
-export const getAssetsDataEditRetrieveQueryKey = (uidAsset: string, id: number) => {
+export const getAssetsDataEditRetrieveQueryKey = (uidAsset: string, id: string) => {
   return ['api', 'v2', 'assets', uidAsset, 'data', id, 'edit'] as const
 }
 
@@ -842,7 +867,7 @@ export const getAssetsDataEditRetrieveQueryOptions = <
   TError = ErrorDetail,
 >(
   uidAsset: string,
-  id: number,
+  id: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetsDataEditRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
@@ -870,7 +895,7 @@ export function useAssetsDataEditRetrieve<
   TError = ErrorDetail,
 >(
   uidAsset: string,
-  id: number,
+  id: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetsDataEditRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
@@ -887,6 +912,15 @@ export function useAssetsDataEditRetrieve<
 
 /**
  * ## Get submission url of enketo in edit mode
+
+`{id}` can be:
+
+- The primary key of the submission
+- Its `_uuid` <sup>1</sup>
+- Its `rootUuid` (without "uuid:" prefix)
+
+<sup>1</sup> Please note that using the `_uuid` may match **several** submissions, only
+the first match will be returned.
 
 Note: Some variation of this url exists:
 
@@ -915,13 +949,13 @@ export type assetsDataEnketoEditRetrieveResponse = assetsDataEnketoEditRetrieveR
   headers: Headers
 }
 
-export const getAssetsDataEnketoEditRetrieveUrl = (uidAsset: string, id: number) => {
+export const getAssetsDataEnketoEditRetrieveUrl = (uidAsset: string, id: string) => {
   return `/api/v2/assets/${uidAsset}/data/${id}/enketo/edit/`
 }
 
 export const assetsDataEnketoEditRetrieve = async (
   uidAsset: string,
-  id: number,
+  id: string,
   options?: RequestInit,
 ): Promise<assetsDataEnketoEditRetrieveResponse> => {
   return fetchWithAuth<assetsDataEnketoEditRetrieveResponse>(getAssetsDataEnketoEditRetrieveUrl(uidAsset, id), {
@@ -930,7 +964,7 @@ export const assetsDataEnketoEditRetrieve = async (
   })
 }
 
-export const getAssetsDataEnketoEditRetrieveQueryKey = (uidAsset: string, id: number) => {
+export const getAssetsDataEnketoEditRetrieveQueryKey = (uidAsset: string, id: string) => {
   return ['api', 'v2', 'assets', uidAsset, 'data', id, 'enketo', 'edit'] as const
 }
 
@@ -939,7 +973,7 @@ export const getAssetsDataEnketoEditRetrieveQueryOptions = <
   TError = ErrorDetail,
 >(
   uidAsset: string,
-  id: number,
+  id: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetsDataEnketoEditRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
@@ -969,7 +1003,7 @@ export function useAssetsDataEnketoEditRetrieve<
   TError = ErrorDetail,
 >(
   uidAsset: string,
-  id: number,
+  id: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetsDataEnketoEditRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
@@ -986,6 +1020,15 @@ export function useAssetsDataEnketoEditRetrieve<
 
 /**
  * ## Get submission url of enketo in edit mode
+
+`{id}` can be:
+
+- The primary key of the submission
+- Its `_uuid` <sup>1</sup>
+- Its `rootUuid` (without "uuid:" prefix)
+
+<sup>1</sup> Please note that using the `_uuid` may match **several** submissions, only
+the first match will be returned.
 
 Note: Some variation of this url exists:
 
@@ -1014,13 +1057,13 @@ export type assetsDataEnketoRedirectEditRetrieveResponse = assetsDataEnketoRedir
   headers: Headers
 }
 
-export const getAssetsDataEnketoRedirectEditRetrieveUrl = (uidAsset: string, id: number) => {
+export const getAssetsDataEnketoRedirectEditRetrieveUrl = (uidAsset: string, id: string) => {
   return `/api/v2/assets/${uidAsset}/data/${id}/enketo/redirect/edit/`
 }
 
 export const assetsDataEnketoRedirectEditRetrieve = async (
   uidAsset: string,
-  id: number,
+  id: string,
   options?: RequestInit,
 ): Promise<assetsDataEnketoRedirectEditRetrieveResponse> => {
   return fetchWithAuth<assetsDataEnketoRedirectEditRetrieveResponse>(
@@ -1032,7 +1075,7 @@ export const assetsDataEnketoRedirectEditRetrieve = async (
   )
 }
 
-export const getAssetsDataEnketoRedirectEditRetrieveQueryKey = (uidAsset: string, id: number) => {
+export const getAssetsDataEnketoRedirectEditRetrieveQueryKey = (uidAsset: string, id: string) => {
   return ['api', 'v2', 'assets', uidAsset, 'data', id, 'enketo', 'redirect', 'edit'] as const
 }
 
@@ -1041,7 +1084,7 @@ export const getAssetsDataEnketoRedirectEditRetrieveQueryOptions = <
   TError = ErrorDetail,
 >(
   uidAsset: string,
-  id: number,
+  id: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetsDataEnketoRedirectEditRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
@@ -1071,7 +1114,7 @@ export function useAssetsDataEnketoRedirectEditRetrieve<
   TError = ErrorDetail,
 >(
   uidAsset: string,
-  id: number,
+  id: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetsDataEnketoRedirectEditRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
@@ -1088,6 +1131,15 @@ export function useAssetsDataEnketoRedirectEditRetrieve<
 
 /**
  * ## Get submission url of enketo in preview mode
+
+`{id}` can be:
+
+- The primary key of the submission
+- Its `_uuid` <sup>1</sup>
+- Its `rootUuid` (without "uuid:" prefix)
+
+<sup>1</sup> Please note that using the `_uuid` may match **several** submissions, only
+the first match will be returned.
 
 Note: Some variation of this url exists:
 
@@ -1114,13 +1166,13 @@ export type assetsDataEnketoRedirectViewRetrieveResponse = assetsDataEnketoRedir
   headers: Headers
 }
 
-export const getAssetsDataEnketoRedirectViewRetrieveUrl = (uidAsset: string, id: number) => {
+export const getAssetsDataEnketoRedirectViewRetrieveUrl = (uidAsset: string, id: string) => {
   return `/api/v2/assets/${uidAsset}/data/${id}/enketo/redirect/view/`
 }
 
 export const assetsDataEnketoRedirectViewRetrieve = async (
   uidAsset: string,
-  id: number,
+  id: string,
   options?: RequestInit,
 ): Promise<assetsDataEnketoRedirectViewRetrieveResponse> => {
   return fetchWithAuth<assetsDataEnketoRedirectViewRetrieveResponse>(
@@ -1132,7 +1184,7 @@ export const assetsDataEnketoRedirectViewRetrieve = async (
   )
 }
 
-export const getAssetsDataEnketoRedirectViewRetrieveQueryKey = (uidAsset: string, id: number) => {
+export const getAssetsDataEnketoRedirectViewRetrieveQueryKey = (uidAsset: string, id: string) => {
   return ['api', 'v2', 'assets', uidAsset, 'data', id, 'enketo', 'redirect', 'view'] as const
 }
 
@@ -1141,7 +1193,7 @@ export const getAssetsDataEnketoRedirectViewRetrieveQueryOptions = <
   TError = ErrorDetail,
 >(
   uidAsset: string,
-  id: number,
+  id: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetsDataEnketoRedirectViewRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
@@ -1171,7 +1223,7 @@ export function useAssetsDataEnketoRedirectViewRetrieve<
   TError = ErrorDetail,
 >(
   uidAsset: string,
-  id: number,
+  id: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetsDataEnketoRedirectViewRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
@@ -1188,6 +1240,15 @@ export function useAssetsDataEnketoRedirectViewRetrieve<
 
 /**
  * ## Get submission url of enketo in preview mode
+
+`{id}` can be:
+
+- The primary key of the submission
+- Its `_uuid` <sup>1</sup>
+- Its `rootUuid` (without "uuid:" prefix)
+
+<sup>1</sup> Please note that using the `_uuid` may match **several** submissions, only
+the first match will be returned.
 
 Note: Some variation of this url exists:
 
@@ -1214,13 +1275,13 @@ export type assetsDataEnketoViewRetrieveResponse = assetsDataEnketoViewRetrieveR
   headers: Headers
 }
 
-export const getAssetsDataEnketoViewRetrieveUrl = (uidAsset: string, id: number) => {
+export const getAssetsDataEnketoViewRetrieveUrl = (uidAsset: string, id: string) => {
   return `/api/v2/assets/${uidAsset}/data/${id}/enketo/view/`
 }
 
 export const assetsDataEnketoViewRetrieve = async (
   uidAsset: string,
-  id: number,
+  id: string,
   options?: RequestInit,
 ): Promise<assetsDataEnketoViewRetrieveResponse> => {
   return fetchWithAuth<assetsDataEnketoViewRetrieveResponse>(getAssetsDataEnketoViewRetrieveUrl(uidAsset, id), {
@@ -1229,7 +1290,7 @@ export const assetsDataEnketoViewRetrieve = async (
   })
 }
 
-export const getAssetsDataEnketoViewRetrieveQueryKey = (uidAsset: string, id: number) => {
+export const getAssetsDataEnketoViewRetrieveQueryKey = (uidAsset: string, id: string) => {
   return ['api', 'v2', 'assets', uidAsset, 'data', id, 'enketo', 'view'] as const
 }
 
@@ -1238,7 +1299,7 @@ export const getAssetsDataEnketoViewRetrieveQueryOptions = <
   TError = ErrorDetail,
 >(
   uidAsset: string,
-  id: number,
+  id: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetsDataEnketoViewRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
@@ -1268,7 +1329,7 @@ export function useAssetsDataEnketoViewRetrieve<
   TError = ErrorDetail,
 >(
   uidAsset: string,
-  id: number,
+  id: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetsDataEnketoViewRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
@@ -1306,13 +1367,13 @@ export type assetsDataValidationStatusRetrieveResponse = assetsDataValidationSta
   headers: Headers
 }
 
-export const getAssetsDataValidationStatusRetrieveUrl = (uidAsset: string, id: number) => {
+export const getAssetsDataValidationStatusRetrieveUrl = (uidAsset: string, id: string) => {
   return `/api/v2/assets/${uidAsset}/data/${id}/validation_status/`
 }
 
 export const assetsDataValidationStatusRetrieve = async (
   uidAsset: string,
-  id: number,
+  id: string,
   options?: RequestInit,
 ): Promise<assetsDataValidationStatusRetrieveResponse> => {
   return fetchWithAuth<assetsDataValidationStatusRetrieveResponse>(
@@ -1324,7 +1385,7 @@ export const assetsDataValidationStatusRetrieve = async (
   )
 }
 
-export const getAssetsDataValidationStatusRetrieveQueryKey = (uidAsset: string, id: number) => {
+export const getAssetsDataValidationStatusRetrieveQueryKey = (uidAsset: string, id: string) => {
   return ['api', 'v2', 'assets', uidAsset, 'data', id, 'validation_status'] as const
 }
 
@@ -1333,7 +1394,7 @@ export const getAssetsDataValidationStatusRetrieveQueryOptions = <
   TError = ErrorDetail,
 >(
   uidAsset: string,
-  id: number,
+  id: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetsDataValidationStatusRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
@@ -1363,7 +1424,7 @@ export function useAssetsDataValidationStatusRetrieve<
   TError = ErrorDetail,
 >(
   uidAsset: string,
-  id: number,
+  id: string,
   options?: {
     query?: UseQueryOptions<Awaited<ReturnType<typeof assetsDataValidationStatusRetrieve>>, TError, TData>
     request?: SecondParameter<typeof fetchWithAuth>
@@ -1407,13 +1468,13 @@ export type assetsDataValidationStatusPartialUpdateResponse =
     headers: Headers
   }
 
-export const getAssetsDataValidationStatusPartialUpdateUrl = (uidAsset: string, id: number) => {
+export const getAssetsDataValidationStatusPartialUpdateUrl = (uidAsset: string, id: string) => {
   return `/api/v2/assets/${uidAsset}/data/${id}/validation_status/`
 }
 
 export const assetsDataValidationStatusPartialUpdate = async (
   uidAsset: string,
-  id: number,
+  id: string,
   patchedDataValidationStatusUpdatePayload: PatchedDataValidationStatusUpdatePayload,
   options?: RequestInit,
 ): Promise<assetsDataValidationStatusPartialUpdateResponse> => {
@@ -1435,14 +1496,14 @@ export const getAssetsDataValidationStatusPartialUpdateMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsDataValidationStatusPartialUpdate>>,
     TError,
-    { uidAsset: string; id: number; data: PatchedDataValidationStatusUpdatePayload },
+    { uidAsset: string; id: string; data: PatchedDataValidationStatusUpdatePayload },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof assetsDataValidationStatusPartialUpdate>>,
   TError,
-  { uidAsset: string; id: number; data: PatchedDataValidationStatusUpdatePayload },
+  { uidAsset: string; id: string; data: PatchedDataValidationStatusUpdatePayload },
   TContext
 > => {
   const mutationKey = ['assetsDataValidationStatusPartialUpdate']
@@ -1454,7 +1515,7 @@ export const getAssetsDataValidationStatusPartialUpdateMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof assetsDataValidationStatusPartialUpdate>>,
-    { uidAsset: string; id: number; data: PatchedDataValidationStatusUpdatePayload }
+    { uidAsset: string; id: string; data: PatchedDataValidationStatusUpdatePayload }
   > = (props) => {
     const { uidAsset, id, data } = props ?? {}
 
@@ -1474,7 +1535,7 @@ export const useAssetsDataValidationStatusPartialUpdate = <TError = ErrorDetail,
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsDataValidationStatusPartialUpdate>>,
     TError,
-    { uidAsset: string; id: number; data: PatchedDataValidationStatusUpdatePayload },
+    { uidAsset: string; id: string; data: PatchedDataValidationStatusUpdatePayload },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
@@ -1505,13 +1566,13 @@ export type assetsDataValidationStatusDestroyResponse = assetsDataValidationStat
   headers: Headers
 }
 
-export const getAssetsDataValidationStatusDestroyUrl = (uidAsset: string, id: number) => {
+export const getAssetsDataValidationStatusDestroyUrl = (uidAsset: string, id: string) => {
   return `/api/v2/assets/${uidAsset}/data/${id}/validation_status/`
 }
 
 export const assetsDataValidationStatusDestroy = async (
   uidAsset: string,
-  id: number,
+  id: string,
   options?: RequestInit,
 ): Promise<assetsDataValidationStatusDestroyResponse> => {
   return fetchWithAuth<assetsDataValidationStatusDestroyResponse>(
@@ -1530,14 +1591,14 @@ export const getAssetsDataValidationStatusDestroyMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsDataValidationStatusDestroy>>,
     TError,
-    { uidAsset: string; id: number },
+    { uidAsset: string; id: string },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof assetsDataValidationStatusDestroy>>,
   TError,
-  { uidAsset: string; id: number },
+  { uidAsset: string; id: string },
   TContext
 > => {
   const mutationKey = ['assetsDataValidationStatusDestroy']
@@ -1549,7 +1610,7 @@ export const getAssetsDataValidationStatusDestroyMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof assetsDataValidationStatusDestroy>>,
-    { uidAsset: string; id: number }
+    { uidAsset: string; id: string }
   > = (props) => {
     const { uidAsset, id } = props ?? {}
 
@@ -1569,7 +1630,7 @@ export const useAssetsDataValidationStatusDestroy = <TError = ErrorDetail, TCont
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof assetsDataValidationStatusDestroy>>,
     TError,
-    { uidAsset: string; id: number },
+    { uidAsset: string; id: string },
     TContext
   >
   request?: SecondParameter<typeof fetchWithAuth>

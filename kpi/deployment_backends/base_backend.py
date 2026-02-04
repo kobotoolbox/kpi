@@ -21,7 +21,10 @@ from rest_framework.pagination import _positive_int as positive_int
 from shortuuid import ShortUUID
 
 from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
-from kobo.apps.openrosa.apps.logger.xform_instance_parser import add_uuid_prefix
+from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
+    add_uuid_prefix,
+    remove_uuid_prefix,
+)
 from kobo.apps.openrosa.libs.utils.common_tags import META_INSTANCE_ID, META_ROOT_UUID
 from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_handler
 from kpi.constants import (
@@ -221,12 +224,13 @@ class BaseDeploymentBackend(abc.ABC):
         to a destination uuid. Should be used along with duplicate_submission,
         after it succeeds at duplicating a submission
         """
+
         original_extras = self.asset.submission_extras.filter(
-            submission_uuid=origin_uuid
+            submission_uuid=remove_uuid_prefix(origin_uuid)
         ).first()
         if original_extras is not None:
             duplicated_extras = copy.deepcopy(original_extras.content)
-            duplicated_extras['submission'] = dest_uuid
+            duplicated_extras['submission'] = remove_uuid_prefix(dest_uuid)
             self.asset.update_submission_extra(duplicated_extras)
 
     def create_enketo_survey_links_for_data_collectors(self):
@@ -236,7 +240,7 @@ class BaseDeploymentBackend(abc.ABC):
             )
         )
         for token in data_collector_tokens:
-            self.set_data_collector_enketo_links(token)
+            self.create_enketo_survey_links_for_single_data_collector(token)
 
     def delete(self):
         self.asset._deployment_data.clear()  # noqa
@@ -440,10 +444,10 @@ class BaseDeploymentBackend(abc.ABC):
 
     def remove_enketo_survey_links_for_data_collectors(self, tokens):
         for token in tokens:
-            self.remove_data_collector_enketo_links(token)
+            self.remove_enketo_links_for_single_data_collector(token)
 
     @abc.abstractmethod
-    def remove_data_collector_enketo_links(self, token):
+    def remove_enketo_links_for_single_data_collector(self, token):
         pass
 
     @abc.abstractmethod
@@ -487,7 +491,7 @@ class BaseDeploymentBackend(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def set_data_collector_enketo_links(self, token):
+    def create_enketo_survey_links_for_single_data_collector(self, token):
         pass
 
     @abc.abstractmethod
