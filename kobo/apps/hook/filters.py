@@ -3,11 +3,11 @@ from .models import HookLog
 
 
 class HookLogFilter(filters.FilterSet):
-    start = filters.IsoDateTimeFilter(
+    start_date = filters.IsoDateTimeFilter(
         field_name='date_modified', lookup_expr='gte')
-    end = filters.IsoDateTimeFilter(
+    end_date = filters.IsoDateTimeFilter(
         field_name='date_modified', lookup_expr='lt')
 
     class Meta:
         model = HookLog
-        fields = ['status', 'start', 'end']
+        fields = ['status', 'start_date', 'end_date']
