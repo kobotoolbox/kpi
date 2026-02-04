@@ -10,7 +10,9 @@ class AutomaticGoogleTranscriptionAction(
 ):
 
     ID = 'automatic_google_transcription'
-    action_class_config = ActionClassConfig(allow_multiple=False, automatic=True)
+    action_class_config = ActionClassConfig(
+        allow_multiple=False, automatic=True, requires_acceptance=True
+    )
 
     def get_nlp_service_class(self) -> NLPExternalServiceClass:
         return GoogleTranscriptionService

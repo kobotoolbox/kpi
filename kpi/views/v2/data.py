@@ -562,7 +562,8 @@ class DataViewSet(
             raise serializers.ValidationError({'detail': 'Invalid question name'})
         except SubsequenceDeletionError:
             raise serializers.ValidationError({'detail': 'Subsequence deletion error'})
-        except jsonschema.exceptions.ValidationError:
+        except jsonschema.exceptions.ValidationError as ip:
+            breakpoint()
             raise serializers.ValidationError({'detail': 'Invalid payload'})
         except TranscriptionNotFound:
             raise serializers.ValidationError(

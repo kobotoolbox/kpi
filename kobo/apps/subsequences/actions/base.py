@@ -160,11 +160,16 @@ class ActionClassConfig:
       when multiple entries are allowed (e.g., "language").
     - automatic: Indicates whether the action relies on an external service
       to generate data.
+    - requires_acceptance: Whether data must be accepted to appear in the data table
+    - allows_verification: Whether data includes an additional 'verified' status
+
     """
 
     allow_multiple: bool
     automatic: bool
     action_data_key: str | None = None
+    requires_acceptance: bool = False
+    allows_verification: bool = False
 
 
 class BaseAction:
@@ -261,6 +266,7 @@ class BaseAction:
         action_data: dict,
         dependency_supplemental_data: dict,
         accepted: bool | None = None,
+        verified: bool | None = None,
     ) -> dict:
         now_str = utc_datetime_to_js_str(timezone.now())
 
@@ -273,6 +279,9 @@ class BaseAction:
         new_version = {self.VERSION_DATA_FIELD: deepcopy(action_data)}
         new_version[self.DATE_CREATED_FIELD] = now_str
         new_version[self.UUID_FIELD] = str(uuid.uuid4())
+        if self.action_class_config.allows_verification:
+            # everything starts out unverified
+            new_version['verified'] = False
         if dependency_supplemental_data:
             new_version[self.DEPENDENCY_FIELD] = dependency_supplemental_data
 
@@ -283,25 +292,43 @@ class BaseAction:
         localized_action_supplemental_data.setdefault(self.VERSION_FIELD, []).insert(
             0, new_version
         )
+        no_new_version = (
+            self.action_class_config.automatic
+            and self.action_class_config.requires_acceptance
+            and accepted is not None
+        )
+        no_new_version = no_new_version or (
+            self.action_class_config.allows_verification and verified is not None
+        )
+
+        accepting = (
+            self.action_class_config.requires_acceptance and accepted is not None
+        )
+        verifying = (
+            self.action_class_config.allows_verification and verified is not None
+        )
 
         # For manual actions, always mark as accepted.
         # For automatic actions, revert the just-created revision (remove it and
         # reapply its dates) to avoid adding extra branching earlier in the method.
-        if self.action_class_config.automatic:
-            if accepted is not None:
-                # Remove stale version
-                localized_action_supplemental_data[self.VERSION_FIELD].pop(0)
-                if accepted:
-                    localized_action_supplemental_data[self.VERSION_FIELD][0][
-                        self.DATE_ACCEPTED_FIELD
-                    ] = now_str
-                else:
-                    localized_action_supplemental_data[self.VERSION_FIELD][0].pop(
-                        self.DATE_ACCEPTED_FIELD, None
-                    )
-
-        elif accepted:
-            new_version[self.DATE_ACCEPTED_FIELD] = now_str
+        if no_new_version:
+            localized_action_supplemental_data[self.VERSION_FIELD].pop(0)
+        if accepting:
+            localized_action_supplemental_data[self.VERSION_FIELD][0][
+                self.DATE_ACCEPTED_FIELD
+            ] = now_str
+        if verifying:
+            if verified:
+                localized_action_supplemental_data[self.VERSION_FIELD][0][
+                    '_dateVerified'
+                ] = now_str
+                localized_action_supplemental_data[self.VERSION_FIELD][0][
+                    'verified'
+                ] = True
+            else:
+                localized_action_supplemental_data[self.VERSION_FIELD][0][
+                    'verified'
+                ] = False
 
         if not self.action_class_config.allow_multiple:
             new_action_supplemental_data = localized_action_supplemental_data
@@ -453,6 +480,7 @@ class BaseAction:
             # Deletion is triggered by passing `{value: null}`.
             # When this occurs, no acceptance should be recorded.
             accepted = action_data.get('value') is not None
+        verified = action_data.pop('verified', None)
 
         if dependency_supplemental_data:
             # Sanitize 'dependency' before persisting: keep only a reference of the
@@ -470,6 +498,7 @@ class BaseAction:
             action_data,
             dependency_supplemental_data,
             accepted,
+            verified,
         )
 
     @staticmethod

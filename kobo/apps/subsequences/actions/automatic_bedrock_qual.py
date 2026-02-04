@@ -89,7 +89,10 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
 
     ID = 'automatic_bedrock_qual'
     action_class_config = ActionClassConfig(
-        allow_multiple=True, automatic=True, action_data_key='uuid'
+        allow_multiple=True,
+        automatic=True,
+        action_data_key='uuid',
+        allows_verification=True,
     )
 
     @property
@@ -139,7 +142,9 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         to_return = deepcopy(super().data_schema)
         defs = to_return['$defs']
         qual_common = to_return['$defs']['qualCommon']
+        del qual_common['oneOf']
         properties = qual_common['properties']
+        del properties['verified']
         additional_properties = {
             'status': {'$ref': '#/$defs/action_status'},
             'error': {'$ref': '#/$defs/error'},
@@ -307,8 +312,9 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
                                 'properties': {
                                     '_data': {'$ref': '#/$defs/dataSchema'},
                                     '_dateCreated': {'$ref': '#/$defs/dateTime'},
-                                    '_dateAccepted': {'$ref': '#/$defs/dateTime'},
+                                    '_dateVerified': {'$ref': '#/$defs/dateTime'},
                                     '_uuid': {'$ref': '#/$defs/uuid'},
+                                    'verified': {'type': 'boolean'},
                                     self.DEPENDENCY_FIELD: {
                                         'type': 'object',
                                         'additionalProperties': False,
@@ -322,7 +328,12 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
                                         ],
                                     },
                                 },
-                                'required': ['_data', '_dateCreated', '_uuid'],
+                                'required': [
+                                    '_data',
+                                    '_dateCreated',
+                                    '_uuid',
+                                    'verified',
+                                ],
                             },
                         },
                         '_dateCreated': {'$ref': '#/$defs/dateTime'},

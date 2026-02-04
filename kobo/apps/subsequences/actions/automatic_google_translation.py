@@ -9,7 +9,10 @@ class AutomaticGoogleTranslationAction(TranslationActionMixin, BaseAutomaticNLPA
 
     ID = 'automatic_google_translation'
     action_class_config = ActionClassConfig(
-        allow_multiple=True, automatic=True, action_data_key='language'
+        allow_multiple=True,
+        automatic=True,
+        action_data_key='language',
+        requires_acceptance=True,
     )
 
     def get_nlp_service_class(self) -> NLPExternalServiceClass:

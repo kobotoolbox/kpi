@@ -5,6 +5,7 @@ from unittest import TestCase, mock
 import dateutil
 import jsonschema
 import pytest
+from django.utils import timezone
 from freezegun import freeze_time
 from rest_framework.exceptions import ValidationError
 
@@ -334,10 +335,6 @@ class Fix:
             # type is qualText
             'value': 'As the eagle and the wild goose see it',
         },
-        {
-            'uuid': FIX_QUAL_TEXT_UUID,
-            'verified': True,
-        },
     ]
     valid_empty_responses = [
         {
@@ -411,11 +408,6 @@ class Fix:
             'uuid': FIX_QUAL_TEXT_UUID,
             'type': 'qualText',
             'value': 'the type is not to be included as an attribute',
-        },
-        {
-            'uuid': FIX_QUAL_TEXT_UUID,
-            'value': 'Verified and value should not both be present',
-            'verified': True,
         }
     ]
 
@@ -455,6 +447,7 @@ class Fix:
                         'uuid': FIX_QUAL_INTEGER_UUID,
                         'value': None,  # Deleted response recorded last
                     },
+                    'verified': False,
                     '_dateCreated': '2025-01-02T11:11:11Z',
                     '_uuid': '61d23cd7-ce2c-467b-ab26-0839226c714d',
                 },
@@ -463,6 +456,7 @@ class Fix:
                         'uuid': FIX_QUAL_INTEGER_UUID,
                         'value': 3,  # Filled response recorded first
                     },
+                    'verified': False,
                     '_dateCreated': '2025-01-01T11:11:11Z',
                     '_uuid': 'a9a817c0-7208-4063-bab6-93c0a3a7615b',
                 },
@@ -477,6 +471,7 @@ class Fix:
                         'uuid': FIX_QUAL_SELECT_MULTIPLE_UUID,
                         'value': [],
                     },
+                    'verified': False,
                     '_dateCreated': '2025-02-02T11:11:11Z',
                     '_uuid': '409c690e-d148-4d80-8c73-51be941b33b0',
                 },
@@ -488,6 +483,7 @@ class Fix:
                             FIX_CHOICE_COMPETITION_UUID,
                         ],
                     },
+                    'verified': False,
                     '_dateCreated': '2025-02-01T11:11:11Z',
                     '_uuid': '20dd5185-ee43-451f-8759-2f5185c3c912',
                 },
@@ -502,6 +498,7 @@ class Fix:
                         'uuid': FIX_QUAL_SELECT_ONE_UUID,
                         'value': '',
                     },
+                    'verified': False,
                     '_dateCreated': '2025-03-02T11:11:11Z',
                     '_uuid': '5799f662-76d7-49ab-9a1c-ae2c7d502a78',
                 },
@@ -510,6 +507,7 @@ class Fix:
                         'uuid': FIX_QUAL_SELECT_ONE_UUID,
                         'value': FIX_CHOICE_NO_UUID,
                     },
+                    'verified': False,
                     '_dateCreated': '2025-03-01T11:11:11Z',
                     '_uuid': '49fbd509-e042-44ce-843c-db04485a0096',
                 },
@@ -524,6 +522,7 @@ class Fix:
                         'uuid': FIX_QUAL_TAGS_UUID,
                         'value': [],
                     },
+                    'verified': False,
                     '_dateCreated': '2025-04-02T11:11:11Z',
                     '_uuid': '64e59cc1-adaf-47a3-a068-550854d8f98f',
                 },
@@ -532,6 +531,7 @@ class Fix:
                         'uuid': FIX_QUAL_TAGS_UUID,
                         'value': ['Quinobequin', 'Doughboy Donuts'],
                     },
+                    'verified': False,
                     '_dateCreated': '2025-04-01T11:11:11Z',
                     '_uuid': 'c4fa8263-50c0-4252-9c9b-216ca338be13',
                 },
@@ -546,6 +546,7 @@ class Fix:
                         'uuid': FIX_QUAL_TEXT_UUID,
                         'value': '',
                     },
+                    'verified': False,
                     '_dateCreated': '2025-05-02T11:11:11Z',
                     '_uuid': '15ccc864-0e83-48f2-be1d-dc2adb9297f4',
                 },
@@ -554,6 +555,7 @@ class Fix:
                         'uuid': FIX_QUAL_TEXT_UUID,
                         'value': 'As the eagle and the wild goose see it',
                     },
+                    'verified': False,
                     '_dateCreated': '2025-05-01T11:11:11Z',
                     '_uuid': '909c62cf-d544-4926-8839-7f035c6c7483',
                 },
@@ -606,6 +608,10 @@ def test_valid_filled_responses_pass_data_validation():
     for response in Fix.valid_filled_responses:
         _action.validate_data(response)
 
+
+def test_verified_responses_pass_data_validation():
+    _action.validate_data({'uuid': FIX_QUAL_INTEGER_UUID, 'verified': True})
+    _action.validate_data({'uuid': FIX_QUAL_INTEGER_UUID, 'verified': False})
 
 def test_valid_empty_responses_pass_data_validation():
     for response in Fix.valid_empty_responses:
@@ -673,6 +679,29 @@ def test_result_content():
                     )
 
     assert accumulated_result == Fix.expected_result_after_filled_and_empty_responses
+
+
+def test_result_content_with_verification():
+    uuid_list = [uuid.UUID(u) for u in Fix.result_mock_uuid_sequence]
+    accumulated_result = {}
+    with mock.patch('uuid.uuid4', side_effect=uuid_list):
+        for filled_response in Fix.valid_filled_responses:
+            accumulated_result = _action.revise_data(
+                EMPTY_SUBMISSION, accumulated_result, filled_response
+            )
+    now = timezone.now()
+    with freeze_time(now):
+        for filled_response in Fix.valid_filled_responses:
+            q_uuid = filled_response['uuid']
+            accumulated_result = _action.revise_data(
+                EMPTY_SUBMISSION, accumulated_result, {'uuid': q_uuid, 'verified': True}
+            )
+    for question_id, question_data in accumulated_result.items():
+        versions = question_data['_versions']
+        assert len(versions) == 1
+        version = versions[0]
+        assert version['verified'] == True
+        assert version['_dateVerified'] == now.isoformat().replace('+00:00', 'Z')
 
 
 class TestQualActionMethods(TestCase):
