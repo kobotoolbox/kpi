@@ -1963,8 +1963,6 @@ ENDPOINT_CACHE_DURATION = env.int('ENDPOINT_CACHE_DURATION', 60 * 15)  # 15 minu
 
 ENV = None
 
-DEFAULT_BATCH_SIZE = 1000
-
 # The maximum size in bytes that a request body may be before a
 # SuspiciousOperation (RequestDataTooBig) is raised
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760
@@ -2177,6 +2175,7 @@ IMPORT_EXPORT_CELERY_STORAGE_ALIAS = 'import_export_celery'
 ORG_INVITATION_RESENT_RESET_AFTER = 15 * 60  # in seconds
 
 # Batch sizes
+DEFAULT_BATCH_SIZE = 1000
 LOG_DELETION_BATCH_SIZE = 1000
 USER_ASSET_ORG_TRANSFER_BATCH_SIZE = 1000
 SUBMISSION_DELETION_BATCH_SIZE = 1000

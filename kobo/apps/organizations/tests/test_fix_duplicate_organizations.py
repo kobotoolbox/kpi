@@ -161,10 +161,26 @@ class TestFixDuplicateOrgs(TestCase):
         asset = Asset.objects.create(name='Owner Project', owner=self.someuser)
 
         # Get all permissions for the asset
-        initial_perms = set(ObjectPermission.objects.filter(
+        initial_perms = ObjectPermission.objects.filter(
             user=self.someuser,
-            asset=asset
-        ).values_list('permission_id', flat=True))
+            asset=asset,
+            deny=False,
+        ).values('permission_id', 'permission__codename')
+
+        expected_permissions = [
+            'add_submissions',
+            'change_asset',
+            'change_submissions',
+            'delete_submissions',
+            'manage_asset',
+            'validate_submissions',
+            'view_asset',
+            'view_submissions',
+        ]
+        initial_codenames = sorted([
+            obj_perm['permission__codename'] for obj_perm in initial_perms
+        ])
+        assert expected_permissions == initial_codenames
 
         job.run()
 
@@ -176,9 +192,13 @@ class TestFixDuplicateOrgs(TestCase):
         # Verify that someuser still has all their initial permissions on the asset
         final_perms = set(ObjectPermission.objects.filter(
             user=self.someuser,
-            asset=asset
+            asset=asset,
+            deny=False,
         ).values_list('permission_id', flat=True))
-        self.assertEqual(initial_perms, final_perms)
+
+        assert set([
+            obj_perm['permission_id'] for obj_perm in initial_perms
+        ]) == final_perms
 
     def _create_organization_for_user(self, user, mmo_override=False):
         org = Organization.objects.create(name='Org', mmo_override=mmo_override)
