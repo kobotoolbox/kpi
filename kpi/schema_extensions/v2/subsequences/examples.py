@@ -265,3 +265,112 @@ def get_advanced_features_list_examples() -> list[OpenApiExample]:
             response_only=True,
         ),
     ]
+
+
+def get_advanced_features_update_examples() -> list[OpenApiExample]:
+    return [
+        OpenApiExample(
+            'NLP Advanced Features',
+            value={
+                'params': [
+                    {'language': 'es'},
+                    {'language': 'fr'},
+                ],
+            },
+            description=(
+                '`<action_id>` can be any of:'
+                '\n\n'
+                '* `manual_transcription`\n'
+                '* `manual_translation`\n'
+                '* `automatic_google_transcription`\n'
+                '* `automatic_google_translation`\n'
+                ''
+            ),
+            request_only=True,
+        ),
+        OpenApiExample(
+            'Qualitative Analysis - Simple Types',
+            value={
+                'params': [
+                    {
+                        'type': '<question_type>',
+                        'uuid': 'aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff',
+                        'labels': {
+                            '_default': 'Qualitative analysis result',
+                        },
+                    },
+                ],
+            },
+            description=(
+                '`<question_type>` can be any of:'
+                '\n\n'
+                '* `qualText` \n'
+                '* `qualInteger` \n'
+                '* `qualTags` \n'
+                '* `qualNote` \n'
+            ),
+            request_only=True,
+        ),
+        OpenApiExample(
+            'Qualitative Analysis - Single Choice Question',
+            value={
+                'params': [
+                    {
+                        'type': 'qualSelectOne',
+                        'uuid': 'aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff',
+                        'labels': {
+                            '_default': 'Urgency Level',
+                        },
+                        'choices': [
+                            {
+                                'uuid': 'qqqqqqqq-bbbb-cccc-dddd-eeeeffffffff',
+                                'labels': {
+                                    '_default': 'High',
+                                },
+                            },
+                            {
+                                'uuid': 'hhhhhhhh-bbbb-cccc-dddd-eeeeffffffff',
+                                'labels': {
+                                    '_default': 'Medium',
+                                },
+                            },
+                            {
+                                'uuid': 'gggggggg-bbbb-cccc-dddd-eeeeffffffff',
+                                'labels': {
+                                    '_default': 'Low',
+                                },
+                            },
+                        ],
+                    },
+                ],
+            },
+            request_only=True,
+        ),
+        OpenApiExample(
+            'Qualitative Analysis - Multiple Choice Question',
+            value={
+                'params': [
+                    {
+                        'type': 'qualSelectMultiple',
+                        'uuid': 'aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff',
+                        'labels': {'_default': 'Tags'},
+                        'choices': [
+                            {
+                                'uuid': 'xxxxxxxx-bbbb-cccc-dddd-eeeeffffffff',
+                                'labels': {'_default': 'Shelter'},
+                            },
+                            {
+                                'uuid': 'zzzzzzzz-bbbb-cccc-dddd-eeeeffffffff',
+                                'labels': {'_default': 'Food'},
+                            },
+                            {
+                                'uuid': 'yyyyyyyy-bbbb-cccc-dddd-eeeeffffffff',
+                                'labels': {'_default': 'Medical'},
+                            },
+                        ],
+                    },
+                ],
+            },
+            request_only=True,
+        ),
+    ]

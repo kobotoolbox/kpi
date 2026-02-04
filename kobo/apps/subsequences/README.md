@@ -7,320 +7,684 @@ It covers how the payload is validated through the various schemas (`params_sche
 
 ## Table of Contents
 
-1. [Class Overview](#1-class-overview)
-2. [Subsequence Workflow](#2-subsequence-workflow)
-   1. [Enabling an Action](#21-enabling-an-action)
-   2. [Updating and Action](#22-updating-an-action)
-   3. [Add Submission Supplement](#23-add-submission-supplement)
-   4. [Sequence Diagram (End-to-End Flow)](#24-sequence-diagram-end-to-end-flow)
-   5. [Flowchart (Logic inside revise_data per Action)](#243-flowchart-logic-inside-revise_data-per-action)
-3. [Where Schemas Apply](#3-where-schemas-apply)
+1. [Subsequence user flow](#subsequence-user-flow)
+   1. [Selected response](#selected-response)
+   2. [Examples](#examples)
+      1. [Automatic transcription](#automatic-transcription)
+      2. [Manual transcription/translation](#manual-transcriptiontranslation)
+      3. [Qualitative analysis](#qualitative-analysis-questions)
+2. [Subsequence workflow](#subsequence-workflow---backend-end-to-end-flow)
+   1. [Sequence diagram](#sequence-diagram--end-to-end)
+   2. [Background polling with celery](#background-polling-with-celery)
+   3. [revise_data - flowchart](#revise_data---flowchart)
+3. [Where schemas apply](#where-schemas-apply)
+   1. [params_schema](#params_schema)
+   2. [data_schema](#data_schema)
+   3. [external_data_schema](#external_data_schema)
+   4. [result_schema](#result_schema)
+   5. [result_schema with dependencies](#result_schema-with-dependencies)
 
----
+## Subsequence user flow
 
-## 1. Class Overview
+In general, the user flow for advanced features (aka subsequences) is as follows:
+1. Enable the desired feature on the survey question
+2. Modify the parameters of the feature as desired
+3. Update the submission with new supplementary data
+4. The submission table and exports view will reflect the new data
 
-> The following diagram shows the inheritance tree and how mixins provide `result_schema`.
+### Selected response
 
-```mermaid
-classDiagram
-direction TB
+For any given question, for any submission, there is only
+* One selected transcript
+* One selected translation per language
+* One selected response to each QA question
 
-%% ==== Bases ====
-class BaseAction {
-  <<abstract>>
-  +external_data_schema [abstract][property]
-  +data_schema [abstract][property]
-  +result_schema [abstract][property]
-  +retrieve_data()
-  +revise_data()
-  +run_external_process() [abstract]
-}
+How these selections are determined varies by feature.
+* For transcripts and translations, the selected version is the most recently *accepted*, manual or automatic
+  ** Notable exception: if there is a version marked "deleted", either manual or automatic, with a *creation* date after the most recently accepted version, the value will be empty
+  ** Manual transcripts/translations are automatically accepted on creation, automatic ones must be explicitly accepted by request
+* For QA questions, the selected version is the most recently *created* response
 
-class BaseManualNLPAction {
-  +params_schema [class-level attribute]
-  +data_schema [property]
-}
+### Examples
 
-class BaseAutomaticNLPAction {
-  +attach_action_dependency() [abstract]
-  +external_data_schema [property]
-  +data_schema [property]
-  +get_action_dependencies() [abstract]
-  +run_external_process()
-  +get_nlp_service_class() [abstract]
-}
+#### Automatic transcription
 
-%% ==== Concrete ====
-class ManualTranscription
-class ManualTranslation
-class AutomaticGoogleTranscription
-class AutomaticGoogleTranslation
+1. Enable automatic transcription in English - adds an (empty) column to the submission table
+`POST /api/v2/assets/{uid_asset}/advanced-features/`
 
-%% ==== Mixins (provide result_schema) ====
-class TranscriptionActionMixin {
-  +result_schema [property]
-}
-class TranslationActionMixin {
-  +attach_action_dependency()
-  +get_action_dependencies()
-  +result_schema [property]
-}
+      <details><summary>Request</summary>
 
-%% ==== Inheritance (bases) ====
-BaseAction <|-- BaseManualNLPAction
-BaseManualNLPAction <|-- BaseAutomaticNLPAction
+      ```json
+      {
+        "question_xpath": "audio_question",
+        "action": "automatic_google_transcription",
+        "params": [{"language": "en"}]
+      }
+      ```
 
-%% ==== Inheritance (concretes) ====
-BaseManualNLPAction <|-- ManualTranscription
-BaseManualNLPAction <|-- ManualTranslation
-BaseAutomaticNLPAction <|-- AutomaticGoogleTranscription
-BaseAutomaticNLPAction <|-- AutomaticGoogleTranslation
+      </details>
 
-%% ==== Mixins -> Concretes ====
-TranscriptionActionMixin <.. ManualTranscription : mixin
-TranscriptionActionMixin <.. AutomaticGoogleTranscription : mixin
-TranslationActionMixin  <.. ManualTranslation : mixin
-TranslationActionMixin  <.. AutomaticGoogleTranslation : mixin
-```
+      <details><summary>Response</summary>
 
----
+      ```json
+      {
+        "question_xpath":"audio_question",
+        "action":"automatic_google_transcription",
+        "params":[{"language":"en"}],
+        "uid":"qaftnQRw6ZBNbNc9n7MSWzvx"
+      }
+      ```
+      </details>
 
-## 2. Subsequence Workflow
+2. Request an automatic transcription in Spanish
+`PATCH /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
 
-### 2.1 Enabling an Action
+      <details><summary>Request</summary>
 
-To enable an action on an Asset, its configuration must be added to the
-`advanced_features_set` on the Asset by creating a new `QuestionAdvancedFeature` object.
-This configuration is used to **instantiate the
-action** with its parameters and is validated against the action's
-`params_schema`.
-
-**Example: Enable Manual Transcription**
-
-POST to `/api/v2/assets/{uid_asset}/advanced-features/` with:
-
-```json
-{
-    "question_xpath": <question_xpath>,
-    "action": <action_id>,
-    "params": <params>
-}
-```
-
-**Example: Manual transcription in English and Spanish**
-
-```json
-{
-  "question_xpath": "audio_question",
-  "action": "manual_transcription",
-  "params": [{"language": "en"}, {"language": "es"}]
-}
-```
-
-**Example: Qualitative Analysis Text question**
-
-```json
-{
-  "question_xpath": "text_question",
-  "action": "manual_qual",
-  "params": [
-    {
-      "type": "qualSelectOne",
-      "uuid": "1a8b748b-f470-4c40-bc09-ce2b1197f503",
-      "labels": { "_default": "Was this a first-hand account?" },
-      "choices": [
-        { "uuid": "3c7aacdc-8971-482a-9528-68e64730fc99", "labels": { "_default": "Yes" } },
-        { "uuid": "7e31c6a5-5eac-464c-970c-62c383546a94", "labels": { "_default": "No" } }
-      ]
-    },
-    {
-      "type": "qualInteger",
-      "uuid": "1a2c8eb0-e2ec-4b3c-942a-c1a5410c081a",
-      "labels": { "_default": "How many characters appear in the story?" }
-    }
-  ]
-}
-```
-To learn more, visit `/api/v2/docs/` on your KoboToolbox server.
-
-Or use the public documentation endpoints:
-
-- Global Server: [API documentation](https://kf.kobotoolbox.org/api/v2/docs/?q=/api/v2/assets/{uid_asset}/advanced-features/)
-- EU Server: [API documentation](https://eu.kobotoolbox.org/api/v2/docs/?q=/api/v2/assets/{uid_asset}/advanced-features/)
-
----
-
-### 2.2 Updating an Action
-
-You can update the params of an action via a PATCH to `/api/v2/assets/{uid_asset}/advanced-features/`
-
-`params` are always additive. That means that if you PATCH a feature with a new param array, the new ones
-will be added to the existing ones. You cannot delete a param via the API.
-
-In the case of NLP actions, this means you can only add languages, not delete.
-For example, given a `manual_transcription` action with `params=[{'language': 'en'}]`, PATCHing the endpoint
-`/api/v2/assets/{uid_asset}/advanced-features/{uid_feature}` with
-```json
-{"params":  [{"language":  "fr"}]}
-```
-will result in
-```json
-{
-  "params": [{"language": "en"}, {"language": "fr"}]
-}
-```
-
-In the case of qualitative analysis questions, any question not present in a PATCH request will be marked as deleted.
-Similarly, for multiple choice questions, if a choice is not present in the PATCH request, it will be marked as deleted.
-The order of the questions will be updated to match the PATCH request, with deleted questions being put at the end.
-For example, given the initial configuration
-```json
-{
-  "params": [
-    {
-      "type": "qualInteger",
-      "uuid": "1a2c8eb0-e2ec-4b3c-942a-c1a5410c081a",
-      "labels": { "_default": "How many characters appear in the story?" }
-    },
-    {
-      "type": "qualSelectOne",
-      "uuid": "1a8b748b-f470-4c40-bc09-ce2b1197f503",
-      "labels": { "_default": "Was this a first-hand account?" },
-      "choices": [
-        { "uuid": "3c7aacdc-8971-482a-9528-68e64730fc99", "labels": { "_default": "Yes" } },
-        { "uuid": "7e31c6a5-5eac-464c-970c-62c383546a94", "labels": { "_default": "No" } }
-      ]
-    }
-  ]
-}
-```
-
-PATCHing the `api/v2/assets/{asset_uid}/advanced-features/{feature_uid}` with
-```json
-{
-  "params": [
-        {
-      "type": "qualText",
-      "uuid": "7b54db17-3a17-4138-aaae-6007866b9c34",
-      "labels": { "_default": "Why did this happen?" }
-    },
-    {
-      "type": "qualSelectOne",
-      "uuid": "1a8b748b-f470-4c40-bc09-ce2b1197f503",
-      "labels": { "_default": "Was this a first-hand account?" },
-      "choices": [
-        { "uuid":  "04d84733-f427-4a5c-b00b-81bca9da7f3c", "labels": { "_default":  "Maybe" } },
-        { "uuid": "3c7aacdc-8971-482a-9528-68e64730fc99", "labels": { "_default": "Yes" } }
-      ]
-    }
-  ]
-}
-```
-
-will result in
-```json
-{
-  "params": [
-        {
-      "type": "qualText",
-      "uuid": "7b54db17-3a17-4138-aaae-6007866b9c34",
-      "labels": { "_default": "Why did this happen?" }
-    },
-    {
-      "type": "qualSelectOne",
-      "uuid": "1a8b748b-f470-4c40-bc09-ce2b1197f503",
-      "labels": { "_default": "Was this a first-hand account?" },
-      "choices": [
-        { "uuid":  "04d84733-f427-4a5c-b00b-81bca9da7f3c", "labels": { "_default":  "Maybe" } },
-        { "uuid": "3c7aacdc-8971-482a-9528-68e64730fc99", "labels": { "_default": "Yes" } },
-        {
-          "uuid": "7e31c6a5-5eac-464c-970c-62c383546a94",
-          "labels": { "_default": "No" },
-          "options": { "deleted":  true }
+      ```json
+      {
+        "_version": "20250820",
+        "audio_question": {
+          "automatic_google_transcription": {
+            "language": "es"
+          }
         }
-      ]
-    },
-    {
-      "type": "qualInteger",
-      "uuid": "1a2c8eb0-e2ec-4b3c-942a-c1a5410c081a",
-      "labels": { "_default": "How many characters appear in the story?" },
-      "options": { "deleted":  true }
-    }
-  ]
-}
-```
+      }
+      ```
+      </details>
 
-### 2.3 Add Submission Supplement
+      <details><summary>Response</summary>
+      `400 - Invalid payload`
+      </details>
 
-You need to PATCH the submission supplement with this payload:
+3. Enable automatic transcription in Spanish - adds an (empty) column to the submission table
+`PATCH /api/v2/assets/{uid_asset}/advanced-features/{uid_feature}/`
 
-#### Generic request
+      <details><summary>Request</summary>
 
-```
-PATCH /api/v2/assets/<asset_uid>/data/<submission_root_uuid>/supplement/
-```
+      ```json
+      {
+        "params": [{"language": "es"}]
+      }
+      ```
+      </details>
 
-```json
-{
-  "_version": "20250820",
-  "question_name_xpath": {
-    "action_id": <params>
-  }
-}
-```
+      <details><summary>Response</summary>
 
-#### Example: Manual transcription in English
+      ```json
+      {
+        "params":[{"language":"en"},{"language":"es"}],
+        "question_xpath":"audio_question",
+        "action":"automatic_google_transcription",
+        "asset":27,
+        "uid":"qaftnQRw6ZBNbNc9n7MSWzvx"
+      }
+      ```
+      </details>
 
-```json
-{
-  "_version": "20250820",
-  "audio_question": {
-    "manual_transcription": { "language": "en", "value": "My transcript" }
-  }
-}
-```
+4. Request automatic transcription in Spanish
+`PATCH /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
 
-### Example: Manual transcription with `locale` (optional)
-You can optionally specify a `locale` to distinguish regional variations (e.g. en-US vs en-GB).
+      <details><summary>Request</summary>
 
-```json
-{
-  "_version": "20250820",
-  "audio_question": {
-    "manual_transcription": { "language": "en", "locale": "en-US", "value": "My transcript" }
-  }
-}
-```
+      ```json
+      {
+        "_version": "20250820",
+        "audio_question": {
+          "automatic_google_transcription": {
+            "language": "es"
+          }
+        }
+      }
+      ```
+      </details>
 
-#### Example: Qualitative Analysis Text question
+      <details><summary>Response</summary>
 
-```json
-{
-  "_version": "20250820",
-  "text_question": {
-    "manual_qual": {
-      "uuid": "q_uuid",
-      "value": "sentiment_pos"
-    }
-  }
-}
-```
-To learn more, visit `/api/v2/docs/` on your KoboToolbox server.
+      ```json
+      {
+        "audio_question": {
+          "automatic_google_transcription": {
+            "_dateCreated":"2026-01-28T15:07:53.666960Z",
+            "_dateModified":"2026-01-28T15:07:53.666960Z",
+            "_versions": [
+              {
+                "_data": {
+                  "language":"es","status":"in_progress"
+                },
+                "_dateCreated":"2026-01-28T15:07:53.666960Z",
+                "_uuid":"8df4a7f5-a05e-49a8-8620-d53dc0377535"
+              }
+            ]
+          }
+        },
+        "_version":"20250820"
+      }
+      ```
+      </details>
 
-Or use the public documentation endpoints:
+5. Poll to see if the transcription is done yet - transcript is still empty in the row because it has not yet been accepted
+`GET /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
 
-- Global Server: [API documentation](https://kf.kobotoolbox.org/api/v2/docs/?q=/api/v2/assets/{uid_asset}/data/{root_uuid}/supplement/)
-- EU Server: [API documentation](https://eu.kobotoolbox.org/api/v2/docs/?q=/api/v2/assets/{uid_asset}/data/{root_uuid}/supplement/)
+      <details><summary>Response</summary>
 
----
+      ```json
+      {
+         "audio_question":{
+            "automatic_google_transcription":{
+               "_versions":[
+                  {
+                     "_data":{
+                        "value":"Hola mundo",
+                        "status":"complete",
+                        "language":"es"
+                     },
+                     "_uuid":"9adfb1cf-0b21-4cb6-9ade-6a6bdd9cc830",
+                     "_dateCreated":"2026-01-28T15:21:17.091030Z"
+                  },
+                 {
+                   "_data": {
+                     "status": "in_progress",
+                     "language": "es"
+                   },
+                   "_uuid": "148381b2-ea51-4085-9968-acbb8608e749",
+                   "_dateCreated": "2026-01-28T15:21:06.416445Z"
+                 }
+               ],
+              "_version":"20250820"
+            }
+         }
+      }
+      ```
+      </details>
 
-### 2.4 Sequence Diagram (End-to-End Flow)
+6. Accept the transcript - Spanish transcript is now filled in the submission row
+`PATCH /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
+
+      <details><summary>Request</summary>
+
+      ```json
+      {
+        "_version": "20250820",
+        "audio_question": {
+          "automatic_google_transcription": {
+            "language": "es",
+            "accepted": true
+          }
+        }
+      }
+      ```
+      </details>
+
+      <details><summary>Response</summary>
+
+      ```json
+      {
+         "audio_question":{
+            "automatic_google_transcription":{
+               "_versions":[
+                  {
+                     "_data":{
+                        "value":"Hola mundo",
+                        "status":"complete",
+                        "language":"es"
+                     },
+                     "_uuid":"9adfb1cf-0b21-4cb6-9ade-6a6bdd9cc830",
+                     "_dateCreated":"2026-01-28T15:21:17.091030Z",
+                     "_dateAccepted":"2026-01028T15:30:34.034124Z"
+                  },
+                 {
+                   "_data": {
+                     "status": "in_progress",
+                     "language": "es"
+                   },
+                   "_uuid": "148381b2-ea51-4085-9968-acbb8608e749",
+                   "_dateCreated": "2026-01-28T15:21:06.416445Z"
+                 }
+               ],
+              "_version":"20250820"
+            }
+         }
+      }
+      ```
+      </details>
+
+7. Delete the transcript - removes the Spanish transcript from the submission row
+`PATCH /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
+
+      <details><summary>Request</summary>
+
+      ```json
+      {
+        "_version": "20250820",
+        "audio_question": {
+          "automatic_google_transcription": {
+            "language": "es",
+            "value": null
+          }
+        }
+      }
+      ```
+      </details>
+
+      <details><summary>Response</summary>
+
+      ```json
+      {
+         "audio_question":{
+            "automatic_google_transcription":{
+               "_versions":[
+                 {
+                   "_data": {
+                     "language": "es",
+                     "value": null,
+                     "status": "deleted"
+                   },
+                   "_uuid":"4c227cd5-0d8b-4143-b60e-52a85e83dea6",
+                   "_dateCreated":"2026-01-28T15:59:42.921507Z"
+                 },
+                 {
+                     "_data":{
+                        "value":"Hola mundo",
+                        "status":"complete",
+                        "language":"es"
+                     },
+                     "_uuid":"9adfb1cf-0b21-4cb6-9ade-6a6bdd9cc830",
+                     "_dateCreated":"2026-01-28T15:21:17.091030Z",
+                     "_dateAccepted":"2026-01028T15:30:34.034124Z"
+                 },
+                 {
+                   "_data": {
+                     "status": "in_progress",
+                     "language": "es"
+                   },
+                   "_uuid": "148381b2-ea51-4085-9968-acbb8608e749",
+                   "_dateCreated": "2026-01-28T15:21:06.416445Z"
+                 }
+               ],
+              "_version":"20250820"
+            }
+         }
+      }
+      ```
+      </details>
+
+#### Manual transcription/translation
+
+1. Enable manual transcription in English - adds an (empty) column to the submission table
+`POST /api/v2/assets/{uid_asset}/advanced-features/`
+
+      <details><summary>Request</summary>
+
+      ```json
+      {
+        "question_xpath": "audio_question",
+        "action": "manual_transcription",
+        "params": [{"language": "en"}]
+      }
+      ```
+      </details>
+
+      <details><summary>Response</summary>
+
+      ```json
+      {
+        "question_xpath":"audio_question",
+        "action":"manual_transcription",
+        "params":[{"language":"en"}],
+        "uid":"qaftnQRw6ZBNbNc9n7MSWzvx"
+      }
+      ```
+      </details>
+
+2. Enable manual translation in Spanish - adds an (empty) column to the submission table
+`POST /api/v2/assets/{uid_asset}/advanced-features/`
+
+      <details><summary>Request</summary>
+
+      ```json
+      {
+        "question_xpath": "audio_question",
+        "action": "manual_translation",
+        "params": [{"language": "es"}]
+      }
+      ```
+      </details>
+
+      <details><summary>Response</summary>
+
+      ```json
+      {
+        "params":[{"language":"es"}],
+        "question_xpath":"audio_question",
+        "action":"manual_translation",
+        "asset":27,
+        "uid":"qafAfeIAse99SnGxi0ini"
+      }
+      ```
+      </details>
+
+3. Request manual translation in Spanish
+`PATCH /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
+
+      <details><summary>Requestion</summary>
+
+      ```json
+      {
+        "_version": "20250820",
+        "audio_question": {
+          "manual_translation": {
+            "language": "es",
+            "value": "Hola mundo!"
+          }
+        }
+      }
+      ```
+      </details>
+
+      <details><summary>Response</summary>
+      `400 - Cannot translate without transcription`
+      </details>
+
+4. Add transcript in English - English transcript is now shown in the submission row
+`PATCH /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
+
+      <details><summary>Request</summary>
+
+      ```json
+      {
+        "_version": "20250820",
+        "audio_question": {
+          "manual_transcription": {
+            "language": "en",
+            "value": "Hello world!"
+          }
+        }
+      }
+      ```
+      </details>
+
+      <details><summary>Response</summary>
+
+      ```json
+      {
+        "audio_question": {
+          "manual_transcription": {
+             "_versions":[
+                {
+                   "_data":{
+                      "value":"Hello world!",
+                      "language":"en"
+                   },
+                   "_uuid":"9cc2ac6d-4835-4935-b776-1f268c1b8e8d",
+                   "_dateCreated":"2026-01-28T16:08:16.297609Z",
+                   "_dateAccepted":"2026-01-28T16:08:16.297609Z"
+                }
+             ],
+             "_dateCreated":"2026-01-28T16:08:16.297609Z",
+             "_dateModified":"2026-01-28T16:08:16.297609Z"
+          }
+        },
+        "_version":"20250820"
+      }
+      ```
+      </details>
+
+5. Add a translation in Spanish - Spanish translation now shown in the submission row
+`PATCH /api/v2/assets/{uid_asset}/data/{submission_root_uuid}/supplement/`
+
+      <details><summary>Request</summary>
+
+      ```json
+      {
+        "_version": "20250820",
+        "audio_question": {
+          "manual_translation": {
+            "language": "es",
+            "value": "Hola mundo!"
+          }
+        }
+      }
+      ```
+      </details>
+
+      <details><summary>Response</summary>
+
+      ```json
+      {
+         "audio_question":{
+            "manual_transcription":{
+              "_dateCreated":"2026-01-28T16:08:16.297609Z",
+               "_dateModified":"2026-01-28T16:08:16.297609Z",
+               "_versions":[
+                  {
+                     "_data":{
+                        "value":"Hello world!",
+                        "language":"en"
+                     },
+                     "_uuid":"9cc2ac6d-4835-4935-b776-1f268c1b8e8d",
+                     "_dateCreated":"2026-01-28T16:08:16.297609Z",
+                     "_dateAccepted":"2026-01-28T16:08:16.297609Z"
+                  }
+               ]
+            },
+            "manual_translation":{
+               "es":{
+                  "_dateCreated":"2026-01-28T16:09:12.468809Z",
+                  "_dateModified":"2026-01-28T16:09:12.468809Z",
+                  "_versions":[
+                     {
+                        "_data":{
+                           "language":"es",
+                           "value":"Hola mundo!"
+                        },
+                        "_dateCreated":"2026-01-28T16:09:12.468809Z",
+                        "_uuid":"63f4cfba-3fd9-41ca-bc3b-d3efe7822545",
+                        "_dependency":{
+                           "_actionId":"manual_transcription",
+                           "_uuid":"9cc2ac6d-4835-4935-b776-1f268c1b8e8d"
+                        },
+                        "_dateAccepted":"2026-01-28T16:09:12.468809Z"
+                     }
+                  ]
+               }
+            }
+         },
+         "_version":"20250820"
+      }
+      ```
+      </details>
+
+
+#### Qualitative analysis questions
+
+1. Add QA questions to the audio question - adds (empty) column or columns to the submission table
+`POST /api/v2/assets/{uid_asset}/advanced-features/`
+
+      <details><summary>Request</summary>
+
+      ```json
+      {
+        "question_xpath":"audio_question",
+        "action":"manual_qual",
+        "params":[
+          {
+            "type":"qualSelectOne",
+            "uuid":"7d51e4d4-5ff5-4db7-b70f-a1861a149593",
+            "labels":{
+              "_default": "Did the respondant eat cheesecake?"
+            },
+            "choices":[
+              {
+                "uuid":"qqqqqqqq-bbbb-cccc-dddd-eeeeffffffff",
+                "labels":{
+                  "_default":"Yes"
+                }
+              },
+              {
+                "uuid":"hhhhhhhh-bbbb-cccc-dddd-eeeeffffffff",
+                "labels":{
+                  "_default":"No"
+                }
+              }
+            ]
+          },
+          {
+            "type": "qualInteger",
+            "uuid": "a65e272b-4ba6-4487-a33e-d96f6f73d9a3",
+            "labels": {
+              "_default": "How many pieces of cheesecake did they eat?"
+            }
+          }
+        ]
+      }
+      ```
+      </details>
+
+      <details><summary>Response</summary>
+
+      ```json
+      {
+        "uid": "qafAe1kj394RRfsla4ior",
+        "question_xpath":"audio_question",
+        "action":"manual_qual",
+        "params":[
+          {
+            "type":"qualSelectOne",
+            "uuid":"7d51e4d4-5ff5-4db7-b70f-a1861a149593",
+            "labels":{
+              "_default": "Did the respondant eat cheesecake?"
+            },
+            "choices":[
+              {
+                "uuid":"qqqqqqqq-bbbb-cccc-dddd-eeeeffffffff",
+                "labels":{
+                  "_default":"Yes"
+                }
+              },
+              {
+                "uuid":"hhhhhhhh-bbbb-cccc-dddd-eeeeffffffff",
+                "labels":{
+                  "_default":"No"
+                }
+              }
+            ]
+          },
+          {
+            "type": "qualInteger",
+            "uuid": "a65e272b-4ba6-4487-a33e-d96f6f73d9a3",
+            "labels": {
+              "_default": "How many pieces of cheesecake did they eat?"
+            }
+          }
+        ]
+      }
+      ```
+
+      </details>
+
+2. Add a response - Response will be shown in the submission row
+`PATCH /api/v2/assets/{uid_asset}/data/submissions/{uid_submission}/supplement/`
+
+      <details><summary>Request</summary>
+
+      ```json
+      {
+        "_version": "20250820",
+        "audio_question": {
+          "manual_qual": {
+            "uuid": "7d51e4d4-5ff5-4db7-b70f-a1861a149593",
+            "value": "qqqqqqqq-bbbb-cccc-dddd-eeeeffffffff"
+          }
+        }
+      }
+      ```
+      </details>
+
+      <details><summary>Response</summary>
+
+      ```json
+      {
+        "audio_question":{
+          "manual_qual":{
+            "7d51e4d4-5ff5-4db7-b70f-a1861a149593": {
+              "_dateCreated":"2026-01-28T16:08:16.297609Z",
+              "_dateModified":"2026-01-28T16:08:16.297609Z",
+              "_versions":[
+                {
+                  "_data":{
+                    "value": "qqqqqqqq-bbbb-cccc-dddd-eeeeffffffff"
+                  },
+                  "_uuid":"9cc2ac6d-4835-4935-b776-1f268c1b8e8d",
+                  "_dateCreated":"2026-01-28T16:08:16.297609Z",
+                  "_dateAccepted":"2026-01-28T16:08:16.297609Z"
+                }
+              ]
+            }
+          }
+        }
+      }
+      ```
+      </details>
+
+3. Delete the answer - Response no longer shown in the submission row
+`PATCH /api/v2/assets/{uid_asset}/data/submissions/{uid_submission}/supplement/`
+
+      <details><summary>Request</summary>
+
+      ```json
+      {
+        "_version": "20250820",
+        "audio_question": {
+          "manual_qual": {
+            "uuid": "7d51e4d4-5ff5-4db7-b70f-a1861a149593",
+            "value": ""
+          }
+        }
+      }
+      ```
+      </details>
+
+      <details><summary>Response</summary>
+
+      ```json
+      {
+        "audio_question":{
+          "manual_qual":{
+            "7d51e4d4-5ff5-4db7-b70f-a1861a149593": {
+              "_dateCreated":"2026-01-28T16:08:16.297609Z",
+              "_dateModified":"2026-01-28T16:08:16.297609Z",
+              "_versions": [
+                {
+                  "_data":{
+                    "value": ""
+                  },
+                  "_uuid":"1e7e1cd1-a1af-4ba0-a982-c37f2a55c229",
+                  "_dateCreated":"2026-01-28T16:10:16.297609Z",
+                  "_dateAccepted":"2026-01-28T16:10:16.297609Z"
+                },
+                {
+                  "_data":{
+                    "value": "qqqqqqqq-bbbb-cccc-dddd-eeeeffffffff"
+                  },
+                  "_uuid":"9cc2ac6d-4835-4935-b776-1f268c1b8e8d",
+                  "_dateCreated":"2026-01-28T16:08:16.297609Z",
+                  "_dateAccepted":"2026-01-28T16:08:16.297609Z"
+                }
+              ]
+            }
+          }
+        }
+      }
+      ```
+      </details>
+
+## Subsequence workflow - backend (end-to-end flow)
 
 This section explains how the system handles a supplement from the initial
 client request, through validation and optional background retries.
 
-#### 2.4.1 Sequence Diagram – End-to-End
+### Sequence diagram – end-to-end
 
 > The diagram shows the synchronous request until the first response.
 
@@ -365,7 +729,7 @@ API-->>Client: 200 OK (or error)
 
 ---
 
-#### 2.4.2 Background Polling with Celery
+### Background polling with celery
 
 If run_external_process receives a response like:
 
@@ -382,7 +746,7 @@ before persisting the final revision.
 
 ---
 
-#### 2.4.3 Flowchart (Logic inside `revise_data` per Action)
+### `revise_data` - flowchart
 
 > This diagram shows the decision tree when validating and processing a single action payload.
 
@@ -424,7 +788,7 @@ flowchart TB
 
 ---
 
-## 3. Where Schemas Apply
+## Where schemas apply
 
 Every action relies on a set of schemas to validate its lifecycle:
 - **`params_schema`** – defines how the action is instantiated and configured on the Asset.
@@ -434,7 +798,7 @@ Every action relies on a set of schemas to validate its lifecycle:
 
 ---
 
-### 3.1 `params_schema`
+### `params_schema`
 
 Defined on all classes inheriting from `BaseAction`.
 It describes the configuration stored on a `QuestionAdvancedFeature` when an action is enabled.
@@ -476,7 +840,7 @@ It describes the configuration stored on a `QuestionAdvancedFeature` when an act
 
 ---
 
-### 3.2 `data_schema`
+### data_schema`
 
 Validates the **client payload** sent for a supplement.
 Each action has its own expected format:
@@ -516,7 +880,7 @@ Each action has its own expected format:
 
 ---
 
-### 3.3 `external_data_schema`
+### `external_data_schema`
 
 Used only for **automatic actions** (`BaseAutomaticNLPAction`).
 It validates the **augmented payload** returned by the external service.
@@ -543,7 +907,7 @@ It validates the **augmented payload** returned by the external service.
 
 ---
 
-### 3.4 `result_schema`
+### `result_schema`
 
 Validates the **revision JSON** persisted in the database.
 The structure is the same for both manual and automatic actions:
@@ -665,7 +1029,7 @@ The structure is the same for both manual and automatic actions:
 
 ---
 
-### 3.5 `result_schema` with dependencies
+### `result_schema` with dependencies
 
 Some actions depend on the result of other actions.
 For example, a **translation** action requires an existing **transcription**.

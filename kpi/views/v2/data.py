@@ -560,12 +560,25 @@ class DataViewSet(
                 self.asset, submission, post_data
             )
         except InvalidAction:
-            raise serializers.ValidationError({'detail': 'Invalid action'})
+            raise serializers.ValidationError(
+                {
+                    'detail': 'This action does not exist or '
+                    'is not configured for this question'
+                }
+            )
         except InvalidXPath:
-            raise serializers.ValidationError({'detail': 'Invalid question name'})
+            raise serializers.ValidationError(
+                {
+                    'detail': 'This question does not exist or is not configured for '
+                    'supplementary data'
+                }
+            )
         except SubsequenceDeletionError:
-            raise serializers.ValidationError({'detail': 'Subsequence deletion error'})
+            raise serializers.ValidationError(
+                {'detail': 'Attempt to delete non-existent value'}
+            )
         except jsonschema.exceptions.ValidationError:
+            # TODO: more descriptive errors
             raise serializers.ValidationError({'detail': 'Invalid payload'})
         except TranscriptionNotFound:
             raise serializers.ValidationError(
