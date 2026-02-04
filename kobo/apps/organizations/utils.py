@@ -45,9 +45,23 @@ def revoke_org_asset_perms(organization: Organization, user_ids: list[int]):
     the organization.
     """
     Asset = apps.get_model('kpi', 'Asset')  # noqa
+    owner_id = organization.owner_user_object.pk
+
+    # Filter out the owner from user_ids to prevent them from
+    # revoking their own access
+    safe_user_ids = [uid for uid in user_ids if uid != owner_id]
+
+    if not safe_user_ids:
+        return
+
     subquery = Asset.objects.values_list('pk', flat=True).filter(
-        owner=organization.owner_user_object
+        owner_id=owner_id
     )
-    ObjectPermission.objects.filter(
-        asset_id__in=subquery, user_id__in=user_ids
-    ).delete()
+    perms_to_delete = ObjectPermission.objects.filter(
+        asset_id__in=subquery, user_id__in=safe_user_ids
+    )
+
+    BATCH = 1000
+    while perms_to_delete.exists():
+        pks_to_delete = list(perms_to_delete.values_list('pk', flat=True)[:BATCH])
+        ObjectPermission.objects.filter(pk__in=pks_to_delete).delete()

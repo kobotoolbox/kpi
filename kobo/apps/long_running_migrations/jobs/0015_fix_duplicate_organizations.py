@@ -103,7 +103,9 @@ def run():
 
             for org in to_remove:
                 with transaction.atomic():
-                    revoke_org_asset_perms(org, [uid])
+                    if org.owner_user_object.pk != uid:
+                        revoke_org_asset_perms(org, [uid])
+
                     OrganizationUser.objects.filter(
                         organization_id=org.id, user_id=uid
                     ).delete()
