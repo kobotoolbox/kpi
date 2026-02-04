@@ -73,7 +73,7 @@ class MongoHelper:
     # Match KoBoCAT's variables of ParsedInstance class
     USERFORM_ID = '_userform_id'
     SUBMISSION_UUID = '_uuid'
-    DEFAULT_BATCHSIZE = 1000
+    DEFAULT_BATCHSIZE = settings.DEFAULT_BATCH_SIZE
     COLLECTION = 'instances'
 
     @classmethod

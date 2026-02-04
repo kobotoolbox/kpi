@@ -9,7 +9,7 @@ from kobo.apps.organizations.models import (
     OrganizationOwner,
     OrganizationUser,
 )
-from kpi.models import Asset
+from kpi.models import Asset, ObjectPermission
 
 job = import_module('kobo.apps.long_running_migrations.jobs.0015_fix_duplicate_organizations')  # noqa
 
@@ -159,7 +159,12 @@ class TestFixDuplicateOrgs(TestCase):
 
         # Create an asset owned by someuser and assign them a permission
         asset = Asset.objects.create(name='Owner Project', owner=self.someuser)
-        asset.assign_perm(self.someuser, 'view_asset')
+
+        # Get all permissions for the asset
+        initial_perms = set(ObjectPermission.objects.filter(
+            user=self.someuser,
+            asset=asset
+        ).values_list('permission_id', flat=True))
 
         job.run()
 
@@ -168,8 +173,12 @@ class TestFixDuplicateOrgs(TestCase):
             OrganizationUser.objects.filter(user=self.someuser).count(), 1
         )
 
-        # Verify that someuser still has their permission on the asset
-        self.assertTrue(asset.has_perm(self.someuser, 'view_asset'))
+        # Verify that someuser still has all their initial permissions on the asset
+        final_perms = set(ObjectPermission.objects.filter(
+            user=self.someuser,
+            asset=asset
+        ).values_list('permission_id', flat=True))
+        self.assertEqual(initial_perms, final_perms)
 
     def _create_organization_for_user(self, user, mmo_override=False):
         org = Organization.objects.create(name='Org', mmo_override=mmo_override)

@@ -1963,6 +1963,8 @@ ENDPOINT_CACHE_DURATION = env.int('ENDPOINT_CACHE_DURATION', 60 * 15)  # 15 minu
 
 ENV = None
 
+DEFAULT_BATCH_SIZE = 1000
+
 # The maximum size in bytes that a request body may be before a
 # SuspiciousOperation (RequestDataTooBig) is raised
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760

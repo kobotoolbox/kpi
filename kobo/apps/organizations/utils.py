@@ -49,7 +49,7 @@ def revoke_org_asset_perms(organization: Organization, user_ids: list[int]):
 
     # Filter out the owner from user_ids to prevent them from
     # revoking their own access
-    safe_user_ids = [uid for uid in user_ids if uid != owner_id]
+    safe_user_ids = [user_id for user_id in user_ids if user_id != owner_id]
 
     if not safe_user_ids:
         return
@@ -61,7 +61,7 @@ def revoke_org_asset_perms(organization: Organization, user_ids: list[int]):
         asset_id__in=subquery, user_id__in=safe_user_ids
     )
 
-    BATCH = 1000
+    batch_size = settings.DEFAULT_BATCH_SIZE
     while perms_to_delete.exists():
-        pks_to_delete = list(perms_to_delete.values_list('pk', flat=True)[:BATCH])
+        pks_to_delete = list(perms_to_delete.values_list('pk', flat=True)[:batch_size])
         ObjectPermission.objects.filter(pk__in=pks_to_delete).delete()
