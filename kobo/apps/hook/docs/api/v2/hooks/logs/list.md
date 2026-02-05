@@ -1,5 +1,7 @@
 ## List logs of an external services endpoints accessible to requesting user
 
+⚠️ The `page` query parameter is deprecated, use `start` and `limit` instead.
+
 Where:
 * `asset_uid` - is the unique identifier of a specific asset
 * `hook_uid` - is the unique identifier of a specific external service
@@ -16,6 +18,4 @@ providing ISO-8601 date strings (e.g. '2022-01-14', '2022-01-21 06:51:04',
 needs to be in '+00:00' format ('Z' is not supported). Watch out for url encoding for
 the '+' character (%2B).
 
-Note that `start` is inclusive, while `end` is exclusive.
-
-The `page` query parameter is deprecated, use `start` and `limit` instead.
+Note that `start_date` is inclusive, while `end_date` is exclusive.

@@ -97,7 +97,7 @@ class DefaultPagination(LimitOffsetPagination):
     def get_schema_operation_parameters(self, view):
         schema = [
             {
-                'name': 'start',
+                'name': self.offset_query_param,
                 'required': False,
                 'in': 'query',
                 'description': 'The initial index from which to return the results. Use with `limit`.',  # noqa E501
@@ -111,30 +111,13 @@ class DefaultPagination(LimitOffsetPagination):
                 'schema': {'type': 'integer'},
             },
             {
-                'name': self.page_query_param,
+                'name': 'offset',
                 'required': False,
                 'in': 'query',
-                'description': 'Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.',  # noqa E501
-                'schema': {'type': 'integer'},
-            },
-            {
-                'name': self.page_size_query_param,
-                'required': False,
-                'in': 'query',
-                'description': 'Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.',  # noqa E501
+                'description': 'Deprecated alias of `start`.',
                 'schema': {'type': 'integer'},
             },
         ]
-        if self.offset_query_param != 'start':
-            schema.append(
-                {
-                    'name': self.offset_query_param,
-                    'required': False,
-                    'in': 'query',
-                    'description': 'Deprecated alias of `start`.',
-                    'schema': {'type': 'integer'},
-                }
-            )
 
         return schema
 
