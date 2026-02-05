@@ -52,7 +52,14 @@ export default function Viewer({ asset, questionXpath, submission, supplement, t
         <HeaderLanguageAndDate transcriptVersion={transcriptVersion} supplement={supplement} xpath={questionXpath} />
 
         <nav className={bodyStyles.transxHeaderButtons}>
-          <Button type='secondary' size='s' startIcon='edit' onClick={onEdit} tooltip={t('Edit')} />
+          <Button
+            type='secondary'
+            size='s'
+            startIcon='edit'
+            onClick={onEdit}
+            tooltip={t('Edit')}
+            isDisabled={!userCan('change_submissions', asset)}
+          />
 
           <Button
             type='secondary-danger'
