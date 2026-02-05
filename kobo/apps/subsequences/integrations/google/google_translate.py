@@ -172,11 +172,6 @@ class GoogleTranslationService(GoogleService):
         """
         Translates the value for a given xpath and its json values.
         """
-        if settings.GS_BUCKET_NAME is None:
-            return {
-                'status': 'failed',
-                'error': 'GS_BUCKET_NAME not configured'
-            }
 
         try:
             content = params['_dependency']['value']
