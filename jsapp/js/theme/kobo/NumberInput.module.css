@@ -14,6 +14,7 @@
 .input[data-disabled] {
   background-color: var(--mantine-color-gray-7);
   border-color: var(--mantine-color-gray-3);
+  color: var(--mantine-color-gray-3);
 
   &::placeholder {
     color: var(--mantine-color-gray-2);
