@@ -213,8 +213,8 @@ export default function SidebarDisplaySettings({
                         <ScrollArea
                           h={160}
                           p='xs'
-                          bd='1px solid'
-                          style={{ borderColor: 'var(--mantine-color-gray-6)', borderRadius: 6 }}
+                          bd='var(--mantine-color-gray-6) 1px solid'
+                          style={{ borderRadius: 6 }}
                         >
                           <MultiCheckbox type='bare' items={getCheckboxes()} onChange={onCheckboxesChange} />
                         </ScrollArea>
