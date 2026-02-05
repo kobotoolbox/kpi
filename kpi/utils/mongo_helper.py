@@ -73,7 +73,6 @@ class MongoHelper:
     # Match KoBoCAT's variables of ParsedInstance class
     USERFORM_ID = '_userform_id'
     SUBMISSION_UUID = '_uuid'
-    DEFAULT_BATCHSIZE = 1000
     COLLECTION = 'instances'
 
     @classmethod
@@ -158,7 +157,7 @@ class MongoHelper:
             cursor.sort(sort_key, sort_dir)
 
         # set batch size
-        cursor.batch_size = cls.DEFAULT_BATCHSIZE
+        cursor.batch_size = settings.DEFAULT_BATCH_SIZE
 
         return cursor, total_count
 
