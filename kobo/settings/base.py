@@ -930,9 +930,12 @@ USE_TZ = True
 
 CAN_LOGIN_AS = lambda request, target_user: request.user.is_superuser
 
-# Impose a limit on the number of records returned by the submission list
-# endpoint. This overrides any `?limit=` query parameter sent by a client
-SUBMISSION_LIST_LIMIT = 1000
+# Default page size when no limit is specified in API requests.
+# Currently for submission lists only, but naming is future-proof for all endpoints
+DEFAULT_API_PAGE_SIZE = env.int('DEFAULT_API_PAGE_SIZE', 100)
+# Maximum page size for API responses. Currently applies to submission lists only,
+# but will likely be extended to all endpoints in the future
+MAX_API_PAGE_SIZE = env.int('MAX_API_PAGE_SIZE', 1000)
 
 # uWSGI, NGINX, etc. allow only a limited amount of time to process a request.
 # Set this value to match their limits

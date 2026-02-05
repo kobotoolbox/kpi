@@ -224,8 +224,9 @@ class DataPagination(DefaultPagination):
     Pagination for the data viewset
     """
 
-    default_limit = 100
-    max_limit = settings.SUBMISSION_LIST_LIMIT
+    default_limit = settings.DEFAULT_API_PAGE_SIZE
+    offset_query_param = 'start'
+    max_limit = settings.MAX_API_PAGE_SIZE
 
 
 class FastPagination(DefaultPagination):

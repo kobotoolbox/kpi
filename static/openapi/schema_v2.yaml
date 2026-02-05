@@ -1381,7 +1381,7 @@ paths:
   /api/v2/assets/{uid_asset}/data/:
     get:
       operationId: api_v2_assets_data_list
-      description: |+
+      description: |
         ## List of submissions for a specific asset
 
         By default, JSON format is used, but XML and GeoJSON are also available:
@@ -1394,7 +1394,7 @@ paths:
         Two parameters can be used to control pagination.
 
         * `start`: Index (zero-based) from which the results start
-        * `limit`: Number of results per page <span class='label label-warning'>Maximum results per page is **1000**</span>
+        * `limit`: Number of results per page <span class='label label-warning'>Maximum results per page cannot exceed  **1000**, unless changed by server configuration</span>
 
         ```shell
         curl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid}/data/?start=0&limit=10
@@ -1437,7 +1437,6 @@ paths:
 
         We’ve still included the header to show supported formats, but keep in mind:
         **Only `application/json` will be used in the docs UI.**
-
       parameters:
       - in: query
         name: format
