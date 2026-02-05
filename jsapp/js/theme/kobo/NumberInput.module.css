@@ -11,6 +11,15 @@
   }
 }
 
+.input[data-disabled] {
+  background-color: var(--mantine-color-gray-7);
+  border-color: var(--mantine-color-gray-3);
+
+  &::placeholder {
+    color: var(--mantine-color-gray-2);
+  }
+}
+
 .section {
   z-index: 0;
 }

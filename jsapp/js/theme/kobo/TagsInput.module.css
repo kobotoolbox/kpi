@@ -17,3 +17,12 @@
     opacity: 1;
   }
 }
+
+.input:has(input:disabled) {
+  background-color: var(--mantine-color-gray-7);
+  border-color: var(--mantine-color-gray-3);
+
+  &::placeholder {
+    color: var(--mantine-color-gray-2);
+  }
+}
