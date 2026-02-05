@@ -140,31 +140,31 @@ queryClient.setMutationDefaults(
           case ActionEnum.manual_transcription: {
             const itemSnapshot = await optimisticallyUpdateItem<assetsDataSupplementRetrieveResponse>(
               getAssetsDataSupplementRetrieveQueryKey(uidAsset, rootUuid),
-              (response) =>
-                ({
+              (response) => {
+                if (response?.status !== 200) return response // just a typeguard, UI shouldn't allow to mutate if error.
+                const _versions = response?.data?.[questionXpath]?.[action]?._versions ?? []
+
+                return {
                   ...response,
                   data: {
                     ...response?.data,
-                    ...(response?.status === 200
-                      ? {
-                          [questionXpath]: {
-                            ...response?.data?.[questionXpath],
-                            [action]: {
-                              ...response?.data?.[questionXpath]?.[action],
-                              _versions: [
-                                {
-                                  _uuid: '<mock-uuid-not-used>',
-                                  _data: datum as PatchedDataSupplementPayloadOneOfManualTranscription,
-                                  _dateCreated: new Date().toISOString(),
-                                }, // Note: this is the actual optimistally added object.
-                                ...(response?.data?.[questionXpath]?.[action]?._versions ?? []),
-                              ],
-                            } as DataSupplementResponseOneOfManualTranscription,
-                          },
-                        }
-                      : {}),
+                    [questionXpath]: {
+                      ...response?.data?.[questionXpath],
+                      [action]: {
+                        ...response?.data?.[questionXpath]?.[action],
+                        _versions: [
+                          {
+                            _uuid: '<mock-uuid-not-used>',
+                            _data: datum as PatchedDataSupplementPayloadOneOfManualTranscription,
+                            _dateCreated: new Date().toISOString(),
+                          }, // Note: this is the actual optimistally added object.
+                          ..._versions,
+                        ],
+                      } as DataSupplementResponseOneOfManualTranscription,
+                    },
                   },
-                }) as assetsDataSupplementRetrieveResponse,
+                } as assetsDataSupplementRetrieveResponse
+              },
             )
 
             return {
@@ -175,34 +175,34 @@ queryClient.setMutationDefaults(
             const { language } = datum as PatchedDataSupplementPayloadOneOfManualTranslation
             const itemSnapshot = await optimisticallyUpdateItem<assetsDataSupplementRetrieveResponse>(
               getAssetsDataSupplementRetrieveQueryKey(uidAsset, rootUuid),
-              (response) =>
-                ({
+              (response) => {
+                if (response?.status !== 200) return response // just a typeguard, UI shouldn't allow to mutate if error.
+                const _versions = response?.data?.[questionXpath]?.[action]?.[language]?._versions ?? []
+
+                return {
                   ...response,
                   data: {
                     ...response?.data,
-                    ...(response?.status === 200
-                      ? {
-                          [questionXpath]: {
-                            ...response?.data?.[questionXpath],
-                            [action]: {
-                              ...response?.data?.[questionXpath]?.[action],
-                              [language]: {
-                                ...response?.data?.[questionXpath]?.[action]?.[language],
-                                _versions: [
-                                  {
-                                    _uuid: '<mock-uuid-not-used>',
-                                    _data: datum as PatchedDataSupplementPayloadOneOfManualTranslation,
-                                    _dateCreated: new Date().toISOString(),
-                                  }, // Note: this is the actual optimistally added object.
-                                  ...(response?.data?.[questionXpath]?.[action]?.[language]?._versions ?? []),
-                                ],
-                              },
-                            } as DataSupplementResponseOneOfManualTranslation,
-                          },
-                        }
-                      : {}),
+                    [questionXpath]: {
+                      ...response?.data?.[questionXpath],
+                      [action]: {
+                        ...response?.data?.[questionXpath]?.[action],
+                        [language]: {
+                          ...response?.data?.[questionXpath]?.[action]?.[language],
+                          _versions: [
+                            {
+                              _uuid: '<mock-uuid-not-used>',
+                              _data: datum as PatchedDataSupplementPayloadOneOfManualTranslation,
+                              _dateCreated: new Date().toISOString(),
+                            }, // Note: this is the actual optimistally added object.
+                            ..._versions,
+                          ],
+                        },
+                      } as DataSupplementResponseOneOfManualTranslation,
+                    },
                   },
-                }) as assetsDataSupplementRetrieveResponse,
+                } as assetsDataSupplementRetrieveResponse
+              },
             )
 
             return {
