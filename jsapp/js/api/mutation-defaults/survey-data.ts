@@ -19,6 +19,7 @@ import type { DataSupplementResponseOneOfManualQual } from '../models/dataSupple
 import type { DataSupplementResponseOneOfManualTranscription } from '../models/dataSupplementResponseOneOfManualTranscription'
 import type { DataSupplementResponseOneOfManualTranslation } from '../models/dataSupplementResponseOneOfManualTranslation'
 import type { PatchedDataSupplementPayloadOneOf } from '../models/patchedDataSupplementPayloadOneOf'
+import type { PatchedDataSupplementPayloadOneOfAutomaticGoogleTranscription } from '../models/patchedDataSupplementPayloadOneOfAutomaticGoogleTranscription'
 import type { PatchedDataSupplementPayloadOneOfAutomaticGoogleTranslation } from '../models/patchedDataSupplementPayloadOneOfAutomaticGoogleTranslation'
 import type { PatchedDataSupplementPayloadOneOfManualQual } from '../models/patchedDataSupplementPayloadOneOfManualQual'
 import type { PatchedDataSupplementPayloadOneOfManualTranscription } from '../models/patchedDataSupplementPayloadOneOfManualTranscription'
@@ -114,7 +115,7 @@ queryClient.setMutationDefaults(
                                 ...response?.data?.[questionXpath]?.[action]?.[uuid],
                                 _versions: [
                                   {
-                                    _uuid: '<server-generated-not-used>',
+                                    _uuid: '<mock-uuid-not-used>',
                                     _data: {
                                       uuid,
                                       value,
@@ -152,7 +153,7 @@ queryClient.setMutationDefaults(
                               ...response?.data?.[questionXpath]?.[action],
                               _versions: [
                                 {
-                                  _uuid: '<server-generated-not-used>',
+                                  _uuid: '<mock-uuid-not-used>',
                                   _data: datum as PatchedDataSupplementPayloadOneOfManualTranscription,
                                   _dateCreated: new Date().toISOString(),
                                 }, // Note: this is the actual optimistally added object.
@@ -189,7 +190,7 @@ queryClient.setMutationDefaults(
                                 ...response?.data?.[questionXpath]?.[action]?.[language],
                                 _versions: [
                                   {
-                                    _uuid: '<server-generated-not-used>',
+                                    _uuid: '<mock-uuid-not-used>',
                                     _data: datum as PatchedDataSupplementPayloadOneOfManualTranslation,
                                     _dateCreated: new Date().toISOString(),
                                   }, // Note: this is the actual optimistally added object.
@@ -209,55 +210,18 @@ queryClient.setMutationDefaults(
             }
           }
           case ActionEnum.automatic_google_transcription: {
-            const datumTyped = datum as PatchedDataSupplementPayloadOneOfAutomaticGoogleTranslation
-            const itemSnapshot = await optimisticallyUpdateItem<assetsDataSupplementRetrieveResponse>(
-              getAssetsDataSupplementRetrieveQueryKey(uidAsset, rootUuid),
-              (response) =>
-                ({
-                  ...response,
-                  data: {
-                    ...response?.data,
-                    ...(response?.status === 200
-                      ? {
-                          [questionXpath]: {
-                            ...response?.data?.[questionXpath],
-                            [action]: {
-                              ...response?.data?.[questionXpath]?.[action],
-                              _versions: [
-                                {
-                                  _uuid: '<server-generated-not-used>',
-                                  _data: {
-                                    ...datumTyped,
-                                    ...((datumTyped as any).value !== null ? { status: 'in_progress' } : {}), // TODO OpenAPI types, see DEV-????
-                                  },
-                                  _dateCreated: new Date().toISOString(),
-                                }, // Note: this is the actual optimistally added object.
-                                ...(response?.data?.[questionXpath]?.[action]?._versions ?? []),
-                              ],
-                            } as DataSupplementResponseOneOfAutomaticGoogleTranscription,
-                          },
-                        }
-                      : {}),
-                  },
-                }) as assetsDataSupplementRetrieveResponse,
-            )
-
-            return {
-              snapshots: [itemSnapshot],
-            }
-          }
-          case ActionEnum.automatic_google_translation: {
-            const datumTyped = datum as PatchedDataSupplementPayloadOneOfAutomaticGoogleTranslation
-            const { language } = datumTyped
+            const datumTyped = datum as PatchedDataSupplementPayloadOneOfAutomaticGoogleTranscription
             const itemSnapshot = await optimisticallyUpdateItem<assetsDataSupplementRetrieveResponse>(
               getAssetsDataSupplementRetrieveQueryKey(uidAsset, rootUuid),
               (response) => {
-                let _versions =
-                  (response?.data as Record<string, any>)?.[questionXpath]?.[action]?.[language]?._versions ?? []
+                if (response?.status !== 200) return response // just a typeguard, UI shouldn't allow to mutate if error.
+                let _versions = response?.data?.[questionXpath]?.[action]?._versions ?? []
+
+                // TODO OpenAPI: see DEV-1722
                 if ((datumTyped as any).value === null) {
                   // If discarding/deleting (value: null), clear all versions for this language
                   _versions = []
-                } else if ((datumTyped as any).accepted === true) {
+                } else if (datumTyped.accepted === true) {
                   // If accepting, update the latest version's status to accepted
                   const latest = _versions.sort(TransxVersionSortFunction)[0]
                   if (latest) {
@@ -268,7 +232,7 @@ queryClient.setMutationDefaults(
                   // Otherwise, add new version to the beginning
                   _versions = [
                     {
-                      _uuid: '<server-generated-not-used>',
+                      _uuid: '<mock-uuid-not-used>',
                       _data: {
                         ...datumTyped,
                         status: 'in_progress',
@@ -283,20 +247,13 @@ queryClient.setMutationDefaults(
                   ...response,
                   data: {
                     ...response?.data,
-                    ...(response?.status === 200
-                      ? {
-                          [questionXpath]: {
-                            ...response?.data?.[questionXpath],
-                            [action]: {
-                              ...response?.data?.[questionXpath]?.[action],
-                              [language]: {
-                                ...response?.data?.[questionXpath]?.[action]?.[language],
-                                _versions,
-                              },
-                            } as DataSupplementResponseOneOfAutomaticGoogleTranslation,
-                          },
-                        }
-                      : {}),
+                    [questionXpath]: {
+                      ...response?.data?.[questionXpath],
+                      [action]: {
+                        ...response?.data?.[questionXpath]?.[action],
+                        _versions,
+                      } as DataSupplementResponseOneOfAutomaticGoogleTranscription,
+                    },
                   },
                 } as assetsDataSupplementRetrieveResponse
               },
@@ -306,9 +263,67 @@ queryClient.setMutationDefaults(
               snapshots: [itemSnapshot],
             }
           }
-          default: {
-            throw new Error(`Unknown action "${action}" is not handled.`)
+          case ActionEnum.automatic_google_translation: {
+            const datumTyped = datum as PatchedDataSupplementPayloadOneOfAutomaticGoogleTranslation
+            const { language } = datumTyped
+            const itemSnapshot = await optimisticallyUpdateItem<assetsDataSupplementRetrieveResponse>(
+              getAssetsDataSupplementRetrieveQueryKey(uidAsset, rootUuid),
+              (response) => {
+                if (response?.status !== 200) return response // just a typeguard, UI shouldn't allow to mutate if error.
+                let _versions = response?.data?.[questionXpath]?.[action]?.[language]?._versions ?? []
+
+                // TODO OpenAPI: see DEV-1722
+                if ((datumTyped as any).value === null) {
+                  // If discarding/deleting (value: null), clear all versions for this language
+                  _versions = []
+                } else if (datumTyped.accepted === true) {
+                  // If accepting, update the latest version's status to accepted
+                  const latest = _versions.sort(TransxVersionSortFunction)[0]
+                  if (latest) {
+                    latest._dateAccepted = new Date().toISOString()
+                    latest._data.status = 'complete'
+                  }
+                } else {
+                  // Otherwise, add new version to the beginning
+                  _versions = [
+                    {
+                      _uuid: '<mock-uuid-not-used>',
+                      _data: {
+                        ...datumTyped,
+                        status: 'in_progress',
+                      },
+                      _dateCreated: new Date().toISOString(),
+                      ...({} as { _dependency: { _actionId: ''; _uuid: '' } }), // TODO OpenAPI: see DEV-1721
+                    },
+                    ..._versions,
+                  ]
+                }
+
+                return {
+                  ...response,
+                  data: {
+                    ...response?.data,
+                    [questionXpath]: {
+                      ...response?.data?.[questionXpath],
+                      [action]: {
+                        ...response?.data?.[questionXpath]?.[action],
+                        [language]: {
+                          ...response?.data?.[questionXpath]?.[action]?.[language],
+                          _versions,
+                        },
+                      } as DataSupplementResponseOneOfAutomaticGoogleTranslation,
+                    },
+                  },
+                } as assetsDataSupplementRetrieveResponse
+              },
+            )
+
+            return {
+              snapshots: [itemSnapshot],
+            }
           }
+          default:
+            throw new Error(`Unknown action "${action}" is not handled.`)
         }
       },
       /**
