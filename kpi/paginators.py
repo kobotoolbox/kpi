@@ -22,11 +22,9 @@ class DefaultPagination(LimitOffsetPagination):
 
     root = SerializerMethodField('get_parent_url', read_only=True)
 
-    limit_query_param = 'limit'
-    default_limit = settings.REST_FRAMEWORK['PAGE_SIZE']
-    max_limit = 1000  # Reasonable maximum limit to avoid sending full querysets
+    default_limit = settings.DEFAULT_API_PAGE_SIZE
+    max_limit = settings.MAX_API_PAGE_SIZE
     offset_query_param = 'start'
-
     page_query_param = 'page'
     page_size_query_param = 'page_size'
 
@@ -217,16 +215,6 @@ class AssetPagination(DefaultPagination):
                 'results': schema,
             }
         }
-
-
-class DataPagination(DefaultPagination):
-    """
-    Pagination for the data viewset
-    """
-
-    default_limit = settings.DEFAULT_API_PAGE_SIZE
-    offset_query_param = 'start'
-    max_limit = settings.MAX_API_PAGE_SIZE
 
 
 class FastPagination(DefaultPagination):
