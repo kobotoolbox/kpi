@@ -2,6 +2,7 @@ import copy
 import json
 from typing import Union
 
+import jsonschema
 import requests
 from django.conf import settings
 from django.http import Http404, HttpResponseRedirect
@@ -24,6 +25,13 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     remove_uuid_prefix,
 )
 from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_handler
+from kobo.apps.subsequences.exceptions import (
+    InvalidAction,
+    InvalidXPath,
+    SubsequenceDeletionError,
+    TranscriptionNotFound,
+)
+from kobo.apps.subsequences.models import SubmissionSupplement
 from kpi.authentication import EnketoSessionAuthentication
 from kpi.constants import (
     PERM_CHANGE_SUBMISSIONS,
@@ -52,12 +60,16 @@ from kpi.renderers import (
     SubmissionGeoJsonRenderer,
     SubmissionXMLRenderer,
 )
+from kpi.schema_extensions.v2.data.examples import get_data_supplement_examples
 from kpi.schema_extensions.v2.data.serializers import (
     DataBulkDelete,
     DataBulkUpdate,
     DataBulkUpdateResponse,
     DataResponse,
+    DataResponseXML,
     DataStatusesUpdate,
+    DataSupplementPayload,
+    DataSupplementResponse,
     DataValidationStatusesUpdatePayload,
     DataValidationStatusUpdatePayload,
     DataValidationStatusUpdateResponse,
@@ -88,6 +100,13 @@ from kpi.utils.xml import (
             location=OpenApiParameter.PATH,
             required=True,
             description='UID of the parent asset',
+        ),
+        OpenApiParameter(
+            name='id',
+            type=int,
+            location=OpenApiParameter.PATH,
+            required=False,
+            description='ID of the data (when applicable)',
         ),
     ],
 )
@@ -130,22 +149,39 @@ from kpi.utils.xml import (
     list=extend_schema(
         description=read_md('kpi', 'data/list.md'),
         request=None,
-        responses=open_api_200_ok_response(
-            DataResponse,
-            validate_payload=False,
-            require_auth=False,
-            raise_access_forbidden=False,
-        ),
+        responses={
+            **open_api_200_ok_response(
+                DataResponse,
+                media_type='application/json',
+                validate_payload=False,
+                require_auth=False,
+                raise_access_forbidden=False,
+            ),
+            (200, 'text/xml'): DataResponseXML,
+        },
+        parameters=[
+            OpenApiParameter(
+                name='query',
+                type=str,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description='Filter the results with search query',
+            ),
+        ],
     ),
     retrieve=extend_schema(
         description=read_md('kpi', 'data/retrieve.md'),
         request=None,
-        responses=open_api_200_ok_response(
-            DataResponse,
-            validate_payload=False,
-            require_auth=False,
-            raise_access_forbidden=False,
-        ),
+        responses={
+            **open_api_200_ok_response(
+                DataResponse,
+                media_type='application/json',
+                validate_payload=False,
+                require_auth=False,
+                raise_access_forbidden=False,
+            ),
+            (200, 'text/xml'): DataResponseXML,
+        },
         parameters=[
             OpenApiParameter(
                 name='id',
@@ -195,6 +231,8 @@ class DataViewSet(
     - docs/api/v2/data/validation_statuses_update.md
     - docs/api/v2/data/enketo_view.md
     - docs/api/v2/data/enketo_edit.md
+    - docs/api/v2/data/supplement_retrieve.md
+    - docs/api/v2/data/supplement_update.md
     """
 
     parent_model = Asset
@@ -277,7 +315,8 @@ class DataViewSet(
         original_submission = self._get_submission_by_id_or_root_uuid(
             pk, request, fields=['_id'], as_owner=True
         )
-        submission_id = original_submission['_id']
+        # Coerce to int because the back end only finds matches with the same type
+        submission_id = int(original_submission['_id'])
 
         with http_open_rosa_error_handler(
             lambda: deployment.duplicate_submission(
@@ -411,7 +450,11 @@ class DataViewSet(
 
         try:
             submissions = deployment.get_submissions(
-                request.user, format_type=format_type, request=request, **filters
+                request.user,
+                format_type=format_type,
+                request=request,
+                for_output=True,
+                **filters,
             )
         except OperationFailure as err:
             message = str(err)
@@ -437,10 +480,112 @@ class DataViewSet(
 
         format_type = kwargs.get('format', request.GET.get('format', 'json'))
         submission = self._get_submission_by_id_or_root_uuid(
-            pk, request, format_type=format_type
+            pk,
+            request,
+            format_type=format_type,
+            for_output=True,
         )
-
         return Response(submission)
+
+    @extend_schema(
+        methods=['GET'],
+        description=read_md('kpi', 'data/supplement_retrieve.md'),
+        responses=open_api_200_ok_response(DataSupplementResponse),
+        parameters=[
+            OpenApiParameter(
+                name='id',
+                type=str,
+                location=OpenApiParameter.PATH,
+                exclude=True,
+            ),
+            OpenApiParameter(
+                name='root_uuid',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='Root UUID of the submission',
+            ),
+        ],
+        examples=get_data_supplement_examples(),
+    )
+    @extend_schema(
+        methods=['PATCH'],
+        description=read_md('kpi', 'data/supplement_update.md'),
+        request={'application/json': DataSupplementPayload},
+        responses=open_api_200_ok_response(DataSupplementResponse),
+        parameters=[
+            OpenApiParameter(
+                name='id',
+                type=str,
+                location=OpenApiParameter.PATH,
+                exclude=True,
+            ),
+            OpenApiParameter(
+                name='root_uuid',
+                type=str,
+                location=OpenApiParameter.PATH,
+                required=True,
+                description='Root UUID of the submission',
+            ),
+        ],
+        examples=get_data_supplement_examples(),
+    )
+    def supplement(self, request, root_uuid, *args, **kwargs):
+
+        # make it clear, a root uuid is expected here
+        submission_root_uuid = root_uuid
+
+        deployment = self._get_deployment()
+        try:
+            submission = list(
+                deployment.get_submissions(
+                    user=request.user,
+                    query={'meta/rootUuid': add_uuid_prefix(submission_root_uuid)},
+                )
+            )[0]
+        except IndexError:
+            raise Http404
+
+        submission_root_uuid = submission[deployment.SUBMISSION_ROOT_UUID_XPATH]
+
+        if request.method == 'GET':
+            return Response(
+                SubmissionSupplement.retrieve_data(self.asset, submission_root_uuid)
+            )
+
+        post_data = request.data
+
+        try:
+            supplemental_data = SubmissionSupplement.revise_data(
+                self.asset, submission, post_data
+            )
+        except InvalidAction:
+            raise serializers.ValidationError(
+                {
+                    'detail': 'This action does not exist or '
+                    'is not configured for this question'
+                }
+            )
+        except InvalidXPath:
+            raise serializers.ValidationError(
+                {
+                    'detail': 'This question does not exist or is not configured for '
+                    'supplementary data'
+                }
+            )
+        except SubsequenceDeletionError:
+            raise serializers.ValidationError(
+                {'detail': 'Attempt to delete non-existent value'}
+            )
+        except jsonschema.exceptions.ValidationError:
+            # TODO: more descriptive errors
+            raise serializers.ValidationError({'detail': 'Invalid payload'})
+        except TranscriptionNotFound:
+            raise serializers.ValidationError(
+                {'detail': 'Cannot translate without transcription'}
+            )
+
+        return Response(supplemental_data)
 
     @extend_schema(
         methods=['PATCH'],
@@ -836,6 +981,7 @@ class DataViewSet(
         format_type: str = 'json',
         fields: list = None,
         as_owner: bool = False,
+        for_output: bool = False,
     ) -> dict:
         """
         Retrieve a single submission using either its integer primary key or a UUID.
@@ -872,6 +1018,7 @@ class DataViewSet(
             'user': self.asset.owner if as_owner else request.user,
             'format_type': format_type,
             'request': request,
+            'for_output': for_output,
         }
         if fields:
             params['fields'] = fields

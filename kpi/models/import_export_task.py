@@ -42,6 +42,10 @@ from formpack.utils.string import ellipsize
 from kobo.apps.openrosa.libs.utils.common_tags import META_ROOT_UUID
 from kobo.apps.reports.report_data import build_formpack
 from kobo.apps.storage_backends.base import default_kpi_private_storage
+from kobo.apps.subsequences.utils.supplement_data import (
+    get_analysis_form_json,
+    stream_with_supplements,
+)
 from kpi.constants import (
     ASSET_TYPE_COLLECTION,
     ASSET_TYPE_EMPTY,
@@ -1060,14 +1064,17 @@ class SubmissionExportTaskBase(ImportExportTask):
             query=query,
         )
 
+        if source.has_advanced_features:
+            submission_stream = stream_with_supplements(
+                source, submission_stream, for_output=True
+            )
+
         pack, submission_stream = build_formpack(
             source, submission_stream, self._fields_from_all_versions
         )
 
         if source.has_advanced_features:
-            pack.extend_survey(
-                source.analysis_form_json(omit_question_types=['qual_note'])
-            )
+            pack.extend_survey(get_analysis_form_json(source))
 
         # Wrap the submission stream in a generator that records the most
         # recent timestamp

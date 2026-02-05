@@ -7,10 +7,8 @@ from rest_framework import status
 
 from kpi.models import Asset
 
-TRANSLATED = 'translation'
 
-
-class ProjectAdvancedFeaturesTestCase(TestCase):
+class ProjectAdvancedFeaturesRefactoredTestCase(TestCase):
 
     fixtures = ['test_data']
 
@@ -29,81 +27,13 @@ class ProjectAdvancedFeaturesTestCase(TestCase):
             self.asset.advanced_features = advanced_features
         return self.asset
 
-    def test_schema_has_definitions(self):
-        asset = self.sample_asset(advanced_features={
-            'translation': {
-                'values': ['q1'],
-                'languages': ['tx1', 'tx2'],
-            },
-            'transcript': {
-                'values': ['q1'],
-            }
-        })
-        schema = asset.get_advanced_submission_schema(content=asset.content)
-        assert 'definitions' in schema
-        assert 'transcript' in schema['definitions']
-        assert 'translation' in schema['definitions']
-
-    def test_schema_does_not_have_extra_definitions(self):
-        asset = self.sample_asset(advanced_features={
-            'transcript': {
-                'values': ['q1'],
-            }
-        })
-        schema = asset.get_advanced_submission_schema(content=asset.content)
-        assert 'definitions' in schema
-        assert 'transcript' in schema['definitions']
-        assert 'translation' not in schema['definitions']
-
-        asset = self.sample_asset(advanced_features={
-            'translation': {
-                'languages': ['t1'],
-            }
-        })
-        schema = asset.get_advanced_submission_schema(content=asset.content)
-        assert 'definitions' in schema
-        assert 'transcript' not in schema['definitions']
-        assert 'translation' in schema['definitions']
-
-    def test_details_for_transcript_export(self):
-        asset = self.sample_asset(advanced_features={
-            'transcript': {
-                'values': ['q1'],
-            },
-        })
-        asset.known_cols = ['q1:transcript:en']
-        _afj = asset.analysis_form_json()
-        engines = _afj['engines']
-        addl_fields = _afj['additional_fields']
-        assert len(addl_fields) == 1
-        assert len(engines) == 1
-
-    def test_details_for_translation_export(self):
-        asset = self.sample_asset(advanced_features={
-            'translation': {
-                'values': ['q1'],
-                'languages': ['en', 'fr']
-            },
-        })
-        asset.known_cols = ['q1:translation:en', 'q1:translation:fr']
-        _afj = asset.analysis_form_json()
-        engines = _afj['engines']
-        addl_fields = _afj['additional_fields']
-        assert len(addl_fields) == 2
-        assert len(engines) == 1
-
     def test_qpath_to_xpath_with_renamed_question(self):
-        """
-        Test that the analysis form JSON can handle a question that has been
-        renamed or deleted from the survey, but is still referenced in advanced
-        features or known columns.
-
-        This ensures that the asset endpoint does not return a 500 error when
-        processing legacy qpaths that no longer exist in the survey definition.
-        """
         asset = self.sample_asset(
             advanced_features={
-                'translation': {'values': ['q1'], 'languages': ['en', 'fr']},
+                '_version': 'v1',
+                'translation': {
+                    'languages': ['en', 'fr'],
+                },
             }
         )
 
