@@ -10,6 +10,7 @@ import {
   getAssetsDataSupplementPartialUpdateMutationOptions,
   getAssetsDataSupplementRetrieveQueryKey,
 } from '#/api/react-query/survey-data'
+import { TransxVersionSortFunction } from '#/components/processing/common/utils'
 import { recordEntries, recordKeys } from '#/utils'
 import { ActionEnum } from '../models/actionEnum'
 import type { DataSupplementResponseOneOfAutomaticGoogleTranscription } from '../models/dataSupplementResponseOneOfAutomaticGoogleTranscription'
@@ -250,8 +251,35 @@ queryClient.setMutationDefaults(
             const { language } = datumTyped
             const itemSnapshot = await optimisticallyUpdateItem<assetsDataSupplementRetrieveResponse>(
               getAssetsDataSupplementRetrieveQueryKey(uidAsset, rootUuid),
-              (response) =>
-                ({
+              (response) => {
+                let _versions =
+                  (response?.data as Record<string, any>)?.[questionXpath]?.[action]?.[language]?._versions ?? []
+                if ((datumTyped as any).value === null) {
+                  // If discarding/deleting (value: null), clear all versions for this language
+                  _versions = []
+                } else if ((datumTyped as any).accepted === true) {
+                  // If accepting, update the latest version's status to accepted
+                  const latest = _versions.sort(TransxVersionSortFunction)[0]
+                  if (latest) {
+                    latest._dateAccepted = new Date().toISOString()
+                    latest._data.status = 'complete'
+                  }
+                } else {
+                  // Otherwise, add new version to the beginning
+                  _versions = [
+                    {
+                      _uuid: '<server-generated-not-used>',
+                      _data: {
+                        ...datumTyped,
+                        status: 'in_progress',
+                      },
+                      _dateCreated: new Date().toISOString(),
+                    },
+                    ..._versions,
+                  ]
+                }
+
+                return {
                   ...response,
                   data: {
                     ...response?.data,
@@ -263,24 +291,15 @@ queryClient.setMutationDefaults(
                               ...response?.data?.[questionXpath]?.[action],
                               [language]: {
                                 ...response?.data?.[questionXpath]?.[action]?.[language],
-                                _versions: [
-                                  {
-                                    _uuid: '<server-generated-not-used>',
-                                    _data: {
-                                      ...datumTyped,
-                                      ...((datumTyped as any).value !== null ? { status: 'in_progress' } : {}), // TODO OpenAPI types, see DEV-????
-                                    },
-                                    _dateCreated: new Date().toISOString(),
-                                  }, // Note: this is the actual optimistally added object.
-                                  ...(response?.data?.[questionXpath]?.[action]?.[language]?._versions ?? []),
-                                ],
+                                _versions,
                               },
                             } as DataSupplementResponseOneOfAutomaticGoogleTranslation,
                           },
                         }
                       : {}),
                   },
-                }) as assetsDataSupplementRetrieveResponse,
+                } as assetsDataSupplementRetrieveResponse
+              },
             )
 
             return {
