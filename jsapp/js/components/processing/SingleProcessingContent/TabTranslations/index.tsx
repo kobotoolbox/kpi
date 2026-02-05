@@ -67,7 +67,7 @@ export default function TranslationTab({
   // produce a flicker of begin button in case there are translations.
   // Workaround: don't show anything for the first render, nothing is better than a flicker of the wrong thing.
   // TODO: untangle and simplify the state management for the mode.
-  if (!languageCode) return
+  if (translationVersions.length > 0 && !languageCode) return
 
   return (
     <>

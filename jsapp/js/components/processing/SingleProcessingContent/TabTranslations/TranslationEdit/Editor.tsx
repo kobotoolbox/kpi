@@ -134,6 +134,8 @@ export default function Editor({
 
   const handleDiscard = async () => {
     if (isUnacceptedAutomaticTranslation) {
+      // Return to view mode and let optimistic update handle removal from UI
+      onBack()
       await assertManualAdvancedFeature(translationVersion._data.language)
       await patch.mutateAsync({
         uidAsset: asset.uid,
@@ -148,12 +150,11 @@ export default function Editor({
           },
         },
       })
-      // TODO: add some spinner while this loads.
+    } else {
+      // Reset value to initial to clear unsaved work status
+      setValue(initialValue)
+      onBack()
     }
-
-    // Reset value to initial to clear unsaved work status
-    setValue(initialValue)
-    onBack()
   }
 
   return (
