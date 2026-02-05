@@ -12,12 +12,20 @@ The endpoints are grouped by area of intended use. Each category contains relate
 import type { AssetsHooksLogsListStatus } from './assetsHooksLogsListStatus'
 
 export type AssetsHooksLogsListParams = {
-  end?: string
+  end_date?: string
   /**
-   * A page number within the paginated result set.
+   * Number of results to return per page. Use with `start`.
    */
-  page?: number
-  start?: string
+  limit?: number
+  /**
+   * Deprecated alias of `start`.
+   */
+  offset?: number
+  /**
+   * The initial index from which to return the results. Use with `limit`.
+   */
+  start?: number
+  start_date?: string
   /**
    * * `0` - Failed
    * `1` - Pending

@@ -3,7 +3,6 @@ from django.db.models import Count
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import exceptions, mixins, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
@@ -68,7 +67,6 @@ class UserViewSet(
     filter_backends = (SearchFilter,)
     serializer_class = UserSerializer
     lookup_field = 'username'
-    pagination_class = LimitOffsetPagination
     permission_classes = (IsAuthenticated,)
     search_default_field_lookups = [
         'username__icontains',
