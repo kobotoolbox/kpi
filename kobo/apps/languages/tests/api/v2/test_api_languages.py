@@ -11,10 +11,10 @@ class LanguageListApiTestCase(BaseApiTestCase):
         response = self.client.get(reverse(self._get_endpoint('language-list')))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_cannot_list_as_anonymous_user(self):
+    def test_can(self):
         self.client.logout()
         response = self.client.get(reverse(self._get_endpoint('language-list')))
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_list_with_search(self):
         """
@@ -127,7 +127,7 @@ class LanguageApiTestCase(BaseApiTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, expected)
 
-    def test_cannot_read_as_anonymous_user(self):
+    def test_can(self):
         self.client.logout()
         response = self.client.get(self.detail_url)
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
