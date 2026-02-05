@@ -293,8 +293,9 @@ export const getAllTranslationsFromSupplementData = (
 // Displays
 
 export enum StaticDisplays {
-  Data = 'Data',
+  // Keep the enum ordering, since it controls the order of display options in the UI
   Audio = 'Audio',
+  Data = 'Data',
   Transcript = 'Transcript',
 }
 
