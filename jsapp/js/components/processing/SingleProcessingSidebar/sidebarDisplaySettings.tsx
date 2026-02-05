@@ -160,15 +160,15 @@ export default function SidebarDisplaySettings({
         title={t('Customize display settings')}
         size='lg'
         centered
-        padding='lg'
+        padding='xl'
         overlayProps={{ backgroundOpacity: 0.55, blur: 3 }}
       >
-        <Stack gap='lg'>
+        <Stack gap='lg' pt='md'>
           <Text size='md'>
             {t('Select the information you want to display in the side menu to support your analysis.')}
           </Text>
 
-          <Stack gap='md'>
+          <Stack gap='lg'>
             <Box>
               <KoboSelect
                 label={t('Display labels or XML values?')}
@@ -214,7 +214,7 @@ export default function SidebarDisplaySettings({
                           h={160}
                           p='xs'
                           bd='1px solid'
-                          style={{ borderColor: 'var(--mantine-color-gray-4)' }}
+                          style={{ borderColor: 'var(--mantine-color-gray-6)', borderRadius: 6 }}
                         >
                           <MultiCheckbox type='bare' items={getCheckboxes()} onChange={onCheckboxesChange} />
                         </ScrollArea>
