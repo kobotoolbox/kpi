@@ -9,9 +9,10 @@ import pageState from '#/pageState.store'
 import RequireAuth from '#/router/requireAuth'
 import { PROJECTS_ROUTES, ROUTES } from '#/router/routerConstants'
 import { MODAL_TYPES } from '../constants'
-import SidebarFormsList from '../lists/sidebarForms'
+import SidebarFormsListOld from '../lists/sidebarForms'
 import { routerIsActive } from '../router/legacy'
 import sessionStore from '../stores/session'
+import SidebarFormsList from './SidebarFormsList'
 import Icon from './common/icon'
 
 const AccountSidebar = lazy(() => import('#/account/accountSidebar'))
@@ -81,6 +82,7 @@ export default function Drawer() {
             </Button>
 
             <SidebarFormsList />
+            <SidebarFormsListOld />
           </bem.FormSidebarWrapper>
         )}
       </bem.KDrawer__sidebar>
