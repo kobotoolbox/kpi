@@ -69,55 +69,47 @@ class RequiresTranscriptionMixin:
         Raises:
           - TranscriptionNotFound: if no accepted transcript is available.
         """
+        latest_version = latest_accepted_dt = latest_version_action_id = None
+        latest_deletion_dt = None
+
         if 'value' in action_data and action_data['value'] is None:
             return action_data
 
-        global_latest_version, global_latest_dt = None, None
         for action_id, action_supplemental_data in self._action_dependencies.items():
-
             versions = action_supplemental_data.get(self.VERSION_FIELD) or []
             if not versions:
                 continue
 
-            current_latest = versions[0]
-            created_raw = current_latest.get(self.DATE_CREATED_FIELD)
-            if not created_raw:
-                continue
-
-            created_dt = parser.parse(created_raw)
-            if global_latest_dt is None or created_dt > global_latest_dt:
-                global_latest_dt = created_dt
-                global_latest_version = current_latest
-
-        if global_latest_version:
-            latest_data = global_latest_version.get(self.VERSION_DATA_FIELD, {})
-            is_deleted = (
-                latest_data.get('status') == 'deleted' or
-                ('status' not in latest_data and latest_data.get('value') is None)
-            )
-
-            # Do not consider deleted transcriptions
-            if is_deleted:
-                raise TranscriptionNotFound
-
-        latest_version = latest_accepted_dt = latest_version_action_id = None
-
-        for action_id, action_supplemental_data in self._action_dependencies.items():
-            versions = action_supplemental_data.get(self.VERSION_FIELD) or []
             for version in versions:
-                # Skip versions without an acceptance timestamp.
-                accepted_raw = version.get(self.DATE_ACCEPTED_FIELD)
-                if not accepted_raw:
-                    continue
+                version_data = version.get(self.VERSION_DATA_FIELD, {})
 
-                accepted_dt = parser.parse(accepted_raw)
+                is_deleted = (
+                    ('status' not in version_data and version_data.get('value') is None)
+                    or version_data.get('status') == 'deleted'
+                )
 
-                if latest_accepted_dt is None or accepted_dt > latest_accepted_dt:
-                    latest_accepted_dt = accepted_dt
-                    latest_version = version
-                    latest_version_action_id = action_id
+                if is_deleted:
+                    # Track the most recent deletion timestamp across all versions
+                    created_raw = version.get(self.DATE_CREATED_FIELD)
+                    created_dt = parser.parse(created_raw)
+                    if latest_deletion_dt is None or created_dt > latest_deletion_dt:
+                        latest_deletion_dt = created_dt
+                else:
+                    # Skip versions that are not accepted
+                    accepted_raw = version.get(self.DATE_ACCEPTED_FIELD)
+                    if not accepted_raw:
+                        continue
 
-        if latest_version is None:
+                    accepted_dt = parser.parse(accepted_raw)
+                    if latest_accepted_dt is None or accepted_dt > latest_accepted_dt:
+                        latest_accepted_dt = accepted_dt
+                        latest_version = version
+                        latest_version_action_id = action_id
+
+        if (
+            latest_version is None
+            or (latest_deletion_dt and latest_deletion_dt > latest_accepted_dt)
+        ):
             raise TranscriptionNotFound
 
         latest_version_data = latest_version.get(self.VERSION_DATA_FIELD, {})
