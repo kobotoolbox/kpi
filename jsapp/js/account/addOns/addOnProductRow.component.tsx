@@ -15,6 +15,8 @@ interface AddOnProductRowProps {
   subscribedAddOns: SubscriptionInfo[]
   organization: OrganizationResponse
   isRecurring?: boolean
+  displayName: string
+  description: string
 }
 
 export const AddOnProductRow = ({
@@ -24,6 +26,8 @@ export const AddOnProductRow = ({
   subscribedAddOns,
   organization,
   isRecurring,
+  displayName,
+  description
 }: AddOnProductRowProps) => {
   const [selectedProduct, setSelectedProduct] = useState(products[0])
   const [selectedPrice, setSelectedPrice] = useState<Product['prices'][0]>(selectedProduct.prices[0])
@@ -35,17 +39,6 @@ export const AddOnProductRow = ({
       }),
     [selectedProduct],
   )
-
-  let displayName
-  let description
-
-  if (selectedProduct.metadata.asr_seconds_limit || selectedProduct.metadata.mt_characters_limit) {
-    displayName = t('NLP Package')
-    description = t('Increase your transcription minutes and translations characters.')
-  } else if (selectedProduct.metadata.storage_bytes_limit) {
-    displayName = t('File Storage')
-    description = t('Get up to 50GB of media storage on a KoboToolbox public server.')
-  }
 
   // In practice, this variable and related onSubmit behavior
   // will only end up being true/relevant for recurring addons

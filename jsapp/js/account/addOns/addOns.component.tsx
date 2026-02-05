@@ -24,9 +24,15 @@ export default function addOns() {
   const [isBusy, setIsBusy] = useState(true)
   const oneTimeAddOnsContext = useContext(OneTimeAddOnsContext)
   const oneTimeAddOnSubscriptions = oneTimeAddOnsContext.oneTimeAddOns
+
   const oneTimeAddOnProducts = addOnProducts.filter((product) => product.metadata.product_type === 'addon_onetime')
-  const recurringAddOnProducts = addOnProducts.filter((product) => product.metadata.product_type === 'addon')
-  const showRecurringAddons = !subscribedPlans.length && !!recurringAddOnProducts.length
+  const transXProducts = oneTimeAddOnProducts.filter(
+    (product) => !!product.metadata['asr_seconds_limit'] && !!product.metadata['mt_characters_limit'],
+  )
+  const llmProducts = oneTimeAddOnProducts.filter((product) => !!product.metadata['llm_requests_limit'])
+
+  const storageProducts = addOnProducts.filter((product) => !!product.metadata['storage_bytes_limit'])
+  const showStorageAddons = !subscribedPlans.length && !!storageProducts.length
 
   /**
    * Extract the add-on products and prices from the list of all products
@@ -148,25 +154,38 @@ export default function addOns() {
               </p>
             </caption>
             <tbody>
-              {showRecurringAddons && (
+              {showStorageAddons && (
                 <AddOnProductRow
-                  key={recurringAddOnProducts.map((product) => product.id).join('-')}
-                  products={recurringAddOnProducts}
+                  products={storageProducts}
                   isBusy={isBusy}
                   setIsBusy={setIsBusy}
                   subscribedAddOns={subscribedAddOns}
                   organization={organization}
                   isRecurring
+                  displayName={t('File Storage')}
+                  description={t('Get up to 50GB of media storage on a KoboToolbox public server.')}
                 />
               )}
-              {!!oneTimeAddOnProducts.length && (
+              {!!transXProducts.length && (
                 <AddOnProductRow
-                  key={oneTimeAddOnProducts.map((product) => product.id).join('-')}
-                  products={oneTimeAddOnProducts}
+                  products={transXProducts}
                   isBusy={isBusy}
                   setIsBusy={setIsBusy}
                   subscribedAddOns={subscribedAddOns}
                   organization={organization}
+                  displayName={t('NLP Package')}
+                  description={t('Increase your transcription minutes and translations characters.')}
+                />
+              )}
+              {!!llmProducts.length && (
+                <AddOnProductRow
+                  products={llmProducts}
+                  isBusy={isBusy}
+                  setIsBusy={setIsBusy}
+                  subscribedAddOns={subscribedAddOns}
+                  organization={organization}
+                  displayName={t('Automatic analysis requests')}
+                  description={t('Buy requests to generate more responses for your analysis questions.')}
                 />
               )}
             </tbody>
