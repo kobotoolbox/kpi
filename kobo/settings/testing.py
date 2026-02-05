@@ -21,7 +21,8 @@ DATABASE_ROUTERS = ['kpi.db_routers.TestingDatabaseRouter']
 TESTING = True
 
 # Decrease prod value to speed-up tests
-SUBMISSION_LIST_LIMIT = 100
+DEFAULT_API_PAGE_SIZE = 50
+MAX_API_PAGE_SIZE = 100
 
 ENV = 'testing'
 

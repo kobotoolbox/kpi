@@ -351,7 +351,7 @@ curl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid}/data/
 Two parameters can be used to control pagination.
 
 * `start`: Index (zero-based) from which the results start
-* `limit`: Number of results per page <span class='label label-warning'>Maximum results per page is **1000**</span>
+* `limit`: Number of results per page <span class='label label-warning'>Maximum results per page cannot exceed  **1000**, unless changed by server configuration</span>
 
 ```shell
 curl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid}/data/?start=0&limit=10
@@ -394,7 +394,6 @@ This means that while alternative formats (like XML) are technically supported a
 
 We’ve still included the header to show supported formats, but keep in mind:
 **Only `application/json` will be used in the docs UI.**
-
 
  */
 export type assetsDataListResponse200 = {
