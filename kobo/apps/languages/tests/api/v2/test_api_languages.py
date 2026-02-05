@@ -11,7 +11,7 @@ class LanguageListApiTestCase(BaseApiTestCase):
         response = self.client.get(reverse(self._get_endpoint('language-list')))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_can(self):
+    def test_can_list_as_anonymous_user(self):
         self.client.logout()
         response = self.client.get(reverse(self._get_endpoint('language-list')))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -127,7 +127,7 @@ class LanguageApiTestCase(BaseApiTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, expected)
 
-    def test_can(self):
+    def test_can_read_as_anonymous_user(self):
         self.client.logout()
         response = self.client.get(self.detail_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
