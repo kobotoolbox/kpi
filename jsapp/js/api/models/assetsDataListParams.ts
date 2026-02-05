@@ -18,13 +18,9 @@ export type AssetsDataListParams = {
    */
   limit?: number
   /**
-   * Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.
+   * Deprecated alias of `start`.
    */
-  page?: number
-  /**
-   * Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.
-   */
-  page_size?: number
+  offset?: number
   /**
    * The initial index from which to return the results. Use with `limit`.
    */

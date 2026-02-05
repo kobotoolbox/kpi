@@ -45,18 +45,10 @@ paths:
         description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
-      - name: page
+      - name: offset
         required: false
         in: query
-        description: Deprecated parameter. A page number within the paginated result
-          set. Mutually exclusive with offset/start.
-        schema:
-          type: integer
-      - name: page_size
-        required: false
-        in: query
-        description: Deprecated parameter. Number of results to return per page when
-          using page-based pagination. Mutually exclusive with offset/start.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - in: query
@@ -198,18 +190,10 @@ paths:
         description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
-      - name: page
+      - name: offset
         required: false
         in: query
-        description: Deprecated parameter. A page number within the paginated result
-          set. Mutually exclusive with offset/start.
-        schema:
-          type: integer
-      - name: page_size
-        required: false
-        in: query
-        description: Deprecated parameter. Number of results to return per page when
-          using page-based pagination. Mutually exclusive with offset/start.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - in: query
@@ -315,18 +299,10 @@ paths:
         description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
-      - name: page
+      - name: offset
         required: false
         in: query
-        description: Deprecated parameter. A page number within the paginated result
-          set. Mutually exclusive with offset/start.
-        schema:
-          type: integer
-      - name: page_size
-        required: false
-        in: query
-        description: Deprecated parameter. Number of results to return per page when
-          using page-based pagination. Mutually exclusive with offset/start.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - name: start
@@ -653,18 +629,10 @@ paths:
         description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
-      - name: page
+      - name: offset
         required: false
         in: query
-        description: Deprecated parameter. A page number within the paginated result
-          set. Mutually exclusive with offset/start.
-        schema:
-          type: integer
-      - name: page_size
-        required: false
-        in: query
-        description: Deprecated parameter. Number of results to return per page when
-          using page-based pagination. Mutually exclusive with offset/start.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - name: start
@@ -804,18 +772,10 @@ paths:
         description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
-      - name: page
+      - name: offset
         required: false
         in: query
-        description: Deprecated parameter. A page number within the paginated result
-          set. Mutually exclusive with offset/start.
-        schema:
-          type: integer
-      - name: page_size
-        required: false
-        in: query
-        description: Deprecated parameter. Number of results to return per page when
-          using page-based pagination. Mutually exclusive with offset/start.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - name: start
@@ -891,35 +851,23 @@ paths:
         curl -X GET https://kf.kobotoolbox.org/api/v2/assets/?collections_first=true&ordering=-name
         ```
       parameters:
-      - in: query
-        name: limit
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
-        description: Paginate results with limit parameter
-      - in: query
-        name: offset
+      - name: offset
+        required: false
+        in: query
+        description: Deprecated alias of `start`.
         schema:
           type: integer
-        description: Paginate results with offset parameter
       - in: query
         name: ordering
         schema:
           type: string
         description: Which field to use when ordering the results.
-      - name: page
-        required: false
-        in: query
-        description: Deprecated parameter. A page number within the paginated result
-          set. Mutually exclusive with offset/start.
-        schema:
-          type: integer
-      - name: page_size
-        required: false
-        in: query
-        description: Deprecated parameter. Number of results to return per page when
-          using page-based pagination. Mutually exclusive with offset/start.
-        schema:
-          type: integer
       - in: query
         name: q
         schema:
@@ -1377,18 +1325,10 @@ paths:
         description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
-      - name: page
+      - name: offset
         required: false
         in: query
-        description: Deprecated parameter. A page number within the paginated result
-          set. Mutually exclusive with offset/start.
-        schema:
-          type: integer
-      - name: page_size
-        required: false
-        in: query
-        description: Deprecated parameter. Number of results to return per page when
-          using page-based pagination. Mutually exclusive with offset/start.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - name: start
@@ -1513,18 +1453,10 @@ paths:
         description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
-      - name: page
+      - name: offset
         required: false
         in: query
-        description: Deprecated parameter. A page number within the paginated result
-          set. Mutually exclusive with offset/start.
-        schema:
-          type: integer
-      - name: page_size
-        required: false
-        in: query
-        description: Deprecated parameter. Number of results to return per page when
-          using page-based pagination. Mutually exclusive with offset/start.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - name: start
@@ -2853,18 +2785,10 @@ paths:
         description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
-      - name: page
+      - name: offset
         required: false
         in: query
-        description: Deprecated parameter. A page number within the paginated result
-          set. Mutually exclusive with offset/start.
-        schema:
-          type: integer
-      - name: page_size
-        required: false
-        in: query
-        description: Deprecated parameter. Number of results to return per page when
-          using page-based pagination. Mutually exclusive with offset/start.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - name: start
@@ -3226,26 +3150,18 @@ paths:
         description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
+      - name: offset
+        required: false
+        in: query
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
       - name: ordering
         required: false
         in: query
         description: Which field to use when ordering the results.
         schema:
           type: string
-      - name: page
-        required: false
-        in: query
-        description: Deprecated parameter. A page number within the paginated result
-          set. Mutually exclusive with offset/start.
-        schema:
-          type: integer
-      - name: page_size
-        required: false
-        in: query
-        description: Deprecated parameter. Number of results to return per page when
-          using page-based pagination. Mutually exclusive with offset/start.
-        schema:
-          type: integer
       - name: start
         required: false
         in: query
@@ -3504,18 +3420,10 @@ paths:
         description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
-      - name: page
+      - name: offset
         required: false
         in: query
-        description: Deprecated parameter. A page number within the paginated result
-          set. Mutually exclusive with offset/start.
-        schema:
-          type: integer
-      - name: page_size
-        required: false
-        in: query
-        description: Deprecated parameter. Number of results to return per page when
-          using page-based pagination. Mutually exclusive with offset/start.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - name: start
@@ -3917,7 +3825,7 @@ paths:
           - metadata__settings__description__old
           - metadata__settings__description__new
 
-        This endpoint can be paginated with 'offset' and 'limit' parameters.
+        This endpoint can be paginated with 'start' and 'limit' parameters.
       parameters:
       - name: limit
         required: false
@@ -3925,18 +3833,10 @@ paths:
         description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
-      - name: page
+      - name: offset
         required: false
         in: query
-        description: Deprecated parameter. A page number within the paginated result
-          set. Mutually exclusive with offset/start.
-        schema:
-          type: integer
-      - name: page_size
-        required: false
-        in: query
-        description: Deprecated parameter. Number of results to return per page when
-          using page-based pagination. Mutually exclusive with offset/start.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - in: query
@@ -4098,18 +3998,10 @@ paths:
         description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
-      - name: page
+      - name: offset
         required: false
         in: query
-        description: Deprecated parameter. A page number within the paginated result
-          set. Mutually exclusive with offset/start.
-        schema:
-          type: integer
-      - name: page_size
-        required: false
-        in: query
-        description: Deprecated parameter. Number of results to return per page when
-          using page-based pagination. Mutually exclusive with offset/start.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - name: start
@@ -4384,6 +4276,8 @@ paths:
       description: |
         ## List logs of an external services endpoints accessible to requesting user
 
+        ⚠️ The `page` query parameter is deprecated, use `start` and `limit` instead.
+
         Where:
         * `asset_uid` - is the unique identifier of a specific asset
         * `hook_uid` - is the unique identifier of a specific external service
@@ -4400,9 +4294,7 @@ paths:
         needs to be in '+00:00' format ('Z' is not supported). Watch out for url encoding for
         the '+' character (%2B).
 
-        Note that `start` is inclusive, while `end` is exclusive.
-
-        The `page` query parameter is deprecated, use `start` and `limit` instead.
+        Note that `start_date` is inclusive, while `end_date` is exclusive.
       parameters:
       - in: query
         name: end_date
@@ -4415,18 +4307,10 @@ paths:
         description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
-      - name: page
+      - name: offset
         required: false
         in: query
-        description: Deprecated parameter. A page number within the paginated result
-          set. Mutually exclusive with offset/start.
-        schema:
-          type: integer
-      - name: page_size
-        required: false
-        in: query
-        description: Deprecated parameter. Number of results to return per page when
-          using page-based pagination. Mutually exclusive with offset/start.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - name: start
@@ -4685,18 +4569,10 @@ paths:
         description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
-      - name: page
+      - name: offset
         required: false
         in: query
-        description: Deprecated parameter. A page number within the paginated result
-          set. Mutually exclusive with offset/start.
-        schema:
-          type: integer
-      - name: page_size
-        required: false
-        in: query
-        description: Deprecated parameter. Number of results to return per page when
-          using page-based pagination. Mutually exclusive with offset/start.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - name: start
@@ -5543,18 +5419,10 @@ paths:
         description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
-      - name: page
+      - name: offset
         required: false
         in: query
-        description: Deprecated parameter. A page number within the paginated result
-          set. Mutually exclusive with offset/start.
-        schema:
-          type: integer
-      - name: page_size
-        required: false
-        in: query
-        description: Deprecated parameter. Number of results to return per page when
-          using page-based pagination. Mutually exclusive with offset/start.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - name: start
@@ -5911,18 +5779,10 @@ paths:
         description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
-      - name: page
+      - name: offset
         required: false
         in: query
-        description: Deprecated parameter. A page number within the paginated result
-          set. Mutually exclusive with offset/start.
-        schema:
-          type: integer
-      - name: page_size
-        required: false
-        in: query
-        description: Deprecated parameter. Number of results to return per page when
-          using page-based pagination. Mutually exclusive with offset/start.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - in: query
@@ -5982,18 +5842,10 @@ paths:
         description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
-      - name: page
+      - name: offset
         required: false
         in: query
-        description: Deprecated parameter. A page number within the paginated result
-          set. Mutually exclusive with offset/start.
-        schema:
-          type: integer
-      - name: page_size
-        required: false
-        in: query
-        description: Deprecated parameter. Number of results to return per page when
-          using page-based pagination. Mutually exclusive with offset/start.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - name: start
@@ -6161,18 +6013,10 @@ paths:
         description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
-      - name: page
+      - name: offset
         required: false
         in: query
-        description: Deprecated parameter. A page number within the paginated result
-          set. Mutually exclusive with offset/start.
-        schema:
-          type: integer
-      - name: page_size
-        required: false
-        in: query
-        description: Deprecated parameter. Number of results to return per page when
-          using page-based pagination. Mutually exclusive with offset/start.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - name: start
@@ -6264,18 +6108,10 @@ paths:
         description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
-      - name: page
+      - name: offset
         required: false
         in: query
-        description: Deprecated parameter. A page number within the paginated result
-          set. Mutually exclusive with offset/start.
-        schema:
-          type: integer
-      - name: page_size
-        required: false
-        in: query
-        description: Deprecated parameter. Number of results to return per page when
-          using page-based pagination. Mutually exclusive with offset/start.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - name: start
@@ -6409,15 +6245,15 @@ paths:
           type: integer
         description: Paginate results with limit parameter
       - in: query
-        name: offset
-        schema:
-          type: integer
-        description: Paginate results with offset parameter
-      - in: query
         name: ordering
         schema:
           type: string
         description: Which field to use when ordering the results.
+      - in: query
+        name: start
+        schema:
+          type: integer
+        description: Paginate results with start parameter
       - in: path
         name: uid_organization
         schema:
@@ -6503,18 +6339,10 @@ paths:
         description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
-      - name: page
+      - name: offset
         required: false
         in: query
-        description: Deprecated parameter. A page number within the paginated result
-          set. Mutually exclusive with offset/start.
-        schema:
-          type: integer
-      - name: page_size
-        required: false
-        in: query
-        description: Deprecated parameter. Number of results to return per page when
-          using page-based pagination. Mutually exclusive with offset/start.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - name: start
@@ -6796,18 +6624,10 @@ paths:
         description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
-      - name: page
+      - name: offset
         required: false
         in: query
-        description: Deprecated parameter. A page number within the paginated result
-          set. Mutually exclusive with offset/start.
-        schema:
-          type: integer
-      - name: page_size
-        required: false
-        in: query
-        description: Deprecated parameter. Number of results to return per page when
-          using page-based pagination. Mutually exclusive with offset/start.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - name: start
@@ -7075,18 +6895,10 @@ paths:
         description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
-      - name: page
+      - name: offset
         required: false
         in: query
-        description: Deprecated parameter. A page number within the paginated result
-          set. Mutually exclusive with offset/start.
-        schema:
-          type: integer
-      - name: page_size
-        required: false
-        in: query
-        description: Deprecated parameter. Number of results to return per page when
-          using page-based pagination. Mutually exclusive with offset/start.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - name: start
@@ -7321,7 +7133,7 @@ paths:
 
             b. metadata__settings__description__new
 
-        This endpoint can be paginated with 'offset' and 'limit' parameters
+        This endpoint can be paginated with 'start' and 'limit' parameters
       parameters:
       - name: limit
         required: false
@@ -7329,18 +7141,10 @@ paths:
         description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
-      - name: page
+      - name: offset
         required: false
         in: query
-        description: Deprecated parameter. A page number within the paginated result
-          set. Mutually exclusive with offset/start.
-        schema:
-          type: integer
-      - name: page_size
-        required: false
-        in: query
-        description: Deprecated parameter. Number of results to return per page when
-          using page-based pagination. Mutually exclusive with offset/start.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - in: query
@@ -7496,18 +7300,10 @@ paths:
         name: mode
         schema:
           type: string
-      - name: page
+      - name: offset
         required: false
         in: query
-        description: Deprecated parameter. A page number within the paginated result
-          set. Mutually exclusive with offset/start.
-        schema:
-          type: integer
-      - name: page_size
-        required: false
-        in: query
-        description: Deprecated parameter. Number of results to return per page when
-          using page-based pagination. Mutually exclusive with offset/start.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - name: start
@@ -7825,18 +7621,10 @@ paths:
         description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
-      - name: page
+      - name: offset
         required: false
         in: query
-        description: Deprecated parameter. A page number within the paginated result
-          set. Mutually exclusive with offset/start.
-        schema:
-          type: integer
-      - name: page_size
-        required: false
-        in: query
-        description: Deprecated parameter. Number of results to return per page when
-          using page-based pagination. Mutually exclusive with offset/start.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - name: start
@@ -8080,10 +7868,10 @@ paths:
           type: integer
         description: Paginate results with limit parameter
       - in: query
-        name: offset
+        name: start
         schema:
           type: integer
-        description: Paginate results with offset parameter
+        description: Paginate results with start parameter
       - in: path
         name: uid_project_view
         schema:
@@ -8148,10 +7936,10 @@ paths:
           type: integer
         description: Paginate results with limit parameter
       - in: query
-        name: offset
+        name: start
         schema:
           type: integer
-        description: Paginate results with offset parameter
+        description: Paginate results with start parameter
       - in: path
         name: uid_project_view
         schema:
@@ -8239,18 +8027,10 @@ paths:
         description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
-      - name: page
+      - name: offset
         required: false
         in: query
-        description: Deprecated parameter. A page number within the paginated result
-          set. Mutually exclusive with offset/start.
-        schema:
-          type: integer
-      - name: page_size
-        required: false
-        in: query
-        description: Deprecated parameter. Number of results to return per page when
-          using page-based pagination. Mutually exclusive with offset/start.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - name: start
@@ -8474,18 +8254,10 @@ paths:
         description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
-      - name: page
+      - name: offset
         required: false
         in: query
-        description: Deprecated parameter. A page number within the paginated result
-          set. Mutually exclusive with offset/start.
-        schema:
-          type: integer
-      - name: page_size
-        required: false
-        in: query
-        description: Deprecated parameter. Number of results to return per page when
-          using page-based pagination. Mutually exclusive with offset/start.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - name: start
@@ -8518,18 +8290,10 @@ paths:
         description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
-      - name: page
+      - name: offset
         required: false
         in: query
-        description: Deprecated parameter. A page number within the paginated result
-          set. Mutually exclusive with offset/start.
-        schema:
-          type: integer
-      - name: page_size
-        required: false
-        in: query
-        description: Deprecated parameter. Number of results to return per page when
-          using page-based pagination. Mutually exclusive with offset/start.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - name: start
@@ -8595,18 +8359,10 @@ paths:
         description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
-      - name: page
+      - name: offset
         required: false
         in: query
-        description: Deprecated parameter. A page number within the paginated result
-          set. Mutually exclusive with offset/start.
-        schema:
-          type: integer
-      - name: page_size
-        required: false
-        in: query
-        description: Deprecated parameter. Number of results to return per page when
-          using page-based pagination. Mutually exclusive with offset/start.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - name: start
@@ -8777,18 +8533,10 @@ paths:
         description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
-      - name: page
+      - name: offset
         required: false
         in: query
-        description: Deprecated parameter. A page number within the paginated result
-          set. Mutually exclusive with offset/start.
-        schema:
-          type: integer
-      - name: page_size
-        required: false
-        in: query
-        description: Deprecated parameter. Number of results to return per page when
-          using page-based pagination. Mutually exclusive with offset/start.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - in: query
@@ -8889,18 +8637,10 @@ paths:
         description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
-      - name: page
+      - name: offset
         required: false
         in: query
-        description: Deprecated parameter. A page number within the paginated result
-          set. Mutually exclusive with offset/start.
-        schema:
-          type: integer
-      - name: page_size
-        required: false
-        in: query
-        description: Deprecated parameter. Number of results to return per page when
-          using page-based pagination. Mutually exclusive with offset/start.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - in: query
@@ -9105,26 +8845,18 @@ paths:
         description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
+      - name: offset
+        required: false
+        in: query
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
       - name: ordering
         required: false
         in: query
         description: Which field to use when ordering the results.
         schema:
           type: string
-      - name: page
-        required: false
-        in: query
-        description: Deprecated parameter. A page number within the paginated result
-          set. Mutually exclusive with offset/start.
-        schema:
-          type: integer
-      - name: page_size
-        required: false
-        in: query
-        description: Deprecated parameter. Number of results to return per page when
-          using page-based pagination. Mutually exclusive with offset/start.
-        schema:
-          type: integer
       - name: start
         required: false
         in: query
@@ -9190,13 +8922,20 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       tags:
@@ -9407,18 +9146,10 @@ paths:
         description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
-      - name: page
+      - name: offset
         required: false
         in: query
-        description: Deprecated parameter. A page number within the paginated result
-          set. Mutually exclusive with offset/start.
-        schema:
-          type: integer
-      - name: page_size
-        required: false
-        in: query
-        description: Deprecated parameter. Number of results to return per page when
-          using page-based pagination. Mutually exclusive with offset/start.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - name: start
@@ -9512,18 +9243,10 @@ paths:
         description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
-      - name: page
+      - name: offset
         required: false
         in: query
-        description: Deprecated parameter. A page number within the paginated result
-          set. Mutually exclusive with offset/start.
-        schema:
-          type: integer
-      - name: page_size
-        required: false
-        in: query
-        description: Deprecated parameter. Number of results to return per page when
-          using page-based pagination. Mutually exclusive with offset/start.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - name: start
@@ -13442,12 +13165,12 @@ components:
           type: string
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: http://api.example.org/accounts/?start=400&limit=100
         previous:
           type: string
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: http://api.example.org/accounts/?start=200&limit=100
         results:
           type: array
           items:

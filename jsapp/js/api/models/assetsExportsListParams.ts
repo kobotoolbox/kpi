@@ -16,17 +16,13 @@ export type AssetsExportsListParams = {
    */
   limit?: number
   /**
+   * Deprecated alias of `start`.
+   */
+  offset?: number
+  /**
    * Which field to use when ordering the results.
    */
   ordering?: string
-  /**
-   * Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.
-   */
-  page?: number
-  /**
-   * Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.
-   */
-  page_size?: number
   /**
    * The initial index from which to return the results. Use with `limit`.
    */

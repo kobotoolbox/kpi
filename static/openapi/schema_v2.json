@@ -21,19 +21,10 @@
                         }
                     },
                     {
-                        "name": "page",
+                        "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "page_size",
-                        "required": false,
-                        "in": "query",
-                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "description": "Deprecated alias of `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -226,19 +217,10 @@
                         }
                     },
                     {
-                        "name": "page",
+                        "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "page_size",
-                        "required": false,
-                        "in": "query",
-                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "description": "Deprecated alias of `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -413,19 +395,10 @@
                         }
                     },
                     {
-                        "name": "page",
+                        "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "page_size",
-                        "required": false,
-                        "in": "query",
-                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "description": "Deprecated alias of `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -934,19 +907,10 @@
                         }
                     },
                     {
-                        "name": "page",
+                        "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "page_size",
-                        "required": false,
-                        "in": "query",
-                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "description": "Deprecated alias of `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -1169,19 +1133,10 @@
                         }
                     },
                     {
-                        "name": "page",
+                        "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "page_size",
-                        "required": false,
-                        "in": "query",
-                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "description": "Deprecated alias of `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -1245,20 +1200,22 @@
                 "description": "## Get user's assets\n\n\nSearch can be made with `q` parameter.\nSearch filters can be returned with results by passing `metadata=on` to querystring.\n\n\nResults can be sorted with `ordering` parameter, e.g.:\n\n```shell\ncurl -X GET https://kf.kobotoolbox.org/api/v2/assets/?ordering=-name\n```\n\n\nAllowed fields are:\n\n- `asset_type`\n- `date_modified`\n- `date_deployed`\n- `date_modified__date`\n- `date_deployed__date`\n- `name`\n- `settings__sector`\n- `settings__sector__value`\n- `settings__description`\n- `owner__username`\n- `owner__extra_details__data__name`\n- `owner__extra_details__data__organization`\n- `owner__email`\n- `_deployment_status`\n- `subscribers_count`\n\n\nNote: Collections can be displayed first with parameter `collections_first`, e.g.:\n\n```shell\ncurl -X GET https://kf.kobotoolbox.org/api/v2/assets/?collections_first=true&ordering=-name\n```\n",
                 "parameters": [
                     {
-                        "in": "query",
                         "name": "limit",
+                        "required": false,
+                        "in": "query",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
-                        },
-                        "description": "Paginate results with limit parameter"
+                        }
                     },
                     {
-                        "in": "query",
                         "name": "offset",
+                        "required": false,
+                        "in": "query",
+                        "description": "Deprecated alias of `start`.",
                         "schema": {
                             "type": "integer"
-                        },
-                        "description": "Paginate results with offset parameter"
+                        }
                     },
                     {
                         "in": "query",
@@ -1267,24 +1224,6 @@
                             "type": "string"
                         },
                         "description": "Which field to use when ordering the results."
-                    },
-                    {
-                        "name": "page",
-                        "required": false,
-                        "in": "query",
-                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "page_size",
-                        "required": false,
-                        "in": "query",
-                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
-                        "schema": {
-                            "type": "integer"
-                        }
                     },
                     {
                         "in": "query",
@@ -1923,19 +1862,10 @@
                         }
                     },
                     {
-                        "name": "page",
+                        "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "page_size",
-                        "required": false,
-                        "in": "query",
-                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "description": "Deprecated alias of `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -2047,19 +1977,10 @@
                         }
                     },
                     {
-                        "name": "page",
+                        "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "page_size",
-                        "required": false,
-                        "in": "query",
-                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "description": "Deprecated alias of `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -3766,19 +3687,10 @@
                         }
                     },
                     {
-                        "name": "page",
+                        "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "page_size",
-                        "required": false,
-                        "in": "query",
-                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "description": "Deprecated alias of `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -4263,30 +4175,21 @@
                         }
                     },
                     {
+                        "name": "offset",
+                        "required": false,
+                        "in": "query",
+                        "description": "Deprecated alias of `start`.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
                         "name": "ordering",
                         "required": false,
                         "in": "query",
                         "description": "Which field to use when ordering the results.",
                         "schema": {
                             "type": "string"
-                        }
-                    },
-                    {
-                        "name": "page",
-                        "required": false,
-                        "in": "query",
-                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "page_size",
-                        "required": false,
-                        "in": "query",
-                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
-                        "schema": {
-                            "type": "integer"
                         }
                     },
                     {
@@ -4651,19 +4554,10 @@
                         }
                     },
                     {
-                        "name": "page",
+                        "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "page_size",
-                        "required": false,
-                        "in": "query",
-                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "description": "Deprecated alias of `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -5039,7 +4933,7 @@
         "/api/v2/assets/{uid_asset}/history/": {
             "get": {
                 "operationId": "api_v2_assets_history_list",
-                "description": "## List project history logs\n\nLists all project history logs for a single project.\n\n⚠️ _Required permissions: `manage_asset` (Manage project)_\n\nResults from this endpoint can be filtered by a Boolean query specified in the `q` parameter.\n\n### Filterable fields for all project history logs:\n\n  - date_created\n  - user_uid\n  - user__username\n  - user__email\n  - user__is_superuser\n  - metadata__source\n  - metadata__ip_address\n  - metadata__log_subtype\n    - available subtypes: \"project\", \"permission\"\n\n### action\n\navailable actions:\n  - add-media\n  - add-submission\n  - allow-anonymous-submissions\n  - archive\n  - clone-permissions\n  - connect-project\n  - delete-media\n  - delete-service\n  - delete-submission\n  - deploy\n  - disable-sharing\n  - disallow-anonymous-submissions\n  - disconnect-project\n  - enable-sharing\n  - export\n  - modify-imported-fields\n  - modify-qa-data\n  - modify-service\n  - modify-sharing\n  - modify-submission\n  - modify-user-permissions\n  - redeploy\n   - register-service\n  - replace-form\n  - share-data-publicly\n  - share-form-publicly\n  - transfer\n  - unarchive\n  - unshare-data-publicly\n  - unshare-form-publicly\n  - update-content\n  - update-name\n  - update-settings\n  - update-qa\n\n### Filterable fields by action:\n\n  add-media\n  - metadata__asset-file__uid\n  - metadata__asset-file__filename\n\n  add-submission\n  - metadata__submission__submitted_by\n  - metadata__submission__root_uuid\n\n  archive\n  - metadata__latest_version_uid\n\n  clone-permissions\n  - metadata__cloned_from\n\n  connect-project\n  - metadata__paired-data__source_uid\n  - metadata__paired-data__source_name\n\n  delete-media\n  - metadata__asset-file__uid\n  - metadata__asset-file__filename\n\n  delete-service\n  - metadata__hook__uid\n  - metadata__hook__endpoint\n  - metadata__hook__active\n\n  delete-submission\n  - metadata__submission__submitted_by\n  - metadata__submission__root_uuid\n\n  deploy\n  - metadata__latest_version_uid\n  - metadata__latest_deployed_version_uid\n\n  disconnect-project\n  - metadata__paired-data__source_uid\n  - metadata__paired-data__source_name\n\n  modify-imported-fields\n  - metadata__paired-data__source_uid\n  - metadata__paired-data__source_name\n\n  modify-qa-data\n  - metadata__submission__submitted_by\n  - metadata__submission__root_uuid\n\n  modify-service\n  - metadata__hook__uid\n  - metadata__hook__endpoint\n  - metadata__hook__active\n\n  modify-submission\n  - metadata__submission__submitted_by\n  - metadata__submission__root_uuid\n  - metadata__submission__status (only present if changed)\n\n  modify-user-permissions\n  - metadata__permissions__username\n\n  redeploy\n  - metadata__latest_version_uid\n  - metadata__latest_deployed_version_uid\n\n  register-service\n  - metadata__hook__uid\n  - metadata__hook__endpoint\n  - metadata__hook__active\n\n  transfer\n  - metadata__username\n\n  unarchive\n  - metadata__latest_version_uid\n\n  update-name\n  - metadata__name__old\n  - metadata__name__new\n\n  update-settings\n  - metadata__settings__description__old\n  - metadata__settings__description__new\n\nThis endpoint can be paginated with 'offset' and 'limit' parameters.\n",
+                "description": "## List project history logs\n\nLists all project history logs for a single project.\n\n⚠️ _Required permissions: `manage_asset` (Manage project)_\n\nResults from this endpoint can be filtered by a Boolean query specified in the `q` parameter.\n\n### Filterable fields for all project history logs:\n\n  - date_created\n  - user_uid\n  - user__username\n  - user__email\n  - user__is_superuser\n  - metadata__source\n  - metadata__ip_address\n  - metadata__log_subtype\n    - available subtypes: \"project\", \"permission\"\n\n### action\n\navailable actions:\n  - add-media\n  - add-submission\n  - allow-anonymous-submissions\n  - archive\n  - clone-permissions\n  - connect-project\n  - delete-media\n  - delete-service\n  - delete-submission\n  - deploy\n  - disable-sharing\n  - disallow-anonymous-submissions\n  - disconnect-project\n  - enable-sharing\n  - export\n  - modify-imported-fields\n  - modify-qa-data\n  - modify-service\n  - modify-sharing\n  - modify-submission\n  - modify-user-permissions\n  - redeploy\n   - register-service\n  - replace-form\n  - share-data-publicly\n  - share-form-publicly\n  - transfer\n  - unarchive\n  - unshare-data-publicly\n  - unshare-form-publicly\n  - update-content\n  - update-name\n  - update-settings\n  - update-qa\n\n### Filterable fields by action:\n\n  add-media\n  - metadata__asset-file__uid\n  - metadata__asset-file__filename\n\n  add-submission\n  - metadata__submission__submitted_by\n  - metadata__submission__root_uuid\n\n  archive\n  - metadata__latest_version_uid\n\n  clone-permissions\n  - metadata__cloned_from\n\n  connect-project\n  - metadata__paired-data__source_uid\n  - metadata__paired-data__source_name\n\n  delete-media\n  - metadata__asset-file__uid\n  - metadata__asset-file__filename\n\n  delete-service\n  - metadata__hook__uid\n  - metadata__hook__endpoint\n  - metadata__hook__active\n\n  delete-submission\n  - metadata__submission__submitted_by\n  - metadata__submission__root_uuid\n\n  deploy\n  - metadata__latest_version_uid\n  - metadata__latest_deployed_version_uid\n\n  disconnect-project\n  - metadata__paired-data__source_uid\n  - metadata__paired-data__source_name\n\n  modify-imported-fields\n  - metadata__paired-data__source_uid\n  - metadata__paired-data__source_name\n\n  modify-qa-data\n  - metadata__submission__submitted_by\n  - metadata__submission__root_uuid\n\n  modify-service\n  - metadata__hook__uid\n  - metadata__hook__endpoint\n  - metadata__hook__active\n\n  modify-submission\n  - metadata__submission__submitted_by\n  - metadata__submission__root_uuid\n  - metadata__submission__status (only present if changed)\n\n  modify-user-permissions\n  - metadata__permissions__username\n\n  redeploy\n  - metadata__latest_version_uid\n  - metadata__latest_deployed_version_uid\n\n  register-service\n  - metadata__hook__uid\n  - metadata__hook__endpoint\n  - metadata__hook__active\n\n  transfer\n  - metadata__username\n\n  unarchive\n  - metadata__latest_version_uid\n\n  update-name\n  - metadata__name__old\n  - metadata__name__new\n\n  update-settings\n  - metadata__settings__description__old\n  - metadata__settings__description__new\n\nThis endpoint can be paginated with 'start' and 'limit' parameters.\n",
                 "parameters": [
                     {
                         "name": "limit",
@@ -5051,19 +4945,10 @@
                         }
                     },
                     {
-                        "name": "page",
+                        "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "page_size",
-                        "required": false,
-                        "in": "query",
-                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "description": "Deprecated alias of `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -5322,19 +5207,10 @@
                         }
                     },
                     {
-                        "name": "page",
+                        "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "page_size",
-                        "required": false,
-                        "in": "query",
-                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "description": "Deprecated alias of `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -5733,7 +5609,7 @@
         "/api/v2/assets/{uid_asset}/hooks/{uid_hook}/logs/": {
             "get": {
                 "operationId": "api_v2_assets_hooks_logs_list",
-                "description": "## List logs of an external services endpoints accessible to requesting user\n\nWhere:\n* `asset_uid` - is the unique identifier of a specific asset\n* `hook_uid` - is the unique identifier of a specific external service\n* `uid` - is the unique identifier of a specific log\n\nUse the `status` query parameter to filter logs by numeric status:\n* `status=0`: hook has failed after exhausting all retries\n* `status=1`: hook is still pending\n* `status=2`: hook has succeeded\n\nUse the `start_date` and `end_date` query parameters to filter logs by date range,\nproviding ISO-8601 date strings (e.g. '2022-01-14', '2022-01-21 06:51:04',\n'2022-01-21T06:51:08.144004+02:00'). Time zone is assumed to be UTC. If provided, it\nneeds to be in '+00:00' format ('Z' is not supported). Watch out for url encoding for\nthe '+' character (%2B).\n\nNote that `start` is inclusive, while `end` is exclusive.\n\nThe `page` query parameter is deprecated, use `start` and `limit` instead.\n",
+                "description": "## List logs of an external services endpoints accessible to requesting user\n\n⚠️ The `page` query parameter is deprecated, use `start` and `limit` instead.\n\nWhere:\n* `asset_uid` - is the unique identifier of a specific asset\n* `hook_uid` - is the unique identifier of a specific external service\n* `uid` - is the unique identifier of a specific log\n\nUse the `status` query parameter to filter logs by numeric status:\n* `status=0`: hook has failed after exhausting all retries\n* `status=1`: hook is still pending\n* `status=2`: hook has succeeded\n\nUse the `start_date` and `end_date` query parameters to filter logs by date range,\nproviding ISO-8601 date strings (e.g. '2022-01-14', '2022-01-21 06:51:04',\n'2022-01-21T06:51:08.144004+02:00'). Time zone is assumed to be UTC. If provided, it\nneeds to be in '+00:00' format ('Z' is not supported). Watch out for url encoding for\nthe '+' character (%2B).\n\nNote that `start_date` is inclusive, while `end_date` is exclusive.\n",
                 "parameters": [
                     {
                         "in": "query",
@@ -5753,19 +5629,10 @@
                         }
                     },
                     {
-                        "name": "page",
+                        "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "page_size",
-                        "required": false,
-                        "in": "query",
-                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "description": "Deprecated alias of `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -6167,19 +6034,10 @@
                         }
                     },
                     {
-                        "name": "page",
+                        "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "page_size",
-                        "required": false,
-                        "in": "query",
-                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "description": "Deprecated alias of `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -7497,19 +7355,10 @@
                         }
                     },
                     {
-                        "name": "page",
+                        "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "page_size",
-                        "required": false,
-                        "in": "query",
-                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "description": "Deprecated alias of `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -7905,19 +7754,10 @@
                         }
                     },
                     {
-                        "name": "page",
+                        "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "page_size",
-                        "required": false,
-                        "in": "query",
-                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "description": "Deprecated alias of `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -8015,19 +7855,10 @@
                         }
                     },
                     {
-                        "name": "page",
+                        "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "page_size",
-                        "required": false,
-                        "in": "query",
-                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "description": "Deprecated alias of `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -8273,19 +8104,10 @@
                         }
                     },
                     {
-                        "name": "page",
+                        "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "page_size",
-                        "required": false,
-                        "in": "query",
-                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "description": "Deprecated alias of `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -8433,19 +8255,10 @@
                         }
                     },
                     {
-                        "name": "page",
+                        "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "page_size",
-                        "required": false,
-                        "in": "query",
-                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "description": "Deprecated alias of `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -8663,19 +8476,19 @@
                     },
                     {
                         "in": "query",
-                        "name": "offset",
-                        "schema": {
-                            "type": "integer"
-                        },
-                        "description": "Paginate results with offset parameter"
-                    },
-                    {
-                        "in": "query",
                         "name": "ordering",
                         "schema": {
                             "type": "string"
                         },
                         "description": "Which field to use when ordering the results."
+                    },
+                    {
+                        "in": "query",
+                        "name": "start",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "Paginate results with start parameter"
                     },
                     {
                         "in": "path",
@@ -8803,19 +8616,10 @@
                         }
                     },
                     {
-                        "name": "page",
+                        "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "page_size",
-                        "required": false,
-                        "in": "query",
-                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "description": "Deprecated alias of `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -9256,19 +9060,10 @@
                         }
                     },
                     {
-                        "name": "page",
+                        "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "page_size",
-                        "required": false,
-                        "in": "query",
-                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "description": "Deprecated alias of `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -9665,19 +9460,10 @@
                         }
                     },
                     {
-                        "name": "page",
+                        "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "page_size",
-                        "required": false,
-                        "in": "query",
-                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "description": "Deprecated alias of `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -9761,7 +9547,7 @@
         "/api/v2/project-history-logs/": {
             "get": {
                 "operationId": "api_v2_project_history_logs_list",
-                "description": "## List all project history logs for all projects.\n\n⚠️_Only available to superusers_\n\nResults from this endpoint can be filtered by a Boolean query\nspecified in the `q` parameter.\n\n**Filterable fields for all project history logs:**\n\n* date_created\n* user_uid\n* user__username\n* user__email\n* user__is_superuser\n* metadata__source\n* metadata__ip_address\n* metadata__asset_uid\n* metadata__log_subtype\n    * available subtypes: \"project\", \"permission\"\n* action\n\navailable actions:\n\n>       add-media\n>       add-submission\n>       allow-anonymous-submissions\n>       archive\n>       clone-permissions\n>       connect-project\n>       delete-media\n>       delete-service\n>       delete-submission\n>       deploy\n>       disable-sharing\n>       disallow-anonymous-submissions\n>       disconnect-project\n>       enable-sharing\n>       export\n>       modify-imported-fields\n>       modify-qa-data\n>       modify-service\n>       modify-sharing\n>       modify-submission\n>       modify-user-permissions\n>       redeploy\n>       register-service\n>       replace-form\n>       share-data-publicly\n>       share-form-publicly\n>       transfer\n>       unarchive\n>       unshare-data-publicly\n>       unshare-form-publicly\n>       update-content\n>       update-name\n>       update-settings\n>       update-qa\n\n**Filterable fields by action:**\n\n* add-media\n\n    a. metadata__asset-file__uid\n\n    b. metadata__asset-file__filename\n\n* add-submission\n\n    a. metadata__submission__submitted_by\n\n    b. metadata__submission__root_uuid\n\n* archive\n\n    a. metadata__latest_version_uid\n\n* clone-permissions\n\n    a. metadata__cloned_from\n\n* connect-project\n\n    a. metadata__paired-data__source_uid\n\n    b. metadata__paired-data__source_name\n\n* delete-media\n\n    a. metadata__asset-file__uid\n\n    b. metadata__asset-file__filename\n\n* delete-service\n\n    a. metadata__hook__uid\n\n    b. metadata__hook__endpoint\n\n    c. metadata__hook__active\n\n* delete-submission\n\n    a. metadata__submission__submitted_by\n\n    b. metadata__submission__root_uuid\n\n* deploy\n\n    a. metadata__latest_version_uid\n\n    b. metadata__latest_deployed_version_uid\n\n* disconnect-project\n\n    a. metadata__paired-data__source_uid\n\n    b. metadata__paired-data__source_name\n\n* modify-imported-fields\n\n    a. metadata__paired-data__source_uid\n\n    b. metadata__paired-data__source_name\n\n* modify-qa-data\n\n    a. metadata__submission__submitted_by\n\n    b. metadata__submission__root_uuid\n\n* modify-service\n\n    a. metadata__hook__uid\n\n    b. metadata__hook__endpoint\n\n    c. metadata__hook__active\n\n* modify-submission\n\n    a. metadata__submission__submitted_by\n\n    b. metadata__submission__root_uuid\n\n    b. metadata__submission__status (only present if changed)\n\n* modify-user-permissions\n\n    a. metadata__permissions__username\n\n* redeploy\n\n    a. metadata__latest_version_uid\n\n    b. metadata__latest_deployed_version_uid\n\n* register-service\n\n    a. metadata__hook__uid\n\n    b. metadata__hook__endpoint\n\n    c. metadata__hook__active\n\n* transfer\n\n    a. metadata__username\n\n* unarchive\n\n    a. metadata__latest_version_uid\n\n* update-name\n\n    a. metadata__name__old\n\n    b. metadata__name__new\n\n* update-settings\n\n    a. metadata__settings__description__old\n\n    b. metadata__settings__description__new\n\nThis endpoint can be paginated with 'offset' and 'limit' parameters\n",
+                "description": "## List all project history logs for all projects.\n\n⚠️_Only available to superusers_\n\nResults from this endpoint can be filtered by a Boolean query\nspecified in the `q` parameter.\n\n**Filterable fields for all project history logs:**\n\n* date_created\n* user_uid\n* user__username\n* user__email\n* user__is_superuser\n* metadata__source\n* metadata__ip_address\n* metadata__asset_uid\n* metadata__log_subtype\n    * available subtypes: \"project\", \"permission\"\n* action\n\navailable actions:\n\n>       add-media\n>       add-submission\n>       allow-anonymous-submissions\n>       archive\n>       clone-permissions\n>       connect-project\n>       delete-media\n>       delete-service\n>       delete-submission\n>       deploy\n>       disable-sharing\n>       disallow-anonymous-submissions\n>       disconnect-project\n>       enable-sharing\n>       export\n>       modify-imported-fields\n>       modify-qa-data\n>       modify-service\n>       modify-sharing\n>       modify-submission\n>       modify-user-permissions\n>       redeploy\n>       register-service\n>       replace-form\n>       share-data-publicly\n>       share-form-publicly\n>       transfer\n>       unarchive\n>       unshare-data-publicly\n>       unshare-form-publicly\n>       update-content\n>       update-name\n>       update-settings\n>       update-qa\n\n**Filterable fields by action:**\n\n* add-media\n\n    a. metadata__asset-file__uid\n\n    b. metadata__asset-file__filename\n\n* add-submission\n\n    a. metadata__submission__submitted_by\n\n    b. metadata__submission__root_uuid\n\n* archive\n\n    a. metadata__latest_version_uid\n\n* clone-permissions\n\n    a. metadata__cloned_from\n\n* connect-project\n\n    a. metadata__paired-data__source_uid\n\n    b. metadata__paired-data__source_name\n\n* delete-media\n\n    a. metadata__asset-file__uid\n\n    b. metadata__asset-file__filename\n\n* delete-service\n\n    a. metadata__hook__uid\n\n    b. metadata__hook__endpoint\n\n    c. metadata__hook__active\n\n* delete-submission\n\n    a. metadata__submission__submitted_by\n\n    b. metadata__submission__root_uuid\n\n* deploy\n\n    a. metadata__latest_version_uid\n\n    b. metadata__latest_deployed_version_uid\n\n* disconnect-project\n\n    a. metadata__paired-data__source_uid\n\n    b. metadata__paired-data__source_name\n\n* modify-imported-fields\n\n    a. metadata__paired-data__source_uid\n\n    b. metadata__paired-data__source_name\n\n* modify-qa-data\n\n    a. metadata__submission__submitted_by\n\n    b. metadata__submission__root_uuid\n\n* modify-service\n\n    a. metadata__hook__uid\n\n    b. metadata__hook__endpoint\n\n    c. metadata__hook__active\n\n* modify-submission\n\n    a. metadata__submission__submitted_by\n\n    b. metadata__submission__root_uuid\n\n    b. metadata__submission__status (only present if changed)\n\n* modify-user-permissions\n\n    a. metadata__permissions__username\n\n* redeploy\n\n    a. metadata__latest_version_uid\n\n    b. metadata__latest_deployed_version_uid\n\n* register-service\n\n    a. metadata__hook__uid\n\n    b. metadata__hook__endpoint\n\n    c. metadata__hook__active\n\n* transfer\n\n    a. metadata__username\n\n* unarchive\n\n    a. metadata__latest_version_uid\n\n* update-name\n\n    a. metadata__name__old\n\n    b. metadata__name__new\n\n* update-settings\n\n    a. metadata__settings__description__old\n\n    b. metadata__settings__description__new\n\nThis endpoint can be paginated with 'start' and 'limit' parameters\n",
                 "parameters": [
                     {
                         "name": "limit",
@@ -9773,19 +9559,10 @@
                         }
                     },
                     {
-                        "name": "page",
+                        "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "page_size",
-                        "required": false,
-                        "in": "query",
-                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "description": "Deprecated alias of `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -10018,19 +9795,10 @@
                         }
                     },
                     {
-                        "name": "page",
+                        "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "page_size",
-                        "required": false,
-                        "in": "query",
-                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "description": "Deprecated alias of `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -10527,19 +10295,10 @@
                         }
                     },
                     {
-                        "name": "page",
+                        "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "page_size",
-                        "required": false,
-                        "in": "query",
-                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "description": "Deprecated alias of `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -10933,11 +10692,11 @@
                     },
                     {
                         "in": "query",
-                        "name": "offset",
+                        "name": "start",
                         "schema": {
                             "type": "integer"
                         },
-                        "description": "Paginate results with offset parameter"
+                        "description": "Paginate results with start parameter"
                     },
                     {
                         "in": "path",
@@ -11046,11 +10805,11 @@
                     },
                     {
                         "in": "query",
-                        "name": "offset",
+                        "name": "start",
                         "schema": {
                             "type": "integer"
                         },
-                        "description": "Paginate results with offset parameter"
+                        "description": "Paginate results with start parameter"
                     },
                     {
                         "in": "path",
@@ -11187,19 +10946,10 @@
                         }
                     },
                     {
-                        "name": "page",
+                        "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "page_size",
-                        "required": false,
-                        "in": "query",
-                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "description": "Deprecated alias of `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -11449,19 +11199,10 @@
                         }
                     },
                     {
-                        "name": "page",
+                        "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "page_size",
-                        "required": false,
-                        "in": "query",
-                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "description": "Deprecated alias of `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -11516,19 +11257,10 @@
                         }
                     },
                     {
-                        "name": "page",
+                        "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "page_size",
-                        "required": false,
-                        "in": "query",
-                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "description": "Deprecated alias of `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -11639,19 +11371,10 @@
                         }
                     },
                     {
-                        "name": "page",
+                        "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "page_size",
-                        "required": false,
-                        "in": "query",
-                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "description": "Deprecated alias of `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -11926,19 +11649,10 @@
                         }
                     },
                     {
-                        "name": "page",
+                        "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "page_size",
-                        "required": false,
-                        "in": "query",
-                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "description": "Deprecated alias of `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -12093,19 +11807,10 @@
                         }
                     },
                     {
-                        "name": "page",
+                        "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "page_size",
-                        "required": false,
-                        "in": "query",
-                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "description": "Deprecated alias of `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -12282,30 +11987,21 @@
                         }
                     },
                     {
+                        "name": "offset",
+                        "required": false,
+                        "in": "query",
+                        "description": "Deprecated alias of `start`.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
                         "name": "ordering",
                         "required": false,
                         "in": "query",
                         "description": "Which field to use when ordering the results.",
                         "schema": {
                             "type": "string"
-                        }
-                    },
-                    {
-                        "name": "page",
-                        "required": false,
-                        "in": "query",
-                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "page_size",
-                        "required": false,
-                        "in": "query",
-                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
-                        "schema": {
-                            "type": "integer"
                         }
                     },
                     {
@@ -12392,7 +12088,7 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -12401,7 +12097,16 @@
                         "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated alias of `start`.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -12734,19 +12439,10 @@
                         }
                     },
                     {
-                        "name": "page",
+                        "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "page_size",
-                        "required": false,
-                        "in": "query",
-                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "description": "Deprecated alias of `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -12896,19 +12592,10 @@
                         }
                     },
                     {
-                        "name": "page",
+                        "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "Deprecated parameter. A page number within the paginated result set. Mutually exclusive with offset/start.",
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "page_size",
-                        "required": false,
-                        "in": "query",
-                        "description": "Deprecated parameter. Number of results to return per page when using page-based pagination. Mutually exclusive with offset/start.",
+                        "description": "Deprecated alias of `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -18410,13 +18097,13 @@
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "http://api.example.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
                         "type": "string",
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "http://api.example.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
