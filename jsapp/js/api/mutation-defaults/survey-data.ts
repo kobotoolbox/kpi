@@ -252,7 +252,6 @@ queryClient.setMutationDefaults(
             const itemSnapshot = await optimisticallyUpdateItem<assetsDataSupplementRetrieveResponse>(
               getAssetsDataSupplementRetrieveQueryKey(uidAsset, rootUuid),
               (response) => {
-                console.log('OPTIMISTIC UPDATE automatic_google_translation', { response, datumTyped })
                 let _versions =
                   (response?.data as Record<string, any>)?.[questionXpath]?.[action]?.[language]?._versions ?? []
                 if ((datumTyped as any).value === null) {
