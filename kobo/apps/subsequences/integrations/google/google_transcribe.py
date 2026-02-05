@@ -126,6 +126,11 @@ class GoogleTranscriptionService(GoogleService):
         return attachment.get_transcoded_audio('flac', include_duration=True)
 
     def process_data(self, xpath: str, params: dict) -> dict:
+        if settings.GS_BUCKET_NAME is None:
+            return {
+                'status': 'failed',
+                'error': 'GS_BUCKET_NAME not configured'
+            }
         source_language = params.get('locale') or params['language']
         cache_key = self._get_cache_key(xpath, source_language, target_lang=None)
         if cache.get(cache_key):

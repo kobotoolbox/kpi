@@ -48,9 +48,11 @@ class GoogleService(ABC):
                 'GS_BUCKET_NAME is None, NLP processing will fail '
                 'when storing files in google cloud.'
             )
-        self.bucket = self.storage_client.bucket(
-            bucket_name=settings.GS_BUCKET_NAME
-        )
+            self.bucket = None
+        else:
+            self.bucket = self.storage_client.bucket(
+                bucket_name=settings.GS_BUCKET_NAME
+            )
 
     @abstractmethod
     def adapt_response(self, results: Any) -> str:
