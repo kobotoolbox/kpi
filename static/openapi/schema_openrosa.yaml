@@ -272,7 +272,7 @@ paths:
         name: token
         schema:
           type: string
-          pattern: ^\w+$
+          pattern: ^[^/]+$
         required: true
       tags:
       - OpenRosa Form List
@@ -308,7 +308,7 @@ paths:
         name: token
         schema:
           type: string
-          pattern: ^\w+$
+          pattern: ^[^/]+$
         required: true
       tags:
       - OpenRosa Form Submission
@@ -385,7 +385,7 @@ paths:
         name: token
         schema:
           type: string
-          pattern: ^\w+$
+          pattern: ^[^/]+$
         required: true
       tags:
       - OpenRosa Form Manifest
