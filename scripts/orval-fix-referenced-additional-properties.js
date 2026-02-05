@@ -71,8 +71,11 @@ for (const file of FILES) {
   const importPath = inferImportPath(valueType)
   let patched = ensureTypeImportAfterHeader(source, valueType, importPath)
 
+  // Note: the workaround with index signatures is partial: `|` works only for assignment and `&` works for reading.
+  const operator = file.includes('Payload') ? '|' : '&'
+
   const replacement =
-    `export type ${name} = {\n` + `  _version: ${versionType}\n` + `} & Record<string, ${valueType}>\n`
+    `export type ${name} = {\n` + `  _version: ${versionType}\n` + `} ${operator} Record<string, ${valueType}>\n`
 
   patched = patched.replace(interfaceBlock, replacement)
 

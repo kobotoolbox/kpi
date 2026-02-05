@@ -79,7 +79,10 @@ CREATE_MV_BASE_SQL = f"""
         au.is_staff,
         au.is_active,
         TO_CHAR(au.date_joined AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS date_joined,
-        TO_CHAR(ubau.date_modified AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS last_updated,
+        TO_CHAR(
+            COALESCE(ubau.date_modified, STATEMENT_TIMESTAMP()) AT TIME ZONE 'UTC',
+            'YYYY-MM-DD"T"HH24:MI:SS"Z"'
+        ) AS last_updated,
         CASE
             WHEN au.last_login IS NOT NULL THEN TO_CHAR(au.last_login AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
             ELSE NULL
@@ -108,15 +111,19 @@ CREATE_MV_BASE_SQL = f"""
             WHERE ued_tos.user_id = au.id
             AND ued_tos.private_data ? 'last_tos_accept_time'
         ) AS accepted_tos,
-        COALESCE(
-            jsonb_agg(
-                jsonb_build_object(
-                    'id', sa.id,
-                    'provider', sa.provider,
-                    'uid', sa.uid
-                )
-            ) FILTER (WHERE sa.id IS NOT NULL),
-            '[]'::jsonb
+        (
+            SELECT COALESCE(
+                jsonb_agg(
+                    jsonb_build_object(
+                        'id', s.id,
+                        'provider', s.provider,
+                        'uid', s.uid
+                    )
+                ),
+                '[]'::jsonb
+            )
+            FROM socialaccount_socialaccount s
+            WHERE s.user_id = au.id
         ) AS social_accounts,
         CASE
             WHEN org.id IS NOT NULL THEN jsonb_build_object(
@@ -180,7 +187,13 @@ CREATE_MV_BASE_SQL = f"""
             'balances', jsonb_build_object(
                 'submission',
                     CASE
-                        WHEN ubau.submission_limit IS NULL OR ubau.submission_limit = 0 THEN NULL
+                        WHEN ubau.submission_limit IS NULL THEN jsonb_build_object(
+                            'effective_limit', null,
+                            'balance_value', null,
+                            'balance_percent', 0,
+                            'exceeded', false
+                        )
+                        WHEN ubau.submission_limit = 0 THEN NULL
                         ELSE jsonb_build_object(
                             'effective_limit', ubau.submission_limit,
                             'balance_value', (ubau.submission_limit - COALESCE(ubau.total_submission_count_current_period, 0)),
@@ -191,7 +204,13 @@ CREATE_MV_BASE_SQL = f"""
                     END,
                 'storage_bytes',
                     CASE
-                        WHEN ubau.storage_bytes_limit IS NULL OR ubau.storage_bytes_limit = 0 THEN NULL
+                        WHEN ubau.storage_bytes_limit IS NULL THEN jsonb_build_object(
+                            'effective_limit', null,
+                            'balance_value', null,
+                            'balance_percent', 0,
+                            'exceeded', false
+                        )
+                        WHEN ubau.storage_bytes_limit = 0 THEN NULL
                         ELSE jsonb_build_object(
                             'effective_limit', ubau.storage_bytes_limit,
                             'balance_value', (ubau.storage_bytes_limit - COALESCE(ubau.total_storage_bytes, 0)),
@@ -202,7 +221,13 @@ CREATE_MV_BASE_SQL = f"""
                     END,
                 'asr_seconds',
                     CASE
-                        WHEN ubau.asr_seconds_limit IS NULL OR ubau.asr_seconds_limit = 0 THEN NULL
+                        WHEN ubau.asr_seconds_limit IS NULL THEN jsonb_build_object(
+                            'effective_limit', null,
+                            'balance_value', null,
+                            'balance_percent', 0,
+                            'exceeded', false
+                        )
+                        WHEN ubau.asr_seconds_limit = 0 THEN NULL
                         ELSE jsonb_build_object(
                             'effective_limit', ubau.asr_seconds_limit,
                             'balance_value', (ubau.asr_seconds_limit - COALESCE(ucpu.total_nlp_usage_asr_seconds_current_period, 0)),
@@ -213,7 +238,13 @@ CREATE_MV_BASE_SQL = f"""
                     END,
                 'mt_characters',
                     CASE
-                        WHEN ubau.mt_characters_limit IS NULL OR ubau.mt_characters_limit = 0 THEN NULL
+                        WHEN ubau.mt_characters_limit IS NULL THEN jsonb_build_object(
+                            'effective_limit', null,
+                            'balance_value', null,
+                            'balance_percent', 0,
+                            'exceeded', false
+                        )
+                        WHEN ubau.mt_characters_limit = 0 THEN NULL
                         ELSE jsonb_build_object(
                             'effective_limit', ubau.mt_characters_limit,
                             'balance_value', (ubau.mt_characters_limit - COALESCE(ucpu.total_nlp_usage_mt_characters_current_period, 0)),

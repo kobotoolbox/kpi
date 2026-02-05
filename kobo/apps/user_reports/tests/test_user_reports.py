@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from unittest.mock import patch
 
 import pytest
+from allauth.socialaccount.models import SocialAccount
 from django.conf import settings
 from django.core.cache import cache
 from django.db import connection
@@ -116,6 +117,54 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
             user_with_sub['subscriptions'][0]['metadata']['organization_id'],
             self.subscription.metadata['organization_id'],
         )
+
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    def test_social_accounts_are_not_duplicated_with_multiple_subscriptions(self):
+        """
+        Ensure that social accounts are not duplicated when a user is attached to
+        multiple subscriptions
+        """
+        from djstripe.enums import BillingScheme
+        from djstripe.models import Customer
+
+        SocialAccount.objects.create(
+            user=self.someuser,
+            provider='acted',
+            uid='test-social-uid',
+        )
+
+        customer = baker.make(Customer, subscriber=self.organization)
+
+        # Create two subscriptions for same organization
+        baker.make(
+            'djstripe.Subscription',
+            customer=customer,
+            items__price__livemode=False,
+            items__price__billing_scheme=BillingScheme.per_unit,
+            livemode=False,
+            metadata={'organization_id': str(self.organization.id)},
+        )
+        baker.make(
+            'djstripe.Subscription',
+            customer=customer,
+            items__price__livemode=False,
+            items__price__billing_scheme=BillingScheme.per_unit,
+            livemode=False,
+            metadata={'organization_id': str(self.organization.id)},
+        )
+
+        refresh_user_reports_materialized_view(concurrently=False)
+
+        data = self._get_someuser_data()
+
+        social = data['social_accounts']
+        subs = data['subscriptions']
+
+        self.assertEqual(len(subs), 2)
+        self.assertEqual(len(social), 1)
+        self.assertEqual(social[0]['uid'], 'test-social-uid')
 
     def test_service_usage_data_is_correctly_returned(self):
         """
@@ -299,6 +348,68 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         self.assertEqual(results[0]['username'], 'adminuser')
         self.assertEqual(results[1]['username'], 'someuser')
         self.assertEqual(results[2]['username'], 'anotheruser')
+
+    def test_service_usage_handles_unlimited_limits(self):
+        """
+        Test that when limits are NULL (unlimited), the API returns a balance object
+        with 'effective_limit': null instead of the object being null
+        """
+        DailyXFormSubmissionCounter.objects.create(
+            user_id=self.someuser.id, date=timezone.now().date(), counter=500
+        )
+
+        mock_limits = {
+            self.someuser.organization.id: {
+                f'{UsageType.SUBMISSION}_limit': float('inf'),
+                f'{UsageType.STORAGE_BYTES}_limit': float('inf'),
+                f'{UsageType.ASR_SECONDS}_limit': float('inf'),
+                f'{UsageType.MT_CHARACTERS}_limit': float('inf'),
+            }
+        }
+
+        with patch(
+            'kobo.apps.user_reports.tasks.get_organizations_effective_limits',
+            return_value=mock_limits,
+        ):
+            cache.clear()
+            refresh_user_report_snapshots()
+            someuser_data = self._get_someuser_data()
+
+        balances = someuser_data['service_usage']['balances']
+        self.assertIsNotNone(balances['submission'])
+        self.assertIsNone(balances['submission']['effective_limit'])
+        self.assertEqual(balances['submission']['balance_percent'], 0)
+        self.assertFalse(balances['submission']['exceeded'])
+
+        self.assertIsNotNone(balances['storage_bytes'])
+        self.assertIsNone(balances['storage_bytes']['effective_limit'])
+        self.assertFalse(balances['storage_bytes']['exceeded'])
+
+        self.assertIsNotNone(balances['asr_seconds'])
+        self.assertIsNone(balances['asr_seconds']['effective_limit'])
+
+        self.assertIsNotNone(balances['mt_characters'])
+        self.assertIsNone(balances['mt_characters']['effective_limit'])
+
+    def test_last_updated_fallback_for_users_without_snapshot(self):
+        """
+        Test that users without a BillingAndUsageSnapshot (e.g., no org) still
+        get a valid 'last_updated' timestamp from the materialized view refresh
+        """
+        User.objects.create(username='new_user')
+
+        refresh_user_reports_materialized_view(concurrently=False)
+
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        results = response.data['results']
+        new_user_data = next(
+            (user for user in results if user['username'] == 'new_user'), None
+        )
+        self.assertIsNotNone(new_user_data)
+        last_updated_str = new_user_data.get('last_updated')
+        self.assertIsNotNone(last_updated_str)
 
     def _get_someuser_data(self):
 

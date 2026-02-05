@@ -13,7 +13,7 @@ import type { ActionEnum } from './actionEnum'
 import type { AdvancedFeaturePostRequestParamsItem } from './advancedFeaturePostRequestParamsItem'
 
 export interface AdvancedFeaturePostRequest {
-  action: ActionEnum
   question_xpath: string
+  action: ActionEnum
   params: AdvancedFeaturePostRequestParamsItem[]
 }

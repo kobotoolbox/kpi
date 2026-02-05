@@ -180,6 +180,7 @@ MIDDLEWARE = [
     'django_userforeignkey.middleware.UserForeignKeyMiddleware',
     'django_request_cache.middleware.RequestCacheMiddleware',
     'author.middlewares.AuthorDefaultBackendMiddleware',
+    'hub.middleware.V1AccessLoggingMiddleware',
 ]
 
 
@@ -1546,7 +1547,7 @@ CELERY_BEAT_SCHEDULE = {
         'description': (
             'Unlock accounts locked by `sync_storage_counters` task'
         ),
-        'options': {'queue': 'kpi_low_priority_queue'},
+        'options': {'queue': 'kpi_long_running_tasks_queue'},
     },
     'sync-storage-counters': {
         'task': 'kobo.apps.openrosa.apps.logger.tasks.sync_storage_counters',
@@ -1554,7 +1555,7 @@ CELERY_BEAT_SCHEDULE = {
         'description': (
             'Synchronize out of sync attachment storage bytes of profile and projects'
         ),
-        'options': {'queue': 'kpi_low_priority_queue'},
+        'options': {'queue': 'kpi_long_running_tasks_queue'},
     },
 }
 

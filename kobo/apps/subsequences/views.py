@@ -15,6 +15,7 @@ from kpi.permissions import AssetAdvancedFeaturesPermission
 from kpi.schema_extensions.v2.subsequences.examples import (
     get_advanced_features_create_examples,
     get_advanced_features_list_examples,
+    get_advanced_features_update_examples,
 )
 from kpi.schema_extensions.v2.subsequences.serializers import (
     AdvancedFeatureCreateResponse,
@@ -81,7 +82,7 @@ from kpi.versioning import APIV2Versioning
                 description='UID of the advanced feature',
             ),
         ],
-        examples=get_advanced_features_create_examples()
+        examples=get_advanced_features_update_examples()
         + get_advanced_features_list_examples(),
     ),
     retrieve=extend_schema(

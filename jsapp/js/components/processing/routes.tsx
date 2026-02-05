@@ -2,9 +2,9 @@ import React from 'react'
 
 import { Navigate, Route, generatePath, useParams } from 'react-router-dom'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
-import SingleProcessingRoute from '#/components/processing/singleProcessingRoute'
 import PermProtectedRoute from '#/router/permProtectedRoute'
 import { PROCESSING_ROUTES } from '#/router/routerConstants'
+import SingleProcessingRoute from '.'
 
 // This is needed so we have access to params :shrug:
 const ProcessingRootRedirect = () => {
