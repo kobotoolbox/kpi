@@ -12,12 +12,12 @@ import type { IconName } from '#/k-icons'
 import { ROUTES } from '#/router/routerConstants'
 import { getRouteAssetUid } from '#/router/routerUtils'
 import { notify } from '#/utils'
+import AssetName from '../components/common/assetName'
+import Badge from '../components/common/badge'
+import Icon from '../components/common/icon'
+import LoadingSpinner from '../components/common/loadingSpinner'
+import { userCan } from '../components/permissions/utils'
 import styles from './SidebarFormsList.module.scss'
-import AssetName from './common/assetName'
-import Badge from './common/badge'
-import Icon from './common/icon'
-import LoadingSpinner from './common/loadingSpinner'
-import { userCan } from './permissions/utils'
 
 const SidebarFormsListQueryKey = getAssetsListQueryKey({ q: COMMON_QUERIES.s, limit: 200, ordering: 'name' })
 

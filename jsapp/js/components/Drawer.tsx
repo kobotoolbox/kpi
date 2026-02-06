@@ -11,8 +11,8 @@ import { PROJECTS_ROUTES, ROUTES } from '#/router/routerConstants'
 import { MODAL_TYPES } from '../constants'
 import SidebarFormsListOld from '../lists/sidebarForms'
 import { routerIsActive } from '../router/legacy'
+import SidebarFormsList from '../sidebar/SidebarFormsList'
 import sessionStore from '../stores/session'
-import SidebarFormsList from './SidebarFormsList'
 import Icon from './common/icon'
 
 const AccountSidebar = lazy(() => import('#/account/accountSidebar'))
