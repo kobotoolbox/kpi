@@ -1,4 +1,4 @@
-import { Group, Stack, UnstyledButton } from '@mantine/core'
+import { Group, Stack, Text, UnstyledButton } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import React, { useMemo } from 'react'
 import { Link } from 'react-router-dom'
@@ -8,6 +8,7 @@ import { COMMON_QUERIES } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import type { IconName } from '#/k-icons'
 import { getRouteAssetUid } from '#/router/routerUtils'
+import styles from './SidebarFormsList.module.scss'
 import AssetName from './common/assetName'
 import Badge from './common/badge'
 import Icon from './common/icon'
@@ -48,9 +49,14 @@ export default function SidebarFormsList() {
     count: number
   }) {
     return (
-      <UnstyledButton size='md' variant='transparent' onClick={options.toggleFunction}>
+      <UnstyledButton
+        size='md'
+        variant='transparent'
+        onClick={options.toggleFunction}
+        className={styles.categoryButton}
+      >
         <Group gap='xs'>
-          <Icon name={options.iconName} size='l' />
+          <Icon name={options.iconName} size='l' className={styles.categoryButtonIcon} />
           <div style={{ flex: 1 }}>{options.label}</div>
           <Badge label={options.count} color='light-storm' size='xs' />
         </Group>
@@ -73,8 +79,15 @@ export default function SidebarFormsList() {
     const isActiveProject = asset.uid === getRouteAssetUid()
 
     return (
-      <Link to={href} key={asset.uid} style={{ background: isActiveProject ? 'gray' : 'transparent' }}>
-        <AssetName asset={asset} />
+      <Link
+        to={href}
+        key={asset.uid}
+        style={{ background: isActiveProject ? 'var(--mantine-color-gray-7)' : 'transparent' }}
+        className={styles.projectLink}
+      >
+        <Text fz='12' p='3 6'>
+          <AssetName asset={asset} />
+        </Text>
       </Link>
     )
   }
@@ -92,7 +105,7 @@ export default function SidebarFormsList() {
         count: deployedProjects.length,
       })}
 
-      {isCategoryDeployedOpened && <Stack>{deployedProjects.map(renderProject)}</Stack>}
+      {isCategoryDeployedOpened && <Stack gap='0'>{deployedProjects.map(renderProject)}</Stack>}
 
       {renderCategoryButton({
         toggleFunction: categoryDraftHandlers.toggle,
@@ -101,7 +114,7 @@ export default function SidebarFormsList() {
         count: draftProjects.length,
       })}
 
-      {isCategoryDraftOpened && <Stack>{draftProjects.map(renderProject)}</Stack>}
+      {isCategoryDraftOpened && <Stack gap='0'>{draftProjects.map(renderProject)}</Stack>}
 
       {renderCategoryButton({
         toggleFunction: categoryArchivedHandlers.toggle,
@@ -110,7 +123,7 @@ export default function SidebarFormsList() {
         count: archivedProjects.length,
       })}
 
-      {isCategoryArchivedOpened && <Stack>{archivedProjects.map(renderProject)}</Stack>}
+      {isCategoryArchivedOpened && <Stack gap='0'>{archivedProjects.map(renderProject)}</Stack>}
     </Stack>
   )
 }
