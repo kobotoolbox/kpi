@@ -67,7 +67,7 @@ export default function addOns() {
   }
 
   function ActivePreviousAddons(
-    addOns: SubscriptionInfo[],
+    recurringAddOns: SubscriptionInfo[],
     oneTimeAddOns: OneTimeAddOn[],
     activeStatus: string,
     available: boolean,
@@ -81,7 +81,7 @@ export default function addOns() {
           <label className={styles.addOnsHeader}>{label}</label>
         </caption>
         <tbody>
-          {addOns.map((product) => {
+          {recurringAddOns.map((product) => {
             if (product.status === activeStatus) {
               return (
                 <tr className={styles.row} key={product.id}>

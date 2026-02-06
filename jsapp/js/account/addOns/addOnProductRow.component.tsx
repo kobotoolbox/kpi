@@ -27,7 +27,7 @@ export const AddOnProductRow = ({
   organization,
   isRecurring,
   displayName,
-  description
+  description,
 }: AddOnProductRowProps) => {
   const [selectedProduct, setSelectedProduct] = useState(products[0])
   const [selectedPrice, setSelectedPrice] = useState<Product['prices'][0]>(selectedProduct.prices[0])
