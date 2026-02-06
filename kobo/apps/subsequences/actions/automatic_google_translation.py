@@ -1,7 +1,7 @@
 from kobo.apps.organizations.constants import UsageType
 from ..integrations.google.google_translate import GoogleTranslationService
 from ..type_aliases import NLPExternalServiceClass
-from .base import ActionClassConfig, BaseAutomaticNLPAction
+from .base import ActionClassConfig, BaseAutomaticNLPAction, ReviewType
 from .mixins import TranslationActionMixin
 
 
@@ -12,7 +12,7 @@ class AutomaticGoogleTranslationAction(TranslationActionMixin, BaseAutomaticNLPA
         allow_multiple=True,
         automatic=True,
         action_data_key='language',
-        requires_acceptance=True,
+        review_type=ReviewType.ACCEPTANCE,
     )
 
     def get_nlp_service_class(self) -> NLPExternalServiceClass:

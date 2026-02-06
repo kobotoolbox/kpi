@@ -1,4 +1,4 @@
-from .base import ActionClassConfig, BaseManualNLPAction
+from .base import ActionClassConfig, BaseManualNLPAction, ReviewType
 from .mixins import TranslationActionMixin
 
 
@@ -9,5 +9,5 @@ class ManualTranslationAction(TranslationActionMixin, BaseManualNLPAction):
         allow_multiple=True,
         automatic=False,
         action_data_key='language',
-        requires_acceptance=True,
+        review_type=ReviewType.ACCEPTANCE,
     )

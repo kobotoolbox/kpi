@@ -1,4 +1,4 @@
-from .base import ActionClassConfig
+from .base import ActionClassConfig, ReviewType
 from .qual import BaseQualAction
 
 
@@ -9,5 +9,5 @@ class ManualQualAction(BaseQualAction):
         allow_multiple=True,
         automatic=False,
         action_data_key='uuid',
-        allows_verification=True,
+        review_type=ReviewType.VERIFICATION,
     )

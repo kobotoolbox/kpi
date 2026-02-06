@@ -9,7 +9,7 @@ from django.utils.functional import classproperty
 from django_userforeignkey.request import get_current_request
 
 from kobo.apps.organizations.constants import UsageType
-from kobo.apps.subsequences.actions.base import ActionClassConfig
+from kobo.apps.subsequences.actions.base import ActionClassConfig, ReviewType
 from kobo.apps.subsequences.actions.mixins import RequiresTranscriptionMixin
 from kobo.apps.subsequences.actions.qual import BaseQualAction
 from kobo.apps.subsequences.constants import (
@@ -92,7 +92,7 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         allow_multiple=True,
         automatic=True,
         action_data_key='uuid',
-        allows_verification=True,
+        review_type=ReviewType.VERIFICATION,
     )
 
     @property

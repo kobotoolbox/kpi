@@ -1,6 +1,7 @@
 import uuid
 from copy import deepcopy
 from dataclasses import dataclass
+from enum import Enum
 from typing import Optional
 
 import jsonschema
@@ -150,6 +151,13 @@ idea of example data in SubmissionSupplement based on the above
 """
 
 
+class ReviewType(Enum):
+    # entries must be accepted before being part of the data set
+    ACCEPTANCE = 'acceptance'
+    # entries automatically become part of the data set with an additional column
+    # showing whether they have been verified
+    VERIFICATION = 'verification'
+
 @dataclass
 class ActionClassConfig:
     """
@@ -160,16 +168,14 @@ class ActionClassConfig:
       when multiple entries are allowed (e.g., "language").
     - automatic: Indicates whether the action relies on an external service
       to generate data.
-    - requires_acceptance: Whether data must be accepted to appear in the data table
-    - allows_verification: Whether data includes an additional 'verified' status
+    - review_type: How data is reviewed (verified or accepted)
 
     """
 
     allow_multiple: bool
     automatic: bool
     action_data_key: str | None = None
-    requires_acceptance: bool = False
-    allows_verification: bool = False
+    review_type: ReviewType | None = None
 
 
 class BaseAction:
@@ -292,26 +298,29 @@ class BaseAction:
         localized_action_supplemental_data.setdefault(self.VERSION_FIELD, []).insert(
             0, new_version
         )
-        no_new_version = (
-            self.action_class_config.automatic
-            and self.action_class_config.requires_acceptance
-            and accepted is not None
-        )
-        no_new_version = no_new_version or (
-            self.action_class_config.allows_verification and verified is not None
-        )
 
-        accepting = (
-            self.action_class_config.requires_acceptance and accepted is not None
+        accepting = accepted is not None
+        verifying = verified is not None
+
+        do_not_create_new_version = (
+            # accepting an automatic response
+            self.action_class_config.automatic
+            and self.action_class_config.review_type == ReviewType.ACCEPTANCE
+            and accepting
         )
-        verifying = (
-            self.action_class_config.allows_verification and verified is not None
+        do_not_create_new_version = (
+            # verifying an automatic or manual response
+            do_not_create_new_version
+            or (
+                self.action_class_config.review_type == ReviewType.VERIFICATION
+                and verifying
+            )
         )
 
         # For manual actions, always mark as accepted.
         # For automatic actions, revert the just-created revision (remove it and
         # reapply its dates) to avoid adding extra branching earlier in the method.
-        if no_new_version:
+        if do_not_create_new_version:
             localized_action_supplemental_data[self.VERSION_FIELD].pop(0)
         if accepting:
             localized_action_supplemental_data[self.VERSION_FIELD][0][
