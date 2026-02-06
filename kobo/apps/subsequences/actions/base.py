@@ -299,8 +299,14 @@ class BaseAction:
             0, new_version
         )
 
-        accepting = accepted is not None
-        verifying = verified is not None
+        accepting = (
+            self.action_class_config.review_type == ReviewType.ACCEPTANCE
+            and accepted is not None
+        )
+        verifying = (
+            self.action_class_config.review_type == ReviewType.VERIFICATION
+            and verified is not None
+        )
 
         do_not_create_new_version = (
             # accepting an automatic response
@@ -488,7 +494,10 @@ class BaseAction:
             dependency_supplemental_data = action_data.pop(self.DEPENDENCY_FIELD, None)
             # Deletion is triggered by passing `{value: null}`.
             # When this occurs, no acceptance should be recorded.
-            accepted = action_data.get('value') is not None
+            accepted = (
+                self.action_class_config.review_type == ReviewType.ACCEPTANCE
+                and action_data.get('value') is not None
+            )
         verified = action_data.pop('verified', None)
 
         if dependency_supplemental_data:

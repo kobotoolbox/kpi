@@ -48,7 +48,6 @@ class Fix:
     """
     This class houses things that should probably be moved to a fixture
     - - -
-    TODO: do we want `_dateAccepted` here?
     TODO: forbid deletion of questions and choices
     TODO: be a lot more diligent about deepcopying, e.g. in `def data_schema()`
 
@@ -854,7 +853,6 @@ class TestQualActionMethods(TestCase):
                             'value': 5,
                         },
                         '_dateCreated': '2025-11-24T10:00:00Z',
-                        '_dateAccepted': '2025-11-24T10:00:00Z',
                         '_uuid': 'v1',
                     }
                 ],
@@ -870,7 +868,6 @@ class TestQualActionMethods(TestCase):
                             'value': 'Family needs immediate shelter and medical care',
                         },
                         '_dateCreated': '2025-11-24T10:05:00Z',
-                        '_dateAccepted': '2025-11-24T10:05:00Z',
                         '_uuid': 'v2',
                     }
                 ],
@@ -886,7 +883,6 @@ class TestQualActionMethods(TestCase):
                             'value': METHOD_CHOICE_HIGH_UUID,
                         },
                         '_dateCreated': '2025-11-24T10:10:00Z',
-                        '_dateAccepted': '2025-11-24T10:10:00Z',
                         '_uuid': 'v3',
                     }
                 ],
@@ -979,7 +975,6 @@ class TestQualActionMethods(TestCase):
                             'value': 'Initial note',
                         },
                         '_dateCreated': '2025-11-24T09:00:00Z',
-                        '_dateAccepted': '2025-11-24T09:00:00Z',
                         '_uuid': 'v1',
                     },
                     {
@@ -988,7 +983,6 @@ class TestQualActionMethods(TestCase):
                             'value': 'Revised note',
                         },
                         '_dateCreated': '2025-11-24T10:00:00Z',
-                        '_dateAccepted': '2025-11-24T10:00:00Z',
                         '_uuid': 'v2',
                     },
                     {
@@ -997,7 +991,6 @@ class TestQualActionMethods(TestCase):
                             'value': 'Final note',
                         },
                         '_dateCreated': '2025-11-24T11:00:00Z',
-                        '_dateAccepted': '2025-11-24T09:30:00Z',
                         '_uuid': 'v3',
                     },
                 ],
