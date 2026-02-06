@@ -9,6 +9,7 @@ import { getAssetsListQueryKey, useAssetsList } from '#/api/react-query/manage-p
 import { COMMON_QUERIES } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import type { IconName } from '#/k-icons'
+import { ROUTES } from '#/router/routerConstants'
 import { getRouteAssetUid } from '#/router/routerUtils'
 import { notify } from '#/utils'
 import styles from './SidebarFormsList.module.scss'
@@ -20,6 +21,9 @@ import { userCan } from './permissions/utils'
 
 const SidebarFormsListQueryKey = getAssetsListQueryKey({ q: COMMON_QUERIES.s, limit: 200, ordering: 'name' })
 
+/**
+ * A list of projects grouped by status (deployed, draft, archived). It's meant to be displayed in the sidebar area.
+ */
 export default function SidebarFormsList() {
   const [isCategoryDeployedOpened, categoryDeployedHandlers] = useDisclosure(false)
   const [isCategoryDraftOpened, categoryDraftHandlers] = useDisclosure(false)
@@ -106,11 +110,11 @@ export default function SidebarFormsList() {
     // See: https://linear.app/kobotoolbox/issue/DEV-1727/
     const asset = assetOriginal as unknown as AssetResponse
 
-    let href = `/forms/${asset.uid}`
+    let href = ROUTES.FORM.replace(':uid', asset.uid)
     if (userCan('view_submissions', asset) && asset.has_deployment && asset.deployment__submission_count) {
-      href = `/forms/${asset.uid}/summary`
+      href = ROUTES.FORM_SUMMARY.replace(':uid', asset.uid)
     } else {
-      href = `/forms/${asset.uid}/landing`
+      href = ROUTES.FORM_LANDING.replace(':uid', asset.uid)
     }
 
     const isActiveProject = asset.uid === getRouteAssetUid()
@@ -138,6 +142,7 @@ export default function SidebarFormsList() {
   }
 
   return (
+    // minHeight needed for flex to work properly with scrollable containers
     <Stack style={{ minHeight: 0 }}>
       {renderCategory({
         toggleFunction: categoryDeployedHandlers.toggle,
