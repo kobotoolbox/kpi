@@ -285,7 +285,7 @@ class BaseAction:
         new_version = {self.VERSION_DATA_FIELD: deepcopy(action_data)}
         new_version[self.DATE_CREATED_FIELD] = now_str
         new_version[self.UUID_FIELD] = str(uuid.uuid4())
-        if self.action_class_config.allows_verification:
+        if self.action_class_config.review_type == ReviewType.VERIFICATION:
             # everything starts out unverified
             new_version['verified'] = False
         if dependency_supplemental_data:
