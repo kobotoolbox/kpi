@@ -9,7 +9,6 @@ import pageState from '#/pageState.store'
 import RequireAuth from '#/router/requireAuth'
 import { PROJECTS_ROUTES, ROUTES } from '#/router/routerConstants'
 import { MODAL_TYPES } from '../constants'
-import SidebarFormsListOld from '../lists/sidebarForms'
 import { routerIsActive } from '../router/legacy'
 import SidebarFormsList from '../sidebar/SidebarFormsList'
 import sessionStore from '../stores/session'
@@ -85,7 +84,6 @@ export default function Drawer() {
             </div>
 
             <SidebarFormsList />
-            <SidebarFormsListOld />
           </bem.FormSidebarWrapper>
         )}
       </bem.KDrawer__sidebar>
