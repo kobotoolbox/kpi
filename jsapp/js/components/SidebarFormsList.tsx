@@ -138,7 +138,7 @@ export default function SidebarFormsList() {
   }
 
   return (
-    <Stack mt='lg'>
+    <Stack style={{ minHeight: 0 }}>
       {renderCategory({
         toggleFunction: categoryDeployedHandlers.toggle,
         isOpen: isCategoryDeployedOpened,

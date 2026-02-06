@@ -77,9 +77,12 @@ export default function Drawer() {
 
         {!isLibrary && !isAccount && (
           <bem.FormSidebarWrapper>
-            <Button size='lg' fullWidth disabled={!sessionStore.isLoggedIn} onClick={openNewFormModal}>
-              {t('new').toUpperCase()}
-            </Button>
+            {/* For CSS flex's sake */}
+            <div>
+              <Button size='lg' fullWidth disabled={!sessionStore.isLoggedIn} onClick={openNewFormModal}>
+                {t('new').toUpperCase()}
+              </Button>
+            </div>
 
             <SidebarFormsList />
             <SidebarFormsListOld />

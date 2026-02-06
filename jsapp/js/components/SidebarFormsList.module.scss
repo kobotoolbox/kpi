@@ -1,5 +1,3 @@
-@use 'scss/libs/_mdl';
-
 .categoryButton {
   color: var(--mantine-color-gray-2);
 }
@@ -25,9 +23,6 @@
 }
 
 .categoryList {
-  // This uses some magic numbers. We are calculating the size available for three open lists. We deduct top header,
-  // "NEW" button with padding on top (58px), margin below it (20px), and all three `.categoryButton`s (98px)
-  max-height: calc((100vh - #{mdl.$layout-desktop-header-height} - 58px - 20px - 98px) * 0.3333);
   overflow-y: auto;
   overflow-x: hidden;
 }
