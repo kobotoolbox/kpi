@@ -27,13 +27,17 @@ export default function SidebarFormsList() {
 
   const unlisteners: Function[] = []
   useEffect(() => {
+    // This is a list of different Reflux actions that upon completion would cause changes to the list of assets in
+    // SidebarFormsList
     unlisteners.push(
-      // A list of different Reflux actions that upon completion would cause changes to the list of assets in SidebarFormsList
       actions.resources.deleteAsset.completed.listen(() => invalidateList(SidebarFormsListQueryKey)),
       actions.resources.cloneAsset.completed.listen(() => invalidateList(SidebarFormsListQueryKey)),
       actions.resources.deployAsset.completed.listen(() => invalidateList(SidebarFormsListQueryKey)),
       actions.resources.setDeploymentActive.completed.listen(() => invalidateList(SidebarFormsListQueryKey)),
+      // A name could change
       actions.resources.updateAsset.completed.listen(() => invalidateList(SidebarFormsListQueryKey)),
+      // User could've removed themselves from a shared asset
+      actions.permissions.removeAssetPermission.completed.listen(() => invalidateList(SidebarFormsListQueryKey)),
     )
     // When unmounting, let's remember to unlisten all those Reflux actions
     return () => {
@@ -45,7 +49,6 @@ export default function SidebarFormsList() {
     {
       q: COMMON_QUERIES.s,
       limit: 200,
-      ordering: 'name',
     },
     {
       query: {
@@ -67,25 +70,34 @@ export default function SidebarFormsList() {
     return assetsQuery.data?.data?.results?.filter((asset) => asset.deployment_status === 'archived') || []
   }, [assetsQuery.data])
 
-  function renderCategoryButton(options: {
+  function renderCategory(options: {
     toggleFunction: () => void
+    isOpen: boolean
     iconName: IconName
     label: string
-    count: number
+    categoryAssets: Asset[]
   }) {
     return (
-      <UnstyledButton
-        size='md'
-        variant='transparent'
-        onClick={options.toggleFunction}
-        className={styles.categoryButton}
-      >
-        <Group gap='xs'>
-          <Icon name={options.iconName} size='l' className={styles.categoryButtonIcon} />
-          <div style={{ flex: 1 }}>{options.label}</div>
-          <Badge label={options.count} color='light-storm' size='xs' />
-        </Group>
-      </UnstyledButton>
+      <>
+        <UnstyledButton
+          size='md'
+          variant='transparent'
+          onClick={options.toggleFunction}
+          className={styles.categoryButton}
+        >
+          <Group gap='xs'>
+            <Icon name={options.iconName} size='l' className={styles.categoryButtonIcon} />
+            <div style={{ flex: 1 }}>{options.label}</div>
+            <Badge label={options.categoryAssets.length} color='light-storm' size='xs' />
+          </Group>
+        </UnstyledButton>
+
+        {options.isOpen && (
+          <Stack className={styles.categoryList} gap='0'>
+            {options.categoryAssets.map(renderProject)}
+          </Stack>
+        )}
+      </>
     )
   }
 
@@ -127,32 +139,29 @@ export default function SidebarFormsList() {
 
   return (
     <Stack mt='lg'>
-      {renderCategoryButton({
+      {renderCategory({
         toggleFunction: categoryDeployedHandlers.toggle,
+        isOpen: isCategoryDeployedOpened,
         iconName: 'deploy',
         label: t('Deployed'),
-        count: deployedProjects.length,
+        categoryAssets: deployedProjects,
       })}
 
-      {isCategoryDeployedOpened && <Stack gap='0'>{deployedProjects.map(renderProject)}</Stack>}
-
-      {renderCategoryButton({
+      {renderCategory({
         toggleFunction: categoryDraftHandlers.toggle,
+        isOpen: isCategoryDraftOpened,
         iconName: 'drafts',
         label: t('Draft'),
-        count: draftProjects.length,
+        categoryAssets: draftProjects,
       })}
 
-      {isCategoryDraftOpened && <Stack gap='0'>{draftProjects.map(renderProject)}</Stack>}
-
-      {renderCategoryButton({
+      {renderCategory({
         toggleFunction: categoryArchivedHandlers.toggle,
+        isOpen: isCategoryArchivedOpened,
         iconName: 'archived',
         label: t('Archived'),
-        count: archivedProjects.length,
+        categoryAssets: archivedProjects,
       })}
-
-      {isCategoryArchivedOpened && <Stack gap='0'>{archivedProjects.map(renderProject)}</Stack>}
     </Stack>
   )
 }
