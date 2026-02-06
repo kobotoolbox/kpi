@@ -267,6 +267,8 @@ class TestBedrockAutomaticBedrockQual(BaseAutomaticBedrockQualTestCase):
         assert version_data['status'] == 'complete'
         assert version['_dependency']['_uuid'] == transcript_uuid
         assert version['_dependency']['_actionId'] == Action.MANUAL_TRANSCRIPTION
+        assert version['verified'] == False
+        assert version.get('_dateVerified') is None
 
     def test_transform_data_filters_out_failed_versions(self):
         today = timezone.now()
