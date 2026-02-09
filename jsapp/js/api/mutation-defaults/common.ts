@@ -12,31 +12,33 @@ import { queryClient } from '../queryClient'
  *
  * Workaround: to select all pages, filter for keys that end with non-string values.
  */
-const filterListSnapshots = ([listSnapshotKey]: [readonly unknown[], unknown]) =>
+const filterPaginatedListSnapshots = ([listSnapshotKey]: [readonly unknown[], unknown]) =>
   typeof listSnapshotKey[listSnapshotKey.length - 1] !== 'string'
 
 //// Helpers for simple invalidation.
 
 /**
- * @see {@link filterListSnapshots}
+ * @see {@link filterPaginatedListSnapshots}
  */
-export const invalidateList = (queryKey: readonly unknown[]) => {
-  const listSnapshots = queryClient.getQueriesData({ queryKey: queryKey }).filter(filterListSnapshots)
+export const invalidatePaginatedList = (queryKey: readonly unknown[]) => {
+  const listSnapshots = queryClient.getQueriesData({ queryKey: queryKey }).filter(filterPaginatedListSnapshots)
+  console.log(queryClient.getQueriesData({ queryKey: queryKey }))
+  console.log(listSnapshots)
   for (const [snapshotKey] of listSnapshots) queryClient.invalidateQueries({ queryKey: snapshotKey })
 }
 
 /**
- * @see {@link filterListSnapshots}
+ * @see {@link filterPaginatedListSnapshots}
  */
 export const invalidateItems = (queryKey: readonly unknown[]) => {
   const itemSnapshots = queryClient
     .getQueriesData({ queryKey: queryKey })
-    .filter((tuple) => !filterListSnapshots(tuple))
+    .filter((tuple) => !filterPaginatedListSnapshots(tuple))
   for (const [itemKey] of itemSnapshots) queryClient.invalidateQueries({ queryKey: itemKey })
 }
 
 /**
- * Convenience helper for consistency alongside {@link invalidateItems} and {@link invalidateList}
+ * Convenience helper for consistency alongside {@link invalidateItems} and {@link invalidatePaginatedList}
  */
 export const invalidateItem = (queryKey: readonly unknown[]) => {
   queryClient.invalidateQueries({ queryKey })
@@ -47,12 +49,12 @@ export const invalidateItem = (queryKey: readonly unknown[]) => {
 /**
  * Optimistically apply `updater` to all pages of the `queryKey` list in cache.
  *
- * Handles selecting and iterating over pages of list (and not items, see more at {@link filterListSnapshots}),
+ * Handles selecting and iterating over pages of list (and not items, see more at {@link filterPaginatedListSnapshots}),
  * and cancels in-flight queries that may race-condition to overwrite the optimistic update.
  *
  * Returns snapshots, see global defaults {@link onErrorRestoreSnapshots} and {@link onSettledInvalidateSnapshots}.
  */
-export const optimisticallyUpdateList = async <T>(
+export const optimisticallyUpdatePaginatedList = async <T>(
   queryKey: readonly unknown[],
   updater: Updater<NoInfer<T> | undefined, NoInfer<T> | undefined>,
 ) => {
@@ -61,7 +63,7 @@ export const optimisticallyUpdateList = async <T>(
       queryKey,
       exact: false,
     })
-    .filter(filterListSnapshots)
+    .filter(filterPaginatedListSnapshots)
   for (const [listSnapshotKey] of listSnapshots) {
     await queryClient.cancelQueries({ queryKey: listSnapshotKey })
     queryClient.setQueryData<T>(listSnapshotKey, updater)

@@ -1,7 +1,7 @@
-import pytest
 import uuid
 from unittest.mock import patch
 
+import pytest
 from constance import config
 from constance.test import override_config
 from django.conf import settings
@@ -15,7 +15,7 @@ from kobo.apps.organizations.constants import UsageType
 from kobo.apps.stripe.utils.import_management import requires_stripe
 from kobo.apps.trash_bin.tasks.attachment import (
     auto_delete_excess_attachments,
-    schedule_auto_attachment_cleanup_for_users
+    schedule_auto_attachment_cleanup_for_users,
 )
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.tests.mixins.create_asset_and_submission_mixin import AssetSubmissionTestMixin
@@ -68,7 +68,7 @@ class AttachmentCleanupTestCase(BaseTestCase, AssetSubmissionTestMixin):
             }
         }
         with patch(
-            'kobo.apps.subsequences.api_view.ServiceUsageCalculator.get_usage_balances',
+            'kobo.apps.trash_bin.tasks.attachment.ServiceUsageCalculator.get_usage_balances',  # noqa
             return_value=mock_balances,
         ):
             auto_delete_excess_attachments(self.owner.pk)
@@ -91,7 +91,7 @@ class AttachmentCleanupTestCase(BaseTestCase, AssetSubmissionTestMixin):
             },
         }
         with patch(
-            'kobo.apps.subsequences.api_view.ServiceUsageCalculator.get_usage_balances',  # noqa
+            'kobo.apps.trash_bin.tasks.attachment.ServiceUsageCalculator.get_usage_balances',  # noqa
             return_value=mock_balances,
         ):
             auto_delete_excess_attachments(self.owner.pk)
@@ -141,7 +141,7 @@ class AttachmentCleanupTestCase(BaseTestCase, AssetSubmissionTestMixin):
             },
         }
         with patch(
-            'kobo.apps.subsequences.api_view.ServiceUsageCalculator.get_usage_balances',  # noqa
+            'kobo.apps.trash_bin.tasks.attachment.ServiceUsageCalculator.get_usage_balances',  # noqa
             return_value=mock_balances,
         ):
             auto_delete_excess_attachments(self.owner.pk)
@@ -158,7 +158,7 @@ class AttachmentCleanupTestCase(BaseTestCase, AssetSubmissionTestMixin):
 
         # Re-run the task and ensure no further deletions
         with patch(
-            'kobo.apps.subsequences.api_view.ServiceUsageCalculator.get_usage_balances',  # noqa
+            'kobo.apps.trash_bin.tasks.attachment.ServiceUsageCalculator.get_usage_balances',  # noqa
             return_value={
                 UsageType.STORAGE_BYTES: {
                     'effective_limit': limit_bytes,
@@ -248,7 +248,7 @@ class AttachmentCleanupTestCase(BaseTestCase, AssetSubmissionTestMixin):
                 },
             }
             with patch(
-                'kobo.apps.subsequences.api_view.ServiceUsageCalculator.get_usage_balances',  # noqa
+                'kobo.apps.trash_bin.tasks.attachment.ServiceUsageCalculator.get_usage_balances',  # noqa
                 return_value=mock_balances,
             ):
 

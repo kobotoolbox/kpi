@@ -13,6 +13,11 @@
   text-align: start;
 }
 
+.wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
 .table {
   table-layout: fixed;
   border-collapse: collapse;

@@ -10,6 +10,10 @@ import type { AssetLockingProfileDefinition } from '#/components/locking/locking
 import type { PermissionCodename } from '#/components/permissions/permConstants'
 import type { ProjectTransferAssetDetail } from '#/components/permissions/transferProjects/transferProjects.api'
 import type {
+  AnalysisQuestionSchema,
+  SubmissionAnalysisResponse,
+} from '#/components/processing/SingleProcessingContent/TabAnalysis/common/constants'
+import type {
   AssetResponseReportCustom,
   AssetResponseReportStyles,
   ReportsPaginatedResponse,
@@ -20,14 +24,9 @@ import type { AnyRowTypeName, AssetFileType, AssetTypeName, FormStyleName } from
 import type { UserResponse } from '#/users/userExistence.store'
 import type { AccountFieldsValues } from './account/account.constants'
 import { endpoints } from './api.endpoints'
+import type { ResponseQualActionParams } from './api/models/responseQualActionParams'
 import type { HookAuthLevelName, HookExportTypeName } from './components/RESTServices/RESTServicesForm'
 import type { Json } from './components/common/common.interfaces'
-import type {
-  AnalysisQuestionSchema,
-  AnalysisQuestionType,
-  SubmissionAnalysisResponse,
-} from './components/processing/analysis/constants'
-import type { TransxObject } from './components/processing/processingActions'
 import type {
   ExportFormatName,
   ExportMultiOptionName,
@@ -177,6 +176,9 @@ interface ProcessingResponseData {
 
 export type GetProcessingSubmissionsResponse = PaginatedResponse<ProcessingResponseData>
 
+/**
+ * @deprecated use _DataResponseAttachments from Orval instead.
+ */
 export interface SubmissionAttachment {
   download_url: string
   download_large_url: string
@@ -191,13 +193,29 @@ export interface SubmissionAttachment {
   is_deleted?: boolean
 }
 
+interface TransxObject {
+  languageCode: LanguageCode
+  value: string
+  dateCreated: string
+  dateModified: string
+  /** The source of the `value` text. */
+  engine?: string
+  /** The history of edits. */
+  revisions?: Array<{
+    dateModified: string
+    engine?: string
+    languageCode: LanguageCode
+    value: string
+  }>
+}
+
 export interface SubmissionSupplementalDetails {
   [questionName: string]: {
     transcript?: TransxObject
     translation?: {
       [languageCode: LanguageCode]: TransxObject
     }
-    qual?: SubmissionAnalysisResponse[]
+    qual?: { [uuid: string]: SubmissionAnalysisResponse }
   }
 }
 
@@ -239,6 +257,8 @@ export interface SubmissionResponseValueObject {
 
 /**
  * A list of responses to form questions plus some submission metadata
+ *
+ * @deprecated - use DataResponse from Orval instead.
  */
 export interface SubmissionResponse extends SubmissionResponseValueObject {
   __version__: string
@@ -533,17 +553,7 @@ interface AssetSummary {
   naming_conflicts?: string[]
 }
 
-interface AdvancedSubmissionSchema {
-  type: 'string' | 'object'
-  $description: string
-  url?: string
-  properties?: AdvancedSubmissionSchemaDefinition
-  additionalProperties?: boolean
-  required?: string[]
-  definitions?: AdvancedSubmissionSchemaDefinition
-}
-
-export interface AssetAdvancedFeatures {
+interface AssetAdvancedFeatures {
   transcript?: {
     /** List of question names */
     values?: string[]
@@ -560,17 +570,6 @@ export interface AssetAdvancedFeatures {
     qual_survey?: AnalysisQuestionSchema[]
   }
 }
-
-interface AdvancedSubmissionSchemaDefinitionValue {
-  type?: 'string' | 'object'
-  description?: string
-  properties?: { [name: string]: {} }
-  additionalProperties?: boolean
-  required?: string[]
-  anyOf?: Array<{ $ref: string }>
-  allOf?: Array<{ $ref: string }>
-}
-type AdvancedSubmissionSchemaDefinition = Record<string, AdvancedSubmissionSchemaDefinitionValue>
 
 export interface TableSortBySetting {
   fieldId: string
@@ -633,7 +632,6 @@ export interface AssetRequestObject {
   }
   paired_data?: string
   advanced_features?: AssetAdvancedFeatures
-  advanced_submission_schema?: AdvancedSubmissionSchema
 }
 
 export type AssetDownloads = Array<{
@@ -645,7 +643,7 @@ export interface AnalysisFormJsonField {
   label: string
   name: string
   dtpath: string
-  type: AnalysisQuestionType | 'transcript' | 'translation'
+  type: ResponseQualActionParams['type'] | 'transcript' | 'translation'
   /** Two letter language code or ?? for qualitative analysis questions */
   language: string | '??'
   source: string

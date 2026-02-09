@@ -65,7 +65,6 @@ class AnalysisFormJsonExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(
             properties={
-                'engines': GENERIC_OBJECT_SCHEMA,
                 'additional_fields': GENERIC_ARRAY_SCHEMA,
             }
         )

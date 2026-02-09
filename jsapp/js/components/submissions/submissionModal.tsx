@@ -403,7 +403,7 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
       // Override the attachment object in memory to mark it as deleted (without
       // making an API call for fresh submission data)
       this.setState({
-        submission: markAttachmentAsDeleted(this.state.submission, attachmentUid),
+        submission: markAttachmentAsDeleted(this.state.submission, attachmentUid) as SubmissionResponse,
       })
 
       // Prompt table to refresh submission list
