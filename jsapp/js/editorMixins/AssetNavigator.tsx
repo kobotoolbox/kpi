@@ -25,7 +25,7 @@ const SORTABLE_ITEM_CLASS_NAME = 'asset-navigator-sortable-item'
 
 export default function AssetNavigator() {
   const [searchQuery, setSearchQuery] = useState('')
-  const [debouncedSearch] = useDebouncedValue(searchQuery, 300)
+  const [debouncedSearch] = useDebouncedValue(searchQuery, 500)
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [selectedCollection, setSelectedCollection] = useState<string | null>(null)
   const [isExpanded, setIsExpanded] = useState(false)
