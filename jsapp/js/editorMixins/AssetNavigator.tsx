@@ -72,11 +72,13 @@ export default function AssetNavigator() {
     query: {
       queryKey: getAssetsListQueryKey(assetsListParams),
       select: (response) => {
-        if (!response?.data?.results) return []
-        return response.data.results.map((c: Asset) => ({
-          value: c.uid,
-          label: c.name || t('Unnamed collection'),
-        }))
+        if (response.data.results) {
+          return response.data.results.map((c: Asset) => ({
+            value: c.uid,
+            label: c.name || t('Unnamed collection'),
+          }))
+        }
+        return []
       },
     },
   })
