@@ -1,11 +1,16 @@
 import { Center, Checkbox, Group, Loader, MultiSelect, Select, Stack, Text, TextInput } from '@mantine/core'
 import { useDebouncedValue } from '@mantine/hooks'
 import * as Sentry from '@sentry/react'
-import React, { useState, useMemo, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import ReactDOM from 'react-dom'
 import type { Asset } from '#/api/models/asset'
 import type { TagListResponse } from '#/api/models/tagListResponse'
-import { useAssetsList, useTagsList } from '#/api/react-query/manage-projects-and-library-content'
+import {
+  getAssetsListQueryKey,
+  getTagsListQueryKey,
+  useAssetsList,
+  useTagsList,
+} from '#/api/react-query/manage-projects-and-library-content'
 import Icon from '#/components/common/icon'
 import { COMMON_QUERIES } from '#/constants'
 import AssetNavigatorCard from './AssetNavigatorCard'
@@ -25,7 +30,7 @@ const SORTABLE_ITEM_CLASS_NAME = 'asset-navigator-sortable-item'
 
 export default function AssetNavigator() {
   const [searchQuery, setSearchQuery] = useState('')
-  const [debouncedSearch] = useDebouncedValue(searchQuery, 300)
+  const [debouncedSearch] = useDebouncedValue(searchQuery, 500)
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [selectedCollection, setSelectedCollection] = useState<string | null>(null)
   const [isExpanded, setIsExpanded] = useState(false)
@@ -33,75 +38,84 @@ export default function AssetNavigator() {
   // Step 1. Fetch Tags for the MultiSelect filter
   // Note: if `limit` is too big (e.g. `9999`) it causes a deadly timeout whenever Form Builder displays the aside Library
   // search, so we use `100`.
-  const { data: tagsResponse } = useTagsList({ limit: 100 })
-  const tagsOptions = useMemo(() => {
-    if (tagsResponse?.data && 'results' in tagsResponse.data) {
-      const nonUniqueTags = tagsResponse.data.results.map((t: TagListResponse) => t.name)
-      // Because tags API has a bug we need to ensure only unique results are returned:
-      // https://linear.app/kobotoolbox/issue/DEV-1576/duplicated-values-in-apiv2tags-endpoint
-      return [...new Set(nonUniqueTags)]
-    }
-    // TODO: should we handle error here? It's also possible it's pending
-    return []
-  }, [tagsResponse])
+  const tagsListParams = { limit: 100 }
+  const { data: tagsOptions } = useTagsList(tagsListParams, {
+    query: {
+      queryKey: getTagsListQueryKey(tagsListParams),
+      select: (response) => {
+        // We want to know if there are any users who have more than 100 tags. If there is `next` page of results, it
+        // means we have more than 100 (the `limit` above)
+        if (response?.data && 'next' in response.data) {
+          if (response.data.next) {
+            Sentry.captureMessage('MAX_TAGS_EXCEEDED: Too many tags')
+          }
+        }
 
-  if (tagsResponse?.data && 'next' in tagsResponse.data) {
-    if (tagsResponse.data.next) {
-      // We want to know if there are any users who have more than 100 tags
-      Sentry.captureMessage('MAX_TAGS_EXCEEDED: Too many tags')
-    }
-  }
+        if (response?.data && 'results' in response.data) {
+          const nonUniqueTags = response.data.results.map((t: TagListResponse) => t.name)
+          // Because tags API has a bug we need to ensure only unique results are returned:
+          // https://linear.app/kobotoolbox/issue/DEV-1576/duplicated-values-in-apiv2tags-endpoint
+          return [...new Set(nonUniqueTags)]
+        }
+        return []
+      },
+    },
+  })
 
   // Step 2. Fetch Collections for the Select filter
-  const { data: collectionsResponse } = useAssetsList({
+  const assetsListParams = {
     q: COMMON_QUERIES.c,
     limit: 200,
     ordering: 'name',
+  }
+  const { data: collectionOptions } = useAssetsList(assetsListParams, {
+    query: {
+      queryKey: getAssetsListQueryKey(assetsListParams),
+      select: (response) => {
+        if (response.data.results) {
+          return response.data.results.map((c: Asset) => ({
+            value: c.uid,
+            label: c.name || t('Unnamed collection'),
+          }))
+        }
+        return []
+      },
+    },
   })
-  const collectionOptions = useMemo(() => {
-    if (!collectionsResponse?.data?.results) return []
-    return collectionsResponse.data.results.map((c: Asset) => ({
-      value: c.uid,
-      label: c.name || t('Unnamed collection'),
-    }))
-  }, [collectionsResponse])
 
   // Step 3. Fetch Main Assets List
-  const assetQueryParams = useMemo(() => {
-    const parts: string[] = []
+  function getAssetsListQuery() {
+    const queryParts: string[] = []
 
     // Include search phrase
     if (debouncedSearch) {
-      parts.push(`(${debouncedSearch})`)
+      queryParts.push(`(${debouncedSearch})`)
     }
 
     // Include tags filtering
     if (selectedTags.length > 0) {
       // BUG: this doesn't work correctly - it does filter one tag, but if multiple are selected it returns zero values
-      // See discussion: https://chat.kobotoolbox.org/#narrow/channel/4-Kobo-Dev/topic/Filtering.20assets.20by.20tags/near/772253
+      // See: https://linear.app/kobotoolbox/issue/DEV-1581/make-it-possible-to-filter-assets-by-multiple-tags
       const tagQuery = selectedTags.map((t) => `tags__name__icontains:"${t}"`).join(' AND ')
-      parts.push(`(${tagQuery})`)
+      queryParts.push(`(${tagQuery})`)
     }
 
     // Include filtering by collection (parent)
     if (selectedCollection) {
-      parts.push(`parent__uid:"${selectedCollection}"`)
+      queryParts.push(`parent__uid:"${selectedCollection}"`)
     }
 
     // Ensure we are only getting library items that make sense here (questions, blocks, and templates)
-    parts.push(COMMON_QUERIES.qbt)
+    queryParts.push(COMMON_QUERIES.qbt)
 
-    return {
-      q: parts.join(' AND '),
-    }
-  }, [debouncedSearch, selectedTags, selectedCollection])
-
+    return queryParts.join(' AND ')
+  }
   const {
     data: assetsResponse,
     isLoading,
     isError,
   } = useAssetsList({
-    q: assetQueryParams.q,
+    q: getAssetsListQuery(),
     limit: 200,
     ordering: '-date_modified',
   })
@@ -109,9 +123,6 @@ export default function AssetNavigator() {
   // Step 4. Setup drag and drop of found assets
   const assetsListRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
-    activateSortable()
-  }, [assetsResponse])
-  function activateSortable() {
     const foundEl = ReactDOM.findDOMNode(assetsListRef.current)
     if (foundEl instanceof Element === false) {
       return
@@ -133,7 +144,7 @@ export default function AssetNavigator() {
         $el.sortable('cancel')
       },
     })
-  }
+  }, [assetsResponse])
 
   return (
     <Stack gap='sm' h='100%'>
