@@ -4,7 +4,7 @@ import React, { useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { actions } from '#/actions'
 import type { Asset } from '#/api/models/asset'
-import { invalidateList } from '#/api/mutation-defaults/common'
+import { invalidatePaginatedList } from '#/api/mutation-defaults/common'
 import { getAssetsListQueryKey, useAssetsList } from '#/api/react-query/manage-projects-and-library-content'
 import { COMMON_QUERIES } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
@@ -37,14 +37,16 @@ export default function SidebarFormsList() {
     // This is a list of different Reflux actions that upon completion would cause changes to the list of assets in
     // SidebarFormsList
     unlisteners.push(
-      actions.resources.deleteAsset.completed.listen(() => invalidateList(SidebarFormsListQueryKey)),
-      actions.resources.cloneAsset.completed.listen(() => invalidateList(SidebarFormsListQueryKey)),
-      actions.resources.deployAsset.completed.listen(() => invalidateList(SidebarFormsListQueryKey)),
-      actions.resources.setDeploymentActive.completed.listen(() => invalidateList(SidebarFormsListQueryKey)),
+      actions.resources.deleteAsset.completed.listen(() => invalidatePaginatedList(SidebarFormsListQueryKey)),
+      actions.resources.cloneAsset.completed.listen(() => invalidatePaginatedList(SidebarFormsListQueryKey)),
+      actions.resources.deployAsset.completed.listen(() => invalidatePaginatedList(SidebarFormsListQueryKey)),
+      actions.resources.setDeploymentActive.completed.listen(() => invalidatePaginatedList(SidebarFormsListQueryKey)),
       // A name could change
-      actions.resources.updateAsset.completed.listen(() => invalidateList(SidebarFormsListQueryKey)),
+      actions.resources.updateAsset.completed.listen(() => invalidatePaginatedList(SidebarFormsListQueryKey)),
       // User could've removed themselves from a shared asset
-      actions.permissions.removeAssetPermission.completed.listen(() => invalidateList(SidebarFormsListQueryKey)),
+      actions.permissions.removeAssetPermission.completed.listen(() =>
+        invalidatePaginatedList(SidebarFormsListQueryKey),
+      ),
     )
     // When unmounting, let's remember to unlisten all those Reflux actions
     return () => {
