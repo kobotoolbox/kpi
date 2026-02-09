@@ -1,10 +1,9 @@
-import { Card, Group, Stack, Text } from '@mantine/core'
+import { Card, Group, Pill, Stack, Text } from '@mantine/core'
 import React from 'react'
 import type { Asset } from '#/api/models/asset'
 import { AssetTypeEnum } from '#/api/models/assetTypeEnum'
 import { parseTags } from '#/assetParserUtils'
 import AssetName from '#/components/common/assetName'
-import Badge from '#/components/common/badge'
 import Icon from '#/components/common/icon'
 
 interface AssetNavigatorCardProps {
@@ -57,7 +56,9 @@ export default function AssetNavigatorCard(props: AssetNavigatorCardProps) {
           {props.isExpanded && tags.length > 0 && (
             <Group gap={4} mt={4}>
               {tags.map((tag: string) => (
-                <Badge key={tag} size='xs' label={tag} color='dark-gray' />
+                <Pill key={tag} size='sm'>
+                  {tag}
+                </Pill>
               ))}
             </Group>
           )}

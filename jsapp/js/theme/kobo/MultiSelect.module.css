@@ -1,0 +1,7 @@
+.option:hover {
+  background-color: var(--mantine-color-gray-7);
+}
+
+.pill {
+  background-color: var(--mantine-color-gray-7);
+}

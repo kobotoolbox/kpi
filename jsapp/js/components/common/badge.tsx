@@ -36,6 +36,9 @@ interface BadgeProps {
   disableShortening?: boolean
 }
 
+/**
+ * @deprecated please use `Pill` instead
+ */
 export default function Badge(props: BadgeProps) {
   return (
     <div
