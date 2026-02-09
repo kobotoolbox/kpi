@@ -403,7 +403,7 @@ class AssetViewSet(
         'latest_version.uid',
         'data_sharing',
         'content',
-        'advanced_features.qual.qual_survey',
+        'advanced_features._actionConfigs',
         'owner.username',
     ]
     log_type = AuditType.PROJECT_HISTORY

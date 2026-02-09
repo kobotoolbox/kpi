@@ -41,7 +41,7 @@ class SubmissionApiTests(test_api_submissions.SubmissionApiTests):
         assert sorted(response_ids) == sorted(expected_ids)
 
     def test_list_submissions_limit(self):
-        limit = settings.SUBMISSION_LIST_LIMIT
+        limit = settings.MAX_API_PAGE_SIZE
         excess = 10
         asset = Asset.objects.create(
             name='Lots of submissions',
@@ -59,16 +59,16 @@ class SubmissionApiTests(test_api_submissions.SubmissionApiTests):
         ]
         asset.deployment.mock_submissions(submissions)
 
-        # Server-wide limit should apply if no limit specified
+        # Server-wide default limit should apply if no limit specified
         url = reverse(
             self._get_endpoint('submission-list'),
             kwargs={'format': 'json', 'uid_asset': asset.uid},
         )
         response = self.client.get(url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), limit)
+        self.assertEqual(len(response.data), settings.DEFAULT_API_PAGE_SIZE)
         # Limit specified in query parameters should not be able to exceed
-        # server-wide limit
+        # the server-wide limit
         url = reverse(
             self._get_endpoint('submission-list'),
             kwargs={'uid_asset': asset.uid, 'format': 'json'},
@@ -153,8 +153,16 @@ class SubmissionApiTests(test_api_submissions.SubmissionApiTests):
     def test_attachments_rewrite(self):
         pass
 
-    @pytest.mark.skip(reason='Rewrite should be used only with v2')
+    @pytest.mark.skip(reason='Inject root uuid should be used only with v2')
     def test_inject_root_uuid_if_not_present(self):
+        pass
+
+    @pytest.mark.skip(reason='Deprecated version')
+    def test_simplified_supplemental_detail_for_delete(self):
+        pass
+
+    @pytest.mark.skip(reason='Deprecated version')
+    def test_simplified_supplemental_detail_for_acceptance(self):
         pass
 
 

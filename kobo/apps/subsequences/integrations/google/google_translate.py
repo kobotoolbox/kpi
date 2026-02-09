@@ -10,18 +10,13 @@ from django.conf import settings
 from google.api_core.exceptions import InvalidArgument
 from google.cloud import translate_v3 as translate
 
+from kobo.apps.languages.models.transcription import TranscriptionService
 from kobo.apps.languages.models.translation import TranslationService
 from kpi.utils.log import logging
-from ...constants import GOOGLE_CODE, GOOGLETX
-from ...exceptions import (
-    SubsequenceTimeoutError,
-    TranslationAsyncResultAvailable,
-    TranslationResultsNotFound,
-)
+from ...constants import GOOGLE_CODE
+from ...exceptions import SubsequenceTimeoutError, TranslationAsyncResultAvailable
+from ..utils.google import google_credentials_from_constance_config
 from .base import GoogleService
-from .utils import google_credentials_from_constance_config
-
-MAX_SYNC_CHARS = 30720
 
 
 def _hashed_strings(self, *strings):
@@ -32,13 +27,14 @@ class GoogleTranslationService(GoogleService):
     API_NAME = 'translate'
     API_VERSION = 'v3'
     API_RESOURCE = 'projects.locations.operations'
+    MAX_SYNC_CHARS = 30720
 
-    def __init__(self, *args):
+    def __init__(self, submission: dict, asset: 'kpi.models.Asset', *args, **kwargs):
         """
         This service takes a submission object as a GoogleService inheriting
-        class. It uses google cloud translation v3 API.
+        class. It uses Google Cloud translation v3 API.
         """
-        super().__init__(*args)
+        super().__init__(submission, asset, *args, **kwargs)
 
         self.translate_client = translate.TranslationServiceClient(
             credentials=google_credentials_from_constance_config()
@@ -90,10 +86,10 @@ class GoogleTranslationService(GoogleService):
         # check if directory is not empty
         if stored_result := self.get_stored_result(target_lang, output_path):
             logging.info(f'Found stored results in {output_path=}')
-            return (stored_result, len(content))
+            return stored_result, len(content)
 
         logging.info(
-            f'Starting async translation for {self.submission.submission_uuid=} {xpath=}'
+            f'Starting async translation for {self.submission_root_uuid=} {xpath=}'
         )
         dest = self.bucket.blob(source_path)
         dest.upload_from_string(content)
@@ -118,8 +114,8 @@ class GoogleTranslationService(GoogleService):
                 }
             },
             'labels': {
-                'username': self.user.username,
-                'submission': self.submission.submission_uuid,
+                'username': self.asset.owner.username,
+                'submission': self.submission_root_uuid,
                 # this needs to be lowercased to comply with google's API
                 'xpath': xpath.lower(),
             },
@@ -128,7 +124,7 @@ class GoogleTranslationService(GoogleService):
         response = self.translate_client.batch_translate_text(
             request=req_params
         )
-        return (response, len(content))
+        return response, len(content)
 
     @property
     def counter_name(self):
@@ -159,9 +155,9 @@ class GoogleTranslationService(GoogleService):
         Returns source and output paths based on the parameters used and the
         current date.
         """
-        submission_uuid = self.submission.submission_uuid
+
         _hash = _hashed_strings(
-            self.submission.submission_uuid, xpath, self.user.username
+            self.submission_root_uuid, xpath, self.asset.owner.username
         )
         _uniq_dir = f'{self.date_string}/{_hash}/{source_lang}/{target_lang}/'
         source_path = posixpath.join(
@@ -172,56 +168,50 @@ class GoogleTranslationService(GoogleService):
         )
         return source_path, output_path
 
-    def process_data(self, xpath: str, vals: dict) -> dict:
+    def process_data(self, xpath: str, params: dict) -> dict:
         """
         Translates the value for a given xpath and its json values.
         """
-        autoparams = vals[GOOGLETX]
-        try:
-            content = vals['transcript']['value']
-            source_lang = vals['transcript']['languageCode']
-            target_lang = autoparams.get('languageCode')
-        except KeyError:
-            logging.exception('Error while setting up translation')
-            return {'status': 'error'}
 
-        lang_service = TranslationService.objects.get(code=GOOGLE_CODE)
+        try:
+            content = params['_dependency']['value']
+            source_lang = params['_dependency']['language']
+            target_lang = params['language']
+        except KeyError:
+            message = 'Error while setting up translation'
+            logging.exception(message)
+            return {'status': 'failed', 'error': message}
+
+        transcription_lang_service = TranscriptionService.objects.get(code=GOOGLE_CODE)
+        translation_lang_service = TranslationService.objects.get(code=GOOGLE_CODE)
+
         try:
             value = self.translate_content(
                 xpath,
-                lang_service.get_language_code(source_lang),
-                lang_service.get_language_code(target_lang),
+                transcription_lang_service.get_language_code(source_lang),
+                translation_lang_service.get_language_code(target_lang),
                 content,
             )
         except SubsequenceTimeoutError:
             return {
                 'status': 'in_progress',
-                'source': source_lang,
-                'languageCode': target_lang,
-                'value': None,
             }
-        except (TranslationResultsNotFound, InvalidArgument) as e:
+        except InvalidArgument as e:
             logging.exception('Error when processing translation')
             return {
-                'status': 'error',
-                'value': None,
-                'responseJSON': {
-                    'error': f'Translation failed with error {e}'
-                },
+                'status': 'failed',
+                'error': f'Translation failed with error {str(e)}',
             }
         except TranslationAsyncResultAvailable:
-            _, output_path = self.get_unique_paths(
-                xpath, source_lang, target_lang
-            )
+            _, output_path = self.get_unique_paths(xpath, source_lang, target_lang)
             logging.info(
-                f'Fetching stored results for {self.submission.submission_uuid=} {xpath=}, {output_path=}'
+                f'Fetching stored results for {self.submission_root_uuid=} '
+                f'{xpath=}, {output_path=}'
             )
             value = self.get_stored_result(target_lang, output_path)
 
         return {
             'status': 'complete',
-            'source': source_lang,
-            'languageCode': target_lang,
             'value': value,
         }
 
@@ -236,9 +226,9 @@ class GoogleTranslationService(GoogleService):
         Translates an input content string
         """
         content_size = len(content)
-        if content_size <= MAX_SYNC_CHARS:
+        if content_size <= GoogleTranslationService.MAX_SYNC_CHARS:
             logging.info(
-                f'Starting sync translation for {self.submission.submission_uuid=} {xpath=}'
+                f'Starting sync translation for {self.submission_root_uuid=} {xpath=}'
             )
             response = self.translate_client.translate_text(
                 request={
@@ -247,7 +237,7 @@ class GoogleTranslationService(GoogleService):
                     'target_language_code': target_lang,
                     'parent': self.translate_parent,
                     'mime_type': 'text/plain',
-                    'labels': {'username': self.user.username},
+                    'labels': {'username': self.asset.owner.username},
                 }
             )
             self.update_counters(content_size)

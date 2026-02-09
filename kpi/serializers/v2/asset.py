@@ -20,6 +20,7 @@ from kobo.apps.organizations.constants import ORG_ADMIN_ROLE
 from kobo.apps.organizations.utils import get_real_owner
 from kobo.apps.reports.constants import FUZZY_VERSION_PATTERN
 from kobo.apps.reports.report_data import build_formpack
+from kobo.apps.subsequences.utils.supplement_data import get_analysis_form_json
 from kobo.apps.trash_bin.exceptions import TrashIntegrityError, TrashTaskInProgressError
 from kobo.apps.trash_bin.models.project import ProjectTrash
 from kobo.apps.trash_bin.utils import move_to_trash, put_back
@@ -62,7 +63,6 @@ from kpi.utils.schema_extensions.fields import (
 from ...schema_extensions.v2.assets.fields import (
     AccessTypeField,
     AdvancedFeatureField,
-    AdvancedSubmissionSchemaField,
     AnalysisFormJsonField,
     AssetHyperlinkedURLField,
     AssignablePermissionField,
@@ -346,7 +346,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
     advanced_features = WriteableJsonWithSchemaField(
         schema_field=AdvancedFeatureField, required=False
     )
-    advanced_submission_schema = serializers.SerializerMethodField()
     files = serializers.SerializerMethodField()
     analysis_form_json = serializers.SerializerMethodField()
     xls_link = serializers.SerializerMethodField()
@@ -439,13 +438,12 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             'report_styles',
             'report_custom',
             'advanced_features',
-            'advanced_submission_schema',
-            'analysis_form_json',
             'map_styles',
             'map_custom',
             'content',
             'downloads',
             'embeds',
+            'analysis_form_json',
             'xform_link',
             'hooks_link',
             'tag_string',
@@ -545,6 +543,10 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
         return asset
 
+    @extend_schema_field(AnalysisFormJsonField)
+    def get_analysis_form_json(self, obj):
+        return {'additional_fields': get_analysis_form_json(obj)}
+
     def get_fields(self, *args, **kwargs):
         fields = super().get_fields(*args, **kwargs)
         # Honor requests to exclude fields
@@ -565,16 +567,6 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             read_only=True,
             context=self.context,
         ).data
-
-    @extend_schema_field(AdvancedSubmissionSchemaField)
-    def get_advanced_submission_schema(self, obj):
-        req = self.context.get('request')
-        url = req.build_absolute_uri(f'/advanced_submission_post/{obj.uid}')
-        return obj.get_advanced_submission_schema(url=url)
-
-    @extend_schema_field(AnalysisFormJsonField)
-    def get_analysis_form_json(self, obj):
-        return obj.analysis_form_json()
 
     def get_deployment_status(self, obj: Asset) -> str:
         if deployment_status := obj.deployment_status:

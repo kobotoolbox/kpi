@@ -1652,7 +1652,7 @@ class MockDataExports(MockDataExportsBase):
         Make sure the limit on count of submissions returned by the API does
         not apply to exports
         """
-        limit = settings.SUBMISSION_LIST_LIMIT
+        limit = settings.MAX_API_PAGE_SIZE
         excess = 10
         asset = Asset.objects.create(
             name='Lots of submissions',
