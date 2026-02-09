@@ -1,10 +1,11 @@
 import React, { useState } from 'react'
 
 import { fetchPost, handleApiFail } from '#/api'
+import { invalidatePaginatedList } from '#/api/mutation-defaults/common'
 import Checkbox from '#/components/common/checkbox'
 import KoboPrompt from '#/components/modals/koboPrompt'
 import customViewStore from '#/projects/customViewStore'
-import { searches } from '#/searches'
+import { SidebarFormsListQueryKey } from '#/sidebar/SidebarFormsList'
 import { notify } from '#/utils'
 import styles from './bulkDeletePrompt.module.scss'
 
@@ -42,7 +43,7 @@ export default function BulkDeletePrompt(props: BulkDeletePromptProps) {
         // projects. After the Bookmarked Projects feature is done (see the
         // https://github.com/kobotoolbox/kpi/issues/4220 for history of
         // discussion and more details) we would remove this code.
-        searches.forceRefreshFormsList()
+        invalidatePaginatedList(SidebarFormsListQueryKey), notify(response.detail)
 
         notify(response.detail)
       })

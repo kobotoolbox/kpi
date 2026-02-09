@@ -19,7 +19,7 @@ import LoadingSpinner from '../components/common/loadingSpinner'
 import { userCan } from '../components/permissions/utils'
 import styles from './SidebarFormsList.module.scss'
 
-const SidebarFormsListQueryKey = getAssetsListQueryKey({ q: COMMON_QUERIES.s, limit: 200, ordering: 'name' })
+export const SidebarFormsListQueryKey = getAssetsListQueryKey({ q: COMMON_QUERIES.s, limit: 200, ordering: 'name' })
 
 /**
  * A list of projects grouped by status (deployed, draft, archived). It's meant to be displayed in the sidebar area.
