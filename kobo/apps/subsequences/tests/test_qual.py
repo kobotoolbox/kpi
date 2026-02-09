@@ -689,6 +689,8 @@ def test_result_content_with_verification():
                 EMPTY_SUBMISSION, accumulated_result, filled_response
             )
     now = timezone.now()
+
+    # verify everything
     with freeze_time(now):
         for filled_response in Fix.valid_filled_responses:
             q_uuid = filled_response['uuid']
@@ -701,6 +703,19 @@ def test_result_content_with_verification():
         version = versions[0]
         assert version['verified'] == True
         assert version['_dateVerified'] == now.isoformat().replace('+00:00', 'Z')
+
+    # unverify everything
+    for filled_response in Fix.valid_filled_responses:
+        q_uuid = filled_response['uuid']
+        accumulated_result = _action.revise_data(
+            EMPTY_SUBMISSION, accumulated_result, {'uuid': q_uuid, 'verified': False}
+        )
+
+    for question_id, question_data in accumulated_result.items():
+        versions = question_data['_versions']
+        assert len(versions) == 1
+        version = versions[0]
+        assert version['verified'] == False
 
 
 class TestQualActionMethods(TestCase):

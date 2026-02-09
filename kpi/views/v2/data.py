@@ -29,6 +29,7 @@ from kobo.apps.subsequences.exceptions import (
     InvalidAction,
     InvalidXPath,
     SubsequenceDeletionError,
+    SubsequenceVerificationError,
     TranscriptionNotFound,
 )
 from kobo.apps.subsequences.models import SubmissionSupplement
@@ -562,12 +563,14 @@ class DataViewSet(
             raise serializers.ValidationError({'detail': 'Invalid question name'})
         except SubsequenceDeletionError:
             raise serializers.ValidationError({'detail': 'Subsequence deletion error'})
-        except jsonschema.exceptions.ValidationError:
-            raise serializers.ValidationError({'detail': 'Invalid payload'})
+        except jsonschema.exceptions.ValidationError as ve:
+            raise serializers.ValidationError({'detail': 'Invalid payload'}) from ve
         except TranscriptionNotFound:
             raise serializers.ValidationError(
                 {'detail': 'Cannot translate without transcription'}
             )
+        except SubsequenceVerificationError:
+            raise serializers.ValidationError({'detail': 'No response to verify'})
 
         return Response(supplemental_data)
 

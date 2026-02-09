@@ -708,6 +708,8 @@ class ProjectHistoryLog(AuditLog):
                     llm_info = request.llm_response
                     if 'error' in llm_info:
                         metadata['llm'] = {'error': llm_info['error']}
+                    elif 'verified' in llm_info:
+                        metadata['llm'] = {'verified': llm_info['verified']}
                     else:
                         model = llm_info['model']
                         metadata['llm'] = {

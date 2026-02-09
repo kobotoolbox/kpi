@@ -157,6 +157,7 @@ class TestBedrockAutomaticBedrockQual(BaseAutomaticBedrockQualTestCase):
                 continue
             uuid_ = param['uuid']
             self.action.validate_data({'uuid': uuid_})
+            self.action.validate_data({'uuid': uuid_, 'verified': True})
 
     def test_invalid_user_data_no_uuid(self):
         with pytest.raises(jsonschema.exceptions.ValidationError):

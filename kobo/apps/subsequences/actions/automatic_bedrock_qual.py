@@ -128,6 +128,7 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
             'additionalProperties': False,
             'properties': {
                 'uuid': {'$ref': '#/$defs/uuid'},
+                'verified': {'type': 'boolean'},
             },
             'required': ['uuid'],
             '$defs': {
@@ -144,7 +145,6 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         qual_common = to_return['$defs']['qualCommon']
         del qual_common['oneOf']
         properties = qual_common['properties']
-        del properties['verified']
         additional_properties = {
             'status': {'$ref': '#/$defs/action_status'},
             'error': {'$ref': '#/$defs/error'},
@@ -361,6 +361,10 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         """
         Run and return results of external process
         """
+        if 'verified' in action_data:
+            if request := get_current_request():
+                request.llm_response = {'verified': action_data['verified']}
+            return action_supplemental_data[self.VERSION_DATA_FIELD]
         qa_question_uuid = action_data['uuid']
         qa_question = self._get_question(qa_question_uuid)
         qa_question_type = qa_question['type']

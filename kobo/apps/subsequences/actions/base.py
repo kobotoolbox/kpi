@@ -10,10 +10,14 @@ from django.conf import settings
 from django.utils import timezone
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.subsequences.exceptions import SubsequenceDeletionError
+from kobo.apps.subsequences.exceptions import (
+    SubsequenceDeletionError,
+    SubsequenceVerificationError,
+)
 from kobo.apps.subsequences.utils.time import utc_datetime_to_js_str
 from kobo.celery import celery_app
 from kpi.exceptions import UsageLimitExceededException
+from kpi.utils.log import logging
 from kpi.utils.usage_calculator import ServiceUsageCalculator
 from ..tasks import poll_run_external_process
 from ..type_aliases import (
@@ -281,69 +285,39 @@ class BaseAction:
                 action_supplemental_data, action_data
             )
         )
+        if 'value' in action_data or 'status' in action_data:
+            new_version = {self.VERSION_DATA_FIELD: deepcopy(action_data)}
+            new_version[self.DATE_CREATED_FIELD] = now_str
+            new_version[self.UUID_FIELD] = str(uuid.uuid4())
+            if self.action_class_config.review_type == ReviewType.VERIFICATION:
+                # everything starts out unverified
+                new_version['verified'] = False
+            if dependency_supplemental_data:
+                new_version[self.DEPENDENCY_FIELD] = dependency_supplemental_data
+            localized_action_supplemental_data.setdefault(
+                self.VERSION_FIELD, []
+            ).insert(0, new_version)
 
-        new_version = {self.VERSION_DATA_FIELD: deepcopy(action_data)}
-        new_version[self.DATE_CREATED_FIELD] = now_str
-        new_version[self.UUID_FIELD] = str(uuid.uuid4())
-        if self.action_class_config.review_type == ReviewType.VERIFICATION:
-            # everything starts out unverified
-            new_version['verified'] = False
-        if dependency_supplemental_data:
-            new_version[self.DEPENDENCY_FIELD] = dependency_supplemental_data
+        current_version = localized_action_supplemental_data[self.VERSION_FIELD][0]
+
+        if (
+            verified is not None
+            and self.action_class_config.review_type == ReviewType.VERIFICATION
+        ):
+            current_version['verified'] = verified
+            if verified:
+                current_version['_dateVerified'] = now_str
+
+        if (
+            accepted is not None
+            and self.action_class_config.review_type == ReviewType.ACCEPTANCE
+        ):
+            if accepted:
+                current_version['_dateAccepted'] = now_str
 
         if self.DATE_CREATED_FIELD not in localized_action_supplemental_data:
             localized_action_supplemental_data[self.DATE_CREATED_FIELD] = now_str
         localized_action_supplemental_data[self.DATE_MODIFIED_FIELD] = now_str
-
-        localized_action_supplemental_data.setdefault(self.VERSION_FIELD, []).insert(
-            0, new_version
-        )
-
-        accepting = (
-            self.action_class_config.review_type == ReviewType.ACCEPTANCE
-            and accepted is not None
-        )
-        verifying = (
-            self.action_class_config.review_type == ReviewType.VERIFICATION
-            and verified is not None
-        )
-
-        do_not_create_new_version = (
-            # accepting an automatic response
-            self.action_class_config.automatic
-            and self.action_class_config.review_type == ReviewType.ACCEPTANCE
-            and accepting
-        )
-        do_not_create_new_version = (
-            # verifying an automatic or manual response
-            do_not_create_new_version
-            or (
-                self.action_class_config.review_type == ReviewType.VERIFICATION
-                and verifying
-            )
-        )
-
-        # For manual actions, always mark as accepted.
-        # For automatic actions, revert the just-created revision (remove it and
-        # reapply its dates) to avoid adding extra branching earlier in the method.
-        if do_not_create_new_version:
-            localized_action_supplemental_data[self.VERSION_FIELD].pop(0)
-        if accepting:
-            localized_action_supplemental_data[self.VERSION_FIELD][0][
-                self.DATE_ACCEPTED_FIELD
-            ] = now_str
-        if verifying:
-            if verified:
-                localized_action_supplemental_data[self.VERSION_FIELD][0][
-                    '_dateVerified'
-                ] = now_str
-                localized_action_supplemental_data[self.VERSION_FIELD][0][
-                    'verified'
-                ] = True
-            else:
-                localized_action_supplemental_data[self.VERSION_FIELD][0][
-                    'verified'
-                ] = False
 
         if not self.action_class_config.allow_multiple:
             new_action_supplemental_data = localized_action_supplemental_data
@@ -352,7 +326,6 @@ class BaseAction:
             new_action_supplemental_data.update(
                 {needle: localized_action_supplemental_data}
             )
-
         self.validate_result(new_action_supplemental_data)
 
         return new_action_supplemental_data
@@ -399,29 +372,37 @@ class BaseAction:
         return {}
 
     def validate_external_data(self, data):
+        logging.info(f'Validate external data: {data}')
         jsonschema.validate(
             data,
             self.external_data_schema,
             format_checker=jsonschema.FormatChecker(),
         )
+        logging.info(f'Validated external data')
 
     def validate_data(self, data):
+        logging.info(f'Validate data: {data}')
         jsonschema.validate(
             data, self.data_schema, format_checker=jsonschema.FormatChecker()
         )
+        logging.info(f'Validated data')
 
     @classmethod
     def validate_params(cls, params):
+        logging.info(f'Validate params: {params}')
         jsonschema.validate(
             params, cls.params_schema, format_checker=jsonschema.FormatChecker()
         )
+        logging.info(f'Validated params')
 
     def validate_result(self, result):
+        logging.info(f'Validate result: {result}')
         jsonschema.validate(
             result,
             self.result_schema,
             format_checker=jsonschema.FormatChecker(),
         )
+        logging.info(f'Validated result')
 
     @property
     def result_schema(self):
@@ -465,13 +446,24 @@ class BaseAction:
         except IndexError:
             current_version = {}
         self.attach_action_dependency(action_data)
-        # Check if user is trying to delete null data
-        if ('value' in action_data and action_data['value'] is None) and (
-            current_version.get(self.VERSION_DATA_FIELD, {}).get('value') is None
-        ):
-            raise SubsequenceDeletionError
+        current_version_data = current_version.get(self.VERSION_DATA_FIELD, {})
 
-        if self.action_class_config.automatic:
+        if current_version_data.get('value') is None:
+            # some things you can't do
+            # Check if user is trying to delete null data
+            if 'value' in action_data and action_data['value'] is None:
+                raise SubsequenceDeletionError
+            # Check if user is trying to verify non-existent data
+            if 'verified' in action_data:
+                raise SubsequenceVerificationError('No data to verify')
+            if 'accepted' in action_data:
+                raise SubsequenceVerificationError('No data to accept')
+
+        verified = action_data.pop('verified', None)
+        accepted = action_data.pop('accepted', None)
+        if verified is not None or accepted is not None:
+            dependency_supplemental_data = action_data.pop(self.DEPENDENCY_FIELD, None)
+        elif self.action_class_config.automatic:
             # If the action is automatic, run the external process first.
             if not (
                 service_response := self.run_external_process(
@@ -488,8 +480,7 @@ class BaseAction:
             # the validation process.
             dependency_supplemental_data = action_data.pop(self.DEPENDENCY_FIELD, None)
             action_data.update(service_response)
-            self.validate_external_data(action_data)
-            accepted = action_data.pop('accepted', None)
+            # self.validate_external_data(action_data)
         else:
             dependency_supplemental_data = action_data.pop(self.DEPENDENCY_FIELD, None)
             # Deletion is triggered by passing `{value: null}`.
@@ -498,7 +489,6 @@ class BaseAction:
                 self.action_class_config.review_type == ReviewType.ACCEPTANCE
                 and action_data.get('value') is not None
             )
-        verified = action_data.pop('verified', None)
 
         if dependency_supplemental_data:
             # Sanitize 'dependency' before persisting: keep only a reference of the
@@ -935,8 +925,6 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
             {'status': 'complete', 'value': '<result>'}
 
         Behavior:
-        - If the user explicitly accepted the last completed result, the method
-          short-circuits and returns it immediately.
         - If the service reports `in_progress`, the method returns `None` so that
           `revise_data()` can exit early and avoid redundant processing.
         - If the service returns `failed` or `complete`, the processed result is
@@ -950,18 +938,6 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
         # will handle the merge and final validation of this acceptance.
         accepted = action_data.get('accepted', None)
 
-        if accepted is not None:
-            if current_version.get('status') == 'complete':
-                return {
-                    'value': current_version['value'],
-                    'status': 'complete',
-                }
-            else:
-                # Intentionally return `action_data` as-is to force JSON schema
-                # validation to fail.
-                # The `{'accepted': true|false}` structure is only valid once the
-                # action has completed.
-                return action_data
 
         # If the client explicitly removed a previously stored result,
         # preserve that deletion by returning a `deleted` status instead
