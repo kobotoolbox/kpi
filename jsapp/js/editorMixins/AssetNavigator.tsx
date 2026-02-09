@@ -41,7 +41,6 @@ export default function AssetNavigator() {
       // https://linear.app/kobotoolbox/issue/DEV-1576/duplicated-values-in-apiv2tags-endpoint
       return [...new Set(nonUniqueTags)]
     }
-    // TODO: should we handle error here? It's also possible it's pending
     return []
   }, [tagsResponse])
 
@@ -68,31 +67,31 @@ export default function AssetNavigator() {
 
   // Step 3. Fetch Main Assets List
   const assetQueryParams = useMemo(() => {
-    const parts: string[] = []
+    const queryParts: string[] = []
 
     // Include search phrase
     if (debouncedSearch) {
-      parts.push(`(${debouncedSearch})`)
+      queryParts.push(`(${debouncedSearch})`)
     }
 
     // Include tags filtering
     if (selectedTags.length > 0) {
       // BUG: this doesn't work correctly - it does filter one tag, but if multiple are selected it returns zero values
-      // See discussion: https://chat.kobotoolbox.org/#narrow/channel/4-Kobo-Dev/topic/Filtering.20assets.20by.20tags/near/772253
+      // See: https://linear.app/kobotoolbox/issue/DEV-1581/make-it-possible-to-filter-assets-by-multiple-tags
       const tagQuery = selectedTags.map((t) => `tags__name__icontains:"${t}"`).join(' AND ')
-      parts.push(`(${tagQuery})`)
+      queryParts.push(`(${tagQuery})`)
     }
 
     // Include filtering by collection (parent)
     if (selectedCollection) {
-      parts.push(`parent__uid:"${selectedCollection}"`)
+      queryParts.push(`parent__uid:"${selectedCollection}"`)
     }
 
     // Ensure we are only getting library items that make sense here (questions, blocks, and templates)
-    parts.push(COMMON_QUERIES.qbt)
+    queryParts.push(COMMON_QUERIES.qbt)
 
     return {
-      q: parts.join(' AND '),
+      q: queryParts.join(' AND '),
     }
   }, [debouncedSearch, selectedTags, selectedCollection])
 
