@@ -48,6 +48,7 @@ class SubsequenceTimeoutError(Exception):
 class SubsequenceVerificationError(Exception):
     pass
 
+
 class TranscriptionNotFound(DependencyNotFound):
     pass
 

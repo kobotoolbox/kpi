@@ -17,7 +17,6 @@ from kobo.apps.subsequences.exceptions import (
 from kobo.apps.subsequences.utils.time import utc_datetime_to_js_str
 from kobo.celery import celery_app
 from kpi.exceptions import UsageLimitExceededException
-from kpi.utils.log import logging
 from kpi.utils.usage_calculator import ServiceUsageCalculator
 from ..tasks import poll_run_external_process
 from ..type_aliases import (
@@ -161,6 +160,7 @@ class ReviewType(Enum):
     # entries automatically become part of the data set with an additional column
     # showing whether they have been verified
     VERIFICATION = 'verification'
+
 
 @dataclass
 class ActionClassConfig:
@@ -372,37 +372,29 @@ class BaseAction:
         return {}
 
     def validate_external_data(self, data):
-        logging.info(f'Validate external data: {data}')
         jsonschema.validate(
             data,
             self.external_data_schema,
             format_checker=jsonschema.FormatChecker(),
         )
-        logging.info(f'Validated external data')
 
     def validate_data(self, data):
-        logging.info(f'Validate data: {data}')
         jsonschema.validate(
             data, self.data_schema, format_checker=jsonschema.FormatChecker()
         )
-        logging.info(f'Validated data')
 
     @classmethod
     def validate_params(cls, params):
-        logging.info(f'Validate params: {params}')
         jsonschema.validate(
             params, cls.params_schema, format_checker=jsonschema.FormatChecker()
         )
-        logging.info(f'Validated params')
 
     def validate_result(self, result):
-        logging.info(f'Validate result: {result}')
         jsonschema.validate(
             result,
             self.result_schema,
             format_checker=jsonschema.FormatChecker(),
         )
-        logging.info(f'Validated result')
 
     @property
     def result_schema(self):
@@ -933,11 +925,6 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
 
         current_version = action_supplemental_data.get(self.VERSION_DATA_FIELD, {})
 
-        # If the client sent "accepted" while the supplement is already complete,
-        # return the completed translation/transcription right away. `revise_data()`
-        # will handle the merge and final validation of this acceptance.
-        accepted = action_data.get('accepted', None)
-
 
         # If the client explicitly removed a previously stored result,
         # preserve that deletion by returning a `deleted` status instead
@@ -958,7 +945,7 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
 
         # If the request is still running, stop processing here.
         # Returning None ensures that `revise_data()` will not be called afterwards.
-        if accepted is None and service_data['status'] == 'in_progress':
+        if service_data['status'] == 'in_progress':
             if current_version.get('status') == 'in_progress':
                 return None
             else:

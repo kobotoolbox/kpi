@@ -612,6 +612,7 @@ def test_verified_responses_pass_data_validation():
     _action.validate_data({'uuid': FIX_QUAL_INTEGER_UUID, 'verified': True})
     _action.validate_data({'uuid': FIX_QUAL_INTEGER_UUID, 'verified': False})
 
+
 def test_valid_empty_responses_pass_data_validation():
     for response in Fix.valid_empty_responses:
         _action.validate_data(response)
@@ -701,7 +702,7 @@ def test_result_content_with_verification():
         versions = question_data['_versions']
         assert len(versions) == 1
         version = versions[0]
-        assert version['verified'] == True
+        assert version['verified']
         assert version['_dateVerified'] == now.isoformat().replace('+00:00', 'Z')
 
     # unverify everything
@@ -715,7 +716,8 @@ def test_result_content_with_verification():
         versions = question_data['_versions']
         assert len(versions) == 1
         version = versions[0]
-        assert version['verified'] == False
+        assert 'verified' in version
+        assert not version['verified']
 
 
 class TestQualActionMethods(TestCase):
