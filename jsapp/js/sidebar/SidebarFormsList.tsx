@@ -31,6 +31,9 @@ export default function SidebarFormsList() {
 
   const unlisteners: Function[] = []
   useEffect(() => {
+    // TODO: when gradually switching to Orval for all these actions below, make sure to write invalidating code in
+    // `jsapp/js/api/mutation-defaults`
+
     // This is a list of different Reflux actions that upon completion would cause changes to the list of assets in
     // SidebarFormsList
     unlisteners.push(
@@ -58,7 +61,7 @@ export default function SidebarFormsList() {
       query: {
         queryKey: SidebarFormsListQueryKey,
         throwOnError: () => {
-          notify.error(t('There was an error getting the list.')) // TODO: update message in backend (DEV-????).
+          notify.error(t('There was an error getting the list.')) // TODO: get the message from backend
           return false
         },
       },
