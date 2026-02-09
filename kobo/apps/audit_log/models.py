@@ -703,13 +703,14 @@ class ProjectHistoryLog(AuditLog):
             for action, action_data in actions.items():
                 log_action = AuditAction.MODIFY_QA_DATA
                 if action == Action.AUTOMATIC_BEDROCK_QUAL:
+                    llm_info = getattr(request, 'llm_response', {})
                     # automatic QA requests have more metadata and a different action
                     log_action = AuditAction.MODIFY_AUTOMATIC_QA_DATA
-                    llm_info = request.llm_response
-                    if 'error' in llm_info:
+                    if 'verified' in action_data:
+                        log_action = AuditAction.VERIFY_AUTOMATIC_QA_DATA
+                        metadata['llm'] = {'verified': action_data['verified']}
+                    elif 'error' in llm_info:
                         metadata['llm'] = {'error': llm_info['error']}
-                    elif 'verified' in llm_info:
-                        metadata['llm'] = {'verified': llm_info['verified']}
                     else:
                         model = llm_info['model']
                         metadata['llm'] = {

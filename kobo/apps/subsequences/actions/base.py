@@ -11,6 +11,7 @@ from django.utils import timezone
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.subsequences.exceptions import (
+    SubsequenceAcceptanceError,
     SubsequenceDeletionError,
     SubsequenceVerificationError,
 )
@@ -425,12 +426,13 @@ class BaseAction:
         self.validate_data(action_data)
         self.raise_for_any_leading_underscore_key(action_data)
 
-        localized_action_supplemental_data, needle = (
+        localized_action_supplemental_data, _ = (
             self.get_localized_action_supplemental_data(
                 action_supplemental_data, action_data
             )
         )
 
+        # get what's currently in the supplemental data
         try:
             current_version = localized_action_supplemental_data.get(
                 self.VERSION_FIELD, []
@@ -440,23 +442,22 @@ class BaseAction:
         self.attach_action_dependency(action_data)
         current_version_data = current_version.get(self.VERSION_DATA_FIELD, {})
 
+        # cannot delete, verify, or accept non-existent data
         if current_version_data.get('value') is None:
-            # some things you can't do
-            # Check if user is trying to delete null data
             if 'value' in action_data and action_data['value'] is None:
                 raise SubsequenceDeletionError
-            # Check if user is trying to verify non-existent data
             if 'verified' in action_data:
-                raise SubsequenceVerificationError('No data to verify')
+                raise SubsequenceVerificationError()
             if 'accepted' in action_data:
-                raise SubsequenceVerificationError('No data to accept')
+                raise SubsequenceAcceptanceError()
 
         verified = action_data.pop('verified', None)
         accepted = action_data.pop('accepted', None)
         if verified is not None or accepted is not None:
+            # if we're just verifying or accepting, no need to get more data
             dependency_supplemental_data = action_data.pop(self.DEPENDENCY_FIELD, None)
         elif self.action_class_config.automatic:
-            # If the action is automatic, run the external process first.
+            # If the action is automatic, run the external process first
             if not (
                 service_response := self.run_external_process(
                     submission,
@@ -472,8 +473,9 @@ class BaseAction:
             # the validation process.
             dependency_supplemental_data = action_data.pop(self.DEPENDENCY_FIELD, None)
             action_data.update(service_response)
-            # self.validate_external_data(action_data)
+            self.validate_external_data(action_data)
         else:
+            # manual action
             dependency_supplemental_data = action_data.pop(self.DEPENDENCY_FIELD, None)
             # Deletion is triggered by passing `{value: null}`.
             # When this occurs, no acceptance should be recorded.
@@ -924,7 +926,6 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
         """
 
         current_version = action_supplemental_data.get(self.VERSION_DATA_FIELD, {})
-
 
         # If the client explicitly removed a previously stored result,
         # preserve that deletion by returning a `deleted` status instead

@@ -352,7 +352,7 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
                 self.supplement_details_url, data=payload, format='json'
             )
             assert response.status_code == status.HTTP_400_BAD_REQUEST
-            assert 'Invalid payload' in str(response.data)
+            assert 'No response to accept' in str(response.data)
 
     def test_retrieve_does_migrate_data(self):
         """
@@ -743,7 +743,7 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
                 self.supplement_details_url, data=payload, format='json'
             )
             assert response.status_code == status.HTTP_400_BAD_REQUEST
-            assert 'Invalid payload' in str(response.data)
+            assert 'No response to accept' in str(response.data)
 
     def test_cannot_request_translation_without_transcription(self):
         # Set up the asset to allow automatic google actions

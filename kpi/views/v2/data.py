@@ -28,6 +28,7 @@ from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_hand
 from kobo.apps.subsequences.exceptions import (
     InvalidAction,
     InvalidXPath,
+    SubsequenceAcceptanceError,
     SubsequenceDeletionError,
     SubsequenceVerificationError,
     TranscriptionNotFound,
@@ -551,7 +552,9 @@ class DataViewSet(
                 SubmissionSupplement.retrieve_data(self.asset, submission_root_uuid)
             )
 
-        post_data = request.data
+        # revise_data modifies action_data,
+        # copy it so as not to not lose the original request data
+        post_data = copy.deepcopy(request.data)
 
         try:
             supplemental_data = SubmissionSupplement.revise_data(
@@ -571,6 +574,8 @@ class DataViewSet(
             )
         except SubsequenceVerificationError:
             raise serializers.ValidationError({'detail': 'No response to verify'})
+        except SubsequenceAcceptanceError:
+            raise serializers.ValidationError({'detail': 'No response to accept'})
 
         return Response(supplemental_data)
 

@@ -33,6 +33,7 @@ from kobo.apps.openrosa.libs.utils.logger_tools import dict2xform
 from kobo.apps.subsequences.actions.automatic_bedrock_qual import OSS120, ClaudeSonnet
 from kobo.apps.subsequences.constants import Action
 from kobo.apps.subsequences.models import QuestionAdvancedFeature, SubmissionSupplement
+from kobo.apps.subsequences.tests.constants import FIXTURE_MANUAL_QUAL_Q1_INTEGER_UUID
 from kobo.apps.subsequences.tests.utils import MockLLMClient, get_mock_claude_response
 from kpi.constants import (
     ASSET_TYPE_TEMPLATE,
@@ -2079,7 +2080,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                 },
                 'q2': {
                     Action.MANUAL_QUAL: {
-                        'uuid': 'uuid-integer-q2',
+                        'uuid': FIXTURE_MANUAL_QUAL_Q1_INTEGER_UUID,
                         'value': 1,
                     },
                     Action.MANUAL_TRANSCRIPTION: {
@@ -2132,7 +2133,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                     '_version': '20250820',
                     'q1': {
                         Action.AUTOMATIC_BEDROCK_QUAL: {
-                            'uuid': 'uuid-qual-integer',
+                            'uuid': FIXTURE_MANUAL_QUAL_Q1_INTEGER_UUID,
                         }
                     },
                 },
@@ -2186,7 +2187,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                     '_version': '20250820',
                     'q1': {
                         Action.AUTOMATIC_BEDROCK_QUAL: {
-                            'uuid': 'uuid-qual-integer',
+                            'uuid': FIXTURE_MANUAL_QUAL_Q1_INTEGER_UUID,
                         }
                     },
                 },
@@ -2251,7 +2252,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                     '_version': '20250820',
                     'q1': {
                         Action.AUTOMATIC_BEDROCK_QUAL: {
-                            'uuid': 'uuid-qual-integer',
+                            'uuid': FIXTURE_MANUAL_QUAL_Q1_INTEGER_UUID,
                         }
                     },
                 },
@@ -2265,3 +2266,62 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             self.assertEqual(llm_info['model'], ClaudeSonnet.model_id)
             self.assertEqual(llm_info['input_tokens'], 10)
             self.assertEqual(llm_info['output_tokens'], 20)
+
+    def test_verify_automatic_qa_data(self):
+        instance, submission = self._add_submission('adminuser')
+        submission = list(
+            self.asset.deployment.get_submissions(
+                user=User.objects.get(username='adminuser'),
+                query={'meta/rootUuid': add_uuid_prefix(instance.root_uuid)},
+            )
+        )[0]
+
+        # add a transcript
+        SubmissionSupplement.revise_data(
+            self.asset,
+            submission,
+            incoming_data={
+                '_version': '20250820',
+                'q1': {
+                    'manual_transcription': {'language': 'en', 'value': 'transcript'}
+                },
+            },
+        )
+
+        # add some "automatic" data
+        with patch(
+            'kobo.apps.subsequences.actions.automatic_bedrock_qual.boto3.client',
+            return_value=MockLLMClient(5),
+        ):
+            SubmissionSupplement.revise_data(
+                self.asset,
+                submission,
+                incoming_data={
+                    '_version': '20250820',
+                    'q1': {
+                        'automatic_bedrock_qual': {
+                            'uuid': FIXTURE_MANUAL_QUAL_Q1_INTEGER_UUID
+                        },
+                    },
+                },
+            )
+
+        log_metadata = self._base_project_history_log_test(
+            url=reverse(
+                self._get_endpoint('submission-supplement'),
+                args=[self.asset.uid, submission['_uuid']],
+            ),
+            method=self.client.patch,
+            request_data={
+                '_version': '20250820',
+                'q1': {
+                    Action.AUTOMATIC_BEDROCK_QUAL: {
+                        'uuid': FIXTURE_MANUAL_QUAL_Q1_INTEGER_UUID,
+                        'verified': True,
+                    }
+                },
+            },
+            expected_action=AuditAction.VERIFY_AUTOMATIC_QA_DATA,
+            expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
+        )
+        assert log_metadata['llm']['verified']

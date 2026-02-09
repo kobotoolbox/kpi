@@ -361,10 +361,6 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         """
         Run and return results of external process
         """
-        if 'verified' in action_data:
-            if request := get_current_request():
-                request.llm_response = {'verified': action_data['verified']}
-            return action_supplemental_data[self.VERSION_DATA_FIELD]
         qa_question_uuid = action_data['uuid']
         qa_question = self._get_question(qa_question_uuid)
         qa_question_type = qa_question['type']

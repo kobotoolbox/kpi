@@ -310,7 +310,7 @@ OLD_STYLE_ADVANCED_FEATURES = {
     'translation': {'languages': ['es']},
 }
 
-## asset_with_settings_and_qa fixture
+# asset_with_settings_and_qa fixture
 FIXTURE_MANUAL_QUAL_Q1_INTEGER_UUID = 'a94c2b17-5f6e-4d88-8b31-2e9a7c6f54d0'
 # reused uuid
 FIXTURE_AUTOMATIC_QUAL_Q1_INTEGER_UUID = FIXTURE_MANUAL_QUAL_Q1_INTEGER_UUID
