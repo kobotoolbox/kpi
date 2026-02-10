@@ -260,15 +260,16 @@ class TestBedrockAutomaticBedrockQual(BaseAutomaticBedrockQualTestCase):
             )
         assert response.status_code == status.HTTP_200_OK
         transcript_uuid = transcript_dict['_uuid']
-        version = response.data['q1'][Action.AUTOMATIC_BEDROCK_QUAL][BEDROCK_QUAL_TEXT_UUID][
-            '_versions'
-        ][0]
+        version = response.data['q1'][Action.AUTOMATIC_BEDROCK_QUAL][
+            BEDROCK_QUAL_TEXT_UUID
+        ]['_versions'][0]
         version_data = version['_data']
         assert version_data['value'] == 'LLM text'
         assert version_data['status'] == 'complete'
         assert version['_dependency']['_uuid'] == transcript_uuid
         assert version['_dependency']['_actionId'] == Action.MANUAL_TRANSCRIPTION
-        assert version['verified'] == False
+        assert 'verified' in version
+        assert not version['verified']
         assert version.get('_dateVerified') is None
 
     def test_transform_data_filters_out_failed_versions(self):
