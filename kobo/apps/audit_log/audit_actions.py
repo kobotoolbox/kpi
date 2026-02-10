@@ -38,6 +38,8 @@ class AuditAction(models.TextChoices):
     UNARCHIVE = 'unarchive'
     UNSHARE_FORM_PUBLICLY = 'unshare-form-publicly'
     UNSHARE_DATA_PUBLICLY = 'unshare-data-publicly'
+    UNVERIFY_AUTOMATIC_QA_DATA = 'unverify-automatic-qa-data'
+    UNVERIFY_MANUAL_QA_DATA = 'unverify-manual-qa-data'
     UPDATE = 'update'
     UPDATE_CONTENT = 'update-content'
     UPDATE_NAME = 'update-name'
@@ -45,3 +47,4 @@ class AuditAction(models.TextChoices):
     UPDATE_QA = 'update-qa'
     TRANSFER = 'transfer'
     VERIFY_AUTOMATIC_QA_DATA = 'verify-automatic-qa-data'
+    VERIFY_MANUAL_QA_DATA = 'verify-manual-qa-data'

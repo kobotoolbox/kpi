@@ -36,6 +36,7 @@ from kobo.apps.subsequences.models import QuestionAdvancedFeature, SubmissionSup
 from kobo.apps.subsequences.tests.constants import (
     FIXTURE_AUTOMATIC_QUAL_Q1_INTEGER_UUID,
     FIXTURE_AUTOMATIC_QUAL_Q2_INTEGER_UUID,
+    FIXTURE_MANUAL_QUAL_Q1_INTEGER_UUID,
 )
 from kobo.apps.subsequences.tests.utils import MockLLMClient, get_mock_claude_response
 from kpi.constants import (
@@ -2270,7 +2271,15 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             self.assertEqual(llm_info['input_tokens'], 10)
             self.assertEqual(llm_info['output_tokens'], 20)
 
-    def test_verify_automatic_qa_data(self):
+    @data(
+        # verify? , automatic?, expected action
+        (True, True, AuditAction.VERIFY_AUTOMATIC_QA_DATA),
+        (True, False, AuditAction.VERIFY_MANUAL_QA_DATA),
+        (False, True, AuditAction.UNVERIFY_AUTOMATIC_QA_DATA),
+        (False, False, AuditAction.UNVERIFY_MANUAL_QA_DATA),
+    )
+    @unpack
+    def test_verify_automatic_qa_data(self, verify, automatic, expected_action):
         instance, submission = self._add_submission('adminuser')
         submission = list(
             self.asset.deployment.get_submissions(
@@ -2291,25 +2300,32 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             },
         )
 
-        # add some "automatic" data
+        action = 'automatic_bedrock_qual' if automatic else 'manual_qual'
+        question_uuid = (
+            FIXTURE_AUTOMATIC_QUAL_Q1_INTEGER_UUID
+            if automatic
+            else FIXTURE_MANUAL_QUAL_Q1_INTEGER_UUID
+        )
+        # add a response
         with patch(
             'kobo.apps.subsequences.actions.automatic_bedrock_qual.boto3.client',
             return_value=MockLLMClient(5),
         ):
+            action_data = {'uuid': question_uuid}
+            if not automatic:
+                action_data['value'] = 2
             SubmissionSupplement.revise_data(
                 self.asset,
                 submission,
                 incoming_data={
                     '_version': '20250820',
                     'q1': {
-                        'automatic_bedrock_qual': {
-                            'uuid': FIXTURE_AUTOMATIC_QUAL_Q2_INTEGER_UUID
-                        },
+                        action: action_data,
                     },
                 },
             )
 
-        log_metadata = self._base_project_history_log_test(
+        self._base_project_history_log_test(
             url=reverse(
                 self._get_endpoint('submission-supplement'),
                 args=[self.asset.uid, submission['_uuid']],
@@ -2318,13 +2334,12 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             request_data={
                 '_version': '20250820',
                 'q1': {
-                    Action.AUTOMATIC_BEDROCK_QUAL: {
-                        'uuid': FIXTURE_AUTOMATIC_QUAL_Q2_INTEGER_UUID,
-                        'verified': True,
+                    action: {
+                        'uuid': question_uuid,
+                        'verified': verify,
                     }
                 },
             },
-            expected_action=AuditAction.VERIFY_AUTOMATIC_QA_DATA,
+            expected_action=expected_action,
             expected_subtype=PROJECT_HISTORY_LOG_PROJECT_SUBTYPE,
         )
-        assert log_metadata['llm']['verified']
