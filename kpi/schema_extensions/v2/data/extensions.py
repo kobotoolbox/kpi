@@ -546,6 +546,541 @@ class DataSupplementResponseExtension(
         return self._build_translation_schema(include_status=False)
 
 
+
+class DataSupplementalDetailsFieldExtension(
+    ComponentRegistrationMixin, OpenApiSerializerFieldExtension
+):
+    """
+    OpenAPI schema extension for DataResponse._supplementalDetails field.
+
+    Generates a oneOf union of all possible action types, enabling TypeScript
+    to generate proper union types instead of generic { [key: string]: unknown }.
+
+    Pattern based on DataSupplementResponseExtension.
+    """
+    target_class = 'kpi.schema_extensions.v2.data.fields.DataSupplementalDetailsField'
+
+    def map_serializer_field(self, auto_schema, direction):
+        """
+        Map the custom field to a oneOf union schema.
+
+        Returns an OpenAPI schema with oneOf containing all 5 action type schemas.
+        Each action schema is a named component for proper TypeScript generation.
+        """
+        return {
+            'oneOf': [
+                self._register_schema_component(
+                    auto_schema,
+                    'SupplementalDetailsManualTranscription',
+                    self._build_manual_transcription_schema(),
+                ),
+                self._register_schema_component(
+                    auto_schema,
+                    'SupplementalDetailsManualTranslation',
+                    self._build_manual_translation_schema(),
+                ),
+                self._register_schema_component(
+                    auto_schema,
+                    'SupplementalDetailsAutomaticTranscription',
+                    self._build_automatic_transcription_schema(),
+                ),
+                self._register_schema_component(
+                    auto_schema,
+                    'SupplementalDetailsAutomaticTranslation',
+                    self._build_automatic_translation_schema(),
+                ),
+                self._register_schema_component(
+                    auto_schema,
+                    'SupplementalDetailsManualQual',
+                    self._build_manual_qual_schema(),
+                ),
+                # Future: Add automatic_bedrock_qual when needed
+            ],
+            'nullable': True,  # Field is required=False
+            'description': (
+                'Action-specific supplemental data attached to this submission. '
+                'Structure varies by action type (transcription, translation, qual). '
+                'Top-level keys are question XPaths, values are action-specific objects.'
+            ),
+        }
+
+    def _build_manual_transcription_schema(self):
+        """
+        Schema for manual_transcription action.
+
+        Structure:
+        {
+            "question_xpath": {
+                "manual_transcription": {
+                    "_dateCreated": "2025-01-31T10:00:00Z",
+                    "_dateModified": "2025-01-31T10:00:00Z",
+                    "_versions": [
+                        {
+                            "_dateCreated": "2025-01-31T10:00:00Z",
+                            "_uuid": "550e8400-...",
+                            "_dateAccepted": "2025-01-31T10:05:00Z",
+                            "_data": {
+                                "language": "en",
+                                "locale": "en-US",
+                                "value": "Transcribed text here"
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+        """
+        # Version item schema
+        version_item = build_object_type(
+            additionalProperties=False,
+            properties={
+                '_dateCreated': GENERIC_DATETIME_SCHEMA,
+                '_uuid': GENERIC_UUID_SCHEMA,
+                '_dateAccepted': GENERIC_DATETIME_SCHEMA,  # Required for manual actions
+                '_data': build_object_type(
+                    additionalProperties=False,
+                    properties={
+                        'language': GENERIC_STRING_SCHEMA,
+                        'locale': GENERIC_STRING_SCHEMA,
+                        'value': {'type': 'string', 'nullable': True},
+                    },
+                    required=['language', 'value'],
+                ),
+            },
+            required=['_dateCreated', '_uuid', '_dateAccepted', '_data'],
+        )
+
+        # Action object schema
+        action_object = build_object_type(
+            additionalProperties=False,
+            properties={
+                '_dateCreated': GENERIC_DATETIME_SCHEMA,
+                '_dateModified': GENERIC_DATETIME_SCHEMA,
+                '_versions': build_array_type(schema=version_item, min_length=1),
+            },
+            required=['_dateCreated', '_dateModified', '_versions'],
+        )
+
+        # Root object: question xpath → action object
+        return build_object_type(
+            additionalProperties=build_object_type(
+                properties={
+                    'manual_transcription': action_object,
+                },
+                required=['manual_transcription'],
+            ),
+            description='Manual transcription supplemental details',
+        )
+
+    def _build_manual_translation_schema(self):
+        """
+        Schema for manual_translation action.
+
+        Structure:
+        {
+            "question_xpath": {
+                "manual_translation": {
+                    "en": {
+                        "_dateCreated": "2025-01-31T10:00:00Z",
+                        "_dateModified": "2025-01-31T10:00:00Z",
+                        "_versions": [
+                            {
+                                "_dateCreated": "2025-01-31T10:00:00Z",
+                                "_uuid": "550e8400-...",
+                                "_dateAccepted": "2025-01-31T10:05:00Z",
+                                "_dependency": {
+                                    "_actionId": "manual_transcription",
+                                    "_uuid": "16fd2706-..."
+                                },
+                                "_data": {
+                                    "language": "en",
+                                    "value": "Translated text"
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+        """
+        # Dependency schema (references source transcription)
+        dependency_schema = build_object_type(
+            additionalProperties=False,
+            properties={
+                '_actionId': GENERIC_STRING_SCHEMA,
+                '_uuid': GENERIC_UUID_SCHEMA,
+            },
+            required=['_actionId', '_uuid'],
+        )
+
+        # Version item schema
+        version_item = build_object_type(
+            additionalProperties=False,
+            properties={
+                '_dateCreated': GENERIC_DATETIME_SCHEMA,
+                '_uuid': GENERIC_UUID_SCHEMA,
+                '_dateAccepted': GENERIC_DATETIME_SCHEMA,
+                '_dependency': dependency_schema,
+                '_data': build_object_type(
+                    additionalProperties=False,
+                    properties={
+                        'language': GENERIC_STRING_SCHEMA,
+                        'locale': GENERIC_STRING_SCHEMA,
+                        'value': {'type': 'string', 'nullable': True},
+                    },
+                    required=['language', 'value'],
+                ),
+            },
+            required=['_dateCreated', '_uuid', '_dateAccepted', '_dependency', '_data'],
+        )
+
+        # Language-keyed action object (e.g., "en", "fr", "es")
+        language_action_object = build_object_type(
+            additionalProperties=False,
+            properties={
+                '_dateCreated': GENERIC_DATETIME_SCHEMA,
+                '_dateModified': GENERIC_DATETIME_SCHEMA,
+                '_versions': build_array_type(schema=version_item, min_length=1),
+            },
+            required=['_dateCreated', '_dateModified', '_versions'],
+        )
+
+        # Action container: additionalProperties = language-keyed objects
+        action_container = build_object_type(
+            additionalProperties=language_action_object,
+            description='Map of language codes to translation objects',
+        )
+
+        # Root object: question xpath → action container
+        return build_object_type(
+            additionalProperties=build_object_type(
+                properties={
+                    'manual_translation': action_container,
+                },
+                required=['manual_translation'],
+            ),
+            description='Manual translation supplemental details',
+        )
+
+    def _build_automatic_transcription_schema(self):
+        """
+        Schema for automatic_google_transcription action.
+
+        Includes status-aware validation (in_progress, complete, failed, deleted).
+
+        Structure similar to manual_transcription but _data includes status field
+        and conditional requirements based on status.
+        """
+        # Status-aware data schema: oneOf based on status
+        data_schema = {
+            'oneOf': [
+                # in_progress → no value, no error
+                build_object_type(
+                    additionalProperties=False,
+                    properties={
+                        'language': GENERIC_STRING_SCHEMA,
+                        'locale': GENERIC_STRING_SCHEMA,
+                        'status': {'type': 'string', 'const': 'in_progress'},
+                    },
+                    required=['language', 'status'],
+                ),
+                # failed → error required, no value
+                build_object_type(
+                    additionalProperties=False,
+                    properties={
+                        'language': GENERIC_STRING_SCHEMA,
+                        'locale': GENERIC_STRING_SCHEMA,
+                        'status': {'type': 'string', 'const': 'failed'},
+                        'error': {'type': 'string'},
+                    },
+                    required=['language', 'status', 'error'],
+                ),
+                # complete → value required (string), accepted optional
+                build_object_type(
+                    additionalProperties=False,
+                    properties={
+                        'language': GENERIC_STRING_SCHEMA,
+                        'locale': GENERIC_STRING_SCHEMA,
+                        'status': {'type': 'string', 'const': 'complete'},
+                        'value': {'type': 'string'},
+                        'accepted': {'type': 'boolean'},
+                    },
+                    required=['language', 'status', 'value'],
+                ),
+                # deleted → value required AND must be null
+                build_object_type(
+                    additionalProperties=False,
+                    properties={
+                        'language': GENERIC_STRING_SCHEMA,
+                        'locale': GENERIC_STRING_SCHEMA,
+                        'status': {'type': 'string', 'const': 'deleted'},
+                        'value': {'type': 'null'},
+                    },
+                    required=['language', 'status', 'value'],
+                ),
+            ]
+        }
+
+        # Version item schema
+        version_item = build_object_type(
+            additionalProperties=False,
+            properties={
+                '_dateCreated': GENERIC_DATETIME_SCHEMA,
+                '_uuid': GENERIC_UUID_SCHEMA,
+                '_dateAccepted': GENERIC_DATETIME_SCHEMA,  # Optional for automatic
+                '_data': data_schema,
+            },
+            required=['_dateCreated', '_uuid', '_data'],
+        )
+
+        # Action object schema
+        action_object = build_object_type(
+            additionalProperties=False,
+            properties={
+                '_dateCreated': GENERIC_DATETIME_SCHEMA,
+                '_dateModified': GENERIC_DATETIME_SCHEMA,
+                '_versions': build_array_type(schema=version_item, min_length=1),
+            },
+            required=['_dateCreated', '_dateModified', '_versions'],
+        )
+
+        # Root object: question xpath → action object
+        return build_object_type(
+            additionalProperties=build_object_type(
+                properties={
+                    'automatic_google_transcription': action_object,
+                },
+                required=['automatic_google_transcription'],
+            ),
+            description='Automatic Google transcription supplemental details',
+        )
+
+    def _build_automatic_translation_schema(self):
+        """
+        Schema for automatic_google_translation action.
+
+        Combines:
+        - Language-keyed structure (like manual_translation)
+        - Status-aware validation (like automatic_transcription)
+        - Dependency tracking
+        """
+        # Dependency schema
+        dependency_schema = build_object_type(
+            additionalProperties=False,
+            properties={
+                '_actionId': GENERIC_STRING_SCHEMA,
+                '_uuid': GENERIC_UUID_SCHEMA,
+            },
+            required=['_actionId', '_uuid'],
+        )
+
+        # Status-aware data schema (same as automatic_transcription)
+        data_schema = {
+            'oneOf': [
+                # in_progress
+                build_object_type(
+                    additionalProperties=False,
+                    properties={
+                        'language': GENERIC_STRING_SCHEMA,
+                        'locale': GENERIC_STRING_SCHEMA,
+                        'status': {'type': 'string', 'const': 'in_progress'},
+                    },
+                    required=['language', 'status'],
+                ),
+                # failed
+                build_object_type(
+                    additionalProperties=False,
+                    properties={
+                        'language': GENERIC_STRING_SCHEMA,
+                        'locale': GENERIC_STRING_SCHEMA,
+                        'status': {'type': 'string', 'const': 'failed'},
+                        'error': {'type': 'string'},
+                    },
+                    required=['language', 'status', 'error'],
+                ),
+                # complete
+                build_object_type(
+                    additionalProperties=False,
+                    properties={
+                        'language': GENERIC_STRING_SCHEMA,
+                        'locale': GENERIC_STRING_SCHEMA,
+                        'status': {'type': 'string', 'const': 'complete'},
+                        'value': {'type': 'string'},
+                        'accepted': {'type': 'boolean'},
+                    },
+                    required=['language', 'status', 'value'],
+                ),
+                # deleted
+                build_object_type(
+                    additionalProperties=False,
+                    properties={
+                        'language': GENERIC_STRING_SCHEMA,
+                        'locale': GENERIC_STRING_SCHEMA,
+                        'status': {'type': 'string', 'const': 'deleted'},
+                        'value': {'type': 'null'},
+                    },
+                    required=['language', 'status', 'value'],
+                ),
+            ]
+        }
+
+        # Version item schema
+        version_item = build_object_type(
+            additionalProperties=False,
+            properties={
+                '_dateCreated': GENERIC_DATETIME_SCHEMA,
+                '_uuid': GENERIC_UUID_SCHEMA,
+                '_dateAccepted': GENERIC_DATETIME_SCHEMA,  # Optional
+                '_dependency': dependency_schema,
+                '_data': data_schema,
+            },
+            required=['_dateCreated', '_uuid', '_dependency', '_data'],
+        )
+
+        # Language-keyed action object
+        language_action_object = build_object_type(
+            additionalProperties=False,
+            properties={
+                '_dateCreated': GENERIC_DATETIME_SCHEMA,
+                '_dateModified': GENERIC_DATETIME_SCHEMA,
+                '_versions': build_array_type(schema=version_item, min_length=1),
+            },
+            required=['_dateCreated', '_dateModified', '_versions'],
+        )
+
+        # Action container
+        action_container = build_object_type(
+            additionalProperties=language_action_object,
+            description='Map of language codes to automatic translation objects',
+        )
+
+        # Root object
+        return build_object_type(
+            additionalProperties=build_object_type(
+                properties={
+                    'automatic_google_translation': action_container,
+                },
+                required=['automatic_google_translation'],
+            ),
+            description='Automatic Google translation supplemental details',
+        )
+
+    def _build_manual_qual_schema(self):
+        """
+        Schema for manual_qual action.
+
+        Qual has 5 question subtypes:
+        - integer
+        - text
+        - select_one
+        - select_multiple
+        - tags
+
+        Each has different _data structure.
+        """
+
+        # Define data schemas for each qual type
+        qual_integer_data = build_object_type(
+            additionalProperties=False,
+            properties={
+                'uuid': GENERIC_UUID_SCHEMA,
+                'value': {'type': 'integer'},
+            },
+            required=['uuid', 'value'],
+        )
+
+        qual_text_data = build_object_type(
+            additionalProperties=False,
+            properties={
+                'uuid': GENERIC_UUID_SCHEMA,
+                'value': {'type': 'string'},
+            },
+            required=['uuid', 'value'],
+        )
+
+        qual_select_one_data = build_object_type(
+            additionalProperties=False,
+            properties={
+                'uuid': GENERIC_UUID_SCHEMA,
+                'value': {'type': 'string'},  # Name of selected option
+            },
+            required=['uuid', 'value'],
+        )
+
+        qual_select_multiple_data = build_object_type(
+            additionalProperties=False,
+            properties={
+                'uuid': GENERIC_UUID_SCHEMA,
+                'value': build_array_type(
+                    schema={'type': 'string'},
+                ),
+            },
+            required=['uuid', 'value'],
+        )
+
+        qual_tags_data = build_object_type(
+            additionalProperties=False,
+            properties={
+                'uuid': GENERIC_UUID_SCHEMA,
+                'value': build_array_type(
+                    schema={'type': 'string'},
+                ),
+            },
+            required=['uuid', 'value'],
+        )
+
+        # Combined oneOf for all qual types
+        qual_data_schema = {
+            'oneOf': [
+                qual_integer_data,
+                qual_text_data,
+                qual_select_one_data,
+                qual_select_multiple_data,
+                qual_tags_data,
+            ]
+        }
+
+        # Version item schema
+        version_item = build_object_type(
+            additionalProperties=False,
+            properties={
+                '_data': qual_data_schema,
+                '_dateAccepted': GENERIC_DATETIME_SCHEMA,
+                '_dateCreated': GENERIC_DATETIME_SCHEMA,
+                '_uuid': GENERIC_UUID_SCHEMA,
+            },
+            required=['_data', '_dateCreated', '_uuid'],
+        )
+
+        # UUID-keyed action object (qual questions are keyed by UUID)
+        uuid_action_object = build_object_type(
+            additionalProperties=False,
+            properties={
+                '_dateCreated': GENERIC_DATETIME_SCHEMA,
+                '_dateModified': GENERIC_DATETIME_SCHEMA,
+                '_versions': build_array_type(schema=version_item, min_length=1),
+            },
+            required=['_dateCreated', '_dateModified', '_versions'],
+        )
+
+        # Action container: additionalProperties = UUID-keyed objects
+        action_container = build_object_type(
+            additionalProperties=uuid_action_object,
+            description='Map of qual question UUIDs to qual response objects',
+        )
+
+        # Root object
+        return build_object_type(
+            additionalProperties=build_object_type(
+                properties={
+                    'manual_qual': action_container,
+                },
+                required=['manual_qual'],
+            ),
+            description='Manual qualitative analysis supplemental details',
+        )
+
+
 class DataValidationPayloadFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.data.fields.DataValidationPayloadField'
 
@@ -560,7 +1095,6 @@ class DataValidationPayloadFieldExtension(OpenApiSerializerFieldExtension):
                 },
             }
         )
-
 
 
 class DataSupplementalDetailsFieldExtension(OpenApiSerializerFieldExtension):
