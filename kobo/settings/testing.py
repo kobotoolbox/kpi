@@ -1,4 +1,3 @@
-# coding: utf-8
 import os
 
 from django.contrib.auth.management import DEFAULT_DB_ALIAS

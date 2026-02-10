@@ -171,6 +171,7 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'kobo.apps.openrosa.libs.utils.middleware.RestrictedAccessMiddleware',
+    'kpi.middleware.OpenAPIValidationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'kobo.apps.openrosa.libs.utils.middleware.HTTPResponseNotAllowedMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -2159,3 +2160,8 @@ VERSION_DELETION_BATCH_SIZE = 2000
 # Number of stuck tasks should be restarted at a time
 MAX_RESTARTED_TASKS = 100
 MAX_RESTARTED_TRANSFERS = 20
+
+
+OPENAPI_VALIDATION = True
+OPENAPI_VALIDATION_STRICT = True
+OPENAPI_SCHEMA_PATH = 'static/openapi/schema_v2.json'

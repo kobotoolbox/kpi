@@ -11,6 +11,10 @@ def create_project_history_log_middleware(get_response):
         if response.status_code == status.HTTP_404_NOT_FOUND:
             return response
         log_type = getattr(request, 'log_type', None)
+
+        if request.resolver_match is None:
+            return response
+
         url_name = request.resolver_match.url_name
 
         if (
