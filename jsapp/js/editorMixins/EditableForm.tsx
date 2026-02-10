@@ -203,7 +203,6 @@ export default function EditableForm(props: EditableFormProps) {
         // very start of the process.
         const newAsset = clonedeep(originalAsset)
 
-        console.log('xxx setState 1', state.asset, newAsset)
         setState((currentState) => ({
           ...currentState,
           asset: newAsset,
@@ -259,7 +258,6 @@ export default function EditableForm(props: EditableFormProps) {
   function loadAsideSettings() {
     const asideSettings = sessionStorage.getItem(ASIDE_CACHE_NAME)
     if (asideSettings) {
-      console.log('xxx setState 2', state.asset)
       setState((currentState) => ({
         ...currentState,
         ...JSON.parse(asideSettings),
@@ -276,7 +274,6 @@ export default function EditableForm(props: EditableFormProps) {
   }
 
   function onSurveyStateChanged(storeState: SurveyStateStoreData) {
-    console.log('xxx setState 3', state.asset)
     setState((currentState) => ({
       ...currentState,
       ...storeState,
@@ -289,7 +286,6 @@ export default function EditableForm(props: EditableFormProps) {
       settingsStyle = newStyle.value
     }
 
-    console.log('xxx setState 3.5')
     setState((currentState) => ({
       ...currentState,
       settings__style: settingsStyle,
@@ -305,7 +301,6 @@ export default function EditableForm(props: EditableFormProps) {
     if (!state.asset_updated !== update_states.UNSAVED_CHANGES) {
       preventClosingTab()
     }
-    console.log('xxx setState 4')
     setState((currentState) => ({
       ...currentState,
       asset_updated: update_states.UNSAVED_CHANGES,
@@ -313,7 +308,6 @@ export default function EditableForm(props: EditableFormProps) {
   }
 
   function preventClosingTab() {
-    console.log('xxx setState 5')
     setState((currentState) => ({
       ...currentState,
       preventNavigatingOut: true,
@@ -322,7 +316,6 @@ export default function EditableForm(props: EditableFormProps) {
   }
 
   function unpreventClosingTab() {
-    console.log('xxx setState 6')
     setState((currentState) => ({
       ...currentState,
       preventNavigatingOut: false,
@@ -331,7 +324,6 @@ export default function EditableForm(props: EditableFormProps) {
   }
 
   function nameChange(evt: React.ChangeEvent<HTMLInputElement>) {
-    console.log('xxx setState 7')
     setState((currentState) => ({
       ...currentState,
       name: assetUtils.removeInvalidChars(evt.target.value),
@@ -397,7 +389,6 @@ export default function EditableForm(props: EditableFormProps) {
     dataInterface
       .createAssetSnapshot(params)
       .done((content: AssetSnapshotResponse) => {
-        console.log('xxx setState 8')
         setState((currentState) => ({
           ...currentState,
           enketopreviewOverlay: content.enketopreviewlink,
@@ -410,7 +401,6 @@ export default function EditableForm(props: EditableFormProps) {
         } else {
           err = t('Unknown Enketo preview error')
         }
-        console.log('xxx setState 9')
         setState((currentState) => ({
           ...currentState,
           enketopreviewError: err,
@@ -474,7 +464,6 @@ export default function EditableForm(props: EditableFormProps) {
         .triggerAsync(uid, params)
         .then(() => {
           unpreventClosingTab()
-          console.log('xxx setState 10')
           setState((currentState) => ({
             ...currentState,
             asset_updated: update_states.UP_TO_DATE,
@@ -496,7 +485,6 @@ export default function EditableForm(props: EditableFormProps) {
           }
           dialog.set(opts).show()
 
-          console.log('xxx setState 11')
           setState((currentState) => ({
             ...currentState,
             surveySaveFail: true,
@@ -504,7 +492,6 @@ export default function EditableForm(props: EditableFormProps) {
           }))
         })
     }
-    console.log('xxx setState 12')
     setState((currentState) => ({
       ...currentState,
       asset_updated: update_states.PENDING_UPDATE,
@@ -551,7 +538,6 @@ export default function EditableForm(props: EditableFormProps) {
       asideLayoutSettingsVisible: false,
       asideLibrarySearchVisible: !state.asideLibrarySearchVisible,
     }
-    console.log('xxx setState 13', state.asset)
     setState((currentState) => ({
       ...currentState,
       ...asideSettings,
@@ -565,7 +551,6 @@ export default function EditableForm(props: EditableFormProps) {
       asideLayoutSettingsVisible: !state.asideLayoutSettingsVisible,
       asideLibrarySearchVisible: false,
     }
-    console.log('xxx setState 14')
     setState((currentState) => ({
       ...currentState,
       ...asideSettings,
@@ -574,7 +559,6 @@ export default function EditableForm(props: EditableFormProps) {
   }
 
   function hidePreview() {
-    console.log('xxx setState 15')
     setState((currentState) => ({
       ...currentState,
       enketopreviewOverlay: undefined,
@@ -582,7 +566,6 @@ export default function EditableForm(props: EditableFormProps) {
   }
 
   function hideCascade() {
-    console.log('xxx setState 16')
     setState((currentState) => ({
       ...currentState,
       showCascadePopup: false,
@@ -661,7 +644,6 @@ export default function EditableForm(props: EditableFormProps) {
       survey.on('change', onSurveyChange)
     }
 
-    console.log('xxx setState 17', state.asset)
     setState((currentState) => ({
       ...currentState,
       ...newState,
@@ -669,7 +651,6 @@ export default function EditableForm(props: EditableFormProps) {
   }
 
   function clearPreviewError() {
-    console.log('xxx setState 18')
     setState((currentState) => ({
       ...currentState,
       enketopreviewError: undefined,
@@ -907,7 +888,6 @@ export default function EditableForm(props: EditableFormProps) {
         m='auto'
         closeButtonLabel={t('Dismiss')}
         onClose={() => {
-          console.log('xxx setState 19')
           setState((currentState) => ({
             ...currentState,
             isBackgroundAudioBannerDismissed: true,
@@ -1069,7 +1049,6 @@ export default function EditableForm(props: EditableFormProps) {
     var lastSelectedRow = last(app?.selectedRows()),
       lastSelectedRowIndex = lastSelectedRow ? app?.survey.rows.indexOf(lastSelectedRow) : -1
 
-    console.log('xxx setState 20')
     setState((currentState) => ({
       ...currentState,
       showCascadePopup: !state.showCascadePopup,
@@ -1079,7 +1058,6 @@ export default function EditableForm(props: EditableFormProps) {
   }
 
   function cancelCascade() {
-    console.log('xxx setState 21')
     setState((currentState) => ({
       ...currentState,
       cascadeReady: false,
@@ -1144,7 +1122,6 @@ export default function EditableForm(props: EditableFormProps) {
         message: errObject.message,
       }
     }
-    console.log('xxx setState 22')
     setState((currentState) => ({
       ...currentState,
       ...s,
@@ -1199,8 +1176,6 @@ export default function EditableForm(props: EditableFormProps) {
   }
 
   var docTitle = state.name || t('Untitled')
-
-  console.log('xxx beforerender state asset', state.asset)
 
   if (!state.isNewAsset && !state.asset) {
     return (
