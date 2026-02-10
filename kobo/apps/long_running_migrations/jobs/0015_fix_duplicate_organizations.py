@@ -84,7 +84,7 @@ def run():
         for org_user in org_user_rows:
             user_to_orgs[org_user.user_id].append(org_user.organization)
 
-        for uid, orgs in user_to_orgs.items():
+        for user_id, orgs in user_to_orgs.items():
             mmos = [org for org in orgs if is_effective_mmo(org)]
             if mmos:
                 keep = get_newest_org(mmos)
@@ -98,14 +98,16 @@ def run():
             to_remove = [org for org in orgs if org.id != keep.id]
 
             # Transfer asset if the user is not the owner of the kept org
-            if keep.owner_user_object.pk != uid:
-                transfer_member_data_ownership_to_org(uid)
+            if keep.owner_user_object.pk != user_id:
+                transfer_member_data_ownership_to_org(user_id)
 
             for org in to_remove:
                 with transaction.atomic():
-                    revoke_org_asset_perms(org, [uid])
+                    if org.owner_user_object.pk != user_id:
+                        revoke_org_asset_perms(org, [user_id])
+
                     OrganizationUser.objects.filter(
-                        organization_id=org.id, user_id=uid
+                        organization_id=org.id, user_id=user_id
                     ).delete()
 
                     # If no members remain, delete the organization
@@ -114,7 +116,9 @@ def run():
                             organization_id=org.id
                         ).delete()
                         org.delete()
-                        logging.info(f'Deleted organization {org.id} for user {uid}')
+                        logging.info(
+                            f'Deleted organization {org.id} for user {user_id}'
+                        )
 
             # Ensure MMO status is consistent for multi-member orgs
             if keep.mmo_override is False and keep.organization_users.count() > 1:

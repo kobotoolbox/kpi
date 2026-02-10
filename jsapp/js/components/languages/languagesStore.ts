@@ -8,6 +8,7 @@ import type { FailResponse } from '#/dataInterface'
  * around, than vague "string".
  */
 export type LanguageCode = string
+export type LocaleCode = string
 
 export type TransxServiceCode = string
 

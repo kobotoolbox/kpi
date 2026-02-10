@@ -3,7 +3,7 @@ import os
 import string
 import subprocess
 import warnings
-from datetime import datetime, timedelta
+from datetime import timedelta
 from mimetypes import add_type
 from urllib.parse import quote_plus
 
@@ -16,7 +16,6 @@ from django.utils.translation import get_language_info
 from django.utils.translation import gettext_lazy as t
 from pymongo import MongoClient
 
-from kobo.apps.stripe.constants import FREE_TIER_EMPTY_DISPLAY, FREE_TIER_NO_THRESHOLDS
 from kpi.constants import PERM_DELETE_ASSET, PERM_MANAGE_ASSET
 from kpi.utils.json import LazyJSONSerializable
 
@@ -180,6 +179,7 @@ MIDDLEWARE = [
     'django_userforeignkey.middleware.UserForeignKeyMiddleware',
     'django_request_cache.middleware.RequestCacheMiddleware',
     'author.middlewares.AuthorDefaultBackendMiddleware',
+    'hub.middleware.V1AccessLoggingMiddleware',
 ]
 
 
@@ -437,26 +437,6 @@ CONSTANCE_CONFIG = {
         'Number of days to keep submission history',
         'positive_int',
     ),
-    'FREE_TIER_THRESHOLDS': (
-        LazyJSONSerializable(FREE_TIER_NO_THRESHOLDS),
-        'Free tier thresholds: storage in kilobytes, '
-        'data (number of submissions), '
-        'minutes of transcription, '
-        'number of translation characters',
-        # Use custom field for schema validation
-        'free_tier_threshold_jsonschema',
-    ),
-    'FREE_TIER_DISPLAY': (
-        LazyJSONSerializable(FREE_TIER_EMPTY_DISPLAY),
-        'Free tier frontend settings: name to use for the free tier, '
-        'array of text strings to display on the feature list of the Plans page',
-        'free_tier_display_jsonschema',
-    ),
-    'FREE_TIER_CUTOFF_DATE': (
-        datetime(2050, 1, 1).date(),
-        'Users on the free tier who registered before this date will\n'
-        'use the custom plan defined by FREE_TIER_DISPLAY and FREE_TIER_LIMITS.',
-    ),
     'PROJECT_TRASH_RETENTION': (
         7,
         'Number of days to keep projects in trash after users (soft-)deleted '
@@ -676,14 +656,6 @@ CONSTANCE_CONFIG = {
 }
 
 CONSTANCE_ADDITIONAL_FIELDS = {
-    'free_tier_threshold_jsonschema': [
-        'kpi.fields.jsonschema_form_field.FreeTierThresholdField',
-        {'widget': 'django.forms.Textarea'},
-    ],
-    'free_tier_display_jsonschema': [
-        'kpi.fields.jsonschema_form_field.FreeTierDisplayField',
-        {'widget': 'django.forms.Textarea'},
-    ],
     'i18n_text_jsonfield_schema': [
         'kpi.fields.jsonschema_form_field.I18nTextJSONField',
         {'widget': 'django.forms.Textarea'},
@@ -810,11 +782,6 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'IMPORT_TASK_DAYS_RETENTION',
         'SUBMISSION_HISTORY_RETENTION',
     ),
-    'Tier settings': (
-        'FREE_TIER_THRESHOLDS',
-        'FREE_TIER_DISPLAY',
-        'FREE_TIER_CUTOFF_DATE',
-    ),
 }
 
 # Tell django-constance to use a database model instead of Redis
@@ -929,9 +896,12 @@ USE_TZ = True
 
 CAN_LOGIN_AS = lambda request, target_user: request.user.is_superuser
 
-# Impose a limit on the number of records returned by the submission list
-# endpoint. This overrides any `?limit=` query parameter sent by a client
-SUBMISSION_LIST_LIMIT = 1000
+# Default page size when no limit is specified in API requests.
+# Currently for submission lists only, but naming is future-proof for all endpoints
+DEFAULT_API_PAGE_SIZE = env.int('DEFAULT_API_PAGE_SIZE', 100)
+# Maximum page size for API responses. Currently applies to submission lists only,
+# but will likely be extended to all endpoints in the future
+MAX_API_PAGE_SIZE = env.int('MAX_API_PAGE_SIZE', 1000)
 
 # uWSGI, NGINX, etc. allow only a limited amount of time to process a request.
 # Set this value to match their limits
@@ -1060,6 +1030,8 @@ SPECTACULAR_SETTINGS = {
         'StripePriceType': 'kpi.schema_extensions.v2.stripe.schema.PRICE_TYPE_ENUM',
         'StripeIntervalEnum': 'kpi.schema_extensions.v2.stripe.schema.INTERVAL_ENUM',
         'StripeUsageType': 'kpi.schema_extensions.v2.stripe.schema.USAGE_TYPE_ENUM',
+        'QualSimpleQuestionParamsTypeEnum': 'kpi.schema_extensions.v2.subsequences.schema.SIMPLE_QUESTION_TYPE_ENUM',  # noqa
+        'QualSelectQuestionParamsTypeEnum': 'kpi.schema_extensions.v2.subsequences.schema.SELECT_QUESTION_TYPE_ENUM',  # noqa
     },
     # We only want to blacklist BasicHTMLRenderer, but nothing like RENDERER_WHITELIST
     # exists 🤦
@@ -1544,7 +1516,7 @@ CELERY_BEAT_SCHEDULE = {
         'description': (
             'Unlock accounts locked by `sync_storage_counters` task'
         ),
-        'options': {'queue': 'kpi_low_priority_queue'},
+        'options': {'queue': 'kpi_long_running_tasks_queue'},
     },
     'sync-storage-counters': {
         'task': 'kobo.apps.openrosa.apps.logger.tasks.sync_storage_counters',
@@ -1552,7 +1524,7 @@ CELERY_BEAT_SCHEDULE = {
         'description': (
             'Synchronize out of sync attachment storage bytes of profile and projects'
         ),
-        'options': {'queue': 'kpi_low_priority_queue'},
+        'options': {'queue': 'kpi_long_running_tasks_queue'},
     },
 }
 
@@ -1686,6 +1658,7 @@ if MASS_EMAILS_CONDENSE_SEND:
 if env.str('AWS_ACCESS_KEY_ID', False):
     AWS_ACCESS_KEY_ID = env.str('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = env.str('AWS_SECRET_ACCESS_KEY')
+    AWS_BEDROCK_REGION_NAME = env.str('AWS_BEDROCK_REGION_NAME', None)
     AWS_SES_REGION_NAME = env.str('AWS_SES_REGION_NAME', None)
     AWS_SES_REGION_ENDPOINT = env.str('AWS_SES_REGION_ENDPOINT', None)
 
@@ -2177,6 +2150,7 @@ IMPORT_EXPORT_CELERY_STORAGE_ALIAS = 'import_export_celery'
 ORG_INVITATION_RESENT_RESET_AFTER = 15 * 60  # in seconds
 
 # Batch sizes
+DEFAULT_BATCH_SIZE = 1000
 LOG_DELETION_BATCH_SIZE = 1000
 USER_ASSET_ORG_TRANSFER_BATCH_SIZE = 1000
 SUBMISSION_DELETION_BATCH_SIZE = 1000

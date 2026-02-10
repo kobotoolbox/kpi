@@ -9,6 +9,7 @@ import { MenuThemeKobo } from './Menu'
 import { ModalThemeKobo } from './Modal'
 import { NumberInputThemeKobo } from './NumberInput'
 import { PaperThemeKobo } from './Paper'
+import { RadioThemeKobo } from './Radio'
 import { SelectThemeKobo } from './Select'
 import { TableThemeKobo } from './Table'
 import { TagsInputThemeKobo } from './TagsInput'
@@ -125,5 +126,6 @@ export const themeKobo = createTheme({
     ThemeIcon: ThemeIconThemeKobo,
     NumberInput: NumberInputThemeKobo,
     Paper: PaperThemeKobo,
+    Radio: RadioThemeKobo,
   },
 })

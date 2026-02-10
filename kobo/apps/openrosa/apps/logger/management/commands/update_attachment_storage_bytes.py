@@ -9,13 +9,11 @@ from django.db.models import OuterRef, Subquery, Sum, Value
 from django.db.models.functions import Coalesce
 from django_redis import get_redis_connection
 
-from kobo.apps.openrosa.apps.logger.constants import (
-    SUBMISSIONS_SUSPENDED_HEARTBEAT_KEY
-)
+from kobo.apps.openrosa.apps.logger.constants import SUBMISSIONS_SUSPENDED_HEARTBEAT_KEY
 from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kobo.apps.openrosa.apps.main.models.user_profile import UserProfile
-from kobo.apps.openrosa.libs.utils.jsonbfield_helper import ReplaceValues
+from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
 
 
 class Command(BaseCommand):
@@ -111,7 +109,7 @@ class Command(BaseCommand):
 
         for user in user_queryset.iterator(chunk_size=chunks):
 
-            # Retrieve all user' xforms (even the soft-deleted ones)
+            # Retrieve all user's xforms (even the soft-deleted ones)
             user_xforms = (
                 XForm.all_objects.filter(user_id=user.pk)
                 .values('pk', 'attachment_storage_bytes')
@@ -206,6 +204,9 @@ class Command(BaseCommand):
         return users.order_by('pk')
 
     def _heartbeat(self, user: settings.AUTH_USER_MODEL):
+        if self._verbosity > 2:
+            self.stdout.write(f'Heartbeat for user `{user.username}`...')
+
         self._redis_client.hset(
             SUBMISSIONS_SUSPENDED_HEARTBEAT_KEY, mapping={
                 user.username: int(time.time())
@@ -300,7 +301,7 @@ class Command(BaseCommand):
 
         UserProfile.objects.filter(user_id=user.pk).update(
             attachment_storage_bytes=Coalesce(Subquery(subquery), Value(0)),
-            metadata=ReplaceValues(
+            metadata=UpdateJSONFieldAttributes(
                 'metadata',
                 updates=updates,
             ),

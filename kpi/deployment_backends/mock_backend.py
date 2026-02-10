@@ -19,6 +19,9 @@ from .openrosa_backend import OpenRosaDeploymentBackend
 
 class MockDeploymentBackend(OpenRosaDeploymentBackend):
 
+    def create_enketo_survey_links_for_single_data_collector(self, token):
+        pass
+
     @property
     def enketo_id(self):
         return 'self'
@@ -142,10 +145,7 @@ class MockDeploymentBackend(OpenRosaDeploymentBackend):
             if assign_perm:
                 self.asset.remove_perm(request.user, PERM_ADD_SUBMISSIONS)
 
-    def remove_data_collector_enketo_links(self, token):
-        pass
-
-    def set_data_collector_enketo_links(self, token):
+    def remove_enketo_links_for_single_data_collector(self, token):
         pass
 
     def set_namespace(self, namespace):

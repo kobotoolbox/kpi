@@ -19,6 +19,12 @@ import type {
   UseQueryResult,
 } from '@tanstack/react-query'
 
+import type { AdvancedFeatureCreateResponse } from '../models/advancedFeatureCreateResponse'
+
+import type { AdvancedFeaturePostRequest } from '../models/advancedFeaturePostRequest'
+
+import type { AdvancedFeatureResponse } from '../models/advancedFeatureResponse'
+
 import type { AssetsDataAttachmentsListParams } from '../models/assetsDataAttachmentsListParams'
 
 import type { AssetsDataListParams } from '../models/assetsDataListParams'
@@ -46,6 +52,8 @@ import type { DataBulkUpdateResponse } from '../models/dataBulkUpdateResponse'
 import type { DataResponse } from '../models/dataResponse'
 
 import type { DataStatusesUpdate } from '../models/dataStatusesUpdate'
+
+import type { DataSupplementResponse } from '../models/dataSupplementResponse'
 
 import type { DataValidationStatusUpdateResponse } from '../models/dataValidationStatusUpdateResponse'
 
@@ -83,7 +91,11 @@ import type { PairedData } from '../models/pairedData'
 
 import type { PairedDataResponse } from '../models/pairedDataResponse'
 
+import type { PatchedAdvancedFeaturePatchRequest } from '../models/patchedAdvancedFeaturePatchRequest'
+
 import type { PatchedDataBulkUpdate } from '../models/patchedDataBulkUpdate'
+
+import type { PatchedDataSupplementPayload } from '../models/patchedDataSupplementPayload'
 
 import type { PatchedDataValidationStatusUpdatePayload } from '../models/patchedDataValidationStatusUpdatePayload'
 
@@ -116,6 +128,423 @@ type NonReadonly<T> = [T] extends [UnionToIntersection<T>]
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
+/**
+ * ## List all advanced features on an asset
+
+Lists all advanced features on all questions in an asset. Examples show one type at a time, but the response may contain multiple advanced features items.
+
+ */
+export type assetsAdvancedFeaturesListResponse200 = {
+  data: AdvancedFeatureResponse[]
+  status: 200
+}
+
+export type assetsAdvancedFeaturesListResponse404 = {
+  data: ErrorDetail
+  status: 404
+}
+
+export type assetsAdvancedFeaturesListResponseComposite =
+  | assetsAdvancedFeaturesListResponse200
+  | assetsAdvancedFeaturesListResponse404
+
+export type assetsAdvancedFeaturesListResponse = assetsAdvancedFeaturesListResponseComposite & {
+  headers: Headers
+}
+
+export const getAssetsAdvancedFeaturesListUrl = (uidAsset: string) => {
+  return `/api/v2/assets/${uidAsset}/advanced-features/`
+}
+
+export const assetsAdvancedFeaturesList = async (
+  uidAsset: string,
+  options?: RequestInit,
+): Promise<assetsAdvancedFeaturesListResponse> => {
+  return fetchWithAuth<assetsAdvancedFeaturesListResponse>(getAssetsAdvancedFeaturesListUrl(uidAsset), {
+    ...options,
+    method: 'GET',
+  })
+}
+
+export const getAssetsAdvancedFeaturesListQueryKey = (uidAsset: string) => {
+  return ['api', 'v2', 'assets', uidAsset, 'advanced-features'] as const
+}
+
+export const getAssetsAdvancedFeaturesListQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetsAdvancedFeaturesList>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsAdvancedFeaturesList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getAssetsAdvancedFeaturesListQueryKey(uidAsset)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsAdvancedFeaturesList>>> = ({ signal }) =>
+    assetsAdvancedFeaturesList(uidAsset, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: !!uidAsset, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsAdvancedFeaturesList>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type AssetsAdvancedFeaturesListQueryResult = NonNullable<Awaited<ReturnType<typeof assetsAdvancedFeaturesList>>>
+export type AssetsAdvancedFeaturesListQueryError = ErrorDetail
+
+export function useAssetsAdvancedFeaturesList<
+  TData = Awaited<ReturnType<typeof assetsAdvancedFeaturesList>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsAdvancedFeaturesList>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAssetsAdvancedFeaturesListQueryOptions(uidAsset, options)
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
+/**
+ * ## Add an advanced action to an asset
+
+Enables a new type of advanced action on a question in the asset.
+* `action`, `params`, and `question_xpath` are required
+* `params` must match the expected param_schema of the `action`
+
+Accepted `action`s include:
+* `manual_transcription`
+* `automatic_google_transcription`
+* `manual_translation`
+* `automatic_google_translation`
+* `manual_qual`
+
+
+ */
+export type assetsAdvancedFeaturesCreateResponse201 = {
+  data: AdvancedFeatureCreateResponse
+  status: 201
+}
+
+export type assetsAdvancedFeaturesCreateResponse400 = {
+  data: ErrorObject
+  status: 400
+}
+
+export type assetsAdvancedFeaturesCreateResponse404 = {
+  data: ErrorDetail
+  status: 404
+}
+
+export type assetsAdvancedFeaturesCreateResponseComposite =
+  | assetsAdvancedFeaturesCreateResponse201
+  | assetsAdvancedFeaturesCreateResponse400
+  | assetsAdvancedFeaturesCreateResponse404
+
+export type assetsAdvancedFeaturesCreateResponse = assetsAdvancedFeaturesCreateResponseComposite & {
+  headers: Headers
+}
+
+export const getAssetsAdvancedFeaturesCreateUrl = (uidAsset: string) => {
+  return `/api/v2/assets/${uidAsset}/advanced-features/`
+}
+
+export const assetsAdvancedFeaturesCreate = async (
+  uidAsset: string,
+  advancedFeaturePostRequest: AdvancedFeaturePostRequest,
+  options?: RequestInit,
+): Promise<assetsAdvancedFeaturesCreateResponse> => {
+  return fetchWithAuth<assetsAdvancedFeaturesCreateResponse>(getAssetsAdvancedFeaturesCreateUrl(uidAsset), {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(advancedFeaturePostRequest),
+  })
+}
+
+export const getAssetsAdvancedFeaturesCreateMutationOptions = <
+  TError = ErrorObject | ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsAdvancedFeaturesCreate>>,
+    TError,
+    { uidAsset: string; data: AdvancedFeaturePostRequest },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof assetsAdvancedFeaturesCreate>>,
+  TError,
+  { uidAsset: string; data: AdvancedFeaturePostRequest },
+  TContext
+> => {
+  const mutationKey = ['assetsAdvancedFeaturesCreate']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof assetsAdvancedFeaturesCreate>>,
+    { uidAsset: string; data: AdvancedFeaturePostRequest }
+  > = (props) => {
+    const { uidAsset, data } = props ?? {}
+
+    return assetsAdvancedFeaturesCreate(uidAsset, data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type AssetsAdvancedFeaturesCreateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof assetsAdvancedFeaturesCreate>>
+>
+export type AssetsAdvancedFeaturesCreateMutationBody = AdvancedFeaturePostRequest
+export type AssetsAdvancedFeaturesCreateMutationError = ErrorObject | ErrorDetail
+
+export const useAssetsAdvancedFeaturesCreate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsAdvancedFeaturesCreate>>,
+    TError,
+    { uidAsset: string; data: AdvancedFeaturePostRequest },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getAssetsAdvancedFeaturesCreateMutationOptions(options)
+
+  return useMutation(mutationOptions)
+}
+/**
+ * ## Retrieve advanced feature configuration for a question on an asset
+
+Gets the params for one advanced action for one question in an asset
+
+ */
+export type assetsAdvancedFeaturesRetrieveResponse200 = {
+  data: AdvancedFeatureResponse
+  status: 200
+}
+
+export type assetsAdvancedFeaturesRetrieveResponse404 = {
+  data: ErrorDetail
+  status: 404
+}
+
+export type assetsAdvancedFeaturesRetrieveResponseComposite =
+  | assetsAdvancedFeaturesRetrieveResponse200
+  | assetsAdvancedFeaturesRetrieveResponse404
+
+export type assetsAdvancedFeaturesRetrieveResponse = assetsAdvancedFeaturesRetrieveResponseComposite & {
+  headers: Headers
+}
+
+export const getAssetsAdvancedFeaturesRetrieveUrl = (uidAsset: string, uidAdvancedFeature: string) => {
+  return `/api/v2/assets/${uidAsset}/advanced-features/${uidAdvancedFeature}/`
+}
+
+export const assetsAdvancedFeaturesRetrieve = async (
+  uidAsset: string,
+  uidAdvancedFeature: string,
+  options?: RequestInit,
+): Promise<assetsAdvancedFeaturesRetrieveResponse> => {
+  return fetchWithAuth<assetsAdvancedFeaturesRetrieveResponse>(
+    getAssetsAdvancedFeaturesRetrieveUrl(uidAsset, uidAdvancedFeature),
+    {
+      ...options,
+      method: 'GET',
+    },
+  )
+}
+
+export const getAssetsAdvancedFeaturesRetrieveQueryKey = (uidAsset: string, uidAdvancedFeature: string) => {
+  return ['api', 'v2', 'assets', uidAsset, 'advanced-features', uidAdvancedFeature] as const
+}
+
+export const getAssetsAdvancedFeaturesRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetsAdvancedFeaturesRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  uidAdvancedFeature: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsAdvancedFeaturesRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getAssetsAdvancedFeaturesRetrieveQueryKey(uidAsset, uidAdvancedFeature)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsAdvancedFeaturesRetrieve>>> = ({ signal }) =>
+    assetsAdvancedFeaturesRetrieve(uidAsset, uidAdvancedFeature, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: !!(uidAsset && uidAdvancedFeature), ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsAdvancedFeaturesRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type AssetsAdvancedFeaturesRetrieveQueryResult = NonNullable<
+  Awaited<ReturnType<typeof assetsAdvancedFeaturesRetrieve>>
+>
+export type AssetsAdvancedFeaturesRetrieveQueryError = ErrorDetail
+
+export function useAssetsAdvancedFeaturesRetrieve<
+  TData = Awaited<ReturnType<typeof assetsAdvancedFeaturesRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidAsset: string,
+  uidAdvancedFeature: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsAdvancedFeaturesRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAssetsAdvancedFeaturesRetrieveQueryOptions(uidAsset, uidAdvancedFeature, options)
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
+/**
+ * ## Update an advanced action on an asset
+
+Update the params of an advanced action on a question in the asset.
+`params` are always additive. That means that if you PATCH a feature with a new param array, the new ones
+will be added to the existing ones. You cannot delete a param via the API.
+
+In the case of NLP actions, this means you can only add languages, not delete.
+In the case of QA analysis questions, you should send the full set questions and choices in the desired order. Any existing
+choices or questions in the existing params not present in the new ones will be marked as deleted, but not actually removed from the data.
+Deleted questions and choices will be placed at the end of the relevant list.
+
+* `params` is required
+* `params` must match the expected param_schema of the action being updated
+
+
+
+ */
+export type assetsAdvancedFeaturesPartialUpdateResponse200 = {
+  data: AdvancedFeatureResponse
+  status: 200
+}
+
+export type assetsAdvancedFeaturesPartialUpdateResponse400 = {
+  data: ErrorObject
+  status: 400
+}
+
+export type assetsAdvancedFeaturesPartialUpdateResponse404 = {
+  data: ErrorDetail
+  status: 404
+}
+
+export type assetsAdvancedFeaturesPartialUpdateResponseComposite =
+  | assetsAdvancedFeaturesPartialUpdateResponse200
+  | assetsAdvancedFeaturesPartialUpdateResponse400
+  | assetsAdvancedFeaturesPartialUpdateResponse404
+
+export type assetsAdvancedFeaturesPartialUpdateResponse = assetsAdvancedFeaturesPartialUpdateResponseComposite & {
+  headers: Headers
+}
+
+export const getAssetsAdvancedFeaturesPartialUpdateUrl = (uidAsset: string, uidAdvancedFeature: string) => {
+  return `/api/v2/assets/${uidAsset}/advanced-features/${uidAdvancedFeature}/`
+}
+
+export const assetsAdvancedFeaturesPartialUpdate = async (
+  uidAsset: string,
+  uidAdvancedFeature: string,
+  patchedAdvancedFeaturePatchRequest: PatchedAdvancedFeaturePatchRequest,
+  options?: RequestInit,
+): Promise<assetsAdvancedFeaturesPartialUpdateResponse> => {
+  return fetchWithAuth<assetsAdvancedFeaturesPartialUpdateResponse>(
+    getAssetsAdvancedFeaturesPartialUpdateUrl(uidAsset, uidAdvancedFeature),
+    {
+      ...options,
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(patchedAdvancedFeaturePatchRequest),
+    },
+  )
+}
+
+export const getAssetsAdvancedFeaturesPartialUpdateMutationOptions = <
+  TError = ErrorObject | ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsAdvancedFeaturesPartialUpdate>>,
+    TError,
+    { uidAsset: string; uidAdvancedFeature: string; data: PatchedAdvancedFeaturePatchRequest },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof assetsAdvancedFeaturesPartialUpdate>>,
+  TError,
+  { uidAsset: string; uidAdvancedFeature: string; data: PatchedAdvancedFeaturePatchRequest },
+  TContext
+> => {
+  const mutationKey = ['assetsAdvancedFeaturesPartialUpdate']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof assetsAdvancedFeaturesPartialUpdate>>,
+    { uidAsset: string; uidAdvancedFeature: string; data: PatchedAdvancedFeaturePatchRequest }
+  > = (props) => {
+    const { uidAsset, uidAdvancedFeature, data } = props ?? {}
+
+    return assetsAdvancedFeaturesPartialUpdate(uidAsset, uidAdvancedFeature, data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type AssetsAdvancedFeaturesPartialUpdateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof assetsAdvancedFeaturesPartialUpdate>>
+>
+export type AssetsAdvancedFeaturesPartialUpdateMutationBody = PatchedAdvancedFeaturePatchRequest
+export type AssetsAdvancedFeaturesPartialUpdateMutationError = ErrorObject | ErrorDetail
+
+export const useAssetsAdvancedFeaturesPartialUpdate = <
+  TError = ErrorObject | ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsAdvancedFeaturesPartialUpdate>>,
+    TError,
+    { uidAsset: string; uidAdvancedFeature: string; data: PatchedAdvancedFeaturePatchRequest },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getAssetsAdvancedFeaturesPartialUpdateMutationOptions(options)
+
+  return useMutation(mutationOptions)
+}
 /**
  * ## Delete a specific attachment of an Asset
 
@@ -351,7 +780,7 @@ curl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid}/data/
 Two parameters can be used to control pagination.
 
 * `start`: Index (zero-based) from which the results start
-* `limit`: Number of results per page <span class='label label-warning'>Maximum results per page is **1000**</span>
+* `limit`: Number of results per page <span class='label label-warning'>Maximum results per page cannot exceed  **1000**, unless changed by server configuration</span>
 
 ```shell
 curl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid}/data/?start=0&limit=10
@@ -394,7 +823,6 @@ This means that while alternative formats (like XML) are technically supported a
 
 We’ve still included the header to show supported formats, but keep in mind:
 **Only `application/json` will be used in the docs UI.**
-
 
  */
 export type assetsDataListResponse200 = {
@@ -1636,6 +2064,246 @@ export const useAssetsDataValidationStatusDestroy = <TError = ErrorDetail, TCont
   request?: SecondParameter<typeof fetchWithAuth>
 }) => {
   const mutationOptions = getAssetsDataValidationStatusDestroyMutationOptions(options)
+
+  return useMutation(mutationOptions)
+}
+/**
+ * ## Retrieve submission supplementary data
+
+This endpoint allows you to retrieve supplementary data attached to a submission.
+
+The supplementary data may include:
+
+* NLP actions
+  * Manual transcription
+  * Manual translation
+  * Automatic Google transcription
+  * Automatic Google translation
+* Qualitative analysis
+  * Text
+  * Number
+  * Single Choice
+  * Multiple Choice
+  * Tags
+
+⚠️ The response examples in this documentation show each action in isolation for
+readability.
+
+In practice, multiple actions can be combined for the same question, and a single
+submission may contain multiple questions.
+
+ */
+export type assetsDataSupplementRetrieveResponse200 = {
+  data: DataSupplementResponse
+  status: 200
+}
+
+export type assetsDataSupplementRetrieveResponse400 = {
+  data: ErrorObject
+  status: 400
+}
+
+export type assetsDataSupplementRetrieveResponse401 = {
+  data: ErrorDetail
+  status: 401
+}
+
+export type assetsDataSupplementRetrieveResponseComposite =
+  | assetsDataSupplementRetrieveResponse200
+  | assetsDataSupplementRetrieveResponse400
+  | assetsDataSupplementRetrieveResponse401
+
+export type assetsDataSupplementRetrieveResponse = assetsDataSupplementRetrieveResponseComposite & {
+  headers: Headers
+}
+
+export const getAssetsDataSupplementRetrieveUrl = (uidAsset: string, rootUuid: string) => {
+  return `/api/v2/assets/${uidAsset}/data/${rootUuid}/supplement/`
+}
+
+export const assetsDataSupplementRetrieve = async (
+  uidAsset: string,
+  rootUuid: string,
+  options?: RequestInit,
+): Promise<assetsDataSupplementRetrieveResponse> => {
+  return fetchWithAuth<assetsDataSupplementRetrieveResponse>(getAssetsDataSupplementRetrieveUrl(uidAsset, rootUuid), {
+    ...options,
+    method: 'GET',
+  })
+}
+
+export const getAssetsDataSupplementRetrieveQueryKey = (uidAsset: string, rootUuid: string) => {
+  return ['api', 'v2', 'assets', uidAsset, 'data', rootUuid, 'supplement'] as const
+}
+
+export const getAssetsDataSupplementRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetsDataSupplementRetrieve>>,
+  TError = ErrorObject | ErrorDetail,
+>(
+  uidAsset: string,
+  rootUuid: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsDataSupplementRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getAssetsDataSupplementRetrieveQueryKey(uidAsset, rootUuid)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsDataSupplementRetrieve>>> = ({ signal }) =>
+    assetsDataSupplementRetrieve(uidAsset, rootUuid, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: !!(uidAsset && rootUuid), ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsDataSupplementRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type AssetsDataSupplementRetrieveQueryResult = NonNullable<
+  Awaited<ReturnType<typeof assetsDataSupplementRetrieve>>
+>
+export type AssetsDataSupplementRetrieveQueryError = ErrorObject | ErrorDetail
+
+export function useAssetsDataSupplementRetrieve<
+  TData = Awaited<ReturnType<typeof assetsDataSupplementRetrieve>>,
+  TError = ErrorObject | ErrorDetail,
+>(
+  uidAsset: string,
+  rootUuid: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof assetsDataSupplementRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAssetsDataSupplementRetrieveQueryOptions(uidAsset, rootUuid, options)
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
+/**
+ * ## Update submission supplementary data
+
+This endpoint allows you to add, update, or delete supplementary data for a submission.
+
+It supports the same action types as the GET endpoint:
+
+* NLP actions (manual and automatic transcription / translation)
+* Qualitative analysis
+
+The PATCH payload follows the same per-question structure as the GET response.
+
+To delete a submission supplement, you need to PATCH the submission supplement
+with the appropriate null or empty value.
+
+⚠️ In this documentation, request and response examples present each action in
+isolation for clarity. In practice, multiple actions may be combined within the same
+payload or response, including for the same question, and a single submission may
+contain multiple questions.
+
+ */
+export type assetsDataSupplementPartialUpdateResponse200 = {
+  data: DataSupplementResponse
+  status: 200
+}
+
+export type assetsDataSupplementPartialUpdateResponse400 = {
+  data: ErrorObject
+  status: 400
+}
+
+export type assetsDataSupplementPartialUpdateResponse401 = {
+  data: ErrorDetail
+  status: 401
+}
+
+export type assetsDataSupplementPartialUpdateResponseComposite =
+  | assetsDataSupplementPartialUpdateResponse200
+  | assetsDataSupplementPartialUpdateResponse400
+  | assetsDataSupplementPartialUpdateResponse401
+
+export type assetsDataSupplementPartialUpdateResponse = assetsDataSupplementPartialUpdateResponseComposite & {
+  headers: Headers
+}
+
+export const getAssetsDataSupplementPartialUpdateUrl = (uidAsset: string, rootUuid: string) => {
+  return `/api/v2/assets/${uidAsset}/data/${rootUuid}/supplement/`
+}
+
+export const assetsDataSupplementPartialUpdate = async (
+  uidAsset: string,
+  rootUuid: string,
+  patchedDataSupplementPayload: PatchedDataSupplementPayload,
+  options?: RequestInit,
+): Promise<assetsDataSupplementPartialUpdateResponse> => {
+  return fetchWithAuth<assetsDataSupplementPartialUpdateResponse>(
+    getAssetsDataSupplementPartialUpdateUrl(uidAsset, rootUuid),
+    {
+      ...options,
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      body: JSON.stringify(patchedDataSupplementPayload),
+    },
+  )
+}
+
+export const getAssetsDataSupplementPartialUpdateMutationOptions = <
+  TError = ErrorObject | ErrorDetail,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsDataSupplementPartialUpdate>>,
+    TError,
+    { uidAsset: string; rootUuid: string; data: PatchedDataSupplementPayload },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof assetsDataSupplementPartialUpdate>>,
+  TError,
+  { uidAsset: string; rootUuid: string; data: PatchedDataSupplementPayload },
+  TContext
+> => {
+  const mutationKey = ['assetsDataSupplementPartialUpdate']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof assetsDataSupplementPartialUpdate>>,
+    { uidAsset: string; rootUuid: string; data: PatchedDataSupplementPayload }
+  > = (props) => {
+    const { uidAsset, rootUuid, data } = props ?? {}
+
+    return assetsDataSupplementPartialUpdate(uidAsset, rootUuid, data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type AssetsDataSupplementPartialUpdateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof assetsDataSupplementPartialUpdate>>
+>
+export type AssetsDataSupplementPartialUpdateMutationBody = PatchedDataSupplementPayload
+export type AssetsDataSupplementPartialUpdateMutationError = ErrorObject | ErrorDetail
+
+export const useAssetsDataSupplementPartialUpdate = <TError = ErrorObject | ErrorDetail, TContext = unknown>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof assetsDataSupplementPartialUpdate>>,
+    TError,
+    { uidAsset: string; rootUuid: string; data: PatchedDataSupplementPayload },
+    TContext
+  >
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const mutationOptions = getAssetsDataSupplementPartialUpdateMutationOptions(options)
 
   return useMutation(mutationOptions)
 }

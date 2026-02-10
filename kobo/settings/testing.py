@@ -21,7 +21,8 @@ DATABASE_ROUTERS = ['kpi.db_routers.TestingDatabaseRouter']
 TESTING = True
 
 # Decrease prod value to speed-up tests
-SUBMISSION_LIST_LIMIT = 100
+DEFAULT_API_PAGE_SIZE = 50
+MAX_API_PAGE_SIZE = 100
 
 ENV = 'testing'
 
@@ -57,3 +58,9 @@ SKIP_TESTS_WITH_CONCURRENCY = os.getenv('SKIP_TESTS_WITH_CONCURRENCY', False)
 
 OPENROSA_DB_ALIAS = DEFAULT_DB_ALIAS
 MASS_EMAILS_CONDENSE_SEND = False
+
+# mock AWS creds
+# TODO: remove when we stop using Django settings for bedrock access
+AWS_ACCESS_KEY_ID = ''
+AWS_SECRET_ACCESS_KEY = ''
+AWS_BEDROCK_REGION_NAME = ''
