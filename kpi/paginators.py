@@ -28,6 +28,37 @@ class DefaultPagination(LimitOffsetPagination):
     page_query_param = 'page'
     page_size_query_param = 'page_size'
 
+    def get_paginated_response_schema(self, schema):
+        return {
+            'type': 'object',
+            'required': ['count', 'results'],
+            'properties': {
+                'count': {
+                    'type': 'integer',
+                    'example': 123,
+                },
+                'next': {
+                    'type': ['string', 'null'],
+                    'nullable': True,
+                    'format': 'uri',
+                    'example': 'https://kf.kobotoolbox.org/accounts/?{offset_param}=400&{limit_param}=100'.format(
+                        offset_param=self.offset_query_param,
+                        limit_param=self.limit_query_param,
+                    ),
+                },
+                'previous': {
+                    'type': ['string', 'null'],
+                    'nullable': True,
+                    'format': 'uri',
+                    'example': 'https://kf.kobotoolbox.org/accounts/?{offset_param}=200&{limit_param}=100'.format(
+                        offset_param=self.offset_query_param,
+                        limit_param=self.limit_query_param,
+                    ),
+                },
+                'results': schema,
+            },
+        }
+
     def get_parent_url(self, obj):
         return reverse_lazy('api-root', request=self.context.get('request'))
 
@@ -90,7 +121,7 @@ class DefaultPagination(LimitOffsetPagination):
         if self.count == 0 or self.offset > self.count:
             return []
 
-        return list(queryset[self.offset:(self.offset + self.limit)])
+        return list(queryset[self.offset : (self.offset + self.limit)])
 
     def get_schema_operation_parameters(self, view):
         schema = [
@@ -162,59 +193,43 @@ class AssetPagination(DefaultPagination):
         return len(AssetPagination.get_all_asset_ids_from_queryset(queryset))
 
     def get_paginated_response_schema(self, schema):
-        return {
+        response_schema = super().get_paginated_response_schema(schema)
+        response_schema['metadata'] = {
             'type': 'object',
             'properties': {
-                'count': {
-                    'type': 'integer',
-                    'example': 123,
+                'languages': {
+                    'type': 'array',
+                    'items': {'type': 'string'},
+                    'example': ['English (en)'],
                 },
-                'next': {
-                    'type': 'string',
-                    'nullable': True,
-                },
-                'previous': {
-                    'type': 'string',
-                    'nullable': True,
-                },
-                'metadata': {
-                    'type': 'object',
-                    'properties': {
-                        'languages': {
-                            'type': 'array',
-                            'items': {'type': 'string'},
-                            'example': ['English (en)']
+                'countries': {
+                    'type': 'array',
+                    'items': {
+                        'type': 'array',
+                        'items': {
+                            'type': 'string',
                         },
-                        'countries': {
-                            'type': 'array',
-                            'items': {
-                                'type': 'array',
-                                'items': {
-                                    'type': 'string',
-                                },
-                            },
-                            'example': [['FRA', 'France']]
-                        },
-                        'sectors': {
-                            'type': 'array',
-                            'items': {
-                                'type': 'array',
-                                'items': {
-                                    'type': 'string',
-                                },
-                            },
-                            'example': [['Public Administration', 'Public Administration']]
-                        },
-                        'organizations': {
-                            'type': 'array',
-                            'items': {'type': 'string'},
-                            'example': ['Kobotoolbox']
-                        }
-                    }
+                    },
+                    'example': [['FRA', 'France']],
                 },
-                'results': schema,
-            }
+                'sectors': {
+                    'type': 'array',
+                    'items': {
+                        'type': 'array',
+                        'items': {
+                            'type': 'string',
+                        },
+                    },
+                    'example': [['Public Administration', 'Public Administration']],
+                },
+                'organizations': {
+                    'type': 'array',
+                    'items': {'type': 'string'},
+                    'example': ['Kobotoolbox'],
+                },
+            },
         }
+        return response_schema
 
 
 class FastPagination(DefaultPagination):

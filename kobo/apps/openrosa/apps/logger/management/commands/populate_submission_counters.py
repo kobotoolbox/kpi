@@ -17,7 +17,7 @@ from kobo.apps.openrosa.apps.logger.models import (
     MonthlyXFormSubmissionCounter,
 )
 from kobo.apps.openrosa.apps.main.models.user_profile import UserProfile
-from kobo.apps.openrosa.libs.utils.jsonbfield_helper import ReplaceValues
+from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
 
 
 class Command(BaseCommand):
@@ -227,7 +227,7 @@ class Command(BaseCommand):
 
         # Release any locks on the users' profile from getting submissions
         UserProfile.objects.all().update(
-            metadata=ReplaceValues(
+            metadata=UpdateJSONFieldAttributes(
                 'metadata',
                 updates=updates,
             ),
@@ -242,7 +242,7 @@ class Command(BaseCommand):
         UserProfile.objects.filter(
             user_id=user.pk
         ).update(
-            metadata=ReplaceValues(
+            metadata=UpdateJSONFieldAttributes(
                 'metadata',
                 updates=updates,
             ),

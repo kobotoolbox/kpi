@@ -886,7 +886,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
                     mediaName={row.value}
                     submissionIndex={row.index + 1}
                     submissionTotal={this.state.submissions.length}
-                    submissionData={row.original}
+                    submission={row.original}
                     asset={this.props.asset}
                   />
                 )

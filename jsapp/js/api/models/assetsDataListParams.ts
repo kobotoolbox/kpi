@@ -22,6 +22,10 @@ export type AssetsDataListParams = {
    */
   offset?: number
   /**
+   * Filter the results with search query
+   */
+  query?: string
+  /**
    * The initial index from which to return the results. Use with `limit`.
    */
   start?: number

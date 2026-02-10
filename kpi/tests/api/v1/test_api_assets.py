@@ -102,6 +102,10 @@ class AssetDetailApiTests(test_api_assets.AssetDetailApiTests):
     def test_last_modified_by_is_modified(self):
         pass
 
+    @unittest.skip(reason='`analysis_form_json` property only exists in v2 endpoint')
+    def test_analysis_form_json_with_nlp_actions(self):
+        pass
+
 
 class AssetsXmlExportApiTests(KpiTestCase):
     fixtures = ['test_data']

@@ -1,16 +1,16 @@
 import json
 import re
-from collections.abc import Callable, Iterator, Generator
+from collections.abc import Callable, Generator, Iterator
 from io import StringIO
-from typing import Any, Optional
+from typing import Any
 
 from dict2xml import dict2xml
 from django.core.serializers.json import DjangoJSONEncoder
 from django.template.loader import get_template
 from django.utils.xmlutils import SimplerXMLGenerator
 from rest_framework import renderers, status
-from rest_framework.request import Request
 from rest_framework.exceptions import ErrorDetail, ParseError
+from rest_framework.request import Request
 from rest_framework_xml.renderers import XMLRenderer as DRFXMLRenderer
 
 import formpack

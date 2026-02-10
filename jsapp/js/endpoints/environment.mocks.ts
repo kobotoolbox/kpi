@@ -22,16 +22,6 @@ const environmentResponse: EnvironmentResponse = {
   frontend_max_retry_time: 120,
   use_team_label: true,
   usage_limit_enforcement: false,
-  free_tier_display: {
-    name: null,
-    feature_list: [],
-  },
-  free_tier_thresholds: {
-    storage: null,
-    data: null,
-    transcription_minutes: null,
-    translation_chars: null,
-  },
   sector_choices: [
     ['Public Administration', 'Public Administration'],
     ['Arts, Entertainment, and Recreation', 'Arts, Entertainment, and Recreation'],

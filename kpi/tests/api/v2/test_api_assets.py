@@ -13,6 +13,8 @@ from rest_framework import status
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.project_ownership.models import Invite, InviteStatusChoices, Transfer
 from kobo.apps.project_views.models.project_view import ProjectView
+from kobo.apps.subsequences.constants import Action
+from kobo.apps.subsequences.models import QuestionAdvancedFeature
 from kpi.constants import (
     ASSET_TYPE_EMPTY,
     ASSET_TYPE_SURVEY,
@@ -911,30 +913,6 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         response = self.client.get(reports_url)
         assert response.status_code == status.HTTP_200_OK
 
-    def test_shared_user_can_modify_advanced_features(self):
-        creation_response = self.create_asset()
-        asset_detail_url = creation_response.data['url']
-        asset = Asset.objects.get(uid=creation_response.data['uid'])
-        asset.assign_perm(self.anotheruser, PERM_VIEW_ASSET)
-        self.client.force_login(self.anotheruser)
-        data = {
-            'advanced_features': {
-                'transcript': {'languages': ['en']},
-                'translation': {'languages': []},
-            },
-        }
-
-        response = self.client.patch(asset_detail_url, data, format='json')
-        assert response.status_code == status.HTTP_403_FORBIDDEN
-
-        asset.assign_perm(self.anotheruser, PERM_CHANGE_SUBMISSIONS)
-        response = self.client.patch(asset_detail_url, data, format='json')
-        assert response.status_code == status.HTTP_200_OK
-
-        data['name'] = 'new name'
-        response = self.client.patch(asset_detail_url, data, format='json')
-        assert response.status_code == status.HTTP_403_FORBIDDEN
-
     def _sorted_dict(self, dict_):
         """
         Ensure that nested lists inside a dictionary are always sorted
@@ -1575,6 +1553,38 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
         self.asset.refresh_from_db()
         assert response.data['last_modified_by'] == anotheruser.username
         assert self.asset.last_modified_by == anotheruser.username
+
+    def test_analysis_form_json_with_nlp_actions(self):
+        for action in [
+            Action.MANUAL_TRANSLATION,
+            Action.MANUAL_TRANSCRIPTION,
+            Action.AUTOMATIC_GOOGLE_TRANSLATION,
+            Action.AUTOMATIC_GOOGLE_TRANSCRIPTION,
+        ]:
+            language = 'en' if 'transcription' in action else 'es'
+            QuestionAdvancedFeature.objects.create(
+                question_xpath='q1',
+                action=action,
+                params=[{'language': language}],
+                asset=self.asset,
+            )
+        response = self.client.get(self.asset_url, format='json')
+        fields = response.data['analysis_form_json']['additional_fields']
+        fields = sorted(fields, key=lambda x: x['type'])
+        # there should be one transcript column and one translation column
+        assert len(fields) == 2
+
+        transcript_field = fields[0]
+        assert transcript_field['language'] == 'en'
+        assert transcript_field['source'] == 'q1'
+        assert transcript_field['type'] == 'transcript'
+        assert transcript_field['dtpath'] == 'q1/transcript_en'
+
+        translation_field = fields[1]
+        assert translation_field['language'] == 'es'
+        assert translation_field['source'] == 'q1'
+        assert translation_field['type'] == 'translation'
+        assert translation_field['dtpath'] == 'q1/translation_es'
 
 
 class AssetsXmlExportApiTests(KpiTestCase):
