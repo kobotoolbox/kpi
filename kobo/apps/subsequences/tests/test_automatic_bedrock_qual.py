@@ -259,9 +259,9 @@ class TestBedrockAutomaticBedrockQual(BaseAutomaticBedrockQualTestCase):
             )
         assert response.status_code == status.HTTP_200_OK
         transcript_uuid = transcript_dict['_uuid']
-        version = response.data['q1'][Action.AUTOMATIC_BEDROCK_QUAL][BEDROCK_QUAL_TEXT_UUID][
-            '_versions'
-        ][0]
+        version = response.data['q1'][Action.AUTOMATIC_BEDROCK_QUAL][
+            BEDROCK_QUAL_TEXT_UUID
+        ]['_versions'][0]
         version_data = version['_data']
         assert version_data['value'] == 'LLM text'
         assert version_data['status'] == 'complete'
@@ -337,7 +337,8 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
             QUESTION_TYPE_INTEGER: f'{BEDROCK_QUAL_INTEGER_UUID} '
             f'transcript: {response_placeholder},'
             f' qa question: {analysis_question_placeholder}',
-            QUESTION_TYPE_TEXT: f'{BEDROCK_QUAL_TEXT_UUID} transcript: {response_placeholder},'
+            QUESTION_TYPE_TEXT: f'{BEDROCK_QUAL_TEXT_UUID} '
+            f'transcript: {response_placeholder},'
             f' qa question: {analysis_question_placeholder}',
         }
         transcript_text = self.transcript_dict['_data']['value']
@@ -357,7 +358,8 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
     @data(BEDROCK_QUAL_SELECT_ONE_UUID, BEDROCK_QUAL_SELECT_MULTIPLE_UUID)
     def test_generate_llm_prompt_with_choices(self, qa_question_uuid):
         mock_templates_by_type = {
-            QUESTION_TYPE_SELECT_ONE: f'{BEDROCK_QUAL_SELECT_ONE_UUID} transcript: {response_placeholder},'
+            QUESTION_TYPE_SELECT_ONE: f'{BEDROCK_QUAL_SELECT_ONE_UUID}'
+            f' transcript: {response_placeholder},'
             f' qa question: {analysis_question_placeholder},'
             f' choices: {choices_list_placeholder},'
             f' count: {num_choice_placeholder},'
@@ -412,7 +414,7 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
             '_dependency': self._dependency_dict_from_transcript_dict(),
         }
         with patch(
-            f'kobo.apps.subsequences.actions.automatic_bedrock_qual.{method_to_patch}',  # noqa
+            f'kobo.apps.subsequences.actions.automatic_bedrock_qual.{method_to_patch}',
             side_effect=InvalidResponseFromLLMException('Cannot parse'),
         ):
             return_value = self.action.run_external_process(
