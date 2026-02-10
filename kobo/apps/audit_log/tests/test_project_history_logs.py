@@ -2083,7 +2083,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                 },
                 'q2': {
                     Action.MANUAL_QUAL: {
-                        'uuid': FIXTURE_MANUAL_QUAL_Q1_INTEGER_UUID,
+                        'uuid': FIXTURE_AUTOMATIC_QUAL_Q2_INTEGER_UUID,
                         'value': 1,
                     },
                     Action.MANUAL_TRANSCRIPTION: {
@@ -2319,7 +2319,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                 '_version': '20250820',
                 'q1': {
                     Action.AUTOMATIC_BEDROCK_QUAL: {
-                        'uuid': FIXTURE_MANUAL_QUAL_Q1_INTEGER_UUID,
+                        'uuid': FIXTURE_AUTOMATIC_QUAL_Q2_INTEGER_UUID,
                         'verified': True,
                     }
                 },
