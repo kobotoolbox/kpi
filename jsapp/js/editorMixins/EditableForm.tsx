@@ -188,7 +188,6 @@ export default function EditableForm(props: EditableFormProps) {
 
   const [app, setApp] = useState<SurveyApp | undefined>(undefined)
 
-  // The `componentDidMount`
   useEffect(() => {
     loadAsideSettings()
 
@@ -239,7 +238,6 @@ export default function EditableForm(props: EditableFormProps) {
     }
   }, [])
 
-  // These two hadnles `routerWillLeave`
   useBeforeUnload(
     useCallback(
       (event) => {
