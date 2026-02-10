@@ -41,7 +41,7 @@ class DefaultPagination(LimitOffsetPagination):
                     'type': ['string', 'null'],
                     'nullable': True,
                     'format': 'uri',
-                    'example': 'https://kf.kobotoolbox.org/accounts/?{offset_param}=400&{limit_param}=100'.format(
+                    'example': 'https://kf.kobotoolbox.org/accounts/?{offset_param}=400&{limit_param}=100'.format(  # noqa E501
                         offset_param=self.offset_query_param,
                         limit_param=self.limit_query_param,
                     ),
@@ -50,7 +50,7 @@ class DefaultPagination(LimitOffsetPagination):
                     'type': ['string', 'null'],
                     'nullable': True,
                     'format': 'uri',
-                    'example': 'https://kf.kobotoolbox.org/accounts/?{offset_param}=200&{limit_param}=100'.format(
+                    'example': 'https://kf.kobotoolbox.org/accounts/?{offset_param}=200&{limit_param}=100'.format(  # noqa E501
                         offset_param=self.offset_query_param,
                         limit_param=self.limit_query_param,
                     ),
@@ -121,7 +121,7 @@ class DefaultPagination(LimitOffsetPagination):
         if self.count == 0 or self.offset > self.count:
             return []
 
-        return list(queryset[self.offset : (self.offset + self.limit)])
+        return list(queryset[self.offset:(self.offset + self.limit)])
 
     def get_schema_operation_parameters(self, view):
         schema = [
