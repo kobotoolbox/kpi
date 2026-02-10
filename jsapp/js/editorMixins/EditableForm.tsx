@@ -11,6 +11,7 @@ import Markdown from 'react-markdown'
 import { useBeforeUnload, useBlocker, unstable_usePrompt as usePrompt } from 'react-router-dom'
 import Select from 'react-select'
 import type { AssetSnapshotResponse } from '#/api/models/assetSnapshotResponse'
+import { getAssetsRetrieveQueryKey, useAssetsRetrieve } from '#/api/react-query/manage-projects-and-library-content'
 import assetUtils from '#/assetUtils'
 import bem, { makeBem } from '#/bem'
 import Alert from '#/components/common/alert'
@@ -188,6 +189,49 @@ export default function EditableForm(props: EditableFormProps) {
 
   const [app, setApp] = useState<SurveyApp | undefined>(undefined)
 
+  const assetUid = props.assetUid || ''
+
+  const assetQuery = useAssetsRetrieve(
+    assetUid,
+    {},
+    {
+      query: {
+        queryKey: getAssetsRetrieveQueryKey(assetUid),
+        enabled: assetUid !== '',
+      },
+    },
+  )
+
+  useEffect(() => {
+    const assetData = assetQuery.data?.data
+
+    if (assetData && 'uid' in assetData) {
+      // TODO: stop casting this as AssetResponse after backend openAPI task DEV-???? is done
+      const assetDataCast = assetData as unknown as AssetResponse
+
+      setState((currentState) => ({
+        ...currentState,
+        asset: assetDataCast,
+      }))
+    }
+  }, [assetQuery.data?.data])
+
+  useEffect(() => {
+    if (state.asset) {
+      let settingsStyle: FormStyleName | undefined
+      if (state.asset.content?.settings && !Array.isArray(state.asset.content?.settings)) {
+        settingsStyle = state.asset.content.settings.style
+      }
+      launchAppForSurveyContent(state.asset.content, {
+        name: state.asset.name,
+        settings__style: settingsStyle,
+        files: state.asset.files,
+        asset_type: state.asset.asset_type,
+        asset: state.asset,
+      })
+    }
+  }, [state.asset])
+
   useEffect(() => {
     loadAsideSettings()
 
@@ -201,30 +245,6 @@ export default function EditableForm(props: EditableFormProps) {
         // the content of the object, so we want to cut all the bugs at the
         // very start of the process.
         const newAsset = clonedeep(originalAsset)
-
-        setState((currentState) => ({
-          ...currentState,
-          asset: newAsset,
-        }))
-
-        // HACK switch to setState callback after updating to React 16+
-        //
-        // This needs to be called at least a single render after the state's
-        // asset is being set, because `.form-wrap` node needs to exist for
-        // `launchAppForSurveyContent` to work.
-        window.setTimeout(() => {
-          let settingsStyle: FormStyleName | undefined
-          if (newAsset.content?.settings && !Array.isArray(newAsset.content?.settings)) {
-            settingsStyle = newAsset.content.settings.style
-          }
-          launchAppForSurveyContent(newAsset.content, {
-            name: newAsset.name,
-            settings__style: settingsStyle,
-            files: newAsset.files,
-            asset_type: newAsset.asset_type,
-            asset: newAsset,
-          })
-        }, 0)
       })
     }
 
