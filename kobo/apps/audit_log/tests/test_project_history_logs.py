@@ -33,7 +33,10 @@ from kobo.apps.openrosa.libs.utils.logger_tools import dict2xform
 from kobo.apps.subsequences.actions.automatic_bedrock_qual import OSS120, ClaudeSonnet
 from kobo.apps.subsequences.constants import Action
 from kobo.apps.subsequences.models import QuestionAdvancedFeature, SubmissionSupplement
-from kobo.apps.subsequences.tests.constants import FIXTURE_MANUAL_QUAL_Q1_INTEGER_UUID
+from kobo.apps.subsequences.tests.constants import (
+    FIXTURE_AUTOMATIC_QUAL_Q1_INTEGER_UUID,
+    FIXTURE_AUTOMATIC_QUAL_Q2_INTEGER_UUID,
+)
 from kobo.apps.subsequences.tests.utils import MockLLMClient, get_mock_claude_response
 from kpi.constants import (
     ASSET_TYPE_TEMPLATE,
@@ -2133,7 +2136,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                     '_version': '20250820',
                     'q1': {
                         Action.AUTOMATIC_BEDROCK_QUAL: {
-                            'uuid': FIXTURE_MANUAL_QUAL_Q1_INTEGER_UUID,
+                            'uuid': FIXTURE_AUTOMATIC_QUAL_Q1_INTEGER_UUID,
                         }
                     },
                 },
@@ -2187,7 +2190,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                     '_version': '20250820',
                     'q1': {
                         Action.AUTOMATIC_BEDROCK_QUAL: {
-                            'uuid': FIXTURE_MANUAL_QUAL_Q1_INTEGER_UUID,
+                            'uuid': FIXTURE_AUTOMATIC_QUAL_Q1_INTEGER_UUID,
                         }
                     },
                 },
@@ -2252,7 +2255,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                     '_version': '20250820',
                     'q1': {
                         Action.AUTOMATIC_BEDROCK_QUAL: {
-                            'uuid': FIXTURE_MANUAL_QUAL_Q1_INTEGER_UUID,
+                            'uuid': FIXTURE_AUTOMATIC_QUAL_Q1_INTEGER_UUID,
                         }
                     },
                 },

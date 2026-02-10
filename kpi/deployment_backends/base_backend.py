@@ -244,7 +244,7 @@ class BaseDeploymentBackend(abc.ABC):
             )
         )
         for token in data_collector_tokens:
-            self.set_data_collector_enketo_links(token)
+            self.create_enketo_survey_links_for_single_data_collector(token)
 
     def delete(self):
         self.asset._deployment_data.clear()  # noqa
@@ -449,10 +449,10 @@ class BaseDeploymentBackend(abc.ABC):
 
     def remove_enketo_survey_links_for_data_collectors(self, tokens):
         for token in tokens:
-            self.remove_data_collector_enketo_links(token)
+            self.remove_enketo_links_for_single_data_collector(token)
 
     @abc.abstractmethod
-    def remove_data_collector_enketo_links(self, token):
+    def remove_enketo_links_for_single_data_collector(self, token):
         pass
 
     @abc.abstractmethod
@@ -496,7 +496,7 @@ class BaseDeploymentBackend(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def set_data_collector_enketo_links(self, token):
+    def create_enketo_survey_links_for_single_data_collector(self, token):
         pass
 
     @abc.abstractmethod

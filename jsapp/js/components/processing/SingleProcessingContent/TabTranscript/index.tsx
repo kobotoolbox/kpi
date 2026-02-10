@@ -1,11 +1,19 @@
 import React from 'react'
+import type { _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { AssetResponse } from '#/dataInterface'
-import { getLatestTranscriptVersionItem, isSupplementVersionWithValue } from '../../common/utils'
+import {
+  getLatestTranscriptVersionItem,
+  isSupplementVersionAutomatic,
+  isSupplementVersionWithValue,
+} from '../../common/utils'
 import TranscriptCreate from './TranscriptCreate'
 import TranscriptEdit from './TranscriptEdit'
+import TranscriptPoll from './TranscriptPoll'
+
+type VersionOfAutomaticTranscript = _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem
 
 interface Props {
   asset: AssetResponse
@@ -26,6 +34,13 @@ export default function TranscriptTab({
 }: Props) {
   const transcriptVersion = getLatestTranscriptVersionItem(supplement, questionXpath)
 
+  if (
+    transcriptVersion &&
+    isSupplementVersionAutomatic(transcriptVersion) &&
+    (transcriptVersion as VersionOfAutomaticTranscript)?._data?.status === 'in_progress'
+  ) {
+    return <TranscriptPoll asset={asset} questionXpath={questionXpath} submission={submission} />
+  }
   if (transcriptVersion && isSupplementVersionWithValue(transcriptVersion)) {
     return (
       <TranscriptEdit
@@ -38,16 +53,16 @@ export default function TranscriptTab({
         advancedFeatures={advancedFeatures}
       />
     )
-  } else {
-    return (
-      <TranscriptCreate
-        asset={asset}
-        questionXpath={questionXpath}
-        submission={submission}
-        supplement={supplement}
-        onUnsavedWorkChange={onUnsavedWorkChange}
-        advancedFeatures={advancedFeatures}
-      />
-    )
   }
+
+  return (
+    <TranscriptCreate
+      asset={asset}
+      questionXpath={questionXpath}
+      submission={submission}
+      supplement={supplement}
+      onUnsavedWorkChange={onUnsavedWorkChange}
+      advancedFeatures={advancedFeatures}
+    />
+  )
 }

@@ -53,17 +53,45 @@ class AudioPlayer extends React.Component<AudioPlayerProps, AudioPlayerState> {
   }
 
   componentDidMount() {
-    // Prepare audio.
-    this.audioInterface = new Audio(this.props.mediaURL)
+    this.loadAudio(this.props.mediaURL)
+  }
 
-    // Set up listeners for audio component.
+  componentDidUpdate(prevProps: AudioPlayerProps) {
+    // Reload audio if the media URL has changed
+    if (prevProps.mediaURL !== this.props.mediaURL) {
+      this.loadAudio(this.props.mediaURL)
+    }
+  }
+
+  componentWillUnmount() {
+    this.cleanupAudio()
+  }
+
+  private loadAudio(mediaURL: string) {
+    // Clean up existing audio if any
+    this.cleanupAudio()
+
+    // Reset state to loading
+    this.setState({
+      isLoading: true,
+      isPlaying: false,
+      isBroken: false,
+      currentTime: 0,
+      totalTime: 0,
+    })
+
+    // Prepare new audio
+    this.audioInterface = new Audio(mediaURL)
+
+    // Set up listeners for audio component
     this.audioInterface.addEventListener('loadedmetadata', this.onAudioLoadedBound)
     this.audioInterface.addEventListener('error', this.onAudioErrorBound)
     this.audioInterface.addEventListener('timeupdate', this.onAudioTimeUpdatedBound)
   }
 
-  componentWillUnmount() {
-    // Pausing makes it subject to garbage collection.
+  /** Clean up audio element and remove listeners */
+  private cleanupAudio() {
+    // Pausing makes it subject to garbage collection
     this.audioInterface.pause()
 
     this.audioInterface.removeEventListener('loadedmetadata', this.onAudioLoadedBound)

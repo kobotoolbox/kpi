@@ -11,6 +11,7 @@ from django.utils import timezone
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.subsequences.exceptions import (
+    GoogleCloudStorageBucketNotFound,
     SubsequenceAcceptanceError,
     SubsequenceDeletionError,
     SubsequenceVerificationError,
@@ -941,7 +942,11 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
 
         # Otherwise, trigger the external service.
         NLPService = self.get_nlp_service_class()  # noqa
-        service = NLPService(submission, asset=self.asset)
+        try:
+            service = NLPService(submission, asset=self.asset)
+        except GoogleCloudStorageBucketNotFound:
+            return {'status': 'failed', 'error': 'GS_BUCKET_NAME not configured'}
+
         service_data = service.process_data(self.source_question_xpath, action_data)
 
         # If the request is still running, stop processing here.

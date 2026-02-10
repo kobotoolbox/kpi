@@ -78,7 +78,7 @@ if [[ ! -d "${KPI_SRC_DIR}/staticfiles" ]] || ! python "${KPI_SRC_DIR}/docker/ch
         fi
 
         echo "Rebuilding client code…"
-        npm run build
+        SKIP_TS_CHECK=true npm run build:app
 
         echo "Building static files from live code…"
         python manage.py collectstatic --noinput

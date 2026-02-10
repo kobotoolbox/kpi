@@ -33,8 +33,8 @@ AdvancedFeaturePatchRequest = inline_serializer_class(
     fields={
         'action': AdvancedFeatureActionField(),
         'question_xpath': serializers.CharField(),
-        'params': AdvancedFeatureRequestParamsField()
-    }
+        'params': AdvancedFeatureRequestParamsField(),
+    },
 )
 
 AdvancedFeaturePostRequest = inline_serializer_class(

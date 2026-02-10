@@ -428,6 +428,14 @@ export function useAssetsAdvancedFeaturesRetrieve<
  * ## Update an advanced action on an asset
 
 Update the params of an advanced action on a question in the asset.
+`params` are always additive. That means that if you PATCH a feature with a new param array, the new ones
+will be added to the existing ones. You cannot delete a param via the API.
+
+In the case of NLP actions, this means you can only add languages, not delete.
+In the case of QA analysis questions, you should send the full set questions and choices in the desired order. Any existing
+choices or questions in the existing params not present in the new ones will be marked as deleted, but not actually removed from the data.
+Deleted questions and choices will be placed at the end of the relevant list.
+
 * `params` is required
 * `params` must match the expected param_schema of the action being updated
 
@@ -772,7 +780,7 @@ curl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid}/data/
 Two parameters can be used to control pagination.
 
 * `start`: Index (zero-based) from which the results start
-* `limit`: Number of results per page <span class='label label-warning'>Maximum results per page is **1000**</span>
+* `limit`: Number of results per page <span class='label label-warning'>Maximum results per page cannot exceed  **1000**, unless changed by server configuration</span>
 
 ```shell
 curl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid}/data/?start=0&limit=10
@@ -815,7 +823,6 @@ This means that while alternative formats (like XML) are technically supported a
 
 We’ve still included the header to show supported formats, but keep in mind:
 **Only `application/json` will be used in the docs UI.**
-
 
  */
 export type assetsDataListResponse200 = {
@@ -2190,6 +2197,9 @@ It supports the same action types as the GET endpoint:
 * Qualitative analysis
 
 The PATCH payload follows the same per-question structure as the GET response.
+
+To delete a submission supplement, you need to PATCH the submission supplement
+with the appropriate null or empty value.
 
 ⚠️ In this documentation, request and response examples present each action in
 isolation for clarity. In practice, multiple actions may be combined within the same

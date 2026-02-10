@@ -634,7 +634,7 @@ class SubmissionSupplementAPITestCase(SubsequenceBaseTestCase):
 
 class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
 
-    def test_cannot_patch_if_question_has_no_configured_actions(self):
+    def test_cannot_patch_if_question_does_not_have_action_configured(self):
         payload = {
             '_version': '20250820',
             'q1': {
@@ -650,41 +650,37 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
             self.supplement_details_url, data=payload, format='json'
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert 'Invalid action' in str(response.data)
-
-    def test_cannot_patch_if_action_is_invalid(self):
-        # Activate manual transcription (even though payload asks for translation)
-        payload = {
-            '_version': '20250820',
-            'q1': {
-                'manual_translation': {
-                    'language': 'es',
-                    'value': 'buenas noches',
-                },
-            },
-        }
-
-        # No actions activated for q1
-        response = self.client.patch(
-            self.supplement_details_url, data=payload, format='json'
+        assert (
+            'This action does not exist or is not configured for this question'
+            in str(response.data)
         )
 
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert 'Invalid action' in str(response.data)
-
-        # Activate manual transcription (even if payload asks for translation)
+    def test_cannot_patch_if_action_is_invalid(self):
         QuestionAdvancedFeature.objects.create(
             asset=self.asset,
             question_xpath='q1',
             action='manual_transcription',
             params=[{'language': 'es'}],
         )
+        payload = {
+            '_version': '20250820',
+            'q1': {
+                'bananas': {
+                    'language': 'es',
+                    'value': 'buenas noches',
+                },
+            },
+        }
 
         response = self.client.patch(
             self.supplement_details_url, data=payload, format='json'
         )
+
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert 'Invalid action' in str(response.data)
+        assert (
+            'This action does not exist or is not configured for this question'
+            in str(response.data)
+        )
 
     def test_cannot_patch_with_invalid_payload(self):
         QuestionAdvancedFeature.objects.create(
@@ -697,7 +693,7 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
         payload = {
             '_version': '20250820',
             'q1': {
-                'manual_translation': {
+                'manual_transcription': {
                     'languageCode': 'es',  # wrong attribute
                     'value': 'buenas noches',
                 },
@@ -709,7 +705,7 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert 'Invalid action' in str(response.data)
+        assert 'Invalid payload' in str(response.data)
 
     def test_cannot_accept_incomplete_automatic_transcription(self):
         # Set up the asset to allow automatic google transcription
@@ -812,7 +808,7 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
         )
         # Should fail because there's nothing to delete
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert 'Subsequence deletion error' in str(response.data)
+        assert 'Attempt to delete non-existent value' in str(response.data)
 
         # Verify no entry was created
         supplement = SubmissionSupplement.objects.filter(
@@ -979,21 +975,21 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
                             '_data': {
                                 'language': 'en',
                                 'status': 'deleted',
-                                'value': None
+                                'value': None,
                             },
                             '_dateCreated': '2026-01-01T12:00:00Z',
-                            '_uuid': str(uuid.uuid4())
+                            '_uuid': str(uuid.uuid4()),
                         },
                         {
                             '_data': {
                                 'language': 'en',
                                 'status': 'complete',
-                                'value': 'Old valid text'
+                                'value': 'Old valid text',
                             },
                             '_dateCreated': '2026-01-01T11:00:00Z',
                             '_dateAccepted': '2026-01-01T11:05:00Z',
-                            '_uuid': str(uuid.uuid4())
-                        }
+                            '_uuid': str(uuid.uuid4()),
+                        },
                     ],
                 }
             },
@@ -1009,11 +1005,7 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
         # Attempt to translate
         translation_payload = {
             '_version': '20250820',
-            'q1': {
-                'automatic_google_translation': {
-                    'language': 'es'
-                }
-            },
+            'q1': {'automatic_google_translation': {'language': 'es'}},
         }
 
         response = self.client.patch(
@@ -1060,7 +1052,7 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
                             '_data': {
                                 'language': 'en',
                                 'status': 'complete',
-                                'value': 'Auto text'
+                                'value': 'Auto text',
                             },
                             '_dateCreated': '2025-01-01T10:00:00Z',
                             '_dateAccepted': '2025-01-01T10:00:00Z',
@@ -1073,24 +1065,18 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
                     '_dateModified': '2025-01-02T12:00:00Z',
                     '_versions': [
                         {
-                            '_data': {
-                                'language': 'en',
-                                'value': None
-                            },
+                            '_data': {'language': 'en', 'value': None},
                             '_dateCreated': '2025-01-02T12:00:00Z',
                             '_uuid': manual_uuid,
                         },
                         {
-                            '_data': {
-                                'language': 'en',
-                                'value': 'Manual text'
-                            },
+                            '_data': {'language': 'en', 'value': 'Manual text'},
                             '_dateCreated': '2025-01-01T11:00:00Z',
                             '_dateAccepted': '2025-01-01T11:00:00Z',
                             '_uuid': manual_history_uuid,
-                        }
+                        },
                     ],
-                }
+                },
             },
             '_version': '20250820',
         }
@@ -1118,6 +1104,97 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert 'Cannot translate without transcription' in str(response.data)
+
+    def test_translation_works_when_transcript_is_replaced_by_different_action(self):
+        """
+        Verify that translation works when the existing transcription
+        is replaced by a different action (e.g. automatic to manual)
+        """
+        QuestionAdvancedFeature.objects.create(
+            asset=self.asset,
+            question_xpath='q1',
+            action='automatic_google_transcription',
+            params=[{'language': 'en'}],
+        )
+        QuestionAdvancedFeature.objects.create(
+            asset=self.asset,
+            question_xpath='q1',
+            action='manual_transcription',
+            params=[{'language': 'en'}],
+        )
+        QuestionAdvancedFeature.objects.create(
+            asset=self.asset,
+            question_xpath='q1',
+            action='manual_translation',
+            params=[{'language': 'es'}],
+        )
+
+        mock_submission_supplement = {'_version': '20250820', 'q1': QUESTION_SUPPLEMENT}
+        SubmissionSupplement.objects.create(
+            submission_uuid=self.submission_uuid,
+            content=mock_submission_supplement,
+            asset=self.asset,
+        )
+
+        auto_uuid = str(uuid.uuid4())
+        manual_uuid = str(uuid.uuid4())
+
+        supplement_content = {
+            'q1': {
+                'automatic_google_transcription': {
+                    '_versions': [
+                        {
+                            '_data': {
+                                'language': 'en', 'value': None, 'status': 'deleted'
+                            },
+                            '_dateCreated': '2025-01-01T12:00:00Z',
+                            '_uuid': 'deleted-auto-uuid',
+                        },
+                        {
+                            '_data': {
+                                'language': 'en',
+                                'value': 'Old Auto',
+                                'status': 'complete'
+                            },
+                            '_dateCreated': '2025-01-01T10:00:00Z',
+                            '_dateAccepted': '2025-01-01T10:05:00Z',
+                            '_uuid': auto_uuid,
+                        }
+                    ],
+                },
+                'manual_transcription': {
+                    '_versions': [
+                        {
+                            '_data': {'language': 'en', 'value': 'New Manual'},
+                            '_dateCreated': '2025-01-01T15:00:00Z',
+                            '_dateAccepted': '2025-01-01T15:00:00Z',
+                            '_uuid': manual_uuid,
+                        }
+                    ],
+                }
+            },
+            '_version': '20250820',
+        }
+        SubmissionSupplement.objects.update_or_create(
+            asset=self.asset,
+            submission_uuid=self.submission_uuid,
+            defaults={'content': supplement_content}
+        )
+
+        payload = {
+            '_version': '20250820',
+            'q1': {'manual_translation': {'language': 'es', 'value': 'Spanish'}}
+        }
+        response = self.client.patch(
+            self.supplement_details_url, data=payload, format='json'
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert (
+            response.data['q1']['manual_translation']['es']['_versions'][0][
+                '_dependency'
+            ]['_uuid']
+            == manual_uuid
+        )
 
 
 @ddt

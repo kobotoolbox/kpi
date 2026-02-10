@@ -14,7 +14,7 @@ import { userCan } from '#/components/permissions/utils'
 import type { TranscriptVersionItem } from '#/components/processing/common/types'
 import { isSupplementVersionAutomatic } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
-import { removeDefaultUuidPrefix } from '#/utils'
+import { notify, removeDefaultUuidPrefix } from '#/utils'
 import { SUBSEQUENCES_SCHEMA_VERSION } from '../../../common/constants'
 import bodyStyles from '../../../common/processingBody.module.scss'
 import HeaderLanguageAndDate from './headerLanguageAndDate'
@@ -125,6 +125,7 @@ export default function Editor({
 
     // Clear unsaved work status after successful save
     onUnsavedWorkChange(false)
+    notify(t('successfully updated'), 'success')
     if (onSave) {
       onSave()
     }
@@ -163,7 +164,7 @@ export default function Editor({
           <Button
             type='secondary'
             size='s'
-            label={value === initialValue ? t('Back') : t('Discard')}
+            label={value !== initialValue || unacceptedAutomaticTranscript ? t('Discard') : t('Back')}
             onClick={handleDiscard}
             isDisabled={patch.isPending || !userCan('change_submissions', asset)}
           />

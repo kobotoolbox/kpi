@@ -96,7 +96,7 @@ def test_invalid_user_data_fails_validation():
         # Cannot pass value and accepted at the same time
         {'language': 'fr', 'value': None, 'accepted': True},
         # Cannot un-accept a translation
-        {'language': 'fr', 'accepted': False}
+        {'language': 'fr', 'accepted': False},
     ]
 
     for data in invalid_data:
