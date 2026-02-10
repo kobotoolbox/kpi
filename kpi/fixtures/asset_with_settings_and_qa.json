@@ -33,9 +33,7 @@
           "label": "Education",
           "value": "Education"
         },
-        "country_codes": [
-          "USA"
-        ],
+        "country_codes": ["USA"],
         "organization": "An organization"
       },
       "data_sharing": {
