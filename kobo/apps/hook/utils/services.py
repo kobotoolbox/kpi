@@ -1,3 +1,4 @@
+from ..constants import HookLogStatus
 from ..models.hook import Hook
 from ..models.hook_log import HookLog
 from ..tasks import service_definition_task
