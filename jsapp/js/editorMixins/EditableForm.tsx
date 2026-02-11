@@ -205,7 +205,7 @@ export default function EditableForm(props: EditableFormProps) {
   useEffect(() => {
     const assetData = assetQuery.data?.data
     if (assetData && 'uid' in assetData) {
-      // TODO: stop casting this as AssetResponse after backend openAPI task DEV-???? is done
+      // TODO: stop casting this as AssetResponse after backend openAPI task DEV-1727 is done
       const assetDataCast = assetData as unknown as AssetResponse
       setState((currentState) => ({
         ...currentState,
