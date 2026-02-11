@@ -1,5 +1,3 @@
-import concurrent.futures
-
 from django.conf import settings
 from django.db.models.query import QuerySet
 
@@ -14,12 +12,17 @@ CHUNK_SIZE = 1000
 
 
 def process_user(user_id, username):
+    try:
+        user = User.objects.get(id=user_id)
+    except User.DoesNotExist:
+        print(f'Race condition catched: user_id={user_id} no longer exists')
+        return 0
+    
     print(f'Checking exceeded limits for {username}...')
     counter = ExceededLimitCounter.objects.filter(
         user_id=user_id,
         limit_type=UsageType.STORAGE_BYTES,
     ).first()
-    user = User.objects.get(pk=user_id)
     if counter is None:
         counter = check_exceeded_limit(user, UsageType.STORAGE_BYTES)
 
@@ -56,20 +59,14 @@ def run():
     last_pk = 0
     while True:
         users = get_queryset(last_pk)
-        if not users:
-            break
-
         users_count = len(users)
+        if users_count == 0:
+            break
+        print(f'Processing {users_count} users from {last_pk}')
         last_pk = users[users_count - 1]['id']
-        # Let concurrent library automatically decide the number of workers
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            futures = [
-                executor.submit(process_user, user['id'], user['username'])
-                for user in users
-            ]
-
-        for future in futures:
-            result = future.result()
+        
+        for user in users
+            result = process_user(user['id'], user['username'])
             if type(result) is int:
                 created_counters += result
 
