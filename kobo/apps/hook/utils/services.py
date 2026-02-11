@@ -1,3 +1,5 @@
+from django.db import transaction
+
 from ..constants import HookLogStatus
 from ..models.hook import Hook
 from ..models.hook_log import HookLog
@@ -20,15 +22,16 @@ def call_services(asset_uid: str, submission_id: int) -> bool:
     success = False
 
     for hook_id in hooks_ids:
-        if not HookLog.objects.filter(
-            submission_id=submission_id, hook_id=hook_id
-        ).exists():
-            success = True
+        with transaction.atomic():
             # Create a pending log in case the celery task fails
-            log = HookLog.objects.create(
+            log, created = HookLog.objects.get_or_create(
                 submission_id=submission_id, 
                 hook_id=hook_id,
-                status= HookLogStatus.PENDING.value,
+                defaults={'status': HookLogStatus.PENDING.value},
             )
-            service_definition_task.delay(hook_id, submission_id)
+            if created:
+                success = True
+                transaction.on_commit(
+                    lambda: service_definition_task.delay(hook_id, submission_id)
+                )
     return success
