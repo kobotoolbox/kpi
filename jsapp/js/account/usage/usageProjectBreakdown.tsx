@@ -15,6 +15,7 @@ import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import AssetStatusBadge from '#/components/common/assetStatusBadge'
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
+import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 import type { ProjectFieldDefinition } from '#/projects/projectViews/constants'
 import type { ProjectsTableOrder } from '#/projects/projectsTable/projectsTable'
 import SortableProjectColumnHeader from '#/projects/projectsTable/sortableProjectColumnHeader'
@@ -22,7 +23,6 @@ import { ROUTES } from '#/router/routerConstants'
 import { convertSecondsToMinutes, notify } from '#/utils'
 import styles from './usageProjectBreakdown.module.scss'
 import { useBillingPeriod } from './useBillingPeriod'
-import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 
 const ProjectBreakdown = () => {
   const [showIntervalBanner, setShowIntervalBanner] = useState(true)
