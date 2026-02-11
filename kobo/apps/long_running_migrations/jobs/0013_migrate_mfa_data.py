@@ -1,5 +1,3 @@
-import concurrent.futures
-
 from allauth.mfa.adapter import get_adapter
 from django.conf import settings
 from django.db.models.query import QuerySet
@@ -12,7 +10,11 @@ CHUNK_SIZE = 1000
 
 def process_user(adapter, user_id, username):
     print(f'Migrating MFA data for user {username}...')
-    user = User.objects.get(id=user_id)
+    try:
+        user = User.objects.get(id=user_id)
+    except User.DoesNotExist:
+        print(f'Race condition catched: user_id={user_id} no longer exists')
+        return 0
     result = adapter.migrate_user(user)
     return 1 if result is not None else 0
 
@@ -45,21 +47,14 @@ def run():
     adapter = get_adapter()
     while True:
         users = get_queryset(last_pk)
-        if not users:
-            break
-
         users_count = len(users)
+        if users_count == 0:
+            break
+        print(f'Processing {users_count} users from {last_pk}')
         last_pk = users[users_count - 1]['id']
-        # Let concurrent library automatically decide the number of workers
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            futures = [
-                executor.submit(process_user, adapter, user['id'], user['username'])
-                for user in users
-            ]
-
-        for future in futures:
-            result = future.result()
-            if type(result) is int:
-                migrated_users += result
+        
+        for user in users:
+            result = process_user(adapter, user['id'], user['username'])
+            migrated_users += result
 
     print(f'Done. Migrated {migrated_users} users with Trench MFA data.')
