@@ -10,9 +10,7 @@ The endpoints are grouped by area of intended use. Each category contains relate
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 
-export type PaginatedAssetListMetadata = {
-  languages?: string[]
-  countries?: string[][]
-  sectors?: string[][]
-  organizations?: string[]
-}
+/**
+ * @nullable
+ */
+export type PaginatedMemberListResponseListPrevious = string | null | null | null
