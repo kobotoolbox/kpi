@@ -168,6 +168,7 @@ export default function AssetNavigator() {
         hidePickedOptions
         // HACKFIX: without this the list of options renders somewhere outside the viewport :sadface:
         comboboxProps={{ withinPortal: false }}
+        size='md'
       />
 
       {/* Collection filtering */}
@@ -178,6 +179,7 @@ export default function AssetNavigator() {
         placeholder='Select collection'
         searchable
         clearable
+        size='md'
       />
 
       {/* Total count & toggle expanded info */}
