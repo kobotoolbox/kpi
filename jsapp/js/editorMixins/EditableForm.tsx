@@ -198,6 +198,8 @@ export default function EditableForm(props: EditableFormProps) {
       query: {
         queryKey: getAssetsRetrieveQueryKey(assetUid),
         enabled: assetUid !== '',
+        // No need to fetch it again, as the code doesn't support updating `asset` after it was already loaded
+        refetchOnWindowFocus: false,
       },
     },
   )
@@ -230,9 +232,7 @@ export default function EditableForm(props: EditableFormProps) {
         asset: state.asset,
       })
     }
-    // We want to trigger `launchAppForSurveyContent` only when the asset is loaded, if we put `state.asset` here it
-    // would trigger it multiple times unnecessarily
-  }, [state.asset?.uid])
+  }, [state.asset])
 
   useEffect(() => {
     loadAsideSettings()
