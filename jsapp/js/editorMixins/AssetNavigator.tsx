@@ -5,14 +5,10 @@ import React, { useState, useRef, useEffect } from 'react'
 import ReactDOM from 'react-dom'
 import type { Asset } from '#/api/models/asset'
 import type { TagListResponse } from '#/api/models/tagListResponse'
-import {
-  getAssetsListQueryKey,
-  getTagsListQueryKey,
-  useAssetsList,
-  useTagsList,
-} from '#/api/react-query/manage-projects-and-library-content'
+import { useAssetsList, useTagsList } from '#/api/react-query/manage-projects-and-library-content'
 import Icon from '#/components/common/icon'
 import { COMMON_QUERIES } from '#/constants'
+import type { LabelValuePair } from '#/dataInterface'
 import AssetNavigatorCard from './AssetNavigatorCard'
 
 // A stub types for sortable
@@ -36,52 +32,40 @@ export default function AssetNavigator() {
   const [isExpanded, setIsExpanded] = useState(false)
 
   // Step 1. Fetch Tags for the MultiSelect filter
-  // Note: if `limit` is too big (e.g. `9999`) it causes a deadly timeout whenever Form Builder displays the aside Library
-  // search, so we use `100`.
-  const tagsListParams = { limit: 100 }
-  const { data: tagsOptions } = useTagsList(tagsListParams, {
-    query: {
-      queryKey: getTagsListQueryKey(tagsListParams),
-      select: (response) => {
-        // We want to know if there are any users who have more than 100 tags. If there is `next` page of results, it
-        // means we have more than 100 (the `limit` above)
-        if (response?.data && 'next' in response.data) {
-          if (response.data.next) {
-            Sentry.captureMessage('MAX_TAGS_EXCEEDED: Too many tags')
-          }
-        }
+  // Note: if `limit` is too big (e.g. `9999`) it causes a deadly timeout whenever Form Builder displays the aside
+  // Library search, so we use `100`. We also keep track of users who have over 100 tags (see below).
+  const tagsListQuery = useTagsList({ limit: 100 })
 
-        if (response?.data && 'results' in response.data) {
-          const nonUniqueTags = response.data.results.map((t: TagListResponse) => t.name)
-          // Because tags API has a bug we need to ensure only unique results are returned:
-          // https://linear.app/kobotoolbox/issue/DEV-1576/duplicated-values-in-apiv2tags-endpoint
-          return [...new Set(nonUniqueTags)]
-        }
-        return []
-      },
-    },
-  })
+  let tagsOptions: string[] = []
+  if (tagsListQuery.data?.status === 200) {
+    const tagsOptionsRaw = tagsListQuery.data?.data?.results.map((t: TagListResponse) => t.name)
+    // Because tags API has a bug we need to ensure only unique results are returned:
+    // https://linear.app/kobotoolbox/issue/DEV-1576/duplicated-values-in-apiv2tags-endpoint
+    tagsOptions = [...new Set(tagsOptionsRaw)]
+  }
+
+  useEffect(() => {
+    // We want to know if there are any users who have more than 100 tags. If there is `next` page of results, it
+    // means we have more than 100 (the `limit` above)
+    if (tagsListQuery.data?.status === 200 && typeof tagsListQuery.data?.data.next === 'string') {
+      Sentry.captureMessage('MAX_TAGS_EXCEEDED: Too many tags')
+    }
+  }, [tagsListQuery.data])
 
   // Step 2. Fetch Collections for the Select filter
-  const assetsListParams = {
+  const collectionListQuery = useAssetsList({
     q: COMMON_QUERIES.c,
+    // TODO: we only fetch 200 collections, as this is what old code did. Ideally we should handle pagination.
     limit: 200,
     ordering: 'name',
-  }
-  const { data: collectionOptions } = useAssetsList(assetsListParams, {
-    query: {
-      queryKey: getAssetsListQueryKey(assetsListParams),
-      select: (response) => {
-        if (response.data.results) {
-          return response.data.results.map((c: Asset) => ({
-            value: c.uid,
-            label: c.name || t('Unnamed collection'),
-          }))
-        }
-        return []
-      },
-    },
   })
+  let collectionOptions: LabelValuePair[] = []
+  if (collectionListQuery.data?.status === 200 && collectionListQuery.data?.data.results) {
+    collectionOptions = collectionListQuery.data.data.results.map((c: Asset) => ({
+      value: c.uid,
+      label: c.name || t('Unnamed collection'),
+    }))
+  }
 
   // Step 3. Fetch Main Assets List
   function getAssetsListQuery() {
@@ -166,8 +150,7 @@ export default function AssetNavigator() {
         clearable
         nothingFoundMessage='No tags found'
         hidePickedOptions
-        // HACKFIX: without this the list of options renders somewhere outside the viewport :sadface:
-        comboboxProps={{ withinPortal: false }}
+        size='md'
       />
 
       {/* Collection filtering */}
@@ -178,6 +161,7 @@ export default function AssetNavigator() {
         placeholder='Select collection'
         searchable
         clearable
+        size='md'
       />
 
       {/* Total count & toggle expanded info */}
