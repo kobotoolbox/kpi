@@ -18,7 +18,6 @@ from pymongo import MongoClient
 
 from kpi.constants import PERM_DELETE_ASSET, PERM_MANAGE_ASSET
 from kpi.utils.json import LazyJSONSerializable
-
 from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
 
 env = environ.Env()
@@ -973,7 +972,7 @@ if os.path.exists(os.path.join(BASE_DIR, 'dkobo', 'jsapp')):
 
 REST_FRAMEWORK = {
     'URL_FIELD_NAME': 'url',
-    'DEFAULT_PAGINATION_CLASS': 'kpi.paginators.Paginated',
+    'DEFAULT_PAGINATION_CLASS': 'kpi.paginators.DefaultPagination',
     'PAGE_SIZE': 100,
     'DEFAULT_AUTHENTICATION_CLASSES': [
         # SessionAuthentication and BasicAuthentication would be included by

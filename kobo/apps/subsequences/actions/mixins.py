@@ -84,9 +84,8 @@ class RequiresTranscriptionMixin:
                 version_data = version.get(self.VERSION_DATA_FIELD, {})
 
                 is_deleted = (
-                    ('status' not in version_data and version_data.get('value') is None)
-                    or version_data.get('status') == 'deleted'
-                )
+                    'status' not in version_data and version_data.get('value') is None
+                ) or version_data.get('status') == 'deleted'
 
                 if is_deleted:
                     # Track the most recent deletion timestamp across all versions
@@ -106,9 +105,8 @@ class RequiresTranscriptionMixin:
                         latest_version = version
                         latest_version_action_id = action_id
 
-        if (
-            latest_version is None
-            or (latest_deletion_dt and latest_deletion_dt > latest_accepted_dt)
+        if latest_version is None or (
+            latest_deletion_dt and latest_deletion_dt > latest_accepted_dt
         ):
             raise TranscriptionNotFound
 

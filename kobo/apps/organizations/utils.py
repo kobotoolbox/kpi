@@ -54,9 +54,7 @@ def revoke_org_asset_perms(organization: Organization, user_ids: list[int]):
     if not safe_user_ids:
         return
 
-    subquery = Asset.objects.values_list('pk', flat=True).filter(
-        owner_id=owner_id
-    )
+    subquery = Asset.objects.values_list('pk', flat=True).filter(owner_id=owner_id)
     perms_to_delete = ObjectPermission.objects.filter(
         asset_id__in=subquery, user_id__in=safe_user_ids
     )
