@@ -204,13 +204,13 @@ export default function EditableForm(props: EditableFormProps) {
 
   useEffect(() => {
     const assetData = assetQuery.data?.data
-
     if (assetData && 'uid' in assetData) {
       // TODO: stop casting this as AssetResponse after backend openAPI task DEV-???? is done
       const assetDataCast = assetData as unknown as AssetResponse
-
       setState((currentState) => ({
         ...currentState,
+        // TODO: storing asset that we already have in `assetQuery` is not nice. I left it like this to avoid requiring
+        // too much refactor in here.
         asset: assetDataCast,
       }))
     }
@@ -230,22 +230,15 @@ export default function EditableForm(props: EditableFormProps) {
         asset: state.asset,
       })
     }
-  }, [state.asset])
+    // We want to trigger `launchAppForSurveyContent` only when the asset is loaded, if we put `state.asset` here it
+    // would trigger it multiple times unnecessarily
+  }, [state.asset?.uid])
 
   useEffect(() => {
     loadAsideSettings()
 
     if (state.isNewAsset) {
       launchAppForSurveyContent()
-    } else {
-      const uid = props.assetUid
-      stores.allAssets.whenLoaded(uid, (originalAsset: AssetResponse) => {
-        // Store asset object is mutable and there is no way to predict all the
-        // bugs that come from this fact. Form Builder code is already changing
-        // the content of the object, so we want to cut all the bugs at the
-        // very start of the process.
-        const newAsset = clonedeep(originalAsset)
-      })
     }
 
     stores.surveyState.listen(onSurveyStateChanged)
@@ -655,6 +648,10 @@ export default function EditableForm(props: EditableFormProps) {
         throw new Error('form-wrap element not found!')
       }
 
+      // This ensure we don't end up with duplicated lists of form rows (multiple of apps added through `appendTo`). It
+      // is not ideal, as clearing it and appending again resets all group/question toggling, settings being opened etc.
+      // but we ensure it will not be called often in other code above.
+      formWrapEl.innerHTML = ''
       newApp.$el.appendTo(formWrapEl)
       newApp.render()
       survey.rows.on('change', onSurveyChange)
