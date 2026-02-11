@@ -22,6 +22,7 @@ import { ROUTES } from '#/router/routerConstants'
 import { convertSecondsToMinutes, notify } from '#/utils'
 import styles from './usageProjectBreakdown.module.scss'
 import { useBillingPeriod } from './useBillingPeriod'
+import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 
 const ProjectBreakdown = () => {
   const [showIntervalBanner, setShowIntervalBanner] = useState(true)
@@ -107,12 +108,6 @@ const ProjectBreakdown = () => {
       },
     },
     {
-      key: 'submissions_all',
-      label: t('Submissions (Total)'),
-      size: 100,
-      cellFormatter: (data: CustomAssetUsage) => data.submission_count_all_time,
-    },
-    {
       key: 'submissions_current',
       label: t('Submissions'),
       size: 100,
@@ -137,6 +132,17 @@ const ProjectBreakdown = () => {
       size: 100,
       cellFormatter: (data: CustomAssetUsage) => data.nlp_usage_current_period.total_nlp_mt_characters.toLocaleString(),
     },
+    ...(useFeatureFlag(FeatureFlag.autoQAEnabled)
+      ? [
+          {
+            key: 'llm_requests',
+            label: t('Automatic analysis requests'),
+            size: 100,
+            cellFormatter: (data: CustomAssetUsage) =>
+              data.nlp_usage_current_period.total_nlp_llm_requests.toLocaleString(),
+          },
+        ]
+      : []),
     {
       key: 'staus',
       label: (
