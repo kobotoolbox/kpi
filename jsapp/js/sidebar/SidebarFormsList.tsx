@@ -57,6 +57,8 @@ export default function SidebarFormsList() {
   const assetsQuery = useAssetsList(
     {
       q: COMMON_QUERIES.s,
+      // Old code used 200, as there is no pagination handling in this component. This requires some new design and
+      // rethinking of whole component.
       limit: 200,
     },
     {
