@@ -22,6 +22,7 @@ from .utils.lazy import LazyMaxRetriesInt
     retry_backoff_max=1200,
     max_retries=LazyMaxRetriesInt(),
     retry_jitter=True,
+    acks_late=True, # Acknowledge the task until it has completed 
     queue='kpi_low_priority_queue',
 )
 def service_definition_task(hook_id: int, submission_id: int) -> bool:
