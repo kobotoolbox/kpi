@@ -28,7 +28,7 @@ export default function IntegerResponseForm({ qaAnswer, onSave, disabled }: Prop
     <NumberInput
       value={value}
       onChange={handleChange}
-      placeholder={t('Type your answer')}
+      placeholder={t('Type your response or use AI')}
       onBlur={handleSave}
       disabled={disabled}
     />
