@@ -29,8 +29,8 @@ export default function SidebarFormsList() {
   const [isCategoryDraftOpened, categoryDraftHandlers] = useDisclosure(false)
   const [isCategoryArchivedOpened, categoryArchivedHandlers] = useDisclosure(false)
 
-  const unlisteners: Function[] = []
   useEffect(() => {
+    const unlisteners: Function[] = []
     // TODO: when gradually switching to Orval for all these actions below, make sure to write invalidating code in
     // `jsapp/js/api/mutation-defaults`
 
