@@ -166,8 +166,6 @@ export default function AssetNavigator() {
         clearable
         nothingFoundMessage='No tags found'
         hidePickedOptions
-        // HACKFIX: without this the list of options renders somewhere outside the viewport :sadface:
-        comboboxProps={{ withinPortal: false }}
         size='md'
       />
 
