@@ -701,11 +701,31 @@ class ProjectHistoryLog(AuditLog):
         }
         for question_xpath, actions in request_data.items():
             for action, action_data in actions.items():
+                # adding transcriptions, translations, or manual QA responses
+                # falls under "modify_qa_data"
                 log_action = AuditAction.MODIFY_QA_DATA
-                if action == Action.AUTOMATIC_BEDROCK_QUAL:
-                    # automatic QA requests have more metadata and a different action
+                # un/verifying QA data has different actions
+                if (
+                    action in [Action.AUTOMATIC_BEDROCK_QUAL, Action.MANUAL_QUAL]
+                    and 'verified' in action_data
+                ):
+                    if action_data['verified']:
+                        log_action = (
+                            AuditAction.VERIFY_MANUAL_QA_DATA
+                            if action == Action.MANUAL_QUAL
+                            else AuditAction.VERIFY_AUTOMATIC_QA_DATA
+                        )
+                    else:
+                        log_action = (
+                            AuditAction.UNVERIFY_MANUAL_QA_DATA
+                            if action == Action.MANUAL_QUAL
+                            else AuditAction.UNVERIFY_AUTOMATIC_QA_DATA
+                        )
+                # automatic QA response is also a different action
+                elif action == Action.AUTOMATIC_BEDROCK_QUAL:
+                    llm_info = getattr(request, 'llm_response', {})
+                    # automatic QA requests have more metadata
                     log_action = AuditAction.MODIFY_AUTOMATIC_QA_DATA
-                    llm_info = request.llm_response
                     if 'error' in llm_info:
                         metadata['llm'] = {'error': llm_info['error']}
                     else:
