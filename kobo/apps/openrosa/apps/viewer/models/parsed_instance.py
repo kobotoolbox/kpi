@@ -5,7 +5,7 @@ from typing import Optional
 from bson import json_util
 from dateutil import parser
 from django.conf import settings
-from django.db import models, transaction
+from django.db import models
 from django.utils.translation import gettext as t
 from pymongo import UpdateOne
 from pymongo.errors import PyMongoError
@@ -433,9 +433,7 @@ class ParsedInstance(models.Model):
                         f'ParsedInstance #: {self.pk} - XForm is not linked with Asset'
                     )
             else:
-                transaction.on_commit(
-                    lambda: call_services(asset_uid, self.instance_id)
-                )
+                call_services(asset_uid, self.instance_id)
 
         return success
 
