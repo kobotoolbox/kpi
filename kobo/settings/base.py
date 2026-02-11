@@ -171,7 +171,7 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'kobo.apps.openrosa.libs.utils.middleware.RestrictedAccessMiddleware',
-    'kpi.middleware.OpenAPIValidationMiddleware',
+    'kobo.apps.openapi_validator.middleware.OpenAPIValidationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'kobo.apps.openrosa.libs.utils.middleware.HTTPResponseNotAllowedMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -2162,6 +2162,9 @@ MAX_RESTARTED_TASKS = 100
 MAX_RESTARTED_TRANSFERS = 20
 
 
-OPENAPI_VALIDATION = True
-OPENAPI_VALIDATION_STRICT = True
+OPENAPI_VALIDATION = env.bool('OPENAPI_VALIDATION', False)
 OPENAPI_SCHEMA_PATH = 'static/openapi/schema_v2.json'
+
+# Do not change these variables here. Override them in `testing.py` or `dev.py`
+OPENAPI_VALIDATION_STRICT = False
+OPENAPI_VALIDATION_BUILD_WHITELIST_LOG = False

@@ -178,6 +178,7 @@ class OpenAPIComponentRefNotFoundError(Exception):
     """
     Exception raised when OpenAPI component reference cannot be found.
     """
+
     pass
 
 
