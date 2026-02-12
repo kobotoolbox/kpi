@@ -69,11 +69,10 @@ export default function SidebarFormsList() {
     return <Text>{t('Could not load assets')}</Text>
   }
 
-  const deployedProjects =
-    assetsQuery.data.data.results?.filter((asset) => asset.deployment_status === 'deployed') || []
-  const draftProjects = assetsQuery.data.data.results?.filter((asset) => asset.deployment_status === 'draft') || []
-  const archivedProjects =
-    assetsQuery.data.data.results?.filter((asset) => asset.deployment_status === 'archived') || []
+  const results = assetsQuery.data.data.results || []
+  const deployedProjects = results.filter((asset) => asset.deployment_status === 'deployed')
+  const draftProjects = results.filter((asset) => asset.deployment_status === 'draft')
+  const archivedProjects = results.filter((asset) => asset.deployment_status === 'archived')
 
   return (
     // minHeight needed for flex to work properly with scrollable containers
