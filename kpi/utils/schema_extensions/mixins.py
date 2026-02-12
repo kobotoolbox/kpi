@@ -1,10 +1,13 @@
 from typing import Any
 
 from drf_spectacular.openapi import AutoSchema
-from drf_spectacular.plumbing import ComponentIdentity, ResolvedComponent
+from drf_spectacular.plumbing import (
+    ComponentIdentity,
+    ResolvedComponent,
+    build_object_type,
+)
 
 from kpi.schema_extensions.v2.generic.schema import GENERIC_UUID_SCHEMA
-from kpi.schema_extensions.v2.subsequences.schema import AUTOMATIC_QUAL_STATUS_ENUM
 
 
 class ComponentRegistrationMixin:
@@ -69,17 +72,34 @@ class QualComponentsRegistrationMixin(ComponentRegistrationMixin):
             if q_type != 'tags':
                 automatic_schema = {
                     **schema_base,
-                    'properties': {
-                        'value': value_by_type[q_type],
-                        'status': {
-                            'type': 'string',
-                            'enum': AUTOMATIC_QUAL_STATUS_ENUM,
-                        },
-                        'error': {'type': 'string'},
-                        'uuid': GENERIC_UUID_SCHEMA
-                    },
-                    'required': ['uuid', 'status'],
+                    'oneOf': [
+                        build_object_type(
+                            additionalProperties=False,
+                            properties={
+                                'uuid': GENERIC_UUID_SCHEMA,
+                                'value': value_by_type[q_type],
+                                'status': {
+                                    'type': 'string',
+                                    'const': 'complete',
+                                },
+                            },
+                            required=['uuid', 'value', 'status'],
+                        ),
+                        build_object_type(
+                            additionalProperties=False,
+                            properties={
+                                'uuid': GENERIC_UUID_SCHEMA,
+                                'status': {
+                                    'type': 'string',
+                                    'const': 'failed',
+                                },
+                                'error': {'type': 'string'},
+                            },
+                            required=['status', 'error', 'uuid'],
+                        ),
+                    ],
                 }
+
                 references[f'automatic_qual_{q_type}'] = (
                     self._register_schema_component(
                         auto_schema,

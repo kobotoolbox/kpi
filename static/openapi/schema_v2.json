@@ -17351,99 +17351,207 @@
             "DataSupplementAutomaticQualData('Integer',)Response": {
                 "type": "object",
                 "additionalProperties": false,
-                "properties": {
-                    "value": {
-                        "type": "integer",
-                        "nullable": true
+                "oneOf": [
+                    {
+                        "type": "object",
+                        "properties": {
+                            "uuid": {
+                                "type": "string",
+                                "format": "uuid"
+                            },
+                            "value": {
+                                "type": "integer",
+                                "nullable": true
+                            },
+                            "status": {
+                                "type": "string",
+                                "const": "complete"
+                            }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                            "status",
+                            "uuid",
+                            "value"
+                        ]
                     },
-                    "status": {
-                        "$ref": "#/components/schemas/QualAutomaticStatusEnum"
-                    },
-                    "error": {
-                        "type": "string"
-                    },
-                    "uuid": {
-                        "type": "string",
-                        "format": "uuid"
+                    {
+                        "type": "object",
+                        "properties": {
+                            "uuid": {
+                                "type": "string",
+                                "format": "uuid"
+                            },
+                            "status": {
+                                "type": "string",
+                                "const": "failed"
+                            },
+                            "error": {
+                                "type": "string"
+                            }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                            "error",
+                            "status",
+                            "uuid"
+                        ]
                     }
-                },
-                "required": [
-                    "uuid",
-                    "status"
                 ]
             },
             "DataSupplementAutomaticQualData('SelectMultiple',)Response": {
                 "type": "object",
                 "additionalProperties": false,
-                "properties": {
-                    "value": {
-                        "type": "array",
-                        "items": {
-                            "type": "string",
-                            "format": "uuid"
-                        }
+                "oneOf": [
+                    {
+                        "type": "object",
+                        "properties": {
+                            "uuid": {
+                                "type": "string",
+                                "format": "uuid"
+                            },
+                            "value": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "format": "uuid"
+                                }
+                            },
+                            "status": {
+                                "type": "string",
+                                "const": "complete"
+                            }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                            "status",
+                            "uuid",
+                            "value"
+                        ]
                     },
-                    "status": {
-                        "$ref": "#/components/schemas/QualAutomaticStatusEnum"
-                    },
-                    "error": {
-                        "type": "string"
-                    },
-                    "uuid": {
-                        "type": "string",
-                        "format": "uuid"
+                    {
+                        "type": "object",
+                        "properties": {
+                            "uuid": {
+                                "type": "string",
+                                "format": "uuid"
+                            },
+                            "status": {
+                                "type": "string",
+                                "const": "failed"
+                            },
+                            "error": {
+                                "type": "string"
+                            }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                            "error",
+                            "status",
+                            "uuid"
+                        ]
                     }
-                },
-                "required": [
-                    "uuid",
-                    "status"
                 ]
             },
             "DataSupplementAutomaticQualData('SelectOne',)Response": {
                 "type": "object",
                 "additionalProperties": false,
-                "properties": {
-                    "value": {
-                        "type": "string",
-                        "format": "uuid"
+                "oneOf": [
+                    {
+                        "type": "object",
+                        "properties": {
+                            "uuid": {
+                                "type": "string",
+                                "format": "uuid"
+                            },
+                            "value": {
+                                "type": "string",
+                                "format": "uuid"
+                            },
+                            "status": {
+                                "type": "string",
+                                "const": "complete"
+                            }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                            "status",
+                            "uuid",
+                            "value"
+                        ]
                     },
-                    "status": {
-                        "$ref": "#/components/schemas/QualAutomaticStatusEnum"
-                    },
-                    "error": {
-                        "type": "string"
-                    },
-                    "uuid": {
-                        "type": "string",
-                        "format": "uuid"
+                    {
+                        "type": "object",
+                        "properties": {
+                            "uuid": {
+                                "type": "string",
+                                "format": "uuid"
+                            },
+                            "status": {
+                                "type": "string",
+                                "const": "failed"
+                            },
+                            "error": {
+                                "type": "string"
+                            }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                            "error",
+                            "status",
+                            "uuid"
+                        ]
                     }
-                },
-                "required": [
-                    "uuid",
-                    "status"
                 ]
             },
             "DataSupplementAutomaticQualData('Text',)Response": {
                 "type": "object",
                 "additionalProperties": false,
-                "properties": {
-                    "value": {
-                        "type": "string"
+                "oneOf": [
+                    {
+                        "type": "object",
+                        "properties": {
+                            "uuid": {
+                                "type": "string",
+                                "format": "uuid"
+                            },
+                            "value": {
+                                "type": "string"
+                            },
+                            "status": {
+                                "type": "string",
+                                "const": "complete"
+                            }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                            "status",
+                            "uuid",
+                            "value"
+                        ]
                     },
-                    "status": {
-                        "$ref": "#/components/schemas/QualAutomaticStatusEnum"
-                    },
-                    "error": {
-                        "type": "string"
-                    },
-                    "uuid": {
-                        "type": "string",
-                        "format": "uuid"
+                    {
+                        "type": "object",
+                        "properties": {
+                            "uuid": {
+                                "type": "string",
+                                "format": "uuid"
+                            },
+                            "status": {
+                                "type": "string",
+                                "const": "failed"
+                            },
+                            "error": {
+                                "type": "string"
+                            }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                            "error",
+                            "status",
+                            "uuid"
+                        ]
                     }
-                },
-                "required": [
-                    "uuid",
-                    "status"
                 ]
             },
             "DataSupplementManualQualData('Integer',)": {
@@ -23841,13 +23949,6 @@
                 ],
                 "type": "string",
                 "description": "* `always_invoice` - Always invoice\n* `create_prorations` - Create prorations\n* `none` - None"
-            },
-            "QualAutomaticStatusEnum": {
-                "type": "string",
-                "enum": [
-                    "complete",
-                    "failed"
-                ]
             },
             "QualSelectQuestionParamsTypeEnum": {
                 "type": "string",

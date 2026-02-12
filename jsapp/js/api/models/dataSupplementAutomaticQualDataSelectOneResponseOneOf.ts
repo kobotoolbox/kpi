@@ -10,10 +10,8 @@ The endpoints are grouped by area of intended use. Each category contains relate
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 
-export type QualAutomaticStatusEnum = (typeof QualAutomaticStatusEnum)[keyof typeof QualAutomaticStatusEnum]
-
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const QualAutomaticStatusEnum = {
-  complete: 'complete',
-  failed: 'failed',
-} as const
+export type DataSupplementAutomaticQualDataSelectOneResponseOneOf = {
+  uuid: string
+  value: string
+  status: 'complete'
+}

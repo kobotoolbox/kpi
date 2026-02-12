@@ -12519,72 +12519,144 @@ components:
     DataSupplementAutomaticQualData('Integer',)Response:
       type: object
       additionalProperties: false
-      properties:
-        value:
-          type: integer
-          nullable: true
-        status:
-          $ref: '#/components/schemas/QualAutomaticStatusEnum'
-        error:
-          type: string
-        uuid:
-          type: string
-          format: uuid
-      required:
-      - uuid
-      - status
+      oneOf:
+      - type: object
+        properties:
+          uuid:
+            type: string
+            format: uuid
+          value:
+            type: integer
+            nullable: true
+          status:
+            type: string
+            const: complete
+        additionalProperties: false
+        required:
+        - status
+        - uuid
+        - value
+      - type: object
+        properties:
+          uuid:
+            type: string
+            format: uuid
+          status:
+            type: string
+            const: failed
+          error:
+            type: string
+        additionalProperties: false
+        required:
+        - error
+        - status
+        - uuid
     DataSupplementAutomaticQualData('SelectMultiple',)Response:
       type: object
       additionalProperties: false
-      properties:
-        value:
-          type: array
-          items:
+      oneOf:
+      - type: object
+        properties:
+          uuid:
             type: string
             format: uuid
-        status:
-          $ref: '#/components/schemas/QualAutomaticStatusEnum'
-        error:
-          type: string
-        uuid:
-          type: string
-          format: uuid
-      required:
-      - uuid
-      - status
+          value:
+            type: array
+            items:
+              type: string
+              format: uuid
+          status:
+            type: string
+            const: complete
+        additionalProperties: false
+        required:
+        - status
+        - uuid
+        - value
+      - type: object
+        properties:
+          uuid:
+            type: string
+            format: uuid
+          status:
+            type: string
+            const: failed
+          error:
+            type: string
+        additionalProperties: false
+        required:
+        - error
+        - status
+        - uuid
     DataSupplementAutomaticQualData('SelectOne',)Response:
       type: object
       additionalProperties: false
-      properties:
-        value:
-          type: string
-          format: uuid
-        status:
-          $ref: '#/components/schemas/QualAutomaticStatusEnum'
-        error:
-          type: string
-        uuid:
-          type: string
-          format: uuid
-      required:
-      - uuid
-      - status
+      oneOf:
+      - type: object
+        properties:
+          uuid:
+            type: string
+            format: uuid
+          value:
+            type: string
+            format: uuid
+          status:
+            type: string
+            const: complete
+        additionalProperties: false
+        required:
+        - status
+        - uuid
+        - value
+      - type: object
+        properties:
+          uuid:
+            type: string
+            format: uuid
+          status:
+            type: string
+            const: failed
+          error:
+            type: string
+        additionalProperties: false
+        required:
+        - error
+        - status
+        - uuid
     DataSupplementAutomaticQualData('Text',)Response:
       type: object
       additionalProperties: false
-      properties:
-        value:
-          type: string
-        status:
-          $ref: '#/components/schemas/QualAutomaticStatusEnum'
-        error:
-          type: string
-        uuid:
-          type: string
-          format: uuid
-      required:
-      - uuid
-      - status
+      oneOf:
+      - type: object
+        properties:
+          uuid:
+            type: string
+            format: uuid
+          value:
+            type: string
+          status:
+            type: string
+            const: complete
+        additionalProperties: false
+        required:
+        - status
+        - uuid
+        - value
+      - type: object
+        properties:
+          uuid:
+            type: string
+            format: uuid
+          status:
+            type: string
+            const: failed
+          error:
+            type: string
+        additionalProperties: false
+        required:
+        - error
+        - status
+        - uuid
     DataSupplementManualQualData('Integer',):
       type: object
       additionalProperties: false
@@ -17107,11 +17179,6 @@ components:
         * `always_invoice` - Always invoice
         * `create_prorations` - Create prorations
         * `none` - None
-    QualAutomaticStatusEnum:
-      type: string
-      enum:
-      - complete
-      - failed
     QualSelectQuestionParamsTypeEnum:
       type: string
       enum:
