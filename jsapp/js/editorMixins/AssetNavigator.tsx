@@ -151,6 +151,7 @@ export default function AssetNavigator() {
         nothingFoundMessage='No tags found'
         hidePickedOptions
         size='md'
+        selectFirstOptionOnChange
       />
 
       {/* Collection filtering */}
@@ -162,6 +163,7 @@ export default function AssetNavigator() {
         searchable
         clearable
         size='md'
+        selectFirstOptionOnChange
       />
 
       {/* Total count & toggle expanded info */}
