@@ -115,9 +115,9 @@ export default function ResponseForm({ qaQuestion, children, onClear, disabled, 
             p={0}
             disabled={disabled}
             c='var(--mantine-color-blue-5)'
+            leftIcon='sparkles'
           >
-            <Icon name='sparkles' size='s' />
-            <Text pl={'8px'}>{t('Generate with AI')}</Text>
+            {t('Generate with AI')}
           </ButtonNew>
         </Group>
       )}
