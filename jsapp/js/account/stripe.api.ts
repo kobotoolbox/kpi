@@ -6,7 +6,6 @@ import { fetchGet, fetchPost } from '#/api'
 import { endpoints } from '#/api.endpoints'
 import { ACTIVE_STRIPE_STATUSES } from '#/constants'
 import type { PaginatedResponse } from '#/dataInterface'
-import envStore from '#/envStore'
 import { recordEntries } from '#/utils'
 
 const DEFAULT_LIMITS: AccountLimit = Object.freeze({
@@ -78,29 +77,6 @@ function getLimitsForMetadata(metadata: Record<string, string>, limitsToCompare:
     }
   }
   return limits
-}
-
-/**
- * Get limits for the custom free tier (from `FREE_TIER_THRESHOLDS`), and merges them with the user's limits.
- * The `/environment/` endpoint handles checking whether the logged-in user registered before `FREE_TIER_CUTOFF_DATE`.
- */
-const getFreeTierLimits = async (limits: AccountLimit) => {
-  await when(() => envStore.isReady)
-  const thresholds = envStore.data.free_tier_thresholds
-  const newLimits: AccountLimit = { ...limits }
-  if (thresholds.storage) {
-    newLimits['storage_bytes_limit'] = thresholds.storage
-  }
-  if (thresholds.data) {
-    newLimits['submission_limit'] = thresholds.data
-  }
-  if (thresholds.translation_chars) {
-    newLimits['mt_characters_limit'] = thresholds.translation_chars
-  }
-  if (thresholds.transcription_minutes) {
-    newLimits['asr_seconds_limit'] = thresholds.transcription_minutes * 60
-  }
-  return newLimits
 }
 
 /**
@@ -177,7 +153,6 @@ const getStripeMetadataAndFreeTierStatus = async (products: Product[]) => {
  * Get the complete account limits for the logged-in user.
  * Checks (in descending order of priority):
  *  - the user's recurring add-ons
- *  - the `FREE_TIER_THRESHOLDS` override
  *  - the user's subscription limits
  */
 export async function getAccountLimits(products: Product[], oneTimeAddOns: OneTimeAddOn[]) {
@@ -190,9 +165,6 @@ export async function getAccountLimits(products: Product[], oneTimeAddOns: OneTi
   recurringLimits = { ...recurringLimits, ...getLimitsForMetadata(metadata) }
 
   if (hasFreeTier) {
-    // if the user is on the free tier, overwrite their limits with whatever free tier limits exist
-    recurringLimits = await getFreeTierLimits(recurringLimits)
-
     // if the user has active recurring add-ons, use those as their limits
     recurringLimits = getRecurringAddOnLimits(recurringLimits)
   }

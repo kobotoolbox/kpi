@@ -42,19 +42,26 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - in: query
         name: q
         schema:
           type: string
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
+        schema:
+          type: integer
       tags:
       - Server logs (superusers)
       security:
@@ -180,19 +187,26 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - in: query
         name: q
         schema:
           type: string
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
+        schema:
+          type: integer
       tags:
       - Logging
       security:
@@ -282,13 +296,20 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       tags:
@@ -605,13 +626,20 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       tags:
@@ -741,13 +769,20 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       tags:
@@ -816,16 +851,18 @@ paths:
         curl -X GET https://kf.kobotoolbox.org/api/v2/assets/?collections_first=true&ordering=-name
         ```
       parameters:
-      - in: query
-        name: limit
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
-        description: Paginate results with limit parameter
-      - in: query
-        name: offset
+      - name: offset
+        required: false
+        in: query
+        description: Deprecated alias of `start`.
         schema:
           type: integer
-        description: Paginate results with offset parameter
       - in: query
         name: ordering
         schema:
@@ -836,6 +873,13 @@ paths:
         schema:
           type: string
         description: Filter the results with search query
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
+        schema:
+          type: integer
       tags:
       - Manage projects and library content
       security:
@@ -1895,13 +1939,20 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       - in: path
@@ -2021,7 +2072,13 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - in: query
@@ -2032,7 +2089,8 @@ paths:
       - name: start
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       - in: path
@@ -4115,13 +4173,20 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       - in: path
@@ -4473,13 +4538,13 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - name: ordering
@@ -4488,6 +4553,13 @@ paths:
         description: Which field to use when ordering the results.
         schema:
           type: string
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
+        schema:
+          type: integer
       - in: path
         name: uid_asset
         schema:
@@ -4736,13 +4808,20 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       - in: path
@@ -5137,24 +5216,31 @@ paths:
           - metadata__settings__description__old
           - metadata__settings__description__new
 
-        This endpoint can be paginated with 'offset' and 'limit' parameters.
+        This endpoint can be paginated with 'start' and 'limit' parameters.
       parameters:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - in: query
         name: q
         schema:
           type: string
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
+        schema:
+          type: integer
       - in: path
         name: uid_asset
         schema:
@@ -5300,13 +5386,20 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       - in: path
@@ -5574,6 +5667,8 @@ paths:
       description: |
         ## List logs of an external services endpoints accessible to requesting user
 
+        ⚠️ The `page` query parameter is deprecated, use `start` and `limit` instead.
+
         Where:
         * `asset_uid` - is the unique identifier of a specific asset
         * `hook_uid` - is the unique identifier of a specific external service
@@ -5584,23 +5679,40 @@ paths:
         * `status=1`: hook is still pending
         * `status=2`: hook has succeeded
 
-        Use the `start` and `end` query parameters to filter logs by date range, providing ISO-8601 date strings (e.g. '2022-01-14', '2022-01-21 06:51:04', '2022-01-21T06:51:08.144004+02:00').
-        Note that `start` is inclusive, while `end` is exclusive.
-        Time zone is assumed to be UTC. If provided, it needs to be in '+00:00' format ('Z' is not supported). Watch out for url encoding for the '+' character (%2B).
+        Use the `start_date` and `end_date` query parameters to filter logs by date range,
+        providing ISO-8601 date strings (e.g. '2022-01-14', '2022-01-21 06:51:04',
+        '2022-01-21T06:51:08.144004+02:00'). Time zone is assumed to be UTC. If provided, it
+        needs to be in '+00:00' format ('Z' is not supported). Watch out for url encoding for
+        the '+' character (%2B).
+
+        Note that `start_date` is inclusive, while `end_date` is exclusive.
       parameters:
       - in: query
-        name: end
+        name: end_date
         schema:
           type: string
           format: date-time
-      - name: page
+      - name: limit
         required: false
         in: query
-        description: A page number within the paginated result set.
+        description: Number of results to return per page. Use with `start`.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       - in: query
-        name: start
+        name: start_date
         schema:
           type: string
           format: date-time
@@ -5845,13 +5957,20 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       - in: path
@@ -6688,13 +6807,20 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       - in: path
@@ -7041,19 +7167,26 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - in: query
         name: q
         schema:
           type: string
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
+        schema:
+          type: integer
       tags:
       - Server logs (superusers)
       security:
@@ -7097,13 +7230,20 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       tags:
@@ -7261,13 +7401,20 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       tags:
@@ -7349,13 +7496,20 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       tags:
@@ -7482,15 +7636,15 @@ paths:
           type: integer
         description: Paginate results with limit parameter
       - in: query
-        name: offset
-        schema:
-          type: integer
-        description: Paginate results with offset parameter
-      - in: query
         name: ordering
         schema:
           type: string
         description: Which field to use when ordering the results.
+      - in: query
+        name: start
+        schema:
+          type: integer
+        description: Paginate results with start parameter
       - in: path
         name: uid_organization
         schema:
@@ -7573,13 +7727,20 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       - in: path
@@ -7851,13 +8012,20 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       - in: path
@@ -8115,13 +8283,20 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       tags:
@@ -8349,24 +8524,31 @@ paths:
 
             b. metadata__settings__description__new
 
-        This endpoint can be paginated with 'offset' and 'limit' parameters
+        This endpoint can be paginated with 'start' and 'limit' parameters
       parameters:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - in: query
         name: q
         schema:
           type: string
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
+        schema:
+          type: integer
       tags:
       - Server logs (superusers)
       security:
@@ -8502,7 +8684,7 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - in: query
@@ -8512,7 +8694,14 @@ paths:
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       tags:
@@ -8820,13 +9009,20 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       tags:
@@ -9063,10 +9259,10 @@ paths:
           type: integer
         description: Paginate results with limit parameter
       - in: query
-        name: offset
+        name: start
         schema:
           type: integer
-        description: Paginate results with offset parameter
+        description: Paginate results with start parameter
       - in: path
         name: uid_project_view
         schema:
@@ -9131,10 +9327,10 @@ paths:
           type: integer
         description: Paginate results with limit parameter
       - in: query
-        name: offset
+        name: start
         schema:
           type: integer
-        description: Paginate results with offset parameter
+        description: Paginate results with start parameter
       - in: path
         name: uid_project_view
         schema:
@@ -9219,13 +9415,20 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       tags:
@@ -9439,13 +9642,20 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       tags:
@@ -9468,13 +9678,20 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       tags:
@@ -9530,13 +9747,20 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       tags:
@@ -9697,19 +9921,26 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - in: query
         name: q
         schema:
           type: string
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
+        schema:
+          type: integer
       tags:
       - Other
       security:
@@ -9794,19 +10025,26 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - in: query
         name: q
         schema:
           type: string
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
+        schema:
+          type: integer
       tags:
       - Other
       security:
@@ -9995,13 +10233,13 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
         schema:
           type: integer
       - name: ordering
@@ -10010,6 +10248,13 @@ paths:
         description: Which field to use when ordering the results.
         schema:
           type: string
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
+        schema:
+          type: integer
       tags:
       - Server logs (superusers)
       security:
@@ -10068,13 +10313,20 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       tags:
@@ -10282,13 +10534,20 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       tags:
@@ -10372,13 +10631,20 @@ paths:
       - name: limit
         required: false
         in: query
-        description: Number of results to return per page.
+        description: Number of results to return per page. Use with `start`.
         schema:
           type: integer
       - name: offset
         required: false
         in: query
-        description: The initial index from which to return the results.
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: start
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
         schema:
           type: integer
       tags:
@@ -14178,15 +14444,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14201,68 +14471,83 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
             $ref: '#/components/schemas/AssetCountResponse'
     PaginatedAssetList:
       type: object
+      required:
+      - count
+      - results
       properties:
         count:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
+          format: uri
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
-        metadata:
-          type: object
-          properties:
-            languages:
-              type: array
-              items:
-                type: string
-              example:
-              - English (en)
-            countries:
-              type: array
-              items:
-                type: array
-                items:
-                  type: string
-              example:
-              - - FRA
-                - France
-            sectors:
-              type: array
-              items:
-                type: array
-                items:
-                  type: string
-              example:
-              - - Public Administration
-                - Public Administration
-            organizations:
-              type: array
-              items:
-                type: string
-              example:
-              - Kobotoolbox
+          format: uri
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
             $ref: '#/components/schemas/Asset'
+      metadata:
+        type: object
+        properties:
+          languages:
+            type: array
+            items:
+              type: string
+            example:
+            - English (en)
+          countries:
+            type: array
+            items:
+              type: array
+              items:
+                type: string
+            example:
+            - - FRA
+              - France
+          sectors:
+            type: array
+            items:
+              type: array
+              items:
+                type: string
+            example:
+            - - Public Administration
+              - Public Administration
+          organizations:
+            type: array
+            items:
+              type: string
+            example:
+            - Kobotoolbox
     PaginatedAssetSnapshotResponseList:
       type: object
       required:
@@ -14273,15 +14558,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14296,15 +14585,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14319,15 +14612,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14338,15 +14635,19 @@ components:
       - results
       properties:
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14361,15 +14662,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14384,15 +14689,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?start=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?start=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14407,15 +14716,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?start=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?start=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14430,15 +14743,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14453,15 +14770,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14476,15 +14797,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14499,15 +14824,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14522,15 +14851,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14545,15 +14878,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14568,15 +14905,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?page=4
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?page=2
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14591,15 +14932,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14614,15 +14959,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14637,15 +14986,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14660,15 +15013,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14683,15 +15040,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14706,15 +15067,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14729,15 +15094,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14752,15 +15121,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14775,15 +15148,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14794,15 +15171,19 @@ components:
       - results
       properties:
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14817,15 +15198,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14840,15 +15225,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14863,15 +15252,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14886,15 +15279,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14909,15 +15306,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14932,15 +15333,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14951,15 +15356,19 @@ components:
       - results
       properties:
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14974,15 +15383,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -14997,15 +15410,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -15020,15 +15437,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -15043,15 +15464,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -15062,15 +15487,19 @@ components:
       - results
       properties:
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:
@@ -15085,15 +15514,19 @@ components:
           type: integer
           example: 123
         next:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=400&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=400&limit=100
         previous:
-          type: string
+          type:
+          - string
+          - 'null'
           nullable: true
           format: uri
-          example: http://api.example.org/accounts/?offset=200&limit=100
+          example: https://kf.kobotoolbox.org/accounts/?start=200&limit=100
         results:
           type: array
           items:

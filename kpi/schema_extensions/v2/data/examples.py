@@ -193,7 +193,7 @@ def _get_data_supplement_patch_payload_request_examples() -> list[OpenApiExample
                 },
             },
             request_only=True,
-            description='Set `value` an empty array `[]` to delete.'
+            description='Set `value` an empty array `[]` to delete.',
         ),
     ]
 
