@@ -1,6 +1,6 @@
 import { Box, Group, Stack, Text, UnstyledButton } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
-import React, { useEffect, useMemo } from 'react'
+import React, { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { actions } from '#/actions'
 import type { Asset } from '#/api/models/asset'
@@ -70,15 +70,11 @@ export default function SidebarFormsList() {
       },
     },
   )
-  const deployedProjects = useMemo(() => {
-    return assetsQuery.data?.data?.results?.filter((asset) => asset.deployment_status === 'deployed') || []
-  }, [assetsQuery.data])
-  const draftProjects = useMemo(() => {
-    return assetsQuery.data?.data?.results?.filter((asset) => asset.deployment_status === 'draft') || []
-  }, [assetsQuery.data])
-  const archivedProjects = useMemo(() => {
-    return assetsQuery.data?.data?.results?.filter((asset) => asset.deployment_status === 'archived') || []
-  }, [assetsQuery.data])
+  const deployedProjects =
+    assetsQuery.data?.data?.results?.filter((asset) => asset.deployment_status === 'deployed') || []
+  const draftProjects = assetsQuery.data?.data?.results?.filter((asset) => asset.deployment_status === 'draft') || []
+  const archivedProjects =
+    assetsQuery.data?.data?.results?.filter((asset) => asset.deployment_status === 'archived') || []
 
   function renderCategory(options: {
     toggleFunction: () => void
