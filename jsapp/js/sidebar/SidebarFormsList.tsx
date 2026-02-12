@@ -60,19 +60,20 @@ export default function SidebarFormsList() {
       },
     },
   )
-  const deployedProjects =
-    assetsQuery.data?.data?.results?.filter((asset) => asset.deployment_status === 'deployed') || []
-  const draftProjects = assetsQuery.data?.data?.results?.filter((asset) => asset.deployment_status === 'draft') || []
-  const archivedProjects =
-    assetsQuery.data?.data?.results?.filter((asset) => asset.deployment_status === 'archived') || []
-
-  if (assetsQuery.isError) {
-    return <Text>{t('Could not load assets')}</Text>
-  }
 
   if (assetsQuery.isLoading) {
     return <LoadingSpinner />
   }
+
+  if (assetsQuery.data?.status !== 200) {
+    return <Text>{t('Could not load assets')}</Text>
+  }
+
+  const deployedProjects =
+    assetsQuery.data.data.results?.filter((asset) => asset.deployment_status === 'deployed') || []
+  const draftProjects = assetsQuery.data.data.results?.filter((asset) => asset.deployment_status === 'draft') || []
+  const archivedProjects =
+    assetsQuery.data.data.results?.filter((asset) => asset.deployment_status === 'archived') || []
 
   return (
     // minHeight needed for flex to work properly with scrollable containers
