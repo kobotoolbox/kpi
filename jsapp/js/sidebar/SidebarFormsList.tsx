@@ -98,7 +98,7 @@ export default function SidebarFormsList() {
         >
           <Group gap='xs'>
             <Icon name={options.iconName} size='l' className={styles.categoryButtonIcon} />
-            <div style={{ flex: 1 }}>{options.label}</div>
+            <Box flex={1}>{options.label}</Box>
             <Badge label={options.categoryAssets.length} color='light-storm' size='xs' />
           </Group>
         </UnstyledButton>
