@@ -30,13 +30,12 @@ export default function SidebarFormsList() {
   const [isCategoryArchivedOpened, categoryArchivedHandlers] = useDisclosure(false)
 
   useEffect(() => {
-    const unlisteners: Function[] = []
     // TODO: when gradually switching to Orval for all these actions below, make sure to write invalidating code in
     // `jsapp/js/api/mutation-defaults`
 
     // This is a list of different Reflux actions that upon completion would cause changes to the list of assets in
     // SidebarFormsList
-    unlisteners.push(
+    const unlisteners = [
       actions.resources.deleteAsset.completed.listen(() => invalidatePaginatedList(SidebarFormsListQueryKey)),
       actions.resources.cloneAsset.completed.listen(() => invalidatePaginatedList(SidebarFormsListQueryKey)),
       actions.resources.deployAsset.completed.listen(() => invalidatePaginatedList(SidebarFormsListQueryKey)),
@@ -47,7 +46,7 @@ export default function SidebarFormsList() {
       actions.permissions.removeAssetPermission.completed.listen(() =>
         invalidatePaginatedList(SidebarFormsListQueryKey),
       ),
-    )
+    ]
     // When unmounting, let's remember to unlisten all those Reflux actions
     return () => {
       unlisteners.forEach((clb) => clb())
