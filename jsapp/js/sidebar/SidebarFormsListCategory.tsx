@@ -1,4 +1,5 @@
 import { Box, Group, Stack, Text, UnstyledButton } from '@mantine/core'
+import { useDisclosure } from '@mantine/hooks'
 import React from 'react'
 import { Link } from 'react-router-dom'
 import type { Asset } from '#/api/models/asset'
@@ -13,10 +14,8 @@ import { userCan } from '../components/permissions/utils'
 import styles from './SidebarFormsList.module.scss'
 
 interface SidebarFormsListCategoryProps {
-  onToggleClick: () => void
   iconName: IconName
   label: string
-  isOpen: boolean
   projects: Asset[]
 }
 
@@ -24,9 +23,16 @@ interface SidebarFormsListCategoryProps {
  * Displays a toggleable button and a list of projects
  */
 export default function SidebarFormsListCategory(props: SidebarFormsListCategoryProps) {
+  const [isProjectsListVisible, projectsListHandlers] = useDisclosure(false)
+
   return (
     <>
-      <UnstyledButton size='md' variant='transparent' onClick={props.onToggleClick} className={styles.categoryButton}>
+      <UnstyledButton
+        size='md'
+        variant='transparent'
+        onClick={projectsListHandlers.toggle}
+        className={styles.categoryButton}
+      >
         <Group gap='xs'>
           <Icon name={props.iconName} size='l' className={styles.categoryButtonIcon} />
           <Box flex={1}>{props.label}</Box>
@@ -34,7 +40,7 @@ export default function SidebarFormsListCategory(props: SidebarFormsListCategory
         </Group>
       </UnstyledButton>
 
-      {props.isOpen && (
+      {isProjectsListVisible && (
         <Stack className={styles.categoryList} gap='0'>
           {props.projects.map((assetOriginal: Asset) => {
             // TODO: because of a bug in OpenAPI schema, we can't use `userCan` easily. We cast it here until it is fixed.

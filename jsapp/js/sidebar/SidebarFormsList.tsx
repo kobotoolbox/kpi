@@ -1,5 +1,4 @@
 import { Stack, Text } from '@mantine/core'
-import { useDisclosure } from '@mantine/hooks'
 import React, { useEffect } from 'react'
 import { actions } from '#/actions'
 import { invalidatePaginatedList } from '#/api/mutation-defaults/common'
@@ -15,10 +14,6 @@ export const SidebarFormsListQueryKey = getAssetsListQueryKey({ q: COMMON_QUERIE
  * A list of projects grouped by status (deployed, draft, archived). It's meant to be displayed in the sidebar area.
  */
 export default function SidebarFormsList() {
-  const [isCategoryDeployedOpened, categoryDeployedHandlers] = useDisclosure(false)
-  const [isCategoryDraftOpened, categoryDraftHandlers] = useDisclosure(false)
-  const [isCategoryArchivedOpened, categoryArchivedHandlers] = useDisclosure(false)
-
   useEffect(() => {
     // TODO: when gradually switching to Orval for all these actions below, make sure to write invalidating code in
     // `jsapp/js/api/mutation-defaults`
@@ -77,29 +72,11 @@ export default function SidebarFormsList() {
   return (
     // minHeight needed for flex to work properly with scrollable containers
     <Stack style={{ minHeight: 0 }}>
-      <SidebarFormsListCategory
-        onToggleClick={categoryDeployedHandlers.toggle}
-        isOpen={isCategoryDeployedOpened}
-        iconName={'deploy'}
-        label={t('Deployed')}
-        projects={deployedProjects}
-      />
+      <SidebarFormsListCategory iconName={'deploy'} label={t('Deployed')} projects={deployedProjects} />
 
-      <SidebarFormsListCategory
-        onToggleClick={categoryDraftHandlers.toggle}
-        isOpen={isCategoryDraftOpened}
-        iconName={'drafts'}
-        label={t('Draft')}
-        projects={draftProjects}
-      />
+      <SidebarFormsListCategory iconName={'drafts'} label={t('Draft')} projects={draftProjects} />
 
-      <SidebarFormsListCategory
-        onToggleClick={categoryArchivedHandlers.toggle}
-        isOpen={isCategoryArchivedOpened}
-        iconName={'archived'}
-        label={t('Archived')}
-        projects={archivedProjects}
-      />
+      <SidebarFormsListCategory iconName={'archived'} label={t('Archived')} projects={archivedProjects} />
     </Stack>
   )
 }
