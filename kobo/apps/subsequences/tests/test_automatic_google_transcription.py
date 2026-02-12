@@ -208,13 +208,12 @@ def test_acceptance_does_not_produce_versions():
             }
             mock_sup_det = action.revise_data(EMPTY_SUBMISSION, mock_sup_det, data)
             assert '_versions' in mock_sup_det
-            if data.get('value') is None:
-                is_date_accepted_present = (
-                    mock_sup_det['_versions'][0].get('_dateAccepted') is None
-                )
-                assert is_date_accepted_present is not bool(data.get('accepted'))
 
         action.validate_result(mock_sup_det)
+        versions = mock_sup_det['_versions']
+        assert len(versions) == 1
+        version = versions[0]
+        assert '_dateAccepted' in version
 
 
 def test_invalid_result_fails_validation():
