@@ -36,7 +36,7 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
         Validate incoming request.
         """
 
-        # If OPENAPI_VALIDATION is False, do nothing at all
+        # If OPENAPI_VALIDATION is False, skip validation entirely
         if not settings.OPENAPI_VALIDATION:
             return None
 
@@ -60,7 +60,7 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
                 f'OpenAPI validation error for {request.path} '
                 f'[{request.method}]: {str(e)}'
             )
-            self._maybe_fail_strict(
+            self._handle_validation_error(
                 request, error_message, 'missing-required-parameter'
             )
 
@@ -77,7 +77,7 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
                             f'OpenAPI validation error for {request.path} '
                             f'[{request.method}]: Invalid JSON request body'
                         )
-                        self._maybe_fail_strict(
+                        self._handle_validation_error(
                             request, error_message, 'invalid-json-payload'
                         )
 
@@ -91,7 +91,7 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
                             f'OpenAPI validation error for {request.path} '
                             f'[{request.method}]: Schema component reference not found'
                         )
-                        self._maybe_fail_strict(
+                        self._handle_validation_error(
                             request, error_message, 'request-payload-schema-not-found'
                         )
 
@@ -105,7 +105,7 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
                             f'[{request.method}]: Request validation failed - '
                             f'{validation_error}'
                         )
-                        self._maybe_fail_strict(
+                        self._handle_validation_error(
                             request, error_message, 'request-payload-validation'
                         )
 
@@ -117,7 +117,7 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
         """
         Validate outgoing response.
         """
-        # If OPENAPI_VALIDATION is False, do nothing at all
+        # If OPENAPI_VALIDATION is False, skip validation entirely
         if not settings.OPENAPI_VALIDATION:
             return response
 
@@ -147,7 +147,7 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
                 f'OpenAPI validation error for {request.path} '
                 f'[{request.method}]: Schema component reference not found'
             )
-            self._maybe_fail_strict(request, error_message, 'response-schema-not-found')
+            self._handle_validation_error(request, error_message, 'response-schema-not-found')
 
         if response_schema:
             # Parse response content
@@ -169,7 +169,7 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
                         f'[{request.method}]: Response validation failed - '
                         f'{validation_error}'
                     )
-                    self._maybe_fail_strict(
+                    self._handle_validation_error(
                         request, error_message, 'response-validation'
                     )
 
@@ -177,8 +177,7 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
 
     def _get_operation_spec(self, path: str, method: str) -> Optional[dict[str, Any]]:
         """
-        Find the OpenAPI specification for a given path and method.
-        Handles dynamic path parameters.
+        Handles OpenAPI-style path params like {id} by converting them to a simple regex.
         """
         if not self.paths:
             return None
@@ -266,8 +265,8 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
 
     def _get_test_info(self):
         """
-        Return detailed information about the currently running test,
-        including file path.
+        Return pytest-style test identifier (file::Class::test_*) when running tests.
+        Otherwise None.
         """
 
         if not settings.TESTING:
@@ -324,6 +323,68 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
 
         return None
 
+    def _handle_validation_error(
+        self,
+        request: HttpRequest,
+        error_message: str,
+        error_code: str,
+    ) -> None:
+        """
+        Log the validation error, optionally append it to the whitelist CSV,
+        and in STRICT mode raise AssertionError unless whitelisted.
+        """
+
+        logging.warning(error_message)
+
+        if settings.OPENAPI_VALIDATION_BUILD_WHITELIST_LOG:
+            self._log_error(request, error_code)
+
+        if not settings.OPENAPI_VALIDATION_STRICT:
+            return
+
+        test_path = self._get_test_info()
+        if self._is_whitelisted(test_path, request.path, request.method, error_code):
+            return
+
+        assert False, error_message
+
+    def _is_whitelisted(
+        self,
+        test_path: str | None,
+        request_path: str,
+        method: str,
+        error_code: str,
+    ) -> bool:
+        """
+        Whitelist lookup using Django-resolved route only (no regex matching by us).
+
+        Rules:
+          - If test_path is None -> not whitelisted
+          - Resolve request_path to django_route; only compare that route string to
+            constants keys
+        """
+        if not test_path:
+            return False
+
+        test_entry = OPENAPI_VALIDATION_WHITELIST.get(test_path)
+        if not test_entry:
+            return False
+
+        code_entry = test_entry.get(error_code)
+        if not code_entry:
+            return False
+
+        django_route = get_django_route(request_path)
+        if not django_route:
+            return False
+
+        allowed_methods = code_entry.get(django_route)
+        if not allowed_methods:
+            return False
+
+        return method.upper() in allowed_methods
+
+
     def _log_error(self, request: HttpRequest, error_code: str):
         openapi_error_log = os.path.join(
             settings.BASE_DIR,
@@ -365,65 +426,6 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
         except (FileNotFoundError, json.JSONDecodeError) as e:
             logging.error(f'Error loading OpenAPI schema: {e}')
             return None
-
-    def _is_whitelisted(
-        self,
-        test_path: str | None,
-        request_path: str,
-        method: str,
-        error_code: str,
-    ) -> bool:
-        """
-        Whitelist lookup using Django-resolved route only (no regex matching by us).
-
-        Rules:
-          - If test_path is None -> not whitelisted (unless you decide to add a '*' key)
-          - Resolve request_path to django_route; only compare that route string to constants keys
-        """
-        if not test_path:
-            return False
-
-        test_entry = OPENAPI_VALIDATION_WHITELIST.get(test_path)
-        if not test_entry:
-            return False
-
-        code_entry = test_entry.get(error_code)
-        if not code_entry:
-            return False
-
-        django_route = get_django_route(request_path)
-        if not django_route:
-            return False
-
-        allowed_methods = code_entry.get(django_route)
-        if not allowed_methods:
-            return False
-
-        return method.upper() in allowed_methods
-
-    def _maybe_fail_strict(
-        self,
-        request: HttpRequest,
-        error_message: str,
-        error_code: str,
-    ) -> None:
-        """
-        Strict-mode gate: fail only if the error is not whitelisted.
-        """
-
-        logging.warning(error_message)
-
-        if settings.OPENAPI_VALIDATION_BUILD_WHITELIST_LOG:
-            self._log_error(request, error_code)
-
-        if not settings.OPENAPI_VALIDATION_STRICT:
-            return
-
-        test_path = self._get_test_info()
-        if self._is_whitelisted(test_path, request.path, request.method, error_code):
-            return
-
-        assert False, error_message
 
     def _resolve_schema_ref(self, ref: str) -> Optional[dict[str, Any]]:
         """Resolve a $ref reference in the schema."""
