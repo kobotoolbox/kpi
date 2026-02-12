@@ -32,6 +32,24 @@ In general, the user flow for advanced features (aka subsequences) is as follows
 3. Update the submission with new supplementary data
 4. The submission table and exports view will reflect the new data
 
+
+### Types of review
+
+Actions may be either _accepted_ or _verified_.
+
+If actions are _accepted_, responses will not be added/updated in the data set until they are accepted.
+Manual actions are automatically accepted on creation, automatic ones must be explicitly accepted by request. Once
+a response is accepted, it cannot be un-accepted. The way to remove an accepted response is to delete it.
+
+If actions are _verified_, responses will be added/updated in the data set as soon as they are created, with an additional
+column for whether they have been verified. All responses, manual or automatic, are considered unverified on creation and must
+be verified explicitly by request. Responses can also be explicitly un-verified by request, which will be reflected in the
+relevant column.
+
+Manual translation, manual transcription, automatic translation, and automatic transcription are all _accepted_ actions.
+Manual and automatic QA are _verified_ actions.
+
+
 ### Selected response
 
 For any given question, for any submission, there is only
@@ -42,8 +60,8 @@ For any given question, for any submission, there is only
 How these selections are determined varies by feature.
 * For transcripts and translations, the selected version is the most recently *accepted*, manual or automatic
   ** Notable exception: if there is a version marked "deleted", either manual or automatic, with a *creation* date after the most recently accepted version, the value will be empty
-  ** Manual transcripts/translations are automatically accepted on creation, automatic ones must be explicitly accepted by request
 * For QA questions, the selected version is the most recently *created* response
+
 
 ### Examples
 
@@ -496,7 +514,7 @@ How these selections are determined varies by feature.
       </details>
 
 
-#### Qualitative analysis questions
+#### Manual qualitative analysis
 
 1. Add QA questions to the audio question - adds (empty) column or columns to the submission table
 `POST /api/v2/assets/{uid_asset}/advanced-features/`
