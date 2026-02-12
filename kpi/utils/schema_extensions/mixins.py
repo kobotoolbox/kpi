@@ -4,6 +4,7 @@ from drf_spectacular.openapi import AutoSchema
 from drf_spectacular.plumbing import ComponentIdentity, ResolvedComponent
 
 from kpi.schema_extensions.v2.generic.schema import GENERIC_UUID_SCHEMA
+from kpi.schema_extensions.v2.subsequences.schema import AUTOMATIC_QUAL_STATUS_ENUM
 
 
 class ComponentRegistrationMixin:
@@ -34,107 +35,71 @@ class QualComponentsRegistrationMixin(ComponentRegistrationMixin):
 
     def _register_qual_schema_components(self, auto_schema):
         references = {}
+
+        value_by_type = {
+            'integer': {'type': 'integer', 'nullable': True},
+            'select_multiple': {'type': 'array', 'items': GENERIC_UUID_SCHEMA},
+            'select_one': GENERIC_UUID_SCHEMA,
+            'text': {'type': 'string'},
+            'tags': {'type': 'array', 'items': {'type': 'string'}},
+        }
         # ---------------------------------------------------------------------
         # qualInteger
         #   properties: { value: integer | null }
         # ---------------------------------------------------------------------
-        references['qual_integer'] = self._register_schema_component(
-            auto_schema,
-            'DataSupplementManualQualDataInteger',
-            {
-                'type': 'object',
+        schema_base = {
+            'type': 'object',
+            'additionalProperties': False,
+        }
+        for q_type in ['integer', 'text', 'select_one', 'select_multiple', 'tags']:
+            title_case = (q_type.title().replace('_', ''),)
+            manual_schema = {
+                **schema_base,
                 'properties': {
-                    'value': {
-                        'type': 'integer',
-                        'nullable': True,
-                    },
+                    'value': value_by_type[q_type],
                     'uuid': GENERIC_UUID_SCHEMA,
                 },
                 'required': ['uuid', 'value'],
-                'additionalProperties': False,
-            },
-        )
-
-        # ---------------------------------------------------------------------
-        # qualSelectMultiple
-        #   properties: { value: ['507129be-2aee-4fb9-8ddd-ac766ba35f46', ...] }
-        # ---------------------------------------------------------------------
-        references['qual_select_multiple'] = self._register_schema_component(
-            auto_schema,
-            'DataSupplementManualQualDataSelectMultiple',
-            {
-                'type': 'object',
-                'properties': {
-                    'value': {
-                        'type': 'array',
-                        'items': GENERIC_UUID_SCHEMA,
-                    },
-                    'uuid': GENERIC_UUID_SCHEMA,
-                },
-                'required': ['uuid', 'value'],
-                'additionalProperties': False,
-            },
-        )
-
-        # ---------------------------------------------------------------------
-        # qualSelectOne
-        #   properties: { value: '0bbdb149-c85c-46c2-ad31-583377c423da' }
-        # ---------------------------------------------------------------------
-        references['qual_select_one'] = self._register_schema_component(
-            auto_schema,
-            'DataSupplementManualQualDataSelectOne',
-            {
-                'type': 'object',
-                'properties': {
-                    'value': GENERIC_UUID_SCHEMA,
-                    'uuid': GENERIC_UUID_SCHEMA,
-                },
-                'required': ['uuid', 'value'],
-                'additionalProperties': False,
-            },
-        )
-
-        # ---------------------------------------------------------------------
-        # qualTags
-        #   properties: { value: [string, ...] }
-        # ---------------------------------------------------------------------
-        references['qual_tags'] = self._register_schema_component(
-            auto_schema,
-            'DataSupplementManualQualDataTags',
-            {
-                'type': 'object',
-                'properties': {
-                    'value': {
-                        'type': 'array',
-                        'items': {
+            }
+            references[f'manual_qual_{q_type}'] = self._register_schema_component(
+                auto_schema,
+                f'DataSupplementManualQualData{title_case}',
+                schema=manual_schema,
+            )
+            if q_type != 'tags':
+                automatic_schema = {
+                    **schema_base,
+                    'properties': {
+                        'value': value_by_type[q_type],
+                        'status': {
                             'type': 'string',
+                            'enum': AUTOMATIC_QUAL_STATUS_ENUM,
                         },
+                        'error': {'type': 'string'},
+                        'uuid': GENERIC_UUID_SCHEMA
                     },
-                    'uuid': GENERIC_UUID_SCHEMA,
-                },
-                'required': ['uuid', 'value'],
-                'additionalProperties': False,
+                    'required': ['uuid', 'status'],
+                }
+                references[f'automatic_qual_{q_type}'] = (
+                    self._register_schema_component(
+                        auto_schema,
+                        f'DataSupplementAutomaticQualData{title_case}Response',
+                        schema=automatic_schema,
+                    )
+                )
+        uuid_only = {
+            **schema_base,
+            'properties': {
+                'uuid': GENERIC_UUID_SCHEMA
             },
-        )
-
-        # ---------------------------------------------------------------------
-        # qualText
-        #   properties: { value: string }
-        # ---------------------------------------------------------------------
-        references['qual_text'] = self._register_schema_component(
+            'required': ['uuid'],
+        }
+        references['automatic_qual_payload'] = self._register_schema_component(
             auto_schema,
-            'DataSupplementManualQualDataText',
-            {
-                'type': 'object',
-                'properties': {
-                    'value': {
-                        'type': 'string',
-                    },
-                    'uuid': GENERIC_UUID_SCHEMA,
-                },
-                'required': ['uuid', 'value'],
-                'additionalProperties': False,
-            },
+            # match the naming convention drf-spectacular/Orval uses for the other
+            # question types
+            'PatchedDataSupplementPayloadOneOfAutomaticQual',
+            schema=uuid_only,
         )
 
         return references

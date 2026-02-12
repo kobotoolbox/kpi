@@ -1188,7 +1188,22 @@ paths:
                     * `manual_translation`
                     * `automatic_google_transcription`
                     * `automatic_google_translation`
-                QualitativeAnalysis-SimpleTypes:
+                QualitativeAnalysis-SimpleTypes_:
+                  value:
+                  - action: <action_id>
+                    question_xpath: q1
+                    params:
+                    - type: <question_type>
+                      uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
+                      labels:
+                        _default: Qualitative analysis result
+                    uid: qa123456789AbCdEfGhIjklm
+                  summary: 'Qualitative Analysis - Simple Types '
+                  description: |-
+                    `<question_type>` may be either `qualText` or `qualInteger`
+
+                    `<action_id>` may be either `manual_qual` or `automatic_bedrock_qual`
+                QualitativeAnalysis-SimpleTypes-ManualOnly:
                   value:
                   - action: manual_qual
                     question_xpath: q1
@@ -1198,12 +1213,11 @@ paths:
                       labels:
                         _default: Qualitative analysis result
                     uid: qa123456789AbCdEfGhIjklm
-                  summary: Qualitative Analysis - Simple Types
-                  description: "`<question_type>` can be any of:\n\n* `qualText` \n\
-                    * `qualInteger` \n* `qualTags` \n* `qualNote` \n"
+                  summary: Qualitative Analysis - Simple Types - Manual Only
+                  description: '`<question_type>` may be either `qualNote` or `qualTags`'
                 QualitativeAnalysis-SingleChoiceQuestion:
                   value:
-                  - action: manual_qual
+                  - action: <action_id>
                     question_xpath: q1
                     params:
                     - type: qualSelectOne
@@ -1222,9 +1236,10 @@ paths:
                           _default: Low
                     uid: qa123456789AbCdEfGhIjklm
                   summary: Qualitative Analysis - Single Choice Question
+                  description: '`<action_id>` may be either `manual_qual` or `automatic_bedrock_qual`'
                 QualitativeAnalysis-MultipleChoiceQuestion(withDeletedChoice):
                   value:
-                  - action: manual_qual
+                  - action: <action_id>
                     question_xpath: q1
                     params:
                     - type: qualSelectMultiple
@@ -1246,9 +1261,10 @@ paths:
                     uid: qa123456789AbCdEfGhIjklm
                   summary: Qualitative Analysis - Multiple Choice Question (with deleted
                     choice)
-                QualitativeAnalysis-SimpleTypes-DeletedQuestion:
+                  description: '`<action_id>` may be either `manual_qual` or `automatic_bedrock_qual`'
+                QualitativeAnalysis-DeletedQuestion:
                   value:
-                  - action: manual_qual
+                  - action: <action_id>
                     question_xpath: q1
                     params:
                     - type: <question_type>
@@ -1258,9 +1274,8 @@ paths:
                     options:
                       deleted: true
                     uid: qa123456789AbCdEfGhIjklm
-                  summary: Qualitative Analysis - Simple Types - Deleted question
-                  description: "`<question_type>` can be any of:\n\n* `qualText` \n\
-                    * `qualInteger` \n* `qualTags` \n* `qualNote` \n"
+                  summary: Qualitative Analysis - Deleted question
+                  description: '`<action_id>` may be either `manual_qual` or `automatic_bedrock_qual`'
           description: null
         '404':
           content:
@@ -1321,7 +1336,7 @@ paths:
                   * `automatic_google_translation`
               QualitativeAnalysis-SimpleTypes:
                 value:
-                  action: manual_qual
+                  action: <action_id>
                   question_xpath: q1
                   params:
                   - type: <question_type>
@@ -1329,11 +1344,24 @@ paths:
                     labels:
                       _default: Qualitative analysis result
                 summary: Qualitative Analysis - Simple Types
-                description: "`<question_type>` can be any of:\n\n* `qualText` \n\
-                  * `qualInteger` \n* `qualTags` \n* `qualNote` \n"
-              QualitativeAnalysis-SingleChoiceQuestion:
+                description: |-
+                  `<question_type>` may be either `qualText` or `qualInteger`:
+
+                  `<action_id>` may be either `manual_qual` or `automatic_bedrock_qual`
+              QualitativeAnalysis-SimpleTypes-ManualOnly:
                 value:
                   action: manual_qual
+                  question_xpath: q1
+                  params:
+                  - type: <question_type>
+                    uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
+                    labels:
+                      _default: Qualitative analysis result
+                summary: Qualitative Analysis - Simple Types - Manual Only
+                description: '`<question_type>` may be either `qualTags` or `qualNote`'
+              QualitativeAnalysis-SingleChoiceQuestion:
+                value:
+                  action: <action_id>
                   question_xpath: q1
                   params:
                   - type: qualSelectOne
@@ -1351,9 +1379,10 @@ paths:
                       labels:
                         _default: Low
                 summary: Qualitative Analysis - Single Choice Question
+                description: '`<action_id>` may be either `manual_qual` or `automatic_bedrock_qual`'
               QualitativeAnalysis-MultipleChoiceQuestion:
                 value:
-                  action: manual_qual
+                  action: <action_id>
                   question_xpath: q1
                   params:
                   - type: qualSelectMultiple
@@ -1371,6 +1400,7 @@ paths:
                       labels:
                         _default: Medical
                 summary: Qualitative Analysis - Multiple Choice Question
+                description: '`<action_id>` may be either `manual_qual` or `automatic_bedrock_qual`'
         required: true
       security:
       - BasicAuth: []
@@ -1454,7 +1484,22 @@ paths:
                     * `manual_translation`
                     * `automatic_google_transcription`
                     * `automatic_google_translation`
-                QualitativeAnalysis-SimpleTypes:
+                QualitativeAnalysis-SimpleTypes_:
+                  value:
+                    action: <action_id>
+                    question_xpath: q1
+                    params:
+                    - type: <question_type>
+                      uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
+                      labels:
+                        _default: Qualitative analysis result
+                    uid: qa123456789AbCdEfGhIjklm
+                  summary: 'Qualitative Analysis - Simple Types '
+                  description: |-
+                    `<question_type>` may be either `qualText` or `qualInteger`
+
+                    `<action_id>` may be either `manual_qual` or `automatic_bedrock_qual`
+                QualitativeAnalysis-SimpleTypes-ManualOnly:
                   value:
                     action: manual_qual
                     question_xpath: q1
@@ -1464,12 +1509,11 @@ paths:
                       labels:
                         _default: Qualitative analysis result
                     uid: qa123456789AbCdEfGhIjklm
-                  summary: Qualitative Analysis - Simple Types
-                  description: "`<question_type>` can be any of:\n\n* `qualText` \n\
-                    * `qualInteger` \n* `qualTags` \n* `qualNote` \n"
+                  summary: Qualitative Analysis - Simple Types - Manual Only
+                  description: '`<question_type>` may be either `qualNote` or `qualTags`'
                 QualitativeAnalysis-SingleChoiceQuestion:
                   value:
-                    action: manual_qual
+                    action: <action_id>
                     question_xpath: q1
                     params:
                     - type: qualSelectOne
@@ -1488,9 +1532,10 @@ paths:
                           _default: Low
                     uid: qa123456789AbCdEfGhIjklm
                   summary: Qualitative Analysis - Single Choice Question
+                  description: '`<action_id>` may be either `manual_qual` or `automatic_bedrock_qual`'
                 QualitativeAnalysis-MultipleChoiceQuestion(withDeletedChoice):
                   value:
-                    action: manual_qual
+                    action: <action_id>
                     question_xpath: q1
                     params:
                     - type: qualSelectMultiple
@@ -1512,9 +1557,10 @@ paths:
                     uid: qa123456789AbCdEfGhIjklm
                   summary: Qualitative Analysis - Multiple Choice Question (with deleted
                     choice)
-                QualitativeAnalysis-SimpleTypes-DeletedQuestion:
+                  description: '`<action_id>` may be either `manual_qual` or `automatic_bedrock_qual`'
+                QualitativeAnalysis-DeletedQuestion:
                   value:
-                    action: manual_qual
+                    action: <action_id>
                     question_xpath: q1
                     params:
                     - type: <question_type>
@@ -1524,9 +1570,8 @@ paths:
                     options:
                       deleted: true
                     uid: qa123456789AbCdEfGhIjklm
-                  summary: Qualitative Analysis - Simple Types - Deleted question
-                  description: "`<question_type>` can be any of:\n\n* `qualText` \n\
-                    * `qualInteger` \n* `qualTags` \n* `qualNote` \n"
+                  summary: Qualitative Analysis - Deleted question
+                  description: '`<action_id>` may be either `manual_qual` or `automatic_bedrock_qual`'
           description: null
         '404':
           content:
@@ -1585,7 +1630,7 @@ paths:
                   - language: fr
                 summary: NLP Advanced Features
                 description: |
-                  `<action_id>` can be any of:
+                  This may be used to update any of the NLP actions:
 
                   * `manual_transcription`
                   * `manual_translation`
@@ -1599,8 +1644,19 @@ paths:
                     labels:
                       _default: Qualitative analysis result
                 summary: Qualitative Analysis - Simple Types
-                description: "`<question_type>` can be any of:\n\n* `qualText` \n\
-                  * `qualInteger` \n* `qualTags` \n* `qualNote` \n"
+                description: |-
+                  `<question_type>` may be either `qualText` or `qualInteger`
+
+                  This may be used to update either `manual_qual` or `automatic_bedrock_qual` actions
+              QualitativeAnalysis-SimpleTypes-ManualOnly:
+                value:
+                  params:
+                  - type: <question_type>
+                    uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
+                    labels:
+                      _default: Qualitative analysis result
+                summary: Qualitative Analysis - Simple Types - Manual Only
+                description: '`<question_type>` may be either `qualTags` or `qualNote`'
               QualitativeAnalysis-SingleChoiceQuestion:
                 value:
                   params:
@@ -1619,6 +1675,8 @@ paths:
                       labels:
                         _default: Low
                 summary: Qualitative Analysis - Single Choice Question
+                description: This may be used to update either `manual_qual` or `automatic_bedrock_qual`
+                  actions
               QualitativeAnalysis-MultipleChoiceQuestion:
                 value:
                   params:
@@ -1637,6 +1695,8 @@ paths:
                       labels:
                         _default: Medical
                 summary: Qualitative Analysis - Multiple Choice Question
+                description: This may be used to update either `manual_qual` or `automatic_bedrock_qual`
+                  actions
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -1663,7 +1723,22 @@ paths:
                     * `manual_translation`
                     * `automatic_google_transcription`
                     * `automatic_google_translation`
-                QualitativeAnalysis-SimpleTypes:
+                QualitativeAnalysis-SimpleTypes_:
+                  value:
+                    action: <action_id>
+                    question_xpath: q1
+                    params:
+                    - type: <question_type>
+                      uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
+                      labels:
+                        _default: Qualitative analysis result
+                    uid: qa123456789AbCdEfGhIjklm
+                  summary: 'Qualitative Analysis - Simple Types '
+                  description: |-
+                    `<question_type>` may be either `qualText` or `qualInteger`
+
+                    `<action_id>` may be either `manual_qual` or `automatic_bedrock_qual`
+                QualitativeAnalysis-SimpleTypes-ManualOnly:
                   value:
                     action: manual_qual
                     question_xpath: q1
@@ -1673,12 +1748,11 @@ paths:
                       labels:
                         _default: Qualitative analysis result
                     uid: qa123456789AbCdEfGhIjklm
-                  summary: Qualitative Analysis - Simple Types
-                  description: "`<question_type>` can be any of:\n\n* `qualText` \n\
-                    * `qualInteger` \n* `qualTags` \n* `qualNote` \n"
+                  summary: Qualitative Analysis - Simple Types - Manual Only
+                  description: '`<question_type>` may be either `qualNote` or `qualTags`'
                 QualitativeAnalysis-SingleChoiceQuestion:
                   value:
-                    action: manual_qual
+                    action: <action_id>
                     question_xpath: q1
                     params:
                     - type: qualSelectOne
@@ -1697,9 +1771,10 @@ paths:
                           _default: Low
                     uid: qa123456789AbCdEfGhIjklm
                   summary: Qualitative Analysis - Single Choice Question
+                  description: '`<action_id>` may be either `manual_qual` or `automatic_bedrock_qual`'
                 QualitativeAnalysis-MultipleChoiceQuestion(withDeletedChoice):
                   value:
-                    action: manual_qual
+                    action: <action_id>
                     question_xpath: q1
                     params:
                     - type: qualSelectMultiple
@@ -1721,9 +1796,10 @@ paths:
                     uid: qa123456789AbCdEfGhIjklm
                   summary: Qualitative Analysis - Multiple Choice Question (with deleted
                     choice)
-                QualitativeAnalysis-SimpleTypes-DeletedQuestion:
+                  description: '`<action_id>` may be either `manual_qual` or `automatic_bedrock_qual`'
+                QualitativeAnalysis-DeletedQuestion:
                   value:
-                    action: manual_qual
+                    action: <action_id>
                     question_xpath: q1
                     params:
                     - type: <question_type>
@@ -1733,9 +1809,8 @@ paths:
                     options:
                       deleted: true
                     uid: qa123456789AbCdEfGhIjklm
-                  summary: Qualitative Analysis - Simple Types - Deleted question
-                  description: "`<question_type>` can be any of:\n\n* `qualText` \n\
-                    * `qualInteger` \n* `qualTags` \n* `qualNote` \n"
+                  summary: Qualitative Analysis - Deleted question
+                  description: '`<action_id>` may be either `manual_qual` or `automatic_bedrock_qual`'
           description: null
         '404':
           content:
@@ -2789,11 +2864,12 @@ paths:
           * Manual translation
           * Automatic Google transcription
           * Automatic Google translation
-        * Qualitative analysis
+        * Qualitative analysis - manual or automatic with Bedrock
           * Text
           * Number
           * Single Choice
           * Multiple Choice
+        * Qualitative analysis (manual only)
           * Tags
 
         ⚠️ The response examples in this documentation show each action in isolation for
@@ -2956,11 +3032,11 @@ paths:
                               _actionId: automatic_google_transcription
                               _uuid: 44444444-4444-4444-4444-444444444444
                   summary: Automated Google Translation
-                ManualQualitativeAnalysis–IntegerQuestion:
+                QualitativeAnalysis–IntegerQuestion:
                   value:
                     _version: '20250820'
                     question_name_xpath:
-                      manual_qual:
+                      <action_id>:
                         66666666-6666-6666-6666-666666666666:
                           _dateCreated: '2025-01-01T12:00:00Z'
                           _dateModified: '2025-01-01T12:00:00Z'
@@ -2970,13 +3046,16 @@ paths:
                             _data:
                               uuid: 66666666-6666-6666-6666-666666666666
                               value: 42
+                              status: complete
                             _uuid: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
-                  summary: Manual Qualitative Analysis – Integer Question
-                ManualQualitativeAnalysis–TextQuestion:
+                  summary: Qualitative Analysis – Integer Question
+                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.\
+                    \ \n\n`status` will only be present for automatic_actions."
+                QualitativeAnalysis–TextQuestion:
                   value:
                     _version: '20250820'
                     question_name_xpath:
-                      manual_qual:
+                      <action_id>:
                         aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff:
                           _dateCreated: '2025-01-01T12:00:00Z'
                           _dateModified: '2025-01-01T12:00:00Z'
@@ -2986,13 +3065,16 @@ paths:
                             _data:
                               uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
                               value: This is a qualitative text response.
+                              status: complete
                             _uuid: 12121212-3434-5656-7878-909090909090
-                  summary: Manual Qualitative Analysis – Text Question
-                ManualQualitativeAnalysis–SingleChoiceQuestion:
+                  summary: Qualitative Analysis – Text Question
+                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.\
+                    \ \n\n`status` will only be present for automatic_actions."
+                QualitativeAnalysis–SingleChoiceQuestion:
                   value:
                     _version: '20250820'
                     question_name_xpath:
-                      manual_qual:
+                      <action_id>:
                         77777777-7777-7777-7777-777777777777:
                           _dateCreated: '2025-01-01T12:00:00Z'
                           _dateModified: '2025-01-01T12:00:00Z'
@@ -3002,13 +3084,16 @@ paths:
                             _data:
                               uuid: 77777777-7777-7777-7777-777777777777
                               value: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
+                              status: complete
                             _uuid: bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
-                  summary: Manual Qualitative Analysis – Single Choice Question
-                ManualQualitativeAnalysis–MultipleChoiceQuestion:
+                  summary: Qualitative Analysis – Single Choice Question
+                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.\
+                    \ \n\n`status` will only be present for automatic_actions."
+                QualitativeAnalysis–MultipleChoiceQuestion:
                   value:
                     _version: '20250820'
                     question_name_xpath:
-                      manual_qual:
+                      <action_id>:
                         88888888-8888-8888-8888-888888888888:
                           _dateCreated: '2025-01-01T12:00:00Z'
                           _dateModified: '2025-01-01T12:00:00Z'
@@ -3020,8 +3105,11 @@ paths:
                               value:
                               - aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
                               - bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
+                              status: complete
                             _uuid: 99999999-9999-9999-9999-999999999999
-                  summary: Manual Qualitative Analysis – Multiple Choice Question
+                  summary: Qualitative Analysis – Multiple Choice Question
+                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.\
+                    \ \n\n`status` will only be present for automatic_actions."
                 ManualQualitativeAnalysis–TagsQuestion:
                   value:
                     _version: '20250820'
@@ -3041,6 +3129,23 @@ paths:
                               - priority
                             _uuid: 23232323-4545-6767-8989-010101010101
                   summary: Manual Qualitative Analysis – Tags Question
+                AutomaticQualitativeAnalysis–FailedResponse:
+                  value:
+                    _version: '20250820'
+                    question_name_xpath:
+                      automatic_bedrock_qual:
+                        bbbbbbbb-cccc-dddd-eeee-ffffffffffff:
+                          _dateCreated: '2025-01-01T12:00:00Z'
+                          _dateModified: '2025-01-01T12:00:00Z'
+                          _versions:
+                          - _dateCreated: '2025-01-01T12:00:00Z'
+                            _dateAccepted: '2025-01-01T12:00:00Z'
+                            _data:
+                              uuid: bbbbbbbb-cccc-dddd-eeee-ffffffffffff
+                              status: failed
+                              error: Cannot parse response from LLM
+                            _uuid: 23232323-4545-6767-8989-010101010101
+                  summary: Automatic Qualitative Analysis – Failed response
           description: null
         '401':
           content:
@@ -3241,6 +3346,13 @@ paths:
                       - tag2
                 summary: Manual Qualitative Analysis – Tags Question
                 description: Set `value` an empty array `[]` to delete.
+              AutomaticBedrockQualitativeAnalysis–AnyQuestion:
+                value:
+                  _version: '20250820'
+                  question_name_xpath:
+                    automatic_bedrock_qual:
+                      uuid: 44444444-4444-4444-4444-444444444444
+                summary: Automatic Bedrock Qualitative Analysis – Any Question
         required: true
       security:
       - BasicAuth: []
@@ -3382,11 +3494,11 @@ paths:
                               _actionId: automatic_google_transcription
                               _uuid: 44444444-4444-4444-4444-444444444444
                   summary: Automated Google Translation
-                ManualQualitativeAnalysis–IntegerQuestion:
+                QualitativeAnalysis–IntegerQuestion:
                   value:
                     _version: '20250820'
                     question_name_xpath:
-                      manual_qual:
+                      <action_id>:
                         66666666-6666-6666-6666-666666666666:
                           _dateCreated: '2025-01-01T12:00:00Z'
                           _dateModified: '2025-01-01T12:00:00Z'
@@ -3396,13 +3508,16 @@ paths:
                             _data:
                               uuid: 66666666-6666-6666-6666-666666666666
                               value: 42
+                              status: complete
                             _uuid: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
-                  summary: Manual Qualitative Analysis – Integer Question
-                ManualQualitativeAnalysis–TextQuestion:
+                  summary: Qualitative Analysis – Integer Question
+                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.\
+                    \ \n\n`status` will only be present for automatic_actions."
+                QualitativeAnalysis–TextQuestion:
                   value:
                     _version: '20250820'
                     question_name_xpath:
-                      manual_qual:
+                      <action_id>:
                         aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff:
                           _dateCreated: '2025-01-01T12:00:00Z'
                           _dateModified: '2025-01-01T12:00:00Z'
@@ -3412,13 +3527,16 @@ paths:
                             _data:
                               uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
                               value: This is a qualitative text response.
+                              status: complete
                             _uuid: 12121212-3434-5656-7878-909090909090
-                  summary: Manual Qualitative Analysis – Text Question
-                ManualQualitativeAnalysis–SingleChoiceQuestion:
+                  summary: Qualitative Analysis – Text Question
+                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.\
+                    \ \n\n`status` will only be present for automatic_actions."
+                QualitativeAnalysis–SingleChoiceQuestion:
                   value:
                     _version: '20250820'
                     question_name_xpath:
-                      manual_qual:
+                      <action_id>:
                         77777777-7777-7777-7777-777777777777:
                           _dateCreated: '2025-01-01T12:00:00Z'
                           _dateModified: '2025-01-01T12:00:00Z'
@@ -3428,13 +3546,16 @@ paths:
                             _data:
                               uuid: 77777777-7777-7777-7777-777777777777
                               value: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
+                              status: complete
                             _uuid: bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
-                  summary: Manual Qualitative Analysis – Single Choice Question
-                ManualQualitativeAnalysis–MultipleChoiceQuestion:
+                  summary: Qualitative Analysis – Single Choice Question
+                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.\
+                    \ \n\n`status` will only be present for automatic_actions."
+                QualitativeAnalysis–MultipleChoiceQuestion:
                   value:
                     _version: '20250820'
                     question_name_xpath:
-                      manual_qual:
+                      <action_id>:
                         88888888-8888-8888-8888-888888888888:
                           _dateCreated: '2025-01-01T12:00:00Z'
                           _dateModified: '2025-01-01T12:00:00Z'
@@ -3446,8 +3567,11 @@ paths:
                               value:
                               - aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
                               - bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
+                              status: complete
                             _uuid: 99999999-9999-9999-9999-999999999999
-                  summary: Manual Qualitative Analysis – Multiple Choice Question
+                  summary: Qualitative Analysis – Multiple Choice Question
+                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.\
+                    \ \n\n`status` will only be present for automatic_actions."
                 ManualQualitativeAnalysis–TagsQuestion:
                   value:
                     _version: '20250820'
@@ -3467,6 +3591,23 @@ paths:
                               - priority
                             _uuid: 23232323-4545-6767-8989-010101010101
                   summary: Manual Qualitative Analysis – Tags Question
+                AutomaticQualitativeAnalysis–FailedResponse:
+                  value:
+                    _version: '20250820'
+                    question_name_xpath:
+                      automatic_bedrock_qual:
+                        bbbbbbbb-cccc-dddd-eeee-ffffffffffff:
+                          _dateCreated: '2025-01-01T12:00:00Z'
+                          _dateModified: '2025-01-01T12:00:00Z'
+                          _versions:
+                          - _dateCreated: '2025-01-01T12:00:00Z'
+                            _dateAccepted: '2025-01-01T12:00:00Z'
+                            _data:
+                              uuid: bbbbbbbb-cccc-dddd-eeee-ffffffffffff
+                              status: failed
+                              error: Cannot parse response from LLM
+                            _uuid: 23232323-4545-6767-8989-010101010101
+                  summary: Automatic Qualitative Analysis – Failed response
           description: null
         '401':
           content:
@@ -12375,8 +12516,78 @@ components:
           type: string
       required:
       - detail
-    DataSupplementManualQualDataInteger:
+    DataSupplementAutomaticQualData('Integer',)Response:
       type: object
+      additionalProperties: false
+      properties:
+        value:
+          type: integer
+          nullable: true
+        status:
+          $ref: '#/components/schemas/QualAutomaticStatusEnum'
+        error:
+          type: string
+        uuid:
+          type: string
+          format: uuid
+      required:
+      - uuid
+      - status
+    DataSupplementAutomaticQualData('SelectMultiple',)Response:
+      type: object
+      additionalProperties: false
+      properties:
+        value:
+          type: array
+          items:
+            type: string
+            format: uuid
+        status:
+          $ref: '#/components/schemas/QualAutomaticStatusEnum'
+        error:
+          type: string
+        uuid:
+          type: string
+          format: uuid
+      required:
+      - uuid
+      - status
+    DataSupplementAutomaticQualData('SelectOne',)Response:
+      type: object
+      additionalProperties: false
+      properties:
+        value:
+          type: string
+          format: uuid
+        status:
+          $ref: '#/components/schemas/QualAutomaticStatusEnum'
+        error:
+          type: string
+        uuid:
+          type: string
+          format: uuid
+      required:
+      - uuid
+      - status
+    DataSupplementAutomaticQualData('Text',)Response:
+      type: object
+      additionalProperties: false
+      properties:
+        value:
+          type: string
+        status:
+          $ref: '#/components/schemas/QualAutomaticStatusEnum'
+        error:
+          type: string
+        uuid:
+          type: string
+          format: uuid
+      required:
+      - uuid
+      - status
+    DataSupplementManualQualData('Integer',):
+      type: object
+      additionalProperties: false
       properties:
         value:
           type: integer
@@ -12387,9 +12598,9 @@ components:
       required:
       - uuid
       - value
-      additionalProperties: false
-    DataSupplementManualQualDataSelectMultiple:
+    DataSupplementManualQualData('SelectMultiple',):
       type: object
+      additionalProperties: false
       properties:
         value:
           type: array
@@ -12402,9 +12613,9 @@ components:
       required:
       - uuid
       - value
-      additionalProperties: false
-    DataSupplementManualQualDataSelectOne:
+    DataSupplementManualQualData('SelectOne',):
       type: object
+      additionalProperties: false
       properties:
         value:
           type: string
@@ -12415,9 +12626,9 @@ components:
       required:
       - uuid
       - value
-      additionalProperties: false
-    DataSupplementManualQualDataTags:
+    DataSupplementManualQualData('Tags',):
       type: object
+      additionalProperties: false
       properties:
         value:
           type: array
@@ -12429,9 +12640,9 @@ components:
       required:
       - uuid
       - value
-      additionalProperties: false
-    DataSupplementManualQualDataText:
+    DataSupplementManualQualData('Text',):
       type: object
+      additionalProperties: false
       properties:
         value:
           type: string
@@ -12441,7 +12652,6 @@ components:
       required:
       - uuid
       - value
-      additionalProperties: false
     DataSupplementResponse:
       type: object
       properties:
@@ -12798,11 +13008,11 @@ components:
                   properties:
                     _data:
                       oneOf:
-                      - $ref: '#/components/schemas/DataSupplementManualQualDataInteger'
-                      - $ref: '#/components/schemas/DataSupplementManualQualDataText'
-                      - $ref: '#/components/schemas/DataSupplementManualQualDataSelectOne'
-                      - $ref: '#/components/schemas/DataSupplementManualQualDataSelectMultiple'
-                      - $ref: '#/components/schemas/DataSupplementManualQualDataTags'
+                      - $ref: '#/components/schemas/DataSupplementManualQualData(''Integer'',)'
+                      - $ref: '#/components/schemas/DataSupplementManualQualData(''Text'',)'
+                      - $ref: '#/components/schemas/DataSupplementManualQualData(''SelectOne'',)'
+                      - $ref: '#/components/schemas/DataSupplementManualQualData(''SelectMultiple'',)'
+                      - $ref: '#/components/schemas/DataSupplementManualQualData(''Tags'',)'
                     _dateAccepted:
                       type: string
                       format: date-time
@@ -12840,11 +13050,96 @@ components:
                     properties:
                       _data:
                         oneOf:
-                        - $ref: '#/components/schemas/DataSupplementManualQualDataInteger'
-                        - $ref: '#/components/schemas/DataSupplementManualQualDataText'
-                        - $ref: '#/components/schemas/DataSupplementManualQualDataSelectOne'
-                        - $ref: '#/components/schemas/DataSupplementManualQualDataSelectMultiple'
-                        - $ref: '#/components/schemas/DataSupplementManualQualDataTags'
+                        - $ref: '#/components/schemas/DataSupplementManualQualData(''Integer'',)'
+                        - $ref: '#/components/schemas/DataSupplementManualQualData(''Text'',)'
+                        - $ref: '#/components/schemas/DataSupplementManualQualData(''SelectOne'',)'
+                        - $ref: '#/components/schemas/DataSupplementManualQualData(''SelectMultiple'',)'
+                        - $ref: '#/components/schemas/DataSupplementManualQualData(''Tags'',)'
+                      _dateAccepted:
+                        type: string
+                        format: date-time
+                      _dateCreated:
+                        type: string
+                        format: date-time
+                      _uuid:
+                        type: string
+                        format: uuid
+                    additionalProperties: false
+                    required:
+                    - _data
+                    - _dateCreated
+                    - _uuid
+                  minLength: 1
+              additionalProperties: false
+              required:
+              - _dateCreated
+              - _dateModified
+              - _versions
+        automatic_bedrock_qual:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              _dateCreated:
+                type: string
+                format: date-time
+              _dateModified:
+                type: string
+                format: date-time
+              _versions:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    _data:
+                      oneOf:
+                      - $ref: '#/components/schemas/DataSupplementManualQualData(''Integer'',)'
+                      - $ref: '#/components/schemas/DataSupplementManualQualData(''Text'',)'
+                      - $ref: '#/components/schemas/DataSupplementManualQualData(''SelectOne'',)'
+                      - $ref: '#/components/schemas/DataSupplementManualQualData(''SelectMultiple'',)'
+                      - $ref: '#/components/schemas/DataSupplementManualQualData(''Tags'',)'
+                    _dateAccepted:
+                      type: string
+                      format: date-time
+                    _dateCreated:
+                      type: string
+                      format: date-time
+                    _uuid:
+                      type: string
+                      format: uuid
+                  additionalProperties: false
+                  required:
+                  - _data
+                  - _dateCreated
+                  - _uuid
+                minLength: 1
+            additionalProperties: false
+            required:
+            - _dateCreated
+            - _dateModified
+            - _versions
+          patternProperties:
+            ^[0-9a-fA-F-]{36}$:
+              type: object
+              properties:
+                _dateCreated:
+                  type: string
+                  format: date-time
+                _dateModified:
+                  type: string
+                  format: date-time
+                _versions:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      _data:
+                        oneOf:
+                        - $ref: '#/components/schemas/DataSupplementManualQualData(''Integer'',)'
+                        - $ref: '#/components/schemas/DataSupplementManualQualData(''Text'',)'
+                        - $ref: '#/components/schemas/DataSupplementManualQualData(''SelectOne'',)'
+                        - $ref: '#/components/schemas/DataSupplementManualQualData(''SelectMultiple'',)'
+                        - $ref: '#/components/schemas/DataSupplementManualQualData(''Tags'',)'
                       _dateAccepted:
                         type: string
                         format: date-time
@@ -12877,6 +13172,8 @@ components:
         - automatic_google_translation
       - required:
         - manual_qual
+      - required:
+        - automatic_bedrock_qual
     DataValidationStatus:
       type: object
       properties:
@@ -15809,11 +16106,13 @@ components:
           - language
         manual_qual:
           oneOf:
-          - $ref: '#/components/schemas/DataSupplementManualQualDataInteger'
-          - $ref: '#/components/schemas/DataSupplementManualQualDataText'
-          - $ref: '#/components/schemas/DataSupplementManualQualDataSelectOne'
-          - $ref: '#/components/schemas/DataSupplementManualQualDataSelectMultiple'
-          - $ref: '#/components/schemas/DataSupplementManualQualDataTags'
+          - $ref: '#/components/schemas/DataSupplementManualQualData(''Integer'',)'
+          - $ref: '#/components/schemas/DataSupplementManualQualData(''Text'',)'
+          - $ref: '#/components/schemas/DataSupplementManualQualData(''SelectOne'',)'
+          - $ref: '#/components/schemas/DataSupplementManualQualData(''SelectMultiple'',)'
+          - $ref: '#/components/schemas/DataSupplementManualQualData(''Tags'',)'
+        automatic_bedrock_qual:
+          $ref: '#/components/schemas/PatchedDataSupplementPayloadOneOfAutomaticQual'
       additionalProperties: false
       anyOf:
       - required:
@@ -15826,6 +16125,17 @@ components:
         - automatic_google_translation
       - required:
         - manual_qual
+      - required:
+        - automatic_bedrock_qual
+    PatchedDataSupplementPayloadOneOfAutomaticQual:
+      type: object
+      additionalProperties: false
+      properties:
+        uuid:
+          type: string
+          format: uuid
+      required:
+      - uuid
     PatchedDataValidationStatusUpdatePayload:
       type: object
       properties:
@@ -16797,6 +17107,11 @@ components:
         * `always_invoice` - Always invoice
         * `create_prorations` - Create prorations
         * `none` - None
+    QualAutomaticStatusEnum:
+      type: string
+      enum:
+      - complete
+      - failed
     QualSelectQuestionParamsTypeEnum:
       type: string
       enum:

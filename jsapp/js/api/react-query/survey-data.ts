@@ -2079,11 +2079,12 @@ The supplementary data may include:
   * Manual translation
   * Automatic Google transcription
   * Automatic Google translation
-* Qualitative analysis
+* Qualitative analysis - manual or automatic with Bedrock
   * Text
   * Number
   * Single Choice
   * Multiple Choice
+* Qualitative analysis (manual only)
   * Tags
 
 ⚠️ The response examples in this documentation show each action in isolation for
