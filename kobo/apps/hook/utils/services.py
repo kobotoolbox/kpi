@@ -1,8 +1,8 @@
 from django.db import transaction
 
-from ..constants import HookLogStatus
+# from ..constants import HookLogStatus
 from ..models.hook import Hook
-from ..models.hook_log import HookLog
+from ..models.hook_log import HookLog, HookLogStatus
 from ..tasks import service_definition_task
 
 
@@ -27,7 +27,7 @@ def call_services(asset_uid: str, submission_id: int) -> bool:
             log, created = HookLog.objects.get_or_create(
                 submission_id=submission_id,
                 hook_id=hook_id,
-                defaults={'status': HookLogStatus.PENDING.value},
+                defaults={'status': HookLogStatus.PENDING},
             )
             if created:
                 success = True

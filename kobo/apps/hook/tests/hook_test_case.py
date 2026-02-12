@@ -5,9 +5,11 @@ from kpi.tests.kpi_test_case import KpiTestCase
 
 from ..models import Hook
 from ..utils.tests.mixins import HookTestCaseMixin
-
+from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 
 class HookTestCase(HookTestCaseMixin, KpiTestCase):
+
+    URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
     def setUp(self):
         self.client.login(username='someuser', password='someuser')

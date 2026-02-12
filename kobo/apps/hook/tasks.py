@@ -10,9 +10,9 @@ from django_celery_beat.models import PeriodicTask
 
 from kobo.celery import celery_app
 from kpi.utils.log import logging
-from .constants import HOOK_LOG_FAILED
 from .exceptions import HookRemoteServerDownError
 from .models import Hook, HookLog
+from .models.hook_log import HookLogStatus
 from .utils.lazy import LazyMaxRetriesInt
 
 
@@ -66,7 +66,7 @@ def failures_reports():
 
         last_run_at = failures_reports_period_task.last_run_at
         queryset = HookLog.objects.filter(
-            hook__email_notification=True, status=HOOK_LOG_FAILED
+            hook__email_notification=True, status=HookLogStatus.FAILED
         )
         if last_run_at:
             queryset = queryset.filter(date_modified__gte=last_run_at)

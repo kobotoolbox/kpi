@@ -10,10 +10,8 @@ from ssrf_protect.ssrf_protect import SSRFProtect, SSRFProtectException
 from kpi.utils.log import logging
 from kpi.utils.strings import split_lines_to_list
 from .hook import Hook
-from .hook_log import HookLog
+from .hook_log import HookLog, HookLogStatus
 from ..constants import (
-    HOOK_LOG_FAILED,
-    HOOK_LOG_SUCCESS,
     KOBO_INTERNAL_ERROR_STATUS_CODE,
     RETRIABLE_STATUS_CODES,
 )
@@ -151,7 +149,7 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
             return True
 
         except requests.exceptions.RequestException as e:
-            # If request fails to communicate with remote server.
+            # If the request fails to communicate with remote server.
             # Exception is raised before request.post can return something.
             # Thus, response equals None
             status_code = KOBO_INTERNAL_ERROR_STATUS_CODE
@@ -205,6 +203,7 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
         - `status_code` as the HTTP status code of the remote server response
         - `message` as the content of the remote server response
         """
+
         fields = {'hook': self._hook, 'submission_id': self._submission_id}
         try:
             # Try to load the log with a multiple field FK because
@@ -215,9 +214,9 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
             log = HookLog(**fields)
 
         if success:
-            log.status = HOOK_LOG_SUCCESS
+            log.status = HookLogStatus.SUCCESS
         elif not allow_retries or log.tries >= constance.config.HOOK_MAX_RETRIES:
-            log.status = HOOK_LOG_FAILED
+            log.status = HookLogStatus.FAILED
 
         log.status_code = status_code
 

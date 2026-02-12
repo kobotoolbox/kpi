@@ -7,7 +7,8 @@ from constance.test import override_config
 from rest_framework import status
 from ssrf_protect.exceptions import SSRFProtectException
 
-from kobo.apps.hook.constants import HOOK_LOG_FAILED, KOBO_INTERNAL_ERROR_STATUS_CODE
+from kobo.apps.hook.constants import KOBO_INTERNAL_ERROR_STATUS_CODE
+from kobo.apps.hook.models.hook_log import HookLogStatus
 from .hook_test_case import HookTestCase
 
 
@@ -43,5 +44,5 @@ class SSRFHookTestCase(HookTestCase):
 
         hook_log = hook.logs.all()[0]
         self.assertEqual(hook_log.status_code, KOBO_INTERNAL_ERROR_STATUS_CODE)
-        self.assertEqual(hook_log.status, HOOK_LOG_FAILED)
+        self.assertEqual(hook_log.status, int(HookLogStatus.FAILED))
         self.assertTrue('is not allowed' in hook_log.message)
