@@ -2,12 +2,13 @@ import './assetName.scss'
 
 import React from 'react'
 
+import type { Asset } from '#/api/models/asset'
 import { getAssetDisplayName } from '#/assetUtils'
 import type { AssetResponse, ProjectViewAsset } from '#/dataInterface'
 import { hasLongWords } from '#/textUtils'
 
 interface AssetNameProps {
-  asset: AssetResponse | ProjectViewAsset
+  asset: Asset | AssetResponse | ProjectViewAsset
 }
 
 /**

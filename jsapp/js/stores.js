@@ -38,16 +38,6 @@ function changes(orig_obj, new_obj) {
 
 export var stores = {}
 
-stores.tags = Reflux.createStore({
-  init() {
-    this.queries = {}
-    this.listenTo(actions.resources.listTags.completed, this.listTagsCompleted)
-  },
-  listTagsCompleted(data) {
-    this.trigger(data.results)
-  },
-})
-
 const MAX_SEARCH_AGE = 5 * 60 // seconds
 
 stores.surveyState = Reflux.createStore({

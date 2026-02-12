@@ -33,8 +33,7 @@ $s-form-builder-content-width: 1024px;
 }
 
 @media screen and (width >= 1100px) {
-  .form-builder-aside--visible + .form-builder,
-  .lib-nav--visible + .form-builder {
+  .form-builder-aside--visible + .form-builder, {
     .form-builder__contents {
       margin-right: $s-form-builder-aside;
     }
@@ -308,10 +307,6 @@ $s-form-builder-content-width: 1024px;
   // all placeholders should be the same
   .placeholder {
     margin: 5px 0;
-  }
-
-  .lib-list__item {
-    background: transparent;
   }
 }
 
