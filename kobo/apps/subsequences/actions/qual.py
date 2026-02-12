@@ -23,8 +23,12 @@ class BaseQualAction(BaseAction):
                 'uuid': {'$ref': '#/$defs/qualUuid'},
                 # `value` is further restricted by the schemas for each type
                 'value': {},
+                'verified': {'type': 'boolean'},
             },
-            'required': ['uuid', 'value'],
+            'oneOf': [
+                {'required': ['uuid', 'value'], 'not': {'required': ['verified']}},
+                {'required': ['uuid', 'verified'], 'not': {'required': ['value']}}
+            ],
         },
         'qualInteger': {
             'type': 'object',
@@ -242,8 +246,9 @@ class BaseQualAction(BaseAction):
                                 'properties': {
                                     '_data': {'$ref': '#/$defs/dataSchema'},
                                     '_dateCreated': {'$ref': '#/$defs/dateTime'},
-                                    '_dateAccepted': {'$ref': '#/$defs/dateTime'},
+                                    '_dateVerified': {'$ref': '#/$defs/dateTime'},
                                     '_uuid': {'$ref': '#/$defs/uuid'},
+                                    'verified': {'type': 'boolean'},
                                 },
                                 'required': ['_data', '_dateCreated', '_uuid'],
                             },
