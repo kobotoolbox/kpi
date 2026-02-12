@@ -48,20 +48,22 @@ export default function ResponseForm({ qaQuestion, children, onClear, disabled, 
   return (
     <Stack gap='10px'>
       <Group align={'flex-start'} gap={'xs'}>
-        <Modal opened={opened} onClose={close} title={t('Delete this question?')} size={'md'}>
-          <Stack gap='24px'>
-            <Text>{t('Are you sure you want to delete this question? This action cannot be undone.')}</Text>
-            <Group align='left'>
-              <ButtonNew size='md' onClick={close} variant='light'>
-                {t('Cancel')}
-              </ButtonNew>
+        {!disabled && (
+          <Modal opened={opened} onClose={close} title={t('Delete this question?')} size={'md'}>
+            <Stack gap='24px'>
+              <Text>{t('Are you sure you want to delete this question? This action cannot be undone.')}</Text>
+              <Group align='left'>
+                <ButtonNew size='md' onClick={close} variant='light'>
+                  {t('Cancel')}
+                </ButtonNew>
 
-              <ButtonNew size='md' onClick={handleDelete} variant='danger'>
-                {t('Delete')}
-              </ButtonNew>
-            </Group>
-          </Stack>
-        </Modal>
+                <ButtonNew size='md' onClick={handleDelete} variant='danger'>
+                  {t('Delete')}
+                </ButtonNew>
+              </Group>
+            </Stack>
+          </Modal>
+        )}
 
         <ThemeIcon ta={'center'} variant='light-teal'>
           <Icon name={qaQuestionDef.icon} size='xl' />
