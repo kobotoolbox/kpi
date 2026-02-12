@@ -1,4 +1,4 @@
-import { Group, Stack, Text, UnstyledButton } from '@mantine/core'
+import { Box, Group, Stack, Text, UnstyledButton } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import React, { useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
