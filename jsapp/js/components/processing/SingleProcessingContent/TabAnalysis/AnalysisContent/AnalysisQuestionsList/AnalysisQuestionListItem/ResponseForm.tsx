@@ -45,20 +45,22 @@ export default function ResponseForm({ qaQuestion, children, onClear, disabled, 
   return (
     <Stack gap={0}>
       <Group align={'flex-start'} gap={'xs'} mb={'xs'} display={'flex'}>
-        <Modal opened={opened} onClose={close} title={t('Delete this question?')} size={'md'}>
-          <Stack>
-            <Text>{t('Are you sure you want to delete this question? This action cannot be undone.')}</Text>
-            <Group align='left'>
-              <ButtonNew size='md' onClick={close} variant='light'>
-                {t('Cancel')}
-              </ButtonNew>
+        {!disabled && (
+          <Modal opened={opened} onClose={close} title={t('Delete this question?')} size={'md'}>
+            <Stack>
+              <Text>{t('Are you sure you want to delete this question? This action cannot be undone.')}</Text>
+              <Group align='left'>
+                <ButtonNew size='md' onClick={close} variant='light'>
+                  {t('Cancel')}
+                </ButtonNew>
 
-              <ButtonNew size='md' onClick={handleDelete} variant='danger'>
-                {t('Delete')}
-              </ButtonNew>
-            </Group>
-          </Stack>
-        </Modal>
+                <ButtonNew size='md' onClick={handleDelete} variant='danger'>
+                  {t('Delete')}
+                </ButtonNew>
+              </Group>
+            </Stack>
+          </Modal>
+        )}
 
         <ThemeIcon ta={'center'} variant='light-teal'>
           <Icon name={qaQuestionDef.icon} size='xl' />
@@ -78,24 +80,27 @@ export default function ResponseForm({ qaQuestion, children, onClear, disabled, 
         >
           {qaQuestion.labels._default}
         </Text>
+        {!disabled && (
+          <>
+            {onClear && (
+              <ButtonNew variant='light' size='sm' onClick={onClear}>
+                {t('Clear')}
+              </ButtonNew>
+            )}
 
-        {onClear && (
-          <ButtonNew variant='light' size='sm' onClick={onClear}>
-            {t('Clear')}
-          </ButtonNew>
+            <ActionIcon
+              variant='light'
+              size='sm'
+              iconName='edit'
+              onClick={handleEdit}
+              // We only allow editing one question at a time, so adding new is not
+              // possible until user stops editing
+              disabled={disabled}
+            />
+
+            <ActionIcon variant='danger-secondary' size='sm' iconName='trash' onClick={open} disabled={disabled} />
+          </>
         )}
-
-        <ActionIcon
-          variant='light'
-          size='sm'
-          iconName='edit'
-          onClick={handleEdit}
-          // We only allow editing one question at a time, so adding new is not
-          // possible until user stops editing
-          disabled={disabled}
-        />
-
-        <ActionIcon variant='danger-secondary' size='sm' iconName='trash' onClick={open} disabled={disabled} />
       </Group>
 
       {/* Hard coded left padding to account for the 32px icon size + 8px gap */}
