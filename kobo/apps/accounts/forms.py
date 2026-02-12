@@ -224,10 +224,21 @@ class KoboSignupMixin(forms.Form):
 
         return self.cleaned_data
 
-
     def clean_email(self):
         email = self.cleaned_data['email']
         domain = email.split('@')[1].lower()
+        blacklist_domains = (
+            constance.config.REGISTRATION_BLACKLIST_EMAIL_DOMAINS.strip()
+        )
+        blacklist_domain_list = [
+            d.strip().lower() for d in blacklist_domains.split('\n')
+        ]
+        if blacklist_domain_list:
+            if domain in blacklist_domain_list:
+                raise forms.ValidationError(
+                    constance.config.REGISTRATION_BLACKLIST_ERROR_MESSAGE
+                )
+
         allowed_domains = (
             constance.config.REGISTRATION_ALLOWED_EMAIL_DOMAINS.strip()
         )
