@@ -14,30 +14,34 @@ on:
 jobs:
 
 
-  is-release-week:
+  current-branch:
     runs-on: ubuntu-24.04
     outputs:
-      is_release_week: ${{ steps.week.outputs.is_release_week }}
+      current_branch: ${{ steps.branch.outputs.current_branch }}
     steps:
-    - name: check if week number is even
-      id: week
+    - name: determine current release branch name
+      id: branch
       run: |
         set -xe
-        if (( $(date +%V) % 4 == 3 )); then
-          echo "is_release_week=true" >> $GITHUB_OUTPUT
-          echo $GITHUB_OUTPUT
-        else
-          echo "is_release_week=false" >> $GITHUB_OUTPUT
-        fi
+        NEW_VERSION="2.$(date +"%Y" | tail -c4).$(date +"%V")"
+        NEW_BRANCH="release/$NEW_VERSION"
+        echo "current_branch=${NEW_BRANCH}" >> $GITHUB_OUTPUT
+
+
+  version:
+    needs:
+      - current-branch
+    secrets: inherit
+    uses: './.github/workflows/find-releases.yml'
+    with:
+      current_branch: ${{ needs.current-branch.outputs.current_branch }}
 
 
   create-current-branch:
     needs:
-      - is-release-week
-    if: ${{ needs.is-release-week.outputs.is_release_week == 'true' }}
+      - version
+    if: ${{ needs.version.outputs.prev_released == 'true' }}
     runs-on: ubuntu-24.04
-    outputs:
-      current_branch: ${{ steps.branch.outputs.current_branch }}
     steps:
     - uses: actions/checkout@v6
     - uses: ./.github/actions/checkout-with-github-app-token
@@ -46,42 +50,12 @@ jobs:
         private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
     - name: create next RC branch
       id: branch
+      env:
+        NEW_BRANCH: ${{ steps.version.outputs.current_branch }}
       run: |
         set -xe
-        NEW_VERSION="2.$(date +"%Y" | tail -c4).$(date +"%V")"
-        NEW_BRANCH="release/$NEW_VERSION"
         git checkout -b $NEW_BRANCH
         git push origin $NEW_BRANCH
-        echo "current_branch=${NEW_BRANCH}" >> $GITHUB_OUTPUT
-
-
-  version:
-    needs:
-      - create-current-branch
-    secrets: inherit
-    uses: './.github/workflows/find-releases.yml'
-    with:
-      current_branch: ${{ needs.create-current-branch.outputs.current_branch }}
-
-
-  delete-prev-branch:
-    needs:
-      - version
-    if: ${{ needs.version.outputs.prev_released == 'false' }}
-    runs-on: ubuntu-24.04
-    steps:
-
-    - uses: actions/checkout@v6
-      with:
-        fetch-depth: "0"
-
-    - name: delete previous branch if unreleased
-      env:
-        prev_minor: ${{ needs.version.outputs.prev_minor }}
-        prev_branch: ${{ needs.version.outputs.prev_branch }}
-      run: |
-        echo "tag $prev_minor doesn't exist, thus the previous release was NOT released and let's delete the branch.."
-        git push origin :$prev_branch
 
 
   changelog:
@@ -95,17 +69,6 @@ jobs:
         echo 'TODO, for now do it manually'
 
 
-  notify-prev:
-    needs:
-      - version
-      - delete-prev-branch
-    uses: './.github/workflows/zulip.yml'
-    secrets: inherit
-    with:
-      topic: "${{ needs.version.outputs.prev_minor }} release"
-      content: ":skip_forward: release branch deleted, because it wasn't released. Please continue in the next release."
-
-
   notify-current:
     needs:
       - version
@@ -116,17 +79,30 @@ jobs:
       topic: "${{ needs.version.outputs.current_minor }} release"
       content: |
         :seedling: `${{ needs.version.outputs.current_branch }}` branch created! Checklist:
-        - @*QA* & @*product*: the release window is 4 weeks to make a release, otherwise the branch is scrapped and we start over with next release.
+        - @*QA* & @*product*: the release window is as long as it takes to tag the release version. If you want to "scrap" this release then ask devs to manually delete the branch.
         - @_**Kalvis Kalniņš**: check Linear cycles whether now-past cycle `v${{ needs.version.outputs.current_minor }}` closed today and the upcoming cycle has started.
         - @*devs*: if you merge a PR or cherry-pick a commit into `${{ needs.version.outputs.current_branch }}` branch, then please manually set issue's cycle to the `v${{ needs.version.outputs.current_minor }}` cycle (Linear automatically sets for next one).
 
 
+  notify-prev:
+    needs:
+      - version
+    uses: './.github/workflows/zulip.yml'
+    secrets: inherit
+    with:
+      topic: "${{ needs.version.outputs.prev_minor }} release"
+      content: |
+        ${{ needs.version.outputs.prev_released == 'false'
+          && format(':repeat: current release is not tagged yet, therefore lets skip the next release "{0}"', needs.version.outputs.current_minor)
+          || format(':race: current release is tagged, therefore lets move on to a new release branch for the next release "{0}"', needs.version.outputs.current_minor)
+        }}
+
+
   on-failure:
     needs:
-      - is-release-week
+      - current-branch
       - version
       - create-current-branch
-      - delete-prev-branch
       - changelog
       - notify-prev
       - notify-current

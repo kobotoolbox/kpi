@@ -77,7 +77,6 @@ class MongoHelper:
     USERFORM_ID = '_userform_id'
     SUBMISSION_UUID = '_uuid'
     SUBMISSION_ROOT_UUID = 'meta/rootUuid'
-    DEFAULT_BATCHSIZE = 1000
     COLLECTION = 'instances'
 
     @classmethod
@@ -161,7 +160,7 @@ class MongoHelper:
             cursor.sort(sort_params)
 
         # set batch size
-        cursor.batch_size = cls.DEFAULT_BATCHSIZE
+        cursor.batch_size = settings.DEFAULT_BATCH_SIZE
 
         return cursor, total_count
 
