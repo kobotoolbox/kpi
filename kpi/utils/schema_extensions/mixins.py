@@ -39,27 +39,26 @@ class QualComponentsRegistrationMixin(ComponentRegistrationMixin):
     def _register_qual_schema_components(self, auto_schema):
         references = {}
 
-        value_by_type = {
+        value_schema_by_type = {
             'integer': {'type': 'integer', 'nullable': True},
             'select_multiple': {'type': 'array', 'items': GENERIC_UUID_SCHEMA},
             'select_one': GENERIC_UUID_SCHEMA,
             'text': {'type': 'string'},
             'tags': {'type': 'array', 'items': {'type': 'string'}},
         }
-        # ---------------------------------------------------------------------
-        # qualInteger
-        #   properties: { value: integer | null }
-        # ---------------------------------------------------------------------
+
         schema_base = {
             'type': 'object',
             'additionalProperties': False,
         }
         for q_type in ['integer', 'text', 'select_one', 'select_multiple', 'tags']:
+
+            # register the schema for the manual version
             title_case = (q_type.title().replace('_', ''),)
             manual_schema = {
                 **schema_base,
                 'properties': {
-                    'value': value_by_type[q_type],
+                    'value': value_schema_by_type[q_type],
                     'uuid': GENERIC_UUID_SCHEMA,
                 },
                 'required': ['uuid', 'value'],
@@ -69,15 +68,20 @@ class QualComponentsRegistrationMixin(ComponentRegistrationMixin):
                 f'DataSupplementManualQualData{title_case}',
                 schema=manual_schema,
             )
+
+            # for everything except tags questions, register the schema for
+            # the automatic version, which includes status and error fields
+
             if q_type != 'tags':
                 automatic_schema = {
                     **schema_base,
                     'oneOf': [
+                        # if there is a value, status must be 'complete'
                         build_object_type(
                             additionalProperties=False,
                             properties={
                                 'uuid': GENERIC_UUID_SCHEMA,
-                                'value': value_by_type[q_type],
+                                'value': value_schema_by_type[q_type],
                                 'status': {
                                     'type': 'string',
                                     'const': 'complete',
@@ -85,6 +89,7 @@ class QualComponentsRegistrationMixin(ComponentRegistrationMixin):
                             },
                             required=['uuid', 'value', 'status'],
                         ),
+                        # if status is 'failed', there must be an error and no value
                         build_object_type(
                             additionalProperties=False,
                             properties={
@@ -107,6 +112,9 @@ class QualComponentsRegistrationMixin(ComponentRegistrationMixin):
                         schema=automatic_schema,
                     )
                 )
+
+        # special case: the payload for automatic QA is just the uuid of the question
+        # to be answered
         uuid_only = {
             **schema_base,
             'properties': {
@@ -117,7 +125,7 @@ class QualComponentsRegistrationMixin(ComponentRegistrationMixin):
         references['automatic_qual_payload'] = self._register_schema_component(
             auto_schema,
             # match the naming convention drf-spectacular/Orval uses for the other
-            # question types
+            # actions
             'PatchedDataSupplementPayloadOneOfAutomaticQual',
             schema=uuid_only,
         )
