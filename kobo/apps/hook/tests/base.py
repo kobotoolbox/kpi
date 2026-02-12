@@ -1,13 +1,17 @@
 import json
 import uuid
 
+import pytest
+
+from kobo.apps.hook.models.hook import Hook
+from kobo.apps.kobo_auth.shortcuts import User
+from kpi.models import Asset
 from kpi.tests.kpi_test_case import KpiTestCase
-
-from ..models import Hook
-from ..utils.tests.mixins import HookTestCaseMixin
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
+from ..utils.tests.mixins import HookTestCaseMixin
 
-class HookTestCase(HookTestCaseMixin, KpiTestCase):
+
+class BaseHookTestCase(HookTestCaseMixin, KpiTestCase):
 
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
@@ -42,6 +46,29 @@ class HookTestCase(HookTestCaseMixin, KpiTestCase):
         self.asset.deploy(backend='mock', active=True)
         self.asset.save()
         self.hook = Hook()
+
+    def _setup_hook_and_submission(self):
+        """
+        Pytest fixture to prepare hook and submission_id.
+        Use with: @pytest.mark.usefixtures('setup_hook_and_submission')
+
+        Requires setUp() to have already created self.asset.
+        """
+
+        self._add_submissions()
+
+        # Get the submission ID
+        submissions = self.asset.deployment.get_submissions(self.asset.owner)
+        self.submission_id = submissions[0]['_id']
+
+        # Create and save the hook
+        self.hook = Hook.objects.create(
+            asset=self.asset,
+            name='Test Hook',
+            endpoint='https://example.com/endpoint',
+            active=True,
+            export_type='json',
+        )
 
     def _add_submissions(self):
         v_uid = self.asset.latest_deployed_version.uid

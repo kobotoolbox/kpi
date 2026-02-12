@@ -221,7 +221,7 @@ class HookViewSet(
                 response['detail'] = t('No data to retry')
                 status_code = status.HTTP_304_NOT_MODIFIED
         else:
-            response['detail'] = t('Can not retry on disabled hooks')
+            response['detail'] = t('Cannot retry on disabled hooks')
             status_code = status.HTTP_400_BAD_REQUEST
 
         return Response(response, status=status_code)

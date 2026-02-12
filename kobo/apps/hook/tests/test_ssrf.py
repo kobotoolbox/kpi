@@ -9,10 +9,10 @@ from ssrf_protect.exceptions import SSRFProtectException
 
 from kobo.apps.hook.constants import KOBO_INTERNAL_ERROR_STATUS_CODE
 from kobo.apps.hook.models.hook_log import HookLogStatus
-from .hook_test_case import HookTestCase
+from .base import BaseHookTestCase
 
 
-class SSRFHookTestCase(HookTestCase):
+class SSRFHookTestCase(BaseHookTestCase):
 
     @patch(
         'ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',

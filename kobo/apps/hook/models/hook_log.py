@@ -2,6 +2,7 @@ from datetime import timedelta
 
 import constance
 from django.db import models
+from django.db.models.constraints import UniqueConstraint
 from django.utils import timezone
 
 from kpi.fields import KpiUidField
@@ -11,10 +12,9 @@ from ..constants import KOBO_INTERNAL_ERROR_STATUS_CODE
 
 
 class HookLogStatus(models.IntegerChoices):
-    FAILED = (0, 'failed')
-    PENDING = (1, 'pending')
-    SENDING = (3, 'sending')
-    SUCCESS = (2, 'success')
+    FAILED = 0, 'failed'
+    PENDING = 1, 'pending'
+    SUCCESS = 2, 'success'
 
 
 class HookLog(AbstractTimeStampedModel):
@@ -36,6 +36,13 @@ class HookLog(AbstractTimeStampedModel):
 
     class Meta:
         ordering = ['-date_created']
+        constraints = [
+            UniqueConstraint(
+                fields=['hook', 'submission_id'],
+                name='uniq_hook_submission',
+            ),
+        ]
+
 
     @property
     def can_retry(self) -> bool:
@@ -56,41 +63,26 @@ class HookLog(AbstractTimeStampedModel):
 
         return False
 
-    def change_status(
-        self, status=HookLogStatus.PENDING, message=None, status_code=None
-    ):
-        self.status = status
-
-        if message:
-            self.message = message
-
-        if status_code:
-            self.status_code = status_code
-
-        self.save(reset_status=True)
-
     def retry(self):
         """
         Retries to send data to external service
         :return: boolean
         """
+
+        ServiceDefinition = self.hook.get_service_definition()
+        service_definition = ServiceDefinition(self.hook, self.submission_id)
+
         try:
-            ServiceDefinition = self.hook.get_service_definition()
-            service_definition = ServiceDefinition(self.hook, self.submission_id)
-            service_definition.send()
+            result = service_definition.send()
             self.refresh_from_db()
+            return result
         except Exception as e:
-            logging.error('HookLog.retry - {}'.format(str(e)), exc_info=True)
-            self.change_status(HookLogStatus.FAILED)
+            logging.error('HookLog.retry failed', exc_info=True)
+            self.refresh_from_db()
             return False
 
-        return True
-
     def save(self, *args, **kwargs):
-        # We don't want to alter tries when we only change the status
-        if kwargs.pop('reset_status', False) is False:
-            self.tries += 1
-            self.hook.reset_totals()
+        self.hook.reset_totals()
         super().save(*args, **kwargs)
 
     def __str__(self):

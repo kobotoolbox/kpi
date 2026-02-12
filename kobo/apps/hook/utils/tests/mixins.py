@@ -67,7 +67,8 @@ class HookTestCaseMixin:
         # Fakes Celery n retries by forcing status to `failed`
         # (where n is `settings.HOOKLOG_MAX_RETRIES`)
         first_hooklog = HookLog.objects.get(uid=first_hooklog_response.get('uid'))
-        first_hooklog.change_status(HookLogStatus.FAILED)
+        first_hooklog.status = HookLogStatus.FAILED
+        first_hooklog.save(update_fields=['status', 'date_modified'])
 
         return first_hooklog_response
 

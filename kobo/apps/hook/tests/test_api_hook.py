@@ -1,4 +1,3 @@
-# coding: utf-8
 import json
 from ipaddress import ip_address
 from unittest.mock import MagicMock, patch
@@ -19,17 +18,19 @@ from kpi.constants import (
 )
 from kpi.utils.datetime import several_minutes_from_now
 from ..exceptions import HookRemoteServerDownError
-from .hook_test_case import HookTestCase
 from ..models.hook_log import HookLogStatus
+from .base import BaseHookTestCase
 
 
-class ApiHookTestCase(HookTestCase):
+class ApiHookTestCase(BaseHookTestCase):
 
     def test_anonymous_access(self):
         hook = self._create_hook()
         self.client.logout()
 
-        list_url = reverse(self._get_endpoint('hook-list'), kwargs={'uid_asset': self.asset.uid})
+        list_url = reverse(
+            self._get_endpoint('hook-list'), kwargs={'uid_asset': self.asset.uid}
+        )
 
         response = self.client.get(list_url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -129,7 +130,9 @@ class ApiHookTestCase(HookTestCase):
         self.client.logout()
         self.client.login(username='anotheruser', password='anotheruser')
 
-        list_url = reverse(self._get_endpoint('hook-list'), kwargs={'uid_asset': self.asset.uid})
+        list_url = reverse(
+            self._get_endpoint('hook-list'), kwargs={'uid_asset': self.asset.uid}
+        )
 
         response = self.client.get(list_url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -178,9 +181,7 @@ class ApiHookTestCase(HookTestCase):
         )
         data = {'name': 'some disabled external service', 'active': False}
         response = self.client.patch(url, data, format=SUBMISSION_FORMAT_TYPE_JSON)
-        self.assertEqual(
-            response.status_code, status.HTTP_200_OK, msg=response.data
-        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK, msg=response.data)
         hook.refresh_from_db()
         self.assertFalse(hook.active)
         self.assertEqual(hook.name, 'some disabled external service')
@@ -381,11 +382,15 @@ class ApiHookTestCase(HookTestCase):
         )
 
         # There should be a successful log for the success hook
-        response = self.client.get(f'{hook_log_url}?status={HookLogStatus.SUCCESS}', format='json')
+        response = self.client.get(
+            f'{hook_log_url}?status={HookLogStatus.SUCCESS}', format='json'
+        )
         self.assertEqual(response.data.get('count'), 1)
 
         # There should be no failed log for the success hook
-        response = self.client.get(f'{hook_log_url}?status={HookLogStatus.FAILED}', format='json')
+        response = self.client.get(
+            f'{hook_log_url}?status={HookLogStatus.FAILED}', format='json'
+        )
         self.assertEqual(response.data.get('count'), 0)
 
     @patch(
