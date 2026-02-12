@@ -31,7 +31,7 @@ class AssetUsageAPITestCase(BaseAssetTestCase):
         counter_1 = {
             'google_asr_seconds': 4586,
             'google_mt_characters': 5473,
-            'some_service_llm_requests': 20,
+            'bedrock_llm_requests': 20,
         }
         NLPUsageCounter.objects.create(
             user_id=self.anotheruser.id,
@@ -40,7 +40,7 @@ class AssetUsageAPITestCase(BaseAssetTestCase):
             counters=counter_1,
             total_asr_seconds=counter_1['google_asr_seconds'],
             total_mt_characters=counter_1['google_mt_characters'],
-            total_llm_requests=counter_1['some_service_llm_requests'],
+            total_llm_requests=counter_1['bedrock_llm_requests'],
         )
 
         # last month
@@ -48,7 +48,7 @@ class AssetUsageAPITestCase(BaseAssetTestCase):
         counter_2 = {
             'google_asr_seconds': 142,
             'google_mt_characters': 1253,
-            'some_service_llm_requests': 50,
+            'bedrock_llm_requests': 50,
         }
         NLPUsageCounter.objects.create(
             user_id=self.anotheruser.id,
@@ -57,7 +57,7 @@ class AssetUsageAPITestCase(BaseAssetTestCase):
             counters=counter_2,
             total_asr_seconds=counter_2['google_asr_seconds'],
             total_mt_characters=counter_2['google_mt_characters'],
-            total_llm_requests=counter_2['some_service_llm_requests'],
+            total_llm_requests=counter_2['bedrock_llm_requests'],
         )
 
     def __add_submissions(self):

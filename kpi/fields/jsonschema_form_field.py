@@ -27,54 +27,6 @@ class JsonSchemaFormField(CharField):
         return value
 
 
-class FreeTierThresholdField(JsonSchemaFormField):
-    """
-    Validates that the input has required properties with expected types
-    """
-
-    def __init__(self, *args, **kwargs):
-        schema = {
-            'type': 'object',
-            'uniqueItems': True,
-            'properties': {
-                'storage': {'type': ['integer', 'null']},
-                'data': {'type': ['integer', 'null']},
-                'transcription_minutes': {'type': ['integer', 'null']},
-                'translation_chars': {'type': ['integer', 'null']},
-            },
-            'required': [
-                'storage',
-                'data',
-                'transcription_minutes',
-                'translation_chars',
-            ],
-            'additionalProperties': False,
-        }
-        super().__init__(*args, schema=schema, **kwargs)
-
-
-class FreeTierDisplayField(JsonSchemaFormField):
-    """
-    Validates that the input has required properties with expected types
-    """
-
-    def __init__(self, *args, **kwargs):
-        schema = {
-            'type': 'object',
-            'uniqueItems': True,
-            'properties': {
-                'name': {'type': ['string', 'null']},
-                'feature_list': {
-                    'type': 'array',
-                    'items': {'type': 'string'},
-                },
-            },
-            'required': ['name', 'feature_list'],
-            'additionalProperties': False,
-        }
-        super().__init__(*args, schema=schema, **kwargs)
-
-
 class I18nTextJSONField(JsonSchemaFormField):
     """
     Validates that the input is an object which contains at least the 'default'

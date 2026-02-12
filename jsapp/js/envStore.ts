@@ -31,8 +31,6 @@ export interface EnvironmentResponse {
   mfa_code_length: number
   stripe_public_key: string | null
   social_apps: SocialApp[]
-  free_tier_thresholds: FreeTierThresholds
-  free_tier_display: FreeTierDisplay
   enable_custom_password_guidance_text: boolean
   custom_password_localized_help_text: string
   enable_password_entropy_meter: boolean
@@ -75,18 +73,6 @@ export interface SocialApp {
   client_id: string
 }
 
-export interface FreeTierThresholds {
-  storage: number | null
-  data: number | null
-  transcription_minutes: number | null
-  translation_chars: number | null
-}
-
-export interface FreeTierDisplay {
-  name: string | null
-  feature_list: [string] | []
-}
-
 type ProjectMetadataFieldKey = 'description' | 'sector' | 'country' | 'operational_purpose' | 'collects_pii'
 
 export class EnvStoreData {
@@ -118,13 +104,6 @@ export class EnvStoreData {
   public mfa_code_length = 6
   public stripe_public_key: string | null = null
   public social_apps: SocialApp[] = []
-  public free_tier_thresholds: FreeTierThresholds = {
-    storage: null,
-    data: null,
-    transcription_minutes: null,
-    translation_chars: null,
-  }
-  public free_tier_display: FreeTierDisplay = { name: null, feature_list: [] }
   public enable_custom_password_guidance_text = false
   public custom_password_localized_help_text = ''
   public enable_password_entropy_meter = false
@@ -219,8 +198,6 @@ class EnvStore {
     this.data.mfa_code_length = response.mfa_code_length
     this.data.stripe_public_key = response.stripe_public_key
     this.data.social_apps = response.social_apps
-    this.data.free_tier_thresholds = response.free_tier_thresholds
-    this.data.free_tier_display = response.free_tier_display
     this.data.open_rosa_server = response.open_rosa_server
 
     this.data.allow_self_account_deletion = Boolean(response.allow_self_account_deletion)
