@@ -12,11 +12,11 @@ The endpoints are grouped by area of intended use. Each category contains relate
 
 export type AssetsListParams = {
   /**
-   * Paginate results with limit parameter
+   * Number of results to return per page. Use with `start`.
    */
   limit?: number
   /**
-   * Paginate results with offset parameter
+   * Deprecated alias of `start`.
    */
   offset?: number
   /**
@@ -27,4 +27,8 @@ export type AssetsListParams = {
    * Filter the results with search query
    */
   q?: string
+  /**
+   * The initial index from which to return the results. Use with `limit`.
+   */
+  start?: number
 }

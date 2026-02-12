@@ -499,26 +499,26 @@ class ApiHookTestCase(HookTestCase):
 
         # There should be a success log around now
         response = self.client.get(
-            f'{hook_log_url}?start={five_minutes_ago}&end={in_five_min}',
+            f'{hook_log_url}?start_date={five_minutes_ago}&end_date={in_five_min}',
             format='json',
         )
         self.assertEqual(response.data.get('count'), 1)
 
         # There should be no log before now
         response = self.client.get(
-            f'{hook_log_url}?start={in_five_min}', format='json'
+            f'{hook_log_url}?start_date={in_five_min}', format='json'
         )
         self.assertEqual(response.data.get('count'), 0)
 
         # There should be no log after now
         response = self.client.get(
-            f'{hook_log_url}?end={five_minutes_ago}', format='json'
+            f'{hook_log_url}?end_date={five_minutes_ago}', format='json'
         )
         self.assertEqual(response.data.get('count'), 0)
 
         # There should be no log around now when expressed in a different time zone
         response = self.client.get(
-            f'{hook_log_url}?start={five_minutes_ago}{tzoffset}&end={in_five_min}{tzoffset}',  # noqa: E501
+            f'{hook_log_url}?start_date={five_minutes_ago}{tzoffset}&end_date={in_five_min}{tzoffset}',  # noqa: E501
             format='json',
         )
         self.assertEqual(response.data.get('count'), 0)
@@ -541,9 +541,9 @@ class ApiHookTestCase(HookTestCase):
         )
 
         # Test bad argument
-        response = self.client.get(f'{hook_log_url}?start=abc', format='json')
+        response = self.client.get(f'{hook_log_url}?start_date=abc', format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         # Test bad argument
-        response = self.client.get(f'{hook_log_url}?end=abc', format='json')
+        response = self.client.get(f'{hook_log_url}?end_date=abc', format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

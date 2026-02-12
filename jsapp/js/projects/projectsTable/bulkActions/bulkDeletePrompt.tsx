@@ -43,7 +43,7 @@ export default function BulkDeletePrompt(props: BulkDeletePromptProps) {
         // projects. After the Bookmarked Projects feature is done (see the
         // https://github.com/kobotoolbox/kpi/issues/4220 for history of
         // discussion and more details) we would remove this code.
-        invalidatePaginatedList(SidebarFormsListQueryKey), notify(response.detail)
+        invalidatePaginatedList(SidebarFormsListQueryKey)
 
         notify(response.detail)
       })

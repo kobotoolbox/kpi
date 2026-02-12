@@ -13,7 +13,6 @@ import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import Button from '#/components/common/ButtonNew'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { ACTIVE_STRIPE_STATUSES } from '#/constants'
-import type { FreeTierThresholds } from '#/envStore'
 import envStore from '#/envStore'
 import { useRefreshApiFetcher } from '#/hooks/useRefreshApiFetcher.hook'
 import useWhen from '#/hooks/useWhen.hook'
@@ -42,11 +41,6 @@ type DataUpdates =
   | {
       type: 'month' | 'year'
     }
-
-export interface FreeTierOverride extends FreeTierThresholds {
-  name: string | null
-  [key: `feature_list_${number}`]: string | null
-}
 
 const initialState: PlanState = {
   subscribedProduct: null,
@@ -123,25 +117,6 @@ export default function Plan() {
     (subscription: SubscriptionInfo) => ACTIVE_STRIPE_STATUSES.includes(subscription.status),
     [],
   )
-
-  const freeTierOverride = useMemo((): FreeTierOverride | null => {
-    if (envStore.isReady) {
-      const thresholds = envStore.data.free_tier_thresholds
-      const display = envStore.data.free_tier_display
-      const featureList: { [key: string]: string | null } = {}
-
-      display.feature_list.forEach((feature, key) => {
-        featureList[`feature_list_${key + 1}`] = feature
-      })
-
-      return {
-        name: display.name,
-        ...thresholds,
-        ...featureList,
-      }
-    }
-    return null
-  }, [envStore.isReady])
 
   const hasActiveSubscription = useMemo(() => {
     if (state.subscribedProduct) {
@@ -408,7 +383,6 @@ export default function Plan() {
                 <div className={styles.stripePlans} key={product.id}>
                   <PlanContainer
                     key={product.price.id}
-                    freeTierOverride={freeTierOverride}
                     expandComparison={expandComparison}
                     isSubscribedProduct={isSubscribedProduct}
                     product={product}
