@@ -43,7 +43,6 @@ class HookLog(AbstractTimeStampedModel):
             ),
         ]
 
-
     @property
     def can_retry(self) -> bool:
         """
@@ -76,7 +75,7 @@ class HookLog(AbstractTimeStampedModel):
             result = service_definition.send()
             self.refresh_from_db()
             return result
-        except Exception as e:
+        except Exception:
             logging.error('HookLog.retry failed', exc_info=True)
             self.refresh_from_db()
             return False
