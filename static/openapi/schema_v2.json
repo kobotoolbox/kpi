@@ -5523,7 +5523,7 @@
                                 2
                             ]
                         },
-                        "description": "* `0` - Failed\n* `1` - Pending\n* `2` - Success"
+                        "description": "* `0` - failed\n* `1` - pending\n* `2` - success"
                     },
                     {
                         "in": "path",
@@ -15533,7 +15533,7 @@
                     2
                 ],
                 "type": "integer",
-                "description": "* `0` - Failed\n* `1` - Pending\n* `2` - Success"
+                "description": "* `0` - failed\n* `1` - pending\n* `2` - success"
             },
             "HookRetryResponse": {
                 "type": "object",
