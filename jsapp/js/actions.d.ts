@@ -351,7 +351,6 @@ export declare const actions: {
     createSnapshot: GenericDefinition
     cloneAsset: GenericDefinition
     deleteAsset: DeleteAssetDefinition
-    listTags: GenericDefinition
     createResource: CreateResourceDefinition
     updateAsset: UpdateAssetDefinition
     updateSubmissionValidationStatus: UpdateSubmissionValidationStatusDefinition
