@@ -364,7 +364,7 @@ class BigModal extends React.Component {
             <RESTServicesForm assetUid={this.props.params.assetUid} hookUid={this.props.params.hookUid} />
           )}
           {this.props.params.type === MODAL_TYPES.FORM_LANGUAGES && (
-            <TranslationSettings asset={this.props.params.asset} assetUid={this.props.params.assetUid} />
+            <TranslationSettings asset={this.props.params.asset} />
           )}
           {this.props.params.type === MODAL_TYPES.FORM_TRANSLATIONS_TABLE && (
             <TranslationTable
