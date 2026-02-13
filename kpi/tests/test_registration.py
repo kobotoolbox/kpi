@@ -6,6 +6,8 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils.translation import gettext as t
 
+from kobo.apps.kobo_auth.shortcuts import User
+
 
 class RegistrationTestCase(TestCase):
     @property
@@ -89,27 +91,7 @@ class RegistrationTestCase(TestCase):
             reverse('account_signup'), data=data
         )
         self.assertIn(b'Go away!', response.content)
-
-    @override_config(
-        ENABLE_PASSWORD_MINIMUM_LENGTH_VALIDATION=False,
-        ENABLE_PASSWORD_USER_ATTRIBUTE_SIMILARITY_VALIDATION=False,
-        ENABLE_MOST_RECENT_PASSWORD_VALIDATION=False,
-        ENABLE_COMMON_PASSWORD_VALIDATION=False,
-        ENABLE_PASSWORD_CUSTOM_CHARACTER_RULES_VALIDATION=False,
-        REGISTRATION_BLACKLIST_EMAIL_DOMAINS='bad-domain.com'
-    )
-    def test_blacklisted_domain_with_no_error_message(self):
-        """
-        Test that if a blacklisted domain is used and no error message is set,
-        registration should not be blocked
-        """
-        data = self.valid_data.copy()
-        data['email'] = 'user@bad-domain.com'
-
-        response = self.client.post(
-            reverse('account_signup'), data=data
-        )
-        self.assertIn(b'', response.content)
+        self.assertFalse(User.objects.filter(username='alice').exists())
 
     @override_config(
         ENABLE_PASSWORD_MINIMUM_LENGTH_VALIDATION=False,
@@ -147,6 +129,11 @@ class RegistrationTestCase(TestCase):
         REGISTRATION_BLACKLIST_EMAIL_DOMAINS='bad-domain.com'
     )
     def test_default_blacklist_error_message(self):
+        """
+        Test that if a blacklisted domain is used, and there is no custom error
+        message set, registration should be blocked and the default error message
+        should be shown
+        """
         data = self.valid_data.copy()
         data['email'] = 'user@bad-domain.com'
 
