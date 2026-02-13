@@ -126,19 +126,19 @@ export default function Reports(props: ReportsProps) {
       const rowsByKuid: { [kuid: string]: SurveyRow } = {}
       const rowsByIdentifier: { [identifier: string]: SurveyRow } = {}
       let groupBy = ''
-      // The code below is overriding the `ReportStyles` we got from endpoint in
-      // `AssetResponse`, we clone it here to avoid mutation.
+      // The code further down this function is mutating `AssetResponseReportStyles` we got from API call, we clone it
+      // to avoid issues
       const reportStyles: AssetResponseReportStyles = state.reportStyles || clonedeep(assetDataCast.report_styles)
       const reportCustom = assetDataCast.report_custom
 
+      // TODO: verify why do we need to "fix" API response, come up with a better solution
       if (state.currentCustomReport?.reportStyle?.groupDataBy) {
         groupBy = state.currentCustomReport.reportStyle.groupDataBy
       } else if (reportStyles.default?.groupDataBy !== undefined) {
         groupBy = reportStyles.default.groupDataBy
       }
 
-      // Here we override the `ReportStyles` in case the default values are
-      // not present.
+      // Here we override the `ReportStyles` in case the default values are not present.
       if (reportStyles.default === undefined) {
         reportStyles.default = DEFAULT_MINIMAL_REPORT_STYLE
       }
@@ -210,7 +210,7 @@ export default function Reports(props: ReportsProps) {
             }
           })
       } else {
-        // Redundant?
+        // TODO: Redundant?
         console.error('Survey not defined.')
       }
     }
