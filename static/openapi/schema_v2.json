@@ -18287,19 +18287,16 @@
                                             "_data": {
                                                 "oneOf": [
                                                     {
-                                                        "$ref": "#/components/schemas/DataSupplementManualQualData('Integer',)"
+                                                        "$ref": "#/components/schemas/DataSupplementAutomaticQualData('Integer',)Response"
                                                     },
                                                     {
-                                                        "$ref": "#/components/schemas/DataSupplementManualQualData('Text',)"
+                                                        "$ref": "#/components/schemas/DataSupplementAutomaticQualData('Text',)Response"
                                                     },
                                                     {
-                                                        "$ref": "#/components/schemas/DataSupplementManualQualData('SelectOne',)"
+                                                        "$ref": "#/components/schemas/DataSupplementAutomaticQualData('SelectOne',)Response"
                                                     },
                                                     {
-                                                        "$ref": "#/components/schemas/DataSupplementManualQualData('SelectMultiple',)"
-                                                    },
-                                                    {
-                                                        "$ref": "#/components/schemas/DataSupplementManualQualData('Tags',)"
+                                                        "$ref": "#/components/schemas/DataSupplementAutomaticQualData('SelectMultiple',)Response"
                                                     }
                                                 ]
                                             },
@@ -18353,19 +18350,16 @@
                                                 "_data": {
                                                     "oneOf": [
                                                         {
-                                                            "$ref": "#/components/schemas/DataSupplementManualQualData('Integer',)"
+                                                            "$ref": "#/components/schemas/DataSupplementAutomaticQualData('Integer',)Response"
                                                         },
                                                         {
-                                                            "$ref": "#/components/schemas/DataSupplementManualQualData('Text',)"
+                                                            "$ref": "#/components/schemas/DataSupplementAutomaticQualData('Text',)Response"
                                                         },
                                                         {
-                                                            "$ref": "#/components/schemas/DataSupplementManualQualData('SelectOne',)"
+                                                            "$ref": "#/components/schemas/DataSupplementAutomaticQualData('SelectOne',)Response"
                                                         },
                                                         {
-                                                            "$ref": "#/components/schemas/DataSupplementManualQualData('SelectMultiple',)"
-                                                        },
-                                                        {
-                                                            "$ref": "#/components/schemas/DataSupplementManualQualData('Tags',)"
+                                                            "$ref": "#/components/schemas/DataSupplementAutomaticQualData('SelectMultiple',)Response"
                                                         }
                                                     ]
                                                 },
@@ -22533,11 +22527,21 @@
                             },
                             {
                                 "$ref": "#/components/schemas/DataSupplementManualQualData('Tags',)"
+                            },
+                            {
+                                "$ref": "#/components/schemas/PatchedDataSupplementPayloadOneOfVerification"
                             }
                         ]
                     },
                     "automatic_bedrock_qual": {
-                        "$ref": "#/components/schemas/PatchedDataSupplementPayloadOneOfAutomaticQual"
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/PatchedDataSupplementPayloadOneOfAutomaticQual"
+                            },
+                            {
+                                "$ref": "#/components/schemas/PatchedDataSupplementPayloadOneOfVerification"
+                            }
+                        ]
                     }
                 },
                 "additionalProperties": false,
@@ -22585,6 +22589,23 @@
                 },
                 "required": [
                     "uuid"
+                ]
+            },
+            "PatchedDataSupplementPayloadOneOfVerification": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "uuid": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "verified": {
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "uuid",
+                    "verified"
                 ]
             },
             "PatchedDataValidationStatusUpdatePayload": {
