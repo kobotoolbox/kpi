@@ -107,8 +107,6 @@ export default function Reports(props: ReportsProps) {
       query: {
         queryKey: getAssetsRetrieveQueryKey(assetUid),
         enabled: assetUid !== '',
-        // No need to fetch it again, as the code doesn't support updating `asset` after it was already loaded
-        refetchOnWindowFocus: false,
       },
     },
   )
