@@ -207,6 +207,22 @@ def _get_data_supplement_patch_payload_request_examples() -> list[OpenApiExample
             },
             request_only=True,
         ),
+        OpenApiExample(
+            'Verify Qualitative Analysis Response – Any Question',
+            value={
+                '_version': '20250820',
+                'question_name_xpath': {
+                    '<action_id>': {
+                        'uuid': '44444444-4444-4444-4444-4444444444444',
+                        'verified': True,
+                    }
+                },
+            },
+            request_only=True,
+            description='`<action_id>` may be either `manual_qual`'
+            ' or `automatic_bedrock_qual`\n\n'
+            'Set `verified` to `False` to un-verify',
+        ),
     ]
 
 
@@ -430,13 +446,13 @@ def _get_data_supplement_response_examples():
                             '_versions': [
                                 {
                                     '_dateCreated': iso0,
-                                    '_dateAccepted': iso0,
                                     '_data': {
                                         'uuid': '66666666-6666-6666-6666-666666666666',
                                         'value': 42,
                                         'status': 'complete',
                                     },
                                     '_uuid': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+                                    'verified': False,
                                 }
                             ],
                         }
@@ -463,13 +479,13 @@ def _get_data_supplement_response_examples():
                             '_versions': [
                                 {
                                     '_dateCreated': iso0,
-                                    '_dateAccepted': iso0,
                                     '_data': {
                                         'uuid': 'aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff',
                                         'value': 'This is a qualitative text response.',
                                         'status': 'complete',
                                     },
                                     '_uuid': '12121212-3434-5656-7878-909090909090',
+                                    'verified': False,
                                 }
                             ],
                         }
@@ -496,13 +512,13 @@ def _get_data_supplement_response_examples():
                             '_versions': [
                                 {
                                     '_dateCreated': iso0,
-                                    '_dateAccepted': iso0,
                                     '_data': {
                                         'uuid': '77777777-7777-7777-7777-777777777777',
                                         'value': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
                                         'status': 'complete',
                                     },
                                     '_uuid': 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
+                                    'verified': False,
                                 }
                             ],
                         }
@@ -529,7 +545,6 @@ def _get_data_supplement_response_examples():
                             '_versions': [
                                 {
                                     '_dateCreated': iso0,
-                                    '_dateAccepted': iso0,
                                     '_data': {
                                         'uuid': '88888888-8888-8888-8888-888888888888',
                                         'value': [
@@ -539,6 +554,7 @@ def _get_data_supplement_response_examples():
                                         'status': 'complete',
                                     },
                                     '_uuid': '99999999-9999-9999-9999-999999999999',
+                                    'verified': False,
                                 }
                             ],
                         }
@@ -565,18 +581,50 @@ def _get_data_supplement_response_examples():
                             '_versions': [
                                 {
                                     '_dateCreated': iso0,
-                                    '_dateAccepted': iso0,
                                     '_data': {
                                         'uuid': 'bbbbbbbb-cccc-dddd-eeee-ffffffffffff',
                                         'value': ['urgent', 'review', 'priority'],
                                     },
                                     '_uuid': '23232323-4545-6767-8989-010101010101',
+                                    'verified': False,
                                 }
                             ],
                         }
                     }
                 },
             },
+        ),
+        OpenApiExample(
+            name='Qualitative Analysis – Verified Response',
+            response_only=True,
+            value={
+                '_version': '20250820',
+                'question_name_xpath': {
+                    '<action_id>': {
+                        'bbbbbbbb-cccc-dddd-eeee-ffffffffffff': {
+                            '_dateCreated': iso0,
+                            '_dateModified': iso0,
+                            '_versions': [
+                                {
+                                    '_dateCreated': iso0,
+                                    '_dateVerified': iso0,
+                                    '_data': {
+                                        'uuid': 'bbbbbbbb-cccc-dddd-eeee-ffffffffffff',
+                                        'status': 'complete',
+                                        'value': 5,
+                                    },
+                                    '_uuid': '23232323-4545-6767-8989-010101010101',
+                                    'verified': True,
+                                }
+                            ],
+                        }
+                    }
+                },
+            },
+            description=(
+                '`<action_id>` can  be either `manual_qual` or'
+                ' `automatic_bedrock_qual`. '
+            ),
         ),
         OpenApiExample(
             name='Automatic Qualitative Analysis – Failed response',
@@ -591,13 +639,13 @@ def _get_data_supplement_response_examples():
                             '_versions': [
                                 {
                                     '_dateCreated': iso0,
-                                    '_dateAccepted': iso0,
                                     '_data': {
                                         'uuid': 'bbbbbbbb-cccc-dddd-eeee-ffffffffffff',
                                         'status': 'failed',
                                         'error': 'Cannot parse response from LLM',
                                     },
                                     '_uuid': '23232323-4545-6767-8989-010101010101',
+                                    'verified': False,
                                 }
                             ],
                         }
