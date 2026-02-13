@@ -146,3 +146,4 @@ class RegistrationTestCase(TestCase):
             b'Please contact your organization support team for assistance.',
             response.content
         )
+        self.assertFalse(User.objects.filter(username='alice').exists())
