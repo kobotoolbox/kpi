@@ -241,7 +241,8 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
 
                 if log.status == HookLogStatus.PENDING and (
                     # +1 because the first attempt is not a retry
-                    log.tries > constance.config.HOOK_MAX_RETRIES + 1
+                    log.tries
+                    > constance.config.HOOK_MAX_RETRIES + 1
                 ):
                     log.status = HookLogStatus.FAILED
 

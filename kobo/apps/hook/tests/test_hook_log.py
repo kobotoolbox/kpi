@@ -1,7 +1,6 @@
 from unittest.mock import MagicMock, patch
 
 import requests
-import pytest
 from rest_framework import status
 
 from kobo.apps.hook.constants import KOBO_INTERNAL_ERROR_STATUS_CODE

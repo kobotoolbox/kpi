@@ -1,7 +1,6 @@
 from datetime import timedelta
 from unittest.mock import patch
 
-import pytest
 from django.conf import settings
 from django.utils import timezone
 from rest_framework import status
@@ -19,6 +18,7 @@ class HookRetryStalledSubmissionTestCase(BaseHookTestCase):
     """
     Tests for retry_stalled_pending_submissions task
     """
+
     def setUp(self):
         super().setUp()
         self._setup_hook_and_submission()
@@ -151,7 +151,6 @@ class HookRetryStalledSubmissionTestCase(BaseHookTestCase):
             retry_stalled_pending_submissions()
 
             assert mock_delay.call_count == 3
-
 
 
 class HookMarkZombieSubmissionTestCase(BaseHookTestCase):

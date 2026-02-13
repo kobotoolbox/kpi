@@ -1,11 +1,7 @@
 import json
 import uuid
 
-import pytest
-
 from kobo.apps.hook.models.hook import Hook
-from kobo.apps.kobo_auth.shortcuts import User
-from kpi.models import Asset
 from kpi.tests.kpi_test_case import KpiTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from ..utils.tests.mixins import HookTestCaseMixin
