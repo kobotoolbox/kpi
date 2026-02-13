@@ -104,7 +104,7 @@ function applyCurrentRouteParams(targetRoute: string) {
 
   return generatePath(targetRoute, {
     uid: routeParams.assetUid,
-    xpath: encodeURLParamWithSlash(routeParams.xpath),
+    xpath: decodeURLParamWithSlash(routeParams.xpath),
     submissionEditId: routeParams.submissionEditId,
   })
 }
