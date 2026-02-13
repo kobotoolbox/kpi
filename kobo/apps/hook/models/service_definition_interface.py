@@ -165,6 +165,8 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
             if response is not None:
                 message = response.text
                 status_code = response.status_code
+            elif 'Read timed out' in message:
+                status_code = status.HTTP_504_GATEWAY_TIMEOUT
 
             if status_code in RETRIABLE_STATUS_CODES:
                 log_status = HookLogStatus.PENDING
@@ -238,7 +240,8 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
                 log.status = log_status
 
                 if log.status == HookLogStatus.PENDING and (
-                    log.tries >= constance.config.HOOK_MAX_RETRIES
+                    # +1 because the first attempt is not a retry
+                    log.tries > constance.config.HOOK_MAX_RETRIES + 1
                 ):
                     log.status = HookLogStatus.FAILED
 
