@@ -131,6 +131,7 @@ class DataSupplementPayloadExtension(
                 'automatic_google_transcription': self._nlp_automatic_action_schema,
                 'automatic_google_translation': self._nlp_automatic_action_schema,
                 'manual_qual': self._qual_schema(references),
+                'automatic_bedrock_qual': references['automatic_qual_payload'],
             },
             anyOf=[
                 {'required': ['manual_transcription']},
@@ -138,6 +139,7 @@ class DataSupplementPayloadExtension(
                 {'required': ['automatic_google_transcription']},
                 {'required': ['automatic_google_translation']},
                 {'required': ['manual_qual']},
+                {'required': ['automatic_bedrock_qual']}
             ],
         )
 
@@ -182,11 +184,11 @@ class DataSupplementPayloadExtension(
     def _qual_schema(self, references):
         return {
             'oneOf': [
-                references['qual_integer'],
-                references['qual_text'],
-                references['qual_select_one'],
-                references['qual_select_multiple'],
-                references['qual_tags'],
+                references['manual_qual_integer'],
+                references['manual_qual_text'],
+                references['manual_qual_select_one'],
+                references['manual_qual_select_multiple'],
+                references['manual_qual_tags'],
             ],
         }
 
@@ -232,15 +234,16 @@ class DataSupplementResponseExtension(
                 'automatic_google_transcription': self._automatic_transcription_schema,
                 'automatic_google_translation': self._automatic_translation_schema,
                 'manual_qual': self._qual_schema(references),
+                'automatic_bedrock_qual': self._qual_schema(references),
             },
-            # At least one of "manual_transcription" or "manual_translation"
-            # must be present
+            # At least action must be present
             anyOf=[
                 {'required': ['manual_transcription']},
                 {'required': ['manual_translation']},
                 {'required': ['automatic_google_transcription']},
                 {'required': ['automatic_google_translation']},
                 {'required': ['manual_qual']},
+                {'required': ['automatic_bedrock_qual']},
             ],
         )
 
@@ -433,7 +436,7 @@ class DataSupplementResponseExtension(
             required=['_actionId', '_uuid'],
         )
 
-    def _qual_schema(self, references):
+    def _qual_schema(self, references, automatic=False):
         """
         Build the OpenAPI schema for the `qual` field.
         """
@@ -448,15 +451,19 @@ class DataSupplementResponseExtension(
         #     - qualText
         #
         # ---------------------------------------------------------------------
+        prefix = 'automatic' if automatic else 'manual'
         data_schema = {
             'oneOf': [
-                references['qual_integer'],
-                references['qual_text'],
-                references['qual_select_one'],
-                references['qual_select_multiple'],
-                references['qual_tags'],
+                references[f'{prefix}_qual_integer'],
+                references[f'{prefix}_qual_text'],
+                references[f'{prefix}_qual_select_one'],
+                references[f'{prefix}_qual_select_multiple'],
             ]
         }
+        if not automatic:
+            data_schema['oneOf'].append(
+                references['manual_qual_tags']
+            )
 
         # ---------------------------------------------------------------------
         # dataActionKey._versions[] item
