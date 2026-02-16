@@ -36,6 +36,9 @@ class HookLog(AbstractTimeStampedModel):
 
     class Meta:
         ordering = ['-date_created']
+        indexes = [
+            models.Index(fields=('hook', 'submission_id')),
+        ]
         constraints = [
             UniqueConstraint(
                 fields=['hook', 'submission_id'],
