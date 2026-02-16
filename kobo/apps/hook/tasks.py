@@ -227,9 +227,9 @@ def mark_zombie_processing_submissions():
         log.message = (
             'Submission processing was interrupted. The submission MAY have been '
             'sent to the external endpoint, but the response could not be recorded. '
-            'Please verify manually on the remote server to avoid duplicate submissions. '
-            'Processing started but was terminated after 2+ hours without completion '
-            '(likely due to pod restart/OOM).'
+            'Please verify manually on the remote server to avoid duplicate '
+            'submissions. Processing started but was terminated after 2+ hours without '
+            'completion (likely due to pod restart/OOM).'
         )
         log.save()
         marked_count += 1

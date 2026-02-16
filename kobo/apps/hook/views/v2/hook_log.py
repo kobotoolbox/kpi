@@ -118,8 +118,6 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
         hook_log = self.get_object()
 
         if hook_log.can_retry:
-            # hook_log.status = HookLogStatus.PENDING
-            # hook_log.save(update_fields=['status', 'date_modified'])
             success = hook_log.retry()
             if success:
                 # Return status_code of remote server too.
