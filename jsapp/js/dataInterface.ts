@@ -477,7 +477,7 @@ export interface SurveyRow {
   'kobo--score-choices'?: string
   'kobo--locking-profile'?: string
   /** HXL tags. */
-  tags?: SureveyRowOrChoiceTranslatableProp
+  tags?: string[]
   select_from_list_name?: string
   /** Used by `file` type to list accepted extensions */
   'body::accept'?: string

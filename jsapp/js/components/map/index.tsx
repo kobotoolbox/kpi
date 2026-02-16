@@ -103,7 +103,7 @@ interface FeatureGroupExtended extends L.FeatureGroup {
 type MarkerMap = Array<{
   count: number
   id: number
-  labels: string[] | undefined
+  labels: Array<string | null> | undefined
   value: string | undefined
 }>
 
@@ -521,7 +521,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
         mM.push({
           count: mapMarkers[m].count,
           id: mapMarkers[m].id,
-          labels: choice ? choice.label : undefined,
+          labels: choice?.label || undefined,
           value: m !== 'undefined' ? m : undefined,
         })
       })
@@ -1060,7 +1060,10 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
                 if (this.state.filteredByMarker) {
                   markerItemClass += this.state.filteredByMarker.includes(m.id.toString()) ? 'selected' : 'unselected'
                 }
-                const markerLabel = m.labels ? m.labels[langIndex] : m.value ? m.value : t('not set')
+                let markerLabel = m.labels ? m.labels[langIndex] : m.value
+                if (!markerLabel) {
+                  markerLabel = t('not set')
+                }
                 let index: number | IconNoValue = i
                 if (colorSet !== undefined && colorSet !== 'a' && this.state.markerMap) {
                   index = this.calculateIconIndex(index, this.state.markerMap)
