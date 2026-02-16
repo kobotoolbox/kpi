@@ -5,6 +5,7 @@ import type { _DataSupplementResponseOneOfManualQualVersionsItem } from '#/api/m
 import type { _DataSupplementResponseOneOfManualTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualTranscriptionVersionsItem'
 import type { _DataSupplementResponseOneOfManualTranscriptionVersionsItemData } from '#/api/models/_dataSupplementResponseOneOfManualTranscriptionVersionsItemData'
 import type { _DataSupplementResponseOneOfManualTranslationVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualTranslationVersionsItem'
+import type { PatchedDataSupplementPayloadOneOfManualQual } from '#/api/models/patchedDataSupplementPayloadOneOfManualQual'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import type { StaticDisplays } from './utils'
 
@@ -35,6 +36,9 @@ export type TranscriptVersionItemWithValue =
   | _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItemDataOneOfThree
 
 export type DisplaysList = Array<LanguageCode | StaticDisplays>
+
+type ManualQualWithValue = Extract<PatchedDataSupplementPayloadOneOfManualQual, { value: any }>
+export type ManualQualValue = ManualQualWithValue['value']
 
 export enum CreateSteps {
   Begin = 'begin',
