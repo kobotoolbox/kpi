@@ -12,7 +12,7 @@ import { LockingRestrictionName } from '#/components/locking/lockingConstants'
 import { hasAssetRestriction } from '#/components/locking/lockingUtils'
 import LanguageForm from '#/components/modalForms/languageForm'
 import { MODAL_TYPES } from '#/constants'
-import type { AssetContent, AssetResponse, SurveyRow } from '#/dataInterface'
+import type { AssetContent, AssetResponse, SureveyRowOrChoiceTranslatableProp, SurveyRow } from '#/dataInterface'
 import envStore from '#/envStore'
 import pageState from '#/pageState.store'
 import { type LangObject, escapeHtml, getLangString, notify } from '#/utils'
@@ -179,7 +179,8 @@ export class TranslationSettings extends React.Component<TranslationSettingsProp
           const propertyName = content.translated[j]
           const rowProperty = row[propertyName as keyof SurveyRow]
           if (Array.isArray(rowProperty) && rowProperty.length < content.translations.length) {
-            rowProperty.push(null)
+            // Casting this to satisfy TS. Possible there is better way to tell TS we are not dealing with `string[]` here
+            ;(rowProperty as SureveyRowOrChoiceTranslatableProp).push(null)
           }
         }
       }

@@ -446,7 +446,7 @@ export interface MongoQuery<T = any> {
  * Some properties of SurveyRow can be translated to multiple languages, that is why there is an array. If for given
  * language there is no translation, a `null` value will be placed in there
  */
-type SureveyRowOrChoiceTranslatableProp = Array<string | null>
+export type SureveyRowOrChoiceTranslatableProp = Array<string | null>
 
 /**
  * It represents a question from the form, a group start/end or a piece of
