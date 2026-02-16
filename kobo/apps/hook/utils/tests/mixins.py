@@ -5,9 +5,9 @@ import responses
 from django.urls import reverse
 from rest_framework import status
 
-from kobo.apps.hook.constants import HOOK_LOG_FAILED
 from kobo.apps.hook.exceptions import HookRemoteServerDownError
 from kobo.apps.hook.models import HookLog
+from kobo.apps.hook.models.hook_log import HookLogStatus
 from kpi.constants import SUBMISSION_FORMAT_TYPE_JSON, SUBMISSION_FORMAT_TYPE_XML
 from kpi.exceptions import BadFormatException
 
@@ -67,7 +67,8 @@ class HookTestCaseMixin:
         # Fakes Celery n retries by forcing status to `failed`
         # (where n is `settings.HOOKLOG_MAX_RETRIES`)
         first_hooklog = HookLog.objects.get(uid=first_hooklog_response.get('uid'))
-        first_hooklog.change_status(HOOK_LOG_FAILED)
+        first_hooklog.status = HookLogStatus.FAILED
+        first_hooklog.save(update_fields=['status', 'date_modified'])
 
         return first_hooklog_response
 

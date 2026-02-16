@@ -5866,9 +5866,9 @@ paths:
           - 1
           - 2
         description: |-
-          * `0` - Failed
-          * `1` - Pending
-          * `2` - Success
+          * `0` - failed
+          * `1` - pending
+          * `2` - success
       - in: path
         name: uid_asset
         schema:
@@ -14024,9 +14024,9 @@ components:
       - 2
       type: integer
       description: |-
-        * `0` - Failed
-        * `1` - Pending
-        * `2` - Success
+        * `0` - failed
+        * `1` - pending
+        * `2` - success
     HookRetryResponse:
       type: object
       properties:
