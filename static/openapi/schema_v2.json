@@ -4192,13 +4192,13 @@
                                                         "_versions": [
                                                             {
                                                                 "_dateCreated": "2025-01-01T12:00:00Z",
-                                                                "_dateAccepted": "2025-01-01T12:00:00Z",
                                                                 "_data": {
                                                                     "uuid": "66666666-6666-6666-6666-666666666666",
                                                                     "value": 42,
                                                                     "status": "complete"
                                                                 },
-                                                                "_uuid": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+                                                                "_uuid": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+                                                                "verified": false
                                                             }
                                                         ]
                                                     }
@@ -4219,13 +4219,13 @@
                                                         "_versions": [
                                                             {
                                                                 "_dateCreated": "2025-01-01T12:00:00Z",
-                                                                "_dateAccepted": "2025-01-01T12:00:00Z",
                                                                 "_data": {
                                                                     "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
                                                                     "value": "This is a qualitative text response.",
                                                                     "status": "complete"
                                                                 },
-                                                                "_uuid": "12121212-3434-5656-7878-909090909090"
+                                                                "_uuid": "12121212-3434-5656-7878-909090909090",
+                                                                "verified": false
                                                             }
                                                         ]
                                                     }
@@ -4246,13 +4246,13 @@
                                                         "_versions": [
                                                             {
                                                                 "_dateCreated": "2025-01-01T12:00:00Z",
-                                                                "_dateAccepted": "2025-01-01T12:00:00Z",
                                                                 "_data": {
                                                                     "uuid": "77777777-7777-7777-7777-777777777777",
                                                                     "value": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
                                                                     "status": "complete"
                                                                 },
-                                                                "_uuid": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
+                                                                "_uuid": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+                                                                "verified": false
                                                             }
                                                         ]
                                                     }
@@ -4273,7 +4273,6 @@
                                                         "_versions": [
                                                             {
                                                                 "_dateCreated": "2025-01-01T12:00:00Z",
-                                                                "_dateAccepted": "2025-01-01T12:00:00Z",
                                                                 "_data": {
                                                                     "uuid": "88888888-8888-8888-8888-888888888888",
                                                                     "value": [
@@ -4282,7 +4281,8 @@
                                                                     ],
                                                                     "status": "complete"
                                                                 },
-                                                                "_uuid": "99999999-9999-9999-9999-999999999999"
+                                                                "_uuid": "99999999-9999-9999-9999-999999999999",
+                                                                "verified": false
                                                             }
                                                         ]
                                                     }
@@ -4303,7 +4303,6 @@
                                                         "_versions": [
                                                             {
                                                                 "_dateCreated": "2025-01-01T12:00:00Z",
-                                                                "_dateAccepted": "2025-01-01T12:00:00Z",
                                                                 "_data": {
                                                                     "uuid": "bbbbbbbb-cccc-dddd-eeee-ffffffffffff",
                                                                     "value": [
@@ -4312,7 +4311,8 @@
                                                                         "priority"
                                                                     ]
                                                                 },
-                                                                "_uuid": "23232323-4545-6767-8989-010101010101"
+                                                                "_uuid": "23232323-4545-6767-8989-010101010101",
+                                                                "verified": false
                                                             }
                                                         ]
                                                     }
@@ -4320,6 +4320,34 @@
                                             }
                                         },
                                         "summary": "Manual Qualitative Analysis – Tags Question"
+                                    },
+                                    "QualitativeAnalysis–VerifiedResponse": {
+                                        "value": {
+                                            "_version": "20250820",
+                                            "question_name_xpath": {
+                                                "<action_id>": {
+                                                    "bbbbbbbb-cccc-dddd-eeee-ffffffffffff": {
+                                                        "_dateCreated": "2025-01-01T12:00:00Z",
+                                                        "_dateModified": "2025-01-01T12:00:00Z",
+                                                        "_versions": [
+                                                            {
+                                                                "_dateCreated": "2025-01-01T12:00:00Z",
+                                                                "_dateVerified": "2025-01-01T12:00:00Z",
+                                                                "_data": {
+                                                                    "uuid": "bbbbbbbb-cccc-dddd-eeee-ffffffffffff",
+                                                                    "status": "complete",
+                                                                    "value": 5
+                                                                },
+                                                                "_uuid": "23232323-4545-6767-8989-010101010101",
+                                                                "verified": true
+                                                            }
+                                                        ]
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "summary": "Qualitative Analysis – Verified Response",
+                                        "description": "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`. "
                                     },
                                     "AutomaticQualitativeAnalysis–FailedResponse": {
                                         "value": {
@@ -4332,13 +4360,13 @@
                                                         "_versions": [
                                                             {
                                                                 "_dateCreated": "2025-01-01T12:00:00Z",
-                                                                "_dateAccepted": "2025-01-01T12:00:00Z",
                                                                 "_data": {
                                                                     "uuid": "bbbbbbbb-cccc-dddd-eeee-ffffffffffff",
                                                                     "status": "failed",
                                                                     "error": "Cannot parse response from LLM"
                                                                 },
-                                                                "_uuid": "23232323-4545-6767-8989-010101010101"
+                                                                "_uuid": "23232323-4545-6767-8989-010101010101",
+                                                                "verified": false
                                                             }
                                                         ]
                                                     }
@@ -4629,6 +4657,19 @@
                                         }
                                     },
                                     "summary": "Automatic Bedrock Qualitative Analysis – Any Question"
+                                },
+                                "VerifyQualitativeAnalysisResponse–AnyQuestion": {
+                                    "value": {
+                                        "_version": "20250820",
+                                        "question_name_xpath": {
+                                            "<action_id>": {
+                                                "uuid": "44444444-4444-4444-4444-4444444444444",
+                                                "verified": true
+                                            }
+                                        }
+                                    },
+                                    "summary": "Verify Qualitative Analysis Response – Any Question",
+                                    "description": "`<action_id>` may be either `manual_qual` or `automatic_bedrock_qual`\n\nSet `verified` to `False` to un-verify"
                                 }
                             }
                         }
@@ -4857,13 +4898,13 @@
                                                         "_versions": [
                                                             {
                                                                 "_dateCreated": "2025-01-01T12:00:00Z",
-                                                                "_dateAccepted": "2025-01-01T12:00:00Z",
                                                                 "_data": {
                                                                     "uuid": "66666666-6666-6666-6666-666666666666",
                                                                     "value": 42,
                                                                     "status": "complete"
                                                                 },
-                                                                "_uuid": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+                                                                "_uuid": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+                                                                "verified": false
                                                             }
                                                         ]
                                                     }
@@ -4884,13 +4925,13 @@
                                                         "_versions": [
                                                             {
                                                                 "_dateCreated": "2025-01-01T12:00:00Z",
-                                                                "_dateAccepted": "2025-01-01T12:00:00Z",
                                                                 "_data": {
                                                                     "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
                                                                     "value": "This is a qualitative text response.",
                                                                     "status": "complete"
                                                                 },
-                                                                "_uuid": "12121212-3434-5656-7878-909090909090"
+                                                                "_uuid": "12121212-3434-5656-7878-909090909090",
+                                                                "verified": false
                                                             }
                                                         ]
                                                     }
@@ -4911,13 +4952,13 @@
                                                         "_versions": [
                                                             {
                                                                 "_dateCreated": "2025-01-01T12:00:00Z",
-                                                                "_dateAccepted": "2025-01-01T12:00:00Z",
                                                                 "_data": {
                                                                     "uuid": "77777777-7777-7777-7777-777777777777",
                                                                     "value": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
                                                                     "status": "complete"
                                                                 },
-                                                                "_uuid": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
+                                                                "_uuid": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+                                                                "verified": false
                                                             }
                                                         ]
                                                     }
@@ -4938,7 +4979,6 @@
                                                         "_versions": [
                                                             {
                                                                 "_dateCreated": "2025-01-01T12:00:00Z",
-                                                                "_dateAccepted": "2025-01-01T12:00:00Z",
                                                                 "_data": {
                                                                     "uuid": "88888888-8888-8888-8888-888888888888",
                                                                     "value": [
@@ -4947,7 +4987,8 @@
                                                                     ],
                                                                     "status": "complete"
                                                                 },
-                                                                "_uuid": "99999999-9999-9999-9999-999999999999"
+                                                                "_uuid": "99999999-9999-9999-9999-999999999999",
+                                                                "verified": false
                                                             }
                                                         ]
                                                     }
@@ -4968,7 +5009,6 @@
                                                         "_versions": [
                                                             {
                                                                 "_dateCreated": "2025-01-01T12:00:00Z",
-                                                                "_dateAccepted": "2025-01-01T12:00:00Z",
                                                                 "_data": {
                                                                     "uuid": "bbbbbbbb-cccc-dddd-eeee-ffffffffffff",
                                                                     "value": [
@@ -4977,7 +5017,8 @@
                                                                         "priority"
                                                                     ]
                                                                 },
-                                                                "_uuid": "23232323-4545-6767-8989-010101010101"
+                                                                "_uuid": "23232323-4545-6767-8989-010101010101",
+                                                                "verified": false
                                                             }
                                                         ]
                                                     }
@@ -4985,6 +5026,34 @@
                                             }
                                         },
                                         "summary": "Manual Qualitative Analysis – Tags Question"
+                                    },
+                                    "QualitativeAnalysis–VerifiedResponse": {
+                                        "value": {
+                                            "_version": "20250820",
+                                            "question_name_xpath": {
+                                                "<action_id>": {
+                                                    "bbbbbbbb-cccc-dddd-eeee-ffffffffffff": {
+                                                        "_dateCreated": "2025-01-01T12:00:00Z",
+                                                        "_dateModified": "2025-01-01T12:00:00Z",
+                                                        "_versions": [
+                                                            {
+                                                                "_dateCreated": "2025-01-01T12:00:00Z",
+                                                                "_dateVerified": "2025-01-01T12:00:00Z",
+                                                                "_data": {
+                                                                    "uuid": "bbbbbbbb-cccc-dddd-eeee-ffffffffffff",
+                                                                    "status": "complete",
+                                                                    "value": 5
+                                                                },
+                                                                "_uuid": "23232323-4545-6767-8989-010101010101",
+                                                                "verified": true
+                                                            }
+                                                        ]
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "summary": "Qualitative Analysis – Verified Response",
+                                        "description": "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`. "
                                     },
                                     "AutomaticQualitativeAnalysis–FailedResponse": {
                                         "value": {
@@ -4997,13 +5066,13 @@
                                                         "_versions": [
                                                             {
                                                                 "_dateCreated": "2025-01-01T12:00:00Z",
-                                                                "_dateAccepted": "2025-01-01T12:00:00Z",
                                                                 "_data": {
                                                                     "uuid": "bbbbbbbb-cccc-dddd-eeee-ffffffffffff",
                                                                     "status": "failed",
                                                                     "error": "Cannot parse response from LLM"
                                                                 },
-                                                                "_uuid": "23232323-4545-6767-8989-010101010101"
+                                                                "_uuid": "23232323-4545-6767-8989-010101010101",
+                                                                "verified": false
                                                             }
                                                         ]
                                                     }
