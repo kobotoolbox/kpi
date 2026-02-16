@@ -1574,6 +1574,14 @@ CELERY_BEAT_SCHEDULE = {
         ),
         'options': {'queue': 'kpi_long_running_tasks_queue'},
     },
+    'retry-stalled-submissions': {
+        'task': 'kobo.apps.hook.tasks.retry_stalled_pending_submissions',
+        'schedule': crontab(minute='*/30'),  # Every 30 minutes
+    },
+    'mark-zombie-submissions': {
+        'task': 'kobo.apps.hook.tasks.mark_zombie_processing_submissions',
+        'schedule': crontab(minute='*/30'),  # Every 30 minutes
+    },
 }
 
 if STRIPE_ENABLED:
@@ -2207,3 +2215,6 @@ VERSION_DELETION_BATCH_SIZE = 2000
 # Number of stuck tasks should be restarted at a time
 MAX_RESTARTED_TASKS = 100
 MAX_RESTARTED_TRANSFERS = 20
+
+# Maximum timeout (in minutes) for hook processing
+HOOK_PROCESSING_TIMEOUT = 120

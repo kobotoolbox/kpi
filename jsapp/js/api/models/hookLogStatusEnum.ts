@@ -11,9 +11,9 @@ The endpoints are grouped by area of intended use. Each category contains relate
  */
 
 /**
- * * `0` - Failed
- * `1` - Pending
- * `2` - Success
+ * * `0` - failed
+ * `1` - pending
+ * `2` - success
  */
 export type HookLogStatusEnum = (typeof HookLogStatusEnum)[keyof typeof HookLogStatusEnum]
 
