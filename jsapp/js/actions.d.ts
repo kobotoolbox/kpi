@@ -82,8 +82,8 @@ interface DeleteAssetCompletedDefinition extends Function {
 }
 
 export interface UpdateAssetDefinitionParams {
-  onComplete: (response: AssetResponse) => void
-  onFail: (response: FailResponse) => void
+  onComplete?: (response: AssetResponse) => void
+  onFailed?: (response: FailResponse) => void
 }
 
 interface UpdateAssetDefinition extends Function {

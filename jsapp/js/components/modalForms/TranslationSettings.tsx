@@ -1,9 +1,9 @@
 import React from 'react'
 
 import alertify from 'alertifyjs'
-import autoBind from 'react-autobind'
+import cloneDeep from 'lodash.clonedeep'
 import { actions } from '#/actions'
-import assetStore from '#/assetStore'
+import assetStore, { type AssetStoreData } from '#/assetStore'
 import bem from '#/bem'
 import Button from '#/components/common/button'
 import InlineMessage from '#/components/common/inlineMessage'
@@ -12,30 +12,42 @@ import { LockingRestrictionName } from '#/components/locking/lockingConstants'
 import { hasAssetRestriction } from '#/components/locking/lockingUtils'
 import LanguageForm from '#/components/modalForms/languageForm'
 import { MODAL_TYPES } from '#/constants'
+import type { AssetContent, AssetResponse, SurveyRow } from '#/dataInterface'
 import envStore from '#/envStore'
 import pageState from '#/pageState.store'
-import { escapeHtml, getLangString, notify } from '#/utils'
+import { type LangObject, escapeHtml, getLangString, notify } from '#/utils'
 
 const LANGUAGE_SUPPORT_URL = 'language_dashboard.html'
 
-export class TranslationSettings extends React.Component {
-  unlisteners = []
+interface TranslationSettingsProps {
+  asset: AssetResponse
+}
 
-  constructor(props) {
+interface TranslationSettingsState {
+  asset: AssetResponse
+  translations: AssetContent['translations']
+  showAddLanguageForm: boolean
+  isUpdatingAsset: boolean
+  renameLanguageIndex: number | -1
+}
+
+export class TranslationSettings extends React.Component<TranslationSettingsProps, TranslationSettingsState> {
+  private unlisteners: Function[] = []
+
+  constructor(props: TranslationSettingsProps) {
     super(props)
 
     this.state = {
       asset: props.asset,
-      translations: props.asset.content.translations,
+      translations: props.asset.content?.translations,
       showAddLanguageForm: false,
       isUpdatingAsset: false,
       renameLanguageIndex: -1,
     }
-    autoBind(this)
   }
 
   componentDidMount() {
-    this.unlisteners.push(assetStore.listen(this.onAssetsChange.bind(this)))
+    this.unlisteners.push(assetStore.listen(this.onAssetsChange.bind(this), this))
   }
 
   componentWillUnmount() {
@@ -44,10 +56,10 @@ export class TranslationSettings extends React.Component {
     })
   }
 
-  onAssetChange(asset) {
+  onAssetChange(asset: AssetResponse) {
     this.setState({
       asset: asset,
-      translations: asset.content.translations || [],
+      translations: asset.content?.translations || [],
       showAddLanguageForm: false,
       isUpdatingAsset: false,
       renameLanguageIndex: -1,
@@ -59,7 +71,7 @@ export class TranslationSettings extends React.Component {
     })
   }
 
-  onAssetsChange(assetsList) {
+  onAssetsChange(assetsList: AssetStoreData) {
     if (assetsList[this.state.asset.uid]) {
       this.onAssetChange(assetsList[this.state.asset.uid])
     }
@@ -73,7 +85,7 @@ export class TranslationSettings extends React.Component {
     this.setState({ showAddLanguageForm: false })
   }
 
-  toggleRenameLanguageForm(index) {
+  toggleRenameLanguageForm(index: number) {
     if (this.state.renameLanguageIndex === index) {
       this.setState({ renameLanguageIndex: -1 })
     } else {
@@ -81,7 +93,10 @@ export class TranslationSettings extends React.Component {
     }
   }
 
-  launchTranslationTableModal(index, langString) {
+  launchTranslationTableModal(index: number) {
+    // This most probably is a `string`
+    const langString = this.state.translations?.[index]
+
     pageState.switchModal({
       type: MODAL_TYPES.FORM_TRANSLATIONS_TABLE,
       asset: this.state.asset,
@@ -90,27 +105,31 @@ export class TranslationSettings extends React.Component {
     })
   }
 
-  onLanguageChange(lang, index) {
+  onLanguageChange(lang: LangObject, index: number) {
     let content = this.state.asset.content
     const langString = getLangString(lang)
 
-    if (index > -1) {
-      content.translations[index] = langString
-    } else {
-      content.translations.push(langString)
-      content = this.prepareTranslations(content)
-    }
+    if (content?.translations) {
+      if (index > -1) {
+        content.translations[index] = langString || null
+      } else {
+        content.translations.push(langString || null)
+        content = this.prepareTranslations(content)
+      }
 
-    if (index === 0) {
-      content.settings.default_language = langString
-    }
+      if (index === 0) {
+        if (content?.settings) {
+          content.settings.default_language = langString
+        }
+      }
 
-    this.updateAsset(content)
+      this.updateAsset(content)
+    }
   }
 
   // Check if the default `null` language has been replaced yet
   canAddLanguages() {
-    return !(this.state.translations.length === 1 && this.state.translations[0] === null)
+    return !(this.state.translations?.length === 1 && this.state.translations[0] === null)
   }
 
   // `language_edit` restriction implies canAddLanguages but restricts it
@@ -122,10 +141,10 @@ export class TranslationSettings extends React.Component {
     return this.state.translations
   }
 
-  deleteLanguage(index) {
-    const content = this.deleteTranslations(this.state.asset.content, index)
+  deleteLanguage(index: number) {
+    const content = this.deleteTranslations(index)
     if (content) {
-      content.translations.splice(index, 1)
+      content?.translations?.splice(index, 1)
       const dialog = alertify.dialog('confirm')
       const opts = {
         title: t('Delete language?'),
@@ -143,60 +162,73 @@ export class TranslationSettings extends React.Component {
     }
   }
 
-  prepareTranslations(content) {
-    const translated = content.translated
-    const translationsLength = content.translations.length
-    const survey = content.survey
-    const choices = content.choices
+  prepareTranslations(contentOriginal: AssetContent) {
+    // Clone it to make sure we don't have unpredicted behaviors
+    const content = cloneDeep(contentOriginal)
 
-    // append null values to translations for each survey row
-    for (let i = 0, len = survey.length; i < len; i++) {
-      const row = survey[i]
-      for (let j = 0, len2 = translated.length; j < len2; j++) {
-        var property = translated[j]
-        if (row[property] && row[property].length < translationsLength) {
-          row[property].push(null)
+    // Ensure all parts are there, if not let's just return what we got
+    if (!content.translated || !content.translations) {
+      return content
+    }
+
+    if (content.survey) {
+      // append null values to translations for each survey row
+      for (let i = 0, len = content.survey.length; i < len; i++) {
+        const row = content.survey[i]
+        for (let j = 0, len2 = content.translated.length; j < len2; j++) {
+          const propertyName = content.translated[j]
+          const rowProperty = row[propertyName as keyof SurveyRow]
+          if (Array.isArray(rowProperty) && rowProperty.length < content.translations.length) {
+            rowProperty.push(null)
+          }
         }
       }
     }
 
     // append null values to translations for choices
     if (content.choices && content.choices.length) {
-      for (let i = 0, len = choices.length; i < len; i++) {
-        if (choices[i].label.length < translationsLength) {
-          choices[i].label.push(null)
+      for (let i = 0, len = content.choices.length; i < len; i++) {
+        const choice = content.choices[i]
+        if (Array.isArray(choice.label) && choice.label.length < content.translations.length) {
+          choice.label.push(null)
         }
       }
     }
     return content
   }
 
-  deleteTranslations(content, langIndex) {
-    const translated = content.translated
-    const translationsLength = content.translations.length
-    const survey = content.survey
-    const choices = content.choices
+  deleteTranslations(langIndex: number) {
+    const content = cloneDeep(this.state.asset.content)
 
-    for (let i = 0, len = survey.length; i < len; i++) {
-      const row = survey[i]
-      for (let j = 0, len2 = translated.length; j < len2; j++) {
-        var property = translated[j]
-        if (row[property]) {
-          if (row[property].length === translationsLength) {
-            row[property].splice(langIndex, 1)
-          } else {
-            console.error('Translations index mismatch')
-            return false
+    // Ensure all parts are there, if not let's just return what we got
+    if (!content?.translated || !content.translations) {
+      return content
+    }
+
+    if (content.survey) {
+      for (let i = 0, len = content.survey.length; i < len; i++) {
+        const row = content.survey[i]
+        for (let j = 0, len2 = content.translated.length; j < len2; j++) {
+          const propertyName = content.translated[j]
+          const rowProperty = row[propertyName as keyof SurveyRow]
+          if (Array.isArray(rowProperty)) {
+            if (rowProperty.length === content.translations.length) {
+              rowProperty.splice(langIndex, 1)
+            } else {
+              console.error('Translations index mismatch')
+              return false
+            }
           }
         }
       }
     }
 
     if (content.choices && content.choices.length) {
-      for (let i = 0, len = choices.length; i < len; i++) {
-        if (choices[i].label) {
-          if (choices[i].label.length === translationsLength) {
-            choices[i].label.splice(langIndex, 1)
+      for (let i = 0, len = content.choices.length; i < len; i++) {
+        const choice = content.choices[i]
+        if (choice.label) {
+          if (choice.label.length === content.translations.length) {
+            choice.label.splice(langIndex, 1)
           } else {
             console.error('Translations index mismatch')
             return false
@@ -207,21 +239,23 @@ export class TranslationSettings extends React.Component {
     return content
   }
 
-  changeDefaultLanguage(index) {
-    const langString = this.state.translations[index]
+  changeDefaultLanguage(index: number) {
+    const langString = this.state.translations?.[index]
 
     const dialog = alertify.dialog('confirm')
     const opts = {
       title: t('Change default language?'),
       message: t('Are you sure you would like to set ##lang## as the default language for this form?').replace(
         '##lang##',
-        escapeHtml(langString),
+        escapeHtml(String(langString)),
       ),
       labels: { ok: t('Confirm'), cancel: t('Cancel') },
       onok: () => {
-        const content = this.state.asset.content
-        content.settings.default_language = langString
-        this.updateAsset(content)
+        const content = cloneDeep(this.state.asset.content)
+        if (content?.settings) {
+          content.settings.default_language = langString
+          this.updateAsset(content)
+        }
         dialog.destroy()
       },
       oncancel: dialog.destroy,
@@ -229,7 +263,7 @@ export class TranslationSettings extends React.Component {
     dialog.set(opts).show()
   }
 
-  updateAsset(content) {
+  updateAsset(content: AssetContent) {
     this.setState({ isUpdatingAsset: true })
 
     actions.resources.updateAsset(
@@ -302,7 +336,7 @@ export class TranslationSettings extends React.Component {
     )
   }
 
-  renderTranslationsSettings(translations) {
+  renderTranslationsSettings(translations: Array<string | null>) {
     return (
       <bem.FormModal m='translation-settings'>
         <bem.FormModal__item>
@@ -355,7 +389,7 @@ export class TranslationSettings extends React.Component {
                     type='secondary'
                     size='m'
                     onClick={() => {
-                      this.launchTranslationTableModal(i, this.state.translations[i])
+                      this.launchTranslationTableModal(i)
                     }}
                     isDisabled={this.state.isUpdatingAsset}
                     startIcon='language-settings'
@@ -386,7 +420,7 @@ export class TranslationSettings extends React.Component {
                     langString={l}
                     langIndex={i}
                     onLanguageChange={this.onLanguageChange.bind(this)}
-                    existingLanguages={this.getAllLanguages(l)}
+                    existingLanguages={this.getAllLanguages()}
                   />
                 </bem.FormView__cell>
               )}
@@ -433,9 +467,9 @@ export class TranslationSettings extends React.Component {
     }
 
     const translations = this.state.translations
-    if (translations.length === 0) {
+    if (!translations || translations?.length === 0) {
       return this.renderEmptyMessage()
-    } else if (translations.length === 1 && translations[0] === null) {
+    } else if (translations?.length === 1 && translations[0] === null) {
       // use this modal if there are only unnamed translations
       return this.renderUndefinedDefaultSettings()
     } else {
