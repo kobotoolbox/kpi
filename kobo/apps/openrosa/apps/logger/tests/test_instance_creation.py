@@ -167,7 +167,7 @@ class TestInstanceCreation(TestCase):
             )
         assert UserProfile.objects.filter(user=self.user).exists()
 
-    def test_cannot_edit_with_already_used_deprecated_uuid(self):
+    def test_edit_fails_with_duplicate_uuid_when_root_uuid_mismatches(self):
         """
         Test that ConflictingSubmissionUUIDError is raised when multiple instances
         share the same UUID and the root_uuid from the edit submission doesn't
@@ -256,7 +256,108 @@ class TestInstanceCreation(TestCase):
             context.exception
         )
 
-    def test_can_edit_with_already_used_deprecated_uuid_and_unique_root_uuid(self):
+    def test_edit_fails_when_duplicate_uuids_have_null_root_uuid(self):
+        """
+        Test that ConflictingSubmissionUUIDError is raised when multiple instances
+        share the same UUID and the root_uuid from the edit submission doesn't
+        match any of them (because they all have null root_uuid).
+
+        This simulates legacy data where UUID uniqueness wasn't enforced and tests
+        that we properly reject edits when disambiguation is impossible.
+        """
+
+        class FakeRequest:
+            pass
+
+        request = FakeRequest()
+        request.user = self.user
+        request.user.has_perm = lambda *args, **kwargs: True
+
+        # Load XML from existing test file
+        xml_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            'Water_Translated_2011_03_10_2011-03-10_14-38-28.xml',
+        )
+        with open(xml_path) as f:
+            xml_content = f.read()
+
+        xml_file = io.BytesIO(xml_content.encode('utf-8'))
+        first_uuid = get_uuid_from_xml(xml_content)
+
+        # Create first instance with uuid=A
+        first_instance = create_instance(
+            self.user.username,
+            xml_file,
+            media_files=[],
+            request=request,
+            check_usage_limits=False,
+        )
+
+        # Simulate legacy data: remove root_uuid to create ambiguity
+        Instance.objects.filter(pk=first_instance.pk).update(root_uuid=None)
+
+        # Create a duplicate instance with the same UUID (simulates old bug/race condition)
+        second_instance = Instance.objects.create(
+            xml=xml_content,
+            user=self.user,
+            xform=self.xform,
+            uuid=first_uuid,
+        )
+
+        # Also remove root_uuid from the duplicate
+        Instance.objects.filter(pk=second_instance.pk).update(root_uuid=None)
+
+        # Verify setup: 2 instances with the same UUID and null root_uuid
+        assert (
+            Instance.objects.filter(
+                uuid=first_uuid, root_uuid__isnull=True
+            ).count()
+            == 2
+        )
+
+        # Prepare an edit submission with deprecatedID pointing to the duplicate UUID
+        new_uuid = str(uuid.uuid4())
+        xml_parsed = fromstring_preserve_root_xmlns(xml_content)
+
+        # Set deprecatedID to the original UUID (trying to edit one of the duplicates)
+        edit_submission_xml(
+            xml_parsed,
+            'meta/deprecatedID',
+            add_uuid_prefix(first_uuid),
+        )
+        # Set a root_uuid that doesn't match any existing instance.This would normally
+        # help disambiguate, but since all root_uuid are null, it cannot.
+        edit_submission_xml(
+            xml_parsed,
+            'meta/rootUuid',
+            add_uuid_prefix(new_uuid),
+        )
+        # Assign new instanceID for the edit
+        edit_submission_xml(
+            xml_parsed,
+            'meta/instanceID',
+            add_uuid_prefix(new_uuid),
+        )
+
+        edited_xml = xml_tostring(xml_parsed)
+        xml_file_edited = io.BytesIO(edited_xml.encode('utf-8'))
+
+        # Attempt to submit the edit - should fail because we can't determine
+        # which of the duplicate instances is being edited
+        with self.assertRaises(ConflictingSubmissionUUIDError) as context:
+            create_instance(
+                self.user.username,
+                xml_file_edited,
+                media_files=[],
+                request=request,
+                check_usage_limits=False,
+            )
+
+        assert 'Multiple submissions found with the same DeprecatedID' in str(
+            context.exception
+        )
+
+    def test_edit_succeeds_with_duplicate_uuid_when_root_uuid_disambiguates(self):
         """
         Test that when multiple instances share the same UUID, we can successfully
         edit one by matching its root_uuid.
