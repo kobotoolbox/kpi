@@ -207,6 +207,18 @@ CONSTANCE_CONFIG = {
         'Error message for emails not listed in REGISTRATION_ALLOWED_EMAIL_DOMAINS '
         'if field is not blank'
     ),
+    'REGISTRATION_BLACKLIST_EMAIL_DOMAINS': (
+        '',
+        'Email domains to block from registering new accounts, one per line, '
+        'or blank to allow all email domains'
+    ),
+    'REGISTRATION_BLACKLIST_ERROR_MESSAGE': (
+        'Account creation restricted for this server. Your organization uses a '
+        'separate private KoboToolbox server. Please contact your organization '
+        'support team for assistance.',
+        'Error message for emails blacklisted in REGISTRATION_BLACKLIST_EMAIL_DOMAINS '
+        'if field is not blank'
+    ),
     'TERMS_OF_SERVICE_URL': ('', 'URL for terms of service document'),
     'PRIVACY_POLICY_URL': ('', 'URL for privacy policy'),
     'SOURCE_CODE_URL': (
@@ -697,6 +709,8 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'REGISTRATION_OPEN',
         'REGISTRATION_ALLOWED_EMAIL_DOMAINS',
         'REGISTRATION_DOMAIN_NOT_ALLOWED_ERROR_MESSAGE',
+        'REGISTRATION_BLACKLIST_EMAIL_DOMAINS',
+        'REGISTRATION_BLACKLIST_ERROR_MESSAGE',
         'TERMS_OF_SERVICE_URL',
         'PRIVACY_POLICY_URL',
         'SOURCE_CODE_URL',
