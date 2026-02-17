@@ -1,5 +1,5 @@
-# coding: utf-8
 import time
+from datetime import timedelta
 
 from celery import shared_task
 from django.conf import settings
@@ -7,12 +7,14 @@ from django.core.mail import EmailMultiAlternatives, get_connection
 from django.template.loader import get_template
 from django.utils import timezone, translation
 from django_celery_beat.models import PeriodicTask
+from rest_framework import status
 
 from kobo.celery import celery_app
 from kpi.utils.log import logging
-from .constants import HOOK_LOG_FAILED
+from .constants import KOBO_INTERNAL_ERROR_STATUS_CODE
 from .exceptions import HookRemoteServerDownError
-from .models import Hook, HookLog
+from .models import Hook
+from .models.hook_log import HookLog, HookLogStatus
 from .utils.lazy import LazyMaxRetriesInt
 
 
@@ -66,7 +68,7 @@ def failures_reports():
 
         last_run_at = failures_reports_period_task.last_run_at
         queryset = HookLog.objects.filter(
-            hook__email_notification=True, status=HOOK_LOG_FAILED
+            hook__email_notification=True, status=HookLogStatus.FAILED
         )
         if last_run_at:
             queryset = queryset.filter(date_modified__gte=last_run_at)
@@ -160,3 +162,76 @@ def failures_reports():
                 return False
 
     return True
+
+
+@shared_task
+def retry_stalled_pending_submissions():
+    """
+    Retries submissions that were never processed due to Celery task failures.
+
+    Finds HookLogs that are:
+    - status = PENDING
+    - status_code = KOBO_INTERNAL_ERROR_STATUS_CODE (None)
+    - message = '' (no error recorded)
+    - modified_at > 2 hours ago
+
+    These represent submissions where the Celery task was killed before it could
+    even start processing (e.g., pod restart during queuing).
+    """
+    cutoff_time = timezone.now() - timedelta(minutes=settings.HOOK_PROCESSING_TIMEOUT)
+
+    stalled_logs = HookLog.objects.filter(
+        status=HookLogStatus.PENDING,
+        status_code=KOBO_INTERNAL_ERROR_STATUS_CODE,
+        message='',
+        date_modified__lt=cutoff_time,
+    ).select_related('hook')
+
+    retried_count = 0
+    for log in stalled_logs:
+        # Re-queue the submission
+        service_definition_task.delay(log.hook_id, log.submission_id)
+        retried_count += 1
+
+    logging.info(f'Re-queued {retried_count} stalled submissions')
+
+
+@shared_task
+def mark_zombie_processing_submissions():
+    """
+    Marks as FAILED submissions that were being processed when the Celery task died.
+
+    Finds HookLogs that are:
+    - status = PENDING
+    - status_code = 102 (HTTP_102_PROCESSING)
+    - modified_at > 2 hours ago
+
+    These represent submissions where the task started but was killed before completion
+    (e.g., OOM, pod termination). The submission MAY have been sent to the remote
+    server but we couldn't record the response.
+    """
+
+    cutoff_time = timezone.now() - timedelta(minutes=settings.HOOK_PROCESSING_TIMEOUT)
+
+    zombie_logs = HookLog.objects.filter(
+        status=HookLogStatus.PENDING,
+        status_code=status.HTTP_102_PROCESSING,
+        date_modified__lt=cutoff_time,
+    ).select_related('hook')
+
+    marked_count = 0
+    for log in zombie_logs:
+
+        log.status = HookLogStatus.FAILED
+        log.status_code = KOBO_INTERNAL_ERROR_STATUS_CODE
+        log.message = (
+            'Submission processing was interrupted. The submission MAY have been '
+            'sent to the external endpoint, but the response could not be recorded. '
+            'Please verify manually on the remote server to avoid duplicate '
+            'submissions. Processing started but was terminated after 2+ hours without '
+            'completion (likely due to pod restart/OOM).'
+        )
+        log.save()
+        marked_count += 1
+
+    logging.info(f'Marked {marked_count} zombie submissions as failed')

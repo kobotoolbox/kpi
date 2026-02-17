@@ -53,29 +53,6 @@ stores.surveyState = Reflux.createStore({
   },
 })
 
-stores.assetSearch = Reflux.createStore({
-  init() {
-    this.queries = {}
-    this.listenTo(actions.search.assets.completed, this.onSearchAssetsCompleted)
-  },
-  getRecentSearch(queryString) {
-    if (queryString in this.queries) {
-      var age = new Date().getTime() - this.queries[queryString][1].getTime()
-      if (age < MAX_SEARCH_AGE * 1000) {
-        return this.queries[queryString][0]
-      }
-    }
-    return false
-  },
-  onSearchAssetsCompleted(searchData, response) {
-    response.query = searchData.q
-    this.queries[searchData.q] = [response, new Date()]
-    if (response.count > 0) {
-      this.trigger(response)
-    }
-  },
-})
-
 stores.translations = Reflux.createStore({
   init() {
     this.state = {
@@ -123,8 +100,6 @@ stores.allAssets = Reflux.createStore({
     this.byUid = {}
     this._waitingOn = {}
 
-    this.listenTo(actions.search.assets.completed, this.onListAssetsCompleted)
-    this.listenTo(actions.search.assets.failed, this.onListAssetsFailed)
     this.listenTo(actions.resources.updateAsset.completed, this.onUpdateAssetCompleted)
     this.listenTo(actions.resources.deleteAsset.completed, this.onDeleteAssetCompleted)
     this.listenTo(actions.resources.cloneAsset.completed, this.onCloneAssetCompleted)
