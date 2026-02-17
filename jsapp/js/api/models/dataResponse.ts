@@ -36,7 +36,7 @@ export interface DataResponse {
   _validation_status: _DataResponseValidationStatus
   _submitted_by: string
   /**
-   * Action-specific supplemental data attached to this submission. Structure varies by action type (transcription, translation, qual). Top-level keys are question XPaths, values are action-specific objects.
+   * Action-specific supplemental data attached to this submission. Structure varies by action type (transcription, translation, qual). Top-level keys are question XPaths, values are action objects.
    * @nullable
    */
   _supplementalDetails?: _DataResponseSupplementalDetails
