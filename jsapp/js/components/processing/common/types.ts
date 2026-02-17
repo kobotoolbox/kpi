@@ -1,38 +1,41 @@
-import type { _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem'
-import type { _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItemDataOneOfThree } from '#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItemDataOneOfThree'
-import type { _DataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem } from '#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem'
-import type { _DataSupplementResponseOneOfManualQualVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualQualVersionsItem'
-import type { _DataSupplementResponseOneOfManualTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualTranscriptionVersionsItem'
-import type { _DataSupplementResponseOneOfManualTranscriptionVersionsItemData } from '#/api/models/_dataSupplementResponseOneOfManualTranscriptionVersionsItemData'
-import type { _DataSupplementResponseOneOfManualTranslationVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualTranslationVersionsItem'
+import type { SupplementalDataTranscriptionAutomaticVersion } from '#/api/models/supplementalDataTranscriptionAutomaticVersion'
+import type { SupplementalDataContentAutomatic } from '#/api/models/supplementalDataContentAutomatic'
+import type { SupplementalDataTranslationAutomaticVersion } from '#/api/models/supplementalDataTranslationAutomaticVersion'
+import type { SupplementalDataQualManualVersion } from '#/api/models/supplementalDataQualManualVersion'
+import type { SupplementalDataTranscriptionManualVersion } from '#/api/models/supplementalDataTranscriptionManualVersion'
+import type { SupplementalDataContentManual } from '#/api/models/supplementalDataContentManual'
+import type { SupplementalDataContentAutomaticComplete } from '#/api/models/supplementalDataContentAutomaticComplete'
+import type { SupplementalDataContentAutomaticDeleted } from '#/api/models/supplementalDataContentAutomaticDeleted'
+import type { SupplementalDataTranslationManualVersion } from '#/api/models/supplementalDataTranslationManualVersion'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import type { StaticDisplays } from './utils'
 
 export type OneOfTransx = {
   _versions: Array<
-    | _DataSupplementResponseOneOfManualTranscriptionVersionsItem
-    | _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem
-    | _DataSupplementResponseOneOfManualTranslationVersionsItem
-    | _DataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem
-    | _DataSupplementResponseOneOfManualQualVersionsItem
+    | SupplementalDataTranscriptionManualVersion
+    | SupplementalDataTranscriptionAutomaticVersion
+    | SupplementalDataTranslationManualVersion
+    | SupplementalDataTranslationAutomaticVersion
+    | SupplementalDataQualManualVersion
   >
 }
 
 export type TranscriptVersionItem =
-  | _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem
-  | _DataSupplementResponseOneOfManualTranscriptionVersionsItem
+  | SupplementalDataTranscriptionAutomaticVersion
+  | SupplementalDataTranscriptionManualVersion
 
 export type TranslationVersionItem =
-  | _DataSupplementResponseOneOfManualTranslationVersionsItem
-  | _DataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem
+  | SupplementalDataTranslationManualVersion
+  | SupplementalDataTranslationAutomaticVersion
 
-export type QualVersionItem = _DataSupplementResponseOneOfManualQualVersionsItem
+export type QualVersionItem = SupplementalDataQualManualVersion
 
 export type TransxVersionItem = TranscriptVersionItem | TranslationVersionItem | QualVersionItem
 
 export type TranscriptVersionItemWithValue =
-  | _DataSupplementResponseOneOfManualTranscriptionVersionsItemData
-  | _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItemDataOneOfThree
+  | SupplementalDataContentManual
+  | SupplementalDataContentAutomaticComplete
+  | SupplementalDataContentAutomaticDeleted
 
 export type DisplaysList = Array<LanguageCode | StaticDisplays>
 

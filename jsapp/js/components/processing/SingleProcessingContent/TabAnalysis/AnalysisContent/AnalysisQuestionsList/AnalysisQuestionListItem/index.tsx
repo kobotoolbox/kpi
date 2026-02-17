@@ -3,11 +3,11 @@ import React, { useCallback, useRef, useState } from 'react'
 import classnames from 'classnames'
 import type { Identifier, XYCoord } from 'dnd-core'
 import { useDrag, useDrop } from 'react-dnd'
-import type { _DataSupplementResponseOneOfManualQualVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualQualVersionsItem'
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { PatchedDataSupplementPayloadOneOfManualQual } from '#/api/models/patchedDataSupplementPayloadOneOfManualQual'
 import type { ResponseQualActionParams } from '#/api/models/responseQualActionParams'
+import type { SupplementalDataVersionItemQual } from '#/api/models/supplementalDataVersionItemQual'
 import {
   type assetsDataSupplementRetrieveResponse,
   getAssetsDataSupplementRetrieveQueryKey,
@@ -80,7 +80,7 @@ export default function AnalysisQuestionListItem({
       select: useCallback(
         (
           data: assetsDataSupplementRetrieveResponse,
-        ): _DataSupplementResponseOneOfManualQualVersionsItem | undefined => {
+        ): SupplementalDataVersionItemQual | undefined => {
           if (data.status !== 200) return // typeguard, should never happen
           return data.data[questionXpath]?.manual_qual?.[qaQuestion.uuid]?._versions[0]
         },
@@ -316,9 +316,9 @@ export default function AnalysisQuestionListItem({
 
         const handleClearSelection = hasValue
           ? async () => {
-              setLocalRadioValue('')
-              await handleSaveAnswer('')
-            }
+            setLocalRadioValue('')
+            await handleSaveAnswer('')
+          }
           : undefined
 
         const handleRadioSave = async (value: string) => {

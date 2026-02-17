@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import type { _DataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem } from '#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem'
-import type { _DataSupplementResponseOneOfManualTranslationVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualTranslationVersionsItem'
+import type { DataSupplementTranslationAutomaticVersion } from '#/api/models/dataSupplementTranslationAutomaticVersion'
+import type { DataSupplementTranslationManualVersion } from '#/api/models/dataSupplementTranslationManualVersion'
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
@@ -26,8 +26,8 @@ interface Props {
   submission: DataResponse
   supplement: DataSupplementResponse
   translationVersion:
-    | _DataSupplementResponseOneOfManualTranslationVersionsItem
-    | _DataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem
+  | DataSupplementTranslationManualVersion
+  | DataSupplementTranslationAutomaticVersion
   onBack: () => void
   onSave: () => void
   onUnsavedWorkChange: (hasUnsavedWork: boolean) => void

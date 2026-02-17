@@ -1,10 +1,10 @@
-import type { _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem'
-import type { _DataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem } from '#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem'
-import type { _DataSupplementResponseOneOfManualTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualTranscriptionVersionsItem'
-import type { _DataSupplementResponseOneOfManualTranslationVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualTranslationVersionsItem'
+import type { SupplementalDataTranscriptionAutomaticVersion } from '#/api/models/supplementalDataTranscriptionAutomaticVersion'
+import type { SupplementalDataTranslationAutomaticVersion } from '#/api/models/supplementalDataTranslationAutomaticVersion'
+import type { SupplementalDataTranscriptionManualVersion } from '#/api/models/supplementalDataTranscriptionManualVersion'
+import type { SupplementalDataTranslationManualVersion } from '#/api/models/supplementalDataTranslationManualVersion'
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
-import type { DataSupplementResponseOneOfManualTranslation } from '#/api/models/dataSupplementResponseOneOfManualTranslation'
+import type { SupplementalDataManualTranslation } from '#/api/models/supplementalDataManualTranslation'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { ProcessingTab } from '#/components/processing/routes.utils'
 import type {
@@ -22,11 +22,9 @@ import type {
  * @returns True if the supplement data has a value property
  */
 export function isSupplementVersionWithValue<
-  T extends
-    | _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem
-    | _DataSupplementResponseOneOfManualTranscriptionVersionsItem =
-    | _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem
-    | _DataSupplementResponseOneOfManualTranscriptionVersionsItem,
+  T extends SupplementalDataTranscriptionAutomaticVersion | SupplementalDataTranscriptionManualVersion =
+  | SupplementalDataTranscriptionAutomaticVersion
+  | SupplementalDataTranscriptionManualVersion,
 >(supplementData: T): supplementData is T & { _data: { value: string } } {
   return supplementData._data && 'value' in supplementData._data && typeof supplementData._data.value === 'string'
 }
@@ -39,11 +37,11 @@ export function isSupplementVersionWithValue<
  */
 export const isSupplementVersionAutomatic = (
   SupplementVersion:
-    | _DataSupplementResponseOneOfManualTranslationVersionsItem
-    | _DataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem
-    | _DataSupplementResponseOneOfManualTranscriptionVersionsItem
-    | _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem,
-): SupplementVersion is _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem => {
+    | SupplementalDataTranslationManualVersion
+    | SupplementalDataTranslationAutomaticVersion
+    | SupplementalDataTranscriptionManualVersion
+    | SupplementalDataTranscriptionAutomaticVersion,
+): SupplementVersion is SupplementalDataTranscriptionAutomaticVersion => {
   return 'status' in SupplementVersion._data
 }
 
@@ -204,7 +202,7 @@ export const getLatestTranscriptVersionItem = (
 export const getManualTranslationsFromSupplementData = (
   supplementData: DataSupplementResponse,
   xpath: string,
-): DataSupplementResponseOneOfManualTranslation | undefined => {
+): SupplementalDataManualTranslation | undefined => {
   return supplementData[xpath]?.[ActionEnum.manual_translation]
 }
 

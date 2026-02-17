@@ -1,7 +1,7 @@
 import React from 'react'
 import { destroyConfirm } from '#/alertify'
-import type { _DataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem } from '#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem'
-import type { _DataSupplementResponseOneOfManualTranslationVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualTranslationVersionsItem'
+import type { SupplementalDataVersionItemAutomaticWithDep } from '#/api/models/supplementalDataVersionItemAutomaticWithDep'
+import type { SupplementalDataVersionItemManualWithDep } from '#/api/models/supplementalDataVersionItemManualWithDep'
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
@@ -19,11 +19,11 @@ import styles from './Viewer.module.scss'
 
 interface Props {
   translationVersion:
-    | _DataSupplementResponseOneOfManualTranslationVersionsItem
-    | _DataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem
+  | SupplementalDataVersionItemManualWithDep
+  | SupplementalDataVersionItemAutomaticWithDep
   translationVersions: Array<
-    | _DataSupplementResponseOneOfManualTranslationVersionsItem
-    | _DataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem
+    | SupplementalDataVersionItemManualWithDep
+    | SupplementalDataVersionItemAutomaticWithDep
   >
   asset: AssetResponse
   questionXpath: string

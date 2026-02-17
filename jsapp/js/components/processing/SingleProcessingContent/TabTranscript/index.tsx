@@ -1,5 +1,5 @@
 import React from 'react'
-import type { _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem } from '#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem'
+import type { DataSupplementTranscriptionAutomaticVersion } from '#/api/models/dataSupplementTranscriptionAutomaticVersion'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
@@ -13,7 +13,7 @@ import TranscriptCreate from './TranscriptCreate'
 import TranscriptEdit from './TranscriptEdit'
 import TranscriptPoll from './TranscriptPoll'
 
-type VersionOfAutomaticTranscript = _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItem
+type VersionOfAutomaticTranscript = DataSupplementTranscriptionAutomaticVersion
 
 interface Props {
   asset: AssetResponse
