@@ -250,7 +250,9 @@ def open_api_generic_response(
 
     response = {
         success_key: OpenApiResponse(
-            response=given_serializer, description=kwargs.get('description')
+            response=given_serializer,
+            description=kwargs.get('description'),
+            examples=kwargs.get('examples'),
         )
     }
 
