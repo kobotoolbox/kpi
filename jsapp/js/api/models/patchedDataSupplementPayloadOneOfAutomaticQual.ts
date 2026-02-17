@@ -10,16 +10,6 @@ The endpoints are grouped by area of intended use. Each category contains relate
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 
-/**
- * * `0` - failed
- * `1` - pending
- * `2` - success
- */
-export type HookLogStatusEnum = (typeof HookLogStatusEnum)[keyof typeof HookLogStatusEnum]
-
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const HookLogStatusEnum = {
-  NUMBER_0: 0,
-  NUMBER_1: 1,
-  NUMBER_2: 2,
-} as const
+export interface PatchedDataSupplementPayloadOneOfAutomaticQual {
+  uuid: string
+}

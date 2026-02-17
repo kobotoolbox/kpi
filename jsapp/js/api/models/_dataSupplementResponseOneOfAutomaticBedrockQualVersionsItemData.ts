@@ -9,17 +9,13 @@ The endpoints are grouped by area of intended use. Each category contains relate
 **General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as "assets".
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
+import type { DataSupplementAutomaticQualDataIntegerResponse } from './dataSupplementAutomaticQualDataIntegerResponse'
+import type { DataSupplementAutomaticQualDataSelectMultipleResponse } from './dataSupplementAutomaticQualDataSelectMultipleResponse'
+import type { DataSupplementAutomaticQualDataSelectOneResponse } from './dataSupplementAutomaticQualDataSelectOneResponse'
+import type { DataSupplementAutomaticQualDataTextResponse } from './dataSupplementAutomaticQualDataTextResponse'
 
-/**
- * * `0` - failed
- * `1` - pending
- * `2` - success
- */
-export type HookLogStatusEnum = (typeof HookLogStatusEnum)[keyof typeof HookLogStatusEnum]
-
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const HookLogStatusEnum = {
-  NUMBER_0: 0,
-  NUMBER_1: 1,
-  NUMBER_2: 2,
-} as const
+export type _DataSupplementResponseOneOfAutomaticBedrockQualVersionsItemData =
+  | DataSupplementAutomaticQualDataIntegerResponse
+  | DataSupplementAutomaticQualDataTextResponse
+  | DataSupplementAutomaticQualDataSelectOneResponse
+  | DataSupplementAutomaticQualDataSelectMultipleResponse
