@@ -1,6 +1,12 @@
-# Auto-generated file. Do not edit by hand.
-# Generated from CSV -> OPENAPI_VALIDATION_WHITELIST
+# API path prefixes that should be validated by the OpenAPI middleware
+API_PATH_PREFIXES = (
+    '/api/v2/',
+    '/me/',
+    '/environment/',
+)
 
+# Auto-generated constant. Do not edit by hand.
+# Generated from CSV -> OPENAPI_VALIDATION_WHITELIST
 OPENAPI_VALIDATION_WHITELIST = {
     'kobo/apps/audit_log/tests/api/v2/test_api_audit_log.py::ApiAuditLogTestCase::test_view_log_from_deleted_user': {
         'response-validation': {'^api/v2/audit-logs/$': ['GET']}

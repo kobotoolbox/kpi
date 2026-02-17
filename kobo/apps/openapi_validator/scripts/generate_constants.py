@@ -140,14 +140,43 @@ def write_constants(
     py_path: str,
     whitelist: dict[str, dict[str, dict[str, list[str]]]],
 ) -> None:
+    import re
+
+    # Read existing file content if it exists
+    existing_content = ''
+    try:
+        with open(py_path, 'r', encoding='utf-8') as f:
+            existing_content = f.read()
+    except FileNotFoundError:
+        pass
+
+    # Extract the part before OPENAPI_VALIDATION_WHITELIST section
+    # Look for the auto-generated comment or the OPENAPI_VALIDATION_WHITELIST assignment
+    pattern = r'(# Auto-generated constant.*?OPENAPI_VALIDATION_WHITELIST\s*=.*?)(?=\Z)'
+    match = re.search(pattern, existing_content, re.DOTALL)
+
+    if match:
+        # Keep everything before the auto-generated section
+        prefix = existing_content[:match.start()].rstrip()
+    elif existing_content:
+        # If no match but file has content, keep everything
+        prefix = existing_content.rstrip()
+    else:
+        # New file
+        prefix = ''
+
+    # Build the new content
     header = (
-        "# Auto-generated file. Do not edit by hand.\n"
-        "# Generated from CSV -> OPENAPI_VALIDATION_WHITELIST\n\n"
+        "# Auto-generated constant. Do not edit by hand.\n"
+        "# Generated from CSV -> OPENAPI_VALIDATION_WHITELIST\n"
+        "OPENAPI_VALIDATION_WHITELIST = "
     )
 
     with open(py_path, 'w', encoding='utf-8') as f:
+        if prefix:
+            f.write(prefix)
+            f.write("\n\n")
         f.write(header)
-        f.write("OPENAPI_VALIDATION_WHITELIST = ")
         f.write(repr(whitelist))
         f.write("\n")
 

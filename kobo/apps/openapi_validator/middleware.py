@@ -16,7 +16,7 @@ from kpi.exceptions import (
     OpenAPIRequiredParameterError,
 )
 from kpi.utils.log import logging
-from .constants import OPENAPI_VALIDATION_WHITELIST
+from .constants import OPENAPI_VALIDATION_WHITELIST, API_PATH_PREFIXES
 from .utils import get_django_route
 
 
@@ -43,8 +43,8 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
         if not self.schema:
             return None
 
-        # Only validate API v2 paths (starts with /api/v2/)
-        if not request.path.startswith('/api/v2/'):
+        # Only validate OpenAPI endpoints
+        if not request.path.startswith(API_PATH_PREFIXES):
             return None
 
         operation_spec = self._get_operation_spec(request.path, request.method)
@@ -124,8 +124,8 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
         if not self.schema:
             return response
 
-        # Only validate API v2 paths
-        if not request.path.startswith('/api/v2/'):
+        # Only validate OpenAPI endpoints
+        if not request.path.startswith(API_PATH_PREFIXES):
             return response
 
         operation_spec = self._get_operation_spec(request.path, request.method)
