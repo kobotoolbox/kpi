@@ -394,7 +394,8 @@ class SupplementalDataComponentsRegistrationMixin(ComponentRegistrationMixin):
                         # UUID keys
                         '^[0-9a-fA-F-]{36}$': references['action_object_qual'],
                     },
-                    description='Map of manual qualitative question UUIDs to their action objects',
+                    description='Map of manual qualitative question UUIDs '
+                                'to their action objects',
                 ),
             )
 
@@ -409,7 +410,8 @@ class SupplementalDataComponentsRegistrationMixin(ComponentRegistrationMixin):
                             'action_object_qual_automatic'
                         ],
                     },
-                    description='Map of automatic question UUIDs to their action objects',
+                    description='Map of automatic question UUIDs '
+                                'to their action objects',
                 ),
             )
 

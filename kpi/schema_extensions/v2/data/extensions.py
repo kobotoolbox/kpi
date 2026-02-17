@@ -424,9 +424,10 @@ class DataSupplementalDetailsFieldExtension(
             'description': (
                 'Action-specific supplemental data attached to this submission. '
                 'Structure varies by action type (transcription, translation, qual). '
-                'Top-level keys are question XPaths, values are action-specific objects.'
+                'Top-level keys are question XPaths, values are action objects.'
             ),
         }
+
 
 class DataValidationPayloadFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.data.fields.DataValidationPayloadField'
