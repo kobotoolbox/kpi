@@ -10,6 +10,8 @@ from kobo.apps.openrosa.apps.api.urls import (
     router,
     router_with_patch_list,
 )
+from kobo.apps.openrosa.apps.api.viewsets.xform_list_api import XFormListApi
+from kobo.apps.openrosa.apps.api.viewsets.xform_submission_api import XFormSubmissionApi
 from kobo.apps.openrosa.apps.logger.views import (
     bulksubmission,
     bulksubmission_form,
