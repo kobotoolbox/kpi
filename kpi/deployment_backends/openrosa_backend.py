@@ -392,7 +392,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         attachments: dict = None,
     ):
         """
-        Edit a submission through KoBoCAT proxy on behalf of `user`.
+        Edit a submission.
         Attachments can be uploaded by passing a dictionary (name, File object)
 
         The returned Response should be in XML (expected format by Enketo Express)

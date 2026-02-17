@@ -2213,22 +2213,13 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         assert response.status_code == status.HTTP_409_CONFLICT
         assert 'cannot be edited' in response.data['detail']
 
-    @responses.activate
-    def test_get_edit_link_succeeds_with_duplicate_when_root_uuid_set(self):
+    def test_get_edit_link_fails_with_duplicate_when_root_uuid_set(self):
         """
         someuser is the owner of the project.
         A duplicate submission exists with the same UUID but with a different root_uuid.
         The current submission has a valid (non-null) root_uuid.
-        Attempting to get the edit link should succeed because we can disambiguate.
+        Attempting to get the edit link should also fail.
         """
-        # Mock Enketo response
-        ee_url = f'{settings.ENKETO_URL}/{settings.ENKETO_EDIT_INSTANCE_ENDPOINT}'
-        responses.add_callback(
-            responses.POST,
-            ee_url,
-            callback=enketo_edit_instance_response,
-            content_type='application/json',
-        )
 
         # Get the current submission's UUID
         submission_uuid = remove_uuid_prefix(self.submission['_uuid'])
@@ -2266,10 +2257,17 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
 
         # Get the edit link - should succeed because the original has a non-null
         # root_uuid
-        response = self.client.get(self.submission_url, {'format': 'json'})
-        assert response.status_code == status.HTTP_200_OK
-        assert 'url' in response.data
-        assert 'version_uid' in response.data
+        submission_edit_link_url = reverse(
+            self._get_endpoint('submission-enketo-edit'),
+            kwargs={
+                'uid_asset': self.asset.uid,
+                'pk': self.submission['_id'],
+            },
+        )
+        # Attempt to get the edit link - should fail with 409
+        response = self.client.get(submission_edit_link_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_409_CONFLICT
+        assert 'cannot be edited' in response.data['detail']
 
 
 class SubmissionViewApiTests(SubmissionViewTestCaseMixin, BaseSubmissionTestCase):

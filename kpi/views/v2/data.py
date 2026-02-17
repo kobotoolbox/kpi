@@ -742,31 +742,17 @@ class DataViewSet(
             submission_id, user, request=request
         )
 
-        # Retrieve root_uuid of the current instance
-        instance_root_uuid = Instance.objects.values_list('root_uuid', flat=True).get(
-            pk=submission_id
-        )
-
-        # Extract the current UUID only once
-        current_uuid = remove_uuid_prefix(
-            submission_json[deployment.SUBMISSION_CURRENT_UUID_XPATH]
-        )
-
-        # Build the base query for duplicates
-        duplicate_query = Instance.objects.filter(
-            uuid=current_uuid,
-            xform_id=deployment.xform_id,
-        ).exclude(pk=submission_id)
-
-        # Refine the query based on the case
-        if instance_root_uuid:
-            # Case 1: Search only for instances without root_uuid
-            duplicate_exists = duplicate_query.filter(root_uuid__isnull=True).exists()
-        else:
-            # Case 2: Search for all duplicates
-            duplicate_exists = duplicate_query.exists()
-
-        if duplicate_exists:
+        # Block edit if the submission has duplicates.
+        if (
+            Instance.objects.filter(
+                uuid=remove_uuid_prefix(
+                    submission_json[deployment.SUBMISSION_CURRENT_UUID_XPATH]
+                ),
+                xform_id=deployment.xform_id,
+            )
+            .exclude(pk=submission_id)
+            .exists()
+        ):
             # Return an error immediately to prevent the user from receiving an error
             # when submitting their edit in Enketo
             return Response(
