@@ -3,7 +3,11 @@ from typing import Any
 from drf_spectacular.openapi import AutoSchema
 from drf_spectacular.plumbing import ComponentIdentity, ResolvedComponent
 
-from kpi.schema_extensions.v2.generic.schema import GENERIC_UUID_SCHEMA
+from kpi.schema_extensions.v2.generic.schema import (
+    GENERIC_INT_SCHEMA,
+    GENERIC_STRING_SCHEMA,
+    GENERIC_UUID_SCHEMA,
+)
 
 
 class ComponentRegistrationMixin:
@@ -45,7 +49,7 @@ class QualComponentsRegistrationMixin(ComponentRegistrationMixin):
                 'type': 'object',
                 'properties': {
                     'value': {
-                        'type': 'integer',
+                        **GENERIC_INT_SCHEMA,
                         'nullable': True,
                     },
                     'uuid': GENERIC_UUID_SCHEMA,
@@ -106,9 +110,7 @@ class QualComponentsRegistrationMixin(ComponentRegistrationMixin):
                 'properties': {
                     'value': {
                         'type': 'array',
-                        'items': {
-                            'type': 'string',
-                        },
+                        'items': GENERIC_STRING_SCHEMA,
                     },
                     'uuid': GENERIC_UUID_SCHEMA,
                 },
@@ -127,9 +129,7 @@ class QualComponentsRegistrationMixin(ComponentRegistrationMixin):
             {
                 'type': 'object',
                 'properties': {
-                    'value': {
-                        'type': 'string',
-                    },
+                    'value': GENERIC_STRING_SCHEMA,
                     'uuid': GENERIC_UUID_SCHEMA,
                 },
                 'required': ['uuid', 'value'],

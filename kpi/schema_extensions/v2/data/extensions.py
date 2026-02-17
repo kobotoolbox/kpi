@@ -59,10 +59,10 @@ class DataAttachmentFieldExtension(OpenApiSerializerFieldExtension):
                         suffix='small',
                     ),
                     'mimetype': {'type': 'string', 'example': 'image/png'},
-                    'media_file_basename': build_basic_type(OpenApiTypes.STR),
-                    'filename': build_basic_type(OpenApiTypes.STR),
-                    'uid': build_basic_type(OpenApiTypes.STR),
-                    'question_xpath': build_basic_type(OpenApiTypes.STR),
+                    'media_file_basename': GENERIC_STRING_SCHEMA,
+                    'filename': GENERIC_STRING_SCHEMA,
+                    'uid': GENERIC_STRING_SCHEMA,
+                    'question_xpath': GENERIC_STRING_SCHEMA,
                     'is_deleted': build_basic_type(OpenApiTypes.BOOL),
                 },
                 required=[
@@ -82,7 +82,7 @@ class DataBulkDeleteFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.data.fields.DataBulkDeleteField'
 
     def map_serializer_field(self, auto_schema, direction):
-        return build_array_type(schema=build_basic_type(OpenApiTypes.INT))
+        return build_array_type(schema=GENERIC_INT_SCHEMA)
 
 
 class DataBulkUpdatePayloadFieldExtension(OpenApiSerializerFieldExtension):
@@ -91,9 +91,7 @@ class DataBulkUpdatePayloadFieldExtension(OpenApiSerializerFieldExtension):
     def map_serializer_field(self, auto_schema, direction):
         return build_object_type(
             properties={
-                'submission_ids': build_array_type(
-                    schema=build_basic_type(OpenApiTypes.INT)
-                ),
+                'submission_ids': build_array_type(schema=GENERIC_INT_SCHEMA),
                 'data': build_object_type(
                     properties={
                         'field_to_update': GENERIC_STRING_SCHEMA,
@@ -111,7 +109,7 @@ class DataBulkUpdateResultFieldExtension(OpenApiSerializerFieldExtension):
             schema=build_object_type(
                 properties={
                     'uuid': GENERIC_STRING_SCHEMA,
-                    'status_code': build_basic_type(OpenApiTypes.INT),
+                    'status_code': GENERIC_INT_SCHEMA,
                     'message': GENERIC_STRING_SCHEMA,
                 }
             )

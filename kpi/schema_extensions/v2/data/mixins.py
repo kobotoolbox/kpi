@@ -46,7 +46,7 @@ class SupplementalDataComponentsRegistrationMixin(ComponentRegistrationMixin):
                 properties={
                     'language': GENERIC_STRING_SCHEMA,
                     'locale': GENERIC_STRING_SCHEMA,
-                    'value': {'type': 'string', 'nullable': True},
+                    'value': {**GENERIC_STRING_SCHEMA, 'nullable': True},
                 },
                 required=['language', 'value'],
             ),
@@ -61,7 +61,7 @@ class SupplementalDataComponentsRegistrationMixin(ComponentRegistrationMixin):
                 properties={
                     'language': GENERIC_STRING_SCHEMA,
                     'locale': GENERIC_STRING_SCHEMA,
-                    'status': {'type': 'string', 'const': 'in_progress'},
+                    'status': {**GENERIC_STRING_SCHEMA, 'const': 'in_progress'},
                 },
                 required=['language', 'status'],
             ),
@@ -75,8 +75,8 @@ class SupplementalDataComponentsRegistrationMixin(ComponentRegistrationMixin):
                 properties={
                     'language': GENERIC_STRING_SCHEMA,
                     'locale': GENERIC_STRING_SCHEMA,
-                    'status': {'type': 'string', 'const': 'failed'},
-                    'error': {'type': 'string'},
+                    'status': {**GENERIC_STRING_SCHEMA, 'const': 'failed'},
+                    'error': GENERIC_STRING_SCHEMA,
                 },
                 required=['language', 'status', 'error'],
             ),
@@ -90,8 +90,8 @@ class SupplementalDataComponentsRegistrationMixin(ComponentRegistrationMixin):
                 properties={
                     'language': GENERIC_STRING_SCHEMA,
                     'locale': GENERIC_STRING_SCHEMA,
-                    'status': {'type': 'string', 'const': 'complete'},
-                    'value': {'type': 'string'},
+                    'status': {**GENERIC_STRING_SCHEMA, 'const': 'complete'},
+                    'value': GENERIC_STRING_SCHEMA,
                 },
                 required=['language', 'status', 'value'],
             ),
@@ -105,7 +105,7 @@ class SupplementalDataComponentsRegistrationMixin(ComponentRegistrationMixin):
                 properties={
                     'language': GENERIC_STRING_SCHEMA,
                     'locale': GENERIC_STRING_SCHEMA,
-                    'status': {'type': 'string', 'const': 'deleted'},
+                    'status': {**GENERIC_STRING_SCHEMA, 'const': 'deleted'},
                     'value': {'type': 'null'},
                 },
                 required=['language', 'status', 'value'],
