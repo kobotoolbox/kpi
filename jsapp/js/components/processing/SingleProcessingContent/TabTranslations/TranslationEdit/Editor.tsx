@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import type { DataSupplementTranslationAutomaticVersion } from '#/api/models/dataSupplementTranslationAutomaticVersion'
-import type { DataSupplementTranslationManualVersion } from '#/api/models/dataSupplementTranslationManualVersion'
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
@@ -13,6 +11,7 @@ import {
 import Button from '#/components/common/button'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { userCan } from '#/components/permissions/utils'
+import type { TranslationVersionItem } from '#/components/processing/common/types'
 import { isSupplementVersionAutomatic } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
 import { notify, removeDefaultUuidPrefix } from '#/utils'
@@ -25,9 +24,7 @@ interface Props {
   questionXpath: string
   submission: DataResponse
   supplement: DataSupplementResponse
-  translationVersion:
-  | DataSupplementTranslationManualVersion
-  | DataSupplementTranslationAutomaticVersion
+  translationVersion: TranslationVersionItem
   onBack: () => void
   onSave: () => void
   onUnsavedWorkChange: (hasUnsavedWork: boolean) => void

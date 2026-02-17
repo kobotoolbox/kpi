@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
-import type { DataSupplementTranslationAutomaticVersion } from '#/api/models/dataSupplementTranslationAutomaticVersion'
-import type { DataSupplementTranslationManualVersion } from '#/api/models/dataSupplementTranslationManualVersion'
+import type { SupplementalDataVersionItemAutomatic } from '#/api/models/supplementalDataVersionItemAutomatic'
+import type { SupplementalDataVersionItemManual } from '#/api/models/supplementalDataVersionItemManual'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
@@ -21,8 +21,8 @@ interface Props {
   languagesExisting: LanguageCode[]
   initialStep?: CreateSteps.Begin | CreateSteps.Language
   translationVersions: Array<
-    | DataSupplementTranslationManualVersion
-    | DataSupplementTranslationAutomaticVersion
+    | SupplementalDataVersionItemManual
+    | SupplementalDataVersionItemAutomatic
   >
   onCreate: (languageCode: LanguageCode, context: 'automated' | 'manual') => void
   onBack: () => void
