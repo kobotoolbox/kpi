@@ -301,6 +301,19 @@ class SupplementalDataComponentsRegistrationMixin(ComponentRegistrationMixin):
                 },
             )
 
+            references['qual_data_automatic'] = self._register_schema_component(
+                auto_schema,
+                'SupplementalDataQualDataAutomatic',
+                {
+                    'oneOf': [
+                        qual_references['automatic_qual_integer'],
+                        qual_references['automatic_qual_text'],
+                        qual_references['automatic_qual_select_one'],
+                        qual_references['automatic_qual_select_multiple'],
+                    ]
+                },
+            )
+
             references['version_item_qual'] = self._register_schema_component(
                 auto_schema,
                 'SupplementalDataVersionItemQual',
@@ -310,7 +323,27 @@ class SupplementalDataComponentsRegistrationMixin(ComponentRegistrationMixin):
                         '_data': references['qual_data'],
                         '_dateAccepted': GENERIC_DATETIME_SCHEMA,
                         '_dateCreated': GENERIC_DATETIME_SCHEMA,
+                        '_dateVerified': GENERIC_DATETIME_SCHEMA,
                         '_uuid': GENERIC_UUID_SCHEMA,
+                        'verified': {'type': 'boolean'},
+                    },
+                    required=['_data', '_dateCreated', '_uuid'],
+                ),
+            )
+
+            references['version_item_qual_automatic'] = self._register_schema_component(
+                auto_schema,
+                'SupplementalDataVersionItemQualAutomatic',
+                build_object_type(
+                    additionalProperties=False,
+                    properties={
+                        '_data': references['qual_data_automatic'],
+                        '_dateAccepted': GENERIC_DATETIME_SCHEMA,
+                        '_dateCreated': GENERIC_DATETIME_SCHEMA,
+                        '_dateVerified': GENERIC_DATETIME_SCHEMA,
+                        '_uuid': GENERIC_UUID_SCHEMA,
+                        '_dependency': references['dependency'],
+                        'verified': {'type': 'boolean'},
                     },
                     required=['_data', '_dateCreated', '_uuid'],
                 ),
@@ -333,6 +366,25 @@ class SupplementalDataComponentsRegistrationMixin(ComponentRegistrationMixin):
                 ),
             )
 
+            references['action_object_qual_automatic'] = (
+                self._register_schema_component(
+                    auto_schema,
+                    'SupplementalDataActionObjectQualAutomatic',
+                    build_object_type(
+                        additionalProperties=False,
+                        properties={
+                            '_dateCreated': GENERIC_DATETIME_SCHEMA,
+                            '_dateModified': GENERIC_DATETIME_SCHEMA,
+                            '_versions': build_array_type(
+                                schema=references['version_item_qual_automatic'],
+                                min_length=1,
+                            ),
+                        },
+                        required=['_dateCreated', '_dateModified', '_versions'],
+                    ),
+                )
+            )
+
             references['qual_map'] = self._register_schema_component(
                 auto_schema,
                 'SupplementalDataQualMap',
@@ -342,7 +394,22 @@ class SupplementalDataComponentsRegistrationMixin(ComponentRegistrationMixin):
                         # UUID keys
                         '^[0-9a-fA-F-]{36}$': references['action_object_qual'],
                     },
-                    description='Map of qualitative question UUIDs to their action objects',
+                    description='Map of manual qualitative question UUIDs to their action objects',
+                ),
+            )
+
+            references['qual_map_automatic'] = self._register_schema_component(
+                auto_schema,
+                'SupplementalDataQualMapAutomatic',
+                build_object_type(
+                    additionalProperties=references['action_object_qual_automatic'],
+                    patternProperties={
+                        # UUID keys
+                        '^[0-9a-fA-F-]{36}$': references[
+                            'action_object_qual_automatic'
+                        ],
+                    },
+                    description='Map of automatic question UUIDs to their action objects',
                 ),
             )
 

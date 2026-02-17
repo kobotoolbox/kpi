@@ -239,7 +239,7 @@ class DataSupplementResponseExtension(
                     'translation_map_automatic'
                 ],
                 'manual_qual': supp_references['qual_map'],
-                'automatic_bedrock_qual': supp_references['qual_map'],
+                'automatic_bedrock_qual': supp_references['qual_map_automatic'],
             },
             # At least action must be present
             anyOf=[
@@ -396,7 +396,21 @@ class DataSupplementalDetailsFieldExtension(
                         description='Manual qualitative supplemental details',
                     ),
                 ),
-                # Future: Add automatic_bedrock_qual when needed
+                self._register_schema_component(
+                    auto_schema,
+                    'SupplementalDetailsAutomaticQual',
+                    build_object_type(
+                        additionalProperties=build_object_type(
+                            properties={
+                                'automatic_bedrock_qual': supp_references[
+                                    'qual_map_automatic'
+                                ],
+                            },
+                            required=['automatic_bedrock_qual'],
+                        ),
+                        description='Automatic qualitative supplemental details',
+                    ),
+                ),
             ],
             'nullable': True,  # Field is required=False
             'description': (
