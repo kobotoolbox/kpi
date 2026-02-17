@@ -12,9 +12,31 @@ OpenRosaResponse = inline_serializer_class(
 )
 
 
+SubmissionResponse = inline_serializer_class(
+    name='SubmissionResponse',
+    fields={
+        'message': serializers.CharField(),
+        'formid': serializers.CharField(),
+        'encrypted': serializers.BooleanField(),
+        'instanceID': serializers.CharField(),
+        'submissionDate': serializers.DateTimeField(),
+        'markedAsCompleteDate': serializers.DateTimeField(),
+    },
+)
+
+
 OpenRosaPayload = inline_serializer_class(
     name='OpenRosaPayload',
     fields={
-        'xml_submission_file': serializers.CharField(),
+        'xml_submission_file': serializers.FileField(),
+    },
+)
+
+
+JSONSubmissionPayload = inline_serializer_class(
+    name='JSONSubmissionPayload',
+    fields={
+        'id': serializers.CharField(help_text='XForm ID String'),
+        'submission': serializers.JSONField(help_text='The JSON submission data'),
     },
 )
