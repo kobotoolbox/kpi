@@ -1,4 +1,3 @@
-# coding: utf-8
 from datetime import timedelta
 
 import constance
@@ -13,8 +12,8 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kobo.apps.audit_log.base_views import AuditLoggedModelViewSet
 from kobo.apps.audit_log.models import AuditType
-from kobo.apps.hook.constants import HOOK_LOG_FAILED, HOOK_LOG_PENDING
 from kobo.apps.hook.models import Hook, HookLog
+from kobo.apps.hook.models.hook_log import HookLogStatus
 from kobo.apps.hook.schema_extensions.v2.hooks.serializers import HookRetryResponse
 from kobo.apps.hook.serializers.v2.hook import HookSerializer
 from kobo.apps.hook.tasks import retry_all_task
@@ -192,10 +191,10 @@ class HookViewSet(
                 hook.logs.filter(
                     Q(
                         date_modified__lte=threshold,
-                        status=HOOK_LOG_PENDING,
+                        status=HookLogStatus.PENDING,
                         tries__gte=constance.config.HOOK_MAX_RETRIES,
                     )
-                    | Q(status=HOOK_LOG_FAILED)
+                    | Q(status=HookLogStatus.FAILED)
                 )
                 .values_list('id', 'uid')
                 .distinct()
@@ -210,7 +209,7 @@ class HookViewSet(
             if len(records) > 0:
                 # Mark all logs as PENDING
                 HookLog.objects.filter(id__in=hooklogs_ids).update(
-                    status=HOOK_LOG_PENDING
+                    status=HookLogStatus.PENDING
                 )
                 # Delegate to Celery
                 retry_all_task.apply_async(
@@ -222,7 +221,7 @@ class HookViewSet(
                 response['detail'] = t('No data to retry')
                 status_code = status.HTTP_304_NOT_MODIFIED
         else:
-            response['detail'] = t('Can not retry on disabled hooks')
+            response['detail'] = t('Cannot retry on disabled hooks')
             status_code = status.HTTP_400_BAD_REQUEST
 
         return Response(response, status=status_code)

@@ -30,7 +30,7 @@ export default function TextResponseForm({ qaAnswer, onSave, disabled }: Props) 
       minRows={2}
       value={value}
       onChange={handleChange}
-      placeholder={t('Type your answer')}
+      placeholder={t('Type your response or use AI')}
       onBlur={handleSave}
       disabled={disabled}
     />
