@@ -88,7 +88,6 @@ const RECORDING_SUPPORT_URL = 'recording-interviews.html'
 
 interface LaunchAppData {
   name: string
-  savedName?: string
   settings__style?: FormStyleName
   files: AssetResponseFile[]
   asset_type: AssetTypeName
@@ -98,7 +97,6 @@ interface LaunchAppData {
 interface EditableFormButtonStates {
   previewDisabled?: boolean
   groupable?: boolean
-  showAllOpen?: boolean
   showAllAvailable?: boolean
   name?: string
   hasSettings?: boolean
@@ -113,10 +111,6 @@ interface AsideSettings {
 }
 
 interface EditableFormProps {
-  asset_updated: UpdateStatesValue
-  multioptionsExpanded: boolean
-  surveyAppRendered: boolean
-  name: string
   assetUid?: string
   isNewAsset?: boolean
   backRoute: string | null
@@ -170,16 +164,16 @@ export default function EditableForm(props: EditableFormProps) {
     desiredAssetType: undefined,
     enketopreviewOverlay: undefined,
     isBackgroundAudioBannerDismissed: false,
-    name: props.name,
+    name: '',
     preventNavigatingOut: false,
     showCascadePopup: false,
-    surveyAppRendered: props.surveyAppRendered,
+    surveyAppRendered: false,
     surveyLoadError: undefined,
     surveySaveFail: false,
     isNewAsset: props.isNewAsset,
     backRoute: props.backRoute === null ? undefined : props.backRoute,
     groupButtonIsActive: false,
-    multioptionsExpanded: props.multioptionsExpanded,
+    multioptionsExpanded: true,
   })
 
   const formWrapRef = useRef<HTMLDivElement>(null)
@@ -517,7 +511,6 @@ export default function EditableForm(props: EditableFormProps) {
         ooo.previewDisabled = app.survey.rows.length < 1
       }
       ooo.groupable = !!state.groupButtonIsActive
-      ooo.showAllOpen = !!state.multioptionsExpanded
       ooo.showAllAvailable = (() => {
         var hasSelect = false
         app.survey.forEachRow((row) => {
@@ -597,13 +590,10 @@ export default function EditableForm(props: EditableFormProps) {
 
     const newState: Partial<EditableFormState> & Partial<LaunchAppData> = _state || {}
 
-    if (newState.name) {
-      newState.savedName = newState.name
-    }
-
     // asset content is being mutated somewhere during form builder initialisation
     // so we need to make sure this stays untouched
     const rawAssetContent = Object.freeze(clonedeep(assetContent))
+    console.log('xxx launchAppForSurveyContent rawAssetContent', rawAssetContent)
 
     const isEmptySurvey =
       assetContent &&
@@ -743,7 +733,7 @@ export default function EditableForm(props: EditableFormProps) {
   // rendering methods
 
   function renderFormBuilderHeader() {
-    const { previewDisabled, groupable, showAllOpen, showAllAvailable, saveButtonText } = buttonStates()
+    const { previewDisabled, groupable, showAllAvailable, saveButtonText } = buttonStates()
 
     return (
       <bem.FormBuilderHeader>
