@@ -6,6 +6,7 @@ from bson import json_util
 from dateutil import parser
 from django.conf import settings
 from django.db import models
+from django.db.transaction import get_connection
 from django.utils.translation import gettext as t
 from pymongo import UpdateOne
 from pymongo.errors import PyMongoError
@@ -433,7 +434,12 @@ class ParsedInstance(models.Model):
                         f'ParsedInstance #: {self.pk} - XForm is not linked with Asset'
                     )
             else:
-                call_services(asset_uid, self.instance_id)
+                # Call external services after the database transaction commits
+                # to ensure data consistency and prevent race conditions where
+                # services might be called before the instance is fully saved
+                get_connection(settings.OPENROSA_DB_ALIAS).on_commit(
+                    lambda: call_services(asset_uid, self.instance_id)
+                )
 
         return success
 

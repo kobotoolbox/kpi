@@ -6,7 +6,6 @@ import { useDrag, useDrop } from 'react-dnd'
 import type { _DataSupplementResponseOneOfManualQualVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualQualVersionsItem'
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { DataResponse } from '#/api/models/dataResponse'
-import type { PatchedDataSupplementPayloadOneOfManualQual } from '#/api/models/patchedDataSupplementPayloadOneOfManualQual'
 import type { ResponseQualActionParams } from '#/api/models/responseQualActionParams'
 import {
   type assetsDataSupplementRetrieveResponse,
@@ -20,6 +19,7 @@ import Icon from '#/components/common/icon'
 import InlineMessage from '#/components/common/inlineMessage'
 import { userCan } from '#/components/permissions/utils'
 import { LOCALLY_EDITED_PLACEHOLDER_UUID, SUBSEQUENCES_SCHEMA_VERSION } from '#/components/processing/common/constants'
+import type { ManualQualValue } from '#/components/processing/common/types'
 import { DND_TYPES } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import { removeDefaultUuidPrefix } from '#/utils'
@@ -96,8 +96,7 @@ export default function AnalysisQuestionListItem({
   const mutationSaveAnswer = useAssetsDataSupplementPartialUpdate({ mutation: { scope: { id: 'qa-answer' } } })
   const mutationCreateQuestion = useAssetsAdvancedFeaturesCreate({ mutation: { scope: { id: 'qa-question' } } })
   const mutationPatchQuestion = useAssetsAdvancedFeaturesPartialUpdate({ mutation: { scope: { id: 'qa-question' } } })
-
-  const handleSaveAnswer = async (value: PatchedDataSupplementPayloadOneOfManualQual['value']) => {
+  const handleSaveAnswer = async (value: ManualQualValue) => {
     await mutationSaveAnswer.mutateAsync({
       uidAsset: asset.uid,
       rootUuid: rootUuid,

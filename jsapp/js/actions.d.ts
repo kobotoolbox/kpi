@@ -347,11 +347,11 @@ export declare const actions: {
     createImport: GenericDefinition
     loadAsset: LoadAssetDefinition
     deployAsset: GenericDefinition
+    /** This is "archive" and "unarchive" of asset */
     setDeploymentActive: GenericDefinition
     createSnapshot: GenericDefinition
     cloneAsset: GenericDefinition
     deleteAsset: DeleteAssetDefinition
-    listTags: GenericDefinition
     createResource: CreateResourceDefinition
     updateAsset: UpdateAssetDefinition
     updateSubmissionValidationStatus: UpdateSubmissionValidationStatusDefinition

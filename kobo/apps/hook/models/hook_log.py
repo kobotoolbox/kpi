@@ -2,17 +2,19 @@ from datetime import timedelta
 
 import constance
 from django.db import models
+from django.db.models.constraints import UniqueConstraint
 from django.utils import timezone
 
 from kpi.fields import KpiUidField
 from kpi.models.abstract_models import AbstractTimeStampedModel
 from kpi.utils.log import logging
-from ..constants import (
-    HOOK_LOG_FAILED,
-    HOOK_LOG_PENDING,
-    KOBO_INTERNAL_ERROR_STATUS_CODE,
-    HookLogStatus,
-)
+from ..constants import KOBO_INTERNAL_ERROR_STATUS_CODE
+
+
+class HookLogStatus(models.IntegerChoices):
+    FAILED = 0, 'failed'
+    PENDING = 1, 'pending'
+    SUCCESS = 2, 'success'
 
 
 class HookLog(AbstractTimeStampedModel):
@@ -24,8 +26,8 @@ class HookLog(AbstractTimeStampedModel):
     )
     tries = models.PositiveSmallIntegerField(default=0)
     status = models.PositiveSmallIntegerField(
-        choices=[[e.value, e.name.title()] for e in HookLogStatus],
-        default=HookLogStatus.PENDING.value,
+        choices=HookLogStatus.choices,
+        default=HookLogStatus.PENDING,
     )  # Could use status_code, but will speed-up queries
     status_code = models.IntegerField(
         default=KOBO_INTERNAL_ERROR_STATUS_CODE, null=True, blank=True
@@ -34,6 +36,15 @@ class HookLog(AbstractTimeStampedModel):
 
     class Meta:
         ordering = ['-date_created']
+        indexes = [
+            models.Index(fields=('hook', 'submission_id')),
+        ]
+        constraints = [
+            UniqueConstraint(
+                fields=['hook', 'submission_id'],
+                name='uniq_hook_submission',
+            ),
+        ]
 
     @property
     def can_retry(self) -> bool:
@@ -46,49 +57,34 @@ class HookLog(AbstractTimeStampedModel):
             # times, there was an issue, we allow the retry.
             threshold = timezone.now() - timedelta(seconds=120)
 
-            return self.status == HOOK_LOG_FAILED or (
+            return self.status == HookLogStatus.FAILED or (
                 self.date_modified < threshold
-                and self.status == HOOK_LOG_PENDING
+                and self.status == HookLogStatus.PENDING
                 and self.tries >= constance.config.HOOK_MAX_RETRIES
             )
 
         return False
-
-    def change_status(
-        self, status=HOOK_LOG_PENDING, message=None, status_code=None
-    ):
-        self.status = status
-
-        if message:
-            self.message = message
-
-        if status_code:
-            self.status_code = status_code
-
-        self.save(reset_status=True)
 
     def retry(self):
         """
         Retries to send data to external service
         :return: boolean
         """
+
+        ServiceDefinition = self.hook.get_service_definition()
+        service_definition = ServiceDefinition(self.hook, self.submission_id)
+
         try:
-            ServiceDefinition = self.hook.get_service_definition()
-            service_definition = ServiceDefinition(self.hook, self.submission_id)
-            service_definition.send()
+            result = service_definition.send()
             self.refresh_from_db()
-        except Exception as e:
-            logging.error('HookLog.retry - {}'.format(str(e)), exc_info=True)
-            self.change_status(HOOK_LOG_FAILED)
+            return result
+        except Exception:
+            logging.error('HookLog.retry failed', exc_info=True)
+            self.refresh_from_db()
             return False
 
-        return True
-
     def save(self, *args, **kwargs):
-        # We don't want to alter tries when we only change the status
-        if kwargs.pop('reset_status', False) is False:
-            self.tries += 1
-            self.hook.reset_totals()
+        self.hook.reset_totals()
         super().save(*args, **kwargs)
 
     def __str__(self):

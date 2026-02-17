@@ -1,22 +1,22 @@
 import json
 import re
-from collections.abc import Callable, Iterator, Generator
+from collections.abc import Callable, Generator, Iterator
 from io import StringIO
-from typing import Any, Optional
+from typing import Any
 
 from dict2xml import dict2xml
 from django.core.serializers.json import DjangoJSONEncoder
 from django.template.loader import get_template
 from django.utils.xmlutils import SimplerXMLGenerator
 from rest_framework import renderers, status
-from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.request import Request
 from rest_framework.exceptions import ErrorDetail, ParseError
+from rest_framework.request import Request
 from rest_framework_xml.renderers import XMLRenderer as DRFXMLRenderer
 
 import formpack
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import GEO_QUESTION_TYPES
+from kpi.paginators import DefaultPagination
 from kpi.utils.xml import add_xml_declaration
 
 
@@ -102,7 +102,7 @@ class BasicHTMLRenderer(renderers.BaseRenderer):
             limit = (
                 int(
                     request.query_params.get(
-                        LimitOffsetPagination.limit_query_param, default_limit
+                        DefaultPagination.limit_query_param, default_limit
                     )
                 )
                 if request

@@ -629,7 +629,7 @@ available actions:
 
     b. metadata__settings__description__new
 
-This endpoint can be paginated with 'offset' and 'limit' parameters
+This endpoint can be paginated with 'start' and 'limit' parameters
 
  */
 export type projectHistoryLogsListResponse200 = {

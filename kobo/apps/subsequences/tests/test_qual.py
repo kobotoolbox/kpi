@@ -5,6 +5,7 @@ from unittest import TestCase, mock
 import dateutil
 import jsonschema
 import pytest
+from django.utils import timezone
 from freezegun import freeze_time
 from rest_framework.exceptions import ValidationError
 
@@ -47,7 +48,6 @@ class Fix:
     """
     This class houses things that should probably be moved to a fixture
     - - -
-    TODO: do we want `_dateAccepted` here?
     TODO: forbid deletion of questions and choices
     TODO: be a lot more diligent about deepcopying, e.g. in `def data_schema()`
 
@@ -135,8 +135,12 @@ class Fix:
                 'properties': {
                     'uuid': {'$ref': '#/$defs/qualUuid'},
                     'value': {},
+                    'verified': {'type': 'boolean'},
                 },
-                'required': ['uuid', 'value'],
+                'oneOf': [
+                    {'required': ['uuid', 'value'], 'not': {'required': ['verified']}},
+                    {'required': ['uuid', 'verified'], 'not': {'required': ['value']}},
+                ],
             },
             'qualInteger': {
                 'type': 'object',
@@ -272,8 +276,9 @@ class Fix:
                             'properties': {
                                 '_data': {'$ref': '#/$defs/dataSchema'},
                                 '_dateCreated': {'$ref': '#/$defs/dateTime'},
-                                '_dateAccepted': {'$ref': '#/$defs/dateTime'},
+                                '_dateVerified': {'$ref': '#/$defs/dateTime'},
                                 '_uuid': {'$ref': '#/$defs/uuid'},
+                                'verified': {'type': 'boolean'},
                             },
                             'required': ['_data', '_dateCreated', '_uuid'],
                         },
@@ -402,7 +407,7 @@ class Fix:
             'uuid': FIX_QUAL_TEXT_UUID,
             'type': 'qualText',
             'value': 'the type is not to be included as an attribute',
-        },
+        }
     ]
 
     # Results, including multiple versions of responses
@@ -441,6 +446,7 @@ class Fix:
                         'uuid': FIX_QUAL_INTEGER_UUID,
                         'value': None,  # Deleted response recorded last
                     },
+                    'verified': False,
                     '_dateCreated': '2025-01-02T11:11:11Z',
                     '_uuid': '61d23cd7-ce2c-467b-ab26-0839226c714d',
                 },
@@ -449,8 +455,8 @@ class Fix:
                         'uuid': FIX_QUAL_INTEGER_UUID,
                         'value': 3,  # Filled response recorded first
                     },
+                    'verified': False,
                     '_dateCreated': '2025-01-01T11:11:11Z',
-                    '_dateAccepted': '2025-01-01T11:11:11Z',
                     '_uuid': 'a9a817c0-7208-4063-bab6-93c0a3a7615b',
                 },
             ],
@@ -464,8 +470,8 @@ class Fix:
                         'uuid': FIX_QUAL_SELECT_MULTIPLE_UUID,
                         'value': [],
                     },
+                    'verified': False,
                     '_dateCreated': '2025-02-02T11:11:11Z',
-                    '_dateAccepted': '2025-02-02T11:11:11Z',
                     '_uuid': '409c690e-d148-4d80-8c73-51be941b33b0',
                 },
                 {
@@ -476,8 +482,8 @@ class Fix:
                             FIX_CHOICE_COMPETITION_UUID,
                         ],
                     },
+                    'verified': False,
                     '_dateCreated': '2025-02-01T11:11:11Z',
-                    '_dateAccepted': '2025-02-01T11:11:11Z',
                     '_uuid': '20dd5185-ee43-451f-8759-2f5185c3c912',
                 },
             ],
@@ -491,8 +497,8 @@ class Fix:
                         'uuid': FIX_QUAL_SELECT_ONE_UUID,
                         'value': '',
                     },
+                    'verified': False,
                     '_dateCreated': '2025-03-02T11:11:11Z',
-                    '_dateAccepted': '2025-03-02T11:11:11Z',
                     '_uuid': '5799f662-76d7-49ab-9a1c-ae2c7d502a78',
                 },
                 {
@@ -500,8 +506,8 @@ class Fix:
                         'uuid': FIX_QUAL_SELECT_ONE_UUID,
                         'value': FIX_CHOICE_NO_UUID,
                     },
+                    'verified': False,
                     '_dateCreated': '2025-03-01T11:11:11Z',
-                    '_dateAccepted': '2025-03-01T11:11:11Z',
                     '_uuid': '49fbd509-e042-44ce-843c-db04485a0096',
                 },
             ],
@@ -515,8 +521,8 @@ class Fix:
                         'uuid': FIX_QUAL_TAGS_UUID,
                         'value': [],
                     },
+                    'verified': False,
                     '_dateCreated': '2025-04-02T11:11:11Z',
-                    '_dateAccepted': '2025-04-02T11:11:11Z',
                     '_uuid': '64e59cc1-adaf-47a3-a068-550854d8f98f',
                 },
                 {
@@ -524,8 +530,8 @@ class Fix:
                         'uuid': FIX_QUAL_TAGS_UUID,
                         'value': ['Quinobequin', 'Doughboy Donuts'],
                     },
+                    'verified': False,
                     '_dateCreated': '2025-04-01T11:11:11Z',
-                    '_dateAccepted': '2025-04-01T11:11:11Z',
                     '_uuid': 'c4fa8263-50c0-4252-9c9b-216ca338be13',
                 },
             ],
@@ -539,8 +545,8 @@ class Fix:
                         'uuid': FIX_QUAL_TEXT_UUID,
                         'value': '',
                     },
+                    'verified': False,
                     '_dateCreated': '2025-05-02T11:11:11Z',
-                    '_dateAccepted': '2025-05-02T11:11:11Z',
                     '_uuid': '15ccc864-0e83-48f2-be1d-dc2adb9297f4',
                 },
                 {
@@ -548,8 +554,8 @@ class Fix:
                         'uuid': FIX_QUAL_TEXT_UUID,
                         'value': 'As the eagle and the wild goose see it',
                     },
+                    'verified': False,
                     '_dateCreated': '2025-05-01T11:11:11Z',
-                    '_dateAccepted': '2025-05-01T11:11:11Z',
                     '_uuid': '909c62cf-d544-4926-8839-7f035c6c7483',
                 },
             ],
@@ -600,6 +606,11 @@ def test_data_schema_generation():
 def test_valid_filled_responses_pass_data_validation():
     for response in Fix.valid_filled_responses:
         _action.validate_data(response)
+
+
+def test_verified_responses_pass_data_validation():
+    _action.validate_data({'uuid': FIX_QUAL_INTEGER_UUID, 'verified': True})
+    _action.validate_data({'uuid': FIX_QUAL_INTEGER_UUID, 'verified': False})
 
 
 def test_valid_empty_responses_pass_data_validation():
@@ -668,6 +679,45 @@ def test_result_content():
                     )
 
     assert accumulated_result == Fix.expected_result_after_filled_and_empty_responses
+
+
+def test_result_content_with_verification():
+    uuid_list = [uuid.UUID(u) for u in Fix.result_mock_uuid_sequence]
+    accumulated_result = {}
+    with mock.patch('uuid.uuid4', side_effect=uuid_list):
+        for filled_response in Fix.valid_filled_responses:
+            accumulated_result = _action.revise_data(
+                EMPTY_SUBMISSION, accumulated_result, filled_response
+            )
+    now = timezone.now()
+
+    # verify everything
+    with freeze_time(now):
+        for filled_response in Fix.valid_filled_responses:
+            q_uuid = filled_response['uuid']
+            accumulated_result = _action.revise_data(
+                EMPTY_SUBMISSION, accumulated_result, {'uuid': q_uuid, 'verified': True}
+            )
+    for question_id, question_data in accumulated_result.items():
+        versions = question_data['_versions']
+        assert len(versions) == 1
+        version = versions[0]
+        assert version['verified']
+        assert version['_dateVerified'] == now.isoformat().replace('+00:00', 'Z')
+
+    # unverify everything
+    for filled_response in Fix.valid_filled_responses:
+        q_uuid = filled_response['uuid']
+        accumulated_result = _action.revise_data(
+            EMPTY_SUBMISSION, accumulated_result, {'uuid': q_uuid, 'verified': False}
+        )
+
+    for question_id, question_data in accumulated_result.items():
+        versions = question_data['_versions']
+        assert len(versions) == 1
+        version = versions[0]
+        assert 'verified' in version
+        assert not version['verified']
 
 
 class TestQualActionMethods(TestCase):
@@ -820,7 +870,6 @@ class TestQualActionMethods(TestCase):
                             'value': 5,
                         },
                         '_dateCreated': '2025-11-24T10:00:00Z',
-                        '_dateAccepted': '2025-11-24T10:00:00Z',
                         '_uuid': 'v1',
                     }
                 ],
@@ -836,7 +885,6 @@ class TestQualActionMethods(TestCase):
                             'value': 'Family needs immediate shelter and medical care',
                         },
                         '_dateCreated': '2025-11-24T10:05:00Z',
-                        '_dateAccepted': '2025-11-24T10:05:00Z',
                         '_uuid': 'v2',
                     }
                 ],
@@ -852,7 +900,6 @@ class TestQualActionMethods(TestCase):
                             'value': METHOD_CHOICE_HIGH_UUID,
                         },
                         '_dateCreated': '2025-11-24T10:10:00Z',
-                        '_dateAccepted': '2025-11-24T10:10:00Z',
                         '_uuid': 'v3',
                     }
                 ],
@@ -945,7 +992,6 @@ class TestQualActionMethods(TestCase):
                             'value': 'Initial note',
                         },
                         '_dateCreated': '2025-11-24T09:00:00Z',
-                        '_dateAccepted': '2025-11-24T09:00:00Z',
                         '_uuid': 'v1',
                     },
                     {
@@ -954,7 +1000,6 @@ class TestQualActionMethods(TestCase):
                             'value': 'Revised note',
                         },
                         '_dateCreated': '2025-11-24T10:00:00Z',
-                        '_dateAccepted': '2025-11-24T10:00:00Z',
                         '_uuid': 'v2',
                     },
                     {
@@ -963,7 +1008,6 @@ class TestQualActionMethods(TestCase):
                             'value': 'Final note',
                         },
                         '_dateCreated': '2025-11-24T11:00:00Z',
-                        '_dateAccepted': '2025-11-24T09:30:00Z',
                         '_uuid': 'v3',
                     },
                 ],

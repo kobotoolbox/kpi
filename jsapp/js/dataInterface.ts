@@ -1629,18 +1629,6 @@ export const dataInterface: DataInterface = {
     })
   },
 
-  searchAssets(searchData: AssetsRequestData): JQuery.jqXHR<AssetsResponse> {
-    // TODO https://github.com/kobotoolbox/kpi/issues/1983
-    // force set limit to get hacky "all" assets
-    searchData.limit = 200
-    return $.ajax({
-      url: `${ROOT_URL}/api/v2/assets/`,
-      dataType: 'json',
-      data: searchData,
-      method: 'GET',
-    })
-  },
-
   _searchAssetsWithPredefinedQuery(
     params: SearchAssetsPredefinedParams,
     predefinedQuery: string,
@@ -1792,21 +1780,6 @@ export const dataInterface: DataInterface = {
       data: JSON.stringify(data),
       dataType: 'json',
       contentType: 'application/json',
-    })
-  },
-
-  listTags(data: { q: string }): JQuery.jqXHR<any> {
-    return $ajax({
-      url: `${ROOT_URL}/tags/`,
-      method: 'GET',
-      data: Object.assign(
-        {
-          // If this number is too big (e.g. 9999) it causes a deadly timeout
-          // whenever Form Builder displays the aside Library search
-          limit: 100,
-        },
-        data,
-      ),
     })
   },
 

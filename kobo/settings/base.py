@@ -18,7 +18,6 @@ from pymongo import MongoClient
 
 from kpi.constants import PERM_DELETE_ASSET, PERM_MANAGE_ASSET
 from kpi.utils.json import LazyJSONSerializable
-
 from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
 
 env = environ.Env()
@@ -206,6 +205,18 @@ CONSTANCE_CONFIG = {
     'REGISTRATION_DOMAIN_NOT_ALLOWED_ERROR_MESSAGE': (
         'This email domain is not allowed to create an account',
         'Error message for emails not listed in REGISTRATION_ALLOWED_EMAIL_DOMAINS '
+        'if field is not blank'
+    ),
+    'REGISTRATION_BLACKLIST_EMAIL_DOMAINS': (
+        '',
+        'Email domains to block from registering new accounts, one per line, '
+        'or blank to allow all email domains'
+    ),
+    'REGISTRATION_BLACKLIST_ERROR_MESSAGE': (
+        'Account creation restricted for this server. Your organization uses a '
+        'separate private KoboToolbox server. Please contact your organization '
+        'support team for assistance.',
+        'Error message for emails blacklisted in REGISTRATION_BLACKLIST_EMAIL_DOMAINS '
         'if field is not blank'
     ),
     'TERMS_OF_SERVICE_URL': ('', 'URL for terms of service document'),
@@ -698,6 +709,8 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'REGISTRATION_OPEN',
         'REGISTRATION_ALLOWED_EMAIL_DOMAINS',
         'REGISTRATION_DOMAIN_NOT_ALLOWED_ERROR_MESSAGE',
+        'REGISTRATION_BLACKLIST_EMAIL_DOMAINS',
+        'REGISTRATION_BLACKLIST_ERROR_MESSAGE',
         'TERMS_OF_SERVICE_URL',
         'PRIVACY_POLICY_URL',
         'SOURCE_CODE_URL',
@@ -973,7 +986,7 @@ if os.path.exists(os.path.join(BASE_DIR, 'dkobo', 'jsapp')):
 
 REST_FRAMEWORK = {
     'URL_FIELD_NAME': 'url',
-    'DEFAULT_PAGINATION_CLASS': 'kpi.paginators.Paginated',
+    'DEFAULT_PAGINATION_CLASS': 'kpi.paginators.DefaultPagination',
     'PAGE_SIZE': 100,
     'DEFAULT_AUTHENTICATION_CLASSES': [
         # SessionAuthentication and BasicAuthentication would be included by
@@ -1525,6 +1538,14 @@ CELERY_BEAT_SCHEDULE = {
             'Synchronize out of sync attachment storage bytes of profile and projects'
         ),
         'options': {'queue': 'kpi_long_running_tasks_queue'},
+    },
+    'retry-stalled-submissions': {
+        'task': 'kobo.apps.hook.tasks.retry_stalled_pending_submissions',
+        'schedule': crontab(minute='*/30'),  # Every 30 minutes
+    },
+    'mark-zombie-submissions': {
+        'task': 'kobo.apps.hook.tasks.mark_zombie_processing_submissions',
+        'schedule': crontab(minute='*/30'),  # Every 30 minutes
     },
 }
 
@@ -2160,3 +2181,6 @@ VERSION_DELETION_BATCH_SIZE = 2000
 # Number of stuck tasks should be restarted at a time
 MAX_RESTARTED_TASKS = 100
 MAX_RESTARTED_TRANSFERS = 20
+
+# Maximum timeout (in minutes) for hook processing
+HOOK_PROCESSING_TIMEOUT = 120

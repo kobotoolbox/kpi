@@ -10,7 +10,6 @@ interface PageStateModalParams {
 }
 
 export interface PageStateStoreState {
-  assetNavExpanded?: boolean
   showFixedDrawer?: boolean
   modal?: PageStateModalParams | false
 }
@@ -21,7 +20,6 @@ export interface PageStateStoreState {
 // 2. handling modal from `bigModal.js` - should be moved somewhere near the modal files
 class PageStateStore extends Reflux.Store {
   state: PageStateStoreState = {
-    assetNavExpanded: false,
     showFixedDrawer: false,
     modal: false,
   }

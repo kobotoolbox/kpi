@@ -205,20 +205,6 @@ from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
                 description='Filter the results with search query',
             ),
             OpenApiParameter(
-                name='offset',
-                type=int,
-                location=OpenApiParameter.QUERY,
-                required=False,
-                description='Paginate results with offset parameter',
-            ),
-            OpenApiParameter(
-                name='limit',
-                type=int,
-                location=OpenApiParameter.QUERY,
-                required=False,
-                description='Paginate results with limit parameter',
-            ),
-            OpenApiParameter(
                 name='ordering',
                 type=str,
                 location=OpenApiParameter.QUERY,

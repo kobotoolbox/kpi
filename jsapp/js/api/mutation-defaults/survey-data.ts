@@ -10,6 +10,7 @@ import {
   getAssetsDataSupplementPartialUpdateMutationOptions,
   getAssetsDataSupplementRetrieveQueryKey,
 } from '#/api/react-query/survey-data'
+import type { ManualQualValue } from '#/components/processing/common/types'
 import { TransxVersionSortFunction } from '#/components/processing/common/utils'
 import { recordEntries, recordKeys } from '#/utils'
 import { ActionEnum } from '../models/actionEnum'
@@ -97,7 +98,8 @@ queryClient.setMutationDefaults(
 
         switch (action) {
           case ActionEnum.manual_qual: {
-            const { uuid, value } = datum as PatchedDataSupplementPayloadOneOfManualQual
+            const { uuid } = datum as PatchedDataSupplementPayloadOneOfManualQual
+            const value: ManualQualValue | undefined = 'value' in datum! ? datum.value : undefined
             const itemSnapshot = await optimisticallyUpdateItem<assetsDataSupplementRetrieveResponse>(
               getAssetsDataSupplementRetrieveQueryKey(uidAsset, rootUuid),
               (response) =>

@@ -411,6 +411,48 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         last_updated_str = new_user_data.get('last_updated')
         self.assertIsNotNone(last_updated_str)
 
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    def test_subscription_linked_via_customer_without_metadata(self):
+        """
+        Link subscriptions via `Customer.subscriber_id` to ensure the org owner
+        can see their subscription even when Stripe metadata is missing
+        """
+        from djstripe.enums import BillingScheme
+        from djstripe.models import Customer
+
+        # Create a Customer linked to the Organization
+        customer = baker.make(Customer, subscriber=self.organization)
+
+        # Create a Subscription for this Customer with EMPTY metadata
+        subscription = baker.make(
+            'djstripe.Subscription',
+            customer=customer,
+            items__price__livemode=False,
+            items__price__billing_scheme=BillingScheme.per_unit,
+            livemode=False,
+            metadata={},
+            status='active'
+        )
+
+        # Verify that the subscription is not visible in the API
+        user_data = self._get_someuser_data()
+        self.assertEqual(len(user_data['subscriptions']), 0)
+
+        refresh_user_reports_materialized_view(concurrently=False)
+
+        user_data = self._get_someuser_data()
+
+        # Verify that the subscription is now visible and linked to the correct
+        # customer and organization, even without metadata
+        self.assertEqual(len(user_data['subscriptions']), 1)
+
+        sub_data = user_data['subscriptions'][0]
+        self.assertEqual(sub_data['id'], subscription.id)
+        self.assertEqual(sub_data['customer'], customer.id)
+        self.assertEqual(sub_data['metadata'], {})
+
     def _get_someuser_data(self):
 
         response = self.client.get(self.url)

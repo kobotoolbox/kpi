@@ -1,3 +1,4 @@
+import type { DataSupplementResponseOneOfAutomaticBedrockQual } from './dataSupplementResponseOneOfAutomaticBedrockQual'
 import type { DataSupplementResponseOneOfAutomaticGoogleTranscription } from './dataSupplementResponseOneOfAutomaticGoogleTranscription'
 import type { DataSupplementResponseOneOfAutomaticGoogleTranslation } from './dataSupplementResponseOneOfAutomaticGoogleTranslation'
 import type { DataSupplementResponseOneOfManualQual } from './dataSupplementResponseOneOfManualQual'
@@ -22,6 +23,7 @@ export type DataSupplementResponseOneOf =
       automatic_google_transcription?: DataSupplementResponseOneOfAutomaticGoogleTranscription
       automatic_google_translation?: DataSupplementResponseOneOfAutomaticGoogleTranslation
       manual_qual?: DataSupplementResponseOneOfManualQual
+      automatic_bedrock_qual?: DataSupplementResponseOneOfAutomaticBedrockQual
     })
   | (unknown & {
       manual_transcription?: DataSupplementResponseOneOfManualTranscription
@@ -29,6 +31,7 @@ export type DataSupplementResponseOneOf =
       automatic_google_transcription?: DataSupplementResponseOneOfAutomaticGoogleTranscription
       automatic_google_translation?: DataSupplementResponseOneOfAutomaticGoogleTranslation
       manual_qual?: DataSupplementResponseOneOfManualQual
+      automatic_bedrock_qual?: DataSupplementResponseOneOfAutomaticBedrockQual
     })
   | (unknown & {
       manual_transcription?: DataSupplementResponseOneOfManualTranscription
@@ -36,6 +39,7 @@ export type DataSupplementResponseOneOf =
       automatic_google_transcription?: DataSupplementResponseOneOfAutomaticGoogleTranscription
       automatic_google_translation?: DataSupplementResponseOneOfAutomaticGoogleTranslation
       manual_qual?: DataSupplementResponseOneOfManualQual
+      automatic_bedrock_qual?: DataSupplementResponseOneOfAutomaticBedrockQual
     })
   | (unknown & {
       manual_transcription?: DataSupplementResponseOneOfManualTranscription
@@ -43,6 +47,7 @@ export type DataSupplementResponseOneOf =
       automatic_google_transcription?: DataSupplementResponseOneOfAutomaticGoogleTranscription
       automatic_google_translation?: DataSupplementResponseOneOfAutomaticGoogleTranslation
       manual_qual?: DataSupplementResponseOneOfManualQual
+      automatic_bedrock_qual?: DataSupplementResponseOneOfAutomaticBedrockQual
     })
   | (unknown & {
       manual_transcription?: DataSupplementResponseOneOfManualTranscription
@@ -50,4 +55,13 @@ export type DataSupplementResponseOneOf =
       automatic_google_transcription?: DataSupplementResponseOneOfAutomaticGoogleTranscription
       automatic_google_translation?: DataSupplementResponseOneOfAutomaticGoogleTranslation
       manual_qual?: DataSupplementResponseOneOfManualQual
+      automatic_bedrock_qual?: DataSupplementResponseOneOfAutomaticBedrockQual
+    })
+  | (unknown & {
+      manual_transcription?: DataSupplementResponseOneOfManualTranscription
+      manual_translation?: DataSupplementResponseOneOfManualTranslation
+      automatic_google_transcription?: DataSupplementResponseOneOfAutomaticGoogleTranscription
+      automatic_google_translation?: DataSupplementResponseOneOfAutomaticGoogleTranslation
+      manual_qual?: DataSupplementResponseOneOfManualQual
+      automatic_bedrock_qual?: DataSupplementResponseOneOfAutomaticBedrockQual
     })
