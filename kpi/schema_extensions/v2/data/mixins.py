@@ -249,23 +249,21 @@ class SupplementalDataComponentsRegistrationMixin(ComponentRegistrationMixin):
         )
 
         # 11. Action Object Automatic With Dependency
-        references['action_object_automatic_dep'] = (
-            self._register_schema_component(
-                auto_schema,
-                'SupplementalDataActionObjectAutomaticWithDep',
-                build_object_type(
-                    additionalProperties=False,
-                    properties={
-                        '_dateCreated': GENERIC_DATETIME_SCHEMA,
-                        '_dateModified': GENERIC_DATETIME_SCHEMA,
-                        '_versions': build_array_type(
-                            schema=references['version_item_automatic_dep'],
-                            min_length=1,
-                        ),
-                    },
-                    required=['_dateCreated', '_dateModified', '_versions'],
-                ),
-            )
+        references['action_object_automatic_dep'] = self._register_schema_component(
+            auto_schema,
+            'SupplementalDataActionObjectAutomaticWithDep',
+            build_object_type(
+                additionalProperties=False,
+                properties={
+                    '_dateCreated': GENERIC_DATETIME_SCHEMA,
+                    '_dateModified': GENERIC_DATETIME_SCHEMA,
+                    '_versions': build_array_type(
+                        schema=references['version_item_automatic_dep'],
+                        min_length=1,
+                    ),
+                },
+                required=['_dateCreated', '_dateModified', '_versions'],
+            ),
         )
 
         # 12. Translation Maps (Map<LanguageCode, ActionObject>)
@@ -300,7 +298,7 @@ class SupplementalDataComponentsRegistrationMixin(ComponentRegistrationMixin):
                         qual_references['qual_select_multiple'],
                         qual_references['qual_tags'],
                     ]
-                }
+                },
             )
 
             references['version_item_qual'] = self._register_schema_component(
@@ -340,7 +338,7 @@ class SupplementalDataComponentsRegistrationMixin(ComponentRegistrationMixin):
                 'SupplementalDataQualMap',
                 build_object_type(
                     additionalProperties=references['action_object_qual'],
-                    patternProperties={ 
+                    patternProperties={
                         # UUID keys
                         '^[0-9a-fA-F-]{36}$': references['action_object_qual'],
                     },

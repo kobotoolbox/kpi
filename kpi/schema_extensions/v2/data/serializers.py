@@ -9,7 +9,6 @@ from .fields import (
     DataSupplementalDetailsField,
     DataValidationPayloadField,
     DataValidationStatusField,
-    DataSupplementalDetailsField,
     EnketoEditUrlField,
     EnketoViewUrlField,
     GeoLocationField,

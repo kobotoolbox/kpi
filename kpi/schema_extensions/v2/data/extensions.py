@@ -10,14 +10,12 @@ from drf_spectacular.plumbing import (
 )
 from drf_spectacular.types import OpenApiTypes
 
-from kpi.schema_extensions.v2.generic.schema import (
-    GENERIC_DATETIME_SCHEMA,
-    GENERIC_INT_SCHEMA,
-    GENERIC_STRING_SCHEMA,
-    GENERIC_UUID_SCHEMA,
-)
 from kpi.schema_extensions.v2.data.mixins import (
     SupplementalDataComponentsRegistrationMixin,
+)
+from kpi.schema_extensions.v2.generic.schema import (
+    GENERIC_INT_SCHEMA,
+    GENERIC_STRING_SCHEMA,
 )
 from kpi.utils.schema_extensions.mixins import (
     ComponentRegistrationMixin,
@@ -307,6 +305,7 @@ class DataSupplementalDetailsFieldExtension(
 
     Pattern based on DataSupplementResponseExtension.
     """
+
     target_class = 'kpi.schema_extensions.v2.data.fields.DataSupplementalDetailsField'
 
     def map_serializer_field(self, auto_schema, direction):
