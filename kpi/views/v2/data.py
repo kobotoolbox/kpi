@@ -19,6 +19,7 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 from kobo.apps.audit_log.base_views import AuditLoggedViewSet
 from kobo.apps.audit_log.models import AuditType
 from kobo.apps.audit_log.utils import SubmissionUpdate
+from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
 from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_handler
 from kpi.authentication import EnketoSessionAuthentication
@@ -740,6 +741,43 @@ class DataViewSet(
         submission_json = deployment.get_submission(
             submission_id, user, request=request
         )
+
+        # Retrieve root_uuid of the current instance
+        instance_root_uuid = Instance.objects.values_list('root_uuid', flat=True).get(
+            pk=submission_id
+        )
+
+        # Extract the current UUID only once
+        current_uuid = remove_uuid_prefix(
+            submission_json[deployment.SUBMISSION_CURRENT_UUID_XPATH]
+        )
+
+        # Build the base query for duplicates
+        duplicate_query = Instance.objects.filter(
+            uuid=current_uuid,
+            xform_id=deployment.xform_id,
+        ).exclude(pk=submission_id)
+
+        # Refine the query based on the case
+        if instance_root_uuid:
+            # Case 1: Search only for instances without root_uuid
+            duplicate_exists = duplicate_query.filter(root_uuid__isnull=True).exists()
+        else:
+            # Case 2: Search for all duplicates
+            duplicate_exists = duplicate_query.exists()
+
+        if duplicate_exists:
+            # Return an error immediately to prevent the user from receiving an error
+            # when submitting their edit in Enketo
+            return Response(
+                {
+                    'detail': (
+                        'A duplicate submission has been detected. '
+                        'This submission cannot be edited at the moment.'
+                    )
+                },
+                status=status.HTTP_409_CONFLICT,
+            )
 
         # Add mandatory XML elements if they are missing from the original
         # submission. They could be overwritten unconditionally, but be

@@ -2108,6 +2108,168 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         )
         assert ph_bulk.metadata['submission']['submitted_by'] == deleted_username
 
+    @responses.activate
+    def test_get_edit_link_fails_with_duplicate_uuid_null_root_uuid(self):
+        """
+        someuser is the owner of the project.
+        A duplicate submission exists with the same UUID but null root_uuid.
+        Attempting to get the edit link should return 409 CONFLICT.
+        """
+        # Get the current submission's UUID
+        submission_uuid = remove_uuid_prefix(self.submission['_uuid'])
+
+        # Set the original submission's root_uuid to null to simulate legacy data
+        Instance.objects.filter(pk=self.submission['_id']).update(root_uuid=None)
+
+        # Create a duplicate instance with the same UUID but null root_uuid
+        duplicate = Instance.objects.create(
+            xml=self.asset.deployment.get_submission(
+                self.submission['_id'], self.asset.owner, SUBMISSION_FORMAT_TYPE_XML
+            ),
+            user=self.someuser,
+            xform_id=self.asset.deployment.xform_id,
+            uuid=submission_uuid,
+        )
+
+        Instance.objects.filter(pk=duplicate.pk).update(root_uuid=None)
+
+        # Verify we have 2 instances with the same UUID and null root_uuid
+        assert (
+            Instance.objects.filter(
+                uuid=submission_uuid,
+                root_uuid__isnull=True,
+                xform_id=self.asset.deployment.xform_id,
+            ).count()
+            == 2
+        )
+
+        # Attempt to get the edit link - should fail with 409
+        submission_edit_link_url = reverse(
+            self._get_endpoint('submission-enketo-edit'),
+            kwargs={
+                'uid_asset': self.asset.uid,
+                'pk': self.submission['_id'],
+            },
+        )
+
+        response = self.client.get(submission_edit_link_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_409_CONFLICT
+        assert 'cannot be edited' in response.data['detail']
+
+    def test_get_edit_link_fails_null_root_uuid_with_duplicates(self):
+        """
+        someuser is the owner of the project.
+        When a submission has a null root_uuid but its uuid matches other
+        existing submissions, the edit link endpoint returns 409 CONFLICT
+        due to the ambiguous submission identity.
+        """
+
+        # Get the current submission's UUID
+        submission_uuid = remove_uuid_prefix(self.submission['_uuid'])
+
+        # Set the original submission's root_uuid to null
+        Instance.objects.filter(pk=self.submission['_id']).update(root_uuid=None)
+
+        # Create a duplicate instance with the same UUID but different root_uuid
+        different_root_uuid = str(uuid.uuid4())
+        Instance.objects.create(
+            xml=self.asset.deployment.get_submission(
+                self.submission['_id'], self.asset.owner, SUBMISSION_FORMAT_TYPE_XML
+            ),
+            user=self.someuser,
+            xform_id=self.asset.deployment.xform_id,
+            uuid=submission_uuid,
+            root_uuid=different_root_uuid,  # Different root_uuid
+        )
+
+        # Verify we have 2 instances with the same UUID
+        assert (
+            Instance.objects.filter(
+                uuid=submission_uuid,
+                xform_id=self.asset.deployment.xform_id,
+            ).count()
+            == 2
+        )
+
+        # Verify one has null root_uuid and one doesn't
+        assert (
+            Instance.objects.filter(
+                uuid=submission_uuid,
+                root_uuid__isnull=True,
+                xform_id=self.asset.deployment.xform_id,
+            ).count()
+            == 1
+        )
+
+        submission_edit_link_url = reverse(
+            self._get_endpoint('submission-enketo-edit'),
+            kwargs={
+                'uid_asset': self.asset.uid,
+                'pk': self.submission['_id'],
+            },
+        )
+        # Attempt to get the edit link - should fail with 409
+        response = self.client.get(submission_edit_link_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_409_CONFLICT
+        assert 'cannot be edited' in response.data['detail']
+
+    @responses.activate
+    def test_get_edit_link_succeeds_with_duplicate_when_root_uuid_set(self):
+        """
+        someuser is the owner of the project.
+        A duplicate submission exists with the same UUID but with a different root_uuid.
+        The current submission has a valid (non-null) root_uuid.
+        Attempting to get the edit link should succeed because we can disambiguate.
+        """
+        # Mock Enketo response
+        ee_url = f'{settings.ENKETO_URL}/{settings.ENKETO_EDIT_INSTANCE_ENDPOINT}'
+        responses.add_callback(
+            responses.POST,
+            ee_url,
+            callback=enketo_edit_instance_response,
+            content_type='application/json',
+        )
+
+        # Get the current submission's UUID
+        submission_uuid = remove_uuid_prefix(self.submission['_uuid'])
+
+        # Create a duplicate instance with the same UUID but different root_uuid
+        different_root_uuid = str(uuid.uuid4())
+        Instance.objects.create(
+            xml=self.asset.deployment.get_submission(
+                self.submission['_id'], self.asset.owner, SUBMISSION_FORMAT_TYPE_XML
+            ),
+            user=self.someuser,
+            xform_id=self.asset.deployment.xform_id,
+            uuid=submission_uuid,
+            root_uuid=different_root_uuid,
+        )
+
+        # Verify we have 2 instances with the same UUID
+        assert (
+            Instance.objects.filter(
+                uuid=submission_uuid,
+                xform_id=self.asset.deployment.xform_id,
+            ).count()
+            == 2
+        )
+
+        # Verify both have non-null root_uuid
+        assert (
+            Instance.objects.filter(
+                uuid=submission_uuid,
+                root_uuid__isnull=False,
+                xform_id=self.asset.deployment.xform_id,
+            ).count()
+            == 2
+        )
+
+        # Get the edit link - should succeed because the original has a non-null root_uuid
+        response = self.client.get(self.submission_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_200_OK
+        assert 'url' in response.data
+        assert 'version_uid' in response.data
+
 
 class SubmissionViewApiTests(SubmissionViewTestCaseMixin, BaseSubmissionTestCase):
 
