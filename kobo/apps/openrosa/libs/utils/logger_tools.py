@@ -1031,6 +1031,7 @@ def _get_instance_from_deprecated_id(
 
     return instance, old_uuid
 
+
 def _has_edit_xform_permission(
     request: 'rest_framework.request.Request', xform: XForm
 ) -> bool:

@@ -296,7 +296,7 @@ class TestInstanceCreation(TestCase):
         # Simulate legacy data: remove root_uuid to create ambiguity
         Instance.objects.filter(pk=first_instance.pk).update(root_uuid=None)
 
-        # Create a duplicate instance with the same UUID (simulates old bug/race condition)
+        # Create a duplicate instance with the same UUID
         second_instance = Instance.objects.create(
             xml=xml_content,
             user=self.user,
