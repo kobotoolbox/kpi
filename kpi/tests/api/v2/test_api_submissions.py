@@ -14,6 +14,7 @@ import lxml
 import pytest
 import responses
 from constance.test import override_config
+from ddt import data, ddt, unpack
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.db import connection
@@ -1214,6 +1215,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
             assert response.data['_submitted_by'] == 'anotheruser'
 
 
+@ddt
 class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase):
     """
     Tests for editing submissions.
@@ -2108,20 +2110,43 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         )
         assert ph_bulk.metadata['submission']['submitted_by'] == deleted_username
 
-    @responses.activate
-    def test_get_edit_link_fails_with_duplicate_uuid_null_root_uuid(self):
+    @data(
+        # Both root_uuid are null
+        (True, True),
+        # Original root_uuid is null, duplicate has a value
+        (True, False),
+        # Original root_uuid has a value, duplicate is null
+        (False, True),
+        # Both root_uuid have values
+        (False, False),
+    )
+    @unpack
+    def test_cannot_edit_duplicate_submissions(
+        self, orig_root_uuid_is_null, duplicate_root_uuid_is_null
+    ):
         """
-        someuser is the owner of the project.
-        A duplicate submission exists with the same UUID but null root_uuid.
-        Attempting to get the edit link should return 409 CONFLICT.
+        Test editing submissions when duplicate instances exist with the same UUID.
+
+        A duplicate submission exists with the same UUID.
+        This test covers four scenarios based on the root_uuid values:
+        - Both original and duplicate have null root_uuid (legacy submissions)
+        - Original has null root_uuid, duplicate has a value
+        - Original has a value, duplicate has null root_uuid
+        - Both have non-null root_uuid values
+
+        In all cases, attempting to get the edit link should return 409 CONFLICT
+        because the system cannot safely determine which submission to edit.
         """
+
         # Get the current submission's UUID
         submission_uuid = remove_uuid_prefix(self.submission['_uuid'])
 
-        # Set the original submission's root_uuid to null to simulate legacy data
-        Instance.objects.filter(pk=self.submission['_id']).update(root_uuid=None)
+        if orig_root_uuid_is_null:
+            # Set the original submission's root_uuid to null to simulate legacy data
+            Instance.objects.filter(pk=self.submission['_id']).update(root_uuid=None)
 
-        # Create a duplicate instance with the same UUID but null root_uuid
+        # Create a duplicate instance with the same UUID
+        different_root_uuid = str(uuid.uuid4())
         duplicate = Instance.objects.create(
             xml=self.asset.deployment.get_submission(
                 self.submission['_id'], self.asset.owner, SUBMISSION_FORMAT_TYPE_XML
@@ -2129,15 +2154,18 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
             user=self.someuser,
             xform_id=self.asset.deployment.xform_id,
             uuid=submission_uuid,
+            root_uuid=different_root_uuid
         )
+        ParsedInstance.objects.create(instance=duplicate)
 
-        Instance.objects.filter(pk=duplicate.pk).update(root_uuid=None)
+        if duplicate_root_uuid_is_null:
+            # Set the duplicate submission's root_uuid to null to simulate legacy data
+            Instance.objects.filter(pk=duplicate.pk).update(root_uuid=None)
 
-        # Verify we have 2 instances with the same UUID and null root_uuid
+        # Verify we have 2 instances with the same UUID
         assert (
             Instance.objects.filter(
                 uuid=submission_uuid,
-                root_uuid__isnull=True,
                 xform_id=self.asset.deployment.xform_id,
             ).count()
             == 2
@@ -2156,115 +2184,14 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         assert response.status_code == status.HTTP_409_CONFLICT
         assert 'cannot be edited' in response.data['detail']
 
-    def test_get_edit_link_fails_null_root_uuid_with_duplicates(self):
-        """
-        someuser is the owner of the project.
-        When a submission has a null root_uuid but its uuid matches other
-        existing submissions, the edit link endpoint returns 409 CONFLICT
-        due to the ambiguous submission identity.
-        """
-
-        # Get the current submission's UUID
-        submission_uuid = remove_uuid_prefix(self.submission['_uuid'])
-
-        # Set the original submission's root_uuid to null
-        Instance.objects.filter(pk=self.submission['_id']).update(root_uuid=None)
-
-        # Create a duplicate instance with the same UUID but different root_uuid
-        different_root_uuid = str(uuid.uuid4())
-        Instance.objects.create(
-            xml=self.asset.deployment.get_submission(
-                self.submission['_id'], self.asset.owner, SUBMISSION_FORMAT_TYPE_XML
-            ),
-            user=self.someuser,
-            xform_id=self.asset.deployment.xform_id,
-            uuid=submission_uuid,
-            root_uuid=different_root_uuid,  # Different root_uuid
-        )
-
-        # Verify we have 2 instances with the same UUID
-        assert (
-            Instance.objects.filter(
-                uuid=submission_uuid,
-                xform_id=self.asset.deployment.xform_id,
-            ).count()
-            == 2
-        )
-
-        # Verify one has null root_uuid and one doesn't
-        assert (
-            Instance.objects.filter(
-                uuid=submission_uuid,
-                root_uuid__isnull=True,
-                xform_id=self.asset.deployment.xform_id,
-            ).count()
-            == 1
-        )
-
+        # Sanity check! Try with the duplicate - should get the same result
         submission_edit_link_url = reverse(
             self._get_endpoint('submission-enketo-edit'),
             kwargs={
                 'uid_asset': self.asset.uid,
-                'pk': self.submission['_id'],
+                'pk': duplicate.pk,
             },
         )
-        # Attempt to get the edit link - should fail with 409
-        response = self.client.get(submission_edit_link_url, {'format': 'json'})
-        assert response.status_code == status.HTTP_409_CONFLICT
-        assert 'cannot be edited' in response.data['detail']
-
-    def test_get_edit_link_fails_with_duplicate_when_root_uuid_set(self):
-        """
-        someuser is the owner of the project.
-        A duplicate submission exists with the same UUID but with a different root_uuid.
-        The current submission has a valid (non-null) root_uuid.
-        Attempting to get the edit link should also fail.
-        """
-
-        # Get the current submission's UUID
-        submission_uuid = remove_uuid_prefix(self.submission['_uuid'])
-
-        # Create a duplicate instance with the same UUID but different root_uuid
-        different_root_uuid = str(uuid.uuid4())
-        Instance.objects.create(
-            xml=self.asset.deployment.get_submission(
-                self.submission['_id'], self.asset.owner, SUBMISSION_FORMAT_TYPE_XML
-            ),
-            user=self.someuser,
-            xform_id=self.asset.deployment.xform_id,
-            uuid=submission_uuid,
-            root_uuid=different_root_uuid,
-        )
-
-        # Verify we have 2 instances with the same UUID
-        assert (
-            Instance.objects.filter(
-                uuid=submission_uuid,
-                xform_id=self.asset.deployment.xform_id,
-            ).count()
-            == 2
-        )
-
-        # Verify both have non-null root_uuid
-        assert (
-            Instance.objects.filter(
-                uuid=submission_uuid,
-                root_uuid__isnull=False,
-                xform_id=self.asset.deployment.xform_id,
-            ).count()
-            == 2
-        )
-
-        # Get the edit link - should succeed because the original has a non-null
-        # root_uuid
-        submission_edit_link_url = reverse(
-            self._get_endpoint('submission-enketo-edit'),
-            kwargs={
-                'uid_asset': self.asset.uid,
-                'pk': self.submission['_id'],
-            },
-        )
-        # Attempt to get the edit link - should fail with 409
         response = self.client.get(submission_edit_link_url, {'format': 'json'})
         assert response.status_code == status.HTTP_409_CONFLICT
         assert 'cannot be edited' in response.data['detail']
