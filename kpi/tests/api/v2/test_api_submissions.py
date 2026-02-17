@@ -2264,7 +2264,8 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
             == 2
         )
 
-        # Get the edit link - should succeed because the original has a non-null root_uuid
+        # Get the edit link - should succeed because the original has a non-null
+        # root_uuid
         response = self.client.get(self.submission_url, {'format': 'json'})
         assert response.status_code == status.HTTP_200_OK
         assert 'url' in response.data
