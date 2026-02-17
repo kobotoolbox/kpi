@@ -115,6 +115,8 @@ class ProjectAdvancedFeaturesTestCase(TestCase):
         asset.save()
 
         self.client.force_login(asset.owner)
-        asset_detail_url = reverse('asset-detail', kwargs={'uid_asset': asset.uid})
+        asset_detail_url = reverse(
+            'api_v2:asset-detail', kwargs={'uid_asset': asset.uid}
+        )
         response = self.client.get(asset_detail_url)
         assert response.status_code == status.HTTP_200_OK

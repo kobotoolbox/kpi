@@ -793,6 +793,7 @@ class OrganizationAdminsRestServiceApiTestCase(
     This test suite shares logic with `HookTestCase` and uses the mixin to call the
     same code for consistency and reusability.
     """
+    URL_NAMESPACE = URL_NAMESPACE
 
     def setUp(self):
         super().setUp()
@@ -817,7 +818,7 @@ class OrganizationAdminsRestServiceApiTestCase(
         assert response.data['results'][0]['uid'] == hook.uid
 
         detail_url = reverse(
-            'hook-detail',
+            self._get_endpoint('hook-detail'),
             kwargs={
                 'uid_asset': self.asset.uid,
                 'uid_hook': hook.uid,

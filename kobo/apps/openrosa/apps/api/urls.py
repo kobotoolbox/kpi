@@ -10,8 +10,6 @@ from kobo.apps.openrosa.apps.api.viewsets.attachment_viewset import AttachmentVi
 from kobo.apps.openrosa.apps.api.viewsets.briefcase_api import BriefcaseApi
 from kobo.apps.openrosa.apps.api.viewsets.data_viewset import DataViewSet
 from kobo.apps.openrosa.apps.api.viewsets.metadata_viewset import MetaDataViewSet
-from kobo.apps.openrosa.apps.api.viewsets.xform_list_api import XFormListApi
-from kobo.apps.openrosa.apps.api.viewsets.xform_viewset import XFormViewSet
 from kpi.models.asset import Asset
 from .utils.rest_framework.views import OpenRosaAPIView
 
@@ -391,10 +389,8 @@ class MultiLookupRouterWithPatchList(MultiLookupRouter):
 
 router = MultiLookupRouter(trailing_slash=False)
 
-router.register(r'forms', XFormViewSet)
 router.register(r'metadata', MetaDataViewSet, basename='metadata')
 router.register(r'media', AttachmentViewSet, basename='attachment')
-router.register(r'formlist', XFormListApi, basename='formlist')
 router.register(r'briefcase', BriefcaseApi, basename='briefcase')
 
 router_with_patch_list = MultiLookupRouterWithPatchList(trailing_slash=False)

@@ -7,6 +7,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from kpi.constants import ASSET_TYPE_COLLECTION
+from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 
 from ..models.asset import Asset
 
@@ -21,6 +22,8 @@ class KpiTestCase(BaseTestCase, BasePermissionsTestCase):
     """
 
     fixtures = ['test_data']
+
+    URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
     def login(self, username=None, password=None, expect_success=True):
         """

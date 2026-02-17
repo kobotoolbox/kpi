@@ -17,7 +17,7 @@ from kpi.utils.gravatar_url import gravatar_url
 
 class CurrentUserTestCase(BaseTestCase):
     def setUp(self) -> None:
-        self.url = reverse(self._get_endpoint('currentuser-detail'))
+        self.url = reverse('currentuser-detail')
         self.user = User.objects.create_user(
             username='delete_me',
             password='delete_me',

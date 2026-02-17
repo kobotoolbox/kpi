@@ -194,7 +194,7 @@ class TestOneTimeAuthentication(BaseTestCase):
         app.save()
         header = {'HTTP_AUTHORIZATION': f'Token {app.key}'}
         self.client.post(
-            reverse('authenticate_user'),
+            reverse('authorized-application-authenticate-user'),
             **header,
             data={'username': 'test', 'password': 'test'},
         )
