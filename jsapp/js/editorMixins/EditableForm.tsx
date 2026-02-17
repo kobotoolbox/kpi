@@ -593,7 +593,6 @@ export default function EditableForm(props: EditableFormProps) {
     // asset content is being mutated somewhere during form builder initialisation
     // so we need to make sure this stays untouched
     const rawAssetContent = Object.freeze(clonedeep(assetContent))
-    console.log('xxx launchAppForSurveyContent rawAssetContent', rawAssetContent)
 
     const isEmptySurvey =
       assetContent &&
