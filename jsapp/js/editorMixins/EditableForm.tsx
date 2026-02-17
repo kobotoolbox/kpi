@@ -680,11 +680,13 @@ export default function EditableForm(props: EditableFormProps) {
 
     let targetRoute = state.backRoute
     if (state.backRoute === ROUTES.FORMS) {
-      targetRoute = ROUTES.FORM.replace(':uid', state.asset.uid)
+      if (assetUid !== '') {
+        targetRoute = ROUTES.FORM.replace(':uid', assetUid)
+      }
     } else if (state.backRoute === ROUTES.LIBRARY) {
       // Check if the the uid is undefined to prevent getting an Access Denied screen
-      if (state.asset.uid !== undefined) {
-        targetRoute = ROUTES.LIBRARY_ITEM.replace(':uid', state.asset.uid)
+      if (assetUid !== '') {
+        targetRoute = ROUTES.LIBRARY_ITEM.replace(':uid', assetUid)
       }
     }
 
