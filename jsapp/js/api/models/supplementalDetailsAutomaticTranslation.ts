@@ -9,14 +9,13 @@ The endpoints are grouped by area of intended use. Each category contains relate
 **General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as "assets".
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
-import type { SupplementalDetailsAutomaticTranslationAutomaticGoogleTranslation } from './supplementalDetailsAutomaticTranslationAutomaticGoogleTranslation'
+import type { SupplementalDataTranslationMapAutomatic } from './supplementalDataTranslationMapAutomatic'
 
 /**
- * Automatic Google translation supplemental details
+ * Automatic translation supplemental details
  */
 export interface SupplementalDetailsAutomaticTranslation {
   [key: string]: {
-    /** Map of language codes to automatic translation objects */
-    automatic_google_translation: SupplementalDetailsAutomaticTranslationAutomaticGoogleTranslation
+    automatic_google_translation: SupplementalDataTranslationMapAutomatic
   }
 }
