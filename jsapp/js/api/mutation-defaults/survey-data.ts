@@ -14,17 +14,17 @@ import type { ManualQualValue } from '#/components/processing/common/types'
 import { TransxVersionSortFunction } from '#/components/processing/common/utils'
 import { recordEntries, recordKeys } from '#/utils'
 import { ActionEnum } from '../models/actionEnum'
-import type { SupplementalDataAutomaticTranscription } from '../models/supplementalDataAutomaticTranscription'
-import type { SupplementalDataAutomaticTranslation } from '../models/supplementalDataAutomaticTranslation'
-import type { SupplementalDataManualQual } from '../models/supplementalDataManualQual'
-import type { SupplementalDataManualTranscription } from '../models/supplementalDataManualTranscription'
-import type { SupplementalDataManualTranslation } from '../models/supplementalDataManualTranslation'
 import type { PatchedDataSupplementPayloadOneOf } from '../models/patchedDataSupplementPayloadOneOf'
 import type { PatchedDataSupplementPayloadOneOfAutomaticGoogleTranscription } from '../models/patchedDataSupplementPayloadOneOfAutomaticGoogleTranscription'
 import type { PatchedDataSupplementPayloadOneOfAutomaticGoogleTranslation } from '../models/patchedDataSupplementPayloadOneOfAutomaticGoogleTranslation'
 import type { PatchedDataSupplementPayloadOneOfManualQual } from '../models/patchedDataSupplementPayloadOneOfManualQual'
 import type { PatchedDataSupplementPayloadOneOfManualTranscription } from '../models/patchedDataSupplementPayloadOneOfManualTranscription'
 import type { PatchedDataSupplementPayloadOneOfManualTranslation } from '../models/patchedDataSupplementPayloadOneOfManualTranslation'
+import type { SupplementalDataAutomaticTranscription } from '../models/supplementalDataAutomaticTranscription'
+import type { SupplementalDataAutomaticTranslation } from '../models/supplementalDataAutomaticTranslation'
+import type { SupplementalDataManualQual } from '../models/supplementalDataManualQual'
+import type { SupplementalDataManualTranscription } from '../models/supplementalDataManualTranscription'
+import type { SupplementalDataManualTranslation } from '../models/supplementalDataManualTranslation'
 import { queryClient } from '../queryClient'
 import { invalidateItem, invalidatePaginatedList, optimisticallyUpdateItem } from './common'
 
@@ -109,27 +109,27 @@ queryClient.setMutationDefaults(
                     ...response?.data,
                     ...(response?.status === 200
                       ? {
-                        [questionXpath]: {
-                          ...response?.data?.[questionXpath],
-                          [action]: {
-                            ...response?.data?.[questionXpath]?.[action],
-                            [uuid]: {
-                              ...response?.data?.[questionXpath]?.[action]?.[uuid],
-                              _versions: [
-                                {
-                                  _uuid: '<mock-uuid-not-used>',
-                                  _data: {
-                                    uuid,
-                                    value,
-                                  },
-                                  _dateCreated: new Date().toISOString(),
-                                }, // Note: this is the actual optimistally added object.
-                                ...(response?.data?.[questionXpath]?.[action]?.[uuid]?._versions ?? []),
-                              ],
-                            },
-                          } as SupplementalDataManualQual,
-                        },
-                      }
+                          [questionXpath]: {
+                            ...response?.data?.[questionXpath],
+                            [action]: {
+                              ...response?.data?.[questionXpath]?.[action],
+                              [uuid]: {
+                                ...response?.data?.[questionXpath]?.[action]?.[uuid],
+                                _versions: [
+                                  {
+                                    _uuid: '<mock-uuid-not-used>',
+                                    _data: {
+                                      uuid,
+                                      value,
+                                    },
+                                    _dateCreated: new Date().toISOString(),
+                                  }, // Note: this is the actual optimistally added object.
+                                  ...(response?.data?.[questionXpath]?.[action]?.[uuid]?._versions ?? []),
+                                ],
+                              },
+                            } as SupplementalDataManualQual,
+                          },
+                        }
                       : {}),
                   },
                 }) as assetsDataSupplementRetrieveResponse,

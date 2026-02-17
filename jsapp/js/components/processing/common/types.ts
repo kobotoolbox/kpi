@@ -1,21 +1,19 @@
+import type { SupplementalDataAutomaticQualItem } from '#/api/models/supplementalDataAutomaticQualItem'
+import type { SupplementalDataAutomaticTranscription } from '#/api/models/supplementalDataAutomaticTranscription'
+import type { SupplementalDataAutomaticTranslationItem } from '#/api/models/supplementalDataAutomaticTranslationItem'
+import type { SupplementalDataManualQualItem } from '#/api/models/supplementalDataManualQualItem'
+import type { SupplementalDataManualTranscription } from '#/api/models/supplementalDataManualTranscription'
+import type { SupplementalDataManualTranslationItem } from '#/api/models/supplementalDataManualTranslationItem'
 import type { SupplementalDataVersionItemAutomatic } from '#/api/models/supplementalDataVersionItemAutomatic'
 import type { SupplementalDataVersionItemManual } from '#/api/models/supplementalDataVersionItemManual'
 import type { SupplementalDataVersionItemQual } from '#/api/models/supplementalDataVersionItemQual'
-import type { SupplementalDataManualTranscription } from '#/api/models/supplementalDataManualTranscription'
-import type { SupplementalDataAutomaticTranscription } from '#/api/models/supplementalDataAutomaticTranscription'
-import type { SupplementalDataManualTranslationItem } from '#/api/models/supplementalDataManualTranslationItem'
-import type { SupplementalDataAutomaticTranslationItem } from '#/api/models/supplementalDataAutomaticTranslationItem'
-import type { SupplementalDataManualQualItem } from '#/api/models/supplementalDataManualQualItem'
-import type { SupplementalDataAutomaticQualItem } from '#/api/models/supplementalDataAutomaticQualItem'
 
-import type { SupplementalDataVersionItemAutomaticWithDep } from '#/api/models/supplementalDataVersionItemAutomaticWithDep'
-import type { SupplementalDataVersionItemManualWithDep } from '#/api/models/supplementalDataVersionItemManualWithDep'
-
-import type { SupplementalDataContentAutomatic } from '#/api/models/supplementalDataContentAutomatic'
-import type { SupplementalDataContentManual } from '#/api/models/supplementalDataContentManual'
+import type { PatchedDataSupplementPayloadOneOfManualQual } from '#/api/models/patchedDataSupplementPayloadOneOfManualQual'
 import type { SupplementalDataContentAutomaticComplete } from '#/api/models/supplementalDataContentAutomaticComplete'
 import type { SupplementalDataContentAutomaticDeleted } from '#/api/models/supplementalDataContentAutomaticDeleted'
-import type { PatchedDataSupplementPayloadOneOfManualQual } from '#/api/models/patchedDataSupplementPayloadOneOfManualQual'
+import type { SupplementalDataContentManual } from '#/api/models/supplementalDataContentManual'
+import type { SupplementalDataVersionItemAutomaticWithDep } from '#/api/models/supplementalDataVersionItemAutomaticWithDep'
+import type { SupplementalDataVersionItemManualWithDep } from '#/api/models/supplementalDataVersionItemManualWithDep'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import type { StaticDisplays } from './utils'
 
@@ -27,9 +25,7 @@ export type OneOfTransx =
   | SupplementalDataManualQualItem
   | SupplementalDataAutomaticQualItem
 
-export type TranscriptVersionItem =
-  | SupplementalDataVersionItemAutomatic
-  | SupplementalDataVersionItemManual
+export type TranscriptVersionItem = SupplementalDataVersionItemAutomatic | SupplementalDataVersionItemManual
 
 // ... (keep existing imports, just adding these)
 

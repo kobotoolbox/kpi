@@ -78,9 +78,7 @@ export default function AnalysisQuestionListItem({
       staleTime: Number.POSITIVE_INFINITY,
       queryKey: getAssetsDataSupplementRetrieveQueryKey(asset.uid, rootUuid),
       select: useCallback(
-        (
-          data: assetsDataSupplementRetrieveResponse,
-        ): SupplementalDataVersionItemQual | undefined => {
+        (data: assetsDataSupplementRetrieveResponse): SupplementalDataVersionItemQual | undefined => {
           if (data.status !== 200) return // typeguard, should never happen
           return data.data[questionXpath]?.manual_qual?.[qaQuestion.uuid]?._versions[0]
         },
@@ -315,9 +313,9 @@ export default function AnalysisQuestionListItem({
 
         const handleClearSelection = hasValue
           ? async () => {
-            setLocalRadioValue('')
-            await handleSaveAnswer('')
-          }
+              setLocalRadioValue('')
+              await handleSaveAnswer('')
+            }
           : undefined
 
         const handleRadioSave = async (value: string) => {

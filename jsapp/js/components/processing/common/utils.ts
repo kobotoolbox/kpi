@@ -1,21 +1,15 @@
-import type { SupplementalDataVersionItemAutomatic } from '#/api/models/supplementalDataVersionItemAutomatic'
-import type { SupplementalDataVersionItemManual } from '#/api/models/supplementalDataVersionItemManual'
-import type { SupplementalDataManualTranscription } from '#/api/models/supplementalDataManualTranscription'
-import type { SupplementalDataAutomaticTranscription } from '#/api/models/supplementalDataAutomaticTranscription'
-import type { SupplementalDataManualTranslation } from '#/api/models/supplementalDataManualTranslation'
-import type { SupplementalDataAutomaticTranslation } from '#/api/models/supplementalDataAutomaticTranslation'
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
+import type { SupplementalDataAutomaticTranscription } from '#/api/models/supplementalDataAutomaticTranscription'
+import type { SupplementalDataAutomaticTranslation } from '#/api/models/supplementalDataAutomaticTranslation'
+import type { SupplementalDataManualTranscription } from '#/api/models/supplementalDataManualTranscription'
+import type { SupplementalDataManualTranslation } from '#/api/models/supplementalDataManualTranslation'
+import type { SupplementalDataVersionItemAutomatic } from '#/api/models/supplementalDataVersionItemAutomatic'
+import type { SupplementalDataVersionItemManual } from '#/api/models/supplementalDataVersionItemManual'
 
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { ProcessingTab } from '#/components/processing/routes.utils'
-import type {
-  DisplaysList,
-  OneOfTransx,
-  TranscriptVersionItem,
-  TranslationVersionItem,
-  TransxVersionItem,
-} from './types'
+import type { DisplaysList, TranscriptVersionItem, TranslationVersionItem, TransxVersionItem } from './types'
 
 /**
  * Type guard to check if a supplement version has a value property.
@@ -25,8 +19,8 @@ import type {
  */
 export function isSupplementVersionWithValue<
   T extends SupplementalDataVersionItemAutomatic | SupplementalDataVersionItemManual =
-  | SupplementalDataVersionItemAutomatic
-  | SupplementalDataVersionItemManual,
+    | SupplementalDataVersionItemAutomatic
+    | SupplementalDataVersionItemManual,
 >(supplementData: T): supplementData is T & { _data: { value: string } } {
   return supplementData._data && 'value' in supplementData._data && typeof supplementData._data.value === 'string'
 }
@@ -38,9 +32,7 @@ export function isSupplementVersionWithValue<
  * @returns True if the supplement version is automatic
  */
 export const isSupplementVersionAutomatic = (
-  SupplementVersion:
-    | SupplementalDataVersionItemManual
-    | SupplementalDataVersionItemAutomatic,
+  SupplementVersion: SupplementalDataVersionItemManual | SupplementalDataVersionItemAutomatic,
 ): SupplementVersion is SupplementalDataVersionItemAutomatic => {
   return 'status' in SupplementVersion._data
 }
