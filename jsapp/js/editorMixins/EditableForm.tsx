@@ -11,6 +11,7 @@ import Markdown from 'react-markdown'
 import { useBeforeUnload, useBlocker, unstable_usePrompt as usePrompt } from 'react-router-dom'
 import Select from 'react-select'
 import type { AssetSnapshotResponse } from '#/api/models/assetSnapshotResponse'
+import { invalidateItem } from '#/api/mutation-defaults/common'
 import { getAssetsRetrieveQueryKey, useAssetsRetrieve } from '#/api/react-query/manage-projects-and-library-content'
 import assetUtils from '#/assetUtils'
 import bem, { makeBem } from '#/bem'
@@ -238,10 +239,8 @@ export default function EditableForm(props: EditableFormProps) {
     stores.surveyState.listen(onSurveyStateChanged)
 
     return () => {
-      if (app?.survey) {
-        app.survey.off('change')
-      }
       unpreventClosingTab()
+      cleanupAppForSurveyContent()
     }
   }, [])
 
@@ -461,14 +460,15 @@ export default function EditableForm(props: EditableFormProps) {
           props.router.navigate(state.backRoute)
         }
       })
-    } else if (props.assetUid) {
-      // update existing asset
-      const uid = props.assetUid
-
+    } else if (assetUid !== '') {
+      // TODO: change this into react-query mutation
       actions.resources.updateAsset
-        .triggerAsync(uid, params)
+        .triggerAsync(assetUid, params)
         .then(() => {
           unpreventClosingTab()
+          // We need to invalidate it here to force it to fetch fresh data. Without this a bug will happen with Form
+          // Builder showing old data in some scenarios (e.g. after closing Form Builder and immediately visiting again).
+          invalidateItem(getAssetsRetrieveQueryKey(assetUid))
           setState((currentState) => ({
             ...currentState,
             asset_updated: update_states.UP_TO_DATE,
@@ -574,6 +574,17 @@ export default function EditableForm(props: EditableFormProps) {
       ...currentState,
       showCascadePopup: false,
     }))
+  }
+
+  /**
+   * Cleanup some things in the rendered app
+   */
+  function cleanupAppForSurveyContent() {
+    if (app?.survey) {
+      app.survey.off('change')
+      app.survey.rows.off('change')
+      app.survey.rows.off('sort')
+    }
   }
 
   /**
