@@ -32,6 +32,9 @@ function OneTimeAddOnList(props: OneTimeAddOnList) {
           case USAGE_TYPE.TRANSLATION:
             remainingLimit = addon.limits_remaining.mt_characters_limit ?? 0
             break
+          case USAGE_TYPE.LLM:
+            remainingLimit = addon.limits_remaining.llm_requests_limit ?? 0
+            break
           default:
             break
         }
