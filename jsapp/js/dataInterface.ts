@@ -1629,18 +1629,6 @@ export const dataInterface: DataInterface = {
     })
   },
 
-  searchAssets(searchData: AssetsRequestData): JQuery.jqXHR<AssetsResponse> {
-    // TODO https://github.com/kobotoolbox/kpi/issues/1983
-    // force set limit to get hacky "all" assets
-    searchData.limit = 200
-    return $.ajax({
-      url: `${ROOT_URL}/api/v2/assets/`,
-      dataType: 'json',
-      data: searchData,
-      method: 'GET',
-    })
-  },
-
   _searchAssetsWithPredefinedQuery(
     params: SearchAssetsPredefinedParams,
     predefinedQuery: string,

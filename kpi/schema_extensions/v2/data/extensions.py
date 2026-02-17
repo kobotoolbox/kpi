@@ -129,8 +129,8 @@ class DataSupplementPayloadExtension(
                 'manual_translation': self._nlp_manual_action_schema,
                 'automatic_google_transcription': self._nlp_automatic_action_schema,
                 'automatic_google_translation': self._nlp_automatic_action_schema,
-                'manual_qual': self._qual_schema(references),
-                'automatic_bedrock_qual': references['automatic_qual_payload'],
+                'manual_qual': self._manual_qual_schema(references),
+                'automatic_bedrock_qual': self._automatic_qual_schema(references),
             },
             anyOf=[
                 {'required': ['manual_transcription']},
@@ -144,7 +144,7 @@ class DataSupplementPayloadExtension(
 
     def map_serializer(self, auto_schema, direction):
 
-        references = self._register_qual_schema_components(auto_schema)
+        references = self._register_qual_data_schema_components(auto_schema)
 
         return build_object_type(
             properties={
@@ -180,7 +180,15 @@ class DataSupplementPayloadExtension(
             required=['_version'],
         )
 
-    def _qual_schema(self, references):
+    def _automatic_qual_schema(self, references):
+        return {
+            'oneOf': [
+                references['automatic_qual_payload'],
+                references['verification_payload'],
+            ]
+        }
+
+    def _manual_qual_schema(self, references):
         return {
             'oneOf': [
                 references['manual_qual_integer'],
@@ -188,6 +196,7 @@ class DataSupplementPayloadExtension(
                 references['manual_qual_select_one'],
                 references['manual_qual_select_multiple'],
                 references['manual_qual_tags'],
+                references['verification_payload']
             ],
         }
 
@@ -253,11 +262,10 @@ class DataSupplementResponseExtension(
         )
 
     def map_serializer(self, auto_schema, direction):
-        references = self._register_qual_schema_components(auto_schema)
+        references = self._register_qual_data_schema_components(auto_schema)
         supp_references = self._register_supplemental_data_components(
             auto_schema, qual_references=references
         )
-
         return build_object_type(
             properties={
                 '_version': {
@@ -316,7 +324,7 @@ class DataSupplementalDetailsFieldExtension(
         Returns an OpenAPI schema with oneOf containing all 5 action type schemas.
         Each action schema is a named component for proper TypeScript generation.
         """
-        references = self._register_qual_schema_components(auto_schema)
+        references = self._register_qual_data_schema_components(auto_schema)
         supp_references = self._register_supplemental_data_components(
             auto_schema, qual_references=references
         )
