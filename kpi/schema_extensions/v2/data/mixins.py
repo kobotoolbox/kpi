@@ -289,6 +289,12 @@ class SupplementalDataComponentsRegistrationMixin(ComponentRegistrationMixin):
         if qual_references:
             references['qual_data'] = self._register_schema_component(
                 auto_schema,
+                'SupplementalDataQualData',
+                {
+                    'oneOf': [
+                        qual_references['manual_qual_integer'],
+                        qual_references['manual_qual_text'],
+                        qual_references['manual_qual_select_one'],
                         qual_references['manual_qual_select_multiple'],
                         qual_references['manual_qual_tags'],
                     ]
