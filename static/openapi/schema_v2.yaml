@@ -12451,6 +12451,7 @@ components:
           - $ref: '#/components/schemas/SupplementalDetailsAutomaticTranscription'
           - $ref: '#/components/schemas/SupplementalDetailsAutomaticTranslation'
           - $ref: '#/components/schemas/SupplementalDetailsManualQual'
+          - $ref: '#/components/schemas/SupplementalDetailsAutomaticQual'
           nullable: true
           description: Action-specific supplemental data attached to this submission.
             Structure varies by action type (transcription, translation, qual). Top-level
@@ -12739,41 +12740,12 @@ components:
           type: string
           example: '20250820'
       additionalProperties:
-        $ref: '#/components/schemas/DataSupplementResponseOneOf'
+        $ref: '#/components/schemas/SupplementalDataResponseAction'
       required:
       - _version
       patternProperties:
         ^(?!_version$).*:
-          $ref: '#/components/schemas/DataSupplementResponseOneOf'
-    DataSupplementResponseOneOf:
-      type: object
-      properties:
-        manual_transcription:
-          $ref: '#/components/schemas/SupplementalDataActionObjectManual'
-        manual_translation:
-          $ref: '#/components/schemas/SupplementalDataTranslationMapManual'
-        automatic_google_transcription:
-          $ref: '#/components/schemas/SupplementalDataActionObjectAutomatic'
-        automatic_google_translation:
-          $ref: '#/components/schemas/SupplementalDataTranslationMapAutomatic'
-        manual_qual:
-          $ref: '#/components/schemas/SupplementalDataQualMap'
-        automatic_bedrock_qual:
-          $ref: '#/components/schemas/SupplementalDataQualMap'
-      additionalProperties: false
-      anyOf:
-      - required:
-        - manual_transcription
-      - required:
-        - manual_translation
-      - required:
-        - automatic_google_transcription
-      - required:
-        - automatic_google_translation
-      - required:
-        - manual_qual
-      - required:
-        - automatic_bedrock_qual
+          $ref: '#/components/schemas/SupplementalDataResponseAction'
     DataValidationStatus:
       type: object
       properties:
@@ -17457,7 +17429,34 @@ components:
       - user
       - user_uid
       - username
-    SupplementalDataActionObjectAutomatic:
+    SupplementalDataAutomaticQual:
+      type: object
+      description: Map of automatic question UUIDs to their action objects
+      additionalProperties:
+        $ref: '#/components/schemas/SupplementalDataAutomaticQualItem'
+      patternProperties:
+        ^[0-9a-fA-F-]{36}$:
+          $ref: '#/components/schemas/SupplementalDataAutomaticQualItem'
+    SupplementalDataAutomaticQualItem:
+      type: object
+      properties:
+        _dateCreated:
+          type: string
+          format: date-time
+        _dateModified:
+          type: string
+          format: date-time
+        _versions:
+          type: array
+          items:
+            $ref: '#/components/schemas/SupplementalDataVersionItemQualAutomatic'
+          minLength: 1
+      additionalProperties: false
+      required:
+      - _dateCreated
+      - _dateModified
+      - _versions
+    SupplementalDataAutomaticTranscription:
       type: object
       properties:
         _dateCreated:
@@ -17476,7 +17475,12 @@ components:
       - _dateCreated
       - _dateModified
       - _versions
-    SupplementalDataActionObjectAutomaticWithDep:
+    SupplementalDataAutomaticTranslation:
+      type: object
+      description: Map of language codes to automatic translation objects
+      additionalProperties:
+        $ref: '#/components/schemas/SupplementalDataAutomaticTranslationItem'
+    SupplementalDataAutomaticTranslationItem:
       type: object
       properties:
         _dateCreated:
@@ -17489,63 +17493,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/SupplementalDataVersionItemAutomaticWithDep'
-          minLength: 1
-      additionalProperties: false
-      required:
-      - _dateCreated
-      - _dateModified
-      - _versions
-    SupplementalDataActionObjectManual:
-      type: object
-      properties:
-        _dateCreated:
-          type: string
-          format: date-time
-        _dateModified:
-          type: string
-          format: date-time
-        _versions:
-          type: array
-          items:
-            $ref: '#/components/schemas/SupplementalDataVersionItemManual'
-          minLength: 1
-      additionalProperties: false
-      required:
-      - _dateCreated
-      - _dateModified
-      - _versions
-    SupplementalDataActionObjectManualWithDep:
-      type: object
-      properties:
-        _dateCreated:
-          type: string
-          format: date-time
-        _dateModified:
-          type: string
-          format: date-time
-        _versions:
-          type: array
-          items:
-            $ref: '#/components/schemas/SupplementalDataVersionItemManualWithDep'
-          minLength: 1
-      additionalProperties: false
-      required:
-      - _dateCreated
-      - _dateModified
-      - _versions
-    SupplementalDataActionObjectQual:
-      type: object
-      properties:
-        _dateCreated:
-          type: string
-          format: date-time
-        _dateModified:
-          type: string
-          format: date-time
-        _versions:
-          type: array
-          items:
-            $ref: '#/components/schemas/SupplementalDataVersionItemQual'
           minLength: 1
       additionalProperties: false
       required:
@@ -17649,6 +17596,76 @@ components:
       required:
       - _actionId
       - _uuid
+    SupplementalDataManualQual:
+      type: object
+      description: Map of manual qualitative question UUIDs to their action objects
+      additionalProperties:
+        $ref: '#/components/schemas/SupplementalDataManualQualItem'
+      patternProperties:
+        ^[0-9a-fA-F-]{36}$:
+          $ref: '#/components/schemas/SupplementalDataManualQualItem'
+    SupplementalDataManualQualItem:
+      type: object
+      properties:
+        _dateCreated:
+          type: string
+          format: date-time
+        _dateModified:
+          type: string
+          format: date-time
+        _versions:
+          type: array
+          items:
+            $ref: '#/components/schemas/SupplementalDataVersionItemQual'
+          minLength: 1
+      additionalProperties: false
+      required:
+      - _dateCreated
+      - _dateModified
+      - _versions
+    SupplementalDataManualTranscription:
+      type: object
+      properties:
+        _dateCreated:
+          type: string
+          format: date-time
+        _dateModified:
+          type: string
+          format: date-time
+        _versions:
+          type: array
+          items:
+            $ref: '#/components/schemas/SupplementalDataVersionItemManual'
+          minLength: 1
+      additionalProperties: false
+      required:
+      - _dateCreated
+      - _dateModified
+      - _versions
+    SupplementalDataManualTranslation:
+      type: object
+      description: Map of language codes to manual translation objects
+      additionalProperties:
+        $ref: '#/components/schemas/SupplementalDataManualTranslationItem'
+    SupplementalDataManualTranslationItem:
+      type: object
+      properties:
+        _dateCreated:
+          type: string
+          format: date-time
+        _dateModified:
+          type: string
+          format: date-time
+        _versions:
+          type: array
+          items:
+            $ref: '#/components/schemas/SupplementalDataVersionItemManualWithDep'
+          minLength: 1
+      additionalProperties: false
+      required:
+      - _dateCreated
+      - _dateModified
+      - _versions
     SupplementalDataQualData:
       oneOf:
       - $ref: '#/components/schemas/DataSupplementManualQualDataInteger'
@@ -17656,24 +17673,41 @@ components:
       - $ref: '#/components/schemas/DataSupplementManualQualDataSelectOne'
       - $ref: '#/components/schemas/DataSupplementManualQualDataSelectMultiple'
       - $ref: '#/components/schemas/DataSupplementManualQualDataTags'
-    SupplementalDataQualMap:
+    SupplementalDataQualDataAutomatic:
+      oneOf:
+      - $ref: '#/components/schemas/DataSupplementAutomaticQualDataIntegerResponse'
+      - $ref: '#/components/schemas/DataSupplementAutomaticQualDataTextResponse'
+      - $ref: '#/components/schemas/DataSupplementAutomaticQualDataSelectOneResponse'
+      - $ref: '#/components/schemas/DataSupplementAutomaticQualDataSelectMultipleResponse'
+    SupplementalDataResponseAction:
       type: object
-      description: Map of qualitative question UUIDs to their action objects
-      additionalProperties:
-        $ref: '#/components/schemas/SupplementalDataActionObjectQual'
-      patternProperties:
-        ^[0-9a-fA-F-]{36}$:
-          $ref: '#/components/schemas/SupplementalDataActionObjectQual'
-    SupplementalDataTranslationMapAutomatic:
-      type: object
-      description: Map of language codes to automatic translation objects
-      additionalProperties:
-        $ref: '#/components/schemas/SupplementalDataActionObjectAutomaticWithDep'
-    SupplementalDataTranslationMapManual:
-      type: object
-      description: Map of language codes to manual translation objects
-      additionalProperties:
-        $ref: '#/components/schemas/SupplementalDataActionObjectManualWithDep'
+      properties:
+        manual_transcription:
+          $ref: '#/components/schemas/SupplementalDataManualTranscription'
+        manual_translation:
+          $ref: '#/components/schemas/SupplementalDataManualTranslation'
+        automatic_google_transcription:
+          $ref: '#/components/schemas/SupplementalDataAutomaticTranscription'
+        automatic_google_translation:
+          $ref: '#/components/schemas/SupplementalDataAutomaticTranslation'
+        manual_qual:
+          $ref: '#/components/schemas/SupplementalDataManualQual'
+        automatic_bedrock_qual:
+          $ref: '#/components/schemas/SupplementalDataAutomaticQual'
+      additionalProperties: false
+      anyOf:
+      - required:
+        - manual_transcription
+      - required:
+        - manual_translation
+      - required:
+        - automatic_google_transcription
+      - required:
+        - automatic_google_translation
+      - required:
+        - manual_qual
+      - required:
+        - automatic_bedrock_qual
     SupplementalDataVersionItemAutomatic:
       type: object
       properties:
@@ -17769,14 +17803,55 @@ components:
         _dateCreated:
           type: string
           format: date-time
+        _dateVerified:
+          type: string
+          format: date-time
         _uuid:
           type: string
           format: uuid
+        verified:
+          type: boolean
       additionalProperties: false
       required:
       - _data
       - _dateCreated
       - _uuid
+    SupplementalDataVersionItemQualAutomatic:
+      type: object
+      properties:
+        _data:
+          $ref: '#/components/schemas/SupplementalDataQualDataAutomatic'
+        _dateAccepted:
+          type: string
+          format: date-time
+        _dateCreated:
+          type: string
+          format: date-time
+        _dateVerified:
+          type: string
+          format: date-time
+        _uuid:
+          type: string
+          format: uuid
+        _dependency:
+          $ref: '#/components/schemas/SupplementalDataDependency'
+        verified:
+          type: boolean
+      additionalProperties: false
+      required:
+      - _data
+      - _dateCreated
+      - _uuid
+    SupplementalDetailsAutomaticQual:
+      type: object
+      description: Automatic qualitative supplemental details
+      additionalProperties:
+        type: object
+        properties:
+          automatic_bedrock_qual:
+            $ref: '#/components/schemas/SupplementalDataAutomaticQual'
+        required:
+        - automatic_bedrock_qual
     SupplementalDetailsAutomaticTranscription:
       type: object
       description: Automatic transcription supplemental details
@@ -17784,7 +17859,7 @@ components:
         type: object
         properties:
           automatic_google_transcription:
-            $ref: '#/components/schemas/SupplementalDataActionObjectAutomatic'
+            $ref: '#/components/schemas/SupplementalDataAutomaticTranscription'
         required:
         - automatic_google_transcription
     SupplementalDetailsAutomaticTranslation:
@@ -17794,7 +17869,7 @@ components:
         type: object
         properties:
           automatic_google_translation:
-            $ref: '#/components/schemas/SupplementalDataTranslationMapAutomatic'
+            $ref: '#/components/schemas/SupplementalDataAutomaticTranslation'
         required:
         - automatic_google_translation
     SupplementalDetailsManualQual:
@@ -17804,7 +17879,7 @@ components:
         type: object
         properties:
           manual_qual:
-            $ref: '#/components/schemas/SupplementalDataQualMap'
+            $ref: '#/components/schemas/SupplementalDataManualQual'
         required:
         - manual_qual
     SupplementalDetailsManualTranscription:
@@ -17814,7 +17889,7 @@ components:
         type: object
         properties:
           manual_transcription:
-            $ref: '#/components/schemas/SupplementalDataActionObjectManual'
+            $ref: '#/components/schemas/SupplementalDataManualTranscription'
         required:
         - manual_transcription
     SupplementalDetailsManualTranslation:
@@ -17824,7 +17899,7 @@ components:
         type: object
         properties:
           manual_translation:
-            $ref: '#/components/schemas/SupplementalDataTranslationMapManual'
+            $ref: '#/components/schemas/SupplementalDataManualTranslation'
         required:
         - manual_translation
     TagListResponse:

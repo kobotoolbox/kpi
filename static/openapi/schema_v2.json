@@ -17260,6 +17260,9 @@
                             },
                             {
                                 "$ref": "#/components/schemas/SupplementalDetailsManualQual"
+                            },
+                            {
+                                "$ref": "#/components/schemas/SupplementalDetailsAutomaticQual"
                             }
                         ],
                         "nullable": true,
@@ -17674,72 +17677,16 @@
                     }
                 },
                 "additionalProperties": {
-                    "$ref": "#/components/schemas/DataSupplementResponseOneOf"
+                    "$ref": "#/components/schemas/SupplementalDataResponseAction"
                 },
                 "required": [
                     "_version"
                 ],
                 "patternProperties": {
                     "^(?!_version$).*": {
-                        "$ref": "#/components/schemas/DataSupplementResponseOneOf"
+                        "$ref": "#/components/schemas/SupplementalDataResponseAction"
                     }
                 }
-            },
-            "DataSupplementResponseOneOf": {
-                "type": "object",
-                "properties": {
-                    "manual_transcription": {
-                        "$ref": "#/components/schemas/SupplementalDataActionObjectManual"
-                    },
-                    "manual_translation": {
-                        "$ref": "#/components/schemas/SupplementalDataTranslationMapManual"
-                    },
-                    "automatic_google_transcription": {
-                        "$ref": "#/components/schemas/SupplementalDataActionObjectAutomatic"
-                    },
-                    "automatic_google_translation": {
-                        "$ref": "#/components/schemas/SupplementalDataTranslationMapAutomatic"
-                    },
-                    "manual_qual": {
-                        "$ref": "#/components/schemas/SupplementalDataQualMap"
-                    },
-                    "automatic_bedrock_qual": {
-                        "$ref": "#/components/schemas/SupplementalDataQualMap"
-                    }
-                },
-                "additionalProperties": false,
-                "anyOf": [
-                    {
-                        "required": [
-                            "manual_transcription"
-                        ]
-                    },
-                    {
-                        "required": [
-                            "manual_translation"
-                        ]
-                    },
-                    {
-                        "required": [
-                            "automatic_google_transcription"
-                        ]
-                    },
-                    {
-                        "required": [
-                            "automatic_google_translation"
-                        ]
-                    },
-                    {
-                        "required": [
-                            "manual_qual"
-                        ]
-                    },
-                    {
-                        "required": [
-                            "automatic_bedrock_qual"
-                        ]
-                    }
-                ]
             },
             "DataValidationStatus": {
                 "type": "object",
@@ -24177,7 +24124,45 @@
                     "username"
                 ]
             },
-            "SupplementalDataActionObjectAutomatic": {
+            "SupplementalDataAutomaticQual": {
+                "type": "object",
+                "description": "Map of automatic question UUIDs to their action objects",
+                "additionalProperties": {
+                    "$ref": "#/components/schemas/SupplementalDataAutomaticQualItem"
+                },
+                "patternProperties": {
+                    "^[0-9a-fA-F-]{36}$": {
+                        "$ref": "#/components/schemas/SupplementalDataAutomaticQualItem"
+                    }
+                }
+            },
+            "SupplementalDataAutomaticQualItem": {
+                "type": "object",
+                "properties": {
+                    "_dateCreated": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "_dateModified": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "_versions": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/SupplementalDataVersionItemQualAutomatic"
+                        },
+                        "minLength": 1
+                    }
+                },
+                "additionalProperties": false,
+                "required": [
+                    "_dateCreated",
+                    "_dateModified",
+                    "_versions"
+                ]
+            },
+            "SupplementalDataAutomaticTranscription": {
                 "type": "object",
                 "properties": {
                     "_dateCreated": {
@@ -24203,7 +24188,14 @@
                     "_versions"
                 ]
             },
-            "SupplementalDataActionObjectAutomaticWithDep": {
+            "SupplementalDataAutomaticTranslation": {
+                "type": "object",
+                "description": "Map of language codes to automatic translation objects",
+                "additionalProperties": {
+                    "$ref": "#/components/schemas/SupplementalDataAutomaticTranslationItem"
+                }
+            },
+            "SupplementalDataAutomaticTranslationItem": {
                 "type": "object",
                 "properties": {
                     "_dateCreated": {
@@ -24218,84 +24210,6 @@
                         "type": "array",
                         "items": {
                             "$ref": "#/components/schemas/SupplementalDataVersionItemAutomaticWithDep"
-                        },
-                        "minLength": 1
-                    }
-                },
-                "additionalProperties": false,
-                "required": [
-                    "_dateCreated",
-                    "_dateModified",
-                    "_versions"
-                ]
-            },
-            "SupplementalDataActionObjectManual": {
-                "type": "object",
-                "properties": {
-                    "_dateCreated": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "_dateModified": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "_versions": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/SupplementalDataVersionItemManual"
-                        },
-                        "minLength": 1
-                    }
-                },
-                "additionalProperties": false,
-                "required": [
-                    "_dateCreated",
-                    "_dateModified",
-                    "_versions"
-                ]
-            },
-            "SupplementalDataActionObjectManualWithDep": {
-                "type": "object",
-                "properties": {
-                    "_dateCreated": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "_dateModified": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "_versions": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/SupplementalDataVersionItemManualWithDep"
-                        },
-                        "minLength": 1
-                    }
-                },
-                "additionalProperties": false,
-                "required": [
-                    "_dateCreated",
-                    "_dateModified",
-                    "_versions"
-                ]
-            },
-            "SupplementalDataActionObjectQual": {
-                "type": "object",
-                "properties": {
-                    "_dateCreated": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "_dateModified": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "_versions": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/SupplementalDataVersionItemQual"
                         },
                         "minLength": 1
                     }
@@ -24452,6 +24366,103 @@
                     "_uuid"
                 ]
             },
+            "SupplementalDataManualQual": {
+                "type": "object",
+                "description": "Map of manual qualitative question UUIDs to their action objects",
+                "additionalProperties": {
+                    "$ref": "#/components/schemas/SupplementalDataManualQualItem"
+                },
+                "patternProperties": {
+                    "^[0-9a-fA-F-]{36}$": {
+                        "$ref": "#/components/schemas/SupplementalDataManualQualItem"
+                    }
+                }
+            },
+            "SupplementalDataManualQualItem": {
+                "type": "object",
+                "properties": {
+                    "_dateCreated": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "_dateModified": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "_versions": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/SupplementalDataVersionItemQual"
+                        },
+                        "minLength": 1
+                    }
+                },
+                "additionalProperties": false,
+                "required": [
+                    "_dateCreated",
+                    "_dateModified",
+                    "_versions"
+                ]
+            },
+            "SupplementalDataManualTranscription": {
+                "type": "object",
+                "properties": {
+                    "_dateCreated": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "_dateModified": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "_versions": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/SupplementalDataVersionItemManual"
+                        },
+                        "minLength": 1
+                    }
+                },
+                "additionalProperties": false,
+                "required": [
+                    "_dateCreated",
+                    "_dateModified",
+                    "_versions"
+                ]
+            },
+            "SupplementalDataManualTranslation": {
+                "type": "object",
+                "description": "Map of language codes to manual translation objects",
+                "additionalProperties": {
+                    "$ref": "#/components/schemas/SupplementalDataManualTranslationItem"
+                }
+            },
+            "SupplementalDataManualTranslationItem": {
+                "type": "object",
+                "properties": {
+                    "_dateCreated": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "_dateModified": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "_versions": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/SupplementalDataVersionItemManualWithDep"
+                        },
+                        "minLength": 1
+                    }
+                },
+                "additionalProperties": false,
+                "required": [
+                    "_dateCreated",
+                    "_dateModified",
+                    "_versions"
+                ]
+            },
             "SupplementalDataQualData": {
                 "oneOf": [
                     {
@@ -24471,31 +24482,77 @@
                     }
                 ]
             },
-            "SupplementalDataQualMap": {
-                "type": "object",
-                "description": "Map of qualitative question UUIDs to their action objects",
-                "additionalProperties": {
-                    "$ref": "#/components/schemas/SupplementalDataActionObjectQual"
-                },
-                "patternProperties": {
-                    "^[0-9a-fA-F-]{36}$": {
-                        "$ref": "#/components/schemas/SupplementalDataActionObjectQual"
+            "SupplementalDataQualDataAutomatic": {
+                "oneOf": [
+                    {
+                        "$ref": "#/components/schemas/DataSupplementAutomaticQualDataIntegerResponse"
+                    },
+                    {
+                        "$ref": "#/components/schemas/DataSupplementAutomaticQualDataTextResponse"
+                    },
+                    {
+                        "$ref": "#/components/schemas/DataSupplementAutomaticQualDataSelectOneResponse"
+                    },
+                    {
+                        "$ref": "#/components/schemas/DataSupplementAutomaticQualDataSelectMultipleResponse"
                     }
-                }
+                ]
             },
-            "SupplementalDataTranslationMapAutomatic": {
+            "SupplementalDataResponseAction": {
                 "type": "object",
-                "description": "Map of language codes to automatic translation objects",
-                "additionalProperties": {
-                    "$ref": "#/components/schemas/SupplementalDataActionObjectAutomaticWithDep"
-                }
-            },
-            "SupplementalDataTranslationMapManual": {
-                "type": "object",
-                "description": "Map of language codes to manual translation objects",
-                "additionalProperties": {
-                    "$ref": "#/components/schemas/SupplementalDataActionObjectManualWithDep"
-                }
+                "properties": {
+                    "manual_transcription": {
+                        "$ref": "#/components/schemas/SupplementalDataManualTranscription"
+                    },
+                    "manual_translation": {
+                        "$ref": "#/components/schemas/SupplementalDataManualTranslation"
+                    },
+                    "automatic_google_transcription": {
+                        "$ref": "#/components/schemas/SupplementalDataAutomaticTranscription"
+                    },
+                    "automatic_google_translation": {
+                        "$ref": "#/components/schemas/SupplementalDataAutomaticTranslation"
+                    },
+                    "manual_qual": {
+                        "$ref": "#/components/schemas/SupplementalDataManualQual"
+                    },
+                    "automatic_bedrock_qual": {
+                        "$ref": "#/components/schemas/SupplementalDataAutomaticQual"
+                    }
+                },
+                "additionalProperties": false,
+                "anyOf": [
+                    {
+                        "required": [
+                            "manual_transcription"
+                        ]
+                    },
+                    {
+                        "required": [
+                            "manual_translation"
+                        ]
+                    },
+                    {
+                        "required": [
+                            "automatic_google_transcription"
+                        ]
+                    },
+                    {
+                        "required": [
+                            "automatic_google_translation"
+                        ]
+                    },
+                    {
+                        "required": [
+                            "manual_qual"
+                        ]
+                    },
+                    {
+                        "required": [
+                            "automatic_bedrock_qual"
+                        ]
+                    }
+                ]
             },
             "SupplementalDataVersionItemAutomatic": {
                 "type": "object",
@@ -24625,9 +24682,16 @@
                         "type": "string",
                         "format": "date-time"
                     },
+                    "_dateVerified": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
                     "_uuid": {
                         "type": "string",
                         "format": "uuid"
+                    },
+                    "verified": {
+                        "type": "boolean"
                     }
                 },
                 "additionalProperties": false,
@@ -24637,6 +24701,57 @@
                     "_uuid"
                 ]
             },
+            "SupplementalDataVersionItemQualAutomatic": {
+                "type": "object",
+                "properties": {
+                    "_data": {
+                        "$ref": "#/components/schemas/SupplementalDataQualDataAutomatic"
+                    },
+                    "_dateAccepted": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "_dateCreated": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "_dateVerified": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "_uuid": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "_dependency": {
+                        "$ref": "#/components/schemas/SupplementalDataDependency"
+                    },
+                    "verified": {
+                        "type": "boolean"
+                    }
+                },
+                "additionalProperties": false,
+                "required": [
+                    "_data",
+                    "_dateCreated",
+                    "_uuid"
+                ]
+            },
+            "SupplementalDetailsAutomaticQual": {
+                "type": "object",
+                "description": "Automatic qualitative supplemental details",
+                "additionalProperties": {
+                    "type": "object",
+                    "properties": {
+                        "automatic_bedrock_qual": {
+                            "$ref": "#/components/schemas/SupplementalDataAutomaticQual"
+                        }
+                    },
+                    "required": [
+                        "automatic_bedrock_qual"
+                    ]
+                }
+            },
             "SupplementalDetailsAutomaticTranscription": {
                 "type": "object",
                 "description": "Automatic transcription supplemental details",
@@ -24644,7 +24759,7 @@
                     "type": "object",
                     "properties": {
                         "automatic_google_transcription": {
-                            "$ref": "#/components/schemas/SupplementalDataActionObjectAutomatic"
+                            "$ref": "#/components/schemas/SupplementalDataAutomaticTranscription"
                         }
                     },
                     "required": [
@@ -24659,7 +24774,7 @@
                     "type": "object",
                     "properties": {
                         "automatic_google_translation": {
-                            "$ref": "#/components/schemas/SupplementalDataTranslationMapAutomatic"
+                            "$ref": "#/components/schemas/SupplementalDataAutomaticTranslation"
                         }
                     },
                     "required": [
@@ -24674,7 +24789,7 @@
                     "type": "object",
                     "properties": {
                         "manual_qual": {
-                            "$ref": "#/components/schemas/SupplementalDataQualMap"
+                            "$ref": "#/components/schemas/SupplementalDataManualQual"
                         }
                     },
                     "required": [
@@ -24689,7 +24804,7 @@
                     "type": "object",
                     "properties": {
                         "manual_transcription": {
-                            "$ref": "#/components/schemas/SupplementalDataActionObjectManual"
+                            "$ref": "#/components/schemas/SupplementalDataManualTranscription"
                         }
                     },
                     "required": [
@@ -24704,7 +24819,7 @@
                     "type": "object",
                     "properties": {
                         "manual_translation": {
-                            "$ref": "#/components/schemas/SupplementalDataTranslationMapManual"
+                            "$ref": "#/components/schemas/SupplementalDataManualTranslation"
                         }
                     },
                     "required": [

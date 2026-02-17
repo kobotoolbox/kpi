@@ -9,11 +9,11 @@ The endpoints are grouped by area of intended use. Each category contains relate
 **General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as "assets".
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
-import type { SupplementalDataActionObjectQual } from './supplementalDataActionObjectQual'
+import type { SupplementalDataManualQualItem } from './supplementalDataManualQualItem'
 
 /**
- * Map of qualitative question UUIDs to their action objects
+ * Map of manual qualitative question UUIDs to their action objects
  */
-export interface SupplementalDataQualMap {
-  [key: string]: SupplementalDataActionObjectQual
+export interface SupplementalDataManualQual {
+  [key: string]: SupplementalDataManualQualItem
 }

@@ -1,3 +1,4 @@
+import type { SupplementalDetailsAutomaticQual } from './supplementalDetailsAutomaticQual'
 import type { SupplementalDetailsAutomaticTranscription } from './supplementalDetailsAutomaticTranscription'
 import type { SupplementalDetailsAutomaticTranslation } from './supplementalDetailsAutomaticTranslation'
 import type { SupplementalDetailsManualQual } from './supplementalDetailsManualQual'
@@ -25,4 +26,5 @@ export type _DataResponseSupplementalDetails =
   | SupplementalDetailsAutomaticTranscription
   | SupplementalDetailsAutomaticTranslation
   | SupplementalDetailsManualQual
+  | SupplementalDetailsAutomaticQual
   | null
