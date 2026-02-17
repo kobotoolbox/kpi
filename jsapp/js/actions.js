@@ -35,10 +35,6 @@ actions.survey = Reflux.createActions({
   addExternalItemAtPosition: { children: ['completed', 'failed'] },
 })
 
-actions.search = Reflux.createActions({
-  assets: { children: ['completed', 'failed'] },
-})
-
 actions.resources = Reflux.createActions({
   createImport: { children: ['completed', 'failed'] },
   loadAsset: { children: ['completed', 'failed'] },
@@ -341,23 +337,6 @@ actions.resources.cloneAsset.listen((details, params = {}) => {
 })
 actions.resources.cloneAsset.failed.listen(() => {
   notify(t('Could not create project!'), 'error')
-})
-
-actions.search.assets.listen((searchData, params = {}) => {
-  dataInterface
-    .searchAssets(searchData)
-    .done((response) => {
-      actions.search.assets.completed(searchData, response)
-      if (typeof params.onComplete === 'function') {
-        params.onComplete(searchData, response)
-      }
-    })
-    .fail((response) => {
-      actions.search.assets.failed(searchData, response)
-      if (typeof params.onFailed === 'function') {
-        params.onFailed(searchData, response)
-      }
-    })
 })
 
 actions.auth.verifyLogin.listen(() => {
