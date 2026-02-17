@@ -36,7 +36,7 @@ class ComponentRegistrationMixin:
 
 class QualComponentsRegistrationMixin(ComponentRegistrationMixin):
 
-    def _register_qual_schema_components(self, auto_schema):
+    def _register_qual_data_schema_components(self, auto_schema):
         references = {}
 
         value_schema_by_type = {
@@ -128,6 +128,23 @@ class QualComponentsRegistrationMixin(ComponentRegistrationMixin):
             # actions
             'PatchedDataSupplementPayloadOneOfAutomaticQual',
             schema=uuid_only,
+        )
+
+        # special case: the payload for verifying automatic or manual QA responses
+        verification = {
+            **schema_base,
+            'properties': {
+                'uuid': GENERIC_UUID_SCHEMA,
+                'verified': {'type': 'boolean'},
+            },
+            'required': ['uuid', 'verified'],
+        }
+        references['verification_payload'] = self._register_schema_component(
+            auto_schema,
+            # match the naming convention drf-spectacular/Orval uses for the other
+            # actions
+            'PatchedDataSupplementPayloadOneOfVerification',
+            schema=verification,
         )
 
         return references

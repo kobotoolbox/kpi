@@ -3042,12 +3042,12 @@ paths:
                           _dateModified: '2025-01-01T12:00:00Z'
                           _versions:
                           - _dateCreated: '2025-01-01T12:00:00Z'
-                            _dateAccepted: '2025-01-01T12:00:00Z'
                             _data:
                               uuid: 66666666-6666-6666-6666-666666666666
                               value: 42
                               status: complete
                             _uuid: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
+                            verified: false
                   summary: Qualitative Analysis – Integer Question
                   description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.\
                     \ \n\n`status` will only be present for automatic_actions."
@@ -3061,12 +3061,12 @@ paths:
                           _dateModified: '2025-01-01T12:00:00Z'
                           _versions:
                           - _dateCreated: '2025-01-01T12:00:00Z'
-                            _dateAccepted: '2025-01-01T12:00:00Z'
                             _data:
                               uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
                               value: This is a qualitative text response.
                               status: complete
                             _uuid: 12121212-3434-5656-7878-909090909090
+                            verified: false
                   summary: Qualitative Analysis – Text Question
                   description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.\
                     \ \n\n`status` will only be present for automatic_actions."
@@ -3080,12 +3080,12 @@ paths:
                           _dateModified: '2025-01-01T12:00:00Z'
                           _versions:
                           - _dateCreated: '2025-01-01T12:00:00Z'
-                            _dateAccepted: '2025-01-01T12:00:00Z'
                             _data:
                               uuid: 77777777-7777-7777-7777-777777777777
                               value: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
                               status: complete
                             _uuid: bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
+                            verified: false
                   summary: Qualitative Analysis – Single Choice Question
                   description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.\
                     \ \n\n`status` will only be present for automatic_actions."
@@ -3099,7 +3099,6 @@ paths:
                           _dateModified: '2025-01-01T12:00:00Z'
                           _versions:
                           - _dateCreated: '2025-01-01T12:00:00Z'
-                            _dateAccepted: '2025-01-01T12:00:00Z'
                             _data:
                               uuid: 88888888-8888-8888-8888-888888888888
                               value:
@@ -3107,6 +3106,7 @@ paths:
                               - bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
                               status: complete
                             _uuid: 99999999-9999-9999-9999-999999999999
+                            verified: false
                   summary: Qualitative Analysis – Multiple Choice Question
                   description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.\
                     \ \n\n`status` will only be present for automatic_actions."
@@ -3120,7 +3120,6 @@ paths:
                           _dateModified: '2025-01-01T12:00:00Z'
                           _versions:
                           - _dateCreated: '2025-01-01T12:00:00Z'
-                            _dateAccepted: '2025-01-01T12:00:00Z'
                             _data:
                               uuid: bbbbbbbb-cccc-dddd-eeee-ffffffffffff
                               value:
@@ -3128,7 +3127,27 @@ paths:
                               - review
                               - priority
                             _uuid: 23232323-4545-6767-8989-010101010101
+                            verified: false
                   summary: Manual Qualitative Analysis – Tags Question
+                QualitativeAnalysis–VerifiedResponse:
+                  value:
+                    _version: '20250820'
+                    question_name_xpath:
+                      <action_id>:
+                        bbbbbbbb-cccc-dddd-eeee-ffffffffffff:
+                          _dateCreated: '2025-01-01T12:00:00Z'
+                          _dateModified: '2025-01-01T12:00:00Z'
+                          _versions:
+                          - _dateCreated: '2025-01-01T12:00:00Z'
+                            _dateVerified: '2025-01-01T12:00:00Z'
+                            _data:
+                              uuid: bbbbbbbb-cccc-dddd-eeee-ffffffffffff
+                              status: complete
+                              value: 5
+                            _uuid: 23232323-4545-6767-8989-010101010101
+                            verified: true
+                  summary: Qualitative Analysis – Verified Response
+                  description: '`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`. '
                 AutomaticQualitativeAnalysis–FailedResponse:
                   value:
                     _version: '20250820'
@@ -3139,12 +3158,12 @@ paths:
                           _dateModified: '2025-01-01T12:00:00Z'
                           _versions:
                           - _dateCreated: '2025-01-01T12:00:00Z'
-                            _dateAccepted: '2025-01-01T12:00:00Z'
                             _data:
                               uuid: bbbbbbbb-cccc-dddd-eeee-ffffffffffff
                               status: failed
                               error: Cannot parse response from LLM
                             _uuid: 23232323-4545-6767-8989-010101010101
+                            verified: false
                   summary: Automatic Qualitative Analysis – Failed response
           description: null
         '401':
@@ -3353,6 +3372,18 @@ paths:
                     automatic_bedrock_qual:
                       uuid: 44444444-4444-4444-4444-444444444444
                 summary: Automatic Bedrock Qualitative Analysis – Any Question
+              VerifyQualitativeAnalysisResponse–AnyQuestion:
+                value:
+                  _version: '20250820'
+                  question_name_xpath:
+                    <action_id>:
+                      uuid: 44444444-4444-4444-4444-4444444444444
+                      verified: true
+                summary: Verify Qualitative Analysis Response – Any Question
+                description: |-
+                  `<action_id>` may be either `manual_qual` or `automatic_bedrock_qual`
+
+                  Set `verified` to `False` to un-verify
         required: true
       security:
       - BasicAuth: []
@@ -3504,12 +3535,12 @@ paths:
                           _dateModified: '2025-01-01T12:00:00Z'
                           _versions:
                           - _dateCreated: '2025-01-01T12:00:00Z'
-                            _dateAccepted: '2025-01-01T12:00:00Z'
                             _data:
                               uuid: 66666666-6666-6666-6666-666666666666
                               value: 42
                               status: complete
                             _uuid: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
+                            verified: false
                   summary: Qualitative Analysis – Integer Question
                   description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.\
                     \ \n\n`status` will only be present for automatic_actions."
@@ -3523,12 +3554,12 @@ paths:
                           _dateModified: '2025-01-01T12:00:00Z'
                           _versions:
                           - _dateCreated: '2025-01-01T12:00:00Z'
-                            _dateAccepted: '2025-01-01T12:00:00Z'
                             _data:
                               uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
                               value: This is a qualitative text response.
                               status: complete
                             _uuid: 12121212-3434-5656-7878-909090909090
+                            verified: false
                   summary: Qualitative Analysis – Text Question
                   description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.\
                     \ \n\n`status` will only be present for automatic_actions."
@@ -3542,12 +3573,12 @@ paths:
                           _dateModified: '2025-01-01T12:00:00Z'
                           _versions:
                           - _dateCreated: '2025-01-01T12:00:00Z'
-                            _dateAccepted: '2025-01-01T12:00:00Z'
                             _data:
                               uuid: 77777777-7777-7777-7777-777777777777
                               value: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
                               status: complete
                             _uuid: bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
+                            verified: false
                   summary: Qualitative Analysis – Single Choice Question
                   description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.\
                     \ \n\n`status` will only be present for automatic_actions."
@@ -3561,7 +3592,6 @@ paths:
                           _dateModified: '2025-01-01T12:00:00Z'
                           _versions:
                           - _dateCreated: '2025-01-01T12:00:00Z'
-                            _dateAccepted: '2025-01-01T12:00:00Z'
                             _data:
                               uuid: 88888888-8888-8888-8888-888888888888
                               value:
@@ -3569,6 +3599,7 @@ paths:
                               - bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
                               status: complete
                             _uuid: 99999999-9999-9999-9999-999999999999
+                            verified: false
                   summary: Qualitative Analysis – Multiple Choice Question
                   description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.\
                     \ \n\n`status` will only be present for automatic_actions."
@@ -3582,7 +3613,6 @@ paths:
                           _dateModified: '2025-01-01T12:00:00Z'
                           _versions:
                           - _dateCreated: '2025-01-01T12:00:00Z'
-                            _dateAccepted: '2025-01-01T12:00:00Z'
                             _data:
                               uuid: bbbbbbbb-cccc-dddd-eeee-ffffffffffff
                               value:
@@ -3590,7 +3620,27 @@ paths:
                               - review
                               - priority
                             _uuid: 23232323-4545-6767-8989-010101010101
+                            verified: false
                   summary: Manual Qualitative Analysis – Tags Question
+                QualitativeAnalysis–VerifiedResponse:
+                  value:
+                    _version: '20250820'
+                    question_name_xpath:
+                      <action_id>:
+                        bbbbbbbb-cccc-dddd-eeee-ffffffffffff:
+                          _dateCreated: '2025-01-01T12:00:00Z'
+                          _dateModified: '2025-01-01T12:00:00Z'
+                          _versions:
+                          - _dateCreated: '2025-01-01T12:00:00Z'
+                            _dateVerified: '2025-01-01T12:00:00Z'
+                            _data:
+                              uuid: bbbbbbbb-cccc-dddd-eeee-ffffffffffff
+                              status: complete
+                              value: 5
+                            _uuid: 23232323-4545-6767-8989-010101010101
+                            verified: true
+                  summary: Qualitative Analysis – Verified Response
+                  description: '`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`. '
                 AutomaticQualitativeAnalysis–FailedResponse:
                   value:
                     _version: '20250820'
@@ -3601,12 +3651,12 @@ paths:
                           _dateModified: '2025-01-01T12:00:00Z'
                           _versions:
                           - _dateCreated: '2025-01-01T12:00:00Z'
-                            _dateAccepted: '2025-01-01T12:00:00Z'
                             _data:
                               uuid: bbbbbbbb-cccc-dddd-eeee-ffffffffffff
                               status: failed
                               error: Cannot parse response from LLM
                             _uuid: 23232323-4545-6767-8989-010101010101
+                            verified: false
                   summary: Automatic Qualitative Analysis – Failed response
           description: null
         '401':
@@ -5866,9 +5916,9 @@ paths:
           - 1
           - 2
         description: |-
-          * `0` - Failed
-          * `1` - Pending
-          * `2` - Success
+          * `0` - failed
+          * `1` - pending
+          * `2` - success
       - in: path
         name: uid_asset
         schema:
@@ -13165,11 +13215,10 @@ components:
                   properties:
                     _data:
                       oneOf:
-                      - $ref: '#/components/schemas/DataSupplementManualQualData(''Integer'',)'
-                      - $ref: '#/components/schemas/DataSupplementManualQualData(''Text'',)'
-                      - $ref: '#/components/schemas/DataSupplementManualQualData(''SelectOne'',)'
-                      - $ref: '#/components/schemas/DataSupplementManualQualData(''SelectMultiple'',)'
-                      - $ref: '#/components/schemas/DataSupplementManualQualData(''Tags'',)'
+                      - $ref: '#/components/schemas/DataSupplementAutomaticQualData(''Integer'',)Response'
+                      - $ref: '#/components/schemas/DataSupplementAutomaticQualData(''Text'',)Response'
+                      - $ref: '#/components/schemas/DataSupplementAutomaticQualData(''SelectOne'',)Response'
+                      - $ref: '#/components/schemas/DataSupplementAutomaticQualData(''SelectMultiple'',)Response'
                     _dateAccepted:
                       type: string
                       format: date-time
@@ -13207,11 +13256,10 @@ components:
                     properties:
                       _data:
                         oneOf:
-                        - $ref: '#/components/schemas/DataSupplementManualQualData(''Integer'',)'
-                        - $ref: '#/components/schemas/DataSupplementManualQualData(''Text'',)'
-                        - $ref: '#/components/schemas/DataSupplementManualQualData(''SelectOne'',)'
-                        - $ref: '#/components/schemas/DataSupplementManualQualData(''SelectMultiple'',)'
-                        - $ref: '#/components/schemas/DataSupplementManualQualData(''Tags'',)'
+                        - $ref: '#/components/schemas/DataSupplementAutomaticQualData(''Integer'',)Response'
+                        - $ref: '#/components/schemas/DataSupplementAutomaticQualData(''Text'',)Response'
+                        - $ref: '#/components/schemas/DataSupplementAutomaticQualData(''SelectOne'',)Response'
+                        - $ref: '#/components/schemas/DataSupplementAutomaticQualData(''SelectMultiple'',)Response'
                       _dateAccepted:
                         type: string
                         format: date-time
@@ -14024,9 +14072,9 @@ components:
       - 2
       type: integer
       description: |-
-        * `0` - Failed
-        * `1` - Pending
-        * `2` - Success
+        * `0` - failed
+        * `1` - pending
+        * `2` - success
     HookRetryResponse:
       type: object
       properties:
@@ -16183,8 +16231,11 @@ components:
           - $ref: '#/components/schemas/DataSupplementManualQualData(''SelectOne'',)'
           - $ref: '#/components/schemas/DataSupplementManualQualData(''SelectMultiple'',)'
           - $ref: '#/components/schemas/DataSupplementManualQualData(''Tags'',)'
+          - $ref: '#/components/schemas/PatchedDataSupplementPayloadOneOfVerification'
         automatic_bedrock_qual:
-          $ref: '#/components/schemas/PatchedDataSupplementPayloadOneOfAutomaticQual'
+          oneOf:
+          - $ref: '#/components/schemas/PatchedDataSupplementPayloadOneOfAutomaticQual'
+          - $ref: '#/components/schemas/PatchedDataSupplementPayloadOneOfVerification'
       additionalProperties: false
       anyOf:
       - required:
@@ -16208,6 +16259,18 @@ components:
           format: uuid
       required:
       - uuid
+    PatchedDataSupplementPayloadOneOfVerification:
+      type: object
+      additionalProperties: false
+      properties:
+        uuid:
+          type: string
+          format: uuid
+        verified:
+          type: boolean
+      required:
+      - uuid
+      - verified
     PatchedDataValidationStatusUpdatePayload:
       type: object
       properties:
