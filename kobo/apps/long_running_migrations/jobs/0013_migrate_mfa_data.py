@@ -5,16 +5,13 @@ from django.db.models.query import QuerySet
 from kobo.apps.kobo_auth.shortcuts import User
 
 
-CHUNK_SIZE = 1000
-
-
 def process_user(adapter, user_id, username):
     print(f'Migrating MFA data for user {username}...')
-    try:
-        user = User.objects.get(id=user_id)
-    except User.DoesNotExist:
-        print(f'Race condition catched: user_id={user_id} no longer exists')
+    if not User.objects.filter(pk=user_id).exists():
+        print(f'Race condition catched: User(pk={user_id}) no longer exists')
         return 0
+
+    user = User.objects.get(pk=user_id)
     result = adapter.migrate_user(user)
     return 1 if result is not None else 0
 
@@ -28,7 +25,7 @@ def get_queryset(from_user_pk: int) -> QuerySet:
             mfa_methods__is_active=True,
             mfa_methods_wrapper__id__isnull=True,
         )
-        .values('id', 'username')[:CHUNK_SIZE]
+        .values('id', 'username')[:settings.LONG_RUNNING_MIGRATION_BATCH_SIZE]
     )
 
     return users
@@ -52,7 +49,7 @@ def run():
             break
         print(f'Processing {users_count} users from {last_pk}')
         last_pk = users[users_count - 1]['id']
-        
+
         for user in users:
             result = process_user(adapter, user['id'], user['username'])
             migrated_users += result
