@@ -20,6 +20,7 @@ def build_url_type(viewname: str, **kwargs) -> dict:
     DEV_DOMAIN_NAMES = [
         'http://kpi',
         'http://kf.kobo.local',
+        'http://kf.kobo.local:8080',
         'http://kf.kobo.localhost',
     ]
 

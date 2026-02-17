@@ -15,7 +15,7 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -24,7 +24,7 @@
                         "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated alias of `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -34,6 +34,15 @@
                         "name": "q",
                         "schema": {
                             "type": "string"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
+                        "schema": {
+                            "type": "integer"
                         }
                     }
                 ],
@@ -202,7 +211,7 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -211,7 +220,7 @@
                         "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated alias of `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -221,6 +230,15 @@
                         "name": "q",
                         "schema": {
                             "type": "string"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
+                        "schema": {
+                            "type": "integer"
                         }
                     }
                 ],
@@ -371,7 +389,7 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -380,7 +398,16 @@
                         "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated alias of `start`.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -874,7 +901,7 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -883,7 +910,16 @@
                         "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated alias of `start`.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -1091,7 +1127,7 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -1100,7 +1136,16 @@
                         "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated alias of `start`.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -1155,20 +1200,22 @@
                 "description": "## Get user's assets\n\n\nSearch can be made with `q` parameter.\nSearch filters can be returned with results by passing `metadata=on` to querystring.\n\n\nResults can be sorted with `ordering` parameter, e.g.:\n\n```shell\ncurl -X GET https://kf.kobotoolbox.org/api/v2/assets/?ordering=-name\n```\n\n\nAllowed fields are:\n\n- `asset_type`\n- `date_modified`\n- `date_deployed`\n- `date_modified__date`\n- `date_deployed__date`\n- `name`\n- `settings__sector`\n- `settings__sector__value`\n- `settings__description`\n- `owner__username`\n- `owner__extra_details__data__name`\n- `owner__extra_details__data__organization`\n- `owner__email`\n- `_deployment_status`\n- `subscribers_count`\n\n\nNote: Collections can be displayed first with parameter `collections_first`, e.g.:\n\n```shell\ncurl -X GET https://kf.kobotoolbox.org/api/v2/assets/?collections_first=true&ordering=-name\n```\n",
                 "parameters": [
                     {
-                        "in": "query",
                         "name": "limit",
+                        "required": false,
+                        "in": "query",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
-                        },
-                        "description": "Paginate results with limit parameter"
+                        }
                     },
                     {
-                        "in": "query",
                         "name": "offset",
+                        "required": false,
+                        "in": "query",
+                        "description": "Deprecated alias of `start`.",
                         "schema": {
                             "type": "integer"
-                        },
-                        "description": "Paginate results with offset parameter"
+                        }
                     },
                     {
                         "in": "query",
@@ -1185,6 +1232,15 @@
                             "type": "string"
                         },
                         "description": "Filter the results with search query"
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
+                        "schema": {
+                            "type": "integer"
+                        }
                     }
                 ],
                 "tags": [
@@ -1635,7 +1691,27 @@
                                         "summary": "NLP Advanced Features",
                                         "description": "`<action_id>` can be any of:\n\n* `manual_transcription`\n* `manual_translation`\n* `automatic_google_transcription`\n* `automatic_google_translation`\n"
                                     },
-                                    "QualitativeAnalysis-SimpleTypes": {
+                                    "QualitativeAnalysis-SimpleTypes_": {
+                                        "value": [
+                                            {
+                                                "action": "<action_id>",
+                                                "question_xpath": "q1",
+                                                "params": [
+                                                    {
+                                                        "type": "<question_type>",
+                                                        "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
+                                                        "labels": {
+                                                            "_default": "Qualitative analysis result"
+                                                        }
+                                                    }
+                                                ],
+                                                "uid": "qa123456789AbCdEfGhIjklm"
+                                            }
+                                        ],
+                                        "summary": "Qualitative Analysis - Simple Types ",
+                                        "description": "`<question_type>` may be either `qualText` or `qualInteger`\n\n`<action_id>` may be either `manual_qual` or `automatic_bedrock_qual`"
+                                    },
+                                    "QualitativeAnalysis-SimpleTypes-ManualOnly": {
                                         "value": [
                                             {
                                                 "action": "manual_qual",
@@ -1652,13 +1728,13 @@
                                                 "uid": "qa123456789AbCdEfGhIjklm"
                                             }
                                         ],
-                                        "summary": "Qualitative Analysis - Simple Types",
-                                        "description": "`<question_type>` can be any of:\n\n* `qualText` \n* `qualInteger` \n* `qualTags` \n* `qualNote` \n"
+                                        "summary": "Qualitative Analysis - Simple Types - Manual Only",
+                                        "description": "`<question_type>` may be either `qualNote` or `qualTags`"
                                     },
                                     "QualitativeAnalysis-SingleChoiceQuestion": {
                                         "value": [
                                             {
-                                                "action": "manual_qual",
+                                                "action": "<action_id>",
                                                 "question_xpath": "q1",
                                                 "params": [
                                                     {
@@ -1692,12 +1768,13 @@
                                                 "uid": "qa123456789AbCdEfGhIjklm"
                                             }
                                         ],
-                                        "summary": "Qualitative Analysis - Single Choice Question"
+                                        "summary": "Qualitative Analysis - Single Choice Question",
+                                        "description": "`<action_id>` may be either `manual_qual` or `automatic_bedrock_qual`"
                                     },
                                     "QualitativeAnalysis-MultipleChoiceQuestion(withDeletedChoice)": {
                                         "value": [
                                             {
-                                                "action": "manual_qual",
+                                                "action": "<action_id>",
                                                 "question_xpath": "q1",
                                                 "params": [
                                                     {
@@ -1734,12 +1811,13 @@
                                                 "uid": "qa123456789AbCdEfGhIjklm"
                                             }
                                         ],
-                                        "summary": "Qualitative Analysis - Multiple Choice Question (with deleted choice)"
+                                        "summary": "Qualitative Analysis - Multiple Choice Question (with deleted choice)",
+                                        "description": "`<action_id>` may be either `manual_qual` or `automatic_bedrock_qual`"
                                     },
-                                    "QualitativeAnalysis-SimpleTypes-DeletedQuestion": {
+                                    "QualitativeAnalysis-DeletedQuestion": {
                                         "value": [
                                             {
-                                                "action": "manual_qual",
+                                                "action": "<action_id>",
                                                 "question_xpath": "q1",
                                                 "params": [
                                                     {
@@ -1756,8 +1834,8 @@
                                                 "uid": "qa123456789AbCdEfGhIjklm"
                                             }
                                         ],
-                                        "summary": "Qualitative Analysis - Simple Types - Deleted question",
-                                        "description": "`<question_type>` can be any of:\n\n* `qualText` \n* `qualInteger` \n* `qualTags` \n* `qualNote` \n"
+                                        "summary": "Qualitative Analysis - Deleted question",
+                                        "description": "`<action_id>` may be either `manual_qual` or `automatic_bedrock_qual`"
                                     }
                                 }
                             }
@@ -1826,7 +1904,7 @@
                                 },
                                 "QualitativeAnalysis-SimpleTypes": {
                                     "value": {
-                                        "action": "manual_qual",
+                                        "action": "<action_id>",
                                         "question_xpath": "q1",
                                         "params": [
                                             {
@@ -1839,11 +1917,28 @@
                                         ]
                                     },
                                     "summary": "Qualitative Analysis - Simple Types",
-                                    "description": "`<question_type>` can be any of:\n\n* `qualText` \n* `qualInteger` \n* `qualTags` \n* `qualNote` \n"
+                                    "description": "`<question_type>` may be either `qualText` or `qualInteger`:\n\n`<action_id>` may be either `manual_qual` or `automatic_bedrock_qual`"
+                                },
+                                "QualitativeAnalysis-SimpleTypes-ManualOnly": {
+                                    "value": {
+                                        "action": "manual_qual",
+                                        "question_xpath": "q1",
+                                        "params": [
+                                            {
+                                                "type": "<question_type>",
+                                                "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
+                                                "labels": {
+                                                    "_default": "Qualitative analysis result"
+                                                }
+                                            }
+                                        ]
+                                    },
+                                    "summary": "Qualitative Analysis - Simple Types - Manual Only",
+                                    "description": "`<question_type>` may be either `qualTags` or `qualNote`"
                                 },
                                 "QualitativeAnalysis-SingleChoiceQuestion": {
                                     "value": {
-                                        "action": "manual_qual",
+                                        "action": "<action_id>",
                                         "question_xpath": "q1",
                                         "params": [
                                             {
@@ -1875,11 +1970,12 @@
                                             }
                                         ]
                                     },
-                                    "summary": "Qualitative Analysis - Single Choice Question"
+                                    "summary": "Qualitative Analysis - Single Choice Question",
+                                    "description": "`<action_id>` may be either `manual_qual` or `automatic_bedrock_qual`"
                                 },
                                 "QualitativeAnalysis-MultipleChoiceQuestion": {
                                     "value": {
-                                        "action": "manual_qual",
+                                        "action": "<action_id>",
                                         "question_xpath": "q1",
                                         "params": [
                                             {
@@ -1911,7 +2007,8 @@
                                             }
                                         ]
                                     },
-                                    "summary": "Qualitative Analysis - Multiple Choice Question"
+                                    "summary": "Qualitative Analysis - Multiple Choice Question",
+                                    "description": "`<action_id>` may be either `manual_qual` or `automatic_bedrock_qual`"
                                 }
                             }
                         }
@@ -2040,7 +2137,25 @@
                                         "summary": "NLP Advanced Features",
                                         "description": "`<action_id>` can be any of:\n\n* `manual_transcription`\n* `manual_translation`\n* `automatic_google_transcription`\n* `automatic_google_translation`\n"
                                     },
-                                    "QualitativeAnalysis-SimpleTypes": {
+                                    "QualitativeAnalysis-SimpleTypes_": {
+                                        "value": {
+                                            "action": "<action_id>",
+                                            "question_xpath": "q1",
+                                            "params": [
+                                                {
+                                                    "type": "<question_type>",
+                                                    "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
+                                                    "labels": {
+                                                        "_default": "Qualitative analysis result"
+                                                    }
+                                                }
+                                            ],
+                                            "uid": "qa123456789AbCdEfGhIjklm"
+                                        },
+                                        "summary": "Qualitative Analysis - Simple Types ",
+                                        "description": "`<question_type>` may be either `qualText` or `qualInteger`\n\n`<action_id>` may be either `manual_qual` or `automatic_bedrock_qual`"
+                                    },
+                                    "QualitativeAnalysis-SimpleTypes-ManualOnly": {
                                         "value": {
                                             "action": "manual_qual",
                                             "question_xpath": "q1",
@@ -2055,12 +2170,12 @@
                                             ],
                                             "uid": "qa123456789AbCdEfGhIjklm"
                                         },
-                                        "summary": "Qualitative Analysis - Simple Types",
-                                        "description": "`<question_type>` can be any of:\n\n* `qualText` \n* `qualInteger` \n* `qualTags` \n* `qualNote` \n"
+                                        "summary": "Qualitative Analysis - Simple Types - Manual Only",
+                                        "description": "`<question_type>` may be either `qualNote` or `qualTags`"
                                     },
                                     "QualitativeAnalysis-SingleChoiceQuestion": {
                                         "value": {
-                                            "action": "manual_qual",
+                                            "action": "<action_id>",
                                             "question_xpath": "q1",
                                             "params": [
                                                 {
@@ -2093,11 +2208,12 @@
                                             ],
                                             "uid": "qa123456789AbCdEfGhIjklm"
                                         },
-                                        "summary": "Qualitative Analysis - Single Choice Question"
+                                        "summary": "Qualitative Analysis - Single Choice Question",
+                                        "description": "`<action_id>` may be either `manual_qual` or `automatic_bedrock_qual`"
                                     },
                                     "QualitativeAnalysis-MultipleChoiceQuestion(withDeletedChoice)": {
                                         "value": {
-                                            "action": "manual_qual",
+                                            "action": "<action_id>",
                                             "question_xpath": "q1",
                                             "params": [
                                                 {
@@ -2133,11 +2249,12 @@
                                             ],
                                             "uid": "qa123456789AbCdEfGhIjklm"
                                         },
-                                        "summary": "Qualitative Analysis - Multiple Choice Question (with deleted choice)"
+                                        "summary": "Qualitative Analysis - Multiple Choice Question (with deleted choice)",
+                                        "description": "`<action_id>` may be either `manual_qual` or `automatic_bedrock_qual`"
                                     },
-                                    "QualitativeAnalysis-SimpleTypes-DeletedQuestion": {
+                                    "QualitativeAnalysis-DeletedQuestion": {
                                         "value": {
-                                            "action": "manual_qual",
+                                            "action": "<action_id>",
                                             "question_xpath": "q1",
                                             "params": [
                                                 {
@@ -2153,8 +2270,8 @@
                                             },
                                             "uid": "qa123456789AbCdEfGhIjklm"
                                         },
-                                        "summary": "Qualitative Analysis - Simple Types - Deleted question",
-                                        "description": "`<question_type>` can be any of:\n\n* `qualText` \n* `qualInteger` \n* `qualTags` \n* `qualNote` \n"
+                                        "summary": "Qualitative Analysis - Deleted question",
+                                        "description": "`<action_id>` may be either `manual_qual` or `automatic_bedrock_qual`"
                                     }
                                 }
                             }
@@ -2226,7 +2343,7 @@
                                         ]
                                     },
                                     "summary": "NLP Advanced Features",
-                                    "description": "`<action_id>` can be any of:\n\n* `manual_transcription`\n* `manual_translation`\n* `automatic_google_transcription`\n* `automatic_google_translation`\n"
+                                    "description": "This may be used to update any of the NLP actions:\n\n* `manual_transcription`\n* `manual_translation`\n* `automatic_google_transcription`\n* `automatic_google_translation`\n"
                                 },
                                 "QualitativeAnalysis-SimpleTypes": {
                                     "value": {
@@ -2241,7 +2358,22 @@
                                         ]
                                     },
                                     "summary": "Qualitative Analysis - Simple Types",
-                                    "description": "`<question_type>` can be any of:\n\n* `qualText` \n* `qualInteger` \n* `qualTags` \n* `qualNote` \n"
+                                    "description": "`<question_type>` may be either `qualText` or `qualInteger`\n\nThis may be used to update either `manual_qual` or `automatic_bedrock_qual` actions"
+                                },
+                                "QualitativeAnalysis-SimpleTypes-ManualOnly": {
+                                    "value": {
+                                        "params": [
+                                            {
+                                                "type": "<question_type>",
+                                                "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
+                                                "labels": {
+                                                    "_default": "Qualitative analysis result"
+                                                }
+                                            }
+                                        ]
+                                    },
+                                    "summary": "Qualitative Analysis - Simple Types - Manual Only",
+                                    "description": "`<question_type>` may be either `qualTags` or `qualNote`"
                                 },
                                 "QualitativeAnalysis-SingleChoiceQuestion": {
                                     "value": {
@@ -2275,7 +2407,8 @@
                                             }
                                         ]
                                     },
-                                    "summary": "Qualitative Analysis - Single Choice Question"
+                                    "summary": "Qualitative Analysis - Single Choice Question",
+                                    "description": "This may be used to update either `manual_qual` or `automatic_bedrock_qual` actions"
                                 },
                                 "QualitativeAnalysis-MultipleChoiceQuestion": {
                                     "value": {
@@ -2309,7 +2442,8 @@
                                             }
                                         ]
                                     },
-                                    "summary": "Qualitative Analysis - Multiple Choice Question"
+                                    "summary": "Qualitative Analysis - Multiple Choice Question",
+                                    "description": "This may be used to update either `manual_qual` or `automatic_bedrock_qual` actions"
                                 }
                             }
                         }
@@ -2348,7 +2482,25 @@
                                         "summary": "NLP Advanced Features",
                                         "description": "`<action_id>` can be any of:\n\n* `manual_transcription`\n* `manual_translation`\n* `automatic_google_transcription`\n* `automatic_google_translation`\n"
                                     },
-                                    "QualitativeAnalysis-SimpleTypes": {
+                                    "QualitativeAnalysis-SimpleTypes_": {
+                                        "value": {
+                                            "action": "<action_id>",
+                                            "question_xpath": "q1",
+                                            "params": [
+                                                {
+                                                    "type": "<question_type>",
+                                                    "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
+                                                    "labels": {
+                                                        "_default": "Qualitative analysis result"
+                                                    }
+                                                }
+                                            ],
+                                            "uid": "qa123456789AbCdEfGhIjklm"
+                                        },
+                                        "summary": "Qualitative Analysis - Simple Types ",
+                                        "description": "`<question_type>` may be either `qualText` or `qualInteger`\n\n`<action_id>` may be either `manual_qual` or `automatic_bedrock_qual`"
+                                    },
+                                    "QualitativeAnalysis-SimpleTypes-ManualOnly": {
                                         "value": {
                                             "action": "manual_qual",
                                             "question_xpath": "q1",
@@ -2363,12 +2515,12 @@
                                             ],
                                             "uid": "qa123456789AbCdEfGhIjklm"
                                         },
-                                        "summary": "Qualitative Analysis - Simple Types",
-                                        "description": "`<question_type>` can be any of:\n\n* `qualText` \n* `qualInteger` \n* `qualTags` \n* `qualNote` \n"
+                                        "summary": "Qualitative Analysis - Simple Types - Manual Only",
+                                        "description": "`<question_type>` may be either `qualNote` or `qualTags`"
                                     },
                                     "QualitativeAnalysis-SingleChoiceQuestion": {
                                         "value": {
-                                            "action": "manual_qual",
+                                            "action": "<action_id>",
                                             "question_xpath": "q1",
                                             "params": [
                                                 {
@@ -2401,11 +2553,12 @@
                                             ],
                                             "uid": "qa123456789AbCdEfGhIjklm"
                                         },
-                                        "summary": "Qualitative Analysis - Single Choice Question"
+                                        "summary": "Qualitative Analysis - Single Choice Question",
+                                        "description": "`<action_id>` may be either `manual_qual` or `automatic_bedrock_qual`"
                                     },
                                     "QualitativeAnalysis-MultipleChoiceQuestion(withDeletedChoice)": {
                                         "value": {
-                                            "action": "manual_qual",
+                                            "action": "<action_id>",
                                             "question_xpath": "q1",
                                             "params": [
                                                 {
@@ -2441,11 +2594,12 @@
                                             ],
                                             "uid": "qa123456789AbCdEfGhIjklm"
                                         },
-                                        "summary": "Qualitative Analysis - Multiple Choice Question (with deleted choice)"
+                                        "summary": "Qualitative Analysis - Multiple Choice Question (with deleted choice)",
+                                        "description": "`<action_id>` may be either `manual_qual` or `automatic_bedrock_qual`"
                                     },
-                                    "QualitativeAnalysis-SimpleTypes-DeletedQuestion": {
+                                    "QualitativeAnalysis-DeletedQuestion": {
                                         "value": {
-                                            "action": "manual_qual",
+                                            "action": "<action_id>",
                                             "question_xpath": "q1",
                                             "params": [
                                                 {
@@ -2461,8 +2615,8 @@
                                             },
                                             "uid": "qa123456789AbCdEfGhIjklm"
                                         },
-                                        "summary": "Qualitative Analysis - Simple Types - Deleted question",
-                                        "description": "`<question_type>` can be any of:\n\n* `qualText` \n* `qualInteger` \n* `qualTags` \n* `qualNote` \n"
+                                        "summary": "Qualitative Analysis - Deleted question",
+                                        "description": "`<action_id>` may be either `manual_qual` or `automatic_bedrock_qual`"
                                     }
                                 }
                             }
@@ -2733,7 +2887,7 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -2742,7 +2896,16 @@
                         "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated alias of `start`.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -2821,7 +2984,7 @@
         "/api/v2/assets/{uid_asset}/data/": {
             "get": {
                 "operationId": "api_v2_assets_data_list",
-                "description": "## List of submissions for a specific asset\n\nBy default, JSON format is used, but XML and GeoJSON are also available:\n\n```shell\ncurl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid}/data/\n```\n\n### Pagination\nTwo parameters can be used to control pagination.\n\n* `start`: Index (zero-based) from which the results start\n* `limit`: Number of results per page <span class='label label-warning'>Maximum results per page is **1000**</span>\n\n```shell\ncurl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid}/data/?start=0&limit=10\n```\n\n### Query submitted data\nProvides a list of submitted data for a specific form. Use `query`\nparameter to apply form data specific, see\n<a href=\"http://docs.mongodb.org/manual/reference/operator/query/\">http://docs.mongodb.org/manual/reference/operator/query/</a>.\n\nFor more details see\n<a href=\"https://github.com/SEL-Columbia/formhub/wiki/Formhub-Access-Points-(API)#api-parameters\">API Parameters</a>.\n\n```shell\ncurl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid}/data/?query={\"__version__\": \"vWvkKzNE8xCtfApJvabfjG\"}\ncurl https://kf.kobotoolbox.org/api/v2/assets/{uid}/data/?query={\"_submission_time\": {\"$gt\": \"2019-09-01T01:02:03\"}}\n```\n\n### About the GeoJSON format\nRequesting the `geojson` format returns a `FeatureCollection` where each\nsubmission is a `Feature`. If your form has multiple geographic questions,\nuse the `geo_question_name` query parameter to determine which question's\nresponses populate the `geometry` for each `Feature`; otherwise, the first\ngeographic question is used.  All question/response pairs are included in\nthe `properties` of each `Feature`, but _repeating groups are omitted_.\n\nQuestion types are mapped to GeoJSON geometry types as follows:\n\n* `geopoint` to `Point`;\n* `geotrace` to `LineString`;\n* `geoshape` to `Polygon`.\n\n\n\n### ⚠️ Note: DRF-Spectacular Limitation\n\nDue to limitations in **DRF-Spectacular**, the `ACCEPT` headers do not sync properly with the request. As a result, all responses will default to `application/json`, regardless of the specified format.\n\nThis means that while alternative formats (like XML) are technically supported and will work via command-line tools (e.g., `curl`), **they will not work** when trying out the endpoint directly from the documentation page.\n\nWe’ve still included the header to show supported formats, but keep in mind:\n**Only `application/json` will be used in the docs UI.**\n\n",
+                "description": "## List of submissions for a specific asset\n\nBy default, JSON format is used, but XML and GeoJSON are also available:\n\n```shell\ncurl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid}/data/\n```\n\n### Pagination\nTwo parameters can be used to control pagination.\n\n* `start`: Index (zero-based) from which the results start\n* `limit`: Number of results per page <span class='label label-warning'>Maximum results per page cannot exceed  **1000**, unless changed by server configuration</span>\n\n```shell\ncurl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid}/data/?start=0&limit=10\n```\n\n### Query submitted data\nProvides a list of submitted data for a specific form. Use `query`\nparameter to apply form data specific, see\n<a href=\"http://docs.mongodb.org/manual/reference/operator/query/\">http://docs.mongodb.org/manual/reference/operator/query/</a>.\n\nFor more details see\n<a href=\"https://github.com/SEL-Columbia/formhub/wiki/Formhub-Access-Points-(API)#api-parameters\">API Parameters</a>.\n\n```shell\ncurl -X GET https://kf.kobotoolbox.org/api/v2/assets/{uid}/data/?query={\"__version__\": \"vWvkKzNE8xCtfApJvabfjG\"}\ncurl https://kf.kobotoolbox.org/api/v2/assets/{uid}/data/?query={\"_submission_time\": {\"$gt\": \"2019-09-01T01:02:03\"}}\n```\n\n### About the GeoJSON format\nRequesting the `geojson` format returns a `FeatureCollection` where each\nsubmission is a `Feature`. If your form has multiple geographic questions,\nuse the `geo_question_name` query parameter to determine which question's\nresponses populate the `geometry` for each `Feature`; otherwise, the first\ngeographic question is used.  All question/response pairs are included in\nthe `properties` of each `Feature`, but _repeating groups are omitted_.\n\nQuestion types are mapped to GeoJSON geometry types as follows:\n\n* `geopoint` to `Point`;\n* `geotrace` to `LineString`;\n* `geoshape` to `Polygon`.\n\n\n\n### ⚠️ Note: DRF-Spectacular Limitation\n\nDue to limitations in **DRF-Spectacular**, the `ACCEPT` headers do not sync properly with the request. As a result, all responses will default to `application/json`, regardless of the specified format.\n\nThis means that while alternative formats (like XML) are technically supported and will work via command-line tools (e.g., `curl`), **they will not work** when trying out the endpoint directly from the documentation page.\n\nWe’ve still included the header to show supported formats, but keep in mind:\n**Only `application/json` will be used in the docs UI.**\n",
                 "parameters": [
                     {
                         "in": "query",
@@ -2848,7 +3011,16 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "offset",
+                        "required": false,
+                        "in": "query",
+                        "description": "Deprecated alias of `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -2865,7 +3037,7 @@
                         "name": "start",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -3774,7 +3946,7 @@
         "/api/v2/assets/{uid_asset}/data/{root_uuid}/supplement/": {
             "get": {
                 "operationId": "api_v2_assets_data_supplement_retrieve",
-                "description": "## Retrieve submission supplementary data\n\nThis endpoint allows you to retrieve supplementary data attached to a submission.\n\nThe supplementary data may include:\n\n* NLP actions\n  * Manual transcription\n  * Manual translation\n  * Automatic Google transcription\n  * Automatic Google translation\n* Qualitative analysis\n  * Text\n  * Number\n  * Single Choice\n  * Multiple Choice\n  * Tags\n\n⚠️ The response examples in this documentation show each action in isolation for\nreadability.\n\nIn practice, multiple actions can be combined for the same question, and a single\nsubmission may contain multiple questions.\n",
+                "description": "## Retrieve submission supplementary data\n\nThis endpoint allows you to retrieve supplementary data attached to a submission.\n\nThe supplementary data may include:\n\n* NLP actions\n  * Manual transcription\n  * Manual translation\n  * Automatic Google transcription\n  * Automatic Google translation\n* Qualitative analysis - manual or automatic with Bedrock\n  * Text\n  * Number\n  * Single Choice\n  * Multiple Choice\n* Qualitative analysis (manual only)\n  * Tags\n\n⚠️ The response examples in this documentation show each action in isolation for\nreadability.\n\nIn practice, multiple actions can be combined for the same question, and a single\nsubmission may contain multiple questions.\n",
                 "parameters": [
                     {
                         "in": "path",
@@ -4009,11 +4181,11 @@
                                         },
                                         "summary": "Automated Google Translation"
                                     },
-                                    "ManualQualitativeAnalysis–IntegerQuestion": {
+                                    "QualitativeAnalysis–IntegerQuestion": {
                                         "value": {
                                             "_version": "20250820",
                                             "question_name_xpath": {
-                                                "manual_qual": {
+                                                "<action_id>": {
                                                     "66666666-6666-6666-6666-666666666666": {
                                                         "_dateCreated": "2025-01-01T12:00:00Z",
                                                         "_dateModified": "2025-01-01T12:00:00Z",
@@ -4023,7 +4195,8 @@
                                                                 "_dateAccepted": "2025-01-01T12:00:00Z",
                                                                 "_data": {
                                                                     "uuid": "66666666-6666-6666-6666-666666666666",
-                                                                    "value": 42
+                                                                    "value": 42,
+                                                                    "status": "complete"
                                                                 },
                                                                 "_uuid": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
                                                             }
@@ -4032,13 +4205,14 @@
                                                 }
                                             }
                                         },
-                                        "summary": "Manual Qualitative Analysis – Integer Question"
+                                        "summary": "Qualitative Analysis – Integer Question",
+                                        "description": "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`. \n\n`status` will only be present for automatic_actions."
                                     },
-                                    "ManualQualitativeAnalysis–TextQuestion": {
+                                    "QualitativeAnalysis–TextQuestion": {
                                         "value": {
                                             "_version": "20250820",
                                             "question_name_xpath": {
-                                                "manual_qual": {
+                                                "<action_id>": {
                                                     "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff": {
                                                         "_dateCreated": "2025-01-01T12:00:00Z",
                                                         "_dateModified": "2025-01-01T12:00:00Z",
@@ -4048,7 +4222,8 @@
                                                                 "_dateAccepted": "2025-01-01T12:00:00Z",
                                                                 "_data": {
                                                                     "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
-                                                                    "value": "This is a qualitative text response."
+                                                                    "value": "This is a qualitative text response.",
+                                                                    "status": "complete"
                                                                 },
                                                                 "_uuid": "12121212-3434-5656-7878-909090909090"
                                                             }
@@ -4057,13 +4232,14 @@
                                                 }
                                             }
                                         },
-                                        "summary": "Manual Qualitative Analysis – Text Question"
+                                        "summary": "Qualitative Analysis – Text Question",
+                                        "description": "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`. \n\n`status` will only be present for automatic_actions."
                                     },
-                                    "ManualQualitativeAnalysis–SingleChoiceQuestion": {
+                                    "QualitativeAnalysis–SingleChoiceQuestion": {
                                         "value": {
                                             "_version": "20250820",
                                             "question_name_xpath": {
-                                                "manual_qual": {
+                                                "<action_id>": {
                                                     "77777777-7777-7777-7777-777777777777": {
                                                         "_dateCreated": "2025-01-01T12:00:00Z",
                                                         "_dateModified": "2025-01-01T12:00:00Z",
@@ -4073,7 +4249,8 @@
                                                                 "_dateAccepted": "2025-01-01T12:00:00Z",
                                                                 "_data": {
                                                                     "uuid": "77777777-7777-7777-7777-777777777777",
-                                                                    "value": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+                                                                    "value": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+                                                                    "status": "complete"
                                                                 },
                                                                 "_uuid": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
                                                             }
@@ -4082,13 +4259,14 @@
                                                 }
                                             }
                                         },
-                                        "summary": "Manual Qualitative Analysis – Single Choice Question"
+                                        "summary": "Qualitative Analysis – Single Choice Question",
+                                        "description": "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`. \n\n`status` will only be present for automatic_actions."
                                     },
-                                    "ManualQualitativeAnalysis–MultipleChoiceQuestion": {
+                                    "QualitativeAnalysis–MultipleChoiceQuestion": {
                                         "value": {
                                             "_version": "20250820",
                                             "question_name_xpath": {
-                                                "manual_qual": {
+                                                "<action_id>": {
                                                     "88888888-8888-8888-8888-888888888888": {
                                                         "_dateCreated": "2025-01-01T12:00:00Z",
                                                         "_dateModified": "2025-01-01T12:00:00Z",
@@ -4101,7 +4279,8 @@
                                                                     "value": [
                                                                         "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
                                                                         "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
-                                                                    ]
+                                                                    ],
+                                                                    "status": "complete"
                                                                 },
                                                                 "_uuid": "99999999-9999-9999-9999-999999999999"
                                                             }
@@ -4110,7 +4289,8 @@
                                                 }
                                             }
                                         },
-                                        "summary": "Manual Qualitative Analysis – Multiple Choice Question"
+                                        "summary": "Qualitative Analysis – Multiple Choice Question",
+                                        "description": "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`. \n\n`status` will only be present for automatic_actions."
                                     },
                                     "ManualQualitativeAnalysis–TagsQuestion": {
                                         "value": {
@@ -4140,6 +4320,32 @@
                                             }
                                         },
                                         "summary": "Manual Qualitative Analysis – Tags Question"
+                                    },
+                                    "AutomaticQualitativeAnalysis–FailedResponse": {
+                                        "value": {
+                                            "_version": "20250820",
+                                            "question_name_xpath": {
+                                                "automatic_bedrock_qual": {
+                                                    "bbbbbbbb-cccc-dddd-eeee-ffffffffffff": {
+                                                        "_dateCreated": "2025-01-01T12:00:00Z",
+                                                        "_dateModified": "2025-01-01T12:00:00Z",
+                                                        "_versions": [
+                                                            {
+                                                                "_dateCreated": "2025-01-01T12:00:00Z",
+                                                                "_dateAccepted": "2025-01-01T12:00:00Z",
+                                                                "_data": {
+                                                                    "uuid": "bbbbbbbb-cccc-dddd-eeee-ffffffffffff",
+                                                                    "status": "failed",
+                                                                    "error": "Cannot parse response from LLM"
+                                                                },
+                                                                "_uuid": "23232323-4545-6767-8989-010101010101"
+                                                            }
+                                                        ]
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "summary": "Automatic Qualitative Analysis – Failed response"
                                     }
                                 }
                             }
@@ -4226,7 +4432,7 @@
             },
             "patch": {
                 "operationId": "api_v2_assets_data_supplement_partial_update",
-                "description": "## Update submission supplementary data\n\nThis endpoint allows you to add, update, or delete supplementary data for a submission.\n\nIt supports the same action types as the GET endpoint:\n\n* NLP actions (manual and automatic transcription / translation)\n* Qualitative analysis\n\nThe PATCH payload follows the same per-question structure as the GET response.\n\nTo delete a submission supplement, you need to PATCH the submission supplement\nwith the appropriate null or empty value.\n\n⚠️ In this documentation, request and response examples present each action in\nisolation for clarity. In practice, multiple actions may be combined within the same\npayload or response, including for the same question, and a single submission may\ncontain multiple questions.\n",
+                "description": "## Update submission supplementary data\n\nThis endpoint allows you to add, update, or delete supplementary data for a submission.\n\nIt supports the same action types as the GET endpoint:\n\n* NLP actions (manual and automatic transcription / translation)\n* Qualitative analysis (manual and automatic)\n\nThe PATCH payload follows the same per-question structure as the GET response.\n\nTo delete a submission supplement, you need to PATCH the submission supplement\nwith the appropriate null or empty value.\n\n⚠️ In this documentation, request and response examples present each action in\nisolation for clarity. In practice, multiple actions may be combined within the same\npayload or response, including for the same question, and a single submission may\ncontain multiple questions.\n",
                 "parameters": [
                     {
                         "in": "path",
@@ -4412,6 +4618,17 @@
                                     },
                                     "summary": "Manual Qualitative Analysis – Tags Question",
                                     "description": "Set `value` an empty array `[]` to delete."
+                                },
+                                "AutomaticBedrockQualitativeAnalysis–AnyQuestion": {
+                                    "value": {
+                                        "_version": "20250820",
+                                        "question_name_xpath": {
+                                            "automatic_bedrock_qual": {
+                                                "uuid": "44444444-4444-4444-4444-444444444444"
+                                            }
+                                        }
+                                    },
+                                    "summary": "Automatic Bedrock Qualitative Analysis – Any Question"
                                 }
                             }
                         }
@@ -4629,11 +4846,11 @@
                                         },
                                         "summary": "Automated Google Translation"
                                     },
-                                    "ManualQualitativeAnalysis–IntegerQuestion": {
+                                    "QualitativeAnalysis–IntegerQuestion": {
                                         "value": {
                                             "_version": "20250820",
                                             "question_name_xpath": {
-                                                "manual_qual": {
+                                                "<action_id>": {
                                                     "66666666-6666-6666-6666-666666666666": {
                                                         "_dateCreated": "2025-01-01T12:00:00Z",
                                                         "_dateModified": "2025-01-01T12:00:00Z",
@@ -4643,7 +4860,8 @@
                                                                 "_dateAccepted": "2025-01-01T12:00:00Z",
                                                                 "_data": {
                                                                     "uuid": "66666666-6666-6666-6666-666666666666",
-                                                                    "value": 42
+                                                                    "value": 42,
+                                                                    "status": "complete"
                                                                 },
                                                                 "_uuid": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
                                                             }
@@ -4652,13 +4870,14 @@
                                                 }
                                             }
                                         },
-                                        "summary": "Manual Qualitative Analysis – Integer Question"
+                                        "summary": "Qualitative Analysis – Integer Question",
+                                        "description": "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`. \n\n`status` will only be present for automatic_actions."
                                     },
-                                    "ManualQualitativeAnalysis–TextQuestion": {
+                                    "QualitativeAnalysis–TextQuestion": {
                                         "value": {
                                             "_version": "20250820",
                                             "question_name_xpath": {
-                                                "manual_qual": {
+                                                "<action_id>": {
                                                     "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff": {
                                                         "_dateCreated": "2025-01-01T12:00:00Z",
                                                         "_dateModified": "2025-01-01T12:00:00Z",
@@ -4668,7 +4887,8 @@
                                                                 "_dateAccepted": "2025-01-01T12:00:00Z",
                                                                 "_data": {
                                                                     "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
-                                                                    "value": "This is a qualitative text response."
+                                                                    "value": "This is a qualitative text response.",
+                                                                    "status": "complete"
                                                                 },
                                                                 "_uuid": "12121212-3434-5656-7878-909090909090"
                                                             }
@@ -4677,13 +4897,14 @@
                                                 }
                                             }
                                         },
-                                        "summary": "Manual Qualitative Analysis – Text Question"
+                                        "summary": "Qualitative Analysis – Text Question",
+                                        "description": "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`. \n\n`status` will only be present for automatic_actions."
                                     },
-                                    "ManualQualitativeAnalysis–SingleChoiceQuestion": {
+                                    "QualitativeAnalysis–SingleChoiceQuestion": {
                                         "value": {
                                             "_version": "20250820",
                                             "question_name_xpath": {
-                                                "manual_qual": {
+                                                "<action_id>": {
                                                     "77777777-7777-7777-7777-777777777777": {
                                                         "_dateCreated": "2025-01-01T12:00:00Z",
                                                         "_dateModified": "2025-01-01T12:00:00Z",
@@ -4693,7 +4914,8 @@
                                                                 "_dateAccepted": "2025-01-01T12:00:00Z",
                                                                 "_data": {
                                                                     "uuid": "77777777-7777-7777-7777-777777777777",
-                                                                    "value": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+                                                                    "value": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+                                                                    "status": "complete"
                                                                 },
                                                                 "_uuid": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
                                                             }
@@ -4702,13 +4924,14 @@
                                                 }
                                             }
                                         },
-                                        "summary": "Manual Qualitative Analysis – Single Choice Question"
+                                        "summary": "Qualitative Analysis – Single Choice Question",
+                                        "description": "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`. \n\n`status` will only be present for automatic_actions."
                                     },
-                                    "ManualQualitativeAnalysis–MultipleChoiceQuestion": {
+                                    "QualitativeAnalysis–MultipleChoiceQuestion": {
                                         "value": {
                                             "_version": "20250820",
                                             "question_name_xpath": {
-                                                "manual_qual": {
+                                                "<action_id>": {
                                                     "88888888-8888-8888-8888-888888888888": {
                                                         "_dateCreated": "2025-01-01T12:00:00Z",
                                                         "_dateModified": "2025-01-01T12:00:00Z",
@@ -4721,7 +4944,8 @@
                                                                     "value": [
                                                                         "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
                                                                         "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
-                                                                    ]
+                                                                    ],
+                                                                    "status": "complete"
                                                                 },
                                                                 "_uuid": "99999999-9999-9999-9999-999999999999"
                                                             }
@@ -4730,7 +4954,8 @@
                                                 }
                                             }
                                         },
-                                        "summary": "Manual Qualitative Analysis – Multiple Choice Question"
+                                        "summary": "Qualitative Analysis – Multiple Choice Question",
+                                        "description": "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`. \n\n`status` will only be present for automatic_actions."
                                     },
                                     "ManualQualitativeAnalysis–TagsQuestion": {
                                         "value": {
@@ -4760,6 +4985,32 @@
                                             }
                                         },
                                         "summary": "Manual Qualitative Analysis – Tags Question"
+                                    },
+                                    "AutomaticQualitativeAnalysis–FailedResponse": {
+                                        "value": {
+                                            "_version": "20250820",
+                                            "question_name_xpath": {
+                                                "automatic_bedrock_qual": {
+                                                    "bbbbbbbb-cccc-dddd-eeee-ffffffffffff": {
+                                                        "_dateCreated": "2025-01-01T12:00:00Z",
+                                                        "_dateModified": "2025-01-01T12:00:00Z",
+                                                        "_versions": [
+                                                            {
+                                                                "_dateCreated": "2025-01-01T12:00:00Z",
+                                                                "_dateAccepted": "2025-01-01T12:00:00Z",
+                                                                "_data": {
+                                                                    "uuid": "bbbbbbbb-cccc-dddd-eeee-ffffffffffff",
+                                                                    "status": "failed",
+                                                                    "error": "Cannot parse response from LLM"
+                                                                },
+                                                                "_uuid": "23232323-4545-6767-8989-010101010101"
+                                                            }
+                                                        ]
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "summary": "Automatic Qualitative Analysis – Failed response"
                                     }
                                 }
                             }
@@ -5667,7 +5918,7 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -5676,7 +5927,16 @@
                         "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated alias of `start`.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -6146,7 +6406,7 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -6155,7 +6415,7 @@
                         "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated alias of `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -6167,6 +6427,15 @@
                         "description": "Which field to use when ordering the results.",
                         "schema": {
                             "type": "string"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
+                        "schema": {
+                            "type": "integer"
                         }
                     },
                     {
@@ -6516,7 +6785,7 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -6525,7 +6794,16 @@
                         "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated alias of `start`.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -6892,13 +7170,13 @@
         "/api/v2/assets/{uid_asset}/history/": {
             "get": {
                 "operationId": "api_v2_assets_history_list",
-                "description": "## List project history logs\n\nLists all project history logs for a single project.\n\n⚠️ _Required permissions: `manage_asset` (Manage project)_\n\nResults from this endpoint can be filtered by a Boolean query specified in the `q` parameter.\n\n### Filterable fields for all project history logs:\n\n  - date_created\n  - user_uid\n  - user__username\n  - user__email\n  - user__is_superuser\n  - metadata__source\n  - metadata__ip_address\n  - metadata__log_subtype\n    - available subtypes: \"project\", \"permission\"\n\n### action\n\navailable actions:\n  - add-media\n  - add-submission\n  - allow-anonymous-submissions\n  - archive\n  - clone-permissions\n  - connect-project\n  - delete-media\n  - delete-service\n  - delete-submission\n  - deploy\n  - disable-sharing\n  - disallow-anonymous-submissions\n  - disconnect-project\n  - enable-sharing\n  - export\n  - modify-imported-fields\n  - modify-qa-data\n  - modify-service\n  - modify-sharing\n  - modify-submission\n  - modify-user-permissions\n  - redeploy\n   - register-service\n  - replace-form\n  - share-data-publicly\n  - share-form-publicly\n  - transfer\n  - unarchive\n  - unshare-data-publicly\n  - unshare-form-publicly\n  - update-content\n  - update-name\n  - update-settings\n  - update-qa\n\n### Filterable fields by action:\n\n  add-media\n  - metadata__asset-file__uid\n  - metadata__asset-file__filename\n\n  add-submission\n  - metadata__submission__submitted_by\n  - metadata__submission__root_uuid\n\n  archive\n  - metadata__latest_version_uid\n\n  clone-permissions\n  - metadata__cloned_from\n\n  connect-project\n  - metadata__paired-data__source_uid\n  - metadata__paired-data__source_name\n\n  delete-media\n  - metadata__asset-file__uid\n  - metadata__asset-file__filename\n\n  delete-service\n  - metadata__hook__uid\n  - metadata__hook__endpoint\n  - metadata__hook__active\n\n  delete-submission\n  - metadata__submission__submitted_by\n  - metadata__submission__root_uuid\n\n  deploy\n  - metadata__latest_version_uid\n  - metadata__latest_deployed_version_uid\n\n  disconnect-project\n  - metadata__paired-data__source_uid\n  - metadata__paired-data__source_name\n\n  modify-imported-fields\n  - metadata__paired-data__source_uid\n  - metadata__paired-data__source_name\n\n  modify-qa-data\n  - metadata__submission__submitted_by\n  - metadata__submission__root_uuid\n\n  modify-service\n  - metadata__hook__uid\n  - metadata__hook__endpoint\n  - metadata__hook__active\n\n  modify-submission\n  - metadata__submission__submitted_by\n  - metadata__submission__root_uuid\n  - metadata__submission__status (only present if changed)\n\n  modify-user-permissions\n  - metadata__permissions__username\n\n  redeploy\n  - metadata__latest_version_uid\n  - metadata__latest_deployed_version_uid\n\n  register-service\n  - metadata__hook__uid\n  - metadata__hook__endpoint\n  - metadata__hook__active\n\n  transfer\n  - metadata__username\n\n  unarchive\n  - metadata__latest_version_uid\n\n  update-name\n  - metadata__name__old\n  - metadata__name__new\n\n  update-settings\n  - metadata__settings__description__old\n  - metadata__settings__description__new\n\nThis endpoint can be paginated with 'offset' and 'limit' parameters.\n",
+                "description": "## List project history logs\n\nLists all project history logs for a single project.\n\n⚠️ _Required permissions: `manage_asset` (Manage project)_\n\nResults from this endpoint can be filtered by a Boolean query specified in the `q` parameter.\n\n### Filterable fields for all project history logs:\n\n  - date_created\n  - user_uid\n  - user__username\n  - user__email\n  - user__is_superuser\n  - metadata__source\n  - metadata__ip_address\n  - metadata__log_subtype\n    - available subtypes: \"project\", \"permission\"\n\n### action\n\navailable actions:\n  - add-media\n  - add-submission\n  - allow-anonymous-submissions\n  - archive\n  - clone-permissions\n  - connect-project\n  - delete-media\n  - delete-service\n  - delete-submission\n  - deploy\n  - disable-sharing\n  - disallow-anonymous-submissions\n  - disconnect-project\n  - enable-sharing\n  - export\n  - modify-imported-fields\n  - modify-qa-data\n  - modify-service\n  - modify-sharing\n  - modify-submission\n  - modify-user-permissions\n  - redeploy\n   - register-service\n  - replace-form\n  - share-data-publicly\n  - share-form-publicly\n  - transfer\n  - unarchive\n  - unshare-data-publicly\n  - unshare-form-publicly\n  - update-content\n  - update-name\n  - update-settings\n  - update-qa\n\n### Filterable fields by action:\n\n  add-media\n  - metadata__asset-file__uid\n  - metadata__asset-file__filename\n\n  add-submission\n  - metadata__submission__submitted_by\n  - metadata__submission__root_uuid\n\n  archive\n  - metadata__latest_version_uid\n\n  clone-permissions\n  - metadata__cloned_from\n\n  connect-project\n  - metadata__paired-data__source_uid\n  - metadata__paired-data__source_name\n\n  delete-media\n  - metadata__asset-file__uid\n  - metadata__asset-file__filename\n\n  delete-service\n  - metadata__hook__uid\n  - metadata__hook__endpoint\n  - metadata__hook__active\n\n  delete-submission\n  - metadata__submission__submitted_by\n  - metadata__submission__root_uuid\n\n  deploy\n  - metadata__latest_version_uid\n  - metadata__latest_deployed_version_uid\n\n  disconnect-project\n  - metadata__paired-data__source_uid\n  - metadata__paired-data__source_name\n\n  modify-imported-fields\n  - metadata__paired-data__source_uid\n  - metadata__paired-data__source_name\n\n  modify-qa-data\n  - metadata__submission__submitted_by\n  - metadata__submission__root_uuid\n\n  modify-service\n  - metadata__hook__uid\n  - metadata__hook__endpoint\n  - metadata__hook__active\n\n  modify-submission\n  - metadata__submission__submitted_by\n  - metadata__submission__root_uuid\n  - metadata__submission__status (only present if changed)\n\n  modify-user-permissions\n  - metadata__permissions__username\n\n  redeploy\n  - metadata__latest_version_uid\n  - metadata__latest_deployed_version_uid\n\n  register-service\n  - metadata__hook__uid\n  - metadata__hook__endpoint\n  - metadata__hook__active\n\n  transfer\n  - metadata__username\n\n  unarchive\n  - metadata__latest_version_uid\n\n  update-name\n  - metadata__name__old\n  - metadata__name__new\n\n  update-settings\n  - metadata__settings__description__old\n  - metadata__settings__description__new\n\nThis endpoint can be paginated with 'start' and 'limit' parameters.\n",
                 "parameters": [
                     {
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -6907,7 +7185,7 @@
                         "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated alias of `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -6917,6 +7195,15 @@
                         "name": "q",
                         "schema": {
                             "type": "string"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
+                        "schema": {
+                            "type": "integer"
                         }
                     },
                     {
@@ -7151,7 +7438,7 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -7160,7 +7447,16 @@
                         "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated alias of `start`.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -7550,28 +7846,46 @@
         "/api/v2/assets/{uid_asset}/hooks/{uid_hook}/logs/": {
             "get": {
                 "operationId": "api_v2_assets_hooks_logs_list",
-                "description": "## List logs of an external services endpoints accessible to requesting user\n\nWhere:\n* `asset_uid` - is the unique identifier of a specific asset\n* `hook_uid` - is the unique identifier of a specific external service\n* `uid` - is the unique identifier of a specific log\n\nUse the `status` query parameter to filter logs by numeric status:\n* `status=0`: hook has failed after exhausting all retries\n* `status=1`: hook is still pending\n* `status=2`: hook has succeeded\n\nUse the `start` and `end` query parameters to filter logs by date range, providing ISO-8601 date strings (e.g. '2022-01-14', '2022-01-21 06:51:04', '2022-01-21T06:51:08.144004+02:00').\nNote that `start` is inclusive, while `end` is exclusive.\nTime zone is assumed to be UTC. If provided, it needs to be in '+00:00' format ('Z' is not supported). Watch out for url encoding for the '+' character (%2B).\n",
+                "description": "## List logs of an external services endpoints accessible to requesting user\n\n⚠️ The `page` query parameter is deprecated, use `start` and `limit` instead.\n\nWhere:\n* `asset_uid` - is the unique identifier of a specific asset\n* `hook_uid` - is the unique identifier of a specific external service\n* `uid` - is the unique identifier of a specific log\n\nUse the `status` query parameter to filter logs by numeric status:\n* `status=0`: hook has failed after exhausting all retries\n* `status=1`: hook is still pending\n* `status=2`: hook has succeeded\n\nUse the `start_date` and `end_date` query parameters to filter logs by date range,\nproviding ISO-8601 date strings (e.g. '2022-01-14', '2022-01-21 06:51:04',\n'2022-01-21T06:51:08.144004+02:00'). Time zone is assumed to be UTC. If provided, it\nneeds to be in '+00:00' format ('Z' is not supported). Watch out for url encoding for\nthe '+' character (%2B).\n\nNote that `start_date` is inclusive, while `end_date` is exclusive.\n",
                 "parameters": [
                     {
                         "in": "query",
-                        "name": "end",
+                        "name": "end_date",
                         "schema": {
                             "type": "string",
                             "format": "date-time"
                         }
                     },
                     {
-                        "name": "page",
+                        "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "A page number within the paginated result set.",
+                        "description": "Number of results to return per page. Use with `start`.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "offset",
+                        "required": false,
+                        "in": "query",
+                        "description": "Deprecated alias of `start`.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
                     },
                     {
                         "in": "query",
-                        "name": "start",
+                        "name": "start_date",
                         "schema": {
                             "type": "string",
                             "format": "date-time"
@@ -7588,7 +7902,7 @@
                                 2
                             ]
                         },
-                        "description": "* `0` - Failed\n* `1` - Pending\n* `2` - Success"
+                        "description": "* `0` - failed\n* `1` - pending\n* `2` - success"
                     },
                     {
                         "in": "path",
@@ -7951,7 +8265,7 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -7960,7 +8274,16 @@
                         "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated alias of `start`.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -9263,7 +9586,7 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -9272,7 +9595,16 @@
                         "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated alias of `start`.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -9653,7 +9985,7 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -9662,7 +9994,7 @@
                         "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated alias of `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -9672,6 +10004,15 @@
                         "name": "q",
                         "schema": {
                             "type": "string"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
+                        "schema": {
+                            "type": "integer"
                         }
                     }
                 ],
@@ -9745,7 +10086,7 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -9754,7 +10095,16 @@
                         "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated alias of `start`.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -9985,7 +10335,7 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -9994,7 +10344,16 @@
                         "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated alias of `start`.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -10127,7 +10486,7 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -10136,7 +10495,16 @@
                         "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated alias of `start`.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -10345,19 +10713,19 @@
                     },
                     {
                         "in": "query",
-                        "name": "offset",
-                        "schema": {
-                            "type": "integer"
-                        },
-                        "description": "Paginate results with offset parameter"
-                    },
-                    {
-                        "in": "query",
                         "name": "ordering",
                         "schema": {
                             "type": "string"
                         },
                         "description": "Which field to use when ordering the results."
+                    },
+                    {
+                        "in": "query",
+                        "name": "start",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "Paginate results with start parameter"
                     },
                     {
                         "in": "path",
@@ -10479,7 +10847,7 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -10488,7 +10856,16 @@
                         "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated alias of `start`.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -10914,7 +11291,7 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -10923,7 +11300,16 @@
                         "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated alias of `start`.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -11305,7 +11691,7 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -11314,7 +11700,16 @@
                         "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated alias of `start`.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -11389,13 +11784,13 @@
         "/api/v2/project-history-logs/": {
             "get": {
                 "operationId": "api_v2_project_history_logs_list",
-                "description": "## List all project history logs for all projects.\n\n⚠️_Only available to superusers_\n\nResults from this endpoint can be filtered by a Boolean query\nspecified in the `q` parameter.\n\n**Filterable fields for all project history logs:**\n\n* date_created\n* user_uid\n* user__username\n* user__email\n* user__is_superuser\n* metadata__source\n* metadata__ip_address\n* metadata__asset_uid\n* metadata__log_subtype\n    * available subtypes: \"project\", \"permission\"\n* action\n\navailable actions:\n\n>       add-media\n>       add-submission\n>       allow-anonymous-submissions\n>       archive\n>       clone-permissions\n>       connect-project\n>       delete-media\n>       delete-service\n>       delete-submission\n>       deploy\n>       disable-sharing\n>       disallow-anonymous-submissions\n>       disconnect-project\n>       enable-sharing\n>       export\n>       modify-imported-fields\n>       modify-qa-data\n>       modify-service\n>       modify-sharing\n>       modify-submission\n>       modify-user-permissions\n>       redeploy\n>       register-service\n>       replace-form\n>       share-data-publicly\n>       share-form-publicly\n>       transfer\n>       unarchive\n>       unshare-data-publicly\n>       unshare-form-publicly\n>       update-content\n>       update-name\n>       update-settings\n>       update-qa\n\n**Filterable fields by action:**\n\n* add-media\n\n    a. metadata__asset-file__uid\n\n    b. metadata__asset-file__filename\n\n* add-submission\n\n    a. metadata__submission__submitted_by\n\n    b. metadata__submission__root_uuid\n\n* archive\n\n    a. metadata__latest_version_uid\n\n* clone-permissions\n\n    a. metadata__cloned_from\n\n* connect-project\n\n    a. metadata__paired-data__source_uid\n\n    b. metadata__paired-data__source_name\n\n* delete-media\n\n    a. metadata__asset-file__uid\n\n    b. metadata__asset-file__filename\n\n* delete-service\n\n    a. metadata__hook__uid\n\n    b. metadata__hook__endpoint\n\n    c. metadata__hook__active\n\n* delete-submission\n\n    a. metadata__submission__submitted_by\n\n    b. metadata__submission__root_uuid\n\n* deploy\n\n    a. metadata__latest_version_uid\n\n    b. metadata__latest_deployed_version_uid\n\n* disconnect-project\n\n    a. metadata__paired-data__source_uid\n\n    b. metadata__paired-data__source_name\n\n* modify-imported-fields\n\n    a. metadata__paired-data__source_uid\n\n    b. metadata__paired-data__source_name\n\n* modify-qa-data\n\n    a. metadata__submission__submitted_by\n\n    b. metadata__submission__root_uuid\n\n* modify-service\n\n    a. metadata__hook__uid\n\n    b. metadata__hook__endpoint\n\n    c. metadata__hook__active\n\n* modify-submission\n\n    a. metadata__submission__submitted_by\n\n    b. metadata__submission__root_uuid\n\n    b. metadata__submission__status (only present if changed)\n\n* modify-user-permissions\n\n    a. metadata__permissions__username\n\n* redeploy\n\n    a. metadata__latest_version_uid\n\n    b. metadata__latest_deployed_version_uid\n\n* register-service\n\n    a. metadata__hook__uid\n\n    b. metadata__hook__endpoint\n\n    c. metadata__hook__active\n\n* transfer\n\n    a. metadata__username\n\n* unarchive\n\n    a. metadata__latest_version_uid\n\n* update-name\n\n    a. metadata__name__old\n\n    b. metadata__name__new\n\n* update-settings\n\n    a. metadata__settings__description__old\n\n    b. metadata__settings__description__new\n\nThis endpoint can be paginated with 'offset' and 'limit' parameters\n",
+                "description": "## List all project history logs for all projects.\n\n⚠️_Only available to superusers_\n\nResults from this endpoint can be filtered by a Boolean query\nspecified in the `q` parameter.\n\n**Filterable fields for all project history logs:**\n\n* date_created\n* user_uid\n* user__username\n* user__email\n* user__is_superuser\n* metadata__source\n* metadata__ip_address\n* metadata__asset_uid\n* metadata__log_subtype\n    * available subtypes: \"project\", \"permission\"\n* action\n\navailable actions:\n\n>       add-media\n>       add-submission\n>       allow-anonymous-submissions\n>       archive\n>       clone-permissions\n>       connect-project\n>       delete-media\n>       delete-service\n>       delete-submission\n>       deploy\n>       disable-sharing\n>       disallow-anonymous-submissions\n>       disconnect-project\n>       enable-sharing\n>       export\n>       modify-imported-fields\n>       modify-qa-data\n>       modify-service\n>       modify-sharing\n>       modify-submission\n>       modify-user-permissions\n>       redeploy\n>       register-service\n>       replace-form\n>       share-data-publicly\n>       share-form-publicly\n>       transfer\n>       unarchive\n>       unshare-data-publicly\n>       unshare-form-publicly\n>       update-content\n>       update-name\n>       update-settings\n>       update-qa\n\n**Filterable fields by action:**\n\n* add-media\n\n    a. metadata__asset-file__uid\n\n    b. metadata__asset-file__filename\n\n* add-submission\n\n    a. metadata__submission__submitted_by\n\n    b. metadata__submission__root_uuid\n\n* archive\n\n    a. metadata__latest_version_uid\n\n* clone-permissions\n\n    a. metadata__cloned_from\n\n* connect-project\n\n    a. metadata__paired-data__source_uid\n\n    b. metadata__paired-data__source_name\n\n* delete-media\n\n    a. metadata__asset-file__uid\n\n    b. metadata__asset-file__filename\n\n* delete-service\n\n    a. metadata__hook__uid\n\n    b. metadata__hook__endpoint\n\n    c. metadata__hook__active\n\n* delete-submission\n\n    a. metadata__submission__submitted_by\n\n    b. metadata__submission__root_uuid\n\n* deploy\n\n    a. metadata__latest_version_uid\n\n    b. metadata__latest_deployed_version_uid\n\n* disconnect-project\n\n    a. metadata__paired-data__source_uid\n\n    b. metadata__paired-data__source_name\n\n* modify-imported-fields\n\n    a. metadata__paired-data__source_uid\n\n    b. metadata__paired-data__source_name\n\n* modify-qa-data\n\n    a. metadata__submission__submitted_by\n\n    b. metadata__submission__root_uuid\n\n* modify-service\n\n    a. metadata__hook__uid\n\n    b. metadata__hook__endpoint\n\n    c. metadata__hook__active\n\n* modify-submission\n\n    a. metadata__submission__submitted_by\n\n    b. metadata__submission__root_uuid\n\n    b. metadata__submission__status (only present if changed)\n\n* modify-user-permissions\n\n    a. metadata__permissions__username\n\n* redeploy\n\n    a. metadata__latest_version_uid\n\n    b. metadata__latest_deployed_version_uid\n\n* register-service\n\n    a. metadata__hook__uid\n\n    b. metadata__hook__endpoint\n\n    c. metadata__hook__active\n\n* transfer\n\n    a. metadata__username\n\n* unarchive\n\n    a. metadata__latest_version_uid\n\n* update-name\n\n    a. metadata__name__old\n\n    b. metadata__name__new\n\n* update-settings\n\n    a. metadata__settings__description__old\n\n    b. metadata__settings__description__new\n\nThis endpoint can be paginated with 'start' and 'limit' parameters\n",
                 "parameters": [
                     {
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -11404,7 +11799,7 @@
                         "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated alias of `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -11414,6 +11809,15 @@
                         "name": "q",
                         "schema": {
                             "type": "string"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
+                        "schema": {
+                            "type": "integer"
                         }
                     }
                 ],
@@ -11615,7 +12019,7 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -11631,7 +12035,16 @@
                         "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated alias of `start`.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -12113,7 +12526,7 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -12122,7 +12535,16 @@
                         "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated alias of `start`.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -12507,11 +12929,11 @@
                     },
                     {
                         "in": "query",
-                        "name": "offset",
+                        "name": "start",
                         "schema": {
                             "type": "integer"
                         },
-                        "description": "Paginate results with offset parameter"
+                        "description": "Paginate results with start parameter"
                     },
                     {
                         "in": "path",
@@ -12620,11 +13042,11 @@
                     },
                     {
                         "in": "query",
-                        "name": "offset",
+                        "name": "start",
                         "schema": {
                             "type": "integer"
                         },
-                        "description": "Paginate results with offset parameter"
+                        "description": "Paginate results with start parameter"
                     },
                     {
                         "in": "path",
@@ -12755,7 +13177,7 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -12764,7 +13186,16 @@
                         "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated alias of `start`.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -12999,7 +13430,7 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -13008,7 +13439,16 @@
                         "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated alias of `start`.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -13048,7 +13488,7 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -13057,7 +13497,16 @@
                         "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated alias of `start`.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -13153,7 +13602,7 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -13162,7 +13611,16 @@
                         "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated alias of `start`.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -13422,7 +13880,7 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -13431,7 +13889,7 @@
                         "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated alias of `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -13441,6 +13899,15 @@
                         "name": "q",
                         "schema": {
                             "type": "string"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
+                        "schema": {
+                            "type": "integer"
                         }
                     }
                 ],
@@ -13571,7 +14038,7 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -13580,7 +14047,7 @@
                         "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated alias of `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -13590,6 +14057,15 @@
                         "name": "q",
                         "schema": {
                             "type": "string"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
+                        "schema": {
+                            "type": "integer"
                         }
                     }
                 ],
@@ -13742,7 +14218,7 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -13751,7 +14227,7 @@
                         "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated alias of `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -13763,6 +14239,15 @@
                         "description": "Which field to use when ordering the results.",
                         "schema": {
                             "type": "string"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
+                        "schema": {
+                            "type": "integer"
                         }
                     }
                 ],
@@ -13840,7 +14325,7 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -13849,7 +14334,16 @@
                         "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated alias of `start`.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -14176,7 +14670,7 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -14185,7 +14679,16 @@
                         "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated alias of `start`.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -14320,7 +14823,7 @@
                         "name": "limit",
                         "required": false,
                         "in": "query",
-                        "description": "Number of results to return per page.",
+                        "description": "Number of results to return per page. Use with `start`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -14329,7 +14832,16 @@
                         "name": "offset",
                         "required": false,
                         "in": "query",
-                        "description": "The initial index from which to return the results.",
+                        "description": "Deprecated alias of `start`.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "start",
+                        "required": false,
+                        "in": "query",
+                        "description": "The initial index from which to return the results. Use with `limit`.",
                         "schema": {
                             "type": "integer"
                         }
@@ -16853,8 +17365,215 @@
                     "detail"
                 ]
             },
+            "DataSupplementAutomaticQualDataIntegerResponse": {
+                "type": "object",
+                "additionalProperties": false,
+                "oneOf": [
+                    {
+                        "type": "object",
+                        "properties": {
+                            "uuid": {
+                                "type": "string",
+                                "format": "uuid"
+                            },
+                            "value": {
+                                "type": "integer",
+                                "nullable": true
+                            },
+                            "status": {
+                                "type": "string",
+                                "const": "complete"
+                            }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                            "status",
+                            "uuid",
+                            "value"
+                        ]
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "uuid": {
+                                "type": "string",
+                                "format": "uuid"
+                            },
+                            "status": {
+                                "type": "string",
+                                "const": "failed"
+                            },
+                            "error": {
+                                "type": "string"
+                            }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                            "error",
+                            "status",
+                            "uuid"
+                        ]
+                    }
+                ]
+            },
+            "DataSupplementAutomaticQualDataSelectMultipleResponse": {
+                "type": "object",
+                "additionalProperties": false,
+                "oneOf": [
+                    {
+                        "type": "object",
+                        "properties": {
+                            "uuid": {
+                                "type": "string",
+                                "format": "uuid"
+                            },
+                            "value": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string",
+                                    "format": "uuid"
+                                }
+                            },
+                            "status": {
+                                "type": "string",
+                                "const": "complete"
+                            }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                            "status",
+                            "uuid",
+                            "value"
+                        ]
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "uuid": {
+                                "type": "string",
+                                "format": "uuid"
+                            },
+                            "status": {
+                                "type": "string",
+                                "const": "failed"
+                            },
+                            "error": {
+                                "type": "string"
+                            }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                            "error",
+                            "status",
+                            "uuid"
+                        ]
+                    }
+                ]
+            },
+            "DataSupplementAutomaticQualDataSelectOneResponse": {
+                "type": "object",
+                "additionalProperties": false,
+                "oneOf": [
+                    {
+                        "type": "object",
+                        "properties": {
+                            "uuid": {
+                                "type": "string",
+                                "format": "uuid"
+                            },
+                            "value": {
+                                "type": "string",
+                                "format": "uuid"
+                            },
+                            "status": {
+                                "type": "string",
+                                "const": "complete"
+                            }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                            "status",
+                            "uuid",
+                            "value"
+                        ]
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "uuid": {
+                                "type": "string",
+                                "format": "uuid"
+                            },
+                            "status": {
+                                "type": "string",
+                                "const": "failed"
+                            },
+                            "error": {
+                                "type": "string"
+                            }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                            "error",
+                            "status",
+                            "uuid"
+                        ]
+                    }
+                ]
+            },
+            "DataSupplementAutomaticQualDataTextResponse": {
+                "type": "object",
+                "additionalProperties": false,
+                "oneOf": [
+                    {
+                        "type": "object",
+                        "properties": {
+                            "uuid": {
+                                "type": "string",
+                                "format": "uuid"
+                            },
+                            "value": {
+                                "type": "string"
+                            },
+                            "status": {
+                                "type": "string",
+                                "const": "complete"
+                            }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                            "status",
+                            "uuid",
+                            "value"
+                        ]
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "uuid": {
+                                "type": "string",
+                                "format": "uuid"
+                            },
+                            "status": {
+                                "type": "string",
+                                "const": "failed"
+                            },
+                            "error": {
+                                "type": "string"
+                            }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                            "error",
+                            "status",
+                            "uuid"
+                        ]
+                    }
+                ]
+            },
             "DataSupplementManualQualDataInteger": {
                 "type": "object",
+                "additionalProperties": false,
                 "properties": {
                     "value": {
                         "type": "integer",
@@ -16868,11 +17587,11 @@
                 "required": [
                     "uuid",
                     "value"
-                ],
-                "additionalProperties": false
+                ]
             },
             "DataSupplementManualQualDataSelectMultiple": {
                 "type": "object",
+                "additionalProperties": false,
                 "properties": {
                     "value": {
                         "type": "array",
@@ -16889,11 +17608,11 @@
                 "required": [
                     "uuid",
                     "value"
-                ],
-                "additionalProperties": false
+                ]
             },
             "DataSupplementManualQualDataSelectOne": {
                 "type": "object",
+                "additionalProperties": false,
                 "properties": {
                     "value": {
                         "type": "string",
@@ -16907,11 +17626,11 @@
                 "required": [
                     "uuid",
                     "value"
-                ],
-                "additionalProperties": false
+                ]
             },
             "DataSupplementManualQualDataTags": {
                 "type": "object",
+                "additionalProperties": false,
                 "properties": {
                     "value": {
                         "type": "array",
@@ -16927,11 +17646,11 @@
                 "required": [
                     "uuid",
                     "value"
-                ],
-                "additionalProperties": false
+                ]
             },
             "DataSupplementManualQualDataText": {
                 "type": "object",
+                "additionalProperties": false,
                 "properties": {
                     "value": {
                         "type": "string"
@@ -16944,8 +17663,7 @@
                 "required": [
                     "uuid",
                     "value"
-                ],
-                "additionalProperties": false
+                ]
             },
             "DataSupplementResponse": {
                 "type": "object",
@@ -16984,6 +17702,9 @@
                     },
                     "manual_qual": {
                         "$ref": "#/components/schemas/SupplementalDataQualMap"
+                    },
+                    "automatic_bedrock_qual": {
+                        "$ref": "#/components/schemas/SupplementalDataQualMap"
                     }
                 },
                 "additionalProperties": false,
@@ -17011,6 +17732,11 @@
                     {
                         "required": [
                             "manual_qual"
+                        ]
+                    },
+                    {
+                        "required": [
+                            "automatic_bedrock_qual"
                         ]
                     }
                 ]
@@ -18123,7 +18849,7 @@
                     2
                 ],
                 "type": "integer",
-                "description": "* `0` - Failed\n* `1` - Pending\n* `2` - Success"
+                "description": "* `0` - failed\n* `1` - pending\n* `2` - success"
             },
             "HookRetryResponse": {
                 "type": "object",
@@ -19198,16 +19924,22 @@
                         "example": 123
                     },
                     "next": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -19229,16 +19961,22 @@
                         "example": 123
                     },
                     "next": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -19250,76 +19988,90 @@
             },
             "PaginatedAssetList": {
                 "type": "object",
+                "required": [
+                    "count",
+                    "results"
+                ],
                 "properties": {
                     "count": {
                         "type": "integer",
                         "example": 123
                     },
                     "next": {
-                        "type": "string",
-                        "nullable": true
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
-                        "type": "string",
-                        "nullable": true
-                    },
-                    "metadata": {
-                        "type": "object",
-                        "properties": {
-                            "languages": {
-                                "type": "array",
-                                "items": {
-                                    "type": "string"
-                                },
-                                "example": [
-                                    "English (en)"
-                                ]
-                            },
-                            "countries": {
-                                "type": "array",
-                                "items": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "string"
-                                    }
-                                },
-                                "example": [
-                                    [
-                                        "FRA",
-                                        "France"
-                                    ]
-                                ]
-                            },
-                            "sectors": {
-                                "type": "array",
-                                "items": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "string"
-                                    }
-                                },
-                                "example": [
-                                    [
-                                        "Public Administration",
-                                        "Public Administration"
-                                    ]
-                                ]
-                            },
-                            "organizations": {
-                                "type": "array",
-                                "items": {
-                                    "type": "string"
-                                },
-                                "example": [
-                                    "Kobotoolbox"
-                                ]
-                            }
-                        }
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
                         "items": {
                             "$ref": "#/components/schemas/Asset"
+                        }
+                    }
+                },
+                "metadata": {
+                    "type": "object",
+                    "properties": {
+                        "languages": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "example": [
+                                "English (en)"
+                            ]
+                        },
+                        "countries": {
+                            "type": "array",
+                            "items": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "example": [
+                                [
+                                    "FRA",
+                                    "France"
+                                ]
+                            ]
+                        },
+                        "sectors": {
+                            "type": "array",
+                            "items": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "example": [
+                                [
+                                    "Public Administration",
+                                    "Public Administration"
+                                ]
+                            ]
+                        },
+                        "organizations": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "example": [
+                                "Kobotoolbox"
+                            ]
                         }
                     }
                 }
@@ -19336,16 +20088,22 @@
                         "example": 123
                     },
                     "next": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -19367,16 +20125,22 @@
                         "example": 123
                     },
                     "next": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -19398,16 +20162,22 @@
                         "example": 123
                     },
                     "next": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -19424,16 +20194,22 @@
                 ],
                 "properties": {
                     "next": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -19455,16 +20231,22 @@
                         "example": 123
                     },
                     "next": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -19486,16 +20268,22 @@
                         "example": 123
                     },
                     "next": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -19517,16 +20305,22 @@
                         "example": 123
                     },
                     "next": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?start=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?start=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -19548,16 +20342,22 @@
                         "example": 123
                     },
                     "next": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -19579,16 +20379,22 @@
                         "example": 123
                     },
                     "next": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -19610,16 +20416,22 @@
                         "example": 123
                     },
                     "next": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -19641,16 +20453,22 @@
                         "example": 123
                     },
                     "next": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -19672,16 +20490,22 @@
                         "example": 123
                     },
                     "next": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -19703,16 +20527,22 @@
                         "example": 123
                     },
                     "next": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -19734,16 +20564,22 @@
                         "example": 123
                     },
                     "next": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?page=4"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?page=2"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -19765,16 +20601,22 @@
                         "example": 123
                     },
                     "next": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -19796,16 +20638,22 @@
                         "example": 123
                     },
                     "next": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -19827,16 +20675,22 @@
                         "example": 123
                     },
                     "next": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -19858,16 +20712,22 @@
                         "example": 123
                     },
                     "next": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -19889,16 +20749,22 @@
                         "example": 123
                     },
                     "next": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -19920,16 +20786,22 @@
                         "example": 123
                     },
                     "next": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -19951,16 +20823,22 @@
                         "example": 123
                     },
                     "next": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -19982,16 +20860,22 @@
                         "example": 123
                     },
                     "next": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -20013,16 +20897,22 @@
                         "example": 123
                     },
                     "next": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -20039,16 +20929,22 @@
                 ],
                 "properties": {
                     "next": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -20070,16 +20966,22 @@
                         "example": 123
                     },
                     "next": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -20101,16 +21003,22 @@
                         "example": 123
                     },
                     "next": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -20132,16 +21040,22 @@
                         "example": 123
                     },
                     "next": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -20163,16 +21077,22 @@
                         "example": 123
                     },
                     "next": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -20194,16 +21114,22 @@
                         "example": 123
                     },
                     "next": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -20225,16 +21151,22 @@
                         "example": 123
                     },
                     "next": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -20251,16 +21183,22 @@
                 ],
                 "properties": {
                     "next": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -20282,16 +21220,22 @@
                         "example": 123
                     },
                     "next": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -20313,16 +21257,22 @@
                         "example": 123
                     },
                     "next": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -20344,16 +21294,22 @@
                         "example": 123
                     },
                     "next": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -20375,16 +21331,22 @@
                         "example": 123
                     },
                     "next": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -20401,16 +21363,22 @@
                 ],
                 "properties": {
                     "next": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -20432,16 +21400,22 @@
                         "example": 123
                     },
                     "next": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=400&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=400&limit=100"
                     },
                     "previous": {
-                        "type": "string",
+                        "type": [
+                            "string",
+                            "null"
+                        ],
                         "nullable": true,
                         "format": "uri",
-                        "example": "http://api.example.org/accounts/?offset=200&limit=100"
+                        "example": "https://kf.kobotoolbox.org/accounts/?start=200&limit=100"
                     },
                     "results": {
                         "type": "array",
@@ -20866,6 +21840,9 @@
                                 "$ref": "#/components/schemas/DataSupplementManualQualDataTags"
                             }
                         ]
+                    },
+                    "automatic_bedrock_qual": {
+                        "$ref": "#/components/schemas/PatchedDataSupplementPayloadOneOfAutomaticQual"
                     }
                 },
                 "additionalProperties": false,
@@ -20894,7 +21871,25 @@
                         "required": [
                             "manual_qual"
                         ]
+                    },
+                    {
+                        "required": [
+                            "automatic_bedrock_qual"
+                        ]
                     }
+                ]
+            },
+            "PatchedDataSupplementPayloadOneOfAutomaticQual": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                    "uuid": {
+                        "type": "string",
+                        "format": "uuid"
+                    }
+                },
+                "required": [
+                    "uuid"
                 ]
             },
             "PatchedDataValidationStatusUpdatePayload": {
@@ -20908,7 +21903,20 @@
             "PatchedDataValidationStatusesUpdatePayload": {
                 "type": "object",
                 "properties": {
-                    "payload": {}
+                    "payload": {
+                        "type": "object",
+                        "properties": {
+                            "submission_ids": {
+                                "type": "array",
+                                "items": {
+                                    "type": "integer"
+                                }
+                            },
+                            "validation_status.uid": {
+                                "$ref": "#/components/schemas/DataValidationStatusUidEnum"
+                            }
+                        }
+                    }
                 }
             },
             "PatchedDeploymentPatchRequest": {

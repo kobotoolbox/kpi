@@ -516,7 +516,8 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         someuser is the owner of the project.
         Test that hard-coded maximum limit cannot be exceeded by user's requests.
         """
-        limit = settings.SUBMISSION_LIST_LIMIT
+
+        limit = settings.MAX_API_PAGE_SIZE
         excess = 10
         asset = Asset.objects.create(
             name='Lots of submissions',
@@ -538,12 +539,12 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
             kwargs={'uid_asset': asset.uid, 'format': 'json'},
         )
 
-        # Server-wide limit should apply if no limit specified
+        # Server-wide default limit should apply if no limit specified
         response = self.client.get(submission_list_url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data['results']), limit)
+        self.assertEqual(len(response.data['results']), settings.DEFAULT_API_PAGE_SIZE)
         # Limit specified in query parameters should not be able to exceed
-        # server-wide limit
+        # the server-wide limit
         response = self.client.get(
             submission_list_url, {'limit': limit + excess, 'format': 'json'}
         )

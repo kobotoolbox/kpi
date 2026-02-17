@@ -3,7 +3,7 @@ import os
 import string
 import subprocess
 import warnings
-from datetime import datetime, timedelta
+from datetime import timedelta
 from mimetypes import add_type
 from urllib.parse import quote_plus
 
@@ -16,10 +16,8 @@ from django.utils.translation import get_language_info
 from django.utils.translation import gettext_lazy as t
 from pymongo import MongoClient
 
-from kobo.apps.stripe.constants import FREE_TIER_EMPTY_DISPLAY, FREE_TIER_NO_THRESHOLDS
 from kpi.constants import PERM_DELETE_ASSET, PERM_MANAGE_ASSET
 from kpi.utils.json import LazyJSONSerializable
-
 from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
 
 env = environ.Env()
@@ -207,6 +205,18 @@ CONSTANCE_CONFIG = {
     'REGISTRATION_DOMAIN_NOT_ALLOWED_ERROR_MESSAGE': (
         'This email domain is not allowed to create an account',
         'Error message for emails not listed in REGISTRATION_ALLOWED_EMAIL_DOMAINS '
+        'if field is not blank'
+    ),
+    'REGISTRATION_BLACKLIST_EMAIL_DOMAINS': (
+        '',
+        'Email domains to block from registering new accounts, one per line, '
+        'or blank to allow all email domains'
+    ),
+    'REGISTRATION_BLACKLIST_ERROR_MESSAGE': (
+        'Account creation restricted for this server. Your organization uses a '
+        'separate private KoboToolbox server. Please contact your organization '
+        'support team for assistance.',
+        'Error message for emails blacklisted in REGISTRATION_BLACKLIST_EMAIL_DOMAINS '
         'if field is not blank'
     ),
     'TERMS_OF_SERVICE_URL': ('', 'URL for terms of service document'),
@@ -438,26 +448,6 @@ CONSTANCE_CONFIG = {
         'Number of days to keep submission history',
         'positive_int',
     ),
-    'FREE_TIER_THRESHOLDS': (
-        LazyJSONSerializable(FREE_TIER_NO_THRESHOLDS),
-        'Free tier thresholds: storage in kilobytes, '
-        'data (number of submissions), '
-        'minutes of transcription, '
-        'number of translation characters',
-        # Use custom field for schema validation
-        'free_tier_threshold_jsonschema',
-    ),
-    'FREE_TIER_DISPLAY': (
-        LazyJSONSerializable(FREE_TIER_EMPTY_DISPLAY),
-        'Free tier frontend settings: name to use for the free tier, '
-        'array of text strings to display on the feature list of the Plans page',
-        'free_tier_display_jsonschema',
-    ),
-    'FREE_TIER_CUTOFF_DATE': (
-        datetime(2050, 1, 1).date(),
-        'Users on the free tier who registered before this date will\n'
-        'use the custom plan defined by FREE_TIER_DISPLAY and FREE_TIER_LIMITS.',
-    ),
     'PROJECT_TRASH_RETENTION': (
         7,
         'Number of days to keep projects in trash after users (soft-)deleted '
@@ -677,14 +667,6 @@ CONSTANCE_CONFIG = {
 }
 
 CONSTANCE_ADDITIONAL_FIELDS = {
-    'free_tier_threshold_jsonschema': [
-        'kpi.fields.jsonschema_form_field.FreeTierThresholdField',
-        {'widget': 'django.forms.Textarea'},
-    ],
-    'free_tier_display_jsonschema': [
-        'kpi.fields.jsonschema_form_field.FreeTierDisplayField',
-        {'widget': 'django.forms.Textarea'},
-    ],
     'i18n_text_jsonfield_schema': [
         'kpi.fields.jsonschema_form_field.I18nTextJSONField',
         {'widget': 'django.forms.Textarea'},
@@ -727,6 +709,8 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'REGISTRATION_OPEN',
         'REGISTRATION_ALLOWED_EMAIL_DOMAINS',
         'REGISTRATION_DOMAIN_NOT_ALLOWED_ERROR_MESSAGE',
+        'REGISTRATION_BLACKLIST_EMAIL_DOMAINS',
+        'REGISTRATION_BLACKLIST_ERROR_MESSAGE',
         'TERMS_OF_SERVICE_URL',
         'PRIVACY_POLICY_URL',
         'SOURCE_CODE_URL',
@@ -810,11 +794,6 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'ASSET_SNAPSHOT_DAYS_RETENTION',
         'IMPORT_TASK_DAYS_RETENTION',
         'SUBMISSION_HISTORY_RETENTION',
-    ),
-    'Tier settings': (
-        'FREE_TIER_THRESHOLDS',
-        'FREE_TIER_DISPLAY',
-        'FREE_TIER_CUTOFF_DATE',
     ),
 }
 
@@ -930,9 +909,12 @@ USE_TZ = True
 
 CAN_LOGIN_AS = lambda request, target_user: request.user.is_superuser
 
-# Impose a limit on the number of records returned by the submission list
-# endpoint. This overrides any `?limit=` query parameter sent by a client
-SUBMISSION_LIST_LIMIT = 1000
+# Default page size when no limit is specified in API requests.
+# Currently for submission lists only, but naming is future-proof for all endpoints
+DEFAULT_API_PAGE_SIZE = env.int('DEFAULT_API_PAGE_SIZE', 100)
+# Maximum page size for API responses. Currently applies to submission lists only,
+# but will likely be extended to all endpoints in the future
+MAX_API_PAGE_SIZE = env.int('MAX_API_PAGE_SIZE', 1000)
 
 # uWSGI, NGINX, etc. allow only a limited amount of time to process a request.
 # Set this value to match their limits
@@ -1004,7 +986,7 @@ if os.path.exists(os.path.join(BASE_DIR, 'dkobo', 'jsapp')):
 
 REST_FRAMEWORK = {
     'URL_FIELD_NAME': 'url',
-    'DEFAULT_PAGINATION_CLASS': 'kpi.paginators.Paginated',
+    'DEFAULT_PAGINATION_CLASS': 'kpi.paginators.DefaultPagination',
     'PAGE_SIZE': 100,
     'DEFAULT_AUTHENTICATION_CLASSES': [
         # SessionAuthentication and BasicAuthentication would be included by
@@ -1557,6 +1539,14 @@ CELERY_BEAT_SCHEDULE = {
         ),
         'options': {'queue': 'kpi_long_running_tasks_queue'},
     },
+    'retry-stalled-submissions': {
+        'task': 'kobo.apps.hook.tasks.retry_stalled_pending_submissions',
+        'schedule': crontab(minute='*/30'),  # Every 30 minutes
+    },
+    'mark-zombie-submissions': {
+        'task': 'kobo.apps.hook.tasks.mark_zombie_processing_submissions',
+        'schedule': crontab(minute='*/30'),  # Every 30 minutes
+    },
 }
 
 if STRIPE_ENABLED:
@@ -1689,6 +1679,7 @@ if MASS_EMAILS_CONDENSE_SEND:
 if env.str('AWS_ACCESS_KEY_ID', False):
     AWS_ACCESS_KEY_ID = env.str('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = env.str('AWS_SECRET_ACCESS_KEY')
+    AWS_BEDROCK_REGION_NAME = env.str('AWS_BEDROCK_REGION_NAME', None)
     AWS_SES_REGION_NAME = env.str('AWS_SES_REGION_NAME', None)
     AWS_SES_REGION_ENDPOINT = env.str('AWS_SES_REGION_ENDPOINT', None)
 
@@ -2180,6 +2171,7 @@ IMPORT_EXPORT_CELERY_STORAGE_ALIAS = 'import_export_celery'
 ORG_INVITATION_RESENT_RESET_AFTER = 15 * 60  # in seconds
 
 # Batch sizes
+DEFAULT_BATCH_SIZE = 1000
 LOG_DELETION_BATCH_SIZE = 1000
 USER_ASSET_ORG_TRANSFER_BATCH_SIZE = 1000
 SUBMISSION_DELETION_BATCH_SIZE = 1000
@@ -2189,3 +2181,6 @@ VERSION_DELETION_BATCH_SIZE = 2000
 # Number of stuck tasks should be restarted at a time
 MAX_RESTARTED_TASKS = 100
 MAX_RESTARTED_TRANSFERS = 20
+
+# Maximum timeout (in minutes) for hook processing
+HOOK_PROCESSING_TIMEOUT = 120

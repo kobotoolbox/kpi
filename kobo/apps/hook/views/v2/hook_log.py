@@ -12,7 +12,7 @@ from kobo.apps.hook.filters import HookLogFilter
 from kobo.apps.hook.models.hook_log import HookLog
 from kobo.apps.hook.schema_extensions.v2.hooks.logs.serializers import LogsRetryResponse
 from kobo.apps.hook.serializers.v2.hook_log import HookLogSerializer
-from kpi.paginators import TinyPaginated
+from kpi.paginators import DefaultPagination
 from kpi.permissions import AssetEditorSubmissionViewerPermission
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import open_api_200_ok_response
@@ -89,7 +89,7 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
     lookup_url_kwarg = 'uid_log'
     serializer_class = HookLogSerializer
     permission_classes = (AssetEditorSubmissionViewerPermission,)
-    pagination_class = TinyPaginated
+    pagination_class = DefaultPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = HookLogFilter
 
@@ -118,7 +118,6 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
         hook_log = self.get_object()
 
         if hook_log.can_retry:
-            hook_log.change_status()
             success = hook_log.retry()
             if success:
                 # Return status_code of remote server too.

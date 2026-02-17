@@ -130,6 +130,7 @@ class DataSupplementPayloadExtension(
                 'automatic_google_transcription': self._nlp_automatic_action_schema,
                 'automatic_google_translation': self._nlp_automatic_action_schema,
                 'manual_qual': self._qual_schema(references),
+                'automatic_bedrock_qual': references['automatic_qual_payload'],
             },
             anyOf=[
                 {'required': ['manual_transcription']},
@@ -137,6 +138,7 @@ class DataSupplementPayloadExtension(
                 {'required': ['automatic_google_transcription']},
                 {'required': ['automatic_google_translation']},
                 {'required': ['manual_qual']},
+                {'required': ['automatic_bedrock_qual']}
             ],
         )
 
@@ -181,11 +183,11 @@ class DataSupplementPayloadExtension(
     def _qual_schema(self, references):
         return {
             'oneOf': [
-                references['qual_integer'],
-                references['qual_text'],
-                references['qual_select_one'],
-                references['qual_select_multiple'],
-                references['qual_tags'],
+                references['manual_qual_integer'],
+                references['manual_qual_text'],
+                references['manual_qual_select_one'],
+                references['manual_qual_select_multiple'],
+                references['manual_qual_tags'],
             ],
         }
 
@@ -237,15 +239,16 @@ class DataSupplementResponseExtension(
                     'translation_map_automatic'
                 ],
                 'manual_qual': supp_references['qual_map'],
+                'automatic_bedrock_qual': supp_references['qual_map'],
             },
-            # At least one of "manual_transcription" or "manual_translation"
-            # must be present
+            # At least action must be present
             anyOf=[
                 {'required': ['manual_transcription']},
                 {'required': ['manual_translation']},
                 {'required': ['automatic_google_transcription']},
                 {'required': ['automatic_google_translation']},
                 {'required': ['manual_qual']},
+                {'required': ['automatic_bedrock_qual']},
             ],
         )
 
@@ -402,6 +405,20 @@ class DataSupplementalDetailsFieldExtension(
                 'Top-level keys are question XPaths, values are action-specific objects.'
             ),
         }
+
+class DataValidationPayloadFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.data.fields.DataValidationPayloadField'
+
+    def map_serializer_field(self, auto_schema, direction):
+        return build_object_type(
+            properties={
+                'submission_ids': build_array_type(schema=GENERIC_INT_SCHEMA),
+                'validation_status.uid': {
+                    '$ref': '#/components/schemas/DataValidationStatusUidEnum'
+                },
+            }
+        )
+
 
 class DataValidationStatusFieldExtension(
     ComponentRegistrationMixin, OpenApiSerializerFieldExtension

@@ -1,4 +1,3 @@
-# coding: utf-8
 import json
 import re
 
@@ -7,10 +6,10 @@ from lxml import etree
 from kpi.constants import SUBMISSION_FORMAT_TYPE_XML
 from kpi.utils.strings import to_str
 from kpi.utils.xml import check_lxml_fromstring
-from .hook_test_case import HookTestCase
+from .base import BaseHookTestCase
 
 
-class ParserTestCase(HookTestCase):
+class ParserTestCase(BaseHookTestCase):
 
     def test_json_parser(self):
         hook = self._create_hook(subset_fields=['_id', 'subgroup1', 'q3'])

@@ -19,7 +19,7 @@ from ...constants import (
     SUBMISSION_UUID_FIELD,
     SUBSEQUENCES_ASYNC_CACHE_KEY,
 )
-from ...exceptions import SubsequenceTimeoutError
+from ...exceptions import GoogleCloudStorageBucketNotFound, SubsequenceTimeoutError
 from ..utils.google import google_credentials_from_constance_config
 
 
@@ -43,14 +43,7 @@ class GoogleService(ABC):
         self.asset = asset  # Need to retrieve the attachment content
         self.credentials = google_credentials_from_constance_config()
         self.storage_client = storage.Client(credentials=self.credentials)
-        if settings.GS_BUCKET_NAME is None:
-            logging.warning(
-                'GS_BUCKET_NAME is None, NLP processing will fail '
-                'when storing files in google cloud.'
-            )
-        self.bucket = self.storage_client.bucket(
-            bucket_name=settings.GS_BUCKET_NAME
-        )
+        self._validate_settings()
 
     @abstractmethod
     def adapt_response(self, results: Any) -> str:
@@ -148,3 +141,15 @@ class GoogleService(ABC):
             args.append(target_lang.lower())
 
         return '::'.join(map(str, [SUBSEQUENCES_ASYNC_CACHE_KEY, *args]))
+
+    def _validate_settings(self) -> dict:
+        if not getattr(settings, 'GS_BUCKET_NAME', None):
+            logging.warning(
+                'GS_BUCKET_NAME is None, NLP processing will fail '
+                'when storing files in google cloud.'
+            )
+            raise GoogleCloudStorageBucketNotFound
+        else:
+            self.bucket = self.storage_client.bucket(
+                bucket_name=settings.GS_BUCKET_NAME
+            )

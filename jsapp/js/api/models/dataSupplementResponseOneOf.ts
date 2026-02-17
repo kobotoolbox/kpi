@@ -22,6 +22,7 @@ export type DataSupplementResponseOneOf =
       automatic_google_transcription?: SupplementalDataActionObjectAutomatic
       automatic_google_translation?: SupplementalDataTranslationMapAutomatic
       manual_qual?: SupplementalDataQualMap
+      automatic_bedrock_qual?: SupplementalDataQualMap
     })
   | (unknown & {
       manual_transcription?: SupplementalDataActionObjectManual
@@ -29,6 +30,7 @@ export type DataSupplementResponseOneOf =
       automatic_google_transcription?: SupplementalDataActionObjectAutomatic
       automatic_google_translation?: SupplementalDataTranslationMapAutomatic
       manual_qual?: SupplementalDataQualMap
+      automatic_bedrock_qual?: SupplementalDataQualMap
     })
   | (unknown & {
       manual_transcription?: SupplementalDataActionObjectManual
@@ -36,6 +38,7 @@ export type DataSupplementResponseOneOf =
       automatic_google_transcription?: SupplementalDataActionObjectAutomatic
       automatic_google_translation?: SupplementalDataTranslationMapAutomatic
       manual_qual?: SupplementalDataQualMap
+      automatic_bedrock_qual?: SupplementalDataQualMap
     })
   | (unknown & {
       manual_transcription?: SupplementalDataActionObjectManual
@@ -43,6 +46,7 @@ export type DataSupplementResponseOneOf =
       automatic_google_transcription?: SupplementalDataActionObjectAutomatic
       automatic_google_translation?: SupplementalDataTranslationMapAutomatic
       manual_qual?: SupplementalDataQualMap
+      automatic_bedrock_qual?: SupplementalDataQualMap
     })
   | (unknown & {
       manual_transcription?: SupplementalDataActionObjectManual
@@ -50,4 +54,13 @@ export type DataSupplementResponseOneOf =
       automatic_google_transcription?: SupplementalDataActionObjectAutomatic
       automatic_google_translation?: SupplementalDataTranslationMapAutomatic
       manual_qual?: SupplementalDataQualMap
+      automatic_bedrock_qual?: SupplementalDataQualMap
+    })
+  | (unknown & {
+      manual_transcription?: SupplementalDataActionObjectManual
+      manual_translation?: SupplementalDataTranslationMapManual
+      automatic_google_transcription?: SupplementalDataActionObjectAutomatic
+      automatic_google_translation?: SupplementalDataTranslationMapAutomatic
+      manual_qual?: SupplementalDataQualMap
+      automatic_bedrock_qual?: SupplementalDataQualMap
     })

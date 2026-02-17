@@ -1,4 +1,3 @@
-# coding: utf-8
 import json
 from ipaddress import ip_address
 from unittest.mock import MagicMock, patch
@@ -9,12 +8,7 @@ from constance.test import override_config
 from django.urls import reverse
 from rest_framework import status
 
-from kobo.apps.hook.constants import (
-    HOOK_LOG_FAILED,
-    HOOK_LOG_PENDING,
-    HOOK_LOG_SUCCESS,
-    SUBMISSION_PLACEHOLDER,
-)
+from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 from kobo.apps.hook.models.hook import Hook
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (
@@ -24,22 +18,25 @@ from kpi.constants import (
 )
 from kpi.utils.datetime import several_minutes_from_now
 from ..exceptions import HookRemoteServerDownError
-from .hook_test_case import HookTestCase
+from ..models.hook_log import HookLogStatus
+from .base import BaseHookTestCase
 
 
-class ApiHookTestCase(HookTestCase):
+class ApiHookTestCase(BaseHookTestCase):
 
     def test_anonymous_access(self):
         hook = self._create_hook()
         self.client.logout()
 
-        list_url = reverse('hook-list', kwargs={'uid_asset': self.asset.uid})
+        list_url = reverse(
+            self._get_endpoint('hook-list'), kwargs={'uid_asset': self.asset.uid}
+        )
 
         response = self.client.get(list_url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
         detail_url = reverse(
-            'hook-detail',
+            self._get_endpoint('hook-detail'),
             kwargs={
                 'uid_asset': self.asset.uid,
                 'uid_hook': hook.uid,
@@ -50,7 +47,7 @@ class ApiHookTestCase(HookTestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
         log_list_url = reverse(
-            'hook-log-list',
+            self._get_endpoint('hook-log-list'),
             kwargs={
                 'uid_asset': self.asset.uid,
                 'uid_hook': hook.uid,
@@ -69,7 +66,10 @@ class ApiHookTestCase(HookTestCase):
     def test_editor_access(self):
         hook = self._create_hook()
 
-        list_url = reverse('hook-list', kwargs={'uid_asset': self.asset.uid})
+        list_url = reverse(
+            self._get_endpoint('hook-list'),
+            kwargs={'uid_asset': self.asset.uid},
+        )
 
         response = self.client.get(list_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -93,7 +93,7 @@ class ApiHookTestCase(HookTestCase):
         self.assertEqual(owner_results, response.get('results'))
 
         detail_url = reverse(
-            'hook-detail',
+            self._get_endpoint('hook-detail'),
             kwargs={
                 'uid_asset': self.asset.uid,
                 'uid_hook': hook.uid,
@@ -104,7 +104,7 @@ class ApiHookTestCase(HookTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         log_list_url = reverse(
-            'hook-log-list',
+            self._get_endpoint('hook-log-list'),
             kwargs={
                 'uid_asset': self.asset.uid,
                 'uid_hook': hook.uid,
@@ -130,13 +130,15 @@ class ApiHookTestCase(HookTestCase):
         self.client.logout()
         self.client.login(username='anotheruser', password='anotheruser')
 
-        list_url = reverse('hook-list', kwargs={'uid_asset': self.asset.uid})
+        list_url = reverse(
+            self._get_endpoint('hook-list'), kwargs={'uid_asset': self.asset.uid}
+        )
 
         response = self.client.get(list_url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
         detail_url = reverse(
-            'hook-detail',
+            self._get_endpoint('hook-detail'),
             kwargs={
                 'uid_asset': self.asset.uid,
                 'uid_hook': hook.uid,
@@ -147,7 +149,7 @@ class ApiHookTestCase(HookTestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
         log_list_url = reverse(
-            'hook-log-list',
+            self._get_endpoint('hook-log-list'),
             kwargs={
                 'uid_asset': self.asset.uid,
                 'uid_hook': hook.uid,
@@ -174,13 +176,12 @@ class ApiHookTestCase(HookTestCase):
     def test_partial_update_hook(self):
         hook = self._create_hook()
         url = reverse(
-            'hook-detail',
+            self._get_endpoint('hook-detail'),
             kwargs={'uid_asset': self.asset.uid, 'uid_hook': hook.uid},
         )
         data = {'name': 'some disabled external service', 'active': False}
         response = self.client.patch(url, data, format=SUBMISSION_FORMAT_TYPE_JSON)
-        self.assertEqual(response.status_code, status.HTTP_200_OK,
-                         msg=response.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, msg=response.data)
         hook.refresh_from_db()
         self.assertFalse(hook.active)
         self.assertEqual(hook.name, 'some disabled external service')
@@ -196,7 +197,7 @@ class ApiHookTestCase(HookTestCase):
 
         # Let's retry through API call
         retry_url = reverse(
-            'hook-log-retry',
+            self._get_endpoint('hook-log-retry'),
             kwargs={
                 'uid_asset': self.asset.uid,
                 'uid_hook': self.hook.uid,
@@ -210,7 +211,7 @@ class ApiHookTestCase(HookTestCase):
 
         # Let's check if logs has 2 tries
         detail_url = reverse(
-            'hook-log-detail',
+            self._get_endpoint('hook-log-detail'),
             kwargs={
                 'uid_asset': self.asset.uid,
                 'uid_hook': self.hook.uid,
@@ -232,7 +233,7 @@ class ApiHookTestCase(HookTestCase):
 
         # Let's retry through API call
         retry_url = reverse(
-            'hook-log-retry',
+            self._get_endpoint('hook-log-retry'),
             kwargs={
                 'uid_asset': self.asset.uid,
                 'uid_hook': self.hook.uid,
@@ -246,7 +247,7 @@ class ApiHookTestCase(HookTestCase):
 
         # Let's check if logs has 2 tries
         detail_url = reverse(
-            'hook-log-detail',
+            self._get_endpoint('hook-log-detail'),
             kwargs={
                 'uid_asset': self.asset.uid,
                 'uid_hook': self.hook.uid,
@@ -291,7 +292,8 @@ class ApiHookTestCase(HookTestCase):
 
         # Retrieve the corresponding log
         url = reverse(
-            'hook-log-list', kwargs={'uid_asset': hook.asset.uid, 'uid_hook': hook.uid}
+            self._get_endpoint('hook-log-list'),
+            kwargs={'uid_asset': hook.asset.uid, 'uid_hook': hook.uid},
         )
 
         response = self.client.get(url)
@@ -380,11 +382,15 @@ class ApiHookTestCase(HookTestCase):
         )
 
         # There should be a successful log for the success hook
-        response = self.client.get(f'{hook_log_url}?status={HOOK_LOG_SUCCESS}', format='json')
+        response = self.client.get(
+            f'{hook_log_url}?status={HookLogStatus.SUCCESS}', format='json'
+        )
         self.assertEqual(response.data.get('count'), 1)
 
         # There should be no failed log for the success hook
-        response = self.client.get(f'{hook_log_url}?status={HOOK_LOG_FAILED}', format='json')
+        response = self.client.get(
+            f'{hook_log_url}?status={HookLogStatus.FAILED}', format='json'
+        )
         self.assertEqual(response.data.get('count'), 0)
 
     @patch(
@@ -426,13 +432,13 @@ class ApiHookTestCase(HookTestCase):
 
         # There should be no success log for the failing hook
         response = self.client.get(
-            f'{hook_log_url}?status={HOOK_LOG_SUCCESS}', format='json'
+            f'{hook_log_url}?status={HookLogStatus.SUCCESS}', format='json'
         )
         self.assertEqual(response.data.get('count'), 0)
 
         # There should be a pending log for the failing hook
         response = self.client.get(
-            f'{hook_log_url}?status={HOOK_LOG_PENDING}', format='json'
+            f'{hook_log_url}?status={HookLogStatus.PENDING}', format='json'
         )
         self.assertEqual(response.data.get('count'), 1)
 
@@ -499,26 +505,26 @@ class ApiHookTestCase(HookTestCase):
 
         # There should be a success log around now
         response = self.client.get(
-            f'{hook_log_url}?start={five_minutes_ago}&end={in_five_min}',
+            f'{hook_log_url}?start_date={five_minutes_ago}&end_date={in_five_min}',
             format='json',
         )
         self.assertEqual(response.data.get('count'), 1)
 
         # There should be no log before now
         response = self.client.get(
-            f'{hook_log_url}?start={in_five_min}', format='json'
+            f'{hook_log_url}?start_date={in_five_min}', format='json'
         )
         self.assertEqual(response.data.get('count'), 0)
 
         # There should be no log after now
         response = self.client.get(
-            f'{hook_log_url}?end={five_minutes_ago}', format='json'
+            f'{hook_log_url}?end_date={five_minutes_ago}', format='json'
         )
         self.assertEqual(response.data.get('count'), 0)
 
         # There should be no log around now when expressed in a different time zone
         response = self.client.get(
-            f'{hook_log_url}?start={five_minutes_ago}{tzoffset}&end={in_five_min}{tzoffset}',  # noqa: E501
+            f'{hook_log_url}?start_date={five_minutes_ago}{tzoffset}&end_date={in_five_min}{tzoffset}',  # noqa: E501
             format='json',
         )
         self.assertEqual(response.data.get('count'), 0)
@@ -541,9 +547,9 @@ class ApiHookTestCase(HookTestCase):
         )
 
         # Test bad argument
-        response = self.client.get(f'{hook_log_url}?start=abc', format='json')
+        response = self.client.get(f'{hook_log_url}?start_date=abc', format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         # Test bad argument
-        response = self.client.get(f'{hook_log_url}?end=abc', format='json')
+        response = self.client.get(f'{hook_log_url}?end_date=abc', format='json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

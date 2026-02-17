@@ -9,7 +9,7 @@ from kobo.apps.organizations.models import (
     OrganizationOwner,
     OrganizationUser,
 )
-from kpi.models import Asset
+from kpi.models import Asset, ObjectPermission
 
 job = import_module('kobo.apps.long_running_migrations.jobs.0015_fix_duplicate_organizations')  # noqa
 
@@ -148,6 +148,58 @@ class TestFixDuplicateOrgs(TestCase):
         self.assertEqual(asset1.owner, self.anotheruser)
         self.assertEqual(asset2.owner, self.anotheruser)
         self.assertEqual(asset3.owner, self.anotheruser)
+
+    def test_owner_does_not_lose_permissions_on_removal(self):
+        """
+        Verify that when a duplicate organization is removed, if the user being
+        processed is the owner of that org, they DO NOT lose their own permissions
+        """
+        # Give someuser a second organization where they are also the owner
+        self._create_organization_for_user(user=self.someuser)
+
+        # Create an asset owned by someuser and assign them a permission
+        asset = Asset.objects.create(name='Owner Project', owner=self.someuser)
+
+        # Get all permissions for the asset
+        initial_perms = ObjectPermission.objects.filter(
+            user=self.someuser,
+            asset=asset,
+            deny=False,
+        ).values('permission_id', 'permission__codename')
+
+        expected_permissions = [
+            'add_submissions',
+            'change_asset',
+            'change_submissions',
+            'delete_submissions',
+            'manage_asset',
+            'validate_submissions',
+            'view_asset',
+            'view_submissions',
+        ]
+        initial_codenames = sorted(
+            [obj_perm['permission__codename'] for obj_perm in initial_perms]
+        )
+        assert expected_permissions == initial_codenames
+
+        job.run()
+
+        # Verify that only one organization remains for someuser
+        self.assertEqual(OrganizationUser.objects.filter(user=self.someuser).count(), 1)
+
+        # Verify that someuser still has all their initial permissions on the asset
+        final_perms = set(
+            ObjectPermission.objects.filter(
+                user=self.someuser,
+                asset=asset,
+                deny=False,
+            ).values_list('permission_id', flat=True)
+        )
+
+        assert (
+            set([obj_perm['permission_id'] for obj_perm in initial_perms])
+            == final_perms
+        )
 
     def _create_organization_for_user(self, user, mmo_override=False):
         org = Organization.objects.create(name='Org', mmo_override=mmo_override)

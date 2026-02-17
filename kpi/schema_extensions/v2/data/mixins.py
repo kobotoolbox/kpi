@@ -292,11 +292,11 @@ class SupplementalDataComponentsRegistrationMixin(ComponentRegistrationMixin):
                 'SupplementalDataQualData',
                 {
                     'oneOf': [
-                        qual_references['qual_integer'],
-                        qual_references['qual_text'],
-                        qual_references['qual_select_one'],
-                        qual_references['qual_select_multiple'],
-                        qual_references['qual_tags'],
+                        qual_references['manual_qual_integer'],
+                        qual_references['manual_qual_text'],
+                        qual_references['manual_qual_select_one'],
+                        qual_references['manual_qual_select_multiple'],
+                        qual_references['manual_qual_tags'],
                     ]
                 },
             )

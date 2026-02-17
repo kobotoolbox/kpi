@@ -6,6 +6,11 @@ class AudioTooLongError(Exception):
     pass
 
 
+class GoogleCloudStorageBucketNotFound(Exception):
+
+    pass
+
+
 class SubsequenceDeletionError(Exception):
     """Raised when attempting to delete a value that doesn't exist."""
 
@@ -42,7 +47,15 @@ class InvalidXPath(Exception):
     pass
 
 
+class SubsequenceAcceptanceError(Exception):
+    pass
+
+
 class SubsequenceTimeoutError(Exception):
+    pass
+
+
+class SubsequenceVerificationError(Exception):
     pass
 
 
