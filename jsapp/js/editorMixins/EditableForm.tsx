@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 
 import { Text } from '@mantine/core'
 import alertify from 'alertifyjs'
@@ -7,9 +7,8 @@ import clonedeep from 'lodash.clonedeep'
 import debounce from 'lodash.debounce'
 import last from 'lodash.last'
 import DocumentTitle from 'react-document-title'
-import ReactDOM from 'react-dom'
 import Markdown from 'react-markdown'
-import { unstable_usePrompt as usePrompt } from 'react-router-dom'
+import { useBeforeUnload, useBlocker, unstable_usePrompt as usePrompt } from 'react-router-dom'
 import Select from 'react-select'
 import type { AssetSnapshotResponse } from '#/api/models/assetSnapshotResponse'
 import assetUtils from '#/assetUtils'
@@ -158,52 +157,55 @@ interface EditableFormState extends SurveyStateStoreData {
  * responsible for rendering the survey editor app (all our coffee code). See
  * the `launchAppForSurveyContent` method below for all the magic.
  */
-export default class EditableForm extends React.Component<EditableFormProps, EditableFormState> {
-  onSurveyChangeDebounced: () => void = Function
+export default function EditableForm(props: EditableFormProps) {
+  const [state, setState] = useState<EditableFormState>({
+    asideLayoutSettingsVisible: false,
+    asideLibrarySearchVisible: false,
+    asset: undefined,
+    asset_updated: update_states.UP_TO_DATE,
+    cascadeMessage: undefined,
+    cascadeReady: false,
+    cascadeTextareaValue: '',
+    desiredAssetType: undefined,
+    enketopreviewOverlay: undefined,
+    isBackgroundAudioBannerDismissed: false,
+    name: props.name,
+    preventNavigatingOut: false,
+    showCascadePopup: false,
+    surveyAppRendered: props.surveyAppRendered,
+    surveyLoadError: undefined,
+    surveySaveFail: false,
+    isNewAsset: props.isNewAsset,
+    backRoute: props.backRoute === null ? undefined : props.backRoute,
+    groupButtonIsActive: false,
+    multioptionsExpanded: props.multioptionsExpanded,
+  })
 
-  app?: SurveyApp
+  const formWrapRef = useRef<HTMLDivElement>(null)
+  const cascadeRef = useRef<HTMLTextAreaElement>(null)
 
-  constructor(props: EditableFormProps) {
-    super(props)
-    this.state = {
-      asideLayoutSettingsVisible: false,
-      asideLibrarySearchVisible: false,
-      asset: undefined,
-      asset_updated: update_states.UP_TO_DATE,
-      cascadeMessage: undefined,
-      cascadeReady: false,
-      cascadeTextareaValue: '',
-      desiredAssetType: undefined,
-      enketopreviewOverlay: undefined,
-      isBackgroundAudioBannerDismissed: false,
-      name: props.name,
-      preventNavigatingOut: false,
-      showCascadePopup: false,
-      surveyAppRendered: props.surveyAppRendered,
-      surveyLoadError: undefined,
-      surveySaveFail: false,
-      isNewAsset: props.isNewAsset,
-      backRoute: props.backRoute === null ? undefined : props.backRoute,
-      groupButtonIsActive: false,
-      multioptionsExpanded: props.multioptionsExpanded,
-    }
-  }
+  const onSurveyChangeDebounced = debounce(onSurveyChange, 200)
 
-  componentDidMount() {
-    this.loadAsideSettings()
+  const [app, setApp] = useState<SurveyApp | undefined>(undefined)
 
-    if (this.state.isNewAsset) {
-      this.launchAppForSurveyContent()
+  useEffect(() => {
+    loadAsideSettings()
+
+    if (state.isNewAsset) {
+      launchAppForSurveyContent()
     } else {
-      const uid = this.props.assetUid
+      const uid = props.assetUid
       stores.allAssets.whenLoaded(uid, (originalAsset: AssetResponse) => {
         // Store asset object is mutable and there is no way to predict all the
         // bugs that come from this fact. Form Builder code is already changing
         // the content of the object, so we want to cut all the bugs at the
         // very start of the process.
-        const asset = clonedeep(originalAsset)
+        const newAsset = clonedeep(originalAsset)
 
-        this.setState({ asset: asset })
+        setState((currentState) => ({
+          ...currentState,
+          asset: newAsset,
+        }))
 
         // HACK switch to setState callback after updating to React 16+
         //
@@ -212,128 +214,149 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
         // `launchAppForSurveyContent` to work.
         window.setTimeout(() => {
           let settingsStyle: FormStyleName | undefined
-          if (asset.content?.settings && !Array.isArray(asset.content?.settings)) {
-            settingsStyle = asset.content.settings.style
+          if (newAsset.content?.settings && !Array.isArray(newAsset.content?.settings)) {
+            settingsStyle = newAsset.content.settings.style
           }
-          this.launchAppForSurveyContent(asset.content, {
-            name: asset.name,
+          launchAppForSurveyContent(newAsset.content, {
+            name: newAsset.name,
             settings__style: settingsStyle,
-            files: asset.files,
-            asset_type: asset.asset_type,
-            asset: asset,
+            files: newAsset.files,
+            asset_type: newAsset.asset_type,
+            asset: newAsset,
           })
         }, 0)
       })
     }
 
-    this.onSurveyChangeDebounced = debounce(this.onSurveyChange.bind(this), 200)
+    stores.surveyState.listen(onSurveyStateChanged)
 
-    stores.surveyState.listen(this.surveyStateChanged.bind(this))
-  }
-
-  componentWillUnmount() {
-    if (this.app && this.app.survey) {
-      this.app.survey.off('change')
+    return () => {
+      if (app?.survey) {
+        app.survey.off('change')
+      }
+      unpreventClosingTab()
     }
-    this.unpreventClosingTab()
-  }
+  }, [])
 
-  routerWillLeave() {
-    if (this.state.preventNavigatingOut) {
-      return UNSAVED_CHANGES_WARNING
-    }
-    return ''
-  }
+  useBeforeUnload(
+    useCallback(
+      (event) => {
+        if (state.preventNavigatingOut) {
+          event.preventDefault()
+        }
+      },
+      [state.preventNavigatingOut],
+    ),
+  )
+  const blocker = useBlocker(
+    ({ currentLocation, nextLocation }) =>
+      state.preventNavigatingOut && currentLocation.pathname !== nextLocation.pathname,
+  )
 
-  loadAsideSettings() {
+  function loadAsideSettings() {
     const asideSettings = sessionStorage.getItem(ASIDE_CACHE_NAME)
     if (asideSettings) {
-      this.setState(JSON.parse(asideSettings))
+      setState((currentState) => ({
+        ...currentState,
+        ...JSON.parse(asideSettings),
+      }))
     }
   }
 
-  saveAsideSettings(asideSettings: AsideSettings) {
+  function saveAsideSettings(asideSettings: AsideSettings) {
     sessionStorage.setItem(ASIDE_CACHE_NAME, JSON.stringify(asideSettings))
   }
 
-  onMetadataEditorChange() {
-    this.onSurveyChangeDebounced()
+  function onMetadataEditorChange() {
+    onSurveyChangeDebounced()
   }
 
-  surveyStateChanged(state: SurveyStateStoreData) {
-    this.setState(state)
+  function onSurveyStateChanged(storeState: SurveyStateStoreData) {
+    setState((currentState) => ({
+      ...currentState,
+      ...storeState,
+    }))
   }
 
-  onStyleChange(newStyle: null | FormStyleDefinition) {
-    let settingsStyle
+  function onStyleChange(newStyle: null | FormStyleDefinition) {
+    let settingsStyle: FormStyleName
     if (newStyle !== null) {
       settingsStyle = newStyle.value
     }
 
-    this.setState({
+    setState((currentState) => ({
+      ...currentState,
       settings__style: settingsStyle,
-    })
-    this.onSurveyChangeDebounced()
+    }))
+    onSurveyChangeDebounced()
   }
 
-  getStyleSelectVal(optionVal?: FormStyleName) {
+  function getStyleSelectVal(optionVal?: FormStyleName) {
     return AVAILABLE_FORM_STYLES.find((option) => option.value === optionVal)
   }
 
-  onSurveyChange() {
-    if (!this.state.asset_updated !== update_states.UNSAVED_CHANGES) {
-      this.preventClosingTab()
+  function onSurveyChange() {
+    if (!state.asset_updated !== update_states.UNSAVED_CHANGES) {
+      preventClosingTab()
     }
-    this.setState({
+    setState((currentState) => ({
+      ...currentState,
       asset_updated: update_states.UNSAVED_CHANGES,
-    })
+    }))
   }
 
-  preventClosingTab() {
-    this.setState({ preventNavigatingOut: true })
+  function preventClosingTab() {
+    setState((currentState) => ({
+      ...currentState,
+      preventNavigatingOut: true,
+    }))
     $(window).on('beforeunload.noclosetab', () => UNSAVED_CHANGES_WARNING)
   }
 
-  unpreventClosingTab() {
-    this.setState({ preventNavigatingOut: false })
+  function unpreventClosingTab() {
+    setState((currentState) => ({
+      ...currentState,
+      preventNavigatingOut: false,
+    }))
     $(window).off('beforeunload.noclosetab')
   }
 
-  nameChange(evt: React.ChangeEvent<HTMLInputElement>) {
-    this.setState({
+  function nameChange(evt: React.ChangeEvent<HTMLInputElement>) {
+    setState((currentState) => ({
+      ...currentState,
       name: assetUtils.removeInvalidChars(evt.target.value),
-    })
-    this.onSurveyChangeDebounced()
+    }))
+    onSurveyChangeDebounced()
   }
 
-  groupQuestions() {
-    this.app?.groupSelectedRows()
+  function groupQuestions() {
+    app?.groupSelectedRows()
   }
 
-  showAll(evt: React.TouchEvent<HTMLButtonElement>) {
+  function showAll(evt: React.TouchEvent<HTMLButtonElement>) {
     evt.preventDefault()
     evt.currentTarget.blur()
-    this.app?.expandMultioptions()
+    app?.expandMultioptions()
   }
 
-  hasMetadataAndDetails() {
+  function hasMetadataAndDetails() {
     return (
-      this.app &&
-      this.state.asset &&
-      (this.state.asset.asset_type === ASSET_TYPES.survey.id ||
-        this.state.asset.asset_type === ASSET_TYPES.template.id ||
-        this.state.desiredAssetType === ASSET_TYPES.template.id)
+      app &&
+      state.asset &&
+      (state.asset.asset_type === ASSET_TYPES.survey.id ||
+        state.asset.asset_type === ASSET_TYPES.template.id ||
+        state.desiredAssetType === ASSET_TYPES.template.id)
     )
   }
 
-  needsSave() {
-    return this.state.asset_updated === update_states.UNSAVED_CHANGES
+  function needsSave() {
+    return state.asset_updated === update_states.UNSAVED_CHANGES
   }
 
-  previewForm(evt: React.TouchEvent<HTMLButtonElement>) {
+  function previewForm(evt: React.TouchEvent<HTMLButtonElement>) {
     // At this point app should really be defined, and if not, there is no point in doing anything
-    if (!this.app) {
-      console.error('this.app is not defined!')
+    if (!app) {
+      console.error('app is not defined!')
       return
     }
 
@@ -341,32 +364,33 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
       evt.preventDefault()
     }
 
-    if (this.state.settings__style !== undefined) {
-      this.app?.survey.settings.set('style', this.state.settings__style)
+    if (state.settings__style !== undefined) {
+      app?.survey.settings.set('style', state.settings__style)
     }
 
-    if (this.state.name) {
-      this.app?.survey.settings.set('title', this.state.name)
+    if (state.name) {
+      app?.survey.settings.set('title', state.name)
     }
 
-    let surveyJSON = surveyToValidJson(this.app?.survey)
-    if (this.state.asset?.content) {
-      surveyJSON = unnullifyTranslations(surveyJSON, this.state.asset.content)
+    let surveyJSON = surveyToValidJson(app?.survey)
+    if (state.asset?.content) {
+      surveyJSON = unnullifyTranslations(surveyJSON, state.asset.content)
     }
     let params: KoboMatrixParserParams & { asset?: string } = { source: surveyJSON }
 
     params = koboMatrixParser(params)
 
-    if (this.state.asset && this.state.asset.url) {
-      params.asset = this.state.asset.url
+    if (state.asset && state.asset.url) {
+      params.asset = state.asset.url
     }
 
     dataInterface
       .createAssetSnapshot(params)
       .done((content: AssetSnapshotResponse) => {
-        this.setState({
+        setState((currentState) => ({
+          ...currentState,
           enketopreviewOverlay: content.enketopreviewlink,
-        })
+        }))
       })
       .fail((jqxhr: FailResponse) => {
         let err
@@ -375,72 +399,74 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
         } else {
           err = t('Unknown Enketo preview error')
         }
-        this.setState({
+        setState((currentState) => ({
+          ...currentState,
           enketopreviewError: err,
-        })
+        }))
       })
   }
 
-  saveForm(evt: React.TouchEvent<HTMLButtonElement>) {
+  function saveForm(evt: React.TouchEvent<HTMLButtonElement>) {
     if (evt && evt.preventDefault) {
       evt.preventDefault()
     }
     // At this point app should really be defined, and if not, there is no point in doing anything
-    if (!this.app) {
-      console.error('this.app is not defined!')
+    if (!app) {
+      console.error('app is not defined!')
       return
     }
 
-    if (this.state.settings__style !== undefined) {
-      this.app.survey.settings.set('style', this.state.settings__style)
+    if (state.settings__style !== undefined) {
+      app.survey.settings.set('style', state.settings__style)
     }
 
-    let surveyJSON = surveyToValidJson(this.app.survey)
-    if (this.state.asset?.content) {
+    let surveyJSON = surveyToValidJson(app.survey)
+    if (state.asset?.content) {
       const surveyJSONWithMatrix = koboMatrixParser({ source: surveyJSON }).source
       if (surveyJSONWithMatrix) {
-        surveyJSON = unnullifyTranslations(surveyJSONWithMatrix, this.state.asset.content)
+        surveyJSON = unnullifyTranslations(surveyJSONWithMatrix, state.asset.content)
       }
     }
     // We normally have `content` as an actual object, not a stringified representation, but since
     // `actions.resources.updateAsset` already works with JSON string, let's extend the types
     const params: Partial<AssetRequestObject> & { content: string } = { content: surveyJSON }
 
-    if (this.state.name) {
-      params.name = this.state.name
+    if (state.name) {
+      params.name = state.name
     }
 
-    if (this.state.isNewAsset) {
+    if (state.isNewAsset) {
       // we're intentionally leaving after creating new asset,
       // so there is nothing unsaved here
-      this.unpreventClosingTab()
+      unpreventClosingTab()
 
       // create new asset
-      if (this.state.desiredAssetType) {
-        params.asset_type = this.state.desiredAssetType
+      if (state.desiredAssetType) {
+        params.asset_type = state.desiredAssetType
       } else {
         params.asset_type = AssetTypeName.block
       }
-      if (this.props.parentAssetUid) {
-        params.parent = assetUtils.buildAssetUrl(this.props.parentAssetUid)
+      if (props.parentAssetUid) {
+        params.parent = assetUtils.buildAssetUrl(props.parentAssetUid)
       }
       actions.resources.createResource.triggerAsync(params).then(() => {
-        if (this.props.router && this.state.backRoute) {
-          this.props.router.navigate(this.state.backRoute)
+        if (props.router && state.backRoute) {
+          props.router.navigate(state.backRoute)
         }
       })
-    } else if (this.props.assetUid) {
+    } else if (props.assetUid) {
       // update existing asset
-      const uid = this.props.assetUid
+      const uid = props.assetUid
 
       actions.resources.updateAsset
         .triggerAsync(uid, params)
         .then(() => {
-          this.unpreventClosingTab()
-          this.setState({
+          unpreventClosingTab()
+          setState((currentState) => ({
+            ...currentState,
             asset_updated: update_states.UP_TO_DATE,
             surveySaveFail: false,
-          })
+          }))
         })
         .catch((resp: FailResponse) => {
           var errorMsg = `${t('Your changes could not be saved, likely because of a lost internet connection.')}&nbsp;${t('Keep this window open and try saving again while using a better connection.')}`
@@ -457,44 +483,46 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
           }
           dialog.set(opts).show()
 
-          this.setState({
+          setState((currentState) => ({
+            ...currentState,
             surveySaveFail: true,
             asset_updated: update_states.SAVE_FAILED,
-          })
+          }))
         })
     }
-    this.setState({
+    setState((currentState) => ({
+      ...currentState,
       asset_updated: update_states.PENDING_UPDATE,
-    })
+    }))
   }
 
-  buttonStates() {
+  function buttonStates() {
     var ooo: EditableFormButtonStates = {}
-    if (this.app) {
+    if (app) {
       ooo.previewDisabled = true
-      if (this.app && this.app.survey) {
-        ooo.previewDisabled = this.app.survey.rows.length < 1
+      if (app && app.survey) {
+        ooo.previewDisabled = app.survey.rows.length < 1
       }
-      ooo.groupable = !!this.state.groupButtonIsActive
-      ooo.showAllOpen = !!this.state.multioptionsExpanded
+      ooo.groupable = !!state.groupButtonIsActive
+      ooo.showAllOpen = !!state.multioptionsExpanded
       ooo.showAllAvailable = (() => {
         var hasSelect = false
-        this.app.survey.forEachRow((row) => {
+        app.survey.forEachRow((row) => {
           if (row._isSelectQuestion()) {
             hasSelect = true
           }
         })
         return hasSelect
       })()
-      ooo.name = this.state.name
-      ooo.hasSettings = this.state.backRoute === ROUTES.FORMS
-      ooo.styleValue = this.state.settings__style
+      ooo.name = state.name
+      ooo.hasSettings = state.backRoute === ROUTES.FORMS
+      ooo.styleValue = state.settings__style
     } else {
       ooo.allButtonsDisabled = true
     }
-    if (this.state.isNewAsset) {
+    if (state.isNewAsset) {
       ooo.saveButtonText = t('create')
-    } else if (this.state.surveySaveFail) {
+    } else if (state.surveySaveFail) {
       ooo.saveButtonText = `${t('save')} (${t('retry')}) `
     } else {
       ooo.saveButtonText = t('save')
@@ -502,36 +530,44 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
     return ooo
   }
 
-  toggleAsideLibrarySearch(evt: React.TouchEvent<HTMLButtonElement>) {
+  function toggleAsideLibrarySearch(evt: React.TouchEvent<HTMLButtonElement>) {
     evt.currentTarget.blur()
     const asideSettings: AsideSettings = {
       asideLayoutSettingsVisible: false,
-      asideLibrarySearchVisible: !this.state.asideLibrarySearchVisible,
+      asideLibrarySearchVisible: !state.asideLibrarySearchVisible,
     }
-    this.setState(asideSettings)
-    this.saveAsideSettings(asideSettings)
+    setState((currentState) => ({
+      ...currentState,
+      ...asideSettings,
+    }))
+    saveAsideSettings(asideSettings)
   }
 
-  toggleAsideLayoutSettings(evt: React.TouchEvent<HTMLButtonElement>) {
+  function toggleAsideLayoutSettings(evt: React.TouchEvent<HTMLButtonElement>) {
     evt.currentTarget.blur()
     const asideSettings: AsideSettings = {
-      asideLayoutSettingsVisible: !this.state.asideLayoutSettingsVisible,
+      asideLayoutSettingsVisible: !state.asideLayoutSettingsVisible,
       asideLibrarySearchVisible: false,
     }
-    this.setState(asideSettings)
-    this.saveAsideSettings(asideSettings)
+    setState((currentState) => ({
+      ...currentState,
+      ...asideSettings,
+    }))
+    saveAsideSettings(asideSettings)
   }
 
-  hidePreview() {
-    this.setState({
+  function hidePreview() {
+    setState((currentState) => ({
+      ...currentState,
       enketopreviewOverlay: undefined,
-    })
+    }))
   }
 
-  hideCascade() {
-    this.setState({
+  function hideCascade() {
+    setState((currentState) => ({
+      ...currentState,
       showCascadePopup: false,
-    })
+    }))
   }
 
   /**
@@ -539,7 +575,7 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
    * It builds `dkobo_xlform.view.SurveyApp` using asset data and then appends
    * it to `.form-wrap` node.
    */
-  launchAppForSurveyContent(assetContent?: AssetContent, _state?: LaunchAppData) {
+  function launchAppForSurveyContent(assetContent?: AssetContent, _state?: LaunchAppData) {
     const newState: Partial<EditableFormState> & Partial<LaunchAppData> = _state || {}
 
     if (newState.name) {
@@ -582,106 +618,113 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
       var skp = new SurveyScope({
         survey: survey,
         rawSurvey: rawAssetContent,
-        assetType: getFormBuilderAssetType(this.state.asset?.asset_type, this.state.desiredAssetType),
+        assetType: getFormBuilderAssetType(state.asset?.asset_type, state.desiredAssetType),
       })
-      this.app = new dkobo_xlform.view.SurveyApp({
+
+      const newApp = new dkobo_xlform.view.SurveyApp({
         survey: survey,
         stateStore: stores.surveyState,
         ngScope: skp,
       })
 
-      const formWrapEl = ReactDOM.findDOMNode(this.refs['form-wrap'])
+      setApp(newApp)
+
+      const formWrapEl = formWrapRef.current
 
       if (formWrapEl instanceof Element === false) {
         throw new Error('form-wrap element not found!')
       }
 
-      this.app.$el.appendTo(formWrapEl)
-      this.app.render()
-      survey.rows.on('change', this.onSurveyChange.bind(this))
-      survey.rows.on('sort', this.onSurveyChange.bind(this))
-      survey.on('change', this.onSurveyChange.bind(this))
+      newApp.$el.appendTo(formWrapEl)
+      newApp.render()
+      survey.rows.on('change', onSurveyChange)
+      survey.rows.on('sort', onSurveyChange)
+      survey.on('change', onSurveyChange)
     }
 
-    this.setState(newState)
+    setState((currentState) => ({
+      ...currentState,
+      ...newState,
+    }))
   }
 
-  clearPreviewError() {
-    this.setState({
+  function clearPreviewError() {
+    setState((currentState) => ({
+      ...currentState,
       enketopreviewError: undefined,
-    })
+    }))
   }
 
-  safeNavigateToList() {
-    if (this.state.backRoute) {
-      this.props.router.navigate(this.state.backRoute)
-    } else if (this.props.router.location.pathname.startsWith(ROUTES.LIBRARY)) {
-      this.props.router.navigate(ROUTES.LIBRARY)
+  function safeNavigateToList() {
+    if (state.backRoute) {
+      props.router.navigate(state.backRoute)
+    } else if (props.router.location.pathname.startsWith(ROUTES.LIBRARY)) {
+      props.router.navigate(ROUTES.LIBRARY)
     } else {
-      this.props.router.navigate(ROUTES.FORMS)
+      props.router.navigate(ROUTES.FORMS)
     }
   }
 
-  safeNavigateToAsset() {
-    if (!this.state.asset || !this.state.backRoute) {
+  function safeNavigateToAsset() {
+    if (!state.asset || !state.backRoute) {
       return
     }
 
-    let targetRoute = this.state.backRoute
-    if (this.state.backRoute === ROUTES.FORMS) {
-      targetRoute = ROUTES.FORM.replace(':uid', this.state.asset.uid)
-    } else if (this.state.backRoute === ROUTES.LIBRARY) {
+    let targetRoute = state.backRoute
+    if (state.backRoute === ROUTES.FORMS) {
+      targetRoute = ROUTES.FORM.replace(':uid', state.asset.uid)
+    } else if (state.backRoute === ROUTES.LIBRARY) {
       // Check if the the uid is undefined to prevent getting an Access Denied screen
-      if (this.state.asset.uid !== undefined) {
-        targetRoute = ROUTES.LIBRARY_ITEM.replace(':uid', this.state.asset.uid)
+      if (state.asset.uid !== undefined) {
+        targetRoute = ROUTES.LIBRARY_ITEM.replace(':uid', state.asset.uid)
       }
     }
 
-    this.props.router.navigate(targetRoute)
+    props.router.navigate(targetRoute)
   }
 
-  isAddingQuestionsRestricted() {
+  function isAddingQuestionsRestricted() {
     return (
-      this.state.asset?.content &&
-      isAssetLockable(this.state.asset.asset_type) &&
-      hasAssetRestriction(this.state.asset.content, LockingRestrictionName.question_add)
+      state.asset?.content &&
+      isAssetLockable(state.asset.asset_type) &&
+      hasAssetRestriction(state.asset.content, LockingRestrictionName.question_add)
     )
   }
 
-  isAddingGroupsRestricted() {
+  function isAddingGroupsRestricted() {
     return (
-      this.state.asset?.content &&
-      isAssetLockable(this.state.asset.asset_type) &&
-      hasAssetRestriction(this.state.asset.content, LockingRestrictionName.group_add)
+      state.asset?.content &&
+      isAssetLockable(state.asset.asset_type) &&
+      hasAssetRestriction(state.asset.content, LockingRestrictionName.group_add)
     )
   }
 
-  isChangingAppearanceRestricted() {
+  function isChangingAppearanceRestricted() {
     return (
-      this.state.asset?.content &&
-      isAssetLockable(this.state.asset.asset_type) &&
-      hasAssetRestriction(this.state.asset.content, LockingRestrictionName.form_appearance)
+      state.asset?.content &&
+      isAssetLockable(state.asset.asset_type) &&
+      hasAssetRestriction(state.asset.content, LockingRestrictionName.form_appearance)
     )
   }
 
-  isChangingMetaQuestionsRestricted() {
+  function isChangingMetaQuestionsRestricted() {
     return (
-      this.state.asset?.content &&
-      isAssetLockable(this.state.asset.asset_type) &&
-      hasAssetRestriction(this.state.asset.content, LockingRestrictionName.form_meta_edit)
+      state.asset?.content &&
+      isAssetLockable(state.asset.asset_type) &&
+      hasAssetRestriction(state.asset.content, LockingRestrictionName.form_meta_edit)
     )
   }
 
-  hasBackgroundAudio() {
-    return this.app?.survey?.surveyDetails.filter(
+  function hasBackgroundAudio() {
+    return app?.survey?.surveyDetails.filter(
       (sd: SurveyDetail) => sd.attributes.name === QuestionTypeName['background-audio'],
     )[0].attributes.value
   }
 
   // rendering methods
 
-  renderFormBuilderHeader() {
-    const { previewDisabled, groupable, showAllOpen, showAllAvailable, saveButtonText } = this.buttonStates()
+  function renderFormBuilderHeader() {
+    const { previewDisabled, groupable, showAllOpen, showAllAvailable, saveButtonText } = buttonStates()
 
     return (
       <bem.FormBuilderHeader>
@@ -691,20 +734,20 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
             data-tip={t('Return to list')}
             className='left-tooltip'
             tabIndex='0'
-            onClick={this.safeNavigateToList.bind(this)}
+            onClick={safeNavigateToList}
           >
             <i className='k-icon k-icon-kobo' />
           </bem.FormBuilderHeader__cell>
 
           <bem.FormBuilderHeader__cell m='name'>
             <bem.FormModal__item>
-              {this.renderAssetLabel()}
+              {renderAssetLabel()}
               <input
                 type='text'
                 maxLength={NAME_MAX_LENGTH}
-                onChange={this.nameChange.bind(this)}
-                value={this.state.name}
-                title={this.state.name}
+                onChange={nameChange}
+                value={state.name}
+                title={state.name}
                 id='nameField'
                 dir='auto'
               />
@@ -715,19 +758,19 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
             <Button
               type='primary'
               size='l'
-              isPending={this.state.asset_updated === update_states.PENDING_UPDATE}
-              isDisabled={!this.state.surveyAppRendered || !!this.state.surveyLoadError}
-              onClick={this.saveForm.bind(this)}
+              isPending={state.asset_updated === update_states.PENDING_UPDATE}
+              isDisabled={!state.surveyAppRendered || !!state.surveyLoadError}
+              onClick={saveForm}
               isUpperCase
               label={
                 <>
                   {saveButtonText}
-                  {this.state.asset_updated === update_states.SAVE_FAILED || (this.needsSave() && <>&nbsp;*</>)}
+                  {state.asset_updated === update_states.SAVE_FAILED || (needsSave() && <>&nbsp;*</>)}
                 </>
               }
             />
 
-            <Button type='text' size='l' onClick={this.safeNavigateToAsset.bind(this)} startIcon='close' />
+            <Button type='text' size='l' onClick={safeNavigateToAsset} startIcon='close' />
           </bem.FormBuilderHeader__cell>
         </bem.FormBuilderHeader__row>
 
@@ -737,7 +780,7 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
               type='text'
               size='m'
               isDisabled={previewDisabled}
-              onClick={this.previewForm.bind(this)}
+              onClick={previewForm}
               tooltip={t('Preview form')}
               tooltipPosition='left'
               startIcon='view'
@@ -747,7 +790,7 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
               type='text'
               size='m'
               isDisabled={!showAllAvailable}
-              onClick={this.showAll.bind(this)}
+              onClick={showAll}
               tooltip={t('Expand / collapse questions')}
               tooltipPosition='left'
               startIcon='view-all'
@@ -757,7 +800,7 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
               type='text'
               size='m'
               isDisabled={!groupable}
-              onClick={this.groupQuestions.bind(this)}
+              onClick={groupQuestions}
               tooltip={
                 groupable
                   ? t('Create group with selected questions')
@@ -766,20 +809,20 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
               tooltipPosition='left'
               startIcon='group'
               className={cx({
-                [LOCKING_UI_CLASSNAMES.DISABLED]: this.isAddingGroupsRestricted(),
+                [LOCKING_UI_CLASSNAMES.DISABLED]: isAddingGroupsRestricted(),
               })}
             />
 
             <Button
               type='text'
               size='m'
-              isDisabled={this.toggleCascade === undefined}
-              onClick={this.toggleCascade.bind(this)}
+              isDisabled={toggleCascade === undefined}
+              onClick={toggleCascade}
               tooltip={t('Insert cascading select')}
               tooltipPosition='left'
               startIcon='cascading'
               className={cx({
-                [LOCKING_UI_CLASSNAMES.DISABLED]: this.isAddingGroupsRestricted(),
+                [LOCKING_UI_CLASSNAMES.DISABLED]: isAddingGroupsRestricted(),
               })}
             />
           </bem.FormBuilderHeader__cell>
@@ -794,10 +837,10 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
             <Button
               type='text'
               size='m'
-              onClick={this.toggleAsideLibrarySearch.bind(this)}
+              onClick={toggleAsideLibrarySearch}
               tooltip={t('Add an item from the library')}
               tooltipPosition='left'
-              startIcon={this.state.asideLibrarySearchVisible ? 'close' : 'library'}
+              startIcon={state.asideLibrarySearchVisible ? 'close' : 'library'}
               label={t('Add from Library')}
             />
           </bem.FormBuilderHeader__cell>
@@ -808,11 +851,11 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
             <Button
               type='text'
               size='m'
-              onClick={this.toggleAsideLayoutSettings.bind(this)}
-              tooltip={this.hasMetadataAndDetails() ? t('Change form layout and settings') : t('Change form layout')}
+              onClick={toggleAsideLayoutSettings}
+              tooltip={hasMetadataAndDetails() ? t('Change form layout and settings') : t('Change form layout')}
               tooltipPosition='left'
-              startIcon={this.state.asideLayoutSettingsVisible ? 'close' : 'settings'}
-              label={this.hasMetadataAndDetails() ? t('Layout & Settings') : t('Layout')}
+              startIcon={state.asideLayoutSettingsVisible ? 'close' : 'settings'}
+              label={hasMetadataAndDetails() ? t('Layout & Settings') : t('Layout')}
             />
           </bem.FormBuilderHeader__cell>
         </bem.FormBuilderHeader__row>
@@ -820,8 +863,8 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
     )
   }
 
-  renderBackgroundAudioWarning() {
-    if (this.state.isBackgroundAudioBannerDismissed) return null
+  function renderBackgroundAudioWarning() {
+    if (state.isBackgroundAudioBannerDismissed) return null
     let bannerText = t(
       'This form will automatically [record audio in the background](##SUPPORT_LINK##). Consider adding with a meaningful consent question to inform respondents or data collectors that they will be recorded while completing this survey.',
     )
@@ -843,7 +886,10 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
         m='auto'
         closeButtonLabel={t('Dismiss')}
         onClose={() => {
-          this.setState({ isBackgroundAudioBannerDismissed: true })
+          setState((currentState) => ({
+            ...currentState,
+            isBackgroundAudioBannerDismissed: true,
+          }))
         }}
         withCloseButton
       >
@@ -869,14 +915,14 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
     )
   }
 
-  renderAside() {
-    const { styleValue, hasSettings } = this.buttonStates()
+  function renderAside() {
+    const { styleValue, hasSettings } = buttonStates()
 
-    const isAsideVisible = this.state.asideLayoutSettingsVisible || this.state.asideLibrarySearchVisible
+    const isAsideVisible = state.asideLayoutSettingsVisible || state.asideLibrarySearchVisible
 
     return (
       <bem.FormBuilderAside m={isAsideVisible ? 'visible' : null}>
-        {this.state.asideLayoutSettingsVisible && (
+        {state.asideLayoutSettingsVisible && (
           <bem.FormBuilderAside__content>
             <bem.FormBuilderAside__row>
               <bem.FormBuilderAside__header>
@@ -906,35 +952,34 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
                 classNamePrefix='kobo-select'
                 id='webform-style'
                 name='webform-style'
-                ref='webformStyle'
-                value={this.getStyleSelectVal(styleValue)}
-                onChange={this.onStyleChange.bind(this)}
+                value={getStyleSelectVal(styleValue)}
+                onChange={onStyleChange}
                 placeholder={AVAILABLE_FORM_STYLES[0].label}
                 options={AVAILABLE_FORM_STYLES}
                 menuPlacement='bottom'
-                isDisabled={this.isChangingAppearanceRestricted()}
+                isDisabled={isChangingAppearanceRestricted()}
                 isSearchable={false}
               />
             </bem.FormBuilderAside__row>
 
-            {this.hasMetadataAndDetails() && (
+            {hasMetadataAndDetails() && (
               <bem.FormBuilderAside__row>
                 <bem.FormBuilderAside__header>{t('Metadata')}</bem.FormBuilderAside__header>
 
                 <MetadataEditor
-                  survey={this.app?.survey}
-                  onChange={this.onMetadataEditorChange.bind(this)}
-                  isDisabled={this.isChangingMetaQuestionsRestricted()}
-                  {...this.state}
+                  survey={app?.survey}
+                  onChange={onMetadataEditorChange}
+                  isDisabled={isChangingMetaQuestionsRestricted()}
+                  {...state}
                 />
               </bem.FormBuilderAside__row>
             )}
           </bem.FormBuilderAside__content>
         )}
 
-        {this.state.asideLibrarySearchVisible && (
+        {state.asideLibrarySearchVisible && (
           <bem.FormBuilderAside__content
-            className={this.isAddingQuestionsRestricted() ? LOCKING_UI_CLASSNAMES.DISABLED : ''}
+            className={isAddingQuestionsRestricted() ? LOCKING_UI_CLASSNAMES.DISABLED : ''}
           >
             <bem.FormBuilderAside__row>
               <bem.FormBuilderAside__header>{t('Search Library')}</bem.FormBuilderAside__header>
@@ -949,12 +994,12 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
     )
   }
 
-  renderNotLoadedMessage() {
-    if (this.state.surveyLoadError) {
+  function renderNotLoadedMessage() {
+    if (state.surveyLoadError) {
       return (
         <ErrorMessage>
           <ErrorMessage__strong>{t('Error loading survey:')}</ErrorMessage__strong>
-          <p>{this.state.surveyLoadError}</p>
+          <p>{state.surveyLoadError}</p>
         </ErrorMessage>
       )
     }
@@ -962,21 +1007,20 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
     return <LoadingSpinner />
   }
 
-  renderAssetLabel() {
-    if (!this.state.asset) {
+  function renderAssetLabel() {
+    if (!state.asset) {
       return null
     }
 
-    const assetTypeLabel =
-      getFormBuilderAssetType(this.state.asset.asset_type, this.state.desiredAssetType)?.label || 'asset'
+    const assetTypeLabel = getFormBuilderAssetType(state.asset.asset_type, state.desiredAssetType)?.label || 'asset'
 
     // Case 1: there is no asset yet (creting a new) or asset is not locked
-    if (!this.state.asset?.content || !hasAssetAnyLocking(this.state.asset.content)) {
+    if (!state.asset?.content || !hasAssetAnyLocking(state.asset.content)) {
       return assetTypeLabel
       // Case 2: asset is locked fully or partially
     } else {
       let lockedLabel = t('Partially locked ##type##').replace('##type##', assetTypeLabel)
-      if (isAssetAllLocked(this.state.asset.content)) {
+      if (isAssetAllLocked(state.asset.content)) {
         lockedLabel = t('Fully locked ##type##').replace('##type##', assetTypeLabel)
       }
       return (
@@ -999,27 +1043,30 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
     }
   }
 
-  toggleCascade() {
-    var lastSelectedRow = last(this.app?.selectedRows()),
-      lastSelectedRowIndex = lastSelectedRow ? this.app?.survey.rows.indexOf(lastSelectedRow) : -1
-    this.setState({
-      showCascadePopup: !this.state.showCascadePopup,
+  function toggleCascade() {
+    var lastSelectedRow = last(app?.selectedRows()),
+      lastSelectedRowIndex = lastSelectedRow ? app?.survey.rows.indexOf(lastSelectedRow) : -1
+
+    setState((currentState) => ({
+      ...currentState,
+      showCascadePopup: !state.showCascadePopup,
       cascadeTextareaValue: '',
       cascadeLastSelectedRowIndex: lastSelectedRowIndex,
-    })
+    }))
   }
 
-  cancelCascade() {
-    this.setState({
+  function cancelCascade() {
+    setState((currentState) => ({
+      ...currentState,
       cascadeReady: false,
       cascadeReadySurvey: undefined,
       cascadeTextareaValue: '',
       showCascadePopup: false,
-    })
+    }))
   }
 
-  cascadePopupChange() {
-    const cascadeEl = ReactDOM.findDOMNode(this.refs.cascade)
+  function cascadePopupChange() {
+    const cascadeEl = cascadeRef.current
 
     if (cascadeEl === null) {
       return
@@ -1031,7 +1078,7 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
       cascadeTextareaValue: textareaEl.value,
     }
     // if (s.cascadeTextareaValue.length === 0) {
-    //   return this.cancelCascade();
+    //   return cancelCascade();
     // }
     try {
       var inp = dkobo_xlform.model.utils.split_paste(s.cascadeTextareaValue)
@@ -1073,15 +1120,18 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
         message: errObject.message,
       }
     }
-    this.setState(s)
+    setState((currentState) => ({
+      ...currentState,
+      ...s,
+    }))
   }
 
-  renderCascadePopup() {
+  function renderCascadePopup() {
     return (
       <bem.CascadePopup>
-        {this.state.cascadeMessage ? (
-          <bem.CascadePopup__message m={this.state.cascadeMessage.msgType}>
-            {this.state.cascadeMessage.message}
+        {state.cascadeMessage ? (
+          <bem.CascadePopup__message m={state.cascadeMessage.msgType}>
+            {state.cascadeMessage.message}
           </bem.CascadePopup__message>
         ) : (
           <bem.CascadePopup__message m='instructions'>
@@ -1089,9 +1139,9 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
           </bem.CascadePopup__message>
         )}
 
-        {this.state.cascadeReady ? <bem.CascadePopup__message m='ready'>{t('OK')}</bem.CascadePopup__message> : null}
+        {state.cascadeReady ? <bem.CascadePopup__message m='ready'>{t('OK')}</bem.CascadePopup__message> : null}
 
-        <textarea ref='cascade' onChange={this.cascadePopupChange.bind(this)} value={this.state.cascadeTextareaValue} />
+        <textarea ref={cascadeRef} onChange={cascadePopupChange} value={state.cascadeTextareaValue} />
 
         {envStore.isReady && envStore.data.support_url && (
           <div className='cascade-help right-tooltip'>
@@ -1109,11 +1159,11 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
           <Button
             type='primary'
             size='l'
-            isDisabled={!this.state.cascadeReady}
+            isDisabled={!state.cascadeReady}
             onClick={() => {
-              if (this.state.cascadeReadySurvey) {
-                this.app?.survey?.insertSurvey(this.state.cascadeReadySurvey, this.state.cascadeLastSelectedRowIndex)
-                this.cancelCascade()
+              if (state.cascadeReadySurvey) {
+                app?.survey?.insertSurvey(state.cascadeReadySurvey, state.cascadeLastSelectedRowIndex)
+                cancelCascade()
               }
             }}
             label={t('DONE')}
@@ -1123,70 +1173,68 @@ export default class EditableForm extends React.Component<EditableFormProps, Edi
     )
   }
 
-  render() {
-    var docTitle = this.state.name || t('Untitled')
+  var docTitle = state.name || t('Untitled')
 
-    if (!this.state.isNewAsset && !this.state.asset) {
-      return (
-        <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-          <LoadingSpinner />
-        </DocumentTitle>
-      )
-    }
-
+  if (!state.isNewAsset && !state.asset) {
     return (
       <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-        <>
-          {
-            /*
-            TODO: Try to fix quirks that arise from this <Prompt/> usage
-            Issue: https://github.com/kobotoolbox/kpi/issues/4154
-          */
-            this.state.preventNavigatingOut && <Prompt />
-          }
-          <div className='form-builder-wrapper'>
-            {this.renderAside()}
-
-            <bem.FormBuilder>
-              {this.renderFormBuilderHeader()}
-
-              <bem.FormBuilder__contents>
-                {this.state.asset && <FormLockedMessage asset={this.state.asset} />}
-
-                {this.hasBackgroundAudio() && this.renderBackgroundAudioWarning()}
-
-                <div ref='form-wrap' className='form-wrap'>
-                  {!this.state.surveyAppRendered && this.renderNotLoadedMessage()}
-                </div>
-              </bem.FormBuilder__contents>
-            </bem.FormBuilder>
-
-            {this.state.enketopreviewOverlay && (
-              <Modal open large onClose={this.hidePreview.bind(this)} title={t('Form Preview')}>
-                <Modal.Body>
-                  <div className='enketo-holder'>
-                    <iframe src={this.state.enketopreviewOverlay} />
-                  </div>
-                </Modal.Body>
-              </Modal>
-            )}
-
-            {!this.state.enketopreviewOverlay && this.state.enketopreviewError && (
-              // This used to have `error` prop, but `modal.tsx` no longer has the prop. I am leaving this comment here
-              // as I am not sure how to test this, and maybe the popup should appear differently?
-              <Modal open onClose={this.clearPreviewError.bind(this)} title={t('Error generating preview')}>
-                <Modal.Body>{this.state.enketopreviewError}</Modal.Body>
-              </Modal>
-            )}
-
-            {this.state.showCascadePopup && (
-              <Modal open onClose={this.hideCascade.bind(this)} title={t('Import Cascading Select Questions')}>
-                <Modal.Body>{this.renderCascadePopup()}</Modal.Body>
-              </Modal>
-            )}
-          </div>
-        </>
+        <LoadingSpinner />
       </DocumentTitle>
     )
   }
+
+  return (
+    <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+      <>
+        {
+          /*
+            TODO: Try to fix quirks that arise from this <Prompt/> usage
+            Issue: https://github.com/kobotoolbox/kpi/issues/4154
+          */
+          state.preventNavigatingOut && <Prompt />
+        }
+        <div className='form-builder-wrapper'>
+          {renderAside()}
+
+          <bem.FormBuilder>
+            {renderFormBuilderHeader()}
+
+            <bem.FormBuilder__contents>
+              {state.asset && <FormLockedMessage asset={state.asset} />}
+
+              {hasBackgroundAudio() && renderBackgroundAudioWarning()}
+
+              <div ref={formWrapRef} className='form-wrap'>
+                {!state.surveyAppRendered && renderNotLoadedMessage()}
+              </div>
+            </bem.FormBuilder__contents>
+          </bem.FormBuilder>
+
+          {state.enketopreviewOverlay && (
+            <Modal open large onClose={hidePreview} title={t('Form Preview')}>
+              <Modal.Body>
+                <div className='enketo-holder'>
+                  <iframe src={state.enketopreviewOverlay} />
+                </div>
+              </Modal.Body>
+            </Modal>
+          )}
+
+          {!state.enketopreviewOverlay && state.enketopreviewError && (
+            // This used to have `error` prop, but `modal.tsx` no longer has the prop. I am leaving this comment here
+            // as I am not sure how to test this, and maybe the popup should appear differently?
+            <Modal open onClose={clearPreviewError} title={t('Error generating preview')}>
+              <Modal.Body>{state.enketopreviewError}</Modal.Body>
+            </Modal>
+          )}
+
+          {state.showCascadePopup && (
+            <Modal open onClose={hideCascade} title={t('Import Cascading Select Questions')}>
+              <Modal.Body>{renderCascadePopup()}</Modal.Body>
+            </Modal>
+          )}
+        </div>
+      </>
+    </DocumentTitle>
+  )
 }
