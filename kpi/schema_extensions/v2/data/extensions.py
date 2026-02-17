@@ -279,13 +279,13 @@ class DataSupplementResponseExtension(
             # correctly typed, without changing the backend response format.
             additionalProperties=self._register_schema_component(
                 auto_schema,
-                'DataSupplementResponseOneOf',
+                'SupplementalDataResponseAction',
                 self.question_schema(references, supp_references),
             ),
             patternProperties={
                 '^(?!_version$).*': self._register_schema_component(
                     auto_schema,
-                    'DataSupplementResponseOneOf',
+                    'SupplementalDataResponseAction',
                     self.question_schema(references, supp_references),
                 ),
             },

@@ -197,10 +197,10 @@ class SupplementalDataComponentsRegistrationMixin(ComponentRegistrationMixin):
             ),
         )
 
-        # 8. Action Object Manual
+        # 8. Data Manual Transcription (Was ActionObjectManual)
         references['action_object_manual'] = self._register_schema_component(
             auto_schema,
-            'SupplementalDataActionObjectManual',
+            'SupplementalDataManualTranscription',
             build_object_type(
                 additionalProperties=False,
                 properties={
@@ -214,10 +214,10 @@ class SupplementalDataComponentsRegistrationMixin(ComponentRegistrationMixin):
             ),
         )
 
-        # 9. Action Object Manual With Dependency
+        # 9. Data Manual Translation Item (Was ActionObjectManualWithDep)
         references['action_object_manual_dep'] = self._register_schema_component(
             auto_schema,
-            'SupplementalDataActionObjectManualWithDep',
+            'SupplementalDataManualTranslationItem',
             build_object_type(
                 additionalProperties=False,
                 properties={
@@ -231,10 +231,10 @@ class SupplementalDataComponentsRegistrationMixin(ComponentRegistrationMixin):
             ),
         )
 
-        # 10. Action Object Automatic
+        # 10. Data Automatic Transcription (Was ActionObjectAutomatic)
         references['action_object_automatic'] = self._register_schema_component(
             auto_schema,
-            'SupplementalDataActionObjectAutomatic',
+            'SupplementalDataAutomaticTranscription',
             build_object_type(
                 additionalProperties=False,
                 properties={
@@ -248,10 +248,10 @@ class SupplementalDataComponentsRegistrationMixin(ComponentRegistrationMixin):
             ),
         )
 
-        # 11. Action Object Automatic With Dependency
+        # 11. Data Automatic Translation Item (Was ActionObjectAutomaticWithDep)
         references['action_object_automatic_dep'] = self._register_schema_component(
             auto_schema,
-            'SupplementalDataActionObjectAutomaticWithDep',
+            'SupplementalDataAutomaticTranslationItem',
             build_object_type(
                 additionalProperties=False,
                 properties={
@@ -266,10 +266,10 @@ class SupplementalDataComponentsRegistrationMixin(ComponentRegistrationMixin):
             ),
         )
 
-        # 12. Translation Maps (Map<LanguageCode, ActionObject>)
+        # 12. Translation Maps (Map<LanguageCode, TranslationItem>)
         references['translation_map_manual'] = self._register_schema_component(
             auto_schema,
-            'SupplementalDataTranslationMapManual',
+            'SupplementalDataManualTranslation',
             build_object_type(
                 additionalProperties=references['action_object_manual_dep'],
                 description='Map of language codes to manual translation objects',
@@ -278,7 +278,7 @@ class SupplementalDataComponentsRegistrationMixin(ComponentRegistrationMixin):
 
         references['translation_map_automatic'] = self._register_schema_component(
             auto_schema,
-            'SupplementalDataTranslationMapAutomatic',
+            'SupplementalDataAutomaticTranslation',
             build_object_type(
                 additionalProperties=references['action_object_automatic_dep'],
                 description='Map of language codes to automatic translation objects',
@@ -289,12 +289,6 @@ class SupplementalDataComponentsRegistrationMixin(ComponentRegistrationMixin):
         if qual_references:
             references['qual_data'] = self._register_schema_component(
                 auto_schema,
-                'SupplementalDataQualData',
-                {
-                    'oneOf': [
-                        qual_references['manual_qual_integer'],
-                        qual_references['manual_qual_text'],
-                        qual_references['manual_qual_select_one'],
                         qual_references['manual_qual_select_multiple'],
                         qual_references['manual_qual_tags'],
                     ]
@@ -351,7 +345,7 @@ class SupplementalDataComponentsRegistrationMixin(ComponentRegistrationMixin):
 
             references['action_object_qual'] = self._register_schema_component(
                 auto_schema,
-                'SupplementalDataActionObjectQual',
+                'SupplementalDataManualQualItem',
                 build_object_type(
                     additionalProperties=False,
                     properties={
@@ -369,7 +363,7 @@ class SupplementalDataComponentsRegistrationMixin(ComponentRegistrationMixin):
             references['action_object_qual_automatic'] = (
                 self._register_schema_component(
                     auto_schema,
-                    'SupplementalDataActionObjectQualAutomatic',
+                    'SupplementalDataAutomaticQualItem',
                     build_object_type(
                         additionalProperties=False,
                         properties={
@@ -387,7 +381,7 @@ class SupplementalDataComponentsRegistrationMixin(ComponentRegistrationMixin):
 
             references['qual_map'] = self._register_schema_component(
                 auto_schema,
-                'SupplementalDataQualMap',
+                'SupplementalDataManualQual',
                 build_object_type(
                     additionalProperties=references['action_object_qual'],
                     patternProperties={
@@ -400,7 +394,7 @@ class SupplementalDataComponentsRegistrationMixin(ComponentRegistrationMixin):
 
             references['qual_map_automatic'] = self._register_schema_component(
                 auto_schema,
-                'SupplementalDataQualMapAutomatic',
+                'SupplementalDataAutomaticQual',
                 build_object_type(
                     additionalProperties=references['action_object_qual_automatic'],
                     patternProperties={
