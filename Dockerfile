@@ -15,7 +15,7 @@
 #########################################
 
 # If you update a base image, make sure to update the
-# runners in .github/workflows/ to the corresponding 
+# runners in .github/workflows/ to the corresponding
 # Ubuntu version.
 
 
@@ -139,6 +139,9 @@ RUN uv pip sync "${TMP_DIR}/pip_dependencies.txt" 1>/dev/null
 #####################################
 FROM ghcr.io/astral-sh/uv:python3.10-bookworm-slim AS kpi-app
 
+RUN rm -rf ${VIRTUAL_ENV}/lib/python*/site-packages/rest_framework/static/rest_framework
+
+
 ENV DEBIAN_FRONTEND=noninteractive \
     LANG=en_US.UTF-8 \
     LANGUAGE=en_US:en \
@@ -235,7 +238,8 @@ COPY --from=webpack-build-prod --parents \
 ###########################
 # Organize static assets. #
 ###########################
-RUN python manage.py collectstatic --noinput
+
+RUN python manage.py collectstatic --noinput --ignore rest_framework
 
 ######################################
 # Retrieve and compile translations. #
