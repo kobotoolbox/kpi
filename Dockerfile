@@ -227,6 +227,8 @@ COPY . "${KPI_SRC_DIR}"
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 COPY --from=pip-dependencies "$VIRTUAL_ENV" "$VIRTUAL_ENV"
 
+RUN rm -rf ${VIRTUAL_ENV}/lib/python3.10/site-packages/rest_framework/static/rest_framework
+
 # Copy static production build from 'webpack-build-prod'.
 COPY --from=webpack-build-prod --parents \
     ${KPI_SRC_DIR}/./jsapp/compiled/     \
@@ -235,7 +237,9 @@ COPY --from=webpack-build-prod --parents \
 ###########################
 # Organize static assets. #
 ###########################
-RUN python manage.py collectstatic --noinput
+RUN python manage.py collectstatic --noinput --ignore rest_framework
+
+RUN rm -rf ${KPI_SRC_DIR}/staticfiles/rest_framework/
 
 ######################################
 # Retrieve and compile translations. #

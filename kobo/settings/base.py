@@ -1167,7 +1167,6 @@ OPENROSA_REST_FRAMEWORK = {
         # http://www.django-rest-framework.org/api-guide/renderers/#ordering-of-renderer-classes
         'rest_framework.renderers.JSONRenderer',
         'rest_framework_jsonp.renderers.JSONPRenderer',
-        'rest_framework.renderers.BrowsableAPIRenderer',
         'rest_framework_xml.renderers.XMLRenderer',
         'rest_framework_csv.renderers.CSVRenderer',
     ],
