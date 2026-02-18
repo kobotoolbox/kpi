@@ -14,6 +14,7 @@ import type { DataSupplementManualQualDataSelectMultiple } from './dataSupplemen
 import type { DataSupplementManualQualDataSelectOne } from './dataSupplementManualQualDataSelectOne'
 import type { DataSupplementManualQualDataTags } from './dataSupplementManualQualDataTags'
 import type { DataSupplementManualQualDataText } from './dataSupplementManualQualDataText'
+import type { PatchedDataSupplementPayloadOneOfVerification } from './patchedDataSupplementPayloadOneOfVerification'
 
 export type PatchedDataSupplementPayloadOneOfManualQual =
   | DataSupplementManualQualDataInteger
@@ -21,3 +22,4 @@ export type PatchedDataSupplementPayloadOneOfManualQual =
   | DataSupplementManualQualDataSelectOne
   | DataSupplementManualQualDataSelectMultiple
   | DataSupplementManualQualDataTags
+  | PatchedDataSupplementPayloadOneOfVerification
