@@ -130,7 +130,8 @@ class DataSupplementPayloadExtension(
                 'manual_translation': self._nlp_manual_action_schema,
                 'automatic_google_transcription': self._nlp_automatic_action_schema,
                 'automatic_google_translation': self._nlp_automatic_action_schema,
-                'manual_qual': self._qual_schema(references),
+                'manual_qual': self._manual_qual_schema(references),
+                'automatic_bedrock_qual': self._automatic_qual_schema(references),
             },
             anyOf=[
                 {'required': ['manual_transcription']},
@@ -138,12 +139,13 @@ class DataSupplementPayloadExtension(
                 {'required': ['automatic_google_transcription']},
                 {'required': ['automatic_google_translation']},
                 {'required': ['manual_qual']},
+                {'required': ['automatic_bedrock_qual']}
             ],
         )
 
     def map_serializer(self, auto_schema, direction):
 
-        references = self._register_qual_schema_components(auto_schema)
+        references = self._register_qual_data_schema_components(auto_schema)
 
         return build_object_type(
             properties={
@@ -179,14 +181,23 @@ class DataSupplementPayloadExtension(
             required=['_version'],
         )
 
-    def _qual_schema(self, references):
+    def _automatic_qual_schema(self, references):
         return {
             'oneOf': [
-                references['qual_integer'],
-                references['qual_text'],
-                references['qual_select_one'],
-                references['qual_select_multiple'],
-                references['qual_tags'],
+                references['automatic_qual_payload'],
+                references['verification_payload'],
+            ]
+        }
+
+    def _manual_qual_schema(self, references):
+        return {
+            'oneOf': [
+                references['manual_qual_integer'],
+                references['manual_qual_text'],
+                references['manual_qual_select_one'],
+                references['manual_qual_select_multiple'],
+                references['manual_qual_tags'],
+                references['verification_payload']
             ],
         }
 
@@ -232,20 +243,21 @@ class DataSupplementResponseExtension(
                 'automatic_google_transcription': self._automatic_transcription_schema,
                 'automatic_google_translation': self._automatic_translation_schema,
                 'manual_qual': self._qual_schema(references),
+                'automatic_bedrock_qual': self._qual_schema(references, automatic=True),
             },
-            # At least one of "manual_transcription" or "manual_translation"
-            # must be present
+            # At least action must be present
             anyOf=[
                 {'required': ['manual_transcription']},
                 {'required': ['manual_translation']},
                 {'required': ['automatic_google_transcription']},
                 {'required': ['automatic_google_translation']},
                 {'required': ['manual_qual']},
+                {'required': ['automatic_bedrock_qual']},
             ],
         )
 
     def map_serializer(self, auto_schema, direction):
-        references = self._register_qual_schema_components(auto_schema)
+        references = self._register_qual_data_schema_components(auto_schema)
         return build_object_type(
             properties={
                 '_version': {
@@ -433,7 +445,7 @@ class DataSupplementResponseExtension(
             required=['_actionId', '_uuid'],
         )
 
-    def _qual_schema(self, references):
+    def _qual_schema(self, references, automatic=False):
         """
         Build the OpenAPI schema for the `qual` field.
         """
@@ -448,15 +460,19 @@ class DataSupplementResponseExtension(
         #     - qualText
         #
         # ---------------------------------------------------------------------
+        prefix = 'automatic' if automatic else 'manual'
         data_schema = {
             'oneOf': [
-                references['qual_integer'],
-                references['qual_text'],
-                references['qual_select_one'],
-                references['qual_select_multiple'],
-                references['qual_tags'],
+                references[f'{prefix}_qual_integer'],
+                references[f'{prefix}_qual_text'],
+                references[f'{prefix}_qual_select_one'],
+                references[f'{prefix}_qual_select_multiple'],
             ]
         }
+        if not automatic:
+            data_schema['oneOf'].append(
+                references['manual_qual_tags']
+            )
 
         # ---------------------------------------------------------------------
         # dataActionKey._versions[] item

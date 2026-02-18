@@ -207,6 +207,18 @@ CONSTANCE_CONFIG = {
         'Error message for emails not listed in REGISTRATION_ALLOWED_EMAIL_DOMAINS '
         'if field is not blank'
     ),
+    'REGISTRATION_BLACKLIST_EMAIL_DOMAINS': (
+        '',
+        'Email domains to block from registering new accounts, one per line, '
+        'or blank to allow all email domains'
+    ),
+    'REGISTRATION_BLACKLIST_ERROR_MESSAGE': (
+        'Account creation restricted for this server. Your organization uses a '
+        'separate private KoboToolbox server. Please contact your organization '
+        'support team for assistance.',
+        'Error message for emails blacklisted in REGISTRATION_BLACKLIST_EMAIL_DOMAINS '
+        'if field is not blank'
+    ),
     'TERMS_OF_SERVICE_URL': ('', 'URL for terms of service document'),
     'PRIVACY_POLICY_URL': ('', 'URL for privacy policy'),
     'SOURCE_CODE_URL': (
@@ -697,6 +709,8 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'REGISTRATION_OPEN',
         'REGISTRATION_ALLOWED_EMAIL_DOMAINS',
         'REGISTRATION_DOMAIN_NOT_ALLOWED_ERROR_MESSAGE',
+        'REGISTRATION_BLACKLIST_EMAIL_DOMAINS',
+        'REGISTRATION_BLACKLIST_ERROR_MESSAGE',
         'TERMS_OF_SERVICE_URL',
         'PRIVACY_POLICY_URL',
         'SOURCE_CODE_URL',
@@ -1525,6 +1539,14 @@ CELERY_BEAT_SCHEDULE = {
         ),
         'options': {'queue': 'kpi_long_running_tasks_queue'},
     },
+    'retry-stalled-submissions': {
+        'task': 'kobo.apps.hook.tasks.retry_stalled_pending_submissions',
+        'schedule': crontab(minute='*/30'),  # Every 30 minutes
+    },
+    'mark-zombie-submissions': {
+        'task': 'kobo.apps.hook.tasks.mark_zombie_processing_submissions',
+        'schedule': crontab(minute='*/30'),  # Every 30 minutes
+    },
 }
 
 if STRIPE_ENABLED:
@@ -2159,3 +2181,6 @@ VERSION_DELETION_BATCH_SIZE = 2000
 # Number of stuck tasks should be restarted at a time
 MAX_RESTARTED_TASKS = 100
 MAX_RESTARTED_TRANSFERS = 20
+
+# Maximum timeout (in minutes) for hook processing
+HOOK_PROCESSING_TIMEOUT = 120
