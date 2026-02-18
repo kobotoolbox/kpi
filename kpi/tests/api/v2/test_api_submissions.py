@@ -85,9 +85,8 @@ def dict2xform_with_namespace(submission: dict, xform_id_string: str) -> str:
 
 class BaseSubmissionTestCase(BaseTestCase):
     """
-    DataViewset uses `BrowsableAPIRenderer` as the first renderer.
-    Force JSON to test the API by specifying `format` (GET requests)
-    or `HTTP_ACCEPT` (other requests)
+    DataViewset primarily serves JSON data. Force JSON to test the API
+    by specifying `format` (GET requests) or `HTTP_ACCEPT` (other requests)
     """
 
     fixtures = ['test_data']

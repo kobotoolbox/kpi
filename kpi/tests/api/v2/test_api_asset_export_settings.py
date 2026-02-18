@@ -15,9 +15,8 @@ from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 
 class AssetExportSettingsApiTest(BaseTestCase):
     """
-    AssetExportSettingsViewset uses `BrowsableAPIRenderer` as the first
-    renderer.  Force JSON to test the API by specifying `format`, `HTTP_ACCEPT`
-    or `content_type`
+    AssetExportSettingsViewset now defaults to JSON rendering. Force JSON
+    to test the API by specifying `format`, `HTTP_ACCEPT` or `content_type`
     """
 
     fixtures = ['test_data']
