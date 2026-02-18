@@ -1,5 +1,4 @@
 import React from 'react'
-import { update_states } from '#/constants'
 import { type WithRouterProps, withRouter } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
 import EditableForm from '../editorMixins/EditableForm'
@@ -13,10 +12,6 @@ export class FormPage extends React.Component<WithRouterProps & { params: { uid?
     return (
       <EditableForm
         router={this.props.router}
-        asset_updated={update_states.UP_TO_DATE}
-        multioptionsExpanded={true}
-        surveyAppRendered={false}
-        name={''}
         isNewAsset={false}
         assetUid={this.props.params.uid}
         backRoute={ROUTES.FORMS}
@@ -47,10 +42,6 @@ class LibraryAssetEditorComponent extends React.Component<WithRouterProps & { pa
     return (
       <EditableForm
         router={this.props.router}
-        asset_updated={update_states.UP_TO_DATE}
-        multioptionsExpanded={true}
-        surveyAppRendered={false}
-        name={''}
         isNewAsset={isNewAsset}
         assetUid={this.props.params.uid}
         backRoute={backRoute}

@@ -27,9 +27,9 @@ export type AssetsHooksLogsListParams = {
   start?: number
   start_date?: string
   /**
-   * * `0` - Failed
-   * `1` - Pending
-   * `2` - Success
+   * * `0` - failed
+   * `1` - pending
+   * `2` - success
    */
   status?: AssetsHooksLogsListStatus
 }
