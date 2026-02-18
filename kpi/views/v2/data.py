@@ -20,6 +20,7 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 from kobo.apps.audit_log.base_views import AuditLoggedViewSet
 from kobo.apps.audit_log.models import AuditType
 from kobo.apps.audit_log.utils import SubmissionUpdate
+from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     add_uuid_prefix,
     remove_uuid_prefix,
@@ -869,6 +870,29 @@ class DataViewSet(
         submission_json = deployment.get_submission(
             submission_id, user, request=request
         )
+
+        # Block edit if the submission has duplicates.
+        if (
+            Instance.objects.filter(
+                uuid=remove_uuid_prefix(
+                    submission_json[deployment.SUBMISSION_CURRENT_UUID_XPATH]
+                ),
+                xform_id=deployment.xform_id,
+            )
+            .exclude(pk=submission_id)
+            .exists()
+        ):
+            # Return an error immediately to prevent the user from receiving an error
+            # when submitting their edit in Enketo
+            return Response(
+                {
+                    'detail': (
+                        'A duplicate submission has been detected. '
+                        'This submission cannot be edited at the moment.'
+                    )
+                },
+                status=status.HTTP_409_CONFLICT,
+            )
 
         # Add mandatory XML elements if they are missing from the original
         # submission. They could be overwritten unconditionally, but be
