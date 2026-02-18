@@ -267,12 +267,18 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
         """
         Return pytest-style test identifier (file::Class::test_*) when running tests.
         Otherwise None.
+
+        This method handles two scenarios:
+        1. Direct test method execution: finds test_* methods in the stack
+        2. Test setup/teardown: extracts the actual test name from _testMethodName
         """
 
         if not settings.TESTING:
             return None
 
         try:
+            test_candidates = []
+
             for frame_info in inspect.stack():
                 frame = (
                     frame_info.frame if hasattr(frame_info, 'frame') else frame_info[0]
@@ -284,11 +290,10 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
                 )
                 method_name = frame.f_code.co_name
 
-                # Look for test methods
-                if method_name.startswith('test_'):
+                is_test_file = '/tests/' in filename or '\\tests\\' in filename
+                if method_name.startswith('test_') and is_test_file:
                     # Get relative file path
                     try:
-                        # Try to get path relative to current working directory
                         file_path = Path(filename).relative_to(Path.cwd())
                     except ValueError:
                         try:
@@ -315,11 +320,51 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
                     # Add method/function name
                     path_parts.append(method_name)
 
-                    return '::'.join(path_parts)
+                    candidate = '::'.join(path_parts)
+                    test_candidates.append(candidate)
 
-        except Exception:
+                # Also check for setUp/tearDown methods that have 'self' with test methods
+                # This catches errors that occur during test setup
+                elif method_name in ['setUp', 'tearDown', 'setUpClass', 'tearDownClass']:
+                    if 'self' in frame.f_locals:
+                        test_instance = frame.f_locals['self']
+                        # Look through the test instance for test methods
+                        for attr_name in dir(test_instance):
+                            if attr_name.startswith('_testMethodName'):
+                                actual_test_name = getattr(test_instance, attr_name, None)
+                                if actual_test_name:
+                                    try:
+                                        file_path = Path(filename).relative_to(Path.cwd())
+                                    except ValueError:
+                                        try:
+                                            if hasattr(settings, 'BASE_DIR'):
+                                                file_path = Path(filename).relative_to(
+                                                    Path(settings.BASE_DIR)
+                                                )
+                                            else:
+                                                file_path = Path(filename).name
+                                        except ValueError:
+                                            file_path = Path(filename).name
+
+                                    class_name = test_instance.__class__.__name__
+                                    candidate = f'{file_path}::{class_name}::{actual_test_name}'
+                                    test_candidates.append(candidate)
+                                    break
+
+            # Return the most specific test (the deepest in the stack)
+            # This will be the last one we found (earliest in the call stack)
+            if test_candidates:
+                result = test_candidates[-1]
+                print(f'[DEBUG] Returning test_info: {result}', flush=True)
+                return result
+            else:
+                print('[DEBUG] No test candidates found', flush=True)
+
+        except Exception as e:
             # In case of error, return None silently
-            pass
+            print(f'[DEBUG] Exception in _get_test_info: {e}', flush=True)
+            import traceback
+            traceback.print_exc()
 
         return None
 
@@ -343,6 +388,7 @@ class OpenAPIValidationMiddleware(MiddlewareMixin):
             return
 
         test_path = self._get_test_info()
+
         if self._is_whitelisted(test_path, request.path, request.method, error_code):
             return
 
