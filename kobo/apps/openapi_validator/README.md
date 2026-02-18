@@ -65,46 +65,32 @@ This whitelist allows specific tests and endpoints to bypass strict validation f
 
 ---
 
-#### Recommended Workflow
+#### Recommended Workflow to generate `OPEN_API_VALIDATION_WHITELIST`
 
-**Step 1 — Run tests in strict mode**
+**Step 1 — Reset `OPEN_API_VALIDATION_WHITELIST`**
+
+```python
+OPEN_API_VALIDATION_WHITELIST = {}
+```
+
+**Step 2 — Run tests without strict mode and logs activated**
 
 Configure `testing.py`:
 
 ```python
 OPENAPI_VALIDATION = True
-OPENAPI_VALIDATION_STRICT = True
-OPENAPI_VALIDATION_BUILD_WHITELIST_LOG = False
+OPENAPI_VALIDATION_STRICT = False
+OPENAPI_VALIDATION_BUILD_WHITELIST_LOG = True
 ```
 
 Run the full test suite:
 
 ```bash
-pytest -n auto
+pytest -vv -n auto
+pytest -vv --lf
 ```
 
-This step ensures that all validation errors are detected.
-
----
-
-**Step 2 — Generate whitelist logs**
-
-Update `testing.py`:
-
-```python
-OPENAPI_VALIDATION_STRICT = False
-OPENAPI_VALIDATION_BUILD_WHITELIST_LOG = True
-```
-
-Run only failing tests:
-
-```bash
-pytest --lf -rf
-```
-
-This generates a CSV log containing validation errors.
-
----
+This step ensures that all validation errors are detected, and it generates a CSV log containing validation errors.
 
 **Step 3 — Generate the whitelist constant**
 
@@ -121,9 +107,10 @@ run(
 
 This generates the `OPEN_API_VALIDATION_WHITELIST` constant used by the middleware.
 
-Bring back `OPENAPI_VALIDATION_BUILD_WHITELIST_LOG` to False in `testing.py`:
+Bring back `OPENAPI_VALIDATION_STRICT` and `OPENAPI_VALIDATION_BUILD_WHITELIST_LOG` to original values:
 
 ```python
+OPENAPI_VALIDATION_STRICT = True
 OPENAPI_VALIDATION_BUILD_WHITELIST_LOG = False
 ```
 
