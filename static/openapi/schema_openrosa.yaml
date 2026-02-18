@@ -45,6 +45,30 @@ paths:
 
         This endpoint is used for adding submissions as an anonymous user.
 
+        ### XML Submission
+
+        You can submit an XML XForm submission using a `POST` request with `multipart/form-data`.
+
+        **Example:**
+
+        ```bash
+        curl -X POST -F xml_submission_file=@/path/to/submission.xml \
+        https://kc.kobotoolbox.org/api/v1/submissions
+        ```
+
+        ### JSON Submission
+
+        You can also submit a JSON XForm submission.
+
+        **Example:**
+
+        ```bash
+        curl -X POST -d '{"id": "[form ID]", "submission": [the JSON]}' \
+        http://localhost:8000/api/v1/submissions -H "Content-Type: application/json"
+        ```
+
+        The `[form ID]` is the `id_string` of your form, and `[the JSON]` is the submission data in JSON format.
+
       parameters:
       - in: query
         name: format
@@ -66,32 +90,56 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/OpenRosaPayload'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JSONSubmissionPayload'
+            examples:
+              JSONSubmission:
+                value:
+                  id: transportation_2011_07_25
+                  submission:
+                    transport:
+                      item: bicycle
+                      quantity: 1
+                    meta:
+                      instanceID: uuid:f3d8dc65-91a6-4d0f-9e97-802128083390
+                summary: JSON submission
         required: true
       security:
       - BasicAuth: []
       - TokenAuth: []
       - {}
       responses:
-        '200':
+        '201':
           content:
-            application/xml:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmissionResponse'
+              examples:
+                JSONResponse:
+                  value:
+                    message: Successful submission.
+                    formid: transportation_2011_07_25
+                    encrypted: false
+                    instanceID: uuid:f3d8dc65-91a6-4d0f-9e97-802128083390
+                    submissionDate: '2023-05-24T10:00:00Z'
+                    markedAsCompleteDate: '2023-05-24T10:00:01Z'
+                  summary: JSON response
+            text/xml:
               schema:
                 $ref: '#/components/schemas/OpenRosaResponse'
-          description: null
-        '401':
-          content:
-            application/xml:
-              schema:
-                $ref: '#/components/schemas/ErrorDetail'
               examples:
-                NotAuthenticated:
-                  value:
-                    detail: Authentication credentials were not provided.
-                  summary: Not authenticated
-          description: ''
+                XMLResponse:
+                  value: |-
+                    <OpenRosaResponse xmlns="http://openrosa.org/http/response">
+                        <message>Successful submission.</message>
+                        <submissionMetadata xmlns="http://www.opendatakit.org/xforms" id="transportation_2011_07_25" instanceID="uuid:f3d8dc65-91a6-4d0f-9e97-802128083390" submissionDate="2023-05-24T10:00:00Z" isComplete="true" markedAsCompleteDate="2023-05-24T10:00:01Z"/>
+                    </OpenRosaResponse>
+                  summary: XML response
+          description: null
         '404':
           content:
-            application/xml:
+            application/json:
               schema:
                 $ref: '#/components/schemas/ErrorDetail'
               examples:
@@ -102,7 +150,7 @@ paths:
           description: ''
         '400':
           content:
-            application/xml:
+            application/json:
               schema:
                 $ref: '#/components/schemas/ErrorObject'
               examples:
@@ -296,6 +344,30 @@ paths:
 
         This endpoint is used for adding submissions as a data collector.
 
+        ### XML Submission
+
+        You can submit an XML XForm submission using a `POST` request with `multipart/form-data`.
+
+        **Example:**
+
+        ```bash
+        curl -X POST -F xml_submission_file=@/path/to/submission.xml \
+        https://kc.kobotoolbox.org/api/v1/submissions
+        ```
+
+        ### JSON Submission
+
+        You can also submit a JSON XForm submission.
+
+        **Example:**
+
+        ```bash
+        curl -X POST -d '{"id": "[form ID]", "submission": [the JSON]}' \
+        http://localhost:8000/api/v1/submissions -H "Content-Type: application/json"
+        ```
+
+        The `[form ID]` is the `id_string` of your form, and `[the JSON]` is the submission data in JSON format.
+
       parameters:
       - in: query
         name: format
@@ -317,32 +389,56 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/OpenRosaPayload'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JSONSubmissionPayload'
+            examples:
+              JSONSubmission:
+                value:
+                  id: transportation_2011_07_25
+                  submission:
+                    transport:
+                      item: bicycle
+                      quantity: 1
+                    meta:
+                      instanceID: uuid:f3d8dc65-91a6-4d0f-9e97-802128083390
+                summary: JSON submission
         required: true
       security:
       - BasicAuth: []
       - TokenAuth: []
       - {}
       responses:
-        '200':
+        '201':
           content:
-            application/xml:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmissionResponse'
+              examples:
+                JSONResponse:
+                  value:
+                    message: Successful submission.
+                    formid: transportation_2011_07_25
+                    encrypted: false
+                    instanceID: uuid:f3d8dc65-91a6-4d0f-9e97-802128083390
+                    submissionDate: '2023-05-24T10:00:00Z'
+                    markedAsCompleteDate: '2023-05-24T10:00:01Z'
+                  summary: JSON response
+            text/xml:
               schema:
                 $ref: '#/components/schemas/OpenRosaResponse'
-          description: null
-        '401':
-          content:
-            application/xml:
-              schema:
-                $ref: '#/components/schemas/ErrorDetail'
               examples:
-                NotAuthenticated:
-                  value:
-                    detail: Authentication credentials were not provided.
-                  summary: Not authenticated
-          description: ''
+                XMLResponse:
+                  value: |-
+                    <OpenRosaResponse xmlns="http://openrosa.org/http/response">
+                        <message>Successful submission.</message>
+                        <submissionMetadata xmlns="http://www.opendatakit.org/xforms" id="transportation_2011_07_25" instanceID="uuid:f3d8dc65-91a6-4d0f-9e97-802128083390" submissionDate="2023-05-24T10:00:00Z" isComplete="true" markedAsCompleteDate="2023-05-24T10:00:01Z"/>
+                    </OpenRosaResponse>
+                  summary: XML response
+          description: null
         '404':
           content:
-            application/xml:
+            application/json:
               schema:
                 $ref: '#/components/schemas/ErrorDetail'
               examples:
@@ -353,7 +449,7 @@ paths:
           description: ''
         '400':
           content:
-            application/xml:
+            application/json:
               schema:
                 $ref: '#/components/schemas/ErrorObject'
               examples:
@@ -441,6 +537,30 @@ paths:
 
         This endpoint is used for adding submissions as an authenticated user.
 
+        ### XML Submission
+
+        You can submit an XML XForm submission using a `POST` request with `multipart/form-data`.
+
+        **Example:**
+
+        ```bash
+        curl -X POST -F xml_submission_file=@/path/to/submission.xml \
+        https://kc.kobotoolbox.org/api/v1/submissions
+        ```
+
+        ### JSON Submission
+
+        You can also submit a JSON XForm submission.
+
+        **Example:**
+
+        ```bash
+        curl -X POST -d '{"id": "[form ID]", "submission": [the JSON]}' \
+        http://localhost:8000/api/v1/submissions -u user:pass -H "Content-Type: application/json"
+        ```
+
+        The `[form ID]` is the `id_string` of your form, and `[the JSON]` is the submission data in JSON format.
+
       parameters:
       - in: query
         name: format
@@ -456,21 +576,56 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/OpenRosaPayload'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JSONSubmissionPayload'
+            examples:
+              JSONSubmission:
+                value:
+                  id: transportation_2011_07_25
+                  submission:
+                    transport:
+                      item: bicycle
+                      quantity: 1
+                    meta:
+                      instanceID: uuid:f3d8dc65-91a6-4d0f-9e97-802128083390
+                summary: JSON submission
         required: true
       security:
       - BasicAuth: []
       - TokenAuth: []
       - {}
       responses:
-        '200':
+        '201':
           content:
-            application/xml:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmissionResponse'
+              examples:
+                JSONResponse:
+                  value:
+                    message: Successful submission.
+                    formid: transportation_2011_07_25
+                    encrypted: false
+                    instanceID: uuid:f3d8dc65-91a6-4d0f-9e97-802128083390
+                    submissionDate: '2023-05-24T10:00:00Z'
+                    markedAsCompleteDate: '2023-05-24T10:00:01Z'
+                  summary: JSON response
+            text/xml:
               schema:
                 $ref: '#/components/schemas/OpenRosaResponse'
+              examples:
+                XMLResponse:
+                  value: |-
+                    <OpenRosaResponse xmlns="http://openrosa.org/http/response">
+                        <message>Successful submission.</message>
+                        <submissionMetadata xmlns="http://www.opendatakit.org/xforms" id="transportation_2011_07_25" instanceID="uuid:f3d8dc65-91a6-4d0f-9e97-802128083390" submissionDate="2023-05-24T10:00:00Z" isComplete="true" markedAsCompleteDate="2023-05-24T10:00:01Z"/>
+                    </OpenRosaResponse>
+                  summary: XML response
           description: null
         '401':
           content:
-            application/xml:
+            application/json:
               schema:
                 $ref: '#/components/schemas/ErrorDetail'
               examples:
@@ -481,7 +636,7 @@ paths:
           description: ''
         '404':
           content:
-            application/xml:
+            application/json:
               schema:
                 $ref: '#/components/schemas/ErrorDetail'
               examples:
@@ -492,7 +647,7 @@ paths:
           description: ''
         '400':
           content:
-            application/xml:
+            application/json:
               schema:
                 $ref: '#/components/schemas/ErrorObject'
               examples:
@@ -558,6 +713,17 @@ components:
         detail: {}
       required:
       - detail
+    JSONSubmissionPayload:
+      type: object
+      properties:
+        id:
+          type: string
+          description: XForm ID String
+        submission:
+          description: The JSON submission data
+      required:
+      - id
+      - submission
     OpenRosaFormListResponse:
       type: array
       items:
@@ -616,6 +782,7 @@ components:
       properties:
         xml_submission_file:
           type: string
+          format: uri
       required:
       - xml_submission_file
     OpenRosaResponse:
@@ -672,6 +839,30 @@ components:
       - formhub
       - meta
       - question
+    SubmissionResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        formid:
+          type: string
+        encrypted:
+          type: boolean
+        instanceID:
+          type: string
+        submissionDate:
+          type: string
+          format: date-time
+        markedAsCompleteDate:
+          type: string
+          format: date-time
+      required:
+      - encrypted
+      - formid
+      - instanceID
+      - markedAsCompleteDate
+      - message
+      - submissionDate
     XFormList:
       type: array
       items:

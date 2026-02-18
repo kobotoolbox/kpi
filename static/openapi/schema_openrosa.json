@@ -47,7 +47,7 @@
         "/{username}/submission": {
             "post": {
                 "operationId": "submission_anonymous",
-                "description": "## Implement the OpenRosa Form Submission API\n\n⚠️This endpoint is only available from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️\n\nThis endpoint is used for adding submissions as an anonymous user.\n\n",
+                "description": "## Implement the OpenRosa Form Submission API\n\n⚠️This endpoint is only available from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️\n\nThis endpoint is used for adding submissions as an anonymous user.\n\n### XML Submission\n\nYou can submit an XML XForm submission using a `POST` request with `multipart/form-data`.\n\n**Example:**\n\n```bash\ncurl -X POST -F xml_submission_file=@/path/to/submission.xml \\\nhttps://kc.kobotoolbox.org/api/v1/submissions\n```\n\n### JSON Submission\n\nYou can also submit a JSON XForm submission.\n\n**Example:**\n\n```bash\ncurl -X POST -d '{\"id\": \"[form ID]\", \"submission\": [the JSON]}' \\\nhttp://localhost:8000/api/v1/submissions -H \"Content-Type: application/json\"\n```\n\nThe `[form ID]` is the `id_string` of your form, and `[the JSON]` is the submission data in JSON format.\n\n",
                 "parameters": [
                     {
                         "in": "query",
@@ -79,6 +79,28 @@
                             "schema": {
                                 "$ref": "#/components/schemas/OpenRosaPayload"
                             }
+                        },
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/JSONSubmissionPayload"
+                            },
+                            "examples": {
+                                "JSONSubmission": {
+                                    "value": {
+                                        "id": "transportation_2011_07_25",
+                                        "submission": {
+                                            "transport": {
+                                                "item": "bicycle",
+                                                "quantity": 1
+                                            },
+                                            "meta": {
+                                                "instanceID": "uuid:f3d8dc65-91a6-4d0f-9e97-802128083390"
+                                            }
+                                        }
+                                    },
+                                    "summary": "JSON submission"
+                                }
+                            }
                         }
                     },
                     "required": true
@@ -93,37 +115,43 @@
                     {}
                 ],
                 "responses": {
-                    "200": {
+                    "201": {
                         "content": {
-                            "application/xml": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SubmissionResponse"
+                                },
+                                "examples": {
+                                    "JSONResponse": {
+                                        "value": {
+                                            "message": "Successful submission.",
+                                            "formid": "transportation_2011_07_25",
+                                            "encrypted": false,
+                                            "instanceID": "uuid:f3d8dc65-91a6-4d0f-9e97-802128083390",
+                                            "submissionDate": "2023-05-24T10:00:00Z",
+                                            "markedAsCompleteDate": "2023-05-24T10:00:01Z"
+                                        },
+                                        "summary": "JSON response"
+                                    }
+                                }
+                            },
+                            "text/xml": {
                                 "schema": {
                                     "$ref": "#/components/schemas/OpenRosaResponse"
+                                },
+                                "examples": {
+                                    "XMLResponse": {
+                                        "value": "<OpenRosaResponse xmlns=\"http://openrosa.org/http/response\">\n    <message>Successful submission.</message>\n    <submissionMetadata xmlns=\"http://www.opendatakit.org/xforms\" id=\"transportation_2011_07_25\" instanceID=\"uuid:f3d8dc65-91a6-4d0f-9e97-802128083390\" submissionDate=\"2023-05-24T10:00:00Z\" isComplete=\"true\" markedAsCompleteDate=\"2023-05-24T10:00:01Z\"/>\n</OpenRosaResponse>",
+                                        "summary": "XML response"
+                                    }
                                 }
                             }
                         },
                         "description": null
                     },
-                    "401": {
-                        "content": {
-                            "application/xml": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorDetail"
-                                },
-                                "examples": {
-                                    "NotAuthenticated": {
-                                        "value": {
-                                            "detail": "Authentication credentials were not provided."
-                                        },
-                                        "summary": "Not authenticated"
-                                    }
-                                }
-                            }
-                        },
-                        "description": ""
-                    },
                     "404": {
                         "content": {
-                            "application/xml": {
+                            "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ErrorDetail"
                                 },
@@ -141,7 +169,7 @@
                     },
                     "400": {
                         "content": {
-                            "application/xml": {
+                            "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ErrorObject"
                                 },
@@ -416,7 +444,7 @@
         "/collector/{token}/submission": {
             "post": {
                 "operationId": "submission_data_collector",
-                "description": "## Implement the OpenRosa Form Submission API\n\n⚠️This endpoint is only available from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️\n\nThis endpoint is used for adding submissions as a data collector.\n\n",
+                "description": "## Implement the OpenRosa Form Submission API\n\n⚠️This endpoint is only available from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️\n\nThis endpoint is used for adding submissions as a data collector.\n\n### XML Submission\n\nYou can submit an XML XForm submission using a `POST` request with `multipart/form-data`.\n\n**Example:**\n\n```bash\ncurl -X POST -F xml_submission_file=@/path/to/submission.xml \\\nhttps://kc.kobotoolbox.org/api/v1/submissions\n```\n\n### JSON Submission\n\nYou can also submit a JSON XForm submission.\n\n**Example:**\n\n```bash\ncurl -X POST -d '{\"id\": \"[form ID]\", \"submission\": [the JSON]}' \\\nhttp://localhost:8000/api/v1/submissions -H \"Content-Type: application/json\"\n```\n\nThe `[form ID]` is the `id_string` of your form, and `[the JSON]` is the submission data in JSON format.\n\n",
                 "parameters": [
                     {
                         "in": "query",
@@ -448,6 +476,28 @@
                             "schema": {
                                 "$ref": "#/components/schemas/OpenRosaPayload"
                             }
+                        },
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/JSONSubmissionPayload"
+                            },
+                            "examples": {
+                                "JSONSubmission": {
+                                    "value": {
+                                        "id": "transportation_2011_07_25",
+                                        "submission": {
+                                            "transport": {
+                                                "item": "bicycle",
+                                                "quantity": 1
+                                            },
+                                            "meta": {
+                                                "instanceID": "uuid:f3d8dc65-91a6-4d0f-9e97-802128083390"
+                                            }
+                                        }
+                                    },
+                                    "summary": "JSON submission"
+                                }
+                            }
                         }
                     },
                     "required": true
@@ -462,37 +512,43 @@
                     {}
                 ],
                 "responses": {
-                    "200": {
+                    "201": {
                         "content": {
-                            "application/xml": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SubmissionResponse"
+                                },
+                                "examples": {
+                                    "JSONResponse": {
+                                        "value": {
+                                            "message": "Successful submission.",
+                                            "formid": "transportation_2011_07_25",
+                                            "encrypted": false,
+                                            "instanceID": "uuid:f3d8dc65-91a6-4d0f-9e97-802128083390",
+                                            "submissionDate": "2023-05-24T10:00:00Z",
+                                            "markedAsCompleteDate": "2023-05-24T10:00:01Z"
+                                        },
+                                        "summary": "JSON response"
+                                    }
+                                }
+                            },
+                            "text/xml": {
                                 "schema": {
                                     "$ref": "#/components/schemas/OpenRosaResponse"
+                                },
+                                "examples": {
+                                    "XMLResponse": {
+                                        "value": "<OpenRosaResponse xmlns=\"http://openrosa.org/http/response\">\n    <message>Successful submission.</message>\n    <submissionMetadata xmlns=\"http://www.opendatakit.org/xforms\" id=\"transportation_2011_07_25\" instanceID=\"uuid:f3d8dc65-91a6-4d0f-9e97-802128083390\" submissionDate=\"2023-05-24T10:00:00Z\" isComplete=\"true\" markedAsCompleteDate=\"2023-05-24T10:00:01Z\"/>\n</OpenRosaResponse>",
+                                        "summary": "XML response"
+                                    }
                                 }
                             }
                         },
                         "description": null
                     },
-                    "401": {
-                        "content": {
-                            "application/xml": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorDetail"
-                                },
-                                "examples": {
-                                    "NotAuthenticated": {
-                                        "value": {
-                                            "detail": "Authentication credentials were not provided."
-                                        },
-                                        "summary": "Not authenticated"
-                                    }
-                                }
-                            }
-                        },
-                        "description": ""
-                    },
                     "404": {
                         "content": {
-                            "application/xml": {
+                            "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ErrorDetail"
                                 },
@@ -510,7 +566,7 @@
                     },
                     "400": {
                         "content": {
-                            "application/xml": {
+                            "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ErrorObject"
                                 },
@@ -628,7 +684,7 @@
         "/submission": {
             "post": {
                 "operationId": "submission_authenticated",
-                "description": "## Implement the OpenRosa Form Submission API\n\n⚠️This endpoint is only available from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️\n\nThis endpoint is used for adding submissions as an authenticated user.\n\n",
+                "description": "## Implement the OpenRosa Form Submission API\n\n⚠️This endpoint is only available from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️\n\nThis endpoint is used for adding submissions as an authenticated user.\n\n### XML Submission\n\nYou can submit an XML XForm submission using a `POST` request with `multipart/form-data`.\n\n**Example:**\n\n```bash\ncurl -X POST -F xml_submission_file=@/path/to/submission.xml \\\nhttps://kc.kobotoolbox.org/api/v1/submissions\n```\n\n### JSON Submission\n\nYou can also submit a JSON XForm submission.\n\n**Example:**\n\n```bash\ncurl -X POST -d '{\"id\": \"[form ID]\", \"submission\": [the JSON]}' \\\nhttp://localhost:8000/api/v1/submissions -u user:pass -H \"Content-Type: application/json\"\n```\n\nThe `[form ID]` is the `id_string` of your form, and `[the JSON]` is the submission data in JSON format.\n\n",
                 "parameters": [
                     {
                         "in": "query",
@@ -651,6 +707,28 @@
                             "schema": {
                                 "$ref": "#/components/schemas/OpenRosaPayload"
                             }
+                        },
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/JSONSubmissionPayload"
+                            },
+                            "examples": {
+                                "JSONSubmission": {
+                                    "value": {
+                                        "id": "transportation_2011_07_25",
+                                        "submission": {
+                                            "transport": {
+                                                "item": "bicycle",
+                                                "quantity": 1
+                                            },
+                                            "meta": {
+                                                "instanceID": "uuid:f3d8dc65-91a6-4d0f-9e97-802128083390"
+                                            }
+                                        }
+                                    },
+                                    "summary": "JSON submission"
+                                }
+                            }
                         }
                     },
                     "required": true
@@ -665,11 +743,35 @@
                     {}
                 ],
                 "responses": {
-                    "200": {
+                    "201": {
                         "content": {
-                            "application/xml": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SubmissionResponse"
+                                },
+                                "examples": {
+                                    "JSONResponse": {
+                                        "value": {
+                                            "message": "Successful submission.",
+                                            "formid": "transportation_2011_07_25",
+                                            "encrypted": false,
+                                            "instanceID": "uuid:f3d8dc65-91a6-4d0f-9e97-802128083390",
+                                            "submissionDate": "2023-05-24T10:00:00Z",
+                                            "markedAsCompleteDate": "2023-05-24T10:00:01Z"
+                                        },
+                                        "summary": "JSON response"
+                                    }
+                                }
+                            },
+                            "text/xml": {
                                 "schema": {
                                     "$ref": "#/components/schemas/OpenRosaResponse"
+                                },
+                                "examples": {
+                                    "XMLResponse": {
+                                        "value": "<OpenRosaResponse xmlns=\"http://openrosa.org/http/response\">\n    <message>Successful submission.</message>\n    <submissionMetadata xmlns=\"http://www.opendatakit.org/xforms\" id=\"transportation_2011_07_25\" instanceID=\"uuid:f3d8dc65-91a6-4d0f-9e97-802128083390\" submissionDate=\"2023-05-24T10:00:00Z\" isComplete=\"true\" markedAsCompleteDate=\"2023-05-24T10:00:01Z\"/>\n</OpenRosaResponse>",
+                                        "summary": "XML response"
+                                    }
                                 }
                             }
                         },
@@ -677,7 +779,7 @@
                     },
                     "401": {
                         "content": {
-                            "application/xml": {
+                            "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ErrorDetail"
                                 },
@@ -695,7 +797,7 @@
                     },
                     "404": {
                         "content": {
-                            "application/xml": {
+                            "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ErrorDetail"
                                 },
@@ -713,7 +815,7 @@
                     },
                     "400": {
                         "content": {
-                            "application/xml": {
+                            "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ErrorObject"
                                 },
@@ -815,6 +917,22 @@
                     "detail"
                 ]
             },
+            "JSONSubmissionPayload": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "description": "XForm ID String"
+                    },
+                    "submission": {
+                        "description": "The JSON submission data"
+                    }
+                },
+                "required": [
+                    "id",
+                    "submission"
+                ]
+            },
             "OpenRosaFormListResponse": {
                 "type": "array",
                 "items": {
@@ -895,7 +1013,8 @@
                 "type": "object",
                 "properties": {
                     "xml_submission_file": {
-                        "type": "string"
+                        "type": "string",
+                        "format": "uri"
                     }
                 },
                 "required": [
@@ -981,6 +1100,39 @@
                     "formhub",
                     "meta",
                     "question"
+                ]
+            },
+            "SubmissionResponse": {
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "type": "string"
+                    },
+                    "formid": {
+                        "type": "string"
+                    },
+                    "encrypted": {
+                        "type": "boolean"
+                    },
+                    "instanceID": {
+                        "type": "string"
+                    },
+                    "submissionDate": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "markedAsCompleteDate": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "encrypted",
+                    "formid",
+                    "instanceID",
+                    "markedAsCompleteDate",
+                    "message",
+                    "submissionDate"
                 ]
             },
             "XFormList": {
