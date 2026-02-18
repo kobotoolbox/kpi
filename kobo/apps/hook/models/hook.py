@@ -8,7 +8,7 @@ from drf_spectacular.utils import extend_schema_field
 
 from kpi.fields import KpiUidField
 from kpi.models.abstract_models import AbstractTimeStampedModel
-from ..constants import HOOK_LOG_FAILED, HOOK_LOG_PENDING, HOOK_LOG_SUCCESS
+from .hook_log import HookLogStatus
 
 
 class Hook(AbstractTimeStampedModel):
@@ -66,21 +66,21 @@ class Hook(AbstractTimeStampedModel):
     def success_count(self):
         if not self.__totals:
             self._get_totals()
-        return self.__totals.get(HOOK_LOG_SUCCESS)
+        return self.__totals.get(HookLogStatus.SUCCESS)
 
     @property
     @extend_schema_field(OpenApiTypes.INT)
     def failed_count(self):
         if not self.__totals:
             self._get_totals()
-        return self.__totals.get(HOOK_LOG_FAILED)
+        return self.__totals.get(HookLogStatus.FAILED)
 
     @property
     @extend_schema_field(OpenApiTypes.INT)
     def pending_count(self):
         if not self.__totals:
             self._get_totals()
-        return self.__totals.get(HOOK_LOG_PENDING)
+        return self.__totals.get(HookLogStatus.PENDING)
 
     def _get_totals(self):
         # TODO add some cache
@@ -90,7 +90,11 @@ class Hook(AbstractTimeStampedModel):
         queryset.query.clear_ordering(True)
 
         # Initialize totals
-        self.__totals = {HOOK_LOG_SUCCESS: 0, HOOK_LOG_FAILED: 0, HOOK_LOG_PENDING: 0}
+        self.__totals = {
+            HookLogStatus.SUCCESS: 0,
+            HookLogStatus.FAILED: 0,
+            HookLogStatus.PENDING: 0,
+        }
         for record in queryset:
             self.__totals[record.get('status')] = record.get('values_count')
 
