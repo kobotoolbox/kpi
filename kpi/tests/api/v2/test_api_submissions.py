@@ -14,6 +14,7 @@ import lxml
 import pytest
 import responses
 from constance.test import override_config
+from ddt import data, ddt, unpack
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.db import connection
@@ -1214,6 +1215,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
             assert response.data['_submitted_by'] == 'anotheruser'
 
 
+@ddt
 class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase):
     """
     Tests for editing submissions.
@@ -2107,6 +2109,92 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
             .first()
         )
         assert ph_bulk.metadata['submission']['submitted_by'] == deleted_username
+
+    @data(
+        # Both root_uuid are null
+        (True, True),
+        # Original root_uuid is null, duplicate has a value
+        (True, False),
+        # Original root_uuid has a value, duplicate is null
+        (False, True),
+        # Both root_uuid have values
+        (False, False),
+    )
+    @unpack
+    def test_cannot_edit_duplicate_submissions(
+        self, orig_root_uuid_is_null, duplicate_root_uuid_is_null
+    ):
+        """
+        Test editing submissions when duplicate instances exist with the same UUID.
+
+        A duplicate submission exists with the same UUID.
+        This test covers four scenarios based on the root_uuid values:
+        - Both original and duplicate have null root_uuid (legacy submissions)
+        - Original has null root_uuid, duplicate has a value
+        - Original has a value, duplicate has null root_uuid
+        - Both have non-null root_uuid values
+
+        In all cases, attempting to get the edit link should return 409 CONFLICT
+        because the system cannot safely determine which submission to edit.
+        """
+
+        # Get the current submission's UUID
+        submission_uuid = remove_uuid_prefix(self.submission['_uuid'])
+
+        if orig_root_uuid_is_null:
+            # Set the original submission's root_uuid to null to simulate legacy data
+            Instance.objects.filter(pk=self.submission['_id']).update(root_uuid=None)
+
+        # Create a duplicate instance with the same UUID
+        different_root_uuid = str(uuid.uuid4())
+        duplicate = Instance.objects.create(
+            xml=self.asset.deployment.get_submission(
+                self.submission['_id'], self.asset.owner, SUBMISSION_FORMAT_TYPE_XML
+            ),
+            user=self.someuser,
+            xform_id=self.asset.deployment.xform_id,
+            uuid=submission_uuid,
+            root_uuid=different_root_uuid
+        )
+        ParsedInstance.objects.create(instance=duplicate)
+
+        if duplicate_root_uuid_is_null:
+            # Set the duplicate submission's root_uuid to null to simulate legacy data
+            Instance.objects.filter(pk=duplicate.pk).update(root_uuid=None)
+
+        # Verify we have 2 instances with the same UUID
+        assert (
+            Instance.objects.filter(
+                uuid=submission_uuid,
+                xform_id=self.asset.deployment.xform_id,
+            ).count()
+            == 2
+        )
+
+        # Attempt to get the edit link - should fail with 409
+        submission_edit_link_url = reverse(
+            self._get_endpoint('submission-enketo-edit'),
+            kwargs={
+                'uid_asset': self.asset.uid,
+                'pk': self.submission['_id'],
+            },
+        )
+
+        response = self.client.get(submission_edit_link_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_409_CONFLICT
+        assert 'cannot be edited' in response.data['detail']
+
+        # Sanity check! Try with the duplicate - should get the same result
+        submission_edit_link_url = reverse(
+            self._get_endpoint('submission-enketo-edit'),
+            kwargs={
+                'uid_asset': self.asset.uid,
+                'pk': duplicate.pk,
+            },
+        )
+        response = self.client.get(submission_edit_link_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_409_CONFLICT
+        assert 'cannot be edited' in response.data['detail']
 
 
 class SubmissionViewApiTests(SubmissionViewTestCaseMixin, BaseSubmissionTestCase):

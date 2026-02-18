@@ -210,6 +210,18 @@ class SubmissionEditApiTests(test_api_submissions.SubmissionEditApiTests):
     def test_submitted_by_persists_for_shared_submitter(self):
         pass
 
+    @pytest.mark.skip(reason='Deprecated v1')
+    def test_get_edit_link_fails_with_duplicate_uuid_null_root_uuid(self):
+        pass
+
+    @pytest.mark.skip(reason='Deprecated v1')
+    def test_get_edit_link_fails_null_root_uuid_with_duplicates(self):
+        pass
+
+    @pytest.mark.skip(reason='Deprecated v1')
+    def test_get_edit_link_succeeds_with_duplicate_when_root_uuid_set(self):
+        pass
+
 
 class SubmissionValidationStatusApiTests(
     test_api_submissions.SubmissionValidationStatusApiTests
