@@ -414,17 +414,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
   requestData(map: L.Map, nextViewBy = '') {
     // TODO: support area / line geodata questions
     // See: https://github.com/kobotoolbox/kpi/issues/3913
-
-    // Note: the selected question is considered a "map style" and actually patched into the asset itself. This creates
-    // the possibility that a question can be pre-selected, and not display all geopoints by default.
-    let selectedQuestion: string | null = null
-    if (this.state.overridenStyles?.selectedQuestion) {
-      selectedQuestion = this.state.overridenStyles.selectedQuestion
-    } else {
-      // After fixing DEV-1446, this line began to work "properly" and sets the previous selected question as default
-      selectedQuestion = this.props.asset.map_styles.selectedQuestion || null
-      console.log('-----------first geopoint question?-----------', this.props.asset.data)
-    }
+    let selectedQuestion = this.props.asset.map_styles.selectedQuestion || null
 
     this.props.asset.content?.survey?.forEach((row) => {
       if (
@@ -458,7 +448,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
         const results = data.results
         if (selectedQuestion) {
           results.forEach((row, i) => {
-            if (selectedQuestion) {
+            if (selectedQuestion && row[selectedQuestion]) {
               const coordsArray: string[] = String(row[selectedQuestion]).split(' ')
               results[i]._geolocation[0] = Number.parseInt(coordsArray[0])
               results[i]._geolocation[1] = Number.parseInt(coordsArray[1])
@@ -594,16 +584,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
 
         const geo0 = item._geolocation[0]
         const geo1 = item._geolocation[1]
-        console.log('--------tem--', item)
-        console.log('--------tem--', this.state.overridenStyles?.selectedQuestion)
-        let ca: string[] = []
-        if (this.state.overridenStyles?.selectedQuestion) {
-          ca = String(item[this.state.overridenStyles.selectedQuestion]).split(' ')
-        }
-        if (!!ca.length) {
-          prepPoints.push(L.marker([Number.parseInt(ca[0]), Number.parseInt(ca[1])], markerProps))
-        }
-        if (!ca.length && (geo0 !== null && geo1 !== null)) {
+        if (geo0 !== null && geo1 !== null) {
           prepPoints.push(L.marker([geo0, geo1], markerProps))
         }
       }
