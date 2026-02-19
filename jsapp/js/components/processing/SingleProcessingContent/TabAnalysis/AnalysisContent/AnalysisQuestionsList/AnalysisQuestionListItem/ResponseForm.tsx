@@ -140,7 +140,7 @@ export default function ResponseForm({
             c='var(--mantine-color-blue-5)'
             leftIcon='sparkles'
             onClick={handleGenerateWithAI}
-            loading={true || isGenerating}
+            loading={isGenerating}
             loaderProps={{ type: 'dots' }}
           >
             {t('Generate with AI')}
