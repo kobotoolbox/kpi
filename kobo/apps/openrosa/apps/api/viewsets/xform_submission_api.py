@@ -9,7 +9,7 @@ from rest_framework.authentication import get_authorization_header
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotAuthenticated
 from rest_framework.parsers import FormParser, JSONParser
-from rest_framework.renderers import BrowsableAPIRenderer, JSONRenderer
+from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 
 from kobo.apps.audit_log.base_views import AuditLoggedViewSet
@@ -184,7 +184,7 @@ class XFormSubmissionApi(
     filter_backends = (filters.AnonDjangoObjectPermissionFilter,)
     model = Instance
     permission_classes = (permissions.AllowAny,)
-    renderer_classes = (TemplateXMLRenderer, JSONRenderer, BrowsableAPIRenderer)
+    renderer_classes = (TemplateXMLRenderer, JSONRenderer)
     serializer_class = SubmissionSerializer
     template_name = 'submission.xml'
     log_type = AuditType.PROJECT_HISTORY

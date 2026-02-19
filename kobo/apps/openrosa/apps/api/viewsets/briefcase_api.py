@@ -9,7 +9,6 @@ from drf_spectacular.utils import extend_schema
 from rest_framework import exceptions, mixins, permissions, status
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
-from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.response import Response
 
 from kobo.apps.openrosa.apps.api.permissions import AssetObjectPermissions
@@ -93,7 +92,7 @@ class BriefcaseApi(
     filter_backends = (filters.AnonDjangoObjectPermissionFilter,)
     queryset = XForm.objects.all()
     permission_classes = (permissions.IsAuthenticated, AssetObjectPermissions)
-    renderer_classes = (TemplateXMLRenderer, BrowsableAPIRenderer)
+    renderer_classes = (TemplateXMLRenderer,)
     serializer_class = XFormListSerializer
     template_name = 'openrosa_response.xml'
 
