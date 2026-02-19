@@ -658,7 +658,7 @@ class Asset(
             content, self.advanced_features, url=url
         )
 
-    def get_all_attachment_xpaths(self) -> list:
+    def get_all_attachment_xpaths(self, only_cached_data: bool = False) -> list | None:
         """
         Get all attachment xpaths from deployed versions.
         Results are cached in Redis for 24 hours.
@@ -672,14 +672,15 @@ class Asset(
         ) is not None:
             return _all_attachment_xpaths
 
-
-        cache_key = f'attachment_xpaths:{self.uid}:{self.latest_deployed_version_uid}'
+        cache_key = f'all_attachment_xpaths:{self.uid}:{self.latest_deployed_version_uid}'
 
         # Try to get from Redis cache
         cached_xpaths = cache.get(cache_key)
 
         if cached_xpaths is not None:
             return cached_xpaths
+        elif only_cached_data:
+            return None
 
         # return deployed versions first
         versions = self.asset_versions.filter(deployed=True).order_by('-date_modified')
@@ -696,12 +697,20 @@ class Asset(
         setattr(self, '_all_attachment_xpaths', xpaths_list)
         return self._all_attachment_xpaths
 
-    def get_attachment_xpaths_from_version(self, version=None) -> Optional[list]:
+    def get_attachment_xpaths_from_version(
+        self, version: AssetVersion = None
+    ) -> list | None:
 
         if version:
             content = version.to_formpack_schema()['content']
         else:
             content = self.content
+
+        cache_key = f'attachment_xpaths:{self.uid}:{version.uid}'
+        cached_xpaths = cache.get(cache_key)
+
+        if cached_xpaths is not None:
+            return cached_xpaths
 
         survey = content['survey']
 
@@ -729,7 +738,10 @@ class Asset(
         # Inject missing `$xpath` properties
         self._insert_xpath(content)
 
-        return _get_xpaths(survey)
+        xpaths_list = _get_xpaths(survey)
+        cache.set(cache_key, xpaths_list, timeout=86400)
+
+        return xpaths_list
 
     def get_filters_for_partial_perm(
         self, user_id: int, perm: str = PERM_VIEW_SUBMISSIONS

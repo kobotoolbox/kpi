@@ -379,7 +379,9 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             uuid=_uuid,
             request=request,
         )
+
         all_attachment_xpaths = self.asset.get_all_attachment_xpaths()
+
         return self._rewrite_json_attachment_urls(
             self.get_submission(submission_id=instance.pk, user=user),
             all_attachment_xpaths,
@@ -1536,7 +1538,28 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         if add_supplemental_details_to_query:
             mongo_cursor = stream_with_extras(mongo_cursor, self.asset)
 
-        all_attachment_xpaths = self.asset.get_all_attachment_xpaths()
+        if fetch_one := bool(params.get('fetch_one', False)):
+            if (
+                all_attachment_xpaths := self.asset.get_all_attachment_xpaths(
+                    only_cached_data=fetch_one
+                )
+            ) is None:
+
+                try:
+                    submission = next(mongo_cursor)
+                except StopIteration:
+                    return []
+
+                submission_version = self.asset.asset_version.filter(
+                    uid=submission['__version__'], deployed=True
+                )
+                all_attachment_xpaths = (
+                    self.asset.get_attachment_xpaths_from_version(
+                        submission_version
+                    )
+                )
+        else:
+            all_attachment_xpaths = self.asset.get_all_attachment_xpaths()
 
         return (
             self._inject_properties(
