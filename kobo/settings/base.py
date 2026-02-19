@@ -2216,3 +2216,6 @@ MAX_RESTARTED_TRANSFERS = 20
 
 # Maximum timeout (in minutes) for hook processing
 HOOK_PROCESSING_TIMEOUT = 120
+
+# Cache time-to-live (in seconds) for attachment XPaths
+ATTACHMENT_XPATHS_CACHE_TTL = 86400

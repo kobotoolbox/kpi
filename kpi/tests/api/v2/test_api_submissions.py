@@ -462,10 +462,10 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         count = context.final_queries - context.initial_queries
         # add a few submissions
         self._add_submissions()
-        with self.assertNumQueries(count):
+        with self.assertNumQueries(FuzzyInt(count - 1, count)):
             self.client.get(self.submission_list_url, {'format': 'json'})
         # get second page
-        with self.assertNumQueries(count):
+        with self.assertNumQueries(FuzzyInt(count - 1, count)):
             self.client.get(
                 self.submission_list_url, {
                     'format': 'json',
