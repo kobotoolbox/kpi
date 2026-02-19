@@ -1,9 +1,8 @@
 import './reports.scss'
 
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 
 import clonedeep from 'lodash.clonedeep'
-import isEqual from 'lodash.isequal'
 import DocumentTitle from 'react-document-title'
 import { actions } from '#/actions'
 import bem from '#/bem'
@@ -63,50 +62,44 @@ export interface ReportsState {
   activeModalTab: number
 }
 
-export default class Reports extends React.Component<ReportsProps, ReportsState> {
-  private unlisteners: Function[] = []
+export default function Reports(props: ReportsProps) {
+  const [state, setState] = useState<ReportsState>({
+    graphWidth: '700',
+    graphHeight: '250',
+    activeModalTab: 0,
+    isFullscreen: false,
+    reportLimit: 200,
+    showReportGraphSettings: false,
+    showCustomReportModal: false,
+    currentCustomReport: undefined,
+    currentQuestionGraph: undefined,
+    groupBy: '',
+  })
 
-  constructor(props: ReportsProps) {
-    super(props)
+  useEffect(() => {
+    loadReportData()
 
-    this.state = {
-      graphWidth: '700',
-      graphHeight: '250',
-      activeModalTab: 0,
-      isFullscreen: false,
-      reportLimit: 200,
-      showReportGraphSettings: false,
-      showCustomReportModal: false,
-      currentCustomReport: undefined,
-      currentQuestionGraph: undefined,
-      groupBy: '',
+    const unlisteners = [
+      actions.reports.setStyle.completed.listen(onSetStyleCompleted),
+      actions.reports.setCustom.completed.listen(onSetCustomCompleted),
+    ]
+
+    return () => {
+      unlisteners.forEach((clb) => clb())
     }
-  }
+  }, [])
 
-  componentDidMount() {
-    this.loadReportData()
+  useEffect(() => {
+    refreshReportData()
+  }, [state.currentCustomReport, state.groupBy])
 
-    this.unlisteners.push(
-      actions.reports.setStyle.completed.listen(this.onSetStyleCompleted.bind(this)),
-      actions.reports.setCustom.completed.listen(this.onSetCustomCompleted.bind(this)),
-    )
-  }
+  // This is needed for "reset default report groupBy if it fails" case
+  useEffect(() => {
+    loadReportData()
+  }, [state.reportStyles?.default.groupDataBy])
 
-  componentWillUnmount() {
-    this.unlisteners.forEach((clb) => clb())
-  }
-
-  componentDidUpdate(_prevProps: ReportsProps, prevState: ReportsState) {
-    if (!isEqual(this.state.currentCustomReport, prevState.currentCustomReport)) {
-      this.refreshReportData()
-    }
-    if (this.state.groupBy !== prevState.groupBy) {
-      this.refreshReportData()
-    }
-  }
-
-  loadReportData() {
-    const uid = this.props.params.assetid || this.props.params.uid
+  function loadReportData() {
+    const uid = props.params.assetid || props.params.uid
 
     stores.allAssets.whenLoaded(uid, (asset: AssetResponse) => {
       const rowsByKuid: { [kuid: string]: SurveyRow } = {}
@@ -114,11 +107,11 @@ export default class Reports extends React.Component<ReportsProps, ReportsState>
       let groupBy = ''
       // The code below is overriding the `ReportStyles` we got from endpoint in
       // `AssetResponse`, we clone it here to avoid mutation.
-      const reportStyles: AssetResponseReportStyles = this.state.reportStyles || clonedeep(asset.report_styles)
+      const reportStyles: AssetResponseReportStyles = state.reportStyles || clonedeep(asset.report_styles)
       const reportCustom = asset.report_custom
 
-      if (this.state.currentCustomReport?.reportStyle?.groupDataBy) {
-        groupBy = this.state.currentCustomReport.reportStyle.groupDataBy
+      if (state.currentCustomReport?.reportStyle?.groupDataBy) {
+        groupBy = state.currentCustomReport.reportStyle.groupDataBy
       } else if (reportStyles.default?.groupDataBy !== undefined) {
         groupBy = reportStyles.default.groupDataBy
       }
@@ -155,7 +148,8 @@ export default class Reports extends React.Component<ReportsProps, ReportsState>
           .done((data: ReportsPaginatedResponse) => {
             const dataWithResponses = getDataWithResponses(rowsByIdentifier, data)
 
-            this.setState({
+            setState((currentState) => ({
+              ...currentState,
               asset: asset,
               rowsByKuid: rowsByKuid,
               rowsByIdentifier: rowsByIdentifier,
@@ -164,13 +158,13 @@ export default class Reports extends React.Component<ReportsProps, ReportsState>
               reportCustom: reportCustom,
               groupBy: groupBy,
               error: undefined,
-            })
+            }))
           })
           .fail((err: FailResponse) => {
             if (
               groupBy &&
               groupBy.length > 0 &&
-              !this.state.currentCustomReport &&
+              !state.currentCustomReport &&
               reportStyles.default?.groupDataBy !== undefined
             ) {
               notify.error(
@@ -182,15 +176,16 @@ export default class Reports extends React.Component<ReportsProps, ReportsState>
 
               // reset default report groupBy if it fails
               reportStyles.default.groupDataBy = undefined
-              this.setState({ reportStyles: reportStyles }, () => {
-                // Retry loading report data without groupBy
-                this.loadReportData()
-              })
+              setState((currentState) => ({
+                ...currentState,
+                reportStyles: reportStyles,
+              }))
             } else {
-              this.setState({
+              setState((currentState) => ({
+                ...currentState,
                 error: err,
                 asset: asset,
-              })
+              }))
             }
           })
       } else {
@@ -200,87 +195,96 @@ export default class Reports extends React.Component<ReportsProps, ReportsState>
     })
   }
 
-  refreshReportData() {
-    const uid = this.props.params.assetid || this.props.params.uid
-    const rowsByIdentifier = this.state.rowsByIdentifier
-    const customReport = this.state.currentCustomReport
+  function refreshReportData() {
+    const uid = props.params.assetid || props.params.uid
+    const rowsByIdentifier = state.rowsByIdentifier
+    const customReport = state.currentCustomReport
 
     let groupBy: string | undefined = ''
 
-    if (!customReport && this.state.reportStyles?.default?.groupDataBy !== undefined) {
-      groupBy = this.state.reportStyles.default.groupDataBy
+    if (!customReport && state.reportStyles?.default?.groupDataBy !== undefined) {
+      groupBy = state.reportStyles.default.groupDataBy
     }
 
     if (customReport?.reportStyle?.groupDataBy) {
-      groupBy = this.state.currentCustomReport?.reportStyle.groupDataBy
+      groupBy = state.currentCustomReport?.reportStyle.groupDataBy
     }
 
     dataInterface
       .getReportData({ uid: uid, identifiers: [], group_by: groupBy })
       .done((data: ReportsPaginatedResponse) => {
         const dataWithResponses = getDataWithResponses(rowsByIdentifier || {}, data)
-        this.setState({
+        setState((currentState) => ({
+          ...currentState,
           reportData: dataWithResponses,
           error: undefined,
-        })
+        }))
       })
       .fail((err: FailResponse) => {
         notify.error(t('Could not refresh report.'))
-        this.setState({ error: err })
+        setState((currentState) => ({
+          ...currentState,
+          error: err,
+        }))
       })
   }
 
-  reportStyleListener(_assetUid: string, reportStyles: AssetResponseReportStyles) {
-    this.setState({
+  function reportStyleListener(_assetUid: string, reportStyles: AssetResponseReportStyles) {
+    setState((currentState) => ({
+      ...currentState,
       reportStyles: reportStyles,
       showReportGraphSettings: false,
       currentQuestionGraph: undefined,
       groupBy: reportStyles.default?.groupDataBy || '',
-    })
+    }))
   }
 
-  onSetStyleCompleted(asset: AssetResponse) {
-    this.setState({
+  function onSetStyleCompleted(asset: AssetResponse) {
+    setState((currentState) => ({
+      ...currentState,
       asset: asset,
       reportStyles: asset.report_styles,
       showReportGraphSettings: false,
       currentQuestionGraph: undefined,
       groupBy: asset.report_styles.default?.groupDataBy || '',
-    })
+    }))
   }
 
-  reportCustomListener(_assetUid: string, reportCustom: { [crid: string]: CustomReportSettings }) {
-    const crid = this.state.currentCustomReport?.crid
-    let newGroupBy
+  function reportCustomListener(_assetUid: string, reportCustom: { [crid: string]: CustomReportSettings }) {
+    const crid = state.currentCustomReport?.crid
+    let newGroupBy: string
 
     if (crid && reportCustom[crid]) {
       if (reportCustom[crid].reportStyle?.groupDataBy) {
         newGroupBy = reportCustom[crid].reportStyle.groupDataBy
       }
 
-      this.setState({
+      setState((currentState) => ({
+        ...currentState,
         reportCustom: reportCustom,
         showCustomReportModal: false,
         showReportGraphSettings: false,
         currentQuestionGraph: undefined,
         groupBy: newGroupBy,
-      })
+      }))
     } else {
-      this.setState({
+      setState((currentState) => ({
+        ...currentState,
         reportCustom: reportCustom,
         showCustomReportModal: false,
         showReportGraphSettings: false,
         currentQuestionGraph: undefined,
         currentCustomReport: undefined,
         groupBy: newGroupBy,
-      })
+      }))
     }
   }
 
-  onSetCustomCompleted(asset: AssetResponse, crid: string) {
+  function onSetCustomCompleted(asset: AssetResponse, crid: string) {
     const newCustomReports = asset.report_custom
 
-    this.setState({
+    setState((currentState) => ({
+      ...currentState,
       asset: asset,
       reportCustom: newCustomReports,
       showCustomReportModal: false,
@@ -288,26 +292,32 @@ export default class Reports extends React.Component<ReportsProps, ReportsState>
       currentQuestionGraph: undefined,
       currentCustomReport: newCustomReports[crid],
       groupBy: newCustomReports[crid]?.reportStyle.groupDataBy,
-    })
+    }))
   }
 
-  onSelectedReportChange(crid: string) {
+  function onSelectedReportChange(crid: string) {
     if (crid === '') {
-      this.setDefaultReport()
+      setDefaultReport()
     } else {
-      this.setCustomReport(crid)
+      setCustomReport(crid)
     }
   }
 
-  openReportGraphSettings() {
-    this.setState({ showReportGraphSettings: true })
+  function openReportGraphSettings() {
+    setState((currentState) => ({
+      ...currentState,
+      showReportGraphSettings: true,
+    }))
   }
 
-  closeReportGraphSettings() {
-    this.setState({ showReportGraphSettings: false })
+  function closeReportGraphSettings() {
+    setState((currentState) => ({
+      ...currentState,
+      showReportGraphSettings: false,
+    }))
   }
 
-  hasAnyProvidedData(reportData: ReportsResponse[]) {
+  function hasAnyProvidedData(reportData: ReportsResponse[]) {
     let hasAny = false
     reportData.map((rowContent) => {
       if (rowContent.data.provided) {
@@ -320,12 +330,12 @@ export default class Reports extends React.Component<ReportsProps, ReportsState>
   /**
    * If you don't pass `crid`, new report would be created.
    */
-  setCustomReport(crid?: string) {
-    if (!this.state.showCustomReportModal) {
+  function setCustomReport(crid?: string) {
+    if (!state.showCustomReportModal) {
       let currentCustomReport: CustomReportSettings | undefined
       if (crid) {
         // existing report
-        currentCustomReport = this.state.reportCustom?.[crid]
+        currentCustomReport = state.reportCustom?.[crid]
       } else {
         // new custom report
         currentCustomReport = {
@@ -335,43 +345,61 @@ export default class Reports extends React.Component<ReportsProps, ReportsState>
           reportStyle: DEFAULT_MINIMAL_REPORT_STYLE,
         }
       }
-      this.setState({ currentCustomReport: currentCustomReport })
+      setState((currentState) => ({
+        ...currentState,
+        currentCustomReport: currentCustomReport,
+      }))
     }
   }
 
-  editCustomReport() {
-    if (this.state.currentCustomReport) {
-      this.setState({ showCustomReportModal: true })
+  function editCustomReport() {
+    if (state.currentCustomReport) {
+      setState((currentState) => ({
+        ...currentState,
+        showCustomReportModal: true,
+      }))
     }
   }
 
-  openCustomReportModal() {
-    if (!this.state.showCustomReportModal) {
-      this.setCustomReport()
-    } else if (this.state.currentCustomReport) {
-      var crid = this.state.currentCustomReport.crid
-      if (this.state.reportCustom?.[crid] == undefined) {
-        this.setDefaultReport()
+  function openCustomReportModal() {
+    if (!state.showCustomReportModal) {
+      setCustomReport()
+    } else if (state.currentCustomReport) {
+      var crid = state.currentCustomReport.crid
+      if (state.reportCustom?.[crid] == undefined) {
+        setDefaultReport()
       }
     }
 
-    this.setState({ showCustomReportModal: true })
+    setState((currentState) => ({
+      ...currentState,
+      showCustomReportModal: true,
+    }))
   }
 
-  closeCustomReportModal() {
-    this.setState({ showCustomReportModal: false })
+  function closeCustomReportModal() {
+    setState((currentState) => ({
+      ...currentState,
+      showCustomReportModal: false,
+    }))
   }
 
-  setDefaultReport() {
-    this.setState({ currentCustomReport: undefined })
+  function setDefaultReport() {
+    setState((currentState) => ({
+      ...currentState,
+      currentCustomReport: undefined,
+    }))
   }
 
-  toggleFullscreen() {
-    this.setState({ isFullscreen: !this.state.isFullscreen })
+  function toggleFullscreen() {
+    setState((currentState) => ({
+      ...currentState,
+      isFullscreen: !state.isFullscreen,
+    }))
   }
 
-  renderReportButtons() {
-    var customReports = this.state.reportCustom || {}
+  function renderReportButtons() {
+    var customReports = state.reportCustom || {}
     var customReportsList = []
     for (var key in customReports) {
       if (customReports[key] && customReports[key].crid) {
@@ -402,10 +430,10 @@ export default class Reports extends React.Component<ReportsProps, ReportsState>
             size='m'
             isClearable={false}
             options={reportsSelectorOptions}
-            selectedOption={this.state.currentCustomReport?.crid || ''}
+            selectedOption={state.currentCustomReport?.crid || ''}
             onChange={(newVal) => {
               if (newVal !== null) {
-                this.onSelectedReportChange(newVal)
+                onSelectedReportChange(newVal)
               }
             }}
           />
@@ -414,7 +442,7 @@ export default class Reports extends React.Component<ReportsProps, ReportsState>
             type='primary'
             size='m'
             startIcon='plus'
-            onClick={this.openCustomReportModal.bind(this)}
+            onClick={openCustomReportModal}
             tooltip={t('Create New Report')}
           />
 
@@ -422,18 +450,18 @@ export default class Reports extends React.Component<ReportsProps, ReportsState>
             type='text'
             size='m'
             startIcon='edit'
-            onClick={this.editCustomReport.bind(this)}
+            onClick={editCustomReport}
             tooltip={t('Edit Report Questions')}
-            isDisabled={!this.state.currentCustomReport}
+            isDisabled={!state.currentCustomReport}
           />
 
           <Button
             type='text'
             size='m'
             startIcon='settings'
-            onClick={this.openReportGraphSettings.bind(this)}
+            onClick={openReportGraphSettings}
             tooltip={t('Configure Report Style')}
-            isDisabled={!userCan('change_asset', this.state.asset)}
+            isDisabled={!userCan('change_asset', state.asset)}
           />
         </div>
 
@@ -451,7 +479,7 @@ export default class Reports extends React.Component<ReportsProps, ReportsState>
             type='text'
             size='m'
             startIcon='expand'
-            onClick={this.toggleFullscreen.bind(this)}
+            onClick={toggleFullscreen}
             tooltip={t('Toggle fullscreen')}
             tooltipPosition='right'
           />
@@ -460,19 +488,23 @@ export default class Reports extends React.Component<ReportsProps, ReportsState>
     )
   }
 
-  resetReportLimit() {
-    this.setState({
+  function resetReportLimit() {
+    setState((currentState) => ({
+      ...currentState,
       reportLimit: undefined,
-    })
+    }))
   }
 
-  triggerQuestionSettings(questionName: string) {
+  function triggerQuestionSettings(questionName: string) {
     if (questionName) {
-      this.setState({ currentQuestionGraph: questionName })
+      setState((currentState) => ({
+        ...currentState,
+        currentQuestionGraph: questionName,
+      }))
     }
   }
 
-  renderQuestionSettings() {
+  function renderQuestionSettings() {
     return (
       <bem.GraphSettings>
         <Modal.Body />
@@ -480,12 +512,15 @@ export default class Reports extends React.Component<ReportsProps, ReportsState>
     )
   }
 
-  closeQuestionSettings() {
-    this.setState({ currentQuestionGraph: undefined })
+  function closeQuestionSettings() {
+    setState((currentState) => ({
+      ...currentState,
+      currentQuestionGraph: undefined,
+    }))
   }
 
-  renderLoadingOrError() {
-    if (this.state.error) {
+  function renderLoadingOrError() {
+    if (state.error) {
       return (
         <CenteredMessage
           message={
@@ -493,8 +528,8 @@ export default class Reports extends React.Component<ReportsProps, ReportsState>
               {t('This report cannot be loaded.')}
               <br />
               <code>
-                {this.state.error.statusText}
-                {': ' + this.state.error.responseText || t('An error occurred')}
+                {state.error.statusText}
+                {': ' + state.error.responseText || t('An error occurred')}
               </code>
             </>
           }
@@ -505,147 +540,141 @@ export default class Reports extends React.Component<ReportsProps, ReportsState>
     }
   }
 
-  render() {
-    if (!this.state.asset) {
-      return this.renderLoadingOrError()
+  if (!state.asset) {
+    return renderLoadingOrError()
+  }
+
+  if (state.reportData === undefined) {
+    return renderLoadingOrError()
+  }
+
+  const asset = state.asset
+  const currentCustomReport = state.currentCustomReport
+  let docTitle
+
+  if (asset?.content) {
+    docTitle = asset.name || t('Untitled')
+  }
+
+  const fullReportData = state.reportData || []
+  /**
+   * Report data that will be displayed (after filtering out questions, etc.)
+   * to the user.
+   */
+  let reportData = state.reportData || []
+
+  if (reportData.length) {
+    if (currentCustomReport?.questions.length) {
+      const currentQuestions = currentCustomReport.questions
+      reportData = fullReportData?.filter((q) => currentQuestions.includes(q.name))
     }
 
-    if (this.state.reportData === undefined) {
-      return this.renderLoadingOrError()
+    if (state.reportLimit && reportData.length > state.reportLimit) {
+      reportData = reportData.slice(0, state.reportLimit)
     }
+  }
 
-    const asset = this.state.asset
-    const currentCustomReport = this.state.currentCustomReport
-    let docTitle
+  const formViewModifiers = []
+  if (state.isFullscreen) {
+    formViewModifiers.push('fullscreen')
+  }
 
-    if (asset?.content) {
-      docTitle = asset.name || t('Untitled')
-    }
+  const hasGroupBy = Boolean(state.groupBy)
 
-    const fullReportData = this.state.reportData || []
-    /**
-     * Report data that will be displayed (after filtering out questions, etc.)
-     * to the user.
-     */
-    let reportData = this.state.reportData || []
+  let noDataMessage = t('This report has no data.')
+  if (hasGroupBy) {
+    noDataMessage += ' '
+    noDataMessage += t('Try changing Report Style to "No grouping".')
+  }
 
-    if (reportData.length) {
-      if (currentCustomReport?.questions.length) {
-        const currentQuestions = currentCustomReport.questions
-        reportData = fullReportData?.filter((q) => currentQuestions.includes(q.name))
-      }
+  return (
+    <DocumentTitle title={`${docTitle} | KoboToolbox`}>
+      <bem.FormView m={formViewModifiers}>
+        <bem.ReportView>
+          <h1>{t('Reports')}</h1>
 
-      if (this.state.reportLimit && reportData.length > this.state.reportLimit) {
-        reportData = reportData.slice(0, this.state.reportLimit)
-      }
-    }
+          {renderReportButtons()}
 
-    const formViewModifiers = []
-    if (this.state.isFullscreen) {
-      formViewModifiers.push('fullscreen')
-    }
+          {!hasAnyProvidedData(reportData) && (
+            <bem.ReportView__wrap>
+              <InlineMessage type='warning' message={noDataMessage} />
+            </bem.ReportView__wrap>
+          )}
 
-    const hasAnyProvidedData = this.hasAnyProvidedData(reportData)
-    const hasGroupBy = Boolean(this.state.groupBy)
+          {hasAnyProvidedData(reportData) && (
+            <bem.ReportView__wrap>
+              <bem.PrintOnly>
+                <h3>{asset.name}</h3>
+              </bem.PrintOnly>
 
-    let noDataMessage = t('This report has no data.')
-    if (hasGroupBy) {
-      noDataMessage += ' '
-      noDataMessage += t('Try changing Report Style to "No grouping".')
-    }
+              {!state.currentCustomReport &&
+                state.reportLimit &&
+                reportData.length &&
+                state.reportData.length > state.reportLimit && (
+                  <InlineMessage
+                    type='warning'
+                    message={
+                      <div className='report-view__limit-message'>
+                        <p>
+                          {t('For performance reasons, this report only includes the first ## questions.').replace(
+                            '##',
+                            String(state.reportLimit || '-'),
+                          )}
+                        </p>
 
-    return (
-      <DocumentTitle title={`${docTitle} | KoboToolbox`}>
-        <bem.FormView m={formViewModifiers}>
-          <bem.ReportView>
-            <h1>{t('Reports')}</h1>
-
-            {this.renderReportButtons()}
-
-            {!hasAnyProvidedData && (
-              <bem.ReportView__wrap>
-                <InlineMessage type='warning' message={noDataMessage} />
-              </bem.ReportView__wrap>
-            )}
-
-            {hasAnyProvidedData && (
-              <bem.ReportView__wrap>
-                <bem.PrintOnly>
-                  <h3>{asset.name}</h3>
-                </bem.PrintOnly>
-
-                {!this.state.currentCustomReport &&
-                  this.state.reportLimit &&
-                  reportData.length &&
-                  this.state.reportData.length > this.state.reportLimit && (
-                    <InlineMessage
-                      type='warning'
-                      message={
-                        <div className='report-view__limit-message'>
-                          <p>
-                            {t('For performance reasons, this report only includes the first ## questions.').replace(
-                              '##',
-                              String(this.state.reportLimit || '-'),
-                            )}
-                          </p>
-
-                          <Button
-                            type='secondary'
-                            size='s'
-                            onClick={this.resetReportLimit.bind(this)}
-                            label={t('Show all (##)').replace('##', String(this.state.reportData.length))}
-                          />
-                        </div>
-                      }
-                    />
-                  )}
-
-                <InlineMessage
-                  type='warning'
-                  icon='alert'
-                  message={t(
-                    'This is an automated report based on raw data submitted to this project. Please conduct proper data cleaning prior to using the graphs and figures used on this page.',
-                  )}
-                />
-
-                <ReportContents
-                  parentState={this.state}
-                  reportData={reportData}
-                  asset={this.state.asset}
-                  triggerQuestionSettings={this.triggerQuestionSettings.bind(this)}
-                />
-              </bem.ReportView__wrap>
-            )}
-
-            {this.state.showReportGraphSettings && (
-              <Modal open onClose={this.closeReportGraphSettings.bind(this)} title={t('Edit Report Style')}>
-                <ReportStyleSettings parentState={this.state} />
-              </Modal>
-            )}
-
-            {this.state.showCustomReportModal && (
-              <Modal open onClose={this.closeCustomReportModal.bind(this)} title={t('Custom Report')}>
-                {this.state.currentCustomReport && (
-                  <CustomReportEditor
-                    reportData={this.state.reportData}
-                    customReport={this.state.currentCustomReport}
-                    asset={this.state.asset}
+                        <Button
+                          type='secondary'
+                          size='s'
+                          onClick={resetReportLimit}
+                          label={t('Show all (##)').replace('##', String(state.reportData.length))}
+                        />
+                      </div>
+                    }
                   />
                 )}
-              </Modal>
-            )}
 
-            {this.state.currentQuestionGraph && (
-              <Modal open onClose={this.closeQuestionSettings.bind(this)} title={t('Question Style')}>
-                <ReportStyleSettingsSingleQuestion
-                  question={this.state.currentQuestionGraph}
-                  parentState={this.state}
+              <InlineMessage
+                type='warning'
+                icon='alert'
+                message={t(
+                  'This is an automated report based on raw data submitted to this project. Please conduct proper data cleaning prior to using the graphs and figures used on this page.',
+                )}
+              />
+
+              <ReportContents
+                parentState={state}
+                reportData={reportData}
+                asset={state.asset}
+                triggerQuestionSettings={triggerQuestionSettings}
+              />
+            </bem.ReportView__wrap>
+          )}
+
+          {state.showReportGraphSettings && (
+            <Modal open onClose={closeReportGraphSettings} title={t('Edit Report Style')}>
+              <ReportStyleSettings parentState={state} />
+            </Modal>
+          )}
+
+          {state.showCustomReportModal && (
+            <Modal open onClose={closeCustomReportModal} title={t('Custom Report')}>
+              {state.currentCustomReport && (
+                <CustomReportEditor
+                  reportData={state.reportData}
+                  customReport={state.currentCustomReport}
+                  asset={state.asset}
                 />
-              </Modal>
-            )}
-          </bem.ReportView>
-        </bem.FormView>
-      </DocumentTitle>
-    )
-  }
+              )}
+            </Modal>
+          )}
+
+          {state.currentQuestionGraph && (
+            <Modal open onClose={closeQuestionSettings} title={t('Question Style')}>
+              <ReportStyleSettingsSingleQuestion question={state.currentQuestionGraph} parentState={state} />
+            </Modal>
+          )}
+        </bem.ReportView>
+      </bem.FormView>
+    </DocumentTitle>
+  )
 }
