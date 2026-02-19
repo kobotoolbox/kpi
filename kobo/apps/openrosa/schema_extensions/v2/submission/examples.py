@@ -42,14 +42,14 @@ def get_xml_response_openapi_example():
         value="""
 <OpenRosaResponse xmlns="http://openrosa.org/http/response">
     <message>Successful submission.</message>
-    <submissionMetadata 
-        xmlns="http://www.opendatakit.org/xforms" 
-        id="transportation_2011_07_25" 
-        instanceID="uuid:f3d8dc65-91a6-4d0f-9e97-802128083390" 
-        submissionDate="2023-05-24T10:00:00Z" 
-        isComplete="true" 
+    <submissionMetadata
+        xmlns="http://www.opendatakit.org/xforms"
+        id="transportation_2011_07_25"
+        instanceID="uuid:f3d8dc65-91a6-4d0f-9e97-802128083390"
+        submissionDate="2023-05-24T10:00:00Z"
+        isComplete="true"
         markedAsCompleteDate="2023-05-24T10:00:01Z"
-    /> 
+    />
 </OpenRosaResponse>
 """.strip(),
         response_only=True,
