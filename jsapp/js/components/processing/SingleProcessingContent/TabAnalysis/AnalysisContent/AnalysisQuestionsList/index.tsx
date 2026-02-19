@@ -138,8 +138,6 @@ export default function AnalysisQuestionsList({
   }
 
   const handleGenerateWithAI = async (qaQuestionParam: ResponseQualActionParams) => {
-    console.log('Generating with AI for question', qaQuestionParam)
-
     // Enable the automatic_bedrock_qual feature if needed
     await enableGenerateWithAIFeature()
 

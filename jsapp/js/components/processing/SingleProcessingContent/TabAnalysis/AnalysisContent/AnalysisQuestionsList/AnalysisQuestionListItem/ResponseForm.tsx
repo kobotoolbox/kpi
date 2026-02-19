@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 
 import { Group, Modal, Stack, Text } from '@mantine/core'
 import { Box, ThemeIcon } from '@mantine/core'
@@ -37,7 +37,7 @@ export default function ResponseForm({
   onGenerateWithAI,
 }: Props) {
   const [opened, { open, close }] = useDisclosure(false)
-  const [isGenerating, setIsGenerating] = React.useState(false)
+  const [isGenerating, setIsGenerating] = useState(false)
 
   const ffAutoQAEnabled = useFeatureFlag(FeatureFlag.autoQAEnabled)
 
@@ -140,7 +140,8 @@ export default function ResponseForm({
             c='var(--mantine-color-blue-5)'
             leftIcon='sparkles'
             onClick={handleGenerateWithAI}
-            loading={isGenerating}
+            loading={true || isGenerating}
+            loaderProps={{ type: 'dots' }}
           >
             {t('Generate with AI')}
           </ButtonNew>
