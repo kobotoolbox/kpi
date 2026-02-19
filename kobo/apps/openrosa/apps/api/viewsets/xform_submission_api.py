@@ -178,6 +178,9 @@ class XFormSubmissionApi(
     ViewSet for managing the enketo submission
     Documentation:
     - docs/api/v2/submission/create.md
+    - docs/api/v2/submission/anonymous.md
+    - docs/api/v2/submission/authenticated.md
+    - docs/api/v2/submission/data_collector.md
 
     Available actions:
     - create        → POST /submission

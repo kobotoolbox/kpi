@@ -1,6 +1,6 @@
-## Implement the OpenRosa Form Submission API
+## Implement part of the OpenRosa Form Submission API
 
-⚠️This endpoint is only available from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
+⚠️This endpoint is **only available** from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
 
 This endpoint is used for adding submissions as a data collector.
 
@@ -10,9 +10,9 @@ You can submit an XML XForm submission using a `POST` request with `multipart/fo
 
 **Example:**
 
-```bash
+```shell
 curl -X POST -F xml_submission_file=@/path/to/submission.xml \
-https://kc.kobotoolbox.org/api/v1/submissions
+https://kc.kobotoolbox.org/collector/{token}/submission
 ```
 
 ### JSON Submission
@@ -21,10 +21,10 @@ You can also submit a JSON XForm submission.
 
 **Example:**
 
-```bash
-curl -X POST -d '{"id": "[form ID]", "submission": [the JSON]}' \
-http://localhost:8000/api/v1/submissions -H "Content-Type: application/json"
+```shell
+curl -X POST -d '{"id": "{uid_asset}", "submission": {submission_json}}' \
+http://localhost:8000/collector/{token}/submission -H "Content-Type: application/json"
 ```
 
-The `[form ID]` is the `id_string` of your form, and `[the JSON]` is the submission data in JSON format.
+The `{uid_asset}` is the `id_string` of your form, and `{submission_json}` is the submission data in JSON format.
 
