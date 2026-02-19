@@ -1,10 +1,10 @@
 import React from 'react'
 
 import { Radio, TagsInput } from '@mantine/core'
-import type { _DataSupplementResponseOneOfManualQualVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualQualVersionsItem'
+import type { SupplementalDataVersionItemQual } from '#/api/models/supplementalDataVersionItemQual'
 
 interface Props {
-  qaAnswer?: _DataSupplementResponseOneOfManualQualVersionsItem
+  qaAnswer?: SupplementalDataVersionItemQual
   disabled: boolean
   onSave: (values: string[]) => Promise<unknown>
 }

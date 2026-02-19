@@ -10,9 +10,9 @@ The endpoints are grouped by area of intended use. Each category contains relate
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 
-export type _DataSupplementResponseOneOfAutomaticGoogleTranscriptionVersionsItemDataOneOfFour = {
+export interface SupplementalDataContentAutomaticComplete {
   language: string
   locale?: string
-  status: 'deleted'
-  value: null
+  status: 'complete'
+  value: string
 }
