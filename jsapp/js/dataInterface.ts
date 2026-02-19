@@ -443,6 +443,12 @@ export interface MongoQuery<T = any> {
 }
 
 /**
+ * Some properties of SurveyRow can be translated to multiple languages, that is why there is an array. If for given
+ * language there is no translation, a `null` value will be placed in there
+ */
+export type SureveyRowOrChoiceTranslatableProp = Array<string | null>
+
+/**
  * It represents a question from the form, a group start/end or a piece of
  * a more complex question type.
  * Interesting fact: a `SurveyRow` with the least amount of properties is group
@@ -455,8 +461,8 @@ export interface SurveyRow {
   $xpath?: string
   $autoname?: string
   calculation?: string
-  label?: string[]
-  hint?: string[]
+  label?: SureveyRowOrChoiceTranslatableProp
+  hint?: SureveyRowOrChoiceTranslatableProp
   name?: string
   required?: boolean
   // It's here because when form has `kobomatrix` row, Form Builder's "Save" button is sending a request that contains
@@ -480,7 +486,7 @@ export interface SurveyRow {
 export interface SurveyChoice {
   $autovalue: string
   $kuid: string
-  label?: string[]
+  label?: SureveyRowOrChoiceTranslatableProp
   list_name: string
   name: string
   'media::image'?: string[]
@@ -499,7 +505,7 @@ export interface AssetContentSettings {
   'kobo--lock_all'?: boolean
   /** The name of the locking profile applied to whole form. */
   'kobo--locking-profile'?: string
-  default_language?: string
+  default_language?: string | null
 }
 
 /**
@@ -511,8 +517,7 @@ export interface AssetContent {
   schema?: string
   survey?: SurveyRow[]
   choices?: SurveyChoice[]
-  // TODO: verify if array case is ever happening
-  settings?: AssetContentSettings | AssetContentSettings[]
+  settings?: AssetContentSettings
   translated?: string[]
   /** A list of languages. */
   translations?: Array<string | null>

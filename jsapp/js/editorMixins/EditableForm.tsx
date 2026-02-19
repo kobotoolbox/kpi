@@ -11,6 +11,8 @@ import Markdown from 'react-markdown'
 import { useBeforeUnload, useBlocker, unstable_usePrompt as usePrompt } from 'react-router-dom'
 import Select from 'react-select'
 import type { AssetSnapshotResponse } from '#/api/models/assetSnapshotResponse'
+import { invalidateItem } from '#/api/mutation-defaults/common'
+import { getAssetsRetrieveQueryKey, useAssetsRetrieve } from '#/api/react-query/manage-projects-and-library-content'
 import assetUtils from '#/assetUtils'
 import bem, { makeBem } from '#/bem'
 import Alert from '#/components/common/alert'
@@ -87,7 +89,6 @@ const RECORDING_SUPPORT_URL = 'recording-interviews.html'
 
 interface LaunchAppData {
   name: string
-  savedName?: string
   settings__style?: FormStyleName
   files: AssetResponseFile[]
   asset_type: AssetTypeName
@@ -97,7 +98,6 @@ interface LaunchAppData {
 interface EditableFormButtonStates {
   previewDisabled?: boolean
   groupable?: boolean
-  showAllOpen?: boolean
   showAllAvailable?: boolean
   name?: string
   hasSettings?: boolean
@@ -112,10 +112,6 @@ interface AsideSettings {
 }
 
 interface EditableFormProps {
-  asset_updated: UpdateStatesValue
-  multioptionsExpanded: boolean
-  surveyAppRendered: boolean
-  name: string
   assetUid?: string
   isNewAsset?: boolean
   backRoute: string | null
@@ -169,16 +165,16 @@ export default function EditableForm(props: EditableFormProps) {
     desiredAssetType: undefined,
     enketopreviewOverlay: undefined,
     isBackgroundAudioBannerDismissed: false,
-    name: props.name,
+    name: '',
     preventNavigatingOut: false,
     showCascadePopup: false,
-    surveyAppRendered: props.surveyAppRendered,
+    surveyAppRendered: false,
     surveyLoadError: undefined,
     surveySaveFail: false,
     isNewAsset: props.isNewAsset,
     backRoute: props.backRoute === null ? undefined : props.backRoute,
     groupButtonIsActive: false,
-    multioptionsExpanded: props.multioptionsExpanded,
+    multioptionsExpanded: true,
   })
 
   const formWrapRef = useRef<HTMLDivElement>(null)
@@ -188,53 +184,63 @@ export default function EditableForm(props: EditableFormProps) {
 
   const [app, setApp] = useState<SurveyApp | undefined>(undefined)
 
+  const assetUid = props.assetUid || ''
+
+  const assetQuery = useAssetsRetrieve(
+    assetUid,
+    {},
+    {
+      query: {
+        queryKey: getAssetsRetrieveQueryKey(assetUid),
+        enabled: assetUid !== '',
+        // No need to fetch it again, as the code doesn't support updating `asset` after it was already loaded
+        refetchOnWindowFocus: false,
+      },
+    },
+  )
+
+  useEffect(() => {
+    const assetData = assetQuery.data?.data
+    if (assetData && 'uid' in assetData) {
+      // TODO: stop casting this as AssetResponse after backend openAPI task DEV-1727 is done
+      const assetDataCast = assetData as unknown as AssetResponse
+      setState((currentState) => ({
+        ...currentState,
+        // TODO: storing asset that we already have in `assetQuery` is not nice. I left it like this to avoid requiring
+        // too much refactor in here.
+        asset: assetDataCast,
+      }))
+    }
+  }, [assetQuery.data?.data])
+
+  useEffect(() => {
+    if (state.asset) {
+      let settingsStyle: FormStyleName | undefined
+      if (state.asset.content?.settings && !Array.isArray(state.asset.content?.settings)) {
+        settingsStyle = state.asset.content.settings.style
+      }
+      launchAppForSurveyContent(state.asset.content, {
+        name: state.asset.name,
+        settings__style: settingsStyle,
+        files: state.asset.files,
+        asset_type: state.asset.asset_type,
+        asset: state.asset,
+      })
+    }
+  }, [state.asset])
+
   useEffect(() => {
     loadAsideSettings()
 
     if (state.isNewAsset) {
       launchAppForSurveyContent()
-    } else {
-      const uid = props.assetUid
-      stores.allAssets.whenLoaded(uid, (originalAsset: AssetResponse) => {
-        // Store asset object is mutable and there is no way to predict all the
-        // bugs that come from this fact. Form Builder code is already changing
-        // the content of the object, so we want to cut all the bugs at the
-        // very start of the process.
-        const newAsset = clonedeep(originalAsset)
-
-        setState((currentState) => ({
-          ...currentState,
-          asset: newAsset,
-        }))
-
-        // HACK switch to setState callback after updating to React 16+
-        //
-        // This needs to be called at least a single render after the state's
-        // asset is being set, because `.form-wrap` node needs to exist for
-        // `launchAppForSurveyContent` to work.
-        window.setTimeout(() => {
-          let settingsStyle: FormStyleName | undefined
-          if (newAsset.content?.settings && !Array.isArray(newAsset.content?.settings)) {
-            settingsStyle = newAsset.content.settings.style
-          }
-          launchAppForSurveyContent(newAsset.content, {
-            name: newAsset.name,
-            settings__style: settingsStyle,
-            files: newAsset.files,
-            asset_type: newAsset.asset_type,
-            asset: newAsset,
-          })
-        }, 0)
-      })
     }
 
     stores.surveyState.listen(onSurveyStateChanged)
 
     return () => {
-      if (app?.survey) {
-        app.survey.off('change')
-      }
       unpreventClosingTab()
+      cleanupAppForSurveyContent()
     }
   }, [])
 
@@ -454,14 +460,15 @@ export default function EditableForm(props: EditableFormProps) {
           props.router.navigate(state.backRoute)
         }
       })
-    } else if (props.assetUid) {
-      // update existing asset
-      const uid = props.assetUid
-
+    } else if (assetUid !== '') {
+      // TODO: change this into react-query mutation
       actions.resources.updateAsset
-        .triggerAsync(uid, params)
+        .triggerAsync(assetUid, params)
         .then(() => {
           unpreventClosingTab()
+          // We need to invalidate it here to force it to fetch fresh data. Without this a bug will happen with Form
+          // Builder showing old data in some scenarios (e.g. after closing Form Builder and immediately visiting again).
+          invalidateItem(getAssetsRetrieveQueryKey(assetUid))
           setState((currentState) => ({
             ...currentState,
             asset_updated: update_states.UP_TO_DATE,
@@ -504,7 +511,6 @@ export default function EditableForm(props: EditableFormProps) {
         ooo.previewDisabled = app.survey.rows.length < 1
       }
       ooo.groupable = !!state.groupButtonIsActive
-      ooo.showAllOpen = !!state.multioptionsExpanded
       ooo.showAllAvailable = (() => {
         var hasSelect = false
         app.survey.forEachRow((row) => {
@@ -571,16 +577,29 @@ export default function EditableForm(props: EditableFormProps) {
   }
 
   /**
+   * Cleanup some things in the rendered app
+   */
+  function cleanupAppForSurveyContent() {
+    if (app?.survey) {
+      app.survey.off('change')
+      app.survey.rows.off('change')
+      app.survey.rows.off('sort')
+    }
+  }
+
+  /**
    * The de facto function that is running our Form Builder survey editor app.
    * It builds `dkobo_xlform.view.SurveyApp` using asset data and then appends
    * it to `.form-wrap` node.
    */
   function launchAppForSurveyContent(assetContent?: AssetContent, _state?: LaunchAppData) {
-    const newState: Partial<EditableFormState> & Partial<LaunchAppData> = _state || {}
-
-    if (newState.name) {
-      newState.savedName = newState.name
+    // If we already rendered the app in the formWrapRef container, there is no need to do it again. Without this check
+    // we would end up adding copies of the app in HTML
+    if (app !== undefined) {
+      return
     }
+
+    const newState: Partial<EditableFormState> & Partial<LaunchAppData> = _state || {}
 
     // asset content is being mutated somewhere during form builder initialisation
     // so we need to make sure this stays untouched
@@ -672,11 +691,13 @@ export default function EditableForm(props: EditableFormProps) {
 
     let targetRoute = state.backRoute
     if (state.backRoute === ROUTES.FORMS) {
-      targetRoute = ROUTES.FORM.replace(':uid', state.asset.uid)
+      if (assetUid !== '') {
+        targetRoute = ROUTES.FORM.replace(':uid', assetUid)
+      }
     } else if (state.backRoute === ROUTES.LIBRARY) {
       // Check if the the uid is undefined to prevent getting an Access Denied screen
-      if (state.asset.uid !== undefined) {
-        targetRoute = ROUTES.LIBRARY_ITEM.replace(':uid', state.asset.uid)
+      if (assetUid !== '') {
+        targetRoute = ROUTES.LIBRARY_ITEM.replace(':uid', assetUid)
       }
     }
 
@@ -724,7 +745,7 @@ export default function EditableForm(props: EditableFormProps) {
   // rendering methods
 
   function renderFormBuilderHeader() {
-    const { previewDisabled, groupable, showAllOpen, showAllAvailable, saveButtonText } = buttonStates()
+    const { previewDisabled, groupable, showAllAvailable, saveButtonText } = buttonStates()
 
     return (
       <bem.FormBuilderHeader>
