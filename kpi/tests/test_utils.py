@@ -30,6 +30,7 @@ from kpi.utils.xml import (
     strip_nodes,
     xml_tostring,
 )
+from kpi.utils.versions import find_matching_version_uid
 from kpi.versioning import APIV2Versioning
 
 
@@ -820,3 +821,52 @@ class XmlUtilsTestCase(TestCase):
         re_source = re.sub(pattern, r'\1', source)
         re_target = re.sub(pattern, r'\1', target)
         self.assertEqual(re_source, re_target)
+
+
+class FindMatchingVersionUidTestCase(TestCase):
+
+    def test_match_on_primary_uid(self):
+        submission = {'__version__': 'v2', '_version_': 'v1'}
+        ordered_ids = ['v2', 'v1']
+        assert find_matching_version_uid(submission, ordered_ids) == 'v2'
+
+    def test_newest_version_wins(self):
+        """
+        When a submission contains version IDs for multiple known versions,
+        the newest (earliest in the ordered list) should be returned.
+        """
+        submission = {'__version__': 'v1', '_version_': 'v2'}
+        ordered_ids = ['v2', 'v1']
+        assert find_matching_version_uid(submission, ordered_ids) == 'v2'
+
+    def test_match_via_alias_returns_primary_uid(self):
+        submission = {'__version__': 'v456'}
+        ordered_ids = ['v123', 'v456']
+        alias_to_primary = {'v456': 'v123'}
+        result = find_matching_version_uid(
+            submission, ordered_ids, alias_to_primary=alias_to_primary,
+        )
+        assert result == 'v123'
+
+    def test_reversion_ids_normalized(self):
+        submission = {'__version__': '12345'}
+        ordered_ids = ['v123']
+        reversion_map = {'12345': 'v123'}
+        result = find_matching_version_uid(
+            submission, ordered_ids, reversion_map=reversion_map,
+        )
+        assert result == 'v123'
+
+    def test_no_match_returns_none(self):
+        submission = {'__version__': 'v_unknown'}
+        ordered_ids = ['v2', 'v1']
+        assert find_matching_version_uid(submission, ordered_ids) is None
+
+    def test_fuzzy_key_matching(self):
+        """
+        Any key containing `_version_` should be treated as a version
+        field, e.g. `_version__001`, `_version__002`.
+        """
+        submission = {'_version__001': 'v1', '_version__002': 'v2'}
+        ordered_ids = ['v2', 'v1']
+        assert find_matching_version_uid(submission, ordered_ids) == 'v2'

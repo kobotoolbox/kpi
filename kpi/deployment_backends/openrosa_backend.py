@@ -78,6 +78,7 @@ from kpi.models.paired_data import PairedData
 from kpi.utils.files import ExtendedContentFile
 from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
+from kpi.utils.versions import find_matching_version_uid
 from kpi.utils.object_permission import get_anonymous_user, get_database_user
 from kpi.utils.xml import fromstring_preserve_root_xmlns, xml_tostring
 from ..exceptions import AttachmentUidMismatchException, BadFormatException
@@ -1514,6 +1515,38 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         file_.synced_with_backend = True
         file_.save(update_fields=['synced_with_backend'])
 
+    def _infer_submission_version(self, submission: dict):
+        """
+        Find latest extant AssetVersion for a submission, using the same logic
+        as `kobo.apps.reports.report_data._infer_version_id`. Fall back on the
+        latest deployed version
+        """
+        lightweight_versions = self.asset.deployed_versions.only(
+            'uid', 'uid_aliases', '_reversion_version'
+        )
+
+        uids_newest_first = []
+        alias_to_primary = {}
+        reversion_map = {}
+        for v in lightweight_versions:
+            uids_newest_first.append(v.uid)
+            if v.uid_aliases:
+                uids_newest_first.extend(v.uid_aliases)
+                for alias in v.uid_aliases:
+                    alias_to_primary[alias] = v.uid
+            if v._reversion_version:
+                reversion_map[str(v._reversion_version)] = v.uid
+
+        matched_uid = find_matching_version_uid(
+            submission, uids_newest_first, reversion_map, alias_to_primary,
+        )
+
+        if matched_uid:
+            return self.asset.asset_versions.get(uid=matched_uid)
+
+        # Fall back to latest deployed version
+        return self.asset.deployed_versions.first()
+
     def __get_submissions_in_json(
         self, fetch_one: bool = False, **params
     ) -> Generator[dict, None, None]:
@@ -1564,11 +1597,9 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                     mongo_cursor = [submission]
 
                 # Retrieve the deployed version corresponding to the submission.
-                submission_version = None
-                if '__version__' in submission:
-                    submission_version = self.asset.asset_versions.filter(
-                        uid=submission['__version__'], deployed=True
-                    ).first()
+                submission_version = self._infer_submission_version(
+                    submission
+                )
 
                 # Compute attachment xpaths from that specific form version.
                 attachment_xpaths = (

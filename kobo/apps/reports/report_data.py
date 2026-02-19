@@ -8,7 +8,8 @@ from rest_framework import serializers
 from formpack import FormPack
 from kpi.utils.bugfix import repair_file_column_content_and_save
 from kpi.utils.log import logging
-from .constants import FUZZY_VERSION_ID_KEY, INFERRED_VERSION_ID_KEY
+from kpi.utils.versions import find_matching_version_uid
+from .constants import INFERRED_VERSION_ID_KEY
 
 
 def build_formpack(asset, submission_stream=None, use_all_form_versions=True):
@@ -34,6 +35,7 @@ def build_formpack(asset, submission_stream=None, use_all_form_versions=True):
 
     schemas = []
     version_ids_newest_first = []
+    _alias_to_primary = {}
     for v in _versions:
         try:
             fp_schema = v.to_formpack_schema()
@@ -51,6 +53,8 @@ def build_formpack(asset, submission_stream=None, use_all_form_versions=True):
             version_ids_newest_first.append(v.uid)
             if v.uid_aliases:
                 version_ids_newest_first.extend(v.uid_aliases)
+                for alias in v.uid_aliases:
+                    _alias_to_primary[alias] = v.uid
 
     if not schemas:
         raise Exception('Cannot build formpack without any schemas')
@@ -64,36 +68,20 @@ def build_formpack(asset, submission_stream=None, use_all_form_versions=True):
         for v in _versions if v._reversion_version
     ])
 
-    # A submission often contains many version keys, e.g. `__version__`,
-    # `_version_`, `_version__001`, `_version__002`, each with a different
-    # version id (see https://github.com/kobotoolbox/kpi/issues/1465). To cope,
-    # assume that the newest version of this asset whose id appears in the
-    # submission is the proper one to use
     def _infer_version_id(submission):
         if not use_all_form_versions:
             submission[INFERRED_VERSION_ID_KEY] = version_ids_newest_first[0]
             return submission
 
-        submission_version_ids = [
-            val for key, val in submission.items()
-                if FUZZY_VERSION_ID_KEY in key
-        ]
-        # Replace any deprecated reversion IDs with the UIDs of their
-        # corresponding AssetVersions
-        submission_version_ids = [
-            _reversion_ids[x] if x in _reversion_ids
-                else x for x in submission_version_ids
-        ]
-        inferred_version_id = None
-        for extant_version_id in version_ids_newest_first:
-            if extant_version_id in submission_version_ids:
-                inferred_version_id = extant_version_id
-                break
-        if not inferred_version_id:
+        inferred = find_matching_version_uid(
+            submission, version_ids_newest_first, _reversion_ids,
+            _alias_to_primary,
+        )
+        submission[INFERRED_VERSION_ID_KEY] = (
             # Fall back on the latest version
             # TODO: log a warning?
-            inferred_version_id = version_ids_newest_first[0]
-        submission[INFERRED_VERSION_ID_KEY] = inferred_version_id
+            inferred or version_ids_newest_first[0]
+        )
         return submission
 
     if submission_stream is None:
