@@ -8,6 +8,7 @@ import jsonschema
 from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.contrib.postgres.indexes import BTreeIndex, GinIndex
+from django.core.cache import cache
 from django.db import models, transaction
 from django.db.models import F, Prefetch, Q
 from django.utils.translation import gettext_lazy as t
@@ -658,6 +659,10 @@ class Asset(
         )
 
     def get_all_attachment_xpaths(self) -> list:
+        """
+        Get all attachment xpaths from deployed versions.
+        Results are cached in Redis for 24 hours.
+        """
 
         # We previously used `cache_for_request`, but it provides no benefit in Celery
         # tasks. A "protected" property on the Asset instance now serves the same
@@ -667,6 +672,15 @@ class Asset(
         ) is not None:
             return _all_attachment_xpaths
 
+
+        cache_key = f'attachment_xpaths:{self.uid}:{self.latest_deployed_version_uid}'
+
+        # Try to get from Redis cache
+        cached_xpaths = cache.get(cache_key)
+
+        if cached_xpaths is not None:
+            return cached_xpaths
+
         # return deployed versions first
         versions = self.asset_versions.filter(deployed=True).order_by('-date_modified')
         xpaths = set()
@@ -674,7 +688,12 @@ class Asset(
             if xpaths_from_version := self.get_attachment_xpaths_from_version(version):
                 xpaths.update(xpaths_from_version)
 
-        setattr(self, '_all_attachment_xpaths', list(xpaths))
+        xpaths_list = list(xpaths)
+
+        # Store in Redis cache for 24 hours (86400 seconds)
+        cache.set(cache_key, xpaths_list, timeout=86400)
+
+        setattr(self, '_all_attachment_xpaths', xpaths_list)
         return self._all_attachment_xpaths
 
     def get_attachment_xpaths_from_version(self, version=None) -> Optional[list]:

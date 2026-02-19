@@ -78,7 +78,10 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
         Raise an exception if something is wrong. Retries are only allowed
         when `HookRemoteServerDownError` is raised.
         """
-
+        logging.info(
+            f'Sending hook submission - Hook #{self._hook.uid} - '
+            f'Submission #{self._submission_id}'
+        )
         if not self._data:
             self.save_log(
                 status_code=KOBO_INTERNAL_ERROR_STATUS_CODE,
@@ -197,6 +200,12 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
             )
             raise
         finally:
+            logging.info(
+                f'Hook submission result - Hook #{self._hook.uid} - '
+                f'Submission #{self._submission_id} - '
+                f'Status: {status_code} - '
+                f'Log Status: {log_status.name}'
+            )
             self.save_log(
                 log_status=log_status,
                 status_code=status_code,
