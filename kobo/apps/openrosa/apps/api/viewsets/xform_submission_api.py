@@ -27,9 +27,16 @@ from kobo.apps.openrosa.libs.utils.logger_tools import (
     safe_create_instance,
 )
 from kobo.apps.openrosa.libs.utils.string import dict_lists2strings
+from kobo.apps.openrosa.schema_extensions.v2.submission.examples import (
+    get_json_response_openapi_example,
+    get_json_submission_openapi_example,
+    get_xml_response_openapi_example,
+)
 from kobo.apps.openrosa.schema_extensions.v2.submission.serializers import (
+    JSONSubmissionPayload,
     OpenRosaPayload,
     OpenRosaResponse,
+    SubmissionResponse,
 )
 from kpi.authentication import (
     BasicAuthentication,
@@ -40,7 +47,7 @@ from kpi.authentication import (
 from kpi.parsers import RawFilenameMultiPartParser
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.schema_extensions.markdown import read_md
-from kpi.utils.schema_extensions.response import open_api_200_ok_response
+from kpi.utils.schema_extensions.response import open_api_201_created_response
 from ..utils.rest_framework.viewsets import OpenRosaGenericViewSet
 from ..utils.xml import extract_confirmation_message
 
@@ -79,37 +86,84 @@ def create_instance_from_json(username, request):
 @extend_schema_view(
     create_authenticated=extend_schema(
         description=read_md('openrosa', 'submission/authenticated.md'),
-        request={'multipart/form-data': OpenRosaPayload},
-        responses=open_api_200_ok_response(
-            OpenRosaResponse,
-            media_type='application/xml',
-            error_media_type='application/xml',
-            raise_access_forbidden=False,
-        ),
+        request={
+            'multipart/form-data': OpenRosaPayload,
+            'application/json': JSONSubmissionPayload,
+        },
+        responses={
+            **open_api_201_created_response(
+                SubmissionResponse,
+                media_type='application/json',
+                examples=[get_json_response_openapi_example()],
+                raise_access_forbidden=False,
+            ),
+            **open_api_201_created_response(
+                OpenRosaResponse,
+                media_type='text/xml',
+                examples=[get_xml_response_openapi_example()],
+                require_auth=False,
+                validate_payload=False,
+                raise_access_forbidden=False,
+                raise_not_found=False,
+            ),
+        },
+        examples=[get_json_submission_openapi_example()],
         tags=['OpenRosa Form Submission'],
         operation_id='submission_authenticated',
     ),
     create_anonymous=extend_schema(
         description=read_md('openrosa', 'submission/anonymous.md'),
-        request={'multipart/form-data': OpenRosaPayload},
-        responses=open_api_200_ok_response(
-            OpenRosaResponse,
-            media_type='application/xml',
-            error_media_type='application/xml',
-            raise_access_forbidden=False,
-        ),
+        request={
+            'multipart/form-data': OpenRosaPayload,
+            'application/json': JSONSubmissionPayload,
+        },
+        responses={
+            **open_api_201_created_response(
+                SubmissionResponse,
+                media_type='application/json',
+                examples=[get_json_response_openapi_example()],
+                require_auth=False,
+                raise_access_forbidden=False,
+            ),
+            **open_api_201_created_response(
+                OpenRosaResponse,
+                media_type='text/xml',
+                examples=[get_xml_response_openapi_example()],
+                require_auth=False,
+                validate_payload=False,
+                raise_access_forbidden=False,
+                raise_not_found=False,
+            ),
+        },
+        examples=[get_json_submission_openapi_example()],
         tags=['OpenRosa Form Submission'],
         operation_id='submission_anonymous',
     ),
     create_data_collector=extend_schema(
         description=read_md('openrosa', 'submission/data_collector.md'),
-        request={'multipart/form-data': OpenRosaPayload},
-        responses=open_api_200_ok_response(
-            OpenRosaResponse,
-            media_type='application/xml',
-            error_media_type='application/xml',
-            raise_access_forbidden=False,
-        ),
+        request={
+            'multipart/form-data': OpenRosaPayload,
+            'application/json': JSONSubmissionPayload,
+        },
+        responses={
+            **open_api_201_created_response(
+                SubmissionResponse,
+                media_type='application/json',
+                examples=[get_json_response_openapi_example()],
+                require_auth=False,
+                raise_access_forbidden=False,
+            ),
+            **open_api_201_created_response(
+                OpenRosaResponse,
+                media_type='text/xml',
+                examples=[get_xml_response_openapi_example()],
+                require_auth=False,
+                validate_payload=False,
+                raise_access_forbidden=False,
+                raise_not_found=False,
+            ),
+        },
+        examples=[get_json_submission_openapi_example()],
         tags=['OpenRosa Form Submission'],
         operation_id='submission_data_collector',
     ),
@@ -122,64 +176,20 @@ class XFormSubmissionApi(
 ):
     """
     ViewSet for managing the enketo submission
+    Documentation:
+    - docs/api/v2/submission/create.md
+    - docs/api/v2/submission/anonymous.md
+    - docs/api/v2/submission/authenticated.md
+    - docs/api/v2/submission/data_collector.md
 
     Available actions:
     - create        → POST /submission
     - create        → POST /{username}/submission
     - create        → POST /collector/{token}/submission
 
-
-    Documentation:
-    - docs/api/v2/submission/create.md
-
     Implements OpenRosa Api [FormSubmissionAPI](\
         https://bitbucket.org/javarosa/javarosa/wiki/FormSubmissionAPI)
 
-    ## Submit an XML XForm submission
-
-    <pre class="prettyprint">
-    <b>POST</b> /api/v1/submissions</pre>
-    > Example
-    >
-    >       curl -X POST -F xml_submission_file=@/path/to/submission.xml \
-    https://example.com/api/v1/submissions
-
-    ## Submit an JSON XForm submission
-
-    <pre class="prettyprint">
-    <b>POST</b> /api/v1/submissions</pre>
-    > Example
-    >
-    >       curl -X POST -d '{"id": "[form ID]", "submission": [the JSON]} \
-    http://localhost:8000/api/v1/submissions -u user:pass -H "Content-Type: \
-    application/json"
-
-    Here is some example JSON, it would replace `[the JSON]` above:
-    >       {
-    >           "transport": {
-    >               "available_transportation_types_to_referral_facility": \
-    ["ambulance", "bicycle"],
-    >               "loop_over_transport_types_frequency": {
-    >                   "ambulance": {
-    >                       "frequency_to_referral_facility": "daily"
-    >                   },
-    >                   "bicycle": {
-    >                       "frequency_to_referral_facility": "weekly"
-    >                   },
-    >                   "boat_canoe": null,
-    >                   "bus": null,
-    >                   "donkey_mule_cart": null,
-    >                   "keke_pepe": null,
-    >                   "lorry": null,
-    >                   "motorbike": null,
-    >                   "taxi": null,
-    >                   "other": null
-    >               }
-    >           }
-    >           "meta": {
-    >               "instanceID": "uuid:f3d8dc65-91a6-4d0f-9e97-802128083390"
-    >           }
-    >       }
     """
     filter_backends = (filters.AnonDjangoObjectPermissionFilter,)
     model = Instance

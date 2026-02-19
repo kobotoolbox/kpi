@@ -837,11 +837,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
 
     @responses.activate
     @data(
-        # File or url, change asset name?, use v2?
-        ('file', True),
-        ('file', False),
-        ('url', True),
-        ('url', False),
+        # File or url, change asset name?
         ('file', True),
         ('file', False),
         ('url', True),
@@ -1685,15 +1681,8 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             log3.metadata, 'AnonymousUser', instance3.root_uuid
         )
 
-    @data(
-        # user_type, use v1 endpoint?
-        ('anon', False),
-        ('user', True),
-        ('user', False),
-        ('dc', False),
-    )
-    @unpack
-    def test_add_submission(self, user_type, v1):
+    @data('anon', 'user', 'dc')
+    def test_add_submission(self, user_type):
         # prepare submission data
         uuid_ = uuid.uuid4()
         self.asset.deploy(backend='mock')
@@ -1712,7 +1701,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             'id': self.asset.uid,
             'version': self.asset.latest_version.uid,
         }
-        endpoint = 'submissions-list' if v1 else 'submissions'
+        endpoint = 'submissions'
         data_collector = None
         if user_type == 'dc':
             dcg = DataCollectorGroup.objects.create(name='DCG', owner=self.asset.owner)
@@ -1720,8 +1709,12 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             dcg.assets.add(self.asset)
             kwargs = {'token': data_collector.token}
         else:
-            kwargs = {'username': self.user.username} if not v1 else {}
-        url = reverse(endpoint, kwargs=kwargs)
+            kwargs = {'username': self.user.username}
+        url = reverse(
+            endpoint,
+            kwargs=kwargs,
+        )
+
         data = {'xml_submission_file': SimpleUploadedFile('name.txt', ET.tostring(xml))}
         # ensure anonymous users are allowed to submit
         self.asset.assign_perm(perm=PERM_ADD_SUBMISSIONS, user_obj=AnonymousUser())

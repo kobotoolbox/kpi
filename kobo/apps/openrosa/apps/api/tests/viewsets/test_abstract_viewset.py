@@ -20,6 +20,7 @@ from kobo.apps.openrosa.libs.tests.mixins.make_submission_mixin import (
 )
 from kobo.apps.openrosa.libs.tests.mixins.request_mixin import RequestMixin
 from kobo.apps.openrosa.libs.utils import logger_tools
+from kpi.urls.router_api_v2 import URL_NAMESPACE
 from kpi.utils.object_permission import get_database_user
 
 
@@ -96,7 +97,7 @@ class TestAbstractViewSet(RequestMixin, MakeSubmissionMixin, TestCase):
         self.xform.kpi_asset_uid = asset.uid
         self.xform.save()
         response = self.client.get(
-            reverse('asset-detail', args=[asset.uid])
+            reverse(URL_NAMESPACE+':asset-detail', args=[asset.uid])
         )
 
         if assert_creation is True:

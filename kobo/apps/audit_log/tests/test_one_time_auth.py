@@ -148,16 +148,15 @@ class TestOneTimeAuthentication(BaseTestCase):
                 'kobo.apps.openrosa.apps.api.viewsets.xform_submission_api.XFormSubmissionApi.create', # noqa
                 return_value=HttpResponse(status=200),
             ):
-                # try both OpenRosa and v1 endpoints
+                # try OpenRosa endpoint
                 self.client.post(reverse('submissions'))
-                self.client.post(reverse('submissions-list'))
         log_exists = AuditLog.objects.filter(
             user_uid=TestOneTimeAuthentication.user.extra_details.uid,
             action=AuditAction.AUTH,
             metadata__auth_type='submission',
         ).exists()
         self.assertTrue(log_exists)
-        self.assertEqual(AuditLog.objects.count(), 2)
+        self.assertEqual(AuditLog.objects.count(), 1)
 
     def test_digest_auth_for_submissions(self):
         """
@@ -179,9 +178,8 @@ class TestOneTimeAuthentication(BaseTestCase):
                 'kobo.apps.openrosa.apps.api.viewsets.xform_submission_api.XFormSubmissionApi.create',  # noqa: E501
                 return_value=HttpResponse(status=200),
             ):
-                # try both OpenRosa and v1 endpoints
+                # try OpenRosa endpoint
                 self.client.post(reverse('submissions'), **header)
-                self.client.post(reverse('submissions-list'), **header)
 
         log_exists = AuditLog.objects.filter(
             user_uid=TestOneTimeAuthentication.user.extra_details.uid,
@@ -189,7 +187,7 @@ class TestOneTimeAuthentication(BaseTestCase):
             metadata__auth_type='submission',
         ).exists()
         self.assertTrue(log_exists)
-        self.assertEqual(AuditLog.objects.count(), 2)
+        self.assertEqual(AuditLog.objects.count(), 1)
 
     def test_authorized_application_auth_creates_log(self):
         app: AuthorizedApplication = AuthorizedApplication(name='Auth app')
