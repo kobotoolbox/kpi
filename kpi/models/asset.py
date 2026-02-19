@@ -708,10 +708,11 @@ class Asset(
 
         if version:
             content = version.to_formpack_schema()['content']
+            cache_key = f'attachment_xpaths:{self.uid}:{version.uid}'
         else:
             content = self.content
+            cache_key = f'attachment_xpaths:{self.uid}:no-version'
 
-        cache_key = f'attachment_xpaths:{self.uid}:{version.uid}'
         cached_xpaths = cache.get(cache_key)
 
         if cached_xpaths is not None:
