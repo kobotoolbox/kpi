@@ -36,7 +36,7 @@ import styles from './index.module.scss'
 
 export interface Props {
   asset: AssetResponse
-  advancedFeature: AdvancedFeatureResponseManualQual
+  advancedFeatureManual: AdvancedFeatureResponseManualQual
   questionXpath: string
   qaQuestion: ResponseQualActionParams
   setQaQuestion: (qualQuestion: ResponseQualActionParams | undefined) => void
@@ -45,6 +45,7 @@ export interface Props {
   moveRow: (uuid: string, oldIndex: number, newIndex: number) => void
   editMode: boolean
   isAnyQuestionBeingEdited: boolean
+  onGenerateWithAI: (qaQuestion: ResponseQualActionParams) => Promise<void>
 }
 
 interface DragItem {
@@ -61,7 +62,7 @@ interface DragItem {
  */
 export default function AnalysisQuestionListItem({
   asset,
-  advancedFeature,
+  advancedFeatureManual,
   questionXpath,
   qaQuestion,
   setQaQuestion,
@@ -70,6 +71,7 @@ export default function AnalysisQuestionListItem({
   moveRow,
   editMode,
   isAnyQuestionBeingEdited,
+  onGenerateWithAI,
 }: Props) {
   const rootUuid = removeDefaultUuidPrefix(submission['meta/rootUuid'])
 
@@ -96,6 +98,7 @@ export default function AnalysisQuestionListItem({
   const mutationSaveAnswer = useAssetsDataSupplementPartialUpdate({ mutation: { scope: { id: 'qa-answer' } } })
   const mutationCreateQuestion = useAssetsAdvancedFeaturesCreate({ mutation: { scope: { id: 'qa-question' } } })
   const mutationPatchQuestion = useAssetsAdvancedFeaturesPartialUpdate({ mutation: { scope: { id: 'qa-question' } } })
+
   const handleSaveAnswer = async (value: ManualQualValue) => {
     await mutationSaveAnswer.mutateAsync({
       uidAsset: asset.uid,
@@ -112,7 +115,7 @@ export default function AnalysisQuestionListItem({
     })
   }
 
-  const isCreate = advancedFeature.uid === LOCALLY_EDITED_PLACEHOLDER_UUID
+  const isCreate = advancedFeatureManual.uid === LOCALLY_EDITED_PLACEHOLDER_UUID
 
   const handleSaveQuestion = async (params: ResponseQualActionParams[]) => {
     if (isCreate) {
@@ -120,20 +123,19 @@ export default function AnalysisQuestionListItem({
         uidAsset: asset.uid,
         data: {
           action: ActionEnum.manual_qual,
-          question_xpath: advancedFeature.question_xpath,
+          question_xpath: advancedFeatureManual.question_xpath,
           params: params,
         },
       })
     } else {
       await mutationPatchQuestion.mutateAsync({
         uidAsset: asset.uid,
-        uidAdvancedFeature: advancedFeature.uid,
+        uidAdvancedFeature: advancedFeatureManual.uid,
         data: {
           params: params,
         },
       })
     }
-    console.log('adf')
     setQaQuestion(undefined)
   }
 
@@ -143,13 +145,13 @@ export default function AnalysisQuestionListItem({
 
   const handleDeleteQuestion = async (qaQuestionToDelete: ResponseQualActionParams) => {
     // Mark the question as deleted by setting options.deleted to true
-    const updatedParams = advancedFeature.params.map((param) =>
+    const updatedParams = advancedFeatureManual.params.map((param: ResponseQualActionParams) =>
       param.uuid === qaQuestionToDelete.uuid ? { ...param, options: { ...param.options, deleted: true } } : param,
     )
 
     await mutationPatchQuestion.mutateAsync({
       uidAsset: asset.uid,
-      uidAdvancedFeature: advancedFeature.uid,
+      uidAdvancedFeature: advancedFeatureManual.uid,
       data: {
         params: updatedParams,
       },
@@ -160,7 +162,7 @@ export default function AnalysisQuestionListItem({
   const handleReorderQuestions = (reorderedParams: ResponseQualActionParams[]) => {
     return mutationPatchQuestion.mutateAsync({
       uidAsset: asset.uid,
-      uidAdvancedFeature: advancedFeature.uid,
+      uidAdvancedFeature: advancedFeatureManual.uid,
       data: {
         params: reorderedParams,
       },
@@ -253,7 +255,7 @@ export default function AnalysisQuestionListItem({
       // Save the reordered questions to the backend
       // The moveRow callback has already updated the visual order in the parent component
       // Here we persist that change to the backend using the current params order
-      await handleReorderQuestions(advancedFeature.params)
+      await handleReorderQuestions(advancedFeatureManual.params)
     },
   })
 
@@ -265,7 +267,7 @@ export default function AnalysisQuestionListItem({
     if (editMode) {
       return (
         <AnalysisQuestionEditor
-          advancedFeature={advancedFeature}
+          advancedFeature={advancedFeatureManual}
           qaQuestion={qaQuestion}
           onSaveQuestion={handleSaveQuestion}
           disabled={disabledAnswer}
@@ -297,6 +299,7 @@ export default function AnalysisQuestionListItem({
             disabled={disabledQuestion}
             onEdit={setQaQuestion}
             onDelete={handleDeleteQuestion}
+            onGenerateWithAI={() => onGenerateWithAI(qaQuestion)}
           >
             <SelectMultipleResponseForm
               qaQuestion={qaQuestion}
@@ -332,6 +335,7 @@ export default function AnalysisQuestionListItem({
             onEdit={setQaQuestion}
             onDelete={handleDeleteQuestion}
             onClear={handleClearSelection}
+            onGenerateWithAI={() => onGenerateWithAI(qaQuestion)}
           >
             <SelectOneResponseForm
               qaQuestion={qaQuestion}
@@ -361,6 +365,7 @@ export default function AnalysisQuestionListItem({
             disabled={disabledQuestion}
             onEdit={setQaQuestion}
             onDelete={handleDeleteQuestion}
+            onGenerateWithAI={() => onGenerateWithAI(qaQuestion)}
           >
             <IntegerResponseForm qaAnswer={queryAnswer.data} disabled={disabledAnswer} onSave={handleSaveAnswer} />
           </ResponseForm>
@@ -373,6 +378,7 @@ export default function AnalysisQuestionListItem({
             disabled={disabledQuestion}
             onEdit={setQaQuestion}
             onDelete={handleDeleteQuestion}
+            onGenerateWithAI={() => onGenerateWithAI(qaQuestion)}
           >
             <TextResponseForm qaAnswer={queryAnswer.data} disabled={disabledAnswer} onSave={handleSaveAnswer} />
           </ResponseForm>

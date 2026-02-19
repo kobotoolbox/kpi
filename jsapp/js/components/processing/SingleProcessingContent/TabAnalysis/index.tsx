@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 
 import classNames from 'classnames'
+import { ActionEnum } from '#/api/models/actionEnum'
+import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { ResponseQualActionParams } from '#/api/models/responseQualActionParams'
@@ -16,15 +18,25 @@ interface Props {
   submission: DataResponse
   onUnsavedWorkChange: (hasUnsavedWork: boolean) => void
   supplement: DataSupplementResponse
-  advancedFeature: AdvancedFeatureResponseManualQual
+  advancedFeatures: AdvancedFeatureResponse[]
 }
 
 /**
  * Displays content of the "Analysis" tab. This component is handling all of
  * the Qualitative Analysis functionality.
  */
-export default function AnalysisTab({ asset, questionXpath, submission, supplement, advancedFeature }: Props) {
+export default function AnalysisTab({ asset, questionXpath, submission, supplement, advancedFeatures }: Props) {
   const [qaQuestion, setQaQuestion] = useState<ResponseQualActionParams | undefined>(undefined)
+
+  // Filter to get the manual_qual advanced feature for this question
+  const advancedFeature = advancedFeatures.find(
+    (feature) => feature.action === ActionEnum.manual_qual && feature.question_xpath === questionXpath,
+  ) as AdvancedFeatureResponseManualQual | undefined
+
+  // If no manual_qual feature exists, we can't render the analysis tab
+  if (!advancedFeature) {
+    return null
+  }
 
   return (
     <div className={classNames(bodyStyles.root, bodyStyles.viewAnalysis)}>
@@ -33,7 +45,7 @@ export default function AnalysisTab({ asset, questionXpath, submission, suppleme
         questionXpath={questionXpath}
         submission={submission}
         supplement={supplement}
-        advancedFeature={advancedFeature}
+        advancedFeatures={advancedFeatures}
         qaQuestion={qaQuestion}
         setQaQuestion={setQaQuestion}
       />
@@ -41,7 +53,7 @@ export default function AnalysisTab({ asset, questionXpath, submission, suppleme
       <AnalysisContent
         asset={asset}
         questionXpath={questionXpath}
-        advancedFeature={advancedFeature}
+        advancedFeatures={advancedFeatures}
         submission={submission}
         supplement={supplement}
         qaQuestion={qaQuestion}
