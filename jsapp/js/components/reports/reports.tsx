@@ -5,6 +5,7 @@ import React, { useEffect, useState } from 'react'
 import clonedeep from 'lodash.clonedeep'
 import DocumentTitle from 'react-document-title'
 import { actions } from '#/actions'
+import { getAssetsRetrieveQueryKey, useAssetsRetrieve } from '#/api/react-query/manage-projects-and-library-content'
 import bem from '#/bem'
 import Button from '#/components/common/button'
 import CenteredMessage from '#/components/common/centeredMessage.component'
@@ -16,7 +17,6 @@ import { userCan } from '#/components/permissions/utils'
 import { dataInterface } from '#/dataInterface'
 import type { AssetResponse, FailResponse, SurveyRow } from '#/dataInterface'
 import type { WithRouterProps } from '#/router/legacy'
-import { stores } from '#/stores'
 import { launchPrinting, notify, txtid } from '#/utils'
 import CustomReportEditor from './customReportEditor.component'
 import ReportContents from './reportContents.component'
@@ -98,26 +98,45 @@ export default function Reports(props: ReportsProps) {
     loadReportData()
   }, [state.reportStyles?.default.groupDataBy])
 
-  function loadReportData() {
-    const uid = props.params.assetid || props.params.uid
+  const assetUid = props.params.uid || ''
 
-    stores.allAssets.whenLoaded(uid, (asset: AssetResponse) => {
+  const assetQuery = useAssetsRetrieve(
+    assetUid,
+    {},
+    {
+      query: {
+        queryKey: getAssetsRetrieveQueryKey(assetUid),
+        enabled: assetUid !== '',
+      },
+    },
+  )
+
+  useEffect(() => {
+    loadReportData()
+  }, [assetQuery.data?.data])
+
+  function loadReportData() {
+    const assetData = assetQuery.data?.data
+    if (assetData && 'uid' in assetData) {
+      // TODO: stop casting this as AssetResponse after backend openAPI task DEV-1727 is done
+      const assetDataCast = assetData as unknown as AssetResponse
+
       const rowsByKuid: { [kuid: string]: SurveyRow } = {}
       const rowsByIdentifier: { [identifier: string]: SurveyRow } = {}
       let groupBy = ''
-      // The code below is overriding the `ReportStyles` we got from endpoint in
-      // `AssetResponse`, we clone it here to avoid mutation.
-      const reportStyles: AssetResponseReportStyles = state.reportStyles || clonedeep(asset.report_styles)
-      const reportCustom = asset.report_custom
+      // The code further down this function is mutating `AssetResponseReportStyles` we got from API call, we clone it
+      // to avoid issues
+      const reportStyles: AssetResponseReportStyles = state.reportStyles || clonedeep(assetDataCast.report_styles)
+      const reportCustom = assetDataCast.report_custom
 
+      // TODO: verify why do we need to "fix" API response, come up with a better solution
       if (state.currentCustomReport?.reportStyle?.groupDataBy) {
         groupBy = state.currentCustomReport.reportStyle.groupDataBy
       } else if (reportStyles.default?.groupDataBy !== undefined) {
         groupBy = reportStyles.default.groupDataBy
       }
 
-      // Here we override the `ReportStyles` in case the default values are
-      // not present.
+      // Here we override the `ReportStyles` in case the default values are not present.
       if (reportStyles.default === undefined) {
         reportStyles.default = DEFAULT_MINIMAL_REPORT_STYLE
       }
@@ -131,8 +150,8 @@ export default function Reports(props: ReportsProps) {
         reportStyles.default.groupDataBy = ''
       }
 
-      if (asset.content?.survey) {
-        asset.content.survey.forEach((r) => {
+      if (assetDataCast.content?.survey) {
+        assetDataCast.content.survey.forEach((r) => {
           if (r.$kuid) {
             rowsByKuid[r.$kuid] = r
           }
@@ -144,13 +163,13 @@ export default function Reports(props: ReportsProps) {
         })
 
         dataInterface
-          .getReportData({ uid: uid, identifiers: [], group_by: groupBy })
+          .getReportData({ uid: assetData.uid, identifiers: [], group_by: groupBy })
           .done((data: ReportsPaginatedResponse) => {
             const dataWithResponses = getDataWithResponses(rowsByIdentifier, data)
 
             setState((currentState) => ({
               ...currentState,
-              asset: asset,
+              asset: assetDataCast,
               rowsByKuid: rowsByKuid,
               rowsByIdentifier: rowsByIdentifier,
               reportStyles: reportStyles,
@@ -184,15 +203,15 @@ export default function Reports(props: ReportsProps) {
               setState((currentState) => ({
                 ...currentState,
                 error: err,
-                asset: asset,
+                asset: assetDataCast,
               }))
             }
           })
       } else {
-        // Redundant?
+        // TODO: Redundant?
         console.error('Survey not defined.')
       }
-    })
+    }
   }
 
   function refreshReportData() {
