@@ -672,7 +672,9 @@ class Asset(
         ) is not None:
             return _all_attachment_xpaths
 
-        cache_key = f'all_attachment_xpaths:{self.uid}:{self.latest_deployed_version_uid}'
+        cache_key = (
+            f'all_attachment_xpaths:{self.uid}:{self.latest_deployed_version_uid}'
+        )
 
         # Try to get from Redis cache
         cached_xpaths = cache.get(cache_key)

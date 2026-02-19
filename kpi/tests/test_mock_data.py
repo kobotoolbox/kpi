@@ -535,7 +535,7 @@ class AttachmentXPathCacheTestCase(BaseSubmissionTestCase):
         with patch.object(
             self.asset,
             'get_all_attachment_xpaths',
-            return_value=['Photo', 'Audio', 'Video']
+            return_value=['Photo', 'Audio', 'Video'],
         ) as mock_get_xpaths:
 
             # Retrieve all submissions
@@ -553,7 +553,7 @@ class AttachmentXPathCacheTestCase(BaseSubmissionTestCase):
         with patch.object(
             self.asset,
             'get_all_attachment_xpaths',
-            return_value=['Photo', 'Audio', 'Video']
+            return_value=['Photo', 'Audio', 'Video'],
         ) as mock_get_xpaths:
             with patch.object(
                 self.asset,
@@ -579,14 +579,12 @@ class AttachmentXPathCacheTestCase(BaseSubmissionTestCase):
 
         # Simulate cache miss - cache returns None
         with patch.object(
-            self.asset,
-            'get_all_attachment_xpaths',
-            return_value=None
+            self.asset, 'get_all_attachment_xpaths', return_value=None
         ) as mock_get_xpaths:
             with patch.object(
                 self.asset,
                 'get_attachment_xpaths_from_version',
-                return_value=['Photo', 'Audio', 'Video']
+                return_value=['Photo', 'Audio', 'Video'],
             ) as mock_get_xpaths_from_version:
                 # Retrieve single submission
                 self.asset.deployment.get_submission(
@@ -594,7 +592,8 @@ class AttachmentXPathCacheTestCase(BaseSubmissionTestCase):
                     user=self.asset.owner,
                 )
 
-                # Cache miss: get_all_attachment_xpaths called with only_cached_data=True
+                # Cache miss: get_all_attachment_xpaths called with
+                # only_cached_data=True
                 mock_get_xpaths.assert_called_once_with(only_cached_data=True)
 
                 # Cache miss: get_attachment_xpaths_from_version MUST be called

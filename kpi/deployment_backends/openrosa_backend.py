@@ -1571,8 +1571,8 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                     ).first()
 
                 # Compute attachment xpaths from that specific form version.
-                attachment_xpaths = (
-                    self.asset.get_attachment_xpaths_from_version(submission_version)
+                attachment_xpaths = self.asset.get_attachment_xpaths_from_version(
+                    submission_version
                 )
         else:
             attachment_xpaths = self.asset.get_all_attachment_xpaths()

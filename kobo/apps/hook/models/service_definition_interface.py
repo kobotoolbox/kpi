@@ -78,6 +78,10 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
         Raise an exception if something is wrong. Retries are only allowed
         when `HookRemoteServerDownError` is raised.
         """
+
+        # TODO consider changing "logging.info"  to "logging.debug" when
+        #   DEV-1762 is reviewed & merged.
+
         logging.info(
             'service_json.ServiceDefinition.send: '
             f'Starting hook submission processing - Hook #{self._hook.uid} - '
