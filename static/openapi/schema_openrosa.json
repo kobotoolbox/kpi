@@ -141,7 +141,7 @@
                                 },
                                 "examples": {
                                     "XMLResponse": {
-                                        "value": "<OpenRosaResponse xmlns=\"http://openrosa.org/http/response\">\n    <message>Successful submission.</message>\n    <submissionMetadata xmlns=\"http://www.opendatakit.org/xforms\" id=\"transportation_2011_07_25\" instanceID=\"uuid:f3d8dc65-91a6-4d0f-9e97-802128083390\" submissionDate=\"2023-05-24T10:00:00Z\" isComplete=\"true\" markedAsCompleteDate=\"2023-05-24T10:00:01Z\"/>\n</OpenRosaResponse>",
+                                        "value": "<OpenRosaResponse xmlns=\"http://openrosa.org/http/response\">\n    <message>Successful submission.</message>\n    <submissionMetadata\n        xmlns=\"http://www.opendatakit.org/xforms\"\n        id=\"transportation_2011_07_25\"\n        instanceID=\"uuid:f3d8dc65-91a6-4d0f-9e97-802128083390\"\n        submissionDate=\"2023-05-24T10:00:00Z\"\n        isComplete=\"true\"\n        markedAsCompleteDate=\"2023-05-24T10:00:01Z\"\n    />\n</OpenRosaResponse>",
                                         "summary": "XML response"
                                     }
                                 }
@@ -538,7 +538,7 @@
                                 },
                                 "examples": {
                                     "XMLResponse": {
-                                        "value": "<OpenRosaResponse xmlns=\"http://openrosa.org/http/response\">\n    <message>Successful submission.</message>\n    <submissionMetadata xmlns=\"http://www.opendatakit.org/xforms\" id=\"transportation_2011_07_25\" instanceID=\"uuid:f3d8dc65-91a6-4d0f-9e97-802128083390\" submissionDate=\"2023-05-24T10:00:00Z\" isComplete=\"true\" markedAsCompleteDate=\"2023-05-24T10:00:01Z\"/>\n</OpenRosaResponse>",
+                                        "value": "<OpenRosaResponse xmlns=\"http://openrosa.org/http/response\">\n    <message>Successful submission.</message>\n    <submissionMetadata\n        xmlns=\"http://www.opendatakit.org/xforms\"\n        id=\"transportation_2011_07_25\"\n        instanceID=\"uuid:f3d8dc65-91a6-4d0f-9e97-802128083390\"\n        submissionDate=\"2023-05-24T10:00:00Z\"\n        isComplete=\"true\"\n        markedAsCompleteDate=\"2023-05-24T10:00:01Z\"\n    />\n</OpenRosaResponse>",
                                         "summary": "XML response"
                                     }
                                 }
@@ -769,7 +769,7 @@
                                 },
                                 "examples": {
                                     "XMLResponse": {
-                                        "value": "<OpenRosaResponse xmlns=\"http://openrosa.org/http/response\">\n    <message>Successful submission.</message>\n    <submissionMetadata xmlns=\"http://www.opendatakit.org/xforms\" id=\"transportation_2011_07_25\" instanceID=\"uuid:f3d8dc65-91a6-4d0f-9e97-802128083390\" submissionDate=\"2023-05-24T10:00:00Z\" isComplete=\"true\" markedAsCompleteDate=\"2023-05-24T10:00:01Z\"/>\n</OpenRosaResponse>",
+                                        "value": "<OpenRosaResponse xmlns=\"http://openrosa.org/http/response\">\n    <message>Successful submission.</message>\n    <submissionMetadata\n        xmlns=\"http://www.opendatakit.org/xforms\"\n        id=\"transportation_2011_07_25\"\n        instanceID=\"uuid:f3d8dc65-91a6-4d0f-9e97-802128083390\"\n        submissionDate=\"2023-05-24T10:00:00Z\"\n        isComplete=\"true\"\n        markedAsCompleteDate=\"2023-05-24T10:00:01Z\"\n    />\n</OpenRosaResponse>",
                                         "summary": "XML response"
                                     }
                                 }
