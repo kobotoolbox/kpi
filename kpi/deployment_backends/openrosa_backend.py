@@ -818,9 +818,10 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         params = self.validate_submission_list_params(
             user, format_type=format_type, **mongo_query_params
         )
+        fetch_one = len(mongo_query_params['submission_ids']) == 1
 
         if format_type == SUBMISSION_FORMAT_TYPE_JSON:
-            submissions = self.__get_submissions_in_json(**params)
+            submissions = self.__get_submissions_in_json(fetch_one, **params)
         elif format_type == SUBMISSION_FORMAT_TYPE_XML:
             submissions = self.__get_submissions_in_xml(**params)
         else:
@@ -1513,7 +1514,9 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         file_.synced_with_backend = True
         file_.save(update_fields=['synced_with_backend'])
 
-    def __get_submissions_in_json(self, **params) -> Generator[dict, None, None]:
+    def __get_submissions_in_json(
+        self, fetch_one: bool = False, **params
+    ) -> Generator[dict, None, None]:
         """
         Retrieve submissions directly from Mongo.
         Submissions can be filtered with `params`.
@@ -1538,33 +1541,43 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         if add_supplemental_details_to_query:
             mongo_cursor = stream_with_extras(mongo_cursor, self.asset)
 
-        if fetch_one := bool(params.get('fetch_one', False)):
-            if (
-                all_attachment_xpaths := self.asset.get_all_attachment_xpaths(
-                    only_cached_data=fetch_one
-                )
-            ) is None:
+        if fetch_one:
+            # Try to retrieve attachment xpaths from cache first.
+            # This prevents unnecessary DB queries and avoids recomputing
+            # xpaths when they are already available.
+            attachment_xpaths = self.asset.get_all_attachment_xpaths(
+                only_cached_data=True
+            )
 
+            if attachment_xpaths is None:
+                # Cache miss: we need to derive attachment xpaths from the
+                # submission's form version.
                 try:
                     submission = next(mongo_cursor)
                 except StopIteration:
-                    return []
+                    # No submission available, nothing to process.
+                    return iter([])
+                else:
+                    # `mongo_cursor` has been consumed by `next()`.
+                    # Wrap the single submission in a list so it can still be
+                    # iterated over later in the final loop.
+                    mongo_cursor = [submission]
 
-                submission_version = self.asset.asset_version.filter(
+                # Retrieve the deployed version corresponding to the submission.
+                submission_version = self.asset.asset_versions.filter(
                     uid=submission['__version__'], deployed=True
                 )
-                all_attachment_xpaths = (
-                    self.asset.get_attachment_xpaths_from_version(
-                        submission_version
-                    )
+                # Compute attachment xpaths from that specific form version.
+                attachment_xpaths = (
+                    self.asset.get_attachment_xpaths_from_version(submission_version)
                 )
         else:
-            all_attachment_xpaths = self.asset.get_all_attachment_xpaths()
+            attachment_xpaths = self.asset.get_all_attachment_xpaths()
 
         return (
             self._inject_properties(
                 MongoHelper.to_readable_dict(submission),
-                all_attachment_xpaths,
+                attachment_xpaths,
             )
             for submission in mongo_cursor
         )

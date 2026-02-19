@@ -691,8 +691,8 @@ class Asset(
 
         xpaths_list = list(xpaths)
 
-        # Store in Redis cache for 24 hours (86400 seconds)
-        cache.set(cache_key, xpaths_list, timeout=86400)
+        # Store in Redis cache
+        cache.set(cache_key, xpaths_list, timeout=settings.ATTACHMENT_XPATHS_CACHE_TTL)
 
         setattr(self, '_all_attachment_xpaths', xpaths_list)
         return self._all_attachment_xpaths
@@ -700,6 +700,11 @@ class Asset(
     def get_attachment_xpaths_from_version(
         self, version: AssetVersion = None
     ) -> list | None:
+        """
+        Get attachment xpaths from a specific version.
+
+        Results are cached in Redis for 24 hours.
+        """
 
         if version:
             content = version.to_formpack_schema()['content']
@@ -739,7 +744,9 @@ class Asset(
         self._insert_xpath(content)
 
         xpaths_list = _get_xpaths(survey)
-        cache.set(cache_key, xpaths_list, timeout=86400)
+
+        # Store in Redis cache
+        cache.set(cache_key, xpaths_list, timeout=settings.ATTACHMENT_XPATHS_CACHE_TTL)
 
         return xpaths_list
 
