@@ -3,7 +3,7 @@ import re
 
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as t
-from drf_spectacular.utils import OpenApiExample, OpenApiResponse, extend_schema, extend_schema_view
+from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
 from rest_framework import mixins, permissions, status
 from rest_framework.authentication import get_authorization_header
 from rest_framework.decorators import action
@@ -48,7 +48,6 @@ from kpi.parsers import RawFilenameMultiPartParser
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import (
-    open_api_200_ok_response,
     open_api_201_created_response,
 )
 from ..utils.rest_framework.viewsets import OpenRosaGenericViewSet
@@ -84,10 +83,6 @@ def create_instance_from_json(username, request):
 
     xml_file = io.StringIO(xml_string)
     return safe_create_instance(username, xml_file, [], None, request=request)
-
-
-
-
 
 
 @extend_schema_view(
