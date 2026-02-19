@@ -224,7 +224,7 @@ export function currentLang(): string {
   return cookies.get(LANGUAGE_COOKIE_NAME) || 'en'
 }
 
-interface LangObject {
+export interface LangObject {
   code: string
   name: string
 }
