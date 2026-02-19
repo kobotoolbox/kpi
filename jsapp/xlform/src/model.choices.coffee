@@ -142,13 +142,26 @@ module.exports = do ->
         names.push name
       return
 
+    # This is a helper function for `BaseRowView.clone`, it make a copy of choices list in the parent row
     clone: () ->
       json = @toJSON()
-      delete json.name
-      return _.assign(
-          new choices.ChoiceList(json),
-          collection: @collection
-        )
+
+      # Assign a new unique identifier for the cloned list
+      json.name = txtid()
+
+      # Strip out $kuid from each option so they are treated as brand new entities
+      if json.options
+        for optionAttr in json.options
+          delete optionAttr['$kuid']
+
+      clonedList = new choices.ChoiceList(json)
+
+      # If the original list belongs to a collection, add the clone to it.
+      # Backbone's `.add()` will automatically set `clonedList.collection` for us.
+      if @collection
+        @collection.add(clonedList)
+
+      return clonedList
 
     toJSON: ()->
       @finalize()
