@@ -84,7 +84,7 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
             f'Submission #{self._submission_id}'
         )
         if not self._data:
-            logging.warning(
+            logging.info(
                 'service_json.ServiceDefinition.send: '
                 f'Submission data not found - Hook #{self._hook.uid} - '
                 f'Submission #{self._submission_id}'
