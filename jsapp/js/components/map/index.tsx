@@ -414,7 +414,16 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
   requestData(map: L.Map, nextViewBy = '') {
     // TODO: support area / line geodata questions
     // See: https://github.com/kobotoolbox/kpi/issues/3913
-    let selectedQuestion = this.props.asset.map_styles.selectedQuestion || null
+
+    // Note: the selected question is considered a "map style" and actually patched into the asset itself. This creates
+    // the possibility that a question can be pre-selected, and not display all geopoints by default.
+    let selectedQuestion: string | null = null
+    if (this.state.overridenStyles?.selectedQuestion) {
+      selectedQuestion = this.state.overridenStyles.selectedQuestion
+    } else {
+      // After fixing DEV-1446, this line began to work "properly" and sets the previous selected question as default
+      selectedQuestion = this.props.asset.map_styles.selectedQuestion || null
+    }
 
     this.props.asset.content?.survey?.forEach((row) => {
       if (
@@ -445,17 +454,11 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     dataInterface
       .getSubmissions(this.props.asset.uid, queryLimit, 0, sort, fq)
       .done((data: PaginatedResponse<SubmissionResponse>) => {
-        const results = data.results
+        let results = data.results
+        // If a user selects a question, the results should *only* be submissions that answer the selected question
         if (selectedQuestion) {
-          results.forEach((row, i) => {
-            if (selectedQuestion && row[selectedQuestion]) {
-              const coordsArray: string[] = String(row[selectedQuestion]).split(' ')
-              results[i]._geolocation[0] = Number.parseInt(coordsArray[0])
-              results[i]._geolocation[1] = Number.parseInt(coordsArray[1])
-            }
-          })
+          results = results.filter((row) => row[selectedQuestion as string])
         }
-
         this.setState({ submissions: results }, () => {
           this.buildMarkers(map)
           this.buildHeatMap(map)
@@ -829,6 +832,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     })
   }
 
+  /** Note: selected questions are considered a "map style" and is updated in the state here */
   overrideStyles(mapStyles: AssetMapStyles) {
     this.setState(
       {
