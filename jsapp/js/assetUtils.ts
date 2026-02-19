@@ -513,7 +513,6 @@ export function injectSupplementalRowsIntoListOfRows(asset: AssetResponse, rows:
     if (field.type === QUAL_NOTE_TYPE) {
       return
     }
-
     const sourceName: string = field.source
     if (!extraColsBySource[sourceName]) {
       extraColsBySource[sourceName] = []
@@ -529,7 +528,6 @@ export function injectSupplementalRowsIntoListOfRows(asset: AssetResponse, rows:
       outputWithCols.push(`_supplementalDetails/${extraCol.dtpath}`)
     })
   })
-
   return outputWithCols
 }
 

@@ -20,6 +20,7 @@ from kobo.apps.subsequences.constants import (
     QUESTION_TYPE_TAGS,
     QUESTION_TYPE_TEXT,
     SELECT_QUESTIONS,
+    SOURCE_TYPE_AUTOMATIC,
 )
 from kobo.apps.subsequences.exceptions import (
     AnalysisQuestionNotFound,
@@ -490,3 +491,7 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         for param in incoming_params:
             if param['uuid'] not in current_uuids:
                 self.params.append(param)
+
+    @property
+    def source(self):
+        return SOURCE_TYPE_AUTOMATIC

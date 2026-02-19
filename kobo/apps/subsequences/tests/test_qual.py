@@ -5,12 +5,14 @@ from unittest import TestCase, mock
 import dateutil
 import jsonschema
 import pytest
+from ddt import data, ddt, unpack
 from django.utils import timezone
 from freezegun import freeze_time
 from rest_framework.exceptions import ValidationError
 
 from ..actions.manual_qual import ManualQualAction
 from ..exceptions import SubsequenceVerificationError
+from ..constants import QUESTION_TYPE_VERIFICATION
 from .constants import (
     EMPTY_SUBMISSION,
     FIX_CHOICE_APATHY_UUID,
@@ -733,6 +735,7 @@ def test_result_content_with_verification():
         assert not version['verified']
 
 
+@ddt
 class TestQualActionMethods(TestCase):
     source_xpath = 'group_name/question_name'
     action_params = [
@@ -786,7 +789,50 @@ class TestQualActionMethods(TestCase):
         },
     ]
 
-    def test_get_output_fields(self):
+    @data(
+        ('qualInteger', METHOD_QUAL_INTEGER_UUID),
+        ('qualText', METHOD_QUAL_INTEGER_UUID),
+    )
+    @unpack
+    def test_get_output_fields_simple(self, question_type, question_uuid):
+        action = ManualQualAction(
+            self.source_xpath,
+            [
+                {
+                    'type': question_type,
+                    'uuid': question_uuid,
+                    'labels': {
+                        '_default': 'Simple question',
+                        'es': 'Pregunta fácil',
+                    },
+                }
+            ],
+        )
+        output_fields = action.get_output_fields()
+        assert len(output_fields) == 2
+        qa_question_field = output_fields[0]
+        assert qa_question_field['label'] == 'Simple question'
+        assert qa_question_field['source'] == self.source_xpath
+        assert qa_question_field['name'] == f'{self.source_xpath}/{question_uuid}'
+        assert qa_question_field['type'] == question_type
+        assert 'choices' not in qa_question_field
+
+        qa_verification_field = output_fields[1]
+        assert qa_verification_field['label'] == 'verified'
+        assert qa_verification_field['source'] == f'{self.source_xpath}/{question_uuid}'
+        assert (
+            qa_verification_field['name']
+            == f'{self.source_xpath}/{question_uuid}/verified'
+        )
+        assert qa_verification_field['type'] == QUESTION_TYPE_VERIFICATION
+        assert 'choices' not in qa_verification_field
+
+    @data(
+        ('qualSelectOne', METHOD_QUAL_SELECT_ONE_UUID),
+        ('qualSelectMultiple', METHOD_QUAL_SELECT_MULTIPLE_UUID),
+    )
+    @unpack
+    def test_get_output_fields_with_choices(self, question_type, question_uuid):
         """
         Test for `get_output_fields()` covering:
         - Correct structure and required fields
@@ -794,72 +840,74 @@ class TestQualActionMethods(TestCase):
         - Select one with choices
         - Select multiple with choices
         - Field naming convention
+        - verification field
         """
-        action = ManualQualAction(self.source_xpath, self.action_params)
+        action = ManualQualAction(
+            self.source_xpath,
+            [
+                {
+                    'type': question_type,
+                    'uuid': question_uuid,
+                    'labels': {
+                        '_default': 'Choice question',
+                        'es': 'Pregunta con elección',
+                    },
+                    'choices': [
+                        {
+                            'uuid': METHOD_CHOICE_HIGH_UUID,
+                            'labels': {'_default': 'High', 'fr': 'Élevé', 'es': 'Alto'},
+                        },
+                        {
+                            'uuid': METHOD_CHOICE_MEDIUM_UUID,
+                            'labels': {
+                                '_default': 'Medium',
+                                'fr': 'Moyen',
+                                'es': 'Medio',
+                            },
+                        },
+                        {
+                            'uuid': METHOD_CHOICE_LOW_UUID,
+                            'labels': {'_default': 'Low', 'fr': 'Bas', 'es': 'Bajo'},
+                        },
+                    ],
+                }
+            ],
+        )
         output_fields = action.get_output_fields()
 
-        # Should return one field per qual question
-        assert len(output_fields) == 4
+        assert len(output_fields) == 2
 
-        # All fields should have required keys
-        for field in output_fields:
-            assert 'label' in field
-            assert 'source' in field
-            assert 'name' in field
-            assert 'type' in field
-            assert field['source'] == self.source_xpath
-            # Name should follow pattern: source_xpath/qual_uuid
-            assert field['name'].startswith(f'{self.source_xpath}/')
+        qa_question_field = output_fields[0]
+        assert qa_question_field['label'] == 'Choice question'
+        assert qa_question_field['source'] == self.source_xpath
+        assert qa_question_field['name'] == f'{self.source_xpath}/{question_uuid}'
+        assert qa_question_field['type'] == question_type
+        assert 'choices' in qa_question_field
+        choices = qa_question_field['choices']
+        assert len(choices) == 3
+        choice_labels = [choice['labels'] for choice in choices]
+        choice_uuids = [choice['uuid'] for choice in choices]
+        assert choice_labels == [
+            {'_default': 'High', 'fr': 'Élevé', 'es': 'Alto'},
+            {'_default': 'Medium', 'fr': 'Moyen', 'es': 'Medio'},
+            {'_default': 'Low', 'fr': 'Bas', 'es': 'Bajo'},
+        ]
+        assert choice_uuids == [
+            METHOD_CHOICE_HIGH_UUID,
+            METHOD_CHOICE_MEDIUM_UUID,
+            METHOD_CHOICE_LOW_UUID,
+        ]
 
-        # Test integer question (no choices)
-        integer_field = next(f for f in output_fields if f['type'] == 'qualInteger')
-        assert integer_field['label'] == 'Number of themes'
+        qa_verification_field = output_fields[1]
+        assert qa_verification_field['label'] == 'verified'
+        assert qa_verification_field['source'] == f'{self.source_xpath}/{question_uuid}'
         assert (
-            integer_field['name'] == f'{self.source_xpath}/{METHOD_QUAL_INTEGER_UUID}'
+            qa_verification_field['name']
+            == f'{self.source_xpath}/{question_uuid}/verified'
         )
-        assert 'choices' not in integer_field
+        assert qa_verification_field['type'] == QUESTION_TYPE_VERIFICATION
+        assert 'choices' not in qa_verification_field
 
-        # Test text question (no choices)
-        text_field = next(f for f in output_fields if f['type'] == 'qualText')
-        assert text_field['label'] == 'Summary Notes'
-        assert text_field['name'] == f'{self.source_xpath}/{METHOD_QUAL_TEXT_UUID}'
-        assert 'choices' not in text_field
-
-        # Test select one (with choices)
-        select_one_field = next(
-            f for f in output_fields if f['type'] == 'qualSelectOne'
-        )
-        assert select_one_field['label'] == 'Urgency Level'
-        assert (
-            select_one_field['name']
-            == f'{self.source_xpath}/{METHOD_QUAL_SELECT_ONE_UUID}'
-        )
-        assert 'choices' in select_one_field
-        assert len(select_one_field['choices']) == 3
-
-        # Verify choice structure
-        high_choice = select_one_field['choices'][0]
-        assert high_choice['uuid'] == METHOD_CHOICE_HIGH_UUID
-        assert high_choice['labels'] == {
-            '_default': 'High',
-            'fr': 'Élevé',
-            'es': 'Alto',
-        }
-
-        # Test select multiple (with choices)
-        select_multi_field = next(
-            f for f in output_fields if f['type'] == 'qualSelectMultiple'
-        )
-        assert 'choices' in select_multi_field
-        assert len(select_multi_field['choices']) == 3
-
-        # Verify multilingual choice labels
-        shelter_choice = next(
-            c
-            for c in select_multi_field['choices']
-            if c['uuid'] == METHOD_CHOICE_SHELTER_UUID
-        )
-        assert shelter_choice['labels'] == {'_default': 'Shelter', 'ar': 'مأوى'}
 
     def test_transform_data_for_output_all_question_types(self):
         """
