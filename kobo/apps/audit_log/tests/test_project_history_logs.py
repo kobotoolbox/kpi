@@ -1711,7 +1711,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         else:
             kwargs = {'username': self.user.username}
         url = reverse(
-            self._get_endpoint(endpoint),
+            endpoint,
             kwargs=kwargs,
         )
 
