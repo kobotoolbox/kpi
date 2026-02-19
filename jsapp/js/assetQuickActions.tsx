@@ -480,10 +480,9 @@ export function replaceAssetForm(asset: AssetResponse | ProjectViewAsset) {
  * receive `uid` and will fetch all data by itself, or be given all the data
  * up front via `asset` parameter.
  */
-export function manageAssetLanguages(uid: string, asset?: AssetResponse) {
+export function manageAssetLanguages(asset: AssetResponse) {
   pageState.showModal({
     type: MODAL_TYPES.FORM_LANGUAGES,
-    assetUid: uid,
     asset: asset,
   })
 }

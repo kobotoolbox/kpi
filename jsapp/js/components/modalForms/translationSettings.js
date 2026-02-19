@@ -2,8 +2,6 @@ import React from 'react'
 
 import alertify from 'alertifyjs'
 import autoBind from 'react-autobind'
-import reactMixin from 'react-mixin'
-import Reflux from 'reflux'
 import { actions } from '#/actions'
 import assetStore from '#/assetStore'
 import bem from '#/bem'
@@ -16,46 +14,36 @@ import LanguageForm from '#/components/modalForms/languageForm'
 import { MODAL_TYPES } from '#/constants'
 import envStore from '#/envStore'
 import pageState from '#/pageState.store'
-import { stores } from '#/stores'
 import { escapeHtml, getLangString, notify } from '#/utils'
 
 const LANGUAGE_SUPPORT_URL = 'language_dashboard.html'
 
 export class TranslationSettings extends React.Component {
+  unlisteners = []
+
   constructor(props) {
     super(props)
 
-    let translations = []
-    if (props.asset && props.asset.content && props.asset.content.translations) {
-      translations = props.asset.content.translations
-    }
-
     this.state = {
-      assetUid: props.assetUid,
       asset: props.asset,
-      translations: translations,
+      translations: props.asset.content.translations,
       showAddLanguageForm: false,
       isUpdatingAsset: false,
       renameLanguageIndex: -1,
     }
     autoBind(this)
   }
+
   componentDidMount() {
-    this.listenTo(assetStore, this.onAssetsChange)
-
-    if (this.state.asset && !this.state.asset.content) {
-      stores.allAssets.whenLoaded(this.props.assetUid, this.onAssetChange)
-      actions.resources.loadAsset({ id: this.state.asset.uid })
-    }
-
-    if (!this.state.asset && this.state.assetUid) {
-      if (assetStore.data[this.state.assetUid]) {
-        this.onAssetChange(assetStore.data[this.state.assetUid])
-      } else {
-        stores.allAssets.whenLoaded(this.props.assetUid, this.onAssetChange)
-      }
-    }
+    this.unlisteners.push(assetStore.listen(this.onAssetsChange.bind(this)))
   }
+
+  componentWillUnmount() {
+    this.unlisteners.forEach((clb) => {
+      clb()
+    })
+  }
+
   onAssetChange(asset) {
     this.setState({
       asset: asset,
@@ -70,21 +58,21 @@ export class TranslationSettings extends React.Component {
       asset: asset,
     })
   }
+
   onAssetsChange(assetsList) {
-    let uid
-    if (this.state.asset) {
-      uid = this.state.asset.uid
-    } else if (this.state.assetUid) {
-      uid = this.state.assetUid
+    if (assetsList[this.state.asset.uid]) {
+      this.onAssetChange(assetsList[this.state.asset.uid])
     }
-    this.onAssetChange(assetsList[uid])
   }
+
   showAddLanguageForm() {
     this.setState({ showAddLanguageForm: true })
   }
+
   hideAddLanguageForm() {
     this.setState({ showAddLanguageForm: false })
   }
+
   toggleRenameLanguageForm(index) {
     if (this.state.renameLanguageIndex === index) {
       this.setState({ renameLanguageIndex: -1 })
@@ -92,6 +80,7 @@ export class TranslationSettings extends React.Component {
       this.setState({ renameLanguageIndex: index })
     }
   }
+
   launchTranslationTableModal(index, langString) {
     pageState.switchModal({
       type: MODAL_TYPES.FORM_TRANSLATIONS_TABLE,
@@ -100,6 +89,7 @@ export class TranslationSettings extends React.Component {
       langIndex: index,
     })
   }
+
   onLanguageChange(lang, index) {
     let content = this.state.asset.content
     const langString = getLangString(lang)
@@ -117,17 +107,21 @@ export class TranslationSettings extends React.Component {
 
     this.updateAsset(content)
   }
+
   // Check if the default `null` language has been replaced yet
   canAddLanguages() {
     return !(this.state.translations.length === 1 && this.state.translations[0] === null)
   }
+
   // `language_edit` restriction implies canAddLanguages but restricts it
   canEditLanguages() {
     return !this.isEditingLanguagesLocked() && this.canAddLanguages()
   }
+
   getAllLanguages() {
     return this.state.translations
   }
+
   deleteLanguage(index) {
     const content = this.deleteTranslations(this.state.asset.content, index)
     if (content) {
@@ -148,6 +142,7 @@ export class TranslationSettings extends React.Component {
       notify(t('Translation index mismatch. Cannot delete language.'), 'error')
     }
   }
+
   prepareTranslations(content) {
     const translated = content.translated
     const translationsLength = content.translations.length
@@ -175,6 +170,7 @@ export class TranslationSettings extends React.Component {
     }
     return content
   }
+
   deleteTranslations(content, langIndex) {
     const translated = content.translated
     const translationsLength = content.translations.length
@@ -210,6 +206,7 @@ export class TranslationSettings extends React.Component {
     }
     return content
   }
+
   changeDefaultLanguage(index) {
     const langString = this.state.translations[index]
 
@@ -231,6 +228,7 @@ export class TranslationSettings extends React.Component {
     }
     dialog.set(opts).show()
   }
+
   updateAsset(content) {
     this.setState({ isUpdatingAsset: true })
 
@@ -246,11 +244,13 @@ export class TranslationSettings extends React.Component {
       },
     )
   }
+
   isEditingLanguagesLocked() {
     return (
       this.state.asset?.content && hasAssetRestriction(this.state.asset.content, LockingRestrictionName.language_edit)
     )
   }
+
   renderEmptyMessage() {
     return (
       <bem.FormModal m='translation-settings'>
@@ -260,6 +260,7 @@ export class TranslationSettings extends React.Component {
       </bem.FormModal>
     )
   }
+
   renderUndefinedDefaultSettings() {
     return (
       <bem.FormModal m='translation-settings'>
@@ -300,6 +301,7 @@ export class TranslationSettings extends React.Component {
       </bem.FormModal>
     )
   }
+
   renderTranslationsSettings(translations) {
     return (
       <bem.FormModal m='translation-settings'>
@@ -424,6 +426,7 @@ export class TranslationSettings extends React.Component {
       </bem.FormModal>
     )
   }
+
   render() {
     if (!this.state.asset || !this.state.asset.content || this.state.translations === null) {
       return <LoadingSpinner />
@@ -440,7 +443,5 @@ export class TranslationSettings extends React.Component {
     }
   }
 }
-
-reactMixin(TranslationSettings.prototype, Reflux.ListenerMixin)
 
 export default TranslationSettings
