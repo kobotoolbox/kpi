@@ -6,6 +6,7 @@ import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureRespon
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { ResponseQualActionParams } from '#/api/models/responseQualActionParams'
+import { useAssetsAdvancedFeaturesCreate } from '#/api/react-query/survey-data'
 import type { AssetResponse } from '#/dataInterface'
 import bodyStyles from '../../common/processingBody.module.scss'
 import AnalysisContent from './AnalysisContent'
@@ -28,14 +29,31 @@ interface Props {
 export default function AnalysisTab({ asset, questionXpath, submission, supplement, advancedFeatures }: Props) {
   const [qaQuestion, setQaQuestion] = useState<ResponseQualActionParams | undefined>(undefined)
 
+  // Mutation for creating manual_qual advanced feature
+  const createAdvancedFeatureMutation = useAssetsAdvancedFeaturesCreate()
+
   // Filter to get the manual_qual advanced feature for this question
   const advancedFeature = advancedFeatures.find(
     (feature) => feature.action === ActionEnum.manual_qual && feature.question_xpath === questionXpath,
   ) as AdvancedFeatureResponseManualQual | undefined
 
-  // If no manual_qual feature exists, we can't render the analysis tab
-  if (!advancedFeature) {
-    return null
+  // Create the manual_qual advanced feature if it doesn't exist
+  const enableAdvancedFeatureManualQual = async () => {
+    if (advancedFeature) return
+
+    const response = await createAdvancedFeatureMutation.mutateAsync({
+      uidAsset: asset.uid,
+      data: {
+        action: ActionEnum.manual_qual,
+        question_xpath: questionXpath,
+        params: [],
+      },
+    })
+  }
+
+  const handleSetQaQuestion = async (qaQuestion: ResponseQualActionParams | undefined) => {
+    await enableAdvancedFeatureManualQual()
+    setQaQuestion(qaQuestion)
   }
 
   return (
@@ -47,7 +65,7 @@ export default function AnalysisTab({ asset, questionXpath, submission, suppleme
         supplement={supplement}
         advancedFeatures={advancedFeatures}
         qaQuestion={qaQuestion}
-        setQaQuestion={setQaQuestion}
+        setQaQuestion={handleSetQaQuestion}
       />
 
       <AnalysisContent
@@ -57,7 +75,7 @@ export default function AnalysisTab({ asset, questionXpath, submission, suppleme
         submission={submission}
         supplement={supplement}
         qaQuestion={qaQuestion}
-        setQaQuestion={setQaQuestion}
+        setQaQuestion={handleSetQaQuestion}
       />
     </div>
   )
