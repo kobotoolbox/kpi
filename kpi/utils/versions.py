@@ -2,7 +2,9 @@ from kobo.apps.reports.constants import FUZZY_VERSION_ID_KEY
 
 
 def find_matching_version_uid(
-    submission, version_uids_newest_first, reversion_map=None,
+    submission,
+    version_uids_newest_first,
+    reversion_map=None,
     alias_to_primary=None,
 ):
     """
@@ -21,8 +23,7 @@ def find_matching_version_uid(
     """
 
     submission_version_ids = [
-        val for key, val in submission.items()
-        if FUZZY_VERSION_ID_KEY in key and val
+        val for key, val in submission.items() if FUZZY_VERSION_ID_KEY in key and val
     ]
 
     if reversion_map:

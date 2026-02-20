@@ -23,6 +23,7 @@ from kpi.utils.query_parser import parse
 from kpi.utils.sluggify import sluggify, sluggify_label
 from kpi.utils.strings import split_lines_to_list
 from kpi.utils.urls import versioned_reverse
+from kpi.utils.versions import find_matching_version_uid
 from kpi.utils.xml import (
     edit_submission_xml,
     fromstring_preserve_root_xmlns,
@@ -30,7 +31,6 @@ from kpi.utils.xml import (
     strip_nodes,
     xml_tostring,
 )
-from kpi.utils.versions import find_matching_version_uid
 from kpi.versioning import APIV2Versioning
 
 
@@ -844,7 +844,9 @@ class FindMatchingVersionUidTestCase(TestCase):
         ordered_ids = ['v123', 'v456']
         alias_to_primary = {'v456': 'v123'}
         result = find_matching_version_uid(
-            submission, ordered_ids, alias_to_primary=alias_to_primary,
+            submission,
+            ordered_ids,
+            alias_to_primary=alias_to_primary,
         )
         assert result == 'v123'
 
@@ -853,7 +855,9 @@ class FindMatchingVersionUidTestCase(TestCase):
         ordered_ids = ['v123']
         reversion_map = {'12345': 'v123'}
         result = find_matching_version_uid(
-            submission, ordered_ids, reversion_map=reversion_map,
+            submission,
+            ordered_ids,
+            reversion_map=reversion_map,
         )
         assert result == 'v123'
 

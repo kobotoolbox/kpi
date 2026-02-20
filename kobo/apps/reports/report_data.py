@@ -74,13 +74,16 @@ def build_formpack(asset, submission_stream=None, use_all_form_versions=True):
             return submission
 
         inferred = find_matching_version_uid(
-            submission, version_ids_newest_first, _reversion_ids,
+            submission,
+            version_ids_newest_first,
+            _reversion_ids,
             _alias_to_primary,
         )
         submission[INFERRED_VERSION_ID_KEY] = (
             # Fall back on the latest version
             # TODO: log a warning?
-            inferred or version_ids_newest_first[0]
+            inferred
+            or version_ids_newest_first[0]
         )
         return submission
 

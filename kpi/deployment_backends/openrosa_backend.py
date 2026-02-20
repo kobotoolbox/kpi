@@ -78,8 +78,8 @@ from kpi.models.paired_data import PairedData
 from kpi.utils.files import ExtendedContentFile
 from kpi.utils.log import logging
 from kpi.utils.mongo_helper import MongoHelper
-from kpi.utils.versions import find_matching_version_uid
 from kpi.utils.object_permission import get_anonymous_user, get_database_user
+from kpi.utils.versions import find_matching_version_uid
 from kpi.utils.xml import fromstring_preserve_root_xmlns, xml_tostring
 from ..exceptions import AttachmentUidMismatchException, BadFormatException
 from .base_backend import BaseDeploymentBackend
@@ -1538,7 +1538,10 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                 reversion_map[str(v._reversion_version)] = v.uid
 
         matched_uid = find_matching_version_uid(
-            submission, uids_newest_first, reversion_map, alias_to_primary,
+            submission,
+            uids_newest_first,
+            reversion_map,
+            alias_to_primary,
         )
 
         if matched_uid:
@@ -1597,9 +1600,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                     mongo_cursor = [submission]
 
                 # Retrieve the deployed version corresponding to the submission.
-                submission_version = self._infer_submission_version(
-                    submission
-                )
+                submission_version = self._infer_submission_version(submission)
 
                 # Compute attachment xpaths from that specific form version.
                 attachment_xpaths = (
