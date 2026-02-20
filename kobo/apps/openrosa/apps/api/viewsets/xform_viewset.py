@@ -595,6 +595,31 @@ class XFormViewSet(
         # Let the superclass handle updates to the other fields
         return super().update(request, pk, *args, **kwargs)
 
+    @action(detail=True, methods=['PATCH'], url_path='xml')
+    def overwrite_xml(self, request, pk=None, **kwargs):
+        """
+        Superuser-only: directly overwrite the stored XForm XML.
+
+        This bypasses the normal XLSForm-to-XForm conversion pipeline and
+        writes the provided XML straight into the database.  Intended for
+        debugging only.
+        """
+        if not request.user.is_superuser:
+            raise exceptions.PermissionDenied(
+                detail='Only superusers may directly overwrite form XML.'
+            )
+        xform = self.get_object()
+        xml = request.data.get('xml')
+        if not xml:
+            return Response(
+                {'detail': 'No XML provided.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        xform.xml = xml
+        xform.save()
+        serializer = self.get_serializer(xform)
+        return Response(serializer.data)
+
     @action(detail=True, methods=['GET'])
     def form(self, request, format='json', **kwargs):
         form = self.get_object()

@@ -318,3 +318,53 @@ class TestXFormViewSet(TestAbstractViewSet):
             assert 'Names must begin with a letter' in str(e)
 
         self.assertEqual(XForm.objects.count(), count)
+
+    # --- overwrite_xml (superuser XML override) ---
+
+    def test_overwrite_xml_as_superuser(self):
+        self.publish_xls_form()
+        view = XFormViewSet.as_view({'patch': 'overwrite_xml'})
+
+        original_xml = self.xform.xml
+        # Insert an XML comment – keeps title and id_string intact so
+        # XForm.save() validation passes, but is easy to verify.
+        new_xml = original_xml.replace(
+            '</h:head>',
+            '<!-- debug overwrite test --></h:head>',
+        )
+        self.assertNotEqual(original_xml, new_xml)
+
+        self.user.is_superuser = True
+        self.user.save()
+
+        request = self.factory.patch(
+            '/', data={'xml': new_xml}, format='json', **self.extra
+        )
+        response = view(request, pk=self.xform.pk)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.xform.refresh_from_db()
+        self.assertIn('<!-- debug overwrite test -->', self.xform.xml)
+
+    def test_overwrite_xml_forbidden_for_non_superuser(self):
+        self.publish_xls_form()
+        view = XFormViewSet.as_view({'patch': 'overwrite_xml'})
+
+        request = self.factory.patch(
+            '/', data={'xml': '<fake/>'}, format='json', **self.extra
+        )
+        response = view(request, pk=self.xform.pk)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_overwrite_xml_returns_400_without_payload(self):
+        self.publish_xls_form()
+        view = XFormViewSet.as_view({'patch': 'overwrite_xml'})
+
+        self.user.is_superuser = True
+        self.user.save()
+
+        request = self.factory.patch(
+            '/', data={}, format='json', **self.extra
+        )
+        response = view(request, pk=self.xform.pk)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
