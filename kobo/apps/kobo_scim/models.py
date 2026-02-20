@@ -7,7 +7,7 @@ from kpi.models.abstract_models import AbstractTimeStampedModel
 class IdentityProvider(AbstractTimeStampedModel, models.Model):
     id = KpiUidField(uid_prefix='idp', primary_key=True)
     name = models.CharField(
-        max_length=255, verbose_name=t('Name'), help_text='Display name for the IdP'
+        max_length=255, verbose_name='Name', help_text='Display name for the IdP'
     )
     slug = models.SlugField(
         unique=True,
