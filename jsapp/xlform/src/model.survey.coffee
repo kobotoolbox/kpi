@@ -78,6 +78,7 @@ module.exports = do ->
       return
 
     insert_row: (row, index) ->
+      # TODO: why? `_isCloned` is being used only once, in `ScoreRankMixin`'s `clone` function.
       if row._isCloned
         @rows.add(row, at: index)
       else
