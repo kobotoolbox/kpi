@@ -2217,7 +2217,7 @@ MAX_RESTARTED_TASKS = 100
 MAX_RESTARTED_TRANSFERS = 20
 
 # Maximum timeout (in minutes) for hook processing
-HOOK_PROCESSING_TIMEOUT = 120
+HOOK_STALLED_PENDING_TIMEOUT = 120
 HOOK_STALLED_RETRY_TIMEOUT = 1440
 
 # Cache time-to-live (in seconds) for attachment XPaths
