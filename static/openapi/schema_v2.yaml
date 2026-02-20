@@ -12495,8 +12495,17 @@ components:
           type: string
           title: ' submitted by'
         _supplementalDetails:
-          type: object
-          additionalProperties: {}
+          oneOf:
+          - $ref: '#/components/schemas/SupplementalDetailsManualTranscription'
+          - $ref: '#/components/schemas/SupplementalDetailsManualTranslation'
+          - $ref: '#/components/schemas/SupplementalDetailsAutomaticTranscription'
+          - $ref: '#/components/schemas/SupplementalDetailsAutomaticTranslation'
+          - $ref: '#/components/schemas/SupplementalDetailsManualQual'
+          - $ref: '#/components/schemas/SupplementalDetailsAutomaticQual'
+          nullable: true
+          description: Action-specific supplemental data attached to this submission.
+            Structure varies by action type (transcription, translation, qual). Top-level
+            keys are question XPaths, values are action objects.
           title: ' supplementaldetails'
       required:
       - __version__
@@ -12566,7 +12575,7 @@ components:
           type: string
       required:
       - detail
-    DataSupplementAutomaticQualData('Integer',)Response:
+    DataSupplementAutomaticQualDataIntegerResponse:
       type: object
       additionalProperties: false
       oneOf:
@@ -12601,7 +12610,7 @@ components:
         - error
         - status
         - uuid
-    DataSupplementAutomaticQualData('SelectMultiple',)Response:
+    DataSupplementAutomaticQualDataSelectMultipleResponse:
       type: object
       additionalProperties: false
       oneOf:
@@ -12638,7 +12647,7 @@ components:
         - error
         - status
         - uuid
-    DataSupplementAutomaticQualData('SelectOne',)Response:
+    DataSupplementAutomaticQualDataSelectOneResponse:
       type: object
       additionalProperties: false
       oneOf:
@@ -12673,7 +12682,7 @@ components:
         - error
         - status
         - uuid
-    DataSupplementAutomaticQualData('Text',)Response:
+    DataSupplementAutomaticQualDataTextResponse:
       type: object
       additionalProperties: false
       oneOf:
@@ -12707,7 +12716,7 @@ components:
         - error
         - status
         - uuid
-    DataSupplementManualQualData('Integer',):
+    DataSupplementManualQualDataInteger:
       type: object
       additionalProperties: false
       properties:
@@ -12720,7 +12729,7 @@ components:
       required:
       - uuid
       - value
-    DataSupplementManualQualData('SelectMultiple',):
+    DataSupplementManualQualDataSelectMultiple:
       type: object
       additionalProperties: false
       properties:
@@ -12735,7 +12744,7 @@ components:
       required:
       - uuid
       - value
-    DataSupplementManualQualData('SelectOne',):
+    DataSupplementManualQualDataSelectOne:
       type: object
       additionalProperties: false
       properties:
@@ -12748,7 +12757,7 @@ components:
       required:
       - uuid
       - value
-    DataSupplementManualQualData('Tags',):
+    DataSupplementManualQualDataTags:
       type: object
       additionalProperties: false
       properties:
@@ -12762,7 +12771,7 @@ components:
       required:
       - uuid
       - value
-    DataSupplementManualQualData('Text',):
+    DataSupplementManualQualDataText:
       type: object
       additionalProperties: false
       properties:
@@ -12781,519 +12790,12 @@ components:
           type: string
           example: '20250820'
       additionalProperties:
-        $ref: '#/components/schemas/DataSupplementResponseOneOf'
+        $ref: '#/components/schemas/SupplementalDataResponseAction'
       required:
       - _version
       patternProperties:
         ^(?!_version$).*:
-          $ref: '#/components/schemas/DataSupplementResponseOneOf'
-    DataSupplementResponseOneOf:
-      type: object
-      properties:
-        manual_transcription:
-          type: object
-          properties:
-            _dateCreated:
-              type: string
-              format: date-time
-            _dateModified:
-              type: string
-              format: date-time
-            _versions:
-              type: array
-              items:
-                type: object
-                properties:
-                  _dateCreated:
-                    type: string
-                    format: date-time
-                  _uuid:
-                    type: string
-                    format: uuid
-                  _dateAccepted:
-                    type: string
-                    format: date-time
-                  _data:
-                    type: object
-                    properties:
-                      language:
-                        type: string
-                      locale:
-                        type: string
-                      value:
-                        type: string
-                        nullable: true
-                    additionalProperties: false
-                    required:
-                    - language
-                    - value
-                additionalProperties: false
-                required:
-                - _data
-                - _dateAccepted
-                - _dateCreated
-                - _uuid
-              minLength: 1
-          additionalProperties: false
-          required:
-          - _dateCreated
-          - _dateModified
-          - _versions
-        manual_translation:
-          type: object
-          additionalProperties:
-            type: object
-            properties:
-              _dateCreated:
-                type: string
-                format: date-time
-              _dateModified:
-                type: string
-                format: date-time
-              _versions:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    _dateCreated:
-                      type: string
-                      format: date-time
-                    _uuid:
-                      type: string
-                      format: uuid
-                    _dependency:
-                      type: object
-                      properties:
-                        _actionId:
-                          type: string
-                        _uuid:
-                          type: string
-                          format: uuid
-                      additionalProperties: false
-                      required:
-                      - _actionId
-                      - _uuid
-                    _dateAccepted:
-                      type: string
-                      format: date-time
-                    _data:
-                      type: object
-                      properties:
-                        language:
-                          type: string
-                        locale:
-                          type: string
-                        value:
-                          type: string
-                          nullable: true
-                      additionalProperties: false
-                      required:
-                      - language
-                      - value
-                  additionalProperties: false
-                  required:
-                  - _data
-                  - _dateAccepted
-                  - _dateCreated
-                  - _dependency
-                  - _uuid
-                minLength: 1
-            additionalProperties: false
-            required:
-            - _dateCreated
-            - _dateModified
-            - _versions
-        automatic_google_transcription:
-          type: object
-          properties:
-            _dateCreated:
-              type: string
-              format: date-time
-            _dateModified:
-              type: string
-              format: date-time
-            _versions:
-              type: array
-              items:
-                type: object
-                properties:
-                  _dateCreated:
-                    type: string
-                    format: date-time
-                  _uuid:
-                    type: string
-                    format: uuid
-                  _dateAccepted:
-                    type: string
-                    format: date-time
-                  _data:
-                    oneOf:
-                    - type: object
-                      properties:
-                        language:
-                          type: string
-                        locale:
-                          type: string
-                        status:
-                          type: string
-                          const: in_progress
-                      additionalProperties: false
-                      required:
-                      - language
-                      - status
-                    - type: object
-                      properties:
-                        language:
-                          type: string
-                        locale:
-                          type: string
-                        status:
-                          type: string
-                          const: failed
-                        error:
-                          type: string
-                      additionalProperties: false
-                      required:
-                      - error
-                      - language
-                      - status
-                    - type: object
-                      properties:
-                        language:
-                          type: string
-                        locale:
-                          type: string
-                        status:
-                          type: string
-                          const: complete
-                        value:
-                          type: string
-                      additionalProperties: false
-                      required:
-                      - language
-                      - status
-                      - value
-                    - type: object
-                      properties:
-                        language:
-                          type: string
-                        locale:
-                          type: string
-                        status:
-                          type: string
-                          const: deleted
-                        value:
-                          type: 'null'
-                      additionalProperties: false
-                      required:
-                      - language
-                      - status
-                      - value
-                additionalProperties: false
-                required:
-                - _data
-                - _dateCreated
-                - _uuid
-              minLength: 1
-          additionalProperties: false
-          required:
-          - _dateCreated
-          - _dateModified
-          - _versions
-        automatic_google_translation:
-          type: object
-          additionalProperties:
-            type: object
-            properties:
-              _dateCreated:
-                type: string
-                format: date-time
-              _dateModified:
-                type: string
-                format: date-time
-              _versions:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    _dateCreated:
-                      type: string
-                      format: date-time
-                    _uuid:
-                      type: string
-                      format: uuid
-                    _dependency:
-                      type: object
-                      properties:
-                        _actionId:
-                          type: string
-                        _uuid:
-                          type: string
-                          format: uuid
-                      additionalProperties: false
-                      required:
-                      - _actionId
-                      - _uuid
-                    _dateAccepted:
-                      type: string
-                      format: date-time
-                    _data:
-                      oneOf:
-                      - type: object
-                        properties:
-                          language:
-                            type: string
-                          locale:
-                            type: string
-                          status:
-                            type: string
-                            const: in_progress
-                        additionalProperties: false
-                        required:
-                        - language
-                        - status
-                      - type: object
-                        properties:
-                          language:
-                            type: string
-                          locale:
-                            type: string
-                          status:
-                            type: string
-                            const: failed
-                          error:
-                            type: string
-                        additionalProperties: false
-                        required:
-                        - error
-                        - language
-                        - status
-                      - type: object
-                        properties:
-                          language:
-                            type: string
-                          locale:
-                            type: string
-                          status:
-                            type: string
-                            const: complete
-                          value:
-                            type: string
-                        additionalProperties: false
-                        required:
-                        - language
-                        - status
-                        - value
-                      - type: object
-                        properties:
-                          language:
-                            type: string
-                          locale:
-                            type: string
-                          status:
-                            type: string
-                            const: deleted
-                          value:
-                            type: 'null'
-                        additionalProperties: false
-                        required:
-                        - language
-                        - status
-                        - value
-                  additionalProperties: false
-                  required:
-                  - _data
-                  - _dateCreated
-                  - _dependency
-                  - _uuid
-                minLength: 1
-            additionalProperties: false
-            required:
-            - _dateCreated
-            - _dateModified
-            - _versions
-        manual_qual:
-          type: object
-          additionalProperties:
-            type: object
-            properties:
-              _dateCreated:
-                type: string
-                format: date-time
-              _dateModified:
-                type: string
-                format: date-time
-              _versions:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    _data:
-                      oneOf:
-                      - $ref: '#/components/schemas/DataSupplementManualQualData(''Integer'',)'
-                      - $ref: '#/components/schemas/DataSupplementManualQualData(''Text'',)'
-                      - $ref: '#/components/schemas/DataSupplementManualQualData(''SelectOne'',)'
-                      - $ref: '#/components/schemas/DataSupplementManualQualData(''SelectMultiple'',)'
-                      - $ref: '#/components/schemas/DataSupplementManualQualData(''Tags'',)'
-                    _dateAccepted:
-                      type: string
-                      format: date-time
-                    _dateCreated:
-                      type: string
-                      format: date-time
-                    _uuid:
-                      type: string
-                      format: uuid
-                  additionalProperties: false
-                  required:
-                  - _data
-                  - _dateCreated
-                  - _uuid
-                minLength: 1
-            additionalProperties: false
-            required:
-            - _dateCreated
-            - _dateModified
-            - _versions
-          patternProperties:
-            ^[0-9a-fA-F-]{36}$:
-              type: object
-              properties:
-                _dateCreated:
-                  type: string
-                  format: date-time
-                _dateModified:
-                  type: string
-                  format: date-time
-                _versions:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      _data:
-                        oneOf:
-                        - $ref: '#/components/schemas/DataSupplementManualQualData(''Integer'',)'
-                        - $ref: '#/components/schemas/DataSupplementManualQualData(''Text'',)'
-                        - $ref: '#/components/schemas/DataSupplementManualQualData(''SelectOne'',)'
-                        - $ref: '#/components/schemas/DataSupplementManualQualData(''SelectMultiple'',)'
-                        - $ref: '#/components/schemas/DataSupplementManualQualData(''Tags'',)'
-                      _dateAccepted:
-                        type: string
-                        format: date-time
-                      _dateCreated:
-                        type: string
-                        format: date-time
-                      _uuid:
-                        type: string
-                        format: uuid
-                    additionalProperties: false
-                    required:
-                    - _data
-                    - _dateCreated
-                    - _uuid
-                  minLength: 1
-              additionalProperties: false
-              required:
-              - _dateCreated
-              - _dateModified
-              - _versions
-        automatic_bedrock_qual:
-          type: object
-          additionalProperties:
-            type: object
-            properties:
-              _dateCreated:
-                type: string
-                format: date-time
-              _dateModified:
-                type: string
-                format: date-time
-              _versions:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    _data:
-                      oneOf:
-                      - $ref: '#/components/schemas/DataSupplementAutomaticQualData(''Integer'',)Response'
-                      - $ref: '#/components/schemas/DataSupplementAutomaticQualData(''Text'',)Response'
-                      - $ref: '#/components/schemas/DataSupplementAutomaticQualData(''SelectOne'',)Response'
-                      - $ref: '#/components/schemas/DataSupplementAutomaticQualData(''SelectMultiple'',)Response'
-                    _dateAccepted:
-                      type: string
-                      format: date-time
-                    _dateCreated:
-                      type: string
-                      format: date-time
-                    _uuid:
-                      type: string
-                      format: uuid
-                  additionalProperties: false
-                  required:
-                  - _data
-                  - _dateCreated
-                  - _uuid
-                minLength: 1
-            additionalProperties: false
-            required:
-            - _dateCreated
-            - _dateModified
-            - _versions
-          patternProperties:
-            ^[0-9a-fA-F-]{36}$:
-              type: object
-              properties:
-                _dateCreated:
-                  type: string
-                  format: date-time
-                _dateModified:
-                  type: string
-                  format: date-time
-                _versions:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      _data:
-                        oneOf:
-                        - $ref: '#/components/schemas/DataSupplementAutomaticQualData(''Integer'',)Response'
-                        - $ref: '#/components/schemas/DataSupplementAutomaticQualData(''Text'',)Response'
-                        - $ref: '#/components/schemas/DataSupplementAutomaticQualData(''SelectOne'',)Response'
-                        - $ref: '#/components/schemas/DataSupplementAutomaticQualData(''SelectMultiple'',)Response'
-                      _dateAccepted:
-                        type: string
-                        format: date-time
-                      _dateCreated:
-                        type: string
-                        format: date-time
-                      _uuid:
-                        type: string
-                        format: uuid
-                    additionalProperties: false
-                    required:
-                    - _data
-                    - _dateCreated
-                    - _uuid
-                  minLength: 1
-              additionalProperties: false
-              required:
-              - _dateCreated
-              - _dateModified
-              - _versions
-      additionalProperties: false
-      anyOf:
-      - required:
-        - manual_transcription
-      - required:
-        - manual_translation
-      - required:
-        - automatic_google_transcription
-      - required:
-        - automatic_google_translation
-      - required:
-        - manual_qual
-      - required:
-        - automatic_bedrock_qual
+          $ref: '#/components/schemas/SupplementalDataResponseAction'
     DataValidationStatus:
       type: object
       properties:
@@ -16226,11 +15728,11 @@ components:
           - language
         manual_qual:
           oneOf:
-          - $ref: '#/components/schemas/DataSupplementManualQualData(''Integer'',)'
-          - $ref: '#/components/schemas/DataSupplementManualQualData(''Text'',)'
-          - $ref: '#/components/schemas/DataSupplementManualQualData(''SelectOne'',)'
-          - $ref: '#/components/schemas/DataSupplementManualQualData(''SelectMultiple'',)'
-          - $ref: '#/components/schemas/DataSupplementManualQualData(''Tags'',)'
+          - $ref: '#/components/schemas/DataSupplementManualQualDataInteger'
+          - $ref: '#/components/schemas/DataSupplementManualQualDataText'
+          - $ref: '#/components/schemas/DataSupplementManualQualDataSelectOne'
+          - $ref: '#/components/schemas/DataSupplementManualQualDataSelectMultiple'
+          - $ref: '#/components/schemas/DataSupplementManualQualDataTags'
           - $ref: '#/components/schemas/PatchedDataSupplementPayloadOneOfVerification'
         automatic_bedrock_qual:
           oneOf:
@@ -17992,6 +17494,479 @@ components:
       - user
       - user_uid
       - username
+    SupplementalDataAutomaticQual:
+      type: object
+      description: Map of automatic question UUIDs to their action objects
+      additionalProperties:
+        $ref: '#/components/schemas/SupplementalDataAutomaticQualItem'
+      patternProperties:
+        ^[0-9a-fA-F-]{36}$:
+          $ref: '#/components/schemas/SupplementalDataAutomaticQualItem'
+    SupplementalDataAutomaticQualItem:
+      type: object
+      properties:
+        _dateCreated:
+          type: string
+          format: date-time
+        _dateModified:
+          type: string
+          format: date-time
+        _versions:
+          type: array
+          items:
+            $ref: '#/components/schemas/SupplementalDataVersionItemQualAutomatic'
+          minLength: 1
+      additionalProperties: false
+      required:
+      - _dateCreated
+      - _dateModified
+      - _versions
+    SupplementalDataAutomaticTranscription:
+      type: object
+      properties:
+        _dateCreated:
+          type: string
+          format: date-time
+        _dateModified:
+          type: string
+          format: date-time
+        _versions:
+          type: array
+          items:
+            $ref: '#/components/schemas/SupplementalDataVersionItemAutomatic'
+          minLength: 1
+      additionalProperties: false
+      required:
+      - _dateCreated
+      - _dateModified
+      - _versions
+    SupplementalDataAutomaticTranslation:
+      type: object
+      description: Map of language codes to automatic translation objects
+      additionalProperties:
+        $ref: '#/components/schemas/SupplementalDataAutomaticTranslationItem'
+    SupplementalDataAutomaticTranslationItem:
+      type: object
+      properties:
+        _dateCreated:
+          type: string
+          format: date-time
+        _dateModified:
+          type: string
+          format: date-time
+        _versions:
+          type: array
+          items:
+            $ref: '#/components/schemas/SupplementalDataVersionItemAutomaticWithDep'
+          minLength: 1
+      additionalProperties: false
+      required:
+      - _dateCreated
+      - _dateModified
+      - _versions
+    SupplementalDataContentAutomatic:
+      oneOf:
+      - $ref: '#/components/schemas/SupplementalDataContentAutomaticInProgress'
+      - $ref: '#/components/schemas/SupplementalDataContentAutomaticFailed'
+      - $ref: '#/components/schemas/SupplementalDataContentAutomaticComplete'
+      - $ref: '#/components/schemas/SupplementalDataContentAutomaticDeleted'
+    SupplementalDataContentAutomaticComplete:
+      type: object
+      properties:
+        language:
+          type: string
+        locale:
+          type: string
+        status:
+          type: string
+          const: complete
+        value:
+          type: string
+      additionalProperties: false
+      required:
+      - language
+      - status
+      - value
+    SupplementalDataContentAutomaticDeleted:
+      type: object
+      properties:
+        language:
+          type: string
+        locale:
+          type: string
+        status:
+          type: string
+          const: deleted
+        value:
+          type: 'null'
+      additionalProperties: false
+      required:
+      - language
+      - status
+      - value
+    SupplementalDataContentAutomaticFailed:
+      type: object
+      properties:
+        language:
+          type: string
+        locale:
+          type: string
+        status:
+          type: string
+          const: failed
+        error:
+          type: string
+      additionalProperties: false
+      required:
+      - error
+      - language
+      - status
+    SupplementalDataContentAutomaticInProgress:
+      type: object
+      properties:
+        language:
+          type: string
+        locale:
+          type: string
+        status:
+          type: string
+          const: in_progress
+      additionalProperties: false
+      required:
+      - language
+      - status
+    SupplementalDataContentManual:
+      type: object
+      properties:
+        language:
+          type: string
+        locale:
+          type: string
+        value:
+          type: string
+          nullable: true
+      additionalProperties: false
+      required:
+      - language
+      - value
+    SupplementalDataDependency:
+      type: object
+      properties:
+        _actionId:
+          type: string
+        _uuid:
+          type: string
+          format: uuid
+      additionalProperties: false
+      required:
+      - _actionId
+      - _uuid
+    SupplementalDataManualQual:
+      type: object
+      description: Map of manual qualitative question UUIDs to their action objects
+      additionalProperties:
+        $ref: '#/components/schemas/SupplementalDataManualQualItem'
+      patternProperties:
+        ^[0-9a-fA-F-]{36}$:
+          $ref: '#/components/schemas/SupplementalDataManualQualItem'
+    SupplementalDataManualQualItem:
+      type: object
+      properties:
+        _dateCreated:
+          type: string
+          format: date-time
+        _dateModified:
+          type: string
+          format: date-time
+        _versions:
+          type: array
+          items:
+            $ref: '#/components/schemas/SupplementalDataVersionItemQual'
+          minLength: 1
+      additionalProperties: false
+      required:
+      - _dateCreated
+      - _dateModified
+      - _versions
+    SupplementalDataManualTranscription:
+      type: object
+      properties:
+        _dateCreated:
+          type: string
+          format: date-time
+        _dateModified:
+          type: string
+          format: date-time
+        _versions:
+          type: array
+          items:
+            $ref: '#/components/schemas/SupplementalDataVersionItemManual'
+          minLength: 1
+      additionalProperties: false
+      required:
+      - _dateCreated
+      - _dateModified
+      - _versions
+    SupplementalDataManualTranslation:
+      type: object
+      description: Map of language codes to manual translation objects
+      additionalProperties:
+        $ref: '#/components/schemas/SupplementalDataManualTranslationItem'
+    SupplementalDataManualTranslationItem:
+      type: object
+      properties:
+        _dateCreated:
+          type: string
+          format: date-time
+        _dateModified:
+          type: string
+          format: date-time
+        _versions:
+          type: array
+          items:
+            $ref: '#/components/schemas/SupplementalDataVersionItemManualWithDep'
+          minLength: 1
+      additionalProperties: false
+      required:
+      - _dateCreated
+      - _dateModified
+      - _versions
+    SupplementalDataQualData:
+      oneOf:
+      - $ref: '#/components/schemas/DataSupplementManualQualDataInteger'
+      - $ref: '#/components/schemas/DataSupplementManualQualDataText'
+      - $ref: '#/components/schemas/DataSupplementManualQualDataSelectOne'
+      - $ref: '#/components/schemas/DataSupplementManualQualDataSelectMultiple'
+      - $ref: '#/components/schemas/DataSupplementManualQualDataTags'
+    SupplementalDataQualDataAutomatic:
+      oneOf:
+      - $ref: '#/components/schemas/DataSupplementAutomaticQualDataIntegerResponse'
+      - $ref: '#/components/schemas/DataSupplementAutomaticQualDataTextResponse'
+      - $ref: '#/components/schemas/DataSupplementAutomaticQualDataSelectOneResponse'
+      - $ref: '#/components/schemas/DataSupplementAutomaticQualDataSelectMultipleResponse'
+    SupplementalDataResponseAction:
+      type: object
+      properties:
+        manual_transcription:
+          $ref: '#/components/schemas/SupplementalDataManualTranscription'
+        manual_translation:
+          $ref: '#/components/schemas/SupplementalDataManualTranslation'
+        automatic_google_transcription:
+          $ref: '#/components/schemas/SupplementalDataAutomaticTranscription'
+        automatic_google_translation:
+          $ref: '#/components/schemas/SupplementalDataAutomaticTranslation'
+        manual_qual:
+          $ref: '#/components/schemas/SupplementalDataManualQual'
+        automatic_bedrock_qual:
+          $ref: '#/components/schemas/SupplementalDataAutomaticQual'
+      additionalProperties: false
+      anyOf:
+      - required:
+        - manual_transcription
+      - required:
+        - manual_translation
+      - required:
+        - automatic_google_transcription
+      - required:
+        - automatic_google_translation
+      - required:
+        - manual_qual
+      - required:
+        - automatic_bedrock_qual
+    SupplementalDataVersionItemAutomatic:
+      type: object
+      properties:
+        _dateCreated:
+          type: string
+          format: date-time
+        _uuid:
+          type: string
+          format: uuid
+        _dateAccepted:
+          type: string
+          format: date-time
+        _data:
+          $ref: '#/components/schemas/SupplementalDataContentAutomatic'
+      additionalProperties: false
+      required:
+      - _data
+      - _dateCreated
+      - _uuid
+    SupplementalDataVersionItemAutomaticWithDep:
+      type: object
+      properties:
+        _dateCreated:
+          type: string
+          format: date-time
+        _uuid:
+          type: string
+          format: uuid
+        _dateAccepted:
+          type: string
+          format: date-time
+        _dependency:
+          $ref: '#/components/schemas/SupplementalDataDependency'
+        _data:
+          $ref: '#/components/schemas/SupplementalDataContentAutomatic'
+      additionalProperties: false
+      required:
+      - _data
+      - _dateCreated
+      - _dependency
+      - _uuid
+    SupplementalDataVersionItemManual:
+      type: object
+      properties:
+        _dateCreated:
+          type: string
+          format: date-time
+        _uuid:
+          type: string
+          format: uuid
+        _dateAccepted:
+          type: string
+          format: date-time
+        _data:
+          $ref: '#/components/schemas/SupplementalDataContentManual'
+      additionalProperties: false
+      required:
+      - _data
+      - _dateAccepted
+      - _dateCreated
+      - _uuid
+    SupplementalDataVersionItemManualWithDep:
+      type: object
+      properties:
+        _dateCreated:
+          type: string
+          format: date-time
+        _uuid:
+          type: string
+          format: uuid
+        _dateAccepted:
+          type: string
+          format: date-time
+        _dependency:
+          $ref: '#/components/schemas/SupplementalDataDependency'
+        _data:
+          $ref: '#/components/schemas/SupplementalDataContentManual'
+      additionalProperties: false
+      required:
+      - _data
+      - _dateAccepted
+      - _dateCreated
+      - _dependency
+      - _uuid
+    SupplementalDataVersionItemQual:
+      type: object
+      properties:
+        _data:
+          $ref: '#/components/schemas/SupplementalDataQualData'
+        _dateAccepted:
+          type: string
+          format: date-time
+        _dateCreated:
+          type: string
+          format: date-time
+        _dateVerified:
+          type: string
+          format: date-time
+        _uuid:
+          type: string
+          format: uuid
+        verified:
+          type: boolean
+      additionalProperties: false
+      required:
+      - _data
+      - _dateCreated
+      - _uuid
+    SupplementalDataVersionItemQualAutomatic:
+      type: object
+      properties:
+        _data:
+          $ref: '#/components/schemas/SupplementalDataQualDataAutomatic'
+        _dateAccepted:
+          type: string
+          format: date-time
+        _dateCreated:
+          type: string
+          format: date-time
+        _dateVerified:
+          type: string
+          format: date-time
+        _uuid:
+          type: string
+          format: uuid
+        _dependency:
+          $ref: '#/components/schemas/SupplementalDataDependency'
+        verified:
+          type: boolean
+      additionalProperties: false
+      required:
+      - _data
+      - _dateCreated
+      - _uuid
+    SupplementalDetailsAutomaticQual:
+      type: object
+      description: Automatic qualitative supplemental details
+      additionalProperties:
+        type: object
+        properties:
+          automatic_bedrock_qual:
+            $ref: '#/components/schemas/SupplementalDataAutomaticQual'
+        required:
+        - automatic_bedrock_qual
+    SupplementalDetailsAutomaticTranscription:
+      type: object
+      description: Automatic transcription supplemental details
+      additionalProperties:
+        type: object
+        properties:
+          automatic_google_transcription:
+            $ref: '#/components/schemas/SupplementalDataAutomaticTranscription'
+        required:
+        - automatic_google_transcription
+    SupplementalDetailsAutomaticTranslation:
+      type: object
+      description: Automatic translation supplemental details
+      additionalProperties:
+        type: object
+        properties:
+          automatic_google_translation:
+            $ref: '#/components/schemas/SupplementalDataAutomaticTranslation'
+        required:
+        - automatic_google_translation
+    SupplementalDetailsManualQual:
+      type: object
+      description: Manual qualitative supplemental details
+      additionalProperties:
+        type: object
+        properties:
+          manual_qual:
+            $ref: '#/components/schemas/SupplementalDataManualQual'
+        required:
+        - manual_qual
+    SupplementalDetailsManualTranscription:
+      type: object
+      description: Manual transcription supplemental details
+      additionalProperties:
+        type: object
+        properties:
+          manual_transcription:
+            $ref: '#/components/schemas/SupplementalDataManualTranscription'
+        required:
+        - manual_transcription
+    SupplementalDetailsManualTranslation:
+      type: object
+      description: Manual translation supplemental details
+      additionalProperties:
+        type: object
+        properties:
+          manual_translation:
+            $ref: '#/components/schemas/SupplementalDataManualTranslation'
+        required:
+        - manual_translation
     TagListResponse:
       type: object
       properties:

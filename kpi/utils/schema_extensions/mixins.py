@@ -7,7 +7,11 @@ from drf_spectacular.plumbing import (
     build_object_type,
 )
 
-from kpi.schema_extensions.v2.generic.schema import GENERIC_UUID_SCHEMA
+from kpi.schema_extensions.v2.generic.schema import (
+    GENERIC_INT_SCHEMA,
+    GENERIC_STRING_SCHEMA,
+    GENERIC_UUID_SCHEMA,
+)
 
 
 class ComponentRegistrationMixin:
@@ -38,13 +42,18 @@ class QualComponentsRegistrationMixin(ComponentRegistrationMixin):
 
     def _register_qual_data_schema_components(self, auto_schema):
         references = {}
-
         value_schema_by_type = {
-            'integer': {'type': 'integer', 'nullable': True},
-            'select_multiple': {'type': 'array', 'items': GENERIC_UUID_SCHEMA},
+            'integer': {**GENERIC_INT_SCHEMA, 'nullable': True},
+            'select_multiple': {
+                'type': 'array',
+                'items': GENERIC_UUID_SCHEMA,
+            },
             'select_one': GENERIC_UUID_SCHEMA,
-            'text': {'type': 'string'},
-            'tags': {'type': 'array', 'items': {'type': 'string'}},
+            'text': GENERIC_STRING_SCHEMA,
+            'tags': {
+                'type': 'array',
+                'items': GENERIC_STRING_SCHEMA,
+            },
         }
 
         schema_base = {
@@ -54,7 +63,7 @@ class QualComponentsRegistrationMixin(ComponentRegistrationMixin):
         for q_type in ['integer', 'text', 'select_one', 'select_multiple', 'tags']:
 
             # register the schema for the manual version
-            title_case = (q_type.title().replace('_', ''),)
+            title_case = q_type.title().replace('_', '')
             manual_schema = {
                 **schema_base,
                 'properties': {
@@ -83,7 +92,7 @@ class QualComponentsRegistrationMixin(ComponentRegistrationMixin):
                                 'uuid': GENERIC_UUID_SCHEMA,
                                 'value': value_schema_by_type[q_type],
                                 'status': {
-                                    'type': 'string',
+                                    **GENERIC_STRING_SCHEMA,
                                     'const': 'complete',
                                 },
                             },
@@ -95,10 +104,10 @@ class QualComponentsRegistrationMixin(ComponentRegistrationMixin):
                             properties={
                                 'uuid': GENERIC_UUID_SCHEMA,
                                 'status': {
-                                    'type': 'string',
+                                    **GENERIC_STRING_SCHEMA,
                                     'const': 'failed',
                                 },
-                                'error': {'type': 'string'},
+                                'error': GENERIC_STRING_SCHEMA,
                             },
                             required=['status', 'error', 'uuid'],
                         ),

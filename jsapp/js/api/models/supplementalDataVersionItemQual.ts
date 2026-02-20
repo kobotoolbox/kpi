@@ -9,11 +9,13 @@ The endpoints are grouped by area of intended use. Each category contains relate
 **General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as "assets".
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
-import type { _DataSupplementResponseOneOfManualTranscriptionVersionsItem } from './_dataSupplementResponseOneOfManualTranscriptionVersionsItem'
+import type { SupplementalDataQualData } from './supplementalDataQualData'
 
-export type DataSupplementResponseOneOfManualTranscription = {
+export interface SupplementalDataVersionItemQual {
+  _data: SupplementalDataQualData
+  _dateAccepted?: string
   _dateCreated: string
-  _dateModified: string
-  /** @minLength 1 */
-  _versions: _DataSupplementResponseOneOfManualTranscriptionVersionsItem[]
+  _dateVerified?: string
+  _uuid: string
+  verified?: boolean
 }

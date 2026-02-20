@@ -1,7 +1,5 @@
 import React from 'react'
 import { destroyConfirm } from '#/alertify'
-import type { _DataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem } from '#/api/models/_dataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem'
-import type { _DataSupplementResponseOneOfManualTranslationVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualTranslationVersionsItem'
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
@@ -9,6 +7,7 @@ import { useAssetsDataSupplementPartialUpdate } from '#/api/react-query/survey-d
 import Button from '#/components/common/button'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { userCan } from '#/components/permissions/utils'
+import type { TranslationVersionItem } from '#/components/processing/common/types'
 import { isSupplementVersionAutomatic } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
 import { removeDefaultUuidPrefix } from '#/utils'
@@ -18,13 +17,8 @@ import HeaderLanguageAndDate from './HeaderLanguageAndDate'
 import styles from './Viewer.module.scss'
 
 interface Props {
-  translationVersion:
-    | _DataSupplementResponseOneOfManualTranslationVersionsItem
-    | _DataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem
-  translationVersions: Array<
-    | _DataSupplementResponseOneOfManualTranslationVersionsItem
-    | _DataSupplementResponseOneOfAutomaticGoogleTranslationVersionsItem
-  >
+  translationVersion: TranslationVersionItem
+  translationVersions: Array<TranslationVersionItem>
   asset: AssetResponse
   questionXpath: string
   submission: DataResponse
