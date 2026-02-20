@@ -7,7 +7,6 @@ from django.core.mail import EmailMultiAlternatives, get_connection
 from django.template.loader import get_template
 from django.utils import timezone, translation
 from django_celery_beat.models import PeriodicTask
-from rest_framework import status
 
 from kobo.celery import celery_app
 from kpi.utils.log import logging
@@ -23,7 +22,6 @@ from .utils.lazy import LazyMaxRetriesInt
     retry_backoff=60,
     retry_backoff_max=1200,
     max_retries=LazyMaxRetriesInt(),
-    retry_jitter=True,
     queue='kpi_low_priority_queue',
 )
 def service_definition_task(hook_id: int, submission_id: int) -> bool:

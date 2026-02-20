@@ -1575,10 +1575,12 @@ CELERY_BEAT_SCHEDULE = {
     'retry-stalled-submissions': {
         'task': 'kobo.apps.hook.tasks.retry_stalled_pending_submissions',
         'schedule': crontab(minute='*/30'),  # Every 30 minutes
+        'options': {'queue': 'kpi_low_priority_queue'},
     },
     'mark-zombie-submissions': {
         'task': 'kobo.apps.hook.tasks.mark_zombie_processing_submissions',
         'schedule': crontab(minute='*/30'),  # Every 30 minutes
+        'options': {'queue': 'kpi_low_priority_queue'},
     },
 }
 
