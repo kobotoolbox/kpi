@@ -203,8 +203,7 @@ def mark_zombie_processing_submissions():
     Marks as FAILED submissions that were being processed when the Celery task died.
 
     Finds HookLogs that are:
-    - status = PENDING
-    - status_code = 102 (HTTP_102_PROCESSING)
+    - status = PROCESSING
     - modified_at > 2 hours ago
 
     These represent submissions where the task started but was killed before completion
@@ -215,10 +214,8 @@ def mark_zombie_processing_submissions():
     cutoff_time = timezone.now() - timedelta(minutes=settings.HOOK_PROCESSING_TIMEOUT)
 
     zombie_logs = HookLog.objects.filter(
-        status=HookLogStatus.PENDING,
-        status_code=status.HTTP_102_PROCESSING,
+        status=HookLogStatus.PROCESSING,
         date_modified__lt=cutoff_time,
-        hook__active=True,
     ).select_related('hook')
 
     marked_count = 0

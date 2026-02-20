@@ -25,7 +25,7 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
 
         # Only fetch data if hook is active;
         # send() returns false immediately without processing if inactive.
-        if self.hook.active:
+        if self._hook.active:
             self._data = self._get_data()
 
     def _get_data(self):
@@ -171,7 +171,8 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
         # call_services() before the task was scheduled, confirming the task was
         # successfully dequeued and is actively running.
         self.save_log(
-            status_code=status.HTTP_102_PROCESSING,
+            log_status=HookLogStatus.PROCESSING,
+            status_code=KOBO_INTERNAL_ERROR_STATUS_CODE,
             message='Submission is being queued for processing',
         )
 
@@ -243,7 +244,7 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
 
     def save_log(
         self,
-        status_code: int,
+        status_code: int | None,
         message: str,
         log_status: int = HookLogStatus.PENDING,
     ):
@@ -268,10 +269,7 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
                     defaults={'status_code': status_code, 'message': message},
                 )
 
-                if not (
-                    status_code == status.HTTP_102_PROCESSING
-                    and log_status == HookLogStatus.PENDING
-                ):
+                if not log_status == HookLogStatus.PROCESSING:
                     log.tries += 1
 
                 # Now update with actual values based on the current state

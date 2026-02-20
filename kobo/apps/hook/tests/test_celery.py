@@ -6,6 +6,7 @@ from django.utils import timezone
 from rest_framework import status
 
 from kobo.apps.hook.constants import KOBO_INTERNAL_ERROR_STATUS_CODE
+from kobo.apps.hook.models.hook import Hook
 from kobo.apps.hook.models.hook_log import HookLog, HookLogStatus
 from kobo.apps.hook.tasks import (
     mark_zombie_processing_submissions,
@@ -120,8 +121,6 @@ class HookRetryStalledSubmissionTestCase(BaseHookTestCase):
             hook=self.hook,
             submission_id=102,
             status=HookLogStatus.FAILED,
-            status_code=KOBO_INTERNAL_ERROR_STATUS_CODE,
-            message='',
         )
         HookLog.objects.filter(pk=log.pk).update(date_modified=old_time)
 
@@ -152,6 +151,31 @@ class HookRetryStalledSubmissionTestCase(BaseHookTestCase):
 
             assert mock_delay.call_count == 3
 
+    def test_do_retry_if_hook_is_deactived(self):
+        """
+        Should not retry stalled submissions from deactivated hook
+        """
+
+        old_time = timezone.now() - timedelta(hours=3)
+
+        # Create multiple stalled logs
+        for submission_id in [200, 201, 202]:
+            log = HookLog.objects.create(
+                hook=self.hook,
+                submission_id=submission_id,
+                status=HookLogStatus.PENDING,
+                status_code=KOBO_INTERNAL_ERROR_STATUS_CODE,
+                message='',
+            )
+            HookLog.objects.filter(pk=log.pk).update(date_modified=old_time)
+
+        Hook.objects.filter(pk=self.hook.pk).update(active=False)
+
+        with patch('kobo.apps.hook.tasks.service_definition_task.delay') as mock_delay:
+            retry_stalled_pending_submissions()
+
+            mock_delay.assert_not_called()
+
 
 class HookMarkZombieSubmissionTestCase(BaseHookTestCase):
     """
@@ -172,8 +196,7 @@ class HookMarkZombieSubmissionTestCase(BaseHookTestCase):
         zombie_log = HookLog.objects.create(
             hook=self.hook,
             submission_id=123,
-            status=HookLogStatus.PENDING,
-            status_code=status.HTTP_102_PROCESSING,
+            status=HookLogStatus.PROCESSING,
             message='Submission is being queued for processing',
         )
         HookLog.objects.filter(pk=zombie_log.pk).update(date_modified=old_time)
@@ -196,8 +219,7 @@ class HookMarkZombieSubmissionTestCase(BaseHookTestCase):
         recent_log = HookLog.objects.create(
             hook=self.hook,
             submission_id=456,
-            status=HookLogStatus.PENDING,
-            status_code=status.HTTP_102_PROCESSING,
+            status=HookLogStatus.PROCESSING,
             message='Submission is being queued for processing',
         )
         HookLog.objects.filter(pk=recent_log.pk).update(date_modified=recent_time)
@@ -205,12 +227,11 @@ class HookMarkZombieSubmissionTestCase(BaseHookTestCase):
         mark_zombie_processing_submissions()
 
         recent_log.refresh_from_db()
-        assert recent_log.status == HookLogStatus.PENDING
-        assert recent_log.status_code == status.HTTP_102_PROCESSING
+        assert recent_log.status == HookLogStatus.PROCESSING
 
     def test_ignores_logs_with_different_status_code(self):
         """
-        Should NOT mark submissions with status codes other than 102
+        Should NOT mark submissions with status other than PROCESSING
         """
         old_time = timezone.now() - timedelta(
             minutes=settings.HOOK_PROCESSING_TIMEOUT + 10
@@ -245,7 +266,7 @@ class HookMarkZombieSubmissionTestCase(BaseHookTestCase):
             hook=self.hook,
             submission_id=101,
             status=HookLogStatus.FAILED,
-            status_code=status.HTTP_102_PROCESSING,
+            status_code=status.HTTP_400_BAD_REQUEST,
             message='Already failed',
         )
         HookLog.objects.filter(pk=log.pk).update(date_modified=old_time)
@@ -270,7 +291,7 @@ class HookMarkZombieSubmissionTestCase(BaseHookTestCase):
             hook=self.hook,
             submission_id=102,
             status=HookLogStatus.SUCCESS,
-            status_code=status.HTTP_102_PROCESSING,
+            status_code=status.HTTP_200_OK,
             message='Success',
         )
         HookLog.objects.filter(pk=log.pk).update(date_modified=old_time)
@@ -293,9 +314,8 @@ class HookMarkZombieSubmissionTestCase(BaseHookTestCase):
             log = HookLog.objects.create(
                 hook=self.hook,
                 submission_id=submission_id,
-                status=HookLogStatus.PENDING,
-                status_code=status.HTTP_102_PROCESSING,
-                message='Processing',
+                status=HookLogStatus.PROCESSING,
+                message='Submission is being queued for processing',
             )
             HookLog.objects.filter(pk=log.pk).update(date_modified=old_time)
 
@@ -310,6 +330,10 @@ class HookMarkZombieSubmissionTestCase(BaseHookTestCase):
 
         assert failed_count == 3
 
+    def test_marks_multiple_zombie_submissions_even_if_hook_is_deactivated(self):
+        Hook.objects.filter(pk=self.hook.pk).update(active=False)
+        self.test_marks_multiple_zombie_submissions()
+
     def test_message_explains_uncertainty(self):
         """
         The failure message should clearly explain the uncertainty about
@@ -322,9 +346,8 @@ class HookMarkZombieSubmissionTestCase(BaseHookTestCase):
         zombie_log = HookLog.objects.create(
             hook=self.hook,
             submission_id=999,
-            status=HookLogStatus.PENDING,
-            status_code=status.HTTP_102_PROCESSING,
-            message='Processing',
+            status=HookLogStatus.PROCESSING,
+            message='Submission is being queued for processing',
         )
         HookLog.objects.filter(pk=zombie_log.pk).update(date_modified=old_time)
 

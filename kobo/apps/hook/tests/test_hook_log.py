@@ -28,7 +28,7 @@ class HookLogStatusTransitionsTestCase(BaseHookTestCase):
         Test the normal success flow: PENDING -> PROCESSING -> SUCCESS
 
         1. call_services() creates log with status=PENDING
-        2. Task starts and updates to PROCESSING (status=PENDING & status_code=102)
+        2. Task starts and updates to PROCESSING
         3. Request succeeds and updates to status=SUCCESS
         """
 
@@ -68,7 +68,7 @@ class HookLogStatusTransitionsTestCase(BaseHookTestCase):
         Test the failure flow: PENDING -> PROCESSING -> FAILED
 
         1. call_services() creates log with status=PENDING
-        2. Task starts and updates to code=102
+        2. Task starts and updates to PROCESSING
         3. Request fails with 400 and updates to status=FAILED
         """
 
@@ -107,7 +107,7 @@ class HookLogStatusTransitionsTestCase(BaseHookTestCase):
     @patch('kobo.apps.hook.models.service_definition_interface.requests.post')
     def test_oom_killed_before_processing_update(self, mock_post):
         """
-        Simulate OOM kill BEFORE the task updates status to 102.
+        Simulate OOM kill BEFORE the task updates status to PROCESSING
 
         1. call_services() creates log with status=PENDING, code=None
         2. Pod is killed before task starts (or very early in execution)
@@ -142,7 +142,7 @@ class HookLogStatusTransitionsTestCase(BaseHookTestCase):
         updates the log to FAILED status.
 
         1. call_services() creates log with status=PENDING
-        2. Task starts and updates to code=102
+        2. Task starts and updates status to PROCESSING
         3. requests.post is called and raises SystemExit (pod terminated by K8s)
         4. finally block successfully saves the error status
         5. Log is properly updated to status=FAILED
@@ -184,10 +184,10 @@ class HookLogStatusTransitionsTestCase(BaseHookTestCase):
         block from updating the log.
 
         1. call_services() creates log with status=PENDING
-        2. Task starts and updates to code=102
+        2. Task starts and updates status to PROCESSING
         3. requests.post is called but pod is killed (during or after request)
         4. finally block tries to save but is prevented (simulated by mock)
-        5. Log remains at status=PENDING, code=102
+        5. Log remains at status=PROCESSING
 
         This is the dangerous scenario - submission MAY have been sent but we can't
         record the response. Caught by mark_zombie_processing_submissions()
@@ -197,18 +197,18 @@ class HookLogStatusTransitionsTestCase(BaseHookTestCase):
         with patch('kobo.apps.hook.utils.services.service_definition_task.delay'):
             call_services(self.asset.uid, self.submission_id)
 
-        # Step 2: Task starts and updates to 102
+        # Step 2: Task starts and updates status to PROCESSING
         ServiceDefinition = self.hook.get_service_definition()
         service = ServiceDefinition(self.hook, self.submission_id)
 
-        # Mock save_log to allow the first call (update to 102)
+        # Mock save_log to allow the first call (update to PROCESSING)
         # but prevent subsequent calls (in finally block after OOM)
         original_save_log = service.save_log
         call_count = [0]
 
         def save_log_controlled(*args, **kwargs):
             call_count[0] += 1
-            # First call: update to HTTP_102_PROCESSING (succeeds)
+            # First call: update status to PROCESSING
             if call_count[0] == 1:
                 original_save_log(*args, **kwargs)
             # Second call would be in finally block after OOM - prevent it
@@ -230,8 +230,8 @@ class HookLogStatusTransitionsTestCase(BaseHookTestCase):
         except (Exception, SystemExit):
             pass  # OOM killed
 
-        # Verify log is stuck at HTTP_102_PROCESSING(finally block couldn't save)
+        # Verify log is stuck at PROCESSING (finally block couldn't save)
         log = HookLog.objects.get(hook=self.hook, submission_id=self.submission_id)
-        assert log.status == HookLogStatus.PENDING
-        assert log.status_code == status.HTTP_102_PROCESSING
+        assert log.status == HookLogStatus.PROCESSING
+        assert log.status_code == KOBO_INTERNAL_ERROR_STATUS_CODE
         assert log.message == 'Submission is being queued for processing'

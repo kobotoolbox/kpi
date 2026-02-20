@@ -14,6 +14,7 @@ from ..constants import KOBO_INTERNAL_ERROR_STATUS_CODE
 class HookLogStatus(models.IntegerChoices):
     FAILED = 0, 'failed'
     PENDING = 1, 'pending'
+    PROCESSING = 3, 'processing'
     SUCCESS = 2, 'success'
 
 
