@@ -4,6 +4,7 @@ from datetime import timedelta
 from celery import shared_task
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives, get_connection
+from django.db.models import Q
 from django.template.loader import get_template
 from django.utils import timezone, translation
 from django_celery_beat.models import PeriodicTask
@@ -167,22 +168,33 @@ def retry_stalled_pending_submissions():
     """
     Retries submissions that were never processed due to Celery task failures.
 
-    Finds HookLogs that are:
-    - status = PENDING
-    - status_code = KOBO_INTERNAL_ERROR_STATUS_CODE (None)
-    - message = '' (no error recorded)
-    - modified_at > 2 hours ago
+    Finds HookLogs that are PENDING and match one of:
+    1. status_code = KOBO_INTERNAL_ERROR_STATUS_CODE (None)
+       AND message = '' (no error recorded)
+       AND date_modified > HOOK_STALLED_PENDING_TIMEOUT minutes ago
+    2. date_modified > HOOK_STALLED_RETRY_TIMEOUT minutes ago
 
     These represent submissions where the Celery task was killed before it could
     even start processing (e.g., pod restart during queuing).
     """
-    cutoff_time = timezone.now() - timedelta(minutes=settings.HOOK_PROCESSING_TIMEOUT)
+    stalled_pending_cutoff_time = timezone.now() - timedelta(
+        minutes=settings.HOOK_STALLED_PENDING_TIMEOUT
+    )
+    stalled_retry_cutoff_time = timezone.now() - timedelta(
+        minutes=settings.HOOK_STALLED_RETRY_TIMEOUT
+    )
 
     stalled_logs = HookLog.objects.filter(
-        status=HookLogStatus.PENDING,
-        status_code=KOBO_INTERNAL_ERROR_STATUS_CODE,
-        message='',
-        date_modified__lt=cutoff_time,
+        Q(
+            status=HookLogStatus.PENDING,
+            status_code=KOBO_INTERNAL_ERROR_STATUS_CODE,
+            message='',
+            date_modified__lt=stalled_pending_cutoff_time,
+        ) | Q(
+            status=HookLogStatus.PENDING,
+            status_code__isnull=False,
+            date_modified__lt=stalled_retry_cutoff_time,
+        ),
         hook__active=True,
     ).select_related('hook')
 
@@ -202,14 +214,14 @@ def mark_zombie_processing_submissions():
 
     Finds HookLogs that are:
     - status = PROCESSING
-    - modified_at > 2 hours ago
+    - modified_at > HOOK_STALLED_PENDING_TIMEOUT minutes ago
 
     These represent submissions where the task started but was killed before completion
     (e.g., OOM, pod termination). The submission MAY have been sent to the remote
     server but we couldn't record the response.
     """
 
-    cutoff_time = timezone.now() - timedelta(minutes=settings.HOOK_PROCESSING_TIMEOUT)
+    cutoff_time = timezone.now() - timedelta(minutes=settings.HOOK_STALLED_PENDING_TIMEOUT)
 
     zombie_logs = HookLog.objects.filter(
         status=HookLogStatus.PROCESSING,

@@ -125,11 +125,11 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
                 response['detail'] = hook_log.message
                 response['status_code'] = hook_log.status_code
             else:
-                response['detail'] = t(
-                    'An error has occurred when sending the data. '
-                    'Please try again later.'
+                response['detail'] = (
+                    f'HTTP {hook_log.status_code} - {hook_log.message}'
                 )
-                status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+                response['status_code'] = hook_log.status_code
+                status_code = status.HTTP_400_BAD_REQUEST
         else:
             response['detail'] = t('Data is being or has already been processed')
             status_code = status.HTTP_400_BAD_REQUEST

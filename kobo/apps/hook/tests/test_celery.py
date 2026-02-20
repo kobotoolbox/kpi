@@ -234,7 +234,7 @@ class HookMarkZombieSubmissionTestCase(BaseHookTestCase):
         Should NOT mark submissions with status other than PROCESSING
         """
         old_time = timezone.now() - timedelta(
-            minutes=settings.HOOK_PROCESSING_TIMEOUT + 10
+            minutes=settings.HOOK_STALLED_PENDING_TIMEOUT + 10
         )
 
         # Create log with 200 status code (should NOT be marked)
@@ -258,7 +258,7 @@ class HookMarkZombieSubmissionTestCase(BaseHookTestCase):
         Should NOT process logs that are already FAILED
         """
         old_time = timezone.now() - timedelta(
-            minutes=settings.HOOK_PROCESSING_TIMEOUT + 10
+            minutes=settings.HOOK_STALLED_PENDING_TIMEOUT + 10
         )
 
         # Create failed log (should NOT be processed)
@@ -283,7 +283,7 @@ class HookMarkZombieSubmissionTestCase(BaseHookTestCase):
         Should NOT process logs that are already SUCCESS
         """
         old_time = timezone.now() - timedelta(
-            minutes=settings.HOOK_PROCESSING_TIMEOUT + 10
+            minutes=settings.HOOK_STALLED_PENDING_TIMEOUT + 10
         )
 
         # Create success log (should NOT be processed)
@@ -306,7 +306,7 @@ class HookMarkZombieSubmissionTestCase(BaseHookTestCase):
         Should mark all zombie submissions as failed
         """
         old_time = timezone.now() - timedelta(
-            minutes=settings.HOOK_PROCESSING_TIMEOUT + 10
+            minutes=settings.HOOK_STALLED_PENDING_TIMEOUT + 10
         )
 
         # Create multiple zombie logs
@@ -340,7 +340,7 @@ class HookMarkZombieSubmissionTestCase(BaseHookTestCase):
         whether the submission was sent
         """
         old_time = timezone.now() - timedelta(
-            minutes=settings.HOOK_PROCESSING_TIMEOUT + 10
+            minutes=settings.HOOK_STALLED_PENDING_TIMEOUT + 10
         )
 
         zombie_log = HookLog.objects.create(

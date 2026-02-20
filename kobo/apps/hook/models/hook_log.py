@@ -58,10 +58,12 @@ class HookLog(AbstractTimeStampedModel):
             # times, there was an issue, we allow the retry.
             threshold = timezone.now() - timedelta(seconds=120)
 
-            return self.status == HookLogStatus.FAILED or (
-                self.date_modified < threshold
-                and self.status == HookLogStatus.PENDING
-                and self.tries >= constance.config.HOOK_MAX_RETRIES
+            return self.date_modified < threshold and (
+                self.status == HookLogStatus.FAILED
+                or (
+                    self.status == HookLogStatus.PENDING
+                    and self.tries >= constance.config.HOOK_MAX_RETRIES
+                )
             )
 
         return False
