@@ -1,9 +1,12 @@
 from unittest.mock import MagicMock, patch
 
+import constance
 import requests
+from constance.test import override_config
 from rest_framework import status
 
 from kobo.apps.hook.constants import KOBO_INTERNAL_ERROR_STATUS_CODE
+from kobo.apps.hook.exceptions import HookRemoteServerDownError
 from kobo.apps.hook.models.hook_log import HookLog, HookLogStatus
 from kobo.apps.hook.utils.services import call_services
 from .base import BaseHookTestCase
@@ -235,3 +238,74 @@ class HookLogStatusTransitionsTestCase(BaseHookTestCase):
         assert log.status == HookLogStatus.PROCESSING
         assert log.status_code == KOBO_INTERNAL_ERROR_STATUS_CODE
         assert log.message == 'Submission is being queued for processing'
+
+    @patch('kobo.apps.hook.models.service_definition_interface.requests.post')
+    @override_config(HOOK_MAX_RETRIES=3)
+    def test_retry_logic_respects_max_retries(self, mock_post):
+        """
+        Test that retry logic respects HOOK_MAX_RETRIES correctly.
+
+        With HOOK_MAX_RETRIES = 3, we expect:
+        - Initial attempt (tries=0) + 3 retries = 4 total attempts
+        - Attempts 1-4 (tries 0-3): retriable error raises HookRemoteServerDownError
+        - Attempt 5 (tries=4): retriable error does NOT raise, becomes FAILED
+
+        This ensures manual retries don't trigger another 3 automatic retries.
+        """
+
+        # Mock retriable error (503 Service Unavailable)
+        mock_response = MagicMock()
+        mock_response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+        mock_response.text = 'Service temporarily unavailable'
+        mock_response.raise_for_status.side_effect = (
+            requests.exceptions.RequestException('HTTP 503')
+        )
+        mock_post.return_value = mock_response
+
+        # Create initial log
+        with patch('kobo.apps.hook.utils.services.service_definition_task.delay'):
+            call_services(self.asset.uid, self.submission_id)
+
+        ServiceDefinition = self.hook.get_service_definition()
+
+        # Simulate attempts 1-4 (tries 0-3): should raise HookRemoteServerDownError
+        log = HookLog.objects.get(hook=self.hook, submission_id=self.submission_id)
+        service = ServiceDefinition(self.hook, self.submission_id)
+
+        for attempt in range(1, 5):
+            expected_tries = attempt - 1
+            assert log.tries == expected_tries, (
+                f'Attempt {attempt}: Expected tries={expected_tries}, '
+                f'got tries={log.tries}'
+            )
+
+            # Should raise HookRemoteServerDownError for automatic retry
+            with self.assertRaises(HookRemoteServerDownError):
+                service.send()
+
+            log.refresh_from_db()
+            assert log.status == HookLogStatus.PENDING, (
+                f'Attempt {attempt}: Expected status=PENDING, '
+                f'got status={log.status.name}'
+            )
+            assert (
+                log.tries == attempt
+            ), f'Attempt {attempt}: Expected tries={attempt}, got tries={log.tries}'
+
+        # Attempt 5 (tries=4): should NOT raise, becomes FAILED
+        log.refresh_from_db()
+        assert log.tries == 4
+
+        # Should NOT raise HookRemoteServerDownError
+        with self.assertRaises(requests.exceptions.RequestException):
+            service.send()
+
+        log.refresh_from_db()
+
+        # Verify final state: FAILED, not PENDING
+        assert log.status == HookLogStatus.FAILED, (
+            f'After {constance.config.HOOK_MAX_RETRIES + 1} attempts, '
+            f'status should be FAILED, got {log.status.name}'
+        )
+        assert log.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
+        assert log.tries == 5

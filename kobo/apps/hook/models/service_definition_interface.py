@@ -75,6 +75,20 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
         """
         pass
 
+    @property
+    def _tries(self):
+        try:
+            return int(
+                HookLog.objects.values_list('tries', flat=True).get(
+                    hook_id=self._hook.pk, submission_id=self._submission_id
+                )
+            )
+        except (ValueError, HookLog.DoesNotExist):
+            pass
+
+        # Just to be sure, we don't retry, set the number of tries at the limit
+        return constance.config.HOOK_MAX_RETRIES + 1
+
     def send(self) -> bool:
         """
         Sends data to external endpoint.
@@ -200,7 +214,10 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
             elif 'Read timed out' in message:
                 status_code = status.HTTP_504_GATEWAY_TIMEOUT
 
-            if status_code in RETRIABLE_STATUS_CODES:
+            if (
+                status_code in RETRIABLE_STATUS_CODES
+                and self._tries < constance.config.HOOK_MAX_RETRIES + 1
+            ):
                 log_status = HookLogStatus.PENDING
                 raise HookRemoteServerDownError from e
 
