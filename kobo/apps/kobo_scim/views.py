@@ -1,5 +1,6 @@
 import re
 
+from django.conf import settings
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import mixins, viewsets
 
@@ -22,7 +23,7 @@ class ScimUserViewSet(
     """
     SCIM 2.0 compliant Users API endpoint.
     - GET /Users
-    - GET /Users/{id}
+    - GET /Users/{user_id}
     """
 
     queryset = User.objects.all().order_by('id')
@@ -38,13 +39,13 @@ class ScimUserViewSet(
             # Return empty if cross-tenant or missing
             return User.objects.none()
 
-        queryset = super().get_queryset()
+        # Remove the AnonymousUser from SCIM listings
+        queryset = super().get_queryset().exclude(id=settings.ANONYMOUS_USER_ID)
 
-        # SCIM Filtering - basic implementation to support retrieving user by email or username
         filter_param = self.request.query_params.get('filter')
         if filter_param:
             # We look for simple expressions like: userName eq "email@example.com"
-            # Since the requirement is "Kobo should automatically disable all Kobo accounts
+            # Since the requirement is "Kobo should automatically disable all accounts
             # linked to the same email address", filtering by email is critical.
             match = re.search(
                 r'(userName|emails(\.value)?)\s+eq\s+"([^"]+)"', filter_param
