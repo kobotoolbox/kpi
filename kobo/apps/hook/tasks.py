@@ -185,6 +185,7 @@ def retry_stalled_pending_submissions():
         status_code=KOBO_INTERNAL_ERROR_STATUS_CODE,
         message='',
         date_modified__lt=cutoff_time,
+        hook__active=True,
     ).select_related('hook')
 
     retried_count = 0
@@ -217,6 +218,7 @@ def mark_zombie_processing_submissions():
         status=HookLogStatus.PENDING,
         status_code=status.HTTP_102_PROCESSING,
         date_modified__lt=cutoff_time,
+        hook__active=True,
     ).select_related('hook')
 
     marked_count = 0

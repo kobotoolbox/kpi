@@ -22,7 +22,11 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
     def __init__(self, hook, submission_id):
         self._hook = hook
         self._submission_id = submission_id
-        self._data = self._get_data()
+
+        # Only fetch data if hook is active;
+        # send() returns false immediately without processing if inactive.
+        if self.hook.active:
+            self._data = self._get_data()
 
     def _get_data(self):
         """
@@ -78,6 +82,14 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
         Raise an exception if something is wrong. Retries are only allowed
         when `HookRemoteServerDownError` is raised.
         """
+
+        if not self._hook.active:
+            logging.error(
+                'service_json.ServiceDefinition.send: '
+                f'Hook #{self._hook.uid} is not active, '
+                f'stop procession Submission #{self._submission_id}'
+            )
+            return False
 
         # TODO consider changing "logging.info"  to "logging.debug" when
         #   DEV-1762 is reviewed & merged.
