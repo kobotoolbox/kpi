@@ -121,6 +121,7 @@ INSTALLED_APPS = (
     'oauth2_provider',
     'django_digest',
     'kobo.apps.organizations',
+    'kobo.apps.kobo_scim.apps.KoboScimConfig',
     'kobo.apps.superuser_stats.SuperuserStatsAppConfig',
     'kobo.apps.service_health',
     'kobo.apps.subsequences',
