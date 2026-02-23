@@ -195,7 +195,7 @@ class SubmissionSupplement(AbstractTimeStampedModel):
 
                 action = feature.to_action()
                 action.get_action_dependencies(
-                    prefetched_supplement, advanced_features_for_this_question
+                    prefetched_supplement or {}, advanced_features_for_this_question
                 )
 
                 retrieved_data = action.retrieve_data(action_data)

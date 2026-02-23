@@ -4,6 +4,7 @@ import pytest
 
 from ..actions.manual_translation import ManualTranslationAction
 from ..exceptions import TranscriptionNotFound
+from ..models import QuestionAdvancedFeature
 from .constants import EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, QUESTION_SUPPLEMENT
 
 
@@ -233,5 +234,7 @@ def _get_action(fetch_action_dependencies=True):
     params = [{'language': 'fr'}, {'language': 'en'}]
     action = ManualTranslationAction(xpath, params)
     if fetch_action_dependencies:
-        action.get_action_dependencies(QUESTION_SUPPLEMENT)
+        action.get_action_dependencies(
+            QUESTION_SUPPLEMENT, QuestionAdvancedFeature.objects.none()
+        )
     return action

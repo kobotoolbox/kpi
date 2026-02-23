@@ -7,6 +7,7 @@ import pytest
 
 from ..actions.automatic_google_translation import AutomaticGoogleTranslationAction
 from ..exceptions import TranscriptionNotFound
+from ..models import QuestionAdvancedFeature
 from .constants import EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, QUESTION_SUPPLEMENT
 
 
@@ -371,7 +372,9 @@ def test_find_the_most_recent_accepted_transcription():
     question_supplement_data['manual_transcription']['_versions'][0][
         '_dateAccepted'
     ] = '2025-07-28T16:18:00Z'
-    action.get_action_dependencies(question_supplement_data)
+    action.get_action_dependencies(
+        question_supplement_data, QuestionAdvancedFeature.objects.none()
+    )
 
     action_data = {}  # not really relevant for this test
     expected = {
@@ -488,5 +491,7 @@ def _get_action(fetch_action_dependencies=True):
     mock_asset.owner.pk = 1
     action = AutomaticGoogleTranslationAction(xpath, params, asset=mock_asset)
     if fetch_action_dependencies:
-        action.get_action_dependencies(QUESTION_SUPPLEMENT)
+        action.get_action_dependencies(
+            QUESTION_SUPPLEMENT, QuestionAdvancedFeature.objects.none()
+        )
     return action

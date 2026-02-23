@@ -218,7 +218,9 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         from . import ManualQualAction
 
         try:
-            manual_qual_action = all_features.get(action=ManualQualAction.ID)
+            manual_qual_action = all_features.filter(
+                question_xpath=self.source_question_xpath, action=ManualQualAction.ID
+            ).first()
         except QuestionAdvancedFeature.DoesNotExist as e:
             raise ManualQualNotFound from e
         self._action_dependencies[ManualQualAction.ID] = manual_qual_action.params
