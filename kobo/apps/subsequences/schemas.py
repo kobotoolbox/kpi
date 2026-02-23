@@ -50,6 +50,7 @@ def get_submission_supplement_schema(asset: 'kpi.models.Asset') -> dict:
 
     for action_config in asset.advanced_features_set.all():
         action = action_config.to_action()
+        action.get_action_dependencies({}, asset.advanced_features_set.all())
         submission_supplement_schema['properties'].setdefault(
             action_config.question_xpath, {}
         )[action_config.action] = action.result_schema

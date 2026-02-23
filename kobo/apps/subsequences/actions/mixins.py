@@ -1,6 +1,7 @@
 from copy import deepcopy
 
 from dateutil import parser
+from django.db.models import QuerySet
 
 from ..constants import SORT_BY_DATE_FIELD
 from ..exceptions import TranscriptionNotFound
@@ -9,7 +10,9 @@ from ..type_aliases import SimplifiedOutputCandidatesByColumnKey
 
 class RequiresTranscriptionMixin:
 
-    def get_action_dependencies(self, question_supplemental_data: dict) -> dict:
+    def get_action_dependencies(
+        self, question_supplemental_data: dict, all_features: QuerySet
+    ) -> dict:
         """
         Return only the supplemental data required by this action.
 
@@ -76,6 +79,11 @@ class RequiresTranscriptionMixin:
             return action_data
 
         for action_id, action_supplemental_data in self._action_dependencies.items():
+            # avoid circular imports
+            from . import ManualQualAction
+
+            if action_id == ManualQualAction.ID:
+                continue
             versions = action_supplemental_data.get(self.VERSION_FIELD) or []
             if not versions:
                 continue

@@ -7,6 +7,7 @@ from typing import Optional
 import jsonschema
 from constance import config
 from django.conf import settings
+from django.db.models import QuerySet
 from django.utils import timezone
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -19,6 +20,7 @@ from kobo.apps.subsequences.exceptions import (
 from kobo.apps.subsequences.utils.time import utc_datetime_to_js_str
 from kobo.celery import celery_app
 from kpi.exceptions import UsageLimitExceededException
+from kpi.utils.log import logging
 from kpi.utils.usage_calculator import ServiceUsageCalculator
 from ..tasks import poll_run_external_process
 from ..type_aliases import (
@@ -239,7 +241,9 @@ class BaseAction:
         """
         raise NotImplementedError
 
-    def get_action_dependencies(self, question_supplemental_data: dict) -> dict | None:
+    def get_action_dependencies(
+        self, question_supplemental_data: dict, all_features: QuerySet
+    ) -> dict | None:
         """
         Return a mapping of supplemental data required by this action, or None.
 
@@ -374,6 +378,7 @@ class BaseAction:
         return {}
 
     def validate_external_data(self, data):
+        logging.info(f'external_data_schema: {self.external_data_schema}')
         jsonschema.validate(
             data,
             self.external_data_schema,
@@ -474,6 +479,7 @@ class BaseAction:
             # the validation process.
             dependency_supplemental_data = action_data.pop(self.DEPENDENCY_FIELD, None)
             action_data.update(service_response)
+            logging.info(f'{action_data=}')
             self.validate_external_data(action_data)
         else:
             # manual action

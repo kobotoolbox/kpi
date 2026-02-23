@@ -47,6 +47,9 @@ class InvalidXPath(Exception):
     pass
 
 
+class ManualQualNotFound(DependencyNotFound):
+    pass
+
 class SubsequenceAcceptanceError(Exception):
     pass
 

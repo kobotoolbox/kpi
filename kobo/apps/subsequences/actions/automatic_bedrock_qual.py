@@ -5,6 +5,7 @@ from json import JSONDecodeError
 
 import boto3
 from django.conf import settings
+from django.db.models import QuerySet
 from django.utils.functional import classproperty
 from django_userforeignkey.request import get_current_request
 
@@ -14,9 +15,12 @@ from kobo.apps.subsequences.actions.mixins import RequiresTranscriptionMixin
 from kobo.apps.subsequences.actions.qual import BaseQualAction
 from kobo.apps.subsequences.constants import (
     QUESTION_TYPE_INTEGER,
+    QUESTION_TYPE_NOTE,
+    QUESTION_TYPE_TAGS,
     QUESTION_TYPE_TEXT,
     SELECT_QUESTIONS,
 )
+from kobo.apps.subsequences.exceptions import ManualQualNotFound
 from kobo.apps.subsequences.prompts import (
     MAX_TOKENS,
     MODEL_TEMPERATURE,
@@ -100,7 +104,9 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         return UsageType.LLM_REQUESTS
 
     def _get_question(self, uuid: str) -> dict:
-        qa_question = [q for q in self.params if q['uuid'] == uuid]
+        qa_question = [q for q in self.get_question_params() if q['uuid'] == uuid]
+        if len(qa_question) == 0:
+            raise ManualQualNotFound
         return qa_question[0]
 
     def _get_visible_choices(self, question: dict) -> list[dict]:
@@ -201,6 +207,22 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         to_return['allOf'] = common['allOf']
         return to_return
 
+    def get_output_fields(self) -> list[dict]:
+        return []
+
+    def get_action_dependencies(
+        self, question_supplemental_data: dict, all_features: QuerySet
+    ) -> dict:
+        super().get_action_dependencies(question_supplemental_data, all_features)
+        from kobo.apps.subsequences.models import QuestionAdvancedFeature
+        from . import ManualQualAction
+
+        try:
+            manual_qual_action = all_features.get(action=ManualQualAction.ID)
+        except QuestionAdvancedFeature.DoesNotExist as e:
+            raise ManualQualNotFound from e
+        self._action_dependencies[ManualQualAction.ID] = manual_qual_action.params
+
     def generate_llm_prompt(self, action_data: dict) -> str:
         """
         Generate the prompt that will be sent to the llm
@@ -238,6 +260,15 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
                 .replace(example_format_placeholder, example_format)
                 .replace(choices_list_placeholder, choices_text)
             )
+
+    def get_question_params(self):
+        from kobo.apps.subsequences.actions import ManualQualAction
+
+        return [
+            param_dict
+            for param_dict in self._action_dependencies[ManualQualAction.ID]
+            if param_dict['type'] not in [QUESTION_TYPE_NOTE, QUESTION_TYPE_TAGS]
+        ]
 
     def get_response_from_llm(self, prompt: str, model: LLModel) -> str:
         request = {
@@ -278,10 +309,15 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
 
     @classproperty
     def params_schema(cls):
-        initial_params = deepcopy(super().params_schema)
-        initial_params['$defs']['qualQuestionType']['enum'].remove('qualNote')
-        initial_params['$defs']['qualQuestionType']['enum'].remove('qualTags')
-        return initial_params
+        return {
+            'type': 'array',
+            'items': {
+                'type': 'object',
+                'properties': {'uuid': {'type': 'string', 'format': 'uuid'}},
+                'additionalProperties': False,
+                'required': ['uuid'],
+            },
+        }
 
     @property
     def result_schema(self):

@@ -1,3 +1,5 @@
+from pprint import pprint
+
 from django.db import models
 
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
@@ -88,7 +90,10 @@ class SubmissionSupplement(AbstractTimeStampedModel):
                 action_supplemental_data = question_supplemental_data.setdefault(
                     action_id, {}
                 )
-                action.get_action_dependencies(question_supplemental_data)
+                action.get_action_dependencies(
+                    question_supplemental_data, feature_configs_for_this_question
+                )
+                pprint({'dependencies': action._action_dependencies})
                 if not (
                     action_supplemental_data := action.revise_data(
                         submission,
@@ -189,6 +194,9 @@ class SubmissionSupplement(AbstractTimeStampedModel):
                     raise InvalidAction from e
 
                 action = feature.to_action()
+                action.get_action_dependencies(
+                    prefetched_supplement, advanced_features_for_this_question
+                )
 
                 retrieved_data = action.retrieve_data(action_data)
                 processed_data_for_this_question[action_id] = retrieved_data

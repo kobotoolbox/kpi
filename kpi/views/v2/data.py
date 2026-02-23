@@ -29,6 +29,7 @@ from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_hand
 from kobo.apps.subsequences.exceptions import (
     InvalidAction,
     InvalidXPath,
+    ManualQualNotFound,
     SubsequenceAcceptanceError,
     SubsequenceDeletionError,
     SubsequenceVerificationError,
@@ -591,6 +592,10 @@ class DataViewSet(
             raise serializers.ValidationError({'detail': 'No response to verify'})
         except SubsequenceAcceptanceError:
             raise serializers.ValidationError({'detail': 'No response to accept'})
+        except ManualQualNotFound:
+            raise serializers.ValidationError(
+                {'detail': 'No matching QA question found'}
+            )
 
         return Response(supplemental_data)
 
