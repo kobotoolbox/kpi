@@ -14,7 +14,7 @@ class SCIMPagination(DefaultPagination):
     offset_query_param = 'startIndex'
 
     # We maintain standard DefaultPagination sizes, but listen to 'count' & 'startIndex'
-    # DefaultPagination expects offset_query_param / limit_query_param to behave cleanly.
+    # DefaultPagination expects offset_query_param/limit_query_param to behave cleanly.
 
     def get_offset(self, request):
         try:

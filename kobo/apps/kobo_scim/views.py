@@ -13,7 +13,7 @@ from kobo.apps.kobo_scim.serializers import ScimUserSerializer
 @extend_schema(tags=['SCIM'])
 @extend_schema_view(
     list=extend_schema(
-        description='Returns a list of SCIM users matching the optional query parameters.'
+        description='Returns a list of SCIM users matching the optional query'
     ),
     retrieve=extend_schema(description='Returns a specific SCIM user.'),
 )

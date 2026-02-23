@@ -52,7 +52,8 @@ class ScimUsersAPITests(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
         wrong_url = '/api/scim/v2/wrong-idp/Users'
         response = self.client.get(wrong_url)
-        # Assuming our view returns empty list dynamically based on viewset permissions if idp doesn't match
+        # Assuming our view returns empty list dynamically based on viewset permissions
+        # if idp doesn't match
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()['totalResults'], 0)
 

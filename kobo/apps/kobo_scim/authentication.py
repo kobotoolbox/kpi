@@ -8,7 +8,8 @@ from kobo.apps.kobo_scim.models import IdentityProvider
 class SCIMAuthentication(authentication.BaseAuthentication):
     """
     SCIM API Key Authentication.
-    Validates a Bearer token against the `scim_api_key` field of active IdentityProviders.
+    Validates a Bearer token against the `scim_api_key` field of active
+    IdentityProviders.
 
     The SCIM RFC expects: `Authorization: Bearer <token>`
     """
@@ -29,8 +30,8 @@ class SCIMAuthentication(authentication.BaseAuthentication):
         except IdentityProvider.DoesNotExist:
             raise exceptions.AuthenticationFailed(_('Invalid or inactive SCIM token.'))
 
-        # We return (AnonymousUser(), idp) because SCIM API does not necessarily authenticate
-        # a standard Django `User`, but rather the `IdentityProvider`.
+        # We return (AnonymousUser(), idp) because SCIM API does not necessarily
+        # authenticate a standard Django `User`, but rather the `IdentityProvider`.
         # `request.auth` will be the IdentityProvider instance.
         return (AnonymousUser(), idp)
 
