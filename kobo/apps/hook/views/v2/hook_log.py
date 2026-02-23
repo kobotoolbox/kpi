@@ -125,9 +125,7 @@ class HookLogViewSet(AssetNestedObjectViewsetMixin,
                 response['detail'] = hook_log.message
                 response['status_code'] = hook_log.status_code
             else:
-                response['detail'] = (
-                    f'HTTP {hook_log.status_code} - {hook_log.message}'
-                )
+                response['detail'] = f'HTTP {hook_log.status_code} - {hook_log.message}'
                 response['status_code'] = hook_log.status_code
                 status_code = status.HTTP_400_BAD_REQUEST
         else:

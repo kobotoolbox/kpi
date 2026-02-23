@@ -190,7 +190,8 @@ def retry_stalled_pending_submissions():
             status_code=KOBO_INTERNAL_ERROR_STATUS_CODE,
             message='',
             date_modified__lt=stalled_pending_cutoff_time,
-        ) | Q(
+        )
+        | Q(
             status=HookLogStatus.PENDING,
             status_code__isnull=False,
             date_modified__lt=stalled_retry_cutoff_time,

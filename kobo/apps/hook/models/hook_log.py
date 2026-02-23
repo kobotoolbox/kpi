@@ -1,6 +1,7 @@
 from datetime import timedelta
 
 import constance
+from django.conf import settings
 from django.db import models
 from django.db.models.constraints import UniqueConstraint
 from django.utils import timezone
@@ -56,7 +57,9 @@ class HookLog(AbstractTimeStampedModel):
         if self.hook.active:
             # If log is still pending after `constance.config.HOOK_MAX_RETRIES`
             # times, there was an issue, we allow the retry.
-            threshold = timezone.now() - timedelta(seconds=120)
+            threshold = timezone.now() - timedelta(
+                seconds=settings.HOOK_STALLED_PENDING_TIMEOUT
+            )
 
             return self.date_modified < threshold and (
                 self.status == HookLogStatus.FAILED
