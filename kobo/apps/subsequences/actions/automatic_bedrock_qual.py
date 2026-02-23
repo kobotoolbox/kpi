@@ -459,3 +459,10 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         if request := get_current_request():
             request.llm_response = {'error': f'{error}'}
         return {'status': 'failed', 'error': f'{error}'}
+
+    def update_params(self, incoming_params):
+        self.validate_params(incoming_params)
+        current_uuids = set([param['uuid'] for param in self.params])
+        for param in incoming_params:
+            if param['uuid'] not in current_uuids:
+                self.params.append(param)

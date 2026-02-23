@@ -1,3 +1,4 @@
+import copy
 import uuid
 from datetime import timedelta
 from unittest.mock import ANY, DEFAULT, call, patch
@@ -23,6 +24,7 @@ from kobo.apps.subsequences.constants import (
     QUESTION_TYPE_TEXT,
     Action,
 )
+from kobo.apps.subsequences.exceptions import ManualQualNotFound
 from kobo.apps.subsequences.models import QuestionAdvancedFeature
 from kobo.apps.subsequences.prompts import (
     PROMPTS_BY_QUESTION_TYPE,
@@ -132,6 +134,14 @@ class TestBedrockAutomaticBedrockQual(BaseAutomaticBedrockQualTestCase):
         else:
             with pytest.raises(jsonschema.exceptions.ValidationError):
                 AutomaticBedrockQual.validate_params([param])
+
+    def test_update_params(self):
+        current_params = [copy.deepcopy(param) for param in self.action.params]
+        new_uuid = str(uuid.uuid4())
+        self.action.update_params(
+            [{'uuid': BEDROCK_QUAL_TEXT_UUID}, {'uuid': new_uuid}]
+        )
+        assert self.action.params == [*current_params, {'uuid': new_uuid}]
 
     def test_valid_user_data(self):
         for param in self.action.get_question_params():
@@ -385,6 +395,16 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
             f' count: {choice_count},'
             f' format: example format string'
         )
+
+    def test_generate_prompt_fails_if_no_manual_question(self):
+        random_uuid = str(uuid.uuid4())
+        self.action.params = [{'uuid': random_uuid}]
+        action_data = {
+            'uuid': random_uuid,
+            '_dependency': self._dependency_dict_from_transcript_dict(),
+        }
+        with pytest.raises(ManualQualNotFound):
+            self.action.generate_llm_prompt(action_data)
 
     @data(
         # question uuid, parsing method name
