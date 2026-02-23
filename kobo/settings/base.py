@@ -1536,7 +1536,7 @@ CELERY_BEAT_SCHEDULE = {
     'long-running-migrations': {
         'task': 'kobo.apps.long_running_migrations.tasks.execute_long_running_migrations',  # noqa
         'schedule': crontab(minute='*/15'),
-        'options': {'queue': 'kpi_low_priority_queue'}
+        'options': {'queue': 'kpi_long_running_tasks_queue'}
     },
     # Schedule every day at midnight UTC
     'mass-email-record-mark-as-failed': {
