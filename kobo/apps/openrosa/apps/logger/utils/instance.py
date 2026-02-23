@@ -16,6 +16,9 @@ from ..exceptions import MissingValidationStatusPayloadError
 from ..models.instance import Instance
 from ..models.xform import XForm
 from .database_query import build_db_queries
+from kobo.apps.openrosa.apps.viewer.models import InstanceModification, ParsedInstance
+from kobo.apps.openrosa.apps.logger.models import Attachment, Note
+
 
 
 def add_validation_status_to_instance(
@@ -59,7 +62,15 @@ def delete_instances(xform: XForm, request_data: dict) -> int:
 
     try:
         # Delete Postgres & Mongo
-        all_count, results = Instance.objects.filter(**postgres_query).delete()
+        instance_ids = postgres_query.get('id__in')
+        if instance_ids:
+            Attachment.objects.filter(instance_id__in=instance_ids).delete()
+            Note.objects.filter(instance_id__in=instance_ids).delete()
+            InstanceModification.objects.filter(instance_id__in=instance_ids).delete()
+            ParsedInstance.objects.filter(instance_id__in=instance_ids).delete()
+
+        all_count, results = Instance.objects.filter(**postgres_query).only('pk').delete()
+
         identifier = f'{Instance._meta.app_label}.Instance'
         try:
             deleted_records_count = results[identifier]
