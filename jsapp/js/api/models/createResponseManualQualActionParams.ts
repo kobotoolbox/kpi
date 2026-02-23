@@ -12,6 +12,6 @@ The endpoints are grouped by area of intended use. Each category contains relate
  */
 import type { CreateResponseQualSimpleQuestionParams } from './createResponseQualSimpleQuestionParams'
 
-export type CreateResponseQualActionParams =
+export type CreateResponseManualQualActionParams =
   | CreateResponseQualSimpleQuestionParams
   | CreateResponseQualSelectQuestionParams
