@@ -4,7 +4,7 @@ import { DndProvider } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
 
 import type { DataResponse } from '#/api/models/dataResponse'
-import type { ResponseQualActionParams } from '#/api/models/responseQualActionParams'
+import type { ResponseManualQualActionParams } from '#/api/models/responseManualQualActionParams'
 import type { AssetResponse } from '#/dataInterface'
 import type { AdvancedFeatureResponseManualQual } from '../../common/utils'
 import AnalysisQuestionListItem from './AnalysisQuestionListItem'
@@ -15,8 +15,8 @@ interface Props {
   advancedFeature: AdvancedFeatureResponseManualQual
   questionXpath: string
   submission: DataResponse
-  qaQuestion?: ResponseQualActionParams
-  setQaQuestion: (qaQuestion: ResponseQualActionParams | undefined) => void
+  qaQuestion?: ResponseManualQualActionParams
+  setQaQuestion: (qaQuestion: ResponseManualQualActionParams | undefined) => void
 }
 
 /**
@@ -33,7 +33,7 @@ export default function AnalysisQuestionsList({
   setQaQuestion,
 }: Props) {
   // Local state to avoid flickering on reordering (optimistic UI)
-  const [localParams, setLocalParams] = useState<ResponseQualActionParams[]>(advancedFeature.params)
+  const [localParams, setLocalParams] = useState<ResponseManualQualActionParams[]>(advancedFeature.params)
 
   // Update local params when advancedFeature changes (e.g., after backend update)
   React.useEffect(() => {
