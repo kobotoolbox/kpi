@@ -221,7 +221,9 @@ def mark_zombie_processing_submissions():
     server but we couldn't record the response.
     """
 
-    cutoff_time = timezone.now() - timedelta(minutes=settings.HOOK_STALLED_PENDING_TIMEOUT)
+    cutoff_time = timezone.now() - timedelta(
+        minutes=settings.HOOK_STALLED_PENDING_TIMEOUT
+    )
 
     zombie_logs = HookLog.objects.filter(
         status=HookLogStatus.PROCESSING,
