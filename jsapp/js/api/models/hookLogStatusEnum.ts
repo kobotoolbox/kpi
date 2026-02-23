@@ -13,6 +13,7 @@ The endpoints are grouped by area of intended use. Each category contains relate
 /**
  * * `0` - failed
  * `1` - pending
+ * `3` - processing
  * `2` - success
  */
 export type HookLogStatusEnum = (typeof HookLogStatusEnum)[keyof typeof HookLogStatusEnum]
@@ -21,5 +22,6 @@ export type HookLogStatusEnum = (typeof HookLogStatusEnum)[keyof typeof HookLogS
 export const HookLogStatusEnum = {
   NUMBER_0: 0,
   NUMBER_1: 1,
+  NUMBER_3: 3,
   NUMBER_2: 2,
 } as const

@@ -22,7 +22,11 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
     def __init__(self, hook, submission_id):
         self._hook = hook
         self._submission_id = submission_id
-        self._data = self._get_data()
+
+        # Only fetch data if hook is active;
+        # send() returns false immediately without processing if inactive.
+        if self._hook.active:
+            self._data = self._get_data()
 
     def _get_data(self):
         """
@@ -71,6 +75,20 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
         """
         pass
 
+    @property
+    def _tries(self):
+        try:
+            return int(
+                HookLog.objects.values_list('tries', flat=True).get(
+                    hook_id=self._hook.pk, submission_id=self._submission_id
+                )
+            )
+        except (ValueError, HookLog.DoesNotExist):
+            pass
+
+        # Just to be sure, we don't retry, set the number of tries at the limit
+        return constance.config.HOOK_MAX_RETRIES + 1
+
     def send(self) -> bool:
         """
         Sends data to external endpoint.
@@ -79,13 +97,40 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
         when `HookRemoteServerDownError` is raised.
         """
 
+        if not self._hook.active:
+            logging.error(
+                'service_json.ServiceDefinition.send: '
+                f'Hook #{self._hook.uid} is not active, '
+                f'stop procession Submission #{self._submission_id}'
+            )
+            return False
+
+        # TODO consider changing "logging.info"  to "logging.debug" when
+        #   DEV-1762 is reviewed & merged.
+
+        logging.info(
+            'service_json.ServiceDefinition.send: '
+            f'Starting hook submission processing - Hook #{self._hook.uid} - '
+            f'Submission #{self._submission_id}'
+        )
         if not self._data:
+            logging.info(
+                'service_json.ServiceDefinition.send: '
+                f'Submission data not found - Hook #{self._hook.uid} - '
+                f'Submission #{self._submission_id}'
+            )
             self.save_log(
                 status_code=KOBO_INTERNAL_ERROR_STATUS_CODE,
                 message='Submission has been deleted',
                 log_status=HookLogStatus.FAILED,
             )
             return False
+
+        logging.info(
+            f'service_json.ServiceDefinition.send: '
+            f'Preparing to send hook submission - Hook #{self._hook.uid} - '
+            f'Submission #{self._submission_id}'
+        )
 
         # Need to declare response before requests.post assignment in case of
         # RequestException
@@ -140,7 +185,8 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
         # call_services() before the task was scheduled, confirming the task was
         # successfully dequeued and is actively running.
         self.save_log(
-            status_code=status.HTTP_102_PROCESSING,
+            log_status=HookLogStatus.PROCESSING,
+            status_code=KOBO_INTERNAL_ERROR_STATUS_CODE,
             message='Submission is being queued for processing',
         )
 
@@ -168,7 +214,10 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
             elif 'Read timed out' in message:
                 status_code = status.HTTP_504_GATEWAY_TIMEOUT
 
-            if status_code in RETRIABLE_STATUS_CODES:
+            if (
+                status_code in RETRIABLE_STATUS_CODES
+                and self._tries < constance.config.HOOK_MAX_RETRIES + 1
+            ):
                 log_status = HookLogStatus.PENDING
                 raise HookRemoteServerDownError from e
 
@@ -197,6 +246,13 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
             )
             raise
         finally:
+            logging.info(
+                'service_json.ServiceDefinition.send: '
+                f'Hook submission result - Hook #{self._hook.uid} - '
+                f'Submission #{self._submission_id} - '
+                f'Status: {status_code} - '
+                f'Log Status: {log_status.name}'
+            )
             self.save_log(
                 log_status=log_status,
                 status_code=status_code,
@@ -205,7 +261,7 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
 
     def save_log(
         self,
-        status_code: int,
+        status_code: int | None,
         message: str,
         log_status: int = HookLogStatus.PENDING,
     ):
@@ -230,10 +286,7 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
                     defaults={'status_code': status_code, 'message': message},
                 )
 
-                if not (
-                    status_code == status.HTTP_102_PROCESSING
-                    and log_status == HookLogStatus.PENDING
-                ):
+                if not log_status == HookLogStatus.PROCESSING:
                     log.tries += 1
 
                 # Now update with actual values based on the current state
