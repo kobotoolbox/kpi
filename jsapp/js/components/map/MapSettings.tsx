@@ -101,10 +101,11 @@ export default class MapSettings extends React.Component<MapSettingsProps, MapSe
     // Force first geopoint question to be selected if there otherwise would be none
     if (!mapStyles.selectedQuestion) {
       const firstGeopoint = props.asset.content?.survey?.find(
-        (question) => question.type && question.type === 'geopoint')
+        (question) => question.type && question.type === 'geopoint',
+      )
       // Can only fail if this component somehow does not get the survey
       if (firstGeopoint) {
-        Object.assign(mapStyles, {selectedQuestion: getRowName(firstGeopoint)})
+        Object.assign(mapStyles, { selectedQuestion: getRowName(firstGeopoint) })
       }
     }
 
