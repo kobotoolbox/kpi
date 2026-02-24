@@ -24,7 +24,10 @@ from kobo.apps.subsequences.constants import (
     QUESTION_TYPE_TEXT,
     Action,
 )
-from kobo.apps.subsequences.exceptions import ManualQualNotFound
+from kobo.apps.subsequences.exceptions import (
+    AnalysisQuestionNotFound,
+    ManualQualNotFound,
+)
 from kobo.apps.subsequences.models import QuestionAdvancedFeature
 from kobo.apps.subsequences.prompts import (
     PROMPTS_BY_QUESTION_TYPE,
@@ -130,6 +133,18 @@ class TestBedrockAutomaticBedrockQual(BaseAutomaticBedrockQualTestCase):
         else:
             with pytest.raises(jsonschema.exceptions.ValidationError):
                 AutomaticBedrockQual.validate_params([param])
+
+    def test_create_action_fails_if_no_manual_qual(self):
+        QuestionAdvancedFeature.objects.get(
+            action=Action.MANUAL_QUAL, question_xpath='q1', asset=self.asset
+        ).delete()
+        with pytest.raises(ManualQualNotFound):
+            feature = QuestionAdvancedFeature.objects.get(
+                asset=self.asset,
+                action=Action.AUTOMATIC_BEDROCK_QUAL,
+                question_xpath='q1',
+            )
+            feature.to_action()
 
     def test_update_params(self):
         current_params = [copy.deepcopy(param) for param in self.action.params]
@@ -399,7 +414,7 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
             'uuid': random_uuid,
             '_dependency': self._dependency_dict_from_transcript_dict(),
         }
-        with pytest.raises(ManualQualNotFound):
+        with pytest.raises(AnalysisQuestionNotFound):
             self.action.generate_llm_prompt(action_data)
 
     @data(

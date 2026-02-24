@@ -20,7 +20,10 @@ from kobo.apps.subsequences.constants import (
     QUESTION_TYPE_TEXT,
     SELECT_QUESTIONS,
 )
-from kobo.apps.subsequences.exceptions import ManualQualNotFound
+from kobo.apps.subsequences.exceptions import (
+    AnalysisQuestionNotFound,
+    ManualQualNotFound,
+)
 from kobo.apps.subsequences.prompts import (
     MAX_TOKENS,
     MODEL_TEMPERATURE,
@@ -116,7 +119,7 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
     def _get_question(self, uuid: str) -> dict:
         qa_question = [q for q in self.get_question_params() if q['uuid'] == uuid]
         if len(qa_question) == 0:
-            raise ManualQualNotFound
+            raise AnalysisQuestionNotFound
         return qa_question[0]
 
     def _get_visible_choices(self, question: dict) -> list[dict]:
