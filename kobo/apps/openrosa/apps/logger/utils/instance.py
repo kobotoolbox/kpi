@@ -6,19 +6,17 @@ from django.db.models.signals import post_delete, pre_delete
 from django_userforeignkey.request import get_current_request
 
 from kobo.apps.audit_log.utils import SubmissionUpdate
+from kobo.apps.openrosa.apps.logger.models import Attachment, Note
 from kobo.apps.openrosa.apps.logger.signals import (
     nullify_exports_time_of_last_submission,
     update_xform_submission_count_delete,
 )
-from kobo.apps.openrosa.apps.viewer.models.parsed_instance import ParsedInstance
+from kobo.apps.openrosa.apps.viewer.models import InstanceModification, ParsedInstance
 from kobo.apps.openrosa.apps.viewer.signals import remove_from_mongo
 from ..exceptions import MissingValidationStatusPayloadError
 from ..models.instance import Instance
 from ..models.xform import XForm
 from .database_query import build_db_queries
-from kobo.apps.openrosa.apps.viewer.models import InstanceModification, ParsedInstance
-from kobo.apps.openrosa.apps.logger.models import Attachment, Note
-
 
 
 def add_validation_status_to_instance(
@@ -47,7 +45,10 @@ def delete_instances(xform: XForm, request_data: dict) -> int:
     deleted_records_count = 0
     postgres_query, mongo_query = build_db_queries(xform, request_data)
 
-    # Disconnect signals to speed-up bulk deletion
+    # Temporarily disconnect signals that would be fired per-Instance during
+    # bulk deletion. They would each re-query XForm and update counters
+    # individually, which is both slow and redundant for bulk operations.
+    # The equivalent updates are applied manually below after the deletion.
     pre_delete.disconnect(remove_from_mongo, sender=ParsedInstance)
     post_delete.disconnect(
         nullify_exports_time_of_last_submission,
@@ -64,11 +65,22 @@ def delete_instances(xform: XForm, request_data: dict) -> int:
         # Delete Postgres & Mongo
         instance_ids = postgres_query.get('id__in')
         if instance_ids:
+            # Delete related rows bottom-up with explicit SQL DELETEs instead of
+            # letting Django's Collector handle the cascade. The Collector loads
+            # every related object into memory at once to resolve the graph,
+            # which causes OOM kills on large projects. Each explicit delete
+            # holds only that table's PKs in memory, then frees them before
+            # moving on. Instance.delete() afterwards finds nothing left to
+            # collect and performs a fast SQL-only delete.
+            # Note: pre_delete_attachment is kept connected to update storage
+            # counters and remove physical files for each Attachment.
             Attachment.objects.filter(instance_id__in=instance_ids).delete()
             Note.objects.filter(instance_id__in=instance_ids).delete()
             InstanceModification.objects.filter(instance_id__in=instance_ids).delete()
             ParsedInstance.objects.filter(instance_id__in=instance_ids).delete()
 
+        # Restrict Instance.delete() to PKs only so Django's Collector does not
+        # fetch heavy xml/json fields from the instance rows themselves.
         all_count, results = Instance.objects.filter(**postgres_query).only('pk').delete()
 
         identifier = f'{Instance._meta.app_label}.Instance'
@@ -81,13 +93,13 @@ def delete_instances(xform: XForm, request_data: dict) -> int:
 
         ParsedInstance.bulk_delete(mongo_query)
 
-        # Update xform like signals would do if it was as single object deletion
+        # Re-apply the disconnected signal side-effects once for the whole batch.
         nullify_exports_time_of_last_submission(sender=Instance, instance=xform)
         update_xform_submission_count_delete(
             sender=Instance, instance=xform, value=deleted_records_count
         )
     finally:
-        # Pre_delete signal needs to be re-enabled for parsed instance
+        # Reconnect signals that were temporarily disabled above.
         pre_delete.connect(remove_from_mongo, sender=ParsedInstance)
         post_delete.connect(
             nullify_exports_time_of_last_submission,
