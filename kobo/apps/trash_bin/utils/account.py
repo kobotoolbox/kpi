@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.files.storage import default_storage
 from django.db import transaction
 from django.db.models.signals import post_delete
 from django.utils import timezone
@@ -103,7 +104,7 @@ def delete_account(account_trash: AccountTrash):
                 delete_kc_user(user.username)
 
                 if user.username:
-                    rmdir(f'{user.username}/')
+                    rmdir(f'{user.username}/', default_storage)
 
     finally:
         post_delete.connect(

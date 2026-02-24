@@ -29,7 +29,6 @@ def run():
             submission_ids = xform.instances.values_list('pk', flat=True)
             for submission_ids_batch in chunked(submission_ids, CHUNK_SIZE):
                 data = {'submission_ids': submission_ids_batch}
-                with kc_transaction_atomic():
-                    delete_instances(xform, data)
+                delete_instances(xform, data)
 
             xform.delete()

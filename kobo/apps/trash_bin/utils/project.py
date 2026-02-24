@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from django.conf import settings
+from django.core.files.storage import default_storage
 from django.db import transaction
 from django.db.models import F, Q
 
@@ -57,7 +58,7 @@ def delete_asset(request_author: settings.AUTH_USER_MODEL, asset: Asset):
 
     # Delete media files left on storage
     if asset_uid:
-        rmdir(f'{owner_username}/asset_files/{asset_uid}')
+        rmdir(f'{owner_username}/asset_files/{asset_uid}', default_storage)
 
 
 def _delete_submissions(request_author: settings.AUTH_USER_MODEL, asset: 'kpi.Asset'):
@@ -144,10 +145,9 @@ def _delete_submissions(request_author: settings.AUTH_USER_MODEL, asset: 'kpi.As
 
             submission_ids.append(submission['_id'])
 
-        with kc_transaction_atomic(), transaction.atomic():
-            asset.deployment.delete_submissions(
-                {'submission_ids': submission_ids, 'query': ''}, request_author
-            )
+        asset.deployment.delete_submissions(
+            {'submission_ids': submission_ids, 'query': ''}, request_author
+        )
 
-            if audit_logs:
-                AuditLog.objects.bulk_create(audit_logs)
+        if audit_logs:
+            AuditLog.objects.bulk_create(audit_logs)

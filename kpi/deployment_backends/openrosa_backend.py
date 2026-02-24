@@ -302,8 +302,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             data.pop('query', None)
             data['submission_ids'] = submission_ids
 
-        with kc_transaction_atomic():
-            return delete_instances(self.xform, data)
+        return delete_instances(self.xform, data)
 
     def duplicate_submission(
         self,

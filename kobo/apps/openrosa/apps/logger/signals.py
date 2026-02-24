@@ -271,7 +271,7 @@ def update_xform_submission_count_delete(sender, instance, **kwargs):
         xform_id = instance.pk
         xform = instance
 
-    with transaction.atomic():
+    with conditional_kc_transaction_atomic():
         # Like `update_xform_submission_count()`, update with `F` expression
         # instead of `select_for_update` to avoid locks, and `save()` which
         # loads not required fields for these updates.
