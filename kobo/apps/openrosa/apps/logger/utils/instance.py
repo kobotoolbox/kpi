@@ -14,13 +14,15 @@ from kobo.apps.openrosa.apps.logger.signals import (
     pre_delete_attachment,
     update_xform_submission_count_delete,
 )
-from kobo.apps.openrosa.apps.logger.utils.counters import decrement_counters_after_deletion
-from kobo.apps.openrosa.libs.utils.viewer_tools import get_optimized_image_path
+from kobo.apps.openrosa.apps.logger.utils.counters import (
+    decrement_counters_after_deletion,
+)
 from kobo.apps.openrosa.apps.viewer.models import InstanceModification, ParsedInstance
 from kobo.apps.openrosa.apps.viewer.signals import remove_from_mongo
+from kobo.apps.openrosa.libs.utils.viewer_tools import get_optimized_image_path
 from kobo.apps.trash_bin.models.attachment import AttachmentTrash
-from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 from kpi.deployment_backends.kc_access.storage import default_kobocat_storage
+from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 from kpi.utils.storage import bulk_delete_files
 from ..exceptions import MissingValidationStatusPayloadError
 from ..models.instance import Instance
@@ -93,9 +95,7 @@ def delete_instances(xform: XForm, request_data: dict) -> int:
         instance_ids = postgres_query.get('id__in')
         if not instance_ids:
             instance_ids = list(
-                Instance.objects.values_list('id', flat=True).filter(
-                    **postgres_query
-                )
+                Instance.objects.values_list('id', flat=True).filter(**postgres_query)
             )
 
         total_storage_bytes = 0
@@ -106,9 +106,7 @@ def delete_instances(xform: XForm, request_data: dict) -> int:
             # all_objects is used to include soft-deleted attachments
             # (delete_status IS NOT NULL) that the default manager excludes.
             attachment_rows = list(
-                Attachment.all_objects.filter(
-                    instance_id__in=instance_ids
-                ).values(
+                Attachment.all_objects.filter(instance_id__in=instance_ids).values(
                     'pk',
                     'media_file',
                     'media_file_size',
@@ -141,8 +139,9 @@ def delete_instances(xform: XForm, request_data: dict) -> int:
                     attachment_id__in=attachment_ids
                 )
                 periodic_task_ids = list(
-                    att_trash_qs.exclude(periodic_task_id__isnull=True)
-                    .values_list('periodic_task_id', flat=True)
+                    att_trash_qs.exclude(periodic_task_id__isnull=True).values_list(
+                        'periodic_task_id', flat=True
+                    )
                 )
                 att_trash_qs.delete()
                 if periodic_task_ids:

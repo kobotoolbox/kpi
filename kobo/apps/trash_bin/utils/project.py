@@ -1,13 +1,9 @@
 from __future__ import annotations
 
-import time
-
 from django.conf import settings
 from django.core.files.storage import default_storage
 from django.db import transaction
 from django.db.models import F, Q
-
-from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 
 from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import AuditLog, AuditType

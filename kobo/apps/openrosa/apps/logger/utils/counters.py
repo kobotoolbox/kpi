@@ -5,7 +5,6 @@ from ...main.models import UserProfile
 from ..models import Instance, XForm
 
 
-
 def decrement_counters_after_deletion(
     xform_id: int, user_id: int, count: int, storage_bytes: int = 0
 ):

@@ -4,8 +4,9 @@ from typing import Iterable
 
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage, Storage
-from kobo.apps.storage_backends.s3boto3 import S3Boto3Storage
 from storages.backends.azure_storage import AzureStorage
+
+from kobo.apps.storage_backends.s3boto3 import S3Boto3Storage
 
 
 def bulk_delete_files(file_paths: Iterable[str], storage: Storage) -> None:
@@ -81,15 +82,13 @@ def _bulk_delete_files_s3(file_paths: Iterable[str], storage: S3Boto3Storage) ->
         _flush(pending)
 
 
-def _bulk_delete_files_azure(
-    file_paths: Iterable[str], storage: AzureStorage
-) -> None:
+def _bulk_delete_files_azure(file_paths: Iterable[str], storage: AzureStorage):
     """Delete Azure blobs by exact name, with no listing step."""
     container_client = storage.client
     location = getattr(storage, 'location', '').strip('/')
     pending: list[str] = []
 
-    def _flush(names: list[str]) -> None:
+    def _flush(names: list[str]):
         container_client.delete_blobs(*names)
 
     for path in file_paths:

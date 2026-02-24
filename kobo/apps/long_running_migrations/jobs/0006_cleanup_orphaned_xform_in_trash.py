@@ -1,11 +1,9 @@
 # Generated on 2025-02-11 20:50
 from django.conf import settings
-from django.db import transaction
 from more_itertools import chunked
 
 from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.openrosa.apps.logger.utils.instance import delete_instances
-from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 
 
 def run():
