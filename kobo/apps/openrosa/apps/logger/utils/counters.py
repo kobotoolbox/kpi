@@ -81,6 +81,7 @@ def delete_null_user_daily_counters(apps, *args):
     # Delete daily counters without a user to avoid creating invalid monthly counters
     DailyXFormSubmissionCounter.objects.filter(user=None).delete()
 
+
 def update_storage_counters(xform_id: int, user_id: int, total_bytes: int):
 
     with conditional_kc_transaction_atomic():

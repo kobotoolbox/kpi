@@ -29,7 +29,7 @@ def bulk_delete_files(file_paths: Iterable[str], storage: Storage) -> None:
     if isinstance(storage, FileSystemStorage):
         parent_dirs = {os.path.dirname(p) for p in file_paths if p}
         for directory in parent_dirs:
-            rmdir(directory)
+            rmdir(directory, storage)
 
     elif isinstance(storage, S3Boto3Storage):
         _bulk_delete_files_s3(file_paths, storage)
