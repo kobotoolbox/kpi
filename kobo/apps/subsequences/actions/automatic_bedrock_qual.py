@@ -214,15 +214,13 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         self, question_supplemental_data: dict, all_features: QuerySet
     ) -> dict:
         super().get_action_dependencies(question_supplemental_data, all_features)
-        from kobo.apps.subsequences.models import QuestionAdvancedFeature
         from . import ManualQualAction
 
-        try:
-            manual_qual_action = all_features.filter(
+        manual_qual_action = all_features.filter(
                 question_xpath=self.source_question_xpath, action=ManualQualAction.ID
-            ).first()
-        except QuestionAdvancedFeature.DoesNotExist as e:
-            raise ManualQualNotFound from e
+        ).first()
+        if manual_qual_action is None:
+            raise ManualQualNotFound
         self._action_dependencies[ManualQualAction.ID] = manual_qual_action.params
 
     def generate_llm_prompt(self, action_data: dict) -> str:

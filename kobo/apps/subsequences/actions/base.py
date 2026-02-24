@@ -20,7 +20,6 @@ from kobo.apps.subsequences.exceptions import (
 from kobo.apps.subsequences.utils.time import utc_datetime_to_js_str
 from kobo.celery import celery_app
 from kpi.exceptions import UsageLimitExceededException
-from kpi.utils.log import logging
 from kpi.utils.usage_calculator import ServiceUsageCalculator
 from ..tasks import poll_run_external_process
 from ..type_aliases import (
@@ -378,7 +377,6 @@ class BaseAction:
         return {}
 
     def validate_external_data(self, data):
-        logging.info(f'external_data_schema: {self.external_data_schema}')
         jsonschema.validate(
             data,
             self.external_data_schema,
@@ -479,7 +477,6 @@ class BaseAction:
             # the validation process.
             dependency_supplemental_data = action_data.pop(self.DEPENDENCY_FIELD, None)
             action_data.update(service_response)
-            logging.info(f'{action_data=}')
             self.validate_external_data(action_data)
         else:
             # manual action

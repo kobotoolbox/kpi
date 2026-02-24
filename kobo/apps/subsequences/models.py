@@ -1,4 +1,3 @@
-from pprint import pprint
 
 from django.db import models
 
@@ -93,7 +92,6 @@ class SubmissionSupplement(AbstractTimeStampedModel):
                 action.get_action_dependencies(
                     question_supplemental_data, feature_configs_for_this_question
                 )
-                pprint({'dependencies': action._action_dependencies})
                 if not (
                     action_supplemental_data := action.revise_data(
                         submission,

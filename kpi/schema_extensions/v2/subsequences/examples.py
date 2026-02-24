@@ -116,9 +116,9 @@ def get_advanced_features_create_examples() -> list[OpenApiExample]:
             request_only=True,
         ),
         OpenApiExample(
-            'Automatic Qualitative Analysis - Any  Question',
+            'Automatic Qualitative Analysis - Any Question',
             value={
-                'action': 'manual_qual',
+                'action': 'automatic_bedrock_qual',
                 'question_xpath': 'q1',
                 'params': [
                     {
