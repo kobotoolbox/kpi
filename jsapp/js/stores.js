@@ -40,6 +40,9 @@ export var stores = {}
 
 const MAX_SEARCH_AGE = 5 * 60 // seconds
 
+/**
+ * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
+ */
 stores.surveyState = Reflux.createStore({
   init() {
     this.state = {}
@@ -53,6 +56,9 @@ stores.surveyState = Reflux.createStore({
   },
 })
 
+/**
+ * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
+ */
 stores.translations = Reflux.createStore({
   init() {
     this.state = {
@@ -73,6 +79,9 @@ stores.translations = Reflux.createStore({
   },
 })
 
+/**
+ * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
+ */
 stores.snapshots = Reflux.createStore({
   init() {
     this.listenTo(actions.resources.createSnapshot.completed, this.snapshotCreated)
@@ -93,6 +102,8 @@ stores.snapshots = Reflux.createStore({
  * NOTE: this is not a reliable source of complete assets (i.e. ones with
  * `content`) as `onListAssetsCompleted` will overwrite asset-with-content with
  * one without it.
+ *
+ * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
  */
 stores.allAssets = Reflux.createStore({
   init() {

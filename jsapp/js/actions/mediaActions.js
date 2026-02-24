@@ -8,6 +8,9 @@ import { notify } from '#/utils'
 
 const FORM_MEDIA_FILE_TYPE = 'form_media'
 
+/**
+ * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
+ */
 const formMediaActions = Reflux.createActions({
   loadMedia: { children: ['completed', 'failed'] },
   uploadMedia: { children: ['completed', 'failed'] },

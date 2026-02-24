@@ -27,6 +27,9 @@ export interface MyLibraryStoreData {
   filterValue: string | null
 }
 
+/**
+ * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
+ */
 class MyLibraryStore extends Reflux.Store {
   /**
    * A method for aborting current XHR fetch request.
@@ -339,6 +342,9 @@ class MyLibraryStore extends Reflux.Store {
   }
 }
 
+/**
+ * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
+ */
 const myLibraryStore = new MyLibraryStore()
 myLibraryStore.init()
 
