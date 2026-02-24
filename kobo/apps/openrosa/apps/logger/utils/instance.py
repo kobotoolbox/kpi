@@ -15,7 +15,7 @@ from kobo.apps.openrosa.apps.logger.signals import (
     pre_delete_attachment,
     update_xform_submission_count_delete,
 )
-from kobo.apps.openrosa.apps.logger.utils.counters import update_storage_counters
+from kobo.apps.openrosa.apps.logger.utils.counters import decrement_counters_after_deletion
 from kobo.apps.openrosa.apps.viewer.models import InstanceModification, ParsedInstance
 from kobo.apps.openrosa.apps.viewer.signals import remove_from_mongo
 from kobo.apps.trash_bin.models.attachment import AttachmentTrash
@@ -50,14 +50,24 @@ def add_validation_status_to_instance(
 
 
 def delete_instances(xform: XForm, request_data: dict) -> int:
+    """
+    Bulk-delete submissions matching ``request_data`` from both PostgreSQL and
+    MongoDB, then update storage counters and submission counts once for the
+    whole batch.
+
+    To avoid OOM kills on large projects, related rows are deleted bottom-up
+    with explicit SQL DELETEs before Django's Collector runs, so the Collector
+    never loads the full object graph into memory. Per-row signals are
+    disconnected for the duration and their side-effects replayed once per
+    batch. File deletion is deferred outside the DB transaction to avoid
+    holding it open during slow storage I/O.
+    """
 
     deleted_records_count = 0
     postgres_query, mongo_query = build_db_queries(xform, request_data)
 
-    # Temporarily disconnect signals that would be fired per-Instance during
-    # bulk deletion. They would each re-query XForm and update counters
-    # individually, which is both slow and redundant for bulk operations.
-    # The equivalent updates are applied manually below after the deletion.
+    # Disconnect per-row signals; their side-effects are replayed once for the
+    # whole batch below.
     pre_delete.disconnect(pre_delete_attachment, sender=Attachment)
     pre_delete.disconnect(remove_from_mongo, sender=ParsedInstance)
     post_delete.disconnect(
@@ -79,14 +89,6 @@ def delete_instances(xform: XForm, request_data: dict) -> int:
                     **postgres_query
                 )
             )
-
-        # Delete related rows bottom-up with explicit SQL DELETEs instead
-        # of letting Django's Collector handle the cascade. The Collector
-        # loads every related object into memory at once to resolve the
-        # graph, which causes OOM kills on large projects. Each explicit
-        # delete holds only that table's PKs in memory, then frees them
-        # before moving on. Instance.delete() afterwards finds nothing
-        # left to collect and performs a fast SQL-only delete.
 
         total_storage_bytes = 0
         directories_to_delete = set()
@@ -127,10 +129,6 @@ def delete_instances(xform: XForm, request_data: dict) -> int:
                 if periodic_task_ids:
                     PeriodicTask.objects.filter(pk__in=periodic_task_ids).delete()
 
-            # Fast SQL DELETE — pre_delete_attachment is disconnected above so
-            # Django's Collector performs a _raw_delete with zero objects loaded
-            # in RAM. Physical files are not removed here (deferred to a
-            # separate task).
             Attachment.all_objects.filter(instance_id__in=instance_ids).delete()
             Note.objects.filter(instance_id__in=instance_ids).delete()
             InstanceModification.objects.filter(instance_id__in=instance_ids).delete()
@@ -154,18 +152,11 @@ def delete_instances(xform: XForm, request_data: dict) -> int:
             # caller's transaction and roll back the PostgreSQL deletions.
             ParsedInstance.bulk_delete(mongo_query)
 
-            # Always perform updates at the end of the transaction, because it is going
-            # to take a lock on the XForm and UserProfile.
-
-            # Update storage counters once for the whole batch, replacing the
-            # N individual calls that pre_delete_attachment would have made.
-            if total_storage_bytes:
-                update_storage_counters(xform.pk, xform.user_id, -total_storage_bytes)
-
-            # Re-apply the disconnected signal side-effects once for the batch.
+            # Always perform updates at the end of the transaction to defer
+            # the lock on XForm and UserProfile as late as possible.
             nullify_exports_time_of_last_submission(sender=Instance, instance=xform)
-            update_xform_submission_count_delete(
-                sender=Instance, instance=xform, value=deleted_records_count
+            decrement_counters_after_deletion(
+                xform.pk, xform.user_id, deleted_records_count, total_storage_bytes
             )
 
         bulk_rmdir(directories_to_delete, default_kobocat_storage)
