@@ -62,16 +62,19 @@ def delete_instances(xform: XForm, request_data: dict) -> int:
     )
 
     try:
-        # Delete Postgres & Mongo
+        # Callers are responsible for wrapping this call in a transaction
+        # (kc_transaction_atomic + transaction.atomic). This keeps the function
+        # as a pure utility and lets callers include other operations (e.g.
+        # AuditLog writes) in the same atomic block.
         instance_ids = postgres_query.get('id__in')
         if instance_ids:
-            # Delete related rows bottom-up with explicit SQL DELETEs instead of
-            # letting Django's Collector handle the cascade. The Collector loads
-            # every related object into memory at once to resolve the graph,
-            # which causes OOM kills on large projects. Each explicit delete
-            # holds only that table's PKs in memory, then frees them before
-            # moving on. Instance.delete() afterwards finds nothing left to
-            # collect and performs a fast SQL-only delete.
+            # Delete related rows bottom-up with explicit SQL DELETEs instead
+            # of letting Django's Collector handle the cascade. The Collector
+            # loads every related object into memory at once to resolve the
+            # graph, which causes OOM kills on large projects. Each explicit
+            # delete holds only that table's PKs in memory, then frees them
+            # before moving on. Instance.delete() afterwards finds nothing
+            # left to collect and performs a fast SQL-only delete.
             # Note: pre_delete_attachment is kept connected to update storage
             # counters and remove physical files for each Attachment.
             Attachment.objects.filter(instance_id__in=instance_ids).delete()
@@ -79,25 +82,30 @@ def delete_instances(xform: XForm, request_data: dict) -> int:
             InstanceModification.objects.filter(instance_id__in=instance_ids).delete()
             ParsedInstance.objects.filter(instance_id__in=instance_ids).delete()
 
-        # Restrict Instance.delete() to PKs only so Django's Collector does not
-        # fetch heavy xml/json fields from the instance rows themselves.
-        all_count, results = Instance.objects.filter(**postgres_query).only('pk').delete()
+        # Restrict Instance.delete() to PKs only so Django's Collector does
+        # not fetch heavy xml/json fields from the instance rows themselves.
+        all_count, results = (
+            Instance.objects.filter(**postgres_query).only('pk').delete()
+        )
 
         identifier = f'{Instance._meta.app_label}.Instance'
         try:
             deleted_records_count = results[identifier]
         except KeyError:
-            # PostgreSQL did not delete any Instance objects. Keep going in case
-            # they are still present in MongoDB.
+            # PostgreSQL did not delete any Instance objects. Keep going in
+            # case they are still present in MongoDB.
             logging.warning('Instance objects cannot be found')
 
-        ParsedInstance.bulk_delete(mongo_query)
-
-        # Re-apply the disconnected signal side-effects once for the whole batch.
+        # Re-apply the disconnected signal side-effects once for the batch.
         nullify_exports_time_of_last_submission(sender=Instance, instance=xform)
         update_xform_submission_count_delete(
             sender=Instance, instance=xform, value=deleted_records_count
         )
+
+        # MongoDB is not transactional, but a failure here will propagate to the
+        # caller's transaction and roll back the PostgreSQL deletions.
+        ParsedInstance.bulk_delete(mongo_query)
+
     finally:
         # Reconnect signals that were temporarily disabled above.
         pre_delete.connect(remove_from_mongo, sender=ParsedInstance)

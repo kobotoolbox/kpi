@@ -15,6 +15,7 @@ from django.conf import settings
 from django.core.cache.backends.base import InvalidCacheBackendError
 from django.core.files import File
 from django.core.files.base import ContentFile
+from django.db import transaction
 from django.db.models import F, Sum
 from django.db.models.functions import Coalesce
 from django.db.models.query import QuerySet
@@ -301,7 +302,8 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             data.pop('query', None)
             data['submission_ids'] = submission_ids
 
-        return delete_instances(self.xform, data)
+        with kc_transaction_atomic():
+            return delete_instances(self.xform, data)
 
     def duplicate_submission(
         self,

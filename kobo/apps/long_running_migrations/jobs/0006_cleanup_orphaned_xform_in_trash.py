@@ -1,9 +1,11 @@
 # Generated on 2025-02-11 20:50
 from django.conf import settings
+from django.db import transaction
 from more_itertools import chunked
 
 from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.openrosa.apps.logger.utils.instance import delete_instances
+from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 
 
 def run():
@@ -27,6 +29,7 @@ def run():
             submission_ids = xform.instances.values_list('pk', flat=True)
             for submission_ids_batch in chunked(submission_ids, CHUNK_SIZE):
                 data = {'submission_ids': submission_ids_batch}
-                delete_instances(xform, data)
+                with kc_transaction_atomic():
+                    delete_instances(xform, data)
 
             xform.delete()

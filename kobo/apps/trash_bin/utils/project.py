@@ -4,6 +4,8 @@ from django.conf import settings
 from django.db import transaction
 from django.db.models import F, Q
 
+from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
+
 from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import AuditLog, AuditType
 from kpi.exceptions import InvalidXFormException, MissingXFormException
@@ -142,9 +144,10 @@ def _delete_submissions(request_author: settings.AUTH_USER_MODEL, asset: 'kpi.As
 
             submission_ids.append(submission['_id'])
 
-        asset.deployment.delete_submissions(
-            {'submission_ids': submission_ids, 'query': ''}, request_author
-        )
+        with kc_transaction_atomic(), transaction.atomic():
+            asset.deployment.delete_submissions(
+                {'submission_ids': submission_ids, 'query': ''}, request_author
+            )
 
-        if audit_logs:
-            AuditLog.objects.bulk_create(audit_logs)
+            if audit_logs:
+                AuditLog.objects.bulk_create(audit_logs)
