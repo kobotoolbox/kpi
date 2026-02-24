@@ -473,7 +473,6 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
         const results = data.results
         this.setState({ submissions: results }, () => {
           this.buildMarkers(map)
-          // TODO: Remove dependence of _geolocation
           this.buildHeatMap(map)
         })
       })
@@ -718,11 +717,12 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
   buildHeatMap(map: L.Map) {
     const heatmapPoints: Array<[number, number, number]> = []
     this.state.submissions.forEach((item) => {
-      if (checkLatLng(item._geolocation)) {
-        const geo0 = item._geolocation[0]
-        const geo1 = item._geolocation[1]
-        if (geo0 !== null && geo1 !== null) {
-          heatmapPoints.push([geo0, geo1, 1])
+      let parsedCoordinates: string[] = []
+      parsedCoordinates = String(item[this.state.foundSelectedQuestion as string]).split(' ')
+
+      if (this.state.foundSelectedQuestion && checkLatLng(parsedCoordinates)) {
+        if (!!parsedCoordinates.length) {
+          heatmapPoints.push([Number.parseInt(parsedCoordinates[0]), Number.parseInt(parsedCoordinates[1]), 1])
         }
       }
     })
