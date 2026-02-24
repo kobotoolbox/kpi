@@ -8,41 +8,37 @@ from kobo.apps.storage_backends.s3boto3 import S3Boto3Storage
 from storages.backends.azure_storage import AzureStorage
 
 
-def bulk_rmdir(directories: Iterable[str], storage: Storage) -> None:
+def bulk_delete_files(file_paths: Iterable[str], storage: Storage) -> None:
     """
-    Delete multiple directories and all their contents from storage.
+    Delete specific files from storage using backend-specific bulk APIs.
 
-    Unlike calling rmdir() in a loop, this function uses backend-specific
-    bulk APIs to minimise the number of network round-trips:
+    Unlike a directory-based approach, this function takes exact file paths
+    and deletes them directly without any listing step, which is much faster
+    when the paths are already known.
 
-    * FileSystemStorage – shutil.rmtree() per directory.
-    * S3Boto3Storage    – lists objects under each prefix and deletes them
-                          in batches of 1 000 with delete_objects().
-    * AzureStorage      – lists blobs under each prefix and deletes them
-                          in batches of 256 with delete_blobs().
+    * FileSystemStorage – os.remove() per file.
+    * S3Boto3Storage    – deletes files in batches of 1 000 with delete_objects().
+    * AzureStorage      – deletes files in batches of 256 with delete_blobs().
 
-    ``directories`` must contain paths relative to the storage root
-    (same convention as rmdir()).
+    ``file_paths`` must contain paths relative to the storage root.
     """
-
-    if not directories:
+    if not file_paths:
         return
 
     if isinstance(storage, FileSystemStorage):
-        for directory in directories:
-            full_path = storage.path(directory)
-            if os.path.exists(full_path):
-                shutil.rmtree(full_path)
+        parent_dirs = {os.path.dirname(p) for p in file_paths if p}
+        for directory in parent_dirs:
+            rmdir(directory)
 
     elif isinstance(storage, S3Boto3Storage):
-        _bulk_rmdir_s3(directories, storage)
+        _bulk_delete_files_s3(file_paths, storage)
 
     elif isinstance(storage, AzureStorage):
-        _bulk_rmdir_azure(directories, storage)
+        _bulk_delete_files_azure(file_paths, storage)
 
     else:
-        for directory in directories:
-            rmdir(directory, storage, storage)
+        for path in file_paths:
+            storage.delete(path)
 
 
 def rmdir(directory: str, storage: Storage):
@@ -63,8 +59,9 @@ def rmdir(directory: str, storage: Storage):
     else:
         _recursive_delete(directory)
 
-def _bulk_rmdir_s3(directories: list[str], storage: S3Boto3Storage) -> None:
-    """Delete S3 objects whose keys fall under any of the given prefixes."""
+
+def _bulk_delete_files_s3(file_paths: Iterable[str], storage: S3Boto3Storage) -> None:
+    """Delete S3 objects by exact key, with no listing step."""
     bucket = storage.bucket
     location = getattr(storage, 'location', '').strip('/')
     pending: list[dict] = []
@@ -72,21 +69,22 @@ def _bulk_rmdir_s3(directories: list[str], storage: S3Boto3Storage) -> None:
     def _flush(keys: list[dict]) -> None:
         bucket.delete_objects(Delete={'Objects': keys, 'Quiet': True})
 
-    for directory in directories:
-        dir_path = directory.strip('/')
-        prefix = f'{location}/{dir_path}/' if location else f'{dir_path}/'
-        for obj in bucket.objects.filter(Prefix=prefix):
-            pending.append({'Key': obj.key})
-            if len(pending) == settings.S3_DELETE_BATCH_SIZE:
-                _flush(pending)
-                pending = []
+    for path in file_paths:
+        path = path.strip('/')
+        key = f'{location}/{path}' if location else path
+        pending.append({'Key': key})
+        if len(pending) == settings.S3_DELETE_BATCH_SIZE:
+            _flush(pending)
+            pending = []
 
     if pending:
         _flush(pending)
 
 
-def _bulk_rmdir_azure(directories: list[str], storage: AzureStorage) -> None:
-    """Delete Azure blobs whose names fall under any of the given prefixes."""
+def _bulk_delete_files_azure(
+    file_paths: Iterable[str], storage: AzureStorage
+) -> None:
+    """Delete Azure blobs by exact name, with no listing step."""
     container_client = storage.client
     location = getattr(storage, 'location', '').strip('/')
     pending: list[str] = []
@@ -94,14 +92,13 @@ def _bulk_rmdir_azure(directories: list[str], storage: AzureStorage) -> None:
     def _flush(names: list[str]) -> None:
         container_client.delete_blobs(*names)
 
-    for directory in directories:
-        dir_path = directory.strip('/')
-        prefix = f'{location}/{dir_path}/' if location else f'{dir_path}/'
-        for blob in container_client.list_blobs(name_starts_with=prefix):
-            pending.append(blob['name'])
-            if len(pending) == settings.AZURE_DELETE_BATCH_SIZE:
-                _flush(pending)
-                pending = []
+    for path in file_paths:
+        path = path.strip('/')
+        name = f'{location}/{path}' if location else path
+        pending.append(name)
+        if len(pending) == settings.AZURE_DELETE_BATCH_SIZE:
+            _flush(pending)
+            pending = []
 
     if pending:
         _flush(pending)

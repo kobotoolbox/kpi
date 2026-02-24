@@ -1,5 +1,4 @@
 import logging
-import os
 import time
 
 from django.conf import settings
@@ -16,12 +15,13 @@ from kobo.apps.openrosa.apps.logger.signals import (
     update_xform_submission_count_delete,
 )
 from kobo.apps.openrosa.apps.logger.utils.counters import decrement_counters_after_deletion
+from kobo.apps.openrosa.libs.utils.viewer_tools import get_optimized_image_path
 from kobo.apps.openrosa.apps.viewer.models import InstanceModification, ParsedInstance
 from kobo.apps.openrosa.apps.viewer.signals import remove_from_mongo
 from kobo.apps.trash_bin.models.attachment import AttachmentTrash
 from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 from kpi.deployment_backends.kc_access.storage import default_kobocat_storage
-from kpi.utils.storage import bulk_rmdir
+from kpi.utils.storage import bulk_delete_files
 from ..exceptions import MissingValidationStatusPayloadError
 from ..models.instance import Instance
 from ..models.xform import XForm
@@ -91,15 +91,22 @@ def delete_instances(xform: XForm, request_data: dict) -> int:
             )
 
         total_storage_bytes = 0
-        directories_to_delete = set()
+        files_to_delete = set()
 
         with kc_transaction_atomic(), transaction.atomic():
             # One query: collect PKs + aggregate storage bytes before deleting.
             # all_objects is used to include soft-deleted attachments
             # (delete_status IS NOT NULL) that the default manager excludes.
             attachment_rows = list(
-                Attachment.all_objects.filter(instance_id__in=instance_ids)
-                .values('pk', 'media_file', 'media_file_size', 'delete_status')
+                Attachment.all_objects.filter(
+                    instance_id__in=instance_ids
+                ).values(
+                    'pk',
+                    'media_file',
+                    'media_file_size',
+                    'delete_status',
+                    'mimetype',
+                )
             )
 
             # Bulk cleanup AttachmentTrash (cross-DB: KPI default DB, no FK
@@ -114,9 +121,13 @@ def delete_instances(xform: XForm, request_data: dict) -> int:
                         total_storage_bytes += attachment_row['media_file_size'] or 0
 
                     attachment_ids.append(attachment_row['pk'])
-                    directories_to_delete.add(
-                        os.path.dirname(attachment_row['media_file'])
-                    )
+                    if media_file := attachment_row['media_file']:
+                        files_to_delete.add(media_file)
+                        if attachment_row['mimetype'].startswith('image/'):
+                            for suffix in settings.THUMB_CONF:
+                                files_to_delete.add(
+                                    get_optimized_image_path(media_file, suffix)
+                                )
 
                 att_trash_qs = AttachmentTrash.objects.filter(
                     attachment_id__in=attachment_ids
@@ -159,8 +170,9 @@ def delete_instances(xform: XForm, request_data: dict) -> int:
                 xform.pk, xform.user_id, deleted_records_count, total_storage_bytes
             )
 
-        bulk_rmdir(directories_to_delete, default_kobocat_storage)
-
+        # File deletion is outside the transaction to avoid locking tables for
+        # too long.
+        bulk_delete_files(files_to_delete, default_kobocat_storage)
     finally:
         # Reconnect signals that were temporarily disabled above.
         pre_delete.connect(pre_delete_attachment, sender=Attachment)
