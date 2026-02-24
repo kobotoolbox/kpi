@@ -235,3 +235,59 @@ class ScimUsersAPITests(APITestCase):
         # Verify user1 is not affected
         self.user1.refresh_from_db()
         self.assertTrue(self.user1.is_active)
+
+    def test_patch_deactivate_user(self):
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
+        
+        # Create another user with the same email as user1 (jdoe@example.com)
+        user3 = User.objects.create_user(
+            username='jdoe_sso',
+            email='jdoe@example.com',
+            first_name='John',
+            last_name='Doe',
+            is_active=True,
+        )
+        
+        payload = {
+            "schemas": ["urn:ietf:params:scim:api:messages:2.0:PatchOp"],
+            "Operations": [
+                {
+                    "op": "replace",
+                    "path": "active",
+                    "value": False
+                }
+            ]
+        }
+
+        response = self.client.patch(f'{self.url}/{self.user1.id}', payload, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.json()
+        self.assertFalse(data.get('active', True))
+        
+        # Verify that both users with the same email are deactivated
+        self.user1.refresh_from_db()
+        user3.refresh_from_db()
+        self.assertFalse(self.user1.is_active)
+        self.assertFalse(user3.is_active)
+        
+    def test_patch_unsupported_operation(self):
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
+        
+        payload = {
+            "schemas": ["urn:ietf:params:scim:api:messages:2.0:PatchOp"],
+            "Operations": [
+                {
+                    "op": "replace",
+                    "path": "name.familyName",
+                    "value": "Smith"
+                }
+            ]
+        }
+
+        response = self.client.patch(f'{self.url}/{self.user1.id}', payload, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        
+        self.user1.refresh_from_db()
+        self.assertTrue(self.user1.is_active)

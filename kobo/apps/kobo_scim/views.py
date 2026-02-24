@@ -2,7 +2,8 @@ import re
 
 from django.conf import settings
 from drf_spectacular.utils import extend_schema, extend_schema_view
-from rest_framework import mixins, viewsets
+from rest_framework import mixins, viewsets, status
+from rest_framework.response import Response
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.kobo_scim.authentication import IsAuthenticatedIdP, SCIMAuthentication
@@ -19,11 +20,15 @@ from kobo.apps.kobo_scim.serializers import ScimUserSerializer
     destroy=extend_schema(
         description="Deactivates all Kobo accounts linked to the user's email address."
     ),
+    partial_update=extend_schema(
+        description="Updates a SCIM user. Currently only supports deactivation via the 'active' attribute."
+    ),
 )
 class ScimUserViewSet(
     mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
     mixins.DestroyModelMixin,
+    mixins.UpdateModelMixin,
     viewsets.GenericViewSet,
 ):
     """
@@ -81,3 +86,26 @@ class ScimUserViewSet(
         else:
             # Fallback if no email is set
             User.objects.filter(pk=instance.pk).update(is_active=False)
+
+    def partial_update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        operations = request.data.get('Operations', [])
+        
+        deactivate = False
+        for op in operations:
+            if op.get('op', '').lower() == 'replace' and op.get('path') == 'active':
+                if op.get('value') is False:
+                    deactivate = True
+            
+        if deactivate:
+            # Reuse the destroy logic which deactivates the user(s)
+            self.perform_destroy(instance)
+            # SCIM expects the updated resource returned on successful PATCH
+            instance.refresh_from_db()
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+            
+        return Response(
+            {'detail': 'Operation not supported or invalid'}, 
+            status=status.HTTP_400_BAD_REQUEST
+        )
