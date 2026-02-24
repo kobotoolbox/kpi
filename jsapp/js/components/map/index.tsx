@@ -448,8 +448,6 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       selectedQuestion = null
     }
 
-    // TODO: figure out how to tell MapSettings to have the selectedQuestion above be clicked in the modal
-
     this.setState({ foundSelectedQuestion: selectedQuestion })
 
     let queryLimit = QUERY_LIMIT_DEFAULT
