@@ -604,7 +604,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
 
         if (!!parsedCoordinates.length) {
           prepPoints.push(
-            L.marker([Number.parseInt(parsedCoordinates[0]), Number.parseInt(parsedCoordinates[1])], markerProps),
+            L.marker([Number.parseFloat(parsedCoordinates[0]), Number.parseFloat(parsedCoordinates[1])], markerProps),
           )
         }
       }
@@ -722,7 +722,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
 
       if (this.state.foundSelectedQuestion && checkLatLng(parsedCoordinates)) {
         if (!!parsedCoordinates.length) {
-          heatmapPoints.push([Number.parseInt(parsedCoordinates[0]), Number.parseInt(parsedCoordinates[1]), 1])
+          heatmapPoints.push([Number.parseFloat(parsedCoordinates[0]), Number.parseFloat(parsedCoordinates[1]), 1])
         }
       }
     })
