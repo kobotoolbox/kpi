@@ -477,6 +477,72 @@ class AssetListApiTests(BaseAssetTestCase):
         assert response.data['results'][0]['uid'] == asset.uid
         assert response.data['results'][0]['date_deployed'] is None
 
+    def test_shared_asset_appears_in_grantee_list(self):
+        """
+        An asset owned by someuser and shared with anotheruser must appear
+        in anotheruser's asset list, alongside anotheruser's own assets.
+        """
+        anotheruser = User.objects.get(username='anotheruser')
+
+        # Use the existing fixture asset owned by someuser (pk=1)
+        shared_asset = Asset.objects.get(pk=1)
+        shared_asset.assign_perm(anotheruser, PERM_VIEW_ASSET)
+
+        # Create an asset owned by anotheruser
+        own_asset = Asset.objects.create(
+            owner=anotheruser,
+            name='Anotheruser own asset',
+            asset_type=ASSET_TYPE_SURVEY,
+        )
+
+        # Fetch the asset list as anotheruser
+        self.client.force_login(anotheruser)
+        response = self.client.get(self.list_url)
+        assert response.status_code == status.HTTP_200_OK
+
+        result_uids = [r['uid'] for r in response.data['results']]
+
+        # The asset shared by someuser must appear in the list
+        assert shared_asset.uid in result_uids
+        # Anotheruser's own asset must also appear
+        assert own_asset.uid in result_uids
+
+    def test_shared_asset_hidden_when_owner_inactive(self):
+        """
+        When someuser becomes inactive (is_active=False), assets owned by
+        someuser and shared with anotheruser must no longer appear in
+        anotheruser's asset list. Anotheruser's own assets must still appear.
+        """
+        someuser = User.objects.get(username='someuser')
+        anotheruser = User.objects.get(username='anotheruser')
+
+        # Use the existing fixture asset owned by someuser (pk=1)
+        shared_asset = Asset.objects.get(pk=1)
+        shared_asset.assign_perm(anotheruser, PERM_VIEW_ASSET)
+
+        # Create an asset owned by anotheruser
+        own_asset = Asset.objects.create(
+            owner=anotheruser,
+            name='Anotheruser own asset',
+            asset_type=ASSET_TYPE_SURVEY,
+        )
+
+        # Deactivate someuser
+        someuser.is_active = False
+        someuser.save()
+
+        # Fetch the asset list as anotheruser
+        self.client.force_login(anotheruser)
+        response = self.client.get(self.list_url)
+        assert response.status_code == status.HTTP_200_OK
+
+        result_uids = [r['uid'] for r in response.data['results']]
+
+        # The asset from the inactive owner must NOT appear in the list
+        assert shared_asset.uid not in result_uids
+        # Anotheruser's own asset must still appear
+        assert own_asset.uid in result_uids
+
 
 class AssetProjectViewListApiTests(BaseAssetTestCase):
     fixtures = ['test_data']

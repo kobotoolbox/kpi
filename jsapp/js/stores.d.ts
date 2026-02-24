@@ -36,7 +36,6 @@ export interface SurveyStateStore {
 export interface Stores {
   tags: any
   surveyState: SurveyStateStore
-  assetSearch: any
   translations: any
   snapshots: any
   allAssets: any

@@ -123,7 +123,7 @@ class AssetActionButtons extends React.Component<AssetActionButtonsProps, AssetA
   }
 
   editLanguages() {
-    manageAssetLanguages(this.props.asset.uid)
+    manageAssetLanguages(this.props.asset)
   }
 
   share() {

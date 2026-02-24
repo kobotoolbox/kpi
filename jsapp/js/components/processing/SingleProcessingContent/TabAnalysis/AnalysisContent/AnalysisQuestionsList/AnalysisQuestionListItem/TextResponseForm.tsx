@@ -1,10 +1,10 @@
 import { Textarea } from '@mantine/core'
 import React, { useState } from 'react'
-import type { _DataSupplementResponseOneOfManualQualVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualQualVersionsItem'
+import type { SupplementalDataVersionItemQual } from '#/api/models/supplementalDataVersionItemQual'
 import { AUTO_SAVE_TYPING_DELAY } from '../../../common/constants'
 
 interface Props {
-  qaAnswer?: _DataSupplementResponseOneOfManualQualVersionsItem
+  qaAnswer?: SupplementalDataVersionItemQual
   disabled: boolean
   onSave: (value: string) => Promise<unknown>
 }
@@ -30,7 +30,7 @@ export default function TextResponseForm({ qaAnswer, onSave, disabled }: Props) 
       minRows={2}
       value={value}
       onChange={handleChange}
-      placeholder={t('Type your answer')}
+      placeholder={t('Type your response or use AI')}
       onBlur={handleSave}
       disabled={disabled}
     />

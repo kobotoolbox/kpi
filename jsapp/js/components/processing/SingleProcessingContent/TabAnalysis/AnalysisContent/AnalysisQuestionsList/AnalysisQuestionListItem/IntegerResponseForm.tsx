@@ -1,10 +1,10 @@
 import { NumberInput } from '@mantine/core'
 import React, { useState } from 'react'
-import type { _DataSupplementResponseOneOfManualQualVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualQualVersionsItem'
+import type { SupplementalDataVersionItemQual } from '#/api/models/supplementalDataVersionItemQual'
 import { AUTO_SAVE_TYPING_DELAY } from '../../../common/constants'
 
 interface Props {
-  qaAnswer?: _DataSupplementResponseOneOfManualQualVersionsItem
+  qaAnswer?: SupplementalDataVersionItemQual
   disabled: boolean
   onSave: (value: number | null) => Promise<unknown>
 }
@@ -28,7 +28,7 @@ export default function IntegerResponseForm({ qaAnswer, onSave, disabled }: Prop
     <NumberInput
       value={value}
       onChange={handleChange}
-      placeholder={t('Type your answer')}
+      placeholder={t('Type your response or use AI')}
       onBlur={handleSave}
       disabled={disabled}
     />

@@ -82,8 +82,8 @@ interface DeleteAssetCompletedDefinition extends Function {
 }
 
 export interface UpdateAssetDefinitionParams {
-  onComplete: (response: AssetResponse) => void
-  onFail: (response: FailResponse) => void
+  onComplete?: (response: AssetResponse) => void
+  onFailed?: (response: FailResponse) => void
 }
 
 interface UpdateAssetDefinition extends Function {
@@ -347,11 +347,11 @@ export declare const actions: {
     createImport: GenericDefinition
     loadAsset: LoadAssetDefinition
     deployAsset: GenericDefinition
+    /** This is "archive" and "unarchive" of asset */
     setDeploymentActive: GenericDefinition
     createSnapshot: GenericDefinition
     cloneAsset: GenericDefinition
     deleteAsset: DeleteAssetDefinition
-    listTags: GenericDefinition
     createResource: CreateResourceDefinition
     updateAsset: UpdateAssetDefinition
     updateSubmissionValidationStatus: UpdateSubmissionValidationStatusDefinition

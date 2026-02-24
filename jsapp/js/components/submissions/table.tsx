@@ -906,7 +906,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             }
             if (q && q.type === QUESTION_TYPES.select_multiple.id && row.value && !tableStore.getTranslationIndex()) {
               const values = row.value.split(' ')
-              const labels: string[] = []
+              const labels: Array<string | null> = []
               values.forEach((valueItem: string) => {
                 const choice = choices.find(
                   (choiceItem) => choiceItem.list_name === q?.select_from_list_name && choiceItem.name === valueItem,

@@ -7,8 +7,10 @@ import { InputBaseThemeKobo } from './InputBase'
 import { LoaderThemeKobo } from './Loader'
 import { MenuThemeKobo } from './Menu'
 import { ModalThemeKobo } from './Modal'
+import { MultiSelectThemeKobo } from './MultiSelect'
 import { NumberInputThemeKobo } from './NumberInput'
 import { PaperThemeKobo } from './Paper'
+import { PillThemeKobo } from './Pill'
 import { RadioThemeKobo } from './Radio'
 import { SelectThemeKobo } from './Select'
 import { TableThemeKobo } from './Table'
@@ -118,6 +120,7 @@ export const themeKobo = createTheme({
     Loader: LoaderThemeKobo,
     Menu: MenuThemeKobo,
     Modal: ModalThemeKobo,
+    MultiSelect: MultiSelectThemeKobo,
     Select: SelectThemeKobo,
     Tooltip: TooltipThemeKobo,
     Table: TableThemeKobo,
@@ -126,6 +129,7 @@ export const themeKobo = createTheme({
     ThemeIcon: ThemeIconThemeKobo,
     NumberInput: NumberInputThemeKobo,
     Paper: PaperThemeKobo,
+    Pill: PillThemeKobo,
     Radio: RadioThemeKobo,
   },
 })

@@ -1,6 +1,9 @@
 @use 'scss/mixins';
 @use 'scss/colors';
 
+$badge-height-xs: 20px;
+$badge-font-xs: 11px;
+
 $badge-height-s: 24px;
 $badge-font-s: 12px;
 
@@ -76,6 +79,10 @@ $badge-font-l: 14px;
   .icon + .label {
     margin-left: $size * 0.15;
   }
+}
+
+.size-xs {
+  @include badge-size($badge-height-xs, $badge-font-xs);
 }
 
 .size-s {

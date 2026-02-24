@@ -76,7 +76,7 @@ export function getProcessingRouteParts(path: string): ProcessingRouteParts {
  * @param value
  */
 export function decodeURLParamWithSlash(value: string) {
-  return value.replace(/\|/g, '/')
+  return decodeURIComponent(value).replace(/\|/g, '/')
 }
 
 /**
@@ -88,7 +88,10 @@ export function decodeURLParamWithSlash(value: string) {
  * @param value
  */
 export function encodeURLParamWithSlash(value: string) {
-  return encodeURIComponent(value.replace(/\//g, '|'))
+  // We first decode the value to ensure that
+  // if it already contains encoded slashes or pipes,
+  // avoiding a double-encoded value that would break the url structure.
+  return encodeURIComponent(decodeURLParamWithSlash(value).replace(/\//g, '|'))
 }
 
 export function getCurrentProcessingRouteParts(): ProcessingRouteParts {

@@ -157,6 +157,7 @@ class TestBedrockAutomaticBedrockQual(BaseAutomaticBedrockQualTestCase):
                 continue
             uuid_ = param['uuid']
             self.action.validate_data({'uuid': uuid_})
+            self.action.validate_data({'uuid': uuid_, 'verified': True})
 
     def test_invalid_user_data_no_uuid(self):
         with pytest.raises(jsonschema.exceptions.ValidationError):
@@ -267,6 +268,9 @@ class TestBedrockAutomaticBedrockQual(BaseAutomaticBedrockQualTestCase):
         assert version_data['status'] == 'complete'
         assert version['_dependency']['_uuid'] == transcript_uuid
         assert version['_dependency']['_actionId'] == Action.MANUAL_TRANSCRIPTION
+        assert 'verified' in version
+        assert not version['verified']
+        assert version.get('_dateVerified') is None
 
     def test_transform_data_filters_out_failed_versions(self):
         today = timezone.now()

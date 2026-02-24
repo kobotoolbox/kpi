@@ -20,6 +20,7 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 from kobo.apps.audit_log.base_views import AuditLoggedViewSet
 from kobo.apps.audit_log.models import AuditType
 from kobo.apps.audit_log.utils import SubmissionUpdate
+from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     add_uuid_prefix,
     remove_uuid_prefix,
@@ -28,7 +29,9 @@ from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_hand
 from kobo.apps.subsequences.exceptions import (
     InvalidAction,
     InvalidXPath,
+    SubsequenceAcceptanceError,
     SubsequenceDeletionError,
+    SubsequenceVerificationError,
     TranscriptionNotFound,
 )
 from kobo.apps.subsequences.models import SubmissionSupplement
@@ -551,7 +554,9 @@ class DataViewSet(
                 SubmissionSupplement.retrieve_data(self.asset, submission_root_uuid)
             )
 
-        post_data = request.data
+        # revise_data modifies action_data,
+        # copy it so as not to not lose the original request data
+        post_data = copy.deepcopy(request.data)
 
         try:
             supplemental_data = SubmissionSupplement.revise_data(
@@ -582,6 +587,10 @@ class DataViewSet(
             raise serializers.ValidationError(
                 {'detail': 'Cannot translate without transcription'}
             )
+        except SubsequenceVerificationError:
+            raise serializers.ValidationError({'detail': 'No response to verify'})
+        except SubsequenceAcceptanceError:
+            raise serializers.ValidationError({'detail': 'No response to accept'})
 
         return Response(supplemental_data)
 
@@ -867,6 +876,29 @@ class DataViewSet(
         submission_json = deployment.get_submission(
             submission_id, user, request=request
         )
+
+        # Block edit if the submission has duplicates.
+        if (
+            Instance.objects.filter(
+                uuid=remove_uuid_prefix(
+                    submission_json[deployment.SUBMISSION_CURRENT_UUID_XPATH]
+                ),
+                xform_id=deployment.xform_id,
+            )
+            .exclude(pk=submission_id)
+            .exists()
+        ):
+            # Return an error immediately to prevent the user from receiving an error
+            # when submitting their edit in Enketo
+            return Response(
+                {
+                    'detail': (
+                        'A duplicate submission has been detected. '
+                        'This submission cannot be edited at the moment.'
+                    )
+                },
+                status=status.HTTP_409_CONFLICT,
+            )
 
         # Add mandatory XML elements if they are missing from the original
         # submission. They could be overwritten unconditionally, but be

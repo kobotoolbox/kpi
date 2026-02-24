@@ -1,13 +1,3 @@
-/**
- * A bundle file for all Reflux actions. This is the only place that React
- * components should be talking to Backend.
- *
- * You can observe action result through Reflux callbacks in your component, or
- * more preferably (where applicable) use the update eveont of one of the stores
- * from `jsapp/js/stores.js`
- */
-
-import * as Sentry from '@sentry/react'
 import alertify from 'alertifyjs'
 import Reflux from 'reflux'
 import { replaceSupportEmail } from '#/textUtils'
@@ -45,10 +35,6 @@ actions.survey = Reflux.createActions({
   addExternalItemAtPosition: { children: ['completed', 'failed'] },
 })
 
-actions.search = Reflux.createActions({
-  assets: { children: ['completed', 'failed'] },
-})
-
 actions.resources = Reflux.createActions({
   createImport: { children: ['completed', 'failed'] },
   loadAsset: { children: ['completed', 'failed'] },
@@ -57,7 +43,6 @@ actions.resources = Reflux.createActions({
   createSnapshot: { children: ['completed', 'failed'] },
   cloneAsset: { children: ['completed', 'failed'] },
   deleteAsset: { children: ['completed', 'failed'] },
-  listTags: { children: ['completed', 'failed'] },
   createResource: { asyncResult: true },
   updateAsset: { asyncResult: true },
   updateSubmissionValidationStatus: { children: ['completed', 'failed'] },
@@ -132,16 +117,6 @@ actions.resources.createSnapshot.listen((details) => {
     .createAssetSnapshot(details)
     .done(actions.resources.createSnapshot.completed)
     .fail(actions.resources.createSnapshot.failed)
-})
-
-actions.resources.listTags.listen((data) => {
-  dataInterface.listTags(data).done(actions.resources.listTags.completed).fail(actions.resources.listTags.failed)
-})
-
-actions.resources.listTags.completed.listen((results) => {
-  if (results.next) {
-    Sentry.captureMessage('MAX_TAGS_EXCEEDED: Too many tags')
-  }
 })
 
 actions.resources.updateAsset.listen((uid, values, params = {}) => {
@@ -362,23 +337,6 @@ actions.resources.cloneAsset.listen((details, params = {}) => {
 })
 actions.resources.cloneAsset.failed.listen(() => {
   notify(t('Could not create project!'), 'error')
-})
-
-actions.search.assets.listen((searchData, params = {}) => {
-  dataInterface
-    .searchAssets(searchData)
-    .done((response) => {
-      actions.search.assets.completed(searchData, response)
-      if (typeof params.onComplete === 'function') {
-        params.onComplete(searchData, response)
-      }
-    })
-    .fail((response) => {
-      actions.search.assets.failed(searchData, response)
-      if (typeof params.onFailed === 'function') {
-        params.onFailed(searchData, response)
-      }
-    })
 })
 
 actions.auth.verifyLogin.listen(() => {

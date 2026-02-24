@@ -3,11 +3,10 @@ import React, { useCallback, useRef, useState } from 'react'
 import classnames from 'classnames'
 import type { Identifier, XYCoord } from 'dnd-core'
 import { useDrag, useDrop } from 'react-dnd'
-import type { _DataSupplementResponseOneOfManualQualVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualQualVersionsItem'
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { DataResponse } from '#/api/models/dataResponse'
-import type { PatchedDataSupplementPayloadOneOfManualQual } from '#/api/models/patchedDataSupplementPayloadOneOfManualQual'
 import type { ResponseQualActionParams } from '#/api/models/responseQualActionParams'
+import type { SupplementalDataVersionItemQual } from '#/api/models/supplementalDataVersionItemQual'
 import {
   type assetsDataSupplementRetrieveResponse,
   getAssetsDataSupplementRetrieveQueryKey,
@@ -20,6 +19,7 @@ import Icon from '#/components/common/icon'
 import InlineMessage from '#/components/common/inlineMessage'
 import { userCan } from '#/components/permissions/utils'
 import { LOCALLY_EDITED_PLACEHOLDER_UUID, SUBSEQUENCES_SCHEMA_VERSION } from '#/components/processing/common/constants'
+import type { ManualQualValue } from '#/components/processing/common/types'
 import { DND_TYPES } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import { removeDefaultUuidPrefix } from '#/utils'
@@ -78,9 +78,7 @@ export default function AnalysisQuestionListItem({
       staleTime: Number.POSITIVE_INFINITY,
       queryKey: getAssetsDataSupplementRetrieveQueryKey(asset.uid, rootUuid),
       select: useCallback(
-        (
-          data: assetsDataSupplementRetrieveResponse,
-        ): _DataSupplementResponseOneOfManualQualVersionsItem | undefined => {
+        (data: assetsDataSupplementRetrieveResponse): SupplementalDataVersionItemQual | undefined => {
           if (data.status !== 200) return // typeguard, should never happen
           return data.data[questionXpath]?.manual_qual?.[qaQuestion.uuid]?._versions[0]
         },
@@ -96,8 +94,7 @@ export default function AnalysisQuestionListItem({
   const mutationSaveAnswer = useAssetsDataSupplementPartialUpdate({ mutation: { scope: { id: 'qa-answer' } } })
   const mutationCreateQuestion = useAssetsAdvancedFeaturesCreate({ mutation: { scope: { id: 'qa-question' } } })
   const mutationPatchQuestion = useAssetsAdvancedFeaturesPartialUpdate({ mutation: { scope: { id: 'qa-question' } } })
-
-  const handleSaveAnswer = async (value: PatchedDataSupplementPayloadOneOfManualQual['value']) => {
+  const handleSaveAnswer = async (value: ManualQualValue) => {
     await mutationSaveAnswer.mutateAsync({
       uidAsset: asset.uid,
       rootUuid: rootUuid,
