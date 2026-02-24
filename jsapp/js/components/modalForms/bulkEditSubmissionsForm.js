@@ -85,9 +85,7 @@ class BulkEditSubmissionsForm extends React.Component {
 
   setModalTitleToList() {
     this.props.onSetModalTitle(
-      t('Editing ##count## submission(s)')
-        .replace('##count##', this.props.selectedSubmissions.length)
-        .replace('##total##', this.props.totalSubmissions),
+      t('Editing ##count## submission(s)').replace('##count##', this.props.selectedSubmissions.length),
     )
   }
 
@@ -340,11 +338,11 @@ class BulkEditSubmissionsForm extends React.Component {
     return (
       <React.Fragment>
         <bem.FormModal__item m='wrapper'>
-          {t('Bulk edit mode: Select questions to edit or delete responses across all selected submissions.')}{' '}
+          {t('Bulk edit mode: Select questions to edit or delete responses across all selected submissions.')}
         </bem.FormModal__item>
         <bem.FormModal__item m='wrapper'>
           <strong>
-            {t('Note: Changes made here bypass form logic and validation rules and may affect data integrity.')}{' '}
+            {t('Note: Changes made here bypass form logic and validation rules and may affect data integrity.')}
           </strong>
           {t('Learn more in our')} {this.renderSupportUrlLink()}.
         </bem.FormModal__item>
