@@ -183,6 +183,7 @@ class ActionClassConfig:
     action_data_key: str | None = None
     review_type: ReviewType | None = None
 
+
 class BaseAction:
 
     ACTION_ID_FIELD = '_actionId'

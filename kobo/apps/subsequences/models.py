@@ -83,7 +83,6 @@ class SubmissionSupplement(AbstractTimeStampedModel):
                 except QuestionAdvancedFeature.DoesNotExist as e:
                     raise InvalidAction from e
 
-
                 question_supplemental_data = supplemental_data.setdefault(
                     question_xpath, {}
                 )
