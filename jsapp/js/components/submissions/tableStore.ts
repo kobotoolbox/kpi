@@ -31,6 +31,8 @@ export interface TableStoreData {
  *
  * Use these actions listeners to be up to date:
  * - `actions.table.updateSettings`
+ *
+ * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
  */
 class TableStore extends Reflux.Store {
   /** We use overrides for users with no permissions */
@@ -364,6 +366,9 @@ class TableStore extends Reflux.Store {
   }
 }
 
+/**
+ * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
+ */
 const tableStore = new TableStore()
 
 export default tableStore

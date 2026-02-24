@@ -327,8 +327,9 @@ interface UnsubscribeFromCollectionCompletedDefinition extends Function {
   listen: (callback: (response: any) => void) => Function
 }
 
-// NOTE: as you use more actions in your ts files, please extend this namespace,
-// for now we are defining only the ones we need.
+/**
+ * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
+ */
 export declare const actions: {
   navigation: {
     routeUpdate: GenericCallbackDefinition
