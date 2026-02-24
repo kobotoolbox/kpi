@@ -343,7 +343,7 @@ class BulkEditSubmissionsForm extends React.Component {
         <bem.FormModal__item m='wrapper'>
           <strong>
             {t('Note: Changes made here bypass form logic and validation rules and may affect data integrity.')}
-          </strong>
+          </strong>{' '}
           {t('Learn more in our')} {this.renderSupportUrlLink()}.
         </bem.FormModal__item>
 
