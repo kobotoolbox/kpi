@@ -66,6 +66,10 @@ def delete_instances(xform: XForm, request_data: dict) -> int:
     deleted_records_count = 0
     postgres_query, mongo_query = build_db_queries(xform, request_data)
 
+    # Lazy import to avoid a circular dependency:
+    # audit_log.signals → openrosa.logger.models → (back here)
+    from kobo.apps.audit_log.signals import add_instance_to_request_post_delete
+
     # Disconnect per-row signals; their side-effects are replayed once for the
     # whole batch below.
     pre_delete.disconnect(pre_delete_attachment, sender=Attachment)
@@ -80,6 +84,10 @@ def delete_instances(xform: XForm, request_data: dict) -> int:
         sender=Instance,
         dispatch_uid='update_xform_submission_count_delete',
     )
+    # The view pre-populates request.instances before deletion, so this
+    # per-row signal is redundant. With .only('pk') it would also raise
+    # Instance.DoesNotExist when accessing deferred fields on deleted rows.
+    post_delete.disconnect(add_instance_to_request_post_delete, sender=Instance)
 
     try:
         instance_ids = postgres_query.get('id__in')
@@ -187,6 +195,7 @@ def delete_instances(xform: XForm, request_data: dict) -> int:
             sender=Instance,
             dispatch_uid='update_xform_submission_count_delete',
         )
+        post_delete.connect(add_instance_to_request_post_delete, sender=Instance)
 
     return deleted_records_count
 

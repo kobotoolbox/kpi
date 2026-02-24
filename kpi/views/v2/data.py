@@ -610,14 +610,15 @@ class DataViewSet(
                 id=sub['_id'],
                 username=sub['_submitted_by'],
                 action='delete',
-                root_uuid=sub['meta/rootUuid'],
+                root_uuid=remove_uuid_prefix(sub['meta/rootUuid']),
             )
             for sub in submissions
         }
+        request._request.asset = self.asset
 
         try:
             deleted = deployment.delete_submissions(
-                bulk_actions_validator.data, request.user, request=request
+                bulk_actions_validator.data, request.user
             )
         except (MissingXFormException, InvalidXFormException):
             return {
