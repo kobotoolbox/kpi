@@ -1,4 +1,3 @@
-
 from django.db import models
 
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_prefix
@@ -71,6 +70,10 @@ class SubmissionSupplement(AbstractTimeStampedModel):
             )
             if not feature_configs_for_this_question.exists():
                 raise InvalidXPath
+            all_params = {
+                feature.action: feature.params
+                for feature in feature_configs_for_this_question
+            }
 
             for action_id, action_data in data_for_this_question.items():
                 if not ACTION_IDS_TO_CLASSES.get(action_id):
@@ -80,8 +83,6 @@ class SubmissionSupplement(AbstractTimeStampedModel):
                 except QuestionAdvancedFeature.DoesNotExist as e:
                     raise InvalidAction from e
 
-                action = feature.to_action()
-                action.check_limits(asset.owner)
 
                 question_supplemental_data = supplemental_data.setdefault(
                     question_xpath, {}
@@ -89,9 +90,14 @@ class SubmissionSupplement(AbstractTimeStampedModel):
                 action_supplemental_data = question_supplemental_data.setdefault(
                     action_id, {}
                 )
-                action.get_action_dependencies(
-                    question_supplemental_data, feature_configs_for_this_question
-                )
+
+                prefetched_dependencies = {
+                    'params': all_params,
+                    'question_supplemental_data': question_supplemental_data,
+                }
+                action = feature.to_action(prefetched_dependencies)
+                action.check_limits(asset.owner)
+
                 if not (
                     action_supplemental_data := action.revise_data(
                         submission,
@@ -192,9 +198,6 @@ class SubmissionSupplement(AbstractTimeStampedModel):
                     raise InvalidAction from e
 
                 action = feature.to_action()
-                action.get_action_dependencies(
-                    prefetched_supplement or {}, advanced_features_for_this_question
-                )
 
                 retrieved_data = action.retrieve_data(action_data)
                 processed_data_for_this_question[action_id] = retrieved_data
@@ -268,10 +271,11 @@ class QuestionAdvancedFeature(models.Model):
         action_class.validate_params(self.params)
         super().save(*args, **kwargs)
 
-    def to_action(self):
+    def to_action(self, prefetched_dependencies: dict | None = None) -> Action:
         action_class = ACTION_IDS_TO_CLASSES[self.action]
         return action_class(
             source_question_xpath=self.question_xpath,
             params=self.params,
             asset=self.asset,
+            prefetched_dependencies=prefetched_dependencies,
         )

@@ -7,7 +7,6 @@ import pytest
 
 from ..actions.automatic_google_translation import AutomaticGoogleTranslationAction
 from ..exceptions import TranscriptionNotFound
-from ..models import QuestionAdvancedFeature
 from .constants import EMPTY_SUBMISSION, EMPTY_SUPPLEMENT, QUESTION_SUPPLEMENT
 
 
@@ -335,7 +334,7 @@ def test_latest_version_is_first():
 
 
 def test_cannot_revise_data_without_transcription():
-    action = _get_action(fetch_action_dependencies=False)
+    action = _get_action(question_supplement={})
 
     mock_service = MagicMock()
     with patch(
@@ -352,7 +351,9 @@ def test_cannot_revise_data_without_transcription():
 
 
 def test_find_the_most_recent_accepted_transcription():
-    action = _get_action()
+    question_supplement_data = deepcopy(QUESTION_SUPPLEMENT)
+
+    action = _get_action(question_supplement=question_supplement_data)
 
     # Automatic transcription is the most recent
     action_data = {}
@@ -368,13 +369,11 @@ def test_find_the_most_recent_accepted_transcription():
     assert action_data == expected
 
     # Manual transcription is the most recent
-    question_supplement_data = deepcopy(QUESTION_SUPPLEMENT)
     question_supplement_data['manual_transcription']['_versions'][0][
         '_dateAccepted'
     ] = '2025-07-28T16:18:00Z'
-    action.get_action_dependencies(
-        question_supplement_data, QuestionAdvancedFeature.objects.none()
-    )
+
+    action = _get_action(question_supplement=question_supplement_data)
 
     action_data = {}  # not really relevant for this test
     expected = {
@@ -483,15 +482,19 @@ def test_transform_data_for_output_with_delete():
     }
 
 
-def _get_action(fetch_action_dependencies=True):
+def _get_action(question_supplement=None):
     xpath = 'group_name/question_name'  # irrelevant for this test
     params = [{'language': 'fr'}, {'language': 'es'}]
     mock_asset = MagicMock()
     mock_asset.pk = 1
     mock_asset.owner.pk = 1
-    action = AutomaticGoogleTranslationAction(xpath, params, asset=mock_asset)
-    if fetch_action_dependencies:
-        action.get_action_dependencies(
-            QUESTION_SUPPLEMENT, QuestionAdvancedFeature.objects.none()
-        )
+    supplement = (
+        question_supplement if question_supplement is not None else QUESTION_SUPPLEMENT
+    )
+    action = AutomaticGoogleTranslationAction(
+        xpath,
+        params,
+        asset=mock_asset,
+        prefetched_dependencies={'question_supplemental_data': supplement},
+    )
     return action

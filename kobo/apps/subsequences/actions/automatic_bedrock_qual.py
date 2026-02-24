@@ -2,10 +2,10 @@ import json
 from copy import deepcopy
 from dataclasses import dataclass
 from json import JSONDecodeError
+from typing import Optional
 
 import boto3
 from django.conf import settings
-from django.db.models import QuerySet
 from django.utils.functional import classproperty
 from django_userforeignkey.request import get_current_request
 
@@ -98,6 +98,16 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         action_data_key='uuid',
         review_type=ReviewType.VERIFICATION,
     )
+
+    def __init__(
+        self,
+        source_question_xpath: str,
+        params: list[dict],
+        asset: Optional['kpi.models.Asset'] = None,
+        prefetched_dependencies: dict = None,
+    ):
+        super().__init__(source_question_xpath, params, asset, prefetched_dependencies)
+        self.set_question_params_if_necessary()
 
     @property
     def _limit_identifier(self):
@@ -207,21 +217,25 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         to_return['allOf'] = common['allOf']
         return to_return
 
+    def set_question_params_if_necessary(self):
+        from kobo.apps.subsequences.actions import ManualQualAction
+        from kobo.apps.subsequences.models import QuestionAdvancedFeature
+
+        if not self._action_dependencies.get('params', {}).get(ManualQualAction.ID):
+            try:
+                manual_qual = QuestionAdvancedFeature.objects.get(
+                    asset=self.asset,
+                    question_xpath=self.source_question_xpath,
+                    action=ManualQualAction.ID,
+                )
+                self._action_dependencies.setdefault('params', {}).update(
+                    {ManualQualAction.ID: manual_qual.params}
+                )
+            except QuestionAdvancedFeature.DoesNotExist:
+                raise ManualQualNotFound
+
     def get_output_fields(self) -> list[dict]:
         return []
-
-    def get_action_dependencies(
-        self, question_supplemental_data: dict, all_features: QuerySet
-    ) -> dict:
-        super().get_action_dependencies(question_supplemental_data, all_features)
-        from . import ManualQualAction
-
-        manual_qual_action = all_features.filter(
-                question_xpath=self.source_question_xpath, action=ManualQualAction.ID
-        ).first()
-        if manual_qual_action is None:
-            raise ManualQualNotFound
-        self._action_dependencies[ManualQualAction.ID] = manual_qual_action.params
 
     def generate_llm_prompt(self, action_data: dict) -> str:
         """
@@ -266,7 +280,7 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
 
         return [
             param_dict
-            for param_dict in self._action_dependencies[ManualQualAction.ID]
+            for param_dict in self._action_dependencies['params'][ManualQualAction.ID]
             if param_dict['type'] not in [QUESTION_TYPE_NOTE, QUESTION_TYPE_TAGS]
         ]
 

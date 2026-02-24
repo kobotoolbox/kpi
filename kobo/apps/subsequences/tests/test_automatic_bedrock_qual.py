@@ -66,10 +66,6 @@ class BaseAutomaticBedrockQualTestCase(BaseTestCase):
             question_xpath='q1',
         )
         self.action = self.feature.to_action()
-        all_features_for_this_question = self.asset.advanced_features_set.filter(
-            question_xpath='q1'
-        )
-        self.action.get_action_dependencies({}, all_features_for_this_question)
         patched_get_client = patch.object(
             self.action, 'create_bedrock_client', return_value=MockLLMClient('response')
         )
@@ -438,7 +434,7 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
             'uuid': BEDROCK_QUAL_SELECT_MULTIPLE_UUID,
             '_dependency': self._dependency_dict_from_transcript_dict(),
         }
-        action_params = self.action._action_dependencies[ManualQualAction.ID]
+        action_params = self.action._action_dependencies['params'][ManualQualAction.ID]
         action_params[1]['choices'][0]['options'] = {'deleted': True}
 
         with patch.dict(PROMPTS_BY_QUESTION_TYPE, mock_templates_by_type):

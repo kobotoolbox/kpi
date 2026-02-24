@@ -86,7 +86,7 @@ def poll_run_external_process_failure(sender=None, **kwargs):
         question_xpath=question_xpath, action=action_id
     )
     action = feature.to_action()
-    action.get_action_dependencies(supplemental_data[question_xpath])
+    action.get_revision_dependencies(supplemental_data[question_xpath])
 
     action_supplemental_data = supplemental_data[question_xpath][action_id]
     action_data.update(
