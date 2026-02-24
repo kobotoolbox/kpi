@@ -1983,9 +1983,9 @@
                                     },
                                     "summary": "Manual Qualitative Analysis - Multiple Choice Question"
                                 },
-                                "AutomaticQualitativeAnalysis-Any_Question": {
+                                "AutomaticQualitativeAnalysis-AnyQuestion": {
                                     "value": {
-                                        "action": "manual_qual",
+                                        "action": "automatic_bedrock_qual",
                                         "question_xpath": "q1",
                                         "params": [
                                             {
@@ -1993,7 +1993,7 @@
                                             }
                                         ]
                                     },
-                                    "summary": "Automatic Qualitative Analysis - Any  Question",
+                                    "summary": "Automatic Qualitative Analysis - Any Question",
                                     "description": "`uuid`s should match those present in the `manual_qual` action for the same survey question."
                                 }
                             }
