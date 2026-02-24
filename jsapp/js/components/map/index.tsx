@@ -22,7 +22,7 @@ import PopoverMenu from '../../../js/popoverMenu'
 import MapSettings from './MapSettings'
 
 import { actions } from '../../../js/actions'
-import { getSurveyFlatPaths } from '../../../js/assetUtils'
+import { getRowName, getSurveyFlatPaths } from '../../../js/assetUtils'
 // Stores, hooks and utilities
 import { dataInterface } from '../../../js/dataInterface'
 import pageState from '../../../js/pageState.store'
@@ -415,16 +415,36 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     // TODO: support area / line geodata questions
     // See: https://github.com/kobotoolbox/kpi/issues/3913
 
-    // Note: the selected question is considered a "map style" and actually patched into the asset itself. This creates
-    // the possibility that a question can be pre-selected, and not display all geopoints by default.
+    // Map cannot actually show more than one question at a time, so we must always have a question specified.
+    // The list below describes the priority to find the question:
     let selectedQuestion: string | null = null
     if (this.state.overridenStyles?.selectedQuestion) {
+      // 1. If the user has selected a question themselves but has not refreshed, the state will hold the "overriden"
+      //    selected question. We should use this first.
       selectedQuestion = this.state.overridenStyles.selectedQuestion
+    } else if (this.props.asset.map_styles.selectedQuestion) {
+      // 2. If the user has selected a question before (at any point), the `map_styles` value of the asset is patched
+      //    and we should use this if it exists. Will happen on every refresh if the user has ever selected a question
+      selectedQuestion = this.props.asset.map_styles.selectedQuestion
+    } else if (this.props.asset.content?.survey) {
+      // 3. If the user has never selected a question before, a "default" needs to be selected. Since after DEV-1446 we
+      //    don't use `_geolocation`, the frontend has to find the first geopoint question and set it as the default
+      //    regardless of if that question is answered.
+      const firstGeopoint = this.props.asset.content.survey.find(
+        (question) => question.type && question.type === 'geopoint',
+      )
+      if (firstGeopoint) {
+        selectedQuestion = getRowName(firstGeopoint)
+      } else {
+        selectedQuestion = null
+      }
     } else {
-      // After fixing DEV-1446, this line began to work "properly" and sets the previous selected question as default
-      selectedQuestion = this.props.asset.map_styles.selectedQuestion || null
+      selectedQuestion = null
     }
 
+    // TODO: figure out how to tell MapSettings to have the selectedQuestion above be clicked in the modal
+
+    // TODO: is this needed? How does this logic parse through non-geopoint questions?
     this.props.asset.content?.survey?.forEach((row) => {
       if (
         typeof row.label !== 'undefined' &&
@@ -443,6 +463,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       queryLimit = Number.parseInt(this.props.asset.map_styles.querylimit)
     }
 
+    // TODO: Remove dependence of _geolocation
     const fq = ['_id', '_geolocation']
     if (selectedQuestion) {
       fq.push(selectedQuestion)
@@ -460,6 +481,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
           results = results.filter((row) => row[selectedQuestion as string])
         }
         this.setState({ submissions: results }, () => {
+          // TODO: Remove dependence of _geolocation
           this.buildMarkers(map)
           this.buildHeatMap(map)
         })
