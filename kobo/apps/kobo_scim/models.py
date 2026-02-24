@@ -26,6 +26,14 @@ class IdentityProvider(AbstractTimeStampedModel, models.Model):
         verbose_name='Is active',
         help_text='Whether this IdP is active for deprovisioning and SSO',
     )
+    social_app = models.ForeignKey(
+        'socialaccount.SocialApp',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='scim_idps',
+        help_text='The associated SSO Social Application',
+    )
 
     class Meta:
         verbose_name = 'Identity Provider'
