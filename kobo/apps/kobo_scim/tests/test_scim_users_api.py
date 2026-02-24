@@ -1,7 +1,6 @@
+from allauth.socialaccount.models import SocialAccount, SocialApp
 from rest_framework import status
 from rest_framework.test import APITestCase
-
-from allauth.socialaccount.models import SocialAccount, SocialApp
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.kobo_scim.models import IdentityProvider
@@ -43,7 +42,7 @@ class ScimUsersAPITests(APITestCase):
             last_name='Smith',
             password='password123',
         )
-        
+
         # Link the users to the IdP's social app provider
         SocialAccount.objects.create(
             user=self.user1, provider=self.social_app.provider, uid='jdoe-uid'
@@ -113,9 +112,7 @@ class ScimUsersAPITests(APITestCase):
 
     def test_pagination(self):
         # Create a third user
-        user3 = User.objects.create_user(
-            username='bwayne', email='bwayne@example.com'
-        )
+        user3 = User.objects.create_user(username='bwayne', email='bwayne@example.com')
         SocialAccount.objects.create(
             user=user3, provider=self.social_app.provider, uid='bwayne-uid'
         )
@@ -155,7 +152,7 @@ class ScimUsersAPITests(APITestCase):
 
     def test_delete_user_deactivates_all_matching_emails(self):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
-        
+
         # Create another user with the same email as user1 (jdoe@example.com)
         user3 = User.objects.create_user(
             username='jdoe_sso',
@@ -168,20 +165,20 @@ class ScimUsersAPITests(APITestCase):
         response = self.client.delete(f'{self.url}/{self.user1.id}')
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        
+
         # Verify that both users with the same email are deactivated
         self.user1.refresh_from_db()
         user3.refresh_from_db()
         self.assertFalse(self.user1.is_active)
         self.assertFalse(user3.is_active)
-        
+
         # Verify user2 (different email) is still active
         self.user2.refresh_from_db()
         self.assertTrue(self.user2.is_active)
 
     def test_delete_user_without_email_deactivates_only_that_user(self):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
-        
+
         user_no_email = User.objects.create_user(
             username='noemail',
             first_name='No',
@@ -191,17 +188,17 @@ class ScimUsersAPITests(APITestCase):
         SocialAccount.objects.create(
             user=user_no_email, provider=self.social_app.provider, uid='noemail-uid'
         )
-        
+
         # Also ensure user1 is active
         self.assertTrue(self.user1.is_active)
 
         response = self.client.delete(f'{self.url}/{user_no_email.id}')
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        
+
         user_no_email.refresh_from_db()
         self.assertFalse(user_no_email.is_active)
-        
+
         # Verify user1 is not affected
         self.user1.refresh_from_db()
         self.assertTrue(self.user1.is_active)
@@ -213,7 +210,7 @@ class ScimUsersAPITests(APITestCase):
             name='Other Provider',
             client_id='other-client-id',
         )
-        
+
         idp_2 = IdentityProvider.objects.create(
             name='Other IdP',
             slug='other-idp',
@@ -221,24 +218,24 @@ class ScimUsersAPITests(APITestCase):
             is_active=True,
             social_app=social_app_2,
         )
-        
-        # We try to use idp_2's credentials to delete user1 
+
+        # We try to use idp_2's credentials to delete user1
         # (user1 is linked to the first IdP)
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {idp_2.scim_api_key}')
-        
+
         url_2 = f'/api/scim/v2/{idp_2.slug}/Users'
         response = self.client.delete(f'{url_2}/{self.user1.id}')
 
         # The queryset filtering prevents idp_2 from seeing user1, so it should 404
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-        
+
         # Verify user1 is not affected
         self.user1.refresh_from_db()
         self.assertTrue(self.user1.is_active)
 
     def test_patch_deactivate_user(self):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
-        
+
         # Create another user with the same email as user1 (jdoe@example.com)
         user3 = User.objects.create_user(
             username='jdoe_sso',
@@ -247,47 +244,41 @@ class ScimUsersAPITests(APITestCase):
             last_name='Doe',
             is_active=True,
         )
-        
+
         payload = {
-            "schemas": ["urn:ietf:params:scim:api:messages:2.0:PatchOp"],
-            "Operations": [
-                {
-                    "op": "replace",
-                    "path": "active",
-                    "value": False
-                }
-            ]
+            'schemas': ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
+            'Operations': [{'op': 'replace', 'path': 'active', 'value': False}],
         }
 
-        response = self.client.patch(f'{self.url}/{self.user1.id}', payload, format='json')
+        response = self.client.patch(
+            f'{self.url}/{self.user1.id}', payload, format='json'
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()
         self.assertFalse(data.get('active', True))
-        
+
         # Verify that both users with the same email are deactivated
         self.user1.refresh_from_db()
         user3.refresh_from_db()
         self.assertFalse(self.user1.is_active)
         self.assertFalse(user3.is_active)
-        
+
     def test_patch_unsupported_operation(self):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
-        
+
         payload = {
-            "schemas": ["urn:ietf:params:scim:api:messages:2.0:PatchOp"],
-            "Operations": [
-                {
-                    "op": "replace",
-                    "path": "name.familyName",
-                    "value": "Smith"
-                }
-            ]
+            'schemas': ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
+            'Operations': [
+                {'op': 'replace', 'path': 'name.familyName', 'value': 'Smith'}
+            ],
         }
 
-        response = self.client.patch(f'{self.url}/{self.user1.id}', payload, format='json')
+        response = self.client.patch(
+            f'{self.url}/{self.user1.id}', payload, format='json'
+        )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        
+
         self.user1.refresh_from_db()
         self.assertTrue(self.user1.is_active)

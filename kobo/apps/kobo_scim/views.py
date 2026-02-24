@@ -2,7 +2,7 @@ import re
 
 from django.conf import settings
 from drf_spectacular.utils import extend_schema, extend_schema_view
-from rest_framework import mixins, viewsets, status
+from rest_framework import mixins, status, viewsets
 from rest_framework.response import Response
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -52,7 +52,7 @@ class ScimUserViewSet(
 
         # Remove the AnonymousUser from SCIM listings
         queryset = super().get_queryset().exclude(id=settings.ANONYMOUS_USER_ID)
-        
+
         # Only include users that are linked to this IdP's SocialApp
         if idp.social_app:
             queryset = queryset.filter(socialaccount__provider=idp.social_app.provider)
@@ -80,9 +80,7 @@ class ScimUserViewSet(
     def perform_destroy(self, instance):
         # Kobo should automatically disable all accounts linked to the same email address
         if instance.email:
-            User.objects.filter(email__iexact=instance.email).update(
-                is_active=False
-            )
+            User.objects.filter(email__iexact=instance.email).update(is_active=False)
         else:
             # Fallback if no email is set
             User.objects.filter(pk=instance.pk).update(is_active=False)
@@ -90,13 +88,13 @@ class ScimUserViewSet(
     def partial_update(self, request, *args, **kwargs):
         instance = self.get_object()
         operations = request.data.get('Operations', [])
-        
+
         deactivate = False
         for op in operations:
             if op.get('op', '').lower() == 'replace' and op.get('path') == 'active':
                 if op.get('value') is False:
                     deactivate = True
-            
+
         if deactivate:
             # Reuse the destroy logic which deactivates the user(s)
             self.perform_destroy(instance)
@@ -104,8 +102,8 @@ class ScimUserViewSet(
             instance.refresh_from_db()
             serializer = self.get_serializer(instance)
             return Response(serializer.data, status=status.HTTP_200_OK)
-            
+
         return Response(
-            {'detail': 'Operation not supported or invalid'}, 
-            status=status.HTTP_400_BAD_REQUEST
+            {'detail': 'Operation not supported or invalid'},
+            status=status.HTTP_400_BAD_REQUEST,
         )
