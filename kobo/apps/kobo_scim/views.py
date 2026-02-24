@@ -16,9 +16,15 @@ from kobo.apps.kobo_scim.serializers import ScimUserSerializer
         description='Returns a list of SCIM users matching the optional query'
     ),
     retrieve=extend_schema(description='Returns a specific SCIM user.'),
+    destroy=extend_schema(
+        description="Deactivates all Kobo accounts linked to the user's email address."
+    ),
 )
 class ScimUserViewSet(
-    mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
 ):
     """
     SCIM 2.0 compliant Users API endpoint.
@@ -41,6 +47,13 @@ class ScimUserViewSet(
 
         # Remove the AnonymousUser from SCIM listings
         queryset = super().get_queryset().exclude(id=settings.ANONYMOUS_USER_ID)
+        
+        # Only include users that are linked to this IdP's SocialApp
+        if idp.social_app:
+            queryset = queryset.filter(socialaccount__provider=idp.social_app.provider)
+        else:
+            # If the IdP doesn't have a SocialApp, it can't be mapped to any users
+            return User.objects.none()
 
         filter_param = self.request.query_params.get('filter')
         if filter_param:
@@ -58,3 +71,13 @@ class ScimUserViewSet(
                     queryset = queryset.filter(email__iexact=value)
 
         return queryset
+
+    def perform_destroy(self, instance):
+        # Kobo should automatically disable all accounts linked to the same email address
+        if instance.email:
+            User.objects.filter(email__iexact=instance.email).update(
+                is_active=False
+            )
+        else:
+            # Fallback if no email is set
+            User.objects.filter(pk=instance.pk).update(is_active=False)
