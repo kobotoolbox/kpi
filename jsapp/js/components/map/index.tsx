@@ -149,6 +149,9 @@ interface FormMapState {
   clearDisaggregatedPopover: boolean
   noData: boolean
   previousViewby?: string
+  // Note: In case 2 of requestData(), we have a situation where a selected question exists without updating
+  // overridenStyles. It is much easier to pass the selected question like this than doing some hack with AssetMapStyles
+  foundSelectedQuestion: string | null
 }
 
 class FormMap extends React.Component<FormMapProps, FormMapState> {
@@ -181,6 +184,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       overridenStyles: undefined,
       clearDisaggregatedPopover: false,
       noData: false,
+      foundSelectedQuestion: null,
     }
   }
 
@@ -436,25 +440,17 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       if (firstGeopoint) {
         selectedQuestion = getRowName(firstGeopoint)
       } else {
+        // This should only happen if the form has no geopoint questions at all
         selectedQuestion = null
       }
     } else {
+      // We should never reach here if this component is given the survey correctly
       selectedQuestion = null
     }
 
     // TODO: figure out how to tell MapSettings to have the selectedQuestion above be clicked in the modal
 
-    // TODO: is this needed? How does this logic parse through non-geopoint questions?
-    this.props.asset.content?.survey?.forEach((row) => {
-      if (
-        typeof row.label !== 'undefined' &&
-        row.label !== null &&
-        selectedQuestion === row.label[0] &&
-        row.type !== QUESTION_TYPES.geopoint.id
-      ) {
-        selectedQuestion = null //Ignore if not a geopoint question type
-      }
-    })
+    this.setState({ foundSelectedQuestion: selectedQuestion })
 
     let queryLimit = QUERY_LIMIT_DEFAULT
     if (this.state.overridenStyles?.querylimit) {
@@ -463,8 +459,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       queryLimit = Number.parseInt(this.props.asset.map_styles.querylimit)
     }
 
-    // TODO: Remove dependence of _geolocation
-    const fq = ['_id', '_geolocation']
+    const fq = ['_id']
     if (selectedQuestion) {
       fq.push(selectedQuestion)
     }
@@ -475,14 +470,10 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     dataInterface
       .getSubmissions(this.props.asset.uid, queryLimit, 0, sort, fq)
       .done((data: PaginatedResponse<SubmissionResponse>) => {
-        let results = data.results
-        // If a user selects a question, the results should *only* be submissions that answer the selected question
-        if (selectedQuestion) {
-          results = results.filter((row) => row[selectedQuestion as string])
-        }
+        const results = data.results
         this.setState({ submissions: results }, () => {
-          // TODO: Remove dependence of _geolocation
           this.buildMarkers(map)
+          // TODO: Remove dependence of _geolocation
           this.buildHeatMap(map)
         })
       })
@@ -576,7 +567,12 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
 
     this.state.submissions.forEach((item) => {
       let markerProps = {}
-      if (checkLatLng(item._geolocation)) {
+
+      let parsedCoordinates: string[] = []
+      // Safe to cast `null` as a string here as this will result in Array['undefined'] if there are no geopoint submissions
+      parsedCoordinates = String(item[this.state.foundSelectedQuestion as string]).split(' ')
+
+      if (this.state.foundSelectedQuestion && checkLatLng(parsedCoordinates)) {
         if (viewby && mM) {
           const vb = this.nameOfFieldInGroup(viewby)
           const itemId = String(item[vb])
@@ -607,10 +603,10 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
           }
         }
 
-        const geo0 = item._geolocation[0]
-        const geo1 = item._geolocation[1]
-        if (geo0 !== null && geo1 !== null) {
-          prepPoints.push(L.marker([geo0, geo1], markerProps))
+        if (!!parsedCoordinates.length) {
+          prepPoints.push(
+            L.marker([Number.parseInt(parsedCoordinates[0]), Number.parseInt(parsedCoordinates[1])], markerProps),
+          )
         }
       }
     })
