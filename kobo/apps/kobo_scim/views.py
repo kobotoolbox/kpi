@@ -5,6 +5,8 @@ from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import mixins, status, viewsets
 from rest_framework.response import Response
 
+from kobo.apps.audit_log.audit_actions import AuditAction
+from kobo.apps.audit_log.models import AuditLog, AuditType
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.kobo_scim.authentication import IsAuthenticatedIdP, SCIMAuthentication
 from kobo.apps.kobo_scim.pagination import SCIMPagination
@@ -21,7 +23,8 @@ from kobo.apps.kobo_scim.serializers import ScimUserSerializer
         description="Deactivates all Kobo accounts linked to the user's email address."
     ),
     partial_update=extend_schema(
-        description="Updates a SCIM user. Currently only supports deactivation via the 'active' attribute."
+        description="Updates a SCIM user. Currently only supports deactivation via"
+        " the 'active' attribute."
     ),
 )
 class ScimUserViewSet(
@@ -53,9 +56,12 @@ class ScimUserViewSet(
         # Remove the AnonymousUser from SCIM listings
         queryset = super().get_queryset().exclude(id=settings.ANONYMOUS_USER_ID)
 
-        # Only include users that are linked to this IdP's SocialApp
+        # Only include users that are linked to this IdP's SocialApp.
         if idp.social_app:
-            queryset = queryset.filter(socialaccount__provider=idp.social_app.provider)
+            provider_key = (
+                getattr(idp.social_app, 'provider_id', None) or idp.social_app.provider
+            )
+            queryset = queryset.filter(socialaccount__provider=provider_key)
         else:
             # If the IdP doesn't have a SocialApp, it can't be mapped to any users
             return User.objects.none()
@@ -78,12 +84,48 @@ class ScimUserViewSet(
         return queryset
 
     def perform_destroy(self, instance):
-        # Kobo should automatically disable all accounts linked to the same email address
-        if instance.email:
-            User.objects.filter(email__iexact=instance.email).update(is_active=False)
+        email_target = instance.email
+        if email_target:
+            targets = User.objects.filter(email__iexact=email_target)
         else:
-            # Fallback if no email is set
-            User.objects.filter(pk=instance.pk).update(is_active=False)
+            targets = User.objects.filter(pk=instance.pk)
+        users = list(targets.select_related('extra_details'))
+
+        targets.update(is_active=False)
+
+        # Create audit logs as System-initiated events
+        idp_slug = self.kwargs.get('idp_slug')
+        audit_logs = []
+
+        for user in users:
+            metadata = {
+                'idp_slug': idp_slug,
+                'deactivated_email': email_target,
+                'username': user.username,
+                'initiated_via': 'SCIM_API',
+                'info': 'Automated deactivation via Identity Provider',
+            }
+
+            user_uid = getattr(
+                getattr(user, 'extra_details', None), 'uid', None
+            ) or str(user.id)
+
+            log = AuditLog(
+                user=user,
+                user_uid=user_uid,
+                app_label=user._meta.app_label,
+                model_name=user._meta.model_name,
+                object_id=user.id,
+                action=AuditAction.DEACTIVATION,
+                log_type=AuditType.USER_MANAGEMENT,
+                metadata=metadata,
+            )
+            audit_logs.append(log)
+
+        if audit_logs:
+            # bulk_create bypasses save(), so we must set user_uid
+            # explicitly (done above)
+            AuditLog.objects.bulk_create(audit_logs)
 
     def partial_update(self, request, *args, **kwargs):
         instance = self.get_object()
