@@ -23,7 +23,7 @@ from kobo.apps.kobo_scim.serializers import ScimUserSerializer
         description="Deactivates all Kobo accounts linked to the user's email address."
     ),
     partial_update=extend_schema(
-        description="Updates a SCIM user. Currently only supports deactivation via"
+        description='Updates a SCIM user. Currently only supports deactivation via'
         " the 'active' attribute."
     ),
 )
