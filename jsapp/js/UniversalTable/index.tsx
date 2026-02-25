@@ -27,6 +27,7 @@ export type PaginatedListResponse<Datum = never> =
   | PaginatedListResponse.Unauthorized
   | PaginatedListResponse.Forbidden
   | PaginatedListResponse.NotFound
+
 export namespace PaginatedListResponse {
   export interface Ok<Datum = never> {
     data: PaginatedListResponseData<Datum>
@@ -54,6 +55,10 @@ interface UniversalTableProps<Datum, TError = Error | ErrorDetail | ErrorObject>
   queryResult: UseQueryResult<PaginatedListResponse<Datum>, TError>
   pagination: Pagination
   setPagination: (pagination: Pagination) => unknown
+  /** Maximum height of the table. Setting this makes the table internally scrollable with a sticky header. */
+  maxHeight?: number | string
+  /** Used to inject infinite scroll observers or footer info into the table. */
+  bottomContent?: React.ReactNode
 }
 
 export const PAGE_SIZES = [10, 30, 50, 100]
@@ -93,6 +98,8 @@ export default function UniversalTable<Datum, TError = Error>({
   pagination,
   queryResult,
   setPagination,
+  maxHeight,
+  bottomContent,
 }: UniversalTableProps<Datum, TError>) {
   const availablePages = useMemo(
     () => (queryResult.data?.status === 200 ? Math.ceil(queryResult.data?.data?.count / pagination.limit) : 0),
@@ -108,6 +115,8 @@ export default function UniversalTable<Datum, TError = Error>({
       columns={columns}
       data={queryResult.data?.data.results ?? []}
       isSpinnerVisible={queryResult.isFetching}
+      maxHeight={maxHeight}
+      bottomContent={bottomContent}
       pageIndex={currentPageIndex}
       pageCount={availablePages}
       pageSize={pagination.limit}

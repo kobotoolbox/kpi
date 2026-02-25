@@ -11,7 +11,6 @@ import { actions } from '#/actions'
 import bem from '#/bem'
 import AnonymousSubmission from '#/components/anonymousSubmission.component'
 import ButtonNew from '#/components/common/ButtonNew'
-import AssetStatusBadge from '#/components/common/assetStatusBadge'
 import Button from '#/components/common/button'
 import InlineMessage from '#/components/common/inlineMessage'
 import LoadingSpinner from '#/components/common/loadingSpinner'
@@ -32,8 +31,8 @@ import { ROUTES } from '#/router/routerConstants'
 import sessionStore from '#/stores/session'
 import { ANON_USERNAME, buildUserUrl } from '#/users/utils'
 import { formatTime, notify, recordKeys, recordValues } from '#/utils'
-import ActionIcon from '../common/ActionIcon'
 import LimitNotifications from '../usageLimits/limitNotifications.component'
+import FormHistory from './FormHistory'
 
 const DVCOUNT_LIMIT_MINIMUM = 20
 const ANON_CAN_ADD_PERM_URL = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.add_submissions).url
@@ -188,6 +187,7 @@ class FormLanding extends React.Component {
       asset: this.state,
     })
   }
+  // TODO remove
   loadMoreVersions() {
     if (
       this.state.DVCOUNT_LIMIT + DVCOUNT_LIMIT_MINIMUM <=
@@ -226,41 +226,13 @@ class FormLanding extends React.Component {
         </bem.FormView__cell>
 
         <bem.FormView__cell m={['box', 'history-table']}>
-          <bem.FormView__group m='deployments'>
-            <bem.FormView__group m={['items', 'headings']}>
-              <bem.FormView__label m='version'>{t('Version')}</bem.FormView__label>
-              <bem.FormView__label m='date'>{t('Last Modified')}</bem.FormView__label>
-              {isLoggedIn && <bem.FormView__label m='clone'>{t('Clone')}</bem.FormView__label>}
-            </bem.FormView__group>
-            {versionsToDisplay.map((item, n) => {
-              if (dvcount - n > 0) {
-                return (
-                  <bem.FormView__group m='items' key={n} className={n >= this.state.DVCOUNT_LIMIT ? 'hidden' : ''}>
-                    <bem.FormView__label m='version'>
-                      {`v${dvcount - n}`}
-                      {item.uid === this.state.deployed_version_id && this.state.deployment__active && (
-                        <AssetStatusBadge deploymentStatus={this.state.deployment_status} />
-                      )}
-                    </bem.FormView__label>
-                    <bem.FormView__label m='date'>{formatTime(item.date_deployed)}</bem.FormView__label>
-                    {isLoggedIn && (
-                      <bem.FormView__label>
-                        <ActionIcon
-                          variant='transparent'
-                          onClick={() => {
-                            this.saveCloneAs(item.uid)
-                          }}
-                          tooltip={t('Clone this version as a new project')}
-                          iconName='duplicate'
-                          size='md'
-                        />
-                      </bem.FormView__label>
-                    )}
-                  </bem.FormView__group>
-                )
-              }
-            })}
-          </bem.FormView__group>
+          <FormHistory
+            assetUid={this.props.params.uid}
+            deployedVersionId={this.state.deployed_version_id}
+            deploymentActive={this.state.deployment__active}
+            deploymentStatus={this.state.deployment_status}
+            onClone={(versionUid) => this.saveCloneAs(versionUid)}
+          />
         </bem.FormView__cell>
         {this.state.deployed_versions.count > 1 && (
           <Group justify='center' gap='md' pt={this.state.historyExpanded ? 'md' : 0}>
@@ -272,12 +244,6 @@ class FormLanding extends React.Component {
             >
               {this.state.historyExpanded ? t('Hide full history') : t('Show full history')}
             </ButtonNew>
-
-            {this.state.historyExpanded && this.state.DVCOUNT_LIMIT < dvcount && (
-              <ButtonNew size='md' onClick={this.loadMoreVersions.bind(this)} variant='transparent'>
-                {t('Load more')}
-              </ButtonNew>
-            )}
           </Group>
         )}
       </bem.FormView__row>

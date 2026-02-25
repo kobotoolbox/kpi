@@ -52,6 +52,10 @@ interface UniversalTableProps<DataItem> {
    * rows.
    */
   isSpinnerVisible?: boolean
+  /** Maximum height of the table container. Setting this enables internal scrolling. */
+  maxHeight?: number | string
+  /** Optional component to render inside a tfoot row at the bottom of the table. Useful for infinite scroll triggers. */
+  bottomContent?: React.ReactNode
   // PAGINATION
   // To see footer with pagination you need to pass all these below:
   /** Starts with `0` */
@@ -240,7 +244,14 @@ export default function UniversalTableCore<DataItem>(props: UniversalTableProps<
         [styles.hasHorizontalScrollbar]: hasHorizontalScrollbar,
       })}
     >
-      <div className={styles.tableContainer} ref={tableContainerRef}>
+      <div
+        className={styles.tableContainer}
+        ref={tableContainerRef}
+        style={{
+          maxHeight: props.maxHeight,
+          overflow: props.maxHeight ? 'auto' : undefined,
+        }}
+      >
         {props.isSpinnerVisible && (
           <div className={styles.spinnerOverlay}>
             <LoadingSpinner message={false} />
@@ -313,6 +324,15 @@ export default function UniversalTableCore<DataItem>(props: UniversalTableProps<
               </tr>
             ))}
           </tbody>
+          {props.bottomContent && (
+            <tfoot>
+              <tr>
+                <td colSpan={columns.length} style={{ padding: 0, border: 'none' }}>
+                  {props.bottomContent}
+                </td>
+              </tr>
+            </tfoot>
+          )}
         </table>
       </div>
 
