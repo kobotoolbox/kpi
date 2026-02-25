@@ -98,7 +98,8 @@ def _bulk_delete_files_azure(file_paths: Iterable[str], storage: AzureStorage):
         try:
             container_client.delete_blobs(*names)
         except PartialBatchErrorException as e:
-            # Ignore 200/202 (success) and 404 (already deleted); re-raise for real errors
+            # Ignore 200/202 (success) and 404 (already deleted), re-raise for real
+            # errors.
             real_errors = [
                 r
                 for r in e.parts
