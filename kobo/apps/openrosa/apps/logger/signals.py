@@ -44,11 +44,11 @@ def pre_delete_attachment(instance, **kwargs):
     attachment = instance
     file_size = attachment.media_file_size
     only_update_counters = kwargs.pop('only_update_counters', False)
-    xform = attachment.xform
-    user_id = xform.user_id
+    xform_id = attachment.xform_id
+    user_id = attachment.user_id
 
     if file_size and attachment.delete_status is None:
-        update_storage_counters(xform.pk, user_id, -file_size)
+        update_storage_counters(xform_id, user_id, -file_size)
 
     if only_update_counters or not (media_file_name := str(attachment.media_file)):
         return
@@ -99,10 +99,7 @@ def post_save_attachment(instance, created, **kwargs):
     if not file_size:
         return
 
-    xform = attachment.xform
-    user_id = xform.user_id
-
-    update_storage_counters(xform.pk, user_id, file_size)
+    update_storage_counters(attachment.xform_id, attachment.user_id, file_size)
 
 
 @receiver(post_delete, sender=XForm, dispatch_uid='update_profile_num_submissions')
@@ -274,7 +271,7 @@ def update_xform_submission_count_delete(sender, instance, **kwargs):
         xform_id = instance.pk
         xform = instance
 
-    with transaction.atomic():
+    with conditional_kc_transaction_atomic():
         # Like `update_xform_submission_count()`, update with `F` expression
         # instead of `select_for_update` to avoid locks, and `save()` which
         # loads not required fields for these updates.
