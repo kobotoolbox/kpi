@@ -1959,13 +1959,17 @@ mongo_client = MongoClient(
 )
 MONGO_DB = mongo_client[mongo_db_name]
 
-# If a request or task makes a database query and then times out, the database
-# server should not spin forever attempting to fulfill that query.
+# Maximum query duration (in milliseconds) for PostgreSQL (statement_timeout)
+# and MongoDB (maxTimeMS). Applied per environment:
+#   - Web requests: DATABASE_QUERY_TIMEOUT, based on SYNCHRONOUS_REQUEST_TIME_LIMIT
+#   - Celery workers: DATABASE_CELERY_QUERY_TIMEOUT, based on CELERY_TASK_TIME_LIMIT
 # ⚠️⚠️
-# These settings should never be used directly.
-# Use MongoHelper.get_max_time_ms() in the code instead
+# For MongoDB, use MongoHelper.get_max_time_ms() rather than referencing these
+# directly.
 # ⚠️⚠️
-DATABASE_QUERY_TIMEOUT = (SYNCHRONOUS_REQUEST_TIME_LIMIT + 5) * 1000  # milliseconds
+DATABASE_QUERY_TIMEOUT = (
+    env.int('DATABASE_QUERY_TIMEOUT', SYNCHRONOUS_REQUEST_TIME_LIMIT + 5) * 1000
+)  # milliseconds
 DATABASE_CELERY_QUERY_TIMEOUT = (CELERY_TASK_TIME_LIMIT + 10) * 1000  # milliseconds
 
 
