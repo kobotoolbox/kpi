@@ -52,6 +52,7 @@ export const HOOK_LOG_STATUSES = {
   SUCCESS: 2,
   PENDING: 1,
   FAILED: 0,
+  PROCESSING: 3,
 }
 
 export const KEY_CODES = Object.freeze({

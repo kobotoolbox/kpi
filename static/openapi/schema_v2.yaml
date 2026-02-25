@@ -5612,9 +5612,11 @@ paths:
           - 0
           - 1
           - 2
+          - 3
         description: |-
           * `0` - failed
           * `1` - pending
+          * `3` - processing
           * `2` - success
       - in: path
         name: uid_asset
@@ -13386,11 +13388,13 @@ components:
       enum:
       - 0
       - 1
+      - 3
       - 2
       type: integer
       description: |-
         * `0` - failed
         * `1` - pending
+        * `3` - processing
         * `2` - success
     HookRetryResponse:
       type: object

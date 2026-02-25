@@ -7585,10 +7585,11 @@
                             "enum": [
                                 0,
                                 1,
-                                2
+                                2,
+                                3
                             ]
                         },
-                        "description": "* `0` - failed\n* `1` - pending\n* `2` - success"
+                        "description": "* `0` - failed\n* `1` - pending\n* `3` - processing\n* `2` - success"
                     },
                     {
                         "in": "path",
@@ -18683,10 +18684,11 @@
                 "enum": [
                     0,
                     1,
+                    3,
                     2
                 ],
                 "type": "integer",
-                "description": "* `0` - failed\n* `1` - pending\n* `2` - success"
+                "description": "* `0` - failed\n* `1` - pending\n* `3` - processing\n* `2` - success"
             },
             "HookRetryResponse": {
                 "type": "object",

@@ -383,7 +383,9 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             uuid=_uuid,
             request=request,
         )
+
         all_attachment_xpaths = self.asset.get_all_attachment_xpaths()
+
         return self._rewrite_json_attachment_urls(
             self.get_submission(submission_id=instance.pk, user=user),
             all_attachment_xpaths,
@@ -817,9 +819,10 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             user, format_type=format_type, **mongo_query_params
         )
         params['for_output'] = for_output
+        fetch_one = len(mongo_query_params['submission_ids']) == 1
 
         if format_type == SUBMISSION_FORMAT_TYPE_JSON:
-            submissions = self.__get_submissions_in_json(**params)
+            submissions = self.__get_submissions_in_json(fetch_one, **params)
         elif format_type == SUBMISSION_FORMAT_TYPE_XML:
             submissions = self.__get_submissions_in_xml(**params)
         else:
@@ -1515,7 +1518,9 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         file_.synced_with_backend = True
         file_.save(update_fields=['synced_with_backend'])
 
-    def __get_submissions_in_json(self, **params) -> Generator[dict, None, None]:
+    def __get_submissions_in_json(
+        self, fetch_one: bool = False, **params
+    ) -> Generator[dict, None, None]:
         """
         Retrieve submissions directly from Mongo.
         Submissions can be filtered with `params`.
@@ -1531,33 +1536,56 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         # Python-only attribute used by `kpi.views.v2.data.DataViewSet.list()`
         self.current_submission_count = total_count
 
-        add_supplements_to_query = self.asset.has_advanced_features
+        if fetch_one:
+            # Try to retrieve attachment xpaths from cache first.
+            # This prevents unnecessary DB queries and avoids recomputing
+            # xpaths when they are already available.
+            attachment_xpaths = self.asset.get_all_attachment_xpaths(
+                only_cached_data=True
+            )
 
-        fields = params.get('fields', [])
-        if len(fields) > 0 and self.SUBMISSION_ROOT_UUID_XPATH not in fields:
-            # skip the query if submission '_uuid' is not even q'd from mongo
-            add_supplements_to_query = False
-        all_attachment_xpaths = self.asset.get_all_attachment_xpaths()
+            if attachment_xpaths is None:
+                # Cache miss: we need to derive attachment xpaths from the
+                # submission's form version.
+                try:
+                    submission = next(mongo_cursor)
+                except StopIteration:
+                    # No submission available, nothing to process.
+                    return iter([])
+                else:
+                    # `mongo_cursor` has been consumed by `next()`.
+                    # Wrap the single submission in a list so it can still be
+                    # iterated over later in the final loop.
+                    mongo_cursor = [submission]
+
+                # Retrieve the deployed version corresponding to the submission.
+                submission_version = None
+                if '__version__' in submission:
+                    submission_version = self.asset.asset_versions.filter(
+                        uid=submission['__version__'], deployed=True
+                    ).first()
+
+                # Compute attachment xpaths from that specific form version.
+                attachment_xpaths = self.asset.get_attachment_xpaths_from_version(
+                    submission_version
+                )
+        else:
+            attachment_xpaths = self.asset.get_all_attachment_xpaths()
 
         mongo_cursor = (
             self._inject_properties(
                 MongoHelper.to_readable_dict(submission),
-                all_attachment_xpaths,
+                attachment_xpaths,
             )
             for submission in mongo_cursor
         )
-        if add_supplements_to_query:
-            mongo_cursor = stream_with_supplements(
-                self.asset, mongo_cursor, for_output=for_output
-            )
 
-        return (
-            self._inject_properties(
-                MongoHelper.to_readable_dict(submission),
-                all_attachment_xpaths,
-            )
-            for submission in mongo_cursor
-        )
+        fields = params.get('fields', [])
+        if len(fields) > 0 and self.SUBMISSION_ROOT_UUID_XPATH not in fields:
+            # skip the query if submission '_uuid' is not even q'd from mongo
+            return mongo_cursor
+
+        return stream_with_supplements(self.asset, mongo_cursor, for_output=for_output)
 
     def __get_submissions_in_xml(self, **params) -> Generator[str, None, None]:
         """
