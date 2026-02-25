@@ -7,6 +7,6 @@ from .prod import *
 ENV = 'prod'
 
 for database in DATABASES.values():
-    if database.get('ENGINE', '').startswith('django.db.backends.postgr'):
+    if any(s in database.get('ENGINE', '') for s in ['postgis', 'postgres']):
         options = database.setdefault('OPTIONS', {})
         options['options'] = f'-c statement_timeout={DATABASE_CELERY_QUERY_TIMEOUT}'
