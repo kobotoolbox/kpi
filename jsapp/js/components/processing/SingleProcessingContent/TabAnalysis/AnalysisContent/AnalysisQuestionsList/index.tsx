@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from 'react'
 
+import { useQueryClient } from '@tanstack/react-query'
 import { DndProvider } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
 
@@ -8,6 +9,7 @@ import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureRespon
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { ResponseQualActionParams } from '#/api/models/responseQualActionParams'
 import {
+  getAssetsDataSupplementRetrieveQueryKey,
   useAssetsAdvancedFeaturesCreate,
   useAssetsAdvancedFeaturesPartialUpdate,
   useAssetsDataSupplementPartialUpdate,
@@ -52,6 +54,7 @@ export default function AnalysisQuestionsList({
   ) as AdvancedFeatureResponseManualQual | undefined
 
   const rootUuid = removeDefaultUuidPrefix(submission['meta/rootUuid'])
+  const queryClient = useQueryClient()
 
   const mutationCreateBedrockFeature = useAssetsAdvancedFeaturesCreate({
     mutation: { scope: { id: 'automatic-qual' } },
@@ -153,6 +156,12 @@ export default function AnalysisQuestionsList({
           },
         },
       },
+    })
+
+    // Invalidate the supplement data query so all AnalysisQuestionListItem
+    // components refetch and display the latest AI-generated result.
+    await queryClient.invalidateQueries({
+      queryKey: getAssetsDataSupplementRetrieveQueryKey(asset.uid, rootUuid),
     })
   }
 

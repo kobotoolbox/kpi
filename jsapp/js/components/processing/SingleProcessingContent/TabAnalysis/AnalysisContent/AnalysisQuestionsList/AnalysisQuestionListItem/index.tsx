@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 
 import classnames from 'classnames'
 import type { Identifier, XYCoord } from 'dnd-core'
@@ -6,7 +6,6 @@ import { useDrag, useDrop } from 'react-dnd'
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { ResponseQualActionParams } from '#/api/models/responseQualActionParams'
-import type { SupplementalDataVersionItemQual } from '#/api/models/supplementalDataVersionItemQual'
 import {
   type assetsDataSupplementRetrieveResponse,
   getAssetsDataSupplementRetrieveQueryKey,
@@ -19,7 +18,9 @@ import Icon from '#/components/common/icon'
 import InlineMessage from '#/components/common/inlineMessage'
 import { userCan } from '#/components/permissions/utils'
 import { LOCALLY_EDITED_PLACEHOLDER_UUID, SUBSEQUENCES_SCHEMA_VERSION } from '#/components/processing/common/constants'
+import type { QualVersionItem } from '#/components/processing/common/types'
 import type { ManualQualValue } from '#/components/processing/common/types'
+import { getLatestQualVersionItem } from '#/components/processing/common/utils'
 import { DND_TYPES } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import { removeDefaultUuidPrefix } from '#/utils'
@@ -80,9 +81,9 @@ export default function AnalysisQuestionListItem({
       staleTime: Number.POSITIVE_INFINITY,
       queryKey: getAssetsDataSupplementRetrieveQueryKey(asset.uid, rootUuid),
       select: useCallback(
-        (data: assetsDataSupplementRetrieveResponse): SupplementalDataVersionItemQual | undefined => {
+        (data: assetsDataSupplementRetrieveResponse): QualVersionItem | undefined => {
           if (data.status !== 200) return // typeguard, should never happen
-          return data.data[questionXpath]?.manual_qual?.[qaQuestion.uuid]?._versions[0]
+          return getLatestQualVersionItem(data.data, questionXpath, qaQuestion.uuid)
         },
         [questionXpath, qaQuestion.uuid],
       ),
@@ -92,6 +93,11 @@ export default function AnalysisQuestionListItem({
   // Local state for optimistic UI of SelectOne radio button value
   // this is needed so that the "clear" button works immediately without waiting for server response
   const [localRadioValue, setLocalRadioValue] = useState<string | undefined>()
+
+  // Reset local radio override when a new version arrives (e.g. after AI generation)
+  useEffect(() => {
+    setLocalRadioValue(undefined)
+  }, [queryAnswer.data?._uuid])
 
   const mutationSaveAnswer = useAssetsDataSupplementPartialUpdate({ mutation: { scope: { id: 'qa-answer' } } })
   const mutationCreateQuestion = useAssetsAdvancedFeaturesCreate({ mutation: { scope: { id: 'qa-question' } } })
@@ -311,7 +317,7 @@ export default function AnalysisQuestionListItem({
       case 'qualSelectOne': {
         // Use local state if available, otherwise fall back to server data
         const currentValue =
-          localRadioValue !== undefined ? localRadioValue : (queryAnswer.data?._data?.value as string)
+          localRadioValue !== undefined ? localRadioValue : ((queryAnswer.data?._data as any)?.value as string)
         const hasValue = !!currentValue
 
         const handleClearSelection = hasValue
