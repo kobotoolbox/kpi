@@ -136,7 +136,7 @@ export default function ResponseForm({
             h='fit-content'
             size='md'
             p={0}
-            disabled={disabled || isGenerating}
+            disabled={disabled}
             c='var(--mantine-color-blue-5)'
             leftIcon='sparkles'
             onClick={handleGenerateWithAI}
