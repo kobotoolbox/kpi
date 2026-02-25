@@ -2,9 +2,11 @@ import os
 import shutil
 from typing import Iterable
 
+from azure.storage.blob import PartialBatchErrorException
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage, Storage
 from storages.backends.azure_storage import AzureStorage
+from rest_framework import status
 
 from kobo.apps.storage_backends.s3boto3 import S3Boto3Storage
 
@@ -62,7 +64,9 @@ def rmdir(directory: str, storage: Storage):
 
 
 def _bulk_delete_files_s3(file_paths: Iterable[str], storage: S3Boto3Storage) -> None:
-    """Delete S3 objects by exact key, with no listing step."""
+    """
+    Delete S3 objects by exact key, with no listing step.
+    """
     bucket = storage.bucket
     location = getattr(storage, 'location', '').strip('/')
     pending: list[dict] = []
@@ -83,13 +87,30 @@ def _bulk_delete_files_s3(file_paths: Iterable[str], storage: S3Boto3Storage) ->
 
 
 def _bulk_delete_files_azure(file_paths: Iterable[str], storage: AzureStorage):
-    """Delete Azure blobs by exact name, with no listing step."""
+    """
+    Delete Azure blobs by exact name, with no listing step.
+    """
     container_client = storage.client
     location = getattr(storage, 'location', '').strip('/')
     pending: list[str] = []
 
     def _flush(names: list[str]):
-        container_client.delete_blobs(*names)
+        try:
+            container_client.delete_blobs(*names)
+        except PartialBatchErrorException as e:
+            # Ignore 200/202 (success) and 404 (already deleted); re-raise for real errors
+            real_errors = [
+                r
+                for r in e.parts
+                if r.status_code
+                not in (
+                    status.HTTP_200_OK,
+                    status.HTTP_202_ACCEPTED,
+                    status.HTTP_404_NOT_FOUND,
+                )
+            ]
+            if real_errors:
+                raise
 
     for path in file_paths:
         path = path.strip('/')
