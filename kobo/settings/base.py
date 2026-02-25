@@ -1965,8 +1965,8 @@ MONGO_DB = mongo_client[mongo_db_name]
 # These settings should never be used directly.
 # Use MongoHelper.get_max_time_ms() in the code instead
 # ⚠️⚠️
-MONGO_QUERY_TIMEOUT = SYNCHRONOUS_REQUEST_TIME_LIMIT + 5  # seconds
-MONGO_CELERY_QUERY_TIMEOUT = CELERY_TASK_TIME_LIMIT + 10  # seconds
+DATABASE_QUERY_TIMEOUT = (SYNCHRONOUS_REQUEST_TIME_LIMIT + 5) * 1000  # milliseconds
+DATABASE_CELERY_QUERY_TIMEOUT = (CELERY_TASK_TIME_LIMIT + 10) * 1000  # milliseconds
 
 
 SESSION_ENGINE = 'redis_sessions.session'
