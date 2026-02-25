@@ -1,7 +1,8 @@
 import { Center, Group, Loader, Text } from '@mantine/core'
 import { useInfiniteQuery } from '@tanstack/react-query'
 import React, { useMemo } from 'react'
-import UniversalTableCore from '#/UniversalTable/UniversalTableCore'
+import UniversalTableCore, { type UniversalTableColumn } from '#/UniversalTable/UniversalTableCore'
+import type { VersionListResponse } from '#/api/models/versionListResponse'
 // 1. Import the raw fetching function and the query key builder from your Orval endpoints
 import {
   assetsVersionsList,
@@ -45,7 +46,7 @@ export default function FormHistory(props: FormHistoryProps) {
   })
 
   // 3. Flatten the pages into a single array for UniversalTableCore, strictly typing for status 200
-  const flattenedData = useMemo(() => {
+  const columnsData: VersionListResponse[] = useMemo(() => {
     return data?.pages.flatMap((page) => (page.status === 200 ? page.data.results : [])) || []
   }, [data])
 
@@ -54,18 +55,17 @@ export default function FormHistory(props: FormHistoryProps) {
 
   const showEndMessage = totalCount > ITEMS_PER_PAGE
 
-  const columns = useMemo(() => {
-    const baseColumns: any[] = [
+  const columns: Array<UniversalTableColumn<VersionListResponse>> = useMemo(() => {
+    const baseColumns: Array<UniversalTableColumn<VersionListResponse>> = [
       {
-        id: 'version',
-        header: t('Version'),
-        cell: (info: any) => {
-          const item = info.row.original
-          const versionNumber = totalCount - info.row.index
+        key: 'version',
+        label: t('Version'),
+        cellFormatter: (value: VersionListResponse, index: number) => {
+          const versionNumber = totalCount - index
           return (
             <Group gap='xs'>
               <Text>v{versionNumber}</Text>
-              {item.uid === props.deployedVersionId && props.deploymentActive && (
+              {value.uid === props.deployedVersionId && props.deploymentActive && (
                 <AssetStatusBadge deploymentStatus={props.deploymentStatus} />
               )}
             </Group>
@@ -73,21 +73,20 @@ export default function FormHistory(props: FormHistoryProps) {
         },
       },
       {
-        id: 'date',
-        header: t('Last Modified'),
-        accessorKey: 'date_deployed',
-        cell: (info: any) => formatTime(info.getValue()),
+        key: 'date_deployed',
+        label: t('Last Modified'),
+        cellFormatter: (value: VersionListResponse) => formatTime(value.date_deployed),
       },
     ]
 
     if (isLoggedIn) {
       baseColumns.push({
-        id: 'actions',
-        header: t('Clone'),
-        cell: (info: any) => (
+        key: 'actions',
+        label: t('Clone'),
+        cellFormatter: (value: VersionListResponse) => (
           <ActionIcon
             variant='transparent'
-            onClick={() => props.onClone(info.row.original.uid)}
+            onClick={() => props.onClone(value.uid)}
             tooltip={t('Clone this version as a new project')}
             iconName='duplicate'
             size='md'
@@ -108,9 +107,9 @@ export default function FormHistory(props: FormHistoryProps) {
   }
 
   return (
-    <UniversalTableCore
+    <UniversalTableCore<VersionListResponse>
       columns={columns}
-      data={flattenedData}
+      data={columnsData}
       maxHeight={425}
       bottomContent={
         <InfiniteScrollTrigger
