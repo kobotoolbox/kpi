@@ -16,7 +16,7 @@ import {
 } from '#/api/react-query/survey-data'
 import { SUBSEQUENCES_SCHEMA_VERSION } from '#/components/processing/common/constants'
 import type { AssetResponse } from '#/dataInterface'
-import { removeDefaultUuidPrefix } from '#/utils'
+import { notify, removeDefaultUuidPrefix } from '#/utils'
 import type { AdvancedFeatureResponseManualQual } from '../../common/utils'
 import AnalysisQuestionListItem from './AnalysisQuestionListItem'
 import styles from './index.module.scss'
@@ -64,7 +64,16 @@ export default function AnalysisQuestionsList({
     mutation: { scope: { id: 'automatic-qual' } },
   })
 
-  const mutationGenerateWithAI = useAssetsDataSupplementPartialUpdate({ mutation: { scope: { id: 'qa-generate-ai' } } })
+  const mutationGenerateWithAI = useAssetsDataSupplementPartialUpdate({
+    mutation: {
+      scope: { id: 'qa-generate-ai' },
+      // Override default error handler to show a user-friendly message
+      // instead of the raw server response (which may contain HTML).
+      onError: () => {
+        notify.error(t('Failed to generate AI response. Please try again later.'))
+      },
+    },
+  })
 
   // Local state to avoid flickering on reordering (optimistic UI)
   const [localParams, setLocalParams] = useState<ResponseQualActionParams[]>(advancedFeatureManual?.params ?? [])
