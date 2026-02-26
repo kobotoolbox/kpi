@@ -89,12 +89,13 @@ export default function AnalysisQuestionsList({
     })
   }, [])
 
-  const localAdvancedFeature: AdvancedFeatureResponseManualQual | undefined = advancedFeatureManual
-    ? {
-        ...advancedFeatureManual,
-        params: localParams,
-      }
-    : undefined
+  let localAdvancedFeature: AdvancedFeatureResponseManualQual | undefined
+  if (advancedFeatureManual) {
+    localAdvancedFeature = {
+      ...advancedFeatureManual,
+      params: localParams,
+    }
+  }
 
   if (!localAdvancedFeature) {
     return null

@@ -41,7 +41,7 @@ export default function AnalysisTab({ asset, questionXpath, submission, suppleme
   const enableAdvancedFeatureManualQual = async () => {
     if (advancedFeature) return
 
-    const response = await createAdvancedFeatureMutation.mutateAsync({
+    await createAdvancedFeatureMutation.mutateAsync({
       uidAsset: asset.uid,
       data: {
         action: ActionEnum.manual_qual,

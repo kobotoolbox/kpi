@@ -19,7 +19,10 @@ interface Props {
   disabled: boolean
   onEdit: (qaQuestion: ResponseQualActionParams) => unknown
   onDelete: (qaQuestion: ResponseQualActionParams) => Promise<unknown>
-  /** Adds a Generate with AI button */
+  /**
+   * Adds a Generate with AI button. API handling is being served by parent(s), as this component doesn't have all
+   * the required data and it's easier to push this one function up than all the small pieces down.
+   */
   onGenerateWithAI?: () => Promise<unknown>
 }
 
