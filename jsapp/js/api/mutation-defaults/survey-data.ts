@@ -324,6 +324,13 @@ queryClient.setMutationDefaults(
               snapshots: [itemSnapshot],
             }
           }
+          case ActionEnum.automatic_bedrock_qual: {
+            // No optimistic update for automatic_bedrock_qual since
+            // it only supports 'complete' or 'failed' status (no 'in_progress')
+            return {
+              snapshots: [],
+            }
+          }
           default:
             throw new Error(`Unknown action "${action}" is not handled.`)
         }

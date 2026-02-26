@@ -13,6 +13,8 @@ interface WhenLoadedListeners {
 
 /**
  * A store that keeps data of each asset (only the full data with `.content`).
+ *
+ * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
  */
 class AssetStore extends Reflux.Store {
   data: AssetStoreData = {}
@@ -84,6 +86,8 @@ class AssetStore extends Reflux.Store {
 
 /**
  * This store keeps only full assets (i.e. ones with `content`)
+ *
+ * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
  */
 const assetStore = new AssetStore()
 assetStore.init()

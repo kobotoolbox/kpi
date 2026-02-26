@@ -193,6 +193,7 @@ export interface OneTimeUsageLimits {
   submission_limit: number
   asr_seconds_limit: number
   mt_characters_limit: number
+  llm_requests_limit: number
 }
 
 export enum USAGE_TYPE {

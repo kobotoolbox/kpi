@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 
 import classnames from 'classnames'
 import type { Identifier, XYCoord } from 'dnd-core'
@@ -6,7 +6,6 @@ import { useDrag, useDrop } from 'react-dnd'
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { ResponseManualQualActionParams } from '#/api/models/responseManualQualActionParams'
-import type { SupplementalDataVersionItemQual } from '#/api/models/supplementalDataVersionItemQual'
 import {
   type assetsDataSupplementRetrieveResponse,
   getAssetsDataSupplementRetrieveQueryKey,
@@ -19,7 +18,9 @@ import Icon from '#/components/common/icon'
 import InlineMessage from '#/components/common/inlineMessage'
 import { userCan } from '#/components/permissions/utils'
 import { LOCALLY_EDITED_PLACEHOLDER_UUID, SUBSEQUENCES_SCHEMA_VERSION } from '#/components/processing/common/constants'
+import type { QualVersionItem } from '#/components/processing/common/types'
 import type { ManualQualValue } from '#/components/processing/common/types'
+import { getLatestQualVersionItem } from '#/components/processing/common/utils'
 import { DND_TYPES } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import { removeDefaultUuidPrefix } from '#/utils'
@@ -36,7 +37,7 @@ import styles from './index.module.scss'
 
 export interface Props {
   asset: AssetResponse
-  advancedFeature: AdvancedFeatureResponseManualQual
+  advancedFeatureManual: AdvancedFeatureResponseManualQual
   questionXpath: string
   qaQuestion: ResponseManualQualActionParams
   setQaQuestion: (qualQuestion: ResponseManualQualActionParams | undefined) => void
@@ -45,6 +46,7 @@ export interface Props {
   moveRow: (uuid: string, oldIndex: number, newIndex: number) => void
   editMode: boolean
   isAnyQuestionBeingEdited: boolean
+  onGenerateWithAI: (qaQuestion: ResponseManualQualActionParams) => Promise<void>
 }
 
 interface DragItem {
@@ -61,7 +63,7 @@ interface DragItem {
  */
 export default function AnalysisQuestionListItem({
   asset,
-  advancedFeature,
+  advancedFeatureManual,
   questionXpath,
   qaQuestion,
   setQaQuestion,
@@ -70,6 +72,7 @@ export default function AnalysisQuestionListItem({
   moveRow,
   editMode,
   isAnyQuestionBeingEdited,
+  onGenerateWithAI,
 }: Props) {
   const rootUuid = removeDefaultUuidPrefix(submission['meta/rootUuid'])
 
@@ -78,9 +81,9 @@ export default function AnalysisQuestionListItem({
       staleTime: Number.POSITIVE_INFINITY,
       queryKey: getAssetsDataSupplementRetrieveQueryKey(asset.uid, rootUuid),
       select: useCallback(
-        (data: assetsDataSupplementRetrieveResponse): SupplementalDataVersionItemQual | undefined => {
+        (data: assetsDataSupplementRetrieveResponse): QualVersionItem | undefined => {
           if (data.status !== 200) return // typeguard, should never happen
-          return data.data[questionXpath]?.manual_qual?.[qaQuestion.uuid]?._versions[0]
+          return getLatestQualVersionItem(data.data, questionXpath, qaQuestion.uuid)
         },
         [questionXpath, qaQuestion.uuid],
       ),
@@ -91,9 +94,15 @@ export default function AnalysisQuestionListItem({
   // this is needed so that the "clear" button works immediately without waiting for server response
   const [localRadioValue, setLocalRadioValue] = useState<string | undefined>()
 
+  // Reset local radio override when a new version arrives (e.g. after AI generation)
+  useEffect(() => {
+    setLocalRadioValue(undefined)
+  }, [queryAnswer.data?._uuid])
+
   const mutationSaveAnswer = useAssetsDataSupplementPartialUpdate({ mutation: { scope: { id: 'qa-answer' } } })
   const mutationCreateQuestion = useAssetsAdvancedFeaturesCreate({ mutation: { scope: { id: 'qa-question' } } })
   const mutationPatchQuestion = useAssetsAdvancedFeaturesPartialUpdate({ mutation: { scope: { id: 'qa-question' } } })
+
   const handleSaveAnswer = async (value: ManualQualValue) => {
     await mutationSaveAnswer.mutateAsync({
       uidAsset: asset.uid,
@@ -110,7 +119,7 @@ export default function AnalysisQuestionListItem({
     })
   }
 
-  const isCreate = advancedFeature.uid === LOCALLY_EDITED_PLACEHOLDER_UUID
+  const isCreate = advancedFeatureManual.uid === LOCALLY_EDITED_PLACEHOLDER_UUID
 
   const handleSaveQuestion = async (params: ResponseManualQualActionParams[]) => {
     if (isCreate) {
@@ -118,20 +127,19 @@ export default function AnalysisQuestionListItem({
         uidAsset: asset.uid,
         data: {
           action: ActionEnum.manual_qual,
-          question_xpath: advancedFeature.question_xpath,
+          question_xpath: advancedFeatureManual.question_xpath,
           params: params,
         },
       })
     } else {
       await mutationPatchQuestion.mutateAsync({
         uidAsset: asset.uid,
-        uidAdvancedFeature: advancedFeature.uid,
+        uidAdvancedFeature: advancedFeatureManual.uid,
         data: {
           params: params,
         },
       })
     }
-    console.log('adf')
     setQaQuestion(undefined)
   }
 
@@ -141,13 +149,13 @@ export default function AnalysisQuestionListItem({
 
   const handleDeleteQuestion = async (qaQuestionToDelete: ResponseManualQualActionParams) => {
     // Mark the question as deleted by setting options.deleted to true
-    const updatedParams = advancedFeature.params.map((param) =>
+    const updatedParams = advancedFeatureManual.params.map((param: ResponseManualQualActionParams) =>
       param.uuid === qaQuestionToDelete.uuid ? { ...param, options: { ...param.options, deleted: true } } : param,
     )
 
     await mutationPatchQuestion.mutateAsync({
       uidAsset: asset.uid,
-      uidAdvancedFeature: advancedFeature.uid,
+      uidAdvancedFeature: advancedFeatureManual.uid,
       data: {
         params: updatedParams,
       },
@@ -158,7 +166,7 @@ export default function AnalysisQuestionListItem({
   const handleReorderQuestions = (reorderedParams: ResponseManualQualActionParams[]) => {
     return mutationPatchQuestion.mutateAsync({
       uidAsset: asset.uid,
-      uidAdvancedFeature: advancedFeature.uid,
+      uidAdvancedFeature: advancedFeatureManual.uid,
       data: {
         params: reorderedParams,
       },
@@ -251,7 +259,7 @@ export default function AnalysisQuestionListItem({
       // Save the reordered questions to the backend
       // The moveRow callback has already updated the visual order in the parent component
       // Here we persist that change to the backend using the current params order
-      await handleReorderQuestions(advancedFeature.params)
+      await handleReorderQuestions(advancedFeatureManual.params)
     },
   })
 
@@ -263,7 +271,7 @@ export default function AnalysisQuestionListItem({
     if (editMode) {
       return (
         <AnalysisQuestionEditor
-          advancedFeature={advancedFeature}
+          advancedFeature={advancedFeatureManual}
           qaQuestion={qaQuestion}
           onSaveQuestion={handleSaveQuestion}
           disabled={disabledAnswer}
@@ -295,6 +303,7 @@ export default function AnalysisQuestionListItem({
             disabled={disabledQuestion}
             onEdit={setQaQuestion}
             onDelete={handleDeleteQuestion}
+            onGenerateWithAI={() => onGenerateWithAI(qaQuestion)}
           >
             <SelectMultipleResponseForm
               qaQuestion={qaQuestion}
@@ -308,7 +317,7 @@ export default function AnalysisQuestionListItem({
       case 'qualSelectOne': {
         // Use local state if available, otherwise fall back to server data
         const currentValue =
-          localRadioValue !== undefined ? localRadioValue : (queryAnswer.data?._data?.value as string)
+          localRadioValue !== undefined ? localRadioValue : ((queryAnswer.data?._data as any)?.value as string)
         const hasValue = !!currentValue
 
         const handleClearSelection = hasValue
@@ -330,6 +339,7 @@ export default function AnalysisQuestionListItem({
             onEdit={setQaQuestion}
             onDelete={handleDeleteQuestion}
             onClear={handleClearSelection}
+            onGenerateWithAI={() => onGenerateWithAI(qaQuestion)}
           >
             <SelectOneResponseForm
               qaQuestion={qaQuestion}
@@ -359,6 +369,7 @@ export default function AnalysisQuestionListItem({
             disabled={disabledQuestion}
             onEdit={setQaQuestion}
             onDelete={handleDeleteQuestion}
+            onGenerateWithAI={() => onGenerateWithAI(qaQuestion)}
           >
             <IntegerResponseForm qaAnswer={queryAnswer.data} disabled={disabledAnswer} onSave={handleSaveAnswer} />
           </ResponseForm>
@@ -371,6 +382,7 @@ export default function AnalysisQuestionListItem({
             disabled={disabledQuestion}
             onEdit={setQaQuestion}
             onDelete={handleDeleteQuestion}
+            onGenerateWithAI={() => onGenerateWithAI(qaQuestion)}
           >
             <TextResponseForm qaAnswer={queryAnswer.data} disabled={disabledAnswer} onSave={handleSaveAnswer} />
           </ResponseForm>

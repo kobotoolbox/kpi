@@ -18,6 +18,9 @@ export interface PageStateStoreState {
 // This is some old weird store that is responsible for two things:
 // 1. toggling mobile menu - should be moved to some other place
 // 2. handling modal from `bigModal.js` - should be moved somewhere near the modal files
+/**
+ * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
+ */
 class PageStateStore extends Reflux.Store {
   state: PageStateStoreState = {
     showFixedDrawer: false,
@@ -77,6 +80,9 @@ class PageStateStore extends Reflux.Store {
   }
 }
 
+/**
+ * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
+ */
 const pageState = new PageStateStore()
 
 export default pageState

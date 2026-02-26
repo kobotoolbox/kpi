@@ -76,9 +76,9 @@ export default function Usage() {
   useEffect(() => {
     const getLimits = async () => {
       await when(() => envStore.isReady)
-      let limits: AccountLimitDetail
+      let AccountLimits: AccountLimitDetail
       if (envStore.data.stripe_public_key) {
-        limits = await getAccountLimits(products.products, oneTimeAddOnsContext.oneTimeAddOns)
+        AccountLimits = await getAccountLimits(products.products, oneTimeAddOnsContext.oneTimeAddOns)
       } else {
         setLimits((prevState) => {
           return {
@@ -92,20 +92,22 @@ export default function Usage() {
       setLimits((prevState) => {
         return {
           ...prevState,
-          storageByteRemainingLimit: limits.remainingLimits.storage_bytes_limit,
-          storageByteRecurringLimit: limits.recurringLimits.storage_bytes_limit,
-          nlpCharacterRemainingLimit: limits.remainingLimits.mt_characters_limit,
-          nlpCharacterRecurringLimit: limits.recurringLimits.mt_characters_limit,
+          storageByteRemainingLimit: AccountLimits.remainingLimits.storage_bytes_limit,
+          storageByteRecurringLimit: AccountLimits.recurringLimits.storage_bytes_limit,
+          nlpCharacterRemainingLimit: AccountLimits.remainingLimits.mt_characters_limit,
+          nlpCharacterRecurringLimit: AccountLimits.recurringLimits.mt_characters_limit,
           nlpMinuteRemainingLimit:
-            typeof limits.remainingLimits.asr_seconds_limit === 'number'
-              ? convertSecondsToMinutes(limits.remainingLimits.asr_seconds_limit)
-              : limits.remainingLimits.asr_seconds_limit,
+            typeof AccountLimits.remainingLimits.asr_seconds_limit === 'number'
+              ? convertSecondsToMinutes(AccountLimits.remainingLimits.asr_seconds_limit)
+              : AccountLimits.remainingLimits.asr_seconds_limit,
           nlpMinuteRecurringLimit:
-            typeof limits.recurringLimits.asr_seconds_limit === 'number'
-              ? convertSecondsToMinutes(limits.recurringLimits.asr_seconds_limit)
-              : limits.recurringLimits.asr_seconds_limit,
-          submissionsRemainingLimit: limits.remainingLimits.submission_limit,
-          submissionsRecurringLimit: limits.recurringLimits.submission_limit,
+            typeof AccountLimits.recurringLimits.asr_seconds_limit === 'number'
+              ? convertSecondsToMinutes(AccountLimits.recurringLimits.asr_seconds_limit)
+              : AccountLimits.recurringLimits.asr_seconds_limit,
+          submissionsRemainingLimit: AccountLimits.remainingLimits.submission_limit,
+          submissionsRecurringLimit: AccountLimits.recurringLimits.submission_limit,
+          llmRequestsRemainingLimit: AccountLimits.remainingLimits.llm_requests_limit,
+          llmRequestsRecurringLimit: AccountLimits.recurringLimits.llm_requests_limit,
           isLoaded: true,
           stripeEnabled: true,
         }
@@ -117,7 +119,6 @@ export default function Usage() {
 
   function filterAddOns(type: USAGE_TYPE) {
     const availableAddons = oneTimeAddOnsContext.oneTimeAddOns.filter((addon) => addon.is_available)
-
     // Find the relevant addons, but first check and make sure add-on
     // limits aren't superceded by an "unlimited" usage limit.
     switch (type) {
@@ -132,6 +133,10 @@ export default function Usage() {
       case USAGE_TYPE.TRANSLATION:
         return limits.nlpCharacterRecurringLimit !== Limits.unlimited
           ? availableAddons.filter((addon) => addon.total_usage_limits.mt_characters_limit)
+          : []
+      case USAGE_TYPE.LLM:
+        return limits.llmRequestsRecurringLimit !== Limits.unlimited
+          ? availableAddons.filter((addon) => addon.total_usage_limits.llm_requests_limit)
           : []
       default:
         return []
@@ -205,8 +210,8 @@ export default function Usage() {
         {useFeatureFlag(FeatureFlag.autoQAEnabled) && (
           <UsageContainer
             usage={usageQuery.data.data.llm_requests.llm_requests_current_period}
-            remainingLimit={limits.llmRequestsRecurringLimit}
-            recurringLimit={limits.llmRequestsRemainingLimit}
+            remainingLimit={limits.llmRequestsRemainingLimit}
+            recurringLimit={limits.llmRequestsRecurringLimit}
             oneTimeAddOns={filterAddOns(USAGE_TYPE.LLM)}
             period={billingPeriod}
             type={USAGE_TYPE.LLM}

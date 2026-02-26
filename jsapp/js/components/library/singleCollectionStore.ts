@@ -28,6 +28,9 @@ interface SingleCollectionStoreData {
 // Extends most functionality from myLibraryStore but overwrites some actions:
 // - searchMyLibraryAssets.* -> searchMyCollectionAssets.*
 // - searchMyLibraryMetadata.completed -> searchMyCollectionMetadata.completed
+/**
+ * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
+ */
 class SingleCollectionStore extends Reflux.Store {
   /**
    * A method for aborting current XHR fetch request.
@@ -318,6 +321,9 @@ class SingleCollectionStore extends Reflux.Store {
   }
 }
 
+/**
+ * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
+ */
 const singleCollectionStore = new SingleCollectionStore()
 singleCollectionStore.init()
 

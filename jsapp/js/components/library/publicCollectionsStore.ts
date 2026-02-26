@@ -33,6 +33,9 @@ export interface PublicCollectionsStoreData {
   filterValue: string | null
 }
 
+/**
+ * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
+ */
 class PublicCollectionsStore extends Reflux.Store {
   /**
    * A method for aborting current XHR fetch request.
@@ -331,6 +334,9 @@ class PublicCollectionsStore extends Reflux.Store {
   }
 }
 
+/**
+ * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
+ */
 const publicCollectionsStore = new PublicCollectionsStore()
 publicCollectionsStore.init()
 
