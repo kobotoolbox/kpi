@@ -32,18 +32,18 @@ django-allauth>=65.11.2
 django-allauth[mfa]
 django-braces
 django-celery-beat
-django-constance
+django-constance<4  # temporary 20260226
 django-cors-headers
-django-csp
-django-debug-toolbar
+django-csp<4  # temporary 20260226
+django-debug-toolbar<5  # temporary 20260226
 django-environ
-django-filter
+django-filter<25  # temporary 20260226
 django-import-export
 django-import-export-celery
-django-extensions
-django-oauth-toolkit
+django-extensions<4  # temporary 20260226
+django-oauth-toolkit<3  # temporary 20260226
 django-organizations
-django-redis
+django-redis<6  # temporary 20260226
 django-storages[azure,boto3]
 django-amazon-ses
 django-webpack-loader
@@ -51,8 +51,8 @@ django-loginas
 django-markdownx
 django-prometheus
 
-django-reversion
-django-taggit
+django-reversion<6  # temporary 20260226
+django-taggit<6  # temporary 20260226
 django-private-storage
 djangorestframework
 djangorestframework-xml
@@ -64,18 +64,18 @@ future
 geojson-rewind
 google-api-python-client
 google-cloud-speech
-google-cloud-storage
+google-cloud-storage<3  # temporary 20260226
 google-cloud-translate
 jsonfield
 jsonschema
 kombu
-lxml
+lxml<6  # temporary 20260226
 more-itertools
 oauthlib
 objgraph
 openpyxl
 #py-gfm # Incompatible with markdown 3.x
-pillow-heif
+pillow-heif<1  # temporary 20260226
 psycopg
 pymongo
 python-dateutil
@@ -88,7 +88,7 @@ shortuuid
 sqlparse
 static3
 tabulate
-ua-parser
+ua-parser<1  # temporary 20260226
 uWSGI
 Werkzeug
 xlrd
@@ -97,25 +97,25 @@ xlutils
 XlsxWriter
 
 # These packages allow `requests` to support SNI
-pyopenssl
+pyopenssl<25  # temporary 20260226
 ndg-httpsclient
 pyasn1
 
 # This package is only needed for unit tests but MockBackend is loaded even on production environment
-deepmerge
+deepmerge<2  # temporary 20260226
 
 # MFA
 django-trench
 
 # Sentry
-sentry-sdk
+sentry-sdk<2  # temporary 20260226
 
 # Kobocat
-django-guardian
+django-guardian<3  # temporary 20260226
 modilabs-python-utils
 djangorestframework-csv
 djangorestframework-jsonp
-pandas
+pandas<3  # temporary 20260226
 
 # Api Documentation
 drf-spectacular
