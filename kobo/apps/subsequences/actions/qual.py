@@ -135,8 +135,7 @@ class BaseQualAction(BaseAction):
         '$defs': {**shared_definitions, **params_schema_definitions},
     }
 
-    @property
-    def data_schema(self):
+    def get_data_schema(self):
         """
         POST to "/api/v2/assets/<asset uid>/data/<submission uuid>/supplemental/"
         {

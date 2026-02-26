@@ -2,6 +2,7 @@ from copy import deepcopy
 
 from dateutil import parser
 
+from kpi.utils.log import logging
 from ..constants import SORT_BY_DATE_FIELD
 from ..exceptions import TranscriptionNotFound
 from ..type_aliases import SimplifiedOutputCandidatesByColumnKey
@@ -40,6 +41,21 @@ class RequiresTranscriptionMixin:
 
         return self._action_dependencies
 
+    def modify_data_schema(self, schema: dict) -> dict:
+        """
+        Allow callers to pass in a pre-determined dependency
+        """
+        schema['properties'][self.DEPENDENCY_FIELD] = {
+                            'type': 'object',
+                            'additionalProperties': False,
+                            'properties': {
+                                self.UUID_FIELD: {'$ref': '#/$defs/uuid'},
+                                self.ACTION_ID_FIELD: {'type': 'string'},
+                            },
+                            'required': [self.UUID_FIELD, self.ACTION_ID_FIELD],
+                        }
+        schema['$defs']['uuid'] = {'type': 'string', 'format': 'uuid'}
+
     def attach_action_dependency(self, action_data: dict):
         """
         Attach the latest *accepted* transcript as a dependency for a translation
@@ -75,36 +91,48 @@ class RequiresTranscriptionMixin:
         if 'value' in action_data and action_data['value'] is None:
             return action_data
 
-        for action_id, action_supplemental_data in self._action_dependencies.items():
-            versions = action_supplemental_data.get(self.VERSION_FIELD) or []
-            if not versions:
-                continue
+        if self.DEPENDENCY_FIELD in action_data:
+            dependency = action_data[self.DEPENDENCY_FIELD]
+            action_id = dependency[self.ACTION_ID_FIELD]
+            if not action_id in self._action_dependencies:
+                raise TranscriptionNotFound
+            versions = self._action_dependencies[action_id].get(self.VERSION_FIELD,[])
+            version = [version for version in versions if version[self.UUID_FIELD] == dependency[self.UUID_FIELD]]
+            if len(version) == 0:
+                raise TranscriptionNotFound
+            latest_version = version[0]
+            latest_version_action_id = action_id
+        else:
+            for action_id, action_supplemental_data in self._action_dependencies.items():
+                versions = action_supplemental_data.get(self.VERSION_FIELD) or []
+                if not versions:
+                    continue
 
-            for version in versions:
-                version_data = version.get(self.VERSION_DATA_FIELD, {})
+                for version in versions:
+                    version_data = version.get(self.VERSION_DATA_FIELD, {})
 
-                is_deleted = (
-                    ('status' not in version_data and version_data.get('value') is None)
-                    or version_data.get('status') == 'deleted'
-                )
+                    is_deleted = (
+                        ('status' not in version_data and version_data.get('value') is None)
+                        or version_data.get('status') == 'deleted'
+                    )
 
-                if is_deleted:
-                    # Track the most recent deletion timestamp across all versions
-                    created_raw = version.get(self.DATE_CREATED_FIELD)
-                    created_dt = parser.parse(created_raw)
-                    if latest_deletion_dt is None or created_dt > latest_deletion_dt:
-                        latest_deletion_dt = created_dt
-                else:
-                    # Skip versions that are not accepted
-                    accepted_raw = version.get(self.DATE_ACCEPTED_FIELD)
-                    if not accepted_raw:
-                        continue
+                    if is_deleted:
+                        # Track the most recent deletion timestamp across all versions
+                        created_raw = version.get(self.DATE_CREATED_FIELD)
+                        created_dt = parser.parse(created_raw)
+                        if latest_deletion_dt is None or created_dt > latest_deletion_dt:
+                            latest_deletion_dt = created_dt
+                    else:
+                        # Skip versions that are not accepted
+                        accepted_raw = version.get(self.DATE_ACCEPTED_FIELD)
+                        if not accepted_raw:
+                            continue
 
-                    accepted_dt = parser.parse(accepted_raw)
-                    if latest_accepted_dt is None or accepted_dt > latest_accepted_dt:
-                        latest_accepted_dt = accepted_dt
-                        latest_version = version
-                        latest_version_action_id = action_id
+                        accepted_dt = parser.parse(accepted_raw)
+                        if latest_accepted_dt is None or accepted_dt > latest_accepted_dt:
+                            latest_accepted_dt = accepted_dt
+                            latest_version = version
+                            latest_version_action_id = action_id
 
         if (
             latest_version is None
@@ -119,7 +147,7 @@ class RequiresTranscriptionMixin:
             latest_version_data.get('locale') or latest_version_data['language']
         )
 
-        # Inject dependency property for translation service
+        # Inject or update dependency property for translation service
         action_data[self.DEPENDENCY_FIELD] = {
             'value': latest_version_data['value'],
             'language': language_or_locale,

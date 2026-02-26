@@ -5,6 +5,7 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import remove_uuid_pre
 from kobo.apps.subsequences.exceptions import SubsequenceTimeoutError
 from kobo.celery import celery_app
 from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
+from kpi.utils.log import logging
 from .constants import SCHEMA_VERSIONS, SUBMISSION_UUID_FIELD
 
 
@@ -38,16 +39,27 @@ def poll_run_external_process(
     SubmissionSupplement = apps.get_model(
         'subsequences', 'SubmissionSupplement'
     )  # noqa: N806
+    if '_dependency' in action_data:
+        action_data['_dependency'].pop('language', None)
+        action_data['_dependency'].pop('value', None)
     incoming_data = {
         '_version': SCHEMA_VERSIONS[0],
         question_xpath: {action_id: action_data},
     }
     asset = Asset.objects.only('pk', 'owner_id').get(id=asset_id)
+    feature = asset.advanced_features_set.get(
+        question_xpath=question_xpath, action=action_id
+    )
+    action = feature.to_action()
     supplement_data = SubmissionSupplement.revise_data(asset, submission, incoming_data)
 
-    last_action_version = supplement_data[question_xpath][action_id]['_versions'][0]
 
-    if last_action_version[BaseAction.VERSION_DATA_FIELD]['status'] == 'in_progress':
+
+
+    localized_action_data, _ = action.get_localized_action_supplemental_data(supplement_data[question_xpath][action_id], action_data)
+    latest_version = localized_action_data['_versions'][0]
+
+    if latest_version[BaseAction.VERSION_DATA_FIELD]['status'] == 'in_progress':
         raise SubsequenceTimeoutError(
             f'{action_id} is still in progress for submission '
             f'{submission[SUBMISSION_UUID_FIELD]}'
@@ -87,8 +99,8 @@ def poll_run_external_process_failure(sender=None, **kwargs):
     )
     action = feature.to_action()
     action.get_action_dependencies(supplemental_data[question_xpath])
+    localized_action_data, _ = action.get_localized_action_supplemental_data(supplemental_data[question_xpath][action_id], action_data)
 
-    action_supplemental_data = supplemental_data[question_xpath][action_id]
     action_data.update(
         {
             'error': error,
@@ -97,12 +109,13 @@ def poll_run_external_process_failure(sender=None, **kwargs):
     )
     # FIXME We assume that the last action is the one in progress but it could
     #   be another one.
-    dependency_supplemental_data = action_supplemental_data['_versions'][0].get(
+
+    dependency_supplemental_data = localized_action_data['_versions'][0].get(
         action.DEPENDENCY_FIELD
     )
 
     new_action_supplemental_data = action.get_new_action_supplemental_data(
-        action_supplemental_data, action_data, dependency_supplemental_data
+        localized_action_data, action_data, dependency_supplemental_data
     )
 
     submission_uuid = remove_uuid_prefix(submission[SUBMISSION_UUID_FIELD])

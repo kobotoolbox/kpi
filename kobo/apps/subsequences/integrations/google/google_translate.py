@@ -27,7 +27,7 @@ class GoogleTranslationService(GoogleService):
     API_NAME = 'translate'
     API_VERSION = 'v3'
     API_RESOURCE = 'projects.locations.operations'
-    MAX_SYNC_CHARS = 30720
+    MAX_SYNC_CHARS = 10
 
     def __init__(self, submission: dict, asset: 'kpi.models.Asset', *args, **kwargs):
         """
