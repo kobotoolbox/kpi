@@ -43,6 +43,7 @@ def poll_run_external_process(
         question_xpath: {action_id: action_data},
     }
     asset = Asset.objects.only('pk', 'owner_id').get(id=asset_id)
+
     supplement_data = SubmissionSupplement.revise_data(asset, submission, incoming_data)
 
     last_action_version = supplement_data[question_xpath][action_id]['_versions'][0]
@@ -85,8 +86,10 @@ def poll_run_external_process_failure(sender=None, **kwargs):
     feature = asset.advanced_features_set.get(
         question_xpath=question_xpath, action=action_id
     )
-    action = feature.to_action()
-    action.get_revision_dependencies(supplemental_data[question_xpath])
+    prefetched_dependencies = {
+        'question_supplemental_data': supplemental_data[question_xpath],
+    }
+    action = feature.to_action(prefetched_dependencies=prefetched_dependencies)
 
     action_supplemental_data = supplemental_data[question_xpath][action_id]
     action_data.update(
