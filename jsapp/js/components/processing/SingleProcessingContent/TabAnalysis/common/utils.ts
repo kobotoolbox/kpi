@@ -4,8 +4,8 @@ import type { ResponseQualActionParams } from '#/api/models/responseQualActionPa
 import { ANALYSIS_QUESTION_TYPES } from './constants'
 
 export interface AdvancedFeatureResponseManualQual extends AdvancedFeatureResponse {
-  action: typeof ActionEnum.manual_qual
   question_xpath: string
+  action: typeof ActionEnum.manual_qual
   params: ResponseQualActionParams[]
   uid: string
 }
