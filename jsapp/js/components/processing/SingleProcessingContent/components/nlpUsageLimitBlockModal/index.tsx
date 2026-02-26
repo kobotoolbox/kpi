@@ -51,7 +51,7 @@ function NlpUsageLimitBlockModal(props: NlpUsageLimitBlockModalProps) {
             {t('Buy add-on')}
           </ButtonNew>
 
-          <ButtonNew type='button' size='l' onClick={() => navigate(ACCOUNT_ROUTES.PLAN)}>
+          <ButtonNew type='button' size='l' onClick={() => navigate(ACCOUNT_ROUTES.PLAN)} variant='filled'>
             {t('Upgrade now')}
           </ButtonNew>
         </KoboModalFooter>
