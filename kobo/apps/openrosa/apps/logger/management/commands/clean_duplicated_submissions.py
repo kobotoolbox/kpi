@@ -108,7 +108,7 @@ class Command(BaseCommand):
                     f"\tLinked attachments to instance #{instance_ref['id']}"
                 )
 
-            # Update Mongo
+            # Fetch the reference ParsedInstance early to reuse after deletion
             parsed_instance = ParsedInstance.objects.select_related(
                 'instance__xform__user', 'instance__user'
             ).get(instance_id=instance_ref['id'])
@@ -141,6 +141,15 @@ class Command(BaseCommand):
                 'query': '',
             },
         )
+
+        # Backfill root_uuid on the reference instance after duplicates are deleted,
+        # to avoid a unique constraint violation on `root_uuid` if a duplicate already
+        # held the same value.
+        ref_instance = parsed_instance.instance
+        if not ref_instance.root_uuid:
+            Instance.objects.filter(pk=ref_instance.pk).update(
+                root_uuid=ref_instance.uuid
+            )
 
         if self._verbosity > 1:
             self.stdout.write(
