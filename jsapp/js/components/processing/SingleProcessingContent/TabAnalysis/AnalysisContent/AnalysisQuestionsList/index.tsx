@@ -18,6 +18,11 @@ import { notify, removeDefaultUuidPrefix } from '#/utils'
 import type { AdvancedFeatureResponseManualQual } from '../../common/utils'
 import AnalysisQuestionListItem from './AnalysisQuestionListItem'
 import styles from './index.module.scss'
+import { useOrganizationsServiceUsageSummary } from '#/account/usage/useOrganizationsServiceUsageSummary'
+import { useBillingPeriod } from '#/account/usage/useBillingPeriod'
+import { UsageLimitTypes } from '#/account/stripe.types'
+import envStore from '#/envStore'
+import NlpUsageLimitBlockModal from '../../../components/nlpUsageLimitBlockModal'
 
 interface Props {
   asset: AssetResponse
@@ -147,7 +152,25 @@ export default function AnalysisQuestionsList({
     }
   }
 
+  const [isLimitBlockModalOpen, setIsLimitBlockModalOpen] = useState<boolean>(false)
+  const { data: serviceUsageData } = useOrganizationsServiceUsageSummary()
+  const { billingPeriod } = useBillingPeriod()
+
+  const usageLimitBlock =
+    serviceUsageData?.status === 200 &&
+    serviceUsageData?.data.limitExceedList.includes(UsageLimitTypes.LLM_REQUEST) &&
+    envStore.data.usage_limit_enforcement
+
+  function handleDismissModal() {
+    setIsLimitBlockModalOpen(false)
+  }
+
   const handleGenerateWithAI = async (qaQuestionParam: ResponseQualActionParams) => {
+    if (usageLimitBlock) {
+      setIsLimitBlockModalOpen(true)
+      return
+    }
+    
     // Enable the automatic_bedrock_qual feature if needed
     await enableGenerateWithAIFeature()
 
@@ -167,25 +190,25 @@ export default function AnalysisQuestionsList({
   }
 
   return (
-    <DndProvider backend={HTML5Backend}>
-      <ul className={styles.root}>
-        {qaQuestion && !qaQuestions.some(({ uuid }) => uuid === qaQuestion?.uuid) && (
-          <AnalysisQuestionListItem
-            asset={asset}
-            advancedFeatureManual={localAdvancedFeature}
-            submission={submission}
-            qaQuestion={qaQuestion}
-            setQaQuestion={setQaQuestion}
-            questionXpath={questionXpath}
-            index={-1}
-            moveRow={moveRow}
-            editMode
-            isAnyQuestionBeingEdited={isAnyQuestionBeingEdited}
-            onGenerateWithAI={handleGenerateWithAI}
-          />
-        )}
-        {qaQuestions.map((qaQuestionItem, index) => {
-          return (
+    <>
+      <DndProvider backend={HTML5Backend}>
+        <ul className={styles.root}>
+          {qaQuestion && !qaQuestions.some(({ uuid }) => uuid === qaQuestion?.uuid) && (
+            <AnalysisQuestionListItem
+              asset={asset}
+              advancedFeatureManual={localAdvancedFeature}
+              submission={submission}
+              qaQuestion={qaQuestion}
+              setQaQuestion={setQaQuestion}
+              questionXpath={questionXpath}
+              index={-1}
+              moveRow={moveRow}
+              editMode
+              isAnyQuestionBeingEdited={isAnyQuestionBeingEdited}
+              onGenerateWithAI={handleGenerateWithAI}
+            />
+          )}
+          {qaQuestions.map((qaQuestionItem, index) => (
             <AnalysisQuestionListItem
               key={qaQuestionItem.uuid}
               asset={asset}
@@ -200,9 +223,15 @@ export default function AnalysisQuestionsList({
               isAnyQuestionBeingEdited={isAnyQuestionBeingEdited}
               onGenerateWithAI={handleGenerateWithAI}
             />
-          )
-        })}
-      </ul>
-    </DndProvider>
+          ))}
+        </ul>
+      </DndProvider>
+      <NlpUsageLimitBlockModal
+        isModalOpen={isLimitBlockModalOpen}
+        usageType={UsageLimitTypes.LLM_REQUEST}
+        dismissed={handleDismissModal}
+        interval={billingPeriod}
+      />
+    </>
   )
 }
