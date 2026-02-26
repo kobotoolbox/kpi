@@ -1,9 +1,10 @@
+from django.conf import settings
 from django.db.models import Count
 
 from kobo.apps.organizations.models import Organization
 from kpi.utils.log import logging
 
-CHUNK_SIZE = 1000
+CHUNK_SIZE = settings.LONG_RUNNING_MIGRATION_BATCH_SIZE
 
 
 def run():
