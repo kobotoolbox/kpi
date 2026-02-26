@@ -47,11 +47,11 @@ function NlpUsageLimitBlockModal(props: NlpUsageLimitBlockModalProps) {
           </div>
         </section>
         <KoboModalFooter alignment='end'>
-          <ButtonNew type='button' size='l' onClick={() => navigate(ACCOUNT_ROUTES.ADD_ONS)} variant='light'>
+          <ButtonNew type='button' size='lg' onClick={() => navigate(ACCOUNT_ROUTES.ADD_ONS)} variant='light'>
             {t('Buy add-on')}
           </ButtonNew>
 
-          <ButtonNew type='button' size='l' onClick={() => navigate(ACCOUNT_ROUTES.PLAN)} variant='filled'>
+          <ButtonNew type='button' size='lg' onClick={() => navigate(ACCOUNT_ROUTES.PLAN)} variant='filled'>
             {t('Upgrade now')}
           </ButtonNew>
         </KoboModalFooter>
