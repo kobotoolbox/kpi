@@ -3,11 +3,11 @@ import MultiCheckbox, { type MultiCheckboxItem } from '#/components/common/multi
 
 import { Radio } from '@mantine/core'
 import type { ResponseQualSelectQuestionParams } from '#/api/models/responseQualSelectQuestionParams'
-import type { SupplementalDataVersionItemQual } from '#/api/models/supplementalDataVersionItemQual'
+import type { QualVersionItem } from '#/components/processing/common/types'
 
 interface Props {
   qaQuestion: ResponseQualSelectQuestionParams
-  qaAnswer?: SupplementalDataVersionItemQual
+  qaAnswer?: QualVersionItem
   disabled: boolean
   onSave: (values: string[]) => Promise<unknown>
 }
@@ -28,7 +28,7 @@ export default function SelectMultipleResponseForm({ qaQuestion, qaAnswer, onSav
           .map((choice) => ({
             name: choice.uuid,
             label: choice.labels._default,
-            checked: ((qaAnswer?._data.value as string[]) ?? []).includes(choice.uuid),
+            checked: (((qaAnswer?._data as any)?.value as string[]) ?? []).includes(choice.uuid),
           }))}
         onChange={handleChange}
         disabled={disabled}
