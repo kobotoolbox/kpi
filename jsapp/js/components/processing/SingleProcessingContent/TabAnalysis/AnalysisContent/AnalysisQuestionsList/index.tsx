@@ -3,6 +3,9 @@ import React, { useCallback, useState } from 'react'
 import { DndProvider } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
 
+import { UsageLimitTypes } from '#/account/stripe.types'
+import { useBillingPeriod } from '#/account/usage/useBillingPeriod'
+import { useOrganizationsServiceUsageSummary } from '#/account/usage/useOrganizationsServiceUsageSummary'
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
@@ -14,15 +17,12 @@ import {
 } from '#/api/react-query/survey-data'
 import { SUBSEQUENCES_SCHEMA_VERSION } from '#/components/processing/common/constants'
 import type { AssetResponse } from '#/dataInterface'
+import envStore from '#/envStore'
 import { notify, removeDefaultUuidPrefix } from '#/utils'
+import NlpUsageLimitBlockModal from '../../../components/nlpUsageLimitBlockModal'
 import type { AdvancedFeatureResponseManualQual } from '../../common/utils'
 import AnalysisQuestionListItem from './AnalysisQuestionListItem'
 import styles from './index.module.scss'
-import { useOrganizationsServiceUsageSummary } from '#/account/usage/useOrganizationsServiceUsageSummary'
-import { useBillingPeriod } from '#/account/usage/useBillingPeriod'
-import { UsageLimitTypes } from '#/account/stripe.types'
-import envStore from '#/envStore'
-import NlpUsageLimitBlockModal from '../../../components/nlpUsageLimitBlockModal'
 
 interface Props {
   asset: AssetResponse
@@ -170,7 +170,7 @@ export default function AnalysisQuestionsList({
       setIsLimitBlockModalOpen(true)
       return
     }
-    
+
     // Enable the automatic_bedrock_qual feature if needed
     await enableGenerateWithAIFeature()
 
