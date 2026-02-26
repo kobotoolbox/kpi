@@ -181,7 +181,7 @@
     "sass": "^1.92.1",
     "sass-loader": "^16.0.5",
     "speed-measure-webpack-plugin": "^1.5.0",
-    "storybook": "^9.0.0-beta.11",
+    "storybook": "^9.1.19",
     "storybook-addon-remix-react-router": "^3.1",
     "storybook-dark-mode": "^4.0.2",
     "style-loader": "^3.3.4",
