@@ -15,7 +15,7 @@ import envStore from '#/envStore'
 import { notify, truncateString, truncateUrl } from '#/utils'
 
 const DEFAULT_MEDIA_DESCRIPTION = 'default'
-const MEDIA_SUPPORT_URL = 'media.html'
+const MEDIA_SUPPORT_URL = 'upload_media.html'
 
 bem.FormMediaUploadUrl = makeBem(null, 'form-media-upload-url')
 bem.FormMediaUploadUrl__label = makeBem(bem.FormMediaUploadUrl, 'label', 'label')
