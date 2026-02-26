@@ -58,14 +58,20 @@ class GoogleTranslationService(GoogleService):
         """
         Extract the translation string from the response data
         """
+        logging.info(f'Adapting response {response=} of type {type(response)}')
         if isinstance(
             response, translate.types.translation_service.TranslateTextResponse
         ):
+            logging.info(f'Result is a TranslateTextResponse')
             return response.translations[0].translated_text
         elif isinstance(response, str):
+            logging.info(f'Result is a string')
             return response
         elif isinstance(response, dict) and response.get('done'):
+            logging.info(f'Result is a dict')
             raise TranslationAsyncResultAvailable()
+        elif isinstance(response, translate.BatchTranslateResponse):
+            logging.info(f'{vars(response)}')
 
         return ''
 
@@ -124,6 +130,7 @@ class GoogleTranslationService(GoogleService):
         response = self.translate_client.batch_translate_text(
             request=req_params
         )
+        logging.info(f'Response from client: {response=}')
         return response, len(content)
 
     @property
