@@ -56,7 +56,7 @@ class ScimUserViewSet(
 
         # Only include users that are linked to this IdP's SocialApp
         if idp.social_app:
-            queryset = queryset.filter(socialaccount__provider=idp.social_app.provider)
+            queryset = queryset.filter(socialaccount__provider=idp.social_app.provider_id)
         else:
             # If the IdP doesn't have a SocialApp, it can't be mapped to any users
             return User.objects.none()
