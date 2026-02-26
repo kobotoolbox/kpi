@@ -4,6 +4,9 @@ import { useQueryClient } from '@tanstack/react-query'
 import { DndProvider } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
 
+import { UsageLimitTypes } from '#/account/stripe.types'
+import { useBillingPeriod } from '#/account/usage/useBillingPeriod'
+import { useOrganizationsServiceUsageSummary } from '#/account/usage/useOrganizationsServiceUsageSummary'
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
@@ -16,7 +19,9 @@ import {
 } from '#/api/react-query/survey-data'
 import { SUBSEQUENCES_SCHEMA_VERSION } from '#/components/processing/common/constants'
 import type { AssetResponse } from '#/dataInterface'
+import envStore from '#/envStore'
 import { notify, removeDefaultUuidPrefix } from '#/utils'
+import NlpUsageLimitBlockModal from '../../../components/nlpUsageLimitBlockModal'
 import type { AdvancedFeatureResponseManualQual } from '../../common/utils'
 import AnalysisQuestionListItem from './AnalysisQuestionListItem'
 import styles from './index.module.scss'
@@ -150,7 +155,25 @@ export default function AnalysisQuestionsList({
     }
   }
 
+  const [isLimitBlockModalOpen, setIsLimitBlockModalOpen] = useState<boolean>(false)
+  const { data: serviceUsageData } = useOrganizationsServiceUsageSummary()
+  const { billingPeriod } = useBillingPeriod()
+
+  const usageLimitBlock =
+    serviceUsageData?.status === 200 &&
+    serviceUsageData?.data.limitExceedList.includes(UsageLimitTypes.LLM_REQUEST) &&
+    envStore.data.usage_limit_enforcement
+
+  function handleDismissModal() {
+    setIsLimitBlockModalOpen(false)
+  }
+
   const handleGenerateWithAI = async (qaQuestionParam: ResponseQualActionParams) => {
+    if (usageLimitBlock) {
+      setIsLimitBlockModalOpen(true)
+      return
+    }
+
     // Enable the automatic_bedrock_qual feature if needed
     await enableGenerateWithAIFeature()
 
@@ -176,25 +199,25 @@ export default function AnalysisQuestionsList({
   }
 
   return (
-    <DndProvider backend={HTML5Backend}>
-      <ul className={styles.root}>
-        {qaQuestion && !qaQuestions.some(({ uuid }) => uuid === qaQuestion?.uuid) && (
-          <AnalysisQuestionListItem
-            asset={asset}
-            advancedFeatureManual={localAdvancedFeature}
-            submission={submission}
-            qaQuestion={qaQuestion}
-            setQaQuestion={setQaQuestion}
-            questionXpath={questionXpath}
-            index={-1}
-            moveRow={moveRow}
-            editMode
-            isAnyQuestionBeingEdited={isAnyQuestionBeingEdited}
-            onGenerateWithAI={handleGenerateWithAI}
-          />
-        )}
-        {qaQuestions.map((qaQuestionItem, index) => {
-          return (
+    <>
+      <DndProvider backend={HTML5Backend}>
+        <ul className={styles.root}>
+          {qaQuestion && !qaQuestions.some(({ uuid }) => uuid === qaQuestion?.uuid) && (
+            <AnalysisQuestionListItem
+              asset={asset}
+              advancedFeatureManual={localAdvancedFeature}
+              submission={submission}
+              qaQuestion={qaQuestion}
+              setQaQuestion={setQaQuestion}
+              questionXpath={questionXpath}
+              index={-1}
+              moveRow={moveRow}
+              editMode
+              isAnyQuestionBeingEdited={isAnyQuestionBeingEdited}
+              onGenerateWithAI={handleGenerateWithAI}
+            />
+          )}
+          {qaQuestions.map((qaQuestionItem, index) => (
             <AnalysisQuestionListItem
               key={qaQuestionItem.uuid}
               asset={asset}
@@ -209,9 +232,15 @@ export default function AnalysisQuestionsList({
               isAnyQuestionBeingEdited={isAnyQuestionBeingEdited}
               onGenerateWithAI={handleGenerateWithAI}
             />
-          )
-        })}
-      </ul>
-    </DndProvider>
+          ))}
+        </ul>
+      </DndProvider>
+      <NlpUsageLimitBlockModal
+        isModalOpen={isLimitBlockModalOpen}
+        usageType={UsageLimitTypes.LLM_REQUEST}
+        dismissed={handleDismissModal}
+        interval={billingPeriod}
+      />
+    </>
   )
 }
