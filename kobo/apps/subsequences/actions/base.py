@@ -202,12 +202,13 @@ class BaseAction:
         source_question_xpath: str,
         params: list[dict],
         asset: Optional['kpi.models.Asset'] = None,
+        prefetched_dependencies: dict = None,
     ):
         self.source_question_xpath = source_question_xpath
         self.validate_params(params)
         self.params = params
         self.asset = asset
-        self._action_dependencies = {}
+        self._action_dependencies = prefetched_dependencies or {}
 
     def attach_action_dependency(self, action_data: dict):
         pass
@@ -238,21 +239,6 @@ class BaseAction:
         Schema to validate payload POSTed to "/api/v2/assets/<asset uid>/data/<submission uuid>/supplemental"  # noqa
         """
         raise NotImplementedError
-
-    def get_action_dependencies(self, question_supplemental_data: dict) -> dict | None:
-        """
-        Return a mapping of supplemental data required by this action, or None.
-
-        This method allows an action to declare which parts of
-        `question_supplemental_data` (or other context data) it depends on
-        in order to run correctly. By default it returns None, meaning the
-        action has no external dependencies. Subclasses can override this
-        to return a dictionary of prerequisite data—typically other actions’
-        results or metadata—that must be present before executing this
-        action.
-        """
-
-        return None
 
     def get_localized_action_supplemental_data(
         self, action_supplemental_data: dict, action_data: dict

@@ -4,9 +4,10 @@ import { Badge } from '@mantine/core'
 import { useIsMutating } from '@tanstack/react-query'
 import classNames from 'classnames'
 import cloneDeep from 'lodash.clonedeep'
+import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
-import type { ResponseQualActionParams } from '#/api/models/responseQualActionParams'
+import type { ResponseManualQualActionParams } from '#/api/models/responseManualQualActionParams'
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
 import KoboDropdown from '#/components/common/koboDropdown'
@@ -15,16 +16,15 @@ import type { AssetResponse } from '#/dataInterface'
 import { getAllTranslationsFromSupplementData, getLatestTranscriptVersionItem } from '../../common/utils'
 import styles from './AnalysisHeader.module.scss'
 import { ANALYSIS_QUESTION_TYPES } from './common/constants'
-import type { AdvancedFeatureResponseManualQual } from './common/utils'
 
 interface Props {
   asset: AssetResponse
   questionXpath: string
   submission: DataResponse
   supplement: DataSupplementResponse
-  advancedFeature: AdvancedFeatureResponseManualQual
-  qaQuestion?: ResponseQualActionParams
-  setQaQuestion: (qaQuestion: ResponseQualActionParams | undefined) => void
+  advancedFeatures: AdvancedFeatureResponse[]
+  qaQuestion?: ResponseManualQualActionParams
+  setQaQuestion: (qaQuestion: ResponseManualQualActionParams | undefined) => void
 }
 
 /**
