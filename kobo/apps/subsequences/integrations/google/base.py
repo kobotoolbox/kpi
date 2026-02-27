@@ -102,12 +102,10 @@ class GoogleService(ABC):
                     result = response.result(
                         timeout=constance.config.ASR_MT_GOOGLE_REQUEST_TIMEOUT
                     )
-                    logging.info(f'Result after weirdly long time?: {result=}')
                 except TimeoutError as err:
                     raise SubsequenceTimeoutError from err
 
                 cache.delete(cache_key)
-                logging.info(f'Who am i? {self}')
                 return self.adapt_response(result)
 
             if isinstance(response, str):

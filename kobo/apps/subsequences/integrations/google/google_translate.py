@@ -58,20 +58,16 @@ class GoogleTranslationService(GoogleService):
         """
         Extract the translation string from the response data
         """
-        logging.info(f'Adapting response {response=} of type {type(response)}')
         if isinstance(
             response, translate.types.translation_service.TranslateTextResponse
         ):
-            logging.info(f'Result is a TranslateTextResponse')
             return response.translations[0].translated_text
         elif isinstance(response, str):
-            logging.info(f'Result is a string')
             return response
         elif isinstance(response, dict) and response.get('done'):
-            logging.info(f'Result is a dict')
             raise TranslationAsyncResultAvailable()
         elif isinstance(response, translate.BatchTranslateResponse):
-            logging.info(f'{vars(response)}')
+            raise TranslationAsyncResultAvailable()
 
         return ''
 
@@ -91,7 +87,6 @@ class GoogleTranslationService(GoogleService):
 
         # check if directory is not empty
         if stored_result := self.get_stored_result(target_lang, output_path):
-            logging.info(f'Found stored results in {output_path=}')
             return stored_result, len(content)
 
         logging.info(
@@ -202,7 +197,8 @@ class GoogleTranslationService(GoogleService):
         except SubsequenceTimeoutError:
             return {
                 'status': 'failed',
-                'error': 'Translation timed out',
+                'error': 'Timed out waiting for translation results. Translation may '
+                         'still be running. Try again in 5 minutes.',
             }
         except InvalidArgument as e:
             logging.exception('Error when processing translation')
