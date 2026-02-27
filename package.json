@@ -9,7 +9,7 @@
     "@fontsource/roboto": "^4.5.8",
     "@fontsource/roboto-mono": "^4.4.2",
     "@mantine/core": "^7.15.0",
-    "@mantine/form": "^7.16.2",
+    "@mantine/form": "^8.3.15",
     "@mantine/hooks": "^7.15.0",
     "@mapbox/leaflet-omnivore": "^0.3.4",
     "@placemarkio/check-geojson": "^0.1.14",
