@@ -13,7 +13,6 @@ class IdentityProviderAdmin(admin.ModelAdmin):
     fields = (
         'id',
         'name',
-        'social_app',
         'slug',
         'social_app',
         'scim_api_key',

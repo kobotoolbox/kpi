@@ -12,6 +12,7 @@ class ScimAuditLogTests(APITestCase):
     def setUp(self):
         self.social_app = SocialApp.objects.create(
             provider='openid_connect',
+            provider_id='google',
             name='Test Provider',
             client_id='test-client-id',
         )
@@ -32,7 +33,7 @@ class ScimAuditLogTests(APITestCase):
         )
         SocialAccount.objects.create(
             user=self.user1,
-            provider=self.social_app.provider,
+            provider=self.social_app.provider_id,
             uid='jdoe-uid',
         )
 
@@ -42,7 +43,7 @@ class ScimAuditLogTests(APITestCase):
         )
         SocialAccount.objects.create(
             user=self.user2,
-            provider=self.social_app.provider,
+            provider=self.social_app.provider_id,
             uid='asmith-uid',
         )
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
