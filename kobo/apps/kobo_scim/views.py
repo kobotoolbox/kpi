@@ -23,8 +23,8 @@ from kobo.apps.kobo_scim.serializers import ScimUserSerializer
         description="Deactivates all Kobo accounts linked to the user's email address."
     ),
     partial_update=extend_schema(
-        description='Updates a SCIM user. Currently only supports deactivation via'
-        " the 'active' attribute."
+        description='Updates a SCIM user. Currently only supports deactivation '
+        'via the `active` attribute.'
     ),
 )
 class ScimUserViewSet(
@@ -58,10 +58,9 @@ class ScimUserViewSet(
 
         # Only include users that are linked to this IdP's SocialApp.
         if idp.social_app:
-            provider_key = (
-                getattr(idp.social_app, 'provider_id', None) or idp.social_app.provider
+            queryset = queryset.filter(
+                socialaccount__provider=idp.social_app.provider_id
             )
-            queryset = queryset.filter(socialaccount__provider=provider_key)
         else:
             # If the IdP doesn't have a SocialApp, it can't be mapped to any users
             return User.objects.none()

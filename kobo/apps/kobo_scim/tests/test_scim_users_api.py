@@ -12,6 +12,7 @@ class ScimUsersAPITests(APITestCase):
         # Create a SocialApp mapping
         self.social_app = SocialApp.objects.create(
             provider='openid_connect',
+            provider_id='test-provider-id',
             name='Test Provider',
             client_id='test-client-id',
         )
@@ -45,10 +46,10 @@ class ScimUsersAPITests(APITestCase):
 
         # Link the users to the IdP's social app provider
         SocialAccount.objects.create(
-            user=self.user1, provider=self.social_app.provider, uid='jdoe-uid'
+            user=self.user1, provider=self.social_app.provider_id, uid='jdoe-uid'
         )
         SocialAccount.objects.create(
-            user=self.user2, provider=self.social_app.provider, uid='asmith-uid'
+            user=self.user2, provider=self.social_app.provider_id, uid='asmith-uid'
         )
 
     def test_authentication_required(self):
@@ -114,7 +115,7 @@ class ScimUsersAPITests(APITestCase):
         # Create a third user
         user3 = User.objects.create_user(username='bwayne', email='bwayne@example.com')
         SocialAccount.objects.create(
-            user=user3, provider=self.social_app.provider, uid='bwayne-uid'
+            user=user3, provider=self.social_app.provider_id, uid='bwayne-uid'
         )
 
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
@@ -186,7 +187,7 @@ class ScimUsersAPITests(APITestCase):
             is_active=True,
         )
         SocialAccount.objects.create(
-            user=user_no_email, provider=self.social_app.provider, uid='noemail-uid'
+            user=user_no_email, provider=self.social_app.provider_id, uid='noemail-uid'
         )
 
         # Also ensure user1 is active
@@ -207,6 +208,7 @@ class ScimUsersAPITests(APITestCase):
         # Create a second Identity Provider and SocialApp
         social_app_2 = SocialApp.objects.create(
             provider='other_provider',
+            provider_id='other-provider-id',
             name='Other Provider',
             client_id='other-client-id',
         )
