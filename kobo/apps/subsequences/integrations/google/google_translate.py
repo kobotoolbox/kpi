@@ -87,6 +87,7 @@ class GoogleTranslationService(GoogleService):
 
         # check if directory is not empty
         if stored_result := self.get_stored_result(target_lang, output_path):
+            logging.info(f'Found stored results in {output_path=}')
             return stored_result, len(content)
 
         logging.info(
@@ -125,7 +126,6 @@ class GoogleTranslationService(GoogleService):
         response = self.translate_client.batch_translate_text(
             request=req_params
         )
-        logging.info(f'Response from client: {response=}')
         return response, len(content)
 
     @property
