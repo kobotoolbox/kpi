@@ -10,7 +10,7 @@ import { useOrganizationsServiceUsageSummary } from '#/account/usage/useOrganiza
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
-import type { ResponseQualActionParams } from '#/api/models/responseQualActionParams'
+import type { ResponseManualQualActionParams } from '#/api/models/responseManualQualActionParams'
 import {
   getAssetsDataSupplementRetrieveQueryKey,
   useAssetsAdvancedFeaturesCreate,
@@ -31,8 +31,8 @@ interface Props {
   advancedFeatures: AdvancedFeatureResponse[]
   questionXpath: string
   submission: DataResponse
-  qaQuestion?: ResponseQualActionParams
-  setQaQuestion: (qaQuestion: ResponseQualActionParams | undefined) => void
+  qaQuestion?: ResponseManualQualActionParams
+  setQaQuestion: (qaQuestion: ResponseManualQualActionParams | undefined) => void
 }
 
 /**
@@ -81,7 +81,7 @@ export default function AnalysisQuestionsList({
   })
 
   // Local state to avoid flickering on reordering (optimistic UI)
-  const [localParams, setLocalParams] = useState<ResponseQualActionParams[]>(advancedFeatureManual?.params ?? [])
+  const [localParams, setLocalParams] = useState<ResponseManualQualActionParams[]>(advancedFeatureManual?.params ?? [])
 
   // Update local params when advancedFeature changes (e.g., after backend update)
   React.useEffect(() => {
@@ -120,7 +120,7 @@ export default function AnalysisQuestionsList({
   const enableGenerateWithAIFeature = async () => {
     // Filter to get valid questions for AI generation (exclude tags and notes)
     const validQuestions = qaQuestions.filter(
-      (param: ResponseQualActionParams) => param.type !== 'qualTags' && param.type !== 'qualNote',
+      (param: ResponseManualQualActionParams) => param.type !== 'qualTags' && param.type !== 'qualNote',
     )
 
     if (!advancedFeatureAutomatic) {
@@ -168,7 +168,7 @@ export default function AnalysisQuestionsList({
     setIsLimitBlockModalOpen(false)
   }
 
-  const handleGenerateWithAI = async (qaQuestionParam: ResponseQualActionParams) => {
+  const handleGenerateWithAI = async (qaQuestionParam: ResponseManualQualActionParams) => {
     if (usageLimitBlock) {
       setIsLimitBlockModalOpen(true)
       return
