@@ -83,6 +83,8 @@ class ScimUserViewSet(
         return queryset
 
     def perform_destroy(self, instance):
+        # Kobo should automatically disable all accounts linked
+        # to the same email address
         email_target = instance.email
         if email_target:
             targets = User.objects.filter(email__iexact=email_target)
