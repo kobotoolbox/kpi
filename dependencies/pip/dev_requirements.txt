@@ -529,7 +529,7 @@ pygments==2.19.2
     #   pytest
 pyjwt==2.11.0
     # via twilio
-pymongo==4.16.0
+pymongo==4.10.1
     # via -r dependencies/pip/requirements.in
 pynacl==1.6.2
     # via paramiko

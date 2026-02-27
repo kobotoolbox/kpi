@@ -77,7 +77,7 @@ openpyxl
 #py-gfm # Incompatible with markdown 3.x
 pillow-heif<1  # temporary 20260226
 psycopg
-pymongo
+pymongo<4.11.0  # for compatibility with unmaintained mongomock; see https://github.com/mongomock/mongomock/issues/912
 python-dateutil
 pyxform==3.0.0
 psutil

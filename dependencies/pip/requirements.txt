@@ -420,7 +420,7 @@ pygments==2.19.2
     # via -r dependencies/pip/requirements.in
 pyjwt==2.11.0
     # via twilio
-pymongo==4.16.0
+pymongo==4.10.1
     # via -r dependencies/pip/requirements.in
 pyopenssl==24.3.0
     # via
