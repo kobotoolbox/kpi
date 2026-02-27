@@ -35,9 +35,9 @@ export function hasNonEmptyAnswer(type: ResponseManualQualActionParams['type'], 
         return Array.isArray(qaAnswer._data.value) && qaAnswer._data.value.length !== 0
       case 'qualSelectOne':
       case 'qualText':
-      // TODO: qualInteger is broken, i.e. the value of no response (cleared response) is unknown :shrug:
-      case 'qualInteger':
         return qaAnswer._data.value !== ''
+      case 'qualInteger':
+        return qaAnswer._data.value !== null
       default:
         return false
     }
@@ -53,9 +53,9 @@ export function getEmptyAnswer(type: ResponseManualQualActionParams['type']) {
       return []
     case 'qualSelectOne':
     case 'qualText':
-    // TODO: qualInteger is broken, i.e. the value of no response (cleared response) is unknown :shrug:
-    case 'qualInteger':
       return ''
+    case 'qualInteger':
+      return null
     default:
       return ''
   }
