@@ -46,6 +46,7 @@ import type {
 import './map.scss'
 import './map.marker-colors.scss'
 import { fetchGetUrl } from '../../../js/api'
+import ButtonNew from '../common/ButtonNew'
 
 const STREETS_LAYER = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
@@ -609,6 +610,9 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     })
 
     if (prepPoints.length >= 0) {
+      // If the user changed questions, we need to reset the overlay
+      this.setState({noData: false})
+
       let markers
       if (viewby) {
         markers = L.featureGroup(prepPoints)
@@ -941,7 +945,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
 
     if (viewby) {
       fields.forEach((f) => {
-        if (viewby === f.name || viewby === f.$autoname) {
+    if (viewby === f.name || viewby === f.$autoname) {
           label = `${t('Disaggregated using:')} ${f.label?.[langIndex]}`
         }
       })
@@ -956,8 +960,12 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       formViewModifiers.push('fullscreen')
     }
 
+    // If there exists geopoint questions at all AND the currently selected geopoint question has NO data
+    const hasGeopointAndData = this.state.hasGeoPoint && !this.state.noData
+
     return (
       <bem.FormView m={formViewModifiers} className='right-tooltip'>
+        {hasGeopointAndData &&
         <bem.FormView__mapButton
           m={'expand'}
           onClick={this.toggleFullscreen.bind(this)}
@@ -966,6 +974,8 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
         >
           <i className='k-icon k-icon-expand' />
         </bem.FormView__mapButton>
+        }
+        {hasGeopointAndData &&
         <bem.FormView__mapButton
           m={'markers'}
           onClick={this.showMarkers.bind(this)}
@@ -974,9 +984,13 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
         >
           <i className='k-icon k-icon-pins' />
         </bem.FormView__mapButton>
-        <bem.FormView__mapButton m={'layers'} onClick={this.showLayerControls.bind(this)} data-tip={t('Toggle layers')}>
+        }
+        {hasGeopointAndData &&
+          <bem.FormView__mapButton m={'layers disabled'} onClick={this.showLayerControls.bind(this)} data-tip={t('Toggle layers')}>
           <i className='k-icon k-icon-layer' />
-        </bem.FormView__mapButton>
+          </bem.FormView__mapButton>
+        }
+        {this.state.hasGeoPoint &&
         <bem.FormView__mapButton
           m={'map-settings'}
           onClick={this.toggleMapSettings.bind(this)}
@@ -984,7 +998,8 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
         >
           <i className='k-icon k-icon-settings' />
         </bem.FormView__mapButton>
-        {!viewby && (
+        }
+        {hasGeopointAndData && !viewby && (
           <bem.FormView__mapButton
             m={'heatmap'}
             onClick={this.showHeatmap.bind(this)}
@@ -995,7 +1010,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
           </bem.FormView__mapButton>
         )}
 
-        {this.state.hasGeoPoint && !this.state.noData && (
+        {hasGeopointAndData && (
           <PopoverMenu
             type='viewby-menu'
             triggerLabel={label}
