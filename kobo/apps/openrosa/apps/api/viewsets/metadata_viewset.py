@@ -165,7 +165,6 @@ Accept: image/png </pre>
     permission_classes = (MetaDataObjectPermissions,)
     renderer_classes = (
         renderers.JSONRenderer,
-        renderers.BrowsableAPIRenderer,
         MediaFileRenderer,
     )
     serializer_class = MetaDataSerializer
