@@ -97,18 +97,6 @@ export default function AnalysisQuestionsList({
     })
   }, [])
 
-  let localAdvancedFeature: AdvancedFeatureResponseManualQual | undefined
-  if (advancedFeatureManual) {
-    localAdvancedFeature = {
-      ...advancedFeatureManual,
-      params: localParams,
-    }
-  }
-
-  if (!localAdvancedFeature) {
-    return null
-  }
-
   const qaQuestions = localParams
     .filter((qaQuestion) => !qaQuestion.options?.deleted)
     // TODO: we temporarily hide Keyword Search from the UI until
@@ -196,6 +184,18 @@ export default function AnalysisQuestionsList({
     await queryClient.invalidateQueries({
       queryKey: getAssetsDataSupplementRetrieveQueryKey(asset.uid, rootUuid),
     })
+  }
+
+  let localAdvancedFeature: AdvancedFeatureResponseManualQual | undefined
+  if (advancedFeatureManual) {
+    localAdvancedFeature = {
+      ...advancedFeatureManual,
+      params: localParams,
+    }
+  }
+
+  if (!localAdvancedFeature) {
+    return null
   }
 
   return (
