@@ -115,7 +115,7 @@ const ProjectBreakdown = () => {
     },
     {
       key: 'storage',
-      label: t('Storage'),
+      label: t('File storage'),
       size: 100,
       cellFormatter: (data: CustomAssetUsage) => prettyBytes(data.storage_bytes),
     },
