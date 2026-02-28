@@ -23903,6 +23903,7 @@
                         "format": "date-time",
                         "readOnly": true
                     },
+                    "stripe_data": {},
                     "id": {
                         "type": "string",
                         "maxLength": 255
