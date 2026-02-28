@@ -60,7 +60,7 @@
     "react-dnd-html5-backend": "^16.0.1",
     "react-document-title": "^2.0.3",
     "react-dom": "^18.3.1",
-    "react-dropzone": "^5.1.1",
+    "react-dropzone": "^15.0.0",
     "react-hot-toast": "^2.5.2",
     "react-infinite-scroller": "^1.2.6",
     "react-markdown": "^9.0.1",
