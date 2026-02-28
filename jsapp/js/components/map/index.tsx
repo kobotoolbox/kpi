@@ -22,7 +22,7 @@ import PopoverMenu from '../../../js/popoverMenu'
 import MapSettings from './MapSettings'
 
 import { actions } from '../../../js/actions'
-import { getSurveyFlatPaths } from '../../../js/assetUtils'
+import { getRowName, getSurveyFlatPaths } from '../../../js/assetUtils'
 // Stores, hooks and utilities
 import { dataInterface } from '../../../js/dataInterface'
 import pageState from '../../../js/pageState.store'
@@ -149,6 +149,9 @@ interface FormMapState {
   clearDisaggregatedPopover: boolean
   noData: boolean
   previousViewby?: string
+  // Note: In case 2 of requestData(), we have a situation where a selected question exists without updating
+  // overridenStyles. It is much easier to pass the selected question like this than doing some hack with AssetMapStyles
+  foundSelectedQuestion: string | null
 }
 
 class FormMap extends React.Component<FormMapProps, FormMapState> {
@@ -181,6 +184,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       overridenStyles: undefined,
       clearDisaggregatedPopover: false,
       noData: false,
+      foundSelectedQuestion: null,
     }
   }
 
@@ -414,18 +418,37 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
   requestData(map: L.Map, nextViewBy = '') {
     // TODO: support area / line geodata questions
     // See: https://github.com/kobotoolbox/kpi/issues/3913
-    let selectedQuestion = this.props.asset.map_styles.selectedQuestion || null
 
-    this.props.asset.content?.survey?.forEach((row) => {
-      if (
-        typeof row.label !== 'undefined' &&
-        row.label !== null &&
-        selectedQuestion === row.label[0] &&
-        row.type !== QUESTION_TYPES.geopoint.id
-      ) {
-        selectedQuestion = null //Ignore if not a geopoint question type
+    // Map cannot actually show more than one question at a time, so we must always have a question specified.
+    // The list below describes the priority to find the question:
+    let selectedQuestion: string | null = null
+    if (this.state.overridenStyles?.selectedQuestion) {
+      // 1. If the user has selected a question themselves but has not refreshed, the state will hold the "overriden"
+      //    selected question. We should use this first.
+      selectedQuestion = this.state.overridenStyles.selectedQuestion
+    } else if (this.props.asset.map_styles.selectedQuestion) {
+      // 2. If the user has selected a question before (at any point), the `map_styles` value of the asset is patched
+      //    and we should use this if it exists. Will happen on every refresh if the user has ever selected a question
+      selectedQuestion = this.props.asset.map_styles.selectedQuestion
+    } else if (this.props.asset.content?.survey) {
+      // 3. If the user has never selected a question before, a "default" needs to be selected. Since after DEV-1446 we
+      //    don't use `_geolocation`, the frontend has to find the first geopoint question and set it as the default
+      //    regardless of if that question is answered.
+      const firstGeopoint = this.props.asset.content.survey.find(
+        (question) => question.type && question.type === 'geopoint',
+      )
+      if (firstGeopoint) {
+        selectedQuestion = getRowName(firstGeopoint)
+      } else {
+        // This should only happen if the form has no geopoint questions at all
+        selectedQuestion = null
       }
-    })
+    } else {
+      // We should never reach here if this component is given the survey correctly
+      selectedQuestion = null
+    }
+
+    this.setState({ foundSelectedQuestion: selectedQuestion })
 
     let queryLimit = QUERY_LIMIT_DEFAULT
     if (this.state.overridenStyles?.querylimit) {
@@ -434,7 +457,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       queryLimit = Number.parseInt(this.props.asset.map_styles.querylimit)
     }
 
-    const fq = ['_id', '_geolocation']
+    const fq = ['_id']
     if (selectedQuestion) {
       fq.push(selectedQuestion)
     }
@@ -446,16 +469,6 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       .getSubmissions(this.props.asset.uid, queryLimit, 0, sort, fq)
       .done((data: PaginatedResponse<SubmissionResponse>) => {
         const results = data.results
-        if (selectedQuestion) {
-          results.forEach((row, i) => {
-            if (selectedQuestion && row[selectedQuestion]) {
-              const coordsArray: string[] = String(row[selectedQuestion]).split(' ')
-              results[i]._geolocation[0] = Number.parseInt(coordsArray[0])
-              results[i]._geolocation[1] = Number.parseInt(coordsArray[1])
-            }
-          })
-        }
-
         this.setState({ submissions: results }, () => {
           this.buildMarkers(map)
           this.buildHeatMap(map)
@@ -551,7 +564,12 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
 
     this.state.submissions.forEach((item) => {
       let markerProps = {}
-      if (checkLatLng(item._geolocation)) {
+
+      let parsedCoordinates: string[] = []
+      // Safe to cast `null` as a string here as this will result in Array['undefined'] if there are no geopoint submissions
+      parsedCoordinates = String(item[this.state.foundSelectedQuestion as string]).split(' ')
+
+      if (this.state.foundSelectedQuestion && checkLatLng(parsedCoordinates)) {
         if (viewby && mM) {
           const vb = this.nameOfFieldInGroup(viewby)
           const itemId = String(item[vb])
@@ -582,10 +600,10 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
           }
         }
 
-        const geo0 = item._geolocation[0]
-        const geo1 = item._geolocation[1]
-        if (geo0 !== null && geo1 !== null) {
-          prepPoints.push(L.marker([geo0, geo1], markerProps))
+        if (!!parsedCoordinates.length) {
+          prepPoints.push(
+            L.marker([Number.parseFloat(parsedCoordinates[0]), Number.parseFloat(parsedCoordinates[1])], markerProps),
+          )
         }
       }
     })
@@ -697,11 +715,12 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
   buildHeatMap(map: L.Map) {
     const heatmapPoints: Array<[number, number, number]> = []
     this.state.submissions.forEach((item) => {
-      if (checkLatLng(item._geolocation)) {
-        const geo0 = item._geolocation[0]
-        const geo1 = item._geolocation[1]
-        if (geo0 !== null && geo1 !== null) {
-          heatmapPoints.push([geo0, geo1, 1])
+      let parsedCoordinates: string[] = []
+      parsedCoordinates = String(item[this.state.foundSelectedQuestion as string]).split(' ')
+
+      if (this.state.foundSelectedQuestion && checkLatLng(parsedCoordinates)) {
+        if (!!parsedCoordinates.length) {
+          heatmapPoints.push([Number.parseFloat(parsedCoordinates[0]), Number.parseFloat(parsedCoordinates[1]), 1])
         }
       }
     })
@@ -829,6 +848,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     })
   }
 
+  /** Note: selected questions are considered a "map style" and is updated in the state here */
   overrideStyles(mapStyles: AssetMapStyles) {
     this.setState(
       {
