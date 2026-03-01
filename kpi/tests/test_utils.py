@@ -814,6 +814,215 @@ class XmlUtilsTestCase(TestCase):
         """
         self.__compare_xml(xml_tostring(xml_parsed), xml_expected)
 
+    def test_edit_submission_xml_repeat_group(self):
+        """Test editing repeat groups in XML"""
+        initial_xml = """
+            <root>
+                <group1>
+                    <repeat_group>
+                        <field1>old1</field1>
+                        <field2>old2</field2>
+                    </repeat_group>
+                    <repeat_group>
+                        <field1>old3</field1>
+                        <field2>old4</field2>
+                    </repeat_group>
+                </group1>
+            </root>
+        """
+        xml_parsed = fromstring_preserve_root_xmlns(initial_xml)
+
+        update_data = [
+            {
+                'group1/repeat_group/field1': 'new1',
+                'group1/repeat_group/field2': 'new2',
+            },
+            {
+                'group1/repeat_group/field1': 'new3',
+                'group1/repeat_group/field2': 'new4',
+            },
+            {
+                'group1/repeat_group/field1': 'new5',
+                'group1/repeat_group/field2': 'new6',
+            },
+        ]
+
+        edit_submission_xml(xml_parsed, 'group1/repeat_group', update_data)
+
+        expected_xml = """
+            <root>
+                <group1>
+                    <repeat_group>
+                        <field1>new1</field1>
+                        <field2>new2</field2>
+                    </repeat_group>
+                    <repeat_group>
+                        <field1>new3</field1>
+                        <field2>new4</field2>
+                    </repeat_group>
+                    <repeat_group>
+                        <field1>new5</field1>
+                        <field2>new6</field2>
+                    </repeat_group>
+                </group1>
+            </root>
+        """
+        self.__compare_xml(xml_tostring(xml_parsed), expected_xml)
+
+    def test_edit_submission_xml_repeat_group_create_new(self):
+        """Test creating repeat groups where none existed before"""
+        initial_xml = """
+            <root>
+                <other_field>value</other_field>
+            </root>
+        """
+        xml_parsed = fromstring_preserve_root_xmlns(initial_xml)
+
+        update_data = [
+            {
+                'parent/repeat_group/field1': 'value1',
+                'parent/repeat_group/field2': 'value2',
+            },
+            {
+                'parent/repeat_group/field1': 'value3',
+                'parent/repeat_group/field2': 'value4',
+            },
+        ]
+
+        edit_submission_xml(xml_parsed, 'parent/repeat_group', update_data)
+
+        expected_xml = """
+            <root>
+                <other_field>value</other_field>
+                <parent>
+                    <repeat_group>
+                        <field1>value1</field1>
+                        <field2>value2</field2>
+                    </repeat_group>
+                    <repeat_group>
+                        <field1>value3</field1>
+                        <field2>value4</field2>
+                    </repeat_group>
+                </parent>
+            </root>
+        """
+        self.__compare_xml(xml_tostring(xml_parsed), expected_xml)
+
+    def test_edit_submission_xml_repeat_group_empty_list(self):
+        """Test removing repeat groups with empty list"""
+        initial_xml = """
+            <root>
+                <group1>
+                    <repeat_group>
+                        <field1>old1</field1>
+                    </repeat_group>
+                    <repeat_group>
+                        <field1>old2</field1>
+                    </repeat_group>
+                </group1>
+            </root>
+        """
+        xml_parsed = fromstring_preserve_root_xmlns(initial_xml)
+
+        edit_submission_xml(xml_parsed, 'group1/repeat_group', [])
+
+        expected_xml = """
+            <root>
+                <group1>
+                </group1>
+            </root>
+        """
+        self.__compare_xml(xml_tostring(xml_parsed), expected_xml)
+
+    def test_edit_submission_xml_mixed_update(self):
+        """Test updating both simple fields and repeat groups"""
+        initial_xml = """
+            <root>
+                <simple_field>old_value</simple_field>
+                <group1>
+                    <repeat_group>
+                        <field1>old1</field1>
+                    </repeat_group>
+                </group1>
+            </root>
+        """
+        xml_parsed = fromstring_preserve_root_xmlns(initial_xml)
+
+        # Update simple field
+        edit_submission_xml(xml_parsed, 'simple_field', 'new_value')
+
+        # Update repeat group
+        repeat_data = [
+            {'group1/repeat_group/field1': 'new1'},
+            {'group1/repeat_group/field1': 'new2'},
+        ]
+        edit_submission_xml(xml_parsed, 'group1/repeat_group', repeat_data)
+
+        expected_xml = """
+            <root>
+                <simple_field>new_value</simple_field>
+                <group1>
+                    <repeat_group>
+                        <field1>new1</field1>
+                    </repeat_group>
+                    <repeat_group>
+                        <field1>new2</field1>
+                    </repeat_group>
+                </group1>
+            </root>
+        """
+        self.__compare_xml(xml_tostring(xml_parsed), expected_xml)
+
+    def test_edit_submission_xml_nested_repeat_groups(self):
+        """Test editing nested repeat groups"""
+        initial_xml = """
+            <root>
+                <outer_repeat>
+                    <outer_field>old_outer</outer_field>
+                </outer_repeat>
+            </root>
+        """
+        xml_parsed = fromstring_preserve_root_xmlns(initial_xml)
+
+        update_data = [
+            {
+                'outer_repeat/outer_field': 'outer1',
+                'outer_repeat/inner_repeat': [
+                    {'outer_repeat/inner_repeat/inner_field': 'inner1.1'},
+                    {'outer_repeat/inner_repeat/inner_field': 'inner1.2'},
+                ],
+            },
+            {
+                'outer_repeat/outer_field': 'outer2',
+                'outer_repeat/inner_repeat': [
+                    {'outer_repeat/inner_repeat/inner_field': 'inner2.1'},
+                ],
+            },
+        ]
+
+        edit_submission_xml(xml_parsed, 'outer_repeat', update_data)
+
+        expected_xml = """
+            <root>
+                <outer_repeat>
+                    <outer_field>outer1</outer_field>
+                    <inner_repeat>
+                        <inner_field>inner1.1</inner_field>
+                    </inner_repeat>
+                    <inner_repeat>
+                        <inner_field>inner1.2</inner_field>
+                    </inner_repeat>
+                </outer_repeat>
+                <outer_repeat>
+                    <outer_field>outer2</outer_field>
+                    <inner_repeat>
+                        <inner_field>inner2.1</inner_field>
+                    </inner_repeat>
+                </outer_repeat>
+            </root>
+        """
+        self.__compare_xml(xml_tostring(xml_parsed), expected_xml)
+
     def __compare_xml(self, source: str, target: str) -> bool:
         """ Attempts to standardize XML by removing whitespace between tags """
         pattern = r'\s*(<[^>]+>)\s*'
