@@ -1657,7 +1657,7 @@ if os.environ.get('EMAIL_PORT'):
 if os.environ.get('EMAIL_USE_TLS'):
     EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS')
 
-MAX_MASS_EMAILS_PER_DAY = 1000
+MAX_MASS_EMAILS_PER_DAY = 1
 MASS_EMAIL_THROTTLE_PER_SECOND = 40
 MASS_EMAIL_SLEEP_SECONDS = 1
 # change the interval between "daily" email sends for testing. this will set both

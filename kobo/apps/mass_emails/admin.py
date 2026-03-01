@@ -30,6 +30,14 @@ class MassEmailConfigAdmin(admin.ModelAdmin):
                 return ('live',)
         return ()
 
+    def get_readonly_fields(self, request, obj=None):
+        if obj and obj.type == EmailType.ONE_TIME:
+            if MassEmailRecord.objects.filter(
+                email_job__email_config__id=obj.id, status=EmailStatus.ENQUEUED
+            ).exists():
+                return ('live',)
+        return ()
+
     @admin.action(description='Add to daily send queue')
     def enqueue_mass_emails(self, request, queryset):
         for config in queryset:
