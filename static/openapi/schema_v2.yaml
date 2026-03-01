@@ -12343,10 +12343,6 @@ components:
           type: string
         price_id:
           type: string
-        quantity:
-          type: integer
-          minimum: 1
-          default: 1
       required:
       - organization_id
     CustomerPortalPostResponse:
