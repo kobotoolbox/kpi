@@ -1211,6 +1211,7 @@ TEMPLATES = [
 
 DEFAULT_SUBMISSIONS_COUNT_NUMBER_OF_DAYS = 31
 GOOGLE_ANALYTICS_TOKEN = os.environ.get('GOOGLE_ANALYTICS_TOKEN')
+HUBSPOT_ID = '21396257'  # TODO: parameterize.
 SENTRY_JS_DSN = None
 if SENTRY_JS_DSN_URL := env.url('SENTRY_JS_DSN', default=None):
     SENTRY_JS_DSN = SENTRY_JS_DSN_URL.geturl()
@@ -1346,6 +1347,80 @@ if STRIPE_ENABLED:
     stripe_domain = 'https://js.stripe.com'
     CSP_SCRIPT_SRC.append(stripe_domain)
     CSP_FRAME_SRC.append(stripe_domain)
+if HUBSPOT_ID:
+    # https://knowledge.hubspot.com/domains-and-urls/ssl-and-domain-security-in-hubspot#content-security-policy
+    CSP_CONNECT_SRC.extend([
+        '*.hubapi.com',  # API calls (HubDB, form submissions)
+        '*.hs-banner.com',  # Cookie banner
+        '*.hscollectedforms.net',  # Forms (non-HubSpot forms)
+        'js.hscta.net',  # Calls-to-action (button)
+        'js-eu1.hscta.net',  # Calls-to-action (button) (European data hosting only)
+        '*.hubspot.com',  # Calls-to-action (pop-up), chatflows
+        '*.hsforms.com',  # Forms, surveys
+    ])
+    CSP_FRAME_SRC.extend([
+        '*.hs-sites.com',  # Calls-to-action (pop-up)
+        '*.hs-sites-eu1.com',  # Calls-to-action (pop-up) (European data hosting only)
+        'play.hubspotvideo.com',  # Files (videos)
+        'play-eu1.hubspotvideo.com',  # Files (videos) (European data hosting only)
+        '*.kbtdev.org',  # Files, stylesheets. TODO: configured for dev server, adjust for production before merging!
+        '*.hubspot.com',  # Calls-to-action (pop-up), chatflows
+        '*.hubspot.net',  # Files
+        '*.hsforms.net',  # Forms, surveys
+        '*.hsforms.com',  # Forms, surveys
+    ])
+    CSP_STYLE_SRC.extend([
+        '*.kbtdev.org',  # Files, stylesheets. TODO: configured for dev server, adjust for production before merging!
+        'cdn2.hubspot.net',  # Files, stylesheets
+        '*.hubspotusercontent00.net',  # Files
+        '*.hubspotusercontent10.net',  # Files
+        '*.hubspotusercontent20.net',  # Files
+        '*.hubspotusercontent30.net',  # Files
+        '*.hubspotusercontent40.net',  # Files
+    ])
+    CSP_IMG_SRC.extend([
+        'no-cache.hubspot.com',  # Calls-to-action (button)
+        'cdn2.hubspot.net',  # Files, stylesheets
+        'js.hscta.net',  # Calls-to-action (button)
+        'js-eu1.hscta.net',  # Calls-to-action (button) (European data hosting only)
+        '*.hubspot.com',  # Calls-to-action (pop-up), chatflows
+        '*.hubspot.net',  # Files
+        '*.hsforms.net',  # Forms, surveys
+        '*.hsforms.com',  # Forms, surveys
+        '*.hubspotusercontent00.net',  # Files
+        '*.hubspotusercontent10.net',  # Files
+        '*.hubspotusercontent20.net',  # Files
+        '*.hubspotusercontent30.net',  # Files
+        '*.hubspotusercontent40.net',  # Files
+    ])
+    CSP_SCRIPT_SRC.extend([
+        '*.kbtdev.org',  # Files, stylesheets. TODO: configured for dev server, adjust for production before merging!
+        '*.hsadspixel.net',  # Ads
+        'static.hsappstatic.net',  # Content (sprocket menu, video embedding)
+        '*.usemessages.com',  # Conversations, chatflows
+        '*.hsleadflows.net',  # Forms (pop-up forms)
+        '*.hs-scripts.com',  # HubSpot tracking code
+        '*.hubspotfeedback.com',  # Surveys
+        'feedback.hubapi.com',  # Surveys
+        'feedback-eu1.hubapi.com',  # Surveys (European data hosting only)
+        '*.hs-analytics.net',  # Analytics
+        '*.hs-banner.com',  # Cookie banner
+        '*.hscollectedforms.net',  # Forms (non-HubSpot forms)
+        'js.hscta.net',  # Calls-to-action (button)
+        'js-eu1.hscta.net',  # Calls-to-action (button) (European data hosting only)
+        '*.hubspot.com',  # Calls-to-action (pop-up), chatflows
+        '*.hubspot.net',  # Files
+        '*.hsforms.net',  # Forms, surveys
+        '*.hsforms.com',  # Forms, surveys
+        '*.hubspotusercontent00.net',  # Files
+        '*.hubspotusercontent10.net',  # Files
+        '*.hubspotusercontent20.net',  # Files
+        '*.hubspotusercontent30.net',  # Files
+        '*.hubspotusercontent40.net',  # Files
+    ])
+    CSP_CONNECT_SRC.extend([
+        '*.hsforms.com',  # Forms, surveys
+    ])
 
 csp_report_uri = env.url('CSP_REPORT_URI', None)
 if csp_report_uri:  # Let environ validate uri, but set as string
@@ -1508,7 +1583,7 @@ CELERY_BEAT_SCHEDULE = {
     },
     # Schedule every day at midnight UTC
     'mass-email-record-mark-as-failed': {
-        'task': 'kobo.apps.mass_emails.tasks.mark_old_enqueued_mass_email_record_as_failed', # noqa
+        'task': 'kobo.apps.mass_emails.tasks.mark_old_enqueued_mass_email_record_as_failed',  # noqa
         'schedule': crontab(minute=0, hour=0),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
