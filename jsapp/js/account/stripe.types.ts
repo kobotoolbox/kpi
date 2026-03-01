@@ -144,7 +144,7 @@ export enum UsageLimitTypes {
   SUBMISSION = 'submission',
   TRANSCRIPTION = 'automated transcription',
   TRANSLATION = 'machine translation',
-  LLM_REQUEST = 'LLM request',
+  LLM_REQUEST = 'AI analysis',
 }
 
 export enum Limits {
@@ -193,6 +193,7 @@ export interface OneTimeUsageLimits {
   submission_limit: number
   asr_seconds_limit: number
   mt_characters_limit: number
+  llm_requests_limit: number
 }
 
 export enum USAGE_TYPE {

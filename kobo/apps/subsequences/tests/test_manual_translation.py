@@ -167,7 +167,7 @@ def test_latest_version_is_first():
 
 
 def test_cannot_revise_data_without_transcription():
-    action = _get_action(fetch_action_dependencies=False)
+    action = _get_action(question_supplement={})
 
     with pytest.raises(TranscriptionNotFound):
         action.revise_data(
@@ -228,10 +228,15 @@ def test_transform_data_for_output_with_delete():
     }
 
 
-def _get_action(fetch_action_dependencies=True):
+def _get_action(question_supplement=None):
     xpath = 'group_name/question_name'  # irrelevant for this test
     params = [{'language': 'fr'}, {'language': 'en'}]
-    action = ManualTranslationAction(xpath, params)
-    if fetch_action_dependencies:
-        action.get_action_dependencies(QUESTION_SUPPLEMENT)
+    supplement = (
+        question_supplement if question_supplement is not None else QUESTION_SUPPLEMENT
+    )
+    action = ManualTranslationAction(
+        xpath,
+        params,
+        prefetched_dependencies={'question_supplemental_data': supplement},
+    )
     return action

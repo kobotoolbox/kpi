@@ -24,7 +24,7 @@ import type { AnyRowTypeName, AssetFileType, AssetTypeName, FormStyleName } from
 import type { UserResponse } from '#/users/userExistence.store'
 import type { AccountFieldsValues } from './account/account.constants'
 import { endpoints } from './api.endpoints'
-import type { ResponseQualActionParams } from './api/models/responseQualActionParams'
+import type { ResponseManualQualActionParams } from './api/models/responseManualQualActionParams'
 import type { HookAuthLevelName, HookExportTypeName } from './components/RESTServices/RESTServicesForm'
 import type { Json } from './components/common/common.interfaces'
 import type {
@@ -648,7 +648,7 @@ export interface AnalysisFormJsonField {
   label: string
   name: string
   dtpath: string
-  type: ResponseQualActionParams['type'] | 'transcript' | 'translation'
+  type: ResponseManualQualActionParams['type'] | 'transcript' | 'translation'
   /** Two letter language code or ?? for qualitative analysis questions */
   language: string | '??'
   source: string

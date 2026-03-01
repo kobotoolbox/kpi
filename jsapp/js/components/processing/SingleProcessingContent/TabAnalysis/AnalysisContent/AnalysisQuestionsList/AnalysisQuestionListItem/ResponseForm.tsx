@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 
 import { Group, Modal, Stack, Text } from '@mantine/core'
 import { Box, ThemeIcon } from '@mantine/core'
@@ -7,26 +7,40 @@ import ActionIcon from '#/components/common/ActionIcon'
 import ButtonNew from '#/components/common/ButtonNew'
 import Icon from '#/components/common/icon'
 
-import type { ResponseQualActionParams } from '#/api/models/responseQualActionParams'
+import type { ResponseManualQualActionParams } from '#/api/models/responseManualQualActionParams'
 import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 import { getQuestionTypeDefinition } from '../../../common/utils'
 
 interface Props {
   children?: React.ReactNode
-  qaQuestion: ResponseQualActionParams
+  qaQuestion: ResponseManualQualActionParams
   /** Adds a clear button with the given logic */
   onClear?: () => unknown
   disabled: boolean
-  onEdit: (qaQuestion: ResponseQualActionParams) => unknown
-  onDelete: (qaQuestion: ResponseQualActionParams) => Promise<unknown>
+  onEdit: (qaQuestion: ResponseManualQualActionParams) => unknown
+  onDelete: (qaQuestion: ResponseManualQualActionParams) => Promise<unknown>
+  /**
+   * Adds a Generate with AI button. API handling is being served by parent(s), as this component doesn't have all
+   * the required data and it's easier to push this one function up than all the small pieces down.
+   */
+  onGenerateWithAI?: () => Promise<unknown>
 }
 
 /**
  * Displays question type icon, name, and an edit and delete buttons (if user
  * has sufficient permissions). Is being used in multiple other components.
  */
-export default function ResponseForm({ qaQuestion, children, onClear, disabled, onEdit, onDelete }: Props) {
+export default function ResponseForm({
+  qaQuestion,
+  children,
+  onClear,
+  disabled,
+  onEdit,
+  onDelete,
+  onGenerateWithAI,
+}: Props) {
   const [opened, { open, close }] = useDisclosure(false)
+  const [isGenerating, setIsGenerating] = useState(false)
 
   const ffAutoQAEnabled = useFeatureFlag(FeatureFlag.autoQAEnabled)
 
@@ -43,6 +57,16 @@ export default function ResponseForm({ qaQuestion, children, onClear, disabled, 
   const handleDelete = async () => {
     await onDelete(qaQuestion)
     close()
+  }
+
+  const handleGenerateWithAI = async () => {
+    if (!onGenerateWithAI) return
+    setIsGenerating(true)
+    try {
+      await onGenerateWithAI()
+    } finally {
+      setIsGenerating(false)
+    }
   }
 
   return (
@@ -108,7 +132,7 @@ export default function ResponseForm({ qaQuestion, children, onClear, disabled, 
 
       {/* Hard coded left padding to account for the 32px icon size + 8px gap */}
       {children && <Box pl={'40px'}>{children}</Box>}
-      {!disabled && ffAutoQAEnabled && (
+      {!disabled && ffAutoQAEnabled && onGenerateWithAI && (
         <Group pl={'40px'}>
           <ButtonNew
             variant='transparent'
@@ -118,6 +142,9 @@ export default function ResponseForm({ qaQuestion, children, onClear, disabled, 
             disabled={disabled}
             c='var(--mantine-color-blue-5)'
             leftIcon='sparkles'
+            onClick={handleGenerateWithAI}
+            loading={isGenerating}
+            loaderProps={{ type: 'dots' }}
           >
             {t('Generate with AI')}
           </ButtonNew>

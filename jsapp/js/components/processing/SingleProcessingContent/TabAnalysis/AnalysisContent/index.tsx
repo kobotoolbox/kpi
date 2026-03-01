@@ -1,7 +1,9 @@
 import React from 'react'
+import { ActionEnum } from '#/api/models/actionEnum'
+import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
-import type { ResponseQualActionParams } from '#/api/models/responseQualActionParams'
+import type { ResponseManualQualActionParams } from '#/api/models/responseManualQualActionParams'
 import type { AssetResponse } from '#/dataInterface'
 import type { AdvancedFeatureResponseManualQual } from '../common/utils'
 import AnalysisQuestionsList from './AnalysisQuestionsList'
@@ -11,30 +13,37 @@ import styles from './index.module.scss'
 interface Props {
   asset: AssetResponse
   questionXpath: string
-  advancedFeature: AdvancedFeatureResponseManualQual
+  advancedFeatures: AdvancedFeatureResponse[]
   submission: DataResponse
   supplement: DataSupplementResponse
-  qaQuestion?: ResponseQualActionParams
-  setQaQuestion: (qaQuestion: ResponseQualActionParams | undefined) => void
+  qaQuestion?: ResponseManualQualActionParams
+  setQaQuestion: (qaQuestion: ResponseManualQualActionParams | undefined) => void
 }
 
 /** Displays either a special message for no content, or the list of questions. */
 export default function AnalysisContent({
   asset,
   questionXpath,
-  advancedFeature,
+  advancedFeatures,
   submission,
   qaQuestion,
   setQaQuestion,
 }: Props) {
+  // Filter to get the manual_qual advanced feature for this question
+  const advancedFeature = advancedFeatures.find(
+    (feature) => feature.action === ActionEnum.manual_qual && feature.question_xpath === questionXpath,
+  ) as AdvancedFeatureResponseManualQual | undefined
+
+  const hasQuestions = (advancedFeature?.params?.length ?? 0) > 0
+
   return (
     <section className={styles.root}>
-      {!qaQuestion && advancedFeature.params.length === 0 && <AnalysisContentEmpty asset={asset} />}
+      {!qaQuestion && !hasQuestions && <AnalysisContentEmpty asset={asset} />}
 
-      {(qaQuestion || advancedFeature.params.length > 0) && (
+      {(qaQuestion || hasQuestions) && (
         <AnalysisQuestionsList
           asset={asset}
-          advancedFeature={advancedFeature}
+          advancedFeatures={advancedFeatures}
           questionXpath={questionXpath}
           submission={submission}
           qaQuestion={qaQuestion}
