@@ -23,29 +23,27 @@ export function isAnswerAIGenerated(qaAnswer: QualVersionItem | undefined) {
   return qaAnswer && 'status' in qaAnswer._data
 }
 
-export function hasNonEmptyAnswer(type: ResponseManualQualActionParams['type'], qaAnswer: QualVersionItem | undefined) {
-  if (qaAnswer === undefined) {
+/**
+ * Checks if the answer exist and is an empty value.
+ */
+export function hasEmptyValueAnswer(
+  type: ResponseManualQualActionParams['type'],
+  qaAnswer: QualVersionItem | undefined,
+) {
+  if (!qaAnswer || 'value' in qaAnswer._data === false) {
     return false
   }
 
-  if ('value' in qaAnswer._data) {
-    switch (type) {
-      case 'qualSelectMultiple':
-      case 'qualTags':
-        return Array.isArray(qaAnswer._data.value) && qaAnswer._data.value.length !== 0
-      case 'qualSelectOne':
-      case 'qualText':
-        return qaAnswer._data.value !== ''
-      case 'qualInteger':
-        return qaAnswer._data.value !== null
-      default:
-        return false
-    }
+  // These types are special cases
+  if (type === 'qualSelectMultiple' || type === 'qualTags') {
+    return Array.isArray(qaAnswer._data.value) && qaAnswer._data.value.length === 0
   }
-
-  return false
+  return qaAnswer._data.value === getEmptyAnswer(type)
 }
 
+/**
+ * For given question type returns a value that means "empty". Different types have different values.
+ */
 export function getEmptyAnswer(type: ResponseManualQualActionParams['type']) {
   switch (type) {
     case 'qualSelectMultiple':
@@ -57,6 +55,7 @@ export function getEmptyAnswer(type: ResponseManualQualActionParams['type']) {
     case 'qualInteger':
       return null
     default:
+      // Should not happen, but makes TS happy
       return ''
   }
 }

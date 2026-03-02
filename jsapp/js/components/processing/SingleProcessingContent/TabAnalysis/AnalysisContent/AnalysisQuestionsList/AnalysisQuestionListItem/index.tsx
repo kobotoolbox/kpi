@@ -24,12 +24,7 @@ import { getLatestQualVersionItem } from '#/components/processing/common/utils'
 import { DND_TYPES } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import { removeDefaultUuidPrefix } from '#/utils'
-import {
-  type AdvancedFeatureResponseManualQual,
-  getEmptyAnswer,
-  hasNonEmptyAnswer,
-  isAnswerAIGenerated,
-} from '../../../common/utils'
+import { type AdvancedFeatureResponseManualQual, getEmptyAnswer } from '../../../common/utils'
 import AnalysisQuestionEditor from './AnalysisQuestionEditor'
 import IntegerResponseForm from './IntegerResponseForm'
 import KeywordSearchResponseForm from './KeywordSearchResponseForm'
@@ -290,15 +285,14 @@ export default function AnalysisQuestionListItem({
         return <KeywordSearchResponseForm />
       }
       case 'qualNote': {
-        // This question type doesn't have any response, so we display just
-        // the header
         return (
           <ResponseForm
             qaQuestion={qaQuestion}
             disabled={disabledQuestion}
             onEdit={setQaQuestion}
             onDelete={handleDeleteQuestion}
-            hasResponse
+            // This question type doesn't have any response, so we display just
+            // the header, and thus no `answer` or `children`
           />
         )
       }
@@ -311,8 +305,7 @@ export default function AnalysisQuestionListItem({
             onDelete={handleDeleteQuestion}
             onClear={() => handleSaveAnswer(getEmptyAnswer(qaQuestion.type))}
             onGenerateWithAI={() => onGenerateWithAI(qaQuestion)}
-            isGeneratedWithAI={isAnswerAIGenerated(queryAnswer.data)}
-            hasResponse={hasNonEmptyAnswer(qaQuestion.type, queryAnswer.data)}
+            answer={queryAnswer.data}
           >
             <SelectMultipleResponseForm
               qaQuestion={qaQuestion}
@@ -350,8 +343,7 @@ export default function AnalysisQuestionListItem({
             onDelete={handleDeleteQuestion}
             onClear={handleClearSelection}
             onGenerateWithAI={() => onGenerateWithAI(qaQuestion)}
-            isGeneratedWithAI={isAnswerAIGenerated(queryAnswer.data)}
-            hasResponse={hasNonEmptyAnswer(qaQuestion.type, queryAnswer.data)}
+            answer={queryAnswer.data}
           >
             <SelectOneResponseForm
               qaQuestion={qaQuestion}
@@ -370,7 +362,7 @@ export default function AnalysisQuestionListItem({
             onEdit={setQaQuestion}
             onDelete={handleDeleteQuestion}
             onClear={() => handleSaveAnswer(getEmptyAnswer(qaQuestion.type))}
-            hasResponse={hasNonEmptyAnswer(qaQuestion.type, queryAnswer.data)}
+            answer={queryAnswer.data}
           >
             <TagsResponseForm qaAnswer={queryAnswer.data} disabled={disabledAnswer} onSave={handleSaveAnswer} />
           </ResponseForm>
@@ -385,8 +377,7 @@ export default function AnalysisQuestionListItem({
             onDelete={handleDeleteQuestion}
             onClear={() => handleSaveAnswer(getEmptyAnswer(qaQuestion.type))}
             onGenerateWithAI={() => onGenerateWithAI(qaQuestion)}
-            isGeneratedWithAI={isAnswerAIGenerated(queryAnswer.data)}
-            hasResponse={hasNonEmptyAnswer(qaQuestion.type, queryAnswer.data)}
+            answer={queryAnswer.data}
           >
             <IntegerResponseForm qaAnswer={queryAnswer.data} disabled={disabledAnswer} onSave={handleSaveAnswer} />
           </ResponseForm>
@@ -401,8 +392,7 @@ export default function AnalysisQuestionListItem({
             onDelete={handleDeleteQuestion}
             onClear={() => handleSaveAnswer(getEmptyAnswer(qaQuestion.type))}
             onGenerateWithAI={() => onGenerateWithAI(qaQuestion)}
-            isGeneratedWithAI={isAnswerAIGenerated(queryAnswer.data)}
-            hasResponse={hasNonEmptyAnswer(qaQuestion.type, queryAnswer.data)}
+            answer={queryAnswer.data}
           >
             <TextResponseForm qaAnswer={queryAnswer.data} disabled={disabledAnswer} onSave={handleSaveAnswer} />
           </ResponseForm>
