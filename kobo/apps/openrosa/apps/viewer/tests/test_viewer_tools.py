@@ -51,6 +51,24 @@ class TestViewerTools(TestBase):
             ' (KHTML, like Gecko) Version/3.0 Mobile/1A543 Safari/419.3',
             'Mobile Safari (iOS)',
         ),
+        # ODK Collect on Android
+        (
+            'org.odk.collect.android/v2023.2.3 Dalvik/2.1.0'
+            ' (Linux; U; Android 11; moto g pure Build/RRH31.Q3-46-50-2)',
+            'ODK Collect v2023.2.3 (Android 11)',
+        ),
+        # Kobo Collect on Android
+        (
+            'org.koboc.collect.android/v2023.2.3 Dalvik/2.1.0'
+            ' (Linux; U; Android 11; moto g pure Build/RRH31.Q3-46-50-2)',
+            'Kobo Collect v2023.2.3 (Android 11)',
+        ),
+        # Enketo with build suffix in version (only semver kept)
+        (
+            'Enketo/7.5.1-30-g743d112f Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)'
+            ' AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36',
+            'Chrome - Enketo 7.5.1 (Mac OS X)',
+        ),
         # nonsense
         ('Lizards!', 'Other (Other)'),
         # empty

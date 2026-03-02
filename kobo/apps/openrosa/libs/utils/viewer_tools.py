@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 import traceback
 import zipfile
 from datetime import datetime
@@ -122,14 +123,40 @@ def get_client_ip(request):
 
 def get_human_readable_client_user_agent(request):
     """
-    Parse the user-agent into a human-readable <Browser> (<OS>) string
+    Parse the user-agent into a human-readable <Browser> (<OS>) string.
+    Handles ODK Collect user agents specifically.
     """
     user_agent = request.META.get('HTTP_USER_AGENT', None)
-    if not user_agent or user_agent == '':
+
+    if not user_agent:
         return 'No information available'
+
+    collect_match = re.search(
+        r'org\.(odk|koboc)\.collect\.android/(v[\d.]+)', user_agent
+    )
+    if collect_match:
+        app_name = (
+            'Kobo Collect'
+            if collect_match.group(1) == 'koboc'
+            else 'ODK Collect'
+        )
+        version = collect_match.group(2)
+        android_match = re.search(r'Android ([\d.]+)', user_agent)
+        android_version = android_match.group(1) if android_match else 'Unknown'
+        return f'{app_name} {version} (Android {android_version})'
+
+    enketo_match = re.search(r'Enketo/(\d+\.\d+\.\d+)', user_agent)
+    if enketo_match:
+        version = enketo_match.group(1)
+        parsed = ua_parse.Parse(user_agent)
+        browser = parsed['user_agent']['family']
+        user_os = parsed['os']['family']
+        return f'{browser} - Enketo {version} ({user_os})'
+
     parsed = ua_parse.Parse(user_agent)
     browser = parsed['user_agent']['family']
     user_os = parsed['os']['family']
+
     return f'{browser} ({user_os})'
 
 
