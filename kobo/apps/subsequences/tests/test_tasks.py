@@ -82,6 +82,16 @@ class TestPollRunExternalProcess(BaseTestCase):
         except Exception as e:
             self.fail(f'poll_run_external_process raised an unexpected exception: {e}')
 
+        # Verify that the DB was updated with the 'complete' status and value
+        supplement_data = SubmissionSupplement.retrieve_data(
+            self.asset, submission_root_uuid=self.submission_uuid
+        )
+        latest_version = (
+            supplement_data[self.question_xpath][self.action_id]['_versions'][0]
+        )
+        self.assertEqual(latest_version['_data']['status'], 'complete')
+        self.assertEqual(latest_version['_data']['value'], 'Done!')
+
     @patch('kobo.apps.subsequences.actions.base.BaseAutomaticNLPAction.run_external_process')  # noqa: E501
     def test_poll_handles_graceful_api_failure(self, mock_run):
         """
