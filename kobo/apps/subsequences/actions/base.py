@@ -14,7 +14,6 @@ from kobo.apps.subsequences.exceptions import (
     GoogleCloudStorageBucketNotFound,
     SubsequenceAcceptanceError,
     SubsequenceDeletionError,
-    SubsequenceVerificationError,
 )
 from kobo.apps.subsequences.utils.time import utc_datetime_to_js_str
 from kobo.celery import celery_app
@@ -359,6 +358,13 @@ class BaseAction:
         """
         return {}
 
+    def validate_action_for_empty_versions(self, action_data: dict):
+        """
+        Determine if action_data is allowed when the current version list for this
+        action is empty
+        """
+        raise NotImplementedError
+
     def validate_external_data(self, data):
         jsonschema.validate(
             data,
@@ -429,14 +435,9 @@ class BaseAction:
         self.attach_action_dependency(action_data)
         current_version_data = current_version.get(self.VERSION_DATA_FIELD, {})
 
-        # cannot delete, verify, or accept non-existent data
+        # some actions cannot be performed unless there is already a current version
         if current_version_data.get('value') is None:
-            if 'value' in action_data and action_data['value'] is None:
-                raise SubsequenceDeletionError
-            if 'verified' in action_data:
-                raise SubsequenceVerificationError()
-            if 'accepted' in action_data:
-                raise SubsequenceAcceptanceError()
+            self.validate_action_for_empty_versions(action_data)
 
         verified = action_data.pop('verified', None)
         accepted = action_data.pop('accepted', None)
@@ -719,6 +720,13 @@ class BaseManualNLPAction(BaseAction):
         for language_obj in incoming_params:
             if language_obj['language'] not in current_languages:
                 self.params.append(language_obj)
+
+    def validate_action_for_empty_versions(self, action_data):
+        # cannot delete or accept non-existent data
+        if 'value' in action_data and action_data['value'] is None:
+            raise SubsequenceDeletionError
+        if 'accepted' in action_data:
+            raise SubsequenceAcceptanceError()
 
 
 class BaseAutomaticNLPAction(BaseManualNLPAction):
