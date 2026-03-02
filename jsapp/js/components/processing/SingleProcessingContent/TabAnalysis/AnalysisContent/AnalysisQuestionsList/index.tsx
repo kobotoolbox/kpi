@@ -83,6 +83,10 @@ export default function AnalysisQuestionsList({
   // Local state to avoid flickering on reordering (optimistic UI)
   const [localParams, setLocalParams] = useState<ResponseManualQualActionParams[]>(advancedFeatureManual?.params ?? [])
 
+  const [isLimitBlockModalOpen, setIsLimitBlockModalOpen] = useState<boolean>(false)
+  const { data: serviceUsageData } = useOrganizationsServiceUsageSummary()
+  const { billingPeriod } = useBillingPeriod()
+
   // Update local params when advancedFeature changes (e.g., after backend update)
   React.useEffect(() => {
     setLocalParams(advancedFeatureManual?.params ?? [])
@@ -96,6 +100,18 @@ export default function AnalysisQuestionsList({
       return newParams
     })
   }, [])
+
+  let localAdvancedFeature: AdvancedFeatureResponseManualQual | undefined
+  if (advancedFeatureManual) {
+    localAdvancedFeature = {
+      ...advancedFeatureManual,
+      params: localParams,
+    }
+  }
+
+  if (!localAdvancedFeature) {
+    return null
+  }
 
   const qaQuestions = localParams
     .filter((qaQuestion) => !qaQuestion.options?.deleted)
@@ -143,10 +159,6 @@ export default function AnalysisQuestionsList({
     }
   }
 
-  const [isLimitBlockModalOpen, setIsLimitBlockModalOpen] = useState<boolean>(false)
-  const { data: serviceUsageData } = useOrganizationsServiceUsageSummary()
-  const { billingPeriod } = useBillingPeriod()
-
   const usageLimitBlock =
     serviceUsageData?.status === 200 &&
     serviceUsageData?.data.limitExceedList.includes(UsageLimitTypes.LLM_REQUEST) &&
@@ -184,18 +196,6 @@ export default function AnalysisQuestionsList({
     await queryClient.invalidateQueries({
       queryKey: getAssetsDataSupplementRetrieveQueryKey(asset.uid, rootUuid),
     })
-  }
-
-  let localAdvancedFeature: AdvancedFeatureResponseManualQual | undefined
-  if (advancedFeatureManual) {
-    localAdvancedFeature = {
-      ...advancedFeatureManual,
-      params: localParams,
-    }
-  }
-
-  if (!localAdvancedFeature) {
-    return null
   }
 
   return (
