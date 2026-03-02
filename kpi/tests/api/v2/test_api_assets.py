@@ -1364,6 +1364,41 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
         response = self.client.get(report_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    def test_report_submissions_with_non_finite_float(self):
+        """
+        Submitting 'Infinity' for a decimal question should not crash the
+        reports endpoint. The JSON response must contain null for non-finite
+        float stats, while the HTML response must still render successfully.
+        """
+        report_url = reverse(
+            self._get_endpoint('asset-reports'), kwargs={'uid_asset': self.asset_uid}
+        )
+        self.asset.content = {
+            'survey': [
+                {'type': 'decimal', 'label': 'liters', '$autoname': 'liters'},
+            ],
+        }
+        self.asset.save()
+        self.asset.deploy(backend='mock', active=True)
+        self.asset.deployment.mock_submissions([
+            {
+                '__version__': self.asset.latest_deployed_version.uid,
+                'liters': 'Infinity',
+            },
+        ])
+
+        # JSON: non-finite floats must be replaced with null
+        response = self.client.get(report_url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        parsed = json.loads(response.content)
+        liters = next(item for item in parsed['list'] if item['name'] == 'liters')
+        self.assertIsNone(liters['data']['mean'])
+
+        # HTML: response must succeed and expose the raw value
+        response = self.client.get(report_url, HTTP_ACCEPT='text/html')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('inf', response.content.decode().lower())
+
     def test_map_styles_field(self):
         self.check_asset_writable_json_field('map_styles')
 
