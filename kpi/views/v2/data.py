@@ -27,8 +27,10 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
 )
 from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_handler
 from kobo.apps.subsequences.exceptions import (
+    AnalysisQuestionNotFound,
     InvalidAction,
     InvalidXPath,
+    ManualQualNotFound,
     SubsequenceAcceptanceError,
     SubsequenceDeletionError,
     SubsequenceVerificationError,
@@ -591,6 +593,14 @@ class DataViewSet(
             raise serializers.ValidationError({'detail': 'No response to verify'})
         except SubsequenceAcceptanceError:
             raise serializers.ValidationError({'detail': 'No response to accept'})
+        except ManualQualNotFound:
+            raise serializers.ValidationError(
+                {'detail': 'No qualitative analysis questions to answer'}
+            )
+        except AnalysisQuestionNotFound:
+            raise serializers.ValidationError(
+                {'detail': 'Invalid qualitative analysis question uuid'}
+            )
 
         return Response(supplemental_data)
 

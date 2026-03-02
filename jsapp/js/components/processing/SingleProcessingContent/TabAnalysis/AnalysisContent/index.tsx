@@ -3,7 +3,7 @@ import { ActionEnum } from '#/api/models/actionEnum'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
-import type { ResponseQualActionParams } from '#/api/models/responseQualActionParams'
+import type { ResponseManualQualActionParams } from '#/api/models/responseManualQualActionParams'
 import type { AssetResponse } from '#/dataInterface'
 import type { AdvancedFeatureResponseManualQual } from '../common/utils'
 import AnalysisQuestionsList from './AnalysisQuestionsList'
@@ -16,8 +16,8 @@ interface Props {
   advancedFeatures: AdvancedFeatureResponse[]
   submission: DataResponse
   supplement: DataSupplementResponse
-  qaQuestion?: ResponseQualActionParams
-  setQaQuestion: (qaQuestion: ResponseQualActionParams | undefined) => void
+  qaQuestion?: ResponseManualQualActionParams
+  setQaQuestion: (qaQuestion: ResponseManualQualActionParams | undefined) => void
 }
 
 /** Displays either a special message for no content, or the list of questions. */

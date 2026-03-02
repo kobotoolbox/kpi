@@ -5,7 +5,7 @@ import { ActionEnum } from '#/api/models/actionEnum'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
-import type { ResponseQualActionParams } from '#/api/models/responseQualActionParams'
+import type { ResponseManualQualActionParams } from '#/api/models/responseManualQualActionParams'
 import { useAssetsAdvancedFeaturesCreate } from '#/api/react-query/survey-data'
 import type { AssetResponse } from '#/dataInterface'
 import bodyStyles from '../../common/processingBody.module.scss'
@@ -27,7 +27,7 @@ interface Props {
  * the Qualitative Analysis functionality.
  */
 export default function AnalysisTab({ asset, questionXpath, submission, supplement, advancedFeatures }: Props) {
-  const [qaQuestion, setQaQuestion] = useState<ResponseQualActionParams | undefined>(undefined)
+  const [qaQuestion, setQaQuestion] = useState<ResponseManualQualActionParams | undefined>(undefined)
 
   // Mutation for creating manual_qual advanced feature
   const createAdvancedFeatureMutation = useAssetsAdvancedFeaturesCreate()
@@ -51,7 +51,7 @@ export default function AnalysisTab({ asset, questionXpath, submission, suppleme
     })
   }
 
-  const handleSetQaQuestion = async (qaQuestion: ResponseQualActionParams | undefined) => {
+  const handleSetQaQuestion = async (qaQuestion: ResponseManualQualActionParams | undefined) => {
     await enableAdvancedFeatureManualQual()
     setQaQuestion(qaQuestion)
   }

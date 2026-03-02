@@ -5,7 +5,7 @@ import type { Identifier, XYCoord } from 'dnd-core'
 import { useDrag, useDrop } from 'react-dnd'
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { DataResponse } from '#/api/models/dataResponse'
-import type { ResponseQualActionParams } from '#/api/models/responseQualActionParams'
+import type { ResponseManualQualActionParams } from '#/api/models/responseManualQualActionParams'
 import {
   type assetsDataSupplementRetrieveResponse,
   getAssetsDataSupplementRetrieveQueryKey,
@@ -39,14 +39,14 @@ export interface Props {
   asset: AssetResponse
   advancedFeatureManual: AdvancedFeatureResponseManualQual
   questionXpath: string
-  qaQuestion: ResponseQualActionParams
-  setQaQuestion: (qualQuestion: ResponseQualActionParams | undefined) => void
+  qaQuestion: ResponseManualQualActionParams
+  setQaQuestion: (qualQuestion: ResponseManualQualActionParams | undefined) => void
   submission: DataResponse
   index: number
   moveRow: (uuid: string, oldIndex: number, newIndex: number) => void
   editMode: boolean
   isAnyQuestionBeingEdited: boolean
-  onGenerateWithAI: (qaQuestion: ResponseQualActionParams) => Promise<void>
+  onGenerateWithAI: (qaQuestion: ResponseManualQualActionParams) => Promise<void>
 }
 
 interface DragItem {
@@ -121,7 +121,7 @@ export default function AnalysisQuestionListItem({
 
   const isCreate = advancedFeatureManual.uid === LOCALLY_EDITED_PLACEHOLDER_UUID
 
-  const handleSaveQuestion = async (params: ResponseQualActionParams[]) => {
+  const handleSaveQuestion = async (params: ResponseManualQualActionParams[]) => {
     if (isCreate) {
       await mutationCreateQuestion.mutateAsync({
         uidAsset: asset.uid,
@@ -147,9 +147,9 @@ export default function AnalysisQuestionListItem({
     setQaQuestion(undefined)
   }
 
-  const handleDeleteQuestion = async (qaQuestionToDelete: ResponseQualActionParams) => {
+  const handleDeleteQuestion = async (qaQuestionToDelete: ResponseManualQualActionParams) => {
     // Mark the question as deleted by setting options.deleted to true
-    const updatedParams = advancedFeatureManual.params.map((param: ResponseQualActionParams) =>
+    const updatedParams = advancedFeatureManual.params.map((param: ResponseManualQualActionParams) =>
       param.uuid === qaQuestionToDelete.uuid ? { ...param, options: { ...param.options, deleted: true } } : param,
     )
 
@@ -163,7 +163,7 @@ export default function AnalysisQuestionListItem({
     setQaQuestion(undefined)
   }
 
-  const handleReorderQuestions = (reorderedParams: ResponseQualActionParams[]) => {
+  const handleReorderQuestions = (reorderedParams: ResponseManualQualActionParams[]) => {
     return mutationPatchQuestion.mutateAsync({
       uidAsset: asset.uid,
       uidAdvancedFeature: advancedFeatureManual.uid,

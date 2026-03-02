@@ -70,6 +70,10 @@ class SubmissionSupplement(AbstractTimeStampedModel):
             )
             if not feature_configs_for_this_question.exists():
                 raise InvalidXPath
+            all_params = {
+                feature.action: feature.params
+                for feature in feature_configs_for_this_question
+            }
 
             for action_id, action_data in data_for_this_question.items():
                 if not ACTION_IDS_TO_CLASSES.get(action_id):
@@ -79,16 +83,20 @@ class SubmissionSupplement(AbstractTimeStampedModel):
                 except QuestionAdvancedFeature.DoesNotExist as e:
                     raise InvalidAction from e
 
-                action = feature.to_action()
-                action.check_limits(asset.owner)
-
                 question_supplemental_data = supplemental_data.setdefault(
                     question_xpath, {}
                 )
                 action_supplemental_data = question_supplemental_data.setdefault(
                     action_id, {}
                 )
-                action.get_action_dependencies(question_supplemental_data)
+
+                prefetched_dependencies = {
+                    'params': all_params,
+                    'question_supplemental_data': question_supplemental_data,
+                }
+                action = feature.to_action(prefetched_dependencies)
+                action.check_limits(asset.owner)
+
                 if not (
                     action_supplemental_data := action.revise_data(
                         submission,
@@ -262,10 +270,11 @@ class QuestionAdvancedFeature(models.Model):
         action_class.validate_params(self.params)
         super().save(*args, **kwargs)
 
-    def to_action(self):
+    def to_action(self, prefetched_dependencies: dict | None = None) -> Action:
         action_class = ACTION_IDS_TO_CLASSES[self.action]
         return action_class(
             source_question_xpath=self.question_xpath,
             params=self.params,
             asset=self.asset,
+            prefetched_dependencies=prefetched_dependencies,
         )
