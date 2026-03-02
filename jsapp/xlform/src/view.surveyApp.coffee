@@ -266,7 +266,7 @@ module.exports = do ->
       modelId = $et.closest('.survey__row').data('row-id')
       view = @__rowViews.get(modelId)
       throw new Error("view is not found for target element")  unless view
-      view
+      return view
 
     toggleCardSettings: (evt)->
       @_getViewForTarget(evt).toggleSettings()
