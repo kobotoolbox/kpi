@@ -26,6 +26,7 @@ export default function AnalysisContent({
   questionXpath,
   advancedFeatures,
   submission,
+  supplement,
   qaQuestion,
   setQaQuestion,
 }: Props) {
@@ -46,6 +47,7 @@ export default function AnalysisContent({
           advancedFeatures={advancedFeatures}
           questionXpath={questionXpath}
           submission={submission}
+          supplement={supplement}
           qaQuestion={qaQuestion}
           setQaQuestion={setQaQuestion}
         />

@@ -10,6 +10,7 @@ import { useOrganizationsServiceUsageSummary } from '#/account/usage/useOrganiza
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
+import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { ResponseManualQualActionParams } from '#/api/models/responseManualQualActionParams'
 import {
   getAssetsDataSupplementRetrieveQueryKey,
@@ -31,6 +32,7 @@ interface Props {
   advancedFeatures: AdvancedFeatureResponse[]
   questionXpath: string
   submission: DataResponse
+  supplement: DataSupplementResponse
   qaQuestion?: ResponseManualQualActionParams
   setQaQuestion: (qaQuestion: ResponseManualQualActionParams | undefined) => void
 }
@@ -45,6 +47,7 @@ export default function AnalysisQuestionsList({
   advancedFeatures,
   questionXpath,
   submission,
+  supplement,
   qaQuestion,
   setQaQuestion,
 }: Props) {
@@ -209,6 +212,7 @@ export default function AnalysisQuestionsList({
               asset={asset}
               advancedFeatureManual={localAdvancedFeature}
               submission={submission}
+              supplement={supplement}
               qaQuestion={qaQuestion}
               setQaQuestion={setQaQuestion}
               questionXpath={questionXpath}
@@ -225,6 +229,7 @@ export default function AnalysisQuestionsList({
               asset={asset}
               advancedFeatureManual={localAdvancedFeature}
               submission={submission}
+              supplement={supplement}
               qaQuestion={qaQuestionItem}
               setQaQuestion={setQaQuestion}
               questionXpath={questionXpath}

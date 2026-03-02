@@ -27,6 +27,7 @@ interface Props {
    * the required data and it's easier to push this one function up than all the small pieces down.
    */
   onGenerateWithAI?: () => Promise<unknown>
+  hasTranscript: boolean
 }
 
 /**
@@ -42,6 +43,7 @@ export default function ResponseForm({
   onEdit,
   onDelete,
   onGenerateWithAI,
+  hasTranscript,
 }: Props) {
   const [opened, { open, close }] = useDisclosure(false)
   const [isGenerating, setIsGenerating] = useState(false)
@@ -64,11 +66,16 @@ export default function ResponseForm({
   const isAnswerAIGeneratedVal = answer && isAnswerAIGenerated(answer)
 
   /**
-   * "Generate with AI" button will be displayed if there is no answer, or if answer is not AI generated empty value
+   * "Generate with AI" button will be displayed if there is no answer, or if answer is not AI generated empty value.
+   *
+   * We also hide it if there is no transcript or if `onGenerateWithAI` callback is not provided.
    */
   const shouldDisplayGenerateWithAIButton = () => {
-    // TODO: we should hide button if there is no transcript
-    return onGenerateWithAI !== undefined && (!hasAnswer || (hasEmptyValueAnswerVal && !isAnswerAIGeneratedVal))
+    return (
+      hasTranscript &&
+      onGenerateWithAI !== undefined &&
+      (!hasAnswer || (hasEmptyValueAnswerVal && !isAnswerAIGeneratedVal))
+    )
   }
 
   /**
