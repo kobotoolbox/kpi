@@ -388,24 +388,6 @@ def test_find_the_most_recent_accepted_transcription():
     assert action_data == expected
 
 
-def test_action_is_updated_in_background_if_in_progress():
-    action = _get_action()
-    mock_service = MagicMock()
-    submission = {'meta/rootUuid': '123-abdc'}
-
-    with patch(
-        'kobo.apps.subsequences.actions.automatic_google_translation.GoogleTranslationService',  # noqa
-        return_value=mock_service,
-    ):
-        mock_service.process_data.return_value = {'status': 'in_progress'}
-        with patch(
-            'kobo.apps.subsequences.actions.base.poll_run_external_process'
-        ) as task_mock:
-            action.revise_data(submission, EMPTY_SUPPLEMENT, {'language': 'fr'})
-
-        task_mock.apply_async.assert_called_once()
-
-
 def test_transform_data_for_output():
     action = _get_action()
     first = {'language': 'es', 'value': 'Hola'}

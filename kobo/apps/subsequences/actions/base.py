@@ -168,6 +168,7 @@ class ActionClassConfig:
     allow_multiple: bool
     automatic: bool
     action_data_key: str | None = None
+    allow_async: bool = False
 
 
 class BaseAction:
@@ -945,7 +946,7 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
         if accepted is None and service_data['status'] == 'in_progress':
             if current_version.get('status') == 'in_progress':
                 return None
-            else:
+            elif self.action_class_config.allow_async:
                 # Make Celery update in the background.
                 # Since Celery is calling the same code, we want to ensure
                 #  it does not recall itself.
