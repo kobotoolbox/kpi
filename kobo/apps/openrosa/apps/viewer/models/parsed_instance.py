@@ -298,7 +298,6 @@ class ParsedInstance(models.Model):
 
     def to_dict_for_mongo(self):
         d = self.to_dict()
-
         # TODO remove this check when `root_uuid` has been backfilled
         #   by long-running migration 0005.
         root_uuid = self.instance.root_uuid or self.instance.uuid
@@ -310,8 +309,7 @@ class ParsedInstance(models.Model):
             ATTACHMENTS: _get_attachments_from_instance(self.instance.pk),
             self.STATUS: self.instance.status,
             GEOLOCATION: [self.lat, self.lng],
-            SUBMISSION_TIME: self.instance.date_created.strftime(
-                MONGO_STRFTIME),
+            SUBMISSION_TIME: self.instance.date_created.strftime(MONGO_STRFTIME),
             TAGS: list(self.instance.tags.names()),
             NOTES: self.get_notes(),
             VALIDATION_STATUS: self.instance.get_validation_status(),
@@ -333,7 +331,12 @@ class ParsedInstance(models.Model):
 
         return MongoHelper.to_safe_dict(d)
 
-    def update_mongo(self, asynchronous=True):
+    def update_mongo(self, asynchronous: bool = True, use_cached_parser: bool = False):
+        # When the XForm is already in memory (e.g. fetched via `select_related`),
+        # pre-initializing the parser avoids a redundant DB query.
+        if use_cached_parser:
+            self.instance._set_parser(use_cache=True)  # noqa
+
         self.set_submitted_by(save=True)
         d = self.to_dict_for_mongo()
         if d.get('_xform_id_string') is None:
@@ -456,10 +459,8 @@ class ParsedInstance(models.Model):
         note_qs = self.instance.notes.values(
             'id', 'note', 'date_created', 'date_modified')
         for note in note_qs:
-            note['date_created'] = \
-                note['date_created'].strftime(MONGO_STRFTIME)
-            note['date_modified'] = \
-                note['date_modified'].strftime(MONGO_STRFTIME)
+            note['date_created'] = note['date_created'].strftime(MONGO_STRFTIME)
+            note['date_modified'] = note['date_modified'].strftime(MONGO_STRFTIME)
             notes.append(note)
         return notes
 
@@ -505,8 +506,8 @@ def _get_grouped_attachments_for_instances(
             'mimetype': a.mimetype,
             'filename': a.media_file.name,
             'media_file_basename': a.media_file_basename,
-            'instance': a.instance.pk,
-            'xform': a.xform.id,
+            'instance': a.instance_id,
+            'xform': a.xform_id,
             'id': a.id,
             'uid': a.uid,
             'is_deleted': a.delete_status in [

@@ -3,8 +3,7 @@ from collections import defaultdict
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
-from django.db import transaction
-from django.db.models import F
+from django.db.models import F, QuerySet
 from django.db.models.aggregates import Count
 from more_itertools import chunked
 
@@ -14,9 +13,10 @@ from kobo.apps.openrosa.apps.logger.models import (
 )
 from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
 from kobo.apps.openrosa.apps.logger.models.instance import Instance
+from kobo.apps.openrosa.apps.logger.utils import delete_instances
 from kobo.apps.openrosa.apps.logger.xform_instance_parser import set_meta
 from kobo.apps.openrosa.apps.viewer.models.parsed_instance import ParsedInstance
-from kpi.utils.mongo_helper import MongoHelper
+from kpi.deployment_backends.kc_access.utils import kc_transaction_atomic
 
 
 class Command(BaseCommand):
@@ -66,15 +66,15 @@ class Command(BaseCommand):
                 self.stdout.write(f'\tProcessing uuid `{uuid}` in XForm #{xform_id}…')
 
             # Get all instances with the same UUID
-            duplicates_queryset = Instance.objects.filter(uuid=uuid, xform_id=xform_id)
-
-            instances = duplicates_queryset.values(
-                'id', 'uuid', 'xml_hash', 'xform_id', 'date_created'
-            ).order_by('uuid', 'date_created')
+            duplicates_queryset = (
+                Instance.objects.filter(uuid=uuid, xform_id=xform_id)
+                .values('id', 'uuid', 'xml_hash', 'xform_id', 'date_created')
+                .order_by('uuid', 'date_created')
+            )
 
             # Separate duplicates by their xml_hash (same and different)
             same_xml_hash_duplicates, different_xml_hash_duplicates = (
-                self._get_duplicates_by_xml_hash(instances)
+                self._get_duplicates_by_xml_hash(duplicates_queryset)
             )
 
             # Handle the same xml_hash duplicates
@@ -98,7 +98,7 @@ class Command(BaseCommand):
                 f'Deleting instance #{duplicated_instance_ids} duplicates…'
             )
 
-        with transaction.atomic():
+        with kc_transaction_atomic():
             # Update attachments
             Attachment.objects.select_for_update().filter(
                 instance_id__in=duplicated_instance_ids
@@ -108,22 +108,19 @@ class Command(BaseCommand):
                     f"\tLinked attachments to instance #{instance_ref['id']}"
                 )
 
-            # Update Mongo
-            main_instance = Instance.objects.get(id=instance_ref['id'])
-            main_instance.parsed_instance.save()
+            # Fetch the reference ParsedInstance early to reuse after deletion
+            parsed_instance = ParsedInstance.objects.select_related(
+                'instance__xform__user', 'instance__user'
+            ).get(instance_id=instance_ref['id'])
+            parsed_instance.update_mongo(asynchronous=False, use_cached_parser=True)
 
-            # Delete duplicated ParsedInstances
-            ParsedInstance.objects.filter(
-                instance_id__in=duplicated_instance_ids
-            ).delete()
+        # Adjust counters and delete instances
+        instance_queryset = Instance.objects.filter(
+            id__in=duplicated_instance_ids
+        ).values('xform_id', 'date_created__date', 'xform__user_id')
 
-            # Adjust counters and delete instances
-            instance_queryset = Instance.objects.filter(
-                id__in=duplicated_instance_ids
-            )
-            for instance in instance_queryset.values(
-                'xform_id', 'date_created__date', 'xform__user_id'
-            ):
+        with kc_transaction_atomic():
+            for instance in instance_queryset:
                 MonthlyXFormSubmissionCounter.objects.filter(
                     year=instance['date_created__date'].year,
                     month=instance['date_created__date'].month,
@@ -136,15 +133,28 @@ class Command(BaseCommand):
                     xform_id=instance['xform_id'],
                 ).update(counter=F('counter') - 1)
 
-            instance_queryset.delete()
+        xform = parsed_instance.instance.xform
+        delete_instances(
+            xform=xform,
+            request_data={
+                'submission_ids': duplicated_instance_ids,
+                'query': '',
+            },
+        )
 
-            MongoHelper.delete_many(
-                {'_id': {'$in': duplicated_instance_ids}}
+        # Backfill root_uuid on the reference instance after duplicates are deleted,
+        # to avoid a unique constraint violation on `root_uuid` if a duplicate already
+        # held the same value.
+        ref_instance = parsed_instance.instance
+        if not ref_instance.root_uuid:
+            Instance.objects.filter(pk=ref_instance.pk).update(
+                root_uuid=ref_instance.uuid
             )
-            if self._verbosity > 1:
-                self.stdout.write(
-                    f'\tPurged instance IDs: {duplicated_instance_ids}'
-                )
+
+        if self._verbosity > 1:
+            self.stdout.write(
+                f'\tPurged instance IDs: {duplicated_instance_ids}'
+            )
 
     def _filter_queryset(self, queryset, **options):
 
@@ -163,7 +173,7 @@ class Command(BaseCommand):
 
         return queryset
 
-    def _get_duplicates_by_xml_hash(self, instances):
+    def _get_duplicates_by_xml_hash(self, instances: QuerySet):
         """
         Extract duplicates with the same xml_hash and different xml_hash
         """
@@ -188,8 +198,11 @@ class Command(BaseCommand):
         """
         idx = 0
         now = int(time.time())
+
+        _cached_xform = None
+
         for duplicated_instance_batch in chunked(
-            duplicated_instances, settings.LONG_RUNNING_MIGRATION_BATCH_SIZE
+            duplicated_instances, settings.LONG_RUNNING_MIGRATION_SMALL_BATCH_SIZE
         ):
             instances_to_update = []
             for duplicated_instance in duplicated_instance_batch:
@@ -197,6 +210,11 @@ class Command(BaseCommand):
                     instance = Instance.objects.get(pk=duplicated_instance['id'])
                 except Instance.DoesNotExist:
                     continue
+
+                if not _cached_xform:
+                    _cached_xform = instance.xform
+                else:
+                    instance.xform = _cached_xform
 
                 if self._verbosity >= 1:
                     self.stdout.write(f'\tUpdating instance #{instance.pk}…')
@@ -222,7 +240,9 @@ class Command(BaseCommand):
                 except Instance.parsed_instance.RelatedObjectDoesNotExist:
                     pass
                 else:
-                    parsed_instance.update_mongo(asynchronous=False)
+                    parsed_instance.update_mongo(
+                        asynchronous=False, use_cached_parser=True
+                    )
                 idx += 1
 
             if self._verbosity >= 3:
