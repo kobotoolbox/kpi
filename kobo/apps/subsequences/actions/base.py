@@ -360,8 +360,10 @@ class BaseAction:
 
     def validate_action_for_empty_versions(self, action_data: dict):
         """
-        Determine if action_data is allowed when the current version list for this
-        action is empty
+        Determine if action_data is allowed when there is no current version
+
+        This may occur if no version was ever created, or the most recent version has
+        been deleted, or is still in progress
         """
         raise NotImplementedError
 
@@ -435,7 +437,8 @@ class BaseAction:
         self.attach_action_dependency(action_data)
         current_version_data = current_version.get(self.VERSION_DATA_FIELD, {})
 
-        # some actions cannot be performed unless there is already a current version
+        # some actions cannot be performed unless there is already a completed version
+        # that has not been deleted
         if current_version_data.get('value') is None:
             self.validate_action_for_empty_versions(action_data)
 
