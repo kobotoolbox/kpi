@@ -119,9 +119,11 @@ export default function AnalysisQuestionsList({
 
   const enableGenerateWithAIFeature = async () => {
     // Filter to get valid questions for AI generation (exclude tags and notes)
-    const validQuestions = qaQuestions.filter(
-      (param: ResponseManualQualActionParams) => param.type !== 'qualTags' && param.type !== 'qualNote',
-    )
+    const validQuestions = qaQuestions
+      .filter((param: ResponseManualQualActionParams) => param.type !== 'qualTags' && param.type !== 'qualNote')
+      .map((question) => {
+        return { uuid: question.uuid }
+      })
 
     if (!advancedFeatureAutomatic) {
       // If automatic_bedrock_qual feature doesn't exist, we need to create it with all valid questions
