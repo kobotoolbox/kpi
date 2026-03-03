@@ -1364,40 +1364,38 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
         response = self.client.get(report_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_report_submissions_with_non_finite_float(self):
+    def test_report_non_finite_float_counted_as_not_provided(self):
         """
-        Submitting 'Infinity' for a decimal question should not crash the
-        reports endpoint. The JSON response must contain null for non-finite
-        float stats, while the HTML response must still render successfully.
+        Submissions with a non-finite decimal value (Infinity, -Infinity, NaN)
+        must be counted as 'not_provided', not as valid responses. Statistics
+        must only reflect the finite submissions.
         """
         report_url = reverse(
             self._get_endpoint('asset-reports'), kwargs={'uid_asset': self.asset_uid}
         )
         self.asset.content = {
             'survey': [
-                {'type': 'decimal', 'label': 'liters', '$autoname': 'liters'},
+                {'type': 'decimal', 'label': 'liters', 'name': 'liters'},
             ],
         }
         self.asset.save()
         self.asset.deploy(backend='mock', active=True)
+        version_uid = self.asset.latest_deployed_version.uid
         self.asset.deployment.mock_submissions([
-            {
-                '__version__': self.asset.latest_deployed_version.uid,
-                'liters': 'Infinity',
-            },
+            {'__version__': version_uid, 'liters': '10'},
+            {'__version__': version_uid, 'liters': '20'},
+            {'__version__': version_uid, 'liters': 'Infinity'},
         ])
 
-        # JSON: non-finite floats must be replaced with null
         response = self.client.get(report_url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         parsed = json.loads(response.content)
         liters = next(item for item in parsed['list'] if item['name'] == 'liters')
-        self.assertIsNone(liters['data']['mean'])
+        data = liters['data']
 
-        # HTML: response must succeed and expose the raw value
-        response = self.client.get(report_url, HTTP_ACCEPT='text/html')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn('inf', response.content.decode().lower())
+        self.assertEqual(data['provided'], 2)
+        self.assertEqual(data['not_provided'], 1)
+        self.assertEqual(data['mean'], 15.0)
 
     def test_map_styles_field(self):
         self.check_asset_writable_json_field('map_styles')
