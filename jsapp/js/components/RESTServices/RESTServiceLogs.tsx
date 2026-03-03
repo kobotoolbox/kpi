@@ -305,6 +305,10 @@ export default class RESTServiceLogs extends React.Component<RESTServiceLogsProp
                 statusMod = 'failed'
                 statusLabel = t('Failed')
               }
+              if (log.status === HOOK_LOG_STATUSES.PROCESSING) {
+                statusMod = 'processing'
+                statusLabel = t('Processing')
+              }
 
               return (
                 <bem.ServiceRow {...rowProps} key={n}>

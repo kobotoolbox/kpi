@@ -365,7 +365,9 @@ class KpiObjectPermissionsFilter(filters.BaseFilterBackend):
             perms = ObjectPermission.objects.filter(
                 deny=False,
                 user=user,
-                permission_id=view_asset_perm_id)
+                permission_id=view_asset_perm_id,
+                asset__owner__is_active=True,
+            )
 
         return perms.values('asset')
 

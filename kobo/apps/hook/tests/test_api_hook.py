@@ -1,11 +1,15 @@
 import json
+from datetime import timedelta
 from ipaddress import ip_address
 from unittest.mock import MagicMock, patch
 
 import pytest
 import responses
 from constance.test import override_config
+from django.conf import settings
 from django.urls import reverse
+from django.utils import timezone
+from freezegun import freeze_time
 from rest_framework import status
 
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
@@ -193,7 +197,12 @@ class ApiHookTestCase(BaseHookTestCase):
     @responses.activate
     def test_send_and_retry(self):
 
-        first_log_response = self._send_and_fail()
+        frozen_now = timezone.now() - timedelta(
+            minutes=settings.HOOK_STALLED_PENDING_TIMEOUT + 10  # add small offset
+        )
+
+        with freeze_time(frozen_now):
+            first_log_response = self._send_and_fail()
 
         # Let's retry through API call
         retry_url = reverse(
@@ -221,6 +230,10 @@ class ApiHookTestCase(BaseHookTestCase):
 
         response = self.client.get(detail_url, format=SUBMISSION_FORMAT_TYPE_JSON)
         self.assertEqual(response.data.get('tries'), 2)
+
+        # Tries again failed because it's too fast
+        response = self.client.patch(retry_url, format=SUBMISSION_FORMAT_TYPE_JSON)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     @patch(
         'ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address',

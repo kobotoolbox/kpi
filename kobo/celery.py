@@ -1,21 +1,18 @@
-# coding: utf-8
-import logging
-import multiprocessing
 import os
 
 import celery
-import constance
 from django.apps import apps
-from django.conf import settings
 
 # http://celery.readthedocs.org/en/latest/django/first-steps-with-django.html
 
 # Attempt to determine the project name from the directory containing this file
 PROJECT_NAME = os.path.basename(os.path.dirname(__file__))
 
-# Set the default Django settings module for the 'celery' command-line program
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', '{}.settings.prod'.format(
-    PROJECT_NAME))
+# Use celery-specific settings to allow a longer DB statement_timeout for
+# long-running tasks. Fall back to celery_prod even if DJANGO_SETTINGS_MODULE
+# is set to prod, so existing K8s/Docker configs don't need to change.
+if os.environ.get('DJANGO_SETTINGS_MODULE') in (None, f'{PROJECT_NAME}.settings.prod'):
+    os.environ['DJANGO_SETTINGS_MODULE'] = f'{PROJECT_NAME}.settings.celery_prod'
 
 Celery = celery.Celery
 
