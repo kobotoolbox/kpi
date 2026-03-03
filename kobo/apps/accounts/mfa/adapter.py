@@ -42,6 +42,11 @@ class MfaAdapter(DefaultMFAAdapter):
         self, user: settings.AUTH_USER_MODEL, mfa_method: MfaMethod = None
     ) -> Optional[MfaMethodsWrapper]:
         """Migrate user MFA data from trench tables to allauth tables"""
+        # If the user has already interacted with the new MFA system then
+        # a wrapper already exists and there's no need to migrate
+        if MfaMethodsWrapper.objects.filter(user=user, name='app').exists():
+            return
+        
         if not mfa_method:
             mfa_method = (
                 MfaMethod.objects.filter(name='app', user=user, is_active=True)
