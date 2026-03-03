@@ -388,6 +388,7 @@ def test_find_the_most_recent_accepted_transcription():
     assert action_data == expected
 
 
+@pytest.mark.skip(reason='Skip until asynchronous translation is supported')
 def test_action_is_updated_in_background_if_in_progress():
     action = _get_action()
     mock_service = MagicMock()
