@@ -114,12 +114,15 @@ class Command(BaseCommand):
             ).get(instance_id=instance_ref['id'])
             parsed_instance.update_mongo(asynchronous=False, use_cached_parser=True)
 
-        # Adjust counters and delete instances
-        instance_queryset = Instance.objects.filter(
-            id__in=duplicated_instance_ids
-        ).values('xform_id', 'date_created__date', 'xform__user_id')
-
         xform = parsed_instance.instance.xform
+        instances_data = [
+            {
+                'xform_id': i['xform_id'],
+                'date_created__date': i['date_created'].date(),
+                'xform__user_id': xform.user_id,
+            }
+            for i in duplicated_instances
+        ]
         delete_instances(
             xform=xform,
             request_data={
@@ -129,7 +132,7 @@ class Command(BaseCommand):
         )
 
         with kc_transaction_atomic():
-            for instance in instance_queryset:
+            for instance in instances_data:
                 MonthlyXFormSubmissionCounter.objects.filter(
                     year=instance['date_created__date'].year,
                     month=instance['date_created__date'].month,
