@@ -1,5 +1,6 @@
 import copy
 import json
+import tracemalloc
 from collections import OrderedDict, defaultdict
 from operator import itemgetter
 
@@ -36,6 +37,7 @@ from kpi.highlighters import highlight_xform
 from kpi.mixins.asset import AssetViewSetListMixin
 from kpi.mixins.object_permission import ObjectPermissionViewSetMixin
 from kpi.models import Asset, UserAssetSubscription
+from kpi.utils.log import logging
 from kpi.paginators import AssetPagination
 from kpi.permissions import (
     AssetPermission,
@@ -777,6 +779,8 @@ class AssetViewSet(
         return context_
 
     def list(self, request, *args, **kwargs):
+        tracemalloc.start()
+
         # assigning global filtered query set to prevent additional,
         # unnecessary calls to `filter_queryset`
         self._filtered_queryset = self.filter_queryset(self.get_queryset())
@@ -796,9 +800,25 @@ class AssetViewSet(
             metadata = None
             if request.GET.get('metadata') == 'on':
                 metadata = self.get_metadata(self._filtered_queryset)
-            return self.get_paginated_response(serializer.data, metadata)
+
+            response = self.get_paginated_response(serializer.data, metadata)
+            _, peak = tracemalloc.get_traced_memory()
+            tracemalloc.stop()
+            logging.warning(
+                'asset list peak memory: %.1f MB (user=%s)',
+                peak / 1024 / 1024,
+                request.user.username,
+            )
+            return response
 
         serializer = self.get_serializer(self._filtered_queryset, many=True)
+        _, peak = tracemalloc.get_traced_memory()
+        tracemalloc.stop()
+        logging.warning(
+            'asset list peak memory: %.1f MB (user=%s)',
+            peak / 1024 / 1024,
+            request.user.username,
+        )
         return Response(serializer.data)
 
     @action(detail=False, methods=['GET'])
