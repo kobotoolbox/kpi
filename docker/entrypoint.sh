@@ -81,7 +81,7 @@ if [[ ! -d "${KPI_SRC_DIR}/staticfiles" ]] || ! python "${KPI_SRC_DIR}/docker/ch
         npm run build
 
         echo "Building static files from live code…"
-        python manage.py collectstatic --noinput --ignore rest_framework
+        python manage.py collectstatic --noinput
     fi
 fi
 
