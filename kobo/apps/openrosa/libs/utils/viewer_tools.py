@@ -145,17 +145,14 @@ def get_human_readable_client_user_agent(request):
         android_version = android_match.group(1) if android_match else 'Unknown'
         return f'{app_name} {version} (Android {android_version})'
 
-    enketo_match = re.search(r'Enketo/(\d+\.\d+\.\d+)', user_agent)
-    if enketo_match:
-        version = enketo_match.group(1)
-        parsed = ua_parse.Parse(user_agent)
-        browser = parsed['user_agent']['family']
-        user_os = parsed['os']['family']
-        return f'{browser} - Enketo {version} ({user_os})'
-
     parsed = ua_parse.Parse(user_agent)
     browser = parsed['user_agent']['family']
     user_os = parsed['os']['family']
+
+    enketo_match = re.search(r'Enketo/(\d+\.\d+\.\d+)', user_agent)
+    if enketo_match:
+        version = enketo_match.group(1)
+        return f'{browser} - Enketo {version} ({user_os})'
 
     return f'{browser} ({user_os})'
 
