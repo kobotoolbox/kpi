@@ -10,7 +10,7 @@ import Icon from '#/components/common/icon'
 import type { ResponseManualQualActionParams } from '#/api/models/responseManualQualActionParams'
 import type { QualVersionItem } from '#/components/processing/common/types'
 import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
-import { getQuestionTypeDefinition, hasEmptyValueAnswer, isAnswerAIGenerated } from '../../../common/utils'
+import { getQuestionTypeDefinition, hasEmptyValueAnswer } from '../../../common/utils'
 
 interface Props {
   children?: React.ReactNode
@@ -27,6 +27,7 @@ interface Props {
    * the required data and it's easier to push this one function up than all the small pieces down.
    */
   onGenerateWithAI?: () => Promise<unknown>
+  isAnswerAIGenerated?: boolean
   hasTranscript: boolean
 }
 
@@ -43,6 +44,7 @@ export default function ResponseForm({
   onEdit,
   onDelete,
   onGenerateWithAI,
+  isAnswerAIGenerated,
   hasTranscript,
 }: Props) {
   const [opened, { open, close }] = useDisclosure(false)
@@ -63,7 +65,6 @@ export default function ResponseForm({
    */
   const hasAnswer = answer !== undefined
   const hasEmptyValueAnswerVal = hasEmptyValueAnswer(qaQuestion.type, answer)
-  const isAnswerAIGeneratedVal = answer && isAnswerAIGenerated(answer)
 
   /**
    * "Generate with AI" button will be displayed if there is no answer, or if answer is not AI generated empty value.
@@ -74,7 +75,7 @@ export default function ResponseForm({
     return (
       hasTranscript &&
       onGenerateWithAI !== undefined &&
-      (!hasAnswer || (hasEmptyValueAnswerVal && !isAnswerAIGeneratedVal))
+      (!hasAnswer || (hasEmptyValueAnswerVal && !isAnswerAIGenerated))
     )
   }
 
@@ -82,11 +83,11 @@ export default function ResponseForm({
    * "Clear" button will be displayed if there is non-empty answer, or if answer is AI generated
    */
   const shouldDisplayClearButton = () => {
-    return (hasAnswer && !hasEmptyValueAnswerVal) || (hasAnswer && isAnswerAIGeneratedVal)
+    return (hasAnswer && !hasEmptyValueAnswerVal) || (hasAnswer && isAnswerAIGenerated)
   }
 
   const shouldDisplayAIGeneratedBadge = () => {
-    return isAnswerAIGeneratedVal
+    return isAnswerAIGenerated
   }
 
   const shouldDisplayAnyButtonOrBadge = () => {

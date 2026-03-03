@@ -20,7 +20,7 @@ export function getQuestionTypeDefinition(type: ResponseManualQualActionParams['
  */
 export function isAnswerAIGenerated(qaAnswer: QualVersionItem | undefined) {
   // We assume if 'status' is there, it means it went through AI
-  return qaAnswer && 'status' in qaAnswer._data
+  return Boolean(qaAnswer && 'status' in qaAnswer._data)
 }
 
 /**

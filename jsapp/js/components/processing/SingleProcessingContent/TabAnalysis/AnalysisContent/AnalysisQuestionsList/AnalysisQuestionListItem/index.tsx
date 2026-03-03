@@ -25,7 +25,7 @@ import { getLatestQualVersionItem, getLatestTranscriptVersionItem } from '#/comp
 import { DND_TYPES } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import { removeDefaultUuidPrefix } from '#/utils'
-import { type AdvancedFeatureResponseManualQual, getEmptyAnswer } from '../../../common/utils'
+import { type AdvancedFeatureResponseManualQual, getEmptyAnswer, isAnswerAIGenerated } from '../../../common/utils'
 import AnalysisQuestionEditor from './AnalysisQuestionEditor'
 import IntegerResponseForm from './IntegerResponseForm'
 import KeywordSearchResponseForm from './KeywordSearchResponseForm'
@@ -271,6 +271,8 @@ export default function AnalysisQuestionListItem({
   drag(dragRef)
   drop(preview(previewRef))
 
+  const isAnswerAIGeneratedVal = Boolean(queryAnswer.data && isAnswerAIGenerated(queryAnswer.data))
+
   const renderItem = () => {
     // TODO: after creating question successfuly, we should close the editor
     if (editMode) {
@@ -311,6 +313,7 @@ export default function AnalysisQuestionListItem({
             onDelete={handleDeleteQuestion}
             onClear={() => handleSaveAnswer(getEmptyAnswer(qaQuestion.type))}
             onGenerateWithAI={() => onGenerateWithAI(qaQuestion)}
+            isAnswerAIGenerated={isAnswerAIGeneratedVal}
             answer={queryAnswer.data}
             hasTranscript={hasTranscript}
           >
@@ -319,6 +322,7 @@ export default function AnalysisQuestionListItem({
               qaAnswer={queryAnswer.data}
               disabled={disabledAnswer}
               onSave={handleSaveAnswer}
+              isAnswerAIGenerated={isAnswerAIGeneratedVal}
             />
           </ResponseForm>
         )
@@ -350,6 +354,7 @@ export default function AnalysisQuestionListItem({
             onDelete={handleDeleteQuestion}
             onClear={handleClearSelection}
             onGenerateWithAI={() => onGenerateWithAI(qaQuestion)}
+            isAnswerAIGenerated={isAnswerAIGeneratedVal}
             answer={queryAnswer.data}
             hasTranscript={hasTranscript}
           >
@@ -358,6 +363,7 @@ export default function AnalysisQuestionListItem({
               disabled={disabledAnswer}
               onSave={handleRadioSave}
               value={currentValue}
+              isAnswerAIGenerated={isAnswerAIGeneratedVal}
             />
           </ResponseForm>
         )
@@ -372,6 +378,7 @@ export default function AnalysisQuestionListItem({
             onClear={() => handleSaveAnswer(getEmptyAnswer(qaQuestion.type))}
             answer={queryAnswer.data}
             hasTranscript={hasTranscript}
+            isAnswerAIGenerated={isAnswerAIGeneratedVal}
           >
             <TagsResponseForm qaAnswer={queryAnswer.data} disabled={disabledAnswer} onSave={handleSaveAnswer} />
           </ResponseForm>
@@ -386,10 +393,16 @@ export default function AnalysisQuestionListItem({
             onDelete={handleDeleteQuestion}
             onClear={() => handleSaveAnswer(getEmptyAnswer(qaQuestion.type))}
             onGenerateWithAI={() => onGenerateWithAI(qaQuestion)}
+            isAnswerAIGenerated={isAnswerAIGeneratedVal}
             answer={queryAnswer.data}
             hasTranscript={hasTranscript}
           >
-            <IntegerResponseForm qaAnswer={queryAnswer.data} disabled={disabledAnswer} onSave={handleSaveAnswer} />
+            <IntegerResponseForm
+              qaAnswer={queryAnswer.data}
+              disabled={disabledAnswer}
+              onSave={handleSaveAnswer}
+              isAnswerAIGenerated={isAnswerAIGeneratedVal}
+            />
           </ResponseForm>
         )
       }
@@ -402,10 +415,16 @@ export default function AnalysisQuestionListItem({
             onDelete={handleDeleteQuestion}
             onClear={() => handleSaveAnswer(getEmptyAnswer(qaQuestion.type))}
             onGenerateWithAI={() => onGenerateWithAI(qaQuestion)}
+            isAnswerAIGenerated={isAnswerAIGeneratedVal}
             answer={queryAnswer.data}
             hasTranscript={hasTranscript}
           >
-            <TextResponseForm qaAnswer={queryAnswer.data} disabled={disabledAnswer} onSave={handleSaveAnswer} />
+            <TextResponseForm
+              qaAnswer={queryAnswer.data}
+              disabled={disabledAnswer}
+              onSave={handleSaveAnswer}
+              isAnswerAIGenerated={isAnswerAIGeneratedVal}
+            />
           </ResponseForm>
         )
       }

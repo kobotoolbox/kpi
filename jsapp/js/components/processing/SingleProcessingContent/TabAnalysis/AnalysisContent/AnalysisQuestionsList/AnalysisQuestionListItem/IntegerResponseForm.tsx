@@ -2,14 +2,16 @@ import { NumberInput } from '@mantine/core'
 import React, { useEffect, useState } from 'react'
 import type { QualVersionItem } from '#/components/processing/common/types'
 import { AUTO_SAVE_TYPING_DELAY } from '../../../common/constants'
+import styles from '../../../common/styles.module.scss'
 
 interface Props {
   qaAnswer?: QualVersionItem
   disabled: boolean
   onSave: (value: number | null) => Promise<unknown>
+  isAnswerAIGenerated: boolean
 }
 
-export default function IntegerResponseForm({ qaAnswer, onSave, disabled }: Props) {
+export default function IntegerResponseForm({ qaAnswer, onSave, disabled, isAnswerAIGenerated }: Props) {
   // `value` can be a (empty) string when you remove it
   const [value, setValue] = useState<number | string | undefined>(((qaAnswer?._data as any)?.value as number) ?? '')
   const [typingTimer, setTypingTimer] = useState<NodeJS.Timeout>()
@@ -32,6 +34,9 @@ export default function IntegerResponseForm({ qaAnswer, onSave, disabled }: Prop
 
   return (
     <NumberInput
+      classNames={{
+        input: isAnswerAIGenerated ? styles.responseBorderAI : styles.responseBorderDefault,
+      }}
       value={value}
       onChange={handleChange}
       placeholder={t('Type your response or use AI')}
