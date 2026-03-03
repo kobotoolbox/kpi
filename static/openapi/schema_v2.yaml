@@ -3034,8 +3034,8 @@ paths:
                             _uuid: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
                             verified: false
                   summary: Qualitative Analysis – Integer Question
-                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.\
-                    \ \n\n`status` will only be present for automatic_actions."
+                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.
+                    \n\n`status` will only be present for automatic_actions."
                 QualitativeAnalysis–TextQuestion:
                   value:
                     _version: '20250820'
@@ -3053,8 +3053,8 @@ paths:
                             _uuid: 12121212-3434-5656-7878-909090909090
                             verified: false
                   summary: Qualitative Analysis – Text Question
-                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.\
-                    \ \n\n`status` will only be present for automatic_actions."
+                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.
+                    \n\n`status` will only be present for automatic_actions."
                 QualitativeAnalysis–SingleChoiceQuestion:
                   value:
                     _version: '20250820'
@@ -3072,8 +3072,8 @@ paths:
                             _uuid: bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
                             verified: false
                   summary: Qualitative Analysis – Single Choice Question
-                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.\
-                    \ \n\n`status` will only be present for automatic_actions."
+                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.
+                    \n\n`status` will only be present for automatic_actions."
                 QualitativeAnalysis–MultipleChoiceQuestion:
                   value:
                     _version: '20250820'
@@ -3093,8 +3093,8 @@ paths:
                             _uuid: 99999999-9999-9999-9999-999999999999
                             verified: false
                   summary: Qualitative Analysis – Multiple Choice Question
-                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.\
-                    \ \n\n`status` will only be present for automatic_actions."
+                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.
+                    \n\n`status` will only be present for automatic_actions."
                 ManualQualitativeAnalysis–TagsQuestion:
                   value:
                     _version: '20250820'
@@ -3527,8 +3527,8 @@ paths:
                             _uuid: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
                             verified: false
                   summary: Qualitative Analysis – Integer Question
-                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.\
-                    \ \n\n`status` will only be present for automatic_actions."
+                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.
+                    \n\n`status` will only be present for automatic_actions."
                 QualitativeAnalysis–TextQuestion:
                   value:
                     _version: '20250820'
@@ -3546,8 +3546,8 @@ paths:
                             _uuid: 12121212-3434-5656-7878-909090909090
                             verified: false
                   summary: Qualitative Analysis – Text Question
-                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.\
-                    \ \n\n`status` will only be present for automatic_actions."
+                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.
+                    \n\n`status` will only be present for automatic_actions."
                 QualitativeAnalysis–SingleChoiceQuestion:
                   value:
                     _version: '20250820'
@@ -3565,8 +3565,8 @@ paths:
                             _uuid: bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
                             verified: false
                   summary: Qualitative Analysis – Single Choice Question
-                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.\
-                    \ \n\n`status` will only be present for automatic_actions."
+                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.
+                    \n\n`status` will only be present for automatic_actions."
                 QualitativeAnalysis–MultipleChoiceQuestion:
                   value:
                     _version: '20250820'
@@ -3586,8 +3586,8 @@ paths:
                             _uuid: 99999999-9999-9999-9999-999999999999
                             verified: false
                   summary: Qualitative Analysis – Multiple Choice Question
-                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.\
-                    \ \n\n`status` will only be present for automatic_actions."
+                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.
+                    \n\n`status` will only be present for automatic_actions."
                 ManualQualitativeAnalysis–TagsQuestion:
                   value:
                     _version: '20250820'
@@ -17178,6 +17178,7 @@ components:
           type: string
           format: date-time
           readOnly: true
+        stripe_data: {}
         id:
           type: string
           maxLength: 255
