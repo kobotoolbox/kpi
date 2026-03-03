@@ -16,6 +16,7 @@ from kpi.tests.kpi_test_case import BaseTestCase
 from .utils import get_mfa_code_for_user
 
 
+@freeze_time('2026-01-01 12:00:00')
 @ddt
 @override_settings(ACCOUNT_RATE_LIMITS=False)
 class MfaMigrationTestCase(BaseTestCase):
@@ -55,7 +56,7 @@ class MfaMigrationTestCase(BaseTestCase):
         self.client.post(reverse('mfa_authenticate'), {'code': self.backup_codes[0]})
         self.client.logout()
 
-    @freeze_time('2026-01-01 12:00:00')
+    
     @data(
         ('TOTP', None, True),  # TOTP code
         ('BACKUP', 0, False),  # Expired backup code
@@ -86,3 +87,25 @@ class MfaMigrationTestCase(BaseTestCase):
             assert response.status_code == status.HTTP_200_OK
             assert 'Incorrect code' in response.content.decode()
         self.client.logout()
+
+    def test_migrate_deactivated_mfa_integrity(self):
+        self.client.force_login(self.someuser)
+        code = get_mfa_code_for_user(self.someuser)
+        response = self.client.post(
+            reverse('mfa-deactivate', args=('app',)), data={'code': code}
+        )
+        self.client.logout()
+
+        # User logs in again, triggering migrate_user.
+        # It should not attempt to recreate the wrapper and crash.
+        response = self.client.post(
+            reverse('kobo_login'), data=self.login_data
+        )
+        self.assertRedirects(response, reverse(settings.LOGIN_REDIRECT_URL))
+
+        # Verify that the wrapper was not duplicated
+        self.assertEqual(
+            MfaMethodsWrapper.objects.filter(user=self.someuser, name='app').count(),
+            1,
+        )
+
