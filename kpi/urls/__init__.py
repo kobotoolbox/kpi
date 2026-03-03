@@ -29,6 +29,7 @@ urlpatterns = [
     }), name='currentuser-detail'),
     re_path(r'^', include(router_api_v1_urls)),
     re_path(r'^api/v2/', include((router_api_v2_urls, URL_NAMESPACE))),
+    path('api/scim/v2/', include('kobo.apps.kobo_scim.urls')),
     path('', include('kobo.apps.accounts.urls')),
     path('', include('kobo.apps.service_health.urls')),
     re_path(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),

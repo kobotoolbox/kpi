@@ -9,37 +9,6 @@ from ..type_aliases import SimplifiedOutputCandidatesByColumnKey
 
 class RequiresTranscriptionMixin:
 
-    def get_action_dependencies(self, question_supplemental_data: dict) -> dict:
-        """
-        Return only the supplemental data required by this action.
-
-        This method inspects the full `question_supplemental_data` payload
-        and extracts a subset containing only the actions on which the
-        current action relies (e.g., transcription results needed before a
-        translation).  It never mutates the original dictionary and does not
-        include unrelated entries—only the minimal keys and values needed
-        for this action to run correctly.
-        """
-
-        from ..actions.automatic_google_transcription import (
-            AutomaticGoogleTranscriptionAction,
-        )
-        from ..actions.manual_transcription import ManualTranscriptionAction
-
-        transcription_action_ids = (
-            AutomaticGoogleTranscriptionAction.ID,
-            ManualTranscriptionAction.ID,
-        )
-
-        for action_id in transcription_action_ids:
-
-            action_supplemental_data = question_supplemental_data.get(action_id)
-            if not action_supplemental_data:
-                continue
-            self._action_dependencies[action_id] = action_supplemental_data
-
-        return self._action_dependencies
-
     def attach_action_dependency(self, action_data: dict):
         """
         Attach the latest *accepted* transcript as a dependency for a translation
@@ -75,7 +44,14 @@ class RequiresTranscriptionMixin:
         if 'value' in action_data and action_data['value'] is None:
             return action_data
 
-        for action_id, action_supplemental_data in self._action_dependencies.items():
+        for action_id, action_supplemental_data in self._action_dependencies[
+            'question_supplemental_data'
+        ].items():
+            # avoid circular imports
+            from . import ManualQualAction
+
+            if action_id == ManualQualAction.ID:
+                continue
             versions = action_supplemental_data.get(self.VERSION_FIELD) or []
             if not versions:
                 continue

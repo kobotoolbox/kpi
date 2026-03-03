@@ -1,3 +1,4 @@
+import copy
 import uuid
 from datetime import timedelta
 from unittest.mock import ANY, DEFAULT, call, patch
@@ -10,6 +11,7 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.reverse import reverse
 
+from kobo.apps.subsequences.actions import ManualQualAction
 from kobo.apps.subsequences.actions.automatic_bedrock_qual import (
     OSS120,
     AutomaticBedrockQual,
@@ -21,6 +23,10 @@ from kobo.apps.subsequences.constants import (
     QUESTION_TYPE_SELECT_ONE,
     QUESTION_TYPE_TEXT,
     Action,
+)
+from kobo.apps.subsequences.exceptions import (
+    AnalysisQuestionNotFound,
+    ManualQualNotFound,
 )
 from kobo.apps.subsequences.models import QuestionAdvancedFeature
 from kobo.apps.subsequences.prompts import (
@@ -41,7 +47,6 @@ from kobo.apps.subsequences.tests.constants import (
     BEDROCK_QUAL_SELECT_MULTIPLE_UUID,
     BEDROCK_QUAL_SELECT_ONE_UUID,
     BEDROCK_QUAL_TEXT_UUID,
-    BEDROCK_VALIDATION_CHOICE_UUID,
     BEDROCK_VALIDATION_MAIN_UUID,
 )
 from kobo.apps.subsequences.tests.utils import MockLLMClient
@@ -113,46 +118,44 @@ class BaseAutomaticBedrockQualTestCase(BaseTestCase):
 class TestBedrockAutomaticBedrockQual(BaseAutomaticBedrockQualTestCase):
 
     @data(
-        # type, main label, choice label, should pass?
-        ('qualInteger', 'How many?', None, True),
-        ('qualInteger', 'How many?', 'This should not be here', False),
-        ('qualInteger', None, None, False),
-        ('qualText', 'Why?', None, True),
-        ('qualText', 'Why?', 'This should not be here', False),
-        ('qualText', None, None, False),
-        ('qualSelectOne', 'Select one', None, False),
-        ('qualSelectOne', 'Select one', 'Choice A', True),
-        ('qualSelectOne', None, 'Choice A', False),
-        ('qualSelectMultiple', 'Select many', None, False),
-        ('qualSelectMultiple', 'Select many', 'Choice A', True),
-        ('qualSelectMultiple', None, 'Choice A', False),
-        # notes and tags not allowed in automatic QA
-        ('qualNote', 'Note', None, False),
-        ('qualTags', 'Tag', None, False),
-        ('badType', 'label', None, False),
-        (None, 'label', None, False),
+        # uuid, extra, should pass
+        (BEDROCK_VALIDATION_MAIN_UUID, False, True),
+        ('notAUuid?!@#$', False, False),
+        (BEDROCK_VALIDATION_MAIN_UUID, True, False),
     )
     @unpack
-    def test_valid_params(self, question_type, main_label, choice_label, should_pass):
-        main_uuid = BEDROCK_VALIDATION_MAIN_UUID
-        choice_uuid = BEDROCK_VALIDATION_CHOICE_UUID
-        param = {'uuid': main_uuid}
-        if question_type:
-            param['type'] = question_type
-        if main_label:
-            param['labels'] = {'_default': main_label}
-        if choice_label:
-            param['choices'] = [
-                {'uuid': choice_uuid, 'labels': {'_default': choice_label}}
-            ]
+    def test_valid_params(self, q_uuid, add_extra_prop, should_pass):
+        param = {'uuid': q_uuid}
+        if add_extra_prop:
+            param['something'] = 'else'
         if should_pass:
             AutomaticBedrockQual.validate_params([param])
         else:
             with pytest.raises(jsonschema.exceptions.ValidationError):
                 AutomaticBedrockQual.validate_params([param])
 
+    def test_create_action_fails_if_no_manual_qual(self):
+        QuestionAdvancedFeature.objects.get(
+            action=Action.MANUAL_QUAL, question_xpath='q1', asset=self.asset
+        ).delete()
+        with pytest.raises(ManualQualNotFound):
+            feature = QuestionAdvancedFeature.objects.get(
+                asset=self.asset,
+                action=Action.AUTOMATIC_BEDROCK_QUAL,
+                question_xpath='q1',
+            )
+            feature.to_action()
+
+    def test_update_params(self):
+        current_params = [copy.deepcopy(param) for param in self.action.params]
+        new_uuid = str(uuid.uuid4())
+        self.action.update_params(
+            [{'uuid': BEDROCK_QUAL_TEXT_UUID}, {'uuid': new_uuid}]
+        )
+        assert self.action.params == [*current_params, {'uuid': new_uuid}]
+
     def test_valid_user_data(self):
-        for param in self.feature.params:
+        for param in self.action.get_question_params():
             if param['type'] == 'qualNote':
                 continue
             uuid_ = param['uuid']
@@ -328,7 +331,7 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
         }
 
     def _get_question(self, uuid):
-        question = [q for q in self.action.params if q['uuid'] == uuid]
+        question = [q for q in self.action.get_question_params() if q['uuid'] == uuid]
         return question[0]
 
     def _get_question_text_by_uuid(self, uuid):
@@ -404,6 +407,16 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
             f' format: example format string'
         )
 
+    def test_generate_prompt_fails_if_no_manual_question(self):
+        random_uuid = str(uuid.uuid4())
+        self.action.params = [{'uuid': random_uuid}]
+        action_data = {
+            'uuid': random_uuid,
+            '_dependency': self._dependency_dict_from_transcript_dict(),
+        }
+        with pytest.raises(AnalysisQuestionNotFound):
+            self.action.generate_llm_prompt(action_data)
+
     @data(
         # question uuid, parsing method name
         (BEDROCK_QUAL_TEXT_UUID, 'parse_text_response'),
@@ -436,9 +449,9 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
             'uuid': BEDROCK_QUAL_SELECT_MULTIPLE_UUID,
             '_dependency': self._dependency_dict_from_transcript_dict(),
         }
-        self.feature.params[1]['choices'][0]['options'] = {'deleted': True}
-        self.feature.save()
-        self.action = self.feature.to_action()
+        action_params = self.action._action_dependencies['params'][ManualQualAction.ID]
+        action_params[1]['choices'][0]['options'] = {'deleted': True}
+
         with patch.dict(PROMPTS_BY_QUESTION_TYPE, mock_templates_by_type):
             with patch(
                 'kobo.apps.subsequences.actions.automatic_bedrock_qual.format_choices',
