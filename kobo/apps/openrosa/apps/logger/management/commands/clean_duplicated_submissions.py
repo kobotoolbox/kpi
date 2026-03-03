@@ -119,6 +119,15 @@ class Command(BaseCommand):
             id__in=duplicated_instance_ids
         ).values('xform_id', 'date_created__date', 'xform__user_id')
 
+        xform = parsed_instance.instance.xform
+        delete_instances(
+            xform=xform,
+            request_data={
+                'submission_ids': duplicated_instance_ids,
+                'query': '',
+            },
+        )
+
         with kc_transaction_atomic():
             for instance in instance_queryset:
                 MonthlyXFormSubmissionCounter.objects.filter(
@@ -132,15 +141,6 @@ class Command(BaseCommand):
                     date=instance['date_created__date'],
                     xform_id=instance['xform_id'],
                 ).update(counter=F('counter') - 1)
-
-        xform = parsed_instance.instance.xform
-        delete_instances(
-            xform=xform,
-            request_data={
-                'submission_ids': duplicated_instance_ids,
-                'query': '',
-            },
-        )
 
         # Backfill root_uuid on the reference instance after duplicates are deleted,
         # to avoid a unique constraint violation on `root_uuid` if a duplicate already
