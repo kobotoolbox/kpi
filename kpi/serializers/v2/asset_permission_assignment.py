@@ -91,22 +91,27 @@ class AssetPermissionAssignmentSerializer(serializers.ModelSerializer):
             # if view doesn't have an `asset` property,
             # fallback to context. (e.g. AssetViewSet)
             asset = getattr(view, 'asset', self.context.get('asset'))
-            # TODO: optimize `asset.get_partial_perms()` so it doesn't execute
-            # a new query for each assignment
-            partial_perms = asset.get_partial_perms(
-                object_permission.user_id, with_filters=True
-            )
+
+            partial_perms_per_asset = self.context.get('partial_perms_per_asset')
+            if partial_perms_per_asset is not None:
+                partial_perms = partial_perms_per_asset.get(
+                    asset.pk, {}
+                ).get(object_permission.user_id)
+            else:
+                partial_perms = asset.get_partial_perms(
+                    object_permission.user_id, with_filters=True
+                )
+
             if not partial_perms:
                 return None
 
-            if partial_perms:
-                hyperlinked_partial_perms = []
-                for perm_codename, filters in partial_perms.items():
-                    url = self.__get_permission_hyperlink(perm_codename)
-                    hyperlinked_partial_perms.append(
-                        {'url': url, 'filters': filters}
-                    )
-                return hyperlinked_partial_perms
+            hyperlinked_partial_perms = []
+            for perm_codename, filters in partial_perms.items():
+                url = self.__get_permission_hyperlink(perm_codename)
+                hyperlinked_partial_perms.append(
+                    {'url': url, 'filters': filters}
+                )
+            return hyperlinked_partial_perms
         return None
 
     def get_url(self, object_permission):

@@ -36,7 +36,7 @@ from kpi.filters import (
 from kpi.highlighters import highlight_xform
 from kpi.mixins.asset import AssetViewSetListMixin
 from kpi.mixins.object_permission import ObjectPermissionViewSetMixin
-from kpi.models import Asset, UserAssetSubscription
+from kpi.models import Asset, AssetUserPartialPermission, UserAssetSubscription
 from kpi.utils.log import logging
 from kpi.paginators import AssetPagination
 from kpi.permissions import (
@@ -764,7 +764,17 @@ class AssetViewSet(
 
             context_['children_count_per_asset'] = children_count_per_asset
 
-            # 5) Get organization…
+            # 5) Get partial permissions per asset and user
+            partial_perms_per_asset = defaultdict(dict)
+            for record in AssetUserPartialPermission.objects.filter(
+                asset_id__in=asset_ids
+            ).values('asset_id', 'user_id', 'permissions'):
+                partial_perms_per_asset[record['asset_id']][
+                    record['user_id']
+                ] = record['permissions']
+            context_['partial_perms_per_asset'] = partial_perms_per_asset
+
+            # 6) Get organization…
             if organization := getattr(self.request, 'organization', None):
                 # …from request.
                 # e.g.: /api/v2/organizations/<uid_organization>/assets/`
