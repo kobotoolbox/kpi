@@ -19,6 +19,7 @@ from kobo.apps.subsequences.exceptions import (
 from kobo.apps.subsequences.utils.time import utc_datetime_to_js_str
 from kobo.celery import celery_app
 from kpi.exceptions import UsageLimitExceededException
+from kpi.utils.log import logging
 from kpi.utils.usage_calculator import ServiceUsageCalculator
 from ..tasks import poll_run_external_process
 from ..type_aliases import (
@@ -175,13 +176,14 @@ class ActionClassConfig:
     - automatic: Indicates whether the action relies on an external service
       to generate data.
     - review_type: How data is reviewed (verified or accepted)
-
+    - allow_async: Whether the action may generate a celery task to finish
     """
 
     allow_multiple: bool
     automatic: bool
     action_data_key: str | None = None
     review_type: ReviewType | None = None
+    allow_async: bool = False
 
 
 class BaseAction:
@@ -940,7 +942,7 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
         if service_data['status'] == 'in_progress':
             if current_version.get('status') == 'in_progress':
                 return None
-            else:
+            elif self.action_class_config.allow_async:
                 # Make Celery update in the background.
                 # Since Celery is calling the same code, we want to ensure
                 #  it does not recall itself.
@@ -959,6 +961,9 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
                         },
                         countdown=10,  # Give it a small delay before retrying
                     )
+            else:
+                logging.warn('Non-async task returned "in progress" status')
+                return None
 
         # Normal case: return the processed transcription data.
         return service_data

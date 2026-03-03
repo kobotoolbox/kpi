@@ -1,9 +1,12 @@
 from unittest.mock import MagicMock, patch
 
+import constance
 import requests
+from constance.test import override_config
 from rest_framework import status
 
 from kobo.apps.hook.constants import KOBO_INTERNAL_ERROR_STATUS_CODE
+from kobo.apps.hook.exceptions import HookRemoteServerDownError
 from kobo.apps.hook.models.hook_log import HookLog, HookLogStatus
 from kobo.apps.hook.utils.services import call_services
 from .base import BaseHookTestCase
@@ -28,7 +31,7 @@ class HookLogStatusTransitionsTestCase(BaseHookTestCase):
         Test the normal success flow: PENDING -> PROCESSING -> SUCCESS
 
         1. call_services() creates log with status=PENDING
-        2. Task starts and updates to PROCESSING (status=PENDING & status_code=102)
+        2. Task starts and updates to PROCESSING
         3. Request succeeds and updates to status=SUCCESS
         """
 
@@ -68,7 +71,7 @@ class HookLogStatusTransitionsTestCase(BaseHookTestCase):
         Test the failure flow: PENDING -> PROCESSING -> FAILED
 
         1. call_services() creates log with status=PENDING
-        2. Task starts and updates to code=102
+        2. Task starts and updates to PROCESSING
         3. Request fails with 400 and updates to status=FAILED
         """
 
@@ -107,7 +110,7 @@ class HookLogStatusTransitionsTestCase(BaseHookTestCase):
     @patch('kobo.apps.hook.models.service_definition_interface.requests.post')
     def test_oom_killed_before_processing_update(self, mock_post):
         """
-        Simulate OOM kill BEFORE the task updates status to 102.
+        Simulate OOM kill BEFORE the task updates status to PROCESSING
 
         1. call_services() creates log with status=PENDING, code=None
         2. Pod is killed before task starts (or very early in execution)
@@ -142,7 +145,7 @@ class HookLogStatusTransitionsTestCase(BaseHookTestCase):
         updates the log to FAILED status.
 
         1. call_services() creates log with status=PENDING
-        2. Task starts and updates to code=102
+        2. Task starts and updates status to PROCESSING
         3. requests.post is called and raises SystemExit (pod terminated by K8s)
         4. finally block successfully saves the error status
         5. Log is properly updated to status=FAILED
@@ -184,10 +187,10 @@ class HookLogStatusTransitionsTestCase(BaseHookTestCase):
         block from updating the log.
 
         1. call_services() creates log with status=PENDING
-        2. Task starts and updates to code=102
+        2. Task starts and updates status to PROCESSING
         3. requests.post is called but pod is killed (during or after request)
         4. finally block tries to save but is prevented (simulated by mock)
-        5. Log remains at status=PENDING, code=102
+        5. Log remains at status=PROCESSING
 
         This is the dangerous scenario - submission MAY have been sent but we can't
         record the response. Caught by mark_zombie_processing_submissions()
@@ -197,18 +200,18 @@ class HookLogStatusTransitionsTestCase(BaseHookTestCase):
         with patch('kobo.apps.hook.utils.services.service_definition_task.delay'):
             call_services(self.asset.uid, self.submission_id)
 
-        # Step 2: Task starts and updates to 102
+        # Step 2: Task starts and updates status to PROCESSING
         ServiceDefinition = self.hook.get_service_definition()
         service = ServiceDefinition(self.hook, self.submission_id)
 
-        # Mock save_log to allow the first call (update to 102)
+        # Mock save_log to allow the first call (update to PROCESSING)
         # but prevent subsequent calls (in finally block after OOM)
         original_save_log = service.save_log
         call_count = [0]
 
         def save_log_controlled(*args, **kwargs):
             call_count[0] += 1
-            # First call: update to HTTP_102_PROCESSING (succeeds)
+            # First call: update status to PROCESSING
             if call_count[0] == 1:
                 original_save_log(*args, **kwargs)
             # Second call would be in finally block after OOM - prevent it
@@ -230,8 +233,79 @@ class HookLogStatusTransitionsTestCase(BaseHookTestCase):
         except (Exception, SystemExit):
             pass  # OOM killed
 
-        # Verify log is stuck at HTTP_102_PROCESSING(finally block couldn't save)
+        # Verify log is stuck at PROCESSING (finally block couldn't save)
         log = HookLog.objects.get(hook=self.hook, submission_id=self.submission_id)
-        assert log.status == HookLogStatus.PENDING
-        assert log.status_code == status.HTTP_102_PROCESSING
+        assert log.status == HookLogStatus.PROCESSING
+        assert log.status_code == KOBO_INTERNAL_ERROR_STATUS_CODE
         assert log.message == 'Submission is being queued for processing'
+
+    @patch('kobo.apps.hook.models.service_definition_interface.requests.post')
+    @override_config(HOOK_MAX_RETRIES=3)
+    def test_retry_logic_respects_max_retries(self, mock_post):
+        """
+        Test that retry logic respects HOOK_MAX_RETRIES correctly.
+
+        With HOOK_MAX_RETRIES = 3, we expect:
+        - Initial attempt (tries=0) + 3 retries = 4 total attempts
+        - Attempts 1-4 (tries 0-3): retriable error raises HookRemoteServerDownError
+        - Attempt 5 (tries=4): retriable error does NOT raise, becomes FAILED
+
+        This ensures manual retries don't trigger another 3 automatic retries.
+        """
+
+        # Mock retriable error (503 Service Unavailable)
+        mock_response = MagicMock()
+        mock_response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+        mock_response.text = 'Service temporarily unavailable'
+        mock_response.raise_for_status.side_effect = (
+            requests.exceptions.RequestException('HTTP 503')
+        )
+        mock_post.return_value = mock_response
+
+        # Create initial log
+        with patch('kobo.apps.hook.utils.services.service_definition_task.delay'):
+            call_services(self.asset.uid, self.submission_id)
+
+        ServiceDefinition = self.hook.get_service_definition()
+
+        # Simulate attempts 1-4 (tries 0-3): should raise HookRemoteServerDownError
+        log = HookLog.objects.get(hook=self.hook, submission_id=self.submission_id)
+        service = ServiceDefinition(self.hook, self.submission_id)
+
+        for attempt in range(1, 5):
+            expected_tries = attempt - 1
+            assert log.tries == expected_tries, (
+                f'Attempt {attempt}: Expected tries={expected_tries}, '
+                f'got tries={log.tries}'
+            )
+
+            # Should raise HookRemoteServerDownError for automatic retry
+            with self.assertRaises(HookRemoteServerDownError):
+                service.send()
+
+            log.refresh_from_db()
+            assert log.status == HookLogStatus.PENDING, (
+                f'Attempt {attempt}: Expected status=PENDING, '
+                f'got status={log.status.name}'
+            )
+            assert (
+                log.tries == attempt
+            ), f'Attempt {attempt}: Expected tries={attempt}, got tries={log.tries}'
+
+        # Attempt 5 (tries=4): should NOT raise, becomes FAILED
+        log.refresh_from_db()
+        assert log.tries == 4
+
+        # Should NOT raise HookRemoteServerDownError
+        with self.assertRaises(requests.exceptions.RequestException):
+            service.send()
+
+        log.refresh_from_db()
+
+        # Verify final state: FAILED, not PENDING
+        assert log.status == HookLogStatus.FAILED, (
+            f'After {constance.config.HOOK_MAX_RETRIES + 1} attempts, '
+            f'status should be FAILED, got {log.status.name}'
+        )
+        assert log.status_code == status.HTTP_503_SERVICE_UNAVAILABLE
+        assert log.tries == 5
