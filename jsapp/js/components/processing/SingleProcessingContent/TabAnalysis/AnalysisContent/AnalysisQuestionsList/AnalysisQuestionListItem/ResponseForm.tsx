@@ -83,7 +83,7 @@ export default function ResponseForm({
    * "Clear" button will be displayed if there is non-empty answer, or if answer is AI generated
    */
   const shouldDisplayClearButton = () => {
-    return (hasAnswer && !hasEmptyValueAnswerVal) || (hasAnswer && isAnswerAIGenerated)
+    return onClear !== undefined && ((hasAnswer && !hasEmptyValueAnswerVal) || (hasAnswer && isAnswerAIGenerated))
   }
 
   const shouldDisplayAIGeneratedBadge = () => {
@@ -174,7 +174,6 @@ export default function ResponseForm({
       </Group>
 
       {/* Hard coded left padding to account for the 32px icon size + 8px gap */}
-      {/* TODO: add border to things. */}
       {children && <Box pl='40px'>{children}</Box>}
 
       {shouldDisplayAnyButtonOrBadge() && ffAutoQAEnabled && (
