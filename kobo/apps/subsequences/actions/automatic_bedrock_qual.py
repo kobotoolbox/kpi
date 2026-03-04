@@ -5,6 +5,7 @@ from json import JSONDecodeError
 from typing import Optional
 
 import boto3
+from botocore.exceptions import ClientError
 from django.conf import settings
 from django.utils.functional import classproperty
 from django_userforeignkey.request import get_current_request
@@ -463,7 +464,7 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
                         'value': [visible_choices[i]['uuid'] for i in selected_indexes],
                         'status': 'complete',
                     }
-            except InvalidResponseFromLLMException as e:
+            except (InvalidResponseFromLLMException, ClientError) as e:
                 if index == 0:
                     logging.warning(
                         f'Invalid response from primary llm {model}: {e}.'
@@ -471,6 +472,11 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
                     )
                 error = e
                 continue
+
+        logging.warning(
+            f'All LLMs failed for question {qa_question_uuid}. '
+            f'Final error: {error}'
+        )
         if request := get_current_request():
             request.llm_response = {'error': f'{error}'}
         return {'status': 'failed', 'error': f'{error}'}
