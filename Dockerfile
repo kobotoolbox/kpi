@@ -99,6 +99,8 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 COPY ./dependencies/pip/requirements.txt "${TMP_DIR}/pip_dependencies.txt"
 COPY --from=build-python "$VIRTUAL_ENV" "$VIRTUAL_ENV"
 
+RUN rm -rf ${VIRTUAL_ENV}/lib/python*/site-packages/rest_framework/static/rest_framework
+
 ###########################
 # Install `npm` packages. #
 ###########################
@@ -127,7 +129,9 @@ RUN npm run build:app
 # Organize static assets. #
 ###########################
 
-RUN python manage.py collectstatic --noinput
+RUN python manage.py collectstatic --noinput --ignore rest_framework
+
+RUN rm -rf ${KPI_SRC_DIR}/staticfiles/rest_framework/
 
 #####################################
 # Retrieve and compile translations #
