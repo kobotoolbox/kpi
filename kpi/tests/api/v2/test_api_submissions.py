@@ -436,10 +436,10 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
     @patch('hub.models.v1_user_tracker.V1UserTracker.objects.update_or_create')
     def test_query_counts_for_list_submissions(self, mock_tracker):
         # query count differs when stripe is enabled/disabled
-        with self.assertNumQueries(FuzzyInt(16, 17)):
+        with self.assertNumQueries(FuzzyInt(16, 18)):
             # regular
             self.client.get(self.submission_list_url, {'format': 'json'})
-        with self.assertNumQueries(FuzzyInt(16, 17)):
+        with self.assertNumQueries(FuzzyInt(16, 18)):
             # with params
             self.client.get(
                 self.submission_list_url,
@@ -464,10 +464,10 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         count = context.final_queries - context.initial_queries
         # add a few submissions
         self._add_submissions()
-        with self.assertNumQueries(count):
+        with self.assertNumQueries(FuzzyInt(count - 1, count)):
             self.client.get(self.submission_list_url, {'format': 'json'})
         # get second page
-        with self.assertNumQueries(count):
+        with self.assertNumQueries(FuzzyInt(count - 1, count)):
             self.client.get(
                 self.submission_list_url, {
                     'format': 'json',

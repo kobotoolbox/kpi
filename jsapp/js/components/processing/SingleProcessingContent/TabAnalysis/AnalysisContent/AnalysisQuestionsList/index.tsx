@@ -86,6 +86,10 @@ export default function AnalysisQuestionsList({
   // Local state to avoid flickering on reordering (optimistic UI)
   const [localParams, setLocalParams] = useState<ResponseManualQualActionParams[]>(advancedFeatureManual?.params ?? [])
 
+  const [isLimitBlockModalOpen, setIsLimitBlockModalOpen] = useState<boolean>(false)
+  const { data: serviceUsageData } = useOrganizationsServiceUsageSummary()
+  const { billingPeriod } = useBillingPeriod()
+
   // Update local params when advancedFeature changes (e.g., after backend update)
   React.useEffect(() => {
     setLocalParams(advancedFeatureManual?.params ?? [])
@@ -159,10 +163,6 @@ export default function AnalysisQuestionsList({
       })
     }
   }
-
-  const [isLimitBlockModalOpen, setIsLimitBlockModalOpen] = useState<boolean>(false)
-  const { data: serviceUsageData } = useOrganizationsServiceUsageSummary()
-  const { billingPeriod } = useBillingPeriod()
 
   const usageLimitBlock =
     serviceUsageData?.status === 200 &&
