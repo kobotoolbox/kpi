@@ -51,6 +51,7 @@ export default function FormHistory(props: FormHistoryProps) {
     queryKey: AssetsVersionListQueryKeyInfinite,
     // `pageParam` is the result of `getNextPageParam`
     queryFn: ({ pageParam, signal }) =>
+      // TODO: for now this returns all versions, and we need to display only the deployed ones
       assetsVersionsList(props.assetUid, { limit: ITEMS_PER_PAGE, offset: pageParam }, { signal }),
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) => {
