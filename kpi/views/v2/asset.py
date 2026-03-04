@@ -47,7 +47,13 @@ from kpi.permissions import (
     ReportPermission,
     get_perm_name,
 )
-from kpi.renderers import BasicHTMLRenderer, SSJsonRenderer, XFormRenderer, XlsRenderer
+from kpi.renderers import (
+    BasicHTMLRenderer,
+    SanitizedJSONRenderer,
+    SSJsonRenderer,
+    XFormRenderer,
+    XlsRenderer,
+)
 from kpi.schema_extensions.v2.assets.schema import (
     ASSET_CLONE_FROM_SCHEMA,
     ASSET_CONTENT_SCHEMA,
@@ -927,6 +933,7 @@ class AssetViewSet(
         detail=True,
         permission_classes=[ReportPermission],
         methods=['GET'],
+        renderer_classes=[SanitizedJSONRenderer, BasicHTMLRenderer],
     )
     def reports(self, request, *args, **kwargs):
         asset = self.get_object()

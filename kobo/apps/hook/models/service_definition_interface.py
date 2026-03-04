@@ -105,14 +105,6 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
             )
             return False
 
-        # TODO consider changing "logging.info"  to "logging.debug" when
-        #   DEV-1762 is reviewed & merged.
-
-        logging.info(
-            'service_json.ServiceDefinition.send: '
-            f'Starting hook submission processing - Hook #{self._hook.uid} - '
-            f'Submission #{self._submission_id}'
-        )
         if not self._data:
             logging.info(
                 'service_json.ServiceDefinition.send: '
@@ -125,12 +117,6 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
                 log_status=HookLogStatus.FAILED,
             )
             return False
-
-        logging.info(
-            f'service_json.ServiceDefinition.send: '
-            f'Preparing to send hook submission - Hook #{self._hook.uid} - '
-            f'Submission #{self._submission_id}'
-        )
 
         # Need to declare response before requests.post assignment in case of
         # RequestException
@@ -246,13 +232,6 @@ class ServiceDefinitionInterface(metaclass=ABCMeta):
             )
             raise
         finally:
-            logging.info(
-                'service_json.ServiceDefinition.send: '
-                f'Hook submission result - Hook #{self._hook.uid} - '
-                f'Submission #{self._submission_id} - '
-                f'Status: {status_code} - '
-                f'Log Status: {log_status.name}'
-            )
             self.save_log(
                 log_status=log_status,
                 status_code=status_code,
