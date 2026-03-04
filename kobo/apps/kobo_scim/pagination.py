@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from kpi.paginators import DefaultPagination
 
 
-class SCIMPagination(DefaultPagination):
+class ScimPagination(DefaultPagination):
     """
     Pagination class that implements SCIM 2.0 list response pagination.
     SCIM uses 1-based `startIndex` and `count` parameters.
