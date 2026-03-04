@@ -242,6 +242,7 @@ export default function UniversalTableCore<DataItem>(props: UniversalTableProps<
     <div
       className={cx(styles.universalTableRoot, {
         [styles.hasHorizontalScrollbar]: hasHorizontalScrollbar,
+        [styles.hasStickyHeader]: props.maxHeight !== undefined,
       })}
     >
       <div
@@ -249,7 +250,6 @@ export default function UniversalTableCore<DataItem>(props: UniversalTableProps<
         ref={tableContainerRef}
         style={{
           maxHeight: props.maxHeight,
-          overflow: props.maxHeight ? 'auto' : undefined,
         }}
       >
         {props.isSpinnerVisible && (

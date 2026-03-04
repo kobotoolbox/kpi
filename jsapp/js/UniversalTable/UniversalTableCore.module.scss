@@ -128,6 +128,15 @@ $z-index-spinner: 8;
   position: sticky;
 }
 
+.hasStickyHeader {
+  .tableHeaderCell {
+    position: sticky;
+    top: 0;
+    // Needed to the header to be above body rows
+    z-index: 1;
+  }
+}
+
 // No need for shadows and visual distinction for pinned columns - if there is
 // no horizontal scrollbar
 .hasHorizontalScrollbar {
