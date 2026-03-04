@@ -183,6 +183,7 @@ class FormLanding extends React.Component {
 
         <bem.FormView__cell m={['box', 'history-table']}>
           <FormHistory
+            isEnabled={Boolean(this.state.historyExpanded)}
             assetUid={this.props.params.uid}
             deployedVersionId={this.state.deployed_version_id}
             deploymentActive={this.state.deployment__active}

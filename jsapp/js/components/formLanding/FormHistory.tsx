@@ -18,6 +18,11 @@ import { formatTime } from '#/utils'
 const ITEMS_PER_PAGE = 10
 
 export interface FormHistoryProps {
+  /**
+   * This flag controls whether the component would be making any API calls. We have it here, because parent component
+   * might be rendering this component visually hidden and we don't want to make unnecessary calls.
+   */
+  isEnabled: boolean
   assetUid: string
   deployedVersionId?: string
   deploymentActive?: boolean
@@ -62,6 +67,7 @@ export default function FormHistory(props: FormHistoryProps) {
       }
       return undefined
     },
+    enabled: props.isEnabled,
   })
 
   // Flatten the pages into a single array for UniversalTableCore
