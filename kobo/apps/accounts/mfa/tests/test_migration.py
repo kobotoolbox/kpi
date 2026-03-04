@@ -13,6 +13,7 @@ from trench.utils import get_mfa_model
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.tests.kpi_test_case import BaseTestCase
+from ..models import MfaMethodsWrapper
 from .utils import get_mfa_code_for_user
 
 
@@ -88,16 +89,17 @@ class MfaMigrationTestCase(BaseTestCase):
             assert 'Incorrect code' in response.content.decode()
         self.client.logout()
 
+    @freeze_time('2026-01-02 12:00:00')
     def test_migrate_deactivated_mfa_integrity(self):
-        self.client.force_login(self.someuser)
+        # Use DRF's force_authenticate for the DRF API endpoint
+        self.client.force_authenticate(user=self.someuser)
         code = get_mfa_code_for_user(self.someuser)
         response = self.client.post(
             reverse('mfa-deactivate', args=('app',)), data={'code': code}
         )
+        self.assertEqual(response.status_code, 200)
         self.client.logout()
 
-        # User logs in again, triggering migrate_user.
-        # It should not attempt to recreate the wrapper and crash.
         response = self.client.post(
             reverse('kobo_login'), data=self.login_data
         )
@@ -108,4 +110,3 @@ class MfaMigrationTestCase(BaseTestCase):
             MfaMethodsWrapper.objects.filter(user=self.someuser, name='app').count(),
             1,
         )
-
