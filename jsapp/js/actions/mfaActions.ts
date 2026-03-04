@@ -29,6 +29,9 @@ export interface MfaBackupCodesResponse {
   backup_codes: string[]
 }
 
+/**
+ * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
+ */
 const mfaActions = Reflux.createActions({
   getUserMethods: { children: ['completed', 'failed'] },
   activate: { children: ['completed', 'failed'] },

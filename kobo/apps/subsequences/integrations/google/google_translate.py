@@ -66,6 +66,8 @@ class GoogleTranslationService(GoogleService):
             return response
         elif isinstance(response, dict) and response.get('done'):
             raise TranslationAsyncResultAvailable()
+        elif isinstance(response, translate.BatchTranslateResponse):
+            raise TranslationAsyncResultAvailable()
 
         return ''
 
@@ -194,7 +196,9 @@ class GoogleTranslationService(GoogleService):
             )
         except SubsequenceTimeoutError:
             return {
-                'status': 'in_progress',
+                'status': 'failed',
+                'error': 'Timed out waiting for translation results. Translation may '
+                         'still be running. Try again in 5 minutes.',
             }
         except InvalidArgument as e:
             logging.exception('Error when processing translation')

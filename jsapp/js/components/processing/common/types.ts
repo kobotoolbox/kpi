@@ -7,6 +7,7 @@ import type { SupplementalDataManualTranslationItem } from '#/api/models/supplem
 import type { SupplementalDataVersionItemAutomatic } from '#/api/models/supplementalDataVersionItemAutomatic'
 import type { SupplementalDataVersionItemManual } from '#/api/models/supplementalDataVersionItemManual'
 import type { SupplementalDataVersionItemQual } from '#/api/models/supplementalDataVersionItemQual'
+import type { SupplementalDataVersionItemQualAutomatic } from '#/api/models/supplementalDataVersionItemQualAutomatic'
 
 import type { PatchedDataSupplementPayloadOneOfManualQual } from '#/api/models/patchedDataSupplementPayloadOneOfManualQual'
 import type { SupplementalDataContentAutomaticComplete } from '#/api/models/supplementalDataContentAutomaticComplete'
@@ -33,7 +34,7 @@ export type TranslationVersionItem =
   | SupplementalDataVersionItemManualWithDep
   | SupplementalDataVersionItemAutomaticWithDep
 
-export type QualVersionItem = SupplementalDataVersionItemQual
+export type QualVersionItem = SupplementalDataVersionItemQual | SupplementalDataVersionItemQualAutomatic
 
 export type TransxVersionItem = TranscriptVersionItem | TranslationVersionItem | QualVersionItem
 

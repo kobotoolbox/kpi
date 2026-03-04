@@ -14,6 +14,9 @@ export interface ManagedCollectionsStoreData {
   collections: AssetResponse[]
 }
 
+/**
+ * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
+ */
 class ManagedCollectionsStore extends Reflux.Store {
   isInitialised = false
 
@@ -126,7 +129,11 @@ class ManagedCollectionsStore extends Reflux.Store {
   }
 }
 
-/** This store keeps an up to date list of managed collections. */
+/**
+ * This store keeps an up to date list of managed collections.
+ *
+ * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
+ */
 const managedCollectionsStore = new ManagedCollectionsStore()
 managedCollectionsStore.init()
 

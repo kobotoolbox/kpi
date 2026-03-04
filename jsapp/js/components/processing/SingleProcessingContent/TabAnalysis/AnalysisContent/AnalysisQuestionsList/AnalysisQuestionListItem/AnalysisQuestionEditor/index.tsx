@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react'
 
 import { Stack, ThemeIcon } from '@mantine/core'
 import clonedeep from 'lodash.clonedeep'
-import type { ResponseQualActionParams } from '#/api/models/responseQualActionParams'
+import type { ResponseManualQualActionParams } from '#/api/models/responseManualQualActionParams'
 import type { ResponseQualSelectQuestionParamsChoicesItem } from '#/api/models/responseQualSelectQuestionParamsChoicesItem'
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
@@ -16,9 +16,9 @@ import styles from './index.module.scss'
 
 interface Props {
   advancedFeature: AdvancedFeatureResponseManualQual
-  qaQuestion: ResponseQualActionParams
+  qaQuestion: ResponseManualQualActionParams
   disabled: boolean
-  onSaveQuestion: (params: ResponseQualActionParams[]) => Promise<unknown>
+  onSaveQuestion: (params: ResponseManualQualActionParams[]) => Promise<unknown>
   onCancel: () => unknown
 }
 
@@ -40,7 +40,7 @@ export default function AnalysisQuestionEditor({
     return null
   }
 
-  const [newQaQuestion, setNewQaQuestion] = useState<ResponseQualActionParams>(() => clonedeep(qaQuestion))
+  const [newQaQuestion, setNewQaQuestion] = useState<ResponseManualQualActionParams>(() => clonedeep(qaQuestion))
 
   const [errorMessageLabel, setErrorMessageLabel] = useState<string | undefined>()
   const [errorMessageChoices, setErrorMessageChoices] = useState<string | undefined>()
@@ -96,7 +96,7 @@ export default function AnalysisQuestionEditor({
 
     const questionIndex = advancedFeature.params.findIndex((qaQuestion) => qaQuestion.uuid === newQaQuestion.uuid)
 
-    let newParams: ResponseQualActionParams[]
+    let newParams: ResponseManualQualActionParams[]
 
     if (questionIndex === -1) {
       // Question doesn't exist yet (new question), add it at the top

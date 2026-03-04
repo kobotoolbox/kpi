@@ -9,7 +9,13 @@ import type { SupplementalDataVersionItemManual } from '#/api/models/supplementa
 
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { ProcessingTab } from '#/components/processing/routes.utils'
-import type { DisplaysList, TranscriptVersionItem, TranslationVersionItem, TransxVersionItem } from './types'
+import type {
+  DisplaysList,
+  QualVersionItem,
+  TranscriptVersionItem,
+  TranslationVersionItem,
+  TransxVersionItem,
+} from './types'
 
 /**
  * Type guard to check if a supplement version has a value property.
@@ -180,6 +186,28 @@ export const getLatestTranscriptVersionItem = (
   return getAllTranscriptsFromSupplementData(supplementData, xpath)
     .flatMap<TranscriptVersionItem>((transcript) => transcript._versions)
     .sort(TransxVersionSortFunction)[0] as TranscriptVersionItem | undefined
+}
+
+// Qual
+
+/**
+ * Gets the most recent qual version item for a specific field and question UUID,
+ * combining both manual_qual and automatic_bedrock_qual versions.
+ *
+ * @param supplementData - The supplement data object
+ * @param xpath - The field xpath to retrieve qual for
+ * @param questionUuid - The UUID of the qual question
+ * @returns The most recent qual version item, or undefined if none exist
+ */
+export const getLatestQualVersionItem = (
+  supplementData: DataSupplementResponse,
+  xpath: string,
+  questionUuid: string,
+): QualVersionItem | undefined => {
+  const manualVersions = supplementData[xpath]?.[ActionEnum.manual_qual]?.[questionUuid]?._versions ?? []
+  const automaticVersions = supplementData[xpath]?.[ActionEnum.automatic_bedrock_qual]?.[questionUuid]?._versions ?? []
+  const allVersions = [...manualVersions, ...automaticVersions] as QualVersionItem[]
+  return allVersions.sort(TransxVersionSortFunction)[0]
 }
 
 // Translations
