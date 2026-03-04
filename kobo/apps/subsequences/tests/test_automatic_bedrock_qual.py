@@ -560,4 +560,4 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
             result = self.action.run_external_process({}, {}, action_data=action_data)
 
         assert result.get('status') == 'failed'
-        assert result.get('error') == 'LLM returned non-string response'
+        assert result.get('error') == 'LLM returned empty response'
