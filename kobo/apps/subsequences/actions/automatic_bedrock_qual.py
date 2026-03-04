@@ -77,7 +77,7 @@ class LLModel:
 
 
 ClaudeSonnet = LLModel(
-    model_id='anthropic.claude-3-5-sonnet-20240620-v1:0',
+    model_id='us.anthropic.claude-sonnet-4-5-20250929-v1:0',
     path_to_response='content.0.text',
     supports_reasoning=False,
     path_to_input_tokens='usage.input_tokens',
