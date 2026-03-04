@@ -2,6 +2,8 @@ from allauth.socialaccount.models import SocialAccount, SocialApp
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from kobo.apps.audit_log.audit_actions import AuditAction
+from kobo.apps.audit_log.models import AuditLog
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.kobo_scim.models import IdentityProvider
 
@@ -284,3 +286,78 @@ class ScimUsersAPITests(APITestCase):
 
         self.user1.refresh_from_db()
         self.assertTrue(self.user1.is_active)
+
+    def test_manual_reactivation_after_scim_deprovisioning(self):
+        """
+        Test that a superuser can manually reactivate a user after SCIM deprovisioning.
+        """
+        # SCIM deprovisioning request
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
+        response = self.client.delete(f'{self.url}/{self.user1.id}')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        self.user1.refresh_from_db()
+        self.assertFalse(self.user1.is_active)
+
+        # Superuser manually reactivates user1
+        self.user1.is_active = True
+        self.user1.save()
+
+        self.user1.refresh_from_db()
+        self.assertTrue(self.user1.is_active)
+
+    def test_scim_deprovisioning_is_idempotent(self):
+        """
+        Test that multiple SCIM deprovisioning requests for the same user are
+        idempotent. Ensure that if multiple deprovisioning requests are received
+        for the same email, the user is deactivated after the first request, and
+        subsequent requests do not cause errors or additional deactivations.
+        """
+        # First deprovisioning request
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
+        response1 = self.client.delete(f'{self.url}/{self.user1.id}')
+        self.assertEqual(response1.status_code, status.HTTP_204_NO_CONTENT)
+
+        self.user1.refresh_from_db()
+        self.assertFalse(self.user1.is_active)
+
+        logs_after_first = AuditLog.objects.filter(
+            object_id=self.user1.id,
+            action=AuditAction.DEACTIVATION,
+        ).count()
+        self.assertEqual(logs_after_first, 1)
+
+        # Second deprovisioning request (simulating IdP resending the event)
+        response2 = self.client.delete(f'{self.url}/{self.user1.id}')
+        self.assertEqual(response2.status_code, status.HTTP_204_NO_CONTENT)
+
+        # Verify Bob is still inactive
+        self.user1.refresh_from_db()
+        self.assertFalse(self.user1.is_active)
+
+        logs_after_second = AuditLog.objects.filter(
+            object_id=self.user1.id,
+            action=AuditAction.DEACTIVATION,
+        ).count()
+        # Both requests will be logged
+        self.assertEqual(logs_after_second, 2)
+
+    def test_subsequent_scim_request_deactivates_after_manual_reactivation(self):
+        # First deprovisioning
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
+        self.client.delete(f'{self.url}/{self.user1.id}')
+        self.user1.refresh_from_db()
+        self.assertFalse(self.user1.is_active)
+
+        # Manual reactivation by superuser
+        self.user1.is_active = True
+        self.user1.save()
+        self.user1.refresh_from_db()
+        self.assertTrue(self.user1.is_active)
+
+        # Second deprovisioning request from IdP
+        response = self.client.delete(f'{self.url}/{self.user1.id}')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        self.user1.refresh_from_db()
+        self.assertFalse(self.user1.is_active)
