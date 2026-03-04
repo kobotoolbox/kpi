@@ -871,7 +871,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             # The list view should provide a cache
             asset_permission_assignments = self.context[
                 'object_permissions_per_asset'
-            ].get(asset.pk)
+            ].get(asset.pk, [])
         except KeyError:
             asset_permission_assignments = asset.permissions.all()
 
@@ -936,7 +936,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
         if not access_types:
             raise Exception(
-                f'{request.user.username} has unexpected access to {obj.uid}'
+                f'{request.user.username} has unexpected access to {asset.uid}'
             )
 
         return access_types
@@ -1202,19 +1202,19 @@ class AssetListSerializer(AssetSerializer):
             # always a property of `self.context`
             return super().get_status(asset)
 
-        # Check public: anonymous has discover_asset (always loaded).
+        # Mirror _get_status() logic using the cached anonymous permissions.
         for perm in asset_perm_assignments:
-            if (
-                perm.user_id == settings.ANONYMOUS_USER_ID
-                and perm.permission.codename == PERM_DISCOVER_ASSET
-            ):
-                return 'public'
+            if perm.user_id == settings.ANONYMOUS_USER_ID:
+                if perm.permission.codename == PERM_DISCOVER_ASSET:
+                    return ASSET_STATUS_DISCOVERABLE
+                if perm.permission.codename == PERM_VIEW_ASSET:
+                    return ASSET_STATUS_PUBLIC
 
         # Check shared: pre-computed via DISTINCT query in get_serializer_context.
         if asset.pk in shared_asset_ids:
-            return 'shared'
+            return ASSET_STATUS_SHARED
 
-        return 'private'
+        return ASSET_STATUS_PRIVATE
 
 
 class AssetUrlListSerializer(AssetSerializer):

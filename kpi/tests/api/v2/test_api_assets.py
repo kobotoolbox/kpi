@@ -87,7 +87,12 @@ class AssetListApiTests(BaseAssetTestCase):
                          msg=list_response.data)
         expected_list_data = {
             field: detail_response.data[field]
-            for field in AssetListSerializer.Meta.fields if field != 'children'
+            for field in AssetListSerializer.Meta.fields
+            # children count is checked separately below
+            if field != 'children'
+            # list endpoint returns only the requesting user's permissions
+            # (manage_asset, change_asset, view_submissions), not all assignments
+            and field != 'permissions'
         }
         # list endpoint only exposes children count.
         expected_list_data['children'] = {
@@ -100,7 +105,12 @@ class AssetListApiTests(BaseAssetTestCase):
                 list_result_detail = result
                 break
         self.assertIsNotNone(list_result_detail)
-        self.assertDictEqual(expected_list_data, dict(list_result_detail))
+        # Exclude permissions from list result too, since the list endpoint
+        # returns only the requesting user's permissions while detail returns all
+        list_result_filtered = {
+            k: v for k, v in list_result_detail.items() if k != 'permissions'
+        }
+        self.assertDictEqual(expected_list_data, list_result_filtered)
 
     def test_asset_owner_label(self):
         """
@@ -447,19 +457,18 @@ class AssetListApiTests(BaseAssetTestCase):
 
     def test_query_counts(self):
         self.create_asset()
-        # 45 when stripe is disabled, 46 when enabled
-        with self.assertNumQueries(FuzzyInt(36, 45)):
+        with self.assertNumQueries(FuzzyInt(28, 42)):
             self.client.get(self.list_url)
         # test query count does not increase with more assets
         # add several assets so the fuzziness of the count doesn't hide an O(n) addition
         self.create_asset()
         self.create_asset()
         self.create_asset()
-        with self.assertNumQueries(FuzzyInt(36, 45)):
+        with self.assertNumQueries(FuzzyInt(28, 42)):
             self.client.get(self.list_url)
 
         # test query counts with search filter
-        with self.assertNumQueries(FuzzyInt(36, 45)):
+        with self.assertNumQueries(FuzzyInt(28, 42)):
             self.client.get(self.list_url, data={'q': 'asset_type:survey'})
 
     def test_list_can_load_with_desynchronized_assets(self):
