@@ -952,15 +952,17 @@ class ObjectPermissionViewSetMixin:
             asset_id__in=asset_ids,
             deny=False,
         )
+
         print('current_user_permissions_only', current_user_permissions_only, flush=True)
 
         if current_user_permissions_only:
-            # Load only the minimal set of permissions needed by the list view:
-            # - all permissions for the requesting user (for get_permissions())
-            # - discover_asset, view_asset for anonymous (for public detection)
             qs = qs.filter(
-                Q(user_id=user_id)
-                | Q(
+                Q(
+                    user_id=user_id,
+                    permission__codename__in=[
+                        PERM_MANAGE_ASSET, PERM_CHANGE_ASSET, PERM_VIEW_SUBMISSIONS
+                    ],
+                ) | Q(
                     user_id=settings.ANONYMOUS_USER_ID,
                     permission__codename__in=[PERM_DISCOVER_ASSET, PERM_VIEW_ASSET],
                 )
