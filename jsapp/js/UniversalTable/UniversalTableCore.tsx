@@ -242,11 +242,12 @@ export default function UniversalTableCore<DataItem>(props: UniversalTableProps<
     <div
       className={cx(styles.universalTableRoot, {
         [styles.hasHorizontalScrollbar]: hasHorizontalScrollbar,
-        [styles.hasStickyHeader]: props.maxHeight !== undefined,
       })}
     >
       <div
-        className={styles.tableContainer}
+        className={cx(styles.tableContainer, {
+          [styles.hasStickyHeader]: props.maxHeight !== undefined,
+        })}
         ref={tableContainerRef}
         style={{
           maxHeight: props.maxHeight,

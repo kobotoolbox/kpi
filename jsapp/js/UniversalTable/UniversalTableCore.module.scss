@@ -129,6 +129,8 @@ $z-index-spinner: 8;
 }
 
 .hasStickyHeader {
+  overflow-y: auto;
+
   .tableHeaderCell {
     position: sticky;
     top: 0;
