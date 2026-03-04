@@ -1,58 +1,123 @@
 name: Dependabot automerge
 
-on: pull_request_target
+# Approve (and potentially auto-merge) dependabot PRs
+# of minor-and-patch dependencies
+# whose CI tests have completed successfully.
 
-permissions:
-  pull-requests: write
-  contents: write
+on:
+  workflow_run:
+    workflows: ['CI of a PR']
+    types:     ['completed']
+    branches:  ['dependabot/npm_and_yarn/**']
 
 jobs:
-  npm-test:
-    uses: ./.github/workflows/npm-test.yml
-    # Avoid running this on different PRs
-    if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
 
-  review-dependabot-pr:
+  check-dependabot-results:
     runs-on: ubuntu-latest
-    needs:
-      - npm-test
-    if: |
-      ${{ github.event.pull_request.user.login == 'dependabot[bot]' }} &&
-      !failure() &&
-      needs.npm-test.result == 'success'
-    outputs:
-      pr-url: ${{ github.event.pull_request.html_url }}
+
+    # Job-level: Skip unless it's a dependabot PR with passing tests
+    if: >
+      github.event.pull_request.user.login == 'dependabot[bot]' &&
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'success'
+
     steps:
-      - name: Dependabot metadata
-        id: dependabot-metadata
+
+      # Verify again (dependabot PR with passing tests) in job steps for safety, clarity
+
+      - id: is-dependabot-pr
+        name: Is this indeed a Dependabot pull request?
+        if: >
+          github.event.pull_request.user.login == 'dependabot[bot]' &&
+          github.event.workflow_run.event == 'pull_request'
+        run: echo "IS_DEPENDABOT_PR=true" >> $GITHUB_OUTPUT
+
+      - id: did-workflow-succeed
+        name: Did the triggering worklow run successfully? (CI of a PR)
+        if: >
+          github.event.workflow_run.conclusion == 'success'
+        run: echo "DID_WORKFLOW_SUCCEED=true" >> $GITHUB_OUTPUT
+
+      # Check upgrade type
+
+      - id: dependabot-metadata
+        name: Fetch Dependabot metadata
         uses: dependabot/fetch-metadata@v2.5.0
 
-      - name: Enable auto-merge for Dependabot PRs of patch and minor updates
-        if: ${{steps.dependabot-metadata.outputs.update-type == 'version-update:semver-patch' || steps.dependabot-metadata.outputs.update-type == 'version-update:semver-minor'}}
-        # This requires auto-merge to be enabled in GitHub repo settings
-        run: gh pr merge --auto --squash "$PR_URL"
-        env:
-          PR_URL: ${{github.event.pull_request.html_url}}
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      - id: is-minor-or-patch
+        name: Does this Dependabot PR count as a minor or patch update?
+        if: >
+          steps.dependabot-metadata.outputs.update-type == 'version-update:semver-patch' ||
+          steps.dependabot-metadata.outputs.update-type == 'version-update:semver-minor'
+        run: echo "IS_MINOR_OR_PATCH=true" >> $GITHUB_OUTPUT
 
-      - name: Approve patch and minor updates
-        if: ${{steps.dependabot-metadata.outputs.update-type == 'version-update:semver-patch' || steps.dependabot-metadata.outputs.update-type == 'version-update:semver-minor'}}
-        run: |
-          gh pr review $PR_URL --approve -b "I'm **approving** this pull request because **it includes a patch or minor update**"
-          gh pr edit $PR_URL --add-label "automerge"
-        env:
-          PR_URL: ${{github.event.pull_request.html_url}}
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      # Determination
 
-  on-failure:
-    if: |
-      failure() ||
-      (needs.npm-test.result == 'failure' || needs.npm-test.result == 'timed_out')
-    needs:
-      - npm-test
-      - review-dependabot-pr
-    uses: './.github/workflows/zulip.yml'
-    secrets: inherit
-    with:
-      topic: "Github Actions (dependabot)"
-      content: ":boom: @*frontend*, ${{github.repository}} [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) failed to auto-merge [a dependabot PR](${{needs.review-dependabot-pr.outputs.pr-url}}). Please review."
+      - id: should-automerge
+        name: Should we automerge?
+        if: >
+          steps.is-dependabot-pr.IS_DEPENDABOT_PR == 'true' &&
+          steps.did-workflow-succeed.DID_WORKFLOW_SUCCEED == 'true' &&
+          steps.is-minor-or-patch.outputs.IS_MINOR_OR_PATCH == 'true'
+        run: echo "SHOULD_AUTOMERGE=true" >> $GITHUB_OUTPUT
+
+    # Job-level outputs
+
+    outputs:
+
+      # Control automerge
+
+      should-automerge: ${{ steps.should-automerge.outputs.SHOULD_AUTOMERGE }}
+
+      # Other details (for messages)
+
+      is-dependabot-pr: ${{ steps.is-dependabot-pr.outputs.IS_DEPENDABOT_PR }}
+      did-workflow-succeed: ${{ steps.did-workflow-succeed.outputs.DID_WORKFLOW_SUCCEED }}
+      is-minor-or-patch: ${{ steps.is-minor-or-patch.outputs.IS_MINOR_OR_PATCH }}
+
+
+  approve-automerge:
+    permissions:
+      pull_request: write
+      contents: write
+
+    if: >
+      github.event.pull_request.user.login == 'dependabot[bot]' &&
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'success'
+
+    needs: [ check-dependabot-results ]
+
+    runs-on: ubuntu-latest
+
+    env:
+      PR_URL: ${{ github.event.pull_request.html_url }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+
+    # Comment and approve PR (as GitHub bot)
+    - if: >
+        needs.check-dependabot-results.outputs.should-automerge == 'true'
+      id: comment-and-approve-this-pr
+      name: Approve this PR (as GitHub bot)
+      run: |
+        gh pr edit $PR_URL --add-label "automerge"
+        gh pr review $PR_URL --approve --body \
+          "I'm **approving** this pull request because **it includes a patch or minor update**"
+
+    # # Enable auto-merge on this PR
+    # - if: >
+    #     needs.check-dependabot-results.outputs.should-automerge == 'true'
+    #   id: enable-automerge-on-this-pr
+    #   name: Enable automerge on this PR
+    #   run: |
+    #     # gh pr edit $PR_URL --add-label "automerge"
+    #     gh pr merge --auto --squash "$PR_URL"
+
+
+# References:
+# - https://securitylab.github.com/resources/github-actions-preventing-pwn-requests/
+# - https://securitylab.github.com/resources/github-actions-untrusted-input/
+# - https://securitylab.github.com/resources/github-actions-building-blocks/
+# - https://securitylab.github.com/resources/github-actions-new-patterns-and-mitigations/
