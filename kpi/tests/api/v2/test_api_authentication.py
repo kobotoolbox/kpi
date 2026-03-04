@@ -1,7 +1,6 @@
 # coding: utf-8
 import base64
 
-import pytest
 from django.test import override_settings
 from django.urls import reverse
 from freezegun import freeze_time
