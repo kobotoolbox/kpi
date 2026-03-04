@@ -1,4 +1,3 @@
-# coding: utf-8
 from __future__ import annotations
 
 import copy
@@ -9,6 +8,7 @@ from django.conf import settings
 from django.contrib.auth.models import AnonymousUser, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.db import models, transaction
+from django.db.models import Q
 from django_request_cache import cache_for_request
 from rest_framework import serializers
 
@@ -39,70 +39,6 @@ from kpi.utils.project_views import (
     get_project_view_user_permissions_for_asset,
     user_has_project_view_asset_perm,
 )
-
-
-class _UserProxy:
-    """
-    Lightweight proxy for User objects in permission caches.
-    Uses __slots__ to minimize memory overhead.
-    """
-
-    __slots__ = ('pk', 'id', 'username')
-
-    def __init__(self, pk: int, username: str):
-        self.pk = pk
-        self.id = pk
-        self.username = username
-
-    def __eq__(self, other):
-        if hasattr(other, 'pk'):
-            return self.pk == other.pk
-        return NotImplemented
-
-    def __hash__(self):
-        return hash(self.pk)
-
-
-class _PermissionProxy:
-    """
-    Lightweight proxy for Permission objects in permission caches.
-    Uses __slots__ to minimize memory overhead.
-    """
-
-    __slots__ = ('pk', 'id', 'codename')
-
-    def __init__(self, pk: int, codename: str):
-        self.pk = pk
-        self.id = pk
-        self.codename = codename
-
-
-class ObjectPermissionProxy:
-    """
-    Lightweight proxy for ObjectPermission instances built from .values() queries.
-    Replaces full Django model instances in permission caches to reduce memory usage.
-    Uses __slots__ to minimize memory overhead.
-    """
-
-    __slots__ = ('uid', 'asset_id', 'user_id', 'deny', 'user', 'permission', 'content_object')
-
-    def __init__(
-        self,
-        uid: str,
-        asset_id: int,
-        user_id: int,
-        deny: bool,
-        user_pk: int,
-        user_username: str,
-        permission_pk: int,
-        permission_codename: str,
-    ):
-        self.uid = uid
-        self.asset_id = asset_id
-        self.user_id = user_id
-        self.deny = deny
-        self.user = _UserProxy(user_pk, user_username)
-        self.permission = _PermissionProxy(permission_pk, permission_codename)
 
 
 class ObjectPermissionMixin:
@@ -1006,53 +942,40 @@ class ObjectPermissionMixin:
 
 class ObjectPermissionViewSetMixin:
 
-    def cache_all_assets_perms(self, asset_ids: list) -> dict:
-        from django.db.models import Q
+    def cache_all_assets_perms(
+        self, asset_ids: list, current_user_permissions_only: bool = True
+    ) -> dict:
 
         user_id = self.request.user.pk
 
-        # Load only the minimal set of permissions needed by the list view:
-        # - manage_asset, change_asset for the requesting user (for get_permissions())
-        # - discover_asset, view_asset for anonymous (for public detection)
-        user_filter = Q(
-            user_id=user_id,
-            permission__codename__in=[
-                PERM_MANAGE_ASSET, PERM_CHANGE_ASSET, PERM_VIEW_SUBMISSIONS
-            ],
-        ) | Q(
-            user_id=settings.ANONYMOUS_USER_ID,
-            permission__codename__in=[PERM_DISCOVER_ASSET, PERM_VIEW_ASSET]
+        qs = ObjectPermission.objects.filter(
+            asset_id__in=asset_ids,
+            deny=False,
         )
+        if current_user_permissions_only:
+            # Load only the minimal set of permissions needed by the list view:
+            # - all permissions for the requesting user (for get_permissions())
+            # - discover_asset, view_asset for anonymous (for public detection)
+            qs = qs.filter(
+                Q(user_id=user_id)
+                | Q(
+                    user_id=settings.ANONYMOUS_USER_ID,
+                    permission__codename__in=[PERM_DISCOVER_ASSET, PERM_VIEW_ASSET],
+                )
+            )
 
         object_permissions_per_asset = defaultdict(list)
 
-        for op in ObjectPermission.objects.filter(
-            user_filter,
-            asset_id__in=asset_ids,
-            deny=False,
-        ).values(
+        for op in qs.values(
             'uid',
             'asset_id',
             'user_id',
             'deny',
-            'user__id',
             'user__username',
-            'permission__id',
             'permission__codename',
         ).order_by(
             'user__username', 'permission__codename'
         ):
-            object_permissions_per_asset[op['asset_id']].append(
-                ObjectPermissionProxy(
-                    uid=op['uid'],
-                    asset_id=op['asset_id'],
-                    user_id=op['user_id'],
-                    deny=op['deny'],
-                    user_pk=op['user__id'],
-                    user_username=op['user__username'],
-                    permission_pk=op['permission__id'],
-                    permission_codename=op['permission__codename'],
-                )
-            )
+            object_permissions_per_asset[op['asset_id']].append(op)
 
         return object_permissions_per_asset

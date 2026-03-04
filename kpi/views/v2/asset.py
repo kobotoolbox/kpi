@@ -96,6 +96,7 @@ from kpi.utils.schema_extensions.response import (
     open_api_http_example_response,
 )
 from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
+from kpi.utils.strings import to_bool
 
 
 @extend_schema(
@@ -729,11 +730,20 @@ class AssetViewSet(
                 asset_ids = context_['asset_ids_cache']
 
             # 2) Get object permissions per asset.
-            # Only loads manage_asset/change_asset for the requesting user
-            # and discover_asset for anonymous.
+            # By default, only loads permissions for the requesting user and
+            # discover_asset/view_asset for anonymous (memory optimization).
+            # Pass ?current_user_permissions_only=false to load all users'
+            # permissions (needed when the client displays full permission lists).
+            current_user_permissions_only = to_bool(
+                self.request.query_params.get(
+                    'current_user_permissions_only', False
+                )
+            )
             context_[
                 'object_permissions_per_asset'
-            ] = self.cache_all_assets_perms(asset_ids)
+            ] = self.cache_all_assets_perms(
+                asset_ids, current_user_permissions_only
+            )
 
             # 2b) Assets shared with at least one non-owner, non-anonymous user.
             # Used by get_status() and get_access_types() to detect 'shared'.
@@ -832,7 +842,7 @@ class AssetViewSet(
             _, peak = tracemalloc.get_traced_memory()
             tracemalloc.stop()
             logging.warning(
-                'asset list peak memory: %.1f MB (user=%s)',
+                'Asset list peak memory: %.1f MB (user=%s)',
                 peak / 1024 / 1024,
                 request.user.username,
             )
@@ -842,7 +852,7 @@ class AssetViewSet(
         _, peak = tracemalloc.get_traced_memory()
         tracemalloc.stop()
         logging.warning(
-            'asset list peak memory: %.1f MB (user=%s)',
+            'Asset list peak memory: %.1f MB (user=%s)',
             peak / 1024 / 1024,
             request.user.username,
         )

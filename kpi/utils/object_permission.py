@@ -193,37 +193,38 @@ def get_user_permission_assignments(
     affected_object, user, object_permission_assignments
 ):
     """
-    Works like `get_user_permission_assignments_queryset` but returns
-    a list instead of a queryset. It also needs a list of all
-    `affected_object`'s permission assignments to search for assignments
-    `user` is allowed to see.
+    Filters a list of permission assignment dicts (from .values() queries) to
+    only those that `user` is allowed to see, without hitting the database.
+
+    `manage_asset` is detected from `object_permission_assignments` itself,
+    avoiding the N+1 queries that `has_perm()` would cause in a list context.
 
     Args:
         affected_object (Asset)
         user (User)
-        object_permission_assignments (list):
+        object_permission_assignments (list[dict]): raw dicts from .values()
     Returns:
-         list
-
+        list[dict]
     """
-    user_permission_assignments = []
-    filtered_user_ids = None
-
     if not user or is_user_anonymous(user):
-        filtered_user_ids = [affected_object.owner_id]
-    elif not affected_object.has_perm(user, PERM_MANAGE_ASSET):
-        # Display only users' permissions if they are not allowed to modify
-        # others' permissions
-        filtered_user_ids = [affected_object.owner_id,
-                             user.pk,
-                             settings.ANONYMOUS_USER_ID]
+        visible_user_ids = {affected_object.owner_id}
+    else:
+        user_pk = user.pk
+        user_has_manage = any(
+            p['user_id'] == user_pk
+            and p['permission__codename'] == PERM_MANAGE_ASSET
+            for p in object_permission_assignments
+        )
+        if user_has_manage:
+            return list(object_permission_assignments)
+        visible_user_ids = {
+            affected_object.owner_id, user_pk, settings.ANONYMOUS_USER_ID
+        }
 
-    for permission_assignment in object_permission_assignments:
-        if (filtered_user_ids is None or
-                permission_assignment.user_id in filtered_user_ids):
-            user_permission_assignments.append(permission_assignment)
-
-    return user_permission_assignments
+    return [
+        p for p in object_permission_assignments
+        if p['user_id'] in visible_user_ids
+    ]
 
 
 def get_user_permission_assignments_queryset(affected_object, user):
