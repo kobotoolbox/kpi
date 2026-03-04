@@ -952,6 +952,8 @@ class ObjectPermissionViewSetMixin:
             asset_id__in=asset_ids,
             deny=False,
         )
+        print('current_user_permissions_only', current_user_permissions_only, flush=True)
+
         if current_user_permissions_only:
             # Load only the minimal set of permissions needed by the list view:
             # - all permissions for the requesting user (for get_permissions())
