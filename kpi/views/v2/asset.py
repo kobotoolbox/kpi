@@ -4,7 +4,8 @@ import tracemalloc
 from collections import OrderedDict, defaultdict
 from operator import itemgetter
 
-from django.db.models import Count
+from django.conf import settings
+from django.db.models import Count, F
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
@@ -37,6 +38,7 @@ from kpi.highlighters import highlight_xform
 from kpi.mixins.asset import AssetViewSetListMixin
 from kpi.mixins.object_permission import ObjectPermissionViewSetMixin
 from kpi.models import Asset, AssetUserPartialPermission, UserAssetSubscription
+from kpi.models.object_permission import ObjectPermission
 from kpi.utils.log import logging
 from kpi.paginators import AssetPagination
 from kpi.permissions import (
@@ -726,10 +728,25 @@ class AssetViewSet(
             else:
                 asset_ids = context_['asset_ids_cache']
 
-            # 2) Get object permissions per asset
+            # 2) Get object permissions per asset.
+            # Only loads manage_asset/change_asset for the requesting user
+            # and discover_asset for anonymous.
             context_[
                 'object_permissions_per_asset'
             ] = self.cache_all_assets_perms(asset_ids)
+
+            # 2b) Assets shared with at least one non-owner, non-anonymous user.
+            # Used by get_status() and get_access_types() to detect 'shared'.
+            context_['shared_asset_ids'] = set(
+                ObjectPermission.objects.filter(
+                    asset_id__in=asset_ids,
+                    deny=False,
+                ).exclude(
+                    user_id=settings.ANONYMOUS_USER_ID,
+                ).exclude(
+                    user_id=F('asset__owner_id'),
+                ).values_list('asset_id', flat=True).distinct()
+            )
 
             # 3) Get the collection subscriptions per asset
             subscriptions_queryset = (

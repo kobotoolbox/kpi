@@ -17,7 +17,11 @@ from kobo.apps.project_views.models.project_view import ProjectView
 from kpi.constants import (
     ASSET_TYPE_SURVEY,
     ASSET_TYPES_WITH_CHILDREN,
-    PREFIX_PARTIAL_PERMS,
+    PERM_CHANGE_ASSET,
+    PERM_DISCOVER_ASSET,
+    PERM_MANAGE_ASSET,
+    PERM_VIEW_ASSET,
+    PREFIX_PARTIAL_PERMS, PERM_VIEW_SUBMISSIONS,
 )
 from kpi.deployment_backends.kc_access.utils import (
     kc_transaction_atomic,
@@ -1003,9 +1007,27 @@ class ObjectPermissionMixin:
 class ObjectPermissionViewSetMixin:
 
     def cache_all_assets_perms(self, asset_ids: list) -> dict:
+        from django.db.models import Q
+
+        user_id = self.request.user.pk
+
+        # Load only the minimal set of permissions needed by the list view:
+        # - manage_asset, change_asset for the requesting user (for get_permissions())
+        # - discover_asset, view_asset for anonymous (for public detection)
+        user_filter = Q(
+            user_id=user_id,
+            permission__codename__in=[
+                PERM_MANAGE_ASSET, PERM_CHANGE_ASSET, PERM_VIEW_SUBMISSIONS
+            ],
+        ) | Q(
+            user_id=settings.ANONYMOUS_USER_ID,
+            permission__codename__in=[PERM_DISCOVER_ASSET, PERM_VIEW_ASSET]
+        )
+
         object_permissions_per_asset = defaultdict(list)
 
         for op in ObjectPermission.objects.filter(
+            user_filter,
             asset_id__in=asset_ids,
             deny=False,
         ).values(
