@@ -1,8 +1,10 @@
 import { Center, Group, Loader, Text } from '@mantine/core'
 import { useInfiniteQuery } from '@tanstack/react-query'
-import React, { useMemo } from 'react'
+import React, { useMemo, useEffect } from 'react'
 import UniversalTableCore, { type UniversalTableColumn } from '#/UniversalTable/UniversalTableCore'
+import { actions } from '#/actions'
 import type { VersionListResponse } from '#/api/models/versionListResponse'
+import { invalidatePaginatedList } from '#/api/mutation-defaults/common'
 import {
   assetsVersionsList,
   getAssetsVersionsListQueryKey,
@@ -23,13 +25,30 @@ export interface FormHistoryProps {
   onClone: (versionUid: string) => void
 }
 
+/**
+ * Displays a table with a list of previously deployed form versions
+ */
 export default function FormHistory(props: FormHistoryProps) {
   const isLoggedIn = sessionStore.isLoggedIn
 
+  // Attach 'infinite' to the generated key to prevent cache collisions with standard query calls
+  const AssetsVersionListQueryKeyInfinite = [...getAssetsVersionsListQueryKey(props.assetUid), 'infinite']
+
+  useEffect(() => {
+    // TODO: when gradually switching to Orval for all these actions below, make sure to write invalidating code in
+    // `jsapp/js/api/mutation-defaults`
+    const unlisteners = [
+      // Whenever new version is deployed, we need to refresh
+      actions.resources.deployAsset.completed.listen(() => invalidatePaginatedList(AssetsVersionListQueryKeyInfinite)),
+    ]
+    return () => {
+      unlisteners.forEach((clb) => clb())
+    }
+  }, [])
+
   // Wrap Orval's raw fetching function in TanStack's useInfiniteQuery
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isError, isLoading } = useInfiniteQuery({
-    // Attach 'infinite' to the generated key to prevent cache collisions with any standard useQuery calls
-    queryKey: [...getAssetsVersionsListQueryKey(props.assetUid), 'infinite'],
+  const historyInfiniteQuery = useInfiniteQuery({
+    queryKey: AssetsVersionListQueryKeyInfinite,
     // `pageParam` is the result of `getNextPageParam`
     queryFn: ({ pageParam, signal }) =>
       assetsVersionsList(props.assetUid, { limit: ITEMS_PER_PAGE, offset: pageParam }, { signal }),
@@ -44,13 +63,14 @@ export default function FormHistory(props: FormHistoryProps) {
     },
   })
 
-  // Flatten the pages into a single array for UniversalTableCore, strictly typing for status 200
+  // Flatten the pages into a single array for UniversalTableCore
   const columnsData: VersionListResponse[] = useMemo(() => {
-    return data?.pages.flatMap((page) => (page.status === 200 ? page.data.results : [])) || []
-  }, [data])
+    return historyInfiniteQuery.data?.pages.flatMap((page) => (page.status === 200 ? page.data.results : [])) || []
+  }, [historyInfiniteQuery.data])
 
   // Read total count from the first fetched page
-  const totalCount = data?.pages[0]?.status === 200 ? data.pages[0].data.count : 0
+  const totalCount =
+    historyInfiniteQuery.data?.pages[0]?.status === 200 ? historyInfiniteQuery.data.pages[0].data.count : 0
 
   const showEndMessage = totalCount > ITEMS_PER_PAGE
 
@@ -97,7 +117,7 @@ export default function FormHistory(props: FormHistoryProps) {
     return baseColumns
   }, [totalCount, props.deployedVersionId, props.deploymentActive, props.deploymentStatus, isLoggedIn, props.onClone])
 
-  if (isLoading) {
+  if (historyInfiniteQuery.isLoading) {
     return (
       <Center p='xl'>
         <Loader />
@@ -112,10 +132,10 @@ export default function FormHistory(props: FormHistoryProps) {
       maxHeight={425}
       bottomContent={
         <InfiniteScrollTrigger
-          hasNextPage={hasNextPage}
-          isFetchingNextPage={isFetchingNextPage}
-          isError={isError}
-          onRequestFetchNextPage={fetchNextPage}
+          hasNextPage={historyInfiniteQuery.hasNextPage}
+          isFetchingNextPage={historyInfiniteQuery.isFetchingNextPage}
+          isError={historyInfiniteQuery.isError}
+          onRequestFetchNextPage={historyInfiniteQuery.fetchNextPage}
           showEndMessage={showEndMessage}
         />
       }

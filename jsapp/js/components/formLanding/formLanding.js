@@ -20,7 +20,6 @@ import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userCan, userCanRemoveSharedProject } from '#/components/permissions/utils'
 import { COLLECTION_METHODS, MODAL_TYPES } from '#/constants'
 import { HELP_ARTICLE_ANON_SUBMISSIONS_URL } from '#/constants'
-import { dataInterface } from '#/dataInterface'
 import envStore from '#/envStore'
 import mixins from '#/mixins'
 import pageState from '#/pageState.store'
@@ -30,11 +29,10 @@ import { withRouter } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
 import sessionStore from '#/stores/session'
 import { ANON_USERNAME, buildUserUrl } from '#/users/utils'
-import { formatTime, notify, recordKeys, recordValues } from '#/utils'
+import { formatTime, notify, recordKeys } from '#/utils'
 import LimitNotifications from '../usageLimits/limitNotifications.component'
 import FormHistory from './FormHistory'
 
-const DVCOUNT_LIMIT_MINIMUM = 20
 const ANON_CAN_ADD_PERM_URL = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.add_submissions).url
 
 class FormLanding extends React.Component {
@@ -42,17 +40,12 @@ class FormLanding extends React.Component {
     super(props)
     this.state = {
       selectedCollectMethod: COLLECTION_METHODS.offline_url.id,
-      DVCOUNT_LIMIT: DVCOUNT_LIMIT_MINIMUM,
-      nextPageUrl: null,
-      nextPagesVersions: [],
       anonymousSubmissions: false,
       anonymousPermissions: [],
     }
     autoBind(this)
   }
   componentDidMount() {
-    // reset loaded versions when new one is deployed
-    this.listenTo(actions.resources.deployAsset.completed, this.resetLoadedVersions)
     this.listenTo(actions.permissions.getAssetPermissions.completed, this.onAssetPermissionsUpdated)
     this.listenTo(actions.resources.loadAsset.completed, this.onAssetPermissionsUpdated)
 
@@ -83,13 +76,6 @@ class FormLanding extends React.Component {
         permission: ANON_CAN_ADD_PERM_URL,
       })
     }
-  }
-  resetLoadedVersions() {
-    this.setState({
-      DVCOUNT_LIMIT: DVCOUNT_LIMIT_MINIMUM,
-      nextPageUrl: null,
-      nextPagesVersions: [],
-    })
   }
   enketoPreviewModal(evt) {
     evt.preventDefault()
@@ -187,38 +173,8 @@ class FormLanding extends React.Component {
       asset: this.state,
     })
   }
-  // TODO remove
-  loadMoreVersions() {
-    if (
-      this.state.DVCOUNT_LIMIT + DVCOUNT_LIMIT_MINIMUM <=
-      this.state.deployed_versions.count + DVCOUNT_LIMIT_MINIMUM
-    ) {
-      this.setState({
-        DVCOUNT_LIMIT: this.state.DVCOUNT_LIMIT + DVCOUNT_LIMIT_MINIMUM,
-      })
-    }
-    let urlToLoad = null
-    if (this.state.nextPageUrl) {
-      urlToLoad = this.state.nextPageUrl
-    } else if (this.state.deployed_versions.next) {
-      urlToLoad = this.state.deployed_versions.next
-    }
-    if (urlToLoad !== null) {
-      dataInterface.loadNextPageUrl(urlToLoad).done((data) => {
-        this.setState({ nextPageUrl: data.deployed_versions.next })
-        const newNextPagesVersions = this.state.nextPagesVersions
-        recordValues(data.deployed_versions.results).forEach((item) => {
-          newNextPagesVersions.push(item)
-        })
-        this.setState({ nextPagesVersions: newNextPagesVersions })
-      })
-    }
-  }
 
   renderHistory() {
-    var dvcount = this.state.deployed_versions.count
-    const versionsToDisplay = this.state.deployed_versions.results.concat(this.state.nextPagesVersions)
-    const isLoggedIn = sessionStore.isLoggedIn
     return (
       <bem.FormView__row className={this.state.historyExpanded ? 'historyExpanded' : 'historyHidden'}>
         <bem.FormView__cell m={['columns', 'label', 'first', 'history-label']}>
