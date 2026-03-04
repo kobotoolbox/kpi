@@ -550,3 +550,14 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
             user=self.asset.owner, asset=self.asset, date=today
         )
         assert counter.counters['bedrock_llm_requests'] == 1
+
+    def test_error_when_llm_returns_none(self):
+        action_data = {
+            'uuid': BEDROCK_QUAL_TEXT_UUID,
+            '_dependency': self._dependency_dict_from_transcript_dict(),
+        }
+        with patch.object(self.action, 'get_response_from_llm', return_value=None):
+            result = self.action.run_external_process({}, {}, action_data=action_data)
+
+        assert result.get('status') == 'failed'
+        assert result.get('error') == 'LLM returned non-string response'

@@ -436,6 +436,12 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
                 logging.info(
                     f'LLM prompt: \n{prompt}\nLLM response:\n{full_response_text}'
                 )
+                # edge case: sometimes the LLM returns None. Deal with that
+                # and future-proof against any other kind of non-string response
+                if not isinstance(full_response_text, str):
+                    raise InvalidResponseFromLLMException(
+                        'LLM returned non-string response'
+                    )
                 if qa_question_type == QUESTION_TYPE_TEXT:
                     return {
                         'value': parse_text_response(full_response_text),
