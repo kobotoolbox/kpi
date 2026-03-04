@@ -73,7 +73,7 @@ PROMPTS_BY_QUESTION_TYPE = {
     'to the analysis question. The analysis question and options are listed below the '
     'interview response. You must select ONLY ONE option, or NONE if no option applies.'
     '\n\nInterview Response: {{interviewResponse}}'
-    '\n\nAnalysis Question: {{analysisQuestion}}{{hint}}'
+    '\n\nAnalysis Question: {{analysisQuestion}}'
     '\n\nIMPORTANT: Select ONLY ONE option from the list below, or NONE if no option '
     'applies. Respond ONLY with exactly {{numChoices}} boolean values separated by '
     'commas, representing TRUE or FALSE for each option. Only ONE option should be '

@@ -1,10 +1,11 @@
 import copy
 import uuid
 from datetime import timedelta
-from unittest.mock import ANY, DEFAULT, call, patch
+from unittest.mock import ANY, DEFAULT, MagicMock, call, patch
 
 import jsonschema
 import pytest
+from botocore.exceptions import ClientError
 from ddt import data, ddt, unpack
 from django.conf import settings
 from django.utils import timezone
@@ -425,7 +426,7 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
         (BEDROCK_QUAL_INTEGER_UUID, 'parse_integer_response'),
     )
     @unpack
-    def test_errors_from_external_process(self, question_uuid, method_to_patch):
+    def test_parsing_errors_from_external_process(self, question_uuid, method_to_patch):
         action_data = {
             'uuid': question_uuid,
             '_dependency': self._dependency_dict_from_transcript_dict(),
@@ -439,6 +440,29 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
             )
         assert return_value.get('status') == 'failed'
         assert return_value.get('error') == 'Cannot parse'
+
+    def test_client_error_from_external_process(self):
+        mock_client = MagicMock()
+        mock_client.invoke_model.side_effect = ClientError(
+            {'Error': {'Message': 'Bad'}}, ''
+        )
+        action_data = {
+            'uuid': BEDROCK_QUAL_TEXT_UUID,
+            '_dependency': self._dependency_dict_from_transcript_dict(),
+        }
+        # mock error on invoke
+        with patch.object(
+            self.action,
+            'create_bedrock_client',
+            return_value=mock_client,
+        ):
+            return_value = self.action.run_external_process(
+                {}, {}, action_data=action_data
+            )
+        assert return_value.get('status') == 'failed'
+        # ClientError adds a bunch of text to the error message, just make sure the
+        # original message is there
+        assert 'Bad' in return_value.get('error')
 
     def test_run_external_process_only_passes_visible_choices(self):
         mock_templates_by_type = {
@@ -474,11 +498,17 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
             patched_get_response_from_llm.call_args.args[1].model_id == OSS120.model_id
         )
 
-    def test_run_external_process_calls_default_if_primary_fails(self):
+    @data(InvalidResponseFromLLMException, ClientError)
+    def test_run_external_process_calls_default_if_primary_fails(self, error_class):
         action_data = {
             'uuid': BEDROCK_QUAL_TEXT_UUID,
             '_dependency': self._dependency_dict_from_transcript_dict(),
         }
+        args = []
+        if error_class == InvalidResponseFromLLMException:
+            args = ['Bad']
+        else:
+            args = [{}, '']
         with patch.object(
             self.action, 'get_response_from_llm', return_value='response'
         ) as patched_get_response_from_llm:
@@ -486,7 +516,7 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
                 f'kobo.apps.subsequences.actions.automatic_bedrock_qual.parse_text_response',  # noqa
                 # first call errors, second call succeeds
                 side_effect=[
-                    InvalidResponseFromLLMException('Cannot parse'),
+                    error_class(*args),
                     DEFAULT,
                 ],
             ):
@@ -520,3 +550,14 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
             user=self.asset.owner, asset=self.asset, date=today
         )
         assert counter.counters['bedrock_llm_requests'] == 1
+
+    def test_error_when_llm_returns_none(self):
+        action_data = {
+            'uuid': BEDROCK_QUAL_TEXT_UUID,
+            '_dependency': self._dependency_dict_from_transcript_dict(),
+        }
+        with patch.object(self.action, 'get_response_from_llm', return_value=None):
+            result = self.action.run_external_process({}, {}, action_data=action_data)
+
+        assert result.get('status') == 'failed'
+        assert result.get('error') == 'LLM returned empty response'

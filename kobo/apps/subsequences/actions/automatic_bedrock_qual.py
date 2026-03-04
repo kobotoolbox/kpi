@@ -5,6 +5,7 @@ from json import JSONDecodeError
 from typing import Optional
 
 import boto3
+from botocore.exceptions import ClientError
 from django.conf import settings
 from django.utils.functional import classproperty
 from django_userforeignkey.request import get_current_request
@@ -77,7 +78,7 @@ class LLModel:
 
 
 ClaudeSonnet = LLModel(
-    model_id='anthropic.claude-3-5-sonnet-20240620-v1:0',
+    model_id='us.anthropic.claude-sonnet-4-5-20250929-v1:0',
     path_to_response='content.0.text',
     supports_reasoning=False,
     path_to_input_tokens='usage.input_tokens',
@@ -435,6 +436,9 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
                 logging.info(
                     f'LLM prompt: \n{prompt}\nLLM response:\n{full_response_text}'
                 )
+                # edge case: sometimes the LLM returns None
+                if full_response_text is None:
+                    raise InvalidResponseFromLLMException('LLM returned empty response')
                 if qa_question_type == QUESTION_TYPE_TEXT:
                     return {
                         'value': parse_text_response(full_response_text),
@@ -463,7 +467,7 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
                         'value': [visible_choices[i]['uuid'] for i in selected_indexes],
                         'status': 'complete',
                     }
-            except InvalidResponseFromLLMException as e:
+            except (InvalidResponseFromLLMException, ClientError) as e:
                 if index == 0:
                     logging.warning(
                         f'Invalid response from primary llm {model}: {e}.'
@@ -471,6 +475,11 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
                     )
                 error = e
                 continue
+
+        logging.warning(
+            f'All LLMs failed for question {qa_question_uuid}. '
+            f'Final error: {error}'
+        )
         if request := get_current_request():
             request.llm_response = {'error': f'{error}'}
         return {'status': 'failed', 'error': f'{error}'}
