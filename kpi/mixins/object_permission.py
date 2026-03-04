@@ -17,11 +17,9 @@ from kobo.apps.project_views.models.project_view import ProjectView
 from kpi.constants import (
     ASSET_TYPE_SURVEY,
     ASSET_TYPES_WITH_CHILDREN,
-    PERM_CHANGE_ASSET,
     PERM_DISCOVER_ASSET,
-    PERM_MANAGE_ASSET,
     PERM_VIEW_ASSET,
-    PREFIX_PARTIAL_PERMS, PERM_VIEW_SUBMISSIONS,
+    PREFIX_PARTIAL_PERMS,
 )
 from kpi.deployment_backends.kc_access.utils import (
     kc_transaction_atomic,
@@ -974,9 +972,7 @@ class ObjectPermissionViewSetMixin:
             'deny',
             'user__username',
             'permission__codename',
-        ).order_by(
-            'user__username', 'permission__codename'
-        ):
+        ).order_by('user__username', 'permission__codename'):
             object_permissions_per_asset[op['asset_id']].append(op)
 
         return object_permissions_per_asset

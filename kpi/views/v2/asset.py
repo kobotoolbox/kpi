@@ -7,8 +7,12 @@ from django.conf import settings
 from django.db.models import Count, F
 from django.http import Http404
 from django.shortcuts import get_object_or_404
-from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view, \
-    OpenApiParameter
+from drf_spectacular.utils import (
+    OpenApiExample,
+    OpenApiParameter,
+    extend_schema,
+    extend_schema_view,
+)
 from rest_framework import exceptions, renderers, status
 from rest_framework.decorators import action
 from rest_framework.renderers import JSONRenderer
@@ -39,7 +43,6 @@ from kpi.mixins.asset import AssetViewSetListMixin
 from kpi.mixins.object_permission import ObjectPermissionViewSetMixin
 from kpi.models import Asset, AssetUserPartialPermission, UserAssetSubscription
 from kpi.models.object_permission import ObjectPermission
-from kpi.utils.log import logging
 from kpi.paginators import AssetPagination
 from kpi.permissions import (
     AssetPermission,
@@ -209,8 +212,9 @@ from kpi.utils.strings import to_bool
                 required=False,
                 location=OpenApiParameter.QUERY,
                 description=(
-                    'When `true`, only return the requesting user\'s own permission '
-                    'assignments. When `false` (default), return all visible assignments.'
+                    "When `true`, only return the requesting user's own permission "
+                    'assignments. When `false` (default), return all visible '
+                    'assignments.'
                 ),
             ),
         ],
@@ -753,13 +757,9 @@ class AssetViewSet(
             # Pass ?current_user_permissions_only=false to load all users'
             # permissions (needed when the client displays full permission lists).
             current_user_permissions_only = to_bool(
-                self.request.query_params.get(
-                    'current_user_permissions_only', False
-                )
+                self.request.query_params.get('current_user_permissions_only', False)
             )
-            context_[
-                'object_permissions_per_asset'
-            ] = self.cache_all_assets_perms(
+            context_['object_permissions_per_asset'] = self.cache_all_assets_perms(
                 asset_ids, current_user_permissions_only
             )
 
@@ -769,11 +769,15 @@ class AssetViewSet(
                 ObjectPermission.objects.filter(
                     asset_id__in=asset_ids,
                     deny=False,
-                ).exclude(
+                )
+                .exclude(
                     user_id=settings.ANONYMOUS_USER_ID,
-                ).exclude(
+                )
+                .exclude(
                     user_id=F('asset__owner_id'),
-                ).values_list('asset_id', flat=True).distinct()
+                )
+                .values_list('asset_id', flat=True)
+                .distinct()
             )
 
             # 3) Get the collection subscriptions per asset
@@ -814,9 +818,9 @@ class AssetViewSet(
             for record in AssetUserPartialPermission.objects.filter(
                 asset_id__in=asset_ids
             ).values('asset_id', 'user_id', 'permissions'):
-                partial_perms_per_asset[record['asset_id']][
-                    record['user_id']
-                ] = record['permissions']
+                partial_perms_per_asset[record['asset_id']][record['user_id']] = record[
+                    'permissions'
+                ]
             context_['partial_perms_per_asset'] = partial_perms_per_asset
 
             # 6) Get organization…

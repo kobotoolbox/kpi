@@ -815,7 +815,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         if user_has_project_view_asset_perm(asset, request.user, PERM_VIEW_ASSET):
             filtered = all_permissions
         else:
-            filtered = get_user_permission_assignments(asset, request.user, all_permissions)
+            filtered = get_user_permission_assignments(
+                asset, request.user, all_permissions
+            )
         context['asset'] = asset
         context['asset_uid'] = asset.uid
 
@@ -885,9 +887,9 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             ].get(asset.pk, [])
         except KeyError:
             # Detail view fallback: use .values() to return dicts like the cache
-            asset_permission_assignments = asset.permissions.filter(
-                deny=False
-            ).values('user_id', 'permission__codename')
+            asset_permission_assignments = asset.permissions.filter(deny=False).values(
+                'user_id', 'permission__codename'
+            )
 
         # Check if the asset is public (anonymous has discover_asset).
         for op in asset_permission_assignments:
@@ -1193,9 +1195,9 @@ class AssetListSerializer(AssetSerializer):
     def get_status(self, asset):
 
         try:
-            asset_perm_assignments = self.context[
-                'object_permissions_per_asset'
-            ].get(asset.pk, [])
+            asset_perm_assignments = self.context['object_permissions_per_asset'].get(
+                asset.pk, []
+            )
             shared_asset_ids = self.context['shared_asset_ids']
         except KeyError:
             # Maybe overkill, there are no reasons to enter here.

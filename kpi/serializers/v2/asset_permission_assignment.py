@@ -94,9 +94,9 @@ class AssetPermissionAssignmentSerializer(serializers.ModelSerializer):
 
             partial_perms_per_asset = self.context.get('partial_perms_per_asset')
             if partial_perms_per_asset is not None:
-                partial_perms = partial_perms_per_asset.get(
-                    asset.pk, {}
-                ).get(object_permission.user_id)
+                partial_perms = partial_perms_per_asset.get(asset.pk, {}).get(
+                    object_permission.user_id
+                )
             else:
                 partial_perms = asset.get_partial_perms(
                     object_permission.user_id, with_filters=True
@@ -108,9 +108,7 @@ class AssetPermissionAssignmentSerializer(serializers.ModelSerializer):
             hyperlinked_partial_perms = []
             for perm_codename, filters in partial_perms.items():
                 url = self.__get_permission_hyperlink(perm_codename)
-                hyperlinked_partial_perms.append(
-                    {'url': url, 'filters': filters}
-                )
+                hyperlinked_partial_perms.append({'url': url, 'filters': filters})
             return hyperlinked_partial_perms
         return None
 
@@ -326,9 +324,9 @@ class AssetPermissionAssignmentReadSerializer(serializers.Serializer):
         asset = self.context.get('asset')
         partial_perms_per_asset = self.context.get('partial_perms_per_asset')
         if partial_perms_per_asset is not None:
-            user_partial_perms = partial_perms_per_asset.get(
-                asset.pk, {}
-            ).get(perm['user_id'])
+            user_partial_perms = partial_perms_per_asset.get(asset.pk, {}).get(
+                perm['user_id']
+            )
         else:
             user_partial_perms = asset.get_partial_perms(
                 perm['user_id'], with_filters=True

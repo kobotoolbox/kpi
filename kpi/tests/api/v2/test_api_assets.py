@@ -90,9 +90,6 @@ class AssetListApiTests(BaseAssetTestCase):
             for field in AssetListSerializer.Meta.fields
             # children count is checked separately below
             if field != 'children'
-            # list endpoint returns only the requesting user's permissions
-            # (manage_asset, change_asset, view_submissions), not all assignments
-            and field != 'permissions'
         }
         # list endpoint only exposes children count.
         expected_list_data['children'] = {
@@ -105,12 +102,7 @@ class AssetListApiTests(BaseAssetTestCase):
                 list_result_detail = result
                 break
         self.assertIsNotNone(list_result_detail)
-        # Exclude permissions from list result too, since the list endpoint
-        # returns only the requesting user's permissions while detail returns all
-        list_result_filtered = {
-            k: v for k, v in list_result_detail.items() if k != 'permissions'
-        }
-        self.assertDictEqual(expected_list_data, list_result_filtered)
+        self.assertDictEqual(expected_list_data, list_result_detail)
 
     def test_asset_owner_label(self):
         """

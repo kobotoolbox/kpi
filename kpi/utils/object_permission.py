@@ -211,19 +211,19 @@ def get_user_permission_assignments(
     else:
         user_pk = user.pk
         user_has_manage = any(
-            p['user_id'] == user_pk
-            and p['permission__codename'] == PERM_MANAGE_ASSET
+            p['user_id'] == user_pk and p['permission__codename'] == PERM_MANAGE_ASSET
             for p in object_permission_assignments
         )
         if user_has_manage:
             return list(object_permission_assignments)
         visible_user_ids = {
-            affected_object.owner_id, user_pk, settings.ANONYMOUS_USER_ID
+            affected_object.owner_id,
+            user_pk,
+            settings.ANONYMOUS_USER_ID,
         }
 
     return [
-        p for p in object_permission_assignments
-        if p['user_id'] in visible_user_ids
+        p for p in object_permission_assignments if p['user_id'] in visible_user_ids
     ]
 
 
