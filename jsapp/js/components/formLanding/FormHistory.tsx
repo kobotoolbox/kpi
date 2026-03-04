@@ -3,7 +3,6 @@ import { useInfiniteQuery } from '@tanstack/react-query'
 import React, { useMemo } from 'react'
 import UniversalTableCore, { type UniversalTableColumn } from '#/UniversalTable/UniversalTableCore'
 import type { VersionListResponse } from '#/api/models/versionListResponse'
-// 1. Import the raw fetching function and the query key builder from your Orval endpoints
 import {
   assetsVersionsList,
   getAssetsVersionsListQueryKey,
@@ -27,13 +26,13 @@ export interface FormHistoryProps {
 export default function FormHistory(props: FormHistoryProps) {
   const isLoggedIn = sessionStore.isLoggedIn
 
-  // 2. Wrap Orval's raw fetching function in TanStack's useInfiniteQuery
+  // Wrap Orval's raw fetching function in TanStack's useInfiniteQuery
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isError, isLoading } = useInfiniteQuery({
     // Attach 'infinite' to the generated key to prevent cache collisions with any standard useQuery calls
     queryKey: [...getAssetsVersionsListQueryKey(props.assetUid), 'infinite'],
-    // pageParam is injected by TanStack based on getNextPageParam
+    // `pageParam` is the result of `getNextPageParam`
     queryFn: ({ pageParam, signal }) =>
-      assetsVersionsList(props.assetUid, { limit: ITEMS_PER_PAGE, offset: pageParam as number }, { signal }),
+      assetsVersionsList(props.assetUid, { limit: ITEMS_PER_PAGE, offset: pageParam }, { signal }),
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) => {
       // Type guard: ensure the request was successful and has a next page
@@ -45,7 +44,7 @@ export default function FormHistory(props: FormHistoryProps) {
     },
   })
 
-  // 3. Flatten the pages into a single array for UniversalTableCore, strictly typing for status 200
+  // Flatten the pages into a single array for UniversalTableCore, strictly typing for status 200
   const columnsData: VersionListResponse[] = useMemo(() => {
     return data?.pages.flatMap((page) => (page.status === 200 ? page.data.results : [])) || []
   }, [data])
