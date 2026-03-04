@@ -5,8 +5,8 @@ from django.conf import settings
 from django.shortcuts import resolve_url
 from django.template.response import TemplateResponse
 from django.urls import reverse
-from freezegun import freeze_time
 from djstripe.models import Customer, Price, Subscription, SubscriptionItem
+from freezegun import freeze_time
 from model_bakery import baker
 from rest_framework import status
 

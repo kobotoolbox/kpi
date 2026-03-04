@@ -57,7 +57,6 @@ class MfaMigrationTestCase(BaseTestCase):
         self.client.post(reverse('mfa_authenticate'), {'code': self.backup_codes[0]})
         self.client.logout()
 
-    
     @data(
         ('TOTP', None, True),  # TOTP code
         ('BACKUP', 0, False),  # Expired backup code
@@ -89,6 +88,7 @@ class MfaMigrationTestCase(BaseTestCase):
             assert 'Incorrect code' in response.content.decode()
         self.client.logout()
 
+    # Change time to get another valid TOTP code
     @freeze_time('2026-01-02 12:00:00')
     def test_migrate_deactivated_mfa_integrity(self):
         # Use DRF's force_authenticate for the DRF API endpoint
@@ -100,9 +100,7 @@ class MfaMigrationTestCase(BaseTestCase):
         self.assertEqual(response.status_code, 200)
         self.client.logout()
 
-        response = self.client.post(
-            reverse('kobo_login'), data=self.login_data
-        )
+        response = self.client.post(reverse('kobo_login'), data=self.login_data)
         self.assertRedirects(response, reverse(settings.LOGIN_REDIRECT_URL))
 
         # Verify that the wrapper was not duplicated
