@@ -1033,7 +1033,7 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
-         # "BasicHTMLRenderer" must always come after JSONRenderer
+        # "BasicHTMLRenderer" must always come after JSONRenderer
         'kpi.renderers.BasicHTMLRenderer',
     ],
     'DEFAULT_VERSIONING_CLASS': 'kpi.versioning.APIAutoVersioning',
