@@ -40,7 +40,7 @@ class ExtraProjectMetadataField(models.Model):
         if self.type in [self.FieldType.SINGLE_SELECT, self.FieldType.MULTI_SELECT]:
             if not self.options:
                 raise ValidationError(
-                    {'options': _("Options are required for select fields.")}
+                    {'options': _('Options are required for select fields.')}
                 )
 
     def __str__(self):

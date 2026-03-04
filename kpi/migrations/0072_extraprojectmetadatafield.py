@@ -36,7 +36,7 @@ class Migration(migrations.Migration):
                         blank=True,
                         default=dict,
                         help_text=(
-                            "Translation map: "
+                            'Translation map: '
                             "{'default': 'Country', 'fr': 'Pays'}"
                         ),
                     ),
