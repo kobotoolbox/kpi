@@ -327,9 +327,7 @@ export default function UniversalTableCore<DataItem>(props: UniversalTableProps<
           {props.bottomContent && (
             <tfoot>
               <tr>
-                <td colSpan={columns.length} style={{ padding: 0, border: 'none' }}>
-                  {props.bottomContent}
-                </td>
+                <td colSpan={columns.length}>{props.bottomContent}</td>
               </tr>
             </tfoot>
           )}

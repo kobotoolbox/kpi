@@ -116,7 +116,7 @@ export default function FormHistory(props: FormHistoryProps) {
           hasNextPage={hasNextPage}
           isFetchingNextPage={isFetchingNextPage}
           isError={isError}
-          fetchNextPage={fetchNextPage}
+          onRequestFetchNextPage={fetchNextPage}
           showEndMessage={showEndMessage}
         />
       }

@@ -55,7 +55,11 @@ interface UniversalTableProps<Datum, TError = Error | ErrorDetail | ErrorObject>
   queryResult: UseQueryResult<PaginatedListResponse<Datum>, TError>
   pagination: Pagination
   setPagination: (pagination: Pagination) => unknown
-  /** Maximum height of the table. Setting this makes the table internally scrollable with a sticky header. */
+  /**
+   * Maximum height of the table. Setting this makes the table internally scrollable with a sticky header.
+   *
+   * Internally results in CSS property `max-height` being set on the container element, so you an pass any valid value.
+   */
   maxHeight?: number | string
   /** Used to inject infinite scroll observers or footer info into the table. */
   bottomContent?: React.ReactNode
