@@ -10,6 +10,7 @@ from freezegun import freeze_time
 from rest_framework.exceptions import ValidationError
 
 from ..actions.manual_qual import ManualQualAction
+from ..exceptions import SubsequenceVerificationError
 from .constants import (
     EMPTY_SUBMISSION,
     FIX_CHOICE_APATHY_UUID,
@@ -616,6 +617,18 @@ def test_verified_responses_pass_data_validation():
 def test_valid_empty_responses_pass_data_validation():
     for response in Fix.valid_empty_responses:
         _action.validate_data(response)
+
+
+def test_can_revise_with_valid_empty_responses():
+    for response in Fix.valid_empty_responses:
+        _action.revise_data(EMPTY_SUBMISSION, {}, response)
+
+
+def test_cannot_verify_empty_responses():
+    with pytest.raises(SubsequenceVerificationError):
+        _action.revise_data(
+            EMPTY_SUBMISSION, {}, {'uuid': FIX_QUAL_INTEGER_UUID, 'verified': True}
+        )
 
 
 def test_invalid_reponses_fail_data_validation():

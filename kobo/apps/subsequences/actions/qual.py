@@ -4,6 +4,7 @@ from rest_framework.exceptions import ValidationError
 
 from kobo.apps.subsequences.actions.base import BaseAction
 from kobo.apps.subsequences.constants import SORT_BY_DATE_FIELD
+from kobo.apps.subsequences.exceptions import SubsequenceVerificationError
 from kobo.apps.subsequences.type_aliases import SimplifiedOutputCandidatesByColumnKey
 
 
@@ -420,3 +421,7 @@ class BaseQualAction(BaseAction):
                     # the json schema but better safe than sorry
                     new_question.setdefault('choices', []).append(old_choice)
         self.params = incoming_params
+
+    def validate_action_for_empty_versions(self, action_data: dict):
+        if 'verified' in action_data:
+            raise SubsequenceVerificationError()
