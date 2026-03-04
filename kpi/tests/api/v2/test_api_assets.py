@@ -1751,6 +1751,54 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
         assert response.data['last_modified_by'] == anotheruser.username
         assert self.asset.last_modified_by == anotheruser.username
 
+    def test_detail_permissions_visibility(self):
+        """
+        Test that the detail endpoint always filters permission assignments
+        based on the requesting user's access level, regardless of the
+        `current_user_permissions_only` query parameter (which has no effect
+        on the detail view).
+
+        - Owner (has manage_asset): sees all users' permissions.
+        - User with view_asset only: sees owner's + own, not other users'.
+        - User with manage_asset: sees all users' permissions.
+        """
+        anotheruser = User.objects.get(username='anotheruser')
+        thirduser = baker.make(settings.AUTH_USER_MODEL)
+        self.asset.assign_perm(anotheruser, PERM_VIEW_ASSET)
+        self.asset.assign_perm(thirduser, PERM_VIEW_ASSET)
+
+        def get_perm_usernames(response_):
+            return {p['user'].split('/')[-2] for p in response_.data['permissions']}
+
+        # --- Owner (someuser, has manage_asset): sees all ---
+        for params in ({}, {'current_user_permissions_only': 'true'}):
+            response = self.client.get(self.asset_url, data=params)
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            usernames = get_perm_usernames(response)
+            self.assertIn('someuser', usernames)
+            self.assertIn('anotheruser', usernames)
+            self.assertIn(thirduser.username, usernames)
+
+        # --- anotheruser with view_asset only: sees owner + own, not thirduser ---
+        self.client.force_login(anotheruser)
+        for params in ({}, {'current_user_permissions_only': 'true'}):
+            response = self.client.get(self.asset_url, data=params)
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            usernames = get_perm_usernames(response)
+            self.assertIn('someuser', usernames)
+            self.assertIn('anotheruser', usernames)
+            self.assertNotIn(thirduser.username, usernames)
+
+        # --- anotheruser with manage_asset: sees all ---
+        self.asset.assign_perm(anotheruser, PERM_MANAGE_ASSET)
+        for params in ({}, {'current_user_permissions_only': 'true'}):
+            response = self.client.get(self.asset_url, data=params)
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            usernames = get_perm_usernames(response)
+            self.assertIn('someuser', usernames)
+            self.assertIn('anotheruser', usernames)
+            self.assertIn(thirduser.username, usernames)
+
 
 class AssetsXmlExportApiTests(KpiTestCase):
 

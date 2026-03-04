@@ -1,6 +1,5 @@
 import copy
 import json
-import tracemalloc
 from collections import OrderedDict, defaultdict
 from operator import itemgetter
 
@@ -8,7 +7,8 @@ from django.conf import settings
 from django.db.models import Count, F
 from django.http import Http404
 from django.shortcuts import get_object_or_404
-from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
+from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view, \
+    OpenApiParameter
 from rest_framework import exceptions, renderers, status
 from rest_framework.decorators import action
 from rest_framework.renderers import JSONRenderer
@@ -196,6 +196,18 @@ from kpi.utils.strings import to_bool
             raise_access_forbidden=False,
             validate_payload=False,
         ),
+        parameters=[
+            OpenApiParameter(
+                name='current_user_permissions_only',
+                type=bool,
+                required=False,
+                location=OpenApiParameter.QUERY,
+                description=(
+                    'When `true`, only return the requesting user\'s own permission '
+                    'assignments. When `false` (default), return all visible assignments.'
+                ),
+            ),
+        ],
     ),
     metadata=extend_schema(
         description=read_md('kpi', 'assets/metadata.md'),
@@ -816,8 +828,6 @@ class AssetViewSet(
         return context_
 
     def list(self, request, *args, **kwargs):
-        tracemalloc.start()
-
         # assigning global filtered query set to prevent additional,
         # unnecessary calls to `filter_queryset`
         self._filtered_queryset = self.filter_queryset(self.get_queryset())
@@ -839,23 +849,9 @@ class AssetViewSet(
                 metadata = self.get_metadata(self._filtered_queryset)
 
             response = self.get_paginated_response(serializer.data, metadata)
-            _, peak = tracemalloc.get_traced_memory()
-            tracemalloc.stop()
-            logging.warning(
-                'Asset list peak memory: %.1f MB (user=%s)',
-                peak / 1024 / 1024,
-                request.user.username,
-            )
             return response
 
         serializer = self.get_serializer(self._filtered_queryset, many=True)
-        _, peak = tracemalloc.get_traced_memory()
-        tracemalloc.stop()
-        logging.warning(
-            'Asset list peak memory: %.1f MB (user=%s)',
-            peak / 1024 / 1024,
-            request.user.username,
-        )
         return Response(serializer.data)
 
     @action(detail=False, methods=['GET'])

@@ -45,7 +45,6 @@ from kpi.utils.object_permission import (
     get_cached_code_names,
     get_database_user,
     get_user_permission_assignments,
-    get_user_permission_assignments_queryset,
 )
 from kpi.utils.project_views import (
     get_project_view_user_permissions_for_asset,
@@ -94,10 +93,7 @@ from ...schema_extensions.v2.assets.fields import (
 )
 from .asset_export_settings import AssetExportSettingsSerializer
 from .asset_file import AssetFileSerializer
-from .asset_permission_assignment import (
-    AssetPermissionAssignmentListSerializer,
-    AssetPermissionAssignmentSerializer,
-)
+from .asset_permission_assignment import AssetPermissionAssignmentReadSerializer
 from .asset_version import AssetVersionListSerializer
 
 
@@ -804,15 +800,27 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
         self._set_asset_ids_cache(asset)
 
-        queryset = get_user_permission_assignments_queryset(asset, request.user)
-        # Need to pass `asset` and `asset_uid` to context of
-        # AssetPermissionAssignmentSerializer serializer to avoid extra queries
-        # to DB within the serializer to retrieve the asset object.
+        all_permissions = list(
+            asset.permissions.filter(deny=False, user__is_active=True)
+            .values(
+                'uid',
+                'user_id',
+                'user__username',
+                'permission__codename',
+            )
+            .order_by('user__username', 'permission__codename')
+        )
+        # Users who have view_asset via a project view can see all permission
+        # assignments, even without manage_asset on the asset directly.
+        if user_has_project_view_asset_perm(asset, request.user, PERM_VIEW_ASSET):
+            filtered = all_permissions
+        else:
+            filtered = get_user_permission_assignments(asset, request.user, all_permissions)
         context['asset'] = asset
         context['asset_uid'] = asset.uid
 
-        return AssetPermissionAssignmentSerializer(
-            queryset.all(), many=True, read_only=True, context=context
+        return AssetPermissionAssignmentReadSerializer(
+            filtered, many=True, context=context
         ).data
 
     def get_project_ownership(self, asset) -> Optional[dict]:
@@ -1164,7 +1172,7 @@ class AssetListSerializer(AssetSerializer):
         context['asset'] = asset
         context['asset_uid'] = asset.uid
 
-        return AssetPermissionAssignmentListSerializer(
+        return AssetPermissionAssignmentReadSerializer(
             asset_permission_assignments, many=True, context=context
         ).data
 

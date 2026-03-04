@@ -102,6 +102,10 @@ class AssetDetailApiTests(test_api_assets.AssetDetailApiTests):
     def test_last_modified_by_is_modified(self):
         pass
 
+    @unittest.skip(reason='deprecated version, only works with v2 endpoint')
+    def test_detail_permissions_visibility(self):
+        pass
+
 
 class AssetsXmlExportApiTests(KpiTestCase):
     fixtures = ['test_data']
