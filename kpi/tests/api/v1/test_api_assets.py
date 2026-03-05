@@ -76,6 +76,10 @@ class AssetListApiTests(test_api_assets.AssetListApiTests):
         with self.assertNumQueries(FuzzyInt(40, 95)):
             self.client.get(self.list_url)
 
+    @unittest.skip(reason='deprecated version, only works with v2 endpoint')
+    def test_current_user_permissions_only_param(self):
+        pass
+
 
 class AssetVersionApiTests(test_api_assets.AssetVersionApiTests):
     URL_NAMESPACE = None
