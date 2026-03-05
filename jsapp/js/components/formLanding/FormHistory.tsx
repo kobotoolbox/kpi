@@ -103,7 +103,13 @@ export default function FormHistory(props: FormHistoryProps) {
       {
         key: 'date_deployed',
         label: t('Last Modified'),
-        cellFormatter: (value: VersionListResponse) => formatTime(value.date_deployed),
+        cellFormatter: (value: VersionListResponse) => {
+          // TODO remove that casting after DEV-1823 is done
+          if ((value.date_deployed as boolean | string) === false) {
+            return <Text c='var(--mantine-color-gray-3)'>{t('Undeployed')}</Text>
+          }
+          return formatTime(value.date_deployed)
+        },
       },
     ]
 
