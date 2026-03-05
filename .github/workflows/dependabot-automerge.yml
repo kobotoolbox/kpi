@@ -33,7 +33,7 @@ jobs:
         run: echo "IS_DEPENDABOT_PR=true" >> $GITHUB_OUTPUT
 
       - id: did-workflow-succeed
-        name: Did the triggering worklow run successfully? (CI of a PR)
+        name: Did the triggering workflow run successfully? (CI of a PR)
         if: >
           github.event.workflow_run.conclusion == 'success'
         run: echo "DID_WORKFLOW_SUCCEED=true" >> $GITHUB_OUTPUT
@@ -56,8 +56,8 @@ jobs:
       - id: should-automerge
         name: Should we automerge?
         if: >
-          steps.is-dependabot-pr.IS_DEPENDABOT_PR == 'true' &&
-          steps.did-workflow-succeed.DID_WORKFLOW_SUCCEED == 'true' &&
+          steps.is-dependabot-pr.outputs.IS_DEPENDABOT_PR == 'true' &&
+          steps.did-workflow-succeed.outputs.DID_WORKFLOW_SUCCEED == 'true' &&
           steps.is-minor-or-patch.outputs.IS_MINOR_OR_PATCH == 'true'
         run: echo "SHOULD_AUTOMERGE=true" >> $GITHUB_OUTPUT
 
@@ -78,7 +78,7 @@ jobs:
 
   approve-automerge:
     permissions:
-      pull_request: write
+      pull-requests: write
       contents: write
 
     if: >
