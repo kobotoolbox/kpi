@@ -9,10 +9,10 @@ from django.apps import apps
 PROJECT_NAME = os.path.basename(os.path.dirname(__file__))
 
 # Use celery-specific settings to allow a longer DB statement_timeout for
-# long-running tasks. Fall back to celery_prod even if DJANGO_SETTINGS_MODULE
+# long-running tasks. Fall back to prod_celery even if DJANGO_SETTINGS_MODULE
 # is set to prod, so existing K8s/Docker configs don't need to change.
 if os.environ.get('DJANGO_SETTINGS_MODULE') in (None, f'{PROJECT_NAME}.settings.prod'):
-    os.environ['DJANGO_SETTINGS_MODULE'] = f'{PROJECT_NAME}.settings.celery_prod'
+    os.environ['DJANGO_SETTINGS_MODULE'] = f'{PROJECT_NAME}.settings.prod_celery'
 
 Celery = celery.Celery
 
