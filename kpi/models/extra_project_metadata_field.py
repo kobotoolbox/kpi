@@ -3,12 +3,13 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 
-class ExtraProjectMetadataField(models.Model):
-    class FieldType(models.TextChoices):
-        TEXT = 'text', _('Text')
-        SINGLE_SELECT = 'single_select', _('Single Select')
-        MULTI_SELECT = 'multi_select', _('Multi Select')
+class ExtraProjectMetadataFieldType(models.TextChoices):
+    TEXT = 'text', _('Text')
+    SINGLE_SELECT = 'single_select', _('Single Select')
+    MULTI_SELECT = 'multi_select', _('Multi Select')
 
+
+class ExtraProjectMetadataField(models.Model):
     name = models.CharField(
         max_length=100,
         unique=True,
@@ -20,7 +21,9 @@ class ExtraProjectMetadataField(models.Model):
         help_text=_("Translation map: {'default': 'Country', 'fr': 'Pays'}"),
     )
     type = models.CharField(
-        max_length=20, choices=FieldType.choices, default=FieldType.TEXT
+        max_length=20,
+        choices=ExtraProjectMetadataFieldType.choices,
+        default=ExtraProjectMetadataFieldType.TEXT,
     )
     is_required = models.BooleanField(default=False, verbose_name=_('Required'))
     options = models.JSONField(
@@ -36,12 +39,31 @@ class ExtraProjectMetadataField(models.Model):
 
     def clean(self):
         super().clean()
-        # Requirement: Options required for select types
-        if self.type in [self.FieldType.SINGLE_SELECT, self.FieldType.MULTI_SELECT]:
+        if self.type in [
+            ExtraProjectMetadataFieldType.SINGLE_SELECT,
+            ExtraProjectMetadataFieldType.MULTI_SELECT,
+        ]:
             if not self.options:
                 raise ValidationError(
                     {'options': _('Options are required for select fields.')}
                 )
+
+            for option in self.options:
+                if any(
+                    [
+                        not isinstance(option, dict),
+                        'name' not in option,
+                        'label' not in option,
+                    ]
+                ):
+                    raise ValidationError(
+                        {
+                            'options': _(
+                                'Each option must be a dictionary'
+                                " containing 'name' and 'label'."
+                            )
+                        }
+                    )
 
     def __str__(self):
         return self.name
