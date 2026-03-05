@@ -27,7 +27,35 @@ export interface FormHistoryProps {
   deployedVersionId?: string
   deploymentActive?: boolean
   deploymentStatus?: string
+  /**
+   * TODO: for now we are saving an API call to get this number, because parent component already has this data from
+   * `AssetResponse.deployed_versions.count`. The API we use here has a count of all versions (sum of deployed and never
+   * deployed).
+   */
+  deployedVersionsCount: number
   onClone: (versionUid: string) => void
+}
+
+/**
+ * Returns a version string (e.g. "v12" or "-"). Each deployed version is a major number version. Each undeployed
+ * version between majors will get a dash. Ideally we aim at using "v12.1" instead of "-", but it's not doable with
+ * pagination.
+ * TODO: after DEV-?? is done, and while doing DEV-?? this function can be scrapped.
+ */
+function getVersionName(
+  versionIndex: number,
+  totalDeployedVersionsCount: number,
+  isVersionDeployed: boolean,
+  rowData: VersionListResponse[],
+) {
+  const rowDataDeployedOnly = rowData.filter((item) => item.date_deployed)
+  const versionDeployedOnlyIndex = rowDataDeployedOnly.findIndex((item) => item.uid === rowData[versionIndex].uid)
+
+  if (isVersionDeployed) {
+    return `v${totalDeployedVersionsCount - versionDeployedOnlyIndex}`
+  } else {
+    return '-'
+  }
 }
 
 /**
@@ -89,10 +117,16 @@ export default function FormHistory(props: FormHistoryProps) {
         key: 'version',
         label: t('Version'),
         cellFormatter: (value: VersionListResponse, index: number) => {
-          const versionNumber = totalCount - index
+          const versionName = getVersionName(
+            index,
+            props.deployedVersionsCount,
+            (value.date_deployed as string | false) !== false,
+            rowData,
+          )
+
           return (
             <Group gap='xs'>
-              <Text>v{versionNumber}</Text>
+              <Text>{versionName}</Text>
               {value.uid === props.deployedVersionId && props.deploymentActive && (
                 <AssetStatusBadge deploymentStatus={props.deploymentStatus} labelOverride={t('currently deployed')} />
               )}

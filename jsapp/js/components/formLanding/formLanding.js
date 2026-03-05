@@ -186,6 +186,7 @@ class FormLanding extends React.Component {
             isEnabled={Boolean(this.state.historyExpanded)}
             assetUid={this.props.params.uid}
             deployedVersionId={this.state.deployed_version_id}
+            deployedVersionsCount={this.state.deployed_versions.count}
             deploymentActive={this.state.deployment__active}
             deploymentStatus={this.state.deployment_status}
             onClone={(versionUid) => this.saveCloneAs(versionUid)}
