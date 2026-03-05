@@ -55,6 +55,17 @@ fi
 /bin/bash "${INIT_PATH}/wait_for_postgres.bash"
 
 echo 'Running migrations…'
+echo '%%%%%%%%%%%%%%%%%%%%%%'
+echo '% NOTICE REGARDING MIGRATION ERRORS:'
+echo '% If you encounter a "NotSupportedError: cannot alter type of a column'
+echo '% used by a view" during migrations, the user_reports materialized view'
+echo '% is locking the schema.'
+echo '%'
+echo '% To fix this, manually run these commands in your kpi container:'
+echo '% 1. python manage.py manage_user_reports_mv --drop'
+echo '% 2. ./scripts/migrate.sh'
+echo '% 3. python manage.py manage_user_reports_mv --create'
+echo '%%%%%%%%%%%%%%%%%%%%%%'
 gosu "${UWSGI_USER}" scripts/migrate.sh
 
 echo 'Creating superuser…'
