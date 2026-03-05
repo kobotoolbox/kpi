@@ -135,7 +135,7 @@ $z-index-spinner: 8;
     position: sticky;
     top: 0;
     // Needed for the header to be above body rows
-    z-index: 1;
+    z-index: $z-index-pinned-header;
   }
 }
 

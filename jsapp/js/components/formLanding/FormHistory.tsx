@@ -51,7 +51,7 @@ export default function FormHistory(props: FormHistoryProps) {
     return () => {
       unlisteners.forEach((clb) => clb())
     }
-  }, [])
+  }, [AssetsVersionListQueryKeyInfinite])
 
   // Wrap Orval's raw fetching function in TanStack's useInfiniteQuery
   const historyInfiniteQuery = useInfiniteQuery({
@@ -59,12 +59,12 @@ export default function FormHistory(props: FormHistoryProps) {
     // `pageParam` is the result of `getNextPageParam`
     queryFn: ({ pageParam, signal }) =>
       // TODO: for now this returns all versions, and we need to display only the deployed ones
-      assetsVersionsList(props.assetUid, { limit: ITEMS_PER_PAGE, offset: pageParam }, { signal }),
+      assetsVersionsList(props.assetUid, { limit: ITEMS_PER_PAGE, start: pageParam }, { signal }),
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) => {
       // Type guard: ensure the request was successful and has a next page
       if (lastPage.status === 200 && lastPage.data.next) {
-        // Calculate the next offset based on how many pages we've fetched
+        // Calculate the next start based on how many pages we've fetched
         return allPages.length * ITEMS_PER_PAGE
       }
       return undefined
@@ -73,7 +73,7 @@ export default function FormHistory(props: FormHistoryProps) {
   })
 
   // Flatten the pages into a single array for UniversalTableCore
-  const columnsData: VersionListResponse[] = useMemo(() => {
+  const rowData: VersionListResponse[] = useMemo(() => {
     return historyInfiniteQuery.data?.pages.flatMap((page) => (page.status === 200 ? page.data.results : [])) || []
   }, [historyInfiniteQuery.data])
 
@@ -137,7 +137,7 @@ export default function FormHistory(props: FormHistoryProps) {
   return (
     <UniversalTableCore<VersionListResponse>
       columns={columns}
-      data={columnsData}
+      data={rowData}
       maxHeight={425}
       bottomContent={
         <InfiniteScrollTrigger
