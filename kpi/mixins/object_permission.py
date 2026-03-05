@@ -1,4 +1,3 @@
-# coding: utf-8
 from __future__ import annotations
 
 import copy
@@ -9,6 +8,7 @@ from django.conf import settings
 from django.contrib.auth.models import AnonymousUser, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.db import models, transaction
+from django.db.models import Q
 from django_request_cache import cache_for_request
 from rest_framework import serializers
 
@@ -17,6 +17,8 @@ from kobo.apps.project_views.models.project_view import ProjectView
 from kpi.constants import (
     ASSET_TYPE_SURVEY,
     ASSET_TYPES_WITH_CHILDREN,
+    PERM_DISCOVER_ASSET,
+    PERM_VIEW_ASSET,
     PREFIX_PARTIAL_PERMS,
 )
 from kpi.deployment_backends.kc_access.utils import (
@@ -938,19 +940,39 @@ class ObjectPermissionMixin:
 
 class ObjectPermissionViewSetMixin:
 
-    def cache_all_assets_perms(self, asset_ids: list) -> dict:
-        object_permissions = ObjectPermission.objects.filter(
+    def cache_all_assets_perms(
+        self, asset_ids: list, current_user_permissions_only: bool = True
+    ) -> dict:
+
+        user_id = self.request.user.pk
+
+        qs = ObjectPermission.objects.filter(
             asset_id__in=asset_ids,
             deny=False,
-        ).select_related(
-            'user', 'permission'
-        ).order_by(
-            'user__username', 'permission__codename'
         )
+
+        if current_user_permissions_only:
+            # Load only the minimal set of permissions needed by the list view:
+            # - all permissions for the requesting user (for get_permissions())
+            # - discover_asset, view_asset for anonymous (for public detection)
+            qs = qs.filter(
+                Q(user_id=user_id)
+                | Q(
+                    user_id=settings.ANONYMOUS_USER_ID,
+                    permission__codename__in=[PERM_DISCOVER_ASSET, PERM_VIEW_ASSET],
+                )
+            )
 
         object_permissions_per_asset = defaultdict(list)
 
-        for op in object_permissions:
-            object_permissions_per_asset[op.asset_id].append(op)
+        for op in qs.values(
+            'uid',
+            'asset_id',
+            'user_id',
+            'deny',
+            'user__username',
+            'permission__codename',
+        ).order_by('user__username', 'permission__codename'):
+            object_permissions_per_asset[op['asset_id']].append(op)
 
         return object_permissions_per_asset

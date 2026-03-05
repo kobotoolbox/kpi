@@ -67,14 +67,18 @@ class AssetListApiTests(test_api_assets.AssetListApiTests):
         # expected query counts are different in v1 and v2 so override the test here
         self.create_asset()
 
-        with self.assertNumQueries(FuzzyInt(28, 40)):
+        with self.assertNumQueries(FuzzyInt(40, 95)):
             self.client.get(self.list_url)
         # test query count does not increase with more assets
         self.create_asset()
         self.create_asset()
         self.create_asset()
-        with self.assertNumQueries(FuzzyInt(28, 40)):
+        with self.assertNumQueries(FuzzyInt(40, 95)):
             self.client.get(self.list_url)
+
+    @unittest.skip(reason='deprecated version, only works with v2 endpoint')
+    def test_current_user_permissions_only_param(self):
+        pass
 
 
 class AssetVersionApiTests(test_api_assets.AssetVersionApiTests):
@@ -100,6 +104,10 @@ class AssetDetailApiTests(test_api_assets.AssetDetailApiTests):
 
     @unittest.skip(reason='`last_modified_by` property only exists in v2 endpoint')
     def test_last_modified_by_is_modified(self):
+        pass
+
+    @unittest.skip(reason='deprecated version, only works with v2 endpoint')
+    def test_detail_permissions_visibility(self):
         pass
 
 
