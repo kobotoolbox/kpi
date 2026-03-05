@@ -5,7 +5,6 @@ import type { LabelValuePair, TransxLanguages } from '#/dataInterface'
 import type { UserFieldName } from './account/account.constants'
 
 export interface EnvironmentResponse {
-  mfa_has_availability_list: boolean
   terms_of_service_url: string
   privacy_policy_url: string
   source_code_url: string
@@ -100,7 +99,6 @@ export class EnvStoreData {
   public mfa_localized_help_text = ''
   public mfa_enabled = false
   public mfa_per_user_availability = false
-  public mfa_has_availability_list = false
   public mfa_code_length = 6
   public stripe_public_key: string | null = null
   public social_apps: SocialApp[] = []
@@ -194,7 +192,6 @@ class EnvStore {
     this.data.mfa_localized_help_text = response.mfa_localized_help_text
     this.data.mfa_enabled = response.mfa_enabled
     this.data.mfa_per_user_availability = response.mfa_per_user_availability
-    this.data.mfa_has_availability_list = response.mfa_has_availability_list
     this.data.mfa_code_length = response.mfa_code_length
     this.data.stripe_public_key = response.stripe_public_key
     this.data.social_apps = response.social_apps
