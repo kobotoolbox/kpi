@@ -181,7 +181,7 @@ class FormLanding extends React.Component {
           <bem.FormView__cell m='label'>{t('Form history')}</bem.FormView__cell>
         </bem.FormView__cell>
 
-        <bem.FormView__cell m={['box', 'history-table']}>
+        <bem.FormView__cell m={['history-table']}>
           <FormHistory
             isEnabled={Boolean(this.state.historyExpanded)}
             assetUid={this.props.params.uid}
