@@ -81,7 +81,7 @@ jobs:
       id: pytest_lastfailed
       if: steps.pytest_parallel.outcome == 'failure'
       continue-on-error: true
-      run: pytest ${{ matrix.extra-pytest-options }} --lf -x -q
+      run: pytest ${{ matrix.extra-pytest-options }} --lf -ra
 
     - name: Fail if sequential rerun also fails
       if: steps.pytest_parallel.outcome == 'failure' && steps.pytest_lastfailed.outcome == 'failure'
