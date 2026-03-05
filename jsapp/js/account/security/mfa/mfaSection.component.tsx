@@ -128,6 +128,10 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
       return <LoadingSpinner />
     }
 
+    if (!envStore.data.mfa_enabled) {
+      return null
+    }
+
     return (
       <section className={securityStyles.securitySection}>
         <div className={securityStyles.securitySectionTitle}>
@@ -135,7 +139,7 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
         </div>
 
         <div className={cx(securityStyles.securitySectionBody, styles.body)}>
-          <div className={styles.bodyMain}>
+          <div>
             <p className={styles.mfaDescription}>
               {t(
                 'Two-factor authentication (2FA) verifies your identity using an authenticator application in addition to your usual password. ' +
