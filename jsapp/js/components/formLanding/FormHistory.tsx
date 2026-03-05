@@ -4,7 +4,7 @@ import React, { useMemo, useEffect } from 'react'
 import UniversalTableCore, { type UniversalTableColumn } from '#/UniversalTable/UniversalTableCore'
 import { actions } from '#/actions'
 import type { VersionListResponse } from '#/api/models/versionListResponse'
-import { invalidatePaginatedList } from '#/api/mutation-defaults/common'
+import { queryClient } from '#/api/queryClient'
 import {
   assetsVersionsList,
   getAssetsVersionsListQueryKey,
@@ -44,7 +44,9 @@ export default function FormHistory(props: FormHistoryProps) {
     // `jsapp/js/api/mutation-defaults`
     const unlisteners = [
       // Whenever new version is deployed, we need to refresh
-      actions.resources.deployAsset.completed.listen(() => invalidatePaginatedList(AssetsVersionListQueryKeyInfinite)),
+      actions.resources.deployAsset.completed.listen(() =>
+        queryClient.invalidateQueries({ queryKey: AssetsVersionListQueryKeyInfinite }),
+      ),
     ]
     return () => {
       unlisteners.forEach((clb) => clb())
