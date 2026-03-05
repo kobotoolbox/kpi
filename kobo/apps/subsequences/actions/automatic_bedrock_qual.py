@@ -436,6 +436,9 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
                 logging.info(
                     f'LLM prompt: \n{prompt}\nLLM response:\n{full_response_text}'
                 )
+                # edge case: sometimes the LLM returns None
+                if full_response_text is None:
+                    raise InvalidResponseFromLLMException('LLM returned empty response')
                 if qa_question_type == QUESTION_TYPE_TEXT:
                     return {
                         'value': parse_text_response(full_response_text),

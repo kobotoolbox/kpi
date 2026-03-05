@@ -6,19 +6,16 @@ import type { MfaActivatedResponse, MfaUserMethodsResponse } from '#/actions/mfa
 import mfaActions from '#/actions/mfaActions'
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
-import InlineMessage from '#/components/common/inlineMessage'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import ToggleSwitch from '#/components/common/toggleSwitch'
 import { MODAL_TYPES } from '#/constants'
 import envStore from '#/envStore'
 import pageState from '#/pageState.store'
-import { formatDate, formatTime } from '#/utils'
+import { formatTime } from '#/utils'
 import styles from './mfaSection.module.scss'
 
 interface SecurityState {
-  isMfaAvailable?: boolean
   isMfaActive: boolean
-  isPlansMessageVisible?: boolean
   dateDisabled?: string
   dateModified?: string
 }
@@ -29,9 +26,7 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
   constructor(props: {}) {
     super(props)
     this.state = {
-      isMfaAvailable: undefined,
       isMfaActive: false,
-      isPlansMessageVisible: undefined,
       dateDisabled: undefined,
       dateModified: undefined,
     }
@@ -42,14 +37,12 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
   componentDidMount() {
     this.unlisteners.push(
       mfaActions.getUserMethods.completed.listen(this.onGetUserMethodsCompleted.bind(this)),
-      mfaActions.getMfaAvailability.completed.listen(this.onGetMfaAvailability.bind(this)),
       mfaActions.activate.completed.listen(this.mfaActivating.bind(this)),
       mfaActions.confirmCode.completed.listen(this.mfaActivated.bind(this)),
       mfaActions.deactivate.completed.listen(this.mfaDeactivated.bind(this)),
     )
 
     mfaActions.getUserMethods()
-    mfaActions.getMfaAvailability()
   }
 
   componentWillUnmount() {
@@ -66,14 +59,6 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
         dateModified: response[0].date_modified,
       })
     }
-  }
-
-  onGetMfaAvailability(response: { isMfaAvailable: boolean; isPlansMessageVisible: boolean }) {
-    // Determine whether MFA is allowed based on per-user availability and subscription status
-    this.setState({
-      isMfaAvailable: response.isMfaAvailable,
-      isPlansMessageVisible: response.isPlansMessageVisible,
-    })
   }
 
   mfaActivating(response: MfaActivatedResponse) {
@@ -102,9 +87,6 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
   }
 
   onToggleChange(isActive: boolean) {
-    if (!this.state.isMfaAvailable) {
-      return
-    }
     if (isActive) {
       mfaActions.activate()
     } else {
@@ -142,26 +124,22 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
   }
 
   render() {
-    if (!envStore.isReady || this.state.isMfaAvailable === undefined) {
+    if (!envStore.isReady) {
       return <LoadingSpinner />
     }
 
-    if (!envStore.data.mfa_enabled || (!this.state.isMfaAvailable && !this.state.isPlansMessageVisible)) {
+    if (!envStore.data.mfa_enabled) {
       return null
     }
 
     return (
-      <section
-        className={cx(securityStyles.securitySection, {
-          [styles.isUnauthorized]: !this.state.isMfaAvailable,
-        })}
-      >
+      <section className={securityStyles.securitySection}>
         <div className={securityStyles.securitySectionTitle}>
           <h2 className={securityStyles.securitySectionTitleText}>{t('Two-factor authentication')}</h2>
         </div>
 
         <div className={cx(securityStyles.securitySectionBody, styles.body)}>
-          <div className={styles.bodyMain}>
+          <div>
             <p className={styles.mfaDescription}>
               {t(
                 'Two-factor authentication (2FA) verifies your identity using an authenticator application in addition to your usual password. ' +
@@ -169,7 +147,7 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
               )}
             </p>
 
-            {this.state.isMfaActive && this.state.isMfaAvailable && (
+            {this.state.isMfaActive && (
               <div className={styles.mfaOptions}>
                 <div className={styles.mfaOptionsRow}>
                   <h3 className={styles.mfaOptionsLabel}>{t('Authenticator app')}</h3>
@@ -201,35 +179,12 @@ export default class SecurityRoute extends React.Component<{}, SecurityState> {
               </div>
             )}
           </div>
-
-          {!this.state.isMfaActive && this.state.isMfaAvailable && this.state.dateDisabled && (
-            <InlineMessage
-              type='default'
-              message={t('Two-factor authentication was deactivated for your account on ##date##').replace(
-                '##date##',
-                formatDate(this.state.dateDisabled),
-              )}
-            />
-          )}
-
-          {this.state.isPlansMessageVisible && (
-            <InlineMessage
-              type='default'
-              message={
-                <>
-                  {t('This feature is not available on your current plan. Please visit the ')}
-                  <a href={'/#/account/plan'}>{t('Plans page')}</a>
-                  {t(' to upgrade your account.')}
-                </>
-              }
-            />
-          )}
         </div>
 
         <div className={styles.options}>
           <ToggleSwitch
-            label={this.state.isMfaActive && this.state.isMfaAvailable ? t('Enabled') : t('Disabled')}
-            checked={this.state.isMfaActive && this.state.isMfaAvailable}
+            label={this.state.isMfaActive ? t('Enabled') : t('Disabled')}
+            checked={this.state.isMfaActive}
             onChange={this.onToggleChange.bind(this)}
           />
         </div>
