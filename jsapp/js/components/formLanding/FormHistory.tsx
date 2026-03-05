@@ -94,7 +94,7 @@ export default function FormHistory(props: FormHistoryProps) {
             <Group gap='xs'>
               <Text>v{versionNumber}</Text>
               {value.uid === props.deployedVersionId && props.deploymentActive && (
-                <AssetStatusBadge deploymentStatus={props.deploymentStatus} />
+                <AssetStatusBadge deploymentStatus={props.deploymentStatus} labelOverride={t('currently deployed')} />
               )}
             </Group>
           )
@@ -102,14 +102,19 @@ export default function FormHistory(props: FormHistoryProps) {
       },
       {
         key: 'date_deployed',
-        label: t('Last Modified'),
+        label: t('Type'),
         cellFormatter: (value: VersionListResponse) => {
           // TODO remove that casting after DEV-1823 is done
-          if ((value.date_deployed as boolean | string) === false) {
-            return <Text c='var(--mantine-color-gray-3)'>{t('Undeployed')}</Text>
+          if ((value.date_deployed as string | false) === false) {
+            return t('Form change')
           }
-          return formatTime(value.date_deployed)
+          return t('Deployment')
         },
+      },
+      {
+        key: 'date_modified',
+        label: t('Last Modified'),
+        cellFormatter: (value: VersionListResponse) => formatTime(value.date_modified),
       },
     ]
 
