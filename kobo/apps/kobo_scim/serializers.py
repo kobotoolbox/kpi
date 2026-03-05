@@ -46,6 +46,7 @@ class ScimGroupSerializer(serializers.ModelSerializer):
     """
 
     schemas = serializers.SerializerMethodField()
+    id = serializers.CharField(read_only=True)
     displayName = serializers.CharField(source='name')
     externalId = serializers.CharField(
         source='scim_external_id', required=False, allow_blank=True

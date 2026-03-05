@@ -1,8 +1,10 @@
 import re
 
 from django.conf import settings
+from django.db import IntegrityError
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import mixins, status, viewsets
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -44,7 +46,7 @@ class ScimUserViewSet(
 
     queryset = User.objects.all().order_by('id')
     serializer_class = ScimUserSerializer
-    authentication_classes = [SCIMAuthentication]
+    authentication_classes = [ScimAuthentication]
     permission_classes = [IsAuthenticatedIdP]
     pagination_class = ScimPagination
 
@@ -164,7 +166,7 @@ class ScimServiceProviderConfigView(APIView):
     - GET /ServiceProviderConfig
     """
 
-    authentication_classes = [SCIMAuthentication]
+    authentication_classes = [ScimAuthentication]
     permission_classes = [IsAuthenticatedIdP]
 
     def get(self, request, *args, **kwargs):
@@ -231,7 +233,10 @@ class ScimGroupViewSet(viewsets.ModelViewSet):
         displayName = self.request.data.get('displayName', '')
         externalId = self.request.data.get('externalId', '')
 
-        group = serializer.save(idp=idp, name=displayName, scim_external_id=externalId)
+        try:
+            group = serializer.save(idp=idp, name=displayName, scim_external_id=externalId)
+        except IntegrityError:
+            raise ValidationError({'displayName': ['A group with this name already exists.']})
 
         members_data = self.request.data.get('members', [])
         self._sync_members(group, members_data, idp)
@@ -241,8 +246,10 @@ class ScimGroupViewSet(viewsets.ModelViewSet):
         displayName = self.request.data.get('displayName', '')
         externalId = self.request.data.get('externalId', '')
 
-        # Standard SCIM PUT replaces all members if members attribute is present
-        group = serializer.save(idp=idp, name=displayName, scim_external_id=externalId)
+        try:
+            group = serializer.save(idp=idp, name=displayName, scim_external_id=externalId)
+        except IntegrityError:
+            raise ValidationError({'displayName': ['A group with this name already exists.']})
 
         if 'members' in self.request.data:
             members_data = self.request.data.get('members', [])
