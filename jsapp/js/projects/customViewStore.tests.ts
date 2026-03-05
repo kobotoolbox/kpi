@@ -9,7 +9,9 @@ describe('customViewStore', () => {
       const url = new URL('http://www.example.com')
       const params = customViewStore.constructFullQueryParams(url)
       const paramsObject = Object.fromEntries(params)
-      chai.expect(paramsObject).to.deep.equal({ q: '(asset_type:survey)', limit: '50', current_user_permissions_only: 'true' })
+      chai
+        .expect(paramsObject)
+        .to.deep.equal({ q: '(asset_type:survey)', limit: '50', current_user_permissions_only: 'true' })
     })
     it('removes asset_type if includeTypeFilter is false', () => {
       const store = customViewStore.setUp('', '', HOME_DEFAULT_VISIBLE_FIELDS, false)
