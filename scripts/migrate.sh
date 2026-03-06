@@ -18,7 +18,7 @@ set -e
 if [ $MIGRATE_STATUS -ne 0 ]; then
     # Search the error output for the specific PostgreSQL view lock message
     if echo "$MIGRATE_OUT" | grep -q "cannot alter type of a column used by a view"; then
-        echo "Materialized view schema lock detected! Automatically resolving..."
+        echo "⚠️ Materialized view schema lock detected! Automatically resolving..."
 
         # Step A: Drop the view to remove the lock
         DJANGO_SETTINGS_MODULE=kobo.settings.guardian python manage.py manage_user_reports_mv --drop
@@ -27,13 +27,21 @@ if [ $MIGRATE_STATUS -ne 0 ]; then
         echo "Retrying KPI migrations..."
         DJANGO_SETTINGS_MODULE=kobo.settings.guardian python manage.py migrate --noinput
 
-        # Step C: Recreate the view and its indexes
-        echo "Restoring the user_reports_userreportsmv view..."
-        DJANGO_SETTINGS_MODULE=kobo.settings.guardian python manage.py manage_user_reports_mv --create
+        # Step C: Recreate the view after successful migration
+        DJANGO_SETTINGS_MODULE=kobo.settings.guardian python manage.py shell <<EOF
+from django.conf import settings
+from django.core.management import call_command
+from kobo.apps.long_running_migrations.models import LongRunningMigration
 
+if getattr(settings, 'SKIP_HEAVY_MIGRATIONS', False):
+    print("⏭️ SKIP_HEAVY_MIGRATIONS is enabled. Deferring view recreation to background Celery task...")
+    LongRunningMigration.objects.filter(name='0019_recreate_user_reports_mv').update(status='created')
+else:
+    print("⏳ Restoring the user_reports_userreportsmv view synchronously (this may take several minutes)...")
+    call_command('manage_user_reports_mv', create=True)
+EOF
         echo "Schema lock resolved successfully."
     else
-        # If it failed for any other reason, just exit normally and show the error
         echo "KPI migrations failed for an unknown reason."
         exit $MIGRATE_STATUS
     fi
