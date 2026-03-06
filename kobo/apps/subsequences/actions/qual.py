@@ -5,6 +5,11 @@ from rest_framework.exceptions import ValidationError
 from kobo.apps.subsequences.actions.base import BaseAction
 from kobo.apps.subsequences.constants import SORT_BY_DATE_FIELD
 from kobo.apps.subsequences.exceptions import SubsequenceVerificationError
+from kobo.apps.subsequences.constants import (
+    QUESTION_TYPE_SOURCE,
+    QUESTION_TYPE_VERIFICATION,
+    SORT_BY_DATE_FIELD,
+)
 from kobo.apps.subsequences.type_aliases import SimplifiedOutputCandidatesByColumnKey
 
 
@@ -297,7 +302,33 @@ class BaseQualAction(BaseAction):
                     for choice in qual_item.get('choices', [])
                 ]
             output_fields.append(field)
+            output_fields.append(
+                {
+                    'label': 'source',
+                    'source': f"{self.source_question_xpath}/{qual_item['uuid']}",
+                    'type': QUESTION_TYPE_SOURCE,
+                    'name': f"{self.source_question_xpath}/{qual_item['uuid']}/source",
+                    'dtpath': f"{self.source_question_xpath}/{qual_item['uuid']}"
+                    "/source",
+                }
+            )
+            output_fields.append(
+                {
+                    'label': 'verified',
+                    'source': f"{self.source_question_xpath}/{qual_item['uuid']}",
+                    'type': QUESTION_TYPE_VERIFICATION,
+                    'name': f"{self.source_question_xpath}/{qual_item['uuid']}"
+                    "/verified",
+                    'dtpath': f"{self.source_question_xpath}/{qual_item['uuid']}"
+                    "/verified",
+                }
+            )
+
         return output_fields
+
+    @property
+    def source(self):
+        return NotImplementedError
 
     def transform_data_for_output(
         self, action_data: dict
@@ -380,6 +411,8 @@ class BaseQualAction(BaseAction):
                 'xpath': self.source_question_xpath,
                 'labels': qual_question.get('labels', {}),
                 SORT_BY_DATE_FIELD: selected_version[self.DATE_CREATED_FIELD],
+                'verified': selected_version['verified'],
+                'source': self.source,
             }
         return results_dict
 
