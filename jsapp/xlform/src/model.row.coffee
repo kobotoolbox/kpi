@@ -450,9 +450,7 @@ module.exports = do ->
 
         # Ensure new list has a unique name
         listName = txtid()
-        # We use `silent` to not cause unnecessary re-renders. We are going to `trigger('change')` few lines below after
-        # cloning is done.
-        clonedList.set('name', listName, {silent: true})
+        clonedList.set('name', listName)
 
         # Register the cloned list with the global choices collection
         @getSurvey().choices.add(clonedList)
