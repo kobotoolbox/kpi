@@ -204,13 +204,11 @@ module.exports = do ->
 
     clone: (event) ->
       parent = @model._parent
-      model = @model
-      if @model.get('type').get('typeId') in ['select_one', 'select_multiple']
-        model = @model.clone()
-      else if @model.get('type').get('typeId') in ['rank', 'score']
-        model = @model.clone()
+      # When we clone a row we can't simply add another row like it, we need to also use inner clone function that will
+      # ensure all related parts are cloned too (e.g. list of choices) and the unique ids are re-generated.
+      clonedModel = @model.clone()
 
-      @model.getSurvey().insert_row.call parent._parent, model, parent.models.indexOf(@model) + 1
+      @model.getSurvey().insert_row.call(parent._parent, clonedModel, parent.models.indexOf(@model) + 1)
 
     addItemToLibrary: (evt) ->
       evt.stopPropagation()
