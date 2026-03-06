@@ -777,7 +777,7 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
                 self.supplement_details_url, data=payload, format='json'
             )
             assert response.status_code == status.HTTP_400_BAD_REQUEST
-            assert 'Cannot translate without transcription' in str(response.data)
+            assert 'No transcription found' in str(response.data)
 
     def test_cannot_delete_non_existent_transcription(self):
         """
@@ -944,7 +944,7 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert 'Cannot translate without transcription' in str(response.data)
+        assert 'No transcription found' in str(response.data)
 
     def test_cannot_translate_deleted_automatic_transcription(self):
         """
@@ -1013,7 +1013,7 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert 'Cannot translate without transcription' in str(response.data)
+        assert 'No transcription found' in str(response.data)
 
     def test_translation_does_not_falls_back_to_automatic_when_manual_deleted(self):
         """
@@ -1103,7 +1103,7 @@ class SubmissionSupplementAPIValidationTestCase(SubsequenceBaseTestCase):
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert 'Cannot translate without transcription' in str(response.data)
+        assert 'No transcription found' in str(response.data)
 
     def test_translation_works_when_transcript_is_replaced_by_different_action(self):
         """

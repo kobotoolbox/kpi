@@ -49,12 +49,10 @@ class ExtraProjectMetadataField(models.Model):
                 )
 
             for option in self.options:
-                if any(
-                    [
-                        not isinstance(option, dict),
-                        'name' not in option,
-                        'label' not in option,
-                    ]
+                if (
+                    not isinstance(option, dict)
+                    or 'name' not in option  # noqa: W503
+                    or 'label' not in option  # noqa: W503
                 ):
                     raise ValidationError(
                         {
