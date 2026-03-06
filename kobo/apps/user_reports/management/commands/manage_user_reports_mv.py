@@ -1,6 +1,10 @@
+import datetime
+
+from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db import connection
 
+from kobo.apps.long_running_migrations.models import LongRunningMigration
 from kobo.apps.user_reports.utils.migrations import (
     CREATE_INDEXES_SQL,
     CREATE_MV_SQL,
@@ -22,12 +26,45 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         with connection.cursor() as cursor:
             if options['drop']:
-                self.stdout.write('Dropping materialized view...')
+                if not self._mv_exists(cursor):
+                    self.stdout.write(
+                        'Materialized view does not exist, nothing to drop.'
+                    )
+                    return
+                self.stdout.write('Dropping materialized view…')
                 cursor.execute(DROP_MV_SQL)
                 self.stdout.write(self.style.SUCCESS('Dropped.'))
 
             if options['create']:
-                self.stdout.write('Creating materialized view...')
-                cursor.execute(CREATE_MV_SQL)
-                cursor.execute(CREATE_INDEXES_SQL)
-                self.stdout.write(self.style.SUCCESS('Created.'))
+                if self._mv_exists(cursor):
+                    self.stdout.write(
+                        'Materialized view already exists, skipping creation.'
+                    )
+                    return
+
+                if settings.SKIP_HEAVY_MIGRATIONS:
+                    now = datetime.datetime.now()
+                    next_quarter = now.replace(
+                        second=0, microsecond=0
+                    ) + datetime.timedelta(minutes=15 - now.minute % 15)
+                    self.stdout.write(
+                        'Scheduling creation of the materialized view for '
+                        f'{next_quarter.strftime("%Y-%m-%d %H:%M")}.'
+                    )
+                    LongRunningMigration.objects.filter(
+                        name='0019_recreate_user_reports_mv'
+                    ).update(status='created')
+                else:
+                    self.stdout.write(
+                        '⏳Creating materialized view (this may take several minutes)…'
+                    )
+                    cursor.execute(CREATE_MV_SQL)
+                    cursor.execute(CREATE_INDEXES_SQL)
+                    self.stdout.write(self.style.SUCCESS('Created.'))
+
+    @staticmethod
+    def _mv_exists(cursor) -> bool:
+        cursor.execute(
+            "SELECT 1 FROM pg_matviews WHERE matviewname = 'user_reports_userreportsmv'"
+        )
+        return cursor.fetchone() is not None

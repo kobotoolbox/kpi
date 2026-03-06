@@ -28,23 +28,14 @@ if [ $MIGRATE_STATUS -ne 0 ]; then
         DJANGO_SETTINGS_MODULE=kobo.settings.guardian python manage.py migrate --noinput
 
         # Step C: Recreate the view after successful migration
-        DJANGO_SETTINGS_MODULE=kobo.settings.guardian python manage.py shell <<EOF
-from django.conf import settings
-from django.core.management import call_command
-from kobo.apps.long_running_migrations.models import LongRunningMigration
-
-if getattr(settings, 'SKIP_HEAVY_MIGRATIONS', False):
-    print("⏭️ SKIP_HEAVY_MIGRATIONS is enabled. Deferring view recreation to background Celery task...")
-    LongRunningMigration.objects.filter(name='0019_recreate_user_reports_mv').update(status='created')
-else:
-    print("⏳ Restoring the user_reports_userreportsmv view synchronously (this may take several minutes)...")
-    call_command('manage_user_reports_mv', create=True)
-EOF
+        DJANGO_SETTINGS_MODULE=kobo.settings.guardian python manage.py manage_user_reports_mv --create
         echo "Schema lock resolved successfully."
     else
         echo "KPI migrations failed for an unknown reason."
         exit $MIGRATE_STATUS
     fi
+else
+    echo "$MIGRATE_OUT"
 fi
 echo '########## KoboCAT migrations ############'
 DJANGO_SETTINGS_MODULE=kobo.settings.guardian python manage.py migrate --noinput --database kobocat
