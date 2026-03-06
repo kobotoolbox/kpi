@@ -202,7 +202,6 @@ module.exports = do ->
     _cleanupExpandedRender: ->
       @$('.card__settings').detach()
 
-    # Clones the row with all the related parts
     clone: (event) ->
       parent = @model._parent
       # When we clone a row we can't simply add another row like it, we need to also use inner clone function that will
