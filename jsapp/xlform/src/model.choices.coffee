@@ -156,7 +156,10 @@ module.exports = do ->
 
       clonedList = new choices.ChoiceList(json)
 
-      return clonedList
+      return _.assign(
+        new choices.ChoiceList(json),
+        collection: @collection
+      )
 
     toJSON: ()->
       @finalize()
