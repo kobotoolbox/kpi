@@ -442,7 +442,6 @@ module.exports = do ->
 
       newRow = new row.Row(attributes, options)
 
-      # For few distinct types we need to do a bit more work
       newRowType = newRow.get('type')
       if newRowType.get('typeId') in ['select_one', 'select_multiple']
         # Clone the choices list (as it is a distinct entity)
