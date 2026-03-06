@@ -424,7 +424,7 @@ module.exports = do ->
     getTypeId: ->
       return @get('type').get('typeId')
 
-    # Clones given row in a deep way (i.e. also clones list of choices etc.)
+    # Clones this row in a deep way (i.e. also clones list of choices etc.) and returns the new clone-row
     clone: ->
       attributes = {}
       options =
