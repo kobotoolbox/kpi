@@ -41,8 +41,8 @@ export const InfiniteScrollTrigger: React.FC<InfiniteScrollTriggerProps> = ({
     }
   }, [entry?.isIntersecting, hasNextPage, isFetchingNextPage, isError, onRequestFetchNextPage])
 
-  // Hide the entire control row if we don't need to load, don't have an error, don't have a next page, or the user
-  // chose to hide the end message.
+  // Show the control row if we are loading the next page, have an error, have more pages to load, or are showing
+  // the end-of-list message
   const shouldShowControlRow = isFetchingNextPage || isError || hasNextPage || showEndMessage
 
   if (!shouldShowControlRow) {

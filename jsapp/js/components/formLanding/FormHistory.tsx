@@ -59,7 +59,7 @@ function getVersionName(
 }
 
 /**
- * Displays a table with a list of previously deployed form versions
+ * Displays a table with a list of previous form versions, including both deployed and undeployed versions.
  */
 export default function FormHistory(props: FormHistoryProps) {
   const isLoggedIn = sessionStore.isLoggedIn
@@ -76,7 +76,7 @@ export default function FormHistory(props: FormHistoryProps) {
     return () => {
       unlisteners.forEach((clb) => clb())
     }
-  }, [])
+  }, [props.assetUid])
 
   // Wrap Orval's raw fetching function in TanStack's useInfiniteQuery
   const historyInfiniteQuery = useInfiniteQuery({
