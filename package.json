@@ -6,7 +6,7 @@
     "node": "^20.18.1 || ^22.4.1"
   },
   "dependencies": {
-    "@fontsource/roboto": "^4.5.8",
+    "@fontsource/roboto": "^5.2.10",
     "@fontsource/roboto-mono": "^4.4.2",
     "@mantine/core": "^7.15.0",
     "@mantine/form": "^7.16.2",
