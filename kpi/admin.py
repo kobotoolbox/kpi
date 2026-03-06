@@ -50,7 +50,7 @@ class ExtraProjectMetadataFieldAdmin(admin.ModelAdmin):
             _('Options Configuration'),
             {
                 'fields': ('options_raw', 'options'),
-                'description': _("Only required for Single/Multi Select types."),
+                'description': _('Only required for Single/Multi Select types.'),
             },
         ),
     )
