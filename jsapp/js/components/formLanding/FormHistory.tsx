@@ -169,7 +169,16 @@ export default function FormHistory(props: FormHistoryProps) {
     }
 
     return baseColumns
-  }, [totalCount, props.deployedVersionId, props.deploymentActive, props.deploymentStatus, isLoggedIn, props.onClone])
+  }, [
+    totalCount,
+    props.deployedVersionsCount,
+    props.deployedVersionId,
+    props.deploymentActive,
+    props.deploymentStatus,
+    isLoggedIn,
+    props.onClone,
+    rowData,
+  ])
 
   if (historyInfiniteQuery.isLoading) {
     return (
