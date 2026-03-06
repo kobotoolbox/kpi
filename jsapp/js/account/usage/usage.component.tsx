@@ -184,7 +184,7 @@ export default function Usage() {
           period={billingPeriod}
           label={t('Total')}
           type={USAGE_TYPE.STORAGE}
-          title={t('Storage')}
+          title={t('File storage')}
           dateRange={'per account'}
         />
         <UsageContainer

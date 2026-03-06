@@ -6,6 +6,7 @@ from django.shortcuts import resolve_url
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from djstripe.models import Customer, Price, Subscription, SubscriptionItem
+from freezegun import freeze_time
 from model_bakery import baker
 from rest_framework import status
 
@@ -17,6 +18,7 @@ from kobo.apps.organizations.models import Organization, OrganizationUser
 from kpi.tests.kpi_test_case import KpiTestCase
 
 
+@freeze_time('2026-01-01 12:00:00')
 class TestStripeMFALogin(KpiTestCase):
     def setUp(self):
         self.someuser = User.objects.get(username='someuser')
