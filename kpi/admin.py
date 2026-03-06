@@ -1,9 +1,11 @@
 # coding: utf-8
 from django.contrib import admin
+from django.utils.translation import gettext_lazy as _
 
 from kpi.constants import ASSET_TYPE_SURVEY
-from .models import AuthorizedApplication
-from .models import Asset
+from kpi.forms.extra_metadata_form import ExtraProjectMetadataFieldForm
+from kpi.models import ExtraProjectMetadataField
+from .models import Asset, AuthorizedApplication
 
 
 class AssetAdmin(admin.ModelAdmin):
@@ -33,3 +35,30 @@ admin.site.register(AuthorizedApplication)
 # We need to register Asset to use `autocomplete_fields` (with Asset) in
 # Django Admin.
 admin.site.register(Asset, AssetAdmin)
+
+
+@admin.register(ExtraProjectMetadataField)
+class ExtraProjectMetadataFieldAdmin(admin.ModelAdmin):
+    form = ExtraProjectMetadataFieldForm
+    list_display = ('name', 'label_display', 'type', 'is_required')
+    list_filter = ('type', 'is_required')
+    search_fields = ('name',)
+
+    fieldsets = (
+        (None, {'fields': ('name', 'label', 'type', 'is_required')}),
+        (
+            _('Options Configuration'),
+            {
+                'fields': ('options_raw', 'options'),
+                'description': _("Only required for Single/Multi Select types."),
+            },
+        ),
+    )
+
+    def label_display(self, obj):
+        # If it's not a dict, return a string representation or a default value
+        if isinstance(obj.label, dict):
+            return obj.label.get('default', obj.name)
+        return str(obj.label)
+
+    label_display.short_description = _('Default Label')
