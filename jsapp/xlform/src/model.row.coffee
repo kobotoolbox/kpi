@@ -191,7 +191,7 @@ module.exports = do ->
             r2._rankLevels.options.add(itemJson)
 
           r2.set('kobo--rank-items', r2._rankLevels.get('name'))
-          @convertAttributesToRowDetails()
+          r2.convertAttributesToRowDetails()
           r2.get('type').set('list', r2._rankLevels)
         else
           # if rr is a score question
@@ -209,7 +209,7 @@ module.exports = do ->
             r2._scoreChoices.options.add(itemJson)
 
           r2.set('kobo--score-choices', r2._scoreChoices.get('name'))
-          @convertAttributesToRowDetails()
+          r2.convertAttributesToRowDetails()
           r2.get('type').set('list', r2._scoreChoices)
 
         return r2
