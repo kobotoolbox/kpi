@@ -1,16 +1,20 @@
 import re
 
 from django.conf import settings
+from django.db import IntegrityError
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import mixins, status, viewsets
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import AuditLog, AuditType
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.kobo_scim.authentication import IsAuthenticatedIdP, SCIMAuthentication
-from kobo.apps.kobo_scim.pagination import SCIMPagination
-from kobo.apps.kobo_scim.serializers import ScimUserSerializer
+from kobo.apps.kobo_scim.authentication import IsAuthenticatedIdP, ScimAuthentication
+from kobo.apps.kobo_scim.models import ScimGroup
+from kobo.apps.kobo_scim.pagination import ScimPagination
+from kobo.apps.kobo_scim.serializers import ScimGroupSerializer, ScimUserSerializer
 
 
 @extend_schema(tags=['SCIM'])
@@ -42,9 +46,9 @@ class ScimUserViewSet(
 
     queryset = User.objects.all().order_by('id')
     serializer_class = ScimUserSerializer
-    authentication_classes = [SCIMAuthentication]
+    authentication_classes = [ScimAuthentication]
     permission_classes = [IsAuthenticatedIdP]
-    pagination_class = SCIMPagination
+    pagination_class = ScimPagination
 
     def get_queryset(self):
         # The idp_slug in the URL MUST match the authenticated IdP
@@ -150,3 +154,199 @@ class ScimUserViewSet(
             {'detail': 'Operation not supported or invalid'},
             status=status.HTTP_400_BAD_REQUEST,
         )
+
+
+@extend_schema(tags=['SCIM'])
+@extend_schema_view(
+    get=extend_schema(description='Returns the SCIM Service Provider Configuration.'),
+)
+class ScimServiceProviderConfigView(APIView):
+    """
+    SCIM 2.0 compliant ServiceProviderConfig endpoint.
+    - GET /ServiceProviderConfig
+    """
+
+    authentication_classes = [ScimAuthentication]
+    permission_classes = [IsAuthenticatedIdP]
+
+    def get(self, request, *args, **kwargs):
+        # We only support patch and basic filtering
+        payload = {
+            'schemas': ['urn:ietf:params:scim:schemas:core:2.0:ServiceProviderConfig'],
+            'patch': {'supported': True},
+            'bulk': {'supported': False},
+            'filter': {'supported': True, 'maxResults': 100},
+            'changePassword': {'supported': False},
+            'sort': {'supported': False},
+            'etag': {'supported': False},
+        }
+        return Response(payload, status=status.HTTP_200_OK)
+
+
+@extend_schema(tags=['SCIM'])
+@extend_schema_view(
+    list=extend_schema(description='Returns a list of SCIM groups.'),
+    retrieve=extend_schema(description='Returns a specific SCIM group.'),
+    create=extend_schema(description='Creates a new SCIM group.'),
+    destroy=extend_schema(description='Deletes a SCIM group.'),
+    partial_update=extend_schema(
+        description='Updates a SCIM group. '
+        'Supports adding/removing members via patch operations.'
+    ),
+    update=extend_schema(description='Replaces a SCIM group entirely.'),
+)
+class ScimGroupViewSet(viewsets.ModelViewSet):
+    """
+    SCIM 2.0 compliant Groups API endpoint.
+    - GET /Groups
+    - GET /Groups/{group_id}
+    - POST /Groups
+    - PUT /Groups/{group_id}
+    - PATCH /Groups/{group_id}
+    - DELETE /Groups/{group_id}
+    """
+
+    queryset = ScimGroup.objects.all().order_by('id')
+    serializer_class = ScimGroupSerializer
+    authentication_classes = [ScimAuthentication]
+    permission_classes = [IsAuthenticatedIdP]
+    pagination_class = ScimPagination
+
+    def get_queryset(self):
+        idp = self.request.auth
+        if not idp or idp.slug != self.kwargs.get('idp_slug'):
+            return ScimGroup.objects.none()
+
+        queryset = super().get_queryset().filter(idp=idp)
+
+        filter_param = self.request.query_params.get('filter')
+        if filter_param:
+            match = re.search(r'displayName\s+eq\s+"([^"]+)"', filter_param)
+            if match:
+                value = match.group(1)
+                queryset = queryset.filter(name__iexact=value)
+
+        return queryset
+
+    def perform_create(self, serializer):
+        idp = self.request.auth
+        displayName = self.request.data.get('displayName', '')
+        externalId = self.request.data.get('externalId', '')
+
+        try:
+            group = serializer.save(
+                idp=idp, name=displayName, scim_external_id=externalId
+            )
+        except IntegrityError:
+            raise ValidationError(
+                {'displayName': ['A group with this name already exists.']}
+            )
+
+        members_data = self.request.data.get('members', [])
+        self._sync_members(group, members_data, idp)
+
+    def perform_update(self, serializer):
+        idp = self.request.auth
+        displayName = self.request.data.get('displayName', '')
+        externalId = self.request.data.get('externalId', '')
+
+        try:
+            group = serializer.save(
+                idp=idp, name=displayName, scim_external_id=externalId
+            )
+        except IntegrityError:
+            raise ValidationError(
+                {'displayName': ['A group with this name already exists.']}
+            )
+
+        if 'members' in self.request.data:
+            members_data = self.request.data.get('members', [])
+            self._sync_members(group, members_data, idp, replace=True)
+
+    def partial_update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        operations = request.data.get('Operations', [])
+
+        for op in operations:
+            op_type = op.get('op', '').lower()
+            path = op.get('path', '')
+            value = op.get('value')
+
+            if op_type == 'add':
+                if path == 'members':
+                    self._add_members(instance, value, request.auth)
+                elif isinstance(value, dict) and 'members' in value:
+                    self._add_members(instance, value['members'], request.auth)
+
+            elif op_type in ('remove', 'delete'):
+                if path == 'members':
+                    self._remove_members(instance, value, request.auth)
+                # Sometimes path is 'members[value eq "123"]'
+                elif path.startswith('members[value eq '):
+                    match = re.search(r'members\[value eq "([^"]+)"\]', path)
+                    if match:
+                        user_id = match.group(1)
+                        self._remove_members(
+                            instance, [{'value': user_id}], request.auth
+                        )
+
+            elif op_type == 'replace':
+                if path == 'displayName' and value:
+                    instance.name = value
+                    instance.save(update_fields=['name'])
+                elif path == 'members':
+                    self._sync_members(instance, value, request.auth, replace=True)
+
+        instance.refresh_from_db()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def _sync_members(self, group, members_data, idp, replace=False):
+        users_to_add = set()
+        for member_data in members_data:
+            user_id = member_data.get('value')
+            if user_id:
+                try:
+                    user = User.objects.get(id=user_id)
+                    # We could also verify if the user belongs to the IdP's social app
+                    users_to_add.add(user)
+                except User.DoesNotExist:
+                    pass
+
+        if replace:
+            group.members.set(users_to_add)
+        else:
+            group.members.add(*users_to_add)
+
+    def _add_members(self, group, members_data, idp):
+        if not members_data:
+            return
+        if not isinstance(members_data, list):
+            members_data = [members_data]
+
+        self._sync_members(group, members_data, idp, replace=False)
+
+    def _remove_members(self, group, members_data, idp):
+        if not members_data:
+            return
+        if not isinstance(members_data, list):
+            members_data = [members_data]
+
+        users_to_remove = []
+        for member_data in members_data:
+            # Depending on path filtering, `value` might just be a string
+            # if sent incorrectly, but usually it's dict `{"value": "123"}`
+            user_id = (
+                member_data.get('value')
+                if isinstance(member_data, dict)
+                else member_data
+            )
+            if user_id:
+                try:
+                    user = User.objects.get(id=user_id)
+                    users_to_remove.append(user)
+                except User.DoesNotExist:
+                    pass
+
+        if users_to_remove:
+            group.members.remove(*users_to_remove)
