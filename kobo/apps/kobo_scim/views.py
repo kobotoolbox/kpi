@@ -234,9 +234,13 @@ class ScimGroupViewSet(viewsets.ModelViewSet):
         externalId = self.request.data.get('externalId', '')
 
         try:
-            group = serializer.save(idp=idp, name=displayName, scim_external_id=externalId)
+            group = serializer.save(
+                idp=idp, name=displayName, scim_external_id=externalId
+            )
         except IntegrityError:
-            raise ValidationError({'displayName': ['A group with this name already exists.']})
+            raise ValidationError(
+                {'displayName': ['A group with this name already exists.']}
+            )
 
         members_data = self.request.data.get('members', [])
         self._sync_members(group, members_data, idp)
@@ -247,9 +251,13 @@ class ScimGroupViewSet(viewsets.ModelViewSet):
         externalId = self.request.data.get('externalId', '')
 
         try:
-            group = serializer.save(idp=idp, name=displayName, scim_external_id=externalId)
+            group = serializer.save(
+                idp=idp, name=displayName, scim_external_id=externalId
+            )
         except IntegrityError:
-            raise ValidationError({'displayName': ['A group with this name already exists.']})
+            raise ValidationError(
+                {'displayName': ['A group with this name already exists.']}
+            )
 
         if 'members' in self.request.data:
             members_data = self.request.data.get('members', [])
@@ -326,7 +334,7 @@ class ScimGroupViewSet(viewsets.ModelViewSet):
 
         users_to_remove = []
         for member_data in members_data:
-            # Depending on path filtering, `value` might just be a string 
+            # Depending on path filtering, `value` might just be a string
             # if sent incorrectly, but usually it's dict `{"value": "123"}`
             user_id = (
                 member_data.get('value')
