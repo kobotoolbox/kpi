@@ -64,29 +64,24 @@ function getVersionName(
 export default function FormHistory(props: FormHistoryProps) {
   const isLoggedIn = sessionStore.isLoggedIn
 
-  // Attach 'infinite' to the generated key to prevent cache collisions with standard query calls
-  const AssetsVersionListQueryKeyInfinite = useMemo(
-    () => [...getAssetsVersionsListQueryKey(props.assetUid), 'infinite'],
-    [props.assetUid],
-  )
-
   useEffect(() => {
     // TODO: when gradually switching to Orval for all these actions below, make sure to write invalidating code in
     // `jsapp/js/api/mutation-defaults`
     const unlisteners = [
       // Whenever new version is deployed, we need to refresh
       actions.resources.deployAsset.completed.listen(() =>
-        queryClient.invalidateQueries({ queryKey: AssetsVersionListQueryKeyInfinite }),
+        queryClient.invalidateQueries({ queryKey: [...getAssetsVersionsListQueryKey(props.assetUid), 'infinite'] }),
       ),
     ]
     return () => {
       unlisteners.forEach((clb) => clb())
     }
-  }, [AssetsVersionListQueryKeyInfinite])
+  }, [])
 
   // Wrap Orval's raw fetching function in TanStack's useInfiniteQuery
   const historyInfiniteQuery = useInfiniteQuery({
-    queryKey: AssetsVersionListQueryKeyInfinite,
+    // Attach 'infinite' to the generated key to prevent cache collisions with standard query calls
+    queryKey: [...getAssetsVersionsListQueryKey(props.assetUid), 'infinite'],
     // `pageParam` is the result of `getNextPageParam`
     queryFn: ({ pageParam, signal }) =>
       // TODO: for now this returns all versions, and we need to display only the deployed ones
