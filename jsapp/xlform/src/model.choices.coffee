@@ -142,7 +142,7 @@ module.exports = do ->
         names.push name
       return
 
-    # This is a helper function for `BaseRowView.clone`, it make a copy of choices list in the parent row
+    # This is a helper function for `BaseRowView.clone`, it makes a copy of the choices list in the parent row
     clone: () ->
       json = @toJSON()
 
