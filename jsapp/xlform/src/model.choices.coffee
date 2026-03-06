@@ -156,11 +156,6 @@ module.exports = do ->
 
       clonedList = new choices.ChoiceList(json)
 
-      # If the original list belongs to a collection, add the clone to it.
-      # Backbone's `.add()` will automatically set `clonedList.collection` for us.
-      if @collection
-        @collection.add(clonedList)
-
       return clonedList
 
     toJSON: ()->
