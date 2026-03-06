@@ -586,9 +586,7 @@ class DataViewSet(
             # TODO: more descriptive errors
             raise serializers.ValidationError({'detail': 'Invalid payload'})
         except TranscriptionNotFound:
-            raise serializers.ValidationError(
-                {'detail': 'Cannot translate without transcription'}
-            )
+            raise serializers.ValidationError({'detail': 'No transcription found'})
         except SubsequenceVerificationError:
             raise serializers.ValidationError({'detail': 'No response to verify'})
         except SubsequenceAcceptanceError:
