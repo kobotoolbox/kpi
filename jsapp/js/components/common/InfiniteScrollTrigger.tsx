@@ -7,6 +7,7 @@ export interface InfiniteScrollTriggerProps {
   hasNextPage: boolean
   isFetchingNextPage: boolean
   isError: boolean
+  onRetry: () => void
   onRequestFetchNextPage: () => void
   /** Optionally hide the "You have reached the end of the list" message. Useful for very short lists. */
   showEndMessage?: boolean
@@ -23,6 +24,7 @@ export const InfiniteScrollTrigger: React.FC<InfiniteScrollTriggerProps> = ({
   hasNextPage,
   isFetchingNextPage,
   isError,
+  onRetry,
   onRequestFetchNextPage,
   showEndMessage = true,
 }) => {
@@ -52,7 +54,7 @@ export const InfiniteScrollTrigger: React.FC<InfiniteScrollTriggerProps> = ({
     <Center ref={ref} py='md' style={{ minHeight: '54px' }}>
       {isFetchingNextPage && <Loader size='sm' />}
       {isError && !isFetchingNextPage && (
-        <ButtonNew leftIcon='reload' variant='danger-secondary' size='xs' onClick={() => onRequestFetchNextPage()}>
+        <ButtonNew leftIcon='reload' variant='danger-secondary' size='xs' onClick={onRetry}>
           {t('Retry')}
         </ButtonNew>
       )}

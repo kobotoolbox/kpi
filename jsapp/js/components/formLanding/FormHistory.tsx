@@ -40,7 +40,7 @@ export interface FormHistoryProps {
  * Returns a version string (e.g. "v12" or "-"). Each deployed version is a major number version. Each undeployed
  * version between majors will get a dash. Ideally we aim at using "v12.1" instead of "-", but it's not doable with
  * pagination.
- * TODO: after DEV-?? is done, and while doing DEV-?? this function can be scrapped.
+ * TODO: after DEV-1825 is done, and while doing DEV-1826 this function can be scrapped.
  */
 function getVersionName(
   versionIndex: number,
@@ -198,6 +198,14 @@ export default function FormHistory(props: FormHistoryProps) {
           hasNextPage={historyInfiniteQuery.hasNextPage}
           isFetchingNextPage={historyInfiniteQuery.isFetchingNextPage}
           isError={historyInfiniteQuery.isError}
+          onRetry={() => {
+            // When API call fails on the initial page load, we need to refetch.
+            if (historyInfiniteQuery.hasNextPage === false) {
+              historyInfiniteQuery.refetch()
+            } else {
+              historyInfiniteQuery.fetchNextPage()
+            }
+          }}
           onRequestFetchNextPage={historyInfiniteQuery.fetchNextPage}
           showEndMessage={showEndMessage}
         />
