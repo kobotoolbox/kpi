@@ -101,8 +101,8 @@ class ScimGroupsAPITests(APITestCase):
         self.assertIn(self.user1, group.members.all())
 
     def test_list_groups(self):
-        group1 = ScimGroup.objects.create(idp=self.idp, name='Group 1')
-        group2 = ScimGroup.objects.create(idp=self.idp, name='Group 2')
+        ScimGroup.objects.create(idp=self.idp, name='Group 1')
+        ScimGroup.objects.create(idp=self.idp, name='Group 2')
 
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
         response = self.client.get(self.groups_url)
