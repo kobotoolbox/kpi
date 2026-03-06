@@ -65,7 +65,10 @@ export default function FormHistory(props: FormHistoryProps) {
   const isLoggedIn = sessionStore.isLoggedIn
 
   // Attach 'infinite' to the generated key to prevent cache collisions with standard query calls
-  const AssetsVersionListQueryKeyInfinite = [...getAssetsVersionsListQueryKey(props.assetUid), 'infinite']
+  const AssetsVersionListQueryKeyInfinite = useMemo(
+    () => [...getAssetsVersionsListQueryKey(props.assetUid), 'infinite'],
+    [props.assetUid],
+  )
 
   useEffect(() => {
     // TODO: when gradually switching to Orval for all these actions below, make sure to write invalidating code in
@@ -109,7 +112,7 @@ export default function FormHistory(props: FormHistoryProps) {
   const totalCount =
     historyInfiniteQuery.data?.pages[0]?.status === 200 ? historyInfiniteQuery.data.pages[0].data.count : 0
 
-  const showEndMessage = totalCount > ITEMS_PER_PAGE
+  const showEndMessage = !historyInfiniteQuery.hasNextPage && rowData.length > ITEMS_PER_PAGE
 
   const columns: Array<UniversalTableColumn<VersionListResponse>> = useMemo(() => {
     const baseColumns: Array<UniversalTableColumn<VersionListResponse>> = [
@@ -135,6 +138,7 @@ export default function FormHistory(props: FormHistoryProps) {
         },
       },
       {
+        // We use `date_deployed` here, as it is being used to format the final cell value
         key: 'date_deployed',
         label: t('Type'),
         cellFormatter: (value: VersionListResponse) => {
