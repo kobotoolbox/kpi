@@ -3,6 +3,7 @@ from constance.test import override_config
 from django.conf import settings
 from django.shortcuts import resolve_url
 from django.urls import reverse
+from freezegun import freeze_time
 from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -12,6 +13,7 @@ from .utils import activate_mfa_for_user
 METHOD = 'app'
 
 
+@freeze_time('2026-01-01 12:00:00')
 class LoginTests(KpiTestCase):
     def setUp(self):
         self.someuser = User.objects.get(username='someuser')

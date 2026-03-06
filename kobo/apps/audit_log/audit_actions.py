@@ -10,6 +10,7 @@ class AuditAction(models.TextChoices):
     CLONE_PERMISSIONS = 'clone-permissions'
     CONNECT_PROJECT = 'connect-project'
     CREATE = 'create'
+    DEACTIVATION = 'deactivation'
     DELETE = 'delete'
     DELETE_MEDIA = 'delete-media'
     DELETE_SERVICE = 'delete-service'

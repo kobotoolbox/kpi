@@ -1504,7 +1504,7 @@ CELERY_BEAT_SCHEDULE = {
     'long-running-migrations': {
         'task': 'kobo.apps.long_running_migrations.tasks.execute_long_running_migrations',  # noqa
         'schedule': crontab(minute='*/15'),
-        'options': {'queue': 'kpi_low_priority_queue'}
+        'options': {'queue': 'kpi_long_running_tasks_queue'},
     },
     # Schedule every day at midnight UTC
     'mass-email-record-mark-as-failed': {
@@ -1543,10 +1543,12 @@ CELERY_BEAT_SCHEDULE = {
     'retry-stalled-submissions': {
         'task': 'kobo.apps.hook.tasks.retry_stalled_pending_submissions',
         'schedule': crontab(minute='*/30'),  # Every 30 minutes
+        'options': {'queue': 'kpi_low_priority_queue'},
     },
     'mark-zombie-submissions': {
         'task': 'kobo.apps.hook.tasks.mark_zombie_processing_submissions',
         'schedule': crontab(minute='*/30'),  # Every 30 minutes
+        'options': {'queue': 'kpi_low_priority_queue'},
     },
 }
 
@@ -1926,14 +1928,18 @@ mongo_client = MongoClient(
 )
 MONGO_DB = mongo_client[mongo_db_name]
 
-# If a request or task makes a database query and then times out, the database
-# server should not spin forever attempting to fulfill that query.
+# Maximum query duration (in milliseconds) for PostgreSQL (statement_timeout)
+# and MongoDB (maxTimeMS). Applied per environment:
+#   - Web requests: DATABASE_QUERY_TIMEOUT, based on SYNCHRONOUS_REQUEST_TIME_LIMIT
+#   - Celery workers: DATABASE_CELERY_QUERY_TIMEOUT, based on CELERY_TASK_TIME_LIMIT
 # ⚠️⚠️
-# These settings should never be used directly.
-# Use MongoHelper.get_max_time_ms() in the code instead
+# For MongoDB, use MongoHelper.get_max_time_ms() rather than referencing these
+# directly.
 # ⚠️⚠️
-MONGO_QUERY_TIMEOUT = SYNCHRONOUS_REQUEST_TIME_LIMIT + 5  # seconds
-MONGO_CELERY_QUERY_TIMEOUT = CELERY_TASK_TIME_LIMIT + 10  # seconds
+DATABASE_QUERY_TIMEOUT = (
+    env.int('DATABASE_QUERY_TIMEOUT', SYNCHRONOUS_REQUEST_TIME_LIMIT + 5) * 1000
+)  # milliseconds
+DATABASE_CELERY_QUERY_TIMEOUT = (CELERY_TASK_TIME_LIMIT + 10) * 1000  # milliseconds
 
 
 SESSION_ENGINE = 'redis_sessions.session'
@@ -2177,11 +2183,18 @@ LOG_DELETION_BATCH_SIZE = 1000
 USER_ASSET_ORG_TRANSFER_BATCH_SIZE = 1000
 SUBMISSION_DELETION_BATCH_SIZE = 1000
 LONG_RUNNING_MIGRATION_BATCH_SIZE = 2000
+LONG_RUNNING_MIGRATION_SMALL_BATCH_SIZE = 100
 VERSION_DELETION_BATCH_SIZE = 2000
+S3_DELETE_BATCH_SIZE = 1000
+AZURE_DELETE_BATCH_SIZE = 256
 
 # Number of stuck tasks should be restarted at a time
 MAX_RESTARTED_TASKS = 100
 MAX_RESTARTED_TRANSFERS = 20
 
 # Maximum timeout (in minutes) for hook processing
-HOOK_PROCESSING_TIMEOUT = 120
+HOOK_STALLED_PENDING_TIMEOUT = 120
+HOOK_STALLED_RETRY_TIMEOUT = 1440
+
+# Cache time-to-live (in seconds) for attachment XPaths
+ATTACHMENT_XPATHS_CACHE_TTL = 86400

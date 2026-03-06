@@ -2,6 +2,7 @@ import React from 'react'
 
 import { Radio, TagsInput } from '@mantine/core'
 import type { QualVersionItem } from '#/components/processing/common/types'
+import styles from '../../../common/styles.module.scss'
 
 interface Props {
   qaAnswer?: QualVersionItem
@@ -17,6 +18,9 @@ export default function SelectMultipleResponseForm({ qaAnswer, onSave, disabled 
         onChange={onSave}
         acceptValueOnBlur
         disabled={disabled}
+        classNames={{
+          input: styles.responseBorderDefault,
+        }}
       />
     </Radio.Group>
   )

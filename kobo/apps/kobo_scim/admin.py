@@ -14,6 +14,7 @@ class IdentityProviderAdmin(admin.ModelAdmin):
         'id',
         'name',
         'slug',
+        'social_app',
         'scim_api_key',
         'is_active',
         'date_created',
