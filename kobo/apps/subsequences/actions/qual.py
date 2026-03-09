@@ -314,12 +314,12 @@ class BaseQualAction(BaseAction):
             output_fields.append(
                 {
                     'label': 'verified',
-                    'source': f"{self.source_question_xpath}/{qual_item['uuid']}",
+                    'source': f'{self.source_question_xpath}/{uuid}',
                     'type': QUESTION_TYPE_VERIFICATION,
-                    'name': f"{self.source_question_xpath}/{qual_item['uuid']}"
-                    "/verified",
-                    'dtpath': f"{self.source_question_xpath}/{qual_item['uuid']}"
-                    "/verified",
+                    'name': f'{self.source_question_xpath}/{uuid}'
+                    '/verified',
+                    'dtpath': f'{self.source_question_xpath}/{uuid}'
+                    '/verified',
                 }
             )
 
