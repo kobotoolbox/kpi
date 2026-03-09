@@ -3,13 +3,12 @@ from copy import deepcopy
 from rest_framework.exceptions import ValidationError
 
 from kobo.apps.subsequences.actions.base import BaseAction
-from kobo.apps.subsequences.constants import SORT_BY_DATE_FIELD
-from kobo.apps.subsequences.exceptions import SubsequenceVerificationError
 from kobo.apps.subsequences.constants import (
     QUESTION_TYPE_SOURCE,
     QUESTION_TYPE_VERIFICATION,
     SORT_BY_DATE_FIELD,
 )
+from kobo.apps.subsequences.exceptions import SubsequenceVerificationError
 from kobo.apps.subsequences.type_aliases import SimplifiedOutputCandidatesByColumnKey
 
 
@@ -302,14 +301,14 @@ class BaseQualAction(BaseAction):
                     for choice in qual_item.get('choices', [])
                 ]
             output_fields.append(field)
+            uuid = qual_item['uuid']
             output_fields.append(
                 {
                     'label': 'source',
-                    'source': f"{self.source_question_xpath}/{qual_item['uuid']}",
+                    'source': f'{self.source_question_xpath}/{uuid}',
                     'type': QUESTION_TYPE_SOURCE,
-                    'name': f"{self.source_question_xpath}/{qual_item['uuid']}/source",
-                    'dtpath': f"{self.source_question_xpath}/{qual_item['uuid']}"
-                    "/source",
+                    'name': f'{self.source_question_xpath}/{uuid}/source',
+                    'dtpath': f'{self.source_question_xpath}/{uuid}' '/source',
                 }
             )
             output_fields.append(

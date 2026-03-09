@@ -11,8 +11,8 @@ from freezegun import freeze_time
 from rest_framework.exceptions import ValidationError
 
 from ..actions.manual_qual import ManualQualAction
-from ..exceptions import SubsequenceVerificationError
 from ..constants import QUESTION_TYPE_VERIFICATION
+from ..exceptions import SubsequenceVerificationError
 from .constants import (
     EMPTY_SUBMISSION,
     FIX_CHOICE_APATHY_UUID,
@@ -907,7 +907,6 @@ class TestQualActionMethods(TestCase):
         )
         assert qa_verification_field['type'] == QUESTION_TYPE_VERIFICATION
         assert 'choices' not in qa_verification_field
-
 
     def test_transform_data_for_output_all_question_types(self):
         """
