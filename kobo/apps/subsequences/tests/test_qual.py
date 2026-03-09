@@ -11,7 +11,11 @@ from freezegun import freeze_time
 from rest_framework.exceptions import ValidationError
 
 from ..actions.manual_qual import ManualQualAction
-from ..constants import QUESTION_TYPE_VERIFICATION
+from ..constants import (
+    QUESTION_TYPE_SOURCE,
+    QUESTION_TYPE_VERIFICATION,
+    SOURCE_TYPE_MANUAL,
+)
 from ..exceptions import SubsequenceVerificationError
 from .constants import (
     EMPTY_SUBMISSION,
@@ -809,7 +813,7 @@ class TestQualActionMethods(TestCase):
             ],
         )
         output_fields = action.get_output_fields()
-        assert len(output_fields) == 2
+        assert len(output_fields) == 3
         qa_question_field = output_fields[0]
         assert qa_question_field['label'] == 'Simple question'
         assert qa_question_field['source'] == self.source_xpath
@@ -818,6 +822,16 @@ class TestQualActionMethods(TestCase):
         assert 'choices' not in qa_question_field
 
         qa_verification_field = output_fields[1]
+        assert qa_verification_field['label'] == 'source'
+        assert qa_verification_field['source'] == f'{self.source_xpath}/{question_uuid}'
+        assert (
+            qa_verification_field['name']
+            == f'{self.source_xpath}/{question_uuid}/source'
+        )
+        assert qa_verification_field['type'] == QUESTION_TYPE_SOURCE
+        assert 'choices' not in qa_verification_field
+
+        qa_verification_field = output_fields[2]
         assert qa_verification_field['label'] == 'verified'
         assert qa_verification_field['source'] == f'{self.source_xpath}/{question_uuid}'
         assert (
@@ -875,7 +889,7 @@ class TestQualActionMethods(TestCase):
         )
         output_fields = action.get_output_fields()
 
-        assert len(output_fields) == 2
+        assert len(output_fields) == 3
 
         qa_question_field = output_fields[0]
         assert qa_question_field['label'] == 'Choice question'
@@ -899,6 +913,16 @@ class TestQualActionMethods(TestCase):
         ]
 
         qa_verification_field = output_fields[1]
+        assert qa_verification_field['label'] == 'source'
+        assert qa_verification_field['source'] == f'{self.source_xpath}/{question_uuid}'
+        assert (
+            qa_verification_field['name']
+            == f'{self.source_xpath}/{question_uuid}/source'
+        )
+        assert qa_verification_field['type'] == QUESTION_TYPE_SOURCE
+        assert 'choices' not in qa_verification_field
+
+        qa_verification_field = output_fields[2]
         assert qa_verification_field['label'] == 'verified'
         assert qa_verification_field['source'] == f'{self.source_xpath}/{question_uuid}'
         assert (
@@ -931,6 +955,7 @@ class TestQualActionMethods(TestCase):
                         },
                         '_dateCreated': '2025-11-24T10:00:00Z',
                         '_uuid': 'v1',
+                        'verified': True,
                     }
                 ],
                 '_dateCreated': '2025-11-24T10:00:00Z',
@@ -946,6 +971,7 @@ class TestQualActionMethods(TestCase):
                         },
                         '_dateCreated': '2025-11-24T10:05:00Z',
                         '_uuid': 'v2',
+                        'verified': False,
                     }
                 ],
                 '_dateCreated': '2025-11-24T10:05:00Z',
@@ -961,6 +987,7 @@ class TestQualActionMethods(TestCase):
                         },
                         '_dateCreated': '2025-11-24T10:10:00Z',
                         '_uuid': 'v3',
+                        'verified': True,
                     }
                 ],
                 '_dateCreated': '2025-11-24T10:10:00Z',
@@ -980,6 +1007,7 @@ class TestQualActionMethods(TestCase):
                         '_dateCreated': '2025-11-24T10:15:00Z',
                         '_dateAccepted': '2025-11-24T10:15:00Z',
                         '_uuid': 'v4',
+                        'verified': False,
                     }
                 ],
                 '_dateCreated': '2025-11-24T10:15:00Z',
@@ -998,12 +1026,16 @@ class TestQualActionMethods(TestCase):
         assert int_item['value'] == 5
         assert int_item['type'] == 'qualInteger'
         assert int_item['xpath'] == self.source_xpath
+        assert int_item['source'] == SOURCE_TYPE_MANUAL
+        assert int_item['verified']
 
         # Test text question
         text_item = output.get(('qual', METHOD_QUAL_TEXT_UUID))
         assert text_item is not None
         assert text_item['value'] == 'Family needs immediate shelter and medical care'
         assert text_item['type'] == 'qualText'
+        assert text_item['source'] == SOURCE_TYPE_MANUAL
+        assert not text_item['verified']
 
         # Test select one - UUID transformed to object with labels
         select_one_item = output.get(('qual', METHOD_QUAL_SELECT_ONE_UUID))
@@ -1016,10 +1048,14 @@ class TestQualActionMethods(TestCase):
             'fr': 'Élevé',
             'es': 'Alto',
         }
+        assert select_one_item['source'] == SOURCE_TYPE_MANUAL
+        assert select_one_item['verified']
 
         # Test select multiple - array of UUIDs transformed to array of objects
         select_multi_item = output.get(('qual', METHOD_QUAL_SELECT_MULTIPLE_UUID))
         assert select_multi_item is not None
+        assert select_multi_item['source'] == SOURCE_TYPE_MANUAL
+        assert not select_multi_item['verified']
         select_multi_value = select_multi_item['value']
         assert isinstance(select_multi_value, list)
         assert len(select_multi_value) == 2
@@ -1053,6 +1089,7 @@ class TestQualActionMethods(TestCase):
                         },
                         '_dateCreated': '2025-11-24T09:00:00Z',
                         '_uuid': 'v1',
+                        'verified': True,
                     },
                     {
                         '_data': {
@@ -1061,6 +1098,7 @@ class TestQualActionMethods(TestCase):
                         },
                         '_dateCreated': '2025-11-24T10:00:00Z',
                         '_uuid': 'v2',
+                        'verified': False,
                     },
                     {
                         '_data': {
@@ -1069,6 +1107,7 @@ class TestQualActionMethods(TestCase):
                         },
                         '_dateCreated': '2025-11-24T11:00:00Z',
                         '_uuid': 'v3',
+                        'verified': True,
                     },
                 ],
                 '_dateCreated': '2025-11-24T09:00:00Z',
