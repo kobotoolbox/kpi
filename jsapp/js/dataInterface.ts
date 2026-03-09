@@ -47,6 +47,7 @@ interface AssetsRequestData {
   metadata?: string
   collections_first?: string
   status?: string
+  current_user_permissions_only?: boolean
 }
 
 interface AssetsMetadataRequestData {
@@ -1633,6 +1634,7 @@ export const dataInterface: DataInterface = {
     // TODO https://github.com/kobotoolbox/kpi/issues/1983
     // force set limit to get hacky "all" assets
     searchData.limit = 200
+    searchData.current_user_permissions_only = true
     return $.ajax({
       url: `${ROOT_URL}/api/v2/assets/`,
       dataType: 'json',

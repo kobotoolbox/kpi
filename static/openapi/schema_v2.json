@@ -1156,6 +1156,14 @@
                 "parameters": [
                     {
                         "in": "query",
+                        "name": "current_user_permissions_only",
+                        "schema": {
+                            "type": "boolean"
+                        },
+                        "description": "When `true`, only return the requesting user's own permission assignments. When `false` (default), return all visible assignments."
+                    },
+                    {
+                        "in": "query",
                         "name": "limit",
                         "schema": {
                             "type": "integer"

@@ -12,6 +12,10 @@ The endpoints are grouped by area of intended use. Each category contains relate
 
 export type AssetsListParams = {
   /**
+   * When `true`, only return the requesting user's own permission assignments. When `false` (default), return all visible assignments.
+   */
+  current_user_permissions_only?: boolean
+  /**
    * Paginate results with limit parameter
    */
   limit?: number
