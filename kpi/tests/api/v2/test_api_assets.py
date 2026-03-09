@@ -325,6 +325,8 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
     def test_assets_ordering(self):
 
         someuser = User.objects.get(username='someuser')
+        someuser_first_asset = self.asset
+
         question = Asset.objects.create(
             owner=someuser,
             name='A question',
@@ -388,6 +390,7 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
             other_deployed_survey.uid,
             deployed_survey.uid,
             draft_survey.uid,
+            someuser_first_asset.uid,
             archived_survey.uid,
             another_collection.uid,
             template.uid,
@@ -404,6 +407,7 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
             archived_survey.uid,
             deployed_survey.uid,
             draft_survey.uid,
+            someuser_first_asset.uid,
             template.uid,
             other_deployed_survey.uid,
             another_collection.uid,
@@ -421,6 +425,7 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
             archived_survey.uid,
             deployed_survey.uid,
             draft_survey.uid,
+            someuser_first_asset.uid,
             template.uid,
             other_deployed_survey.uid,
         ]
@@ -494,7 +499,10 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
         asset.deployment.xform.delete()
         response = self.client.get(self.list_url)
         assert response.status_code == status.HTTP_200_OK
-        assert len(response.data['results']) == 1
+        # 2 assets:
+        # - one from the fixture, saved in setUpClass
+        # - one created in this test
+        assert len(response.data['results']) == 2
         assert response.data['results'][0]['uid'] == asset.uid
         assert response.data['results'][0]['date_deployed'] is None
 
