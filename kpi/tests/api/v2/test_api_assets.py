@@ -44,10 +44,32 @@ from kpi.utils.object_permission import get_anonymous_user
 from kpi.utils.project_views import get_region_for_view
 
 
-class AssetListApiTests(BaseAssetTestCase):
+class PermissionsTestMixin:
+    """
+    Mixin providing helpers to extract permission usernames from API responses.
+    """
+
+    def _get_perm_usernames(self, permissions):
+        """
+        Extract the set of usernames from a permissions list.
+
+        Each permission entry has a 'user' URL; the username is the second-to-
+        last path segment (e.g. '/api/v2/users/bob/' → 'bob').
+        """
+        return {p['user'].split('/')[-2] for p in permissions}
+
+
+class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
     fixtures = ['test_data']
 
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.thirduser = baker.make(settings.AUTH_USER_MODEL)
+        cls.asset = Asset.objects.filter(owner__username='someuser').first()
+        cls.asset.save()  # set owner's permissions
 
     def setUp(self):
         self.client.login(username='someuser', password='someuser')
@@ -476,102 +498,118 @@ class AssetListApiTests(BaseAssetTestCase):
         assert response.data['results'][0]['uid'] == asset.uid
         assert response.data['results'][0]['date_deployed'] is None
 
-    def test_current_user_permissions_only_param(self):
+    def test_current_user_permissions_only_owner_without_param(self):
         """
-        Test the ?current_user_permissions_only query parameter.
-
-        Without the param (default): all users' permissions are loaded and
-        filtered by the requesting user's access level (manage_asset or not).
-        With ?current_user_permissions_only=true: only the requesting user's
-        permissions are loaded from the cache, limiting what is returned.
+        Owner (someuser, has manage_asset) without the param sees all users'
+        permissions.
         """
-        anotheruser = User.objects.get(username='anotheruser')
-        thirduser = baker.make(settings.AUTH_USER_MODEL)
-        asset_response = self.create_asset()
-        asset_uid = asset_response.data['uid']
-        asset = Asset.objects.get(uid=asset_uid)
-        asset.assign_perm(anotheruser, PERM_VIEW_ASSET)
-        asset.assign_perm(thirduser, PERM_VIEW_ASSET)
-
-        def get_asset_permissions(response_):
-            for result in response_.data['results']:
-                if result['uid'] == asset_uid:
-                    return result['permissions']
-            return None
-
-        def get_perm_usernames(permissions):
-            return {p['user'].split('/')[-2] for p in permissions}
-
-        # --- Owner (someuser, has manage_asset) ---
-
-        # Without param: sees all users' permissions
+        asset, anotheruser, thirduser = self._setup_current_user_permissions_only()
         response = self.client.get(self.list_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        usernames = get_perm_usernames(get_asset_permissions(response))
+        usernames = self._get_perm_usernames(
+            self._get_asset_permissions(response, asset.uid)
+        )
+
         self.assertIn('someuser', usernames)
         self.assertIn('anotheruser', usernames)
         self.assertIn(thirduser.username, usernames)
 
-        # With param: see only their permissions
+    def test_current_user_permissions_only_owner_with_param(self):
+        """
+        Owner (someuser, has manage_asset) with the param sees only their own
+        permissions.
+        """
+        asset, anotheruser, thirduser = self._setup_current_user_permissions_only()
         response = self.client.get(
             self.list_url, data={'current_user_permissions_only': 'true'}
         )
-        usernames = get_perm_usernames(get_asset_permissions(response))
+        usernames = self._get_perm_usernames(
+            self._get_asset_permissions(response, asset.uid)
+        )
         self.assertIn('someuser', usernames)
         self.assertNotIn('anotheruser', usernames)
         self.assertNotIn(thirduser.username, usernames)
 
-        # --- anotheruser with view_asset (no manage_asset) ---
+    def test_current_user_permissions_only_view_only_without_param(self):
+        """
+        anotheruser with view_asset (no manage_asset) without the param sees
+        their own and the owner's permissions, but not thirduser's.
+        """
+        asset, anotheruser, thirduser = self._setup_current_user_permissions_only()
         self.client.force_login(anotheruser)
-
-        # Without param: sees owner's + own, NOT thirduser's
         response = self.client.get(self.list_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        usernames = get_perm_usernames(get_asset_permissions(response))
+        usernames = self._get_perm_usernames(
+            self._get_asset_permissions(response, asset.uid)
+        )
         self.assertIn('someuser', usernames)
         self.assertIn('anotheruser', usernames)
         self.assertNotIn(thirduser.username, usernames)
 
-        # With param: only their (anotheruser) own permissions
+    def test_current_user_permissions_only_view_only_with_param(self):
+        """
+        anotheruser with view_asset (no manage_asset) with the param sees only
+        their own permissions.
+        """
+        asset, anotheruser, thirduser = self._setup_current_user_permissions_only()
+        self.client.force_login(anotheruser)
         response = self.client.get(
             self.list_url, data={'current_user_permissions_only': 'true'}
         )
-        usernames = get_perm_usernames(get_asset_permissions(response))
+        usernames = self._get_perm_usernames(
+            self._get_asset_permissions(response, asset.uid)
+        )
         self.assertNotIn('someuser', usernames)
         self.assertIn('anotheruser', usernames)
         self.assertNotIn(thirduser.username, usernames)
 
-        # --- anotheruser with manage_asset ---
+    def test_current_user_permissions_only_manager_without_param(self):
+        """
+        anotheruser with manage_asset without the param sees all users'
+        permissions.
+        """
+        asset, anotheruser, thirduser = self._setup_current_user_permissions_only()
         asset.assign_perm(anotheruser, PERM_MANAGE_ASSET)
         self.client.force_login(anotheruser)
-
-        # Without param: sees all users' permissions
         response = self.client.get(self.list_url)
-        usernames = get_perm_usernames(get_asset_permissions(response))
+        usernames = self._get_perm_usernames(
+            self._get_asset_permissions(response, asset.uid)
+        )
         self.assertIn('someuser', usernames)
         self.assertIn('anotheruser', usernames)
         self.assertIn(thirduser.username, usernames)
 
-        # With param: only their (anotheruser) own permissions
+    def test_current_user_permissions_only_manager_with_param(self):
+        """
+        anotheruser with manage_asset with the param sees only their own
+        permissions.
+        """
+        asset, anotheruser, thirduser = self._setup_current_user_permissions_only()
+        asset.assign_perm(anotheruser, PERM_MANAGE_ASSET)
+        self.client.force_login(anotheruser)
         response = self.client.get(
             self.list_url, data={'current_user_permissions_only': 'true'}
         )
-        usernames = get_perm_usernames(get_asset_permissions(response))
+        usernames = self._get_perm_usernames(
+            self._get_asset_permissions(response, asset.uid)
+        )
         self.assertIn('anotheruser', usernames)
         self.assertNotIn('someuser', usernames)
         self.assertNotIn(thirduser.username, usernames)
 
-        # --- Anonymous user ---
+    def test_current_user_permissions_only_anonymous(self):
+        """
+        Anonymous user without the param sees only the owner's permissions
+        (no manage_asset).
+        """
+        asset, anotheruser, thirduser = self._setup_current_user_permissions_only()
         self.client.logout()
         asset.assign_perm(get_anonymous_user(), PERM_VIEW_ASSET)
-
-        # Anonymous can access the asset list; only the owner's permissions
-        # are visible (anonymous has no manage_asset)
         response = self.client.get(self.list_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        asset_result = get_asset_permissions(response)
+        asset_result = self._get_asset_permissions(response, asset.uid)
         if asset_result is not None:
-            usernames = get_perm_usernames(asset_result)
+            usernames = self._get_perm_usernames(asset_result)
             self.assertIn('someuser', usernames)
             self.assertNotIn('anotheruser', usernames)
             self.assertNotIn(thirduser.username, usernames)
@@ -641,6 +679,29 @@ class AssetListApiTests(BaseAssetTestCase):
         assert shared_asset.uid not in result_uids
         # Anotheruser's own asset must still appear
         assert own_asset.uid in result_uids
+
+    def _setup_current_user_permissions_only(self):
+        """
+        Create an asset owned by someuser, grant view_asset to anotheruser
+        and a freshly created thirduser. Return (asset, anotheruser, thirduser).
+        """
+        anotheruser = User.objects.get(username='anotheruser')
+        someuser = User.objects.get(username='someuser')
+        asset = someuser.assets.first()
+        asset.assign_perm(anotheruser, PERM_VIEW_ASSET)
+        asset.assign_perm(self.thirduser, PERM_VIEW_ASSET)
+        return asset, anotheruser, self.thirduser
+
+    def _get_asset_permissions(self, response, asset_uid):
+        """
+        Return the permissions list for the asset matching `asset_uid` in the
+        response results, or None if not found.
+        """
+        for result in response.data['results']:
+            if result['uid'] == asset_uid:
+                return result['permissions']
+        return None
+
 
 
 class AssetProjectViewListApiTests(BaseAssetTestCase):
@@ -1215,7 +1276,12 @@ class AssetVersionApiTests(BaseTestCase):
         self.assertEqual(response4.status_code, status.HTTP_200_OK)
 
 
-class AssetDetailApiTests(BaseAssetDetailTestCase):
+class AssetDetailApiTests(PermissionsTestMixin, BaseAssetDetailTestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.thirduser = baker.make(settings.AUTH_USER_MODEL)
 
     def test_asset_exists(self):
         resp = self.client.get(self.asset_url, format='json')
@@ -1776,53 +1842,63 @@ class AssetDetailApiTests(BaseAssetDetailTestCase):
         assert response.data['last_modified_by'] == anotheruser.username
         assert self.asset.last_modified_by == anotheruser.username
 
-    def test_detail_permissions_visibility(self):
+    def test_detail_permissions_visibility_owner(self):
         """
-        Test that the detail endpoint always filters permission assignments
-        based on the requesting user's access level, regardless of the
-        `current_user_permissions_only` query parameter (which has no effect
-        on the detail view).
-
-        - Owner (has manage_asset): sees all users' permissions.
-        - User with view_asset only: sees owner's + own, not other users'.
-        - User with manage_asset: sees all users' permissions.
+        Owner (someuser, has manage_asset) always sees all users' permissions
+        on the detail endpoint, regardless of the
+        `current_user_permissions_only` query parameter.
         """
         anotheruser = User.objects.get(username='anotheruser')
-        thirduser = baker.make(settings.AUTH_USER_MODEL)
         self.asset.assign_perm(anotheruser, PERM_VIEW_ASSET)
-        self.asset.assign_perm(thirduser, PERM_VIEW_ASSET)
+        self.asset.assign_perm(self.thirduser, PERM_VIEW_ASSET)
 
-        def get_perm_usernames(response_):
-            return {p['user'].split('/')[-2] for p in response_.data['permissions']}
-
-        # --- Owner (someuser, has manage_asset): sees all ---
         for params in ({}, {'current_user_permissions_only': 'true'}):
             response = self.client.get(self.asset_url, data=params)
             self.assertEqual(response.status_code, status.HTTP_200_OK)
-            usernames = get_perm_usernames(response)
+            usernames = self._get_perm_usernames(response.data['permissions'])
             self.assertIn('someuser', usernames)
             self.assertIn('anotheruser', usernames)
-            self.assertIn(thirduser.username, usernames)
+            self.assertIn(self.thirduser.username, usernames)
 
-        # --- anotheruser with view_asset only: sees owner + own, not thirduser ---
+    def test_detail_permissions_visibility_view_only(self):
+        """
+        anotheruser with view_asset (no manage_asset) sees only the owner's and
+        their own permissions on the detail endpoint, not thirduser's —
+        regardless of the `current_user_permissions_only` query parameter.
+        """
+        anotheruser = User.objects.get(username='anotheruser')
+        self.asset.assign_perm(anotheruser, PERM_VIEW_ASSET)
+        self.asset.assign_perm(self.thirduser, PERM_VIEW_ASSET)
+
         self.client.force_login(anotheruser)
         for params in ({}, {'current_user_permissions_only': 'true'}):
             response = self.client.get(self.asset_url, data=params)
             self.assertEqual(response.status_code, status.HTTP_200_OK)
-            usernames = get_perm_usernames(response)
+            usernames = self._get_perm_usernames(response.data['permissions'])
             self.assertIn('someuser', usernames)
             self.assertIn('anotheruser', usernames)
-            self.assertNotIn(thirduser.username, usernames)
+            self.assertNotIn(self.thirduser.username, usernames)
 
-        # --- anotheruser with manage_asset: sees all ---
+    def test_detail_permissions_visibility_manager(self):
+        """
+        anotheruser with manage_asset always sees all users' permissions on the
+        detail endpoint, regardless of the `current_user_permissions_only`
+        query parameter.
+        """
+        anotheruser = User.objects.get(username='anotheruser')
+        self.asset.assign_perm(anotheruser, PERM_VIEW_ASSET)
+        self.asset.assign_perm(self.thirduser, PERM_VIEW_ASSET)
         self.asset.assign_perm(anotheruser, PERM_MANAGE_ASSET)
+
+        self.client.force_login(anotheruser)
         for params in ({}, {'current_user_permissions_only': 'true'}):
             response = self.client.get(self.asset_url, data=params)
             self.assertEqual(response.status_code, status.HTTP_200_OK)
-            usernames = get_perm_usernames(response)
+            usernames = self._get_perm_usernames(response.data['permissions'])
             self.assertIn('someuser', usernames)
             self.assertIn('anotheruser', usernames)
-            self.assertIn(thirduser.username, usernames)
+            self.assertIn(self.thirduser.username, usernames)
+
 
 
 class AssetsXmlExportApiTests(KpiTestCase):

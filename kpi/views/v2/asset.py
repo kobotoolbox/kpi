@@ -814,6 +814,15 @@ class AssetViewSet(
             context_['children_count_per_asset'] = children_count_per_asset
 
             # 5) Get partial permissions per asset and user
+            # e.g.: {
+            #   627: {
+            #       2: {'view_submissions': [{'_submitted_by': 'bob'}]},
+            #       3: {'view_submissions': [
+            #           {'_submitted_by': 'alice'},
+            #           {'_submitted_by': 'bob'},
+            #       ]}
+            #   }
+            # }
             partial_perms_per_asset = defaultdict(dict)
             for record in AssetUserPartialPermission.objects.filter(
                 asset_id__in=asset_ids
