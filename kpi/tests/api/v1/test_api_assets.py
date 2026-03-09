@@ -1,7 +1,6 @@
 # coding: utf-8
 import json
 import unittest
-from unittest.mock import patch
 from urllib.parse import unquote_plus
 
 from django.urls import reverse
@@ -20,7 +19,6 @@ from kpi.tests.api.v2 import test_api_assets
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.tests.kpi_test_case import KpiTestCase
 from kpi.tests.utils.transaction import immediate_on_commit
-from kpi.utils.fuzzy_int import FuzzyInt
 from kpi.utils.xml import check_lxml_fromstring
 
 EMPTY_SURVEY = {'survey': [], 'schema': SCHEMA_VERSION, 'settings': {}}

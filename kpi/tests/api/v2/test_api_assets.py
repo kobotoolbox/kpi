@@ -711,7 +711,6 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
         return None
 
 
-
 class AssetProjectViewListApiTests(BaseAssetTestCase):
     fixtures = ['test_data']
 
@@ -1906,7 +1905,6 @@ class AssetDetailApiTests(PermissionsTestMixin, BaseAssetDetailTestCase):
             self.assertIn('someuser', usernames)
             self.assertIn('anotheruser', usernames)
             self.assertIn(self.thirduser.username, usernames)
-
 
 
 class AssetsXmlExportApiTests(KpiTestCase):
