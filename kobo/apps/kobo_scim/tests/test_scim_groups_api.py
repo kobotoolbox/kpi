@@ -55,7 +55,9 @@ class ScimGroupsAPITests(APITestCase):
 
     def test_service_provider_config(self):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
-        response = self.client.get(self.config_url)
+        response = self.client.get(
+            self.config_url, HTTP_ACCEPT='application/scim+json'
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         data = response.json()
@@ -68,7 +70,9 @@ class ScimGroupsAPITests(APITestCase):
         self.assertFalse(data['bulk']['supported'])
 
     def test_service_provider_config_unauthorized(self):
-        response = self.client.get(self.config_url)
+        response = self.client.get(
+            self.config_url, HTTP_ACCEPT='application/scim+json'
+        )
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_create_group(self):
@@ -81,7 +85,12 @@ class ScimGroupsAPITests(APITestCase):
             'members': [{'value': str(self.user1.id), 'display': self.user1.username}],
         }
 
-        response = self.client.post(self.groups_url, payload, format='json')
+        response = self.client.post(
+            self.groups_url,
+            payload,
+            format='json',
+            HTTP_ACCEPT='application/scim+json',
+        )
         self.assertEqual(
             response.status_code, status.HTTP_201_CREATED, response.content
         )
@@ -105,7 +114,9 @@ class ScimGroupsAPITests(APITestCase):
         ScimGroup.objects.create(idp=self.idp, name='Group 2')
 
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
-        response = self.client.get(self.groups_url)
+        response = self.client.get(
+            self.groups_url, HTTP_ACCEPT='application/scim+json'
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()
@@ -120,7 +131,10 @@ class ScimGroupsAPITests(APITestCase):
         ScimGroup.objects.create(idp=self.idp, name='Group 2')
 
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
-        response = self.client.get(f'{self.groups_url}?filter=displayName eq "Group 2"')
+        response = self.client.get(
+            f'{self.groups_url}?filter=displayName eq "Group 2"',
+            HTTP_ACCEPT='application/scim+json',
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()
@@ -132,7 +146,9 @@ class ScimGroupsAPITests(APITestCase):
         group.members.add(self.user1, self.user2)
 
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
-        response = self.client.get(f'{self.groups_url}/{group.id}')
+        response = self.client.get(
+            f'{self.groups_url}/{group.id}', HTTP_ACCEPT='application/scim+json'
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()
@@ -155,7 +171,10 @@ class ScimGroupsAPITests(APITestCase):
         }
 
         response = self.client.put(
-            f'{self.groups_url}/{group.id}', payload, format='json'
+            f'{self.groups_url}/{group.id}',
+            payload,
+            format='json',
+            HTTP_ACCEPT='application/scim+json',
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
 
@@ -184,7 +203,10 @@ class ScimGroupsAPITests(APITestCase):
         }
 
         response = self.client.patch(
-            f'{self.groups_url}/{group.id}', payload, format='json'
+            f'{self.groups_url}/{group.id}',
+            payload,
+            format='json',
+            HTTP_ACCEPT='application/scim+json',
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -211,7 +233,10 @@ class ScimGroupsAPITests(APITestCase):
         }
 
         response = self.client.patch(
-            f'{self.groups_url}/{group.id}', payload, format='json'
+            f'{self.groups_url}/{group.id}',
+            payload,
+            format='json',
+            HTTP_ACCEPT='application/scim+json',
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -234,7 +259,10 @@ class ScimGroupsAPITests(APITestCase):
         }
 
         response = self.client.patch(
-            f'{self.groups_url}/{group.id}', payload, format='json'
+            f'{self.groups_url}/{group.id}',
+            payload,
+            format='json',
+            HTTP_ACCEPT='application/scim+json',
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -247,7 +275,9 @@ class ScimGroupsAPITests(APITestCase):
         group = ScimGroup.objects.create(idp=self.idp, name='To Delete')
 
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
-        response = self.client.delete(f'{self.groups_url}/{group.id}')
+        response = self.client.delete(
+            f'{self.groups_url}/{group.id}', HTTP_ACCEPT='application/scim+json'
+        )
 
         self.assertEqual(
             response.status_code, status.HTTP_204_NO_CONTENT, response.content

@@ -1,10 +1,15 @@
+import logging
 import re
+
+logger = logging.getLogger(__name__)
 
 from django.conf import settings
 from django.db import IntegrityError
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import mixins, status, viewsets
 from rest_framework.exceptions import ValidationError
+from rest_framework.parsers import JSONParser
+from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -14,6 +19,7 @@ from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.kobo_scim.authentication import IsAuthenticatedIdP, ScimAuthentication
 from kobo.apps.kobo_scim.models import ScimGroup
 from kobo.apps.kobo_scim.pagination import ScimPagination
+from kobo.apps.kobo_scim.renderers import SCIMParser, SCIMRenderer
 from kobo.apps.kobo_scim.serializers import ScimGroupSerializer, ScimUserSerializer
 
 
@@ -49,6 +55,30 @@ class ScimUserViewSet(
     authentication_classes = [ScimAuthentication]
     permission_classes = [IsAuthenticatedIdP]
     pagination_class = ScimPagination
+    parser_classes = [SCIMParser, JSONParser]
+    renderer_classes = [SCIMRenderer, JSONRenderer]
+
+    def create(self, request, *args, **kwargs):
+        """
+        Catch POST requests (user provisioning).
+        Currently, user creation via SCIM is not supported as users are created via SSO.
+        We log the payload to help debug IdP behavior and return a clear error.
+        """
+        logger.warning(
+            "SCIM User Provisioning attempt blocked. IdP slug: %s, Payload: %s",
+            self.kwargs.get('idp_slug'),
+            request.data
+        )
+        # Return a SCIM-compliant error response
+        return Response(
+            {
+                "schemas": ["urn:ietf:params:scim:api:messages:2.0:Error"],
+                "detail": "User creation via SCIM is not supported. Users are provisioned via SSO login.",
+                "status": "403"
+            },
+            status=status.HTTP_403_FORBIDDEN
+        )
+
 
     def get_queryset(self):
         # The idp_slug in the URL MUST match the authenticated IdP
@@ -168,6 +198,8 @@ class ScimServiceProviderConfigView(APIView):
 
     authentication_classes = [ScimAuthentication]
     permission_classes = [IsAuthenticatedIdP]
+    parser_classes = [SCIMParser, JSONParser]
+    renderer_classes = [SCIMRenderer, JSONRenderer]
 
     def get(self, request, *args, **kwargs):
         # We only support patch and basic filtering
@@ -211,6 +243,8 @@ class ScimGroupViewSet(viewsets.ModelViewSet):
     authentication_classes = [ScimAuthentication]
     permission_classes = [IsAuthenticatedIdP]
     pagination_class = ScimPagination
+    parser_classes = [SCIMParser, JSONParser]
+    renderer_classes = [SCIMRenderer, JSONRenderer]
 
     def get_queryset(self):
         idp = self.request.auth
