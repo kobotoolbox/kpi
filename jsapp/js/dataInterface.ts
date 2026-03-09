@@ -1689,7 +1689,7 @@ export const dataInterface: DataInterface = {
     return $ajax({
       url: `${ROOT_URL}/api/v2/assets/`,
       dataType: 'json',
-data: searchData,
+      data: searchData,
       method: 'GET',
     })
   },
