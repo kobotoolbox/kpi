@@ -176,6 +176,7 @@ class CustomViewStore {
     }
 
     params.set('limit', String(PAGE_SIZE))
+    params.set('current_user_permissions_only', 'true')
 
     return params
   }

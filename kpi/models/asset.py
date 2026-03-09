@@ -961,8 +961,6 @@ class Asset(
                 'owner',
             )
             .prefetch_related(
-                'permissions__permission',
-                'permissions__user',
                 # `Prefetch(..., to_attr='prefetched_list')` stores the prefetched
                 # related objects in a list (`prefetched_list`) that we can use in
                 # other methods to avoid additional queries; see:
