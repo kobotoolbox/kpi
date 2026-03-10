@@ -8,10 +8,6 @@ export interface ConfirmEditModalProps extends ModalProps {
 }
 
 export default function ConfirmEditModal(props: ConfirmEditModalProps) {
-  const handleConfirm = () => {
-    props.onConfirmEdit()
-  }
-
   return (
     <Modal opened={props.opened} onClose={props.onClose} title={t('Edit this question?')} size='md'>
       <Stack>
@@ -30,7 +26,7 @@ export default function ConfirmEditModal(props: ConfirmEditModalProps) {
             {t('Cancel')}
           </ButtonNew>
 
-          <ButtonNew size='md' onClick={handleConfirm}>
+          <ButtonNew size='md' onClick={props.onConfirmEdit}>
             {t('Continue')}
           </ButtonNew>
         </Group>
