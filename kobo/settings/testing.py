@@ -60,3 +60,10 @@ OPENROSA_DB_ALIAS = DEFAULT_DB_ALIAS
 MASS_EMAILS_CONDENSE_SEND = False
 
 ATTACHMENT_XPATHS_CACHE_TTL = 60
+
+# Use a fast password hasher in tests — the default PBKDF2 hasher, used in production,
+# is intentionally slow (security feature) and causes significant test overhead.
+# MD5 is used here ONLY for tests to speed them up. It must NEVER be used in production.
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.MD5PasswordHasher',
+]

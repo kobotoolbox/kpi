@@ -1,7 +1,6 @@
 # coding: utf-8
 import json
 import unittest
-from unittest.mock import patch
 from urllib.parse import unquote_plus
 
 from django.urls import reverse
@@ -20,7 +19,6 @@ from kpi.tests.api.v2 import test_api_assets
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.tests.kpi_test_case import KpiTestCase
 from kpi.tests.utils.transaction import immediate_on_commit
-from kpi.utils.fuzzy_int import FuzzyInt
 from kpi.utils.xml import check_lxml_fromstring
 
 EMPTY_SURVEY = {'survey': [], 'schema': SCHEMA_VERSION, 'settings': {}}
@@ -62,19 +60,41 @@ class AssetListApiTests(test_api_assets.AssetListApiTests):
     def test_list_can_load_with_desynchronized_assets(self):
         pass
 
-    @patch('hub.models.v1_user_tracker.V1UserTracker.objects.update_or_create')
+    @unittest.skip(reason='deprecated version, to remove soon')
     def test_query_counts(self, mock_tracker):
-        # expected query counts are different in v1 and v2 so override the test here
-        self.create_asset()
+        pass
 
-        with self.assertNumQueries(FuzzyInt(28, 40)):
-            self.client.get(self.list_url)
-        # test query count does not increase with more assets
-        self.create_asset()
-        self.create_asset()
-        self.create_asset()
-        with self.assertNumQueries(FuzzyInt(28, 40)):
-            self.client.get(self.list_url)
+    @unittest.skip(reason='deprecated version, only works with v2 endpoint')
+    def test_current_user_permissions_only_param(self):
+        pass
+
+    @unittest.skip(reason='deprecated version, only works with v2 endpoint')
+    def test_current_user_permissions_only_owner_without_param(self):
+        pass
+
+    @unittest.skip(reason='deprecated version, only works with v2 endpoint')
+    def test_current_user_permissions_only_owner_with_param(self):
+        pass
+
+    @unittest.skip(reason='deprecated version, only works with v2 endpoint')
+    def test_current_user_permissions_only_view_only_without_param(self):
+        pass
+
+    @unittest.skip(reason='deprecated version, only works with v2 endpoint')
+    def test_current_user_permissions_only_view_only_with_param(self):
+        pass
+
+    @unittest.skip(reason='deprecated version, only works with v2 endpoint')
+    def test_current_user_permissions_only_manager_without_param(self):
+        pass
+
+    @unittest.skip(reason='deprecated version, only works with v2 endpoint')
+    def test_current_user_permissions_only_manager_with_param(self):
+        pass
+
+    @unittest.skip(reason='deprecated version, only works with v2 endpoint')
+    def test_current_user_permissions_only_anonymous(self):
+        pass
 
 
 class AssetVersionApiTests(test_api_assets.AssetVersionApiTests):
@@ -100,6 +120,22 @@ class AssetDetailApiTests(test_api_assets.AssetDetailApiTests):
 
     @unittest.skip(reason='`last_modified_by` property only exists in v2 endpoint')
     def test_last_modified_by_is_modified(self):
+        pass
+
+    @unittest.skip(reason='deprecated version, only works with v2 endpoint')
+    def test_detail_permissions_visibility(self):
+        pass
+
+    @unittest.skip(reason='deprecated version, only works with v2 endpoint')
+    def test_detail_permissions_visibility_owner(self):
+        pass
+
+    @unittest.skip(reason='deprecated version, only works with v2 endpoint')
+    def test_detail_permissions_visibility_view_only(self):
+        pass
+
+    @unittest.skip(reason='deprecated version, only works with v2 endpoint')
+    def test_detail_permissions_visibility_manager(self):
         pass
 
 

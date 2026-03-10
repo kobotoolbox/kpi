@@ -91,22 +91,25 @@ class AssetPermissionAssignmentSerializer(serializers.ModelSerializer):
             # if view doesn't have an `asset` property,
             # fallback to context. (e.g. AssetViewSet)
             asset = getattr(view, 'asset', self.context.get('asset'))
-            # TODO: optimize `asset.get_partial_perms()` so it doesn't execute
-            # a new query for each assignment
-            partial_perms = asset.get_partial_perms(
-                object_permission.user_id, with_filters=True
-            )
+
+            partial_perms_per_asset = self.context.get('partial_perms_per_asset')
+            if partial_perms_per_asset is not None:
+                partial_perms = partial_perms_per_asset.get(asset.pk, {}).get(
+                    object_permission.user_id
+                )
+            else:
+                partial_perms = asset.get_partial_perms(
+                    object_permission.user_id, with_filters=True
+                )
+
             if not partial_perms:
                 return None
 
-            if partial_perms:
-                hyperlinked_partial_perms = []
-                for perm_codename, filters in partial_perms.items():
-                    url = self.__get_permission_hyperlink(perm_codename)
-                    hyperlinked_partial_perms.append(
-                        {'url': url, 'filters': filters}
-                    )
-                return hyperlinked_partial_perms
+            hyperlinked_partial_perms = []
+            for perm_codename, filters in partial_perms.items():
+                url = self.__get_permission_hyperlink(perm_codename)
+                hyperlinked_partial_perms.append({'url': url, 'filters': filters})
+            return hyperlinked_partial_perms
         return None
 
     def get_url(self, object_permission):
@@ -278,6 +281,80 @@ class AssetPermissionAssignmentSerializer(serializers.ModelSerializer):
             args=(codename,),
             request=self.context.get('request', None),
         )
+
+
+class AssetPermissionAssignmentReadSerializer(serializers.Serializer):
+    """
+    Lightweight read-only serializer for permission assignments. Accepts raw
+    dicts from .values() queries instead of full ORM objects, avoiding the
+    overhead of model instantiation. Used in both list and detail asset views.
+    """
+
+    url = serializers.SerializerMethodField()
+    user = serializers.SerializerMethodField()
+    permission = serializers.SerializerMethodField()
+    partial_permissions = serializers.SerializerMethodField()
+    label = serializers.SerializerMethodField()
+
+    def get_url(self, perm) -> str:
+        return reverse(
+            'asset-permission-assignment-detail',
+            args=(self.context['asset_uid'], perm['uid']),
+            request=self.context.get('request'),
+        )
+
+    def get_user(self, perm) -> str:
+        return reverse(
+            'user-kpi-detail',
+            kwargs={'username': perm['user__username']},
+            request=self.context.get('request'),
+        )
+
+    def get_permission(self, perm) -> str:
+        return reverse(
+            'permission-detail',
+            args=(perm['permission__codename'],),
+            request=self.context.get('request'),
+        )
+
+    def get_partial_permissions(self, perm) -> list | None:
+        codename = perm['permission__codename']
+        if not codename.startswith(PREFIX_PARTIAL_PERMS):
+            return None
+        asset = self.context.get('asset')
+        partial_perms_per_asset = self.context.get('partial_perms_per_asset')
+        if partial_perms_per_asset is not None:
+            user_partial_perms = partial_perms_per_asset.get(asset.pk, {}).get(
+                perm['user_id']
+            )
+        else:
+            user_partial_perms = asset.get_partial_perms(
+                perm['user_id'], with_filters=True
+            )
+        if not user_partial_perms:
+            return None
+        return [
+            {
+                'url': reverse(
+                    'permission-detail',
+                    args=(perm_codename,),
+                    request=self.context.get('request'),
+                ),
+                'filters': filters,
+            }
+            for perm_codename, filters in user_partial_perms.items()
+        ]
+
+    def get_label(self, perm) -> list:
+        return self.context['asset'].get_label_for_permission(
+            perm['permission__codename']
+        )
+
+    def to_representation(self, instance):
+        repr_ = super().to_representation(instance)
+        if repr_.get('partial_permissions') is None:
+            del repr_['partial_permissions']
+        return repr_
 
 
 class PartialPermissionField(serializers.Field):
