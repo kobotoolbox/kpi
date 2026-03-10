@@ -13,6 +13,4 @@ The endpoints are grouped by area of intended use. Each category contains relate
 export interface CustomerPortal {
   organization_id: string
   price_id?: string
-  /** @minimum 1 */
-  quantity?: number
 }
