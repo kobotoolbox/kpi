@@ -3,6 +3,7 @@ import re
 
 logger = logging.getLogger(__name__)
 
+from allauth.socialaccount.models import SocialAccount
 from django.conf import settings
 from django.db import IntegrityError
 from drf_spectacular.utils import extend_schema, extend_schema_view
@@ -60,25 +61,123 @@ class ScimUserViewSet(
 
     def create(self, request, *args, **kwargs):
         """
-        Catch POST requests (user provisioning).
-        Currently, user creation via SCIM is not supported as users are created via SSO.
-        We log the payload to help debug IdP behavior and return a clear error.
+        Handle POST requests (user provisioning from IdP).
         """
-        logger.warning(
-            "SCIM User Provisioning attempt blocked. IdP slug: %s, Payload: %s",
-            self.kwargs.get('idp_slug'),
-            request.data
-        )
-        # Return a SCIM-compliant error response
-        return Response(
-            {
-                "schemas": ["urn:ietf:params:scim:api:messages:2.0:Error"],
-                "detail": "User creation via SCIM is not supported. Users are provisioned via SSO login.",
-                "status": "403"
-            },
-            status=status.HTTP_403_FORBIDDEN
-        )
+        idp = request.auth
+        if not idp or not idp.social_app:
+            return Response(
+                {'detail': 'IdP not configured for user provisioning'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
+        data = request.data
+        username = data.get('userName')
+
+        # SCIM can send multiple emails; we try to grab the first one
+        emails = data.get('emails', [])
+        email = ''
+        if emails and isinstance(emails, list):
+            # Prefer 'primary' -> then 'work' -> then the first available
+            for e in emails:
+                if e.get('primary'):
+                    email = e.get('value', '')
+                    break
+            if not email:
+                email = emails[0].get('value', '')
+
+        # If no explicit email was provided but userName looks like an email, use it
+        if not email and '@' in username:
+            email = username
+
+        name_dict = data.get('name', {})
+        first_name = name_dict.get('givenName', '')
+        last_name = name_dict.get('familyName', '')
+
+        if not username:
+            return Response(
+                {'detail': 'userName is required'}, status=status.HTTP_400_BAD_REQUEST
+            )
+        try:
+            # First, check if user exists via SocialAccount linkage
+            uid = data.get('externalId') or username
+            social_account = (
+                SocialAccount.objects.filter(
+                    provider=idp.social_app.provider_id, uid=uid
+                )
+                .select_related('user')
+                .first()
+            )
+
+            user = social_account.user if social_account else None
+
+            # Fallback to username/email matching if not linked yet
+            if not user:
+                user_by_username = User.objects.filter(
+                    username__iexact=username
+                ).first()
+                user_by_email = (
+                    User.objects.filter(email__iexact=email).first() if email else None
+                )
+                user = user_by_username or user_by_email
+
+            if not user:
+                # Create the user natively
+                user = User.objects.create_user(
+                    username=username,
+                    email=email,
+                    first_name=first_name,
+                    last_name=last_name,
+                    is_active=data.get('active', True),
+                )
+            else:
+                # If they exist, optionally reactivate them if the IdP sends active=True.
+                # (A deprovisioned user in Kobo is not deleted but deactivated).
+                if not user.is_active and data.get('active', True):
+                    user.is_active = True
+                    user.save(update_fields=['is_active'])
+
+            # Ensure the SocialAccount link exists so SSO works flawlessly.
+            # We catch IntegrityError here just in case another IdP already has this exact uid linked.
+            uid = data.get('externalId') or username
+            SocialAccount.objects.get_or_create(
+                user=user, provider=idp.social_app.provider_id, uid=uid
+            )
+
+            serializer = self.get_serializer(user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        except IntegrityError:
+            # This is a safe fallback for edge cases like duplicate SocialAccount UIDs
+            return Response(
+                {
+                    'schemas': ['urn:ietf:params:scim:api:messages:2.0:Error'],
+                    'detail': 'One or more attributes in the resource already exists.',
+                    'status': '409',
+                },
+                status=status.HTTP_409_CONFLICT,
+            )
+
+    def update(self, request, *args, **kwargs):
+        """
+        Handle PUT requests (user update from IdP).
+        Authentik can send a PUT request to update a user's details. If it tries to
+        update a user to have a username or email that already exists on another
+        account, we intercept the IntegrityError and return a SCIM 409 Conflict.
+        """
+        try:
+            return super().update(request, *args, **kwargs)
+        except IntegrityError:
+            # If the SCIM client attempts to force an update that violates DB unique
+            # constraints (e.g. changing the username to one that already exists),
+            # return SCIM 409 format.
+            return Response(
+                {
+                    'schemas': ['urn:ietf:params:scim:api:messages:2.0:Error'],
+                    'detail': 'One or more attributes in the resource already exists.',
+                    'status': '409',
+                },
+                status=status.HTTP_409_CONFLICT,
+            )
 
     def get_queryset(self):
         # The idp_slug in the URL MUST match the authenticated IdP

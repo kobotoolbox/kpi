@@ -55,9 +55,7 @@ class ScimGroupsAPITests(APITestCase):
 
     def test_service_provider_config(self):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
-        response = self.client.get(
-            self.config_url, HTTP_ACCEPT='application/scim+json'
-        )
+        response = self.client.get(self.config_url, HTTP_ACCEPT='application/scim+json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         data = response.json()
@@ -70,9 +68,7 @@ class ScimGroupsAPITests(APITestCase):
         self.assertFalse(data['bulk']['supported'])
 
     def test_service_provider_config_unauthorized(self):
-        response = self.client.get(
-            self.config_url, HTTP_ACCEPT='application/scim+json'
-        )
+        response = self.client.get(self.config_url, HTTP_ACCEPT='application/scim+json')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_create_group(self):
@@ -114,9 +110,7 @@ class ScimGroupsAPITests(APITestCase):
         ScimGroup.objects.create(idp=self.idp, name='Group 2')
 
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
-        response = self.client.get(
-            self.groups_url, HTTP_ACCEPT='application/scim+json'
-        )
+        response = self.client.get(self.groups_url, HTTP_ACCEPT='application/scim+json')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()

@@ -12,6 +12,7 @@ class ScimUserSerializer(serializers.ModelSerializer):
     """
 
     schemas = serializers.SerializerMethodField()
+    id = serializers.IntegerField(read_only=True)
     userName = serializers.CharField(source='username')
     name = serializers.SerializerMethodField()
     emails = serializers.SerializerMethodField()
