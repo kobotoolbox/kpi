@@ -27,6 +27,7 @@ import type { AssetResponse } from '#/dataInterface'
 import { removeDefaultUuidPrefix } from '#/utils'
 import { type AdvancedFeatureResponseManualQual, getEmptyAnswer, isAnswerAIGenerated } from '../../../common/utils'
 import AnalysisQuestionEditor from './AnalysisQuestionEditor'
+import ConfirmEditModal from './ConfirmEditModal'
 import IntegerResponseForm from './IntegerResponseForm'
 import KeywordSearchResponseForm from './KeywordSearchResponseForm'
 import SelectMultipleResponseForm from './MultipleResponseForm'
@@ -35,7 +36,6 @@ import SelectOneResponseForm from './SelectOneResponseForm'
 import TagsResponseForm from './TagsResponseForm'
 import TextResponseForm from './TextResponseForm'
 import styles from './index.module.scss'
-import ConfirmEditModal from './ConfirmEditModal'
 
 export interface Props {
   asset: AssetResponse
