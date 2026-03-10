@@ -159,9 +159,9 @@ export default function AnalysisQuestionListItem({
     setConfirmEditModalOpen(false)
   }
 
-  const handleConfirmEdit = (qaQuestionToEdit: ResponseManualQualActionParams) => {
+  const handleConfirmEdit = () => {
     setConfirmEditModalOpen(false)
-    setQaQuestion(qaQuestionToEdit)
+    setQaQuestion(qaQuestion)
   }
 
   const handleCancelEdit = () => {
@@ -481,7 +481,6 @@ export default function AnalysisQuestionListItem({
         <div className={styles.content}>{renderItem()}</div>
       </li>
       <ConfirmEditModal
-        qaQuestion={qaQuestion}
         opened={confirmEditModalOpen}
         onClose={handleConfirmModalClosed}
         onConfirmEdit={handleConfirmEdit}

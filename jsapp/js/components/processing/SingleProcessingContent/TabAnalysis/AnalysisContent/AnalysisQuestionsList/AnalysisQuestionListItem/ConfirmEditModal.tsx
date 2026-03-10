@@ -1,17 +1,15 @@
 import type { ModalProps } from '@mantine/core'
 import { Group, Modal, Stack, Text } from '@mantine/core'
 import ButtonNew from '#/components/common/ButtonNew'
-import type { ResponseManualQualActionParams } from '#/api/models/responseManualQualActionParams'
 import Alert from '#/components/common/alert'
 
 export interface ConfirmEditModalProps extends ModalProps {
-  qaQuestion: ResponseManualQualActionParams
-  onConfirmEdit: (qaQuestionToEdit: ResponseManualQualActionParams) => void
+  onConfirmEdit: () => void
 }
 
 export default function ConfirmEditModal(props: ConfirmEditModalProps) {
   const handleConfirm = () => {
-    props.onConfirmEdit(props.qaQuestion)
+    props.onConfirmEdit()
   }
 
   return (
