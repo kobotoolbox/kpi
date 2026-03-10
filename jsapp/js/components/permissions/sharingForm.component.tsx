@@ -299,16 +299,10 @@ export default class SharingForm extends React.Component<SharingFormProps, Shari
         {/* copying permissions from other assets */}
         {isManagingPossible && (
           <>
-            {assetType !== ASSET_TYPES.collection.id && this.state.allAssetsCount === 0 && (
+            {assetType !== ASSET_TYPES.collection.id && (
               <>
                 <bem.Modal__hr />
-                {t('Waiting for all projects to load…')}
-              </>
-            )}
-            {assetType !== ASSET_TYPES.collection.id && this.state.allAssetsCount >= 2 && (
-              <>
-                <bem.Modal__hr />
-                <CopyTeamPermissions assetUid={this.props.assetUid} />
+                <CopyTeamPermissions asset={this.state.asset} />
               </>
             )}
           </>
