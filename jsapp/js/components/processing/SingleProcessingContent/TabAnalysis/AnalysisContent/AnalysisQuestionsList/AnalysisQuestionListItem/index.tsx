@@ -35,6 +35,7 @@ import SelectOneResponseForm from './SelectOneResponseForm'
 import TagsResponseForm from './TagsResponseForm'
 import TextResponseForm from './TextResponseForm'
 import styles from './index.module.scss'
+import ConfirmEditModal from './ConfirmEditModal'
 
 export interface Props {
   asset: AssetResponse
@@ -95,6 +96,8 @@ export default function AnalysisQuestionListItem({
     },
   })
 
+  const [confirmEditModalOpen, setConfirmEditModalOpen] = useState<boolean>(false)
+
   // Local state for optimistic UI of SelectOne radio button value
   // this is needed so that the "clear" button works immediately without waiting for server response
   const [localRadioValue, setLocalRadioValue] = useState<string | undefined>()
@@ -146,6 +149,19 @@ export default function AnalysisQuestionListItem({
       })
     }
     setQaQuestion(undefined)
+  }
+
+  const handleEditClick = () => {
+    setConfirmEditModalOpen(true)
+  }
+
+  const handleConfirmModalClosed = () => {
+    setConfirmEditModalOpen(false)
+  }
+
+  const handleConfirmEdit = (qaQuestionToEdit: ResponseManualQualActionParams) => {
+    setConfirmEditModalOpen(false)
+    setQaQuestion(qaQuestionToEdit)
   }
 
   const handleCancelEdit = () => {
@@ -300,7 +316,8 @@ export default function AnalysisQuestionListItem({
             onDelete={handleDeleteQuestion}
             hasTranscript={hasTranscript}
             // This question type doesn't have any response, so we display just
-            // the header, and thus no `answer` or `children`
+            // the header, and thus no `answer` or `children`. We run setQaQuestion
+            // immediately without a modal, since the modal is irrelevant here
           />
         )
       }
@@ -309,7 +326,7 @@ export default function AnalysisQuestionListItem({
           <ResponseForm
             qaQuestion={qaQuestion}
             disabled={disabledQuestion}
-            onEdit={setQaQuestion}
+            onEdit={handleEditClick}
             onDelete={handleDeleteQuestion}
             onClear={() => handleSaveAnswer(getEmptyAnswer(qaQuestion.type))}
             onGenerateWithAI={() => onGenerateWithAI(qaQuestion)}
@@ -350,7 +367,7 @@ export default function AnalysisQuestionListItem({
           <ResponseForm
             qaQuestion={qaQuestion}
             disabled={disabledQuestion}
-            onEdit={setQaQuestion}
+            onEdit={handleEditClick}
             onDelete={handleDeleteQuestion}
             onClear={handleClearSelection}
             onGenerateWithAI={() => onGenerateWithAI(qaQuestion)}
@@ -373,7 +390,7 @@ export default function AnalysisQuestionListItem({
           <ResponseForm
             qaQuestion={qaQuestion}
             disabled={disabledQuestion}
-            onEdit={setQaQuestion}
+            onEdit={handleEditClick}
             onDelete={handleDeleteQuestion}
             onClear={() => handleSaveAnswer(getEmptyAnswer(qaQuestion.type))}
             answer={queryAnswer.data}
@@ -389,7 +406,7 @@ export default function AnalysisQuestionListItem({
           <ResponseForm
             qaQuestion={qaQuestion}
             disabled={disabledQuestion}
-            onEdit={setQaQuestion}
+            onEdit={handleEditClick}
             onDelete={handleDeleteQuestion}
             onClear={() => handleSaveAnswer(getEmptyAnswer(qaQuestion.type))}
             onGenerateWithAI={() => onGenerateWithAI(qaQuestion)}
@@ -411,7 +428,7 @@ export default function AnalysisQuestionListItem({
           <ResponseForm
             qaQuestion={qaQuestion}
             disabled={disabledQuestion}
-            onEdit={setQaQuestion}
+            onEdit={handleEditClick}
             onDelete={handleDeleteQuestion}
             onClear={() => handleSaveAnswer(getEmptyAnswer(qaQuestion.type))}
             onGenerateWithAI={() => onGenerateWithAI(qaQuestion)}
@@ -441,26 +458,34 @@ export default function AnalysisQuestionListItem({
   }
 
   return (
-    <li
-      className={classnames({
-        [styles.root]: true,
-        [styles.isBeingDragged]: isDragging,
-        [styles.isDragDisabled]: disabledQuestion,
-      })}
-      ref={previewRef}
-      data-handler-id={handlerId}
-    >
-      <div
+    <>
+      <li
         className={classnames({
-          [styles.dragHandle]: true,
-          [styles.dragHandleDisabled]: isAnyQuestionBeingEdited,
+          [styles.root]: true,
+          [styles.isBeingDragged]: isDragging,
+          [styles.isDragDisabled]: disabledQuestion,
         })}
-        ref={dragRef}
+        ref={previewRef}
+        data-handler-id={handlerId}
       >
-        <Icon name='drag-handle' size='xs' />
-      </div>
+        <div
+          className={classnames({
+            [styles.dragHandle]: true,
+            [styles.dragHandleDisabled]: isAnyQuestionBeingEdited,
+          })}
+          ref={dragRef}
+        >
+          <Icon name='drag-handle' size='xs' />
+        </div>
 
-      <div className={styles.content}>{renderItem()}</div>
-    </li>
+        <div className={styles.content}>{renderItem()}</div>
+      </li>
+      <ConfirmEditModal
+        qaQuestion={qaQuestion}
+        opened={confirmEditModalOpen}
+        onClose={handleConfirmModalClosed}
+        onConfirmEdit={handleConfirmEdit}
+      />
+    </>
   )
 }
