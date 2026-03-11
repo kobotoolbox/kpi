@@ -81,6 +81,9 @@ export default function CopyTeamPermissions({ asset }: CopyTeamPermissionsProps)
     },
     enabled: isFormOpened,
     placeholderData: keepPreviousData,
+    // Let's not do it. When multiple pages are loaded through infinite scroll, going back to the window will fetch all
+    // of the pages. User most probably will use search
+    refetchOnWindowFocus: false,
   })
 
   const rowData = useMemo(() => {
