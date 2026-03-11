@@ -1,17 +1,24 @@
 import { Textarea } from '@mantine/core'
-import React, { useState } from 'react'
-import type { SupplementalDataVersionItemQual } from '#/api/models/supplementalDataVersionItemQual'
+import React, { useEffect, useState } from 'react'
+import type { QualVersionItem } from '#/components/processing/common/types'
 import { AUTO_SAVE_TYPING_DELAY } from '../../../common/constants'
+import styles from '../../../common/styles.module.scss'
 
 interface Props {
-  qaAnswer?: SupplementalDataVersionItemQual
+  qaAnswer?: QualVersionItem
   disabled: boolean
   onSave: (value: string) => Promise<unknown>
+  isAnswerAIGenerated: boolean
 }
 
-export default function TextResponseForm({ qaAnswer, onSave, disabled }: Props) {
-  const [value, setValue] = useState<string>((qaAnswer?._data.value as string) ?? '')
+export default function TextResponseForm({ qaAnswer, onSave, disabled, isAnswerAIGenerated }: Props) {
+  const [value, setValue] = useState<string>(((qaAnswer?._data as any)?.value as string) ?? '')
   const [typingTimer, setTypingTimer] = useState<NodeJS.Timeout>()
+
+  // Sync local state when a new version is set (e.g. after AI generation)
+  useEffect(() => {
+    setValue(((qaAnswer?._data as any)?.value as string) ?? '')
+  }, [qaAnswer?._uuid])
 
   const handleSave = async () => {
     clearTimeout(typingTimer)
@@ -26,6 +33,9 @@ export default function TextResponseForm({ qaAnswer, onSave, disabled }: Props) 
 
   return (
     <Textarea
+      classNames={{
+        input: isAnswerAIGenerated ? styles.responseBorderAI : styles.responseBorderDefault,
+      }}
       autosize
       minRows={2}
       value={value}

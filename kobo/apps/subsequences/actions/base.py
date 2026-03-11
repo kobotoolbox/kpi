@@ -14,11 +14,11 @@ from kobo.apps.subsequences.exceptions import (
     GoogleCloudStorageBucketNotFound,
     SubsequenceAcceptanceError,
     SubsequenceDeletionError,
-    SubsequenceVerificationError,
 )
 from kobo.apps.subsequences.utils.time import utc_datetime_to_js_str
 from kobo.celery import celery_app
 from kpi.exceptions import UsageLimitExceededException
+from kpi.utils.log import logging
 from kpi.utils.usage_calculator import ServiceUsageCalculator
 from ..tasks import poll_run_external_process
 from ..type_aliases import (
@@ -175,13 +175,14 @@ class ActionClassConfig:
     - automatic: Indicates whether the action relies on an external service
       to generate data.
     - review_type: How data is reviewed (verified or accepted)
-
+    - allow_async: Whether the action may generate a celery task to finish
     """
 
     allow_multiple: bool
     automatic: bool
     action_data_key: str | None = None
     review_type: ReviewType | None = None
+    allow_async: bool = False
 
 
 class BaseAction:
@@ -202,12 +203,13 @@ class BaseAction:
         source_question_xpath: str,
         params: list[dict],
         asset: Optional['kpi.models.Asset'] = None,
+        prefetched_dependencies: dict = None,
     ):
         self.source_question_xpath = source_question_xpath
         self.validate_params(params)
         self.params = params
         self.asset = asset
-        self._action_dependencies = {}
+        self._action_dependencies = prefetched_dependencies or {}
 
     def attach_action_dependency(self, action_data: dict):
         pass
@@ -238,21 +240,6 @@ class BaseAction:
         Schema to validate payload POSTed to "/api/v2/assets/<asset uid>/data/<submission uuid>/supplemental"  # noqa
         """
         raise NotImplementedError
-
-    def get_action_dependencies(self, question_supplemental_data: dict) -> dict | None:
-        """
-        Return a mapping of supplemental data required by this action, or None.
-
-        This method allows an action to declare which parts of
-        `question_supplemental_data` (or other context data) it depends on
-        in order to run correctly. By default it returns None, meaning the
-        action has no external dependencies. Subclasses can override this
-        to return a dictionary of prerequisite data—typically other actions’
-        results or metadata—that must be present before executing this
-        action.
-        """
-
-        return None
 
     def get_localized_action_supplemental_data(
         self, action_supplemental_data: dict, action_data: dict
@@ -373,6 +360,15 @@ class BaseAction:
         """
         return {}
 
+    def validate_action_for_empty_versions(self, action_data: dict):
+        """
+        Determine if action_data is allowed when there is no current version
+
+        This may occur if no version was ever created, or the most recent version has
+        been deleted, or is still in progress
+        """
+        raise NotImplementedError
+
     def validate_external_data(self, data):
         jsonschema.validate(
             data,
@@ -443,14 +439,10 @@ class BaseAction:
         self.attach_action_dependency(action_data)
         current_version_data = current_version.get(self.VERSION_DATA_FIELD, {})
 
-        # cannot delete, verify, or accept non-existent data
+        # some actions cannot be performed unless there is already a completed version
+        # that has not been deleted
         if current_version_data.get('value') is None:
-            if 'value' in action_data and action_data['value'] is None:
-                raise SubsequenceDeletionError
-            if 'verified' in action_data:
-                raise SubsequenceVerificationError()
-            if 'accepted' in action_data:
-                raise SubsequenceAcceptanceError()
+            self.validate_action_for_empty_versions(action_data)
 
         verified = action_data.pop('verified', None)
         accepted = action_data.pop('accepted', None)
@@ -734,6 +726,13 @@ class BaseManualNLPAction(BaseAction):
             if language_obj['language'] not in current_languages:
                 self.params.append(language_obj)
 
+    def validate_action_for_empty_versions(self, action_data):
+        # cannot delete or accept non-existent data
+        if 'value' in action_data and action_data['value'] is None:
+            raise SubsequenceDeletionError
+        if 'accepted' in action_data:
+            raise SubsequenceAcceptanceError()
+
 
 class BaseAutomaticNLPAction(BaseManualNLPAction):
     """
@@ -954,7 +953,7 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
         if service_data['status'] == 'in_progress':
             if current_version.get('status') == 'in_progress':
                 return None
-            else:
+            elif self.action_class_config.allow_async:
                 # Make Celery update in the background.
                 # Since Celery is calling the same code, we want to ensure
                 #  it does not recall itself.
@@ -973,6 +972,9 @@ class BaseAutomaticNLPAction(BaseManualNLPAction):
                         },
                         countdown=10,  # Give it a small delay before retrying
                     )
+            else:
+                logging.warn('Non-async task returned "in progress" status')
+                return None
 
         # Normal case: return the processed transcription data.
         return service_data

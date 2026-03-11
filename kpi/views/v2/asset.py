@@ -3,7 +3,8 @@ import json
 from collections import OrderedDict, defaultdict
 from operator import itemgetter
 
-from django.db.models import Count
+from django.conf import settings
+from django.db.models import Count, F
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import (
@@ -40,7 +41,8 @@ from kpi.filters import (
 from kpi.highlighters import highlight_xform
 from kpi.mixins.asset import AssetViewSetListMixin
 from kpi.mixins.object_permission import ObjectPermissionViewSetMixin
-from kpi.models import Asset, UserAssetSubscription
+from kpi.models import Asset, AssetUserPartialPermission, UserAssetSubscription
+from kpi.models.object_permission import ObjectPermission
 from kpi.paginators import AssetPagination
 from kpi.permissions import (
     AssetPermission,
@@ -48,7 +50,13 @@ from kpi.permissions import (
     ReportPermission,
     get_perm_name,
 )
-from kpi.renderers import BasicHTMLRenderer, SSJsonRenderer, XFormRenderer, XlsRenderer
+from kpi.renderers import (
+    BasicHTMLRenderer,
+    SanitizedJSONRenderer,
+    SSJsonRenderer,
+    XFormRenderer,
+    XlsRenderer,
+)
 from kpi.schema_extensions.v2.assets.schema import (
     ASSET_CLONE_FROM_SCHEMA,
     ASSET_CONTENT_SCHEMA,
@@ -97,6 +105,7 @@ from kpi.utils.schema_extensions.response import (
     open_api_http_example_response,
 )
 from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
+from kpi.utils.strings import to_bool
 
 
 @extend_schema(
@@ -210,6 +219,17 @@ from kpi.utils.ss_structure_to_mdtable import ss_structure_to_mdtable
                 location=OpenApiParameter.QUERY,
                 required=False,
                 description='Which field to use when ordering the results.',
+            ),
+            OpenApiParameter(
+                name='current_user_permissions_only',
+                type=bool,
+                required=False,
+                location=OpenApiParameter.QUERY,
+                description=(
+                    "When `true`, only return the requesting user's own permission "
+                    'assignments. When `false` (default), return all visible '
+                    'assignments.'
+                ),
             ),
         ],
     ),
@@ -745,10 +765,34 @@ class AssetViewSet(
             else:
                 asset_ids = context_['asset_ids_cache']
 
-            # 2) Get object permissions per asset
-            context_[
-                'object_permissions_per_asset'
-            ] = self.cache_all_assets_perms(asset_ids)
+            # 2) Get object permissions per asset.
+            # By default, only loads permissions for the requesting user and
+            # discover_asset/view_asset for anonymous (memory optimization).
+            # Pass ?current_user_permissions_only=false to load all users'
+            # permissions (needed when the client displays full permission lists).
+            current_user_permissions_only = to_bool(
+                self.request.query_params.get('current_user_permissions_only', False)
+            )
+            context_['object_permissions_per_asset'] = self.cache_all_assets_perms(
+                asset_ids, current_user_permissions_only
+            )
+
+            # 2b) Assets shared with at least one non-owner, non-anonymous user.
+            # Used by get_status() and get_access_types() to detect 'shared'.
+            context_['shared_asset_ids'] = set(
+                ObjectPermission.objects.filter(
+                    asset_id__in=asset_ids,
+                    deny=False,
+                )
+                .exclude(
+                    user_id=settings.ANONYMOUS_USER_ID,
+                )
+                .exclude(
+                    user_id=F('asset__owner_id'),
+                )
+                .values_list('asset_id', flat=True)
+                .distinct()
+            )
 
             # 3) Get the collection subscriptions per asset
             subscriptions_queryset = (
@@ -783,7 +827,26 @@ class AssetViewSet(
 
             context_['children_count_per_asset'] = children_count_per_asset
 
-            # 5) Get organization…
+            # 5) Get partial permissions per asset and user
+            # e.g.: {
+            #   627: {
+            #       2: {'view_submissions': [{'_submitted_by': 'bob'}]},
+            #       3: {'view_submissions': [
+            #           {'_submitted_by': 'alice'},
+            #           {'_submitted_by': 'bob'},
+            #       ]}
+            #   }
+            # }
+            partial_perms_per_asset = defaultdict(dict)
+            for record in AssetUserPartialPermission.objects.filter(
+                asset_id__in=asset_ids
+            ).values('asset_id', 'user_id', 'permissions'):
+                partial_perms_per_asset[record['asset_id']][record['user_id']] = record[
+                    'permissions'
+                ]
+            context_['partial_perms_per_asset'] = partial_perms_per_asset
+
+            # 6) Get organization…
             if organization := getattr(self.request, 'organization', None):
                 # …from request.
                 # e.g.: /api/v2/organizations/<uid_organization>/assets/`
@@ -817,7 +880,9 @@ class AssetViewSet(
             metadata = None
             if request.GET.get('metadata') == 'on':
                 metadata = self.get_metadata(self._filtered_queryset)
-            return self.get_paginated_response(serializer.data, metadata)
+
+            response = self.get_paginated_response(serializer.data, metadata)
+            return response
 
         serializer = self.get_serializer(self._filtered_queryset, many=True)
         return Response(serializer.data)
@@ -895,6 +960,7 @@ class AssetViewSet(
         detail=True,
         permission_classes=[ReportPermission],
         methods=['GET'],
+        renderer_classes=[SanitizedJSONRenderer, BasicHTMLRenderer],
     )
     def reports(self, request, *args, **kwargs):
         asset = self.get_object()

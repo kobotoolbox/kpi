@@ -1,10 +1,10 @@
-# coding: utf-8
 from collections import OrderedDict
 from copy import deepcopy
-
-from django.test import TestCase
+from unittest.mock import patch
 
 from formpack import FormPack
+from django.test import TestCase, override_settings
+
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.reports import report_data
 from kpi.models import Asset
@@ -257,12 +257,12 @@ def _get_stats_object(
     return stats
 
 
-class MockDataReports(TestCase):
+class BaseSubmissionTestCase(TestCase):
+
     fixtures = ['test_data']
 
     def setUp(self):
         self.user = User.objects.get(username='someuser')
-
         self.asset = Asset.objects.create(content=deepcopy(F1), owner=self.user)
 
         num_submissions = 4
@@ -281,6 +281,14 @@ class MockDataReports(TestCase):
         for submission in submissions:
             submission.update({'__version__': v_uid})
         self.asset.deployment.mock_submissions(submissions)
+
+
+class MockDataReports(BaseSubmissionTestCase):
+    fixtures = ['test_data']
+
+    def setUp(self):
+        super().setUp()
+
         schemas = [v.to_formpack_schema() for v in self.asset.deployed_versions]
         self.fp = FormPack(versions=schemas, id_string=self.asset.uid)
         self.vs = self.fp.versions.keys()
@@ -498,3 +506,95 @@ class MockDataReports(TestCase):
         self.assertTrue(self.asset.has_deployment)
         self.asset.deployment.xform.refresh_from_db()
         self.assertEqual(self.asset.deployment.submission_count, 4)
+
+
+class AttachmentXPathCacheTestCase(BaseSubmissionTestCase):
+    """
+    Test suite for attachment XPath caching behavior in get_submissions()
+    """
+
+    def setUp(self):
+        super().setUp()
+        with override_settings(
+            CACHES={
+                'default': {
+                    'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+                }
+            }
+        ):
+            self.submissions = list(
+                self.asset.deployment.get_submissions(user=self.asset.owner)
+            )
+
+    def test_get_submissions_uses_cache_for_attachment_xpaths(self):
+        """
+        Test that get_submissions() uses cached attachment xpaths when available
+        (without fetch_one parameter)
+        """
+        # Mock get_all_attachment_xpaths to verify it's called correctly
+        with patch.object(
+            self.asset,
+            'get_all_attachment_xpaths',
+            return_value=['Photo', 'Audio', 'Video'],
+        ) as mock_get_xpaths:
+
+            # Retrieve all submissions
+            self.asset.deployment.get_submissions(user=self.asset.owner)
+
+            # Should be called once without only_cached_data parameter
+            mock_get_xpaths.assert_called_once_with()
+
+    def test_fetch_one_uses_cached_attachment_xpaths(self):
+        """
+        Test that fetch_one=True uses cached xpaths when available (cache hit)
+        """
+
+        # Simulate cache hit - cache returns xpaths
+        with patch.object(
+            self.asset,
+            'get_all_attachment_xpaths',
+            return_value=['Photo', 'Audio', 'Video'],
+        ) as mock_get_xpaths:
+            with patch.object(
+                self.asset,
+                'get_attachment_xpaths_from_version',
+            ) as mock_get_xpaths_from_version:
+                # Retrieve single submission
+                self.asset.deployment.get_submission(
+                    submission_id=self.submissions[0]['_id'],
+                    user=self.asset.owner,
+                )
+
+                # Cache hit: get_all_attachment_xpaths called with only_cached_data=True
+                mock_get_xpaths.assert_called_once_with(only_cached_data=True)
+
+                # Cache hit: get_attachment_xpaths_from_version should NOT be called
+                mock_get_xpaths_from_version.assert_not_called()
+
+    def test_fetch_one_cache_miss_uses_version_specific_xpaths(self):
+        """
+        Test that fetch_one=True computes xpaths from submission's specific version
+        when cache is empty (cache miss)
+        """
+
+        # Simulate cache miss - cache returns None
+        with patch.object(
+            self.asset, 'get_all_attachment_xpaths', return_value=None
+        ) as mock_get_xpaths:
+            with patch.object(
+                self.asset,
+                'get_attachment_xpaths_from_version',
+                return_value=['Photo', 'Audio', 'Video'],
+            ) as mock_get_xpaths_from_version:
+                # Retrieve single submission
+                self.asset.deployment.get_submission(
+                    submission_id=self.submissions[0]['_id'],
+                    user=self.asset.owner,
+                )
+
+                # Cache miss: get_all_attachment_xpaths called with
+                # only_cached_data=True
+                mock_get_xpaths.assert_called_once_with(only_cached_data=True)
+
+                # Cache miss: get_attachment_xpaths_from_version MUST be called
+                mock_get_xpaths_from_version.assert_called_once()

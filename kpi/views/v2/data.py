@@ -27,8 +27,10 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
 )
 from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_handler
 from kobo.apps.subsequences.exceptions import (
+    AnalysisQuestionNotFound,
     InvalidAction,
     InvalidXPath,
+    ManualQualNotFound,
     SubsequenceAcceptanceError,
     SubsequenceDeletionError,
     SubsequenceVerificationError,
@@ -584,13 +586,19 @@ class DataViewSet(
             # TODO: more descriptive errors
             raise serializers.ValidationError({'detail': 'Invalid payload'})
         except TranscriptionNotFound:
-            raise serializers.ValidationError(
-                {'detail': 'Cannot translate without transcription'}
-            )
+            raise serializers.ValidationError({'detail': 'No transcription found'})
         except SubsequenceVerificationError:
             raise serializers.ValidationError({'detail': 'No response to verify'})
         except SubsequenceAcceptanceError:
             raise serializers.ValidationError({'detail': 'No response to accept'})
+        except ManualQualNotFound:
+            raise serializers.ValidationError(
+                {'detail': 'No qualitative analysis questions to answer'}
+            )
+        except AnalysisQuestionNotFound:
+            raise serializers.ValidationError(
+                {'detail': 'Invalid qualitative analysis question uuid'}
+            )
 
         return Response(supplemental_data)
 
@@ -745,14 +753,15 @@ class DataViewSet(
                 id=sub['_id'],
                 username=sub['_submitted_by'],
                 action='delete',
-                root_uuid=sub['meta/rootUuid'],
+                root_uuid=remove_uuid_prefix(sub['meta/rootUuid']),
             )
             for sub in submissions
         }
+        request._request.asset = self.asset
 
         try:
             deleted = deployment.delete_submissions(
-                bulk_actions_validator.data, request.user, request=request
+                bulk_actions_validator.data, request.user
             )
         except (MissingXFormException, InvalidXFormException):
             return {

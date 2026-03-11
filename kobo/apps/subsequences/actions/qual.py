@@ -4,6 +4,7 @@ from rest_framework.exceptions import ValidationError
 
 from kobo.apps.subsequences.actions.base import BaseAction
 from kobo.apps.subsequences.constants import SORT_BY_DATE_FIELD
+from kobo.apps.subsequences.exceptions import SubsequenceVerificationError
 from kobo.apps.subsequences.type_aliases import SimplifiedOutputCandidatesByColumnKey
 
 
@@ -172,7 +173,7 @@ class BaseQualAction(BaseAction):
 
         # For now, allow answers to all questions that can receive responses,
         # even if they are hidden
-        for qual_item in self.params:
+        for qual_item in self.get_question_params():
             try:
                 data_schema_def = self.data_schema_definitions[qual_item['type']]
             except KeyError:
@@ -216,6 +217,9 @@ class BaseQualAction(BaseAction):
                 }
             schema['oneOf'].append(single_question_schema)
         return schema
+
+    def get_question_params(self):
+        return self.params
 
     @property
     def result_schema(self):
@@ -298,11 +302,11 @@ class BaseQualAction(BaseAction):
     def transform_data_for_output(
         self, action_data: dict
     ) -> SimplifiedOutputCandidatesByColumnKey:
-        qual_questions_by_uuid = {q['uuid']: q for q in self.params}
+        qual_questions_by_uuid = {q['uuid']: q for q in self.get_question_params()}
 
         # Choice lookup tables for select questions
         choices_by_uuid = {}
-        for qual_question in self.params:
+        for qual_question in self.get_question_params():
             if qual_question['type'] in ('qualSelectOne', 'qualSelectMultiple'):
                 choices_by_uuid[qual_question['uuid']] = {
                     choice['uuid']: choice
@@ -417,3 +421,7 @@ class BaseQualAction(BaseAction):
                     # the json schema but better safe than sorry
                     new_question.setdefault('choices', []).append(old_choice)
         self.params = incoming_params
+
+    def validate_action_for_empty_versions(self, action_data: dict):
+        if 'verified' in action_data:
+            raise SubsequenceVerificationError()

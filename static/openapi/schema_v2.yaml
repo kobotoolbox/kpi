@@ -851,6 +851,12 @@ paths:
         curl -X GET https://kf.kobotoolbox.org/api/v2/assets/?collections_first=true&ordering=-name
         ```
       parameters:
+      - in: query
+        name: current_user_permissions_only
+        schema:
+          type: boolean
+        description: When `true`, only return the requesting user's own permission
+          assignments. When `false` (default), return all visible assignments.
       - name: limit
         required: false
         in: query
@@ -1188,22 +1194,7 @@ paths:
                     * `manual_translation`
                     * `automatic_google_transcription`
                     * `automatic_google_translation`
-                QualitativeAnalysis-SimpleTypes_:
-                  value:
-                  - action: <action_id>
-                    question_xpath: q1
-                    params:
-                    - type: <question_type>
-                      uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
-                      labels:
-                        _default: Qualitative analysis result
-                    uid: qa123456789AbCdEfGhIjklm
-                  summary: 'Qualitative Analysis - Simple Types '
-                  description: |-
-                    `<question_type>` may be either `qualText` or `qualInteger`
-
-                    `<action_id>` may be either `manual_qual` or `automatic_bedrock_qual`
-                QualitativeAnalysis-SimpleTypes-ManualOnly:
+                ManualQualitativeAnalysis-SimpleTypes_:
                   value:
                   - action: manual_qual
                     question_xpath: q1
@@ -1213,11 +1204,17 @@ paths:
                       labels:
                         _default: Qualitative analysis result
                     uid: qa123456789AbCdEfGhIjklm
-                  summary: Qualitative Analysis - Simple Types - Manual Only
-                  description: '`<question_type>` may be either `qualNote` or `qualTags`'
-                QualitativeAnalysis-SingleChoiceQuestion:
+                  summary: 'Manual Qualitative Analysis - Simple Types '
+                  description: |
+                    `<question_type>` may be any of:
+
+                    * `qualText`
+                    * `qualInteger`
+                    * `qualNote`
+                    * `qualTags`
+                ManualQualitativeAnalysis-SingleChoiceQuestion:
                   value:
-                  - action: <action_id>
+                  - action: manual_qual
                     question_xpath: q1
                     params:
                     - type: qualSelectOne
@@ -1235,11 +1232,10 @@ paths:
                         labels:
                           _default: Low
                     uid: qa123456789AbCdEfGhIjklm
-                  summary: Qualitative Analysis - Single Choice Question
-                  description: '`<action_id>` may be either `manual_qual` or `automatic_bedrock_qual`'
-                QualitativeAnalysis-MultipleChoiceQuestion(withDeletedChoice):
+                  summary: Manual Qualitative Analysis - Single Choice Question
+                ManualQualitativeAnalysis-MultipleChoiceQuestion(withDeletedChoice):
                   value:
-                  - action: <action_id>
+                  - action: manual_qual
                     question_xpath: q1
                     params:
                     - type: qualSelectMultiple
@@ -1259,12 +1255,11 @@ paths:
                         labels:
                           _default: Medical
                     uid: qa123456789AbCdEfGhIjklm
-                  summary: Qualitative Analysis - Multiple Choice Question (with deleted
-                    choice)
-                  description: '`<action_id>` may be either `manual_qual` or `automatic_bedrock_qual`'
-                QualitativeAnalysis-DeletedQuestion:
+                  summary: Manual Qualitative Analysis - Multiple Choice Question
+                    (with deleted choice)
+                ManualQualitativeAnalysis-DeletedQuestion:
                   value:
-                  - action: <action_id>
+                  - action: manual_qual
                     question_xpath: q1
                     params:
                     - type: <question_type>
@@ -1274,8 +1269,15 @@ paths:
                     options:
                       deleted: true
                     uid: qa123456789AbCdEfGhIjklm
-                  summary: Qualitative Analysis - Deleted question
-                  description: '`<action_id>` may be either `manual_qual` or `automatic_bedrock_qual`'
+                  summary: Manual Qualitative Analysis - Deleted question
+                AutomaticQualitativeAnalysis-AnyQuestion:
+                  value:
+                  - action: automatic_bedrock_qual
+                    question_xpath: q1
+                    params:
+                    - uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
+                    uid: qa123456789AbCdEfGhIjklm
+                  summary: Automatic Qualitative Analysis - Any question
           description: null
         '404':
           content:
@@ -1334,21 +1336,7 @@ paths:
                   * `manual_translation`
                   * `automatic_google_transcription`
                   * `automatic_google_translation`
-              QualitativeAnalysis-SimpleTypes:
-                value:
-                  action: <action_id>
-                  question_xpath: q1
-                  params:
-                  - type: <question_type>
-                    uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
-                    labels:
-                      _default: Qualitative analysis result
-                summary: Qualitative Analysis - Simple Types
-                description: |-
-                  `<question_type>` may be either `qualText` or `qualInteger`:
-
-                  `<action_id>` may be either `manual_qual` or `automatic_bedrock_qual`
-              QualitativeAnalysis-SimpleTypes-ManualOnly:
+              ManualQualitativeAnalysis-SimpleTypes:
                 value:
                   action: manual_qual
                   question_xpath: q1
@@ -1357,11 +1345,17 @@ paths:
                     uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
                     labels:
                       _default: Qualitative analysis result
-                summary: Qualitative Analysis - Simple Types - Manual Only
-                description: '`<question_type>` may be either `qualTags` or `qualNote`'
-              QualitativeAnalysis-SingleChoiceQuestion:
+                summary: Manual Qualitative Analysis - Simple Types
+                description: |
+                  `<question_type>` may be any of:
+
+                  * `qualText`
+                  * `qualInteger`
+                  * `qualNote`
+                  * `qualTags`
+              ManualQualitativeAnalysis-SingleChoiceQuestion:
                 value:
-                  action: <action_id>
+                  action: manual_qual
                   question_xpath: q1
                   params:
                   - type: qualSelectOne
@@ -1378,11 +1372,10 @@ paths:
                     - uuid: gggggggg-bbbb-cccc-dddd-eeeeffffffff
                       labels:
                         _default: Low
-                summary: Qualitative Analysis - Single Choice Question
-                description: '`<action_id>` may be either `manual_qual` or `automatic_bedrock_qual`'
-              QualitativeAnalysis-MultipleChoiceQuestion:
+                summary: Manual Qualitative Analysis - Single Choice Question
+              ManualQualitativeAnalysis-MultipleChoiceQuestion:
                 value:
-                  action: <action_id>
+                  action: manual_qual
                   question_xpath: q1
                   params:
                   - type: qualSelectMultiple
@@ -1399,8 +1392,16 @@ paths:
                     - uuid: yyyyyyyy-bbbb-cccc-dddd-eeeeffffffff
                       labels:
                         _default: Medical
-                summary: Qualitative Analysis - Multiple Choice Question
-                description: '`<action_id>` may be either `manual_qual` or `automatic_bedrock_qual`'
+                summary: Manual Qualitative Analysis - Multiple Choice Question
+              AutomaticQualitativeAnalysis-AnyQuestion:
+                value:
+                  action: automatic_bedrock_qual
+                  question_xpath: q1
+                  params:
+                  - uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
+                summary: Automatic Qualitative Analysis - Any Question
+                description: '`uuid`s should match those present in the `manual_qual`
+                  action for the same survey question.'
         required: true
       security:
       - BasicAuth: []
@@ -1484,22 +1485,7 @@ paths:
                     * `manual_translation`
                     * `automatic_google_transcription`
                     * `automatic_google_translation`
-                QualitativeAnalysis-SimpleTypes_:
-                  value:
-                    action: <action_id>
-                    question_xpath: q1
-                    params:
-                    - type: <question_type>
-                      uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
-                      labels:
-                        _default: Qualitative analysis result
-                    uid: qa123456789AbCdEfGhIjklm
-                  summary: 'Qualitative Analysis - Simple Types '
-                  description: |-
-                    `<question_type>` may be either `qualText` or `qualInteger`
-
-                    `<action_id>` may be either `manual_qual` or `automatic_bedrock_qual`
-                QualitativeAnalysis-SimpleTypes-ManualOnly:
+                ManualQualitativeAnalysis-SimpleTypes_:
                   value:
                     action: manual_qual
                     question_xpath: q1
@@ -1509,11 +1495,17 @@ paths:
                       labels:
                         _default: Qualitative analysis result
                     uid: qa123456789AbCdEfGhIjklm
-                  summary: Qualitative Analysis - Simple Types - Manual Only
-                  description: '`<question_type>` may be either `qualNote` or `qualTags`'
-                QualitativeAnalysis-SingleChoiceQuestion:
+                  summary: 'Manual Qualitative Analysis - Simple Types '
+                  description: |
+                    `<question_type>` may be any of:
+
+                    * `qualText`
+                    * `qualInteger`
+                    * `qualNote`
+                    * `qualTags`
+                ManualQualitativeAnalysis-SingleChoiceQuestion:
                   value:
-                    action: <action_id>
+                    action: manual_qual
                     question_xpath: q1
                     params:
                     - type: qualSelectOne
@@ -1531,11 +1523,10 @@ paths:
                         labels:
                           _default: Low
                     uid: qa123456789AbCdEfGhIjklm
-                  summary: Qualitative Analysis - Single Choice Question
-                  description: '`<action_id>` may be either `manual_qual` or `automatic_bedrock_qual`'
-                QualitativeAnalysis-MultipleChoiceQuestion(withDeletedChoice):
+                  summary: Manual Qualitative Analysis - Single Choice Question
+                ManualQualitativeAnalysis-MultipleChoiceQuestion(withDeletedChoice):
                   value:
-                    action: <action_id>
+                    action: manual_qual
                     question_xpath: q1
                     params:
                     - type: qualSelectMultiple
@@ -1555,12 +1546,11 @@ paths:
                         labels:
                           _default: Medical
                     uid: qa123456789AbCdEfGhIjklm
-                  summary: Qualitative Analysis - Multiple Choice Question (with deleted
-                    choice)
-                  description: '`<action_id>` may be either `manual_qual` or `automatic_bedrock_qual`'
-                QualitativeAnalysis-DeletedQuestion:
+                  summary: Manual Qualitative Analysis - Multiple Choice Question
+                    (with deleted choice)
+                ManualQualitativeAnalysis-DeletedQuestion:
                   value:
-                    action: <action_id>
+                    action: manual_qual
                     question_xpath: q1
                     params:
                     - type: <question_type>
@@ -1570,8 +1560,15 @@ paths:
                     options:
                       deleted: true
                     uid: qa123456789AbCdEfGhIjklm
-                  summary: Qualitative Analysis - Deleted question
-                  description: '`<action_id>` may be either `manual_qual` or `automatic_bedrock_qual`'
+                  summary: Manual Qualitative Analysis - Deleted question
+                AutomaticQualitativeAnalysis-AnyQuestion:
+                  value:
+                    action: automatic_bedrock_qual
+                    question_xpath: q1
+                    params:
+                    - uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
+                    uid: qa123456789AbCdEfGhIjklm
+                  summary: Automatic Qualitative Analysis - Any question
           description: null
         '404':
           content:
@@ -1636,28 +1633,22 @@ paths:
                   * `manual_translation`
                   * `automatic_google_transcription`
                   * `automatic_google_translation`
-              QualitativeAnalysis-SimpleTypes:
+              ManualQualitativeAnalysis-SimpleTypes:
                 value:
                   params:
                   - type: <question_type>
                     uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
                     labels:
                       _default: Qualitative analysis result
-                summary: Qualitative Analysis - Simple Types
-                description: |-
-                  `<question_type>` may be either `qualText` or `qualInteger`
+                summary: Manual Qualitative Analysis - Simple Types
+                description: |
+                  `<question_type>` may be any of:
 
-                  This may be used to update either `manual_qual` or `automatic_bedrock_qual` actions
-              QualitativeAnalysis-SimpleTypes-ManualOnly:
-                value:
-                  params:
-                  - type: <question_type>
-                    uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
-                    labels:
-                      _default: Qualitative analysis result
-                summary: Qualitative Analysis - Simple Types - Manual Only
-                description: '`<question_type>` may be either `qualTags` or `qualNote`'
-              QualitativeAnalysis-SingleChoiceQuestion:
+                  * `qualText`
+                  * `qualInteger`
+                  * `qualNote`
+                  * `qualTags`
+              ManualQualitativeAnalysis-SingleChoiceQuestion:
                 value:
                   params:
                   - type: qualSelectOne
@@ -1674,10 +1665,8 @@ paths:
                     - uuid: gggggggg-bbbb-cccc-dddd-eeeeffffffff
                       labels:
                         _default: Low
-                summary: Qualitative Analysis - Single Choice Question
-                description: This may be used to update either `manual_qual` or `automatic_bedrock_qual`
-                  actions
-              QualitativeAnalysis-MultipleChoiceQuestion:
+                summary: Manual Qualitative Analysis - Single Choice Question
+              ManualQualitativeAnalysis-MultipleChoiceQuestion:
                 value:
                   params:
                   - type: qualSelectMultiple
@@ -1694,9 +1683,15 @@ paths:
                     - uuid: yyyyyyyy-bbbb-cccc-dddd-eeeeffffffff
                       labels:
                         _default: Medical
-                summary: Qualitative Analysis - Multiple Choice Question
-                description: This may be used to update either `manual_qual` or `automatic_bedrock_qual`
-                  actions
+                summary: Manual Qualitative Analysis - Multiple Choice Question
+              AutomaticQualitativeAnalysis-AllTypes:
+                value:
+                  params:
+                  - uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
+                  - uuid: dddddddd-eeee-ffff-gggg-hhhhhhhhhhhhh
+                summary: Automatic Qualitative Analysis - All Types
+                description: '`uuid`s should match those present in the `manual_qual`
+                  action for the same survey question.'
       security:
       - BasicAuth: []
       - TokenAuth: []
@@ -1723,22 +1718,7 @@ paths:
                     * `manual_translation`
                     * `automatic_google_transcription`
                     * `automatic_google_translation`
-                QualitativeAnalysis-SimpleTypes_:
-                  value:
-                    action: <action_id>
-                    question_xpath: q1
-                    params:
-                    - type: <question_type>
-                      uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
-                      labels:
-                        _default: Qualitative analysis result
-                    uid: qa123456789AbCdEfGhIjklm
-                  summary: 'Qualitative Analysis - Simple Types '
-                  description: |-
-                    `<question_type>` may be either `qualText` or `qualInteger`
-
-                    `<action_id>` may be either `manual_qual` or `automatic_bedrock_qual`
-                QualitativeAnalysis-SimpleTypes-ManualOnly:
+                ManualQualitativeAnalysis-SimpleTypes_:
                   value:
                     action: manual_qual
                     question_xpath: q1
@@ -1748,11 +1728,17 @@ paths:
                       labels:
                         _default: Qualitative analysis result
                     uid: qa123456789AbCdEfGhIjklm
-                  summary: Qualitative Analysis - Simple Types - Manual Only
-                  description: '`<question_type>` may be either `qualNote` or `qualTags`'
-                QualitativeAnalysis-SingleChoiceQuestion:
+                  summary: 'Manual Qualitative Analysis - Simple Types '
+                  description: |
+                    `<question_type>` may be any of:
+
+                    * `qualText`
+                    * `qualInteger`
+                    * `qualNote`
+                    * `qualTags`
+                ManualQualitativeAnalysis-SingleChoiceQuestion:
                   value:
-                    action: <action_id>
+                    action: manual_qual
                     question_xpath: q1
                     params:
                     - type: qualSelectOne
@@ -1770,11 +1756,10 @@ paths:
                         labels:
                           _default: Low
                     uid: qa123456789AbCdEfGhIjklm
-                  summary: Qualitative Analysis - Single Choice Question
-                  description: '`<action_id>` may be either `manual_qual` or `automatic_bedrock_qual`'
-                QualitativeAnalysis-MultipleChoiceQuestion(withDeletedChoice):
+                  summary: Manual Qualitative Analysis - Single Choice Question
+                ManualQualitativeAnalysis-MultipleChoiceQuestion(withDeletedChoice):
                   value:
-                    action: <action_id>
+                    action: manual_qual
                     question_xpath: q1
                     params:
                     - type: qualSelectMultiple
@@ -1794,12 +1779,11 @@ paths:
                         labels:
                           _default: Medical
                     uid: qa123456789AbCdEfGhIjklm
-                  summary: Qualitative Analysis - Multiple Choice Question (with deleted
-                    choice)
-                  description: '`<action_id>` may be either `manual_qual` or `automatic_bedrock_qual`'
-                QualitativeAnalysis-DeletedQuestion:
+                  summary: Manual Qualitative Analysis - Multiple Choice Question
+                    (with deleted choice)
+                ManualQualitativeAnalysis-DeletedQuestion:
                   value:
-                    action: <action_id>
+                    action: manual_qual
                     question_xpath: q1
                     params:
                     - type: <question_type>
@@ -1809,8 +1793,15 @@ paths:
                     options:
                       deleted: true
                     uid: qa123456789AbCdEfGhIjklm
-                  summary: Qualitative Analysis - Deleted question
-                  description: '`<action_id>` may be either `manual_qual` or `automatic_bedrock_qual`'
+                  summary: Manual Qualitative Analysis - Deleted question
+                AutomaticQualitativeAnalysis-AnyQuestion:
+                  value:
+                    action: automatic_bedrock_qual
+                    question_xpath: q1
+                    params:
+                    - uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
+                    uid: qa123456789AbCdEfGhIjklm
+                  summary: Automatic Qualitative Analysis - Any question
           description: null
         '404':
           content:
@@ -3049,8 +3040,8 @@ paths:
                             _uuid: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
                             verified: false
                   summary: Qualitative Analysis – Integer Question
-                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.\
-                    \ \n\n`status` will only be present for automatic_actions."
+                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.
+                    \n\n`status` will only be present for automatic_actions."
                 QualitativeAnalysis–TextQuestion:
                   value:
                     _version: '20250820'
@@ -3068,8 +3059,8 @@ paths:
                             _uuid: 12121212-3434-5656-7878-909090909090
                             verified: false
                   summary: Qualitative Analysis – Text Question
-                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.\
-                    \ \n\n`status` will only be present for automatic_actions."
+                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.
+                    \n\n`status` will only be present for automatic_actions."
                 QualitativeAnalysis–SingleChoiceQuestion:
                   value:
                     _version: '20250820'
@@ -3087,8 +3078,8 @@ paths:
                             _uuid: bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
                             verified: false
                   summary: Qualitative Analysis – Single Choice Question
-                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.\
-                    \ \n\n`status` will only be present for automatic_actions."
+                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.
+                    \n\n`status` will only be present for automatic_actions."
                 QualitativeAnalysis–MultipleChoiceQuestion:
                   value:
                     _version: '20250820'
@@ -3108,8 +3099,8 @@ paths:
                             _uuid: 99999999-9999-9999-9999-999999999999
                             verified: false
                   summary: Qualitative Analysis – Multiple Choice Question
-                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.\
-                    \ \n\n`status` will only be present for automatic_actions."
+                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.
+                    \n\n`status` will only be present for automatic_actions."
                 ManualQualitativeAnalysis–TagsQuestion:
                   value:
                     _version: '20250820'
@@ -3542,8 +3533,8 @@ paths:
                             _uuid: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
                             verified: false
                   summary: Qualitative Analysis – Integer Question
-                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.\
-                    \ \n\n`status` will only be present for automatic_actions."
+                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.
+                    \n\n`status` will only be present for automatic_actions."
                 QualitativeAnalysis–TextQuestion:
                   value:
                     _version: '20250820'
@@ -3561,8 +3552,8 @@ paths:
                             _uuid: 12121212-3434-5656-7878-909090909090
                             verified: false
                   summary: Qualitative Analysis – Text Question
-                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.\
-                    \ \n\n`status` will only be present for automatic_actions."
+                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.
+                    \n\n`status` will only be present for automatic_actions."
                 QualitativeAnalysis–SingleChoiceQuestion:
                   value:
                     _version: '20250820'
@@ -3580,8 +3571,8 @@ paths:
                             _uuid: bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
                             verified: false
                   summary: Qualitative Analysis – Single Choice Question
-                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.\
-                    \ \n\n`status` will only be present for automatic_actions."
+                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.
+                    \n\n`status` will only be present for automatic_actions."
                 QualitativeAnalysis–MultipleChoiceQuestion:
                   value:
                     _version: '20250820'
@@ -3601,8 +3592,8 @@ paths:
                             _uuid: 99999999-9999-9999-9999-999999999999
                             verified: false
                   summary: Qualitative Analysis – Multiple Choice Question
-                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.\
-                    \ \n\n`status` will only be present for automatic_actions."
+                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.
+                    \n\n`status` will only be present for automatic_actions."
                 ManualQualitativeAnalysis–TagsQuestion:
                   value:
                     _version: '20250820'
@@ -5915,9 +5906,11 @@ paths:
           - 0
           - 1
           - 2
+          - 3
         description: |-
           * `0` - failed
           * `1` - pending
+          * `3` - processing
           * `2` - success
       - in: path
         name: uid_asset
@@ -11026,7 +11019,8 @@ components:
           items:
             anyOf:
             - $ref: '#/components/schemas/CreateResponseNLPActionParams'
-            - $ref: '#/components/schemas/CreateResponseQualActionParams'
+            - $ref: '#/components/schemas/CreateResponseManualQualActionParams'
+            - $ref: '#/components/schemas/CreateResponseAutomaticQualActionParams'
         uid:
           type: string
       required:
@@ -11046,7 +11040,8 @@ components:
           items:
             anyOf:
             - $ref: '#/components/schemas/RequestNLPActionParams'
-            - $ref: '#/components/schemas/RequestQualActionParams'
+            - $ref: '#/components/schemas/RequestManualQualActionParams'
+            - $ref: '#/components/schemas/RequestAutomaticQualActionParams'
       required:
       - action
       - params
@@ -11063,7 +11058,8 @@ components:
           items:
             anyOf:
             - $ref: '#/components/schemas/ResponseNLPActionParams'
-            - $ref: '#/components/schemas/ResponseQualActionParams'
+            - $ref: '#/components/schemas/ResponseManualQualActionParams'
+            - $ref: '#/components/schemas/ResponseAutomaticQualActionParams'
         uid:
           type: string
       required:
@@ -12220,6 +12216,19 @@ components:
         - file_type
         - metadata
         - user
+    CreateResponseAutomaticQualActionParams:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+      additionalProperties: false
+      required:
+      - uuid
+    CreateResponseManualQualActionParams:
+      anyOf:
+      - $ref: '#/components/schemas/CreateResponseQualSimpleQuestionParams'
+      - $ref: '#/components/schemas/CreateResponseQualSelectQuestionParams'
     CreateResponseNLPActionParams:
       type: object
       additionalProperties: false
@@ -12228,10 +12237,6 @@ components:
           type: string
       required:
       - language
-    CreateResponseQualActionParams:
-      anyOf:
-      - $ref: '#/components/schemas/CreateResponseQualSimpleQuestionParams'
-      - $ref: '#/components/schemas/CreateResponseQualSelectQuestionParams'
     CreateResponseQualSelectQuestionParams:
       type: object
       additionalProperties: false
@@ -13571,11 +13576,13 @@ components:
       enum:
       - 0
       - 1
+      - 3
       - 2
       type: integer
       description: |-
         * `0` - failed
         * `1` - pending
+        * `3` - processing
         * `2` - success
     HookRetryResponse:
       type: object
@@ -15507,7 +15514,8 @@ components:
           items:
             anyOf:
             - $ref: '#/components/schemas/RequestNLPActionParams'
-            - $ref: '#/components/schemas/RequestQualActionParams'
+            - $ref: '#/components/schemas/RequestManualQualActionParams'
+            - $ref: '#/components/schemas/RequestAutomaticQualActionParams'
     PatchedAssetPatchRequest:
       oneOf:
       - type: object
@@ -16813,6 +16821,19 @@ components:
       - count
       - list
       - url
+    RequestAutomaticQualActionParams:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+      additionalProperties: false
+      required:
+      - uuid
+    RequestManualQualActionParams:
+      anyOf:
+      - $ref: '#/components/schemas/RequestQualSimpleQuestionParams'
+      - $ref: '#/components/schemas/RequestQualSelectQuestionParams'
     RequestNLPActionParams:
       type: object
       additionalProperties: false
@@ -16821,10 +16842,6 @@ components:
           type: string
       required:
       - language
-    RequestQualActionParams:
-      anyOf:
-      - $ref: '#/components/schemas/RequestQualSimpleQuestionParams'
-      - $ref: '#/components/schemas/RequestQualSelectQuestionParams'
     RequestQualSelectQuestionParams:
       type: object
       additionalProperties: false
@@ -16891,6 +16908,19 @@ components:
       - uuid
       - type
       - labels
+    ResponseAutomaticQualActionParams:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+      additionalProperties: false
+      required:
+      - uuid
+    ResponseManualQualActionParams:
+      anyOf:
+      - $ref: '#/components/schemas/ResponseQualSimpleQuestionParams'
+      - $ref: '#/components/schemas/ResponseQualSelectQuestionParams'
     ResponseNLPActionParams:
       type: object
       additionalProperties: false
@@ -16899,10 +16929,6 @@ components:
           type: string
       required:
       - language
-    ResponseQualActionParams:
-      anyOf:
-      - $ref: '#/components/schemas/ResponseQualSimpleQuestionParams'
-      - $ref: '#/components/schemas/ResponseQualSelectQuestionParams'
     ResponseQualSelectQuestionParams:
       type: object
       additionalProperties: false
@@ -17162,6 +17188,7 @@ components:
           type: string
           format: date-time
           readOnly: true
+        stripe_data: {}
         id:
           type: string
           maxLength: 255

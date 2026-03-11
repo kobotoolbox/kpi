@@ -194,10 +194,11 @@ class Instance(AbstractTimeStampedModel):
         doc[SUBMITTED_BY] = self._get_submitted_by()
         self.json = doc
 
-    def _set_parser(self):
+    def _set_parser(self, use_cache: bool = False):
         if not hasattr(self, '_parser'):
             self._parser = XFormInstanceParser(
-                self.xml, self.xform.data_dictionary())
+                self.xml, self.xform.data_dictionary(use_cache)
+            )
 
     def _set_survey_type(self):
         self.survey_type, created = SurveyType.objects.get_or_create(
