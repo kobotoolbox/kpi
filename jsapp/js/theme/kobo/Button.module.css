@@ -32,10 +32,10 @@
 
 .section {
   &[data-position='left'] {
-    margin-right: calc(var(--button-height) * 0.1);
+    margin-inline-end: calc(var(--button-height) * 0.2);
   }
 
   &[data-position='right'] {
-    margin-left: calc(var(--button-height) * 0.1);
+    margin-inline-start: calc(var(--button-height) * 0.2);
   }
 }
