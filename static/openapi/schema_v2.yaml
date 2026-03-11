@@ -1269,7 +1269,34 @@ paths:
                     options:
                       deleted: true
                     uid: qa123456789AbCdEfGhIjklm
-                  summary: Manual Qualitative Analysis - Deleted question
+                  summary: Manual Qualitative Analysis - Deleted Question
+                ManualQualitativeAnalysis-QuestionWithHints:
+                  value:
+                  - action: manual_qual
+                    question_xpath: q1
+                    params:
+                    - type: qualSelectMultiple
+                      uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
+                      labels:
+                        _default: Tags
+                      hint:
+                        labels:
+                          _default: Select the most appropriate
+                      choices:
+                      - uuid: zzzzzzzz-bbbb-cccc-dddd-eeeeffffffff
+                        labels:
+                          _default: Food
+                        hint:
+                          labels:
+                            _default: Include water
+                      - uuid: yyyyyyyy-bbbb-cccc-dddd-eeeeffffffff
+                        labels:
+                          _default: Medical
+                        hint:
+                          labels:
+                            _default: Include dental work
+                    uid: qa123456789AbCdEfGhIjklm
+                  summary: Manual Qualitative Analysis - Question With Hints
                 AutomaticQualitativeAnalysis-AnyQuestion:
                   value:
                   - action: automatic_bedrock_qual
@@ -1393,6 +1420,40 @@ paths:
                       labels:
                         _default: Medical
                 summary: Manual Qualitative Analysis - Multiple Choice Question
+              ManualQualitativeAnalysis-Hints:
+                value:
+                  action: manual_qual
+                  question_xpath: q1
+                  params:
+                  - type: qualSelectOne
+                    uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
+                    labels:
+                      _default: Favorite shade of blue?
+                    hint:
+                      labels:
+                        _default: Select closest shade
+                    choices:
+                    - uuid: qqqqqqqq-bbbb-cccc-dddd-eeeeffffffff
+                      labels:
+                        _default: Midnight
+                      hint:
+                        labels:
+                          _default: Darkest blue
+                    - uuid: hhhhhhhh-bbbb-cccc-dddd-eeeeffffffff
+                      labels:
+                        _default: Royal
+                      hint:
+                        labels:
+                          _default: True blue
+                    - uuid: gggggggg-bbbb-cccc-dddd-eeeeffffffff
+                      labels:
+                        _default: Cornflower
+                      hint:
+                        labels:
+                          _default: Lightest blue
+                summary: Manual Qualitative Analysis - Hints
+                description: Question hints are allowed for all types of questions.
+                  Choice hints are allowed for all questions with choices.
               AutomaticQualitativeAnalysis-AnyQuestion:
                 value:
                   action: automatic_bedrock_qual
@@ -1560,7 +1621,34 @@ paths:
                     options:
                       deleted: true
                     uid: qa123456789AbCdEfGhIjklm
-                  summary: Manual Qualitative Analysis - Deleted question
+                  summary: Manual Qualitative Analysis - Deleted Question
+                ManualQualitativeAnalysis-QuestionWithHints:
+                  value:
+                    action: manual_qual
+                    question_xpath: q1
+                    params:
+                    - type: qualSelectMultiple
+                      uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
+                      labels:
+                        _default: Tags
+                      hint:
+                        labels:
+                          _default: Select the most appropriate
+                      choices:
+                      - uuid: zzzzzzzz-bbbb-cccc-dddd-eeeeffffffff
+                        labels:
+                          _default: Food
+                        hint:
+                          labels:
+                            _default: Include water
+                      - uuid: yyyyyyyy-bbbb-cccc-dddd-eeeeffffffff
+                        labels:
+                          _default: Medical
+                        hint:
+                          labels:
+                            _default: Include dental work
+                    uid: qa123456789AbCdEfGhIjklm
+                  summary: Manual Qualitative Analysis - Question With Hints
                 AutomaticQualitativeAnalysis-AnyQuestion:
                   value:
                     action: automatic_bedrock_qual
@@ -1793,7 +1881,34 @@ paths:
                     options:
                       deleted: true
                     uid: qa123456789AbCdEfGhIjklm
-                  summary: Manual Qualitative Analysis - Deleted question
+                  summary: Manual Qualitative Analysis - Deleted Question
+                ManualQualitativeAnalysis-QuestionWithHints:
+                  value:
+                    action: manual_qual
+                    question_xpath: q1
+                    params:
+                    - type: qualSelectMultiple
+                      uuid: aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff
+                      labels:
+                        _default: Tags
+                      hint:
+                        labels:
+                          _default: Select the most appropriate
+                      choices:
+                      - uuid: zzzzzzzz-bbbb-cccc-dddd-eeeeffffffff
+                        labels:
+                          _default: Food
+                        hint:
+                          labels:
+                            _default: Include water
+                      - uuid: yyyyyyyy-bbbb-cccc-dddd-eeeeffffffff
+                        labels:
+                          _default: Medical
+                        hint:
+                          labels:
+                            _default: Include dental work
+                    uid: qa123456789AbCdEfGhIjklm
+                  summary: Manual Qualitative Analysis - Question With Hints
                 AutomaticQualitativeAnalysis-AnyQuestion:
                   value:
                     action: automatic_bedrock_qual
@@ -3040,8 +3155,8 @@ paths:
                             _uuid: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
                             verified: false
                   summary: Qualitative Analysis – Integer Question
-                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.
-                    \n\n`status` will only be present for automatic_actions."
+                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.\
+                    \ \n\n`status` will only be present for automatic_actions."
                 QualitativeAnalysis–TextQuestion:
                   value:
                     _version: '20250820'
@@ -3059,8 +3174,8 @@ paths:
                             _uuid: 12121212-3434-5656-7878-909090909090
                             verified: false
                   summary: Qualitative Analysis – Text Question
-                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.
-                    \n\n`status` will only be present for automatic_actions."
+                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.\
+                    \ \n\n`status` will only be present for automatic_actions."
                 QualitativeAnalysis–SingleChoiceQuestion:
                   value:
                     _version: '20250820'
@@ -3078,8 +3193,8 @@ paths:
                             _uuid: bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
                             verified: false
                   summary: Qualitative Analysis – Single Choice Question
-                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.
-                    \n\n`status` will only be present for automatic_actions."
+                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.\
+                    \ \n\n`status` will only be present for automatic_actions."
                 QualitativeAnalysis–MultipleChoiceQuestion:
                   value:
                     _version: '20250820'
@@ -3099,8 +3214,8 @@ paths:
                             _uuid: 99999999-9999-9999-9999-999999999999
                             verified: false
                   summary: Qualitative Analysis – Multiple Choice Question
-                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.
-                    \n\n`status` will only be present for automatic_actions."
+                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.\
+                    \ \n\n`status` will only be present for automatic_actions."
                 ManualQualitativeAnalysis–TagsQuestion:
                   value:
                     _version: '20250820'
@@ -3533,8 +3648,8 @@ paths:
                             _uuid: aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
                             verified: false
                   summary: Qualitative Analysis – Integer Question
-                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.
-                    \n\n`status` will only be present for automatic_actions."
+                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.\
+                    \ \n\n`status` will only be present for automatic_actions."
                 QualitativeAnalysis–TextQuestion:
                   value:
                     _version: '20250820'
@@ -3552,8 +3667,8 @@ paths:
                             _uuid: 12121212-3434-5656-7878-909090909090
                             verified: false
                   summary: Qualitative Analysis – Text Question
-                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.
-                    \n\n`status` will only be present for automatic_actions."
+                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.\
+                    \ \n\n`status` will only be present for automatic_actions."
                 QualitativeAnalysis–SingleChoiceQuestion:
                   value:
                     _version: '20250820'
@@ -3571,8 +3686,8 @@ paths:
                             _uuid: bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
                             verified: false
                   summary: Qualitative Analysis – Single Choice Question
-                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.
-                    \n\n`status` will only be present for automatic_actions."
+                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.\
+                    \ \n\n`status` will only be present for automatic_actions."
                 QualitativeAnalysis–MultipleChoiceQuestion:
                   value:
                     _version: '20250820'
@@ -3592,8 +3707,8 @@ paths:
                             _uuid: 99999999-9999-9999-9999-999999999999
                             verified: false
                   summary: Qualitative Analysis – Multiple Choice Question
-                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.
-                    \n\n`status` will only be present for automatic_actions."
+                  description: "`<action_id>` can  be either `manual_qual` or `automatic_bedrock_qual`.\
+                    \ \n\n`status` will only be present for automatic_actions."
                 ManualQualitativeAnalysis–TagsQuestion:
                   value:
                     _version: '20250820'
@@ -12273,9 +12388,35 @@ components:
               uuid:
                 type: string
                 format: uuid
+              hint:
+                type: object
+                additionalProperties: false
+                labels:
+                  type: object
+                  properties:
+                    _default:
+                      type: string
+                  additionalProperties:
+                    type: string
+                  required:
+                  - _default
+                required: labels
             required:
             - labels
             - uuid
+        hint:
+          type: object
+          additionalProperties: false
+          labels:
+            type: object
+            properties:
+              _default:
+                type: string
+            additionalProperties:
+              type: string
+            required:
+            - _default
+          required: labels
       required:
       - uuid
       - type
@@ -12299,6 +12440,19 @@ components:
             type: string
           required:
           - _default
+        hint:
+          type: object
+          additionalProperties: false
+          labels:
+            type: object
+            properties:
+              _default:
+                type: string
+            additionalProperties:
+              type: string
+            required:
+            - _default
+          required: labels
       required:
       - uuid
       - type
@@ -16878,9 +17032,35 @@ components:
               uuid:
                 type: string
                 format: uuid
+              hint:
+                type: object
+                additionalProperties: false
+                labels:
+                  type: object
+                  properties:
+                    _default:
+                      type: string
+                  additionalProperties:
+                    type: string
+                  required:
+                  - _default
+                required: labels
             required:
             - labels
             - uuid
+        hint:
+          type: object
+          additionalProperties: false
+          labels:
+            type: object
+            properties:
+              _default:
+                type: string
+            additionalProperties:
+              type: string
+            required:
+            - _default
+          required: labels
       required:
       - uuid
       - type
@@ -16904,6 +17084,19 @@ components:
             type: string
           required:
           - _default
+        hint:
+          type: object
+          additionalProperties: false
+          labels:
+            type: object
+            properties:
+              _default:
+                type: string
+            additionalProperties:
+              type: string
+            required:
+            - _default
+          required: labels
       required:
       - uuid
       - type
@@ -16970,6 +17163,19 @@ components:
                 properties:
                   deleted:
                     type: boolean
+              hint:
+                type: object
+                additionalProperties: false
+                labels:
+                  type: object
+                  properties:
+                    _default:
+                      type: string
+                  additionalProperties:
+                    type: string
+                  required:
+                  - _default
+                required: labels
             required:
             - labels
             - uuid
@@ -16978,6 +17184,19 @@ components:
           properties:
             deleted:
               type: boolean
+        hint:
+          type: object
+          additionalProperties: false
+          labels:
+            type: object
+            properties:
+              _default:
+                type: string
+            additionalProperties:
+              type: string
+            required:
+            - _default
+          required: labels
       required:
       - uuid
       - type
@@ -17006,6 +17225,19 @@ components:
           properties:
             deleted:
               type: boolean
+        hint:
+          type: object
+          additionalProperties: false
+          labels:
+            type: object
+            properties:
+              _default:
+                type: string
+            additionalProperties:
+              type: string
+            required:
+            - _default
+          required: labels
       required:
       - uuid
       - type
@@ -17188,7 +17420,6 @@ components:
           type: string
           format: date-time
           readOnly: true
-        stripe_data: {}
         id:
           type: string
           maxLength: 255

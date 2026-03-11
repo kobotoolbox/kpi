@@ -1820,7 +1820,55 @@
                                                 "uid": "qa123456789AbCdEfGhIjklm"
                                             }
                                         ],
-                                        "summary": "Manual Qualitative Analysis - Deleted question"
+                                        "summary": "Manual Qualitative Analysis - Deleted Question"
+                                    },
+                                    "ManualQualitativeAnalysis-QuestionWithHints": {
+                                        "value": [
+                                            {
+                                                "action": "manual_qual",
+                                                "question_xpath": "q1",
+                                                "params": [
+                                                    {
+                                                        "type": "qualSelectMultiple",
+                                                        "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
+                                                        "labels": {
+                                                            "_default": "Tags"
+                                                        },
+                                                        "hint": {
+                                                            "labels": {
+                                                                "_default": "Select the most appropriate"
+                                                            }
+                                                        },
+                                                        "choices": [
+                                                            {
+                                                                "uuid": "zzzzzzzz-bbbb-cccc-dddd-eeeeffffffff",
+                                                                "labels": {
+                                                                    "_default": "Food"
+                                                                },
+                                                                "hint": {
+                                                                    "labels": {
+                                                                        "_default": "Include water"
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                "uuid": "yyyyyyyy-bbbb-cccc-dddd-eeeeffffffff",
+                                                                "labels": {
+                                                                    "_default": "Medical"
+                                                                },
+                                                                "hint": {
+                                                                    "labels": {
+                                                                        "_default": "Include dental work"
+                                                                    }
+                                                                }
+                                                            }
+                                                        ]
+                                                    }
+                                                ],
+                                                "uid": "qa123456789AbCdEfGhIjklm"
+                                            }
+                                        ],
+                                        "summary": "Manual Qualitative Analysis - Question With Hints"
                                     },
                                     "AutomaticQualitativeAnalysis-AnyQuestion": {
                                         "value": [
@@ -1990,6 +2038,63 @@
                                         ]
                                     },
                                     "summary": "Manual Qualitative Analysis - Multiple Choice Question"
+                                },
+                                "ManualQualitativeAnalysis-Hints": {
+                                    "value": {
+                                        "action": "manual_qual",
+                                        "question_xpath": "q1",
+                                        "params": [
+                                            {
+                                                "type": "qualSelectOne",
+                                                "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
+                                                "labels": {
+                                                    "_default": "Favorite shade of blue?"
+                                                },
+                                                "hint": {
+                                                    "labels": {
+                                                        "_default": "Select closest shade"
+                                                    }
+                                                },
+                                                "choices": [
+                                                    {
+                                                        "uuid": "qqqqqqqq-bbbb-cccc-dddd-eeeeffffffff",
+                                                        "labels": {
+                                                            "_default": "Midnight"
+                                                        },
+                                                        "hint": {
+                                                            "labels": {
+                                                                "_default": "Darkest blue"
+                                                            }
+                                                        }
+                                                    },
+                                                    {
+                                                        "uuid": "hhhhhhhh-bbbb-cccc-dddd-eeeeffffffff",
+                                                        "labels": {
+                                                            "_default": "Royal"
+                                                        },
+                                                        "hint": {
+                                                            "labels": {
+                                                                "_default": "True blue"
+                                                            }
+                                                        }
+                                                    },
+                                                    {
+                                                        "uuid": "gggggggg-bbbb-cccc-dddd-eeeeffffffff",
+                                                        "labels": {
+                                                            "_default": "Cornflower"
+                                                        },
+                                                        "hint": {
+                                                            "labels": {
+                                                                "_default": "Lightest blue"
+                                                            }
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    "summary": "Manual Qualitative Analysis - Hints",
+                                    "description": "Question hints are allowed for all types of questions. Choice hints are allowed for all questions with choices."
                                 },
                                 "AutomaticQualitativeAnalysis-AnyQuestion": {
                                     "value": {
@@ -2244,7 +2349,53 @@
                                             },
                                             "uid": "qa123456789AbCdEfGhIjklm"
                                         },
-                                        "summary": "Manual Qualitative Analysis - Deleted question"
+                                        "summary": "Manual Qualitative Analysis - Deleted Question"
+                                    },
+                                    "ManualQualitativeAnalysis-QuestionWithHints": {
+                                        "value": {
+                                            "action": "manual_qual",
+                                            "question_xpath": "q1",
+                                            "params": [
+                                                {
+                                                    "type": "qualSelectMultiple",
+                                                    "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
+                                                    "labels": {
+                                                        "_default": "Tags"
+                                                    },
+                                                    "hint": {
+                                                        "labels": {
+                                                            "_default": "Select the most appropriate"
+                                                        }
+                                                    },
+                                                    "choices": [
+                                                        {
+                                                            "uuid": "zzzzzzzz-bbbb-cccc-dddd-eeeeffffffff",
+                                                            "labels": {
+                                                                "_default": "Food"
+                                                            },
+                                                            "hint": {
+                                                                "labels": {
+                                                                    "_default": "Include water"
+                                                                }
+                                                            }
+                                                        },
+                                                        {
+                                                            "uuid": "yyyyyyyy-bbbb-cccc-dddd-eeeeffffffff",
+                                                            "labels": {
+                                                                "_default": "Medical"
+                                                            },
+                                                            "hint": {
+                                                                "labels": {
+                                                                    "_default": "Include dental work"
+                                                                }
+                                                            }
+                                                        }
+                                                    ]
+                                                }
+                                            ],
+                                            "uid": "qa123456789AbCdEfGhIjklm"
+                                        },
+                                        "summary": "Manual Qualitative Analysis - Question With Hints"
                                     },
                                     "AutomaticQualitativeAnalysis-AnyQuestion": {
                                         "value": {
@@ -2578,7 +2729,53 @@
                                             },
                                             "uid": "qa123456789AbCdEfGhIjklm"
                                         },
-                                        "summary": "Manual Qualitative Analysis - Deleted question"
+                                        "summary": "Manual Qualitative Analysis - Deleted Question"
+                                    },
+                                    "ManualQualitativeAnalysis-QuestionWithHints": {
+                                        "value": {
+                                            "action": "manual_qual",
+                                            "question_xpath": "q1",
+                                            "params": [
+                                                {
+                                                    "type": "qualSelectMultiple",
+                                                    "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeffffffff",
+                                                    "labels": {
+                                                        "_default": "Tags"
+                                                    },
+                                                    "hint": {
+                                                        "labels": {
+                                                            "_default": "Select the most appropriate"
+                                                        }
+                                                    },
+                                                    "choices": [
+                                                        {
+                                                            "uuid": "zzzzzzzz-bbbb-cccc-dddd-eeeeffffffff",
+                                                            "labels": {
+                                                                "_default": "Food"
+                                                            },
+                                                            "hint": {
+                                                                "labels": {
+                                                                    "_default": "Include water"
+                                                                }
+                                                            }
+                                                        },
+                                                        {
+                                                            "uuid": "yyyyyyyy-bbbb-cccc-dddd-eeeeffffffff",
+                                                            "labels": {
+                                                                "_default": "Medical"
+                                                            },
+                                                            "hint": {
+                                                                "labels": {
+                                                                    "_default": "Include dental work"
+                                                                }
+                                                            }
+                                                        }
+                                                    ]
+                                                }
+                                            ],
+                                            "uid": "qa123456789AbCdEfGhIjklm"
+                                        },
+                                        "summary": "Manual Qualitative Analysis - Question With Hints"
                                     },
                                     "AutomaticQualitativeAnalysis-AnyQuestion": {
                                         "value": {
@@ -16982,6 +17179,25 @@
                                 "uuid": {
                                     "type": "string",
                                     "format": "uuid"
+                                },
+                                "hint": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "labels": {
+                                        "type": "object",
+                                        "properties": {
+                                            "_default": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "additionalProperties": {
+                                            "type": "string"
+                                        },
+                                        "required": [
+                                            "_default"
+                                        ]
+                                    },
+                                    "required": "labels"
                                 }
                             },
                             "required": [
@@ -16989,6 +17205,25 @@
                                 "uuid"
                             ]
                         }
+                    },
+                    "hint": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "labels": {
+                            "type": "object",
+                            "properties": {
+                                "_default": {
+                                    "type": "string"
+                                }
+                            },
+                            "additionalProperties": {
+                                "type": "string"
+                            },
+                            "required": [
+                                "_default"
+                            ]
+                        },
+                        "required": "labels"
                     }
                 },
                 "required": [
@@ -17022,6 +17257,25 @@
                         "required": [
                             "_default"
                         ]
+                    },
+                    "hint": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "labels": {
+                            "type": "object",
+                            "properties": {
+                                "_default": {
+                                    "type": "string"
+                                }
+                            },
+                            "additionalProperties": {
+                                "type": "string"
+                            },
+                            "required": [
+                                "_default"
+                            ]
+                        },
+                        "required": "labels"
                     }
                 },
                 "required": [
@@ -23483,6 +23737,25 @@
                                 "uuid": {
                                     "type": "string",
                                     "format": "uuid"
+                                },
+                                "hint": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "labels": {
+                                        "type": "object",
+                                        "properties": {
+                                            "_default": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "additionalProperties": {
+                                            "type": "string"
+                                        },
+                                        "required": [
+                                            "_default"
+                                        ]
+                                    },
+                                    "required": "labels"
                                 }
                             },
                             "required": [
@@ -23490,6 +23763,25 @@
                                 "uuid"
                             ]
                         }
+                    },
+                    "hint": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "labels": {
+                            "type": "object",
+                            "properties": {
+                                "_default": {
+                                    "type": "string"
+                                }
+                            },
+                            "additionalProperties": {
+                                "type": "string"
+                            },
+                            "required": [
+                                "_default"
+                            ]
+                        },
+                        "required": "labels"
                     }
                 },
                 "required": [
@@ -23523,6 +23815,25 @@
                         "required": [
                             "_default"
                         ]
+                    },
+                    "hint": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "labels": {
+                            "type": "object",
+                            "properties": {
+                                "_default": {
+                                    "type": "string"
+                                }
+                            },
+                            "additionalProperties": {
+                                "type": "string"
+                            },
+                            "required": [
+                                "_default"
+                            ]
+                        },
+                        "required": "labels"
                     }
                 },
                 "required": [
@@ -23622,6 +23933,25 @@
                                             "type": "boolean"
                                         }
                                     }
+                                },
+                                "hint": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "labels": {
+                                        "type": "object",
+                                        "properties": {
+                                            "_default": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "additionalProperties": {
+                                            "type": "string"
+                                        },
+                                        "required": [
+                                            "_default"
+                                        ]
+                                    },
+                                    "required": "labels"
                                 }
                             },
                             "required": [
@@ -23637,6 +23967,25 @@
                                 "type": "boolean"
                             }
                         }
+                    },
+                    "hint": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "labels": {
+                            "type": "object",
+                            "properties": {
+                                "_default": {
+                                    "type": "string"
+                                }
+                            },
+                            "additionalProperties": {
+                                "type": "string"
+                            },
+                            "required": [
+                                "_default"
+                            ]
+                        },
+                        "required": "labels"
                     }
                 },
                 "required": [
@@ -23678,6 +24027,25 @@
                                 "type": "boolean"
                             }
                         }
+                    },
+                    "hint": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "labels": {
+                            "type": "object",
+                            "properties": {
+                                "_default": {
+                                    "type": "string"
+                                }
+                            },
+                            "additionalProperties": {
+                                "type": "string"
+                            },
+                            "required": [
+                                "_default"
+                            ]
+                        },
+                        "required": "labels"
                     }
                 },
                 "required": [
@@ -23913,7 +24281,6 @@
                         "format": "date-time",
                         "readOnly": true
                     },
-                    "stripe_data": {},
                     "id": {
                         "type": "string",
                         "maxLength": 255

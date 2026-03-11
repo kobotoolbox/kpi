@@ -36,6 +36,7 @@ from kobo.apps.subsequences.prompts import (
     analysis_question_placeholder,
     choices_list_placeholder,
     example_format_placeholder,
+    hint_placeholder,
     num_choice_placeholder,
     response_placeholder,
 )
@@ -392,7 +393,7 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
         with patch.dict(PROMPTS_BY_QUESTION_TYPE, mock_templates_by_type):
             with patch(
                 'kobo.apps.subsequences.actions.automatic_bedrock_qual.format_choices',
-                lambda choices: ','.join(choices),
+                lambda choices: ','.join([choice['label'] for choice in choices]),
             ):
                 with patch(
                     'kobo.apps.subsequences.actions.automatic_bedrock_qual.get_example_format',  # noqa
@@ -406,6 +407,51 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
             f' choices: {expected_choices_string},'
             f' count: {choice_count},'
             f' format: example format string'
+        )
+
+    def test_generate_llm_prompt_with_hints(self):
+        manual = QuestionAdvancedFeature.objects.get(
+            action='manual_qual', asset=self.asset, question_xpath='q1'
+        )
+        select_one_question = self._get_question(BEDROCK_QUAL_SELECT_ONE_UUID)
+        select_one_question['hint'] = {'labels': {'_default': 'question hint'}}
+        select_one_question['choices'][0]['hint'] = {
+            'labels': {'_default': 'choice hint'}
+        }
+        choice_text = select_one_question['choices'][0]['labels']['_default']
+        question_text = self._get_question_text_by_uuid(BEDROCK_QUAL_SELECT_ONE_UUID)
+
+        manual.params = [select_one_question]
+        manual.save(update_fields=['params'])
+        action_data = {
+            'uuid': BEDROCK_QUAL_SELECT_ONE_UUID,
+            '_dependency': self._dependency_dict_from_transcript_dict(),
+        }
+
+        def format_choices(choices):
+            first_choice = choices[0]
+            label = first_choice['label']
+            hint = first_choice['hint']
+            return f'{label} ({hint})'
+
+        template = (
+            f'question: {analysis_question_placeholder}{hint_placeholder},'
+            f' choices: {choices_list_placeholder}'
+        )
+        with patch.dict(PROMPTS_BY_QUESTION_TYPE, {QUESTION_TYPE_SELECT_ONE: template}):
+            with patch(
+                'kobo.apps.subsequences.actions.automatic_bedrock_qual.format_hint',
+                lambda hint: f'({hint})',
+            ):
+                with patch(
+                    'kobo.apps.subsequences.actions.automatic_bedrock_qual.format_choices',  # noqa
+                    format_choices,
+                ):
+                    prompt = self.action.generate_llm_prompt(action_data)
+
+        assert prompt == (
+            f'question: {question_text} (question hint), '
+            f'choices: {choice_text} (choice hint)'
         )
 
     def test_generate_prompt_fails_if_no_manual_question(self):
@@ -479,7 +525,7 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
         with patch.dict(PROMPTS_BY_QUESTION_TYPE, mock_templates_by_type):
             with patch(
                 'kobo.apps.subsequences.actions.automatic_bedrock_qual.format_choices',
-                lambda choices: ','.join(choices),
+                lambda choices: ','.join([choice['label'] for choice in choices]),
             ):
                 prompt = self.action.generate_llm_prompt(action_data)
         assert prompt == 'choices: Apathy count: 1'
