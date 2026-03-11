@@ -452,12 +452,14 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
         # `_recalculate_inherited_perms()` with the fresh result.
         if (removals or additions) and asset.asset_type in ASSET_TYPES_WITH_CHILDREN:
             grant_perms = set(
-                ObjectPermission.objects.filter(asset=asset, deny=False)
-                .values_list('user_id', 'permission_id')
+                ObjectPermission.objects.filter(asset=asset, deny=False).values_list(
+                    'user_id', 'permission_id'
+                )
             )
             deny_perms = set(
-                ObjectPermission.objects.filter(asset=asset, deny=True)
-                .values_list('user_id', 'permission_id')
+                ObjectPermission.objects.filter(asset=asset, deny=True).values_list(
+                    'user_id', 'permission_id'
+                )
             )
             effective_perms = grant_perms - deny_perms
             children = list(asset.children.only('pk', 'owner', 'parent'))
@@ -698,12 +700,14 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
             if is_user_anonymous(user_obj):
                 fq_permission = f'kpi.{addition.permission_codename}'
                 if fq_permission not in settings.ALLOWED_ANONYMOUS_PERMISSIONS:
-                    raise serializers.ValidationError({
-                        'permission': (
-                            f'Anonymous users cannot be granted the'
-                            f' permission {addition.permission_codename}.'
-                        )
-                    })
+                    raise serializers.ValidationError(
+                        {
+                            'permission': (
+                                f'Anonymous users cannot be granted the'
+                                f' permission {addition.permission_codename}.'
+                            )
+                        }
+                    )
 
         addition_user_pks = {a.user_pk for a in additions}
         codenames = {a.permission_codename for a in additions}
@@ -784,8 +788,9 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
                 else {}
             )
             new_partial = (
-                AssetUserPartialPermission
-                .update_partial_perms_to_include_implied(asset, raw_partial)
+                AssetUserPartialPermission.update_partial_perms_to_include_implied(
+                    asset, raw_partial
+                )
             )
             AssetUserPartialPermission.objects.update_or_create(
                 asset_id=asset.pk,
@@ -859,9 +864,7 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
         fully_removed_pks = {
             pk for pk in codenames_per_user if pk not in incoming_user_pks
         }
-        modified_pks = {
-            pk for pk in codenames_per_user if pk in incoming_user_pks
-        }
+        modified_pks = {pk for pk in codenames_per_user if pk in incoming_user_pks}
 
         # Fast path ─ users being fully removed with no inherited perms
         if fully_removed_pks:
@@ -871,7 +874,9 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
                     user_id__in=fully_removed_pks,
                     inherited=True,
                     deny=False,
-                ).values_list('user_id', flat=True).distinct()
+                )
+                .values_list('user_id', flat=True)
+                .distinct()
             )
             fast_pks = fully_removed_pks - inherited_perm_pks
             slow_pks = inherited_perm_pks
@@ -887,9 +892,7 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
                     user_id__in=fast_pks,
                     inherited=False,
                 ).delete()
-                asset.asset_partial_permissions.filter(
-                    user_id__in=fast_pks
-                ).delete()
+                asset.asset_partial_permissions.filter(user_id__in=fast_pks).delete()
                 for user_pk in fast_pks:
                     user_obj = user_pk_to_obj_cache[user_pk]
                     for codename in codenames_per_user[user_pk]:
