@@ -44,4 +44,15 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 Button.displayName = 'Button'
 
 // See boilerpate at: https://mantine.dev/guides/polymorphic/#wrapping-polymorphic-components
+/**
+ * For the button variants we use built in ones when possible. This means:
+ * - primary = "filled"
+ * - secondary = "light"
+ * - tertiary = "outline"
+ *
+ * Custom ones are:
+ * - "danger"
+ * - "danger-secondary"
+ * - "transparent"
+ */
 export default createPolymorphicComponent<'button', ButtonProps>(Button)

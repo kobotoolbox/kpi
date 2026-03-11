@@ -11,7 +11,7 @@ import { recordValues } from '#/utils'
 const buttonVariants: Array<ButtonProps['variant']> = [
   'filled',
   'light',
-  // 'outline',
+  'outline',
   // 'white',
   // 'subtle',
   // 'default',

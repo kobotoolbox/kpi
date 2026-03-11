@@ -16,10 +16,17 @@
   }
 
   &[data-disabled] {
-      color: var(--button-color);
-      background: var(--button-bg);
-      opacity: 0.5;
-      border: none;
+    color: var(--button-color);
+    background: var(--button-bg);
+    opacity: 0.5;
+    border: none;
+  }
+
+  &[data-variant='outline'] {
+    &:active {
+      background-color: transparent;
+      border-color: var(--mantine-color-gray-5);
+    }
   }
 }
 
