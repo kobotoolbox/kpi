@@ -11,6 +11,8 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 COPY ./dependencies/pip/requirements.txt "${TMP_DIR}/pip_dependencies.txt"
 RUN uv pip sync "${TMP_DIR}/pip_dependencies.txt" 1>/dev/null
 
+RUN rm -rf ${VIRTUAL_ENV}/lib/python*/site-packages/rest_framework/static/rest_framework
+
 
 FROM ghcr.io/astral-sh/uv:python3.10-bookworm-slim
 
@@ -127,7 +129,7 @@ RUN npm run build:app
 # Organize static assets. #
 ###########################
 
-RUN python manage.py collectstatic --noinput
+RUN python manage.py collectstatic --noinput --ignore rest_framework
 
 #####################################
 # Retrieve and compile translations #
