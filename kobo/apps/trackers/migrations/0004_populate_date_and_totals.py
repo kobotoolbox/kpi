@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.db import migrations
-from django.db.models import DateField, F, Value
+from django.db.models import CharField, DateField, F, Value
 from django.db.models.functions import Cast, Concat, ExtractMonth, ExtractYear
 
 
@@ -17,7 +17,12 @@ class Migration(migrations.Migration):
         # Note: when converting monthly usage data to daily, set the day to the 1st of the month
         MonthlyNLPUsageCounter.objects.only('year', 'month', 'date').update(
             date=Cast(
-                Concat(F('year'), Value('-'), F('month'), Value('-'), 1),
+                Concat(
+                    Cast(F('year'), output_field=CharField()),
+                    Value('-'),
+                    Cast(F('month'), output_field=CharField()),
+                    Value('-01'),
+                ),
                 DateField(),
             ),
         )
