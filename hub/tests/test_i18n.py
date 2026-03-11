@@ -8,7 +8,6 @@ from kobo.static_lists import (
     PROJECT_METADATA_DEFAULT_LABELS,
     USER_METADATA_DEFAULT_LABELS,
 )
-from kpi.utils.json import LazyJSONSerializable
 
 
 class I18nTestCase(TestCase):
@@ -28,7 +27,7 @@ class I18nTestCase(TestCase):
 
     # TODO validate whether the tests below are necessary.
     #   Kinda redundant with kobo/apps/accounts/tests/test_forms.py::AccountFormsTestCase
-    @override_config(USER_METADATA_FIELDS=LazyJSONSerializable([
+    @override_config(USER_METADATA_FIELDS=[
       {
         'name': 'name',
         'required': False,
@@ -38,7 +37,7 @@ class I18nTestCase(TestCase):
             'es': 'Nombre y apellido'
         }
       }
-    ]))
+    ])
     def test_user_metadata_fields_with_custom_label(self):
         # Languages exist - return related label
         assert (
@@ -56,12 +55,12 @@ class I18nTestCase(TestCase):
         )
         assert I18nUtils.get_metadata_field_label('name', 'user') == 'Full name'
 
-    @override_config(USER_METADATA_FIELDS=LazyJSONSerializable([
+    @override_config(USER_METADATA_FIELDS=[
         {
             'name': 'name',
             'required': False
         }
-    ]))
+    ])
     def test_user_metadata_fields_no_label_field(self):
         MOCK_TRANSLATION_STRING = 'hello from gettext_lazy'
         mock_t = mock.MagicMock(return_value=MOCK_TRANSLATION_STRING)
@@ -84,7 +83,7 @@ class I18nTestCase(TestCase):
             )
             assert mock_t.call_args.args[0] == 'My Full name'
 
-    @override_config(PROJECT_METADATA_FIELDS=LazyJSONSerializable([
+    @override_config(PROJECT_METADATA_FIELDS=[
         {
             'name': 'sector',
             'required': False,
@@ -94,7 +93,7 @@ class I18nTestCase(TestCase):
                 'es': 'Sector de actividad'
             }
         }
-    ]))
+    ])
     def test_project_metadata_fields_with_custom_label(self):
         # Languages exist - return related label
         assert (
@@ -115,12 +114,12 @@ class I18nTestCase(TestCase):
             == 'Activity sector'
         )
 
-    @override_config(PROJECT_METADATA_FIELDS=LazyJSONSerializable([
+    @override_config(PROJECT_METADATA_FIELDS=[
         {
             'name': 'sector',
             'required': False,
         }
-    ]))
+    ])
     def test_project_metadata_fields_no_label_field(self):
         MOCK_TRANSLATION_STRING = 'hello from gettext_lazy'
         mock_t = mock.MagicMock(return_value=MOCK_TRANSLATION_STRING)

@@ -1,10 +1,7 @@
-import json
-
 from constance import config
 from django.db import migrations, models
 
 from kobo.apps.constance_backends.utils import to_python_object
-from kpi.utils.json import LazyJSONSerializable
 
 
 def alter_constance_config(apps, schema_editor):
@@ -16,12 +13,8 @@ def alter_constance_config(apps, schema_editor):
             name_set = True
             break
     if not name_set:
-        user_metadata.insert(0, {
-            'name': 'name',
-            'required': False,
-        })
-        user_metadata_json = LazyJSONSerializable(user_metadata)
-        setattr(config, 'USER_METADATA_FIELDS', user_metadata_json)
+        user_metadata.insert(0, {'name': 'name', 'required': False})
+        setattr(config, 'USER_METADATA_FIELDS', user_metadata)
 
     # Check that the PROJECT_METADATA_FIELDS has `description` set
     project_metadata = to_python_object(config.PROJECT_METADATA_FIELDS)
@@ -31,12 +24,8 @@ def alter_constance_config(apps, schema_editor):
             description_set = True
             break
     if not description_set:
-        project_metadata.append({
-            'name': 'description',
-            'required': False,
-        })
-        project_metadata_json = LazyJSONSerializable(project_metadata)
-        setattr(config, 'PROJECT_METADATA_FIELDS', project_metadata_json)
+        project_metadata.append({'name': 'description', 'required': False})
+        setattr(config, 'PROJECT_METADATA_FIELDS', project_metadata)
 
 
 def noop(*args, **kwargs):

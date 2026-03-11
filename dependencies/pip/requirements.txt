@@ -113,13 +113,11 @@ django==5.1.15
     #   django-dont-vary-on
     #   django-extensions
     #   django-filter
-    #   django-guardian
     #   django-import-export
     #   django-import-export-celery
     #   django-markdownx
     #   django-oauth-toolkit
     #   django-organizations
-    #   django-picklefield
     #   django-prometheus
     #   django-redis
     #   django-reversion
@@ -141,7 +139,7 @@ django-braces==1.17.0
     # via -r dependencies/pip/requirements.in
 django-celery-beat==2.8.1
     # via -r dependencies/pip/requirements.in
-django-constance==3.1.0
+django-constance==4.3.4
     # via -r dependencies/pip/requirements.in
 django-cors-headers==4.9.0
     # via -r dependencies/pip/requirements.in
@@ -161,8 +159,6 @@ django-extensions==3.2.3
     #   django-organizations
 django-filter==24.3
     # via -r dependencies/pip/requirements.in
-django-guardian==2.4.0
-    # via -r dependencies/pip/requirements.in
 django-import-export==4.4.0
     # via
     #   -r dependencies/pip/requirements.in
@@ -177,8 +173,6 @@ django-oauth-toolkit==2.4.0
     # via -r dependencies/pip/requirements.in
 django-organizations==2.5.0
     # via -r dependencies/pip/requirements.in
-django-picklefield==3.4.0
-    # via django-constance
 django-private-storage==3.1.3
     # via -r dependencies/pip/requirements.in
 django-prometheus==2.4.1

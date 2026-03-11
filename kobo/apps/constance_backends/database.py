@@ -1,4 +1,5 @@
 from constance.backends.database import DatabaseBackend as BaseDatabaseBackend
+from constance.codecs import loads
 
 
 class DatabaseBackend(BaseDatabaseBackend):
@@ -20,10 +21,11 @@ class DatabaseBackend(BaseDatabaseBackend):
             value = None
         if value is None:
             try:
-                value = self._model._default_manager.get(key=key).value
+                raw = self._model._default_manager.get(key=key).value
             except self._model.DoesNotExist:  # Only catch DoesNotExist exceptions here
                 pass
             else:
+                value = loads(raw)
                 if self._cache:
                     self._cache.add(key, value)
         return value

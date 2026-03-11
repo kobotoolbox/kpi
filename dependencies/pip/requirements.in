@@ -32,7 +32,7 @@ django-allauth>=65.11.2
 django-allauth[mfa]
 django-braces
 django-celery-beat
-django-constance<4  # temporary 20260226
+django-constance>=4
 django-cors-headers
 django-csp<4  # temporary 20260226
 django-debug-toolbar<5  # temporary 20260226
@@ -111,7 +111,6 @@ django-trench
 sentry-sdk<2  # temporary 20260226
 
 # Kobocat
-django-guardian<3  # temporary 20260226
 modilabs-python-utils
 djangorestframework-csv
 djangorestframework-jsonp
