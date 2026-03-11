@@ -13,7 +13,7 @@ import moment from 'moment'
 import { Cookies } from 'react-cookie'
 import type { Toast, ToastOptions } from 'react-hot-toast'
 import { toast } from 'react-hot-toast'
-import type { MongoQuery, SubmissionResponse } from './dataInterface'
+import type { MongoQuery, SubmissionResponse, SurveyRow } from './dataInterface'
 
 /**
  * Type `Record<string, unknown>` raises problems down the road when using with interfaces without index signature.
@@ -294,6 +294,10 @@ export function parseLatLng(submission: SubmissionResponse, selectedQuestion: st
   } else {
     return []
   }
+}
+
+export function findFirstGeopoint(survey: SurveyRow[]) {
+  return survey.find((question) => question.type && question.type === 'geopoint')
 }
 
 export function validFileTypes() {

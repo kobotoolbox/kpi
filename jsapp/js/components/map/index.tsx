@@ -27,7 +27,7 @@ import { getRowName, getSurveyFlatPaths } from '../../../js/assetUtils'
 import { dataInterface } from '../../../js/dataInterface'
 import pageState from '../../../js/pageState.store'
 import { type WithRouterProps, withRouter } from '../../../js/router/legacy'
-import { notify, parseLatLng, recordKeys } from '../../../js/utils'
+import { findFirstGeopoint, notify, parseLatLng, recordKeys } from '../../../js/utils'
 
 // Constants and types
 import { ASSET_FILE_TYPES, MODAL_TYPES, QUERY_LIMIT_DEFAULT, QUESTION_TYPES } from '../../../js/constants'
@@ -434,9 +434,8 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       // 3. If the user has never selected a question before, a "default" needs to be selected. Since after DEV-1446 we
       //    don't use `_geolocation`, the frontend has to find the first geopoint question and set it as the default
       //    regardless of if that question is answered.
-      const firstGeopoint = this.props.asset.content.survey.find(
-        (question) => question.type && question.type === 'geopoint',
-      )
+      const firstGeopoint = findFirstGeopoint(this.props.asset.content.survey)
+
       if (firstGeopoint) {
         selectedQuestion = getRowName(firstGeopoint)
       } else {
