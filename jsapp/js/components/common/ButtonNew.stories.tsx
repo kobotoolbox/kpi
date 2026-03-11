@@ -12,6 +12,7 @@ const buttonVariants: Array<ButtonProps['variant']> = [
   'filled',
   'light',
   'outline',
+  'transparent',
   // 'white',
   // 'subtle',
   // 'default',
@@ -20,7 +21,6 @@ const buttonVariants: Array<ButtonProps['variant']> = [
   //// Custom:
   'danger',
   'danger-secondary',
-  'transparent',
 ]
 
 const buttonSizes: MantineSize[] = [
