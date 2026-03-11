@@ -410,18 +410,6 @@ class ObjectPermissionMixin:
             for codename in cls.IMPLIED_PERMISSIONS.keys()
         }
 
-    @staticmethod
-    @cache_for_request
-    def _get_permission_model(app_label: str, codename: str) -> Permission:
-        """
-        Return the Permission object for the given app_label and codename.
-        Cached per request to avoid repeated DB hits during bulk assignments.
-        """
-        return Permission.objects.get(
-            content_type__app_label=app_label,
-            codename=codename,
-        )
-
     @transaction.atomic
     @kc_transaction_atomic
     def assign_perm(
@@ -735,6 +723,18 @@ class ObjectPermissionMixin:
         # Handle KoboCat xform flags for the anonymous user
         if is_anonymous:
             set_kc_anonymous_permissions_xform_flags(self, codename, remove=True)
+
+    @staticmethod
+    @cache_for_request
+    def _get_permission_model(app_label: str, codename: str) -> Permission:
+        """
+        Return the Permission object for the given app_label and codename.
+        Cached per request to avoid repeated DB hits during bulk assignments.
+        """
+        return Permission.objects.get(
+            content_type__app_label=app_label,
+            codename=codename,
+        )
 
     def _update_partial_permissions(
         self,
