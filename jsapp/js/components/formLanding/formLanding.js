@@ -522,14 +522,9 @@ class FormLanding extends React.Component {
 
         {canEdit && (
           <bem.FormView__cell>
-            <Button
-              type='text'
-              size='m'
-              startIcon='language'
-              tooltip={t('Manage translations')}
-              tooltipPosition='right'
-              onClick={this.showLanguagesModal.bind(this)}
-            />
+            <ButtonNew variant='outline' size='md' rightIcon='language' onClick={this.showLanguagesModal.bind(this)}>
+              {t('Manage')}
+            </ButtonNew>
           </bem.FormView__cell>
         )}
       </bem.FormView__cell>
