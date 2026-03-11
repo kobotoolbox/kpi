@@ -27,7 +27,7 @@ import { getRowName, getSurveyFlatPaths } from '../../../js/assetUtils'
 import { dataInterface } from '../../../js/dataInterface'
 import pageState from '../../../js/pageState.store'
 import { type WithRouterProps, withRouter } from '../../../js/router/legacy'
-import { checkLatLng, notify, recordKeys } from '../../../js/utils'
+import { notify, parseLatLng, recordKeys } from '../../../js/utils'
 
 // Constants and types
 import { ASSET_FILE_TYPES, MODAL_TYPES, QUERY_LIMIT_DEFAULT, QUESTION_TYPES } from '../../../js/constants'
@@ -565,11 +565,10 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     this.state.submissions.forEach((item) => {
       let markerProps = {}
 
-      let parsedCoordinates: string[] = []
+      const parsedCoordinates: number[] = parseLatLng(item, this.state.foundSelectedQuestion)
       // Safe to cast `null` as a string here as this will result in Array['undefined'] if there are no geopoint submissions
-      parsedCoordinates = String(item[this.state.foundSelectedQuestion as string]).split(' ')
 
-      if (this.state.foundSelectedQuestion && checkLatLng(parsedCoordinates)) {
+      if (!!parsedCoordinates.length) {
         if (viewby && mM) {
           const vb = this.nameOfFieldInGroup(viewby)
           const itemId = String(item[vb])
@@ -600,11 +599,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
           }
         }
 
-        if (!!parsedCoordinates.length) {
-          prepPoints.push(
-            L.marker([Number.parseFloat(parsedCoordinates[0]), Number.parseFloat(parsedCoordinates[1])], markerProps),
-          )
-        }
+        prepPoints.push(L.marker([parsedCoordinates[0], parsedCoordinates[1]], markerProps))
       }
     })
 
@@ -715,13 +710,9 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
   buildHeatMap(map: L.Map) {
     const heatmapPoints: Array<[number, number, number]> = []
     this.state.submissions.forEach((item) => {
-      let parsedCoordinates: string[] = []
-      parsedCoordinates = String(item[this.state.foundSelectedQuestion as string]).split(' ')
-
-      if (this.state.foundSelectedQuestion && checkLatLng(parsedCoordinates)) {
-        if (!!parsedCoordinates.length) {
-          heatmapPoints.push([Number.parseFloat(parsedCoordinates[0]), Number.parseFloat(parsedCoordinates[1]), 1])
-        }
+      const parsedCoordinates: number[] = parseLatLng(item, this.state.foundSelectedQuestion)
+      if (!!parsedCoordinates.length) {
+        heatmapPoints.push([parsedCoordinates[0], parsedCoordinates[1], 1])
       }
     })
     const heatmap = L.heatLayer(heatmapPoints, {

@@ -13,7 +13,7 @@ import moment from 'moment'
 import { Cookies } from 'react-cookie'
 import type { Toast, ToastOptions } from 'react-hot-toast'
 import { toast } from 'react-hot-toast'
-import type { MongoQuery } from './dataInterface'
+import type { MongoQuery, SubmissionResponse } from './dataInterface'
 
 /**
  * Type `Record<string, unknown>` raises problems down the road when using with interfaces without index signature.
@@ -278,6 +278,21 @@ export function checkLatLng(geolocation: any[]) {
     return true
   } else {
     return false
+  }
+}
+
+/**
+ * Helper function to parse the string array from a geopoint submission into an array of floating point coordinates for
+ * the map display
+ */
+export function parseLatLng(submission: SubmissionResponse, selectedQuestion: string | null) {
+  // Safe to cast `null` as a string here as this will result in Array['undefined'] if there are no geopoint submissions
+  const coordinates: string[] = String(submission[selectedQuestion as string]).split(' ')
+
+  if (selectedQuestion && checkLatLng(coordinates)) {
+    return [Number.parseFloat(coordinates[0]), Number.parseFloat(coordinates[1]), 1]
+  } else {
+    return []
   }
 }
 
