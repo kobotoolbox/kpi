@@ -13,7 +13,7 @@ import { actions } from '../../actions'
 import ButtonNew from '../common/ButtonNew'
 
 const ITEMS_PER_PAGE = 10
-const INFINITE_SCROLL_PLACEHOLDER = '$$trigger$$'
+const INFINITE_SCROLL_PLACEHOLDER = 'InfiniteScrollPlaceholder'
 
 interface CopyTeamPermissionsProps {
   asset: AssetResponse
@@ -27,6 +27,15 @@ export default function CopyTeamPermissions({ asset }: CopyTeamPermissionsProps)
   const [searchValue, setSearchValue] = useState('')
   const [debouncedSearch] = useDebouncedValue(searchValue, 300)
 
+  // Clear things when closing
+  useEffect(() => {
+    if (!opened) {
+      setSourceUid(null)
+      setSourceName(null)
+      setSearchValue('')
+    }
+  }, [opened])
+
   useEffect(() => {
     const handleAssetChange = (data: AssetStoreData) => {
       if (data[asset.uid] && isAwaitingAssetChange) {
@@ -35,21 +44,15 @@ export default function CopyTeamPermissions({ asset }: CopyTeamPermissionsProps)
       }
     }
 
-    const handlePermissionsCopied = () => {
-      notify(t('permissions were copied successfully'))
-    }
-
-    const unsubscribeAssetStore = assetStore.listen(handleAssetChange, false)
-    const unsubscribePermissionsCopied =
-      actions.permissions.copyPermissionsFrom.completed.listen(handlePermissionsCopied)
-
+    const unlisteners = [
+      // We operate here on `assetStore`, because parent component `SharingForm` is operating on it.
+      assetStore.listen(handleAssetChange, undefined),
+      actions.permissions.copyPermissionsFrom.completed.listen(() => {
+        notify(t('permissions were copied successfully'))
+      }),
+    ]
     return () => {
-      if (typeof unsubscribeAssetStore === 'function') {
-        unsubscribeAssetStore()
-      }
-      if (typeof unsubscribePermissionsCopied === 'function') {
-        unsubscribePermissionsCopied()
-      }
+      unlisteners.forEach((clb) => clb())
     }
   }, [asset.uid, isAwaitingAssetChange])
 
@@ -88,7 +91,7 @@ export default function CopyTeamPermissions({ asset }: CopyTeamPermissionsProps)
     if (newSelectedOption) {
       const selectedAsset = rowData.find((a) => a.uid === newSelectedOption)
       if (selectedAsset) {
-        setSourceName(selectedAsset.name || t('Unlabelled'))
+        setSourceName(selectedAsset.name || t('Untitled'))
       }
     } else {
       setSourceName(null)
@@ -127,7 +130,7 @@ export default function CopyTeamPermissions({ asset }: CopyTeamPermissionsProps)
       .filter((listAsset) => listAsset.uid !== asset.uid)
       .map((listAsset) => ({
         value: listAsset.uid,
-        label: listAsset.name || t('Unlabelled'),
+        label: listAsset.name || t('Untitled'),
       }))
 
     // In case the search query changes and the selected option disappears from the filtered array
@@ -135,7 +138,7 @@ export default function CopyTeamPermissions({ asset }: CopyTeamPermissionsProps)
     if (sourceUid && !data.some((listAsset) => listAsset.value === sourceUid)) {
       data.unshift({
         value: sourceUid,
-        label: sourceName || t('Unlabelled'),
+        label: sourceName || t('Untitled'),
       })
     }
 
