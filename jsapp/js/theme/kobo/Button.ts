@@ -2,7 +2,10 @@ import type { ButtonVariant } from '@mantine/core'
 import { Button, rem } from '@mantine/core'
 import classes from './Button.module.css'
 
-type ButtonVariantCustom = Extract<ButtonVariant, 'filled' | 'light' | 'transparent'> | 'danger' | 'danger-secondary'
+type ButtonVariantCustom =
+  | Extract<ButtonVariant, 'filled' | 'light' | 'outline' | 'transparent'>
+  | 'danger'
+  | 'danger-secondary'
 
 declare module '@mantine/core' {
   export interface ButtonProps {
@@ -35,6 +38,11 @@ export const ButtonThemeKobo = Button.extend({
           '--button-color': theme.colors.blue[5],
           '--button-bg': theme.colors.blue[9],
           '--button-hover': theme.colors.blue[8],
+        }),
+        ...(props.variant === 'outline' && {
+          '--button-bd': '1px solid var(--mantine-color-gray-6)',
+          '--button-color': theme.colors.gray[2],
+          '--button-hover': theme.colors.gray[7],
         }),
         ...(props.variant === 'transparent' && {
           '--button-color': theme.colors.blue[4],
