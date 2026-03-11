@@ -2,18 +2,11 @@ import React from 'react'
 
 import alertify from 'alertifyjs'
 import type { DropFilesEventHandler } from 'react-dropzone'
-import {
-  archiveAsset,
-  cloneAssetAsTemplate,
-  deleteAsset,
-  deployAsset,
-  removeAssetSharing,
-  unarchiveAsset,
-} from '#/assetQuickActions'
+import { cloneAssetAsTemplate, deployAsset, removeAssetSharing } from '#/assetQuickActions'
 import assetStore from '#/assetStore'
 import type { AssetStoreData } from '#/assetStore'
 import { dataInterface } from '#/dataInterface'
-import type { AssetResponse, CreateImportRequest, DeploymentResponse, ImportResponse } from '#/dataInterface'
+import type { AssetResponse, CreateImportRequest, ImportResponse } from '#/dataInterface'
 import pageState from '#/pageState.store'
 import { router, routerGetAssetId, routerIsActive } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
@@ -178,19 +171,6 @@ const mixins: MixinsObject = {
         }
       }
       deployAsset(asset)
-    },
-    archiveAsset(uid: string, callback: (response: DeploymentResponse) => void) {
-      archiveAsset(uid, callback)
-    },
-    unarchiveAsset(uid: string | null = null, callback: (response: DeploymentResponse) => void) {
-      if (uid === null) {
-        unarchiveAsset(this.state, callback)
-      } else {
-        unarchiveAsset(uid, callback)
-      }
-    },
-    deleteAsset(assetOrUid: AssetResponse | string, name: string, callback: () => void) {
-      deleteAsset(assetOrUid, name, callback)
     },
     toggleDeploymentHistory() {
       this.setState({

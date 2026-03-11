@@ -8,6 +8,7 @@ import reactMixin from 'react-mixin'
 import { Link } from 'react-router-dom'
 import Reflux from 'reflux'
 import { actions } from '#/actions'
+import { unarchiveAsset } from '#/assetQuickActions'
 import bem from '#/bem'
 import AnonymousSubmission from '#/components/anonymousSubmission.component'
 import ButtonNew from '#/components/common/ButtonNew'
@@ -85,7 +86,8 @@ class FormLanding extends React.Component {
     })
   }
   callUnarchiveAsset() {
-    this.unarchiveAsset()
+    // This component is using `mixins.dmix`, so the asset object is being stored in state
+    unarchiveAsset(this.state)
   }
   renderFormInfo(userCanEdit) {
     var dvcount = this.state.deployed_versions.count
