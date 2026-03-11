@@ -1832,12 +1832,12 @@ LOGGING = {
         'console_logger': {
             'handlers': ['console'],
             'level': 'DEBUG',
-            'propagate': True
+            'propagate': False,
         },
         'django.db.backends': {
             'level': 'ERROR',
             'handlers': ['console'],
-            'propagate': True
+            'propagate': False
         },
     }
 }
