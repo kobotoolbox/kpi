@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 
+import { useDisclosure } from '@mantine/hooks'
 import classnames from 'classnames'
 import type { Identifier, XYCoord } from 'dnd-core'
 import { useDrag, useDrop } from 'react-dnd'
@@ -96,7 +97,7 @@ export default function AnalysisQuestionListItem({
     },
   })
 
-  const [confirmEditModalOpen, setConfirmEditModalOpen] = useState<boolean>(false)
+  const [confirmEditModalOpened, confirmEditModalHandlers] = useDisclosure(false)
 
   // Local state for optimistic UI of SelectOne radio button value
   // this is needed so that the "clear" button works immediately without waiting for server response
@@ -151,16 +152,8 @@ export default function AnalysisQuestionListItem({
     setQaQuestion(undefined)
   }
 
-  const handleEditClick = () => {
-    setConfirmEditModalOpen(true)
-  }
-
-  const handleConfirmModalClosed = () => {
-    setConfirmEditModalOpen(false)
-  }
-
   const handleConfirmEdit = () => {
-    setConfirmEditModalOpen(false)
+    confirmEditModalHandlers.close()
     setQaQuestion(qaQuestion)
   }
 
@@ -326,7 +319,7 @@ export default function AnalysisQuestionListItem({
           <ResponseForm
             qaQuestion={qaQuestion}
             disabled={disabledQuestion}
-            onEdit={handleEditClick}
+            onEdit={confirmEditModalHandlers.open}
             onDelete={handleDeleteQuestion}
             onClear={() => handleSaveAnswer(getEmptyAnswer(qaQuestion.type))}
             onGenerateWithAI={() => onGenerateWithAI(qaQuestion)}
@@ -367,7 +360,7 @@ export default function AnalysisQuestionListItem({
           <ResponseForm
             qaQuestion={qaQuestion}
             disabled={disabledQuestion}
-            onEdit={handleEditClick}
+            onEdit={confirmEditModalHandlers.open}
             onDelete={handleDeleteQuestion}
             onClear={handleClearSelection}
             onGenerateWithAI={() => onGenerateWithAI(qaQuestion)}
@@ -390,7 +383,7 @@ export default function AnalysisQuestionListItem({
           <ResponseForm
             qaQuestion={qaQuestion}
             disabled={disabledQuestion}
-            onEdit={handleEditClick}
+            onEdit={confirmEditModalHandlers.open}
             onDelete={handleDeleteQuestion}
             onClear={() => handleSaveAnswer(getEmptyAnswer(qaQuestion.type))}
             answer={queryAnswer.data}
@@ -406,7 +399,7 @@ export default function AnalysisQuestionListItem({
           <ResponseForm
             qaQuestion={qaQuestion}
             disabled={disabledQuestion}
-            onEdit={handleEditClick}
+            onEdit={confirmEditModalHandlers.open}
             onDelete={handleDeleteQuestion}
             onClear={() => handleSaveAnswer(getEmptyAnswer(qaQuestion.type))}
             onGenerateWithAI={() => onGenerateWithAI(qaQuestion)}
@@ -428,7 +421,7 @@ export default function AnalysisQuestionListItem({
           <ResponseForm
             qaQuestion={qaQuestion}
             disabled={disabledQuestion}
-            onEdit={handleEditClick}
+            onEdit={confirmEditModalHandlers.open}
             onDelete={handleDeleteQuestion}
             onClear={() => handleSaveAnswer(getEmptyAnswer(qaQuestion.type))}
             onGenerateWithAI={() => onGenerateWithAI(qaQuestion)}
@@ -481,8 +474,8 @@ export default function AnalysisQuestionListItem({
         <div className={styles.content}>{renderItem()}</div>
       </li>
       <ConfirmEditModal
-        opened={confirmEditModalOpen}
-        onClose={handleConfirmModalClosed}
+        opened={confirmEditModalOpened}
+        onClose={confirmEditModalHandlers.close}
         onConfirmEdit={handleConfirmEdit}
       />
     </>
