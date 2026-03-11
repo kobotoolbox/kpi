@@ -60,6 +60,7 @@ ANONYMOUS_USER_PERMISSION_ACTIONS = {
 
 class AuditType(models.TextChoices):
     ACCESS = 'access'
+    ADMIN_INTERFACE = 'admin-interface'
     PROJECT_HISTORY = 'project-history'
     DATA_EDITING = 'data-editing'
     USER_MANAGEMENT = 'user-management'
