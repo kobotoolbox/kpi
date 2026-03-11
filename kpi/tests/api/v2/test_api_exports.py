@@ -491,7 +491,7 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         assert exports_list_response.status_code == status.HTTP_201_CREATED
 
         exports_detail_response = self.client.get(
-            exports_list_response.data['url'], HTTP_ACCEPT='application/json'
+            exports_list_response.data['url'], headers={"accept": 'application/json'}
         )
         assert exports_detail_response.status_code == status.HTTP_200_OK
 
@@ -594,7 +594,7 @@ class AssetExportTaskTestV2(MockDataExportsBase, BaseTestCase):
         )
         synchronous_export_response = self.client.get(
             synchronous_exports_url,
-            HTTP_USER_AGENT='Microsoft.Data.Mashup (https://go.microsoft.com/fwlink/?LinkID=304225)'
+            headers={"user-agent": 'Microsoft.Data.Mashup (https://go.microsoft.com/fwlink/?LinkID=304225)'}
         )
         assert synchronous_export_response.status_code == status.HTTP_200_OK
         first_line = next(synchronous_export_response.streaming_content)

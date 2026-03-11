@@ -16,13 +16,13 @@ class RendererNegotiationTests(BaseAssetDetailTestCase):
         self.data_url = self.r.data['data']
 
     def test_accept_any_defaults_to_json(self):
-        resp = self.client.get(self.data_url, HTTP_ACCEPT='*/*')
+        resp = self.client.get(self.data_url, headers={"accept": '*/*'})
         assert self._is_json(
             resp['Content-Type']
         ), f'Expected JSON, got {resp["Content-Type"]}'
 
     def test_accept_html_returns_html_when_no_format(self):
-        resp = self.client.get(self.data_url, HTTP_ACCEPT='text/html')
+        resp = self.client.get(self.data_url, headers={"accept": 'text/html'})
         assert self._is_html(
             resp['Content-Type']
         ), f'Expected HTML, got {resp["Content-Type"]}'

@@ -22,7 +22,7 @@ class BaseTrash(AbstractTimeStampedModel):
 
     status = models.CharField(
         max_length=11,
-        choices=TrashStatus.choices,
+        choices=TrashStatus,
         default=TrashStatus.PENDING,
         db_index=True
     )

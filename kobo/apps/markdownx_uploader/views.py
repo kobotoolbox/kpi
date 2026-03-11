@@ -31,7 +31,7 @@ class MarkdownxUploaderFileContentView(PrivateStorageView):
             return True
 
         try:
-            referrer = self.request.META['HTTP_REFERER']
+            referrer = self.request.headers['referer']
         except KeyError:
             return False
 

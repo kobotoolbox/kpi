@@ -33,7 +33,7 @@ class ConfigurationFileSlug(models.TextChoices):
 class ConfigurationFile(models.Model):
 
     slug = models.CharField(
-        max_length=32, choices=ConfigurationFileSlug.choices, unique=True
+        max_length=32, choices=ConfigurationFileSlug, unique=True
     )
     content = models.FileField(
         upload_to=_configuration_file_upload_to,
@@ -61,7 +61,7 @@ class ConfigurationFile(models.Model):
         mtime = content.storage.get_modified_time(content.name).timestamp()
 
         if not was_modified_since(
-            request.META.get('HTTP_IF_MODIFIED_SINCE'), mtime
+            request.headers.get('if-modified-since'), mtime
         ):
             return HttpResponseNotModified()
 
