@@ -21,7 +21,8 @@ interface CopyTeamPermissionsProps {
 
 export default function CopyTeamPermissions({ asset }: CopyTeamPermissionsProps) {
   const [isAwaitingAssetChange, setIsAwaitingAssetChange] = useState(false)
-  const [opened, { open, close }] = useDisclosure()
+  const [isFormOpened, { open: openForm, close: closeForm }] = useDisclosure()
+  const [isDropdownOpened, setIsDropdownOpened] = useState(false)
   const [sourceUid, setSourceUid] = useState<string | null>(null)
   const [sourceName, setSourceName] = useState<string | null>(null)
   const [searchValue, setSearchValue] = useState('')
@@ -29,18 +30,18 @@ export default function CopyTeamPermissions({ asset }: CopyTeamPermissionsProps)
 
   // Clear things when closing
   useEffect(() => {
-    if (!opened) {
+    if (!isFormOpened) {
       setSourceUid(null)
       setSourceName(null)
       setSearchValue('')
     }
-  }, [opened])
+  }, [isFormOpened])
 
   useEffect(() => {
     const handleAssetChange = (data: AssetStoreData) => {
       if (data[asset.uid] && isAwaitingAssetChange) {
         setIsAwaitingAssetChange(false)
-        close()
+        closeForm()
       }
     }
 
@@ -78,7 +79,7 @@ export default function CopyTeamPermissions({ asset }: CopyTeamPermissionsProps)
       }
       return undefined
     },
-    enabled: opened,
+    enabled: isFormOpened,
     placeholderData: keepPreviousData,
   })
 
@@ -142,7 +143,10 @@ export default function CopyTeamPermissions({ asset }: CopyTeamPermissionsProps)
       })
     }
 
-    if (assetsInfiniteQuery.hasNextPage || assetsInfiniteQuery.isFetchingNextPage) {
+    // We want to include InfiniteScrollTrigger only when the dropdown is opened (because otherwise all pages will be
+    // loaded when Select appears - most possibly due to Mantine's Select inner working) and if there is a next page
+    // or next page is being loaded.
+    if (isDropdownOpened && (assetsInfiniteQuery.hasNextPage || assetsInfiniteQuery.isFetchingNextPage)) {
       data.push({
         value: INFINITE_SCROLL_PLACEHOLDER,
         label: 'Loading…',
@@ -158,6 +162,7 @@ export default function CopyTeamPermissions({ asset }: CopyTeamPermissionsProps)
     sourceName,
     assetsInfiniteQuery.hasNextPage,
     assetsInfiniteQuery.isFetchingNextPage,
+    isDropdownOpened,
   ])
 
   return (
@@ -166,13 +171,13 @@ export default function CopyTeamPermissions({ asset }: CopyTeamPermissionsProps)
         size='md'
         variant='transparent'
         p='0'
-        onClick={opened ? close : open}
-        rightIcon={opened ? 'angle-up' : 'angle-down'}
+        onClick={isFormOpened ? closeForm : openForm}
+        rightIcon={isFormOpened ? 'angle-up' : 'angle-down'}
       >
         {t('Copy team from another project')}
       </ButtonNew>
 
-      {opened && (
+      {isFormOpened && (
         <Stack gap='md'>
           <Text>{t('This will overwrite any existing sharing settings defined in this project.')}</Text>
 
@@ -182,6 +187,8 @@ export default function CopyTeamPermissions({ asset }: CopyTeamPermissionsProps)
               searchable
               searchValue={searchValue}
               onSearchChange={setSearchValue}
+              onDropdownOpen={() => setIsDropdownOpened(true)}
+              onDropdownClose={() => setIsDropdownOpened(false)}
               data={selectData}
               value={sourceUid}
               onChange={onSelectedProjectChange}
