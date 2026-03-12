@@ -95,7 +95,6 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_prometheus',
-
     'private_storage',
     'kobo.apps.KpiConfig',
     'kobo.apps.accounts',

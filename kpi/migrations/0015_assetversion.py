@@ -27,11 +27,18 @@ class Migration(migrations.Migration):
                 # Originally a OneToOneField to reversion.Version; the FK was
                 # dropped in migration 0069. Declared as IntegerField here so
                 # that fresh installations do not require django-reversion.
-                ('_reversion_version', models.IntegerField(
-                    null=True, db_column='_reversion_version_id'
-                )),
-                ('asset', models.ForeignKey(related_name='asset_versions',
-                                            to='kpi.Asset', on_delete=models.CASCADE)),
+                (
+                    '_reversion_version',
+                    models.IntegerField(null=True, db_column='_reversion_version_id'),
+                ),
+                (
+                    'asset',
+                    models.ForeignKey(
+                        related_name='asset_versions',
+                        to='kpi.Asset',
+                        on_delete=models.CASCADE,
+                    ),
+                ),
             ],
             options={
                 'ordering': ['-date_modified'],
