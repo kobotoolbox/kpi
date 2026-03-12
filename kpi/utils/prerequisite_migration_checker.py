@@ -1,3 +1,4 @@
+# flake8: noqa E501,Q000
 from django.core.checks import Error
 from django.db import connections
 from django.db.utils import OperationalError, ProgrammingError

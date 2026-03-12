@@ -8,7 +8,6 @@ import kpi.utils.monkey_patching  # noqa
 from kpi.utils.json import LazyJSONSerializable
 from kpi.utils.prerequisite_migration_checker import PrerequisiteMigrationChecker
 from kpi.utils.two_database_configuration_checker import TwoDatabaseConfigurationChecker
-from kpi.utils.json import LazyJSONSerializable
 
 
 class KpiConfig(AppConfig):
