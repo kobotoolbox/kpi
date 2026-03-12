@@ -49,8 +49,10 @@ class ExtraProjectMetadataFieldAdmin(admin.ModelAdmin):
         (
             _('Options Configuration'),
             {
-                'fields': ('options_raw', 'options'),
-                'description': _('Only required for Single/Multi Select types.'),
+                'fields': ('options',),
+                'description': _(
+                    "Provide a JSON list of objects containing 'name' and 'label'."
+                ),
             },
         ),
     )
