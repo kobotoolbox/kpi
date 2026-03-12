@@ -77,6 +77,7 @@ class AuditLog(models.Model):
     app_label = models.CharField(max_length=100)
     model_name = models.CharField(max_length=100)
     object_id = models.BigIntegerField()
+    object_id_tmp = models.CharField(max_length=255, null=True, blank=True)
     date_created = models.DateTimeField(default=timezone.now, db_index=True)
     metadata = models.JSONField(default=dict)
     action = models.CharField(
@@ -111,8 +112,15 @@ class AuditLog(models.Model):
         using=None,
         update_fields=None,
     ):
+        if not self.object_id_tmp:
+            self.object_id_tmp = str(self.object_id)
+            if update_fields is not None and 'object_id_tmp' not in update_fields:
+                update_fields = list(update_fields) + ['object_id_tmp']
+
         if not self.user_uid:
             self.user_uid = self.user.extra_details.uid
+            if update_fields is not None and 'user_uid' not in update_fields:
+                update_fields = list(update_fields) + ['user_uid']
 
         super().save(
             force_insert=force_insert,
@@ -659,6 +667,7 @@ class ProjectHistoryLog(AuditLog):
                 ProjectHistoryLog(
                     user=user,
                     object_id=request.asset.id,
+                    object_id_tmp=str(request.asset.id),
                     action=action,
                     user_uid=user.extra_details.uid,
                     metadata=metadata,
@@ -708,6 +717,7 @@ class ProjectHistoryLog(AuditLog):
             logs.append(
                 ProjectHistoryLog(
                     object_id=transfer['asset__id'],
+                    object_id_tmp=str(transfer['asset__id']),
                     action=AuditAction.TRANSFER,
                     user=request.user,
                     user_uid=request.user.extra_details.uid,
@@ -761,6 +771,7 @@ class ProjectHistoryLog(AuditLog):
         log_base = {
             'user': request.user,
             'object_id': asset_id,
+            'object_id_tmp': str(asset_id),
             'user_uid': request.user.extra_details.uid,
         }
         # get all users whose permissions changed

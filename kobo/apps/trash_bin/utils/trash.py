@@ -253,6 +253,7 @@ def put_back(
                 app_label=related_model._meta.app_label,
                 model_name=related_model._meta.model_name,
                 object_id=obj_dict['pk'],
+                object_id_tmp=str(obj_dict['pk']),
                 user=request_author,
                 user_uid=request_author.extra_details.uid,
                 action=AuditAction.PUT_BACK,
@@ -306,6 +307,7 @@ def _build_log_entries(obj_dicts, request_author, related_model, trash_type):
             project_history_logs.append(
                 ProjectHistoryLog(
                     object_id=obj_dict['asset_id'],
+                    object_id_tmp=str(obj_dict['asset_id']),
                     user=request_author,
                     user_uid=request_author.extra_details.uid,
                     action=AuditAction.IN_TRASH,
@@ -318,6 +320,7 @@ def _build_log_entries(obj_dicts, request_author, related_model, trash_type):
                     app_label=related_model._meta.app_label,
                     model_name=related_model._meta.model_name,
                     object_id=obj_dict['pk'],
+                    object_id_tmp=str(obj_dict['pk']),
                     user=request_author,
                     user_uid=request_author.extra_details.uid,
                     action=AuditAction.IN_TRASH,

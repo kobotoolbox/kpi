@@ -130,6 +130,7 @@ def _delete_submissions(request_author: settings.AUTH_USER_MODEL, asset: 'kpi.As
                     app_label='logger',
                     model_name='instance',
                     object_id=submission['_id'],
+                    object_id_tmp=str(submission['_id']),
                     user=request_author,
                     user_uid=request_author.extra_details.uid,
                     metadata={
