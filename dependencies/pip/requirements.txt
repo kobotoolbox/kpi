@@ -120,7 +120,6 @@ django==5.1.15
     #   django-organizations
     #   django-prometheus
     #   django-redis
-    #   django-reversion
     #   django-storages
     #   django-taggit
     #   django-timezone-field
@@ -182,8 +181,6 @@ django-redis==6.0.0
 django-redis-sessions==0.6.2
     # via -r dependencies/pip/requirements.in
 django-request-cache==1.5.0
-    # via -r dependencies/pip/requirements.in
-django-reversion==5.1.0
     # via -r dependencies/pip/requirements.in
 django-storages[azure, boto3]==1.14.6
     # via -r dependencies/pip/requirements.in

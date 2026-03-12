@@ -51,7 +51,6 @@ django-loginas
 django-markdownx
 django-prometheus
 
-django-reversion<6  # temporary 20260226
 django-taggit<6  # temporary 20260226
 django-private-storage
 djangorestframework
