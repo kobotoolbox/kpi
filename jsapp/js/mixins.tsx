@@ -2,7 +2,7 @@ import React from 'react'
 
 import alertify from 'alertifyjs'
 import type { DropFilesEventHandler } from 'react-dropzone'
-import { cloneAssetAsTemplate, deployAsset, removeAssetSharing } from '#/assetQuickActions'
+import { removeAssetSharing } from '#/assetQuickActions'
 import assetStore from '#/assetStore'
 import type { AssetStoreData } from '#/assetStore'
 import { dataInterface } from '#/dataInterface'
@@ -153,25 +153,7 @@ const mixins: MixinsObject = {
       }
       dialog.set(opts).show()
     },
-
-    cloneAsTemplate(evt: React.TouchEvent<HTMLElement>) {
-      const sourceUid = evt.currentTarget.dataset.assetUid
-      const sourceName = evt.currentTarget.dataset.assetName
-      if (sourceUid && sourceName) {
-        cloneAssetAsTemplate(sourceUid, sourceName)
-      }
-    },
-    deployAsset(asset: AssetResponse) {
-      if (!asset || asset.asset_type !== ASSET_TYPES.survey.id) {
-        if (this.state && this.state.asset_type === ASSET_TYPES.survey.id) {
-          asset = this.state
-        } else {
-          console.error('Neither the arguments nor the state supplied an asset.')
-          return
-        }
-      }
-      deployAsset(asset)
-    },
+    // TODO: move this one shot function to formLanding or formHistory and remove from mixins
     toggleDeploymentHistory() {
       this.setState({
         historyExpanded: !this.state.historyExpanded,

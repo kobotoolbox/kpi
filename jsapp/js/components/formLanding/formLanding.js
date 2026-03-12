@@ -8,7 +8,7 @@ import reactMixin from 'react-mixin'
 import { Link } from 'react-router-dom'
 import Reflux from 'reflux'
 import { actions } from '#/actions'
-import { unarchiveAsset } from '#/assetQuickActions'
+import { cloneAssetAsTemplate, deployAsset, unarchiveAsset } from '#/assetQuickActions'
 import bem from '#/bem'
 import AnonymousSubmission from '#/components/anonymousSubmission.component'
 import ButtonNew from '#/components/common/ButtonNew'
@@ -114,10 +114,26 @@ class FormLanding extends React.Component {
         </bem.FormView__cell>
         <bem.FormView__cell m='buttons'>
           {userCanEdit && this.state.deployment_status === 'deployed' && (
-            <Button type='primary' size='l' isUpperCase onClick={this.deployAsset.bind(this)} label={t('redeploy')} />
+            <Button
+              type='primary'
+              size='l'
+              isUpperCase
+              onClick={() => {
+                deployAsset(this.state)
+              }}
+              label={t('redeploy')}
+            />
           )}
           {userCanEdit && this.state.deployment_status === 'draft' && (
-            <Button type='primary' size='l' isUpperCase onClick={this.deployAsset.bind(this)} label={t('deploy')} />
+            <Button
+              type='primary'
+              size='l'
+              isUpperCase
+              onClick={() => {
+                deployAsset(this.state)
+              }}
+              label={t('deploy')}
+            />
           )}
           {userCanEdit && this.state.deployment_status === 'archived' && (
             <Button
@@ -479,9 +495,9 @@ class FormLanding extends React.Component {
 
           {isLoggedIn && (
             <bem.PopoverMenu__link
-              onClick={this.cloneAsTemplate}
-              data-asset-uid={this.state.uid}
-              data-asset-name={this.state.name}
+              onClick={() => {
+                cloneAssetAsTemplate(this.state.uid, this.state.name)
+              }}
             >
               <i className='k-icon k-icon-template' />
               {t('Create template')}
