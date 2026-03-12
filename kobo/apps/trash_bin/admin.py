@@ -1,17 +1,16 @@
 from django.contrib import admin, messages
 from django.db.models import F
 
-from kpi.models import Asset
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.logger.models.attachment import Attachment
 from kobo.apps.openrosa.apps.viewer.models import ParsedInstance
-
+from kpi.models import Asset
 from .exceptions import TrashTaskInProgressError
+from .mixins.admin import TrashMixin
 from .models import TrashStatus
 from .models.account import AccountTrash
 from .models.attachment import AttachmentTrash
 from .models.project import ProjectTrash
-from .mixins.admin import TrashMixin
 from .tasks import empty_account, empty_attachment, empty_project
 from .utils import put_back
 

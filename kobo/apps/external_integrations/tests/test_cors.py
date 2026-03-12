@@ -25,7 +25,7 @@ class CorsTests(APITestCase, RequiresStripeAPIKeyMixin):
             self.innocuous_url,
             # I saw it with a debugger, but I thought I might've been crazy
             # until I read https://stackoverflow.com/a/49924911
-            headers={"origin": 'http://amazon.com'}
+            headers={'origin': 'http://amazon.com'},
         )
         self.assertFalse(response.has_header(self.cors_response_header_name))
 
@@ -33,8 +33,7 @@ class CorsTests(APITestCase, RequiresStripeAPIKeyMixin):
         trusted_origin = 'https://www.fsf.org'
         CorsModel.objects.create(cors=trusted_origin)
         response = self.client.get(
-            self.innocuous_url,
-            headers={"origin": trusted_origin}
+            self.innocuous_url, headers={'origin': trusted_origin}
         )
         self.assertTrue(response.has_header(self.cors_response_header_name))
         self.assertEqual(response[self.cors_response_header_name],

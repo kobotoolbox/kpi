@@ -1,6 +1,5 @@
 # coding: utf-8
-from django.urls import path
-from django.urls import re_path
+from django.urls import path, re_path
 from django.urls.exceptions import NoReverseMatch
 from rest_framework import routers
 from rest_framework.response import Response
@@ -326,8 +325,7 @@ class MultiLookupRouter(routers.DefaultRouter):
         ret = []
 
         if self.include_root_view:
-            root_url = path('', self.get_api_root_view(),
-                               name=self.root_view_name)
+            root_url = path('', self.get_api_root_view(), name=self.root_view_name)
             ret.append(root_url)
         for prefix, viewset, basename in self.registry:
             lookup = self.get_lookup_regex(viewset)

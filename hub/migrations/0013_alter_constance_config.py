@@ -1,5 +1,5 @@
 from constance import config
-from django.db import migrations, models
+from django.db import migrations
 
 
 def alter_constance_config(apps, schema_editor):
