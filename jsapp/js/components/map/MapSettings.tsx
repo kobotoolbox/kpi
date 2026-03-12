@@ -15,7 +15,7 @@ import { actions } from '../../../js/actions'
 import { getQuestionOrChoiceDisplayName, getRowName } from '../../../js/assetUtils'
 import { userCan } from '../../../js/components/permissions/utils'
 import { dataInterface } from '../../../js/dataInterface'
-import { notify } from '../../../js/utils'
+import { findFirstGeopoint, notify } from '../../../js/utils'
 
 // Constants and types
 import { ASSET_FILE_TYPES, QUERY_LIMIT_DEFAULT } from '../../../js/constants'
@@ -100,12 +100,12 @@ export default class MapSettings extends React.Component<MapSettingsProps, MapSe
 
     // Force first geopoint question to be selected if there otherwise would be none
     if (!mapStyles.selectedQuestion) {
-      const firstGeopoint = props.asset.content?.survey?.find(
-        (question) => question.type && question.type === 'geopoint',
-      )
-      // Can only fail if this component somehow does not get the survey
-      if (firstGeopoint) {
-        Object.assign(mapStyles, { selectedQuestion: getRowName(firstGeopoint) })
+      if (props.asset.content?.survey) {
+        const firstGeopoint = findFirstGeopoint(props.asset.content.survey)
+        // Can only fail if this component somehow does not get the survey
+        if (firstGeopoint) {
+          Object.assign(mapStyles, { selectedQuestion: getRowName(firstGeopoint) })
+        }
       }
     }
 

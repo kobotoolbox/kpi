@@ -565,7 +565,6 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       let markerProps = {}
 
       const parsedCoordinates: number[] = parseLatLng(item, this.state.foundSelectedQuestion)
-      // Safe to cast `null` as a string here as this will result in Array['undefined'] if there are no geopoint submissions
 
       if (!!parsedCoordinates.length) {
         if (viewby && mM) {
