@@ -8,7 +8,6 @@ from django.utils.translation import gettext as t
 from kpi.utils.json import LazyJSONEncoder
 
 
-
 class JsonSchemaFormField(CharField):
     def __init__(self, *args, schema, **kwargs):
         self.schema = schema

@@ -3,20 +3,17 @@ from __future__ import annotations
 
 import copy
 
-import logging
-
 from constance import config
 from django.db.models import Q
 from django.db.models.functions import Length
-from django.utils.translation import get_language, gettext as t
+from django.utils.translation import get_language
+from django.utils.translation import gettext as t
 from django_request_cache import cache_for_request
-
 
 from kobo.static_lists import (
     PROJECT_METADATA_DEFAULT_LABELS,
-    USER_METADATA_DEFAULT_LABELS
+    USER_METADATA_DEFAULT_LABELS,
 )
-from kpi.utils.log import logging
 from ..models import SitewideMessage
 
 
@@ -43,7 +40,7 @@ class I18nUtils:
         return message
 
     @staticmethod
-    def get_sitewide_message(slug="welcome_message", lang=None):
+    def get_sitewide_message(slug='welcome_message', lang=None):
         """
         Returns a sitewide message based on its slug and the specified language.
         If the language is not specified, it will use the current language.

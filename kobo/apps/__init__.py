@@ -3,7 +3,7 @@ import json
 from django.apps import AppConfig
 from django.core.checks import Tags, register
 
-import kpi.utils.monkey_patching # noqa
+import kpi.utils.monkey_patching  # noqa
 from kpi.utils.two_database_configuration_checker import TwoDatabaseConfigurationChecker
 
 
@@ -12,6 +12,13 @@ class KpiConfig(AppConfig):
 
     def ready(self, *args, **kwargs):
         # Load all schema extension modules to register them
+        # Register Django's lazy translation Promise type with constance 4's
+        # JSON codec so that gettext_lazy strings nested inside list/dict
+        # constance config values are serialized as plain strings.
+        from constance.codecs import register_type
+        from django.utils.encoding import force_str
+        from django.utils.functional import Promise
+
         import kpi.schema_extensions.imports  # noqa F401
 
         # Register signals only when the app is ready to avoid issues with models
@@ -21,13 +28,6 @@ class KpiConfig(AppConfig):
         # The extension is loaded to help drf-spectacular correctly detect and document
         # the appropriate API extension type (e.g., drf-auth)
         import kpi.utils.schema_extensions.extensions  # noqa F401
-
-        # Register Django's lazy translation Promise type with constance 4's
-        # JSON codec so that gettext_lazy strings nested inside list/dict
-        # constance config values are serialized as plain strings.
-        from constance.codecs import register_type
-        from django.utils.encoding import force_str
-        from django.utils.functional import Promise
 
         register_type(
             Promise,

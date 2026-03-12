@@ -96,9 +96,7 @@ class InviteAdmin(admin.ModelAdmin):
            linebreaks('\n'.join(self._asset_names_by_invite.get(obj.id, [])))
         )
 
-    @admin.display(
-        description='Project'
-    )
+    @admin.display(description='Project')
     def get_transfers(self, obj):
         date_format = '%Y-%m-%d %H:%M:%S'
         html = '<ul>'

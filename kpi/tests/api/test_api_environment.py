@@ -16,7 +16,6 @@ from hub.models.sitewide_message import SitewideMessage
 from hub.utils.i18n import I18nUtils
 from kobo.apps.accounts.mfa.models import MfaAvailableToUser
 from kobo.apps.accounts.models import SocialAppCustomData
-
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.tests.base_test_case import BaseTestCase

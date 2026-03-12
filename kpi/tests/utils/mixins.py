@@ -156,7 +156,7 @@ class SubmissionDeleteTestCaseMixin:
             },
         )
 
-        response = self.client.delete(url, headers={"accept": 'application/json'})
+        response = self.client.delete(url, headers={'accept': 'application/json'})
         assert response.status_code == status.HTTP_204_NO_CONTENT
 
         response = self.client.get(self.submission_list_url)

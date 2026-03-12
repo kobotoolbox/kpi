@@ -1,13 +1,11 @@
 # coding: utf-8
-from django.urls import path
-from django.urls import re_path, include
+from django.urls import include, path, re_path
 from rest_framework.routers import SimpleRouter
 
 from .views import (
     InAppMessageFileContentView,
     InAppMessageViewSet,
 )
-
 
 router = SimpleRouter()
 router.register(r'in_app_messages', InAppMessageViewSet)

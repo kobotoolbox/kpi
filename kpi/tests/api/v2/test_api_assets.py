@@ -816,13 +816,13 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
 
         view_0_url = results[0]['assets']
         regional_res = self.client.get(
-            view_0_url, headers={"accept": 'application/json'}
+            view_0_url, headers={'accept': 'application/json'}
         )
         assert regional_res.json()['count'] == 2
 
         view_1_url = results[1]['assets']
         regional_res = self.client.get(
-            view_1_url, headers={"accept": 'application/json'}
+            view_1_url, headers={'accept': 'application/json'}
         )
         regional_data = regional_res.json()
         assert regional_data['count'] == 1
@@ -851,7 +851,7 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
 
         view_1_url = results[0]['assets']
         regional_res = self.client.get(
-            view_1_url, headers={"accept": 'application/json'}
+            view_1_url, headers={'accept': 'application/json'}
         )
         regional_data = regional_res.json()
         asset = regional_data['results'][0]
@@ -859,7 +859,7 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
 
         # Ensure user can see submissions count from the asset detail endpoint too
         asset_detail_response = self.client.get(
-            asset['url'], headers={"accept": 'application/json'}
+            asset['url'], headers={'accept': 'application/json'}
         )
         assert asset_detail_response.data['deployment__submission_count'] == 1
 
@@ -876,7 +876,7 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
 
         for i, item in enumerate(expected_vals):
             regional_res = self.client.get(
-                results[i]['assets'], headers={"accept": 'application/json'}
+                results[i]['assets'], headers={'accept': 'application/json'}
             )
             regional_data = regional_res.json()
             assert regional_data['count'] == item['count']
@@ -894,7 +894,7 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
 
         # someuser can see data for view 1
         regional_res = self.client.get(
-            results[1]['assets'], headers={"accept": 'application/json'}
+            results[1]['assets'], headers={'accept': 'application/json'}
         )
         asset_data = regional_res.json()['results'][0]
         assert asset_data['uid']
@@ -902,7 +902,7 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         url = reverse(
             self._get_endpoint('submission-list'), args=(asset_data['uid'],)
         )
-        data_res = self.client.get(url, headers={"accept": 'application/json'})
+        data_res = self.client.get(url, headers={'accept': 'application/json'})
         assert data_res.status_code == status.HTTP_200_OK
 
     def test_project_views_for_anotheruser_can_view_asset_detail(self):
@@ -913,7 +913,7 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         results = data['results']
 
         regional_res = self.client.get(
-            results[0]['assets'], headers={"accept": 'application/json'}
+            results[0]['assets'], headers={'accept': 'application/json'}
         )
         asset_data = regional_res.json()['results'][0]
         # check that anotheruser isn't the asset's owner
@@ -923,7 +923,9 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
         # have explicitly assigned `view_asset` permission (their permission
         # comes from their assignment to the project view)
         assert asset_obj.has_perm(user, PERM_VIEW_ASSET)
-        asset_res = self.client.get(asset_data['url'], headers={"accept": 'application/json'})
+        asset_res = self.client.get(
+            asset_data['url'], headers={'accept': 'application/json'}
+        )
         # ensure that anotheruser can still see asset detail since has
         # `view_asset` perm assigned to view
         assert asset_res.status_code == status.HTTP_200_OK
@@ -1021,7 +1023,7 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
 
         # anotheruser can change metadata for view 1
         regional_res = self.client.get(
-            results[0]['assets'], headers={"accept": 'application/json'}
+            results[0]['assets'], headers={'accept': 'application/json'}
         )
         asset_detail_url = regional_res.json()['results'][0]['url']
         asset_detail_response = self.client.get(asset_detail_url)
@@ -1078,7 +1080,7 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
 
         # anotheruser cannot change metadata for view 2
         regional_res = self.client.get(
-            results[1]['assets'], headers={"accept": 'application/json'}
+            results[1]['assets'], headers={'accept': 'application/json'}
         )
         asset_data = regional_res.json()['results'][0]
         change_metadata_res = self.client.patch(
@@ -1093,10 +1095,10 @@ class AssetProjectViewListApiTests(BaseAssetTestCase):
 
         assets_url = results[0]['assets']
         regional_res_asc = self.client.get(
-            f'{assets_url}?ordering=name', headers={"accept": 'application/json'}
+            f'{assets_url}?ordering=name', headers={'accept': 'application/json'}
         )
         regional_res_desc = self.client.get(
-            f'{assets_url}?ordering=-name', headers={"accept": 'application/json'}
+            f'{assets_url}?ordering=-name', headers={'accept': 'application/json'}
         )
         results_asc = regional_res_asc.json()['results']
         results_desc = regional_res_desc.json()['results']
