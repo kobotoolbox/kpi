@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
-from zoneinfo import ZoneInfo
 from unittest.mock import patch
+from zoneinfo import ZoneInfo
 
 import pytest
 from allauth.socialaccount.models import SocialAccount

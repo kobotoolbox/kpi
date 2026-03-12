@@ -94,9 +94,7 @@ class OrgInline(admin.StackedInline):
     classes = ('no-upper',)
     raw_id_fields = ('user', 'organization')
 
-    @admin.display(
-        description='Active Subscription'
-    )
+    @admin.display(description='Active Subscription')
     def active_subscription_status(self, obj):
         if settings.STRIPE_ENABLED:
             return (

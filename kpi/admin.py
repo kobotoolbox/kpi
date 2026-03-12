@@ -2,8 +2,7 @@
 from django.contrib import admin
 
 from kpi.constants import ASSET_TYPE_SURVEY
-from .models import AuthorizedApplication
-from .models import Asset
+from .models import Asset, AuthorizedApplication
 
 
 @admin.register(Asset)

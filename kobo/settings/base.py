@@ -17,7 +17,6 @@ from django.utils.translation import gettext_lazy as t
 from pymongo import MongoClient
 
 from kpi.constants import PERM_DELETE_ASSET, PERM_MANAGE_ASSET
-
 from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
 
 env = environ.Env()
@@ -96,7 +95,6 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_prometheus',
-    'reversion',
     'private_storage',
     'kobo.apps.KpiConfig',
     'kobo.apps.accounts',

@@ -5,8 +5,9 @@ from django.utils.encoding import force_str
 from django.utils.functional import Promise
 
 import kpi.utils.monkey_patching  # noqa
-from kpi.utils.two_database_configuration_checker import TwoDatabaseConfigurationChecker
 from kpi.utils.json import LazyJSONSerializable
+from kpi.utils.prerequisite_migration_checker import PrerequisiteMigrationChecker
+from kpi.utils.two_database_configuration_checker import TwoDatabaseConfigurationChecker
 
 
 class KpiConfig(AppConfig):
@@ -48,3 +49,4 @@ class KpiConfig(AppConfig):
 
 
 register(TwoDatabaseConfigurationChecker().as_check(), Tags.database)
+register(PrerequisiteMigrationChecker().as_check(), Tags.database)

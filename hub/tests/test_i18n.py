@@ -1,5 +1,6 @@
 # coding: utf-8
-import mock
+from unittest import mock
+
 from constance.test import override_config
 from django.test import TestCase
 
@@ -27,17 +28,19 @@ class I18nTestCase(TestCase):
 
     # TODO validate whether the tests below are necessary.
     #   Kinda redundant with kobo/apps/accounts/tests/test_forms.py::AccountFormsTestCase
-    @override_config(USER_METADATA_FIELDS=[
-      {
-        'name': 'name',
-        'required': False,
-        'label': {
-            'default': 'Full name',
-            'fr': 'Prénom et nom',
-            'es': 'Nombre y apellido'
-        }
-      }
-    ])
+    @override_config(
+        USER_METADATA_FIELDS=[
+            {
+                'name': 'name',
+                'required': False,
+                'label': {
+                    'default': 'Full name',
+                    'fr': 'Prénom et nom',
+                    'es': 'Nombre y apellido',
+                },
+            }
+        ]
+    )
     def test_user_metadata_fields_with_custom_label(self):
         # Languages exist - return related label
         assert (
@@ -55,12 +58,7 @@ class I18nTestCase(TestCase):
         )
         assert I18nUtils.get_metadata_field_label('name', 'user') == 'Full name'
 
-    @override_config(USER_METADATA_FIELDS=[
-        {
-            'name': 'name',
-            'required': False
-        }
-    ])
+    @override_config(USER_METADATA_FIELDS=[{'name': 'name', 'required': False}])
     def test_user_metadata_fields_no_label_field(self):
         MOCK_TRANSLATION_STRING = 'hello from gettext_lazy'
         mock_t = mock.MagicMock(return_value=MOCK_TRANSLATION_STRING)
@@ -83,17 +81,19 @@ class I18nTestCase(TestCase):
             )
             assert mock_t.call_args.args[0] == 'My Full name'
 
-    @override_config(PROJECT_METADATA_FIELDS=[
-        {
-            'name': 'sector',
-            'required': False,
-            'label': {
-                'default': 'Activity sector',
-                'fr': 'Secteur d’activités',
-                'es': 'Sector de actividad'
+    @override_config(
+        PROJECT_METADATA_FIELDS=[
+            {
+                'name': 'sector',
+                'required': False,
+                'label': {
+                    'default': 'Activity sector',
+                    'fr': 'Secteur d’activités',
+                    'es': 'Sector de actividad',
+                },
             }
-        }
-    ])
+        ]
+    )
     def test_project_metadata_fields_with_custom_label(self):
         # Languages exist - return related label
         assert (
@@ -114,12 +114,14 @@ class I18nTestCase(TestCase):
             == 'Activity sector'
         )
 
-    @override_config(PROJECT_METADATA_FIELDS=[
-        {
-            'name': 'sector',
-            'required': False,
-        }
-    ])
+    @override_config(
+        PROJECT_METADATA_FIELDS=[
+            {
+                'name': 'sector',
+                'required': False,
+            }
+        ]
+    )
     def test_project_metadata_fields_no_label_field(self):
         MOCK_TRANSLATION_STRING = 'hello from gettext_lazy'
         mock_t = mock.MagicMock(return_value=MOCK_TRANSLATION_STRING)

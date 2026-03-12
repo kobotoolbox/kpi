@@ -11,9 +11,7 @@ class Migration(migrations.Migration):
     ]
 
     def copy_month_and_year_to_date(apps, schema_editor):
-        MonthlyNLPUsageCounter = apps.get_model(
-            "trackers", "MonthlyNLPUsageCounter"
-        )
+        MonthlyNLPUsageCounter = apps.get_model('trackers', 'MonthlyNLPUsageCounter')
         # Note: when converting monthly usage data to daily, set the day to the 1st of the month
         MonthlyNLPUsageCounter.objects.only('year', 'month', 'date').update(
             date=Cast(
@@ -28,9 +26,7 @@ class Migration(migrations.Migration):
         )
 
     def copy_date_to_month_and_year(apps, schema_editor):
-        MonthlyNLPUsageCounter = apps.get_model(
-            "trackers", "MonthlyNLPUsageCounter"
-        )
+        MonthlyNLPUsageCounter = apps.get_model('trackers', 'MonthlyNLPUsageCounter')
         # When doing the operation in reverse we can just do an update
         MonthlyNLPUsageCounter.objects.only('year', 'month', 'date').update(
             year=ExtractYear('date'),
@@ -38,9 +34,7 @@ class Migration(migrations.Migration):
         )
 
     def populate_usage_totals(apps, schema_editor):
-        MonthlyNLPUsageCounter = apps.get_model(
-            "trackers", "MonthlyNLPUsageCounter"
-        )
+        MonthlyNLPUsageCounter = apps.get_model('trackers', 'MonthlyNLPUsageCounter')
         for usage_counter in (
             MonthlyNLPUsageCounter.objects.only('year', 'month', 'date')
             .all()

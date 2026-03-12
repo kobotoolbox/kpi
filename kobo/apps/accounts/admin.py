@@ -1,12 +1,12 @@
 from allauth.account.models import EmailAddress
-from allauth.socialaccount.admin import SocialAppForm, SocialAppAdmin
+from allauth.socialaccount.admin import SocialAppAdmin, SocialAppForm
 from allauth.socialaccount.models import SocialApp
 from django.contrib import admin
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 
-from .models import EmailAddressAdmin, SocialAppCustomData
 from kobo.apps.accounts.models import EmailContent
+from .models import EmailAddressAdmin, SocialAppCustomData
 
 
 @admin.register(EmailContent)
