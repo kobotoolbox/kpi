@@ -292,8 +292,8 @@ class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
             name='regions',
             type='multi_select',
             options=[
-                {"name": "africa", "label": {"default": "Africa"}}, #noqa Q000
-                {"name": "europe", "label": {"default": "Europe"}}, #noqa Q000
+                {"name": "africa", "label": {"default": "Africa"}},  # noqa Q000
+                {"name": "europe", "label": {"default": "Europe"}},  # noqa Q000
             ],
         )
 
