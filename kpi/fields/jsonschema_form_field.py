@@ -5,7 +5,6 @@ from django.forms import ValidationError
 from django.forms.fields import CharField
 from django.utils.translation import gettext as t
 
-from kobo.apps.constance_backends.utils import to_python_object
 
 
 class JsonSchemaFormField(CharField):
@@ -103,7 +102,7 @@ class MetadataFieldsListField(JsonSchemaFormField):
         if not self.REQUIRED_FIELDS:
             return value
 
-        instance = to_python_object(value)
+        instance = json.loads(value)
 
         if set(self.REQUIRED_FIELDS) - set(d['name'] for d in instance):
             raise ValidationError(

@@ -1,11 +1,9 @@
 from constance import config
 from django.db import migrations
 
-from kobo.apps.constance_backends.utils import to_python_object
-
 
 def make_fullname_required_by_default(apps, schema_editor):
-    user_metadata_fields = to_python_object(config.USER_METADATA_FIELDS)
+    user_metadata_fields = config.USER_METADATA_FIELDS
     for field in user_metadata_fields:
         if field['name'] == 'name':
             field['required'] = True

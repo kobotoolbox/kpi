@@ -40,7 +40,7 @@ class AccountFormsTestCase(TestCase):
         self.assertEquals(form.errors['email'], ['Email must match SSO server email'])
 
     def test_only_configurable_fields_can_be_removed(self):
-        with override_config(USER_METADATA_FIELDS='{}'):
+        with override_config(USER_METADATA_FIELDS=[]):
             form = SocialSignupForm(sociallogin=self.sociallogin)
             assert 'username' in form.fields
             assert 'email' in form.fields

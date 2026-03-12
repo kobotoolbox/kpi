@@ -1,12 +1,10 @@
 from constance import config
 from django.db import migrations, models
 
-from kobo.apps.constance_backends.utils import to_python_object
-
 
 def alter_constance_config(apps, schema_editor):
     # Check that the USER_METADATA_FIELDS has `full_name` set
-    user_metadata = to_python_object(config.USER_METADATA_FIELDS)
+    user_metadata = config.USER_METADATA_FIELDS
     name_set = False
     for field in user_metadata:
         if field['name'] == 'name':
@@ -17,7 +15,7 @@ def alter_constance_config(apps, schema_editor):
         setattr(config, 'USER_METADATA_FIELDS', user_metadata)
 
     # Check that the PROJECT_METADATA_FIELDS has `description` set
-    project_metadata = to_python_object(config.PROJECT_METADATA_FIELDS)
+    project_metadata = config.PROJECT_METADATA_FIELDS
     description_set = False
     for field in project_metadata:
         if field['name'] == 'description':
