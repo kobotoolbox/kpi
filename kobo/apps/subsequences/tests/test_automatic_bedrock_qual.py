@@ -290,6 +290,7 @@ class TestBedrockAutomaticBedrockQual(BaseAutomaticBedrockQualTestCase):
                         },
                         '_dateCreated': today.isoformat(),
                         '_uuid': 'v2',
+                        'verified': False,
                     },
                     {
                         '_data': {
@@ -299,6 +300,7 @@ class TestBedrockAutomaticBedrockQual(BaseAutomaticBedrockQualTestCase):
                         '_dateCreated': yesterday.isoformat(),
                         '_dateAccepted': yesterday.isoformat(),
                         '_uuid': 'v1',
+                        'verified': False,
                     },
                 ],
                 '_dateCreated': yesterday.isoformat(),
