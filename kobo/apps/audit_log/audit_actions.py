@@ -4,6 +4,9 @@ from django.db import models
 class AuditAction(models.TextChoices):
     ADD_MEDIA = 'add-media'
     ADD_SUBMISSION = 'add-submission'
+    ADMIN_CREATE = 'admin-create'
+    ADMIN_UPDATE = 'admin-update'
+    ADMIN_DELETE = 'admin-delete'
     ALLOW_ANONYMOUS_SUBMISSIONS = 'allow-anonymous-submissions'
     ARCHIVE = 'archive'
     AUTH = 'auth'
@@ -42,6 +45,7 @@ class AuditAction(models.TextChoices):
     UNVERIFY_AUTOMATIC_QA_DATA = 'unverify-automatic-qa-data'
     UNVERIFY_MANUAL_QA_DATA = 'unverify-manual-qa-data'
     UPDATE = 'update'
+    UPDATE_CONSTANCE = 'update-constance'
     UPDATE_CONTENT = 'update-content'
     UPDATE_NAME = 'update-name'
     UPDATE_SETTINGS = 'update-settings'

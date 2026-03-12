@@ -16,19 +16,26 @@
   }
 
   &[data-disabled] {
-      color: var(--button-color);
-      background: var(--button-bg);
-      opacity: 0.5;
-      border: none;
+    color: var(--button-color);
+    background: var(--button-bg);
+    opacity: 0.5;
+    border: none;
+  }
+
+  &[data-variant='outline'] {
+    &:active {
+      background-color: transparent;
+      border-color: var(--mantine-color-gray-5);
+    }
   }
 }
 
 .section {
   &[data-position='left'] {
-    margin-right: calc(var(--button-height) * 0.1);
+    margin-inline-end: calc(var(--button-height) * 0.2);
   }
 
   &[data-position='right'] {
-    margin-left: calc(var(--button-height) * 0.1);
+    margin-inline-start: calc(var(--button-height) * 0.2);
   }
 }

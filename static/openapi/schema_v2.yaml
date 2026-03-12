@@ -851,6 +851,12 @@ paths:
         curl -X GET https://kf.kobotoolbox.org/api/v2/assets/?collections_first=true&ordering=-name
         ```
       parameters:
+      - in: query
+        name: current_user_permissions_only
+        schema:
+          type: boolean
+        description: When `true`, only return the requesting user's own permission
+          assignments. When `false` (default), return all visible assignments.
       - name: limit
         required: false
         in: query

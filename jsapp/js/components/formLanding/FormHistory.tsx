@@ -10,7 +10,7 @@ import {
   getAssetsVersionsListQueryKey,
 } from '#/api/react-query/manage-projects-and-library-content'
 import ActionIcon from '#/components/common/ActionIcon'
-import { InfiniteScrollTrigger } from '#/components/common/InfiniteScrollTrigger'
+import InfiniteScrollTrigger from '#/components/common/InfiniteScrollTrigger'
 import AssetStatusBadge from '#/components/common/assetStatusBadge'
 import sessionStore from '#/stores/session'
 import { formatTime } from '#/utils'

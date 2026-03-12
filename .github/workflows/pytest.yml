@@ -23,6 +23,12 @@ jobs:
     strategy:
       matrix:
         python-version: ['3.10']
+        test-path:
+          - kpi/tests/api/v1/
+          - kpi/tests/api/v2/
+          - kpi/tests/ --ignore=kpi/tests/api/
+          - hub/ kobo/apps/ --ignore=kobo/apps/openrosa/
+          - kobo/apps/openrosa/
         extra-pytest-options:
           - --ds kobo.settings.testing
           - --ds kobo.settings.testing_no_stripe --ignore kobo/apps/stripe
@@ -61,10 +67,26 @@ jobs:
       run: uv pip sync --system dependencies/pip/dev_requirements.txt
     - name: Update translations
       run: git submodule init && git submodule update --remote && python manage.py compilemessages
-    - name: Test back-end code
+    - name: Test back-end code (parallel)
+      id: pytest_parallel
+      continue-on-error: true
       # Explicitly name the directories where coverage should be measured;
       # specifying just `--cov=.` includes `src`, which contains third-party packages
-      run: pytest ${{ matrix.extra-pytest-options }} --cov=hub --cov=kobo --cov=kpi -ra
+      run: >-
+        pytest ${{ matrix.extra-pytest-options }} ${{ matrix.test-path }}
+        -n auto --dist=loadfile
+        --cov=hub --cov=kobo --cov=kpi -ra
+
+    - name: Test back-end code (rerun last-failed sequential)
+      id: pytest_lastfailed
+      if: steps.pytest_parallel.outcome == 'failure'
+      continue-on-error: true
+      run: pytest ${{ matrix.extra-pytest-options }} --lf -ra
+
+    - name: Fail if sequential rerun also fails
+      if: steps.pytest_parallel.outcome == 'failure' && steps.pytest_lastfailed.outcome == 'failure'
+      run: exit 1
+
     - name: Run coveralls for back-end code
       uses: AndreMiras/coveralls-python-action@develop
       # Coveralls action will intermittently give 422 errors - until that issue is resolved this step allowed to error.
