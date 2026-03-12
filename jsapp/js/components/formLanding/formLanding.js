@@ -87,7 +87,9 @@ class FormLanding extends React.Component {
   }
   callUnarchiveAsset() {
     // This component is using `mixins.dmix`, so the asset object is being stored in state
-    unarchiveAsset(this.state)
+    unarchiveAsset(this.state, () => {
+      actions.resources.loadAsset({ id: this.props.params.uid }, true)
+    })
   }
   renderFormInfo(userCanEdit) {
     var dvcount = this.state.deployed_versions.count
