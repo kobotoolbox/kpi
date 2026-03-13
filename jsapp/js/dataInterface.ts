@@ -649,7 +649,7 @@ export interface AnalysisFormJsonField {
   label: string
   name: string
   dtpath: string
-  // TODO: please improve orval to include `qualVerification` properlt
+  // TODO: improve orval to properly include `qualVerification`
   type: ResponseManualQualActionParams['type'] | 'transcript' | 'translation' | 'qualVerification'
   /** Two letter language code or ?? for qualitative analysis questions */
   language: string | '??'
