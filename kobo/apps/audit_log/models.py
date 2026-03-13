@@ -79,7 +79,7 @@ class AuditLog(models.Model):
     # Shadow models do not have content types related to this db.
     app_label = models.CharField(max_length=100)
     model_name = models.CharField(max_length=100)
-    object_id = models.BigIntegerField()
+    object_id = models.CharField(max_length=255, db_index=True)
     date_created = models.DateTimeField(default=timezone.now, db_index=True)
     metadata = models.JSONField(default=dict)
     action = models.CharField(
