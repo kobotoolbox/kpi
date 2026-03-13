@@ -2,18 +2,11 @@ import React from 'react'
 
 import alertify from 'alertifyjs'
 import type { DropFilesEventHandler } from 'react-dropzone'
-import {
-  archiveAsset,
-  cloneAssetAsTemplate,
-  deleteAsset,
-  deployAsset,
-  removeAssetSharing,
-  unarchiveAsset,
-} from '#/assetQuickActions'
+import { removeAssetSharing } from '#/assetQuickActions'
 import assetStore from '#/assetStore'
 import type { AssetStoreData } from '#/assetStore'
 import { dataInterface } from '#/dataInterface'
-import type { AssetResponse, CreateImportRequest, DeploymentResponse, ImportResponse } from '#/dataInterface'
+import type { AssetResponse, CreateImportRequest, ImportResponse } from '#/dataInterface'
 import pageState from '#/pageState.store'
 import { router, routerGetAssetId, routerIsActive } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
@@ -160,38 +153,7 @@ const mixins: MixinsObject = {
       }
       dialog.set(opts).show()
     },
-
-    cloneAsTemplate(evt: React.TouchEvent<HTMLElement>) {
-      const sourceUid = evt.currentTarget.dataset.assetUid
-      const sourceName = evt.currentTarget.dataset.assetName
-      if (sourceUid && sourceName) {
-        cloneAssetAsTemplate(sourceUid, sourceName)
-      }
-    },
-    deployAsset(asset: AssetResponse) {
-      if (!asset || asset.asset_type !== ASSET_TYPES.survey.id) {
-        if (this.state && this.state.asset_type === ASSET_TYPES.survey.id) {
-          asset = this.state
-        } else {
-          console.error('Neither the arguments nor the state supplied an asset.')
-          return
-        }
-      }
-      deployAsset(asset)
-    },
-    archiveAsset(uid: string, callback: (response: DeploymentResponse) => void) {
-      archiveAsset(uid, callback)
-    },
-    unarchiveAsset(uid: string | null = null, callback: (response: DeploymentResponse) => void) {
-      if (uid === null) {
-        unarchiveAsset(this.state, callback)
-      } else {
-        unarchiveAsset(uid, callback)
-      }
-    },
-    deleteAsset(assetOrUid: AssetResponse | string, name: string, callback: () => void) {
-      deleteAsset(assetOrUid, name, callback)
-    },
+    // TODO: move this one shot function to formLanding or formHistory and remove from mixins
     toggleDeploymentHistory() {
       this.setState({
         historyExpanded: !this.state.historyExpanded,
