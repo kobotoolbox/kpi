@@ -140,7 +140,8 @@ class ScimUsersAPITests(APITestCase):
         self.assertIsNotNone(social_account)
 
     def test_create_user_existing_email_links_successfully(self):
-        # If an IdP sends a user that already exists locally, we should link them gracefully
+        # If an IdP sends a user that already exists locally, 
+        # we should link them gracefully
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
 
         existing_user = User.objects.create_user(
