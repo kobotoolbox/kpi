@@ -55,23 +55,23 @@ class ScimUsersAPITests(APITestCase):
         )
 
     def test_authentication_required(self):
-        response = self.client.get(self.url)
+        response = self.client.get(self.url, HTTP_ACCEPT='application/scim+json')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_authentication_invalid_token(self):
         self.client.credentials(HTTP_AUTHORIZATION='Bearer invalid-token')
-        response = self.client.get(self.url)
+        response = self.client.get(self.url, HTTP_ACCEPT='application/scim+json')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_successful_authentication(self):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
-        response = self.client.get(self.url)
+        response = self.client.get(self.url, HTTP_ACCEPT='application/scim+json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_idp_slug_mismatch(self):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
         wrong_url = '/api/scim/v2/wrong-idp/Users'
-        response = self.client.get(wrong_url)
+        response = self.client.get(wrong_url, HTTP_ACCEPT='application/scim+json')
         # Assuming our view returns empty list dynamically based on viewset permissions
         # if idp doesn't match
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -79,7 +79,7 @@ class ScimUsersAPITests(APITestCase):
 
     def test_get_users_list_format(self):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
-        response = self.client.get(self.url)
+        response = self.client.get(self.url, HTTP_ACCEPT='application/scim+json')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()
@@ -103,9 +103,122 @@ class ScimUsersAPITests(APITestCase):
         self.assertEqual(user1_data['emails'][0]['value'], 'jdoe@example.com')
         self.assertEqual(user1_data['emails'][0]['primary'], True)
 
+    def test_create_user_success(self):
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
+        payload = {
+            'schemas': ['urn:ietf:params:scim:schemas:core:2.0:User'],
+            'userName': 'newscimuser',
+            'name': {'givenName': 'New', 'familyName': 'Scim'},
+            'emails': [
+                {'primary': True, 'value': 'newscimuser@example.com', 'type': 'work'}
+            ],
+            'active': True,
+        }
+
+        response = self.client.post(
+            self.url,
+            payload,
+            format='json',
+            HTTP_ACCEPT='application/scim+json',
+        )
+
+        self.assertEqual(
+            response.status_code, status.HTTP_201_CREATED, response.content
+        )
+        data = response.json()
+        self.assertEqual(data['userName'], 'newscimuser')
+
+        # Verify in DB
+        user = User.objects.get(username='newscimuser')
+        self.assertEqual(user.email, 'newscimuser@example.com')
+        self.assertEqual(user.first_name, 'New')
+
+        # Verify SocialAccount link
+        social_account = SocialAccount.objects.get(
+            user=user, provider=self.idp.social_app.provider_id
+        )
+        self.assertIsNotNone(social_account)
+
+    def test_create_user_existing_email_links_successfully(self):
+        # If an IdP sends a user that already exists locally,
+        # we should link them gracefully
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
+
+        existing_user = User.objects.create_user(
+            username='existing_local',
+            email='existing_match@example.com',
+        )
+        # Note: Not linked to SocialAccount yet!
+
+        payload = {
+            'schemas': ['urn:ietf:params:scim:schemas:core:2.0:User'],
+            'userName': 'idp_username',
+            'emails': [{'primary': True, 'value': 'existing_match@example.com'}],
+            'active': True,
+        }
+
+        response = self.client.post(
+            self.url,
+            payload,
+            format='json',
+            HTTP_ACCEPT='application/scim+json',
+        )
+
+        self.assertEqual(
+            response.status_code, status.HTTP_201_CREATED, response.content
+        )
+
+        # Verify it didn't create a new user but found the existing one by email
+        social_account = SocialAccount.objects.get(
+            user=existing_user, provider=self.idp.social_app.provider_id
+        )
+        self.assertIsNotNone(social_account)
+
+    def test_create_user_reactivates_existing_inactive_user(self):
+        # A previously de-provisioned user gets re-assigned to the Kobo App in Authentik
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
+
+        # User already exists and is deactivated
+        deactivated_user = User.objects.create_user(
+            username='rejoined_user', email='rejoined@example.com', is_active=False
+        )
+
+        payload = {
+            'schemas': ['urn:ietf:params:scim:schemas:core:2.0:User'],
+            'userName': 'rejoined_user',
+            'emails': [{'primary': True, 'value': 'rejoined@example.com'}],
+            'active': True,
+        }
+
+        response = self.client.post(
+            self.url,
+            payload,
+            format='json',
+            HTTP_ACCEPT='application/scim+json',
+        )
+
+        self.assertEqual(
+            response.status_code, status.HTTP_201_CREATED, response.content
+        )
+
+        # Verify the user was NOT duplicated
+        self.assertEqual(User.objects.filter(username='rejoined_user').count(), 1)
+
+        # Verify the user was reactivated
+        deactivated_user.refresh_from_db()
+        self.assertTrue(deactivated_user.is_active)
+
+        # Verify linkage
+        social_account = SocialAccount.objects.get(
+            user=deactivated_user, provider=self.idp.social_app.provider_id
+        )
+        self.assertIsNotNone(social_account)
+
     def test_get_user_by_id(self):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
-        response = self.client.get(f'{self.url}/{self.user1.id}')
+        response = self.client.get(
+            f'{self.url}/{self.user1.id}', HTTP_ACCEPT='application/scim+json'
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()
@@ -123,7 +236,10 @@ class ScimUsersAPITests(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
 
         # Request page 2, count 1 -> This means startIndex=2, count=1
-        response = self.client.get(f'{self.url}?startIndex=2&count=1')
+        response = self.client.get(
+            f'{self.url}?startIndex=2&count=1',
+            HTTP_ACCEPT='application/scim+json',
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()
 
@@ -137,7 +253,10 @@ class ScimUsersAPITests(APITestCase):
 
     def test_filtering_by_username(self):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
-        response = self.client.get(f'{self.url}?filter=userName eq "jdoe"')
+        response = self.client.get(
+            f'{self.url}?filter=userName eq "jdoe"',
+            HTTP_ACCEPT='application/scim+json',
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()
@@ -146,7 +265,10 @@ class ScimUsersAPITests(APITestCase):
 
     def test_filtering_by_email(self):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
-        response = self.client.get(f'{self.url}?filter=emails eq "asmith@example.com"')
+        response = self.client.get(
+            f'{self.url}?filter=emails eq "asmith@example.com"',
+            HTTP_ACCEPT='application/scim+json',
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()
@@ -165,7 +287,9 @@ class ScimUsersAPITests(APITestCase):
             is_active=True,
         )
 
-        response = self.client.delete(f'{self.url}/{self.user1.id}')
+        response = self.client.delete(
+            f'{self.url}/{self.user1.id}', HTTP_ACCEPT='application/scim+json'
+        )
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
@@ -195,7 +319,10 @@ class ScimUsersAPITests(APITestCase):
         # Also ensure user1 is active
         self.assertTrue(self.user1.is_active)
 
-        response = self.client.delete(f'{self.url}/{user_no_email.id}')
+        response = self.client.delete(
+            f'{self.url}/{user_no_email.id}',
+            HTTP_ACCEPT='application/scim+json',
+        )
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
@@ -228,7 +355,9 @@ class ScimUsersAPITests(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {idp_2.scim_api_key}')
 
         url_2 = f'/api/scim/v2/{idp_2.slug}/Users'
-        response = self.client.delete(f'{url_2}/{self.user1.id}')
+        response = self.client.delete(
+            f'{url_2}/{self.user1.id}', HTTP_ACCEPT='application/scim+json'
+        )
 
         # The queryset filtering prevents idp_2 from seeing user1, so it should 404
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -255,7 +384,10 @@ class ScimUsersAPITests(APITestCase):
         }
 
         response = self.client.patch(
-            f'{self.url}/{self.user1.id}', payload, format='json'
+            f'{self.url}/{self.user1.id}',
+            payload,
+            format='json',
+            HTTP_ACCEPT='application/scim+json',
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -279,7 +411,10 @@ class ScimUsersAPITests(APITestCase):
         }
 
         response = self.client.patch(
-            f'{self.url}/{self.user1.id}', payload, format='json'
+            f'{self.url}/{self.user1.id}',
+            payload,
+            format='json',
+            HTTP_ACCEPT='application/scim+json',
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -293,7 +428,9 @@ class ScimUsersAPITests(APITestCase):
         """
         # SCIM deprovisioning request
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
-        response = self.client.delete(f'{self.url}/{self.user1.id}')
+        response = self.client.delete(
+            f'{self.url}/{self.user1.id}', HTTP_ACCEPT='application/scim+json'
+        )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
         self.user1.refresh_from_db()
@@ -315,7 +452,9 @@ class ScimUsersAPITests(APITestCase):
         """
         # First deprovisioning request
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
-        response1 = self.client.delete(f'{self.url}/{self.user1.id}')
+        response1 = self.client.delete(
+            f'{self.url}/{self.user1.id}', HTTP_ACCEPT='application/scim+json'
+        )
         self.assertEqual(response1.status_code, status.HTTP_204_NO_CONTENT)
 
         self.user1.refresh_from_db()
@@ -328,7 +467,9 @@ class ScimUsersAPITests(APITestCase):
         self.assertEqual(logs_after_first, 1)
 
         # Second deprovisioning request (simulating IdP resending the event)
-        response2 = self.client.delete(f'{self.url}/{self.user1.id}')
+        response2 = self.client.delete(
+            f'{self.url}/{self.user1.id}', HTTP_ACCEPT='application/scim+json'
+        )
         self.assertEqual(response2.status_code, status.HTTP_204_NO_CONTENT)
 
         # Verify Bob is still inactive
@@ -345,7 +486,9 @@ class ScimUsersAPITests(APITestCase):
     def test_subsequent_scim_request_deactivates_after_manual_reactivation(self):
         # First deprovisioning
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
-        self.client.delete(f'{self.url}/{self.user1.id}')
+        self.client.delete(
+            f'{self.url}/{self.user1.id}', HTTP_ACCEPT='application/scim+json'
+        )
         self.user1.refresh_from_db()
         self.assertFalse(self.user1.is_active)
 
@@ -356,7 +499,9 @@ class ScimUsersAPITests(APITestCase):
         self.assertTrue(self.user1.is_active)
 
         # Second deprovisioning request from IdP
-        response = self.client.delete(f'{self.url}/{self.user1.id}')
+        response = self.client.delete(
+            f'{self.url}/{self.user1.id}', HTTP_ACCEPT='application/scim+json'
+        )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
         self.user1.refresh_from_db()
