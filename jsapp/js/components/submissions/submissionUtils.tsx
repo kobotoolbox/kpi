@@ -727,6 +727,18 @@ export function getSupplementalDetailsContent(
     }
   }
 
+  if (pathParts.type === 'qualVerification') {
+    // Here we prepare a path array for `get` function
+    const lastPathArrayItem = pathArray.pop() || ''
+    const lastPathArrayItemParts = lastPathArrayItem.split('/')
+    // Insert 'qual' right before the last element
+    lastPathArrayItemParts.splice(lastPathArrayItemParts.length - 1, 0, 'qual')
+    // Put the parts back into the main array
+    pathArray.push(...lastPathArrayItemParts)
+    const foundResponse: SubmissionAnalysisResponse = get(submission, pathArray, {})
+    return foundResponse.verified === true ? t('Yes') : t('No')
+  }
+
   // If there is no value it could be either WIP or intentional. We want to be
   // clear about the fact it could be intentionally empty.
   return null

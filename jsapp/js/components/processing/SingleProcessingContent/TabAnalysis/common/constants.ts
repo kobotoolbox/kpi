@@ -84,6 +84,8 @@ type AnalysisResponseValue =
  */
 export interface SubmissionAnalysisResponse extends AnalysisQuestionBase {
   value: AnalysisResponseValue
+  // TODO: verify (ha!) if this will be always present
+  verified?: boolean
   // There can be a `scope` property here, but we have no use of it on FE
   scope?: 'by_question#survey'
 }

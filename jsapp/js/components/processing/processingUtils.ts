@@ -1,7 +1,7 @@
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { SUPPLEMENTAL_DETAILS_PROP } from '#/constants'
 
-type SupplementalPathPartsType = 'transcript' | 'translation' | 'qual'
+type SupplementalPathPartsType = 'transcript' | 'translation' | 'qual' | 'qualVerification'
 
 interface SupplementalPathParts {
   sourceRowName: string
@@ -50,6 +50,8 @@ export function getSupplementalPathParts(path: string): SupplementalPathParts {
     pathType = 'transcript'
   } else if (lastElArr[0] === 'translation') {
     pathType = 'translation'
+  } else if (lastElArr[0] === 'verified') {
+    pathType = 'qualVerification'
   } else {
     // For now the only other type of data here is the qualitative analysis
     // question
