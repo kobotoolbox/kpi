@@ -6,6 +6,7 @@ from .models import AuthorizedApplication
 from .models import Asset
 
 
+@admin.register(Asset)
 class AssetAdmin(admin.ModelAdmin):
     search_fields = ['name', 'uid', 'owner__username']
 
@@ -32,4 +33,3 @@ admin.site.register(AuthorizedApplication)
 
 # We need to register Asset to use `autocomplete_fields` (with Asset) in
 # Django Admin.
-admin.site.register(Asset, AssetAdmin)

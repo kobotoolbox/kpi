@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import copy
-import json
+
 import logging
 
 from constance import config
@@ -11,7 +11,7 @@ from django.db.models.functions import Length
 from django.utils.translation import get_language, gettext as t
 from django_request_cache import cache_for_request
 
-from kobo.apps.constance_backends.utils import to_python_object
+
 from kobo.static_lists import (
     PROJECT_METADATA_DEFAULT_LABELS,
     USER_METADATA_DEFAULT_LABELS
@@ -26,18 +26,7 @@ class I18nUtils:
         # Get default value if lang is not specified
         language = lang if lang else get_language()
 
-        try:
-            messages_dict = to_python_object(
-                config.CUSTOM_PASSWORD_GUIDANCE_TEXT
-            )
-        except json.JSONDecodeError:
-            logging.error(
-                'Configuration value for CUSTOM_PASSWORD_GUIDANCE_TEXT has '
-                'invalid JSON'
-            )
-            # Given the validation done in the django admin interface, this
-            # is an acceptable, low-likelihood evil
-            return ''
+        messages_dict = config.CUSTOM_PASSWORD_GUIDANCE_TEXT
         try:
             message = messages_dict[language]
         except KeyError:
@@ -95,16 +84,7 @@ class I18nUtils:
         # Get default value if lang is not specified
         language = lang if lang else get_language()
 
-        try:
-            messages_dict = to_python_object(config.MFA_LOCALIZED_HELP_TEXT)
-        except json.JSONDecodeError:
-            logging.error(
-                'Configuration value for MFA_LOCALIZED_HELP_TEXT has invalid '
-                'JSON'
-            )
-            # Given the validation done in the django admin interface, this
-            # is an acceptable, low-likelihood evil
-            return ''
+        messages_dict = config.MFA_LOCALIZED_HELP_TEXT
         try:
             message = messages_dict[language]
         except KeyError:
@@ -172,12 +152,12 @@ class I18nUtils:
 
         if fields_type == 'user':
             return (
-                copy.deepcopy(to_python_object(config.USER_METADATA_FIELDS)),
+                copy.deepcopy(config.USER_METADATA_FIELDS),
                 USER_METADATA_DEFAULT_LABELS,
             )
         else:
             return (
-                copy.deepcopy(to_python_object(config.PROJECT_METADATA_FIELDS)),
+                copy.deepcopy(config.PROJECT_METADATA_FIELDS),
                 PROJECT_METADATA_DEFAULT_LABELS,
             )
 

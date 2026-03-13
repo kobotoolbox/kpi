@@ -22,7 +22,7 @@ class ExtraProjectMetadataField(models.Model):
     )
     type = models.CharField(
         max_length=20,
-        choices=ExtraProjectMetadataFieldType.choices,
+        choices=ExtraProjectMetadataFieldType,
         default=ExtraProjectMetadataFieldType.TEXT,
     )
     is_required = models.BooleanField(default=False, verbose_name=_('Required'))

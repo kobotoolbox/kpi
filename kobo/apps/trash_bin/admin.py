@@ -80,6 +80,7 @@ class StatusListFilter(admin.SimpleListFilter):
             return queryset.filter(status=self.value())
 
 
+@admin.register(AccountTrash)
 class AccountTrashAdmin(TrashMixin, admin.ModelAdmin):
 
     list_display = [
@@ -132,6 +133,7 @@ class AccountTrashAdmin(TrashMixin, admin.ModelAdmin):
             )
 
 
+@admin.register(ProjectTrash)
 class ProjectTrashAdmin(TrashMixin, admin.ModelAdmin):
 
     list_display = [
@@ -201,6 +203,7 @@ class ProjectTrashAdmin(TrashMixin, admin.ModelAdmin):
             )
 
 
+@admin.register(AttachmentTrash)
 class AttachmentTrashAdmin(TrashMixin, admin.ModelAdmin):
     list_display = [
         'get_attachment_name',
@@ -267,6 +270,3 @@ class AttachmentTrashAdmin(TrashMixin, admin.ModelAdmin):
             )
 
 
-admin.site.register(AccountTrash, AccountTrashAdmin)
-admin.site.register(ProjectTrash, ProjectTrashAdmin)
-admin.site.register(AttachmentTrash, AttachmentTrashAdmin)

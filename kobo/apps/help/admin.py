@@ -6,6 +6,7 @@ from .models import InAppMessage
 from .forms import InAppMessageForm
 
 
+@admin.register(InAppMessage)
 class InAppMessageAdmin(MarkdownxModelAdminBase):
 
     form = InAppMessageForm
@@ -58,4 +59,3 @@ class InAppMessageAdmin(MarkdownxModelAdminBase):
         super().save_model(request, obj, form, change)
 
 
-admin.site.register(InAppMessage, InAppMessageAdmin)

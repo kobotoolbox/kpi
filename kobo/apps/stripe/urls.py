@@ -1,3 +1,4 @@
+from django.urls import path
 from django.urls import include, re_path
 from rest_framework.routers import SimpleRouter
 
@@ -17,7 +18,7 @@ router.register(r'addons', OneTimeAddOnViewSet, basename='addons')
 
 
 urlpatterns = [
-    re_path(r'^', include(router.urls)),
+    path('', include(router.urls)),
     re_path(r'^change-plan', ChangePlanView.as_view(), name='changeplan'),
     re_path(
         r'^checkout-link', CheckoutLinkView.as_view(), name='checkoutlinks'
