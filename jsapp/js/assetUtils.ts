@@ -504,6 +504,7 @@ export function injectSupplementalRowsIntoListOfRows(asset: AssetResponse, rows:
   // Step 3: use the list of additional columns (with data), that was generated
   // on Back end, to build a list of columns grouped by source question
   const additionalFields = asset.analysis_form_json?.additional_fields || []
+
   const extraColsBySource: Record<string, AnalysisFormJsonField[]> = {}
   additionalFields.forEach((field: AnalysisFormJsonField) => {
     // Note questions make sense only in the context of writing responses to
@@ -527,6 +528,13 @@ export function injectSupplementalRowsIntoListOfRows(asset: AssetResponse, rows:
     outputWithCols.push(col)
     ;(extraColsBySource[col] || []).forEach((extraCol) => {
       outputWithCols.push(`_supplementalDetails/${extraCol.dtpath}`)
+
+      // Qual source and verified data is being kept in a qual-id based key, not in source question one
+      ;(extraColsBySource[extraCol.dtpath] || []).forEach((qaCol) => {
+        if (qaCol.type === 'qualVerification') {
+          outputWithCols.push(`_supplementalDetails/${qaCol.dtpath}`)
+        }
+      })
     })
   })
 
