@@ -18,7 +18,7 @@ class ExtraProjectMetadataField(models.Model):
     label = models.JSONField(
         default=dict,
         blank=True,
-        help_text=_("Translation map: {'default': 'Country', 'fr': 'Pays'}"),
+        help_text=_('Translation map: {"default": "Country", "fr": "Pays"}'),
     )
     type = models.CharField(
         max_length=20,
@@ -29,7 +29,7 @@ class ExtraProjectMetadataField(models.Model):
     options = models.JSONField(
         default=list,
         blank=True,
-        help_text=_("List of {'name': 'val', 'label': {...}} dicts"),
+        help_text=_('List of [{"name": "value", "label": "Label"}] dicts'),
     )
 
     class Meta:
