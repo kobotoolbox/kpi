@@ -1,11 +1,8 @@
-import logging
 import re
-
-logger = logging.getLogger(__name__)
 
 from allauth.socialaccount.models import SocialAccount
 from django.conf import settings
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import mixins, status, viewsets
 from rest_framework.exceptions import ValidationError
@@ -85,6 +82,11 @@ class ScimUserViewSet(
             if not email:
                 email = emails[0].get('value', '')
 
+        if not username:
+            return Response(
+                {'detail': 'userName is required'}, status=status.HTTP_400_BAD_REQUEST
+            )
+
         # If no explicit email was provided but userName looks like an email, use it
         if not email and '@' in username:
             email = username
@@ -92,59 +94,57 @@ class ScimUserViewSet(
         name_dict = data.get('name', {})
         first_name = name_dict.get('givenName', '')
         last_name = name_dict.get('familyName', '')
+        uid = data.get('externalId') or username
 
-        if not username:
-            return Response(
-                {'detail': 'userName is required'}, status=status.HTTP_400_BAD_REQUEST
-            )
         try:
-            # First, check if user exists via SocialAccount linkage
-            uid = data.get('externalId') or username
-            social_account = (
-                SocialAccount.objects.filter(
-                    provider=idp.social_app.provider_id, uid=uid
+            with transaction.atomic():
+                # First, check if user exists via SocialAccount linkage
+                social_account = (
+                    SocialAccount.objects.filter(
+                        provider=idp.social_app.provider_id, uid=uid
+                    )
+                    .select_related('user')
+                    .first()
                 )
-                .select_related('user')
-                .first()
-            )
 
-            user = social_account.user if social_account else None
+                user = social_account.user if social_account else None
 
-            # Fallback to username/email matching if not linked yet
-            if not user:
-                user_by_username = User.objects.filter(
-                    username__iexact=username
-                ).first()
-                user_by_email = (
-                    User.objects.filter(email__iexact=email).first() if email else None
+                # Fallback to username/email matching if not linked yet
+                if not user:
+                    user_by_username = User.objects.filter(
+                        username__iexact=username
+                    ).first()
+                    user_by_email = (
+                        User.objects.filter(email__iexact=email).first() if email else None
+                    )
+                    user = user_by_username or user_by_email
+
+                if not user:
+                    # Create the user natively
+                    user = User.objects.create_user(
+                        username=username,
+                        email=email,
+                        first_name=first_name,
+                        last_name=last_name,
+                        is_active=data.get('active', True),
+                    )
+                else:
+                    # If they exist, optionally reactivate them if the IdP sends 
+                    # active=True. (A deprovisioned user in Kobo is not deleted 
+                    # but deactivated).
+                    if not user.is_active and data.get('active', True):
+                        user.is_active = True
+                        user.save(update_fields=['is_active'])
+
+                # Ensure the SocialAccount link exists so SSO works flawlessly.
+                # We catch IntegrityError here just in case another IdP already 
+                # has this exact uid linked.
+                SocialAccount.objects.get_or_create(
+                    user=user, provider=idp.social_app.provider_id, uid=uid
                 )
-                user = user_by_username or user_by_email
 
-            if not user:
-                # Create the user natively
-                user = User.objects.create_user(
-                    username=username,
-                    email=email,
-                    first_name=first_name,
-                    last_name=last_name,
-                    is_active=data.get('active', True),
-                )
-            else:
-                # If they exist, optionally reactivate them if the IdP sends active=True.
-                # (A deprovisioned user in Kobo is not deleted but deactivated).
-                if not user.is_active and data.get('active', True):
-                    user.is_active = True
-                    user.save(update_fields=['is_active'])
-
-            # Ensure the SocialAccount link exists so SSO works flawlessly.
-            # We catch IntegrityError here just in case another IdP already has this exact uid linked.
-            uid = data.get('externalId') or username
-            SocialAccount.objects.get_or_create(
-                user=user, provider=idp.social_app.provider_id, uid=uid
-            )
-
-            serializer = self.get_serializer(user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+                serializer = self.get_serializer(user)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         except IntegrityError:
             # This is a safe fallback for edge cases like duplicate SocialAccount UIDs
@@ -361,14 +361,30 @@ class ScimGroupViewSet(viewsets.ModelViewSet):
 
         return queryset
 
+    def get_users_queryset(self):
+        """
+        Returns a base QuerySet of users that are valid for the current IdP
+        configured by the URL slug and request auth.
+        """
+        idp = self.request.auth
+        if not idp or idp.slug != self.kwargs.get('idp_slug'):
+            return User.objects.none()
+
+        if idp.social_app:
+            return User.objects.filter(
+                socialaccount__provider=idp.social_app.provider_id
+            )
+
+        return User.objects.none()
+
     def perform_create(self, serializer):
         idp = self.request.auth
-        displayName = self.request.data.get('displayName', '')
-        externalId = self.request.data.get('externalId', '')
+        display_name = serializer.validated_data.get('name', '')
+        external_id = serializer.validated_data.get('scim_external_id', '')
 
         try:
             group = serializer.save(
-                idp=idp, name=displayName, scim_external_id=externalId
+                idp=idp, name=display_name, scim_external_id=external_id
             )
         except IntegrityError:
             raise ValidationError(
@@ -376,16 +392,16 @@ class ScimGroupViewSet(viewsets.ModelViewSet):
             )
 
         members_data = self.request.data.get('members', [])
-        self._sync_members(group, members_data, idp)
+        self._sync_members(group, members_data)
 
     def perform_update(self, serializer):
         idp = self.request.auth
-        displayName = self.request.data.get('displayName', '')
-        externalId = self.request.data.get('externalId', '')
+        display_name = serializer.validated_data.get('name', '')
+        external_id = serializer.validated_data.get('scim_external_id', '')
 
         try:
             group = serializer.save(
-                idp=idp, name=displayName, scim_external_id=externalId
+                idp=idp, name=display_name, scim_external_id=external_id
             )
         except IntegrityError:
             raise ValidationError(
@@ -394,7 +410,7 @@ class ScimGroupViewSet(viewsets.ModelViewSet):
 
         if 'members' in self.request.data:
             members_data = self.request.data.get('members', [])
-            self._sync_members(group, members_data, idp, replace=True)
+            self._sync_members(group, members_data, replace=True)
 
     def partial_update(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -407,20 +423,20 @@ class ScimGroupViewSet(viewsets.ModelViewSet):
 
             if op_type == 'add':
                 if path == 'members':
-                    self._add_members(instance, value, request.auth)
+                    self._add_members(instance, value)
                 elif isinstance(value, dict) and 'members' in value:
-                    self._add_members(instance, value['members'], request.auth)
+                    self._add_members(instance, value['members'])
 
             elif op_type in ('remove', 'delete'):
                 if path == 'members':
-                    self._remove_members(instance, value, request.auth)
+                    self._remove_members(instance, value)
                 # Sometimes path is 'members[value eq "123"]'
                 elif path.startswith('members[value eq '):
                     match = re.search(r'members\[value eq "([^"]+)"\]', path)
                     if match:
                         user_id = match.group(1)
                         self._remove_members(
-                            instance, [{'value': user_id}], request.auth
+                            instance, [{'value': user_id}]
                         )
 
             elif op_type == 'replace':
@@ -428,20 +444,30 @@ class ScimGroupViewSet(viewsets.ModelViewSet):
                     instance.name = value
                     instance.save(update_fields=['name'])
                 elif path == 'members':
-                    self._sync_members(instance, value, request.auth, replace=True)
+                    self._sync_members(instance, value, replace=True)
 
         instance.refresh_from_db()
         serializer = self.get_serializer(instance)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def _sync_members(self, group, members_data, idp, replace=False):
+    def _sync_members(self, group, members_data, replace=False):
+        if not members_data:
+            members_data = []
+        elif not isinstance(members_data, list):
+            members_data = [members_data]
+
+        base_users_query = self.get_users_queryset()
+
         users_to_add = set()
         for member_data in members_data:
-            user_id = member_data.get('value')
+            user_id = (
+                member_data.get('value')
+                if isinstance(member_data, dict)
+                else member_data
+            )
             if user_id:
                 try:
-                    user = User.objects.get(id=user_id)
-                    # We could also verify if the user belongs to the IdP's social app
+                    user = base_users_query.get(id=user_id)
                     users_to_add.add(user)
                 except User.DoesNotExist:
                     pass
@@ -451,19 +477,21 @@ class ScimGroupViewSet(viewsets.ModelViewSet):
         else:
             group.members.add(*users_to_add)
 
-    def _add_members(self, group, members_data, idp):
+    def _add_members(self, group, members_data):
         if not members_data:
             return
         if not isinstance(members_data, list):
             members_data = [members_data]
 
-        self._sync_members(group, members_data, idp, replace=False)
+        self._sync_members(group, members_data, replace=False)
 
-    def _remove_members(self, group, members_data, idp):
+    def _remove_members(self, group, members_data):
         if not members_data:
             return
         if not isinstance(members_data, list):
             members_data = [members_data]
+
+        base_users_query = self.get_users_queryset()
 
         users_to_remove = []
         for member_data in members_data:
@@ -476,7 +504,7 @@ class ScimGroupViewSet(viewsets.ModelViewSet):
             )
             if user_id:
                 try:
-                    user = User.objects.get(id=user_id)
+                    user = base_users_query.get(id=user_id)
                     users_to_remove.append(user)
                 except User.DoesNotExist:
                     pass

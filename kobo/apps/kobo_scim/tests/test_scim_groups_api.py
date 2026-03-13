@@ -44,6 +44,14 @@ class ScimGroupsAPITests(APITestCase):
             last_name='Smith',
             password='password123',
         )
+        # user3 will deliberately NOT be linked to the IdP
+        self.user3 = User.objects.create_user(
+            username='external',
+            email='external@example.com',
+            first_name='External',
+            last_name='User',
+            password='password123',
+        )
 
         # Link the users to the IdP's social app provider
         SocialAccount.objects.create(
@@ -78,7 +86,10 @@ class ScimGroupsAPITests(APITestCase):
             'schemas': ['urn:ietf:params:scim:schemas:core:2.0:Group'],
             'displayName': 'Engineers',
             'externalId': 'sys-eng-group-id',
-            'members': [{'value': str(self.user1.id), 'display': self.user1.username}],
+            'members': [
+                {'value': str(self.user1.id), 'display': self.user1.username},
+                {'value': str(self.user3.id), 'display': self.user3.username},  # Should be ignored
+            ],
         }
 
         response = self.client.post(
@@ -94,6 +105,7 @@ class ScimGroupsAPITests(APITestCase):
         data = response.json()
         self.assertEqual(data['displayName'], 'Engineers')
         self.assertEqual(data['externalId'], 'sys-eng-group-id')
+        # user3 is silently ignored
         self.assertEqual(len(data['members']), 1)
         self.assertEqual(data['members'][0]['value'], self.user1.id)
 
@@ -104,6 +116,7 @@ class ScimGroupsAPITests(APITestCase):
         self.assertEqual(group.idp, self.idp)
         self.assertEqual(group.members.count(), 1)
         self.assertIn(self.user1, group.members.all())
+        self.assertNotIn(self.user3, group.members.all())
 
     def test_list_groups(self):
         ScimGroup.objects.create(idp=self.idp, name='Group 1')
@@ -208,6 +221,41 @@ class ScimGroupsAPITests(APITestCase):
         self.assertEqual(group.members.count(), 2)
         self.assertIn(self.user1, group.members.all())
         self.assertIn(self.user2, group.members.all())
+
+    def test_patch_add_cross_tenant_member_ignored(self):
+        """
+        Tests that attempting to add a user who is not linked to the IdP's
+        SocialApp provider is silently ignored to enforce tenant isolation.
+        """
+        group = ScimGroup.objects.create(idp=self.idp, name='Test Group')
+        group.members.add(self.user1)
+
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
+
+        payload = {
+            'schemas': ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
+            'Operations': [
+                {
+                    'op': 'add',
+                    'path': 'members',
+                    'value': [{'value': str(self.user3.id)}],
+                }
+            ],
+        }
+
+        response = self.client.patch(
+            f'{self.groups_url}/{group.id}',
+            payload,
+            format='json',
+            HTTP_ACCEPT='application/scim+json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        group.refresh_from_db()
+        # user3 should not be in the group since they are not linked to the IdP
+        self.assertEqual(group.members.count(), 1)
+        self.assertIn(self.user1, group.members.all())
+        self.assertNotIn(self.user3, group.members.all())
 
     def test_patch_remove_member(self):
         group = ScimGroup.objects.create(idp=self.idp, name='Test Group')
