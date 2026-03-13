@@ -112,7 +112,8 @@ class ObjectPermissionMixin:
                     kwargs = {
                         'user_obj': source_permission.user,
                         'perm': source_permission.permission.codename,
-                        'deny': source_permission.deny
+                        'deny': source_permission.deny,
+                        'defer_recalc': True,
                     }
                     if source_permission.permission.codename.startswith(PREFIX_PARTIAL_PERMS):
                         kwargs.update({
@@ -121,6 +122,7 @@ class ObjectPermissionMixin:
                         })
                     self.assign_perm(**kwargs)
             self._recalculate_inherited_perms()
+            self.recalculate_descendants_perms()
             return True
         else:
             return False
@@ -411,7 +413,13 @@ class ObjectPermissionMixin:
     @transaction.atomic
     @kc_transaction_atomic
     def assign_perm(
-        self, user_obj, perm, deny=False, defer_recalc=False, partial_perms=None
+        self,
+        user_obj,
+        perm,
+        deny=False,
+        defer_recalc=False,
+        partial_perms=None,
+        _implied=False,
     ):
         r"""
         Assign `user_obj` the given `perm` on this object, or break
@@ -422,9 +430,11 @@ class ObjectPermissionMixin:
         :param perm: str. The `codename` of the `Permission`
         :param deny: bool. When `True`, break inheritance from parent object
         :param defer_recalc: bool. When `True`, skip recalculating
-            descendants
+            descendants but still update partial permissions
         :param partial_perms: dict. Filters used to narrow down query for
           partial permissions
+        :param _implied: bool. Internal flag used for recursive implied-perm
+            calls. Skips partial-permission update and descendant recalculation.
         """
         app_label, codename = perm_parse(perm, self)
         assignable_permissions = self.get_assignable_permissions()
@@ -445,10 +455,7 @@ class ObjectPermissionMixin:
                 raise serializers.ValidationError({
                     'permission': f'Anonymous users cannot be granted the permission {codename}.'
                 })
-        perm_model = Permission.objects.get(
-            content_type__app_label=app_label,
-            codename=codename
-        )
+        perm_model = self._get_permission_model(app_label, codename)
         existing_perms = self.permissions.filter(user=user_obj)
         identical_existing_perm = existing_perms.filter(
             inherited=False,
@@ -504,19 +511,18 @@ class ObjectPermissionMixin:
             codename, reverse=deny, for_instance=self
         ).intersection(assignable_permissions)
         for implied_perm in implied_perms:
-            self.assign_perm(
-                user_obj, implied_perm, deny=deny, defer_recalc=True)
-        # We might have been called by ourselves to assign a related
-        # permission. In that case, don't recalculate here.
-        if defer_recalc:
+            self.assign_perm(user_obj, implied_perm, deny=deny, _implied=True)
+        # Internal recursive call for an implied permission: skip everything.
+        if _implied:
             return new_permission
 
         self._update_partial_permissions(
             user_obj, perm, partial_perms=partial_perms
         )
 
-        # Recalculate all descendants
-        self.recalculate_descendants_perms()
+        # Recalculate all descendants (deferred by callers doing bulk ops)
+        if not defer_recalc:
+            self.recalculate_descendants_perms()
         return new_permission
 
     @classmethod
@@ -643,7 +649,7 @@ class ObjectPermissionMixin:
 
     @transaction.atomic
     @kc_transaction_atomic
-    def remove_perm(self, user_obj, perm, defer_recalc=False):
+    def remove_perm(self, user_obj, perm, defer_recalc=False, _implied=False):
         """
         Revoke the given `perm` on this object from `user_obj`. By default,
         recalculate descendant objects' permissions and remove any
@@ -658,7 +664,9 @@ class ObjectPermissionMixin:
         :type user_obj: :py:class:`User` or :py:class:`AnonymousUser`
         :param perm str: The `codename` of the `Permission`
         :param defer_recalc bool: When `True`, skip recalculating
-            descendants
+            descendants but still update partial permissions
+        :param _implied: bool. Internal flag used for recursive implied-perm
+            calls. Skips partial-permission update and descendant recalculation.
         """
         user_obj = get_database_user(user_obj)
         app_label, codename = perm_parse(perm, self)
@@ -683,8 +691,7 @@ class ObjectPermissionMixin:
             codename, reverse=True, for_instance=self
         )
         for implied_perm in implied_perms:
-            self.remove_perm(
-                user_obj, implied_perm, defer_recalc=True)
+            self.remove_perm(user_obj, implied_perm, _implied=True)
         # Delete directly assigned permissions, if any
         direct_permissions.delete()
 
@@ -702,20 +709,32 @@ class ObjectPermissionMixin:
                 codename=codename,
             )
 
-        # We might have been called by ourself to assign a related
-        # permission. In that case, don't recalculate here.
-        if defer_recalc:
+        # Internal recursive call for an implied permission: skip everything.
+        if _implied:
             return
 
         self._update_partial_permissions(user_obj, perm, remove=True)
 
-        # Recalculate all descendants
-        self.recalculate_descendants_perms()
+        # Recalculate all descendants (deferred by callers doing bulk ops)
+        if not defer_recalc:
+            self.recalculate_descendants_perms()
 
         is_anonymous = is_user_anonymous(user_obj)
         # Handle KoboCat xform flags for the anonymous user
         if is_anonymous:
             set_kc_anonymous_permissions_xform_flags(self, codename, remove=True)
+
+    @staticmethod
+    @cache_for_request
+    def _get_permission_model(app_label: str, codename: str) -> Permission:
+        """
+        Return the Permission object for the given app_label and codename.
+        Cached per request to avoid repeated DB hits during bulk assignments.
+        """
+        return Permission.objects.get(
+            content_type__app_label=app_label,
+            codename=codename,
+        )
 
     def _update_partial_permissions(
         self,
