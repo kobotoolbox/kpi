@@ -115,7 +115,9 @@ class ScimUserViewSet(
                         username__iexact=username
                     ).first()
                     user_by_email = (
-                        User.objects.filter(email__iexact=email).first() if email else None
+                        User.objects.filter(email__iexact=email).first()
+                        if email
+                        else None
                     )
                     user = user_by_username or user_by_email
 
@@ -129,15 +131,15 @@ class ScimUserViewSet(
                         is_active=data.get('active', True),
                     )
                 else:
-                    # If they exist, optionally reactivate them if the IdP sends 
-                    # active=True. (A deprovisioned user in Kobo is not deleted 
+                    # If they exist, optionally reactivate them if the IdP sends
+                    # active=True. (A deprovisioned user in Kobo is not deleted
                     # but deactivated).
                     if not user.is_active and data.get('active', True):
                         user.is_active = True
                         user.save(update_fields=['is_active'])
 
                 # Ensure the SocialAccount link exists so SSO works flawlessly.
-                # We catch IntegrityError here just in case another IdP already 
+                # We catch IntegrityError here just in case another IdP already
                 # has this exact uid linked.
                 SocialAccount.objects.get_or_create(
                     user=user, provider=idp.social_app.provider_id, uid=uid
@@ -435,9 +437,7 @@ class ScimGroupViewSet(viewsets.ModelViewSet):
                     match = re.search(r'members\[value eq "([^"]+)"\]', path)
                     if match:
                         user_id = match.group(1)
-                        self._remove_members(
-                            instance, [{'value': user_id}]
-                        )
+                        self._remove_members(instance, [{'value': user_id}])
 
             elif op_type == 'replace':
                 if path == 'displayName' and value:

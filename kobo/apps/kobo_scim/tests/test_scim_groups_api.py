@@ -88,7 +88,10 @@ class ScimGroupsAPITests(APITestCase):
             'externalId': 'sys-eng-group-id',
             'members': [
                 {'value': str(self.user1.id), 'display': self.user1.username},
-                {'value': str(self.user3.id), 'display': self.user3.username},  # Should be ignored
+                {
+                    'value': str(self.user3.id),
+                    'display': self.user3.username,
+                },  # Should be ignored
             ],
         }
 
