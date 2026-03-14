@@ -2738,48 +2738,6 @@ export const assetWithSupplementalDetails = {
     schema: '1',
     survey: [
       {
-        name: 'start',
-        type: MetaQuestionTypeName.start,
-        $kuid: '8sHgNqqM9',
-        $autoname: 'start',
-      },
-      {
-        name: 'end',
-        type: MetaQuestionTypeName.end,
-        $kuid: 'VpPsXe5aq',
-        $autoname: 'end',
-      },
-      {
-        name: 'today',
-        type: MetaQuestionTypeName.today,
-        $kuid: 'HuEzX4mel',
-        $autoname: 'today',
-      },
-      {
-        name: 'username',
-        type: MetaQuestionTypeName.username,
-        $kuid: '4dINVeRnR',
-        $autoname: 'username',
-      },
-      {
-        name: 'deviceid',
-        type: MetaQuestionTypeName.deviceid,
-        $kuid: 'q8Rvs1sqk',
-        $autoname: 'deviceid',
-      },
-      {
-        name: 'phonenumber',
-        type: MetaQuestionTypeName.phonenumber,
-        $kuid: 'Oqbll19yc',
-        $autoname: 'phonenumber',
-      },
-      {
-        name: 'audit',
-        type: MetaQuestionTypeName.audit,
-        $kuid: '4Fbwq3mxP',
-        $autoname: 'audit',
-      },
-      {
         name: 'Your_name_here',
         type: QuestionTypeName.text,
         $kuid: 'RAeXenoDr',
@@ -2810,21 +2768,6 @@ export const assetWithSupplementalDetails = {
         label: ['Secret password as an audio file'],
         required: false,
         $autoname: 'Secret_password_as_an_audio_file',
-      },
-      {
-        name: '__version__',
-        type: QuestionTypeName.calculate,
-        $kuid: 'Hd5Iz0aWv',
-        required: false,
-        $autoname: '__version__',
-        calculation: "'vhazs7e47xB9GYwY3tbYtS'",
-      },
-      {
-        name: '_version_',
-        type: QuestionTypeName.calculate,
-        $kuid: 'kU3D6JQPQ',
-        $autoname: '_version_',
-        calculation: "'vjtVxWH3Xmcoz6VFtqfbVr'",
       },
     ],
     settings: {
@@ -3047,6 +2990,7 @@ export const submissionWithSupplementalDetails = {
           uuid: 'b05f29f7-8b58-4dd7-8695-c29cb04f3f7a',
           labels: { _default: 'Another tag question here?' },
           xpath: '',
+          verified: false,
         },
         '97fd5387-ac2b-4108-b5b4-37fa91ae0e22': {
           value: 12345,
@@ -3054,6 +2998,7 @@ export const submissionWithSupplementalDetails = {
           uuid: '97fd5387-ac2b-4108-b5b4-37fa91ae0e22',
           labels: { _default: 'Another integer question here?' },
           xpath: '',
+          verified: false,
         },
         'ab0e40e1-fbcc-43e9-9d00-b9b3314089cb': {
           value: 'a thing',
@@ -3061,6 +3006,7 @@ export const submissionWithSupplementalDetails = {
           uuid: 'ab0e40e1-fbcc-43e9-9d00-b9b3314089cb',
           labels: { _default: 'Another text question here?' },
           xpath: '',
+          verified: false,
         },
         '1a89e0da-3344-4b5d-b919-ab8b072e0918': {
           value: [
@@ -3081,6 +3027,7 @@ export const submissionWithSupplementalDetails = {
           uuid: '1a89e0da-3344-4b5d-b919-ab8b072e0918',
           labels: { _default: 'Another select question here?' },
           xpath: '',
+          verified: false,
         },
         '056c8f57-0733-4669-a84e-aa9726ffbf6b': {
           value: ['wow', 'this works', 'f me', 'alpha beta gamma'],
@@ -3088,6 +3035,7 @@ export const submissionWithSupplementalDetails = {
           uuid: '056c8f57-0733-4669-a84e-aa9726ffbf6b',
           labels: { _default: 'Another tag question here?' },
           xpath: '',
+          verified: false,
         },
         '6f230992-b0c4-4cf4-a4a3-a5bd5b50ab4d': {
           value: {
@@ -3100,11 +3048,105 @@ export const submissionWithSupplementalDetails = {
           uuid: '6f230992-b0c4-4cf4-a4a3-a5bd5b50ab4d',
           labels: { _default: 'Another select question here?' },
           xpath: '',
+          verified: false,
         },
       },
     },
   },
 } as const satisfies SubmissionResponse
+
+export const supplementalDetailsSurveyDisplayData = {
+  type: DisplayGroupTypeName.group_root,
+  label: null,
+  name: null,
+  xpathNodes: [],
+  children: [
+    {
+      data: 'David',
+      label: 'Your name here',
+      name: 'Your_name_here',
+      type: QuestionTypeName.text,
+      xpath: 'Your_name_here',
+    },
+    {
+      data: null,
+      label: 'translation (pl) | Your name here',
+      name: '_supplementalDetails/Your_name_here/translation_pl',
+      type: null,
+      xpath: 'Your_name_here',
+    },
+    {
+      data: null,
+      label: 'translation (de) | Your name here',
+      name: '_supplementalDetails/Your_name_here/translation_de',
+      type: null,
+      xpath: 'Your_name_here',
+    },
+    {
+      data: null,
+      label: 'Your selfie goes here',
+      name: 'Your_selfie_goes_here',
+      type: QuestionTypeName.image,
+      xpath: 'Your_selfie_goes_here',
+    },
+    {
+      data: null,
+      label: 'A video? WTF',
+      name: 'A_video_WTF',
+      type: QuestionTypeName.video,
+      xpath: 'A_video_WTF',
+    },
+    {
+      data: null,
+      label: 'transcript (pl) | A video? WTF',
+      name: '_supplementalDetails/A_video_WTF/transcript_pl',
+      type: null,
+      xpath: 'A_video_WTF',
+    },
+    {
+      data: null,
+      label: 'translation (pl) | A video? WTF',
+      name: '_supplementalDetails/A_video_WTF/translation_pl',
+      type: null,
+      xpath: 'A_video_WTF',
+    },
+    {
+      data: null,
+      label: 'translation (de) | A video? WTF',
+      name: '_supplementalDetails/A_video_WTF/translation_de',
+      type: null,
+      xpath: 'A_video_WTF',
+    },
+    {
+      data: '8BP076-09-rushjet1-unknown_sector-12_42_20.mp3',
+      label: 'Secret password as an audio file',
+      name: 'Secret_password_as_an_audio_file',
+      type: QuestionTypeName.audio,
+      xpath: 'Secret_password_as_an_audio_file',
+    },
+    {
+      data: 'This is french transcript text.',
+      label: 'transcript (fr) | Secret password as an audio file',
+      name: '_supplementalDetails/Secret_password_as_an_audio_file/transcript_fr',
+      type: null,
+      xpath: 'Secret_password_as_an_audio_file',
+    },
+    {
+      data: 'This is polish translation text.',
+      label: 'translation (pl) | Secret password as an audio file',
+      name: '_supplementalDetails/Secret_password_as_an_audio_file/translation_pl',
+      type: null,
+      xpath: 'Secret_password_as_an_audio_file',
+    },
+    {
+      data: 'This is german translation text.',
+      label: 'translation (de) | Secret password as an audio file',
+      name: '_supplementalDetails/Secret_password_as_an_audio_file/translation_de',
+      type: null,
+      xpath: 'Secret_password_as_an_audio_file',
+    },
+  ],
+} as const satisfies DisplayGroup
 
 export const submissionWithNestedSupplementalDetails = {
   _id: 77,
@@ -3150,6 +3192,7 @@ export const submissionWithNestedSupplementalDetails = {
           labels: {
             _default: 'What kind?',
           },
+          verified: false,
         },
       },
       transcript: {

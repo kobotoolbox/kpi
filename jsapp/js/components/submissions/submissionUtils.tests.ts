@@ -6,6 +6,7 @@ import {
   removeEmptyObjects,
 } from './submissionUtils'
 import {
+  assetWithSupplementalDetails,
   everythingSurveyAsset,
   everythingSurveyDisplayData,
   everythingSurveySubmission,
@@ -32,6 +33,7 @@ import {
   submissionWithAttachmentsWithUnicode,
   submissionWithNestedSupplementalDetails,
   submissionWithSupplementalDetails,
+  supplementalDetailsSurveyDisplayData,
 } from './submissionUtils.mocks'
 
 // getSubmissionDisplayData() returns objects that have prototype chains, while
@@ -99,6 +101,12 @@ describe('getSubmissionDisplayData', () => {
     const target = matrixRepeatSurveyDisplayData
     chai.expect(test).excludingEvery(['__proto__']).to.deepEqualIgnoreUndefined(target)
   })
+
+  it('should return a valid data for a submission with supplemental details', () => {
+    const test = getSubmissionDisplayData(assetWithSupplementalDetails, 0, submissionWithSupplementalDetails)
+    const target = supplementalDetailsSurveyDisplayData
+    chai.expect(test).excludingEvery(['__proto__']).to.deepEqualIgnoreUndefined(target)
+  })
 })
 
 describe('getMediaAttachment', () => {
@@ -160,6 +168,22 @@ describe('getSupplementalDetailsContent', () => {
       '_supplementalDetails/Secret_password_as_an_audio_file/97fd5387-ac2b-4108-b5b4-37fa91ae0e22',
     )
     chai.expect(test).to.equal('12345')
+  })
+
+  it('should return analysis question verified value properly', () => {
+    const test = getSupplementalDetailsContent(
+      submissionWithSupplementalDetails,
+      '_supplementalDetails/Secret_password_as_an_audio_file/ab0e40e1-fbcc-43e9-9d00-b9b3314089cb/verified',
+    )
+    chai.expect(test).to.equal('No')
+  })
+
+  it('should return analysis question verified value properly for a question inside a group', () => {
+    const test = getSupplementalDetailsContent(
+      submissionWithNestedSupplementalDetails,
+      '_supplementalDetails/level_a/level_b/level_c/sounds/5dc7f202-8103-43a8-a48f-8f9b3c8f955f/verified',
+    )
+    chai.expect(test).to.equal('No')
   })
 })
 
@@ -225,6 +249,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
             uuid: '123',
             labels: { _default: 'foo' },
             xpath: '',
+            verified: false,
           },
           234: {
             value: 'foo',
@@ -232,6 +257,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
             uuid: '234',
             labels: { _default: 'foo' },
             xpath: '',
+            verified: false,
           },
           345: {
             value: 'bar',
@@ -240,6 +266,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
             uuid: '345',
             labels: { _default: 'foo' },
             xpath: '345',
+            verified: false,
           },
         },
       },
@@ -256,6 +283,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
             uuid: '234',
             labels: { _default: 'foo' },
             xpath: '',
+            verified: false,
           },
         },
       },
@@ -272,6 +300,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
             labels: { _default: 'foo' },
             uuid: '123',
             xpath: '',
+            verified: false,
           },
           234: {
             value: 'bar',
@@ -280,6 +309,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
             labels: { _default: 'foo' },
             uuid: '234',
             xpath: '',
+            verified: false,
           },
         },
       },
@@ -313,6 +343,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
             labels: { _default: 'foo' },
             uuid: '123',
             xpath: '',
+            verified: false,
           },
         },
       },
@@ -333,6 +364,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
             labels: { _default: 'foo' },
             uuid: '123',
             xpath: '',
+            verified: false,
           },
           234: {
             value: [],
@@ -340,6 +372,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
             labels: { _default: 'foo' },
             uuid: '234',
             xpath: '',
+            verified: false,
           },
           345: {
             value: null,
@@ -347,6 +380,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
             labels: { _default: 'foo' },
             uuid: '345',
             xpath: '',
+            verified: false,
           },
           456: {
             value: 'foo',
@@ -355,6 +389,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
             labels: { _default: 'foo' },
             uuid: '456',
             xpath: '',
+            verified: false,
           },
           567: {
             value: 'bar',
@@ -362,6 +397,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
             labels: { _default: 'foo' },
             uuid: '567',
             xpath: '',
+            verified: false,
           },
         },
       },
@@ -378,6 +414,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
             labels: { _default: 'foo' },
             uuid: '567',
             xpath: '',
+            verified: false,
           },
         },
       },

@@ -727,6 +727,16 @@ export function getSupplementalDetailsContent(
     }
   }
 
+  if (pathParts.type === 'qualVerification') {
+    // It is `qualVerification`, so `analysisQuestionUuid` must be there
+    pathArray.push(...['qual', pathParts.analysisQuestionUuid!])
+
+    const foundResponse: SubmissionAnalysisResponse = get(submission, pathArray, {})
+    if (typeof foundResponse.verified === 'boolean') {
+      return foundResponse.verified === true ? t('Yes') : t('No')
+    }
+  }
+
   // If there is no value it could be either WIP or intentional. We want to be
   // clear about the fact it could be intentionally empty.
   return null
