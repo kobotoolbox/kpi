@@ -529,7 +529,7 @@ export function injectSupplementalRowsIntoListOfRows(asset: AssetResponse, rows:
     ;(extraColsBySource[col] || []).forEach((extraCol) => {
       outputWithCols.push(`_supplementalDetails/${extraCol.dtpath}`)
 
-      // Qual source and verified data is being kept in a qual-id based key, not in source question one
+      // Qual source and verified data are kept in a qual-id-based key, rather than in the source question key
       ;(extraColsBySource[extraCol.dtpath] || []).forEach((qaCol) => {
         if (qaCol.type === 'qualVerification') {
           outputWithCols.push(`_supplementalDetails/${qaCol.dtpath}`)
