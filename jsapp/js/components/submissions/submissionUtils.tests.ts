@@ -6,6 +6,7 @@ import {
   removeEmptyObjects,
 } from './submissionUtils'
 import {
+  assetWithSupplementalDetails,
   everythingSurveyAsset,
   everythingSurveyDisplayData,
   everythingSurveySubmission,
@@ -32,6 +33,7 @@ import {
   submissionWithAttachmentsWithUnicode,
   submissionWithNestedSupplementalDetails,
   submissionWithSupplementalDetails,
+  supplementalDetailsSurveyDisplayData,
 } from './submissionUtils.mocks'
 
 // getSubmissionDisplayData() returns objects that have prototype chains, while
@@ -97,6 +99,12 @@ describe('getSubmissionDisplayData', () => {
   it('should return a valid data for a matrix group inside repeat group', () => {
     const test = getSubmissionDisplayData(matrixRepeatSurveyAsset, 0, matrixRepeatSurveySubmission)
     const target = matrixRepeatSurveyDisplayData
+    chai.expect(test).excludingEvery(['__proto__']).to.deepEqualIgnoreUndefined(target)
+  })
+
+  it('should return a valid data for a submission with supplemental details', () => {
+    const test = getSubmissionDisplayData(assetWithSupplementalDetails, 0, submissionWithSupplementalDetails)
+    const target = supplementalDetailsSurveyDisplayData
     chai.expect(test).excludingEvery(['__proto__']).to.deepEqualIgnoreUndefined(target)
   })
 })
