@@ -3047,6 +3047,7 @@ export const submissionWithSupplementalDetails = {
           uuid: 'b05f29f7-8b58-4dd7-8695-c29cb04f3f7a',
           labels: { _default: 'Another tag question here?' },
           xpath: '',
+          verified: false,
         },
         '97fd5387-ac2b-4108-b5b4-37fa91ae0e22': {
           value: 12345,
@@ -3054,6 +3055,7 @@ export const submissionWithSupplementalDetails = {
           uuid: '97fd5387-ac2b-4108-b5b4-37fa91ae0e22',
           labels: { _default: 'Another integer question here?' },
           xpath: '',
+          verified: false,
         },
         'ab0e40e1-fbcc-43e9-9d00-b9b3314089cb': {
           value: 'a thing',
@@ -3061,6 +3063,7 @@ export const submissionWithSupplementalDetails = {
           uuid: 'ab0e40e1-fbcc-43e9-9d00-b9b3314089cb',
           labels: { _default: 'Another text question here?' },
           xpath: '',
+          verified: false,
         },
         '1a89e0da-3344-4b5d-b919-ab8b072e0918': {
           value: [
@@ -3081,6 +3084,7 @@ export const submissionWithSupplementalDetails = {
           uuid: '1a89e0da-3344-4b5d-b919-ab8b072e0918',
           labels: { _default: 'Another select question here?' },
           xpath: '',
+          verified: false,
         },
         '056c8f57-0733-4669-a84e-aa9726ffbf6b': {
           value: ['wow', 'this works', 'f me', 'alpha beta gamma'],
@@ -3088,6 +3092,7 @@ export const submissionWithSupplementalDetails = {
           uuid: '056c8f57-0733-4669-a84e-aa9726ffbf6b',
           labels: { _default: 'Another tag question here?' },
           xpath: '',
+          verified: false,
         },
         '6f230992-b0c4-4cf4-a4a3-a5bd5b50ab4d': {
           value: {
@@ -3100,6 +3105,7 @@ export const submissionWithSupplementalDetails = {
           uuid: '6f230992-b0c4-4cf4-a4a3-a5bd5b50ab4d',
           labels: { _default: 'Another select question here?' },
           xpath: '',
+          verified: false,
         },
       },
     },
@@ -3150,6 +3156,7 @@ export const submissionWithNestedSupplementalDetails = {
           labels: {
             _default: 'What kind?',
           },
+          verified: false,
         },
       },
       transcript: {

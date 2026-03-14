@@ -20,7 +20,10 @@ interface SupplementalPathParts {
    * of the text.
    */
   languageCode?: LanguageCode
-  /** Applicable only for qualitative analysis questions. This is a random uuid. */
+  /**
+   * Applicable only for qualitative analysis questions and verification.
+   * This is the random uuid of the analysis question.
+   */
   analysisQuestionUuid?: string
 }
 
@@ -63,6 +66,13 @@ export function getSupplementalPathParts(path: string): SupplementalPathParts {
     // We start from second element, because first one is `SUPPLEMENTAL_DETAILS_PROP`
     sourceRowPath: pathArr.slice(1, pathArr.length).join('/'),
     type: pathType,
+  }
+
+  // For verification we need to override things, because path is built differently (has a suffix)
+  if (pathType === 'qualVerification') {
+    output.sourceRowName = pathArr[pathArr.length - 2]
+    output.sourceRowPath = pathArr.slice(1, pathArr.length - 1).join('/')
+    output.analysisQuestionUuid = pathArr[pathArr.length - 1]
   }
 
   // For transx we add the language code

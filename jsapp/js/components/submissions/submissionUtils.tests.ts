@@ -225,6 +225,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
             uuid: '123',
             labels: { _default: 'foo' },
             xpath: '',
+            verified: false,
           },
           234: {
             value: 'foo',
@@ -232,6 +233,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
             uuid: '234',
             labels: { _default: 'foo' },
             xpath: '',
+            verified: false,
           },
           345: {
             value: 'bar',
@@ -240,6 +242,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
             uuid: '345',
             labels: { _default: 'foo' },
             xpath: '345',
+            verified: false,
           },
         },
       },
@@ -256,6 +259,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
             uuid: '234',
             labels: { _default: 'foo' },
             xpath: '',
+            verified: false,
           },
         },
       },
@@ -272,6 +276,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
             labels: { _default: 'foo' },
             uuid: '123',
             xpath: '',
+            verified: false,
           },
           234: {
             value: 'bar',
@@ -280,6 +285,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
             labels: { _default: 'foo' },
             uuid: '234',
             xpath: '',
+            verified: false,
           },
         },
       },
@@ -313,6 +319,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
             labels: { _default: 'foo' },
             uuid: '123',
             xpath: '',
+            verified: false,
           },
         },
       },
@@ -333,6 +340,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
             labels: { _default: 'foo' },
             uuid: '123',
             xpath: '',
+            verified: false,
           },
           234: {
             value: [],
@@ -340,6 +348,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
             labels: { _default: 'foo' },
             uuid: '234',
             xpath: '',
+            verified: false,
           },
           345: {
             value: null,
@@ -347,6 +356,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
             labels: { _default: 'foo' },
             uuid: '345',
             xpath: '',
+            verified: false,
           },
           456: {
             value: 'foo',
@@ -355,6 +365,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
             labels: { _default: 'foo' },
             uuid: '456',
             xpath: '',
+            verified: false,
           },
           567: {
             value: 'bar',
@@ -362,6 +373,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
             labels: { _default: 'foo' },
             uuid: '567',
             xpath: '',
+            verified: false,
           },
         },
       },
@@ -378,6 +390,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
             labels: { _default: 'foo' },
             uuid: '567',
             xpath: '',
+            verified: false,
           },
         },
       },
