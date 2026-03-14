@@ -161,6 +161,22 @@ describe('getSupplementalDetailsContent', () => {
     )
     chai.expect(test).to.equal('12345')
   })
+
+  it('should return analysis question verified value properly', () => {
+    const test = getSupplementalDetailsContent(
+      submissionWithSupplementalDetails,
+      '_supplementalDetails/Secret_password_as_an_audio_file/ab0e40e1-fbcc-43e9-9d00-b9b3314089cb/verified',
+    )
+    chai.expect(test).to.equal('No')
+  })
+
+  it('should return analysis question verified value properly for a question inside a group', () => {
+    const test = getSupplementalDetailsContent(
+      submissionWithNestedSupplementalDetails,
+      '_supplementalDetails/level_a/level_b/level_c/sounds/5dc7f202-8103-43a8-a48f-8f9b3c8f955f/verified',
+    )
+    chai.expect(test).to.equal('No')
+  })
 })
 
 describe('removeEmptyObjects', () => {
