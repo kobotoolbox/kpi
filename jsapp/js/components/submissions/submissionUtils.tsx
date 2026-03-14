@@ -736,7 +736,9 @@ export function getSupplementalDetailsContent(
     // Put the parts back into the main array
     pathArray.push(...lastPathArrayItemParts)
     const foundResponse: SubmissionAnalysisResponse = get(submission, pathArray, {})
-    return foundResponse.verified === true ? t('Yes') : t('No')
+    if (typeof foundResponse.verified === 'boolean') {
+      return foundResponse.verified === true ? t('Yes') : t('No')
+    }
   }
 
   // If there is no value it could be either WIP or intentional. We want to be
