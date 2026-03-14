@@ -728,13 +728,9 @@ export function getSupplementalDetailsContent(
   }
 
   if (pathParts.type === 'qualVerification') {
-    // Here we prepare a path array for `get` function
-    const lastPathArrayItem = pathArray.pop() || ''
-    const lastPathArrayItemParts = lastPathArrayItem.split('/')
-    // Insert 'qual' right before the last element
-    lastPathArrayItemParts.splice(lastPathArrayItemParts.length - 1, 0, 'qual')
-    // Put the parts back into the main array
-    pathArray.push(...lastPathArrayItemParts)
+    // It is `qualVerification`, so `analysisQuestionUuid` must be there
+    pathArray.push(...['qual', pathParts.analysisQuestionUuid!])
+
     const foundResponse: SubmissionAnalysisResponse = get(submission, pathArray, {})
     if (typeof foundResponse.verified === 'boolean') {
       return foundResponse.verified === true ? t('Yes') : t('No')
