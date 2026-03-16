@@ -6,6 +6,8 @@ import {
   removeEmptyObjects,
 } from './submissionUtils'
 import {
+  allQualSurveyDisplayData,
+  assetWithAllQual,
   assetWithNestedSupplementalDetails,
   assetWithSupplementalDetails,
   everythingSurveyAsset,
@@ -32,6 +34,7 @@ import {
   simpleSurveyDisplayDataEmpty,
   simpleSurveySubmission,
   simpleSurveySubmissionEmpty,
+  submissionWithAllQual,
   submissionWithAttachmentsWithUnicode,
   submissionWithNestedSupplementalDetails,
   submissionWithSupplementalDetails,
@@ -117,6 +120,12 @@ describe('getSubmissionDisplayData', () => {
       submissionWithNestedSupplementalDetails,
     )
     const target = nestedSupplementalDetailsSurveyDisplayData
+    chai.expect(test).excludingEvery(['__proto__']).to.deepEqualIgnoreUndefined(target)
+  })
+
+  it('should return a valid data for a project with all qualitative analysis questions', () => {
+    const test = getSubmissionDisplayData(assetWithAllQual, 0, submissionWithAllQual)
+    const target = allQualSurveyDisplayData
     chai.expect(test).excludingEvery(['__proto__']).to.deepEqualIgnoreUndefined(target)
   })
 })

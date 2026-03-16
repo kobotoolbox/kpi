@@ -37,7 +37,7 @@ interface AnalysisQuestionChoice {
 export interface AnalysisQuestionBase {
   type: ResponseManualQualActionParams['type']
   labels: AnalysisLabels
-  uuid: string
+  uuid?: string
   options?: AnalysisQuestionOptions
   /** The survey question that this analysis questions is for. */
   xpath: string
@@ -58,7 +58,7 @@ export interface AnalysisQuestionSchema extends AnalysisQuestionBase {
 interface AnalysisResponseSelectXValue {
   labels: AnalysisLabels
   /** The `uuid` of selected `AnalysisQuestionChoice`. */
-  val: string
+  uuid: string
 } /**
  * A lot of options, because:
  * - `qualTags` returns `string[]` (`[]` for empty)
