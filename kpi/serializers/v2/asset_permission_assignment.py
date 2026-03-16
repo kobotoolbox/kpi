@@ -431,7 +431,9 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
         additions = incoming_assignments.difference(existing_assignments)
 
         if removals:
-            self._bulk_remove(asset, removals, incoming_assignments, user_pk_to_obj_cache)
+            self._bulk_revoke(
+                asset, removals, incoming_assignments, user_pk_to_obj_cache
+            )
 
         if additions:
             self._bulk_assign(asset, additions, user_pk_to_obj_cache)
@@ -844,7 +846,7 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
             )
 
     @staticmethod
-    def _bulk_remove(asset, removals, incoming_assignments, user_pk_to_obj_cache):
+    def _bulk_revoke(asset, removals, incoming_assignments, user_pk_to_obj_cache):
         """
         Remove permissions in bulk, avoiding one remove_perm() call per user.
 
