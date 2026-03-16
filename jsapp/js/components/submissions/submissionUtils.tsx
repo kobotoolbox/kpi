@@ -342,11 +342,21 @@ export function getSubmissionDisplayData(
         supplementalDetailKeys[rowxpath]?.forEach((sdKey: string) => {
           parentGroup.children.push(
             new DisplayResponse(
+              // type
+              // TODO: should we aim at this being analysis question type name?
               null,
+              // label
               getColumnLabel(asset, sdKey, false),
+              // name
               sdKey,
+              // xpath
+              // TODO: this is currently xpath of the form question, so for analysis question it is still the source
+              // form question, and perhaps it would make more sense for this to be the xpath to analysis question (i.e.
+              // the one ending on uuid)
               flatPaths[rowName],
+              // listName
               undefined,
+              // data
               getSupplementalDetailsContent(submissionData, sdKey),
             ),
           )
