@@ -3474,11 +3474,60 @@ export const assetWithNestedSupplementalDetails = {
 } as const satisfies AssetResponse
 
 export const nestedSupplementalDetailsSurveyDisplayData = {
-  type: DisplayGroupTypeName.group_root,
   label: null,
   name: null,
+  type: DisplayGroupTypeName.group_root,
   xpathNodes: [],
-  children: [],
+  children: [
+    {
+      label: 'Level A',
+      name: 'level_a',
+      type: DisplayGroupTypeName.group_regular,
+      xpathNodes: [],
+      children: [
+        {
+          label: 'Level B',
+          name: 'level_b',
+          type: DisplayGroupTypeName.group_regular,
+          xpathNodes: [
+            {
+              childIndex: null,
+              childrenAreRepeatable: false,
+              path: 'level_a',
+            },
+          ],
+          children: [
+            {
+              label: 'Level C',
+              name: 'level_c',
+              type: DisplayGroupTypeName.group_regular,
+              xpathNodes: [
+                {
+                  childIndex: null,
+                  childrenAreRepeatable: false,
+                  path: 'level_a',
+                },
+                {
+                  childIndex: null,
+                  childrenAreRepeatable: false,
+                  path: 'level_b',
+                },
+              ],
+              children: [
+                {
+                  data: null,
+                  label: 'sound',
+                  name: 'sound',
+                  type: QuestionTypeName.audio,
+                  xpath: 'level_a/level_b/level_c/sound',
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  ],
 } as const satisfies DisplayGroup
 
 export const submissionWithNestedSupplementalDetails = {

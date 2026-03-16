@@ -6,6 +6,7 @@ import {
   removeEmptyObjects,
 } from './submissionUtils'
 import {
+  assetWithNestedSupplementalDetails,
   assetWithSupplementalDetails,
   everythingSurveyAsset,
   everythingSurveyDisplayData,
@@ -22,6 +23,7 @@ import {
   nestedRepeatSurveyAsset,
   nestedRepeatSurveyDisplayData,
   nestedRepeatSurveySubmission,
+  nestedSupplementalDetailsSurveyDisplayData,
   repeatSurveyAsset,
   repeatSurveyDisplayData,
   repeatSurveySubmission,
@@ -105,6 +107,16 @@ describe('getSubmissionDisplayData', () => {
   it('should return a valid data for a submission with supplemental details', () => {
     const test = getSubmissionDisplayData(assetWithSupplementalDetails, 0, submissionWithSupplementalDetails)
     const target = supplementalDetailsSurveyDisplayData
+    chai.expect(test).excludingEvery(['__proto__']).to.deepEqualIgnoreUndefined(target)
+  })
+
+  it('should return a valid data for a submission with a nested supplemental details', () => {
+    const test = getSubmissionDisplayData(
+      assetWithNestedSupplementalDetails,
+      0,
+      submissionWithNestedSupplementalDetails,
+    )
+    const target = nestedSupplementalDetailsSurveyDisplayData
     chai.expect(test).excludingEvery(['__proto__']).to.deepEqualIgnoreUndefined(target)
   })
 })
