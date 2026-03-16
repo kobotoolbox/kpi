@@ -977,7 +977,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
           <i className='k-icon k-icon-layer' />
         </bem.FormView__mapButton>
         <bem.FormView__mapButton
-          m={`map-settings ${!this.state.hasGeoPoint ? 'disabled' : ''}`}
+          m={`map-settings ${this.state.hasGeoPoint ? '' : 'disabled'}`}
           onClick={this.toggleMapSettings.bind(this)}
           data-tip={t('Map display settings')}
         >
@@ -1047,9 +1047,8 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
         {this.state.noData && !this.state.hasGeoPoint && (
           <div className='map-transparent-background'>
             <div className='map-no-geopoint-wrapper'>
-              <p className='map-no-geopoint'>
-                {t('The map does not show data because this form does not have a "geopoint" field.')}
-              </p>
+              <p className='map-no-geopoint'>{t('This project does not include geographical data.')}</p>
+              <p className='map-no-geopoint'>{t('To visualize data in the map, create a "geopoint" question.')}</p>
             </div>
           </div>
         )}
@@ -1057,7 +1056,9 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
         {this.state.noData && this.state.hasGeoPoint && (
           <div className='map-transparent-background'>
             <div className='map-no-geopoint-wrapper'>
-              <p className='map-no-geopoint'>{t('No "geopoint" responses have been received')}</p>
+              <p className='map-no-geopoint'>
+                {t('No "geopoint" responses have been received for the selected question.')}
+              </p>
             </div>
           </div>
         )}
