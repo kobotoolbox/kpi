@@ -1,4 +1,5 @@
 from allauth.socialaccount.models import SocialAccount, SocialApp
+from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
@@ -26,8 +27,13 @@ class ScimGroupsAPITests(APITestCase):
             social_app=self.social_app,
         )
 
-        self.groups_url = f'/api/scim/v2/{self.idp.slug}/Groups'
-        self.config_url = f'/api/scim/v2/{self.idp.slug}/ServiceProviderConfig'
+        self.groups_url = reverse(
+            'v2:kobo_scim:scim-groups-list', kwargs={'idp_slug': self.idp.slug}
+        )
+        self.config_url = reverse(
+            'v2:kobo_scim:scim-service-provider-config',
+            kwargs={'idp_slug': self.idp.slug},
+        )
 
         # Create some test users
         self.user1 = User.objects.create_user(

@@ -13,7 +13,7 @@ class IdentityProvider(AbstractTimeStampedModel, models.Model):
     slug = models.SlugField(
         unique=True,
         verbose_name='Slug',
-        help_text='Unique identifier used in URLs (e.g., /api/scim/v2/{slug}/Users)',
+        help_text='Unique identifier used in URLs',
     )
     # The token used to authenticate SCIM requests from the IdP
     scim_api_key = models.CharField(

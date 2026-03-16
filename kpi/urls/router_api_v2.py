@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import include, path
 from rest_framework.renderers import JSONRenderer
 from rest_framework_extensions.routers import ExtendedDefaultRouter
 
@@ -254,4 +254,16 @@ supplement_url_pattern = [
     ),
 ]
 
-urls_patterns = router_api_v2.urls + enketo_url_aliases + supplement_url_pattern
+kobo_scim_pattern = [
+    path(
+        'scim/v2/', 
+        include('kobo.apps.kobo_scim.urls', namespace='kobo_scim'),
+    ),
+]
+
+urls_patterns = (
+    router_api_v2.urls
+    + enketo_url_aliases
+    + supplement_url_pattern
+    + kobo_scim_pattern
+)

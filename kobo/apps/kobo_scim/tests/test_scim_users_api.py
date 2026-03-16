@@ -1,4 +1,5 @@
 from allauth.socialaccount.models import SocialAccount, SocialApp
+from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
@@ -28,7 +29,9 @@ class ScimUsersAPITests(APITestCase):
             social_app=self.social_app,
         )
 
-        self.url = f'/api/scim/v2/{self.idp.slug}/Users'
+        self.url = reverse(
+            'v2:kobo_scim:scim-users-list', kwargs={'idp_slug': self.idp.slug}
+        )
 
         # Create some test users
         self.user1 = User.objects.create_user(
@@ -70,7 +73,9 @@ class ScimUsersAPITests(APITestCase):
 
     def test_idp_slug_mismatch(self):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
-        wrong_url = '/api/scim/v2/wrong-idp/Users'
+        wrong_url = reverse(
+            'v2:kobo_scim:scim-users-list', kwargs={'idp_slug': 'wrong-idp'}
+        )
         response = self.client.get(wrong_url, HTTP_ACCEPT='application/scim+json')
         # Assuming our view returns empty list dynamically based on viewset permissions
         # if idp doesn't match
@@ -354,7 +359,9 @@ class ScimUsersAPITests(APITestCase):
         # (user1 is linked to the first IdP)
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {idp_2.scim_api_key}')
 
-        url_2 = f'/api/scim/v2/{idp_2.slug}/Users'
+        url_2 = reverse(
+            'v2:kobo_scim:scim-users-list', kwargs={'idp_slug': idp_2.slug}
+        )
         response = self.client.delete(
             f'{url_2}/{self.user1.id}', HTTP_ACCEPT='application/scim+json'
         )
