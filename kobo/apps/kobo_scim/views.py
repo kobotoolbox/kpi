@@ -27,17 +27,6 @@ from kobo.apps.kobo_scim.renderers import SCIMParser, SCIMRenderer
 from kobo.apps.kobo_scim.serializers import ScimGroupSerializer, ScimUserSerializer
 
 
-def scim_api_response(response_type):
-    """
-    Returns an OpenApiResponse strictly bound to application/scim+json
-    to prevent drf-spectacular/orval duplicating models for standard JSON.
-    """
-    if response_type is None:
-        return OpenApiResponse(response=None)
-    return OpenApiResponse(
-        response=response_type, response_content=['application/scim+json']
-    )
-
 
 def scim_extend_schema(**kwargs):
     """
@@ -57,21 +46,21 @@ def scim_extend_schema(**kwargs):
 @extend_schema_view(
     list=extend_schema(
         description='Returns a list of SCIM users matching the optional query',
-        responses={200: scim_api_response(ScimUserSerializer(many=True))},
+        responses={200: ScimUserSerializer(many=True)},
     ),
     retrieve=extend_schema(
         description='Returns a specific SCIM user.',
-        responses={200: scim_api_response(ScimUserSerializer)},
+        responses={200: ScimUserSerializer},
     ),
     destroy=extend_schema(
-        description="Deactivates all Kobo accounts linked to the user's '
-        'email address.",
-        responses={204: scim_api_response(None)},
+        description='Deactivates all Kobo accounts linked to the user\'s '
+        'email address.',
+        responses={204: None},
     ),
     partial_update=extend_schema(
         description='Updates a SCIM user. Currently only supports '
         'deactivation via the `active` attribute.',
-        responses={200: scim_api_response(ScimUserSerializer)},
+        responses={200: ScimUserSerializer},
     ),
 )
 class ScimUserViewSet(
@@ -93,13 +82,13 @@ class ScimUserViewSet(
     permission_classes = [IsAuthenticatedIdP]
     pagination_class = ScimPagination
     parser_classes = [SCIMParser, JSONParser]
-    renderer_classes = [SCIMRenderer, JSONRenderer]
+    renderer_classes = [SCIMRenderer]
 
     @extend_schema(
         responses={
-            201: scim_api_response(ScimUserSerializer),
-            409: scim_api_response(OpenApiTypes.OBJECT),
-            400: scim_api_response(OpenApiTypes.OBJECT),
+            201: ScimUserSerializer,
+            409: OpenApiTypes.OBJECT,
+            400: OpenApiTypes.OBJECT,
         }
     )
     def create(self, request, *args, **kwargs):
@@ -207,8 +196,8 @@ class ScimUserViewSet(
 
     @extend_schema(
         responses={
-            200: scim_api_response(ScimUserSerializer),
-            409: scim_api_response(OpenApiTypes.OBJECT),
+            200: ScimUserSerializer,
+            409: OpenApiTypes.OBJECT,
         }
     )
     def update(self, request, *args, **kwargs):
@@ -352,9 +341,9 @@ class ScimServiceProviderConfigView(APIView):
     authentication_classes = [ScimAuthentication]
     permission_classes = [IsAuthenticatedIdP]
     parser_classes = [SCIMParser, JSONParser]
-    renderer_classes = [SCIMRenderer, JSONRenderer]
+    renderer_classes = [SCIMRenderer]
 
-    @extend_schema(responses={200: scim_api_response(OpenApiTypes.OBJECT)})
+    @extend_schema(responses={200: OpenApiTypes.OBJECT})
     def get(self, request, *args, **kwargs):
         # We only support patch and basic filtering
         payload = {
@@ -373,27 +362,27 @@ class ScimServiceProviderConfigView(APIView):
 @extend_schema_view(
     list=extend_schema(
         description='Returns a list of SCIM groups.',
-        responses={200: scim_api_response(ScimGroupSerializer(many=True))},
+        responses={200: ScimGroupSerializer(many=True)},
     ),
     retrieve=extend_schema(
         description='Returns a specific SCIM group.',
-        responses={200: scim_api_response(ScimGroupSerializer)},
+        responses={200: ScimGroupSerializer},
     ),
     create=extend_schema(
         description='Creates a new SCIM group.',
-        responses={201: scim_api_response(ScimGroupSerializer)},
+        responses={201: ScimGroupSerializer},
     ),
     destroy=extend_schema(
-        description='Deletes a SCIM group.', responses={204: scim_api_response(None)}
+        description='Deletes a SCIM group.', responses={204: None}
     ),
     partial_update=extend_schema(
         description='Updates a SCIM group. Supports adding/removing members via '
         'patch operations.',
-        responses={200: scim_api_response(ScimGroupSerializer)},
+        responses={200: ScimGroupSerializer},
     ),
     update=extend_schema(
         description='Replaces a SCIM group entirely.',
-        responses={200: scim_api_response(ScimGroupSerializer)},
+        responses={200: ScimGroupSerializer},
     ),
 )
 class ScimGroupViewSet(viewsets.ModelViewSet):
