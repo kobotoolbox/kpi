@@ -10,4 +10,4 @@ The endpoints are grouped by area of intended use. Each category contains relate
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 
-export type ScimV2ServiceProviderConfigRetrieve200One = { [key: string]: unknown }
+export type ScimV2UsersUpdate409 = { [key: string]: unknown }

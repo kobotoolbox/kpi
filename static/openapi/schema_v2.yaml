@@ -9758,10 +9758,6 @@ paths:
               schema:
                 type: object
                 additionalProperties: {}
-            application/json:
-              schema:
-                type: object
-                additionalProperties: {}
           description: ''
   /api/v2/scim/v2/{idp_slug}/Users:
     get:
@@ -9800,9 +9796,6 @@ paths:
             application/scim+json:
               schema:
                 $ref: '#/components/schemas/PaginatedScimUserList'
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PaginatedScimUserList'
           description: ''
     post:
       operationId: api_v2_scim_v2_Users_create
@@ -9830,9 +9823,20 @@ paths:
             application/scim+json:
               schema:
                 $ref: '#/components/schemas/ScimUser'
-            application/json:
+          description: ''
+        '409':
+          content:
+            application/scim+json:
               schema:
-                $ref: '#/components/schemas/ScimUser'
+                type: object
+                additionalProperties: {}
+          description: ''
+        '400':
+          content:
+            application/scim+json:
+              schema:
+                type: object
+                additionalProperties: {}
           description: ''
   /api/v2/scim/v2/{idp_slug}/Users/{id}:
     get:
@@ -9856,9 +9860,6 @@ paths:
         '200':
           content:
             application/scim+json:
-              schema:
-                $ref: '#/components/schemas/ScimUser'
-            application/json:
               schema:
                 $ref: '#/components/schemas/ScimUser'
           description: ''
@@ -9898,9 +9899,13 @@ paths:
             application/scim+json:
               schema:
                 $ref: '#/components/schemas/ScimUser'
-            application/json:
+          description: ''
+        '409':
+          content:
+            application/scim+json:
               schema:
-                $ref: '#/components/schemas/ScimUser'
+                type: object
+                additionalProperties: {}
           description: ''
     patch:
       operationId: api_v2_scim_v2_Users_partial_update
@@ -9932,9 +9937,6 @@ paths:
         '200':
           content:
             application/scim+json:
-              schema:
-                $ref: '#/components/schemas/ScimUser'
-            application/json:
               schema:
                 $ref: '#/components/schemas/ScimUser'
           description: ''

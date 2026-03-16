@@ -13483,12 +13483,6 @@
                                     "type": "object",
                                     "additionalProperties": {}
                                 }
-                            },
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "additionalProperties": {}
-                                }
                             }
                         },
                         "description": ""
@@ -13547,11 +13541,6 @@
                                 "schema": {
                                     "$ref": "#/components/schemas/PaginatedScimUserList"
                                 }
-                            },
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/PaginatedScimUserList"
-                                }
                             }
                         },
                         "description": ""
@@ -13596,10 +13585,27 @@
                                 "schema": {
                                     "$ref": "#/components/schemas/ScimUser"
                                 }
-                            },
-                            "application/json": {
+                            }
+                        },
+                        "description": ""
+                    },
+                    "409": {
+                        "content": {
+                            "application/scim+json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ScimUser"
+                                    "type": "object",
+                                    "additionalProperties": {}
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "400": {
+                        "content": {
+                            "application/scim+json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {}
                                 }
                             }
                         },
@@ -13638,11 +13644,6 @@
                     "200": {
                         "content": {
                             "application/scim+json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ScimUser"
-                                }
-                            },
-                            "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ScimUser"
                                 }
@@ -13699,10 +13700,16 @@
                                 "schema": {
                                     "$ref": "#/components/schemas/ScimUser"
                                 }
-                            },
-                            "application/json": {
+                            }
+                        },
+                        "description": ""
+                    },
+                    "409": {
+                        "content": {
+                            "application/scim+json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/ScimUser"
+                                    "type": "object",
+                                    "additionalProperties": {}
                                 }
                             }
                         },
@@ -13753,11 +13760,6 @@
                     "200": {
                         "content": {
                             "application/scim+json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ScimUser"
-                                }
-                            },
-                            "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ScimUser"
                                 }

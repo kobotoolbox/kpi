@@ -33,11 +33,15 @@ import type { ScimUser } from '../models/scimUser'
 
 import type { ScimV2GroupsListParams } from '../models/scimV2GroupsListParams'
 
-import type { ScimV2ServiceProviderConfigRetrieve200One } from '../models/scimV2ServiceProviderConfigRetrieve200One'
+import type { ScimV2ServiceProviderConfigRetrieve200 } from '../models/scimV2ServiceProviderConfigRetrieve200'
 
-import type { ScimV2ServiceProviderConfigRetrieve200Two } from '../models/scimV2ServiceProviderConfigRetrieve200Two'
+import type { ScimV2UsersCreate400 } from '../models/scimV2UsersCreate400'
+
+import type { ScimV2UsersCreate409 } from '../models/scimV2UsersCreate409'
 
 import type { ScimV2UsersListParams } from '../models/scimV2UsersListParams'
+
+import type { ScimV2UsersUpdate409 } from '../models/scimV2UsersUpdate409'
 
 import { fetchWithAuth } from '../orval.mutator'
 
@@ -553,18 +557,11 @@ export const useScimV2GroupsDestroy = <TError = unknown, TContext = unknown>(opt
  * Returns the SCIM Service Provider Configuration.
  */
 export type scimV2ServiceProviderConfigRetrieveResponse200 = {
-  data: ScimV2ServiceProviderConfigRetrieve200One
+  data: ScimV2ServiceProviderConfigRetrieve200
   status: 200
 }
 
-export type scimV2ServiceProviderConfigRetrieveResponse200 = {
-  data: ScimV2ServiceProviderConfigRetrieve200Two
-  status: 200
-}
-
-export type scimV2ServiceProviderConfigRetrieveResponseComposite =
-  | scimV2ServiceProviderConfigRetrieveResponse200
-  | scimV2ServiceProviderConfigRetrieveResponse200
+export type scimV2ServiceProviderConfigRetrieveResponseComposite = scimV2ServiceProviderConfigRetrieveResponse200
 
 export type scimV2ServiceProviderConfigRetrieveResponse = scimV2ServiceProviderConfigRetrieveResponseComposite & {
   headers: Headers
@@ -734,7 +731,20 @@ export type scimV2UsersCreateResponse201 = {
   status: 201
 }
 
-export type scimV2UsersCreateResponseComposite = scimV2UsersCreateResponse201
+export type scimV2UsersCreateResponse400 = {
+  data: ScimV2UsersCreate400
+  status: 400
+}
+
+export type scimV2UsersCreateResponse409 = {
+  data: ScimV2UsersCreate409
+  status: 409
+}
+
+export type scimV2UsersCreateResponseComposite =
+  | scimV2UsersCreateResponse201
+  | scimV2UsersCreateResponse400
+  | scimV2UsersCreateResponse409
 
 export type scimV2UsersCreateResponse = scimV2UsersCreateResponseComposite & {
   headers: Headers
@@ -757,7 +767,10 @@ export const scimV2UsersCreate = async (
   })
 }
 
-export const getScimV2UsersCreateMutationOptions = <TError = unknown, TContext = unknown>(options?: {
+export const getScimV2UsersCreateMutationOptions = <
+  TError = ScimV2UsersCreate400 | ScimV2UsersCreate409,
+  TContext = unknown,
+>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof scimV2UsersCreate>>,
     TError,
@@ -792,9 +805,12 @@ export const getScimV2UsersCreateMutationOptions = <TError = unknown, TContext =
 
 export type ScimV2UsersCreateMutationResult = NonNullable<Awaited<ReturnType<typeof scimV2UsersCreate>>>
 export type ScimV2UsersCreateMutationBody = NonReadonly<ScimUser>
-export type ScimV2UsersCreateMutationError = unknown
+export type ScimV2UsersCreateMutationError = ScimV2UsersCreate400 | ScimV2UsersCreate409
 
-export const useScimV2UsersCreate = <TError = unknown, TContext = unknown>(options?: {
+export const useScimV2UsersCreate = <
+  TError = ScimV2UsersCreate400 | ScimV2UsersCreate409,
+  TContext = unknown,
+>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof scimV2UsersCreate>>,
     TError,
@@ -896,7 +912,12 @@ export type scimV2UsersUpdateResponse200 = {
   status: 200
 }
 
-export type scimV2UsersUpdateResponseComposite = scimV2UsersUpdateResponse200
+export type scimV2UsersUpdateResponse409 = {
+  data: ScimV2UsersUpdate409
+  status: 409
+}
+
+export type scimV2UsersUpdateResponseComposite = scimV2UsersUpdateResponse200 | scimV2UsersUpdateResponse409
 
 export type scimV2UsersUpdateResponse = scimV2UsersUpdateResponseComposite & {
   headers: Headers
@@ -920,7 +941,7 @@ export const scimV2UsersUpdate = async (
   })
 }
 
-export const getScimV2UsersUpdateMutationOptions = <TError = unknown, TContext = unknown>(options?: {
+export const getScimV2UsersUpdateMutationOptions = <TError = ScimV2UsersUpdate409, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof scimV2UsersUpdate>>,
     TError,
@@ -955,9 +976,9 @@ export const getScimV2UsersUpdateMutationOptions = <TError = unknown, TContext =
 
 export type ScimV2UsersUpdateMutationResult = NonNullable<Awaited<ReturnType<typeof scimV2UsersUpdate>>>
 export type ScimV2UsersUpdateMutationBody = NonReadonly<ScimUser>
-export type ScimV2UsersUpdateMutationError = unknown
+export type ScimV2UsersUpdateMutationError = ScimV2UsersUpdate409
 
-export const useScimV2UsersUpdate = <TError = unknown, TContext = unknown>(options?: {
+export const useScimV2UsersUpdate = <TError = ScimV2UsersUpdate409, TContext = unknown>(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof scimV2UsersUpdate>>,
     TError,
