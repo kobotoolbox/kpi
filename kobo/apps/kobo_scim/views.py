@@ -4,12 +4,7 @@ from allauth.socialaccount.models import SocialAccount
 from django.conf import settings
 from django.db import IntegrityError, transaction
 from drf_spectacular.types import OpenApiTypes
-from drf_spectacular.utils import (
-    OpenApiParameter,
-    OpenApiResponse,
-    extend_schema,
-    extend_schema_view,
-)
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import mixins, status, viewsets
 from rest_framework.exceptions import ValidationError
 from rest_framework.parsers import JSONParser
@@ -25,7 +20,6 @@ from kobo.apps.kobo_scim.models import ScimGroup
 from kobo.apps.kobo_scim.pagination import ScimPagination
 from kobo.apps.kobo_scim.renderers import SCIMParser, SCIMRenderer
 from kobo.apps.kobo_scim.serializers import ScimGroupSerializer, ScimUserSerializer
-
 
 
 def scim_extend_schema(**kwargs):
@@ -53,8 +47,8 @@ def scim_extend_schema(**kwargs):
         responses={200: ScimUserSerializer},
     ),
     destroy=extend_schema(
-        description='Deactivates all Kobo accounts linked to the user\'s '
-        'email address.',
+        description="Deactivates all Kobo accounts linked to the user's "
+        + 'email address.',
         responses={204: None},
     ),
     partial_update=extend_schema(
@@ -372,9 +366,7 @@ class ScimServiceProviderConfigView(APIView):
         description='Creates a new SCIM group.',
         responses={201: ScimGroupSerializer},
     ),
-    destroy=extend_schema(
-        description='Deletes a SCIM group.', responses={204: None}
-    ),
+    destroy=extend_schema(description='Deletes a SCIM group.', responses={204: None}),
     partial_update=extend_schema(
         description='Updates a SCIM group. Supports adding/removing members via '
         'patch operations.',
