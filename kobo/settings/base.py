@@ -374,6 +374,10 @@ CONSTANCE_CONFIG = {
         'IAM & Admin console.\nLeave blank to use a different Google '
         'authentication mechanism.'
     ),
+    'AUTOMATIC_QA_REQUESTS_PER_SECOND': (
+        5,
+        'Number of allowed automatic Qualitative Analysis requests per user per second.'
+    ),
     'USER_METADATA_FIELDS': (
         LazyJSONSerializable([
             {'name': 'name', 'required': True},
@@ -743,6 +747,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'ASR_MT_GOOGLE_TRANSLATION_LOCATION',
         'ASR_MT_GOOGLE_CREDENTIALS',
         'ASR_MT_GOOGLE_REQUEST_TIMEOUT',
+        'AUTOMATIC_QA_REQUESTS_PER_SECOND'
     ),
     'Security': (
         'SSRF_ALLOWED_IP_ADDRESS',
