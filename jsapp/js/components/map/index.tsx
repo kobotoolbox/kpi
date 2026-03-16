@@ -46,7 +46,6 @@ import type {
 import './map.scss'
 import './map.marker-colors.scss'
 import { fetchGetUrl } from '../../../js/api'
-import ButtonNew from '../common/ButtonNew'
 
 const STREETS_LAYER = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
@@ -604,7 +603,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
 
     if (prepPoints.length >= 0) {
       // If the user changed questions, we need to reset the overlay
-      this.setState({noData: false})
+      this.setState({ noData: false })
 
       let markers
       if (viewby) {
@@ -934,7 +933,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
 
     if (viewby) {
       fields.forEach((f) => {
-    if (viewby === f.name || viewby === f.$autoname) {
+        if (viewby === f.name || viewby === f.$autoname) {
           label = `${t('Disaggregated using:')} ${f.label?.[langIndex]}`
         }
       })
@@ -955,7 +954,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     return (
       <bem.FormView m={formViewModifiers} className='right-tooltip'>
         <bem.FormView__mapButton
-          m={`expand ${!hasGeopointAndData ? 'disabled' : ''}`}
+          m={`expand ${hasGeopointAndData ? '' : 'disabled'}`}
           onClick={this.toggleFullscreen.bind(this)}
           data-tip={t('Toggle Fullscreen')}
           className={this.state.isFullscreen ? 'active' : ''}
@@ -963,28 +962,30 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
           <i className='k-icon k-icon-expand' />
         </bem.FormView__mapButton>
         <bem.FormView__mapButton
-          m={`markers ${!hasGeopointAndData ? 'disabled' : ''}`}
+          m={`markers ${hasGeopointAndData ? '' : 'disabled'}`}
           onClick={this.showMarkers.bind(this)}
           data-tip={t('Show as points')}
           className={this.state.markersVisible ? 'active' : ''}
         >
           <i className='k-icon k-icon-pins' />
         </bem.FormView__mapButton>
-        <bem.FormView__mapButton m={`layers ${!hasGeopointAndData ? 'disabled' : ''}`} onClick={this.showLayerControls.bind(this)} data-tip={t('Toggle layers')}>
+        <bem.FormView__mapButton
+          m={`layers ${hasGeopointAndData ? '' : 'disabled'}`}
+          onClick={this.showLayerControls.bind(this)}
+          data-tip={t('Toggle layers')}
+        >
           <i className='k-icon k-icon-layer' />
         </bem.FormView__mapButton>
-        {this.state.hasGeoPoint &&
         <bem.FormView__mapButton
-          m={'map-settings'}
+          m={`map-settings ${!this.state.hasGeoPoint ? 'disabled' : ''}`}
           onClick={this.toggleMapSettings.bind(this)}
           data-tip={t('Map display settings')}
         >
           <i className='k-icon k-icon-settings' />
         </bem.FormView__mapButton>
-        }
         {!viewby && (
           <bem.FormView__mapButton
-            m={`heatmap ${!hasGeopointAndData ? 'disabled' : ''}`}
+            m={`heatmap ${hasGeopointAndData ? '' : 'disabled'}`}
             onClick={this.showHeatmap.bind(this)}
             data-tip={t('Show as heatmap')}
             className={this.state.markersVisible ? '' : 'active'}
