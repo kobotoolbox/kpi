@@ -14,23 +14,22 @@ interface Props {
 export default function TextResponseForm({ qaAnswer, onSave, disabled, isAnswerAIGenerated }: Props) {
   const [value, setValue] = useState<string>(((qaAnswer?._data as any)?.value as string) ?? '')
   const [typingTimer, setTypingTimer] = useState<NodeJS.Timeout>()
-
   // Sync local state when a new version is set (e.g. after AI generation)
   useEffect(() => {
+    if (!isAnswerAIGenerated) return
+    clearTimeout(typingTimer)
     setValue(((qaAnswer?._data as any)?.value as string) ?? '')
-  }, [qaAnswer?._uuid])
-
-  const handleSave = async () => {
+  }, [qaAnswer?._uuid, isAnswerAIGenerated])
+  const handleBlur = async () => {
     clearTimeout(typingTimer)
     await onSave(value)
   }
-
   const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setValue(event.currentTarget.value)
+    const newValue = event.currentTarget.value
+    setValue(newValue)
     clearTimeout(typingTimer)
-    setTypingTimer(setTimeout(handleSave, AUTO_SAVE_TYPING_DELAY)) // After some seconds we auto save
+    setTypingTimer(setTimeout(() => onSave(newValue), AUTO_SAVE_TYPING_DELAY)) // After some seconds we auto save
   }
-
   return (
     <Textarea
       classNames={{
@@ -41,7 +40,7 @@ export default function TextResponseForm({ qaAnswer, onSave, disabled, isAnswerA
       value={value}
       onChange={handleChange}
       placeholder={t('Type your response or use AI')}
-      onBlur={handleSave}
+      onBlur={handleBlur}
       disabled={disabled}
     />
   )
