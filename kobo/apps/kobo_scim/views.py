@@ -3,8 +3,13 @@ import re
 from allauth.socialaccount.models import SocialAccount
 from django.conf import settings
 from django.db import IntegrityError, transaction
-from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import (
+    OpenApiParameter,
+    OpenApiResponse,
+    extend_schema,
+    extend_schema_view,
+)
 from rest_framework import mixins, status, viewsets
 from rest_framework.exceptions import ValidationError
 from rest_framework.parsers import JSONParser
@@ -22,21 +27,51 @@ from kobo.apps.kobo_scim.renderers import SCIMParser, SCIMRenderer
 from kobo.apps.kobo_scim.serializers import ScimGroupSerializer, ScimUserSerializer
 
 
-@extend_schema(
-    tags=['SCIM'],
-    parameters=[OpenApiParameter("idp_slug", OpenApiTypes.STR, OpenApiParameter.PATH)]
-)
+def scim_api_response(response_type):
+    """
+    Returns an OpenApiResponse strictly bound to application/scim+json
+    to prevent drf-spectacular/orval duplicating models for standard JSON.
+    """
+    if response_type is None:
+        return OpenApiResponse(response=None)
+    return OpenApiResponse(
+        response=response_type, response_content=['application/scim+json']
+    )
+
+
+def scim_extend_schema(**kwargs):
+    """
+    Applies common SCIM OpenAPI parameters (e.g. idp_slug) to viewsets/views.
+    """
+    defaults = {
+        'tags': ['SCIM'],
+        'parameters': [
+            OpenApiParameter('idp_slug', OpenApiTypes.STR, OpenApiParameter.PATH)
+        ],
+    }
+    defaults.update(kwargs)
+    return extend_schema(**defaults)
+
+
+@scim_extend_schema()
 @extend_schema_view(
     list=extend_schema(
-        description='Returns a list of SCIM users matching the optional query'
+        description='Returns a list of SCIM users matching the optional query',
+        responses={200: scim_api_response(ScimUserSerializer(many=True))},
     ),
-    retrieve=extend_schema(description='Returns a specific SCIM user.'),
+    retrieve=extend_schema(
+        description='Returns a specific SCIM user.',
+        responses={200: scim_api_response(ScimUserSerializer)},
+    ),
     destroy=extend_schema(
-        description="Deactivates all Kobo accounts linked to the user's email address."
+        description="Deactivates all Kobo accounts linked to the user's '
+        'email address.",
+        responses={204: scim_api_response(None)},
     ),
     partial_update=extend_schema(
-        description='Updates a SCIM user. Currently only supports deactivation '
-        'via the `active` attribute.'
+        description='Updates a SCIM user. Currently only supports '
+        'deactivation via the `active` attribute.',
+        responses={200: scim_api_response(ScimUserSerializer)},
     ),
 )
 class ScimUserViewSet(
@@ -60,6 +95,13 @@ class ScimUserViewSet(
     parser_classes = [SCIMParser, JSONParser]
     renderer_classes = [SCIMRenderer, JSONRenderer]
 
+    @extend_schema(
+        responses={
+            201: scim_api_response(ScimUserSerializer),
+            409: scim_api_response(OpenApiTypes.OBJECT),
+            400: scim_api_response(OpenApiTypes.OBJECT),
+        }
+    )
     def create(self, request, *args, **kwargs):
         """
         Handle POST requests (user provisioning from IdP).
@@ -163,6 +205,12 @@ class ScimUserViewSet(
                 status=status.HTTP_409_CONFLICT,
             )
 
+    @extend_schema(
+        responses={
+            200: scim_api_response(ScimUserSerializer),
+            409: scim_api_response(OpenApiTypes.OBJECT),
+        }
+    )
     def update(self, request, *args, **kwargs):
         """
         Handle PUT requests (user update from IdP).
@@ -291,10 +339,7 @@ class ScimUserViewSet(
         )
 
 
-@extend_schema(
-    tags=['SCIM'],
-    parameters=[OpenApiParameter("idp_slug", OpenApiTypes.STR, OpenApiParameter.PATH)]
-)
+@scim_extend_schema()
 @extend_schema_view(
     get=extend_schema(description='Returns the SCIM Service Provider Configuration.'),
 )
@@ -309,11 +354,7 @@ class ScimServiceProviderConfigView(APIView):
     parser_classes = [SCIMParser, JSONParser]
     renderer_classes = [SCIMRenderer, JSONRenderer]
 
-    @extend_schema(
-        responses={
-            200: OpenApiTypes.OBJECT
-        }
-    )
+    @extend_schema(responses={200: scim_api_response(OpenApiTypes.OBJECT)})
     def get(self, request, *args, **kwargs):
         # We only support patch and basic filtering
         payload = {
@@ -328,20 +369,32 @@ class ScimServiceProviderConfigView(APIView):
         return Response(payload, status=status.HTTP_200_OK)
 
 
-@extend_schema(
-    tags=['SCIM'],
-    parameters=[OpenApiParameter("idp_slug", OpenApiTypes.STR, OpenApiParameter.PATH)]
-)
+@scim_extend_schema()
 @extend_schema_view(
-    list=extend_schema(description='Returns a list of SCIM groups.'),
-    retrieve=extend_schema(description='Returns a specific SCIM group.'),
-    create=extend_schema(description='Creates a new SCIM group.'),
-    destroy=extend_schema(description='Deletes a SCIM group.'),
-    partial_update=extend_schema(
-        description='Updates a SCIM group. '
-        'Supports adding/removing members via patch operations.'
+    list=extend_schema(
+        description='Returns a list of SCIM groups.',
+        responses={200: scim_api_response(ScimGroupSerializer(many=True))},
     ),
-    update=extend_schema(description='Replaces a SCIM group entirely.'),
+    retrieve=extend_schema(
+        description='Returns a specific SCIM group.',
+        responses={200: scim_api_response(ScimGroupSerializer)},
+    ),
+    create=extend_schema(
+        description='Creates a new SCIM group.',
+        responses={201: scim_api_response(ScimGroupSerializer)},
+    ),
+    destroy=extend_schema(
+        description='Deletes a SCIM group.', responses={204: scim_api_response(None)}
+    ),
+    partial_update=extend_schema(
+        description='Updates a SCIM group. Supports adding/removing members via '
+        'patch operations.',
+        responses={200: scim_api_response(ScimGroupSerializer)},
+    ),
+    update=extend_schema(
+        description='Replaces a SCIM group entirely.',
+        responses={200: scim_api_response(ScimGroupSerializer)},
+    ),
 )
 class ScimGroupViewSet(viewsets.ModelViewSet):
     """
