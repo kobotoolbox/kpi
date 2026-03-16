@@ -101,7 +101,7 @@ class ScimUsersAPITests(APITestCase):
 
         # Check standard SCIM fields mapping on the first user
         user1_data = next(u for u in resources if u['userName'] == 'jdoe')
-        self.assertEqual(user1_data['id'], self.user1.id)
+        self.assertEqual(user1_data['id'], str(self.user1.id))
         self.assertEqual(user1_data['active'], True)
         self.assertEqual(user1_data['name']['givenName'], 'John')
         self.assertEqual(user1_data['name']['familyName'], 'Doe')

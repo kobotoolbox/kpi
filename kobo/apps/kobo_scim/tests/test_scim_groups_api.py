@@ -116,7 +116,7 @@ class ScimGroupsAPITests(APITestCase):
         self.assertEqual(data['externalId'], 'sys-eng-group-id')
         # user3 is silently ignored
         self.assertEqual(len(data['members']), 1)
-        self.assertEqual(data['members'][0]['value'], self.user1.id)
+        self.assertEqual(data['members'][0]['value'], str(self.user1.id))
 
         # Verify in DB
         group = ScimGroup.objects.get(id=data['id'])
