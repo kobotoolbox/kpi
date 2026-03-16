@@ -12,7 +12,7 @@ class ScimUserSerializer(serializers.ModelSerializer):
     """
 
     schemas = serializers.SerializerMethodField()
-    id = serializers.IntegerField(read_only=True)
+    id = serializers.CharField(read_only=True)
     userName = serializers.CharField(source='username')
     name = serializers.SerializerMethodField()
     emails = serializers.SerializerMethodField()
@@ -67,7 +67,7 @@ class ScimGroupSerializer(serializers.ModelSerializer):
         # Only return basic identifying info for group members
         return [
             {
-                'value': user.id,
+                'value': str(user.id),
                 'display': user.username,
             }
             for user in obj.members.all()
