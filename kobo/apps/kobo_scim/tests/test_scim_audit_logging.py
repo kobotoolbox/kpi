@@ -27,7 +27,7 @@ class ScimAuditLogTests(APITestCase):
         )
 
         self.url_base = reverse(
-            'v2:kobo_scim:scim-users-list', kwargs={'idp_slug': self.idp.slug}
+            'api_v2:kobo_scim:scim-users-list', kwargs={'idp_slug': self.idp.slug}
         )
 
         self.user1 = User.objects.create_user(

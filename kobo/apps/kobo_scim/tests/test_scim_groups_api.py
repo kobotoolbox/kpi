@@ -28,10 +28,10 @@ class ScimGroupsAPITests(APITestCase):
         )
 
         self.groups_url = reverse(
-            'v2:kobo_scim:scim-groups-list', kwargs={'idp_slug': self.idp.slug}
+            'api_v2:kobo_scim:scim-groups-list', kwargs={'idp_slug': self.idp.slug}
         )
         self.config_url = reverse(
-            'v2:kobo_scim:scim-service-provider-config',
+            'api_v2:kobo_scim:scim-service-provider-config',
             kwargs={'idp_slug': self.idp.slug},
         )
 

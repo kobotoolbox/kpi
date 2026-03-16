@@ -30,7 +30,7 @@ class ScimUsersAPITests(APITestCase):
         )
 
         self.url = reverse(
-            'v2:kobo_scim:scim-users-list', kwargs={'idp_slug': self.idp.slug}
+            'api_v2:kobo_scim:scim-users-list', kwargs={'idp_slug': self.idp.slug}
         )
 
         # Create some test users
@@ -74,7 +74,7 @@ class ScimUsersAPITests(APITestCase):
     def test_idp_slug_mismatch(self):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
         wrong_url = reverse(
-            'v2:kobo_scim:scim-users-list', kwargs={'idp_slug': 'wrong-idp'}
+            'api_v2:kobo_scim:scim-users-list', kwargs={'idp_slug': 'wrong-idp'}
         )
         response = self.client.get(wrong_url, HTTP_ACCEPT='application/scim+json')
         # Assuming our view returns empty list dynamically based on viewset permissions
@@ -359,7 +359,7 @@ class ScimUsersAPITests(APITestCase):
         # (user1 is linked to the first IdP)
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {idp_2.scim_api_key}')
 
-        url_2 = reverse('v2:kobo_scim:scim-users-list', kwargs={'idp_slug': idp_2.slug})
+        url_2 = reverse('api_v2:kobo_scim:scim-users-list', kwargs={'idp_slug': idp_2.slug})
         response = self.client.delete(
             f'{url_2}/{self.user1.id}', HTTP_ACCEPT='application/scim+json'
         )
