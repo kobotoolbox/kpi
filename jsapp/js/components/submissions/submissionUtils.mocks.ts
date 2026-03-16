@@ -4135,7 +4135,7 @@ export const submissionWithAllQual = {
           labels: {
             _default: 'How many vowels were used?',
           },
-          verified: false,
+          verified: true,
           source: 'generated with AI',
         },
       },
