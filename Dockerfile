@@ -132,14 +132,14 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 COPY ./dependencies/pip/requirements.txt "${TMP_DIR}/pip_dependencies.txt"
 RUN uv pip sync "${TMP_DIR}/pip_dependencies.txt" 1>/dev/null
 
+RUN rm -rf ${VIRTUAL_ENV}/lib/python*/site-packages/rest_framework/static/rest_framework
+
 #####################################
 #                                   #
 # 🧰 KPI production image 'kpi-app' #
 #                                   #
 #####################################
 FROM ghcr.io/astral-sh/uv:python3.10-bookworm-slim AS kpi-app
-
-RUN rm -rf ${VIRTUAL_ENV}/lib/python*/site-packages/rest_framework/static/rest_framework
 
 ENV DEBIAN_FRONTEND=noninteractive \
     LANG=en_US.UTF-8 \
