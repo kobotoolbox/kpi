@@ -949,36 +949,30 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       formViewModifiers.push('fullscreen')
     }
 
-    // If there exists geopoint questions at all AND the currently selected geopoint question has NO data
+    // If there exists geopoint questions at all AND the currently selected geopoint question has data
     const hasGeopointAndData = this.state.hasGeoPoint && !this.state.noData
 
     return (
       <bem.FormView m={formViewModifiers} className='right-tooltip'>
-        {hasGeopointAndData &&
         <bem.FormView__mapButton
-          m={'expand'}
+          m={`expand ${!hasGeopointAndData ? 'disabled' : ''}`}
           onClick={this.toggleFullscreen.bind(this)}
           data-tip={t('Toggle Fullscreen')}
           className={this.state.isFullscreen ? 'active' : ''}
         >
           <i className='k-icon k-icon-expand' />
         </bem.FormView__mapButton>
-        }
-        {hasGeopointAndData &&
         <bem.FormView__mapButton
-          m={'markers'}
+          m={`markers ${!hasGeopointAndData ? 'disabled' : ''}`}
           onClick={this.showMarkers.bind(this)}
           data-tip={t('Show as points')}
           className={this.state.markersVisible ? 'active' : ''}
         >
           <i className='k-icon k-icon-pins' />
         </bem.FormView__mapButton>
-        }
-        {hasGeopointAndData &&
-          <bem.FormView__mapButton m={'layers disabled'} onClick={this.showLayerControls.bind(this)} data-tip={t('Toggle layers')}>
+        <bem.FormView__mapButton m={`layers ${!hasGeopointAndData ? 'disabled' : ''}`} onClick={this.showLayerControls.bind(this)} data-tip={t('Toggle layers')}>
           <i className='k-icon k-icon-layer' />
-          </bem.FormView__mapButton>
-        }
+        </bem.FormView__mapButton>
         {this.state.hasGeoPoint &&
         <bem.FormView__mapButton
           m={'map-settings'}
@@ -988,9 +982,9 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
           <i className='k-icon k-icon-settings' />
         </bem.FormView__mapButton>
         }
-        {hasGeopointAndData && !viewby && (
+        {!viewby && (
           <bem.FormView__mapButton
-            m={'heatmap'}
+            m={`heatmap ${!hasGeopointAndData ? 'disabled' : ''}`}
             onClick={this.showHeatmap.bind(this)}
             data-tip={t('Show as heatmap')}
             className={this.state.markersVisible ? '' : 'active'}
