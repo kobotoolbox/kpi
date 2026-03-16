@@ -636,6 +636,7 @@ class TestAutomaticQAThrottling(BaseAutomaticBedrockQualTestCase):
         }
 
     @override_config(AUTOMATIC_QA_REQUESTS_PER_SECOND=5)
+    @freeze_time('2026-03-16 12:00:00')
     def test_automatic_qa_throttles_after_limit(self):
         """
         Test that after a certain number of requests to trigger automatic QA,
@@ -660,6 +661,8 @@ class TestAutomaticQAThrottling(BaseAutomaticBedrockQualTestCase):
         assert 'detail' in response.data
         assert 'Request was throttled' in response.data['detail']
 
+    @override_config(AUTOMATIC_QA_REQUESTS_PER_SECOND=5)
+    @freeze_time('2026-03-16 12:00:00')
     def test_manual_actions_are_not_throttled(self):
         """
         Test that if a user makes requests that trigger manual actions,
