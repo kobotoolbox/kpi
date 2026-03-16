@@ -181,7 +181,7 @@ describe('getSupplementalDetailsContent', () => {
   it('should return analysis question verified value properly for a question inside a group', () => {
     const test = getSupplementalDetailsContent(
       submissionWithNestedSupplementalDetails,
-      '_supplementalDetails/level_a/level_b/level_c/sounds/5dc7f202-8103-43a8-a48f-8f9b3c8f955f/verified',
+      '_supplementalDetails/level_a/level_b/level_c/sounds/9d75988b-7b69-48ec-921d-2ed15b9f5ca7/verified',
     )
     chai.expect(test).to.equal('No')
   })
@@ -250,6 +250,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
             labels: { _default: 'foo' },
             xpath: '',
             verified: false,
+            source: 'manual',
           },
           234: {
             value: 'foo',
@@ -258,6 +259,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
             labels: { _default: 'foo' },
             xpath: '',
             verified: false,
+            source: 'manual',
           },
           345: {
             value: 'bar',
@@ -267,6 +269,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
             labels: { _default: 'foo' },
             xpath: '345',
             verified: false,
+            source: 'manual',
           },
         },
       },
@@ -284,6 +287,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
             labels: { _default: 'foo' },
             xpath: '',
             verified: false,
+            source: 'manual',
           },
         },
       },
@@ -301,6 +305,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
             uuid: '123',
             xpath: '',
             verified: false,
+            source: 'manual',
           },
           234: {
             value: 'bar',
@@ -310,6 +315,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
             uuid: '234',
             xpath: '',
             verified: false,
+            source: 'manual',
           },
         },
       },
@@ -344,6 +350,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
             uuid: '123',
             xpath: '',
             verified: false,
+            source: 'manual',
           },
         },
       },
@@ -365,6 +372,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
             uuid: '123',
             xpath: '',
             verified: false,
+            source: 'manual',
           },
           234: {
             value: [],
@@ -373,6 +381,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
             uuid: '234',
             xpath: '',
             verified: false,
+            source: 'manual',
           },
           345: {
             value: null,
@@ -381,6 +390,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
             uuid: '345',
             xpath: '',
             verified: false,
+            source: 'manual',
           },
           456: {
             value: 'foo',
@@ -390,6 +400,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
             uuid: '456',
             xpath: '',
             verified: false,
+            source: 'manual',
           },
           567: {
             value: 'bar',
@@ -398,6 +409,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
             uuid: '567',
             xpath: '',
             verified: false,
+            source: 'manual',
           },
         },
       },
@@ -415,6 +427,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
             uuid: '567',
             xpath: '',
             verified: false,
+            source: 'manual',
           },
         },
       },
