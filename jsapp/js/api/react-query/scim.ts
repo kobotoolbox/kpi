@@ -33,6 +33,10 @@ import type { ScimUser } from '../models/scimUser'
 
 import type { ScimV2GroupsListParams } from '../models/scimV2GroupsListParams'
 
+import type { ScimV2ServiceProviderConfigRetrieve200One } from '../models/scimV2ServiceProviderConfigRetrieve200One'
+
+import type { ScimV2ServiceProviderConfigRetrieve200Two } from '../models/scimV2ServiceProviderConfigRetrieve200Two'
+
 import type { ScimV2UsersListParams } from '../models/scimV2UsersListParams'
 
 import { fetchWithAuth } from '../orval.mutator'
@@ -549,11 +553,18 @@ export const useScimV2GroupsDestroy = <TError = unknown, TContext = unknown>(opt
  * Returns the SCIM Service Provider Configuration.
  */
 export type scimV2ServiceProviderConfigRetrieveResponse200 = {
-  data: void
+  data: ScimV2ServiceProviderConfigRetrieve200One
   status: 200
 }
 
-export type scimV2ServiceProviderConfigRetrieveResponseComposite = scimV2ServiceProviderConfigRetrieveResponse200
+export type scimV2ServiceProviderConfigRetrieveResponse200 = {
+  data: ScimV2ServiceProviderConfigRetrieve200Two
+  status: 200
+}
+
+export type scimV2ServiceProviderConfigRetrieveResponseComposite =
+  | scimV2ServiceProviderConfigRetrieveResponse200
+  | scimV2ServiceProviderConfigRetrieveResponse200
 
 export type scimV2ServiceProviderConfigRetrieveResponse = scimV2ServiceProviderConfigRetrieveResponseComposite & {
   headers: Headers

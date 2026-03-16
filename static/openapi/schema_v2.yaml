@@ -9753,7 +9753,16 @@ paths:
       - SCIM
       responses:
         '200':
-          description: No response body
+          content:
+            application/scim+json:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
   /api/v2/scim/v2/{idp_slug}/Users:
     get:
       operationId: api_v2_scim_v2_Users_list

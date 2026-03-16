@@ -360,7 +360,7 @@ class ScimUsersAPITests(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {idp_2.scim_api_key}')
 
         url_2 = reverse(
-            'api_v2:kobo_scim:scim-users-list', 
+            'api_v2:kobo_scim:scim-users-list',
             kwargs={'idp_slug': idp_2.slug},
         )
         response = self.client.delete(

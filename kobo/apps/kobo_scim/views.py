@@ -3,7 +3,8 @@ import re
 from allauth.socialaccount.models import SocialAccount
 from django.conf import settings
 from django.db import IntegrityError, transaction
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
+from drf_spectacular.types import OpenApiTypes
 from rest_framework import mixins, status, viewsets
 from rest_framework.exceptions import ValidationError
 from rest_framework.parsers import JSONParser
@@ -21,7 +22,10 @@ from kobo.apps.kobo_scim.renderers import SCIMParser, SCIMRenderer
 from kobo.apps.kobo_scim.serializers import ScimGroupSerializer, ScimUserSerializer
 
 
-@extend_schema(tags=['SCIM'])
+@extend_schema(
+    tags=['SCIM'],
+    parameters=[OpenApiParameter("idp_slug", OpenApiTypes.STR, OpenApiParameter.PATH)]
+)
 @extend_schema_view(
     list=extend_schema(
         description='Returns a list of SCIM users matching the optional query'
@@ -287,7 +291,10 @@ class ScimUserViewSet(
         )
 
 
-@extend_schema(tags=['SCIM'])
+@extend_schema(
+    tags=['SCIM'],
+    parameters=[OpenApiParameter("idp_slug", OpenApiTypes.STR, OpenApiParameter.PATH)]
+)
 @extend_schema_view(
     get=extend_schema(description='Returns the SCIM Service Provider Configuration.'),
 )
@@ -302,6 +309,11 @@ class ScimServiceProviderConfigView(APIView):
     parser_classes = [SCIMParser, JSONParser]
     renderer_classes = [SCIMRenderer, JSONRenderer]
 
+    @extend_schema(
+        responses={
+            200: OpenApiTypes.OBJECT
+        }
+    )
     def get(self, request, *args, **kwargs):
         # We only support patch and basic filtering
         payload = {
@@ -316,7 +328,10 @@ class ScimServiceProviderConfigView(APIView):
         return Response(payload, status=status.HTTP_200_OK)
 
 
-@extend_schema(tags=['SCIM'])
+@extend_schema(
+    tags=['SCIM'],
+    parameters=[OpenApiParameter("idp_slug", OpenApiTypes.STR, OpenApiParameter.PATH)]
+)
 @extend_schema_view(
     list=extend_schema(description='Returns a list of SCIM groups.'),
     retrieve=extend_schema(description='Returns a specific SCIM group.'),
