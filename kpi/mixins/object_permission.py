@@ -709,7 +709,7 @@ class ObjectPermissionMixin:
                 codename=codename,
             )
 
-        # Internal recursive call for an implied permission. 
+        # Internal recursive call for an implied permission.
         # No need to update partial or descendant perms, this is done at the top level
         if _implied:
             return
