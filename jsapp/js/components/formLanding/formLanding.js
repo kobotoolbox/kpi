@@ -486,12 +486,6 @@ class FormLanding extends React.Component {
             </bem.PopoverMenu__link>
           )}
 
-          {userCanEdit && this.state.content.survey.length > 0 && (
-            <bem.PopoverMenu__link onClick={this.showLanguagesModal}>
-              <i className='k-icon k-icon-language' />
-              {t('Manage translations')}
-            </bem.PopoverMenu__link>
-          )}
           {/* temporarily disabled
           <bem.PopoverMenu__link onClick={this.showEncryptionModal}>
             <i className='k-icon k-icon-lock'/>
