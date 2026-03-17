@@ -14,7 +14,7 @@ You might as well be wondering: "How to translate the string I just added?". The
 
 ## Automation
 
-See automation implementation details for pushing at `release-2-stabilize.yml` and for pulling at `release-3-tag.yml`.
+See automation implementation details at `transifex.yml`, `release-2-stabilize.yml` and `release-3-tag.yml`.
 
 Here's how to run those GHA scripts locally, but mind the timing when to do it:
 
@@ -32,7 +32,7 @@ uv pip sync dependencies/pip/dev_requirements.txt
 
 ## To write new source strings:
 python manage.py makemessages --locale en
-python manage.py makemessages --locale en --domain djangojs --extension js
+python manage.py makemessages --locale en --domain djangojs
 (cd locale; git diff --stat)
 # tx push # be careful not to push from the wrong branch, better leave this to CI.
 # (cd locale; git add .; git commit -m'chore: add new source strings'; git push)
@@ -79,4 +79,4 @@ There are 3 reasonable options actually, used or considered over kpi lifetime:
 
 The first two are kinda the same, but as the first one is already used to extract backend strings just reuse it for frontend as well. Less dependencies to install and bother about.
 
-The third is a better question, but it essentially boils down to the arguemnt above: that's just the simplest way to get it done. It's also the fastest on CI, as we don't need to install js deps nor build webpack to get those strings.
+The third is a better question, but it essentially boils down to the argument above: that's just the simplest way to get it done. It's also the fastest on CI, as we don't need to install js deps nor build webpack to get those strings.

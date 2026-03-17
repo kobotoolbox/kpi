@@ -4,21 +4,36 @@ name: Update Translations
 
 on:
   push:
-    branches: [ "main", "kalvis/transifex" ] # WIP
+    branches: [ "kalvis/transifex" ] # WIP for debugging
   workflow_call:
     inputs:
+      test:
+        type: boolean
+        default: false
       push:
-        required: true
         type: boolean
+        default: false
       pull:
-        required: true
         type: boolean
+        default: false
 
 
 jobs:
-  upload-to-transifex:
+  version:
+    if: ${{ startsWith(github.ref, 'refs/heads/release/') }}
+    secrets: inherit
+    uses: './.github/workflows/find-releases.yml'
+
+  transifex:
+    needs:
+      - version
+    if: ${{ needs.version.outputs.current_released == 'true' }}
     runs-on: ubuntu-24.04
+    outputs:
+      pull-changed: ${{ steps.pull-changed.outputs.changed }}
     steps:
+
+    ## Setup
 
     - uses: actions/checkout@v6
       with:
@@ -47,21 +62,27 @@ jobs:
     - name: Install Python dependencies
       run: uv pip sync --system dependencies/pip/dev_requirements.txt
 
+    ## Pushing & Testing
 
-    ## Pushing
+    - name: Assert that push is initiated from the current release branch.
+      if: ${{ inputs.push && (needs.version.outputs.current_released != 'true' || !!needs.version.outputs.next_patch) }}
+      run: |
+        echo "ERROR: not on the current release branch. Please investigate the calling workflow how that happened."
+        exit 1
 
     - name: Extract translatable strings from Python code.
-      if: ${{ inputs.push }}
+      if: ${{ inputs.test }}
       run: python manage.py makemessages --locale en
 
     - name: Extract translatable strings from Javascript/Typescript code.
-      if: ${{ inputs.push }}
-      run: python manage.py makemessages --locale en --domain djangojs --extension js
+      if: ${{ inputs.test }}
+      run: python manage.py makemessages --locale en --domain djangojs
 
-    # DEBUG
-    - name: Output translatable strings for debugging
-      if: ${{ inputs.push }}
+    - name: Abort if there are uncommitted translatable string changes.
+      if: ${{ inputs.test }}
+      id: test
       run: |
+        # DEBUG
         git diff --stat
         echo '---------'
         git diff
@@ -70,24 +91,25 @@ jobs:
         echo '---------'
         (cd locale; git diff)
 
+        echo 'if this errors, run ./generate_translatable_strings.sh locally and commit updated strings.'
+
+        git diff-index --exit-code HEAD
+
     # WIP
-    # - name: Push Transifex
+    # - name: Push to Transifex
     #   if: ${{ inputs.push }}
     #   uses: transifex/cli-action@v2
     #   with:
     #     token: ${{ secrets.TRANSIFEX_API }}
     #     args: 'push -s'
 
-    # WIP
-    # - name: commit the translateble strings
-    #   if: ${{ inputs.push }}
-    #   run: |
-    #     git add .
-    #     git commit -m "chore: update transifex translatable strings"
-    #     git push
-
-
     ## Pulling
+
+    - name: Assert that pull is initiated from the current release branch.
+      if: ${{ inputs.pull && (needs.version.outputs.current_released != 'true' || !!needs.version.outputs.next_patch) }}
+      run: |
+        echo "ERROR: not on the current release branch. Please investigate the calling workflow how that happened."
+        exit 1
 
     - name: Pull Transifex
       if: ${{ inputs.pull }}
@@ -96,10 +118,14 @@ jobs:
         token: ${{ secrets.TRANSIFEX_API }}
         args: 'pull -a -f --mode reviewed'
 
-    # DEBUG
-    - name: Output translated strings for debugging
+    - name: Bail if nothing changed.
       if: ${{ inputs.pull }}
+      id: pull-changed
       run: |
+        CHANGED=$(git diff-index --exit-code HEAD &>/dev/null && echo "false" || echo "true")
+        echo "changed=${CHANGED}" >> $GITHUB_OUTPUT
+
+        # DEBUG
         git diff --stat
         echo '---------'
         git diff
@@ -110,7 +136,7 @@ jobs:
 
     # WIP
     # - name: commit the translateble strings
-    #   if: ${{ inputs.pull }}
+    #   if: ${{ inputs.pull && steps.pull-changed.outputs.changed === "true" }}
     #   run: |
     #     git add .
     #     git commit -m "chore: update transifex translations"
