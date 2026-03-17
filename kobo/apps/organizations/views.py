@@ -92,6 +92,15 @@ class OrganizationAssetViewSet(AssetViewSet):
         AssetOrderingFilter,
     ]
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        organization = getattr(self.request, 'organization', None)
+        if organization:
+            context['user_is_org_admin'] = organization.is_admin_only(
+                self.request.user
+            )
+        return context
+
     def get_queryset(self, *args, **kwargs):
         if not getattr(self.request, 'permissions_checked', False):
             # Perform a sanity check to ensure that permissions have been properly
