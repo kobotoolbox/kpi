@@ -320,7 +320,8 @@ export default function AnalysisQuestionListItem({
         return (
           <ResponseForm
             qaQuestion={qaQuestion}
-            disabled={disabledQuestion}
+            disabledAnswer={disabledAnswer}
+            disabledQuestion={disabledQuestion}
             onEdit={setQaQuestion}
             onDelete={handleDeleteQuestion}
             hasTranscript={hasTranscript}
@@ -334,7 +335,8 @@ export default function AnalysisQuestionListItem({
         return (
           <ResponseForm
             qaQuestion={qaQuestion}
-            disabled={disabledQuestion}
+            disabledAnswer={disabledAnswer}
+            disabledQuestion={disabledQuestion}
             onEdit={confirmEditModalHandlers.open}
             onUpdateAnswerVerification={handleUpdateAnswerVerification}
             onDelete={handleDeleteQuestion}
@@ -376,7 +378,8 @@ export default function AnalysisQuestionListItem({
         return (
           <ResponseForm
             qaQuestion={qaQuestion}
-            disabled={disabledQuestion}
+            disabledAnswer={disabledAnswer}
+            disabledQuestion={disabledQuestion}
             onEdit={confirmEditModalHandlers.open}
             onUpdateAnswerVerification={handleUpdateAnswerVerification}
             onDelete={handleDeleteQuestion}
@@ -400,7 +403,8 @@ export default function AnalysisQuestionListItem({
         return (
           <ResponseForm
             qaQuestion={qaQuestion}
-            disabled={disabledQuestion}
+            disabledAnswer={disabledAnswer}
+            disabledQuestion={disabledQuestion}
             onEdit={confirmEditModalHandlers.open}
             onUpdateAnswerVerification={handleUpdateAnswerVerification}
             onDelete={handleDeleteQuestion}
@@ -417,7 +421,8 @@ export default function AnalysisQuestionListItem({
         return (
           <ResponseForm
             qaQuestion={qaQuestion}
-            disabled={disabledQuestion}
+            disabledAnswer={disabledAnswer}
+            disabledQuestion={disabledQuestion}
             onEdit={confirmEditModalHandlers.open}
             onUpdateAnswerVerification={handleUpdateAnswerVerification}
             onDelete={handleDeleteQuestion}
@@ -440,7 +445,8 @@ export default function AnalysisQuestionListItem({
         return (
           <ResponseForm
             qaQuestion={qaQuestion}
-            disabled={disabledQuestion}
+            disabledAnswer={disabledAnswer}
+            disabledQuestion={disabledQuestion}
             onEdit={confirmEditModalHandlers.open}
             onUpdateAnswerVerification={handleUpdateAnswerVerification}
             onDelete={handleDeleteQuestion}

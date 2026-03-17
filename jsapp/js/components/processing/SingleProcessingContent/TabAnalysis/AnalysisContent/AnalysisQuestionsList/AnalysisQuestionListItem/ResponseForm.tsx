@@ -16,7 +16,8 @@ interface Props {
   qaQuestion: ResponseManualQualActionParams
   // It is both optional (not all types have answers) and can be `undefined` as value
   answer?: QualVersionItem
-  disabled: boolean
+  disabledAnswer: boolean
+  disabledQuestion: boolean
   // This is optional because some types are not clearable
   onClear?: () => Promise<void>
   onUpdateAnswerVerification?: (verified: boolean) => Promise<void>
@@ -39,7 +40,8 @@ export default function ResponseForm({
   children,
   qaQuestion,
   answer,
-  disabled,
+  disabledAnswer,
+  disabledQuestion,
   onClear,
   onUpdateAnswerVerification,
   onEdit,
@@ -139,7 +141,7 @@ export default function ResponseForm({
   return (
     <Stack gap='10px'>
       <Group align={'flex-start'} gap={'xs'}>
-        {!disabled && (
+        {!disabledQuestion && (
           <Modal opened={opened} onClose={close} title={t('Delete this question?')} size={'md'}>
             <Stack gap='24px'>
               <Text>{t('Are you sure you want to delete this question? This action cannot be undone.')}</Text>
@@ -174,7 +176,7 @@ export default function ResponseForm({
         >
           {qaQuestion.labels._default}
         </Text>
-        {!disabled && (
+        {!disabledQuestion && (
           <>
             <ActionIcon
               variant='light'
@@ -183,10 +185,16 @@ export default function ResponseForm({
               onClick={handleEdit}
               // We only allow editing one question at a time, so adding new is not
               // possible until user stops editing
-              disabled={disabled}
+              disabled={disabledQuestion}
             />
 
-            <ActionIcon variant='danger-secondary' size='sm' iconName='trash' onClick={open} disabled={disabled} />
+            <ActionIcon
+              variant='danger-secondary'
+              size='sm'
+              iconName='trash'
+              onClick={open}
+              disabled={disabledQuestion}
+            />
           </>
         )}
       </Group>
@@ -202,7 +210,7 @@ export default function ResponseForm({
               h='fit-content'
               size='md'
               p={0}
-              disabled={disabled}
+              disabled={disabledAnswer}
               c='var(--mantine-color-blue-5)'
               leftIcon='sparkles'
               onClick={handleGenerateWithAI}
@@ -219,7 +227,7 @@ export default function ResponseForm({
               h='fit-content'
               size='md'
               p={0}
-              disabled={disabled}
+              disabled={disabledAnswer}
               c='var(--mantine-color-red-5)'
               leftIcon='close'
               onClick={handleClear}
@@ -235,14 +243,15 @@ export default function ResponseForm({
                 <Text>{t('AI generated')}</Text>
               </Group>
             )}
-
-            <Checkbox
-              label={t('Verified')}
-              checked={displayedVerificationStatus}
-              onChange={handleVerificationChange}
-              disabled={disabled}
-              size='sm'
-            />
+            {(answer || hasEmptyValueAnswerVal) && (
+              <Checkbox
+                label={t('Verified')}
+                checked={displayedVerificationStatus}
+                onChange={handleVerificationChange}
+                disabled={disabledAnswer}
+                size='sm'
+              />
+            )}
           </Group>
         </Group>
       )}
