@@ -108,12 +108,12 @@ export default function AnalysisQuestionListItem({
     setLocalRadioValue(undefined)
   }, [queryAnswer.data?._uuid])
 
-  const mutationSaveAnswer = useAssetsDataSupplementPartialUpdate({ mutation: { scope: { id: 'qa-answer' } } })
+  const mutationPatchAnswer = useAssetsDataSupplementPartialUpdate({ mutation: { scope: { id: 'qa-answer' } } })
   const mutationCreateQuestion = useAssetsAdvancedFeaturesCreate({ mutation: { scope: { id: 'qa-question' } } })
   const mutationPatchQuestion = useAssetsAdvancedFeaturesPartialUpdate({ mutation: { scope: { id: 'qa-question' } } })
 
   const handleSaveAnswer = async (value: ManualQualValue) => {
-    await mutationSaveAnswer.mutateAsync({
+    await mutationPatchAnswer.mutateAsync({
       uidAsset: asset.uid,
       rootUuid: rootUuid,
       data: {
@@ -122,6 +122,22 @@ export default function AnalysisQuestionListItem({
           [ActionEnum.manual_qual]: {
             uuid: qaQuestion.uuid,
             value,
+          },
+        },
+      },
+    })
+  }
+
+  const handleUpdateAnswerVerification = async (verified: boolean) => {
+    await mutationPatchAnswer.mutateAsync({
+      uidAsset: asset.uid,
+      rootUuid: rootUuid,
+      data: {
+        _version: SUBSEQUENCES_SCHEMA_VERSION,
+        [questionXpath]: {
+          [ActionEnum.manual_qual]: {
+            uuid: qaQuestion.uuid,
+            verified,
           },
         },
       },
@@ -320,6 +336,7 @@ export default function AnalysisQuestionListItem({
             qaQuestion={qaQuestion}
             disabled={disabledQuestion}
             onEdit={confirmEditModalHandlers.open}
+            onUpdateAnswerVerification={handleUpdateAnswerVerification}
             onDelete={handleDeleteQuestion}
             onClear={() => handleSaveAnswer(getEmptyAnswer(qaQuestion.type))}
             onGenerateWithAI={() => onGenerateWithAI(qaQuestion)}
@@ -361,6 +378,7 @@ export default function AnalysisQuestionListItem({
             qaQuestion={qaQuestion}
             disabled={disabledQuestion}
             onEdit={confirmEditModalHandlers.open}
+            onUpdateAnswerVerification={handleUpdateAnswerVerification}
             onDelete={handleDeleteQuestion}
             onClear={handleClearSelection}
             onGenerateWithAI={() => onGenerateWithAI(qaQuestion)}
@@ -384,6 +402,7 @@ export default function AnalysisQuestionListItem({
             qaQuestion={qaQuestion}
             disabled={disabledQuestion}
             onEdit={confirmEditModalHandlers.open}
+            onUpdateAnswerVerification={handleUpdateAnswerVerification}
             onDelete={handleDeleteQuestion}
             onClear={() => handleSaveAnswer(getEmptyAnswer(qaQuestion.type))}
             answer={queryAnswer.data}
@@ -400,6 +419,7 @@ export default function AnalysisQuestionListItem({
             qaQuestion={qaQuestion}
             disabled={disabledQuestion}
             onEdit={confirmEditModalHandlers.open}
+            onUpdateAnswerVerification={handleUpdateAnswerVerification}
             onDelete={handleDeleteQuestion}
             onClear={() => handleSaveAnswer(getEmptyAnswer(qaQuestion.type))}
             onGenerateWithAI={() => onGenerateWithAI(qaQuestion)}
@@ -422,6 +442,7 @@ export default function AnalysisQuestionListItem({
             qaQuestion={qaQuestion}
             disabled={disabledQuestion}
             onEdit={confirmEditModalHandlers.open}
+            onUpdateAnswerVerification={handleUpdateAnswerVerification}
             onDelete={handleDeleteQuestion}
             onClear={() => handleSaveAnswer(getEmptyAnswer(qaQuestion.type))}
             onGenerateWithAI={() => onGenerateWithAI(qaQuestion)}

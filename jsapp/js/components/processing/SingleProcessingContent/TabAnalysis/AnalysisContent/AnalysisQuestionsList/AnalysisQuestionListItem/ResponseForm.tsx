@@ -1,7 +1,6 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
-import { Group, Modal, Stack, Text } from '@mantine/core'
-import { Box, ThemeIcon } from '@mantine/core'
+import { Box, Checkbox, Group, Modal, Stack, Text, ThemeIcon } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import ActionIcon from '#/components/common/ActionIcon'
 import ButtonNew from '#/components/common/ButtonNew'
@@ -20,6 +19,7 @@ interface Props {
   disabled: boolean
   // This is optional because some types are not clearable
   onClear?: () => Promise<void>
+  onUpdateAnswerVerification?: (verified: boolean) => Promise<void>
   onEdit: (qaQuestion: ResponseManualQualActionParams) => unknown
   onDelete: (qaQuestion: ResponseManualQualActionParams) => Promise<unknown>
   /**
@@ -41,6 +41,7 @@ export default function ResponseForm({
   answer,
   disabled,
   onClear,
+  onUpdateAnswerVerification,
   onEdit,
   onDelete,
   onGenerateWithAI,
@@ -48,7 +49,12 @@ export default function ResponseForm({
   hasTranscript,
 }: Props) {
   const [opened, { open, close }] = useDisclosure(false)
+  const [verificationStatus, setVerificationStatus] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
+
+  useEffect(() => {
+    setVerificationStatus(answer?.verified ?? false)
+  }, [answer?._uuid])
 
   const ffAutoQAEnabled = useFeatureFlag(FeatureFlag.autoQAEnabled)
 
@@ -115,6 +121,14 @@ export default function ResponseForm({
       await onGenerateWithAI()
     } finally {
       setIsGenerating(false)
+    }
+  }
+
+  const handleVerificationChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = event.currentTarget.checked
+    setVerificationStatus(newValue)
+    if (onUpdateAnswerVerification) {
+      onUpdateAnswerVerification(newValue)
     }
   }
 
@@ -210,13 +224,22 @@ export default function ResponseForm({
               {t('Clear')}
             </ButtonNew>
           )}
+          <Group style={{ justifyContent: 'space-between' }}>
+            {shouldDisplayAIGeneratedBadge() && (
+              <Group pl='40px' c='var(--mantine-color-blue-5)' gap='xs'>
+                <Icon name='sparkles' size='m' />
+                <Text>{t('AI generated')}</Text>
+              </Group>
+            )}
 
-          {shouldDisplayAIGeneratedBadge() && (
-            <Group pl='40px' c='var(--mantine-color-blue-5)' gap='xs'>
-              <Icon name='sparkles' size='m' />
-              <Text>{t('AI generated')}</Text>
-            </Group>
-          )}
+            <Checkbox
+              label={t('Verified')}
+              checked={verificationStatus}
+              onChange={handleVerificationChange}
+              disabled={disabled}
+              size='sm'
+            />
+          </Group>
         </Group>
       )}
     </Stack>
