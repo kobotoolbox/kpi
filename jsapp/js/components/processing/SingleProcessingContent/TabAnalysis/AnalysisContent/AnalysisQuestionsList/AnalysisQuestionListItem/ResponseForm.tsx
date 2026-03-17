@@ -49,11 +49,11 @@ export default function ResponseForm({
   hasTranscript,
 }: Props) {
   const [opened, { open, close }] = useDisclosure(false)
-  const [verificationStatus, setVerificationStatus] = useState(false)
+  const [verificationStatus, setVerificationStatus] = useState<boolean | undefined>(undefined)
   const [isGenerating, setIsGenerating] = useState(false)
 
   useEffect(() => {
-    setVerificationStatus(answer?.verified ?? false)
+    setVerificationStatus(undefined)
   }, [answer?._uuid])
 
   const ffAutoQAEnabled = useFeatureFlag(FeatureFlag.autoQAEnabled)
@@ -123,6 +123,10 @@ export default function ResponseForm({
       setIsGenerating(false)
     }
   }
+
+  // Prioritize user's currently selected status
+  const displayedVerificationStatus =
+    verificationStatus !== undefined ? verificationStatus : (answer?.verified ?? false)
 
   const handleVerificationChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = event.currentTarget.checked
@@ -234,7 +238,7 @@ export default function ResponseForm({
 
             <Checkbox
               label={t('Verified')}
-              checked={verificationStatus}
+              checked={displayedVerificationStatus}
               onChange={handleVerificationChange}
               disabled={disabled}
               size='sm'
