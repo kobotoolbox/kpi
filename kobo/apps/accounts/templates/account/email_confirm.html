@@ -29,19 +29,31 @@
         {% trans "Confirm" %}
       </button>
   {% else %}
-  <form class="registration">
-    <h1>{% trans "Activation failed" %}</h1>
+  <form class="registration registration--complete">
+    <div class="registration--logo">
+      <h1>{% trans "Activation Failed" %}</h1>
+    </div>
 
     <p class="registration__message">
-      {% trans "Sorry, we couldn't activate your account. The link we sent you has expired." %}
+      {% trans "This activation link has expired. We could not confirm your email address. " %}
+    </p>
+
+    <p class="registration__message">
+      {% trans "If you are trying to activate a new account, please sign into your account with your credentials (username and password) and a new link will be sent to you." %}
+    </p>
+
+    <p class="registration__message">
+      {% trans "If you are trying to verify an email address change, please go to the security tab under your account settings, and click the 'resend' button to receive a new activation link." %}
     </p>
 
     {% url 'account_email' as email_url %}
 
     <p class="registration__message">
-      {% blocktrans trimmed %}This e-mail confirmation link expired or is invalid.
-      If you need to request a new link to verify your email address change,
-      please go to your account settings page and enter your email address again.{% endblocktrans %}
+      {% trans "Need help?" %}
+      <a href="https://www.kobotoolbox.org/contact/?reason=support&support=account_support">
+        {% trans "Contact support" %}
+      </a>
+      {% trans "if you're having trouble accessing your account." %}
     </p>
 
   {% endif %}
