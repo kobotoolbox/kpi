@@ -93,12 +93,19 @@ class OrganizationAssetViewSet(AssetViewSet):
     ]
 
     def get_serializer_context(self):
+        """
+        Injects `user_is_org_admin` into the serializer context once per
+        request. Org admins have no explicit ObjectPermission records, so the
+        serializer cannot detect their implicit `manage_asset` grant by scanning
+        DB assignments alone. This flag lets `AssetListSerializer` grant them
+        full permission visibility without issuing per-asset queries.
+        `is_admin_only()` is decorated with `@cache_for_request`, so it only
+        hits the DB once regardless of page size.
+        """
         context = super().get_serializer_context()
         organization = getattr(self.request, 'organization', None)
         if organization:
-            context['user_is_org_admin'] = organization.is_admin_only(
-                self.request.user
-            )
+            context['user_is_org_admin'] = organization.is_admin_only(self.request.user)
         return context
 
     def get_queryset(self, *args, **kwargs):

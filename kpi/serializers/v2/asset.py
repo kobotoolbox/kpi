@@ -1161,11 +1161,8 @@ class AssetListSerializer(AssetSerializer):
             return super().get_permissions(asset)
 
         user = self.context['request'].user
-        # Injected by OrganizationAssetViewSet.get_serializer_context() (once per
-        # request) when the endpoint is /api/v2/organizations/<uid>/assets/.
-        # Org admins have no explicit ObjectPermission records, so this flag lets
-        # get_user_permission_assignments() grant them full visibility without
-        # per-asset DB queries.
+        # Set by OrganizationAssetViewSet: True when the requesting user is an
+        # org admin (who has no explicit ObjectPermission records).
         user_is_org_admin = self.context.get('user_is_org_admin', False)
         asset_permission_assignments = get_user_permission_assignments(
             asset, user, asset_permission_assignments, user_is_org_admin
