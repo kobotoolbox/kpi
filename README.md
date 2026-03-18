@@ -38,8 +38,7 @@ Python dependencies are managed with `pip-compile` and `pip-sync` from the [`pip
 
 ## Translations
 
-* Run `python manage.py compilemessages` to create `.mo` files from the `.po` files.
-* To test out locales in the interface, double click "account actions" in the left navbar, use the dropdown to select a language, and refresh.
+For most cases no action required, see [Transifex's README](.tx/README.md) for details.
 
 ## Searching
 
