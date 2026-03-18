@@ -354,6 +354,232 @@ class ScimServiceProviderConfigView(APIView):
 
 @scim_extend_schema()
 @extend_schema_view(
+    get=extend_schema(description='Returns the SCIM supported Schemas.'),
+)
+class ScimSchemasView(APIView):
+    """
+    SCIM 2.0 compliant Schemas endpoint.
+    NOTE: The schemas returned by this view are limited to the fields we handle in
+    our current implementation.
+    - GET /Schemas
+    """
+
+    authentication_classes = [ScimAuthentication]
+    permission_classes = [IsAuthenticatedIdP]
+    parser_classes = [SCIMParser, JSONParser]
+    renderer_classes = [SCIMRenderer]
+
+    @extend_schema(responses={200: OpenApiTypes.OBJECT})
+    def get(self, request, *args, **kwargs):
+        payload = {
+            'schemas': ['urn:ietf:params:scim:api:messages:2.0:ListResponse'],
+            'totalResults': 2,
+            'itemsPerPage': 2,
+            'startIndex': 1,
+            'Resources': [
+                {
+                    'id': 'urn:ietf:params:scim:schemas:core:2.0:User',
+                    'name': 'User',
+                    'description': 'User Account',
+                    'attributes': [
+                        {
+                            'name': 'userName',
+                            'type': 'string',
+                            'multiValued': False,
+                            'required': True,
+                            'caseExact': False,
+                            'mutability': 'readWrite',
+                            'returned': 'default',
+                            'uniqueness': 'server',
+                        },
+                        {
+                            'name': 'name',
+                            'type': 'complex',
+                            'multiValued': False,
+                            'required': False,
+                            'mutability': 'readWrite',
+                            'returned': 'default',
+                            'subAttributes': [
+                                {
+                                    'name': 'familyName',
+                                    'type': 'string',
+                                    'multiValued': False,
+                                    'required': False,
+                                    'caseExact': False,
+                                    'mutability': 'readWrite',
+                                    'returned': 'default',
+                                    'uniqueness': 'none',
+                                },
+                                {
+                                    'name': 'givenName',
+                                    'type': 'string',
+                                    'multiValued': False,
+                                    'required': False,
+                                    'caseExact': False,
+                                    'mutability': 'readWrite',
+                                    'returned': 'default',
+                                    'uniqueness': 'none',
+                                },
+                            ],
+                        },
+                        {
+                            'name': 'emails',
+                            'type': 'complex',
+                            'multiValued': True,
+                            'required': False,
+                            'mutability': 'readWrite',
+                            'returned': 'default',
+                            'subAttributes': [
+                                {
+                                    'name': 'value',
+                                    'type': 'string',
+                                    'multiValued': False,
+                                    'required': False,
+                                    'caseExact': False,
+                                    'mutability': 'readWrite',
+                                    'returned': 'default',
+                                    'uniqueness': 'none',
+                                },
+                                {
+                                    'name': 'primary',
+                                    'type': 'boolean',
+                                    'multiValued': False,
+                                    'required': False,
+                                    'mutability': 'readWrite',
+                                    'returned': 'default',
+                                },
+                            ],
+                        },
+                        {
+                            'name': 'active',
+                            'type': 'boolean',
+                            'multiValued': False,
+                            'required': False,
+                            'mutability': 'readWrite',
+                            'returned': 'default',
+                        },
+                        {
+                            'name': 'externalId',
+                            'type': 'string',
+                            'multiValued': False,
+                            'required': False,
+                            'caseExact': False,
+                            'mutability': 'readWrite',
+                            'returned': 'default',
+                            'uniqueness': 'none',
+                        },
+                    ],
+                },
+                {
+                    'id': 'urn:ietf:params:scim:schemas:core:2.0:Group',
+                    'name': 'Group',
+                    'description': 'Group',
+                    'attributes': [
+                        {
+                            'name': 'displayName',
+                            'type': 'string',
+                            'multiValued': False,
+                            'required': True,
+                            'caseExact': False,
+                            'mutability': 'readWrite',
+                            'returned': 'default',
+                            'uniqueness': 'none',
+                        },
+                        {
+                            'name': 'members',
+                            'type': 'complex',
+                            'multiValued': True,
+                            'required': False,
+                            'mutability': 'readWrite',
+                            'returned': 'default',
+                            'subAttributes': [
+                                {
+                                    'name': 'value',
+                                    'type': 'string',
+                                    'multiValued': False,
+                                    'required': False,
+                                    'caseExact': False,
+                                    'mutability': 'immutable',
+                                    'returned': 'default',
+                                    'uniqueness': 'none',
+                                },
+                                {
+                                    'name': 'display',
+                                    'type': 'string',
+                                    'multiValued': False,
+                                    'required': False,
+                                    'caseExact': False,
+                                    'mutability': 'immutable',
+                                    'returned': 'default',
+                                    'uniqueness': 'none',
+                                },
+                            ],
+                        },
+                        {
+                            'name': 'externalId',
+                            'type': 'string',
+                            'multiValued': False,
+                            'required': False,
+                            'caseExact': False,
+                            'mutability': 'readWrite',
+                            'returned': 'default',
+                            'uniqueness': 'none',
+                        },
+                    ],
+                },
+            ],
+        }
+        return Response(payload, status=status.HTTP_200_OK)
+
+
+@scim_extend_schema()
+@extend_schema_view(
+    get=extend_schema(description='Returns the SCIM supported ResourceTypes.'),
+)
+class ScimResourceTypesView(APIView):
+    """
+    SCIM 2.0 compliant ResourceTypes endpoint.
+    - GET /ResourceTypes
+    """
+
+    authentication_classes = [ScimAuthentication]
+    permission_classes = [IsAuthenticatedIdP]
+    parser_classes = [SCIMParser, JSONParser]
+    renderer_classes = [SCIMRenderer]
+
+    @extend_schema(responses={200: OpenApiTypes.OBJECT})
+    def get(self, request, *args, **kwargs):
+        payload = {
+            'schemas': ['urn:ietf:params:scim:api:messages:2.0:ListResponse'],
+            'totalResults': 2,
+            'itemsPerPage': 2,
+            'startIndex': 1,
+            'Resources': [
+                {
+                    'schemas': ['urn:ietf:params:scim:schemas:core:2.0:ResourceType'],
+                    'id': 'User',
+                    'name': 'User',
+                    'endpoint': '/Users',
+                    'description': 'User Account',
+                    'schema': 'urn:ietf:params:scim:schemas:core:2.0:User',
+                    'schemaExtensions': [],
+                },
+                {
+                    'schemas': ['urn:ietf:params:scim:schemas:core:2.0:ResourceType'],
+                    'id': 'Group',
+                    'name': 'Group',
+                    'endpoint': '/Groups',
+                    'description': 'Group',
+                    'schema': 'urn:ietf:params:scim:schemas:core:2.0:Group',
+                    'schemaExtensions': [],
+                },
+            ],
+        }
+        return Response(payload, status=status.HTTP_200_OK)
+
+
+@scim_extend_schema()
+@extend_schema_view(
     list=extend_schema(
         description='Returns a list of SCIM groups.',
         responses={200: ScimGroupSerializer(many=True)},
