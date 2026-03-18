@@ -1,0 +1,3211 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# 
+# Translators:
+# A N M AL IMRAN, 2021
+# Bone Pyae Sone, 2023
+# Bone Pyae Sone, 2023
+# Jackie <jackie@kobotoolbox.org>, 2025
+# Md Mohaiminur Rahman Shaheen <mohaiminpcc@yahoo.com>, 2022
+# Myo Oo <myo.oo.uch@gmail.com>, 2023
+# Shahab Uddin, 2022
+msgid ""
+msgstr ""
+"Project-Id-Version: KoboToolbox\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-11-20 19:07+0000\n"
+"PO-Revision-Date: 2016-03-14 19:56+0000\n"
+"Last-Translator: Jackie <jackie@kobotoolbox.org>, 2025\n"
+"Language-Team: Burmese (http://app.transifex.com/kobotoolbox/kobotoolbox/language/my/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: my\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: hub/templates/admin/loginas/change_form.html:7
+msgid "Log in as user"
+msgstr "သုံးစွဲသူအဖြစ် ဝင်ရောက်ရန်"
+
+#: kobo/apps/accounts/forms.py:68
+msgid "Please enter a valid URL"
+msgstr "ကျေးဇူးပြု၍ မှန်ကန်သည့် URL ကိုထည့်သွင်းပါ"
+
+#: kobo/apps/accounts/forms.py:76
+msgid "Non-profit organization"
+msgstr "အကျိုးအမြတ် မယူသော အဖွဲ့အစည်း"
+
+#: kobo/apps/accounts/forms.py:77
+msgid "Government institution"
+msgstr "အစိုးရ အဖွဲ့အစည်း"
+
+#: kobo/apps/accounts/forms.py:78
+msgid "Educational organization"
+msgstr "ပညာ‌ရေး အဖွဲ့အစည်း"
+
+#: kobo/apps/accounts/forms.py:79
+msgid "A commercial/for-profit company"
+msgstr "စီးပွားဖြစ်/အမြတ်အစွန်းအတွက် ကုမ္ပဏီတစ်ခု"
+
+#: kobo/apps/accounts/forms.py:80
+msgid "I am not associated with any organization"
+msgstr "ကျွန်ုပ်သည် မည်သည့်အဖွဲ့အစည်းနှင့်မျှ မပတ်သက်ပါ"
+
+#: kobo/apps/accounts/forms.py:88
+msgid "Male"
+msgstr "ကျား"
+
+#: kobo/apps/accounts/forms.py:89
+msgid "Female"
+msgstr "မ"
+
+#: kobo/apps/accounts/forms.py:90 kobo/static_lists.py:37
+msgid "Other"
+msgstr "အခြား"
+
+#: kobo/apps/accounts/forms.py:124
+#: kobo/apps/accounts/templates/legal/registration_legal.html:8
+msgid "Terms of Service"
+msgstr "ဝန်ဆောင်မှုဆိုင်ရာ စည်းမျဉ်းများ"
+
+#: kobo/apps/accounts/forms.py:131
+#: kobo/apps/accounts/templates/legal/registration_legal.html:13
+msgid "Privacy Policy"
+msgstr "ကိုယ်ရေးကိုယ်တာ လုံခြုံမှုဆိုင်ရာ မူဝါဒ"
+
+#: kobo/apps/accounts/forms.py:133
+msgid "I agree with the ##terms_of_service## and ##privacy_policy##"
+msgstr "##terms_of_service##နှင့်##privacy_policy## တို့ကို ကျွန်ုပ် သဘောတူသည်"
+
+#: kobo/apps/accounts/forms.py:147
+msgid "Password confirmation"
+msgstr "စကားဝှက် အတည်ပြုမှု"
+
+#: kobo/apps/accounts/forms.py:149
+msgid "name@organization.org"
+msgstr "name@organization.org"
+
+#: kobo/apps/accounts/forms.py:224
+#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:127
+msgid "This field is required."
+msgstr "ဤအကွက်တွင် ဖြည့်သွင်းရန်လိုအပ်သည်။"
+
+#: kobo/apps/accounts/forms.py:317
+msgid "You must type the same password each time."
+msgstr "အကြိမ်တိုင်း တူညီသော စကားဝှက်ကို ရိုက်ထည့်ရမည်။"
+
+#: kobo/apps/accounts/mfa/forms.py:57
+msgid "Enter the ##token length##-character token"
+msgstr "##token length##-အက္ခရာတိုကင်ကို ထည့်သွင်းရန်"
+
+#: kobo/apps/accounts/mfa/forms.py:69
+msgid "Your token is invalid"
+msgstr "သင့်တိုကင် မှားယွင်းနေသည်"
+
+#: kobo/apps/accounts/mfa/templates/mfa_token.html:22
+msgid "Please enter your verification token"
+msgstr "ကျေးဇူးပြု၍ သင့်သက်သေပြခြင်းတိုကင်ကို ထည့်သွင်းပါ"
+
+#: kobo/apps/accounts/mfa/templates/mfa_token.html:26
+msgid ""
+"Please enter the verification token displayed by your authenticator app."
+msgstr "ကျေးဇူးပြု၍ သင်၏ မှန်ကန်ကြောင်းပြအက်ပလီကေးရှင်းတွင်ပြသထားသော သက်သေပြခြင်းတိုကင်ကို ထည့်သွင်းပါ။"
+
+#: kobo/apps/accounts/mfa/templates/mfa_token.html:33
+msgid "Problems with the token"
+msgstr "တိုကင်နှင့်ဆက်စပ်သော ပြဿနာများ"
+
+#: kobo/apps/accounts/mfa/templates/mfa_token.html:38
+msgid "Continue"
+msgstr "ဆက်လက်မည်"
+
+#: kobo/apps/accounts/mfa/templates/mfa_token.html:46
+msgid "Verification issues"
+msgstr "သက်သေပြရတာတွင် အခက်အခဲများ"
+
+#: kobo/apps/accounts/mfa/templates/mfa_token.html:54
+msgid "Back"
+msgstr "နောက်သို့"
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_message.txt:3
+msgid ""
+"To confirm the new email address associated with your KoboToolbox account, "
+"please follow the link below."
+msgstr "သင်၏ Kobo ကိရိယာအကွက် အကောင့်နှင့် ဆက်စပ်နေသည့် အီးမေးလိပ်စာအသစ်ကို အတည်ပြုရန် ကျေးဇူးပြု၍ အောက်ရှိ လင့်ခ်ကို သွားပါ။"
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_message.txt:7
+msgid ""
+"This link will expire in one hour. To request a new verification link, "
+"please go to your account settings and re-enter your new email address:"
+msgstr "ထိုလင့်သည် တစ်နာရီအတွင်းသာ သက်တမ်းရှိပါလိမ့်မည်။ သက်သေပြရန်လင့်အသစ်ကိုတောင်းဆိုလိုပါက ကျေးဇူးပြု၍ ‌အကောင့် ဆက်တင်ထဲသွားပြီး အီးမေးလ်လိပ်စာအသစ်ကို ပြန်လည်ရိုက်ထည့်ပေးပါ။"
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_message.txt:10
+#: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:29
+#: kobo/apps/accounts/templates/account/email/password_reset_key_message.txt:15
+#: kobo/apps/accounts/templates/account/email/unknown_account_message.txt:15
+#: kobo/apps/hook/templates/reports/failures_email_body.html:37
+#: kobo/apps/hook/templates/reports/failures_email_body.txt:29
+msgid "Best,"
+msgstr "အကောင်းဆုံး"
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:10
+msgid "Thanks for signing up with KoboToolbox!"
+msgstr "Kobo ကိရိယာအကွက်တွင် စာရင်းသွင်းသည့်အတွက် ကျေးဇူးတင်ရှိပါသည်။"
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:12
+msgid ""
+"Confirming your account will give you access to KoboToolbox applications. "
+"Please visit the following URL to finish activation of your new account."
+msgstr "သင့်အကောင့်ကို အတည်ပြုခြင်းသည် သင့်အား Kobo ကိရိယာအကွက် အက်ပလီကေးရှင်း၀င်ခွင့် ပေးမည်ဖြစ်သည်။ သင့်၏ အကောင့်အသစ်ဖွင့်ခြင်း ပြီးမြောက်ရန် ကျေးဇူးပြု၍ အောက်ပါ URL ကို ၀င်‌ရောက်ကြည့်ရှုပေးပါ။"
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:16
+msgid "Your username is: "
+msgstr "သင်၏သုံးစွဲသူနာမည်- "
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:25
+msgid ""
+"For help getting started, check out the KoboToolbox user documentation: "
+"https://support.kobotoolbox.com "
+msgstr "စတင်သုံးစွဲရာတွင် အကူအညီရရှိလိုပါက Kobo ကိရိယာအကွက် သုံးစွဲသူ စာရွက်စာတမ်းကို- https://support.kobotoolbox.com တွင် ကြည့်ပါ။"
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:27
+msgid ""
+"You can also join the KoboToolbox community forum to ask questions, share "
+"solutions, and chat with thousands of users: "
+"https://community.kobotoolbox.org"
+msgstr "မေးခွန်းများမေးရန်၊ ဖြေရှင်းချက်များ မျှဝေရန်နှင့် ထောင်ပေါင်းများစွာသော သုံးစွဲသူများနှင့် ဆက်သွယ်နိုင်ရန် Kobo ကိရိယာအကွက် အသိုက်အဝိုင်းဖိုရမ်သို့လည်း ၀င်ရောက်နိုင်သည်- https://community.kobotoolbox.org"
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_signup_subject.txt:10
+msgid "Activate your KoboToolbox Account"
+msgstr "သင်၏ Kobo ကိရိယာအကွက် အကောင့်အားအသက်သွင်းပါ"
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_subject.txt:3
+msgid "KoboToolbox account email address verification"
+msgstr "Kobo ကိရိယာအကွက် အကောင့် အီးမေးလ် လိပ်စာ သက်သေပြခြင်း"
+
+#: kobo/apps/accounts/templates/account/email/password_reset_key_message.txt:4
+#: kobo/apps/accounts/templates/account/email/unknown_account_message.txt:5
+msgid "Hello from KoboToolbox,"
+msgstr "မင်္ဂလာပါ Kobo Toolbox မှဖြစ်ပါသည်၊"
+
+#: kobo/apps/accounts/templates/account/email/password_reset_key_message.txt:6
+msgid "We’ve received a password reset request for your user account."
+msgstr "သင့်သုံးစွဲသူအကောင့်အတွက် စကားဝှက်ပြန်လည်ထားရှိရန်‌တောင်းဆိုချက်ကို ကျွန်ုပ်တို့ လက်ခံရရှိပါသည်။"
+
+#: kobo/apps/accounts/templates/account/email/password_reset_key_message.txt:8
+msgid "To reset your password, click the link below."
+msgstr "သင့်စကားဝှက်ပြန်လည်ထားရှိရန် အောက်ပါလင့်အား နှိပ်ပေးပါ။"
+
+#: kobo/apps/accounts/templates/account/email/password_reset_key_message.txt:11
+#, python-format
+msgid "Your username is %(username)s."
+msgstr "သင့်သုံးစွဲသူအမည်မှာ %(username)s ဖြစ်ပါသည်။"
+
+#: kobo/apps/accounts/templates/account/email/password_reset_key_message.txt:13
+#: kobo/apps/accounts/templates/account/email/unknown_account_message.txt:9
+msgid ""
+"If you did not request a password reset, you can safely ignore this email."
+msgstr "အကယ်၍ သင်သည် စကားဝှက်ပြန်လည် ထားရှိရန် မတောင်းဆိုခဲ့ပါက ယခုအီးမေးလ်အား လုံခြုံစွာ လျစ်လျူရှုနိုင်သည်။"
+
+#: kobo/apps/accounts/templates/account/email/password_reset_key_subject.txt:3
+msgid "KoboToolbox Password Reset"
+msgstr "Kobo ကိရိယာအကွက် စကားဝှက်ပြန်လည်ထားရှိခြင်း"
+
+#: kobo/apps/accounts/templates/account/email/unknown_account_message.txt:6
+msgid ""
+"You are receiving this email because you or someone else has requested a "
+"password for their KoboToolbox account."
+msgstr "သင် ယခုအီးမေးလ်လက်ခံရသည့်အကြောင်းမှာ သင် သို့မဟုတ် တစ်စုံတစ်ယောက်မှ ၎င်းတို့၏ Kobo ကိရိယာအကွက် အကောင့်အတွက် စကားဝှက်ကို တောင်းဆိုထား၍ဖြစ်သည်။"
+
+#: kobo/apps/accounts/templates/account/email/unknown_account_message.txt:7
+#, python-format
+msgid ""
+"However, we do not have any record of an account with email %(email)s in our"
+" database."
+msgstr "သို့ရာတွင် ကျွန်ုပ်တို့၏ အချက်အလက်ဘေ့စ်ထဲတွင် %(email)s အီးမေးလ်အကောင့်တစ်ခုနှင့် ပတ်သက်သော မည်သည့်အချက်အလက် မှတ်တမ်းမှ မရှိပါ။"
+
+#: kobo/apps/accounts/templates/account/email/unknown_account_message.txt:11
+msgid ""
+"If it was you, please try another email address you might have used to "
+"create your account, or double check that your account was not registered on"
+" a different KoboToolbox server."
+msgstr "အကယ်၍ ထိုသူသည်သင်ဖြစ်ပါက သင်အကောင့်ဖွင့်ရာတွင် အသုံးပြုနိုင်ခဲ့သော အခြားအီးမေးလ်နှင့် ပြန်လည်ကြိုးစားကြည့်ပါ သို့မဟုတ် သင်၏အကောင့်အား အခြားသော Kobo ကိရိယာအကွက် ဆာဗာတွင် စာရင်းပေးသွင်းမှု မလုပ်ထားကြောင်း ပြန်လည်စစ်ဆေးပေးပါ။"
+
+#: kobo/apps/accounts/templates/account/email/unknown_account_subject.txt:3
+msgid "KoboToolbox Password Reset Unsuccessful"
+msgstr "Kobo ကိရိယာအကွက် စကားဝှက်ပြန်လည်ထားရှိခြင်း မအောင်မြင်ပါ"
+
+#: kobo/apps/accounts/templates/account/email_confirm.html:15
+msgid "Confirm E-mail Address"
+msgstr "အီးမေးလ်လိပ်စာ အတည်ပြုပါ"
+
+#: kobo/apps/accounts/templates/account/email_confirm.html:19
+#, python-format
+msgid ""
+"Please confirm that <a href=\"mailto:%(email)s\">%(email)s</a> is an e-mail "
+"address for user %(user_display)s."
+msgstr "သုံးစွဲသူ %(user_display)s အတွက် အီးမေးလ်လိပ်စာသည်<a href=\"mailto:%(email)s\">%(email)s</a> ဖြစ်ကြောင်း ကျေးဇူးပြု၍ အတည်ပြုပေးပါ။"
+
+#: kobo/apps/accounts/templates/account/email_confirm.html:26
+msgid "Confirm"
+msgstr "အတည်ပြုရန်"
+
+#: kobo/apps/accounts/templates/account/email_confirm.html:30
+msgid "Activation failed"
+msgstr "အသက်သွင်းခြင်း မအောင်မြင်ပါ"
+
+#: kobo/apps/accounts/templates/account/email_confirm.html:33
+msgid ""
+"Sorry, we couldn't activate your account. The link we sent you has expired."
+msgstr "ဝမ်းနည်းပါသည်၊ သင့်အကောင့်ကို အသက်သွင်း၍မရနိုင်ပါ။ ကျွန်ုပ်တို့ ပေးပို့ထားသောလင့်ခ် သက်တမ်းကုန်သွားပြီ ဖြစ်သည်။"
+
+#: kobo/apps/accounts/templates/account/email_confirm.html:39
+msgid ""
+"This e-mail confirmation link expired or is invalid.\n"
+"      If you need to request a new link to verify your email address change,\n"
+"      please go to your account settings page and enter your email address again."
+msgstr "ဤအီးမေးလ် အတည်ပြုလင့်ခ်သည် သက်တမ်းကုန်နေသည် သို့မဟုတ် မမှန်ပါ။          သင့်‌အီးမေးလ်လိပ်စာပြောင်းလဲမှုအတွက် သက်သေပြရန် လင့်ခ်အသစ်တောင်းဆိုရန်လိုအပ်ပါက                                             ကျေးဇူးပြု၍ အကောင့် ဆက်တင်များစာမျက်နှာသို့သွားပြီး သင့်အီးမေးလ်လိပ်စာကို ထပ်မံထည့်သွင်းပါ။"
+
+#: kobo/apps/accounts/templates/account/login.html:29
+msgid "Login"
+msgstr "၀င်ရောက်သည်"
+
+#: kobo/apps/accounts/templates/account/login.html:36
+#: kobo/apps/accounts/templates/account/signup.html:14
+msgid "Create an account"
+msgstr "အကောင့်တစ်ခုဖွင့်မည်"
+
+#: kobo/apps/accounts/templates/account/login.html:41
+msgid "Forgot password?"
+msgstr "စကားဝှက်မေ့သွားပါသလား။"
+
+#: kobo/apps/accounts/templates/account/login.html:50
+msgid "Log in using SSO"
+msgstr "SSO အသုံးပြု၍ ၀င်‌ရောက်သည်"
+
+#: kobo/apps/accounts/templates/account/login.html:52
+#: kobo/apps/accounts/templates/account/signup.html:63
+msgid ""
+"If you set up Single Sign On in your account settings, you will only be able"
+" to log in through this method."
+msgstr "သင်သည် အကောင့်ဆက်တင်များတွင် Single Sign On သတ်မှတ်ထားပါက ထိုနည်းလမ်းဖြင့်သာ ၀င်ရောက်နိုင်သည်။"
+
+#: kobo/apps/accounts/templates/account/password_reset.html:10
+msgid "Password Reset"
+msgstr "စကားဝှက်ပြန်လည်ထားရှိခြင်း"
+
+#: kobo/apps/accounts/templates/account/password_reset.html:19
+msgid "Reset Password"
+msgstr "စကားဝှက်ကို ပြန်သတ်မှတ်ရန်"
+
+#: kobo/apps/accounts/templates/account/password_reset_complete.html:11
+#: kobo/apps/accounts/templates/account/password_reset_from_key_done.html:11
+msgid "Password reset successfully"
+msgstr "စကားဝှက် အောင်မြင်စွာထားရှိပြီးပါပြီ"
+
+#: kobo/apps/accounts/templates/account/password_reset_complete.html:14
+#: kobo/apps/accounts/templates/account/password_reset_from_key_done.html:14
+#: kobo/apps/accounts/templates/socialaccount/login.html:34
+msgid "Log in"
+msgstr "၀င်‌ရောက်သည်"
+
+#: kobo/apps/accounts/templates/account/password_reset_done.html:12
+msgid ""
+"Your request has been received. If the email address you entered corresponds"
+" to an account on this service, a message has been sent with password reset "
+"instructions. If you do not receive an email, your account might be "
+"registered under a different address, or you might have entered your address"
+" incorrectly."
+msgstr "သင့်တောင်းဆိုချက်ကို လက်ခံရရှိပါသည်။ ယခုဝန်ဆောင်မှုရှိ အကောင့်နှင့် သင်ထည့်သွင်းခဲ့သော အီးမေးလ်လိပ်စာနှင့် ကိုက်ညီမှုရှိပါက စကားဝှက်ပြန်လည်ထားရှိရန်ညွှန်ကြားချက်များနှင့်တကွ မက်ဆေ့ချ်တစ်စောင် ပေးပို့ပြီးပါပြီ။ အီးမေးလ် မရောက်ရှိပါက သင်၏အကောင့်ကို အခြားသောလိပ်စာနှင့် စာရင်းသွင်းထားမိ၍ သို့မဟုတ် သင်၏အီးမေးလ်လိပ်စာကို မှားယွင်းစွာ ထည့်သွင်းမိ၍ ဖြစ်နိုင်သည်။"
+
+#: kobo/apps/accounts/templates/account/password_reset_from_key.html:13
+msgid "Password reset failed"
+msgstr "စကားဝှက်ပြန်လည်ထားရှိခြင်း မအောင်မြင်ပါ"
+
+#: kobo/apps/accounts/templates/account/password_reset_from_key.html:25
+#: kobo/apps/openrosa/apps/logger/templates/bulk_submission_form.html:15
+msgid "Submit"
+msgstr "တင်သွင်းမည်"
+
+#: kobo/apps/accounts/templates/account/signup.html:47
+msgid "Create Account"
+msgstr "အကောင့်ဖွင့်မည်"
+
+#: kobo/apps/accounts/templates/account/signup.html:51
+#: kobo/apps/accounts/templates/socialaccount/login.html:39
+msgid "or"
+msgstr "သို့မဟုတ်"
+
+#: kobo/apps/accounts/templates/account/signup.html:51
+msgid "login"
+msgstr "၀င်‌ရောက်မည်"
+
+#: kobo/apps/accounts/templates/account/signup.html:61
+msgid "Register using SSO"
+msgstr "SSO သုံး၍စာရင်းသွင်းမည်"
+
+#: kobo/apps/accounts/templates/account/signup.html:75
+msgid "Register with SSO"
+msgstr "SSO နှင့်စာရင်းသွင်းမည်"
+
+#: kobo/apps/accounts/templates/account/verification_sent.html:8
+msgid "Confirm your email address"
+msgstr "သင့်အီးမေးလ်လိပ်စာ အတည်ပြုပါ"
+
+#: kobo/apps/accounts/templates/account/verification_sent.html:11
+msgid "Please click the activation link in the email just sent to you."
+msgstr "ကျေးဇူးပြု၍ သင့်ကိုယခုလေးတင်ပို့ထားသောအီးမေးလ်ရှိ အသက်သွင်းရန်လင့်ကိုနှိပ်ပေးပါ။"
+
+#: kobo/apps/accounts/templates/socialaccount/authentication_error.html:7
+#: kobo/apps/accounts/templates/socialaccount/authentication_error.html:13
+msgid "SSO Login Failure"
+msgstr "SSO အကောင့်ဝင်ခြင်း မအောင်မြင်ပါ"
+
+#: kobo/apps/accounts/templates/socialaccount/authentication_error.html:17
+msgid "An error occurred while attempting to login using your SSO account."
+msgstr "သင့် SSO အကောင့်သုံး၍ ဝင်ရောက်ရန် ကြိုးပမ်းစဉ် ချို့ယွင်းချက်တစ်ခု ဖြစ်ပွားခဲ့သည်။"
+
+#: kobo/apps/accounts/templates/socialaccount/authentication_error.html:20
+#: kpi/templates/custom_404.html:12
+msgid "Go back"
+msgstr "ပြန်သွားရန်"
+
+#: kobo/apps/accounts/templates/socialaccount/connections.html:5
+msgid "Connect your Account to SSO"
+msgstr "သင့်အကောင့်ကို SSO နှင့်ချိတ်ဆက်ပါ"
+
+#: kobo/apps/accounts/templates/socialaccount/connections.html:10
+msgid "Manage your SSO Account"
+msgstr "သင့် SSO အကောင့်ကို စီမံခန့်ခွဲရန်"
+
+#: kobo/apps/accounts/templates/socialaccount/connections.html:15
+msgid ""
+"You can sign in to your KoboToolbox account using any of the following SSO "
+"providers:"
+msgstr "အောက်ဖော်ပြပါ SSO ဝန်ဆောင်မှုပေးသူများကို အသုံးပြု၍ သင်၏ Kobo ကိရိယာအကွက် အကောင့်သို့ သင်ဝင်ရောက်နိုင်သည်-"
+
+#: kobo/apps/accounts/templates/socialaccount/connections.html:39
+msgid "Remove"
+msgstr "ဖယ်ရှားသည်"
+
+#: kobo/apps/accounts/templates/socialaccount/connections.html:45
+msgid "You currently have no third-party accounts connected to this account."
+msgstr "သင့်တွင် လတ်တလော ဤအကောင့်နှင့် ချိတ်ဆက်ထားသော ပြင်ပအဖွဲ့အစည်းအကောင့်မရှိပါ။"
+
+#: kobo/apps/accounts/templates/socialaccount/connections.html:51
+msgid "Add an SSO Account"
+msgstr "SSO အကောင့်တစ်ခု ပေါင်းထည့်ပါ"
+
+#: kobo/apps/accounts/templates/socialaccount/login.html:14
+msgid "Set up Single Sign On"
+msgstr "Single Sign On သတ်မှတ်ရန်"
+
+#: kobo/apps/accounts/templates/socialaccount/login.html:16
+#, python-format
+msgid ""
+"Click the button below to connect your KoboToolbox account with your "
+"%(appname)s account."
+msgstr "သင့်%(appname)s အကောင့်နှင့် သင့် Kobo ကိရိယာအကွက် အကောင့်ကို ချိတ်ဆက်ရန် အောက်ရှိခလုတ်ကိုနှိပ်ပါ။"
+
+#: kobo/apps/accounts/templates/socialaccount/login.html:18
+msgid "This will allow you to use single sign-on (SSO) in the future."
+msgstr "၎င်းသည် အနာဂတ်တွင် သင့်အား single sign-on (SSO) သုံးခွင့်ပေးမည်။"
+
+#: kobo/apps/accounts/templates/socialaccount/login.html:23
+#, python-format
+msgid "Connect with %(appname)s"
+msgstr "%(appname)s ဖြင့် ချိတ်ဆက်ပါ"
+
+#: kobo/apps/accounts/templates/socialaccount/login.html:27
+msgid "Log in with "
+msgstr "ဖြင့် လော့အင်ဝင်ရောက်ပါ။"
+
+#: kobo/apps/accounts/templates/socialaccount/login.html:29
+#, python-format
+msgid "Log in to KoboToolbox with your %(appname)s account."
+msgstr "သင့်%(appname)s အကောင့်ဖြင့် Kobo ကိရိယာအကွက်သို့ ဝင်ရောက်ပါ။"
+
+#: kobo/apps/accounts/templates/socialaccount/login.html:39
+msgid "go back"
+msgstr "ပြန်သွားရန်"
+
+#: kobo/apps/accounts/templates/socialaccount/signup.html:11
+#, python-format
+msgid "Welcome to KoboToolbox, %(username)s!"
+msgstr "Kobo ကိရိယာအကွက်မှ ကြိုဆိုပါ၏၊ %(username)s။"
+
+#: kobo/apps/accounts/templates/socialaccount/signup.html:13
+msgid "Welcome to KoboToolbox!"
+msgstr "Kobo ကိရိယာအကွက်မှ ကြိုဆိုပါ။"
+
+#: kobo/apps/accounts/templates/socialaccount/signup.html:18
+#, python-format
+msgid "You are about to use your %(appname)s account to login to KoboToolbox."
+msgstr "Kobo ကိရိယာအကွက်သို့ ဝင်ရောက်ရန် သင့်%(appname)sအကောင့်အားအသုံးပြုတော့မည်ဖြစ်သည်။"
+
+#: kobo/apps/accounts/templates/socialaccount/signup.html:18
+msgid "As a final step, please complete the following form"
+msgstr "နောက်ဆုံးအဆင့်အနေဖြင့်၊ ကျေးဇူးပြု၍ အောက်ရှိ ဖောင်အားဖြည့်ပေးပါ"
+
+#: kobo/apps/accounts/templates/socialaccount/signup.html:44
+msgid "Save and Access"
+msgstr "သိမ်းဆည်းခြင်းနှင့် ၀င်ရောက်ခွင့်"
+
+#: kobo/apps/accounts/validators.py:7
+msgid ""
+"Usernames must be between 2 and 30 characters in length, and may only "
+"consist of lowercase letters, numbers, and underscores, where the first "
+"character must be a letter."
+msgstr "အသုံးပြုသူအမည်များသည် စာလုံး 2 လုံးမှ 30 အကြားတွင်ရှိရမည်၊ ပထမစာလုံးသည် အက္ခရာဖြစ်ရမည်၊ စာလုံးသေးများ၊ နံပါတ်များနှင့် အောက်ခံများ ထည့်သွင်းနိုင်သည်။"
+
+#: kobo/apps/hook/serializers/v2/hook.py:46
+msgid "Invalid scheme"
+msgstr "မှားယွင်းနေသော စနစ်"
+
+#: kobo/apps/hook/serializers/v2/hook.py:49
+msgid "Unsecured endpoint is not allowed"
+msgstr "စိတ်မချရသော အဆုံးမှတ်ကို ခွင့်မပြုပါ"
+
+#: kobo/apps/hook/serializers/v2/hook.py:60
+msgid "Invalid JSON"
+msgstr "JSON မှားယွင်းနေပါသည်"
+
+#: kobo/apps/hook/serializers/v2/hook.py:70
+msgid "Can be used only with JSON submission format"
+msgstr "JSON တင်သွင်းခြင်းပုံစံဖြင့်သာ အသုံးပြုနိုင်သည်"
+
+#: kobo/apps/hook/tasks.py:146
+msgid "REST Services Failure Report"
+msgstr "REST ၀န်ဆောင်မှုများ မအောင်မြင်မှု အစီရင်ခံစာ"
+
+#: kobo/apps/hook/templates/reports/failures_email_body.html:3
+#: kobo/apps/hook/templates/reports/failures_email_body.txt:3
+msgid "Project name"
+msgstr "စီမံကိန်းအမည်"
+
+#: kobo/apps/hook/templates/reports/failures_email_body.html:4
+#: kobo/apps/hook/templates/reports/failures_email_body.txt:4
+msgid "Hook"
+msgstr "ချိတ်ဆက်ခြင်း"
+
+#: kobo/apps/hook/templates/reports/failures_email_body.html:5
+#: kobo/apps/hook/templates/reports/failures_email_body.txt:5
+msgid "Submission"
+msgstr "တင်သွင်းခြင်း"
+
+#: kobo/apps/hook/templates/reports/failures_email_body.html:6
+#: kobo/apps/hook/templates/reports/failures_email_body.txt:6
+msgid "Status code"
+msgstr "အဆင့်ကုဒ်"
+
+#: kobo/apps/hook/templates/reports/failures_email_body.html:7
+#: kobo/apps/hook/templates/reports/failures_email_body.txt:7
+msgid "Message"
+msgstr "မက်ဆေ့ချ်"
+
+#: kobo/apps/hook/templates/reports/failures_email_body.html:8
+#: kobo/apps/hook/templates/reports/failures_email_body.txt:8
+msgid "Date"
+msgstr "နေ့စွဲ"
+
+#: kobo/apps/hook/templates/reports/failures_email_body.html:10
+#: kobo/apps/hook/templates/reports/failures_email_body.txt:10
+#: kobo/apps/project_ownership/templates/emails/accepted_invite.html:5
+#: kobo/apps/project_ownership/templates/emails/accepted_invite.txt:3
+#: kobo/apps/project_ownership/templates/emails/declined_invite.html:5
+#: kobo/apps/project_ownership/templates/emails/declined_invite.txt:5
+#: kobo/apps/project_ownership/templates/emails/expired_invite.html:5
+#: kobo/apps/project_ownership/templates/emails/expired_invite.txt:5
+#: kobo/apps/project_ownership/templates/emails/new_invite.html:5
+#: kobo/apps/project_ownership/templates/emails/new_invite.txt:5
+msgid "Dear"
+msgstr "ချစ်လှစွာသော"
+
+#: kobo/apps/hook/templates/reports/failures_email_body.html:11
+#: kobo/apps/hook/templates/reports/failures_email_body.txt:12
+msgid "Some submissions could not be sent to their external endpoints."
+msgstr "အချို့သော တင်သွင်းချက်များကို ၎င်းတို့၏ပြင်ပအဆုံးမှတ်များသို့ မပို့နိုင်ပါ။"
+
+#: kobo/apps/hook/views/v2/hook.py:178
+msgid "Task successfully scheduled"
+msgstr "တာဝန်ကို အောင်မြင်စွာ စီစဉ်ပြီးပါပြီ"
+
+#: kobo/apps/hook/views/v2/hook.py:214
+msgid "No data to retry"
+msgstr "ထပ်မံကြိုးစားရန် အချက်အလက်မရှိပါ"
+
+#: kobo/apps/hook/views/v2/hook.py:217
+msgid "Can not retry on disabled hooks"
+msgstr "ပိတ်ထားသော ချိတ်ဆက်မှုများကို ထပ်မံကြိုးစား၍ မရနိုင်ပါ"
+
+#: kobo/apps/hook/views/v2/hook_log.py:120
+msgid "An error has occurred when sending the data. Please try again later."
+msgstr "အချက်အလက်ပေးပို့ရာတွင် ချို့ယွင်းချက်တစ်ခု ဖြစ်ပေါ်ခဲ့သည်။ ကျေးဇူးပြု၍ နောက်မှ ထပ်ကြိုးစားပေးပါ။"
+
+#: kobo/apps/hook/views/v2/hook_log.py:125
+msgid "Data is being or has already been processed"
+msgstr "အချက်အလက်ကို လုပ်ဆောင်နေသည် သို့မဟုတ် လုပ်ဆောင်ပြီးပြီ"
+
+#: kobo/apps/languages/templates/admin/languages_change_list.html:8
+msgid "Import"
+msgstr "တင်ပို့သည်"
+
+#: kobo/apps/openrosa/apps/api/exceptions.py:12
+msgid "This is not supported by the legacy API anymore"
+msgstr "၎င်းကို စနစ်ဟောင်း API က ဆက်လက်မပံ့ပိုးထားပါ"
+
+#: kobo/apps/openrosa/apps/api/exceptions.py:19
+msgid "No confirmation provided"
+msgstr "အတည်ပြုမှု မပေးထားပါ"
+
+#: kobo/apps/openrosa/apps/api/tools.py:70
+#, python-format
+msgid "User %(user)s has no permission to add xforms to account %(account)s"
+msgstr "သုံးစွဲသူ%(user)s သည် %(account)s အကောင့်ထဲသို့ xforms ပေါင်းထည့်ခွင့်မရှိပါ။"
+
+#: kobo/apps/openrosa/apps/api/tools.py:82
+#, python-format
+msgid "User %(user)s has no permission to change this form."
+msgstr "သုံးစွဲသူ %(user)s သည် ဤဖောင်ကို ပြောင်းလဲခွင့်မရှိပါ။"
+
+#: kobo/apps/openrosa/apps/api/tools.py:111
+msgid "You do not have permission to view data from this form."
+msgstr "သင်သည် ဤဖောင်မှ ဒေတာကို ကြည့်ရှုခွင့်မရှိပါ။"
+
+#: kobo/apps/openrosa/apps/api/viewsets/attachment_viewset.py:174
+#, python-format
+msgid "Filename '%s' not found."
+msgstr "ဖိုင်နာမည် '%s' ကို မတွေ့ပါ။"
+
+#: kobo/apps/openrosa/apps/api/viewsets/briefcase_api.py:40
+#, python-format
+msgid "Invalid formId %s."
+msgstr "မမှန်ကန်သော formId %s။"
+
+#: kobo/apps/openrosa/apps/api/viewsets/briefcase_api.py:195
+#, python-format
+msgid "%s successfully published."
+msgstr "%s ကို အောင်မြင်စွာ ထုတ်ပြန်ပြီးပါပြီ။"
+
+#: kobo/apps/openrosa/apps/api/viewsets/briefcase_api.py:200
+msgid "Missing xml file."
+msgstr "XML ဖိုင် မရှိပါ။"
+
+#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:407
+#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:436
+msgid "`query` and `instance_ids` can't be used together"
+msgstr "`query` နှင့် `instance_ids` ကို အတူတကွ မသုံးနိုင်ပါ"
+
+#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:411
+#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:440
+msgid "Invalid `query` or `submission_ids` params"
+msgstr "မမှန်ကန်သော `query` သို့မဟုတ် `submission_ids`  ပရိုပါမားများ"
+
+#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:418
+msgid "{} submissions have been deleted"
+msgstr "{} တင်သွင်းမှုများ ဖျက်ထားသည်"
+
+#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:446
+msgid "No `validation_status.uid` provided"
+msgstr "`validation_status.uid`မပေးထားပါ"
+
+#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:451
+msgid "{} submissions have been updated"
+msgstr "{} တင်သွင်းမှုများ အဆင့်မြှင့်ထားသည်"
+
+#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:487
+#, python-format
+msgid "Invalid pk `%(pk)s`"
+msgstr "မမှန်ကန်သော pk`%(pk)s`"
+
+#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:491
+#, python-format
+msgid "Invalid dataid `%(dataid)s`"
+msgstr "မမှန်ကန်သော ဒေတာအိုင်ဒီ `%(dataid)s`"
+
+#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:506
+msgid "No data matches with given query."
+msgstr "ပေးပို့ထားသော မေးခွန်းနှင့် ကိုက်ညီသော ဒေတာမရှိပါ။"
+
+#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:523
+#, python-format
+msgid "Invalid pk %(pk)s"
+msgstr "မမှန်ကန်သော pk%(pk)s"
+
+#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:627
+msgid "Data id not provided."
+msgstr "ဒေတာအိုင်ဒီ မပေးထားပါ။"
+
+#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:631
+msgid "`return_url` not provided."
+msgstr "`return_url`မပေးထားပါ။"
+
+#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:643
+msgid ""
+"Cannot edit submissions while \"Require authentication to see form and "
+"submit data\" is disabled for your project"
+msgstr "\"ဖောင်ကိုကြည့်ရှုရန်နှင့် ဒေတာတင်သွင်းရန်အတွက် အတည်ပြုချက်လိုအပ်ပါသည်\" ကို သင့်စီမံကိန်းအတွက် ပိတ်ထားသောအခါ တင်သွင်းမှုများကို မပြင်ဆင်နိုင်ပါ"
+
+#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:667
+msgid "Data id not provided"
+msgstr "ဒေတာအိုင်ဒီ မပေးထားပါ"
+
+#: kobo/apps/openrosa/apps/api/viewsets/xform_submission_api.py:56
+msgid "No submission key provided."
+msgstr "တင်သွင်းမှု သော့ကို မပေးထားပါ။"
+
+#: kobo/apps/openrosa/apps/api/viewsets/xform_submission_api.py:205
+msgid "Unable to create submission."
+msgstr "တင်သွင်းမှု ဖန်တီး၍ မရပါ။"
+
+#: kobo/apps/openrosa/apps/api/viewsets/xform_viewset.py:55
+#, python-format
+msgid "'%(export_type)s' format not known or not implemented!"
+msgstr "' %(export_type)s' ပုံစံကို မသိရှိပါ သို့မဟုတ် မတည်ဆောက်ထားပါ။"
+
+#: kobo/apps/openrosa/apps/api/viewsets/xform_viewset.py:91
+msgid "Dates must be in the format YY_MM_DD_hh_mm_ss"
+msgstr "ရက်စွဲများသည် YY_MM_DD_hh_mm_ss ပုံစံ ဖြစ်ရမည်"
+
+#: kobo/apps/openrosa/apps/api/viewsets/xform_viewset.py:109
+msgid "No records found to export"
+msgstr "ထုတ်ယူရန် မှတ်တမ်းများ မတွေ့ပါ"
+
+#: kobo/apps/openrosa/apps/api/viewsets/xform_viewset.py:140
+msgid "No XLSForm found."
+msgstr "XLS ဖောင် မတွေ့ပါ။"
+
+#: kobo/apps/openrosa/apps/api/viewsets/xform_viewset.py:585
+msgid "Only a form's owner can overwrite its contents"
+msgstr "ဖောင်၏ ပိုင်ရှင်သာ ၎င်း၏ အကြောင်းအရာများကို အစားထိုးနိုင်ပါသည်"
+
+#: kobo/apps/openrosa/apps/logger/models/xform.py:71
+msgid "Require authentication to see form and submit data"
+msgstr "ဖောင်များကို ကြည့်ရန်နှင့် ‌ဒေတာများ ထည့်သွင်းရန် အထောက်အထားစိစစ်ရန် လိုအပ်ပါသည်"
+
+#: kobo/apps/openrosa/apps/logger/models/xform.py:79
+msgid "ID"
+msgstr "ID"
+
+#: kobo/apps/openrosa/apps/logger/models/xform.py:107
+msgid "XForm"
+msgstr "XForm"
+
+#: kobo/apps/openrosa/apps/logger/models/xform.py:108
+msgid "XForms"
+msgstr "XForms"
+
+#: kobo/apps/openrosa/apps/logger/models/xform.py:111
+msgid "Can make submissions to the form"
+msgstr "ဖောင်သို့ တင်သွင်းမှုများ ပြုလုပ်နိုင်သည်"
+
+#: kobo/apps/openrosa/apps/logger/models/xform.py:112
+msgid "Can transfer form ownership."
+msgstr "ဖောင်ပိုင်ဆိုင်ခွင့်ကို လွှဲပြောင်းနိုင်သည်။"
+
+#: kobo/apps/openrosa/apps/logger/models/xform.py:113
+msgid "Can validate submissions"
+msgstr "တင်သွင်းခြင်းများ မှန်ကန်ကြောင်းပြနိုင်သည်"
+
+#: kobo/apps/openrosa/apps/logger/models/xform.py:114
+msgid "Can delete submissions"
+msgstr "တင်သွင်းခြင်းများကို ဖျက်နိုင်သည်"
+
+#: kobo/apps/openrosa/apps/logger/models/xform.py:242
+#, python-format
+msgid ""
+"Your updated form's id_string '%(new_id)s' must match the existing forms' "
+"id_string '%(old_id)s'."
+msgstr "သင့် အဆင့်မြှင့်ထားသော ဖောင်၏ id_string '%(new_id)s' သည် ရှိပြီးသား ဖောင်များ၏ id_string '%(old_id)s ' နှင့် ကိုက်ညီရမည်။"
+
+#: kobo/apps/openrosa/apps/logger/models/xform.py:251
+msgid ""
+"In strict mode, the XForm ID must be a valid slug and contain no spaces."
+msgstr "တိကျသောပုံစံတွင် XForm ID သည် မှန်ကန်သော slug တစ်ခု ဖြစ်ရမည့်အပြင် စာလုံးခြားများ မပါရပါ။"
+
+#: kobo/apps/openrosa/apps/logger/models/xform.py:265
+msgid "Submission Count"
+msgstr "တင်သွင်းမှု အရေအတွက်"
+
+#: kobo/apps/openrosa/apps/logger/models/xform.py:301
+msgid "There should be a single id string."
+msgstr "တစ်ခုတည်းသော id string ရှိရမည်။"
+
+#: kobo/apps/openrosa/apps/logger/models/xform.py:326
+msgid "There should be a single title."
+msgstr "တစ်ခုတည်းသော ခေါင်းစဥ် ရှိရမည်။"
+
+#: kobo/apps/openrosa/apps/logger/views.py:68
+#: kobo/apps/openrosa/libs/serializers/data_serializer.py:114
+msgid "Successful submission."
+msgstr "အောင်မြင်သော တင်သွင်းမှု။"
+
+#: kobo/apps/openrosa/apps/logger/views.py:94
+msgid ""
+"There was a problem receiving your ODK submission. [Error: IO Error reading "
+"data]"
+msgstr "သင့်၏ ODK တင်သွင်းမှုကို လက်ခံရာတွင် ပြဿနာတစ်ခု ဖြစ်ပွားခဲ့သည်။ [ချို့ယွင်းချက်- ဒေတာဖတ်ရာတွင် IO ချို့ယွင်းချက်]"
+
+#: kobo/apps/openrosa/apps/logger/views.py:98
+msgid ""
+"There was a problem receiving your ODK submission. [Error: multiple "
+"submission files (?)]"
+msgstr "သင့် ODK တင်သွင်းမှုကို လက်ခံရာတွင် ပြဿနာတစ်ခု ဖြစ်ပွားခဲ့ပါသည်။ [ချို့ယွင်းချက်- အများအပြား တင်သွင်းမှုဖိုင်များ (?)]"
+
+#: kobo/apps/openrosa/apps/logger/views.py:120
+#, python-format
+msgid ""
+"Submission complete. Out of %(total)d survey instances, %(success)d were "
+"imported, (%(rejected)d were rejected as duplicates, missing forms, etc.)"
+msgstr "တင်သွင်းမှု ပြီးမြောက်ပါပြီ။%(total)d စစ်တမ်းအချက်အလက်များမှ %(success)d ခုတင်သွင်းပြီး၊ (%(rejected)d ခုသည် ထပ်နေသည်များ၊ ပျောက်နေသော ဖောင်များအဖြစ် ပယ်ဖျက်ထားသည်)"
+
+#: kobo/apps/openrosa/apps/logger/views.py:190
+#, python-format
+msgid "No XLS file for your form %(id)s"
+msgstr "သင့်ဖောင်အတွက် XLS ဖိုင် မရှိပါ %(id)s"
+
+#: kobo/apps/openrosa/apps/logger/views.py:208
+#: kobo/apps/openrosa/apps/viewer/views.py:52
+#: kobo/apps/openrosa/apps/viewer/views.py:102
+#: kobo/apps/openrosa/apps/viewer/views.py:121
+#: kobo/apps/openrosa/apps/viewer/views.py:162
+#: kobo/apps/openrosa/apps/viewer/views.py:190
+#: kobo/apps/openrosa/apps/viewer/views.py:266
+msgid "Not shared."
+msgstr "မမျှဝေထားပါ။"
+
+#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:25
+msgid "Duplicate Instance"
+msgstr "ထပ်နေသော နမူနာ"
+
+#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:30
+msgid "Could not determine the user."
+msgstr "သုံးစွဲသူကို မသတ်မှတ်နိုင်ခဲ့ပါ။"
+
+#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:35
+msgid "The instance could not be parsed."
+msgstr "နမူနာကို ခွဲခြမ်းစိတ်ဖြာ၍မရပါ။"
+
+#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:40
+msgid "Empty instance"
+msgstr "ဗလာနမူနာ"
+
+#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:53
+#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:96
+#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:111
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:348
+msgid "XML string must have a survey element."
+msgstr "XML string သည် စစ်တမ်းအစိတ်အပိုင်းတစ်ခု ပါရမည်။"
+
+#: kobo/apps/openrosa/apps/main/forms.py:18
+msgid "Media upload"
+msgstr "မီဒီယာ အပ်လုတ်"
+
+#: kobo/apps/openrosa/apps/main/forms.py:30
+#: kobo/apps/openrosa/libs/utils/quick_converter.py:9
+msgid "XLS File"
+msgstr "XLS ဖိုင်"
+
+#: kobo/apps/openrosa/apps/main/templates/405.html:5
+msgid "405 Error: Method Not Allowed!"
+msgstr "405 ချို့ယွင်းချက်- နည်းလမ်းကို ခွင့်မပြုပါ။"
+
+#: kobo/apps/openrosa/apps/main/templates/500.html:5
+msgid "500 Error"
+msgstr "500 ချို့ယွင်းချက်"
+
+#: kobo/apps/openrosa/apps/main/templates/500.html:8
+msgid ""
+"If this is a significant error that needs to be fixed, please send a support"
+" request to support@kobotoolbox.org with information about what triggered "
+"this error."
+msgstr "၎င်းသည် ပြန်လည်ဖြေရှင်းရမည့် အရေးကြီးသော ချို့ယွင်းချက်ဖြစ်ပါက ကျေးဇူးပြု၍ ဤချို့ယွင်းချက်ကို ဖြစ်ပေါ်စေသည့် အချက်အလက်များနှင့်အတူ support@kobotoolbox.org သို့ အကူအညီတောင်းဆိုချက်ပေးပို့ပါ။"
+
+#: kobo/apps/openrosa/apps/main/templates/restricted_access.html:5
+msgid "403 - Restricted access"
+msgstr "403 - ဝင်ခွင့်ကန့်သတ်ထားခြင်း"
+
+#: kobo/apps/openrosa/apps/main/templates/restricted_access.html:8
+#, python-format
+msgid ""
+"\n"
+"    Your access is restricted. Please reclaim your access by <a href=\"%(koboform_url)s/accounts/password/reset/\">changing your password</a>.\n"
+"  "
+msgstr "\nသင့်ဝင်ရောက်ခွင့်ကို ကန့်သတ်ထားသည်။ ကျေးဇူးပြု၍ <a href=\"%(koboform_url)s/accounts/password/reset/\">သင့်စကားဝှက်ကို ပြောင်းလဲ</a>ခြင်းဖြင့် သင့်ဝင်ရောက်ခွင့်ကို ပြန်လည်ရယူပါ။"
+
+#: kobo/apps/openrosa/apps/viewer/models/export.py:17
+msgid "Invalid export type specified"
+msgstr "မမှန်ကန်သော ထုတ်ယူမှုအမျိုးအစား သတ်မှတ်ထားသည်"
+
+#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:111
+#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:163
+msgid "Invalid start/limit params"
+msgstr "မမှန်ကန်သော စတင်/ကန့်သတ် ပရိုပါမားများ"
+
+#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:127
+#, python-format
+msgid "Invalid pipeline! %s"
+msgstr "မမှန်ကန်သော ပိုက်လိုင်း။ %s"
+
+#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:129
+#, python-format
+msgid "Invalid query! %s"
+msgstr "မမှန်ကန်သော မေးခွန်း။ %s"
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:10
+msgid "Exports"
+msgstr "ထုတ်ယူမှုများ"
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:26
+msgid "New Export"
+msgstr "အသစ်ထုတ်ယူမှု"
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:28
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:41
+msgid "Advanced Export"
+msgstr "အဆင့်မြင့် ထုတ်ယူမှုများ"
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:33
+msgid ""
+"Note: exports include only questions that remain in the most recent version "
+"of the form."
+msgstr "မှတ်ချက်- ထုတ်ယူမှုများတွင် ဖောင်၏ နောက်ဆုံးဗားရှင်းတွင် ကျန်ရှိသည့် မေးခွန်းများသာပါဝင်သည်။"
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:44
+msgid "Delimiter to use to separate group names from field names"
+msgstr "အုပ်စုအမည်များကို အကွက်အမည်များမှ ခွဲထုတ်ရာတွင် အသုံးပြုရန် ကန့်သတ်ချက်"
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:46
+msgid "Dot"
+msgstr "Dot"
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:47
+msgid "Slash"
+msgstr "Slash"
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:51
+msgid "DONT split select multiple choice answers into separate columns"
+msgstr "ရွေးချယ်မှုမျိုးစုံအဖြေများကို သီးခြားကော်လံများအဖြစ် မခွဲပါနှင့်"
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:55
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:99
+msgid "Cancel"
+msgstr "ပယ်ဖျက်သည်"
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:56
+msgid "Create Export"
+msgstr "ထုတ်ယူမှုကို ဖန်တီးရန်"
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:65
+msgid "Filename"
+msgstr "ဖိုင်နာမည်"
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:66
+msgid "Date Created"
+msgstr "ဖန်တီးသည့် ရက်စွဲ"
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:67
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:100
+msgid "Delete"
+msgstr "ပယ်ဖျက်သည်"
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:82
+msgid "Pending ..."
+msgstr "ဆိုင်းငံ့ထားသည်..."
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:83
+msgid "Click to refresh"
+msgstr "ပြန်လည်စတင်ရန် နှိပ်ပါ"
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:93
+msgid "Delete Export"
+msgstr "ထုတ်ယူမှုကို ဖျက်ရန်"
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:96
+msgid "Are you sure you want to delete this export?"
+msgstr "ဤထုတ်ယူမှုကို ဖျက်လိုသည်မှာ သေချာသလား။"
+
+#: kobo/apps/openrosa/apps/viewer/views.py:61
+#, python-format
+msgid "%s is not a valid delimiter"
+msgstr "%s သည် မမှန်ကန်သော ကန့်သတ်ချက်တစ်ခုဖြစ်သည်"
+
+#: kobo/apps/openrosa/apps/viewer/views.py:80
+#, python-format
+msgid "%s is not a valid export type"
+msgstr "%s သည် မမှန်ကန်သော ထုတ်ယူမှုအမျိုးအစား ဖြစ်သည်"
+
+#: kobo/apps/openrosa/apps/viewer/views.py:97
+msgid "Invalid export type"
+msgstr "မမှန်ကန်သော ထုတ်ယူမှုအမျိုးအစား"
+
+#: kobo/apps/openrosa/apps/viewer/views.py:240
+#: kobo/apps/openrosa/apps/viewer/views.py:244
+msgid "Attachment not found"
+msgstr "ပူးတွဲထားသော ဖိုင်မတွေ့ပါ"
+
+#: kobo/apps/openrosa/apps/viewer/views.py:301
+msgid "Error: Attachment not found"
+msgstr "ချို့ယွင်းချက်- ပူးတွဲထားသော ဖိုင်မတွေ့ပါ"
+
+#: kobo/apps/openrosa/libs/authentication.py:51
+msgid ""
+"Using basic authentication without HTTPS transmits credentials in clear "
+"text! You MUST connect via HTTPS to use basic authentication."
+msgstr "HTTPS မပါဘဲ အခြေခံ အထောက်အထားစိစစ်ခြင်းကို သုံးခြင်းသည် အထောက်အထားများကို ရှင်းလင်းသော စာသားဖြင့် ပေးပို့သည်။ အခြေခံ အထောက်အထားစိစစ်ခြင်းကိုသုံးရန် HTTPS မှတစ်ဆင့် ချိတ်ဆက်ရမည်။"
+
+#: kobo/apps/openrosa/libs/mixins/mfa.py:25
+msgid ""
+"Multi-factor authentication is enabled for this account. ##authentication "
+"class## cannot be used."
+msgstr "ဤအကောင့်အတွက် အချက်ပေါင်းများစွာ အထောက်အထားစိစစ်ခြင်းကို ဖွင့်ထားသည်။  ##authentication class## ကို အသုံးမပြုနိုင်ပါ။"
+
+#: kobo/apps/openrosa/libs/serializers/clone_xform_serializer.py:34
+#, python-format
+msgid "User '%(value)s' does not exist."
+msgstr " သုံးစွဲသူ'%(value)s'  မရှိပါ။"
+
+#: kobo/apps/openrosa/libs/serializers/data_serializer.py:47
+#, python-format
+msgid "Invalid query: %(query)s"
+msgstr "မေးခွန်း အမှား-%(query)s"
+
+#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:18
+msgid "Data License"
+msgstr "ဒေတာလိုင်စင်"
+
+#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:19
+msgid "Form License"
+msgstr "ပုံစံ လိုင်စင်"
+
+#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:20
+msgid "Media"
+msgstr "မီဒီယာ"
+
+#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:21
+msgid "Public Link"
+msgstr "လူထုလင့်ခ်"
+
+#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:22
+msgid "Source"
+msgstr "အရင်းအမြစ်"
+
+#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:23
+msgid "Supporting Document"
+msgstr "အထောက်အထား စာရွက်စာတမ်း"
+
+#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:24
+msgid "Paired Data"
+msgstr "ချိတ်ဆက်ထားသော ဒေတာ"
+
+#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:72
+msgid "Project not found"
+msgstr "စီမံကိန်း မတွေ့ပါ"
+
+#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:76
+msgid "You do not have sufficient permissions to perform this action"
+msgstr "ဤလုပ်ဆောင်ချက် ပြုလုပ်ရန် သင့်တွင် လုံလောက်သော ခွင့်ပြုချက် မရှိပါ။"
+
+#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:122
+msgid "Invalid url {}"
+msgstr "url အမှား {}"
+
+#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:156
+#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:167
+#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:174
+msgid "Cannot determine content type"
+msgstr "အကြောင်းအရာအမျိုးအစားကို မသတ်မှတ်နိုင်ပါ"
+
+#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:189
+msgid "Invalid content type"
+msgstr "အကြောင်းအရာ အမျိုးအစား အမှား"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:8
+msgid "Afghanistan"
+msgstr "အာဖဂန်နစ္စတန်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:9
+msgid "Albania"
+msgstr "အယ်လ်ဘေးနီးယား"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:10
+msgid "Algeria"
+msgstr "အယ်လ်ဂျီးရီးယားနိုင်ငံ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:11
+msgid "American Samoa"
+msgstr "အမေရိကန် ဆာမိုအာ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:12
+msgid "Andorra"
+msgstr "အန်ဒိုရာ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:13
+msgid "Angola"
+msgstr "အင်ဂိုလာ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:14
+msgid "Anguilla"
+msgstr "အန်ဂီလာ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:15
+msgid "Antarctica"
+msgstr "အန္တာတိက"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:16
+msgid "Antigua and Barbuda"
+msgstr "အန်တီဂွာနှင့် ဘာဘူဒါ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:17
+msgid "Argentina"
+msgstr "အာဂျင်တီးနား"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:18
+msgid "Armenia"
+msgstr "အာမေးနီးယား"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:19
+msgid "Aruba"
+msgstr "အာရူဘာ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:20
+msgid "Australia"
+msgstr "သြစတေးလျ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:21
+msgid "Austria"
+msgstr "သြစတီးယား"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:22
+msgid "Azerbaijan"
+msgstr "အဇာဘိုင်ဂျန်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:23
+msgid "Bahamas"
+msgstr "ဘာဟားမား"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:24
+msgid "Bahrain"
+msgstr "ဘာရိန်း"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:25
+msgid "Bangladesh"
+msgstr "ဘင်္ဂလားဒေ့ရှ်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:26
+msgid "Barbados"
+msgstr "ဘာဘေးဒိုးစ်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:27
+msgid "Belarus"
+msgstr "ဘယ်လာရုဇ် "
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:28
+msgid "Belgium"
+msgstr "ဘယ်လ်ဂျီယမ်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:29
+msgid "Belize"
+msgstr "ဘလိဇ်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:30
+msgid "Benin"
+msgstr "ဘီနင်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:31
+msgid "Bermuda"
+msgstr "ဘာမြူဒါ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:32
+msgid "Bhutan"
+msgstr "ဘူတန်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:33
+msgid "Bolivia"
+msgstr "ဘိုလီးဗီးယား"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:34
+msgid "Bonaire, Sint Eustatius and Saba"
+msgstr "ဘာနေယား၊ စိန့် ယူစတေးရှပ်နှင့် ဆာဘာ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:35
+msgid "Bosnia and Herzegovina"
+msgstr "ဘော့စနီးယားနှင့် ဟာဇီဂိုဗီးနား"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:36
+msgid "Botswana"
+msgstr "ဘော့ဆွာနာ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:37
+msgid "Brazil"
+msgstr "ဘရာဇီး"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:38
+msgid "British Indian Ocean Territory"
+msgstr "ဗြိတိသျှ အိန္ဒိယသမုဒ္ဒရာ နယ်မြေ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:39
+msgid "Brunei Darussalam"
+msgstr "ဘရူနိုင်း"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:40
+msgid "Bulgaria"
+msgstr "ဘူလ်ဂေးရီးယား"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:41
+msgid "Burkina Faso"
+msgstr "ဘာကီးနားဖားဆို"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:42
+msgid "Burundi"
+msgstr "ဘူရွန်ဒီ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:43
+msgid "Cambodia"
+msgstr "ကမ္ဘောဒီးယား"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:44
+msgid "Cameroon"
+msgstr "ကင်မရွန်း"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:45
+msgid "Canada"
+msgstr "ကနေဒါ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:46
+msgid "Cape Verde"
+msgstr "ကိတ်ဗာဒီ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:47
+msgid "Cayman Islands"
+msgstr "ကေမန်ကျွန်းစု"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:48
+msgid "Central African Republic"
+msgstr "ဗဟိုအာဖရိကသမ္မတနိုင်ငံ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:49
+msgid "Chad"
+msgstr "ချဒ်သမ္မတနိုင်ငံ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:50
+msgid "Chile"
+msgstr "ချီလီ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:51
+msgid "China"
+msgstr "တရုတ်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:52
+msgid "Christmas Island"
+msgstr "ခရစ္စမတ်ကျွန်း"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:53
+msgid "Cocos (Keeling) Islands"
+msgstr "ကိုကိုး (ကီးလင်း) ကျွန်းများ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:54
+msgid "Colombia"
+msgstr "ကိုလံဘီယာ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:55
+msgid "Comoros"
+msgstr "ကိုမိုရို"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:56
+msgid "Congo"
+msgstr "ကွန်ဂို"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:57
+msgid "Congo, The Democratic Republic of the"
+msgstr "ကွန်ဂိုဒီမိုကရက်တစ်သမ္မတနိုင်ငံ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:58
+msgid "Cook Islands"
+msgstr "ကွတ်ကျွန်းစု"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:59
+msgid "Costa Rica"
+msgstr "ကော့စတာရီကာ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:60
+msgid "Ivory Coast"
+msgstr "အိုင်ဗရီကို့စ်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:61
+msgid "Croatia"
+msgstr "ခရိုအေးရှား"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:62
+msgid "Cuba"
+msgstr "ကျူးဘား"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:63
+msgid "Curacao"
+msgstr "ကူရာဆော"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:64
+msgid "Cyprus"
+msgstr "ဆိုက်ပရပ်စ်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:65
+msgid "Czech Republic"
+msgstr "ချက်သမ္မတနိုင်ငံ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:66
+msgid "Denmark"
+msgstr "ဒိန်းမတ်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:67
+msgid "Djibouti"
+msgstr "ဂျီဘူတီ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:68
+msgid "Dominica"
+msgstr "ဒိုမီနီကာ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:69
+msgid "Dominican Republic"
+msgstr "ဒိုမီနီကန်သမ္မတနိုင်ငံ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:70
+msgid "Ecuador"
+msgstr "အီကွေဒေါ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:71
+msgid "Egypt"
+msgstr "အီဂျစ်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:72
+msgid "El Salvador"
+msgstr "အယ်ဆာဗေဒို"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:73
+msgid "Equatorial Guinea"
+msgstr "အီကွေတာဂီနီ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:74
+msgid "Eritrea"
+msgstr "အီရီထရီးယား"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:75
+msgid "Estonia"
+msgstr "အက်စ်တိုးနီးယား"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:76
+msgid "Ethiopia"
+msgstr "အီသီယိုးပီးယား"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:77
+msgid "Falkland Islands (Malvinas)"
+msgstr "ဖော့ကလန်ကျွန်းစု (မယ်လ်ဗီးနက်စ်)"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:78
+msgid "Faroe Islands"
+msgstr "ဖရိုးကျွန်းစု"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:79
+msgid "Fiji"
+msgstr "ဖီဂျီ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:80
+msgid "Finland"
+msgstr "ဖင်လန်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:81
+msgid "France"
+msgstr "ပြင်သစ်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:82
+msgid "French Guiana"
+msgstr "ပြင်သစ်ဂီယာနာ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:83
+msgid "French Polynesia"
+msgstr "ပြင်သစ်ပိုလီနီးရှား"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:84
+msgid "French Southern Territories"
+msgstr "ပြင်သစ် တောင်ပိုင်းနယ်မြေများ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:85
+msgid "Gabon"
+msgstr "ဂါဘွန်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:86
+msgid "Gambia"
+msgstr "ဂမ်ဘီယာ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:87
+msgid "Georgia"
+msgstr "ဂျော်ဂျီယာ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:88
+msgid "Germany"
+msgstr "ဂျာမနီ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:89
+msgid "Ghana"
+msgstr "ဂါနာ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:90
+msgid "Gibraltar"
+msgstr "ဂျီဘရော်လ်တာ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:91
+msgid "Greece"
+msgstr "ဂရိ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:92
+msgid "Greenland"
+msgstr "ဂရင်းလန်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:93
+msgid "Grenada"
+msgstr "ဂရီနေဒါ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:94
+msgid "Guadeloupe"
+msgstr "ဂွါဒီလု"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:95
+msgid "Guam"
+msgstr "ဂူအမ်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:96
+msgid "Guatemala"
+msgstr "ဂွါတီမာလာ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:97
+msgid "Guernsey"
+msgstr "ဂန်းစီး"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:98
+msgid "Guinea"
+msgstr "ဂီနီ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:99
+msgid "Guinea-Bissau"
+msgstr "ဂီနီ-ဗစ်ဆော"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:100
+msgid "Guyana"
+msgstr "ဂိုင်ယာနာ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:101
+msgid "Haiti"
+msgstr "ဟေတီ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:102
+msgid "Heard Island and McDonald Islands"
+msgstr "ဟာဒ်ကျွန်းနှင့် မက်ဒေါ်နယ်ကျွန်းစုများ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:103
+msgid "Holy See (Vatican City State)"
+msgstr "ဟိုးလီးဆီး (ဗာတီကန်စီးတီး)"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:104
+msgid "Honduras"
+msgstr "ဟွန်ဒူးရပ်စ်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:105
+msgid "Hong Kong"
+msgstr "ဟောင်ကောင်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:106
+msgid "Hungary"
+msgstr "ဟန်ဂရီ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:107
+msgid "Iceland"
+msgstr "အိုက်စလန်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:108
+msgid "India"
+msgstr "အိန္ဒိယ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:109
+msgid "Indonesia"
+msgstr "အင်ဒိုနီးရှား"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:110
+msgid "Installations in International Waters"
+msgstr "အပြည်ပြည်ဆိုင်ရာ ရေကြောင်းဒေသများ၌ တပ်ဆင်ခြင်းများ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:111
+msgid "Iran, Islamic Republic of"
+msgstr "အီရန်အစ္စလာမ်မစ် သမ္မတနိုင်ငံ "
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:112
+msgid "Iraq"
+msgstr "အီရတ်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:113
+msgid "Ireland"
+msgstr "အိုင်ယာလန်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:114
+msgid "Isle of Man"
+msgstr "မမ်းကျွန်း"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:115
+msgid "Israel"
+msgstr "အစ္စရေး"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:116
+msgid "Italy"
+msgstr "အီတလီ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:117
+msgid "Jamaica"
+msgstr "ဂျမေကာ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:118
+msgid "Japan"
+msgstr "ဂျပန်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:119
+msgid "Jersey"
+msgstr "ဂျာစီ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:120
+msgid "Jordan"
+msgstr "ဂျော်ဒန်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:121
+msgid "Kazakhstan"
+msgstr "ကာဇက်စတန်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:122
+msgid "Kenya"
+msgstr "ကင်ညာ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:123
+msgid "Kiribati"
+msgstr "ကီရီဘတ်စ်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:124
+msgid "Korea, Democratic People's Republic of"
+msgstr "ကိုရီးယားဒီမိုကရက်တစ်ပြည်သူ့သမ္မတနိုင်ငံ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:125
+msgid "Korea, Republic of"
+msgstr "ကိုရီးယားသမ္မတနိုင်ငံ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:127
+msgid "Kosovo"
+msgstr "ကိုဆိုဗို"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:128
+msgid "Kuwait"
+msgstr "ကူဝိတ်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:129
+msgid "Kyrgyzstan"
+msgstr "ကာဂျစ္စတန်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:130
+msgid "Lao People's Democratic Republic"
+msgstr "လာအိုပြည်သူ့ဒီမိုကရက်တစ်သမ္မတနိုင်ငံ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:131
+msgid "Latvia"
+msgstr "လတ်ဗီယာ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:132
+msgid "Lebanon"
+msgstr "လက်ဘနွန်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:133
+msgid "Lesotho"
+msgstr "လီဆိုသို"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:134
+msgid "Liberia"
+msgstr "လိုက်ဘေးရီးယား"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:135
+msgid "Libyan Arab Jamahiriya"
+msgstr "လစ်ဗျား အာရပ် ဂျမာဟီရီယာ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:136
+msgid "Liechtenstein"
+msgstr "လစ်တန်စတိန်း"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:137
+msgid "Lithuania"
+msgstr "လစ်သူယေးနီးယား"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:138
+msgid "Luxembourg"
+msgstr "လူဇင်ဘတ်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:139
+msgid "Macao"
+msgstr "မကာအို"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:140
+msgid "Macedonia, The former Yugoslav Republic of"
+msgstr "မက်ဆီဒိုးနီးယား ယူဂိုဆလပ်သမ္မတနိုင်ငံ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:141
+msgid "Madagascar"
+msgstr "မဒါဂတ်စကား"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:142
+msgid "Malawi"
+msgstr "မာလဝီ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:143
+msgid "Malaysia"
+msgstr "မလေးရှား"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:144
+msgid "Maldives"
+msgstr "မော်လဒိုက်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:145
+msgid "Mali"
+msgstr "မာလီ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:146
+msgid "Malta"
+msgstr "မော်လတာ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:147
+msgid "Marshall Islands"
+msgstr "မာရှယ်ကျွန်းစု"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:148
+msgid "Martinique"
+msgstr "မာတီနစ်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:149
+msgid "Mauritania"
+msgstr "မော်ရီတေးနီးယား"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:150
+msgid "Mauritius"
+msgstr "မောရစ်ရှ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:151
+msgid "Mayotte"
+msgstr "မာယော့"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:152
+msgid "Mexico"
+msgstr "မက္ကဆီကို"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:153
+msgid "Micronesia, Federated States of"
+msgstr "မိုက်ခရိုနီးရှားဖက်ဒရယ်ပြည်ထောင်စု"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:154
+msgid "Moldova, Republic of"
+msgstr "မော်လ်ဒိုဗာ သမ္မတနိုင်ငံ "
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:155
+msgid "Monaco"
+msgstr "မိုနာကို"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:156
+msgid "Mongolia"
+msgstr "မွန်ဂိုလီးယား"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:157
+msgid "Montenegro"
+msgstr "မွန်တီနီဂရိုး"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:158
+msgid "Montserrat"
+msgstr "မောင်းဆာလတ်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:159
+msgid "Morocco"
+msgstr "မော်ရိုကို"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:160
+msgid "Mozambique"
+msgstr "မိုဇမ်ဘစ်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:161
+msgid "Myanmar"
+msgstr "မြန်မာ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:162
+msgid "Namibia"
+msgstr "နမီးဘီးယား"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:163
+msgid "Nauru"
+msgstr "နအူရူး"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:164
+msgid "Nepal"
+msgstr "နီပေါ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:165
+msgid "Netherlands"
+msgstr "နယ်သာလန်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:166
+msgid "New Caledonia"
+msgstr "နယူးကလီဒိုနီးယား"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:167
+msgid "New Zealand"
+msgstr "နယူးဇီလန်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:168
+msgid "Nicaragua"
+msgstr "နီကာရာဂွါ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:169
+msgid "Niger"
+msgstr "နိုင်ဂျာ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:170
+msgid "Nigeria"
+msgstr "နိုင်ဂျီးရီးယား"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:171
+msgid "Niue"
+msgstr "နျူးအေး"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:172
+msgid "Norfolk Island"
+msgstr "နော်ဖောကျွန်း"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:173
+msgid "Northern Mariana Islands"
+msgstr "မြောက်ပိုင်း မာရီယာနာ ကျွန်းစု"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:174
+msgid "Norway"
+msgstr "နော်ဝေး"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:175
+msgid "Oman"
+msgstr "အိုမန်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:176
+msgid "Pakistan"
+msgstr "ပါကစ္စတန်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:177
+msgid "Palau"
+msgstr "ပလောင်း"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:178
+msgid "Palestinian Territory, Occupied"
+msgstr "အသိမ်းပိုက်ခံ ပါလက်စတိုင်းနယ်မြေ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:179
+msgid "Panama"
+msgstr "ပနားမား"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:180
+msgid "Papua New Guinea"
+msgstr "ပါပူအာနယူးဂီနီ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:181
+msgid "Paraguay"
+msgstr "ပါရာဂွေး"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:182
+msgid "Peru"
+msgstr "ပီရူး"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:183
+msgid "Philippines"
+msgstr "ဖိလစ်ပိုင်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:184
+msgid "Pitcairn"
+msgstr "ပစ်ကိန်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:185
+msgid "Poland"
+msgstr "ပိုလန်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:186
+msgid "Portugal"
+msgstr "ပေါ်တူဂီ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:187
+msgid "Puerto Rico"
+msgstr "ပေါ်တိုရီကို"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:188
+msgid "Qatar"
+msgstr "ကာတာ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:189
+msgid "Reunion"
+msgstr "ရီယူနီယန်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:190
+msgid "Romania"
+msgstr "ရိုမေးနီးယား"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:191
+msgid "Russian Federation"
+msgstr "ရူရှား ပြည်ထောင်စု"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:192
+msgid "Rwanda"
+msgstr "ရဝမ်ဒါ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:193
+msgid "Saint Helena"
+msgstr "စိန့်ဟယ်လီနာ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:194
+msgid "Saint Kitts and Nevis"
+msgstr "စိန့်ကစ်နှင့် နီးဗစ်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:195
+msgid "Saint Lucia"
+msgstr "စိန့်လူစီယာ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:196
+msgid "Saint Pierre and Miquelon"
+msgstr "ဆိန့် ဖီရီ နှင့် မီခိုလောင်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:197
+msgid "Saint Vincent and the Grenadines"
+msgstr "စိန့်ဗင်းဆင့်နှင့် ဂရိနေဒိုင်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:198
+msgid "Samoa"
+msgstr "ဆမိုးအား"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:199
+msgid "San Marino"
+msgstr "ဆန်မာရီနို"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:200
+msgid "Sao Tome and Principe"
+msgstr "ဆောင်တူမေးနှင့် ပရင်စီပီ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:201
+msgid "Saudi Arabia"
+msgstr "ဆော်ဒီအာရေးဘီးယား"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:202
+msgid "Senegal"
+msgstr "ဆီနီဂေါ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:203
+msgid "Serbia"
+msgstr "ဆားဘီးယား"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:204
+msgid "Seychelles"
+msgstr "ဆေးရှဲ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:205
+msgid "Sierra Leone"
+msgstr "ဆီရာလီယွန်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:206
+msgid "Singapore"
+msgstr "စင်ကာပူ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:207
+msgid "Sint Maarten (Dutch Part)"
+msgstr "ဆင့်မားတင် (ဒတ်ချ်ပိုင်း)"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:208
+msgid "Slovakia"
+msgstr "ဆလိုဗားကီးယား"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:209
+msgid "Slovenia"
+msgstr "ဆလိုဗေးနီးယား"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:210
+msgid "Solomon Islands"
+msgstr "ဆော်လမွန်အိုင်းလန်း"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:211
+msgid "Somalia"
+msgstr "ဆိုမာလီယာ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:212
+msgid "South Africa"
+msgstr "တောင်အာဖရိက"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:213
+msgid "South Georgia and the South Sandwich Islands"
+msgstr "တောင်ဂျော်ဂျီယာနှင့် တောင်ဆန်းဒဝေ့ချ်ကျွန်းစု"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:214
+msgid "South Sudan"
+msgstr "တောင်ဆူဒန်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:215
+msgid "Spain"
+msgstr "စပိန်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:216
+msgid "Sri Lanka"
+msgstr "သီရိလင်္ကာ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:217
+msgid "Sudan"
+msgstr "ဆူဒန်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:218
+msgid "Suriname"
+msgstr "ဆူရာနမ်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:219
+msgid "Svalbard and Jan Mayen"
+msgstr "ဆဗာဘတ်နှင့် ယန်းမာယန်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:220
+msgid "Swaziland"
+msgstr "ဆွာဇီလန်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:221
+msgid "Sweden"
+msgstr "ဆွီဒင်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:222
+msgid "Switzerland"
+msgstr "ဆွဇ်ဇာလန်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:223
+msgid "Syrian Arab Republic"
+msgstr "ဆီးရီးယား အာရပ် သမ္မတနိုင်ငံ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:224
+msgid "Taiwan, Province of China"
+msgstr "တရုတ်နိုင်ငံ ထိုင်ဝမ်ပြည်နယ်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:225
+msgid "Tajikistan"
+msgstr "တာဂျစ်ကစ္စတန်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:226
+msgid "Tanzania, United Republic of"
+msgstr "တန်ဇန်းနီးယားပြည်ထောင်စု သမ္မတနိုင်ငံ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:227
+msgid "Thailand"
+msgstr "ထိုင်း"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:228
+msgid "Timor-Leste"
+msgstr "အရှေ့တီမော"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:229
+msgid "Togo"
+msgstr "တိုဂို"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:230
+msgid "Tokelau"
+msgstr "တိုကလောင်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:231
+msgid "Tonga"
+msgstr "တုံဂါ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:232
+msgid "Trinidad and Tobago"
+msgstr "ထရီနီဒတ်နှင့် တိုဘက်ဂို"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:233
+msgid "Tunisia"
+msgstr "တူနီးရှား"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:234
+msgid "Turkey"
+msgstr "တူရကီ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:235
+msgid "Turkmenistan"
+msgstr "တာ့ခ်မင်နစ္စတန်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:236
+msgid "Turks and Caicos Islands"
+msgstr "တတ်ခ်စ်နှင့် ကေကိုစ်ကျွန်းစု"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:237
+msgid "Tuvalu"
+msgstr "တူဗားလူ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:238
+msgid "Uganda"
+msgstr "ယူဂန်ဒါ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:239
+msgid "Ukraine"
+msgstr "ယူကရိန်း"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:240
+msgid "United Arab Emirates"
+msgstr "အာရပ်စော်ဘွားများပြည်ထောင်စုနိုင်ငံ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:241
+msgid "United Kingdom"
+msgstr "ယူနိုက်တက်ကင်းဒမ်း"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:242
+msgid "United States"
+msgstr "အမေရိကန်ပြည်ထောင်စု"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:243
+msgid "United States Minor Outlying Islands"
+msgstr "အမေရိကန်ပြည်ထောင်စု၏ အသေးစားပြင်ပကျွန်းများ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:244
+msgid "Uruguay"
+msgstr "ဥရုဂွေး"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:245
+msgid "Uzbekistan"
+msgstr "ဥဇဘက်ကစ္စတန်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:246
+msgid "Vanuatu"
+msgstr "ဗနွားတူ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:247
+msgid "Venezuela"
+msgstr "ဗင်နီဇွဲလား"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:248
+msgid "Viet Nam"
+msgstr "ဗီယက်နမ်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:249
+msgid "Virgin Islands, British"
+msgstr "ဗြိတိသျှ ဗာဂျင်အိုင်းလန်း"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:250
+msgid "Virgin Islands, U.S."
+msgstr "အမေရိကန် ဗာဂျင်အိုင်းလန်း"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:251
+msgid "Wallis and Futuna"
+msgstr "ဝေါလစ်နှင့်ဖူကျူးနား "
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:252
+msgid "Western Sahara"
+msgstr "အနောက်ဆဟာရ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:253
+msgid "Yemen"
+msgstr "ယီမင်"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:254
+msgid "Zambia"
+msgstr "ဇမ်ဘီယာ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:255
+msgid "Zimbabwe"
+msgstr "ဇင်ဘာဘွေ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:256
+msgid "Unknown or unspecified country"
+msgstr "မသိရှိသော သို့မဟုတ် မသတ်မှတ်ထားသော နိုင်ငံ"
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:125
+msgid "Forbidden"
+msgstr "ထားမြစ်ထားသော"
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:135
+msgid ""
+"Forbidden attempt to edit a submission. To make a new submission, Remove "
+"`deprecatedID` from the submission XML and try again."
+msgstr "တင်သွင်းမှုကို ပြင်ဆင်ရန် တားမြစ်မှု။ တင်သွင်းမှုအသစ်တစ်ခုပြုလုပ်ရန် တင်သွင်းမှု XML ထဲမှ `deprecatedID` ကို ဖယ်ရှားပြီး ထပ်မံကြိုးစားပါ။"
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:306
+msgid "Username or ID required."
+msgstr "အသုံးပြုသူနာမည် သို့မဟုတ် ID လိုအပ်သည်။"
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:309
+msgid "Received empty submission. No instance was created"
+msgstr "ဗလာတင်သွင်းမှုရရှိခဲ့ပါသည်။ နမူနာတစ်ခုမဖန်တီးခဲ့ပါ။"
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:312
+msgid "Form is not active"
+msgstr "ဖောင်သည် လုပ်ဆောင်နေခြင်းမရှိပါ"
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:315
+msgid "Temporarily unavailable"
+msgstr "လက်တလော မရနိုင်ပါ"
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:318
+msgid "Form does not exist on this account"
+msgstr "ဤအကောင့်တွင် ဖောင်မရှိပါ"
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:321
+msgid "Improperly formatted XML."
+msgstr "သင့်လျောစွာ ပုံစံမချထားသည့် XML။"
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:324
+msgid "Duplicate submission"
+msgstr "ထပ်တလဲလဲ တင်သွင်းခြင်း"
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:330
+msgid "Access denied"
+msgstr "ဝင်‌ရောက်အသုံးပြုခွင့် ပိတ်ပင်ထားသည်"
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:337
+msgid "File likely corrupted during transmission, please try later."
+msgstr "ဖိုင်သည် ပို့ဆောင်မှုအတွင်း ပျက်စီးခဲ့နိုင်ပါသည်၊ ကျေးဇူးပြုပြီး နောက်မှ ထပ်ကြိုးစားပါ။"
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:475
+msgid "Invalid URL format."
+msgstr "မမှန်ကန်သော URL ပုံစံ။"
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:487
+msgid "Form validation timeout, please try again."
+msgstr "ဖောင် အတည်ပြုခြင်း အချိန်ကုန်ပြီးပါသည်၊ ကျေးဇူးပြုပြီး ထပ်မံကြိုးစားပါ။"
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:556
+#: kobo/apps/openrosa/libs/utils/viewer_tools.py:63
+#, python-format
+msgid "Exception in request: %(class)s: %(error)s"
+msgstr "တောင်းဆိုမှုတွင် ခြွင်းချက်%(class)s- %(error)s"
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:589
+msgid "The requested file could not be found."
+msgstr "တောင်းဆိုထားသော ဖိုင်ကို မတွေ့ပါ။"
+
+#: kobo/apps/openrosa/libs/utils/middleware.py:181 kpi/exceptions.py:102
+msgid ""
+"Your access is restricted. Please reclaim your access by changing your "
+"password at ##koboform_url##/accounts/password/reset/."
+msgstr "သင့်ဝင်ရောက်ကြည့်ရူခွင့်ကို တားမြစ်ထားပါသည်။ ကျေးဇူးပြု၍ သင့်စကားဝှက်အား ##koboform_url##/accounts/password/reset/ တွင် ပြောင်းခြင်းဖြင့် သင့်ဝင်ရောက်ကြည့်ရူခွင့်အား ပြန်လည်ပြန်တောင်းယူပါ။"
+
+#: kobo/apps/project_ownership/models/invite.py:96
+msgid "KoboToolbox project ownership transfer accepted"
+msgstr "Kobo ကိရိယာအကွက် စီမံကိန်း ပိုင်ဆိုင်မှုလွှဲပြောင်းခြင်းကို လက်ခံခဲ့သည်"
+
+#: kobo/apps/project_ownership/models/invite.py:126
+msgid "Action required: KoboToolbox project ownership transfer request"
+msgstr "လုပ်ဆောင်ရန် လိုအပ်သည်- Kobo ကိရိယာအကွက် စီမံကိန်း ပိုင်ဆိုင်မှု လွှဲပြောင်းမှု တောင်းဆိုချက်"
+
+#: kobo/apps/project_ownership/models/invite.py:153
+msgid "KoboToolbox project ownership transfer incomplete"
+msgstr "Kobo ကိရိယာအကွက် စီမံကိန်း ပိုင်ဆိုင်မှု လွှဲပြောင်းခြင်း မပြီးမြောက်ပါ"
+
+#: kobo/apps/project_ownership/models/transfer.py:224
+msgid "Project ownership transferred"
+msgstr "စီမံကိန်းပိုင်ဆိုင်မှုကို လွှဲပြောင်းထားသည်"
+
+#: kobo/apps/project_ownership/models/transfer.py:226
+msgid ""
+"Please note that the ownership of the project **##project_name##** has been "
+"transferred from **##previous_owner##** to **##new_owner##**."
+msgstr "** ##project_name##** စီမံကိန်းပိုင်ဆိုင်မှုကို **##previous_owner## ** မှ ** ##new_owner##** သို့ လွှဲပြောင်းပေးထားကြောင်း ကျေးဇူးပြု၍ သတိပြုပါ။"
+
+#: kobo/apps/project_ownership/models/transfer.py:230
+msgid ""
+"Dear ##username##,\n"
+"\n"
+"Please note that the ownership of the project **##project_name##** has been transferred from **##previous_owner##** to **##new_owner##**.\n"
+"\n"
+"Note: You will continue to have the same project permissions until they are changed."
+msgstr "ချစ်လှစွာသော##username##၊\n\n**##project_name## ** စီမံကိန်း ပိုင်ဆိုင်မှုကို **##previous_owner## ** မှ **##new_owner## ** သို့ လွှဲပြောင်းပေးထားကြောင်း ကျေးဇူးပြု၍ သတိပြုပါ။\n\nမှတ်ချက်- ၎င်းတို့ကို မပြောင်းလဲမချင်း သင့်တွင် အလားတူ စီမံကိန်းခွင့်ပြုချက်များ ဆက်လက်ရှိနေပါမည်။"
+
+#: kobo/apps/project_ownership/serializers/invite.py:100
+#: kobo/apps/project_ownership/serializers/invite.py:163
+#: kobo/apps/project_ownership/serializers/invite.py:172
+msgid "This field cannot be modified"
+msgstr "ဤအကွက်ကို ပြုပြင်၍မရပါ"
+
+#: kobo/apps/project_ownership/serializers/invite.py:110
+msgid "You must be the owner of each project you want to transfer"
+msgstr "သင်သည် သင်လွှဲပြောင်းလိုသော စီမံကိန်းတိုင်း၏ ပိုင်ရှင်ဖြစ်ရမည်"
+
+#: kobo/apps/project_ownership/serializers/invite.py:146
+msgid ""
+"Project `##asset_uid##` cannot be transferred. Current status: ##status##"
+msgstr "စီမံကိန်း `##asset_uid##`ကို လွှဲပြောင်း၍မရပါ။ လက်ရှိအခြေအနေ: ##status##"
+
+#: kobo/apps/project_ownership/tasks.py:182
+msgid "Invite has expired"
+msgstr "ဖိတ်ကြားချက် သက်တမ်းကုန်သွားပါပြီ"
+
+#: kobo/apps/project_ownership/templates/emails/accepted_invite.html:3
+#: kobo/apps/project_ownership/templates/emails/declined_invite.html:3
+#: kobo/apps/project_ownership/templates/emails/declined_invite.txt:3
+#: kobo/apps/project_ownership/templates/emails/expired_invite.html:3
+#: kobo/apps/project_ownership/templates/emails/expired_invite.txt:3
+#: kobo/apps/project_ownership/templates/emails/new_invite.html:3
+#: kobo/apps/project_ownership/templates/emails/new_invite.txt:3
+msgid "Projects:"
+msgstr "‌စီမံကိန်းများ-"
+
+#: kobo/apps/project_ownership/templates/emails/accepted_invite.html:8
+#, python-format
+msgid ""
+"%(recipient)s has accepted your request to transfer ownership of the project"
+" <a href=\"%(base_url)s/#/forms/%(asset_uid)s/landing\">%(asset_name)s</a> "
+"to you."
+msgstr "စီမံကိန်း<a href=\"%(base_url)s/#/forms/%(asset_uid)s/landing\">%(asset_name)s</a>၏ပိုင်ဆိုင်မှုကို သင့်ထံလွှဲပြောင်းရန် သင့်တောင်းဆိုချက်ကို %(recipient)sက လက်ခံခဲ့သည်။"
+
+#: kobo/apps/project_ownership/templates/emails/accepted_invite.html:10
+msgid ""
+"All submissions, data storage, and transcription and translation usage for "
+"this project will be transferred to the new project owner."
+msgstr "ဤစီမံကိန်းအတွက် တင်သွင်းခြင်းများ၊ ဒေတာသိုလှောင်မှု၊ စာသားအဖြစ်ပြောင်းလဲခြင်းနှင့် ဘာသာပြန်ဆိုအသုံးပြုမှုအားလုံးကို စီမံကိန်းပိုင်ရှင်အသစ်ထံ လွှဲပြောင်းမည်။"
+
+#: kobo/apps/project_ownership/templates/emails/accepted_invite.html:12
+#: kobo/apps/project_ownership/templates/emails/accepted_invite.txt:10
+msgid ""
+"Note: You will continue to have permissions to manage the project until the "
+"user permissions are changed."
+msgstr "မှတ်ချက်- အသုံးပြုသူ၏ ခွင့်ပြုချက်မပြောင်းလဲမီအထိ စီမံကိန်းကို စီမံခန့်ခွဲရန် သင့်တွင် ခွင့်ပြုချက်များ ဆက်လက်ရှိနေမည်ဖြစ်ပါသည်။"
+
+#: kobo/apps/project_ownership/templates/emails/accepted_invite.html:14
+#: kobo/apps/project_ownership/templates/emails/accepted_invite.txt:12
+#, python-format
+msgid ""
+"%(recipient)s has accepted your request to transfer ownership of these "
+"projects:"
+msgstr "ဤစီမံကိန်းများ၏ပိုင်ဆိုင်မှုလွှဲပြောင်းရန် သင့်တောင်းဆိုချက်ကို %(recipient)s က လက်ခံခဲ့သည်။"
+
+#: kobo/apps/project_ownership/templates/emails/accepted_invite.html:23
+#: kobo/apps/project_ownership/templates/emails/accepted_invite.txt:17
+msgid ""
+"All submissions, data storage, and transcription and translation usage for "
+"these projects will be transferred to the new project owner."
+msgstr "ဤစီမံကိန်းများအတွက် တင်သွင်းခြင်းများ၊ ဒေတာသိုလှောင်မှု၊ စာသားအဖြစ်ပြောင်းလဲခြင်းနှင့် ဘာသာပြန်ဆိုအသုံးပြုမှုအားလုံးကို စီမံကိန်းပိုင်ရှင်အသစ်ထံ လွှဲပြောင်းမည်။"
+
+#: kobo/apps/project_ownership/templates/emails/accepted_invite.html:25
+#: kobo/apps/project_ownership/templates/emails/accepted_invite.txt:19
+msgid ""
+"Note: You will continue to have permissions to manage these projects until "
+"the user permissions are changed."
+msgstr "မှတ်ချက်- အသုံးပြုသူ၏ ခွင့်ပြုချက်မပြောင်းလဲမီအထိ ဤစီမံကိန်းများကို စီမံခန့်ခွဲရန် သင့်တွင် ခွင့်ပြုချက်များ ဆက်လက်ရှိနေမည်ဖြစ်ပါသည်။"
+
+#: kobo/apps/project_ownership/templates/emails/accepted_invite.txt:6
+#, python-format
+msgid ""
+"%(recipient)s has accepted your request to transfer ownership of the project"
+" %(asset_name)s (%(base_url)s/#/forms/%(asset_uid)s/landing) to you."
+msgstr "စီမံကိန်း၏ ပိုင်ဆိုင်မှုကို သင့်ထံလွှဲပြောင်းရန် သင့်တောင်းဆိုချက်ကို%(asset_name)s (%(base_url)s/#/forms/%(asset_uid)s/landing)%(recipient)s က လက်ခံခဲ့သည်။"
+
+#: kobo/apps/project_ownership/templates/emails/accepted_invite.txt:8
+msgid ""
+"All submissions, data storage, and transcription and translation usage for "
+"the project will be transferred to the new project owner."
+msgstr "စီမံကိန်းအတွက် တင်သွင်းခြင်းများ၊ ဒေတာသိုလှောင်မှု၊ စာသားအဖြစ်ပြောင်းလဲခြင်းနှင့် ဘာသာပြန်ဆိုအသုံးပြုမှုအားလုံးကို စီမံကိန်းပိုင်ရှင်အသစ်ထံ လွှဲပြောင်းမည်။"
+
+#: kobo/apps/project_ownership/templates/emails/declined_invite.html:8
+#, python-format
+msgid ""
+"%(recipient)s has declined your request to transfer ownership of the project"
+" <a href=\"%(base_url)s/#/forms/%(asset_uid)s/landing\">%(asset_name)s</a>."
+msgstr "စီမံကိန်း<a href=\"%(base_url)s/#/forms/%(asset_uid)s/landing\">%(asset_name)s</a>၏ပိုင်ဆိုင်မှုကို သင့်ထံလွှဲပြောင်းရန် သင့်တောင်းဆိုချက်ကို %(recipient)sက ငြင်းဆိုခဲ့သည်။"
+
+#: kobo/apps/project_ownership/templates/emails/declined_invite.html:10
+#: kobo/apps/project_ownership/templates/emails/declined_invite.txt:9
+msgid ""
+"You will remain the owner of the project. The submissions, data storage, and"
+" transcription and translation usage for the project have not been "
+"transferred."
+msgstr "သင်သည် စီမံကိန်း၏ ပိုင်ရှင်အဖြစ် ဆက်လက်ရှိနေမည်ဖြစ်သည်။ စီမံကိန်းအတွက် တင်သွင်းခြင်းများ၊ ဒေတာသိုလှောင်မှု၊ စာသားအဖြစ်ပြောင်းလဲခြင်းနှင့် ဘာသာပြန်ဆိုအသုံးပြုမှုတို့ကို လွှဲပြောင်းမထားပါ။"
+
+#: kobo/apps/project_ownership/templates/emails/declined_invite.html:12
+#: kobo/apps/project_ownership/templates/emails/declined_invite.txt:11
+#, python-format
+msgid ""
+"%(recipient)s has declined your request to transfer ownership of these "
+"projects:"
+msgstr "ဤစီမံကိန်းများ၏ပိုင်ဆိုင်မှုလွှဲပြောင်းရန် သင့်တောင်းဆိုချက်ကို %(recipient)s က ငြင်းဆိုခဲ့သည်။"
+
+#: kobo/apps/project_ownership/templates/emails/declined_invite.html:20
+#: kobo/apps/project_ownership/templates/emails/declined_invite.txt:16
+msgid ""
+"You will remain the owner of these projects. The submissions, data storage, "
+"and transcription and translation usage for these projects have not been "
+"transferred."
+msgstr "သင်သည် ဤစီမံကိန်းများ၏ပိုင်ရှင်အဖြစ် ဆက်လက်ရှိနေမည်ဖြစ်သည်။ ဤစီမံကိန်းများအတွက် တင်သွင်းခြင်းများ၊ ဒေတာသိုလှောင်မှု၊ စာသားအဖြစ်ပြောင်းလဲခြင်းနှင့် ဘာသာပြန်ဆိုအသုံးပြုမှုတို့ကို လွှဲပြောင်းမထားပါ။"
+
+#: kobo/apps/project_ownership/templates/emails/declined_invite.txt:7
+#, python-format
+msgid ""
+"%(recipient)s has declined your request to transfer ownership of the project"
+" %(asset_name)s (%(base_url)s/#/forms/%(asset_uid)s/landing)."
+msgstr "စီမံကိန်း၏ ပိုင်ဆိုင်မှုကို သင့်ထံလွှဲပြောင်းရန် သင့်တောင်းဆိုချက်ကို %(asset_name)s (%(base_url)s/#/forms/%(asset_uid)s/landing)%(recipient)s က ငြင်းဆိုခဲ့သည်။"
+
+#: kobo/apps/project_ownership/templates/emails/expired_invite.html:6
+#, python-format
+msgid "The request you have sent to <b>%(recipient)s</b> has expired."
+msgstr "<b>%(recipient)s</b>ထံ သင်ပေးပို့ထားသော တောင်းဆိုချက်သည် သက်တမ်းကုန်သွားပါပြီ။"
+
+#: kobo/apps/project_ownership/templates/emails/expired_invite.txt:7
+#, python-format
+msgid "The request you have sent to %(recipient)s has expired."
+msgstr "%(recipient)sထံ သင်ပေးပို့ထားသော တောင်းဆိုချက်သည် သက်တမ်းကုန်သွားပါပြီ။"
+
+#: kobo/apps/project_ownership/templates/emails/new_invite.html:8
+#, python-format
+msgid ""
+"%(sender_username)s (%(sender_email)s) has requested to transfer ownership "
+"of the project <a "
+"href=\"%(base_url)s/#/forms/%(asset_uid)s/landing\">%(asset_name)s</a> to "
+"you."
+msgstr "စီမံကိန်း<a href=\"%(base_url)s/#/forms/%(asset_uid)s/landing\">%(asset_name)s</a> ၏ ပိုင်ဆိုင်မှုကို သင့်ထံလွှဲပြောင်းရန် %(sender_username)s (%(sender_email)s)က တောင်းဆိုထားသည်။"
+
+#: kobo/apps/project_ownership/templates/emails/new_invite.html:10
+#: kobo/apps/project_ownership/templates/emails/new_invite.html:20
+#: kobo/apps/project_ownership/templates/emails/new_invite.txt:16
+msgid ""
+"When you accept the ownership transfer, all of the submissions, data "
+"storage, and transcription and translation usage for these projects will be "
+"transferred to you and count against your plan limits."
+msgstr "ပိုင်ဆိုင်မှုလွှဲပြောင်းခြင်းကို သင်လက်ခံသောအခါ၊ ဤစီမံကိန်းများအတွက် တင်သွင်းခြင်းများ၊ ဒေတာသိုလှောင်မှု၊ စာသားအဖြစ်ပြောင်းလဲခြင်းနှင့် ဘာသာပြန်ဆိုအသုံးပြမှုအားလုံးကို သင့်ထံလွှဲပြောင်းမည်ဖြစ်ပြီး သင့်အစီအစဉ်ကန့်သတ်ချက်များကို ထည့်သွင်းတွက်ချက်မည်ဖြစ်သည်။"
+
+#: kobo/apps/project_ownership/templates/emails/new_invite.html:12
+#: kobo/apps/project_ownership/templates/emails/new_invite.txt:11
+#, python-format
+msgid ""
+"%(sender_username)s (%(sender_email)s) has requested to transfer ownership "
+"of the following projects to you:"
+msgstr "%(sender_username)s (%(sender_email)s) က အောက်ပါပရောဂျက်များ၏ ပိုင်ဆိုင်မှုကို သင့်ထံလွှဲပြောင်းပေးရန် တောင်းဆိုထားသည်-"
+
+#: kobo/apps/project_ownership/templates/emails/new_invite.html:23
+#: kobo/apps/project_ownership/templates/emails/new_invite.txt:19
+msgid "If you are unsure, please contact the current owner."
+msgstr "မသေချာပါက ကျေးဇူးပြု၍ လက်ရှိပိုင်ရှင်ကို ဆက်သွယ်ပါ။"
+
+#: kobo/apps/project_ownership/templates/emails/new_invite.html:25
+#: kobo/apps/project_ownership/templates/emails/new_invite.txt:21
+#, python-format
+msgid "This transfer request will expire in %(invite_expiry)s days."
+msgstr "ဤလွှဲပြောင်းရန်တောင်းဆိုမှုသည် %(invite_expiry)sရက်ပိုင်းအတွင်း သက်တမ်းကုန်ဆုံးမည်ဖြစ်သည်။"
+
+#: kobo/apps/project_ownership/templates/emails/new_invite.html:27
+#: kobo/apps/project_ownership/templates/emails/new_invite.txt:23
+#, python-format
+msgid ""
+"To respond to this transfer request, please use the following link: "
+"%(base_url)s/#/projects/home?invite=%(invite_uid)s"
+msgstr "ဤလွှဲပြောင်းရန်တောင်းဆိုမှုကို တုံ့ပြန်ရန် ကျေးဇူးပြု၍ အောက်ပါလင့်ခ်ကို အသုံးပြုပါ-%(base_url)s/#/projects/home?invite=%(invite_uid)s"
+
+#: kobo/apps/project_ownership/templates/emails/new_invite.txt:7
+#, python-format
+msgid ""
+"%(sender_username)s (%(sender_email)s) has requested to transfer ownership "
+"of the project %(asset_name)s (%(base_url)s/#/forms/%(asset_uid)s/landing) "
+"to you."
+msgstr "%(sender_username)s (%(sender_email)s)သည် စီမံကိန်း%(asset_name)s (%(base_url)s/#/forms/%(asset_uid)s/landing) ၏ ပိုင်ဆိုင်မှုကို သင့်ထံ လွှဲပြောင်းပေးရန် တောင်းဆိုထားသည်။"
+
+#: kobo/apps/project_ownership/templates/emails/new_invite.txt:9
+msgid ""
+"When you accept the ownership transfer, all of the submissions, data "
+"storage, and transcription and translation usage for the project will be "
+"transferred to you and count against your plan limits."
+msgstr "ပိုင်ဆိုင်မှုလွှဲပြောင်းခြင်းကို သင်လက်ခံသောအခါ စီမံကိန်းအတွက် တင်သွင်းခြင်းများ၊ ဒေတာသိုလှောင်မှု၊ စာသားအဖြစ်ပြောင်းလဲခြင်းနှင့် ဘာသာပြန်ဆိုအသုံးပြုမှုအားလုံးကို သင့်ထံလွှဲပြောင်းမည်ဖြစ်ပြီး သင့်အစီအစဉ်ကန့်သတ်ချက်များကို ထည့်သွင်းတွက်ချက်မည်ဖြစ်သည်။"
+
+#: kobo/apps/reports/report_data.py:141
+msgid "`{}` not found."
+msgstr "`{}` ကို ရှာမတွေ့ပါ။"
+
+#: kobo/apps/reports/report_data.py:146
+msgid "`{}` is not a select one question."
+msgstr "`{}` သည် မေးခွန်းတစ်ခုကို ‌‌ရွေးချယ်ရန် မဟုတ်ပါ။"
+
+#: kobo/apps/stripe/admin.py:36
+#, python-format
+msgid "%d plan add-on was created."
+msgid_plural "%d plan add-ons were created."
+msgstr[0] ""
+
+#: kobo/settings/base.py:273
+msgid ""
+"If you cannot access your authenticator app, please enter one of your backup"
+" codes instead. If you cannot access those either, then you will need to "
+"request assistance by contacting [##support email##](mailto:##support "
+"email##)."
+msgstr "သင်၏ အထောက်အထားစိစစ်ခြင်းအက်ပ်ကို သင်ဝင်ရောက်၍မရပါက ကျေးဇူးပြု၍ သင့်အရန်ကုတ်များထဲမှ တစ်ခုကို ထည့်ကာ ဝင်ရောက်ပါ။ ၎င်းတို့ကိုလည်း သင်ဝင်ရောက်၍မရပါက [##support email##](mailto:##support email##) သို့ ဆက်သွယ်ခြင်းဖြင့် အကူအညီတောင်းခံရန် လိုအပ်မည်။"
+
+#: kobo/settings/base.py:509
+msgid ""
+"The password must be at least 10 characters long and contain 3 or more of "
+"the following: uppercase letters, lowercase letters, numbers, and special "
+"characters. It cannot be similar to your name, username, or email address."
+msgstr "စကားဝှက်သည် အနည်းဆုံး 10 လုံး ရှိရမည်ဖြစ်ပြီး စာလုံးကြီး၊ စာလုံးသေး၊ နံပါတ်များနှင့် အထူးစာလုံးများ 3 ခု သို့မဟုတ် ထို့ထက်ပို၍ ပါဝင်ရမည် ဖြစ်သည်။ ၎င်းသည် သင့်အမည်၊ အသုံးပြုသူအမည် သို့မဟုတ် အီးမေးလ်လိပ်စာတို့နှင့် မတူရပါ။"
+
+#: kobo/static_lists.py:13
+msgid "Public Administration"
+msgstr "ပြည်သူ့အုပ်ချုပ်ရေး"
+
+#: kobo/static_lists.py:14
+msgid "Arts, Entertainment, and Recreation"
+msgstr "အနုပညာ၊ ဖျော်ဖြေရေးနှင့် အပန်းဖြေရေး"
+
+#: kobo/static_lists.py:15
+msgid "Educational Services / Higher Education"
+msgstr "ပညာရေးဝန်ဆောင်မှုများ / အဆင့်မြင့်ပညာရေး"
+
+#: kobo/static_lists.py:16
+msgid "Health Services / Public Health"
+msgstr "ကျန်းမာရေးဝန်ဆောင်မှုများ / ပြည်သူ့ကျန်းမာရေး"
+
+#: kobo/static_lists.py:17
+msgid "Finance and Insurance"
+msgstr "ဘဏ္ဍာရေးနှင့် အာမခံ"
+
+#: kobo/static_lists.py:18
+msgid "Information / Media"
+msgstr "သတင်းအချက်အလက် / မီဒီယာ"
+
+#: kobo/static_lists.py:19
+msgid "Economic/Social Development"
+msgstr "စီးပွားရေး/လူမှုဖွံ့ဖြိုးတိုးတက်ရေး"
+
+#: kobo/static_lists.py:20
+msgid "Security / Police / Peacekeeping"
+msgstr "လုံခြုံရေး / ရဲ / ငြိမ်းချမ်းရေး ထိန်းသိမ်းရေး"
+
+#: kobo/static_lists.py:21
+msgid "Disarmament & Demobilization"
+msgstr "လက်နက်ဖျက်သိမ်းရေးနှင့် ဆုတ်ခွာရေး"
+
+#: kobo/static_lists.py:22
+msgid "Environment"
+msgstr "သဘာဝပတ်ဝန်းကျင်"
+
+#: kobo/static_lists.py:23
+msgid "Private sector"
+msgstr "ပုဂ္ဂလိက ကဏ္ဍ"
+
+#: kobo/static_lists.py:24
+msgid "Humanitarian - Coordination / Information Management"
+msgstr "လူသားချင်းစာနာထောက်ထားမှု - ညှိနှိုင်းရေး / သတင်းအချက်အလက် စီမံခန့်ခွဲရေး"
+
+#: kobo/static_lists.py:25
+msgid "Humanitarian - Multiple Clusters"
+msgstr "လူသားချင်းစာနာထောက်ထားမှု - များစွာသော အစုအဝေးများ"
+
+#: kobo/static_lists.py:26
+msgid "Humanitarian - Camp Management & Coordination"
+msgstr "လူသားချင်းစာနာထောက်ထားမှု - စခန်းစီမံခန့်ခွဲမှုနှင့် ညှိနှိုင်းဆောင်ရွက်မှု"
+
+#: kobo/static_lists.py:27
+msgid "Humanitarian - Early Recovery"
+msgstr "လူသားချင်းစာနာထောက်ထားမှု - အစောပိုင်းပြန်လည်ထူထောင်ရေး"
+
+#: kobo/static_lists.py:28
+msgid "Humanitarian - Education"
+msgstr "လူသားချင်းစာနာထောက်ထားမှု - ပညာရေး"
+
+#: kobo/static_lists.py:29
+msgid "Humanitarian - Emergency Shelter"
+msgstr "လူသားချင်းစာနာထောက်ထားမှု - အရေးပေါ် ခိုလှုံခြင်း"
+
+#: kobo/static_lists.py:30
+msgid "Humanitarian - Emergency Telecoms"
+msgstr "လူသားချင်းစာနာထောက်ထားမှု - အရေးပေါ် တယ်လီကွန်းများ"
+
+#: kobo/static_lists.py:31
+msgid "Humanitarian - Food Security"
+msgstr "လူသားချင်းစာနာထောက်ထားမှု - စားနပ်ရိက္ခာဖူလုံရေး"
+
+#: kobo/static_lists.py:32
+msgid "Humanitarian - Health"
+msgstr "လူသားချင်းစာနာထောက်ထားမှု - ကျန်းမာရေး"
+
+#: kobo/static_lists.py:33
+msgid "Humanitarian - Logistics"
+msgstr "လူသားချင်းစာနာထောက်ထားမှု - ထောက်ပံ့ပို့ဆောင်ရေး"
+
+#: kobo/static_lists.py:34
+msgid "Humanitarian - Nutrition"
+msgstr "လူသားချင်းစာနာထောက်ထားမှု - အာဟာရ"
+
+#: kobo/static_lists.py:35
+msgid "Humanitarian - Protection"
+msgstr "လူသားချင်းစာနာထောက်ထားမှု - ကာကွယ်စောင့်ရှောက်မှု"
+
+#: kobo/static_lists.py:36
+msgid "Humanitarian - Sanitation, Water & Hygiene"
+msgstr "လူသားချင်းစာနာထောက်ထားမှု- သန့်ရှင်းရေး၊ ရေနှင့် တစ်ကိုယ်ရေသန့်ရှင်းရေး"
+
+#: kobo/static_lists.py:350 kobo/static_lists.py:362
+msgid "Sector"
+msgstr "ကဏ္ဍ"
+
+#: kobo/static_lists.py:351 kobo/static_lists.py:366
+msgid "Country"
+msgstr "နိုင်ငံ"
+
+#: kobo/static_lists.py:352
+msgid "Operational purpose of data"
+msgstr "အချက်အလက်၏ လုပ်ငန်းလည်ပတ်မှုဆိုင်ရာ ရည်ရွယ်ချက်"
+
+#: kobo/static_lists.py:353
+msgid "Does this project collect personally identifiable information?"
+msgstr "မည်သူမည်ဝါ ဖြစ်ကြောင်း ဖော်ထုတ်နိုင်သည့် အချက်အလက်များကို ဤစီမံကိန်းမှ ကောက်ယူစုဆောင်းပါသလား။"
+
+#: kobo/static_lists.py:354
+msgid "Description"
+msgstr "ဖော်ပြချက်"
+
+#: kobo/static_lists.py:358 kpi/password_validation.py:109
+msgid "Full name"
+msgstr "အမည် အပြည့်အစုံ"
+
+#: kobo/static_lists.py:359 kpi/password_validation.py:110
+msgid "Organization name"
+msgstr "အဖွဲ့အစည်း အမည်"
+
+#: kobo/static_lists.py:360
+msgid "Organization type"
+msgstr "အဖွဲ့အစည်း အမျိုးအစား"
+
+#: kobo/static_lists.py:361
+msgid "Organization website"
+msgstr "အဖွဲ့အစည်း ဝက်ဘ်ဆိုက်"
+
+#: kobo/static_lists.py:363
+msgid "Gender"
+msgstr "ကျား/မ"
+
+#: kobo/static_lists.py:364
+msgid "Bio"
+msgstr "ကိုယ်ရေးရာဇ၀င်"
+
+#: kobo/static_lists.py:365
+msgid "City"
+msgstr "မြို့"
+
+#: kobo/static_lists.py:367
+msgid "Twitter"
+msgstr "Twitter"
+
+#: kobo/static_lists.py:368
+msgid "LinkedIn"
+msgstr "LinkedIn"
+
+#: kobo/static_lists.py:369
+msgid "Instagram"
+msgstr "Instagram"
+
+#: kobo/static_lists.py:370
+msgid "I want to receive occasional updates about KoboToolbox"
+msgstr "Kobo ကိရိယာအကွက် နှင့်ပတ်သက်ပြီး ရံဖန်ရံခါ အဆင့်မြှင့်တင်ခြင်းများကို ကျွန်ုပ် လက်ခံရရှိလိုပါသည်"
+
+#: kpi/authentication.py:70
+msgid "Invalid username/password"
+msgstr "အသုံးပြုသူအမည်/စကားဝှက် မှားယွင်းနေပါသည်"
+
+#: kpi/deployment_backends/base_backend.py:138
+msgid "No submissions match the given `submission_ids`"
+msgstr "တင်သွင်းမှုများသည် ပေးထားသော `submission_ids` နှင့် တူညီမှု မရှိပါ၊"
+
+#: kpi/deployment_backends/base_backend.py:572
+msgid ""
+"This param is not implemented. Use `count` property of the response instead."
+msgstr "ဤ ကိန်း ကို အကောင်အထည် ဖော်မရပါ။ ၎င်းအစား တုံ့ပြန်မှု၏ ပိုင်ဆိုင်မှု `count` ခုကို အသုံးပြုပါ။"
+
+#: kpi/deployment_backends/base_backend.py:583
+msgid "This param is not supported in `XML` format"
+msgstr "ဤကိန်းကို `XML` ပုံစံတွင် မထောက်ပံ့ပါ။"
+
+#: kpi/deployment_backends/base_backend.py:588
+msgid "This is not supported in `XML` format"
+msgstr "ဤသည်ကို `XML` ပုံစံတွင် မထောက်ပံ့ပါ။"
+
+#: kpi/deployment_backends/base_backend.py:608
+#: kpi/deployment_backends/base_backend.py:636
+#: kpi/deployment_backends/base_backend.py:658 kpi/views/v2/data.py:529
+msgid "Value must be valid JSON."
+msgstr "တန်ဖိုးသည် မှန်ကန်သော JSON ဖြစ်ရမည်။"
+
+#: kpi/deployment_backends/base_backend.py:613
+msgid "Value must be a list."
+msgstr "တန်ဖိုးသည် စာရင်းတစ်ခု ဖြစ်ရမည်။"
+
+#: kpi/deployment_backends/base_backend.py:643
+#: kpi/deployment_backends/base_backend.py:650
+msgid "A positive integer is required."
+msgstr "အပေါင်းကိန်းပြည့်တစ်ခု လိုအပ်သည်။"
+
+#: kpi/deployment_backends/openrosa_backend.py:334
+msgid "Your submission XML is malformed."
+msgstr "သင့်တင်သွင်းချက် XML သည် ပုံစံမမှန်ပါ။"
+
+#: kpi/deployment_backends/openrosa_backend.py:340
+msgid "Your submission XML is missing critical elements."
+msgstr "သင့်တင်သွင်းချက် XML တွင် အရေးကြီးသော အစိတ်အပိုင်းများ မပါရှိပါ။"
+
+#: kpi/deployment_backends/openrosa_backend.py:354
+msgid ""
+"The submission you attempted to edit could not be found, or you do not have "
+"access to it."
+msgstr "သင် ပြင်ဆင်ရန်ကြိုးပမ်းခဲ့သည့် တင်သွင်းခြင်းကို မတွေ့နိုင်ပါ သို့မဟုတ် ၎င်းကို ဝင်ရောက်ခွင့် မရှိပါ။"
+
+#: kpi/deployment_backends/openrosa_backend.py:883
+msgid "Successful submission"
+msgstr "အောင်မြင်သော တင်သွင်းမှု"
+
+#: kpi/exceptions.py:49
+msgid "Invalid payload for bulk updating of submissions"
+msgstr "တင်သွင်းမှုများ၏အစုလိုက်အဆင့်မြှင့်တင်ခြင်းအတွက် ပေးဆောင်မှု မမှန်ကန်ပါ"
+
+#: kpi/exceptions.py:64
+msgid "Must call `asset.connect_deployment()` first"
+msgstr "`asset.connect_deployment()` ကို အရင် ခေါ်ရမည်။"
+
+#: kpi/exceptions.py:75
+msgid "XML contains forbidden DTDs"
+msgstr "XML တွင် ခွင့်မပြုထားသော DTDs ပါဝင်သည်"
+
+#: kpi/exceptions.py:86
+msgid "XML contains forbidden entities"
+msgstr "XML တွင် တားမြစ်ထားသော အရာများ ပါဝင်သည်"
+
+#: kpi/exceptions.py:111
+msgid "Invalid search. Please try again"
+msgstr "ရှာဖွေမှုမှာ မှားယွင်းနေပါသည်။ ကျေးဇူးပြု၍ ထပ်မံကြိုးစားပါ"
+
+#: kpi/exceptions.py:116
+msgid "Deployment links to an unexpected KoboCAT XForm"
+msgstr "အသုံးပြုမှုသည် မမျှော်လင့်ထားသော KoboCAT XForm တစ်ခုကို ချိတ်ဆက်နေပါသည်"
+
+#: kpi/exceptions.py:152
+msgid "An error occurred trying to duplicate the submission"
+msgstr "တင်သွင်းမှုအား ပုံတူကူးရန် ကြိုးစားနေချိန်တွင် ချို့ယွင်းချက်တစ်ခုဖြစ်ပေါ်ခဲ့သည်"
+
+#: kpi/exceptions.py:170
+msgid "The specified object has not been deployed"
+msgstr "သတ်မှတ်ထားသော အရာဝတ္ထုကို အသုံးမပြုရသေးပါ"
+
+#: kpi/exceptions.py:179
+msgid "Bad syntax"
+msgstr "အထားအသို မကောင်းပါ"
+
+#: kpi/exceptions.py:184
+msgid "Not supported field lookup"
+msgstr "အကွက် ရှာဖွေခြင်းကို မထောက်ပံ့ထားပါ"
+
+#: kpi/exceptions.py:195
+msgid "Your query is too short"
+msgstr "သင့်မေးခွန်းက တိုလွန်းသည်"
+
+#: kpi/fields/jsonschema_form_field.py:23
+#: kpi/fields/jsonschema_form_field.py:26
+msgid "Enter valid JSON."
+msgstr "မှန်ကန်သည့် JSON အား ထည့်သွင်းပါ။"
+
+#: kpi/fields/jsonschema_form_field.py:158
+msgid "`##place_holder##` field cannot be hidden."
+msgstr "`##place_holder##` အကွက်ကို ဝှက်ထားလို့ မရပါ။"
+
+#: kpi/fields/writable_json.py:30
+#, python-brace-format
+msgid "Unable to parse JSON: {error}"
+msgstr "JSON ကို ခွဲခြမ်းစိတ်ဖြာ၍ မရပါ- {error} "
+
+#: kpi/mixins/mfa.py:22
+msgid "Multi-factor authentication is enabled for this account. "
+msgstr "အချက်ပေါင်းများစွာ အထောက်အထားစိစစ်ခြင်းကို ဤအကောင့်အတွက် ဖွင့်ထားသည်။ "
+
+#: kpi/models/asset.py:277
+msgid "Can view asset"
+msgstr "ပိုင်ဆိုင်မှုကို ကြည့်နိုင်သည်"
+
+#: kpi/models/asset.py:278
+msgid "Can discover asset in public lists"
+msgstr "အများမြင် စာရင်းများတွင် ပိုင်ဆိုင်မှုကို ရှာဖွေနိုင်သည်"
+
+#: kpi/models/asset.py:279
+msgid "Can manage all aspects of asset"
+msgstr "ပိုင်ဆိုင်မှုအားလုံးကို စီမံခန့်ခွဲနိုင်သည်"
+
+#: kpi/models/asset.py:281
+msgid "Can submit data to asset"
+msgstr "ပိုင်ဆိုင်မှုထံသို့ အချက်အလက် တင်သွင်းနိုင်သည်"
+
+#: kpi/models/asset.py:282
+msgid "Can view submitted data for asset"
+msgstr "ပိုင်ဆိုင်မှုအတွက် တင်သွင်းထားသော အချက်အလက်ကို ကြည့်နိုင်သည်"
+
+#: kpi/models/asset.py:283
+msgid ""
+"Can make partial actions on submitted data for asset for specific users"
+msgstr "သီးသန့်အသုံးပြုသူများအတွက် ပိုင်ဆိုင်မှုများကို တင်သွင်းထားသော အချက်အလက်အပေါ် တစ်စိတ်တစ်ပိုင်း လုပ်ဆောင်မှုများ ပြုလုပ်နိုင်သည်"
+
+#: kpi/models/asset.py:286
+msgid "Can modify submitted data for asset"
+msgstr "ပိုင်ဆိုင်မှုအတွက် တင်ပြထားသော အချက်အလက်ကို မွမ်းမံနိုင်သည်"
+
+#: kpi/models/asset.py:287
+msgid "Can delete submitted data for asset"
+msgstr "ပိုင်ဆိုင်မှုအတွက် တင်ပြထားသော အချက်အလက်ကို ဖျက်ပစ်နိုင်သည်"
+
+#: kpi/models/asset.py:288
+msgid "Can validate submitted data asset"
+msgstr "တင်ပြထားသော ဒေတာပိုင်ဆိုင်မှုကို အတည်ပြုနိုင်သည်"
+
+#: kpi/models/asset.py:311
+msgid "project"
+msgstr "စီမံကိန်း"
+
+#: kpi/models/asset.py:311
+msgid "form"
+msgstr "ဖောင်"
+
+#: kpi/models/asset.py:313
+msgid "template"
+msgstr "နမူနာပုံစံ"
+
+#: kpi/models/asset.py:314
+msgid "block"
+msgstr "မေးခွန်းတွဲ"
+
+#: kpi/models/asset.py:315
+msgid "question"
+msgstr "မေးခွန်း"
+
+#: kpi/models/asset.py:316
+msgid "text"
+msgstr "စာသား"
+
+#: kpi/models/asset.py:317
+msgid "empty"
+msgstr "အလွတ်"
+
+#: kpi/models/asset.py:318
+msgid "collection"
+msgstr "စုစည်းမှု"
+
+#: kpi/models/asset.py:325
+msgid "View ##asset_type_label##"
+msgstr "အမြင် ##asset_type_label##"
+
+#: kpi/models/asset.py:326
+msgid "Edit ##asset_type_label##"
+msgstr "ပြင်ဆင်ရန် ##asset_type_label##"
+
+#: kpi/models/asset.py:327
+msgid "Discover ##asset_type_label##"
+msgstr "ရှာဖွေရန် ##asset_type_label##"
+
+#: kpi/models/asset.py:328
+msgid "Manage ##asset_type_label##"
+msgstr "စီမံရန် ##asset_type_label##"
+
+#: kpi/models/asset.py:329
+msgid "Add submissions"
+msgstr "တင်သွင်းခြင်းများကို ပေါင်းထည့်ပါ"
+
+#: kpi/models/asset.py:330
+msgid "View submissions"
+msgstr "တင်သွင်းခြင်းများကို ကြည့်ပါ"
+
+#: kpi/models/asset.py:333
+msgid "Act on submissions only from specific users"
+msgstr "သတ်မှတ်ထားသော သုံးစွဲသူများမှ တင်သွင်းခြင်းများကိုသာ ဆောင်ရွက်ပါ"
+
+#: kpi/models/asset.py:336
+msgid "View submissions only from specific users"
+msgstr "သတ်မှတ်ထားသော သုံးစွဲသူများမှ တင်သွင်းခြင်းများကိုသာ ကြည့်ရှုပါ"
+
+#: kpi/models/asset.py:339
+msgid "Edit submissions only from specific users"
+msgstr "သတ်မှတ်ထားသော သုံးစွဲသူများမှ တင်သွင်းခြင်းများကိုသာ ပြင်ဆင်ပါ"
+
+#: kpi/models/asset.py:342
+msgid "Delete submissions only from specific users"
+msgstr "သတ်မှတ်ထားသော သုံးစွဲသူများမှ တင်သွင်းခြင်းများကိုသာ ဖျက်သိမ်းပါ"
+
+#: kpi/models/asset.py:345
+msgid "Validate submissions only from specific users"
+msgstr "သတ်မှတ်ထားသော သုံးစွဲသူများမှ တင်သွင်းခြင်းများကိုသာ အတည်ပြုပါ"
+
+#: kpi/models/asset.py:348
+msgid "Edit submissions"
+msgstr "တင်သွင်းခြင်းများကို တည်းဖြတ်ပါ"
+
+#: kpi/models/asset.py:349
+msgid "Delete submissions"
+msgstr "တင်သွင်းခြင်းများကို ဖျက်ပစ်ပါ"
+
+#: kpi/models/asset.py:350
+msgid "Validate submissions"
+msgstr "တင်သွင်းခြင်းများကို အတည်ပြုပါ"
+
+#: kpi/models/asset.py:681
+msgid "Only partial permissions for submissions are supported"
+msgstr "တင်သွင်းခြင်းများအတွက် တစ်စိတ်တစ်ပိုင်းခွင့်ပြုချက်များကိုသာ ပံ့ပိုးထားသည်"
+
+#: kpi/models/asset.py:1390
+msgid "Can not assign '{}' permission to owner"
+msgstr "'{}' ခွင့်ပြုချက်အား ပိုင်ရှင်သို့ မသတ်မှတ်နိုင်ပါ"
+
+#: kpi/models/asset.py:1394
+msgid "Can not assign '{}' permission. Partial permissions are missing."
+msgstr "'{}' ခွင့်ပြုချက်အား မသတ်မှတ်နိုင်ပါ။ တစ်စိတ်တစ်ပိုင်း ခွင့်ပြုချက်များမှာ ပျောက်ဆုံးနေပါသည်။"
+
+#: kpi/models/authorized_application.py:43
+msgid "Invalid token."
+msgstr "တိုကင် အမှား"
+
+#: kpi/models/import_export_task.py:138
+msgid "Cannot access data"
+msgstr "အချက်အလက်အား ရယူ၍ မရပါ"
+
+#: kpi/models/import_export_task.py:588
+msgid "This data does not exist or you do not have access to it"
+msgstr "ဤအချက်အလက် မရှိပါ သို့မဟုတ် သင်အသုံးပြုခွင့် မရှိပါ"
+
+#: kpi/password_validation.py:95
+msgid "You cannot reuse your last password."
+msgstr "သင့်ရဲ့နောက်ဆုံးစကားဝှက်ကို ပြန်အသုံးပြု၍ မရပါ။"
+
+#: kpi/password_validation.py:103
+msgid "Your password cannot be the same as your previous one."
+msgstr "သင့်စကားဝှက်သည် သင်၏အရင် စကားဝှက်နှင့် တူညီ၍ မရနိုင်ပါ။"
+
+#: kpi/password_validation.py:177
+msgid ""
+"The password must contain at least ##number of rules## different kinds of "
+"characters."
+msgstr "စကားဝှက်သည် အနည်းဆုံး ကွဲပြားသည့် စာလုံးအမျိုးအစားများ ##number of rules## ခု ပါ၀င်သင့်သည်။"
+
+#: kpi/serializers/current_user.py:179
+msgid "Incorrect current password."
+msgstr "လက်ရှိ စကားဝှက်သည် မှားယွင်းနေပါသည်။"
+
+#: kpi/serializers/current_user.py:199
+msgid "`current_password` and `new_password` must both be"
+msgstr "`current_password` နှင့် `new_password` နှစ်ခုလုံး ဖြစ်ရမည်"
+
+#: kpi/serializers/current_user.py:239
+#: kpi/serializers/v2/asset_permission_assignment.py:291
+msgid "This field may not be blank."
+msgstr "ဤအကွက်သည် ကွက်လပ် မဖြစ်ရပါ။"
+
+#: kpi/serializers/v2/asset.py:133
+#, python-format
+msgid "%(count)d project has been undeleted"
+msgstr "%(count)d ခု ပရောဂျက်ကို ဖျက်ပစ်ခဲ့ခြင်း မရှိပါ"
+
+#: kpi/serializers/v2/asset.py:139
+#, python-format
+msgid "%(count)d project has been deleted"
+msgstr "%(count)d ခု ပရောဂျက်ကို ဖျက်ပစ်ခဲ့သည်"
+
+#: kpi/serializers/v2/asset.py:146
+#, python-format
+msgid "%(count)d project has been unarchived"
+msgstr "%(count)d ခု ပရောဂျက်ကို သိမ်းဆည်းခဲ့ခြင်းမရှိပါ"
+
+#: kpi/serializers/v2/asset.py:152
+#, python-format
+msgid "%(count)d project has been archived"
+msgstr "%(count)d ခု ပရောဂျက်ကို သိမ်းဆည်းခဲ့ပါသည်"
+
+#: kpi/serializers/v2/asset.py:168
+msgid "One or many projects have been deleted already!"
+msgstr "စီမံကိန်းတစ်ခု သို့မဟုတ် အများအပြားကို ဖျက်ပစ်ခဲ့ပြီးပါပြီ။"
+
+#: kpi/serializers/v2/asset.py:176
+msgid "One or many projects are already being deleted!"
+msgstr "စီမံကိန်းတစ်ခု သို့မဟုတ် အများအပြားကို ဖျက်ပစ်ပြီးပြီ ဖြစ်သည်။"
+
+#: kpi/serializers/v2/asset.py:253
+msgid "`action` parameter is required"
+msgstr "ကန့်သတ်ချက် `action` ခု လိုအပ်သည်"
+
+#: kpi/serializers/v2/asset.py:258
+msgid "Supported values for `action` are: "
+msgstr "`action` အတွက် ပံ့ပိုးပေးထားသော တန်ဖိုးများမှာ-"
+
+#: kpi/serializers/v2/asset.py:280
+msgid "Draft projects cannot be archived"
+msgstr "စီမံကိန်း မူကြမ်းများကို သိမ်းဆည်းထားနိုင်ခြင်းမရှိပါ"
+
+#: kpi/serializers/v2/asset.py:286 kpi/serializers/v2/data.py:61
+msgid "Confirmation is required"
+msgstr "အတည်ပြုချက် လိုအပ်ပါသည်"
+
+#: kpi/serializers/v2/asset.py:843
+msgid "The property is required"
+msgstr "ပိုင်ဆိုင်မှု လိုအပ်သည်"
+
+#: kpi/serializers/v2/asset.py:847
+msgid "The property must be an array"
+msgstr "ပိုင်ဆိုင်မှုကို ခင်းကျင်းထားရမည်"
+
+#: kpi/serializers/v2/asset.py:869
+#, python-brace-format
+msgid "Some fields are invalid, choices are: `{valid_fields}`"
+msgstr "အချို့သော အကွက်များသည် မှန်ကန်မှု မရှိပါ၊ ရွေးချယ်မှုများမှာ-`{valid_fields}`"
+
+#: kpi/serializers/v2/asset.py:891
+msgid "User cannot update current parent collection"
+msgstr "အသုံးပြုသူသည် လက်ရှိ ပင်မစုစည်းမှုကို အဆင့်မမြှင့်တင်နိုင်ပါ"
+
+#: kpi/serializers/v2/asset.py:901
+#: kpi/tests/api/v2/test_api_collections.py:470
+msgid "Target collection not found"
+msgstr "ပစ်မှတ် စုစည်းမှု မတွေ့ပါ"
+
+#: kpi/serializers/v2/asset.py:905
+#: kpi/tests/api/v2/test_api_collections.py:460
+msgid "User cannot update target parent collection"
+msgstr "အသုံးပြုသူသည် ပစ်မှတ် ပင်မစုစည်းမှုကို အဆင့်မမြှင့်တင်နိုင်ပါ"
+
+#: kpi/serializers/v2/asset_export_settings.py:64
+msgid "`export_settings` must contain all the following required keys: {}"
+msgstr "`export_settings` ခုသည် အောက်ပါ လိုအပ်သည့် သော့များ အားလုံး ပါဝင်ရမည်- {}"
+
+#: kpi/serializers/v2/asset_export_settings.py:75
+msgid "`export_settings` can contain only the following valid keys: {}"
+msgstr "`export_settings` ခုတွင် အောက်ပါ တရားဝင်သော့များသာ ပါဝင်နိုင်သည်- {}"
+
+#: kpi/serializers/v2/asset_export_settings.py:87
+msgid "`multiple_select` must be either {}"
+msgstr "`multiple_select` သည် {}  ဖြစ်ရမည်"
+
+#: kpi/serializers/v2/asset_export_settings.py:94
+msgid "`type` must be either {}"
+msgstr "`type` သည် {}  ဖြစ်ရမည်"
+
+#: kpi/serializers/v2/asset_export_settings.py:104
+msgid "`group_sep` must be a non-empty value"
+msgstr "`group_sep` သည် အလွတ်မဟုတ်သည့် တန်ဖိုးတစ်ခုဖြစ်ရမည်"
+
+#: kpi/serializers/v2/asset_export_settings.py:109
+msgid "`lang` for this asset must be either {}"
+msgstr "`lang` ဤပိုင်ဆိုင်မှုအတွက် {}သော်လည်းကောင်း ဖြစ်ရမည်"
+
+#: kpi/serializers/v2/asset_export_settings.py:119
+#: kpi/serializers/v2/export_task.py:229
+msgid "Must be a JSON object"
+msgstr "JSON အရာဝတ္ထုတစ်ခုဖြစ်ရမည်"
+
+#: kpi/serializers/v2/asset_export_settings.py:134
+#: kpi/serializers/v2/export_task.py:247
+msgid "All values in the array must be integers"
+msgstr "အခင်းအကျင်းရှိ တန်ဖိုးများ အားလုံးသည် ကိန်းပြည့် ဖြစ်ရပါမည်"
+
+#: kpi/serializers/v2/asset_export_settings.py:145
+msgid "`fields` must be an array"
+msgstr "`fields` သည် အခင်းအကျင်း တစ်ခု ဖြစ်ရမည်"
+
+#: kpi/serializers/v2/asset_export_settings.py:149
+msgid "All values in the `fields` array must be strings"
+msgstr "`fields` အခင်းအကျင်းထဲရှိ တန်ဖိုးများအားလုံးသည် စာကြောင်းများ ဖြစ်ရမည်"
+
+#: kpi/serializers/v2/asset_file.py:117
+msgid "JSON is invalid"
+msgstr "JSON သည် မမှန်ကန်ပါ"
+
+#: kpi/serializers/v2/asset_file.py:130
+msgid "Invalid content"
+msgstr "မမှန်ကန်သော အကြောင်းအရာ"
+
+#: kpi/serializers/v2/asset_file.py:143
+msgid "No files have been submitted"
+msgstr "မည်သည့်ဖိုင်မျှ တင်သွင်းခဲ့ခြင်းမရှိပါ"
+
+#: kpi/serializers/v2/asset_file.py:158
+msgid "File already exists"
+msgstr "ဖိုင် ရှိနေပြီး ဖြစ်သည်"
+
+#: kpi/serializers/v2/asset_file.py:208
+msgid ""
+"You cannot upload media file with two different ways at the same time. "
+"Please choose between binary upload, base64 or remote URL."
+msgstr "မီဒီယာဖိုင်ကို မတူညီသော နည်းလမ်းနှစ်ခုဖြင့် တစ်ပြိုင်နက် အဆင့်မြှင့်တင်၍ မရပါ။ ကျေးဇူးပြု၍ နှစ်ခုကြားတွင် အပ်လုတ်၊ base 64 သို့မဟုတ် remote URL ကို ရွေးပါ။"
+
+#: kpi/serializers/v2/asset_file.py:221
+msgid "This field is required"
+msgstr "ဤအကွက်တွင် ဖြည့်သွင်းရန်လိုအပ်သည်"
+
+#: kpi/serializers/v2/asset_file.py:229
+msgid "`redirect_url` is required"
+msgstr "`redirect_url` လိုအပ်သည်"
+
+#: kpi/serializers/v2/asset_file.py:239
+msgid "`filename` is required"
+msgstr "`filename` လိုအပ်သည်"
+
+#: kpi/serializers/v2/asset_file.py:253
+msgid "`redirect_url` is invalid"
+msgstr "`redirect_url` သည် မှားယွင်းနေသည်"
+
+#: kpi/serializers/v2/asset_file.py:287
+msgid "Only `{}` MIME types are allowed"
+msgstr "`{}`MIME အမျိုးအစားများကို သာ ခွင့်ပြုပါသည်"
+
+#: kpi/serializers/v2/asset_permission_assignment.py:164
+msgid "This field is required for the '{}' permission"
+msgstr "'{}' ခွင့်ပြုချက်အတွက် ဤအကွက် လိုအပ်သည်"
+
+#: kpi/serializers/v2/asset_permission_assignment.py:178
+#: kpi/serializers/v2/asset_permission_assignment.py:183
+#: kpi/serializers/v2/asset_permission_assignment.py:189
+#: kpi/serializers/v2/asset_permission_assignment.py:498
+msgid "Invalid `url`"
+msgstr "မှန်ကန်ခြင်းမရှိပါ `url`"
+
+#: kpi/serializers/v2/asset_permission_assignment.py:194
+msgid "Invalid `filters`"
+msgstr "မှန်ကန်ခြင်းမရှိပါ `filters`"
+
+#: kpi/serializers/v2/asset_permission_assignment.py:211
+#, python-brace-format
+msgid ""
+"{permission} cannot be assigned explicitly to Asset objects of this type."
+msgstr "{permission} ဤအမျိုးအစား၏ ပိုင်ဆိုင်မှု အရာဝတ္ထုများထံ အတိအလင်း သတ်မှတ်၍ မရပါ။"
+
+#: kpi/serializers/v2/asset_permission_assignment.py:290
+msgid "Not a valid list."
+msgstr "မှန်ကန်သောစာရင်း မဟုတ်ပါ။"
+
+#: kpi/serializers/v2/asset_permission_assignment.py:491
+#: kpi/serializers/v2/asset_permission_assignment.py:494
+msgid "Invalid hyperlink - Object does not exist."
+msgstr "မမှန်ကန်သော hyperlink - အရာဝတ္ထု မရှိပါ။"
+
+#: kpi/serializers/v2/data.py:70
+msgid "`submission_ids` must only contain integer values"
+msgstr "`submission_ids` တွင် ကိန်းပြည့်တန်ဖိုးများသာ ပါဝင်ရမည်"
+
+#: kpi/serializers/v2/data.py:75
+msgid "`submission_ids` must contain at least one value"
+msgstr "`submission_ids` တွင် အနည်းဆုံး တန်ဖိုးတစ်ခု ပါဝင်ရမည်"
+
+#: kpi/serializers/v2/data.py:83
+msgid "`data` is required"
+msgstr "`data` လိုအပ်သည်"
+
+#: kpi/serializers/v2/data.py:91
+msgid "`validation_status.uid` is required"
+msgstr "`validation_status.uid` လိုအပ်သည်"
+
+#: kpi/serializers/v2/export_task.py:123
+msgid "Must contain all the following required keys: {}"
+msgstr "အောက်ပါ လိုအပ်သောကီးများ အားလုံးပါဝင်ရမည်- {} "
+
+#: kpi/serializers/v2/export_task.py:137
+msgid "Can contain only the following valid keys: {}"
+msgstr "အောက်ပါ မှန်ကန်သော ကီးများသာ ပါ၀င်နိုင်သည်- {}"
+
+#: kpi/serializers/v2/export_task.py:152 kpi/serializers/v2/export_task.py:237
+msgid "Must be an array"
+msgstr "ခင်းကျင်းမှုတစ်ခု ဖြစ်ရမည်"
+
+#: kpi/serializers/v2/export_task.py:159
+msgid "All values in the array must be strings"
+msgstr "ခင်းကျင်းမှုထဲမှ တန်ဖိုးများအားလုံးသည်စာကြောင်းများ ဖြစ်ရမည်"
+
+#: kpi/serializers/v2/export_task.py:169
+msgid "Must be a non-empty value"
+msgstr "အလွတ်မဟုတ်သည့် တန်ဖိုးတစ်ခုဖြစ်ရမည်"
+
+#: kpi/serializers/v2/export_task.py:182
+msgid "For this asset must be either {}"
+msgstr "ဤပိုင်ဆိုင်မှုအတွက် {} ဖြစ်ရမည်"
+
+#: kpi/serializers/v2/export_task.py:194 kpi/serializers/v2/export_task.py:258
+msgid "Must be either {}"
+msgstr "{} ဖြစ်ရမည်"
+
+#: kpi/serializers/v2/export_task.py:204
+msgid "The asset must be deployed."
+msgstr "ပိုင်ဆိုင်မှုကို အသုံးချရမည်။"
+
+#: kpi/serializers/v2/export_task.py:221
+msgid "The export name must be a string."
+msgstr "တင်ပို့သည့်အမည်မှာ စာကြောင်းတစ်ကြောင်း ဖြစ်ရမည်။"
+
+#: kpi/serializers/v2/paired_data.py:87
+msgid "Source cannot be changed"
+msgstr "အရင်းအမြစ်ကို ပြောင်းလဲ၍ မရနိုင်ပါ"
+
+#: kpi/serializers/v2/paired_data.py:93
+#, python-brace-format
+msgid "Data sharing for `{source_uid}` is not enabled"
+msgstr "`{source_uid}`အတွက် အချက်အလက် မျှဝေခြင်းကို ဖွင့်မထားပါ"
+
+#: kpi/serializers/v2/paired_data.py:105
+#, python-brace-format
+msgid "Pairing data with `{source_uid}` is not allowed"
+msgstr "`{source_uid}` နှင့် အချက်အလက် ပေါင်းစပ်ခြင်းအား ခွင့်ပြုမထားပါ"
+
+#: kpi/serializers/v2/paired_data.py:110
+#, python-brace-format
+msgid "Source `{source}` is already paired"
+msgstr "အရင်းအမြစ်`{source}` အား ပေါင်းစပ်ပြီးဖြစ်ပါသည်"
+
+#: kpi/serializers/v2/paired_data.py:152
+#, python-brace-format
+msgid "Some fields are invalid, choices are: `{source_fields}`"
+msgstr "အချို့သော အကွက်များသည် မှန်ကန်မှု မရှိပါ၊ ရွေးချယ်မှုများမှာ-`{source_fields}`"
+
+#: kpi/serializers/v2/paired_data.py:177
+msgid "Only letters, numbers and `-` are allowed"
+msgstr "အက္ခရာများ၊ နံပါတ်များနှင့် `-` ကိုသာ ခွင့်ပြုသည်"
+
+#: kpi/serializers/v2/paired_data.py:184
+msgid "Extension must be `xml`"
+msgstr "လိုင်းခွဲမှာ `xml` ဖြစ်ရမည်"
+
+#: kpi/serializers/v2/paired_data.py:217
+#, python-brace-format
+msgid "`{basename}` is already used"
+msgstr "`{basename}`အား အသုံးပြုထားပြီးပါပြီ"
+
+#: kpi/serializers/v2/user_asset_subscription.py:47
+#, python-brace-format
+msgid "Invalid asset type. Only `{asset_type}` is allowed"
+msgstr "မမှန်ကန်သော ပိုင်ဆိုင်မှု အမျိုးအစား။ `{asset_type}` ကိုသာ ခွင့်ပြုသည်"
+
+#: kpi/templates/custom_404.html:7
+msgid "Page not found (404)"
+msgstr "စာမျက်နှာ ရှာမတွေ့ပါ <b>(404)</b>"
+
+#: kpi/templates/custom_404.html:10
+msgid ""
+"This page does not exist on the server. Please check the URL or link that "
+"sent you here."
+msgstr "ဤစာမျက်နှာသည် ဆာဗာပေါ်တွင် မရှိပါ။ ကျေးဇူးပြု၍ သင့်အား ဤနေရာသို့ ပို့ခဲ့သော URL သို့မဟုတ် လင့်ခ်ကို စစ်ဆေးပါ။"
+
+#: kpi/templates/custom_500.html:7
+msgid "Server error (500)"
+msgstr "ဆာဗာ ချို့ယွင်းချက် (500)"
+
+#: kpi/templates/custom_500.html:10
+msgid "Something went wrong when trying to process your request."
+msgstr "သင့်တောင်းဆိုချက်ကို လုပ်ဆောငနေစဉ် အမှားတစ်ခု ဖြစ်ပွားခဲ့သည်။"
+
+#: kpi/templates/modern_browsers.html:3 kpi/templates/modern_browsers.html:5
+msgid "Modern Browsers"
+msgstr "ခေတ်မီ ဘရောင်ဇာများ"
+
+#: kpi/templates/modern_browsers.html:8
+msgid ""
+"Ouch! Sorry, you were probably sent here because your browser is outdated or"
+" perhaps it has its key features disabled by using \"private browsing\" "
+"mode."
+msgstr "ဝမ်းနည်းပါသည်၊ သင့်ဘရောင်ဇာသည် အဟောင်းဖြစ်နေသဖြင့် သို့မဟုတ် ၎င်း၏အဓိက ဝန်ဆောင်မှုများကို “လျှို့ဝှက် ဘရောင်ဇင်း” မုဒ်သုံးခြင်းဖြင့် ပိတ်ထားနိုင်သည့်အတွက် ဤနေရာသို့ သင့်အားပို့ဆောင်ခဲ့ခြင်း ဖြစ်နိုင်သည်။"
+
+#: kpi/templates/modern_browsers.html:12
+msgid ""
+"If you are using an outdated browser, we recommend upgrading to a recent "
+"version of one of the following excellent modern browsers:"
+msgstr "အကယ်၍ သင်သည် ဘရောင်ဇာအဟောင်းကိုသုံးနေပါက အောက်ရှိ ထူးခြားကောင်းမွန်သောခေတ်မီ ဘရောင်ဇာများထဲမှတစ်ခု၏ နောက်ဆုံးပေါ်ဗားရှင်းကို အဆင့်မြှင့်တင်ရန် ကျွန်ုပ်တို့ အကြံပြုသည်-"
+
+#: kpi/templates/modern_browsers.html:17
+msgid "Firefox download page"
+msgstr "Firefox ဒေါင်းလုတ်ရယူရန်စာမျက်နှာ"
+
+#: kpi/templates/modern_browsers.html:18
+msgid "Firefox"
+msgstr "Firefox"
+
+#: kpi/templates/modern_browsers.html:22
+msgid "Chrome download page"
+msgstr "Chrome ဒေါင်းလုတ်ရယူရန်စာမျက်နှာ"
+
+#: kpi/templates/modern_browsers.html:23
+msgid "Chrome"
+msgstr "Chrome"
+
+#: kpi/templates/modern_browsers.html:27
+msgid "Edge download page"
+msgstr "Edge ဒေါင်းလုတ်ရယူရန်စာမျက်နှာ"
+
+#: kpi/templates/modern_browsers.html:28
+msgid "Edge"
+msgstr "Edge"
+
+#: kpi/templates/modern_browsers.html:32
+msgid "Opera download page"
+msgstr "Opera ဒေါင်းလုပ်ရယူရန်စာမျက်နှာ"
+
+#: kpi/templates/modern_browsers.html:33
+msgid "Opera"
+msgstr "Opera"
+
+#: kpi/tests/test_registration.py:71
+msgid "This email domain is not allowed to create an account"
+msgstr "ဤအီးမေးလ် ဒိုမိန်းသည် အကောင့်တစ်ခု ဖန်တီးရန် ခွင့်မပြုပါ"
+
+#: kpi/utils/two_database_configuration_checker.py:41
+msgid "Exactly two databases must be configured"
+msgstr "အချက်အလက်ဘေ့စ် နှစ်ခုကို ပြင်ဆင် သတ်မှတ်ရမည်"
+
+#: kpi/utils/two_database_configuration_checker.py:42
+msgid ""
+"KPI and KoBoCAT must each have their own databases. Configure the KPI "
+"database as 'default' and the KoBoCAT database as 'kobocat'."
+msgstr "KPI နဲ့ KoBoCAT တစ်ခုစီတွင် ၎င်းတို့၏ ကိုယ်ပိုင် အချက်အလက်ဘေ့စ်များ ရှိရမည်။ KPI အချက်အလက်ဘေ့စ်ကို ‘မူလ’ အဖြစ်နှင့် KoBoCAT အချက်အလက်ဘေ့စ်ကို 'kobocat’ အဖြစ် သတ်မှတ်ပါ။"
+
+#: kpi/utils/two_database_configuration_checker.py:63
+msgid "KPI may not share a database with KoBoCAT"
+msgstr "KPI သည် KoBoCAT နှင့် အချက်အလက်ဘေ့စ်တစ်ခုကို မျှဝေမည် မဟုတ်ပါ"
+
+#: kpi/utils/two_database_configuration_checker.py:64
+msgid "KPI and KoBoCAT must each have their own databases."
+msgstr "KPI နှင့် KoBoCAT တို့သည် ၄င်းတို့ကိုယ်ပိုင် ‌အချက်အလက်ဘေ့စ်များ ရှိရမည်။"
+
+#: kpi/utils/two_database_configuration_checker.py:133
+msgid "Incomplete migration from shared-database installation"
+msgstr "မျှဝေထားသော အချက်အလက်ဘေ့စ်မှ တပ်ဆင်ခြင်းအား ပြောင်းရွှေ့ခြင်း မပြည့်စုံပါ"
+
+#: kpi/utils/two_database_configuration_checker.py:134
+msgid ""
+"The KoBoCAT database was originally shared by KPI, but the KPI tables were "
+"not copied from that shared database to the new, KPI-only database."
+msgstr "KoBOCAT အချက်အလက်ဘေ့စ်ကို မူလအားဖြင့် KPI  က မျှဝေထားသော်လည်း KPI ဇယားများကို ထိုမျှဝေထားသော အချက်အလက်ဘေ့စ်မှ KPI သီးသန့် အချက်အလက်ဘေ့စ် အသစ်ဆီသို့ ကူးယူမထားပါ။"
+
+#: kpi/views/current_user.py:113
+msgid "Invalid confirmation"
+msgstr "မမှန်ကန်သော အတည်ပြုချက်"
+
+#: kpi/views/v2/asset_export_settings.py:228
+msgid "Only the following formats are available: ##format list##"
+msgstr " အောက်ပါ ပုံစံများသာ ရရှိနိုင်ပါသည်- ##format list##"
+
+#: kpi/views/v2/asset_permission_assignment.py:211
+msgid "Source and destination objects don't seem to have the same type"
+msgstr "အရင်းအမြစ်နှင့် ဦးတည်ရာ အရာဝတ္ထုများသည် အမျိုးအစားတူပုံ မပေါ်ပါ"
+
+#: kpi/views/v2/asset_permission_assignment.py:240
+msgid "Owner's permissions cannot be deleted"
+msgstr "ပိုင်ရှင်၏ခွင့်ပြုချက်များအား မပယ်ဖျက်နိုင်ပါ"
+
+#: kpi/views/v2/attachment.py:93
+msgid "`xpath` query parameter is required"
+msgstr "မေးခွန်း ကန့်သတ်ချက် `xpath` လိုအပ်သည်"
+
+#: kpi/views/v2/attachment.py:115
+msgid "Invalid XPath syntax"
+msgstr "XPath syntax မမှန်ကန်ပါ"
+
+#: kpi/views/v2/attachment.py:119
+msgid "The path could not be found in the submission"
+msgstr "တင်သွင်းခြင်းတွင် လမ်းကြောင်းကို ရှာမတွေ့နိုင်ပါ"
+
+#: kpi/views/v2/attachment.py:129
+msgid "The error occurred during conversion"
+msgstr "ကူးပြောင်းနေစဉ် ချို့ယွင်းချက်ဖြစ်ခဲ့သည်"
+
+#: kpi/views/v2/attachment.py:133
+msgid "Conversion is not supported for {}"
+msgstr "ကူးပြောင်းခြင်းကို {} အတွက် မပံ့ပိုထားပါ"
+
+#: kpi/views/v2/data.py:692
+msgid "A positive integer is required"
+msgstr "အပေါင်းကိန်းပြည့်တစ်ခု လိုအပ်သည်"
+
+#: kpi/views/v2/data.py:703
+msgid "The specified asset has not been deployed"
+msgstr "သတ်မှတ်ထားသော ပိုင်ဆိုင်မှုကို အသုံးမပြုရသေးပါ"

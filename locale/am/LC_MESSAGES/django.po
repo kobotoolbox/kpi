@@ -1,0 +1,3208 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# 
+# Translators:
+# Jackie <jackie@kobotoolbox.org>, 2023,2025
+# Tolera D, 2021
+# Tolera D, 2021
+msgid ""
+msgstr ""
+"Project-Id-Version: KoboToolbox\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-11-20 19:07+0000\n"
+"PO-Revision-Date: 2016-03-14 19:56+0000\n"
+"Last-Translator: Jackie <jackie@kobotoolbox.org>, 2023,2025\n"
+"Language-Team: Amharic (http://app.transifex.com/kobotoolbox/kobotoolbox/language/am/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: am\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: hub/templates/admin/loginas/change_form.html:7
+msgid "Log in as user"
+msgstr "እንደ ተጠቃሚ ይግቡ"
+
+#: kobo/apps/accounts/forms.py:68
+msgid "Please enter a valid URL"
+msgstr "እባክዎ የሚሰራ URL ያስገቡ"
+
+#: kobo/apps/accounts/forms.py:76
+msgid "Non-profit organization"
+msgstr "ግብረ ሰናይ ድርጅት"
+
+#: kobo/apps/accounts/forms.py:77
+msgid "Government institution"
+msgstr "የመንግስት ተቋም"
+
+#: kobo/apps/accounts/forms.py:78
+msgid "Educational organization"
+msgstr "የትምህርት ድርጅት"
+
+#: kobo/apps/accounts/forms.py:79
+msgid "A commercial/for-profit company"
+msgstr "የንግድ/ለትርፍ የተቋቋመ ኩባንያ"
+
+#: kobo/apps/accounts/forms.py:80
+msgid "I am not associated with any organization"
+msgstr "ከየትኛውም ድርጅት ጋር ግንኙነት የለኝም"
+
+#: kobo/apps/accounts/forms.py:88
+msgid "Male"
+msgstr "ወንድ"
+
+#: kobo/apps/accounts/forms.py:89
+msgid "Female"
+msgstr "ሴት"
+
+#: kobo/apps/accounts/forms.py:90 kobo/static_lists.py:37
+msgid "Other"
+msgstr "ሌላ"
+
+#: kobo/apps/accounts/forms.py:124
+#: kobo/apps/accounts/templates/legal/registration_legal.html:8
+msgid "Terms of Service"
+msgstr "የአገልግሎት ውል"
+
+#: kobo/apps/accounts/forms.py:131
+#: kobo/apps/accounts/templates/legal/registration_legal.html:13
+msgid "Privacy Policy"
+msgstr "የግላዊነት ፖሊሲ"
+
+#: kobo/apps/accounts/forms.py:133
+msgid "I agree with the ##terms_of_service## and ##privacy_policy##"
+msgstr "##terms_of_service## እና ##privacy_policy## እስማማለሁ"
+
+#: kobo/apps/accounts/forms.py:147
+msgid "Password confirmation"
+msgstr "የይለፍ ቃል ማረጋገጫ"
+
+#: kobo/apps/accounts/forms.py:149
+msgid "name@organization.org"
+msgstr "name@organization.org"
+
+#: kobo/apps/accounts/forms.py:224
+#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:127
+msgid "This field is required."
+msgstr "ይሄ ቦታ ይፈለጋል።"
+
+#: kobo/apps/accounts/forms.py:317
+msgid "You must type the same password each time."
+msgstr "በእያንዳንዱ ጊዜ ተመሳሳይ የይለፍ ቃል መተየብ አለብዎት።"
+
+#: kobo/apps/accounts/mfa/forms.py:57
+msgid "Enter the ##token length##-character token"
+msgstr "የቁምፊ ##token length##-መለያ ያስገቡ"
+
+#: kobo/apps/accounts/mfa/forms.py:69
+msgid "Your token is invalid"
+msgstr "መለያዎ ተቀባይነት የለውም"
+
+#: kobo/apps/accounts/mfa/templates/mfa_token.html:22
+msgid "Please enter your verification token"
+msgstr "እባክዎ የማረጋገጫ ማስመሰያ ያስገቡ"
+
+#: kobo/apps/accounts/mfa/templates/mfa_token.html:26
+msgid ""
+"Please enter the verification token displayed by your authenticator app."
+msgstr "እባክዎ በአረጋጋጭ መተግበሪያ የሚታየውን የማረጋገጫ ማስመሰያ ያስገቡ።"
+
+#: kobo/apps/accounts/mfa/templates/mfa_token.html:33
+msgid "Problems with the token"
+msgstr "ማስመሰያው ላይ ችግሮች"
+
+#: kobo/apps/accounts/mfa/templates/mfa_token.html:38
+msgid "Continue"
+msgstr "ቀጥል"
+
+#: kobo/apps/accounts/mfa/templates/mfa_token.html:46
+msgid "Verification issues"
+msgstr "የማረጋገጫ ጉዳዮች"
+
+#: kobo/apps/accounts/mfa/templates/mfa_token.html:54
+msgid "Back"
+msgstr "ተመለስ"
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_message.txt:3
+msgid ""
+"To confirm the new email address associated with your KoboToolbox account, "
+"please follow the link below."
+msgstr "KoboToolbox መለያዎ ጋር የተያያዘውን አዲሱን የኢሜይል አድራሻ ለማረጋገጥ፣ እባክዎ ከታች ያለውን ሊንክ ይከተሉ።"
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_message.txt:7
+msgid ""
+"This link will expire in one hour. To request a new verification link, "
+"please go to your account settings and re-enter your new email address:"
+msgstr "ይህ ማገናኛ በአንድ ሰአት ውስጥ ጊዜው ያልፍበታል። አዲስ የማረጋገጫ አገናኝ ለመጠየቅ፣ እባክዎ ወደ መለያዎ ቅንብሮች ይሂዱ እና አዲሱን የኢሜይል አድራሻዎን እንደገና ያስገቡ፦"
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_message.txt:10
+#: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:29
+#: kobo/apps/accounts/templates/account/email/password_reset_key_message.txt:15
+#: kobo/apps/accounts/templates/account/email/unknown_account_message.txt:15
+#: kobo/apps/hook/templates/reports/failures_email_body.html:37
+#: kobo/apps/hook/templates/reports/failures_email_body.txt:29
+msgid "Best,"
+msgstr "ምርጥ፣"
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:10
+msgid "Thanks for signing up with KoboToolbox!"
+msgstr "በKoboToolbox ስለተመዘገቡ እናመሰግናለን!"
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:12
+msgid ""
+"Confirming your account will give you access to KoboToolbox applications. "
+"Please visit the following URL to finish activation of your new account."
+msgstr "መለያዎን ማረጋገጥ የ KoboToolbox መተግበሪያዎችን መዳረሻ ይሰጥዎታል። እባክዎ የአዲሱን መለያዎን ማግበር ለመጨረስ የሚከተለውን ዩአርኤል ይጎብኙ።"
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:16
+msgid "Your username is: "
+msgstr "የተጠቃሚ ስምዎት፦"
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:25
+msgid ""
+"For help getting started, check out the KoboToolbox user documentation: "
+"https://support.kobotoolbox.com "
+msgstr "ለመጀመር እገዛ KoboToolbox ተጠቃሚ ሰነድን ይመልከቱ፡ https://support.kobotoolbox.com "
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:27
+msgid ""
+"You can also join the KoboToolbox community forum to ask questions, share "
+"solutions, and chat with thousands of users: "
+"https://community.kobotoolbox.org"
+msgstr "ጥያቄዎችን ለመጠየቅ፣ መፍትሄዎችን ለመጋራት እና በሺዎች ከሚቆጠሩ ተጠቃሚዎች ጋር ለመወያየት KoboToolbox የማኅበረሰብ መድረክን መቀላቀል ትችላለህ፡ https://community.kobotoolbox.org"
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_signup_subject.txt:10
+msgid "Activate your KoboToolbox Account"
+msgstr "የ KoboToolbox መለያዎን ያግብሩ"
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_subject.txt:3
+msgid "KoboToolbox account email address verification"
+msgstr "KoboToolbox መለያ ኢሜይል አድራሻ ማረጋገጫ"
+
+#: kobo/apps/accounts/templates/account/email/password_reset_key_message.txt:4
+#: kobo/apps/accounts/templates/account/email/unknown_account_message.txt:5
+msgid "Hello from KoboToolbox,"
+msgstr "ሰላም ከ KoboToolbox፣"
+
+#: kobo/apps/accounts/templates/account/email/password_reset_key_message.txt:6
+msgid "We’ve received a password reset request for your user account."
+msgstr "ለተጠቃሚ መለያዎ የይለፍ ቃል ዳግም ማስጀመር ጥያቄ ደርሶናል።"
+
+#: kobo/apps/accounts/templates/account/email/password_reset_key_message.txt:8
+msgid "To reset your password, click the link below."
+msgstr "የይለፍ ቃልዎን እንደገና ለማስጀመር፣ ከታች ያለውን ሊንክ ይጫኑ።"
+
+#: kobo/apps/accounts/templates/account/email/password_reset_key_message.txt:11
+#, python-format
+msgid "Your username is %(username)s."
+msgstr "የተጠቃሚ ስምዎ %(username)s ነው።"
+
+#: kobo/apps/accounts/templates/account/email/password_reset_key_message.txt:13
+#: kobo/apps/accounts/templates/account/email/unknown_account_message.txt:9
+msgid ""
+"If you did not request a password reset, you can safely ignore this email."
+msgstr "የይለፍ ቃል ዳግም ማስጀመር ካልጠየቅክ፣ ይህን ኢሜይል በደህና ችላ ማለት ይችላሉ።"
+
+#: kobo/apps/accounts/templates/account/email/password_reset_key_subject.txt:3
+msgid "KoboToolbox Password Reset"
+msgstr "የ KoboToolbox የይለፍ ቃል ዳግም ማስጀመር"
+
+#: kobo/apps/accounts/templates/account/email/unknown_account_message.txt:6
+msgid ""
+"You are receiving this email because you or someone else has requested a "
+"password for their KoboToolbox account."
+msgstr "ይህ ኢሜይል የደረሰዎት እርስዎ ወይም ሌላ ሰው ለ KoboToolbox መለያቸው የይለፍ ቃል ስለጠየቁ ነው።"
+
+#: kobo/apps/accounts/templates/account/email/unknown_account_message.txt:7
+#, python-format
+msgid ""
+"However, we do not have any record of an account with email %(email)s in our"
+" database."
+msgstr "ቢሆንም በውሂብ ቋታችን ውስጥ %(email)s ኢሜይል ያለው የመለያ መዝገብ የለንም።"
+
+#: kobo/apps/accounts/templates/account/email/unknown_account_message.txt:11
+msgid ""
+"If it was you, please try another email address you might have used to "
+"create your account, or double check that your account was not registered on"
+" a different KoboToolbox server."
+msgstr "አንተ ከሆንክ፣ እባክህ መለያህን ለመፍጠር Oተጠቅመህበት ሊሆን የሚችለውን ሌላ የኢሜይል አድራሻ ሞክር፣ ወይም መለያህ በተለየ የKoboToolbox አገልጋይ ላይ እንዳልተመዘገበ በድጋሚ አረጋግጥ።"
+
+#: kobo/apps/accounts/templates/account/email/unknown_account_subject.txt:3
+msgid "KoboToolbox Password Reset Unsuccessful"
+msgstr "የ KoboToolbox ይለፍ ቃል ዳግም ማስጀመር አልተሳካም"
+
+#: kobo/apps/accounts/templates/account/email_confirm.html:15
+msgid "Confirm E-mail Address"
+msgstr "ኢሜል አረጋግጥ"
+
+#: kobo/apps/accounts/templates/account/email_confirm.html:19
+#, python-format
+msgid ""
+"Please confirm that <a href=\"mailto:%(email)s\">%(email)s</a> is an e-mail "
+"address for user %(user_display)s."
+msgstr "እባክዎ <a href=\"mailto:%(email)s\">%(email)s</a> የተጠቃሚ %(user_display)s የኢሜል አድራሻ መሆኑን ያረጋግጡ።"
+
+#: kobo/apps/accounts/templates/account/email_confirm.html:26
+msgid "Confirm"
+msgstr "ማረጋገጥ"
+
+#: kobo/apps/accounts/templates/account/email_confirm.html:30
+msgid "Activation failed"
+msgstr "ማግበር አልተሳካም"
+
+#: kobo/apps/accounts/templates/account/email_confirm.html:33
+msgid ""
+"Sorry, we couldn't activate your account. The link we sent you has expired."
+msgstr "ይቅርታ፣ መለያህን ማግበር አልቻልንም። የላክንልዎ ሊንክ ጊዜው አልፎበታል።"
+
+#: kobo/apps/accounts/templates/account/email_confirm.html:39
+msgid ""
+"This e-mail confirmation link expired or is invalid.\n"
+"      If you need to request a new link to verify your email address change,\n"
+"      please go to your account settings page and enter your email address again."
+msgstr "ይህ የኢሜይል ማረጋገጫ አገናኝ ጊዜው አልፎበታል ወይም ልክ ያልሆነ ነው።\n የኢሜይል አድራሻዎን መቀየሩን ለማረጋገጥ አዲስ አገናኝ መጠየቅ ከፈለጉ፣ \n እባክዎ ወደ መለያዎ ቅንብሮች ገጽ ይሂዱ እና የኢሜል አድራሻዎን እንደገና ያስገቡ።"
+
+#: kobo/apps/accounts/templates/account/login.html:29
+msgid "Login"
+msgstr "ግባ"
+
+#: kobo/apps/accounts/templates/account/login.html:36
+#: kobo/apps/accounts/templates/account/signup.html:14
+msgid "Create an account"
+msgstr "መለያ ይፍጠሩ"
+
+#: kobo/apps/accounts/templates/account/login.html:41
+msgid "Forgot password?"
+msgstr "የይለፍ ቃል ረሱ?"
+
+#: kobo/apps/accounts/templates/account/login.html:50
+msgid "Log in using SSO"
+msgstr "SSO በመጠቀም ይግቡ"
+
+#: kobo/apps/accounts/templates/account/login.html:52
+#: kobo/apps/accounts/templates/account/signup.html:63
+msgid ""
+"If you set up Single Sign On in your account settings, you will only be able"
+" to log in through this method."
+msgstr "በመለያዎ ቅንብሮች ውስጥ SSO መግቢያን ካዋቀሩ፣ በዚህ ዘዴ ብቻ መግባት ይችላሉ።"
+
+#: kobo/apps/accounts/templates/account/password_reset.html:10
+msgid "Password Reset"
+msgstr "የይለፍ ቃል ዳግም ማስጀመር"
+
+#: kobo/apps/accounts/templates/account/password_reset.html:19
+msgid "Reset Password"
+msgstr "የይለፍ ቃል ዳግም አስጀምር"
+
+#: kobo/apps/accounts/templates/account/password_reset_complete.html:11
+#: kobo/apps/accounts/templates/account/password_reset_from_key_done.html:11
+msgid "Password reset successfully"
+msgstr "የይለፍ ቃል በተሳካ ሁኔታ ዳግም ማስጀመር"
+
+#: kobo/apps/accounts/templates/account/password_reset_complete.html:14
+#: kobo/apps/accounts/templates/account/password_reset_from_key_done.html:14
+#: kobo/apps/accounts/templates/socialaccount/login.html:34
+msgid "Log in"
+msgstr "ግባ"
+
+#: kobo/apps/accounts/templates/account/password_reset_done.html:12
+msgid ""
+"Your request has been received. If the email address you entered corresponds"
+" to an account on this service, a message has been sent with password reset "
+"instructions. If you do not receive an email, your account might be "
+"registered under a different address, or you might have entered your address"
+" incorrectly."
+msgstr "ጥያቄዎ ደርሷል። ያስገቡት የኢሜል አድራሻ በዚህ አገልግሎት ላይ ካለ መለያ ጋር የሚዛመድ ከሆነ የይለፍ ቃል ዳግም ማስጀመሪያ መመሪያዎችን የያዘ መልእክት ተልኳል። ኢሜል ካልደረስክ መለያህ በተለየ አድራሻ ሊመዘገብ ይችላል ወይም አድራሻህን በስህተት አስገብተህ ሊሆን ይችላል።"
+
+#: kobo/apps/accounts/templates/account/password_reset_from_key.html:13
+msgid "Password reset failed"
+msgstr "የይለፍ ቃል ዳግም ማስጀመር አልተሳካም"
+
+#: kobo/apps/accounts/templates/account/password_reset_from_key.html:25
+#: kobo/apps/openrosa/apps/logger/templates/bulk_submission_form.html:15
+msgid "Submit"
+msgstr "አስገባ"
+
+#: kobo/apps/accounts/templates/account/signup.html:47
+msgid "Create Account"
+msgstr "መለያ ፍጠር"
+
+#: kobo/apps/accounts/templates/account/signup.html:51
+#: kobo/apps/accounts/templates/socialaccount/login.html:39
+msgid "or"
+msgstr "ወይም"
+
+#: kobo/apps/accounts/templates/account/signup.html:51
+msgid "login"
+msgstr "ግባ"
+
+#: kobo/apps/accounts/templates/account/signup.html:61
+msgid "Register using SSO"
+msgstr "SSO በመጠቀም ይመዝገቡ"
+
+#: kobo/apps/accounts/templates/account/signup.html:75
+msgid "Register with SSO"
+msgstr "በSSO ይመዝገቡ"
+
+#: kobo/apps/accounts/templates/account/verification_sent.html:8
+msgid "Confirm your email address"
+msgstr "ኢሜሎን ያረጋግጡ"
+
+#: kobo/apps/accounts/templates/account/verification_sent.html:11
+msgid "Please click the activation link in the email just sent to you."
+msgstr "አሁን ወደ እርስዎ በተላከው ኢሜል ውስጥ ያለውን የማግበር ማገናኛን ጠቅ ያድርጉ።"
+
+#: kobo/apps/accounts/templates/socialaccount/authentication_error.html:7
+#: kobo/apps/accounts/templates/socialaccount/authentication_error.html:13
+msgid "SSO Login Failure"
+msgstr "ለአንድ ጊዜ መግቢያው አልሰራም"
+
+#: kobo/apps/accounts/templates/socialaccount/authentication_error.html:17
+msgid "An error occurred while attempting to login using your SSO account."
+msgstr "የአንድ ጊዜ መግቢያን በመጠቀም ለመግባት ሲሞከሩ አንድ ስሕተት ተከስቷል።"
+
+#: kobo/apps/accounts/templates/socialaccount/authentication_error.html:20
+#: kpi/templates/custom_404.html:12
+msgid "Go back"
+msgstr "ወደ ኋላ ተመለሱ"
+
+#: kobo/apps/accounts/templates/socialaccount/connections.html:5
+msgid "Connect your Account to SSO"
+msgstr "መለያዎን ከአንድ ጊዜ መግቢያ ጋር ያገናኙ"
+
+#: kobo/apps/accounts/templates/socialaccount/connections.html:10
+msgid "Manage your SSO Account"
+msgstr "የእርስዎን የአንድ ጊዜ መግቢያ መለያን በስልታዊ መንገድ ይጠቀሙበት"
+
+#: kobo/apps/accounts/templates/socialaccount/connections.html:15
+msgid ""
+"You can sign in to your KoboToolbox account using any of the following SSO "
+"providers:"
+msgstr "የሚከተሉትን የአንድ ጊዜ መግቢያ አቅራቢዎችን በመጠቀም ወደ KoboToolbox መለያዎ መግባት ይችላሉ፦"
+
+#: kobo/apps/accounts/templates/socialaccount/connections.html:39
+msgid "Remove"
+msgstr "አስወግድ"
+
+#: kobo/apps/accounts/templates/socialaccount/connections.html:45
+msgid "You currently have no third-party accounts connected to this account."
+msgstr "በአሁኑ ወቅት ከዚህ መለያ ጋር የተገናኙ የሦስተኛ ወገን አካውንቶች የሉዎትም።"
+
+#: kobo/apps/accounts/templates/socialaccount/connections.html:51
+msgid "Add an SSO Account"
+msgstr "የአንድ ጊዜ መግቢያ መለያን ያክሉ"
+
+#: kobo/apps/accounts/templates/socialaccount/login.html:14
+msgid "Set up Single Sign On"
+msgstr "SSO ያዋቅሩ"
+
+#: kobo/apps/accounts/templates/socialaccount/login.html:16
+#, python-format
+msgid ""
+"Click the button below to connect your KoboToolbox account with your "
+"%(appname)s account."
+msgstr "የKoboToolbox መለያዎን %(appname)s ከመለያዎ ጋር ለማገናኘት ከታች ያለውን ቁልፍ ይጫኑ።"
+
+#: kobo/apps/accounts/templates/socialaccount/login.html:18
+msgid "This will allow you to use single sign-on (SSO) in the future."
+msgstr "ይህ ወደፊት (SSO) እንድትጠቀም ይፈቅድልሃል።"
+
+#: kobo/apps/accounts/templates/socialaccount/login.html:23
+#, python-format
+msgid "Connect with %(appname)s"
+msgstr "ከ %(appname)s ጋር ይገናኙ"
+
+#: kobo/apps/accounts/templates/socialaccount/login.html:27
+msgid "Log in with "
+msgstr "ከዚህ ጋር ይግቡ "
+
+#: kobo/apps/accounts/templates/socialaccount/login.html:29
+#, python-format
+msgid "Log in to KoboToolbox with your %(appname)s account."
+msgstr "በመለያዎ %(appname)s ወደ KoboToolbox ይግቡ።"
+
+#: kobo/apps/accounts/templates/socialaccount/login.html:39
+msgid "go back"
+msgstr "ተመለስ"
+
+#: kobo/apps/accounts/templates/socialaccount/signup.html:11
+#, python-format
+msgid "Welcome to KoboToolbox, %(username)s!"
+msgstr "ወደ KoboToolbox እንኳን በደህና መጡ፣ %(username)s!"
+
+#: kobo/apps/accounts/templates/socialaccount/signup.html:13
+msgid "Welcome to KoboToolbox!"
+msgstr "ወደ KoboToolbox እንኳን በደህና መጡ!"
+
+#: kobo/apps/accounts/templates/socialaccount/signup.html:18
+#, python-format
+msgid "You are about to use your %(appname)s account to login to KoboToolbox."
+msgstr "ወደ KoboToolbox ለመግባት የእርስዎን %(appname)s መለያ ሊጠቀሙ ነው።"
+
+#: kobo/apps/accounts/templates/socialaccount/signup.html:18
+msgid "As a final step, please complete the following form"
+msgstr "እንደ የመጨረሻ ደረጃ፣ እባክዎ የሚከተለውን ቅጽ ይሙሉ"
+
+#: kobo/apps/accounts/templates/socialaccount/signup.html:44
+msgid "Save and Access"
+msgstr "ማስቀምጥ እና ማግኘት"
+
+#: kobo/apps/accounts/validators.py:7
+msgid ""
+"Usernames must be between 2 and 30 characters in length, and may only "
+"consist of lowercase letters, numbers, and underscores, where the first "
+"character must be a letter."
+msgstr "ተጠቃሚ ስሞች ከ 2 እስከ 30 ቁምፊዎች ርዝመት ሊኖራቸው ይገባል፣ እና በትንሽ ፊደላት፣ ቁጥሮችን እና ንዑስ ሆሄዎችን ብቻ ሊይዙ ይችላሉ፣ የመጀመሪያው ቁምፊ ፊደል መሆን አለበት።"
+
+#: kobo/apps/hook/serializers/v2/hook.py:46
+msgid "Invalid scheme"
+msgstr "ልክ ያልሆነ አሠራር"
+
+#: kobo/apps/hook/serializers/v2/hook.py:49
+msgid "Unsecured endpoint is not allowed"
+msgstr "ደህንነቱ ያልተጠበቀ የመጨረሻ ነጥብ አይፈቀድም"
+
+#: kobo/apps/hook/serializers/v2/hook.py:60
+msgid "Invalid JSON"
+msgstr "ልክ ያልሆነ JSON"
+
+#: kobo/apps/hook/serializers/v2/hook.py:70
+msgid "Can be used only with JSON submission format"
+msgstr "በJSON ማስረከቢያ ቅርጸት ብቻ መጠቀም ይቻላል"
+
+#: kobo/apps/hook/tasks.py:146
+msgid "REST Services Failure Report"
+msgstr "የእንደገና ማስጀመር አገልግሎቶች ስኬታማ አለመሆን ሪፖርት"
+
+#: kobo/apps/hook/templates/reports/failures_email_body.html:3
+#: kobo/apps/hook/templates/reports/failures_email_body.txt:3
+msgid "Project name"
+msgstr "የፕሮጀክት ስም"
+
+#: kobo/apps/hook/templates/reports/failures_email_body.html:4
+#: kobo/apps/hook/templates/reports/failures_email_body.txt:4
+msgid "Hook"
+msgstr "ማንጠልጠያ"
+
+#: kobo/apps/hook/templates/reports/failures_email_body.html:5
+#: kobo/apps/hook/templates/reports/failures_email_body.txt:5
+msgid "Submission"
+msgstr "ማስረከብ"
+
+#: kobo/apps/hook/templates/reports/failures_email_body.html:6
+#: kobo/apps/hook/templates/reports/failures_email_body.txt:6
+msgid "Status code"
+msgstr "የሁኔታ ኮድ"
+
+#: kobo/apps/hook/templates/reports/failures_email_body.html:7
+#: kobo/apps/hook/templates/reports/failures_email_body.txt:7
+msgid "Message"
+msgstr "መልእክት"
+
+#: kobo/apps/hook/templates/reports/failures_email_body.html:8
+#: kobo/apps/hook/templates/reports/failures_email_body.txt:8
+msgid "Date"
+msgstr "ቀን"
+
+#: kobo/apps/hook/templates/reports/failures_email_body.html:10
+#: kobo/apps/hook/templates/reports/failures_email_body.txt:10
+#: kobo/apps/project_ownership/templates/emails/accepted_invite.html:5
+#: kobo/apps/project_ownership/templates/emails/accepted_invite.txt:3
+#: kobo/apps/project_ownership/templates/emails/declined_invite.html:5
+#: kobo/apps/project_ownership/templates/emails/declined_invite.txt:5
+#: kobo/apps/project_ownership/templates/emails/expired_invite.html:5
+#: kobo/apps/project_ownership/templates/emails/expired_invite.txt:5
+#: kobo/apps/project_ownership/templates/emails/new_invite.html:5
+#: kobo/apps/project_ownership/templates/emails/new_invite.txt:5
+msgid "Dear"
+msgstr "ውድ"
+
+#: kobo/apps/hook/templates/reports/failures_email_body.html:11
+#: kobo/apps/hook/templates/reports/failures_email_body.txt:12
+msgid "Some submissions could not be sent to their external endpoints."
+msgstr "አንዳንድ የመላክ መሳሪያዎች ወደ ውጫዊ ነ መጨረሻ ነጥብ መላክ አልቻሉም።"
+
+#: kobo/apps/hook/views/v2/hook.py:178
+msgid "Task successfully scheduled"
+msgstr "ተግባር በተሳካ ሁኔታ መርሐግብር ተይዞለታል"
+
+#: kobo/apps/hook/views/v2/hook.py:214
+msgid "No data to retry"
+msgstr "እንደገና የሚሞከር ምንም ውሂብ የለም"
+
+#: kobo/apps/hook/views/v2/hook.py:217
+msgid "Can not retry on disabled hooks"
+msgstr "በተሰናከሉ ማንጠልጠያዎች ላይ እንደገና መሞከር አይቻልም"
+
+#: kobo/apps/hook/views/v2/hook_log.py:120
+msgid "An error has occurred when sending the data. Please try again later."
+msgstr "ውሂቡን ሲላክ ስህተት ተፈጥሯል። እባክዎ ቆየት ብለው ይሞክሩ።"
+
+#: kobo/apps/hook/views/v2/hook_log.py:125
+msgid "Data is being or has already been processed"
+msgstr "ውሂቡ እየተሰራ ነው ወይም አስቀድሞ እየተሰራ ነው"
+
+#: kobo/apps/languages/templates/admin/languages_change_list.html:8
+msgid "Import"
+msgstr "አስመጣ"
+
+#: kobo/apps/openrosa/apps/api/exceptions.py:12
+msgid "This is not supported by the legacy API anymore"
+msgstr "ይህ ከአሁን በኋላ በቅርስ API አይደገፍም"
+
+#: kobo/apps/openrosa/apps/api/exceptions.py:19
+msgid "No confirmation provided"
+msgstr "ማረጋገጫ አልተሰጠም"
+
+#: kobo/apps/openrosa/apps/api/tools.py:70
+#, python-format
+msgid "User %(user)s has no permission to add xforms to account %(account)s"
+msgstr "ተጠቃሚ %(user)s xforms ን ወደ መለያ %(account)s ለመጨመር ፈቃድ የለውም"
+
+#: kobo/apps/openrosa/apps/api/tools.py:82
+#, python-format
+msgid "User %(user)s has no permission to change this form."
+msgstr "ተጠቃሚ %(user)s ይህንን ቅፅ ለመቀየር ፈቃድ የለውም።"
+
+#: kobo/apps/openrosa/apps/api/tools.py:111
+msgid "You do not have permission to view data from this form."
+msgstr "ከዚህ ቅፅ የተገኘውን ውሂብ ለመመልከት ፈቃድ የለዎትም።"
+
+#: kobo/apps/openrosa/apps/api/viewsets/attachment_viewset.py:174
+#, python-format
+msgid "Filename '%s' not found."
+msgstr "የፋይል ስም' %s' አልተገኘም።"
+
+#: kobo/apps/openrosa/apps/api/viewsets/briefcase_api.py:40
+#, python-format
+msgid "Invalid formId %s."
+msgstr "ልክ ያልሆነ ቅፅ Id %s."
+
+#: kobo/apps/openrosa/apps/api/viewsets/briefcase_api.py:195
+#, python-format
+msgid "%s successfully published."
+msgstr "%s በተሳካ ሁኔታ ታትሟል።"
+
+#: kobo/apps/openrosa/apps/api/viewsets/briefcase_api.py:200
+msgid "Missing xml file."
+msgstr "የጠፋ የxml ፋይል።"
+
+#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:407
+#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:436
+msgid "`query` and `instance_ids` can't be used together"
+msgstr "`query` እና `instance_ids` አብረው መጠቀም አይችሉም"
+
+#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:411
+#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:440
+msgid "Invalid `query` or `submission_ids` params"
+msgstr "ልክ ያልሆነ `query` ወይም `submission_ids` params"
+
+#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:418
+msgid "{} submissions have been deleted"
+msgstr "{} የቀረቡት አስተያየቶች ተሰርዘዋል"
+
+#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:446
+msgid "No `validation_status.uid` provided"
+msgstr "ቍጥር `validation_status.uid` የቀረበ"
+
+#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:451
+msgid "{} submissions have been updated"
+msgstr "{} የቀረቡት አስተያየቶች ተዘምነዋል"
+
+#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:487
+#, python-format
+msgid "Invalid pk `%(pk)s`"
+msgstr "ልክ ያልሆነ pk `%(pk)s`"
+
+#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:491
+#, python-format
+msgid "Invalid dataid `%(dataid)s`"
+msgstr "ልክ ያልሆነ ውሂብ `%(dataid)s`"
+
+#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:506
+msgid "No data matches with given query."
+msgstr "ከተሰጠው መጠይቅ ጋር የሚዛመድ ውሂብ የለም።"
+
+#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:523
+#, python-format
+msgid "Invalid pk %(pk)s"
+msgstr "ልክ ያልሆነ pk %(pk)s"
+
+#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:627
+msgid "Data id not provided."
+msgstr "የውሂብ id አልተሰጠም።"
+
+#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:631
+msgid "`return_url` not provided."
+msgstr "`return_url` አልተሰጠም።"
+
+#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:643
+msgid ""
+"Cannot edit submissions while \"Require authentication to see form and "
+"submit data\" is disabled for your project"
+msgstr "\"ቅፁን ለማየት እና ውሂብን ለመላክ ማረጋገጫ ይጠይቁ\" ለፕሮጀክትዎ ተሰናክሎ እያለ ማቅረቢያዎችን ማርትዕ አይቻልም"
+
+#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:667
+msgid "Data id not provided"
+msgstr "የውሂብ id አልተሰጠም"
+
+#: kobo/apps/openrosa/apps/api/viewsets/xform_submission_api.py:56
+msgid "No submission key provided."
+msgstr "የማስረከቢያ ቍልፍ አልተሰጠም።"
+
+#: kobo/apps/openrosa/apps/api/viewsets/xform_submission_api.py:205
+msgid "Unable to create submission."
+msgstr "ታዛዥነትን ማምጣት አልተቻለም።"
+
+#: kobo/apps/openrosa/apps/api/viewsets/xform_viewset.py:55
+#, python-format
+msgid "'%(export_type)s' format not known or not implemented!"
+msgstr "'%(export_type)s' ቅርጸት አይታወቅም ወይም አልተተገበረም!"
+
+#: kobo/apps/openrosa/apps/api/viewsets/xform_viewset.py:91
+msgid "Dates must be in the format YY_MM_DD_hh_mm_ss"
+msgstr "ቀኖች በ YY_MM_DD_hh_mm_ss ቅርጸት መሆን አለባቸው"
+
+#: kobo/apps/openrosa/apps/api/viewsets/xform_viewset.py:109
+msgid "No records found to export"
+msgstr "ወደ ውጭ ለመላክ ምንም መዝገቦች አልተገኙም"
+
+#: kobo/apps/openrosa/apps/api/viewsets/xform_viewset.py:140
+msgid "No XLSForm found."
+msgstr "ምንም XLSForm አልተገኘም።"
+
+#: kobo/apps/openrosa/apps/api/viewsets/xform_viewset.py:585
+msgid "Only a form's owner can overwrite its contents"
+msgstr "የቅፁ ባለቤት ብቻ ነው ይዘቱን መተካት የሚችለው"
+
+#: kobo/apps/openrosa/apps/logger/models/xform.py:71
+msgid "Require authentication to see form and submit data"
+msgstr "ቅፆችን ለማየት እና ውሂብ ለማስገባት ማረጋገጫ ጠይቅ"
+
+#: kobo/apps/openrosa/apps/logger/models/xform.py:79
+msgid "ID"
+msgstr "ID"
+
+#: kobo/apps/openrosa/apps/logger/models/xform.py:107
+msgid "XForm"
+msgstr "XForm"
+
+#: kobo/apps/openrosa/apps/logger/models/xform.py:108
+msgid "XForms"
+msgstr "XForms"
+
+#: kobo/apps/openrosa/apps/logger/models/xform.py:111
+msgid "Can make submissions to the form"
+msgstr "በቅፁ ላይ አስተያየቶችን ማቅረብ ይችላሉ"
+
+#: kobo/apps/openrosa/apps/logger/models/xform.py:112
+msgid "Can transfer form ownership."
+msgstr "ባለቤትነትን ማስተላለፍ ይችላሉ።"
+
+#: kobo/apps/openrosa/apps/logger/models/xform.py:113
+msgid "Can validate submissions"
+msgstr "ማስገባቶችን ያረጋግጡ"
+
+#: kobo/apps/openrosa/apps/logger/models/xform.py:114
+msgid "Can delete submissions"
+msgstr "ማቅረቢያዎችን ሊሰርዝ ይችላል"
+
+#: kobo/apps/openrosa/apps/logger/models/xform.py:242
+#, python-format
+msgid ""
+"Your updated form's id_string '%(new_id)s' must match the existing forms' "
+"id_string '%(old_id)s'."
+msgstr "የዘመነው ቅፅዎ id_string '%(new_id)s' ከነባር ቅፆች' id_string '%(old_id)s' ጋር መመሳሰል አለበት።"
+
+#: kobo/apps/openrosa/apps/logger/models/xform.py:251
+msgid ""
+"In strict mode, the XForm ID must be a valid slug and contain no spaces."
+msgstr "በጥብቅ ሁነታ፣ የ XForm ID ትክክለኛ ጠብታ መሆን አለበት እና ምንም ክፍተቶች።"
+
+#: kobo/apps/openrosa/apps/logger/models/xform.py:265
+msgid "Submission Count"
+msgstr "የማስረከቢያ ብዛት"
+
+#: kobo/apps/openrosa/apps/logger/models/xform.py:301
+msgid "There should be a single id string."
+msgstr "አንድ ነጠላ id ሊኖር ይገባል።"
+
+#: kobo/apps/openrosa/apps/logger/models/xform.py:326
+msgid "There should be a single title."
+msgstr "አንድ ነጠላ ርዕስ ሊኖር ይገባል።"
+
+#: kobo/apps/openrosa/apps/logger/views.py:68
+#: kobo/apps/openrosa/libs/serializers/data_serializer.py:114
+msgid "Successful submission."
+msgstr "የተሳካ ማስገባት።"
+
+#: kobo/apps/openrosa/apps/logger/views.py:94
+msgid ""
+"There was a problem receiving your ODK submission. [Error: IO Error reading "
+"data]"
+msgstr "የኦዲኬ ማቅረቢያዎን መቀበል ላይ ችግር ተፈጥሯል። [ስህተት፦ IO ስህተት የንባብ ውሂብ]"
+
+#: kobo/apps/openrosa/apps/logger/views.py:98
+msgid ""
+"There was a problem receiving your ODK submission. [Error: multiple "
+"submission files (?)]"
+msgstr "የኦዲኬ ማቅረቢያዎን መቀበል ላይ ችግር ተፈጥሯል። [ስህተት፦ ብዙ የማስረከቢያ ፋይሎች (?)]"
+
+#: kobo/apps/openrosa/apps/logger/views.py:120
+#, python-format
+msgid ""
+"Submission complete. Out of %(total)d survey instances, %(success)d were "
+"imported, (%(rejected)d were rejected as duplicates, missing forms, etc.)"
+msgstr "ከ %(total)d የዳሰሳ ጥናት ጒዳዮች መካከል %(success)dቱ ከውጭ የመጡ ናቸው (%(rejected)d ቱ እንደ ተደጋጋሚ፣ የጎደሉ ቅፆች፣ ወዘተ ውድቅ ተደርገዋል)።"
+
+#: kobo/apps/openrosa/apps/logger/views.py:190
+#, python-format
+msgid "No XLS file for your form %(id)s"
+msgstr "ለቅፅዎ የ XLS ፋይል የለም %(id)s"
+
+#: kobo/apps/openrosa/apps/logger/views.py:208
+#: kobo/apps/openrosa/apps/viewer/views.py:52
+#: kobo/apps/openrosa/apps/viewer/views.py:102
+#: kobo/apps/openrosa/apps/viewer/views.py:121
+#: kobo/apps/openrosa/apps/viewer/views.py:162
+#: kobo/apps/openrosa/apps/viewer/views.py:190
+#: kobo/apps/openrosa/apps/viewer/views.py:266
+msgid "Not shared."
+msgstr "የተጋራ አይደለም።"
+
+#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:25
+msgid "Duplicate Instance"
+msgstr "ድርብ ቅፅ"
+
+#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:30
+msgid "Could not determine the user."
+msgstr "ተጠቃሚውን መወሰን አልተቻለም።"
+
+#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:35
+msgid "The instance could not be parsed."
+msgstr "ትዕይንቱ ሊተነተን አልቻለም።"
+
+#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:40
+msgid "Empty instance"
+msgstr "ትዕይንቱ ሊተነተን አልቻለም"
+
+#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:53
+#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:96
+#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:111
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:348
+msgid "XML string must have a survey element."
+msgstr "የXML ሕብረቁምፊ የዳሰሳ ጥናት አባል ሊኖረው ይገባል።"
+
+#: kobo/apps/openrosa/apps/main/forms.py:18
+msgid "Media upload"
+msgstr "የሚዲያ ሰቀላ"
+
+#: kobo/apps/openrosa/apps/main/forms.py:30
+#: kobo/apps/openrosa/libs/utils/quick_converter.py:9
+msgid "XLS File"
+msgstr "XLS ፋይል"
+
+#: kobo/apps/openrosa/apps/main/templates/405.html:5
+msgid "405 Error: Method Not Allowed!"
+msgstr "405 ስህተት፦ ዘዴ አልተፈቀደም!"
+
+#: kobo/apps/openrosa/apps/main/templates/500.html:5
+msgid "500 Error"
+msgstr "500 ስሕተት"
+
+#: kobo/apps/openrosa/apps/main/templates/500.html:8
+msgid ""
+"If this is a significant error that needs to be fixed, please send a support"
+" request to support@kobotoolbox.org with information about what triggered "
+"this error."
+msgstr "ይህ ሊስተካከል የሚገባው ጉልህ ስሕተት ከሆነ እባክዎን ይህንን ስሕተት ያስከተለውን ውሂብ የያዘ የድጋፍ ጥያቄ ወደ support@kobotoolbox.org ይላኩ።"
+
+#: kobo/apps/openrosa/apps/main/templates/restricted_access.html:5
+msgid "403 - Restricted access"
+msgstr "403- የተከለከለ መዳረሻ"
+
+#: kobo/apps/openrosa/apps/main/templates/restricted_access.html:8
+#, python-format
+msgid ""
+"\n"
+"    Your access is restricted. Please reclaim your access by <a href=\"%(koboform_url)s/accounts/password/reset/\">changing your password</a>.\n"
+"  "
+msgstr "\nየእርስዎ መዳረሻ የተገደበ ነው <a href=\"%(koboform_url)s/accounts/password/reset/\"> እባክዎ የይለፍ ቃልዎን በመቀየር መዳረሻዎን መልሰው ያግኙ</a>።"
+
+#: kobo/apps/openrosa/apps/viewer/models/export.py:17
+msgid "Invalid export type specified"
+msgstr "ልክ ያልሆነ የኤክስፖርት አይነት ተለይቷል"
+
+#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:111
+#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:163
+msgid "Invalid start/limit params"
+msgstr "ልክ ያልሆኑ የመነሻ/የገደብ መለኪያዎች"
+
+#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:127
+#, python-format
+msgid "Invalid pipeline! %s"
+msgstr "ልክ ያልሆነ የቧንቧ መስመር! %s"
+
+#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:129
+#, python-format
+msgid "Invalid query! %s"
+msgstr "ልክ ያልሆነ ጥያቄ! %s"
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:10
+msgid "Exports"
+msgstr "ወደ ውጭ መላክ"
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:26
+msgid "New Export"
+msgstr "አዲስ ኤክስፖርት"
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:28
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:41
+msgid "Advanced Export"
+msgstr "የላቀ ኤክስፖርት"
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:33
+msgid ""
+"Note: exports include only questions that remain in the most recent version "
+"of the form."
+msgstr "ማስታወሻ፦ ኤክስፖርቶች በቅፁ በጣም የቅርብ ጊዜ ስሪት ውስጥ የቀሩትን ጥያቄዎች ብቻ ያካትታሉ።"
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:44
+msgid "Delimiter to use to separate group names from field names"
+msgstr "የቡድን ስሞችን ከሜዳ ስሞች ለመለየት የሚጠቀሙበት መለኪያ"
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:46
+msgid "Dot"
+msgstr "ነጥብ"
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:47
+msgid "Slash"
+msgstr "ስላሽ"
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:51
+msgid "DONT split select multiple choice answers into separate columns"
+msgstr "ብዙ ምርጫ መልሶችን በተለያዩ ዓምዶች አትከፋፍል"
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:55
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:99
+msgid "Cancel"
+msgstr "ሰርዝ"
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:56
+msgid "Create Export"
+msgstr "ኤክስፖርት ይፍጠሩ"
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:65
+msgid "Filename"
+msgstr "የፋይል ስም"
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:66
+msgid "Date Created"
+msgstr "ውሂብ ተፈጥሯል"
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:67
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:100
+msgid "Delete"
+msgstr "ሰርዝ"
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:82
+msgid "Pending ..."
+msgstr "በመጠባበቅ ላይ ..."
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:83
+msgid "Click to refresh"
+msgstr "ለማደስ ጠቅ ያድርጉ"
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:93
+msgid "Delete Export"
+msgstr "ኤክስፖርት ሰርዝ"
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:96
+msgid "Are you sure you want to delete this export?"
+msgstr "ይህን ኤክስፖርት መሰረዝ እንደሚፈልጉ እርግጠኛ ነዎት?"
+
+#: kobo/apps/openrosa/apps/viewer/views.py:61
+#, python-format
+msgid "%s is not a valid delimiter"
+msgstr "%s ትክክለኛ መለኪያ አይደለም"
+
+#: kobo/apps/openrosa/apps/viewer/views.py:80
+#, python-format
+msgid "%s is not a valid export type"
+msgstr "%s ትክክለኛ የኤክስፖርት ዓይነት አይደለም"
+
+#: kobo/apps/openrosa/apps/viewer/views.py:97
+msgid "Invalid export type"
+msgstr "ልክ ያልሆነ የኤክስፖርት ዓይነት"
+
+#: kobo/apps/openrosa/apps/viewer/views.py:240
+#: kobo/apps/openrosa/apps/viewer/views.py:244
+msgid "Attachment not found"
+msgstr "ማያያዣ አልተገኘም"
+
+#: kobo/apps/openrosa/apps/viewer/views.py:301
+msgid "Error: Attachment not found"
+msgstr "ስህተት፦ አባሪ አልተገኘም"
+
+#: kobo/apps/openrosa/libs/authentication.py:51
+msgid ""
+"Using basic authentication without HTTPS transmits credentials in clear "
+"text! You MUST connect via HTTPS to use basic authentication."
+msgstr "ያለ HTTPS መሰረታዊ ማረጋገጫን በመጠቀም የምስክር ወረቀቶችን ግልጽ በሆነ ፅሑፍ ያስተላልፋል! መሰረታዊ ማረጋገጫን ለመጠቀም በ HTTPS በኩል መገናኘት አለብዎት።"
+
+#: kobo/apps/openrosa/libs/mixins/mfa.py:25
+msgid ""
+"Multi-factor authentication is enabled for this account. ##authentication "
+"class## cannot be used."
+msgstr "ባለብዙ-ደረጃ ማረጋገጫ ለዚህ መለያ ነቅቷል። ##authentication class## መጠቀም አይቻልም።"
+
+#: kobo/apps/openrosa/libs/serializers/clone_xform_serializer.py:34
+#, python-format
+msgid "User '%(value)s' does not exist."
+msgstr "ተጠቃሚ'%(value)s' የለም።"
+
+#: kobo/apps/openrosa/libs/serializers/data_serializer.py:47
+#, python-format
+msgid "Invalid query: %(query)s"
+msgstr "ልክ ያልሆነ ጥያቄ፦ %(query)s"
+
+#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:18
+msgid "Data License"
+msgstr "የውሂብ ፈቃድ"
+
+#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:19
+msgid "Form License"
+msgstr "ቅፅ ፈቃድ"
+
+#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:20
+msgid "Media"
+msgstr "ሚዲያ"
+
+#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:21
+msgid "Public Link"
+msgstr "የሕዝብ ግንኙነት"
+
+#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:22
+msgid "Source"
+msgstr "ምንጭ"
+
+#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:23
+msgid "Supporting Document"
+msgstr "የድጋፍ ሰነድ"
+
+#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:24
+msgid "Paired Data"
+msgstr "የተዛመዱ ውሂብ"
+
+#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:72
+msgid "Project not found"
+msgstr "ፕሮጀክት አልተገኘም"
+
+#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:76
+msgid "You do not have sufficient permissions to perform this action"
+msgstr "ይህንን እርምጃ ለመፈጸም በቂ ፍቃዶች የሉዎትም"
+
+#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:122
+msgid "Invalid url {}"
+msgstr "ልክ ያልሆነ url {}"
+
+#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:156
+#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:167
+#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:174
+msgid "Cannot determine content type"
+msgstr "የይዘት ዓይነት መወሰን አልተቻለም"
+
+#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:189
+msgid "Invalid content type"
+msgstr "ልክ ያልሆነ የይዘት ዓይነት"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:8
+msgid "Afghanistan"
+msgstr "አፍጋኒስታን"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:9
+msgid "Albania"
+msgstr "አልባኒያ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:10
+msgid "Algeria"
+msgstr "አልጄሪያ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:11
+msgid "American Samoa"
+msgstr "የአሜሪካ ሳሞአ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:12
+msgid "Andorra"
+msgstr "አንዶራ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:13
+msgid "Angola"
+msgstr "አንጎላ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:14
+msgid "Anguilla"
+msgstr "አንጉላ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:15
+msgid "Antarctica"
+msgstr "አንታርክቲካ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:16
+msgid "Antigua and Barbuda"
+msgstr "አንቲጉአ እና ባርቡዳ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:17
+msgid "Argentina"
+msgstr "አርጀንቲና"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:18
+msgid "Armenia"
+msgstr "አርሜኒያ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:19
+msgid "Aruba"
+msgstr "አሩባ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:20
+msgid "Australia"
+msgstr "አውስትራሊያ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:21
+msgid "Austria"
+msgstr "ኦስትራ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:22
+msgid "Azerbaijan"
+msgstr "አዘርባጃን"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:23
+msgid "Bahamas"
+msgstr "ባሐማስ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:24
+msgid "Bahrain"
+msgstr "ባሃሬን"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:25
+msgid "Bangladesh"
+msgstr "ባንግላድሽ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:26
+msgid "Barbados"
+msgstr "ባርባዶስ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:27
+msgid "Belarus"
+msgstr "ቤላሩስ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:28
+msgid "Belgium"
+msgstr "ቤልጄም"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:29
+msgid "Belize"
+msgstr "ቤሊዜ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:30
+msgid "Benin"
+msgstr "ቤኒኒ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:31
+msgid "Bermuda"
+msgstr "ቤርሙዳ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:32
+msgid "Bhutan"
+msgstr "በሓቱን"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:33
+msgid "Bolivia"
+msgstr "ቦሊቪያ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:34
+msgid "Bonaire, Sint Eustatius and Saba"
+msgstr "ቦናይር፣ ሲንት ኤውስታቲየስ እና ሳባ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:35
+msgid "Bosnia and Herzegovina"
+msgstr "ቦስኒያ እና ሔርዞጎቪያ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:36
+msgid "Botswana"
+msgstr "ቦትስዋና"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:37
+msgid "Brazil"
+msgstr "ብራዚል"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:38
+msgid "British Indian Ocean Territory"
+msgstr "የብሪቲሽ ህንድ ውቅያኖስ ግዛት"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:39
+msgid "Brunei Darussalam"
+msgstr "ብሩኒ ዳሩሳላም"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:40
+msgid "Bulgaria"
+msgstr "ቡልጋሪያ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:41
+msgid "Burkina Faso"
+msgstr "ቡርክናፋሶ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:42
+msgid "Burundi"
+msgstr "ቡሩንዲ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:43
+msgid "Cambodia"
+msgstr "ካምቦዲያ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:44
+msgid "Cameroon"
+msgstr "ካሜሩን"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:45
+msgid "Canada"
+msgstr "ካናዳ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:46
+msgid "Cape Verde"
+msgstr "ኬፕ ቬሪዴ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:47
+msgid "Cayman Islands"
+msgstr "ኬይማን አይስላንድ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:48
+msgid "Central African Republic"
+msgstr "ሴንትራል አፍሪካ ሪፑቢሊክ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:49
+msgid "Chad"
+msgstr "ቻድ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:50
+msgid "Chile"
+msgstr "ቺሊ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:51
+msgid "China"
+msgstr "ቻይና"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:52
+msgid "Christmas Island"
+msgstr "የገና ደሴት"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:53
+msgid "Cocos (Keeling) Islands"
+msgstr "ኮኮስ (ኬሊንግ) ደሴቶች"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:54
+msgid "Colombia"
+msgstr "ኮሎምቢያ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:55
+msgid "Comoros"
+msgstr "ኮሞሮስ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:56
+msgid "Congo"
+msgstr "ኮንጎ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:57
+msgid "Congo, The Democratic Republic of the"
+msgstr "ኮንጎ፣ ዲሞክራቲክ ሪፐብሊክ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:58
+msgid "Cook Islands"
+msgstr "ኩክ አይስላንድስ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:59
+msgid "Costa Rica"
+msgstr "ኮስታሪካ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:60
+msgid "Ivory Coast"
+msgstr "አይቮሪ ኮስት"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:61
+msgid "Croatia"
+msgstr "ክሮሽያ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:62
+msgid "Cuba"
+msgstr "ኩባ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:63
+msgid "Curacao"
+msgstr "ኩራካዎ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:64
+msgid "Cyprus"
+msgstr "ቆጵሮስ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:65
+msgid "Czech Republic"
+msgstr "ቼክ ሪፐብሊክ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:66
+msgid "Denmark"
+msgstr "ዴንማሪክ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:67
+msgid "Djibouti"
+msgstr "ጅቡቲ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:68
+msgid "Dominica"
+msgstr "ዶሚኒካ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:69
+msgid "Dominican Republic"
+msgstr "ዶሚኒካን ሪፑብሊክ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:70
+msgid "Ecuador"
+msgstr "ኢኳዶር"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:71
+msgid "Egypt"
+msgstr "ግብጽ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:72
+msgid "El Salvador"
+msgstr "ኤልሳልቫዶር"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:73
+msgid "Equatorial Guinea"
+msgstr "ኢኳቶሪያል ጊኒ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:74
+msgid "Eritrea"
+msgstr "ኤርትሪያ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:75
+msgid "Estonia"
+msgstr "ኢስቶኒያ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:76
+msgid "Ethiopia"
+msgstr "ኢትዮጵያ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:77
+msgid "Falkland Islands (Malvinas)"
+msgstr "የፎክላንድ ደሴቶች (ማልቪናስ)"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:78
+msgid "Faroe Islands"
+msgstr "የፋሮ ደሴቶች"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:79
+msgid "Fiji"
+msgstr "ፊጂ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:80
+msgid "Finland"
+msgstr "ፊኒላንድ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:81
+msgid "France"
+msgstr "ፈረንሳይ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:82
+msgid "French Guiana"
+msgstr "የፈረንሳይ ጉያና"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:83
+msgid "French Polynesia"
+msgstr "የፈረንሳይ ፖሊኔዥያ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:84
+msgid "French Southern Territories"
+msgstr "የፈረንሳይ ደቡባዊ ግዛቶች"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:85
+msgid "Gabon"
+msgstr "ጋቦን"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:86
+msgid "Gambia"
+msgstr "ጋምቢያ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:87
+msgid "Georgia"
+msgstr "ጆርጂያ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:88
+msgid "Germany"
+msgstr "ጀርመን"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:89
+msgid "Ghana"
+msgstr "ጋና"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:90
+msgid "Gibraltar"
+msgstr "ጊብራልታር"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:91
+msgid "Greece"
+msgstr "ግሪክ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:92
+msgid "Greenland"
+msgstr "ግሪንላንድ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:93
+msgid "Grenada"
+msgstr "ግሪንዳዳ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:94
+msgid "Guadeloupe"
+msgstr "ጓዴሎፕ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:95
+msgid "Guam"
+msgstr "ጉአሜ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:96
+msgid "Guatemala"
+msgstr "ጓቴማላ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:97
+msgid "Guernsey"
+msgstr "ገርንሴይ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:98
+msgid "Guinea"
+msgstr "ጊኒ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:99
+msgid "Guinea-Bissau"
+msgstr "ጊኒ-ቢሳው"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:100
+msgid "Guyana"
+msgstr "ጉያና"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:101
+msgid "Haiti"
+msgstr "ሓይቲ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:102
+msgid "Heard Island and McDonald Islands"
+msgstr "ሄርድ ደሴት እና ማክዶናልድ ደሴቶች"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:103
+msgid "Holy See (Vatican City State)"
+msgstr "ቅድስት መንበር (የቫቲካን ከተማ ግዛት)"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:104
+msgid "Honduras"
+msgstr "ሆንዱራስ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:105
+msgid "Hong Kong"
+msgstr "ሆንግ ኮንግ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:106
+msgid "Hungary"
+msgstr "ሃንጋሪ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:107
+msgid "Iceland"
+msgstr "አይስላንድ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:108
+msgid "India"
+msgstr "ሕንድ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:109
+msgid "Indonesia"
+msgstr "ኢንዶኔዥያ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:110
+msgid "Installations in International Waters"
+msgstr "በአለም አቀፍ የውሃ ውስጥ መጫኛዎች"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:111
+msgid "Iran, Islamic Republic of"
+msgstr "ኢራን፣ እስላማዊ ሪፐብሊክ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:112
+msgid "Iraq"
+msgstr "ኢራቅ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:113
+msgid "Ireland"
+msgstr "አይርላድ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:114
+msgid "Isle of Man"
+msgstr "የሰው ደሴት"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:115
+msgid "Israel"
+msgstr "እስራኤል"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:116
+msgid "Italy"
+msgstr "ጣሊያን"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:117
+msgid "Jamaica"
+msgstr "ጃማይካ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:118
+msgid "Japan"
+msgstr "ጃፓን"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:119
+msgid "Jersey"
+msgstr "ጀርሲ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:120
+msgid "Jordan"
+msgstr "ጆርዳን"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:121
+msgid "Kazakhstan"
+msgstr "ካዛክስታን"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:122
+msgid "Kenya"
+msgstr "ኬንያ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:123
+msgid "Kiribati"
+msgstr "ኪሪባቲ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:124
+msgid "Korea, Democratic People's Republic of"
+msgstr "ኮሪያ፣ ዲሞክራቲክ ህዝቦች ሪፐብሊክ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:125
+msgid "Korea, Republic of"
+msgstr "ኮሪያ፣ ሪፐብሊክ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:127
+msgid "Kosovo"
+msgstr "ኮሶቮ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:128
+msgid "Kuwait"
+msgstr "ኵዌት"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:129
+msgid "Kyrgyzstan"
+msgstr "ክይርጋዝስታን"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:130
+msgid "Lao People's Democratic Republic"
+msgstr "የላኦ ህዝቦች ዲሞክራቲክ ሪፐብሊክ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:131
+msgid "Latvia"
+msgstr "ላቲቪያ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:132
+msgid "Lebanon"
+msgstr "ሊባኖስ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:133
+msgid "Lesotho"
+msgstr "ሌስቶ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:134
+msgid "Liberia"
+msgstr "ላይቤሪያ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:135
+msgid "Libyan Arab Jamahiriya"
+msgstr "ሊቢያ አረብ ጃማሂሪያ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:136
+msgid "Liechtenstein"
+msgstr "ለይችቴንስቴይን"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:137
+msgid "Lithuania"
+msgstr "ሊቱአኒያ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:138
+msgid "Luxembourg"
+msgstr "ሉዘምቤርግ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:139
+msgid "Macao"
+msgstr "ማካዎ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:140
+msgid "Macedonia, The former Yugoslav Republic of"
+msgstr "መቄዶኒያ፣ የቀድሞዋ የዩጎዝላቪያ ሪፐብሊክ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:141
+msgid "Madagascar"
+msgstr "ማዳጋስካር"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:142
+msgid "Malawi"
+msgstr "ማላዊ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:143
+msgid "Malaysia"
+msgstr "ማሌዥያ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:144
+msgid "Maldives"
+msgstr "ማልዲቬስ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:145
+msgid "Mali"
+msgstr "ማሊ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:146
+msgid "Malta"
+msgstr "ማልታ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:147
+msgid "Marshall Islands"
+msgstr "ማርሻል አይስላንድ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:148
+msgid "Martinique"
+msgstr "ማርቲኒክ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:149
+msgid "Mauritania"
+msgstr "ሞሪታኒያ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:150
+msgid "Mauritius"
+msgstr "ሞሪሼስ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:151
+msgid "Mayotte"
+msgstr "ማዮት"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:152
+msgid "Mexico"
+msgstr "ሜክስኮ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:153
+msgid "Micronesia, Federated States of"
+msgstr "ማይክሮኔዥያ፣ የፌዴራል ግዛቶች"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:154
+msgid "Moldova, Republic of"
+msgstr "ሞልዶቫ፣ ሪፐብሊክ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:155
+msgid "Monaco"
+msgstr "ሞናኮ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:156
+msgid "Mongolia"
+msgstr "ሞንጎሊያ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:157
+msgid "Montenegro"
+msgstr "ሞንቴኔግሮ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:158
+msgid "Montserrat"
+msgstr "ሞንትሴራት"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:159
+msgid "Morocco"
+msgstr "ሞሮኮ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:160
+msgid "Mozambique"
+msgstr "ሞዛምቢክ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:161
+msgid "Myanmar"
+msgstr "ማይንማር"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:162
+msgid "Namibia"
+msgstr "ናምቢያ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:163
+msgid "Nauru"
+msgstr "ናኡሩ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:164
+msgid "Nepal"
+msgstr "ኔፓል"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:165
+msgid "Netherlands"
+msgstr "ኔዜሪላንድ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:166
+msgid "New Caledonia"
+msgstr "ኒው ካሌዶኒያ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:167
+msgid "New Zealand"
+msgstr "ኒውዚላንድ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:168
+msgid "Nicaragua"
+msgstr "ኒካራጉአ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:169
+msgid "Niger"
+msgstr "ኒጀር"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:170
+msgid "Nigeria"
+msgstr "ናይጄሪያ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:171
+msgid "Niue"
+msgstr "ኒይኡ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:172
+msgid "Norfolk Island"
+msgstr "ኖርፎልክ አይስላንድስ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:173
+msgid "Northern Mariana Islands"
+msgstr "የሰሜናዊ ማሪያና አይስላንድስ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:174
+msgid "Norway"
+msgstr "ኖርዌይ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:175
+msgid "Oman"
+msgstr "ኦማን"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:176
+msgid "Pakistan"
+msgstr "ፓኪስታን"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:177
+msgid "Palau"
+msgstr "ፓላኡ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:178
+msgid "Palestinian Territory, Occupied"
+msgstr "የተያዘው የፍልስጤም ግዛት"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:179
+msgid "Panama"
+msgstr "ፓናማ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:180
+msgid "Papua New Guinea"
+msgstr "ፓፓያ ኒው ጊኒ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:181
+msgid "Paraguay"
+msgstr "ፓራጓይ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:182
+msgid "Peru"
+msgstr "ፔሩ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:183
+msgid "Philippines"
+msgstr "ፊሊፕንሲ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:184
+msgid "Pitcairn"
+msgstr "ፒትኬርን"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:185
+msgid "Poland"
+msgstr "ፖላንድ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:186
+msgid "Portugal"
+msgstr "ፖርቹጋል"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:187
+msgid "Puerto Rico"
+msgstr "ፑኤርቶ ሪኮ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:188
+msgid "Qatar"
+msgstr "ኳታር"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:189
+msgid "Reunion"
+msgstr "እንደገና መገናኘት"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:190
+msgid "Romania"
+msgstr "ሮማኒያ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:191
+msgid "Russian Federation"
+msgstr "የሩሲያ ፌዴሬሽን"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:192
+msgid "Rwanda"
+msgstr "ሩዋንዳ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:193
+msgid "Saint Helena"
+msgstr "ሰይንት ሄሌና"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:194
+msgid "Saint Kitts and Nevis"
+msgstr "ሰይንት ኪትስ እና ኔቪስ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:195
+msgid "Saint Lucia"
+msgstr "ሰይንት ሉካስ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:196
+msgid "Saint Pierre and Miquelon"
+msgstr "ቅዱስ ፒየር እና ሚኩሎን"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:197
+msgid "Saint Vincent and the Grenadines"
+msgstr "ሰይንት ቪንሴንት እና ጀሬናዲኔስ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:198
+msgid "Samoa"
+msgstr "ሳሞአ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:199
+msgid "San Marino"
+msgstr "ሳን ማሪኖ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:200
+msgid "Sao Tome and Principe"
+msgstr "ሳኦ ቶሜ እና ፕሪንቺፔ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:201
+msgid "Saudi Arabia"
+msgstr "ሳውዲ ዓረቢያ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:202
+msgid "Senegal"
+msgstr "ሴኔጋል"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:203
+msgid "Serbia"
+msgstr "ሴርቢያ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:204
+msgid "Seychelles"
+msgstr "ሲሼልስ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:205
+msgid "Sierra Leone"
+msgstr "ሰራሊዮን"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:206
+msgid "Singapore"
+msgstr "ስንጋፖር"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:207
+msgid "Sint Maarten (Dutch Part)"
+msgstr "ሲንት ማርተን (የደች ክፍል)"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:208
+msgid "Slovakia"
+msgstr "ስሎቫኒካ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:209
+msgid "Slovenia"
+msgstr "ስሎቫኒያ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:210
+msgid "Solomon Islands"
+msgstr "የሰሎሞን አይስላንድስ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:211
+msgid "Somalia"
+msgstr "ሶማሊያ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:212
+msgid "South Africa"
+msgstr "ደቡብ አፍሪካ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:213
+msgid "South Georgia and the South Sandwich Islands"
+msgstr "ደቡብ ጆርጂያ እና ደቡብ ሳንድዊች ደሴቶች"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:214
+msgid "South Sudan"
+msgstr "ደቡብ ሱዳን"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:215
+msgid "Spain"
+msgstr "ስፔን"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:216
+msgid "Sri Lanka"
+msgstr "ሲሪላንካ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:217
+msgid "Sudan"
+msgstr "ሱዳን"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:218
+msgid "Suriname"
+msgstr "ሱሪናሜ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:219
+msgid "Svalbard and Jan Mayen"
+msgstr "ስቫልባርድ እና ጃን ማየን"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:220
+msgid "Swaziland"
+msgstr "ስዋዝላድ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:221
+msgid "Sweden"
+msgstr "ስዊዲን"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:222
+msgid "Switzerland"
+msgstr "ስዊዘሪላንድ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:223
+msgid "Syrian Arab Republic"
+msgstr "የሶሪያ አረብ ሪፐብሊክ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:224
+msgid "Taiwan, Province of China"
+msgstr "ታይዋን፣ የቻይና ግዛት"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:225
+msgid "Tajikistan"
+msgstr "ታጂኪስታን"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:226
+msgid "Tanzania, United Republic of"
+msgstr "ታንዛኒያ፣ የተባበሩት መንግስታት ሪፐብሊክ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:227
+msgid "Thailand"
+msgstr "ታይላንድ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:228
+msgid "Timor-Leste"
+msgstr "ቲሞር-ሌስቴ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:229
+msgid "Togo"
+msgstr "ቶጎ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:230
+msgid "Tokelau"
+msgstr "ቶኬላኡ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:231
+msgid "Tonga"
+msgstr "ቶንጋ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:232
+msgid "Trinidad and Tobago"
+msgstr "ትሪኒዳድ እና ቶባጎ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:233
+msgid "Tunisia"
+msgstr "ቱንሲያ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:234
+msgid "Turkey"
+msgstr "ቱርክ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:235
+msgid "Turkmenistan"
+msgstr "ቱርክሜኒስታን"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:236
+msgid "Turks and Caicos Islands"
+msgstr "የቱርኮች እና የካይኮስ ደሴቶች"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:237
+msgid "Tuvalu"
+msgstr "ቱቫሉ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:238
+msgid "Uganda"
+msgstr "ኡጋንዳ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:239
+msgid "Ukraine"
+msgstr "ዩክሬን"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:240
+msgid "United Arab Emirates"
+msgstr "ዩናይትድ ዓረብ ኤምሬት"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:241
+msgid "United Kingdom"
+msgstr "ዩናይትድ ኪንግደም"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:242
+msgid "United States"
+msgstr "ዩናይትድ ስቴተት"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:243
+msgid "United States Minor Outlying Islands"
+msgstr "የዩናይትድ ስቴትስ ትናንሽ ውጫዊ ደሴቶች"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:244
+msgid "Uruguay"
+msgstr "ኡራጋይ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:245
+msgid "Uzbekistan"
+msgstr "ኡዝቤክስታን"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:246
+msgid "Vanuatu"
+msgstr "ቫኑአቱ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:247
+msgid "Venezuela"
+msgstr "ቨንዙዋላ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:248
+msgid "Viet Nam"
+msgstr "ቪትናም"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:249
+msgid "Virgin Islands, British"
+msgstr "ቨርጂን ደሴቶች፣ ብሪቲሽ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:250
+msgid "Virgin Islands, U.S."
+msgstr "ቨርጂን ደሴቶች፣ አሜሪካ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:251
+msgid "Wallis and Futuna"
+msgstr "ዋሊስ እና ፉቱና"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:252
+msgid "Western Sahara"
+msgstr "ምዕራባዊ ሳሃራ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:253
+msgid "Yemen"
+msgstr "የመን"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:254
+msgid "Zambia"
+msgstr "ዛምቢያ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:255
+msgid "Zimbabwe"
+msgstr "ዝምባቡዌ"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:256
+msgid "Unknown or unspecified country"
+msgstr "ያልታወቀ ወይም ያልተገለጸ ሀገር"
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:125
+msgid "Forbidden"
+msgstr "የተከለከለ"
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:135
+msgid ""
+"Forbidden attempt to edit a submission. To make a new submission, Remove "
+"`deprecatedID` from the submission XML and try again."
+msgstr "ማቅረቢያ ለማስተካከል የተከለከለ ሙከራ። አዲስ ማቅረቢያ ለመፍጠር ከማቅረቢያ ኤክስኤምኤል `deprecatedID` ን ያስወግዱ እና እንደገና ይሞክሩ።"
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:306
+msgid "Username or ID required."
+msgstr "የተጠቃሚ ስም ወይም ID ያስፈልጋል።"
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:309
+msgid "Received empty submission. No instance was created"
+msgstr "ባዶ ማቅረቢያ ተቀብሏል። ምንም ምሳሌ አልተፈጠረም"
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:312
+msgid "Form is not active"
+msgstr "ቅፁ ንቁ አይደለም"
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:315
+msgid "Temporarily unavailable"
+msgstr "ለጊዜው አይገኝም"
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:318
+msgid "Form does not exist on this account"
+msgstr "ቅፁ በዚህ መለያ ላይ የለም"
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:321
+msgid "Improperly formatted XML."
+msgstr "ተገቢ ያልሆነ ቅርጸት ያለው XML።"
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:324
+msgid "Duplicate submission"
+msgstr "ሁለት ጊዜ ማስገባት"
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:330
+msgid "Access denied"
+msgstr "መዳረሻ ተከልክሏል"
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:337
+msgid "File likely corrupted during transmission, please try later."
+msgstr "ፋይሉ በሚተላለፍበት ጊዜ ተበላሽቷል፣ እባክዎን በኋላ ይሞክሩ።"
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:475
+msgid "Invalid URL format."
+msgstr "ልክ ያልሆነ የURL ቅርጸት።"
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:487
+msgid "Form validation timeout, please try again."
+msgstr "የቅጥያ ማረጋገጫ የጊዜ ገደብ፣ እባክዎን እንደገና ይሞክሩ።"
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:556
+#: kobo/apps/openrosa/libs/utils/viewer_tools.py:63
+#, python-format
+msgid "Exception in request: %(class)s: %(error)s"
+msgstr "ለጥያቄ የሚቀርቡ ልዩ ሁኔታዎች፦ %(class)s፦ %(error)s"
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:589
+msgid "The requested file could not be found."
+msgstr "የተጠየቀው ፋይል ሊገኝ አልቻለም።"
+
+#: kobo/apps/openrosa/libs/utils/middleware.py:181 kpi/exceptions.py:102
+msgid ""
+"Your access is restricted. Please reclaim your access by changing your "
+"password at ##koboform_url##/accounts/password/reset/."
+msgstr "መዳረሻዎ የተገደበ ነው። እባክዎ የይለፍ ቃልዎን በ##koboform_url##/accounts/password/reset/ በመቀየር መዳረሻዎን ያግኙ።"
+
+#: kobo/apps/project_ownership/models/invite.py:96
+msgid "KoboToolbox project ownership transfer accepted"
+msgstr "የካቦ ቱልቦክስ (KoboToolbox) ፕሮጀክት የባለቤትነት ሽግግር ተቀባይነት አግኝቷል"
+
+#: kobo/apps/project_ownership/models/invite.py:126
+msgid "Action required: KoboToolbox project ownership transfer request"
+msgstr "እርምጃ ያስፈልጋል፦ የካቦ ቱልቦክስ (KoboToolbox) ፕሮጀክት ባለቤትነትን የማስተላለፍ ጥያቄ"
+
+#: kobo/apps/project_ownership/models/invite.py:153
+msgid "KoboToolbox project ownership transfer incomplete"
+msgstr "የካቦ ቱልቦክስ (KoboToolbox) ፕሮጀክት የባለቤትነት ሽግግር አልተጠናቀቀም "
+
+#: kobo/apps/project_ownership/models/transfer.py:224
+msgid "Project ownership transferred"
+msgstr "የፕሮጀክቱ ባለቤትነት ለሌላ ተላልፏል"
+
+#: kobo/apps/project_ownership/models/transfer.py:226
+msgid ""
+"Please note that the ownership of the project **##project_name##** has been "
+"transferred from **##previous_owner##** to **##new_owner##**."
+msgstr "የፕሮጀክቱ ባለቤትነት* *##project_name##* * ከ* *##previous_owner##* * ወደ* *##new_owner##* * እንደተላለፈ እባክዎ ልብ ይበሉ።"
+
+#: kobo/apps/project_ownership/models/transfer.py:230
+msgid ""
+"Dear ##username##,\n"
+"\n"
+"Please note that the ownership of the project **##project_name##** has been transferred from **##previous_owner##** to **##new_owner##**.\n"
+"\n"
+"Note: You will continue to have the same project permissions until they are changed."
+msgstr "ውድ##username##፣\n\nየፕሮጀክቱ ባለቤትነት* *##project_name##* * ከ* *##previous_owner##* * ወደ* *##new_owner##* * እንደተላለፈ እባክዎን ልብ ይበሉ።\n\nማስታወሻ፦ እስከሚለወጡ ድረስ በሰራ ላይ ያሉ የፕሮጀክት ፈቃዶች ይቀጥላሉ።"
+
+#: kobo/apps/project_ownership/serializers/invite.py:100
+#: kobo/apps/project_ownership/serializers/invite.py:163
+#: kobo/apps/project_ownership/serializers/invite.py:172
+msgid "This field cannot be modified"
+msgstr "ይህ መስክ ሊሻሻል አይችልም"
+
+#: kobo/apps/project_ownership/serializers/invite.py:110
+msgid "You must be the owner of each project you want to transfer"
+msgstr "በቅድሚያ ለማስተላለፍ የምትፈልጉት የእያንዳንዱ ፕሮጀክት ባለቤት መሆን አለባችሁ"
+
+#: kobo/apps/project_ownership/serializers/invite.py:146
+msgid ""
+"Project `##asset_uid##` cannot be transferred. Current status: ##status##"
+msgstr "ፕሮጀክት `##asset_uid##`ባለቤትነት ሊተላለፍ አይችልም። አሁን ያለበት ሁኔታ፦ ##status##"
+
+#: kobo/apps/project_ownership/tasks.py:182
+msgid "Invite has expired"
+msgstr "ግብዣው ጊዜው አልፎበታል"
+
+#: kobo/apps/project_ownership/templates/emails/accepted_invite.html:3
+#: kobo/apps/project_ownership/templates/emails/declined_invite.html:3
+#: kobo/apps/project_ownership/templates/emails/declined_invite.txt:3
+#: kobo/apps/project_ownership/templates/emails/expired_invite.html:3
+#: kobo/apps/project_ownership/templates/emails/expired_invite.txt:3
+#: kobo/apps/project_ownership/templates/emails/new_invite.html:3
+#: kobo/apps/project_ownership/templates/emails/new_invite.txt:3
+msgid "Projects:"
+msgstr "ፕሮጀክቶች፦"
+
+#: kobo/apps/project_ownership/templates/emails/accepted_invite.html:8
+#, python-format
+msgid ""
+"%(recipient)s has accepted your request to transfer ownership of the project"
+" <a href=\"%(base_url)s/#/forms/%(asset_uid)s/landing\">%(asset_name)s</a> "
+"to you."
+msgstr "%(recipient)sየፕሮጀክቱን ባለቤትነት ወደ እርስዎ እንዲተላለፍ ያቀረቡትን ጥያቄ <a href=\"%(base_url)s/#/forms/%(asset_uid)s/landing\">%(asset_name)s</a> ተቀብሏል።"
+
+#: kobo/apps/project_ownership/templates/emails/accepted_invite.html:10
+msgid ""
+"All submissions, data storage, and transcription and translation usage for "
+"this project will be transferred to the new project owner."
+msgstr "ለዚህ ፕሮጀክት የተረከቡ/የተሰጡ እንደ ሰነድ፣ ፕሮፖዛል፣ ጽሑፍ፣ ወዘተ፣ የውሂብ ማከማቻዎች፣ የጽሁፍ ግልባጮች እንዲሁም የትርጕም አጠቃቀሞች ሁሉም ወደ አዲሱ ፕሮጀክት ባለቤት ይተላለፋሉ።"
+
+#: kobo/apps/project_ownership/templates/emails/accepted_invite.html:12
+#: kobo/apps/project_ownership/templates/emails/accepted_invite.txt:10
+msgid ""
+"Note: You will continue to have permissions to manage the project until the "
+"user permissions are changed."
+msgstr "ማስታወሻ፦ የተጠቃሚ ፈቃዶች እስኪቀየሩ ድረስ ፕሮጀክቱን ለማስተዳደር የተሰጡ ፍቃዶችዎ እንዳለ ይቀጥላሉ።"
+
+#: kobo/apps/project_ownership/templates/emails/accepted_invite.html:14
+#: kobo/apps/project_ownership/templates/emails/accepted_invite.txt:12
+#, python-format
+msgid ""
+"%(recipient)s has accepted your request to transfer ownership of these "
+"projects:"
+msgstr "%(recipient)s የፕሮጀክቱን ባለቤትነት ወደ እርስዎ ለማስተላለፍ ያቀረቡትን ጥያቄ ተቀብሏል፦"
+
+#: kobo/apps/project_ownership/templates/emails/accepted_invite.html:23
+#: kobo/apps/project_ownership/templates/emails/accepted_invite.txt:17
+msgid ""
+"All submissions, data storage, and transcription and translation usage for "
+"these projects will be transferred to the new project owner."
+msgstr "ለእነዚህ ፕሮጀክቶች የተረከቡ/የተሰጡ እንደ ሰነድ፣ ፕሮፖዛል፣ ጽሑፍ፣ ወዘተ የመሳሰሉ.፣ የ ውሂብ ማከማቻዎች፣ የጽሁፍ ግልባጮች እንዲሁም የትርጕም አጠቃቀሞች ሁሉም ወደ አዲሱ ፕሮጀክት ባለቤት ይተላለፋሉ።"
+
+#: kobo/apps/project_ownership/templates/emails/accepted_invite.html:25
+#: kobo/apps/project_ownership/templates/emails/accepted_invite.txt:19
+msgid ""
+"Note: You will continue to have permissions to manage these projects until "
+"the user permissions are changed."
+msgstr "ማስታወሻ፦ የተጠቃሚ ፍቃዶች እስኪቀየሩ ድረስ ፕሮጀክቶቹን ለማስተዳደር የተሰጡ ፍቃዶችዎ እንዳለ ይቀጥላሉ።"
+
+#: kobo/apps/project_ownership/templates/emails/accepted_invite.txt:6
+#, python-format
+msgid ""
+"%(recipient)s has accepted your request to transfer ownership of the project"
+" %(asset_name)s (%(base_url)s/#/forms/%(asset_uid)s/landing) to you."
+msgstr "%(recipient)s የፕሮጀክቱን ባለቤትነት ወደ እርስዎ ለማስተላለፍ ያቀረቡትን ጥያቄ %(asset_name)s (%(base_url)s/#/forms/%(asset_uid)s/landing) ተቀብሏል።"
+
+#: kobo/apps/project_ownership/templates/emails/accepted_invite.txt:8
+msgid ""
+"All submissions, data storage, and transcription and translation usage for "
+"the project will be transferred to the new project owner."
+msgstr "ለዚህ ፕሮጀክት የተረከቡ/የተሰጡ እንደ ሰነድ፣ ፕሮፖዛል፣ ጽሑፍ፣ ወዘተ የመሳሰሉ.፣ የ ውሂብ ማከማቻዎች፣ የጽሁፍ ግልባጮች እንዲሁም የትርጕም አጠቃቀሞች ሁሉም ወደ አዲሱ ፕሮጀክት ባለቤት ይተላለፋሉ።"
+
+#: kobo/apps/project_ownership/templates/emails/declined_invite.html:8
+#, python-format
+msgid ""
+"%(recipient)s has declined your request to transfer ownership of the project"
+" <a href=\"%(base_url)s/#/forms/%(asset_uid)s/landing\">%(asset_name)s</a>."
+msgstr "%(recipient)s የፕሮጀክቱን ባለቤትነት ወደ እርስዎ ለማስተላለፍ ያቀረቡትን ጥያቄ ተቀብሏል <a href=\"%(base_url)s/#/forms/%(asset_uid)s/landing\">%(asset_name)s</a> ።"
+
+#: kobo/apps/project_ownership/templates/emails/declined_invite.html:10
+#: kobo/apps/project_ownership/templates/emails/declined_invite.txt:9
+msgid ""
+"You will remain the owner of the project. The submissions, data storage, and"
+" transcription and translation usage for the project have not been "
+"transferred."
+msgstr "እርስዎ የፕሮጀክቱ ባለቤት ሆነው ይቆያሉ። ለዚህ ፕሮጀክቶች የተረከቡ/የተሰጡ እንደ ሰነድ፣ ፕሮፖዛል፣ ጽሑፍ፣ ወዘተ የመሳሰሉ.፣ የ ውሂብ ማከማቻዎች፣ የጽሁፍ ግልባጮች እንዲሁም የትርጕም አጠቃቀሞች ለሌላ አልተላለፉም።"
+
+#: kobo/apps/project_ownership/templates/emails/declined_invite.html:12
+#: kobo/apps/project_ownership/templates/emails/declined_invite.txt:11
+#, python-format
+msgid ""
+"%(recipient)s has declined your request to transfer ownership of these "
+"projects:"
+msgstr "%(recipient)s የፕሮጀክቱን ባለቤትነት ወደ እርስዎ ለማስተላለፍ ያቀረቡትን ጥያቄ አልተቀበለም፦"
+
+#: kobo/apps/project_ownership/templates/emails/declined_invite.html:20
+#: kobo/apps/project_ownership/templates/emails/declined_invite.txt:16
+msgid ""
+"You will remain the owner of these projects. The submissions, data storage, "
+"and transcription and translation usage for these projects have not been "
+"transferred."
+msgstr "እርስዎ የፕሮጀክቶቹ ባለቤት ሆነው ይቆያሉ።ለዚህ ፕሮጀክቶች የተረከቡ/የተሰጡ እንደ ሰነድ፣ ፕሮፖዛል፣ ጽሑፍ፣ ወዘተ የመሳሰሉ.፣ የ ውሂብ ማከማቻዎች፣ የጽሁፍ ግልባጮች እንዲሁም የትርጕም አጠቃቀሞች ለሌላ አልተላለፉም።"
+
+#: kobo/apps/project_ownership/templates/emails/declined_invite.txt:7
+#, python-format
+msgid ""
+"%(recipient)s has declined your request to transfer ownership of the project"
+" %(asset_name)s (%(base_url)s/#/forms/%(asset_uid)s/landing)."
+msgstr "%(recipient)s የፕሮጀክቱን ባለቤትነት ወደ እርስዎ ለማስተላለፍ ያቀረቡትን ጥያቄ ውድቅ አድርጓል %(asset_name)s (%(base_url)s/#/forms/%(asset_uid)s/landing)።"
+
+#: kobo/apps/project_ownership/templates/emails/expired_invite.html:6
+#, python-format
+msgid "The request you have sent to <b>%(recipient)s</b> has expired."
+msgstr "ያቀረቡት ጥያቄ ጊዜው <b>%(recipient)s</b> አልፏል።"
+
+#: kobo/apps/project_ownership/templates/emails/expired_invite.txt:7
+#, python-format
+msgid "The request you have sent to %(recipient)s has expired."
+msgstr "ያቀረቡት ጥያቄ ጊዜው %(recipient)s አልፏል።"
+
+#: kobo/apps/project_ownership/templates/emails/new_invite.html:8
+#, python-format
+msgid ""
+"%(sender_username)s (%(sender_email)s) has requested to transfer ownership "
+"of the project <a "
+"href=\"%(base_url)s/#/forms/%(asset_uid)s/landing\">%(asset_name)s</a> to "
+"you."
+msgstr "%(sender_username)s (%(sender_email)s) የፕሮጀክቱን ባለቤትነት ወደ እርስዎ ለማስተላለፍ ጥያቄ <a href=\"%(base_url)s/#/forms/%(asset_uid)s/landing\">%(asset_name)s</a> አቅርቧል።"
+
+#: kobo/apps/project_ownership/templates/emails/new_invite.html:10
+#: kobo/apps/project_ownership/templates/emails/new_invite.html:20
+#: kobo/apps/project_ownership/templates/emails/new_invite.txt:16
+msgid ""
+"When you accept the ownership transfer, all of the submissions, data "
+"storage, and transcription and translation usage for these projects will be "
+"transferred to you and count against your plan limits."
+msgstr "ባለቤትነትን የማሰተለለፉ ጥያቄን በሚቀበሉበት ጊዜ፣ ለእነዚህ ፕሮጀክቶች የተረከቡ/የተሰጡ እንደ ሰነድ፣ ፕሮፖዛል፣ ጽሑፍ፣ ወዘተ የመሳሰሉ.፣ የ ውሂብ ማከማቻዎች፣ የጽሁፍ ግልባጮች እንዲሁም የትርጕም አጠቃቀሞች ሁሉም ወደ እርስዎ ይተላለፋሉ፤ እንዲሁም የፕላን እጥረትዎ ላይ በተቃራኒ ይቈጠራሉ።"
+
+#: kobo/apps/project_ownership/templates/emails/new_invite.html:12
+#: kobo/apps/project_ownership/templates/emails/new_invite.txt:11
+#, python-format
+msgid ""
+"%(sender_username)s (%(sender_email)s) has requested to transfer ownership "
+"of the following projects to you:"
+msgstr "%(sender_username)s (%(sender_email)s) የፕሮጀክት ባለቤት የሚከተሉትን ፕሮጀክቶች ወደ እርስዎ ለማስተላለፍ ጥያቄ አቅርቧል፦"
+
+#: kobo/apps/project_ownership/templates/emails/new_invite.html:23
+#: kobo/apps/project_ownership/templates/emails/new_invite.txt:19
+msgid "If you are unsure, please contact the current owner."
+msgstr "እርግጠኛ ካልሆኑ እባክዎ የአሁኑን ባለቤት ያነጋግሩ።"
+
+#: kobo/apps/project_ownership/templates/emails/new_invite.html:25
+#: kobo/apps/project_ownership/templates/emails/new_invite.txt:21
+#, python-format
+msgid "This transfer request will expire in %(invite_expiry)s days."
+msgstr "ይህ ባለቤትን የማሰተለለፍ ጥያቄ %(invite_expiry)s ቀን ውስጥ ይቃጠላል።"
+
+#: kobo/apps/project_ownership/templates/emails/new_invite.html:27
+#: kobo/apps/project_ownership/templates/emails/new_invite.txt:23
+#, python-format
+msgid ""
+"To respond to this transfer request, please use the following link: "
+"%(base_url)s/#/projects/home?invite=%(invite_uid)s"
+msgstr "ለዚህ የዝውውር ጥያቄ ምላሽ ለመስጠት እባክዎ የሚከተለውን አገናኝ ይጠቀሙ፦%(base_url)s/#/projects/home?invite=%(invite_uid)s"
+
+#: kobo/apps/project_ownership/templates/emails/new_invite.txt:7
+#, python-format
+msgid ""
+"%(sender_username)s (%(sender_email)s) has requested to transfer ownership "
+"of the project %(asset_name)s (%(base_url)s/#/forms/%(asset_uid)s/landing) "
+"to you."
+msgstr "%(sender_username)s (%(sender_email)s) የፕሮጀክቱን ባለቤትነት ወደ እርስዎ ለማስተላለፍ ጥያቄ አቅርቧል %(asset_name)s (%(base_url)s/#/forms/%(asset_uid)s/landing)።"
+
+#: kobo/apps/project_ownership/templates/emails/new_invite.txt:9
+msgid ""
+"When you accept the ownership transfer, all of the submissions, data "
+"storage, and transcription and translation usage for the project will be "
+"transferred to you and count against your plan limits."
+msgstr "የባለቤትነት ሽግግሩን በሚቀበሉበት ጊዜ፣ ለእነዚህ ፕሮጀክት የተረከቡ/የተሰጡ እንደ ሰነድ፣ ፕሮፖዛል፣ ጽሑፍ፣ ወዘተ የመሳሰሉ.፣ የ ውሂብ ማከማቻዎች፣ የጽሁፍ ግልባጮች እንዲሁም የትርጕም አጠቃቀሞች ሁሉም ወደ እርስዎ ይተላለፋሉ፤ እንዲሁም የፕላን እጥረትዎ ይሽፍናሉ።"
+
+#: kobo/apps/reports/report_data.py:141
+msgid "`{}` not found."
+msgstr "`{}` አልተገኘም።"
+
+#: kobo/apps/reports/report_data.py:146
+msgid "`{}` is not a select one question."
+msgstr "`{}` አንድ የተመረጠ ጥያቄ አይደለም።"
+
+#: kobo/apps/stripe/admin.py:36
+#, python-format
+msgid "%d plan add-on was created."
+msgid_plural "%d plan add-ons were created."
+msgstr[0] "%d የፕላን ማሟያ ተፈጥሯል።"
+msgstr[1] "%d የዕቅድ ተጨማሪዎች ተፈጥረዋል።"
+
+#: kobo/settings/base.py:273
+msgid ""
+"If you cannot access your authenticator app, please enter one of your backup"
+" codes instead. If you cannot access those either, then you will need to "
+"request assistance by contacting [##support email##](mailto:##support "
+"email##)."
+msgstr "የማረጋገጫ መተግበሪያዎን መድረስ ካልቻሉ፣እባክዎ በምትኩ ከመጠባበቂያ ኮዶችዎ አንዱን ያስገቡ። እነዚያን ማግኘት ካልቻሉ [##support email##](mailto:##support email##) በማግኘት እርዳታ መጠየቅ ያስፈልግዎታል።"
+
+#: kobo/settings/base.py:509
+msgid ""
+"The password must be at least 10 characters long and contain 3 or more of "
+"the following: uppercase letters, lowercase letters, numbers, and special "
+"characters. It cannot be similar to your name, username, or email address."
+msgstr "የይለፍ ቃሉ ቢያንስ 10 ቁምፊዎች መሆን አለበት እና የሚከተሉትን 3 ወይም ከዚያ በላይ የያዘ መሆን አለበት፦ አቢይ ሆሄያት፣ ንዑስ ሆሄያት፣ ቁጥሮች፣ እና ልዩ ቁምፊዎች። ከእርስዎ ስም፣ የተጠቃሚ ስም፣ ወይም የኢሜይል አድራሻ ጋር ተመሳሳይ መሆን አይችልም።"
+
+#: kobo/static_lists.py:13
+msgid "Public Administration"
+msgstr "የህዝብ አስተዳደር"
+
+#: kobo/static_lists.py:14
+msgid "Arts, Entertainment, and Recreation"
+msgstr "ጥበባት፣ መዝናኛ እና መዝናኛ"
+
+#: kobo/static_lists.py:15
+msgid "Educational Services / Higher Education"
+msgstr "የትምህርት አገልግሎቶች / ከፍተኛ ትምህርት"
+
+#: kobo/static_lists.py:16
+msgid "Health Services / Public Health"
+msgstr "የጤና አገልግሎቶች / የህዝብ ጤና"
+
+#: kobo/static_lists.py:17
+msgid "Finance and Insurance"
+msgstr "ፋይናንስ እና ኢንሹራንስ"
+
+#: kobo/static_lists.py:18
+msgid "Information / Media"
+msgstr "መረጃ / ሚዲያ"
+
+#: kobo/static_lists.py:19
+msgid "Economic/Social Development"
+msgstr "ኢኮኖሚያዊ / ማህበራዊ ልማት"
+
+#: kobo/static_lists.py:20
+msgid "Security / Police / Peacekeeping"
+msgstr "ደህንነት / ፖሊስ / ሰላም አስከባሪ"
+
+#: kobo/static_lists.py:21
+msgid "Disarmament & Demobilization"
+msgstr "ትጥቅ ማስፈታት እና ማሰባሰብ"
+
+#: kobo/static_lists.py:22
+msgid "Environment"
+msgstr "አካባቢ"
+
+#: kobo/static_lists.py:23
+msgid "Private sector"
+msgstr "የግል ዘርፍ"
+
+#: kobo/static_lists.py:24
+msgid "Humanitarian - Coordination / Information Management"
+msgstr "ሰብአዊነት - ማስተባበር / የመረጃ አስተዳደር"
+
+#: kobo/static_lists.py:25
+msgid "Humanitarian - Multiple Clusters"
+msgstr "ሰብአዊነት - ብዙ ዘለላዎች"
+
+#: kobo/static_lists.py:26
+msgid "Humanitarian - Camp Management & Coordination"
+msgstr "ሰብአዊነት - የካምፕ አስተዳደር እና ቅንጅት"
+
+#: kobo/static_lists.py:27
+msgid "Humanitarian - Early Recovery"
+msgstr "ሰብአዊነት - ቀደምት ማገገም"
+
+#: kobo/static_lists.py:28
+msgid "Humanitarian - Education"
+msgstr "ሰብአዊነት - ትምህርት"
+
+#: kobo/static_lists.py:29
+msgid "Humanitarian - Emergency Shelter"
+msgstr "ሰብአዊነት - የአደጋ ጊዜ መጠለያ"
+
+#: kobo/static_lists.py:30
+msgid "Humanitarian - Emergency Telecoms"
+msgstr "ሰብአዊነት - የአደጋ ጊዜ ቴሌኮም"
+
+#: kobo/static_lists.py:31
+msgid "Humanitarian - Food Security"
+msgstr "ሰብአዊነት - የምግብ ዋስትና"
+
+#: kobo/static_lists.py:32
+msgid "Humanitarian - Health"
+msgstr "ሰብአዊነት - ጤና"
+
+#: kobo/static_lists.py:33
+msgid "Humanitarian - Logistics"
+msgstr "ሰብአዊነት - ሎጂስቲክስ"
+
+#: kobo/static_lists.py:34
+msgid "Humanitarian - Nutrition"
+msgstr "ሰብአዊነት - የተመጣጠነ ምግብ"
+
+#: kobo/static_lists.py:35
+msgid "Humanitarian - Protection"
+msgstr "ሰብአዊነት - ጥበቃ"
+
+#: kobo/static_lists.py:36
+msgid "Humanitarian - Sanitation, Water & Hygiene"
+msgstr "ሰብአዊነት - የንፅህና አጠባበቅ፣ የውሃ እና ንፅህና"
+
+#: kobo/static_lists.py:350 kobo/static_lists.py:362
+msgid "Sector"
+msgstr "ዘርፍ"
+
+#: kobo/static_lists.py:351 kobo/static_lists.py:366
+msgid "Country"
+msgstr "ሀገር"
+
+#: kobo/static_lists.py:352
+msgid "Operational purpose of data"
+msgstr "የውሂብ ተግባራዊ ዓላማ"
+
+#: kobo/static_lists.py:353
+msgid "Does this project collect personally identifiable information?"
+msgstr "ይህ ፕሮጀክት በግል ሊለይ የሚችል መረጃ ይሰበስባል?"
+
+#: kobo/static_lists.py:354
+msgid "Description"
+msgstr "መግለጫ"
+
+#: kobo/static_lists.py:358 kpi/password_validation.py:109
+msgid "Full name"
+msgstr "ሙሉ ስም"
+
+#: kobo/static_lists.py:359 kpi/password_validation.py:110
+msgid "Organization name"
+msgstr "የድርጅቱ ስም"
+
+#: kobo/static_lists.py:360
+msgid "Organization type"
+msgstr "የድርጅት አይነት"
+
+#: kobo/static_lists.py:361
+msgid "Organization website"
+msgstr "የድርጅቱ ድር ጣቢያ"
+
+#: kobo/static_lists.py:363
+msgid "Gender"
+msgstr "ጾታ"
+
+#: kobo/static_lists.py:364
+msgid "Bio"
+msgstr "ባዮ"
+
+#: kobo/static_lists.py:365
+msgid "City"
+msgstr "ከተማ"
+
+#: kobo/static_lists.py:367
+msgid "Twitter"
+msgstr "Twitter"
+
+#: kobo/static_lists.py:368
+msgid "LinkedIn"
+msgstr "LinkedIn"
+
+#: kobo/static_lists.py:369
+msgid "Instagram"
+msgstr "Instagram"
+
+#: kobo/static_lists.py:370
+msgid "I want to receive occasional updates about KoboToolbox"
+msgstr "ስለ KoboToolbox አንዳንድ ጊዜ ዝመናዎችን መቀበል እፈልጋለሁ"
+
+#: kpi/authentication.py:70
+msgid "Invalid username/password"
+msgstr "የተሳሳተ የተጠቃሚ ስም/የይለፍ ቃል"
+
+#: kpi/deployment_backends/base_backend.py:138
+msgid "No submissions match the given `submission_ids`"
+msgstr "ምንም ግቤቶች ከተሰጠው ጋር አይዛመዱም `submission_ids`"
+
+#: kpi/deployment_backends/base_backend.py:572
+msgid ""
+"This param is not implemented. Use `count` property of the response instead."
+msgstr "ይህ ፓራም አልተተገበረም። በምትኩ የምላሹን ንብረት `count` ይጠቀሙ።"
+
+#: kpi/deployment_backends/base_backend.py:583
+msgid "This param is not supported in `XML` format"
+msgstr "ይህ ፓራም በቅርጸት `XML` አይደገፍም"
+
+#: kpi/deployment_backends/base_backend.py:588
+msgid "This is not supported in `XML` format"
+msgstr "ይህ በቅርጸት `XML` አይደገፍም"
+
+#: kpi/deployment_backends/base_backend.py:608
+#: kpi/deployment_backends/base_backend.py:636
+#: kpi/deployment_backends/base_backend.py:658 kpi/views/v2/data.py:529
+msgid "Value must be valid JSON."
+msgstr "እሴት የሚሰራ JSON መሆን አለበት።"
+
+#: kpi/deployment_backends/base_backend.py:613
+msgid "Value must be a list."
+msgstr "እሴት ዝርዝር መሆን አለበት።"
+
+#: kpi/deployment_backends/base_backend.py:643
+#: kpi/deployment_backends/base_backend.py:650
+msgid "A positive integer is required."
+msgstr "አዎንታዊ ኢንቲጀር ያስፈልጋል።"
+
+#: kpi/deployment_backends/openrosa_backend.py:334
+msgid "Your submission XML is malformed."
+msgstr "ያስገቡት XML የተሳሳተ ነው።"
+
+#: kpi/deployment_backends/openrosa_backend.py:340
+msgid "Your submission XML is missing critical elements."
+msgstr "ያስገቡት XML ወሳኝ አካላት ይጎድለዋል።"
+
+#: kpi/deployment_backends/openrosa_backend.py:354
+msgid ""
+"The submission you attempted to edit could not be found, or you do not have "
+"access to it."
+msgstr "ለማርትዕ የሞከሩት ግቤት ሊገኝ አልቻለም ወይም መዳረሻ የለዎትም።"
+
+#: kpi/deployment_backends/openrosa_backend.py:883
+msgid "Successful submission"
+msgstr "የተሳካ ማስገባት"
+
+#: kpi/exceptions.py:49
+msgid "Invalid payload for bulk updating of submissions"
+msgstr "ለጅምላ ግቤቶችን ለማዘመን ልክ ያልሆነ ክፍያ"
+
+#: kpi/exceptions.py:64
+msgid "Must call `asset.connect_deployment()` first"
+msgstr "መጀመሪያ `asset.connect_deployment()` መደወል አለበት"
+
+#: kpi/exceptions.py:75
+msgid "XML contains forbidden DTDs"
+msgstr "XML የተከለከሉ DTDs ይዟል"
+
+#: kpi/exceptions.py:86
+msgid "XML contains forbidden entities"
+msgstr "XML የተከለከሉ አካላትን ይዟል"
+
+#: kpi/exceptions.py:111
+msgid "Invalid search. Please try again"
+msgstr "ልክ ያልሆነ ፍለጋ እባክዎ ዳግም ይሞክሩ"
+
+#: kpi/exceptions.py:116
+msgid "Deployment links to an unexpected KoboCAT XForm"
+msgstr "የማሰማራት አገናኞች ወደ ያልተጠበቀ KoboCAT XForm"
+
+#: kpi/exceptions.py:152
+msgid "An error occurred trying to duplicate the submission"
+msgstr "ማስረከቡን ለማባዛት በመሞከር ላይ ስህተት ተፈጥሯል።"
+
+#: kpi/exceptions.py:170
+msgid "The specified object has not been deployed"
+msgstr "የተገለጸው ነገር አልተሰማራም"
+
+#: kpi/exceptions.py:179
+msgid "Bad syntax"
+msgstr "መጥፎ አገባብ"
+
+#: kpi/exceptions.py:184
+msgid "Not supported field lookup"
+msgstr "የማይደገፍ የመስክ ፍለጋ"
+
+#: kpi/exceptions.py:195
+msgid "Your query is too short"
+msgstr "ጥያቄዎ በጣም አጭር ነው"
+
+#: kpi/fields/jsonschema_form_field.py:23
+#: kpi/fields/jsonschema_form_field.py:26
+msgid "Enter valid JSON."
+msgstr "የሚሰራ JSON ያስገቡ።"
+
+#: kpi/fields/jsonschema_form_field.py:158
+msgid "`##place_holder##` field cannot be hidden."
+msgstr "`##place_holder##` መስክ ሊደበቅ አይችልም።"
+
+#: kpi/fields/writable_json.py:30
+#, python-brace-format
+msgid "Unable to parse JSON: {error}"
+msgstr "JSON ን መተንተን አልተቻለም፦{error}"
+
+#: kpi/mixins/mfa.py:22
+msgid "Multi-factor authentication is enabled for this account. "
+msgstr "ለዚህ መለያ ባለብዙ ደረጃ ማረጋገጫ ተፈቅዷል። "
+
+#: kpi/models/asset.py:277
+msgid "Can view asset"
+msgstr "ንብረት ማየት ይችላል"
+
+#: kpi/models/asset.py:278
+msgid "Can discover asset in public lists"
+msgstr "በይፋዊ ዝርዝሮች ውስጥ ንብረትን ማግኘት ይችላል"
+
+#: kpi/models/asset.py:279
+msgid "Can manage all aspects of asset"
+msgstr "ሁሉንም የንብረት ገጽታዎች ማስተዳደር ይችላል"
+
+#: kpi/models/asset.py:281
+msgid "Can submit data to asset"
+msgstr "ውሂብ ወደ ንብረት ማስገባት ይችላል"
+
+#: kpi/models/asset.py:282
+msgid "Can view submitted data for asset"
+msgstr "የቀረበውን ውሂብ ለንብረት ማየት ይችላል"
+
+#: kpi/models/asset.py:283
+msgid ""
+"Can make partial actions on submitted data for asset for specific users"
+msgstr "ለተወሰኑ ተጠቃሚዎች ለንብረት በቀረበው ውሂብ ላይ ከፊል እርምጃዎችን ማድረግ ይችላል"
+
+#: kpi/models/asset.py:286
+msgid "Can modify submitted data for asset"
+msgstr "የቀረበውን ውሂብ ለንብረት ማሻሻል ይችላል"
+
+#: kpi/models/asset.py:287
+msgid "Can delete submitted data for asset"
+msgstr "የቀረበውን ውሂብ ለንብረት መሰረዝ ይችላል"
+
+#: kpi/models/asset.py:288
+msgid "Can validate submitted data asset"
+msgstr "የቀረበውን የውሂብ ንብረት ማረጋገጥ ይችላል"
+
+#: kpi/models/asset.py:311
+msgid "project"
+msgstr "ፕሮጀክት"
+
+#: kpi/models/asset.py:311
+msgid "form"
+msgstr "ቅፅ"
+
+#: kpi/models/asset.py:313
+msgid "template"
+msgstr "አብነት"
+
+#: kpi/models/asset.py:314
+msgid "block"
+msgstr "አግድ"
+
+#: kpi/models/asset.py:315
+msgid "question"
+msgstr "ጥያቄ"
+
+#: kpi/models/asset.py:316
+msgid "text"
+msgstr "ፅሑፍ"
+
+#: kpi/models/asset.py:317
+msgid "empty"
+msgstr "ባዶ ነው"
+
+#: kpi/models/asset.py:318
+msgid "collection"
+msgstr "ስብስብ"
+
+#: kpi/models/asset.py:325
+msgid "View ##asset_type_label##"
+msgstr "ይመልከቱ ##asset_type_label##"
+
+#: kpi/models/asset.py:326
+msgid "Edit ##asset_type_label##"
+msgstr "አርትዕ ##asset_type_label##"
+
+#: kpi/models/asset.py:327
+msgid "Discover ##asset_type_label##"
+msgstr "ያግኙ ##asset_type_label##"
+
+#: kpi/models/asset.py:328
+msgid "Manage ##asset_type_label##"
+msgstr "ያስተዳድሩ ##asset_type_label##"
+
+#: kpi/models/asset.py:329
+msgid "Add submissions"
+msgstr "ግቤቶችን ያክሉ"
+
+#: kpi/models/asset.py:330
+msgid "View submissions"
+msgstr "ግቤቶችን ይመልከቱ"
+
+#: kpi/models/asset.py:333
+msgid "Act on submissions only from specific users"
+msgstr "ከተወሰኑ ተጠቃሚዎች በሚቀርቡት ግቤቶች ላይ እርምጃ ይውሰዱ"
+
+#: kpi/models/asset.py:336
+msgid "View submissions only from specific users"
+msgstr "ግቤቶችን ከተወሰኑ ተጠቃሚዎች ብቻ ይመልከቱ"
+
+#: kpi/models/asset.py:339
+msgid "Edit submissions only from specific users"
+msgstr "ግቤቶችን ከተወሰኑ ተጠቃሚዎች ብቻ ያርትዑ"
+
+#: kpi/models/asset.py:342
+msgid "Delete submissions only from specific users"
+msgstr "ግቤቶችን ከተወሰኑ ተጠቃሚዎች ብቻ ይሰርዙ"
+
+#: kpi/models/asset.py:345
+msgid "Validate submissions only from specific users"
+msgstr "ከተወሰኑ ተጠቃሚዎች ብቻ ማስገባቶችን ያረጋግጡ"
+
+#: kpi/models/asset.py:348
+msgid "Edit submissions"
+msgstr "ማቅረቢያዎችን ያርትዑ"
+
+#: kpi/models/asset.py:349
+msgid "Delete submissions"
+msgstr "ማቅረቢያዎችን ይሰርዙ"
+
+#: kpi/models/asset.py:350
+msgid "Validate submissions"
+msgstr "ማስገባቶችን ያረጋግጡ"
+
+#: kpi/models/asset.py:681
+msgid "Only partial permissions for submissions are supported"
+msgstr "የማስገባት ከፊል ፈቃዶች ብቻ ነው የሚደገፉት"
+
+#: kpi/models/asset.py:1390
+msgid "Can not assign '{}' permission to owner"
+msgstr "የ'{}' ፍቃድ ለባለቤት መስጠት አይቻልም"
+
+#: kpi/models/asset.py:1394
+msgid "Can not assign '{}' permission. Partial permissions are missing."
+msgstr "'{}' ፍቃድ መስጠት አይቻልም። ከፊል ፍቃዶች ጠፍተዋል።"
+
+#: kpi/models/authorized_application.py:43
+msgid "Invalid token."
+msgstr "ልክ ያልሆነ መለያ።"
+
+#: kpi/models/import_export_task.py:138
+msgid "Cannot access data"
+msgstr "ወሂብ ላይ መድረስ አልተቻለም"
+
+#: kpi/models/import_export_task.py:588
+msgid "This data does not exist or you do not have access to it"
+msgstr "ይህ ውሂብ የለም ወይም መዳረሻ የለዎትም"
+
+#: kpi/password_validation.py:95
+msgid "You cannot reuse your last password."
+msgstr "የመጨረሻውን የይለፍ ቃልዎን እንደገና መጠቀም አይችሉም።"
+
+#: kpi/password_validation.py:103
+msgid "Your password cannot be the same as your previous one."
+msgstr "የይለፍ ቃልዎ ከቀዳሚው ጋር ተመሳሳይ ሊሆን አይችልም።"
+
+#: kpi/password_validation.py:177
+msgid ""
+"The password must contain at least ##number of rules## different kinds of "
+"characters."
+msgstr "የይለፍ ቃሉ ##number of rules## ቢያንስ የተለያዩ አይነት ቁምፊዎችን መያዝ አለበት።"
+
+#: kpi/serializers/current_user.py:179
+msgid "Incorrect current password."
+msgstr "የተሳሳተ የአሁኑ የይለፍ ቃል።"
+
+#: kpi/serializers/current_user.py:199
+msgid "`current_password` and `new_password` must both be"
+msgstr "`current_password` እና `new_password` ሁለቱም መሆን አለባቸው"
+
+#: kpi/serializers/current_user.py:239
+#: kpi/serializers/v2/asset_permission_assignment.py:291
+msgid "This field may not be blank."
+msgstr "ይህ መስክ ባዶ ላይሆን ይችላል።"
+
+#: kpi/serializers/v2/asset.py:133
+#, python-format
+msgid "%(count)d project has been undeleted"
+msgstr "%(count)d ፕሮጀክቱ አልተሰረዘም"
+
+#: kpi/serializers/v2/asset.py:139
+#, python-format
+msgid "%(count)d project has been deleted"
+msgstr "%(count)d ፕሮጀክቱ ተሰርዙዋል"
+
+#: kpi/serializers/v2/asset.py:146
+#, python-format
+msgid "%(count)d project has been unarchived"
+msgstr "%(count)d ፕሮጀክት ከማህደር ወጥቷል"
+
+#: kpi/serializers/v2/asset.py:152
+#, python-format
+msgid "%(count)d project has been archived"
+msgstr "%(count)d ፕሮጀክት በማህደር ተቀምጧል"
+
+#: kpi/serializers/v2/asset.py:168
+msgid "One or many projects have been deleted already!"
+msgstr "አንድ ወይም ብዙ ፕሮጀክቶች ቀድሞውኑ ተሰርዘዋል!"
+
+#: kpi/serializers/v2/asset.py:176
+msgid "One or many projects are already being deleted!"
+msgstr "አንድ ወይም ብዙ ፕሮጀክቶች ቀድሞውኑ እየተሰረዙ ነው!"
+
+#: kpi/serializers/v2/asset.py:253
+msgid "`action` parameter is required"
+msgstr "`action` መለኪያ ያስፈልጋል"
+
+#: kpi/serializers/v2/asset.py:258
+msgid "Supported values for `action` are: "
+msgstr "የሚደገፉ እሴቶች ለ`action` ናቸው፦ "
+
+#: kpi/serializers/v2/asset.py:280
+msgid "Draft projects cannot be archived"
+msgstr "ረቂቅ ፕሮጀክቶች በማህደር ሊቀመጡ አይችሉም"
+
+#: kpi/serializers/v2/asset.py:286 kpi/serializers/v2/data.py:61
+msgid "Confirmation is required"
+msgstr "ማረጋገጫ ያስፈልጋል"
+
+#: kpi/serializers/v2/asset.py:843
+msgid "The property is required"
+msgstr "ንብረቱ ያስፈልጋል"
+
+#: kpi/serializers/v2/asset.py:847
+msgid "The property must be an array"
+msgstr "ንብረቱ ድርድር መሆን አለበት"
+
+#: kpi/serializers/v2/asset.py:869
+#, python-brace-format
+msgid "Some fields are invalid, choices are: `{valid_fields}`"
+msgstr "አንዳንድ መስኮች ልክ ያልሆኑ ናቸው፣ ምርጫዎቹ የሚከተሉት ናቸው፦`{valid_fields}`"
+
+#: kpi/serializers/v2/asset.py:891
+msgid "User cannot update current parent collection"
+msgstr "ተጠቃሚ የአሁኑን የወላጅ ስብስብ ማዘመን አይችልም"
+
+#: kpi/serializers/v2/asset.py:901
+#: kpi/tests/api/v2/test_api_collections.py:470
+msgid "Target collection not found"
+msgstr "የዒላማ ስብስብ አልተገኘም"
+
+#: kpi/serializers/v2/asset.py:905
+#: kpi/tests/api/v2/test_api_collections.py:460
+msgid "User cannot update target parent collection"
+msgstr "ተጠቃሚ የታለመውን የወላጅ ስብስብ ማዘመን አይችልም"
+
+#: kpi/serializers/v2/asset_export_settings.py:64
+msgid "`export_settings` must contain all the following required keys: {}"
+msgstr "`export_settings` ሁሉንም የሚከተሉትን አስፈላጊ ቁልፎች መያዝ አለበት፦ {}"
+
+#: kpi/serializers/v2/asset_export_settings.py:75
+msgid "`export_settings` can contain only the following valid keys: {}"
+msgstr "`export_settings` የሚከተሉትን ትክክለኛ ቁልፎች ብቻ ሊይዝ ይችላል፦ {}"
+
+#: kpi/serializers/v2/asset_export_settings.py:87
+msgid "`multiple_select` must be either {}"
+msgstr "`multiple_select` መሆን አለበት ወይ {}"
+
+#: kpi/serializers/v2/asset_export_settings.py:94
+msgid "`type` must be either {}"
+msgstr "`type` መሆን አለበት ወይ {}"
+
+#: kpi/serializers/v2/asset_export_settings.py:104
+msgid "`group_sep` must be a non-empty value"
+msgstr "`group_sep` ባዶ ያልሆነ ዋጋ መሆን አለበት"
+
+#: kpi/serializers/v2/asset_export_settings.py:109
+msgid "`lang` for this asset must be either {}"
+msgstr "`lang` ለዚህ ንብረት አንድም መሆን አለበት {}"
+
+#: kpi/serializers/v2/asset_export_settings.py:119
+#: kpi/serializers/v2/export_task.py:229
+msgid "Must be a JSON object"
+msgstr "የJSON ነገር መሆን አለበት"
+
+#: kpi/serializers/v2/asset_export_settings.py:134
+#: kpi/serializers/v2/export_task.py:247
+msgid "All values in the array must be integers"
+msgstr "በድርድር ውስጥ ያሉ ሁሉም እሴቶች ኢንቲጀር መሆን አለባቸው"
+
+#: kpi/serializers/v2/asset_export_settings.py:145
+msgid "`fields` must be an array"
+msgstr "`fields` ድርድር መሆን አለበት"
+
+#: kpi/serializers/v2/asset_export_settings.py:149
+msgid "All values in the `fields` array must be strings"
+msgstr "በድርድር ውስጥ ያሉ ሁሉም እሴቶች `fields` ሕብረቁምፊዎች መሆን አለባቸው"
+
+#: kpi/serializers/v2/asset_file.py:117
+msgid "JSON is invalid"
+msgstr "JSON ልክ ያልሆነ ነው"
+
+#: kpi/serializers/v2/asset_file.py:130
+msgid "Invalid content"
+msgstr "ልክ ያልሆነ ይዘት"
+
+#: kpi/serializers/v2/asset_file.py:143
+msgid "No files have been submitted"
+msgstr "ምንም ፋይሎች አልገቡም"
+
+#: kpi/serializers/v2/asset_file.py:158
+msgid "File already exists"
+msgstr "ፋይል አስቀድሞ አለ"
+
+#: kpi/serializers/v2/asset_file.py:208
+msgid ""
+"You cannot upload media file with two different ways at the same time. "
+"Please choose between binary upload, base64 or remote URL."
+msgstr "የሚዲያ ፋይልን በሁለት የተለያዩ መንገዶች በተመሳሳይ ጊዜ መስቀል አይችሉም። እባክዎ በሁለትዮሽ ሰቀላ፣ ቤዝ64 ወይም የርቀት URL መካከል ይምረጡ።"
+
+#: kpi/serializers/v2/asset_file.py:221
+msgid "This field is required"
+msgstr "ይህ መስክ ያስፈልጋል"
+
+#: kpi/serializers/v2/asset_file.py:229
+msgid "`redirect_url` is required"
+msgstr "`redirect_url` ያስፈልጋል"
+
+#: kpi/serializers/v2/asset_file.py:239
+msgid "`filename` is required"
+msgstr "`filename` ያስፈልጋል"
+
+#: kpi/serializers/v2/asset_file.py:253
+msgid "`redirect_url` is invalid"
+msgstr "`redirect_url` ልክ ያልሆነ ነው"
+
+#: kpi/serializers/v2/asset_file.py:287
+msgid "Only `{}` MIME types are allowed"
+msgstr "የ `{}` MIME ዓይነቶች ብቻ ይፈቀዳሉ"
+
+#: kpi/serializers/v2/asset_permission_assignment.py:164
+msgid "This field is required for the '{}' permission"
+msgstr "ይህ መስክ ለ '{}' ፈቃድ ያስፈልጋል"
+
+#: kpi/serializers/v2/asset_permission_assignment.py:178
+#: kpi/serializers/v2/asset_permission_assignment.py:183
+#: kpi/serializers/v2/asset_permission_assignment.py:189
+#: kpi/serializers/v2/asset_permission_assignment.py:498
+msgid "Invalid `url`"
+msgstr "ልክ ያልሆነ `url`"
+
+#: kpi/serializers/v2/asset_permission_assignment.py:194
+msgid "Invalid `filters`"
+msgstr "ልክ ያልሆነ `filters`"
+
+#: kpi/serializers/v2/asset_permission_assignment.py:211
+#, python-brace-format
+msgid ""
+"{permission} cannot be assigned explicitly to Asset objects of this type."
+msgstr "{permission} ለእንደዚህ አይነት ንብረቶች በግልፅ መመደብ አይቻልም።"
+
+#: kpi/serializers/v2/asset_permission_assignment.py:290
+msgid "Not a valid list."
+msgstr "የሚሰራ ዝርዝር አይደለም።"
+
+#: kpi/serializers/v2/asset_permission_assignment.py:491
+#: kpi/serializers/v2/asset_permission_assignment.py:494
+msgid "Invalid hyperlink - Object does not exist."
+msgstr "ልክ ያልሆነ ሃይፐርሊንክ - ዕቃው የለም"
+
+#: kpi/serializers/v2/data.py:70
+msgid "`submission_ids` must only contain integer values"
+msgstr "`submission_ids` የኢንቲጀር እሴቶችን ብቻ መያዝ አለበት"
+
+#: kpi/serializers/v2/data.py:75
+msgid "`submission_ids` must contain at least one value"
+msgstr "`submission_ids` ቢያንስ አንድ እሴት መያዝ አለበት"
+
+#: kpi/serializers/v2/data.py:83
+msgid "`data` is required"
+msgstr "`data` ያስፈልጋል"
+
+#: kpi/serializers/v2/data.py:91
+msgid "`validation_status.uid` is required"
+msgstr "`validation_status.uid` ያስፈልጋል"
+
+#: kpi/serializers/v2/export_task.py:123
+msgid "Must contain all the following required keys: {}"
+msgstr "ሁሉንም የሚከተሉትን አስፈላጊ ቁልፎች መያዝ አለበት፦{}"
+
+#: kpi/serializers/v2/export_task.py:137
+msgid "Can contain only the following valid keys: {}"
+msgstr "የሚከተሉትን ትክክለኛ ቁልፎች ብቻ ሊይዝ ይችላል፦{}"
+
+#: kpi/serializers/v2/export_task.py:152 kpi/serializers/v2/export_task.py:237
+msgid "Must be an array"
+msgstr "ድርድር መሆን አለበት"
+
+#: kpi/serializers/v2/export_task.py:159
+msgid "All values in the array must be strings"
+msgstr "በድርድር ውስጥ ያሉ ሁሉም እሴቶች ሕብረቁምፊዎች መሆን አለባቸው"
+
+#: kpi/serializers/v2/export_task.py:169
+msgid "Must be a non-empty value"
+msgstr "ባዶ ያልሆነ እሴት መሆን አለበት"
+
+#: kpi/serializers/v2/export_task.py:182
+msgid "For this asset must be either {}"
+msgstr "ለዚህ ንብረት አንድም መሆን አለበት {}"
+
+#: kpi/serializers/v2/export_task.py:194 kpi/serializers/v2/export_task.py:258
+msgid "Must be either {}"
+msgstr "መሆን አለበት ወይ {}"
+
+#: kpi/serializers/v2/export_task.py:204
+msgid "The asset must be deployed."
+msgstr "ንብረቱ መሰማራት አለበት።"
+
+#: kpi/serializers/v2/export_task.py:221
+msgid "The export name must be a string."
+msgstr "ወደ ውጭ የሚላከው ስም ሕብረቁምፊ መሆን አለበት።"
+
+#: kpi/serializers/v2/paired_data.py:87
+msgid "Source cannot be changed"
+msgstr "ምንጭ መቀየር አይቻልም"
+
+#: kpi/serializers/v2/paired_data.py:93
+#, python-brace-format
+msgid "Data sharing for `{source_uid}` is not enabled"
+msgstr "የውሂብ መጋራት `{source_uid}` አልተቻለም"
+
+#: kpi/serializers/v2/paired_data.py:105
+#, python-brace-format
+msgid "Pairing data with `{source_uid}` is not allowed"
+msgstr "ውሂቦችን ማጣመር `{source_uid}` አይፈቀድም"
+
+#: kpi/serializers/v2/paired_data.py:110
+#, python-brace-format
+msgid "Source `{source}` is already paired"
+msgstr "ምንጭ `{source}` አስቀድሞ ተጣምሯል"
+
+#: kpi/serializers/v2/paired_data.py:152
+#, python-brace-format
+msgid "Some fields are invalid, choices are: `{source_fields}`"
+msgstr "አንዳንድ መስኮች ልክ ያልሆኑ ናቸው፣ ምርጫዎቹ የሚከተሉት ናቸው፦`{source_fields}`"
+
+#: kpi/serializers/v2/paired_data.py:177
+msgid "Only letters, numbers and `-` are allowed"
+msgstr "ፊደሎች፣ ቁጥሮች እና `-` የተፈቀዱ ናቸው"
+
+#: kpi/serializers/v2/paired_data.py:184
+msgid "Extension must be `xml`"
+msgstr "ማራዘሚያ መሆን አለበት `xml`"
+
+#: kpi/serializers/v2/paired_data.py:217
+#, python-brace-format
+msgid "`{basename}` is already used"
+msgstr "`{basename}` አስቀድሞ ጥቅም ላይ ውሏል"
+
+#: kpi/serializers/v2/user_asset_subscription.py:47
+#, python-brace-format
+msgid "Invalid asset type. Only `{asset_type}` is allowed"
+msgstr "ልክ ያልሆነ የንብረት አይነት። `{asset_type}` ብቻ ነው የሚፈቀደው"
+
+#: kpi/templates/custom_404.html:7
+msgid "Page not found (404)"
+msgstr "ገጽ አልተገኘም( 404)"
+
+#: kpi/templates/custom_404.html:10
+msgid ""
+"This page does not exist on the server. Please check the URL or link that "
+"sent you here."
+msgstr "ይህ ገጽ በአገልጋዩ ላይ አይገኝም። እባክዎን ወደዚህ የላኩዎትን ዩአርኤል ወይም አገናኝ ያረጋግጡ።"
+
+#: kpi/templates/custom_500.html:7
+msgid "Server error (500)"
+msgstr "የአገልጋይ ስሕተት( 500)"
+
+#: kpi/templates/custom_500.html:10
+msgid "Something went wrong when trying to process your request."
+msgstr "ጥያቄያችሁን ለማስኬድ ስንሞክር አንድ ችግር ተፈጠረ።"
+
+#: kpi/templates/modern_browsers.html:3 kpi/templates/modern_browsers.html:5
+msgid "Modern Browsers"
+msgstr "ዘመናዊ አሳሾች"
+
+#: kpi/templates/modern_browsers.html:8
+msgid ""
+"Ouch! Sorry, you were probably sent here because your browser is outdated or"
+" perhaps it has its key features disabled by using \"private browsing\" "
+"mode."
+msgstr "ኦህ! ይቅርታ፣ ወደዚህ የተላኩት አሳሽዎ ጊዜ ያለፈበት ስለሆነ ወይም ምናልባት \"የግል አሰሳ\" ሁነታን በመጠቀም ቁልፍ ባህሪያቱ ስለተሰናከለ ሊሆን ይችላል።"
+
+#: kpi/templates/modern_browsers.html:12
+msgid ""
+"If you are using an outdated browser, we recommend upgrading to a recent "
+"version of one of the following excellent modern browsers:"
+msgstr "ጊዜው ያለፈበት አሳሽ እየተጠቀሙ ከሆነ ከሚከተሉት ምርጥ ዘመናዊ አሳሾች ወደ አንዱ የቅርብ ጊዜ ስሪት እንዲያሻሽሉ እንመክራለን፦"
+
+#: kpi/templates/modern_browsers.html:17
+msgid "Firefox download page"
+msgstr "Firefox የማውረድ ገጽ"
+
+#: kpi/templates/modern_browsers.html:18
+msgid "Firefox"
+msgstr "Firefox"
+
+#: kpi/templates/modern_browsers.html:22
+msgid "Chrome download page"
+msgstr "Chrome የማውረድ ገጽ"
+
+#: kpi/templates/modern_browsers.html:23
+msgid "Chrome"
+msgstr "Chrome"
+
+#: kpi/templates/modern_browsers.html:27
+msgid "Edge download page"
+msgstr "Edge የማውረድ ገጽ"
+
+#: kpi/templates/modern_browsers.html:28
+msgid "Edge"
+msgstr "Edge"
+
+#: kpi/templates/modern_browsers.html:32
+msgid "Opera download page"
+msgstr "Opera የማውረድ ገጽ"
+
+#: kpi/templates/modern_browsers.html:33
+msgid "Opera"
+msgstr "Opera"
+
+#: kpi/tests/test_registration.py:71
+msgid "This email domain is not allowed to create an account"
+msgstr "ይህ የኢሜይል ጎራ መለያ እንዲፈጥር አልተፈቀደለትም"
+
+#: kpi/utils/two_database_configuration_checker.py:41
+msgid "Exactly two databases must be configured"
+msgstr "በትክክል ሁለት የ ውሂብ ቋቶች ማዋቀር አለባቸው"
+
+#: kpi/utils/two_database_configuration_checker.py:42
+msgid ""
+"KPI and KoBoCAT must each have their own databases. Configure the KPI "
+"database as 'default' and the KoBoCAT database as 'kobocat'."
+msgstr "KPI እና KoBoCAT እያንዳንዳቸው የራሳቸው የ ውሂብ ቋቶች ሊኖራቸው ይገባል። የKPI ዳታቤዝ እንደ 'ነባሪ' እና የKoBoCAT ዳታቤዝ እንደ 'kobocat' ያዋቅሩት።"
+
+#: kpi/utils/two_database_configuration_checker.py:63
+msgid "KPI may not share a database with KoBoCAT"
+msgstr "KPI የ ውሂብ ቋቶች ከKoBoCAT ጋር ላያጋራ ይችላል"
+
+#: kpi/utils/two_database_configuration_checker.py:64
+msgid "KPI and KoBoCAT must each have their own databases."
+msgstr "KPI እና KoBoCAT እያንዳንዳቸው የራሳቸው የ ውሂብ ቋቶች ሊኖራቸው ይገባል።"
+
+#: kpi/utils/two_database_configuration_checker.py:133
+msgid "Incomplete migration from shared-database installation"
+msgstr "ከጋራ የ ውሂብ ቋቶች ጭነት ያልተሟላ ሽግግር"
+
+#: kpi/utils/two_database_configuration_checker.py:134
+msgid ""
+"The KoBoCAT database was originally shared by KPI, but the KPI tables were "
+"not copied from that shared database to the new, KPI-only database."
+msgstr "የKoBoCAT የ ውሂብ ቋቶች በመጀመሪያ የተጋራው በKPI ነበር፣ ነገር ግን የKPI ሰንጠረዦች ከተጋራው የ ውሂብ ቋቶች ወደ አዲሱ KPI-ብቻ የውሂብ ጎታ አልተገለበጡም።"
+
+#: kpi/views/current_user.py:113
+msgid "Invalid confirmation"
+msgstr "ልክ ያልሆነ ማረጋገጫ"
+
+#: kpi/views/v2/asset_export_settings.py:228
+msgid "Only the following formats are available: ##format list##"
+msgstr "የሚከተሉት ቅርጸቶች ብቻ ይገኛሉ፦ ##format list##"
+
+#: kpi/views/v2/asset_permission_assignment.py:211
+msgid "Source and destination objects don't seem to have the same type"
+msgstr "መነሻ እና መድረሻ ነገሮች ተመሳሳይ አይነት ያላቸው አይመስሉም"
+
+#: kpi/views/v2/asset_permission_assignment.py:240
+msgid "Owner's permissions cannot be deleted"
+msgstr "የባለቤት ፈቃዶች ሊሰረዙ አይችሉም"
+
+#: kpi/views/v2/attachment.py:93
+msgid "`xpath` query parameter is required"
+msgstr "`xpath` የጥያቄ መለኪያ ያስፈልጋል"
+
+#: kpi/views/v2/attachment.py:115
+msgid "Invalid XPath syntax"
+msgstr "ልክ ያልሆነ XPath አገባብ"
+
+#: kpi/views/v2/attachment.py:119
+msgid "The path could not be found in the submission"
+msgstr "መንገዱ በግቤት ውስጥ ሊገኝ አልቻለም"
+
+#: kpi/views/v2/attachment.py:129
+msgid "The error occurred during conversion"
+msgstr "ስህተቱ የተከሰተው በለውጥ ጊዜ ነው"
+
+#: kpi/views/v2/attachment.py:133
+msgid "Conversion is not supported for {}"
+msgstr "ልወጣ ለ{} አይደገፍም"
+
+#: kpi/views/v2/data.py:692
+msgid "A positive integer is required"
+msgstr "አዎንታዊ ኢንቲጀር ያስፈልጋል"
+
+#: kpi/views/v2/data.py:703
+msgid "The specified asset has not been deployed"
+msgstr "የተገለጸው ንብረት አልተሰማራም"

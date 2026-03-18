@@ -1,0 +1,6174 @@
+# 
+# Translators:
+# Satrio Waskitho <satriowaskitho@gmail.com>, 2022
+msgid ""
+msgstr ""
+"Project-Id-Version: KoboToolbox\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-11-20 14:06-0400\n"
+"PO-Revision-Date: 2016-03-14 19:56+0000\n"
+"Last-Translator: Satrio Waskitho <satriowaskitho@gmail.com>, 2022\n"
+"Language-Team: Indonesian (http://app.transifex.com/kobotoolbox/kobotoolbox/language/id/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: id\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Translate Toolkit 3.12.2\n"
+
+#: .Add+choice+to+question
+msgid "Add choice to question"
+msgstr "Tambahkan pilihan ke pertanyaan"
+
+#: .Remove+choice+from+question
+msgid "Remove choice from question"
+msgstr "Hapus pilihan dari pertanyaan"
+
+#: .Edit+choice+labels
+msgid "Edit choice labels"
+msgstr "Edit label pilihan"
+
+#: .Change+choice+order
+msgid "Change choice order"
+msgstr "Ubah urutan pilihan"
+
+#: .Edit+choice+values
+msgid "Edit choice values"
+msgstr "Edit nilai pilihan"
+
+#: .Delete+question
+msgid "Delete question"
+msgstr "Hapus pertanyaan"
+
+#: .Edit+question+labels
+msgid "Edit question labels"
+msgstr "Edit label pertanyaan"
+
+#: .Edit+question+settings
+msgid "Edit question settings"
+msgstr "Edit pengaturan pertanyaan"
+
+#: .Edit+skip+logic
+msgid "Edit skip logic"
+msgstr "Edit lewati logika"
+
+#: .Edit+validation
+msgid "Edit validation"
+msgstr "Edit validasi"
+
+#: .Delete+entire+group
+msgid "Delete entire group"
+msgstr "Hapus seluruh grup"
+
+#: .Edit+group+labels
+msgid "Edit group labels"
+msgstr "Edit label grup"
+
+#: .Add+question+to+group
+msgid "Add question to group"
+msgstr "Tambahkan pertanyaan ke grup"
+
+#: .Remove+question+from+group
+msgid "Remove question from group"
+msgstr "Hapus pertanyaan dari grup"
+
+#: .Change+question+order+within+group
+msgid "Change question order within group"
+msgstr "Ubah urutan pertanyaan dalam grup"
+
+#: .Edit+group+settings
+msgid "Edit group settings"
+msgstr "Edit pengaturan grup"
+
+#: .Split+group
+msgid "Split group"
+msgstr "Pisahkan grup"
+
+#: .Change+form+appearance
+msgid "Change form appearance"
+msgstr "Ubah tampilan formulir"
+
+#: .Change+form+meta+questions
+msgid "Change form meta questions"
+msgstr "Ubah formulir pertanyaan meta"
+
+#: .Replace+whole+form
+msgid "Replace whole form"
+msgstr "Ganti seluruh formulir"
+
+#: .Add+group
+msgid "Add group"
+msgstr "Tambahkan grup"
+
+#: .Add+question
+msgid "Add question"
+msgstr "Tambahkan pertanyaan"
+
+#: .Change+question+order
+msgid "Change question order"
+msgstr "Ubah urutan pertanyaan"
+
+#: .Change+languages
+msgid "Change languages"
+msgstr "Ubah bahasa"
+
+#: .Could+not+find+%23%23fileName%23%23
+msgid "Could not find ##fileName##"
+msgstr "Tidak dapat menemukan ##fileName##"
+
+#: .Default+-+single+page
+msgid "Default - single page"
+msgstr "Default - satu halaman"
+
+#: .Grid+theme
+msgid "Grid theme"
+msgstr "Tema kisi"
+
+#: .Grid+theme+with+headings+in+ALL+CAPS
+msgid "Grid theme with headings in ALL CAPS"
+msgstr "Tema kisi dengan judul dalam HURUF BESAR SEMUA"
+
+#: .Multiple+pages
+msgid "Multiple pages"
+msgstr "Beberapa halaman"
+
+#: .Grid+theme+%2B+Multiple+pages
+msgid "Grid theme + Multiple pages"
+msgstr "Tema kisi + Beberapa halaman"
+
+#: .Grid+theme+%2B+Multiple+pages+%2B+headings+in+ALL+CAPS
+msgid "Grid theme + Multiple pages + headings in ALL CAPS"
+msgstr "Tema kisi + Beberapa halaman + judul dalam HURUF BESAR SEMUA"
+
+#: .question
+msgid "question"
+msgstr "pertanyaan"
+
+#: .block
+msgid "block"
+msgstr "blok"
+
+#: .template
+msgid "template"
+msgstr "templat"
+
+#: .project
+msgid "project"
+msgstr "proyek"
+
+#: .collection
+msgid "collection"
+msgstr "koleksi"
+
+#: .map+layer
+msgid "map layer"
+msgstr "lapisan peta"
+
+#: .form+media
+msgid "form media"
+msgstr "media formulir"
+
+#: .Acknowledge
+msgid "Acknowledge"
+msgstr "Mengakui"
+
+#: .Audio
+msgid "Audio"
+msgstr "Audio"
+
+#: .Background+Audio
+msgid "Background Audio"
+msgstr "Audio Latar Belakang"
+
+#: .Barcode+/+QR+Code
+msgid "Barcode / QR Code"
+msgstr "Kode Batang / Kode QR"
+
+#: .Calculate
+msgid "Calculate"
+msgstr "Hitung"
+
+#: .Date
+msgid "Date"
+msgstr "Tanggal"
+
+#: .Date+%26+time
+msgid "Date & time"
+msgstr "Tanggal &amp; waktu"
+
+#: .Decimal
+msgid "Decimal"
+msgstr "Desimal"
+
+#: .External+XML
+msgid "External XML"
+msgstr "XML eksternal"
+
+#: .File
+msgid "File"
+msgstr "File"
+
+#: .Point
+msgid "Point"
+msgstr "Titik"
+
+#: .Area
+msgid "Area"
+msgstr "Area"
+
+#: .Line
+msgid "Line"
+msgstr "Garis"
+
+#: .Hidden
+msgid "Hidden"
+msgstr "Tersembunyi"
+
+#: .Photo
+msgid "Photo"
+msgstr "Foto"
+
+#: .Number
+msgid "Number"
+msgstr "Nomor"
+
+#: .Question+Matrix
+msgid "Question Matrix"
+msgstr "Matriks Pertanyaan"
+
+#: .Note
+msgid "Note"
+msgstr "Catatan"
+
+#: .Range
+msgid "Range"
+msgstr "Jangkauan"
+
+#: .Ranking
+msgid "Ranking"
+msgstr "Peringkat"
+
+#: .Rating
+msgid "Rating"
+msgstr "Penilaian"
+
+#: .Select+Many
+msgid "Select Many"
+msgstr "Pilih Banyak"
+
+#: .Select+Many+from+File
+msgid "Select Many from File"
+msgstr "Pilih Banyak dari File"
+
+#: .Select+One
+msgid "Select One"
+msgstr "Pilih Satu"
+
+#: .Select+One+from+File
+msgid "Select One from File"
+msgstr "Pilih Satu dari File"
+
+#: .Text
+msgid "Text"
+msgstr "Teks"
+
+#: .Time
+msgid "Time"
+msgstr "Waktu"
+
+#: .Video
+msgid "Video"
+msgstr "Video"
+
+#: .Deployed
+msgid "Deployed"
+msgstr "Disebarkan"
+
+#: .Draft
+msgid "Draft"
+msgstr "Draf"
+
+#: .Archived
+msgid "Archived"
+msgstr "Diarsipkan"
+
+#: .Online-Offline+(multiple+submission)
+msgid "Online-Offline (multiple submission)"
+msgstr "Daring-Luring (beberapa kiriman)"
+
+#: .This+allows+online+and+offline+submissions+and+is+the+best+option+for+collecting+data+in+the+field.
+msgid ""
+"This allows online and offline submissions and is the best option for "
+"collecting data in the field."
+msgstr "Ini memungkinkan kiriman daring dan luring serta merupakan opsi terbaik untuk mengumpulkan data di bagian."
+
+#: .Online-Only+(multiple+submissions)
+msgid "Online-Only (multiple submissions)"
+msgstr "Hanya Daring (beberapa kiriman)"
+
+#: .This+is+the+best+option+when+entering+many+records+at+once+on+a+computer,+e.g.+for+transcribing+paper+records.
+msgid ""
+"This is the best option when entering many records at once on a computer, "
+"e.g. for transcribing paper records."
+msgstr "Ini adalah opsi terbaik saat memasukkan banyak catatan sekaligus di komputer, misalnya untuk menyalin catatan kertas."
+
+#: .Online-Only+(single+submission)
+msgid "Online-Only (single submission)"
+msgstr "Hanya Daring (kiriman tunggal)"
+
+#: .This+allows+a+single+submission,+and+can+be+paired+with+the+%22return_url%22+parameter+to+redirect+the+user+to+a+URL+of+your+choice+after+the+form+has+been+submitted.
+msgid ""
+"This allows a single submission, and can be paired with the \"return_url\" "
+"parameter to redirect the user to a URL of your choice after the form has "
+"been submitted."
+msgstr "Ini memungkinkan kiriman tunggal, dan dapat dipasangkan dengan parameter “return_url” untuk mengalihkan pengguna ke URL pilihan Anda setelah formulir dikirimkan."
+
+#: .Online-only+(once+per+respondent)
+msgid "Online-only (once per respondent)"
+msgstr "Hanya daring (sekali per responden)"
+
+#: .This+allows+your+web+form+to+only+be+submitted+once+per+user,+using+basic+protection+to+prevent+the+same+user+(on+the+same+browser+%26+device)+from+submitting+more+than+once.
+msgid ""
+"This allows your web form to only be submitted once per user, using basic "
+"protection to prevent the same user (on the same browser & device) from "
+"submitting more than once."
+msgstr "Ini memungkinkan formulir web Anda hanya dikirimkan satu kali per pengguna, menggunakan perlindungan dasar untuk mencegah pengguna yang sama (di browser &amp; perangkat yang sama) mengirimkan lebih dari satu kali."
+
+#: .Embeddable+web+form+code
+msgid "Embeddable web form code"
+msgstr "Kode formulir web yang dapat disematkan"
+
+#: .Use+this+html5+code+snippet+to+integrate+your+form+on+your+own+website+using+smaller+margins.
+msgid ""
+"Use this html5 code snippet to integrate your form on your own website using"
+" smaller margins."
+msgstr "Gunakan cuplikan kode html5 ini untuk mengintegrasikan formulir Anda di situs web Anda sendiri menggunakan margin yang lebih kecil."
+
+#: .View+only
+msgid "View only"
+msgstr "Hanya lihat"
+
+#: .Use+this+version+for+testing,+getting+feedback.+Does+not+allow+submitting+data.
+msgid ""
+"Use this version for testing, getting feedback. Does not allow submitting "
+"data."
+msgstr "Gunakan versi ini untuk pengujian, mendapatkan umpan balik. Tidak mengizinkan pengiriman data."
+
+#: .Android+application
+msgid "Android application"
+msgstr "Aplikasi Android"
+
+#: .Use+this+option+to+collect+data+in+the+field+with+your+Android+device.
+msgid "Use this option to collect data in the field with your Android device."
+msgstr "Gunakan opsi ini untuk mengumpulkan data di bagian dengan perangkat Android Anda."
+
+#: .me
+msgid "me"
+msgstr "saya"
+
+#: .untitled
+msgid "untitled"
+msgstr "tanpa judul"
+
+#: .Unlabelled
+msgid "Unlabelled"
+msgstr "Tanpa Label"
+
+#: .Background+audio
+msgid "Background audio"
+msgstr "Audio latar belakang"
+
+#: .Name,+organization+and+sector+are+required+to+make+collection+public.
+msgid "Name, organization and sector are required to make collection public."
+msgstr "Nama, organisasi, dan sektor diperlukan untuk membuat koleksi menjadi publik."
+
+#: .Empty+collection+is+not+allowed+to+be+made+public.
+msgid "Empty collection is not allowed to be made public."
+msgstr "Koleksi kosong tidak boleh dipublikasikan."
+
+#: .Only+collections+are+allowed+to+be+made+public%21
+msgid "Only collections are allowed to be made public!"
+msgstr "Hanya koleksi yang boleh dipublikasikan!"
+
+#: .Items+cannot+be+selected+more+than+once
+msgid "Items cannot be selected more than once"
+msgstr "Item tidak dapat dipilih lebih dari sekali"
+
+#: .Add+a+condition
+msgid "Add a condition"
+msgstr "Tambahkan kondisi"
+
+#: .Manually+enter+your+skip+logic+in+XLSForm+code
+msgid "Manually enter your skip logic in XLSForm code"
+msgstr "Masukkan lewati logika Anda secara manual dalam kode XLSForm"
+
+#: .Was+Answered
+msgid "Was Answered"
+msgstr "Dijawab"
+
+#: .Was+not+Answered
+msgid "Was not Answered"
+msgstr "Tidak Dijawab"
+
+#: .not
+msgid "not"
+msgstr "tidak"
+
+#: .Greater+Than
+msgid "Greater Than"
+msgstr "Lebih dari"
+
+#: .Less+Than
+msgid "Less Than"
+msgstr "Kurang dari"
+
+#: .Greater+Than+or+Equal+to
+msgid "Greater Than or Equal to"
+msgstr "Lebih dari atau Sama dengan"
+
+#: .Less+Than+or+Equal+to
+msgid "Less Than or Equal to"
+msgstr "Kurang dari atau Sama dengan"
+
+#: .This+question+will+only+be+displayed+if+the+following+conditions+apply
+msgid "This question will only be displayed if the following conditions apply"
+msgstr "Pertanyaan ini hanya akan ditampilkan jika ketentuan berikut berlaku"
+
+#: .Add+another+condition
+msgid "Add another condition"
+msgstr "Tambahkan kondisi lain"
+
+#: .Previous+responses+should+match+all+of+these+conditions
+msgid "Previous responses should match all of these conditions"
+msgstr "Respons sebelumnya harus memenuhi semua kondisi berikut"
+
+#: .Previous+responses+should+match+any+of+these+conditions
+msgid "Previous responses should match any of these conditions"
+msgstr "Respons sebelumnya harus memenuhi salah satu dari kondisi berikut"
+
+#: .response+value
+msgid "response value"
+msgstr "nilai respons"
+
+#: .Select+question+from+list
+msgid "Select question from list"
+msgstr "Pilih pertanyaan dari daftar"
+
+#: .Manually+enter+your+validation+logic+in+XLSForm+code
+msgid "Manually enter your validation logic in XLSForm code"
+msgstr "Masukkan logika validasi Anda secara manual dalam kode XLSForm"
+
+#: .Validation+Code
+msgid "Validation Code:"
+msgstr "Kode Validasi:"
+
+#: .My+Projects
+msgid "My Projects"
+msgstr "Proyek Saya"
+
+#: .%23%23organization+name%23%23+Projects
+msgid "##organization name## Projects"
+msgstr "Proyek ##organization name##"
+
+#: .Is
+msgid "Is"
+msgstr "Adalah"
+
+#: .Is+not
+msgid "Is not"
+msgstr "Bukan"
+
+#: .Contains
+msgid "Contains"
+msgstr "Mengandung"
+
+#: .Does+not+contain
+msgid "Does not contain"
+msgstr "Tidak mengandung"
+
+#: .Starts+with
+msgid "Starts with"
+msgstr "Dimulai dengan"
+
+#: .Ends+with
+msgid "Ends with"
+msgstr "Berakhir dengan"
+
+#: .Is+empty
+msgid "Is empty"
+msgstr "Kosong"
+
+#: .Is+not+empty
+msgid "Is not empty"
+msgstr "Tidak kosong"
+
+#: .Project+name
+msgid "Project name"
+msgstr "Nama proyek"
+
+#: .Description
+msgid "Description"
+msgstr "Deskripsi"
+
+#: .Status
+msgid "Status"
+msgstr "Status"
+
+#: .Owner
+msgid "Owner"
+msgstr "Pemilik"
+
+#: .Owner+name
+msgid "Owner name"
+msgstr "Nama pemilik"
+
+#: .Owner+email
+msgid "Owner email"
+msgstr "Email pemilik"
+
+#: .Owner+organization
+msgid "Owner organization"
+msgstr "Organisasi pemilik"
+
+#: .Date+modified
+msgid "Date modified"
+msgstr "Tanggal diubah"
+
+#: .Date+deployed
+msgid "Date deployed"
+msgstr "Tanggal disebarkan"
+
+#: .Sector
+msgid "Sector"
+msgstr "Sektor"
+
+#: .Countries
+msgid "Countries"
+msgstr "Negara"
+
+#: .Languages
+msgid "Languages"
+msgstr "Bahasa"
+
+#: .Submissions
+msgid "Submissions"
+msgstr "Kiriman"
+
+#: .transcript
+msgid "transcript"
+msgstr "transkrip"
+
+#: .translation
+msgid "translation"
+msgstr "terjemahan"
+
+#: .Multi-select+checkboxes+column
+msgid "Multi-select checkboxes column"
+msgstr "Kolom kotak centang dengan beberapa pilihan"
+
+#: .Validation
+msgid "Validation"
+msgstr "Validasi"
+
+#: .%23%23permission_label%23%23+(%23%23username_list%23%23)
+msgid "##permission_label## (##username_list##)"
+msgstr "##permission_label## (##username_list##)"
+
+#: .%23%23permission_label%23%23+(%23%23username_list%23%23+and+1+other)
+msgid "##permission_label## (##username_list## and 1 other)"
+msgstr "##permission_label## (##username_list## dan 1 lainnya)"
+
+#: .%23%23permission_label%23%23+(%23%23username_list%23%23+and+%23%23hidden_username_count%23%23+others)
+msgid ""
+"##permission_label## (##username_list## and ##hidden_username_count## "
+"others)"
+msgstr "##permission_label## (##username_list## dan ##hidden_username_count## lainnya)"
+
+#: .Tags
+msgid "Tags"
+msgstr "Tag"
+
+#: .Single+choice
+msgid "Single choice"
+msgstr "Pilihan tunggal"
+
+#: .Multiple+choice
+msgid "Multiple choice"
+msgstr "Pilihan ganda"
+
+#: .Show+All
+msgid "Show All"
+msgstr "Tampilkan Semua"
+
+#: .Not+approved
+msgid "Not approved"
+msgstr "Tidak disetujui"
+
+#: .Approved
+msgid "Approved"
+msgstr "Disetujui"
+
+#: .On+hold
+msgid "On hold"
+msgstr "Ditangguhkan"
+
+#: .Failed+to+update+permissions
+msgid "Failed to update permissions"
+msgstr "Gagal memperbarui izin"
+
+#: .Failed+to+remove+permissions
+msgid "Failed to remove permissions"
+msgstr "Gagal menghapus izin"
+
+#: .successfully+updated
+msgid "successfully updated"
+msgstr "berhasil diperbarui"
+
+#: .please+check+your+connection+and+try+again.
+msgid "please check your connection and try again."
+msgstr "silakan periksa koneksi Anda dan coba lagi."
+
+#: .if+this+problem+persists,+contact+help@kobotoolbox.org
+msgid "if this problem persists, contact help@kobotoolbox.org"
+msgstr "jika masalah berlanjut, hubungi help@kobotoolbox.org"
+
+#: .your+form+id+was+not+valid
+msgid "your form id was not valid:"
+msgstr "id formulir Anda tidak valid:"
+
+#: .your+form+cannot+be+deployed+because+it+contains+errors
+msgid "your form cannot be deployed because it contains errors:"
+msgstr "formulir Anda tidak dapat disebarkan karena memiliki kesalahan:"
+
+#: .unable+to+deploy
+msgid "unable to deploy"
+msgstr "tidak dapat disebarkan"
+
+#: .Project+unarchived+successfully
+msgid "Project unarchived successfully"
+msgstr "Proyek berhasil dibuka arsipnya"
+
+#: .Project+archived+successfully
+msgid "Project archived successfully"
+msgstr "Proyek berhasil diarsipkan"
+
+#: .Unable+to+delete+asset%21
+msgid "Unable to delete asset!"
+msgstr "Tidak dapat menghapus aset!"
+
+#: .Error+details
+msgid "Error details:"
+msgstr "Detail kesalahan:"
+
+#: .Could+not+create+project%21
+msgid "Could not create project!"
+msgstr "Tidak dapat membuat proyek!"
+
+#: .changed+password+successfully
+msgid "changed password successfully"
+msgstr "berhasil mengubah kata sandi"
+
+#: .failed+to+change+password
+msgid "failed to change password"
+msgstr "gagal mengubah kata sandi"
+
+#: .failed+to+load+API+token
+msgid "failed to load API token"
+msgstr "gagal memuat token API"
+
+#: .submission+deleted
+msgid "submission deleted"
+msgstr "kiriman dihapus"
+
+#: .failed+to+delete+submission
+msgid "failed to delete submission"
+msgstr "gagal menghapus kiriman"
+
+#: .Successfully+duplicated+submission
+msgid "Successfully duplicated submission"
+msgstr "Berhasil menduplikasikan kiriman"
+
+#: .Failed+to+duplicate+submission
+msgid "Failed to duplicate submission"
+msgstr "Gagal menduplikasikan kiriman"
+
+#: .REST+Service+added+successfully
+msgid "REST Service added successfully"
+msgstr "Layanan REST berhasil ditambahkan"
+
+#: .Failed+adding+REST+Service
+msgid "Failed adding REST Service"
+msgstr "Gagal menambahkan Layanan REST"
+
+#: .REST+Service+updated+successfully
+msgid "REST Service updated successfully"
+msgstr "Layanan REST berhasil diperbarui"
+
+#: .Failed+saving+REST+Service
+msgid "Failed saving REST Service"
+msgstr "Gagal menyimpan Layanan REST"
+
+#: .REST+Service+deleted+permanently
+msgid "REST Service deleted permanently"
+msgstr "Layanan REST dihapus secara permanen"
+
+#: .Could+not+delete+REST+Service
+msgid "Could not delete REST Service"
+msgstr "Tidak dapat menghapus Layanan REST"
+
+#: .Submission+retry+requested+successfully
+msgid "Submission retry requested successfully"
+msgstr "Permintaan kiriman ulang berhasil"
+
+#: .Submission+retry+request+failed
+msgid "Submission retry request failed"
+msgstr "Permintaan kiriman ulang gagal"
+
+#: .Retrying+all+submissions+failed
+msgid "Retrying all submissions failed"
+msgstr "Mencoba ulang semua kiriman gagal"
+
+#: .loading%E2%80%A6
+msgid "loading…"
+msgstr "memuat..…"
+
+#: .Could+not+upload+your+media
+msgid "Could not upload your media"
+msgstr "Tidak dapat mengunggah media Anda"
+
+#: .Something+went+wrong+with+getting+your+media
+msgid "Something went wrong with getting your media"
+msgstr "Terjadi kesalahan saat mengambil media Anda"
+
+#: .Successfully+deleted+media
+msgid "Successfully deleted media"
+msgstr "Berhasil menghapus media"
+
+#: .Failed+to+delete+media%21
+msgid "Failed to delete media!"
+msgstr "Gagal menghapus media!"
+
+#: .Successfully+removed+from+collection
+msgid "Successfully removed from collection"
+msgstr "Berhasil dihapus dari koleksi"
+
+#: .Successfully+moved+to+collection
+msgid "Successfully moved to collection"
+msgstr "Berhasil dipindahkan ke koleksi"
+
+#: .Move+to+collection+failed
+msgid "Move to collection failed"
+msgstr "Pemindahan ke koleksi gagal"
+
+#: .Failed+to+get+the+results
+msgid "Failed to get the results"
+msgstr "Gagal mendapatkan hasil"
+
+#: .Failed+to+create+export
+msgid "Failed to create export"
+msgstr "Gagal membuat ekspor"
+
+#: .Failed+to+delete+export
+msgid "Failed to delete export"
+msgstr "Gagal menghapus ekspor"
+
+#: .Failed+to+update+export+setting
+msgid "Failed to update export setting"
+msgstr "Gagal memperbarui setelan ekspor"
+
+#: .Failed+to+create+export+setting
+msgid "Failed to create export setting"
+msgstr "Gagal membuat setelan ekspor"
+
+#: .Failed+to+delete+export+setting
+msgid "Failed to delete export setting"
+msgstr "Gagal menghapus setelan ekspor"
+
+#: .Failed+to+attach+to+source
+msgid "Failed to attach to source"
+msgstr "Gagal melampirkan ke sumber"
+
+#: .Failed+to+detach+from+source
+msgid "Failed to detach from source"
+msgstr "Gagal melepaskan dari sumber"
+
+#: .Failed+to+patch+source
+msgid "Failed to patch source"
+msgstr "Gagal menampung sumber"
+
+#: .Failed+to+retrieve+sharing+enabled+assets
+msgid "Failed to retrieve sharing enabled assets"
+msgstr "Gagal mengambil aset yang diaktifkan untuk berbagi"
+
+#: .Failed+to+toggle+sharing
+msgid "Failed to toggle sharing"
+msgstr "Gagal beralih berbagi"
+
+#: .Failed+to+update+column+filters
+msgid "Failed to update column filters"
+msgstr "Gagal memperbarui filter kolom"
+
+#: .Failed+to+get+submissions+uuids.
+msgid "Failed to get submissions uuids."
+msgstr "Gagal mendapatkan uuids kiriman."
+
+#: .Failed+to+get+submission.
+msgid "Failed to get submission."
+msgstr "Gagal mendapatkan kiriman."
+
+#: .Failed+to+update+submissions.
+msgid "Failed to update submissions."
+msgstr "Gagal memperbarui kiriman."
+
+#: .Failed+to+update+some+submissions+values.
+msgid "Failed to update some submissions values."
+msgstr "Gagal memperbarui beberapa nilai kiriman."
+
+#: .Failed+to+update+submissions+values.
+msgid "Failed to update submissions values."
+msgstr "Gagal memperbarui nilai kiriman."
+
+#: .submissions+deleted
+msgid "submissions deleted"
+msgstr "kiriman dihapus"
+
+#: .failed+to+delete+submissions
+msgid "failed to delete submissions"
+msgstr "gagal menghapus kiriman"
+
+#: .Failed+to+delete+submissions.
+msgid "Failed to delete submissions."
+msgstr "Gagal menghapus kiriman."
+
+#: .%23%23field_label%23%23+(required)
+msgid "##field_label## (required)"
+msgstr "##field_label## (diperlukan)"
+
+#: .View+form
+msgid "View form"
+msgstr "Lihat formulir"
+
+#: .Edit+form
+msgid "Edit form"
+msgstr "Edit formulir"
+
+#: .Manage+project
+msgid "Manage project"
+msgstr "Kelola proyek"
+
+#: .Add+submissions
+msgid "Add submissions"
+msgstr "Tambahkan kiriman"
+
+#: .View+submissions
+msgid "View submissions"
+msgstr "Lihat kiriman"
+
+#: .View+submissions+only+from+specific+users
+msgid "View submissions only from specific users"
+msgstr "Lihat kiriman hanya dari pengguna tertentu"
+
+#: .View+submissions+based+on+a+condition
+msgid "View submissions based on a condition"
+msgstr "Lihat kiriman berdasarkan syarat"
+
+#: .Edit+submissions
+msgid "Edit submissions"
+msgstr "Edit kiriman"
+
+#: .Edit+submissions+only+from+specific+users
+msgid "Edit submissions only from specific users"
+msgstr "Edit kiriman hanya dari pengguna tertentu"
+
+#: .Edit+submissions+based+on+a+condition
+msgid "Edit submissions based on a condition"
+msgstr "Edit kiriman dengan syarat"
+
+#: .Validate+submissions
+msgid "Validate submissions"
+msgstr "Validasi kiriman"
+
+#: .Validate+submissions+only+from+specific+users
+msgid "Validate submissions only from specific users"
+msgstr "Validasi kiriman hanya dari pengguna tertentu"
+
+#: .Validate+submissions+based+on+a+condition
+msgid "Validate submissions based on a condition"
+msgstr "Validasi kiriman dengan syarat"
+
+#: .Delete+submissions
+msgid "Delete submissions"
+msgstr "Hapus kiriman"
+
+#: .Delete+submissions+only+from+specific+users
+msgid "Delete submissions only from specific users"
+msgstr "Hapus kiriman hanya dari pengguna tertentu"
+
+#: .Delete+submissions+based+on+a+condition
+msgid "Delete submissions based on a condition"
+msgstr "Hapus kiriman dengan syarat"
+
+#: .Act+on+submissions+only+from+specific+users
+msgid "Act on submissions only from specific users"
+msgstr "Lakukan tindakan pada kiriman hanya dari pengguna tertentu"
+
+#: .Act+on+submissions+based+on+a+condition
+msgid "Act on submissions based on a condition"
+msgstr "Beri tindakan pada kiriman dengan syarat"
+
+#: .Act+on+submissions+based+on+multiple+conditions
+msgid "Act on submissions based on multiple conditions"
+msgstr "Beri tindakan pada kiriman dengan beberapa syarat"
+
+#: .The+stored+permissions+are+invalid.+Please+assign+them+again.+If+this+problem+persists,+contact+help@kobotoolbox.org
+msgid ""
+"The stored permissions are invalid. Please assign them again. If this "
+"problem persists, contact help@kobotoolbox.org"
+msgstr "Izin yang disimpan tidak valid. Mohon atur izin tersebut kembali. Jika masalah ini berlanjut, hubungi help@kobotoolbox.org"
+
+#: .Use+a+few+words,+avoid+common+phrases
+msgid "Use a few words, avoid common phrases"
+msgstr "Gunakan sedikit kata, hindari frasa umum"
+
+#: .No+need+for+symbols,+digits,+or+uppercase+letters
+msgid "No need for symbols, digits, or uppercase letters"
+msgstr "Tidak memerlukan simbol, angka, atau huruf besar"
+
+#: .Add+another+word+or+two.+Uncommon+words+are+better.
+msgid "Add another word or two. Uncommon words are better."
+msgstr "Tambahkan lebih banyak kata. Kata tidak umum lebih baik."
+
+#: .Straight+rows+of+keys+are+easy+to+guess
+msgid "Straight rows of keys are easy to guess"
+msgstr "Ketikan berderet lurus mudah ditebak"
+
+#: .Short+keyboard+patterns+are+easy+to+guess
+msgid "Short keyboard patterns are easy to guess"
+msgstr "Pola papan ketik pendek mudah ditebak"
+
+#: .Use+a+longer+keyboard+pattern+with+more+turns
+msgid "Use a longer keyboard pattern with more turns"
+msgstr "Gunakan pola papan ketik panjang dengan lebih banyak putaran"
+
+#: .Repeats+like+%22aaa%22+are+easy+to+guess
+msgid "Repeats like \"aaa\" are easy to guess"
+msgstr "Pengulangan seperti “aaa” mudah ditebak"
+
+#: .Repeats+like+%22abcabcabc%22+are+only+slightly+harder+to+guess+than+%22abc%22
+msgid "Repeats like \"abcabcabc\" are only slightly harder to guess than \"abc\""
+msgstr "Pengulangan seperti “abcabcabc” hanya sedikit lebih susah ditebak daripada “abc”"
+
+#: .Avoid+repeated+words+and+characters
+msgid "Avoid repeated words and characters"
+msgstr "Hindari pengulangan kata dan karakter"
+
+#: .Sequences+like+abc+or+6543+are+easy+to+guess
+msgid "Sequences like abc or 6543 are easy to guess"
+msgstr "Urutan seperti abc atau 6543 mudah ditebak"
+
+#: .Avoid+sequences
+msgid "Avoid sequences"
+msgstr "Hindari urutan"
+
+#: .Recent+years+are+easy+to+guess
+msgid "Recent years are easy to guess"
+msgstr "Tahun terbaru mudah ditebak"
+
+#: .Avoid+recent+years
+msgid "Avoid recent years"
+msgstr "Hindari tahun terbaru"
+
+#: .Avoid+years+that+are+associated+with+you
+msgid "Avoid years that are associated with you"
+msgstr "Hindari tahun yang berkaitan dengan Anda"
+
+#: .Dates+are+often+easy+to+guess
+msgid "Dates are often easy to guess"
+msgstr "Tanggal sering kali mudah ditebak"
+
+#: .Avoid+dates+and+years+that+are+associated+with+you
+msgid "Avoid dates and years that are associated with you"
+msgstr "Hindari tanggal dan tahun yang berkaitan dengan Anda"
+
+#: .This+is+a+top-10+common+password
+msgid "This is a top-10 common password"
+msgstr "Ini adalah 10 kata sandi yang sangat umum"
+
+#: .This+is+a+top-100+common+password
+msgid "This is a top-100 common password"
+msgstr "Ini adalah 100 kata sandi yang sangat umum"
+
+#: .This+is+a+very+common+password
+msgid "This is a very common password"
+msgstr "Ini adalah kata sandi yang sangat umum"
+
+#: .This+is+similar+to+a+commonly+used+password
+msgid "This is similar to a commonly used password"
+msgstr "Ini mirip dengan kata sandi yang umum digunakan"
+
+#: .A+word+by+itself+is+easy+to+guess
+msgid "A word by itself is easy to guess"
+msgstr "Sebuah kata dengan sendirinya mudah ditebak"
+
+#: .Names+and+surnames+by+themselves+are+easy+to+guess
+msgid "Names and surnames by themselves are easy to guess"
+msgstr "Nama depan dan nama belakang dengan sendirinya mudah ditebak"
+
+#: .Common+names+and+surnames+are+easy+to+guess
+msgid "Common names and surnames are easy to guess"
+msgstr "Nama depan dan nama belakang yang umum mudah ditebak"
+
+#: .Capitalization+doesn%27t+help+very+much
+msgid "Capitalization doesn't help very much"
+msgstr "Kapitalisasi tidak terlalu membantu"
+
+#: .All-uppercase+is+almost+as+easy+to+guess+as+all-lowercase
+msgid "All-uppercase is almost as easy to guess as all-lowercase"
+msgstr "Huruf besar semua hampir sama mudah ditebaknya dengan huruf kecil semua"
+
+#: .Reversed+words+aren%27t+much+harder+to+guess
+msgid "Reversed words aren't much harder to guess"
+msgstr "Kata yang dibalik tidak terlalu susah ditebak"
+
+#: .Predictable+substitutions+like+%27@%27+instead+of+%27a%27+don%27t+help+very+much
+msgid "Predictable substitutions like '@' instead of 'a' don't help very much"
+msgstr "Penggantian yang mudah ditebak seperti ‘@’ alih-alih ‘a’ tidak terlalu membantu"
+
+#: .Password+strength
+msgid "Password strength"
+msgstr "Kekuatan kata sandi"
+
+#: .path+not+found+/+recognized
+msgid "path not found / recognized"
+msgstr "jalur tidak ditemukan / dikenali"
+
+#: .Section+not+found
+msgid "Section not found"
+msgstr "Bagian tidak ditemukan"
+
+#: .XForm+is+loading
+msgid "XForm is loading"
+msgstr "XForm sedang memuat"
+
+#: .Untitled
+msgid "Untitled"
+msgstr "Tanpa judul"
+
+#: .Collect+data
+msgid "Collect data"
+msgstr "Kumpulkan data"
+
+#: .Share+project
+msgid "Share project"
+msgstr "Bagikan proyek"
+
+#: .Preview+form
+msgid "Preview form"
+msgstr "Pratinjau formulir"
+
+#: .Data
+msgid "Data"
+msgstr "Data"
+
+#: .Team+members
+msgid "Team members"
+msgstr "Anggota tim"
+
+#: .Quick+Links
+msgid "Quick Links"
+msgstr "Tautan Cepat"
+
+#: .undeployed
+msgid "undeployed"
+msgstr "belum disebarkan"
+
+#: .Last+Modified
+msgid "Last Modified"
+msgstr "Terakhir Diubah"
+
+#: .questions
+msgid "questions"
+msgstr "pertanyaan"
+
+#: .redeploy
+msgid "redeploy"
+msgstr "sebarkan ulang"
+
+#: .deploy
+msgid "deploy"
+msgstr "sebarkan"
+
+#: .unarchive
+msgid "unarchive"
+msgstr "buka arsip"
+
+#: .Form+history
+msgid "Form history"
+msgstr "Riwayat formulir"
+
+#: .Version
+msgid "Version"
+msgstr "Versi"
+
+#: .Clone
+msgid "Clone"
+msgstr "Kloning"
+
+#: .Clone+this+version+as+a+new+project
+msgid "Clone this version as a new project"
+msgstr "Kloning versi ini sebagai proyek baru"
+
+#: .Hide+full+history
+msgid "Hide full history"
+msgstr "Sembunyikan riwayat penuh"
+
+#: .Show+full+history
+msgid "Show full history"
+msgstr "Tampilkan riwayat penuh"
+
+#: .Load+more
+msgid "Load more"
+msgstr "Muat lebih banyak"
+
+#: .Install
+msgid "Install"
+msgstr "Pasang"
+
+#: .on+your+Android+device.
+msgid "on your Android device."
+msgstr "pada perangkat Android Anda."
+
+#: .Click+on
+msgid "Click on"
+msgstr "Klik"
+
+#: .to+open+settings.
+msgid "to open settings."
+msgstr "untuk membuka pengaturan."
+
+#: .Enter+the+server+URL
+msgid "Enter the server URL"
+msgstr "Masukkan URL server"
+
+#: .and+your+username+and+password
+msgid "and your username and password"
+msgstr "serta nama pengguna dan kata sandi Anda"
+
+#: .Open+%22Get+Blank+Form%22+and+select+this+project.+
+msgid "Open \"Get Blank Form\" and select this project. "
+msgstr "Buka “Dapatkan Formulir Kosong” dan pilih proyek ini. "
+
+#: .Open+%22Enter+Data.%22
+msgid "Open \"Enter Data.\""
+msgstr "Buka “Masukkan data”."
+
+#: .You+can+now+control+whether+to+allow+anonymous+submissions+for+each+project.+Previously,+this+was+an+account-wide+setting.
+msgid ""
+"You can now control whether to allow anonymous submissions for each project."
+" Previously, this was an account-wide setting."
+msgstr "Sekarang Anda dapat mengontrol apakah akan mengizinkan kiriman anonim untuk setiap proyek. Sebelumnya, ini adalah pengaturan seluruh akun."
+
+#: .Download+KoboCollect
+msgid "Download KoboCollect"
+msgstr "Unduh KoboCollect"
+
+#: .Try+reloading+the+page,+if+problem+doesn%27t+go+away,+contact+support.
+msgid "Try reloading the page, if problem doesn't go away, contact support."
+msgstr "Coba muat ulang halaman, jika masih bermasalah, hubungi bantuan."
+
+#: .Link+missing
+msgid "Link missing"
+msgstr "Tautan hilang"
+
+#: .Copied+to+clipboard
+msgid "Copied to clipboard"
+msgstr "Disalin ke papan klip"
+
+#: .Copy
+msgid "Copy"
+msgstr "Salin"
+
+#: .Open
+msgid "Open"
+msgstr "Buka"
+
+#: .Edit+in+Form+Builder
+msgid "Edit in Form Builder"
+msgstr "Edit di Pembuat Formulir"
+
+#: .Editing+capabilities+not+granted,+you+can+only+view+this+form
+msgid "Editing capabilities not granted, you can only view this form"
+msgstr "Kemampuan pengeditan tidak diberikan, Anda hanya dapat melihat formulir ini"
+
+#: .Preview
+msgid "Preview"
+msgstr "Pratinjau"
+
+#: .Replace+form
+msgid "Replace form"
+msgstr "Ganti formulir"
+
+#: .More+actions
+msgid "More actions"
+msgstr "Tindakan lebih lanjut"
+
+#: .Download
+msgid "Download"
+msgstr "Unduh"
+
+#: .Share+this+project
+msgid "Share this project"
+msgstr "Bagikan proyek ini"
+
+#: .Remove+shared+project
+msgid "Remove shared project"
+msgstr "Hapus proyek yang dibagikan"
+
+#: .Clone+this+project
+msgid "Clone this project"
+msgstr "Kloning proyek ini"
+
+#: .Create+template
+msgid "Create template"
+msgstr "Buat templat"
+
+#: .Manage+translations
+msgid "Manage translations"
+msgstr "Kelola terjemahan"
+
+#: .Languages
+msgid "Languages:"
+msgstr "Bahasa:"
+
+#: .This+project+has+no+languages+defined+yet
+msgid "This project has no languages defined yet"
+msgstr "Proyek ini belum memiliki bahasa yang ditetapkan"
+
+#: .Unnamed+language
+msgid "Unnamed language"
+msgstr "Bahasa tanpa nama"
+
+#: .Current+version
+msgid "Current version"
+msgstr "Versi saat ini"
+
+#: .Archived+version
+msgid "Archived version"
+msgstr "Versi yang diarsipkan"
+
+#: .Draft+version
+msgid "Draft version"
+msgstr "Versi draf"
+
+#: .If+you+want+to+make+these+changes+public,+you+must+deploy+this+form.
+msgid "If you want to make these changes public, you must deploy this form."
+msgstr "Jika Anda ingin membuat perubahan ini menjadi publik, Anda harus sebarkan formulir ini."
+
+#: .An+error+occurred
+msgid "An error occurred"
+msgstr "Terjadi kesalahan"
+
+#: .Your+connection+is+offline
+msgid "Your connection is offline"
+msgstr "Koneksi Anda sedang berada di luar jaringan"
+
+#: .Your+search+returned+no+results.
+msgid "Your search returned no results."
+msgstr "Pencarian Anda tidak mengembalikan hasil."
+
+#: .Let%27s+get+started+by+creating+your+first+library+question,+block,+template+or+collection.+Click+the+New+button+to+create+it.
+msgid ""
+"Let's get started by creating your first library question, block, template "
+"or collection. Click the New button to create it."
+msgstr "Mari mulai dengan membuat pertanyaan, blok, templat atau koleksi pertama Anda. Klik tombol Baru untuk membuatnya."
+
+#: .Advanced+users+You+can+also+drag+and+drop+XLSForms+here+and+they+will+be+uploaded+and+converted+to+library+items.
+msgid ""
+"Advanced users: You can also drag and drop XLSForms here and they will be "
+"uploaded and converted to library items."
+msgstr "Pengguna tingkat lanjut: Anda juga dapat menyeret dan meletakkan XLSForms di sini dan setelahnya akan diunggah dan dikonversikan menjadi item perpustakaan."
+
+#: .My+Library
+msgid "My Library"
+msgstr "Perpustakaan saya"
+
+#: .Drop+files+to+upload
+msgid "Drop files to upload"
+msgstr "Letakkan file untuk diunggah"
+
+#: .Public+Collections
+msgid "Public Collections"
+msgstr "Koleksi Publik"
+
+#: .Subscribed
+msgid "Subscribed"
+msgstr "Berlangganan"
+
+#: .Quick+look
+msgid "Quick look"
+msgstr "Lihat sekilas"
+
+#: .Could+not+load+grouped+results+via+%22%23%23%22.+Will+attempt+to+load+the+ungrouped+report.
+msgid ""
+"Could not load grouped results via \"##\". Will attempt to load the "
+"ungrouped report."
+msgstr "Tidak dapat memuat hasil yang dikelompokkan melalui \"##\". Akan mencoba memuat laporan yang tidak dikelompokkan."
+
+#: .Could+not+refresh+report.
+msgid "Could not refresh report."
+msgstr "Tidak dapat memuat ulang laporan."
+
+#: .Untitled+report
+msgid "Untitled report"
+msgstr "Laporan tanpa judul"
+
+#: .Default+Report
+msgid "Default Report"
+msgstr "Laporan Default"
+
+#: .Create+New+Report
+msgid "Create New Report"
+msgstr "Buat Laporan Baru"
+
+#: .Edit+Report+Questions
+msgid "Edit Report Questions"
+msgstr "Edit Pertanyaan Laporan"
+
+#: .Configure+Report+Style
+msgid "Configure Report Style"
+msgstr "Atur Gaya Laporan"
+
+#: .Print
+msgid "Print"
+msgstr "Cetak"
+
+#: .Toggle+fullscreen
+msgid "Toggle fullscreen"
+msgstr "Beralih ke layar penuh"
+
+#: .This+report+cannot+be+loaded.
+msgid "This report cannot be loaded."
+msgstr "Laporan ini tidak dapat dimuat."
+
+#: .This+report+has+no+data.
+msgid "This report has no data."
+msgstr "Laporan ini tidak memiliki data."
+
+#: .Try+changing+Report+Style+to+%22No+grouping%22.
+msgid "Try changing Report Style to \"No grouping\"."
+msgstr "Coba ubah Gaya Laporan menjadi “Tanpa pengelompokan”."
+
+#: .Reports
+msgid "Reports"
+msgstr "Laporan"
+
+#: .For+performance+reasons,+this+report+only+includes+the+first+%23%23+questions.
+msgid ""
+"For performance reasons, this report only includes the first ## questions."
+msgstr "Untuk alasan kinerja, laporan ini hanya menyertakan ## pertanyaan pertama."
+
+#: .Show+all+(%23%23)
+msgid "Show all (##)"
+msgstr "Tampilkan semua (##)"
+
+#: .This+is+an+automated+report+based+on+raw+data+submitted+to+this+project.+Please+conduct+proper+data+cleaning+prior+to+using+the+graphs+and+figures+used+on+this+page.
+msgid ""
+"This is an automated report based on raw data submitted to this project. "
+"Please conduct proper data cleaning prior to using the graphs and figures "
+"used on this page."
+msgstr "Ini adalah laporan otomatis berdasarkan data mentah yang dikirimkan ke proyek ini. Silakan lakukan pembersihan data yang tepat sebelum menggunakan bagan dan gambar yang digunakan pada halaman ini."
+
+#: .Edit+Report+Style
+msgid "Edit Report Style"
+msgstr "Edit Gaya Laporan"
+
+#: .Custom+Report
+msgid "Custom Report"
+msgstr "Laporan Khusus"
+
+#: .Question+Style
+msgid "Question Style"
+msgstr "Gaya Pertanyaan"
+
+#: .Anyone+can+see+this+blank+form+and+add+submissions+to+it+because+you+have+not+set+[your+account]+to+require+authentication.
+msgid ""
+"Anyone can see this blank form and add submissions to it because you have "
+"not set [your account] to require authentication."
+msgstr "Siapa pun dapat melihat formulir kosong ini dan menambahkan kiriman karena Anda belum mengatur [akun Anda] untuk memerlukan autentikasi."
+
+#: .Who+has+access
+msgid "Who has access"
+msgstr "Siapa yang memiliki akses"
+
+#: .Add+user
+msgid "Add user"
+msgstr "Tambah pengguna"
+
+#: .Waiting+for+all+projects+to+load%E2%80%A6
+msgid "Waiting for all projects to load…"
+msgstr "Menunggu semua proyek untuk dimuat…"
+
+#: .You+have+unsaved+changes.+Leave+form+without+saving%3F
+msgid "You have unsaved changes. Leave form without saving?"
+msgstr "Anda memiliki perubahan yang belum disimpan. Tinggalkan formulir tanpa menyimpan?"
+
+#: .Unknown+Enketo+preview+error
+msgid "Unknown Enketo preview error"
+msgstr "Kesalahan pratinjau Enketo tidak diketahui"
+
+#: .Your+changes+could+not+be+saved,+likely+because+of+a+lost+internet+connection.
+msgid ""
+"Your changes could not be saved, likely because of a lost internet "
+"connection."
+msgstr "Perubahan Anda tidak dapat disimpan, mungkin karena terputusnya koneksi internet."
+
+#: .Keep+this+window+open+and+try+saving+again+while+using+a+better+connection.
+msgid ""
+"Keep this window open and try saving again while using a better connection."
+msgstr "Biarkan halaman ini terbuka dan coba simpan lagi menggunakan koneksi yang lebih baik."
+
+#: .Error+saving+form
+msgid "Error saving form"
+msgstr "Kesalahan dalam menyimpan formulir"
+
+#: .Dismiss
+msgid "Dismiss"
+msgstr "Abaikan"
+
+#: .create
+msgid "create"
+msgstr "buat"
+
+#: .save
+msgid "save"
+msgstr "simpan"
+
+#: .retry
+msgid "retry"
+msgstr "coba lagi"
+
+#: .Yes,+leave+form
+msgid "Yes, leave form"
+msgstr "Ya, tinggalkan formulir"
+
+#: .Cancel
+msgid "Cancel"
+msgstr "Batal"
+
+#: .Return+to+list
+msgid "Return to list"
+msgstr "Kembali ke daftar"
+
+#: .Expand+/+collapse+questions
+msgid "Expand / collapse questions"
+msgstr "Perluas / perkecil pertanyaan"
+
+#: .Create+group+with+selected+questions
+msgid "Create group with selected questions"
+msgstr "Buat kelompok dengan pertanyaan yang dipilih"
+
+#: .Grouping+disabled.+Please+select+at+least+one+question.
+msgid "Grouping disabled. Please select at least one question."
+msgstr "Pengelompokan dinonaktifkan. Silakan pilih setidaknya satu pertanyaan."
+
+#: .Insert+cascading+select
+msgid "Insert cascading select"
+msgstr "Sisipkan pilihan berjenjang"
+
+#: .Add+from+Library
+msgid "Add from Library"
+msgstr "Tambahkan dari Perpustakaan"
+
+#: .Layout+%26+Settings
+msgid "Layout & Settings"
+msgstr "Tata Letak &amp; Pengaturan"
+
+#: .Layout
+msgid "Layout"
+msgstr "Tata Letak"
+
+#: .background+recording
+msgid "background recording"
+msgstr "perekaman latar belakang"
+
+#: .This+form+will+automatically+record+audio+in+the+background.+Consider+adding+an+acknowledgement+note+to+inform+respondents+or+data+collectors+that+they+will+be+recorded+while+completing+this+survey.+This+feature+is+available+in+
+msgid ""
+"This form will automatically record audio in the background. Consider adding"
+" an acknowledgement note to inform respondents or data collectors that they "
+"will be recorded while completing this survey. This feature is available in "
+msgstr "Formulir ini akan merekam audio di latar belakang secara otomatis. Pertimbangkan menambahkan catatan untuk memberi tahu responden atau pengumpul data bahwa mereka akan direkam selama menyelesaikan survei ini. Fitur ini tersedia di "
+
+#: .Collect+version+1.30+and+above
+msgid "Collect version 1.30 and above"
+msgstr "Versi Collect 1.30 dan yang lebih baru"
+
+#: .help
+msgid "help"
+msgstr "bantuan"
+
+#: .Form+style
+msgid "Form style"
+msgstr "Gaya formulir"
+
+#: .Read+more+about+form+styles
+msgid "Read more about form styles"
+msgstr "Baca lebih lanjut tentang gaya formulir"
+
+#: .Select+the+form+style+that+you+would+like+to+use.+This+will+only+affect+web+forms.
+msgid ""
+"Select the form style that you would like to use. This will only affect web "
+"forms."
+msgstr "Pilih gaya formulir yang ingin Anda gunakan. Ini hanya akan memengaruhi formulir web."
+
+#: .Select+the+form+style.+This+will+only+affect+the+Enketo+preview,+and+it+will+not+be+saved+with+the+question+or+block.
+msgid ""
+"Select the form style. This will only affect the Enketo preview, and it will"
+" not be saved with the question or block."
+msgstr "Pilih gaya formulir. Ini hanya akan memengaruhi pratinjau Enketo, dan tidak akan disimpan bersama pertanyaan atau blok."
+
+#: .Metadata
+msgid "Metadata"
+msgstr "Metadata"
+
+#: .Search+Library
+msgid "Search Library"
+msgstr "Telusuri Perpustakaan"
+
+#: .Error+loading+survey
+msgid "Error loading survey:"
+msgstr "Kesalahan dalam memuat survei:"
+
+#: .Partially+locked+%23%23type%23%23
+msgid "Partially locked ##type##"
+msgstr "##type## terkunci sebagian"
+
+#: .Fully+locked+%23%23type%23%23
+msgid "Fully locked ##type##"
+msgstr "##type## terkunci penuh"
+
+#: .Read+more+about+Locking
+msgid "Read more about Locking"
+msgstr "Baca lebih lanjut tentang Penguncian"
+
+#: .Form+Preview
+msgid "Form Preview"
+msgstr "Pratinjau Formulir"
+
+#: .Error+generating+preview
+msgid "Error generating preview"
+msgstr "Kesalahan dalam memunculkan pratinjau"
+
+#: .Import+Cascading+Select+Questions
+msgid "Import Cascading Select Questions"
+msgstr "Masukkan Pertanyaan Pilihan Berjenjang"
+
+#: .By+default+map+is+limited+to+the+%23%23number%23%23++most+recent+submissions+for+performance+reasons.+Go+to+map+settings+to+increase+this+limit.
+msgid ""
+"By default map is limited to the ##number##  most recent submissions for "
+"performance reasons. Go to map settings to increase this limit."
+msgstr "Secara default, peta dibatasi hingga ##number## kiriman terbaru untuk alasan kinerja. Buka pengaturan peta untuk meningkatkan batas."
+
+#: .Error+could+not+load+data.
+msgid "Error: could not load data."
+msgstr "Kesalahan: tidak dapat memuat data."
+
+#: .Disaggregate+by+survey+responses
+msgid "Disaggregate by survey responses"
+msgstr "Pilah menurut respons survei"
+
+#: .Disaggregated+using
+msgid "Disaggregated using:"
+msgstr "Pilah menggunakan:"
+
+#: .No+%22geopoint%22+responses+have+been+received
+msgid "No \"geopoint\" responses have been received"
+msgstr "Tidak ada respons “titik geo” yang telah diterima"
+
+#: .The+map+does+not+show+data+because+this+form+does+not+have+a+%22geopoint%22+field.
+msgid ""
+"The map does not show data because this form does not have a \"geopoint\" "
+"field."
+msgstr "Peta tidak menampilkan data karena formulir ini tidak memiliki bagian “titik geo”."
+
+#: .Toggle+Fullscreen
+msgid "Toggle Fullscreen"
+msgstr "Beralih ke Layar Penuh"
+
+#: .Show+as+points
+msgid "Show as points"
+msgstr "Tampilkan sebagai poin"
+
+#: .Toggle+layers
+msgid "Toggle layers"
+msgstr "Beralih lapisan"
+
+#: .Map+display+settings
+msgid "Map display settings"
+msgstr "Pengaturan tampilan peta"
+
+#: .Show+as+heatmap
+msgid "Show as heatmap"
+msgstr "Tampilkan sebagai peta panas"
+
+#: .Language
+msgid "Language"
+msgstr "Bahasa"
+
+#: .Default
+msgid "Default"
+msgstr "Default"
+
+#: .--+See+all+data+--
+msgid "-- See all data --"
+msgstr "-- Lihat semua data --"
+
+#: .untranslated+
+msgid "untranslated: "
+msgstr "tidak diterjemahkan: "
+
+#: .Question+label+not+set
+msgid "Question label not set"
+msgstr "Label pertanyaan belum diatur"
+
+#: .Reset
+msgid "Reset"
+msgstr "Atur ulang"
+
+#: .not+set
+msgid "not set"
+msgstr "Belum diatur"
+
+#: .Legend
+msgid "Legend"
+msgstr "Legenda"
+
+#: .Map+Settings
+msgid "Map Settings"
+msgstr "Pengaturan Peta"
+
+#: .Table
+msgid "Table"
+msgstr "Tabel"
+
+#: .Gallery
+msgid "Gallery"
+msgstr "Galeri"
+
+#: .Downloads
+msgid "Downloads"
+msgstr "Unduhan"
+
+#: .Map
+msgid "Map"
+msgstr "Peta"
+
+#: .General
+msgid "General"
+msgstr "Umum"
+
+#: .Media
+msgid "Media"
+msgstr "Media"
+
+#: .Sharing
+msgid "Sharing"
+msgstr "Berbagi"
+
+#: .Connect+Projects
+msgid "Connect Projects"
+msgstr "Hubungkan Proyek"
+
+#: .REST+Services
+msgid "REST Services"
+msgstr "Layanan REST"
+
+#: .Activity
+msgid "Activity"
+msgstr "Aktivitas"
+
+#: .copied+to+clipboard
+msgid "copied to clipboard"
+msgstr "disalin ke papan klip"
+
+#: .Clone+of
+msgid "Clone of"
+msgstr "Kloning dari"
+
+#: .Enter+the+name+of+the+cloned+%23%23ASSET_TYPE%23%23.+Leave+empty+to+keep+the+original+name.
+msgid ""
+"Enter the name of the cloned ##ASSET_TYPE##. Leave empty to keep the "
+"original name."
+msgstr "Masukkan nama dari ##ASSET_TYPE## yang dikloning. Biarkan kosong untuk mempertahankan nama asli."
+
+#: .Ok
+msgid "Ok"
+msgstr "Oke"
+
+#: .%23%23+files
+msgid "## files"
+msgstr "## file"
+
+#: .XLSForm+Import+failed.+Check+that+the+XLSForm+and/or+the+URL+are+valid,+and+try+again+using+the+%22Replace+form%22+icon.
+msgid ""
+"XLSForm Import failed. Check that the XLSForm and/or the URL are valid, and "
+"try again using the \"Replace form\" icon."
+msgstr "Impor XLSForm gagal. Periksa apakah XLSForm dan/atau URL valid, dan coba lagi menggunakan ikon “Ganti formulir”."
+
+#: .XLS+Import+completed
+msgid "XLS Import completed"
+msgstr "Impor XLS selesai"
+
+#: .Your+upload+is+being+processed.+This+may+take+a+few+moments.
+msgid "Your upload is being processed. This may take a few moments."
+msgstr "Unggahan Anda sedang diproses. Ini mungkin memakan waktu beberapa saat."
+
+#: .Your+upload+is+queued+for+processing.+This+may+take+a+few+moments.
+msgid "Your upload is queued for processing. This may take a few moments."
+msgstr "Unggahan Anda masuk antrean untuk diproses. Ini mungkin memakan waktu beberapa saat."
+
+#: .Import+Failed%21
+msgid "Import Failed!"
+msgstr "Impor Gagal!"
+
+#: .Failed+to+create+import.
+msgid "Failed to create import."
+msgstr "Gagal membuat impor."
+
+#: .Upload+error+could+not+recognize+Excel+file.
+msgid "Upload error: could not recognize Excel file."
+msgstr "Kesalahan unggahan: tidak dapat mengenali file Excel."
+
+#: .Uploaded+file+name+
+msgid "Uploaded file name: "
+msgstr "Nama file yang diunggah: "
+
+#: .Could+not+recognize+the+dropped+item(s).
+msgid "Could not recognize the dropped item(s)."
+msgstr "Tidak dapat mengenali item yang dilepaskan."
+
+#: .Allow+submissions+to+this+form+without+a+username+and+password
+msgid "Allow submissions to this form without a username and password"
+msgstr "Izinkan kiriman ke formulir ini tanpa nama pengguna dan kata sandi"
+
+#: .Allow+anonymous+submissions+for+this+project.+Previously,+this+was+an+account-wide+setting.+Click+the+icon+to+learn+more.
+msgid ""
+"Allow anonymous submissions for this project. Previously, this was an "
+"account-wide setting. Click the icon to learn more."
+msgstr "Izinkan kiriman anonim untuk proyek ini. Sebelumnya, ini adalah pengaturan untuk seluruh akun. Klik ikon untuk mempelajari lebih lanjut."
+
+#: .Project+information
+msgid "Project information"
+msgstr "Informasi proyek"
+
+#: .Questions
+msgid "Questions"
+msgstr "Pertanyaan"
+
+#: .Last+modified
+msgid "Last modified"
+msgstr "Terakhir diubah"
+
+#: .Last+deployed
+msgid "Last deployed"
+msgstr "Terakhir disebarkan"
+
+#: .Latest+submission
+msgid "Latest submission"
+msgstr "Kiriman terbaru"
+
+#: .Operational+purpose+of+data
+msgid "Operational purpose of data"
+msgstr "Tujuan operasional data"
+
+#: .Collects+personally+identifiable+information
+msgid "Collects personally identifiable information"
+msgstr "Mengumpulkan informasi identitas pribadi"
+
+#: .Event+description
+msgid "Event description"
+msgstr "Deskripsi acara"
+
+#: .See+details
+msgid "See details"
+msgstr "Lihat detail"
+
+#: .Recent+project+activity
+msgid "Recent project activity"
+msgstr "Aktivitas proyek terbaru"
+
+#: .Filter+by
+msgid "Filter by"
+msgstr "Filter berdasarkan"
+
+#: .Export+all+data
+msgid "Export all data"
+msgstr "Ekspor semua data"
+
+#: .New+feature
+msgid "New feature"
+msgstr "Fitur baru"
+
+#: .Learn+more
+msgid "Learn more"
+msgstr "Pelajari lebih lanjut"
+
+#: .All+questions
+msgid "All questions"
+msgstr "Semua pertanyaan"
+
+#: .Image+Gallery
+msgid "Image Gallery"
+msgstr "Galeri Gambar"
+
+#: .From
+msgid "From"
+msgstr "Dari"
+
+#: .Between
+msgid "Between"
+msgstr "Antara"
+
+#: .and
+msgid "and"
+msgstr "dan"
+
+#: .URL+is+empty%21
+msgid "URL is empty!"
+msgstr "URL kosong!"
+
+#: .You+must+redeploy+this+form+to+see+media+changes.
+msgid "You must redeploy this form to see media changes."
+msgstr "Anda harus menyebarkan ulang formulir ini untuk melihat perubahan media."
+
+#: .Attach+files
+msgid "Attach files"
+msgstr "Lampirkan file"
+
+#: .Learn+more+about+form+media
+msgid "Learn more about form media"
+msgstr "Pelajari lebih lanjut tentang media formulir"
+
+#: .Drag+and+drop+files+here
+msgid "Drag and drop files here"
+msgstr "Seret dan lepaskan file di sini"
+
+#: .or
+msgid "or"
+msgstr "atau"
+
+#: .click+here+to+browse
+msgid "click here to browse"
+msgstr "klik di sini untuk mencari"
+
+#: .Uploading+file%E2%80%A6
+msgid "Uploading file…"
+msgstr "Mengunggah file…"
+
+#: .You+can+also+add+files+using+a+URL
+msgid "You can also add files using a URL"
+msgstr "Anda juga dapat menambahkan file menggunakan URL"
+
+#: .Paste+URL+here
+msgid "Paste URL here"
+msgstr "Tempel URL di sini"
+
+#: .Add
+msgid "Add"
+msgstr "Tambahkan"
+
+#: .Attached+files
+msgid "Attached files"
+msgstr "File terlampir"
+
+#: .loading+media
+msgid "loading media"
+msgstr "memuat media"
+
+#: .No+files+uploaded+yet
+msgid "No files uploaded yet"
+msgstr "Belum ada file yang diunggah"
+
+#: .Import
+msgid "Import"
+msgstr "Impor"
+
+#: .Next
+msgid "Next"
+msgstr "Selanjutnya"
+
+#: .Create+project
+msgid "Create project"
+msgstr "Buat proyek"
+
+#: .Project+settings
+msgid "Project settings"
+msgstr "Pengaturan proyek"
+
+#: .Choose+a+source
+msgid "Choose a source"
+msgstr "Pilih sumber"
+
+#: .Choose+template
+msgid "Choose template"
+msgstr "Pilih templat"
+
+#: .Upload+XLSForm
+msgid "Upload XLSForm"
+msgstr "Unggah XLSForm"
+
+#: .Import+XLSForm
+msgid "Import XLSForm"
+msgstr "Impor XLSForm"
+
+#: .Project+details
+msgid "Project details"
+msgstr "Detail proyek"
+
+#: .Choose
+msgid "Choose"
+msgstr "Pilih"
+
+#: .Error+asset+could+not+be+created.
+msgid "Error: asset could not be created."
+msgstr "Kesalahan: aset tidak dapat dibuat."
+
+#: .Error+new+project+could+not+be+created.
+msgid "Error: new project could not be created."
+msgstr "Kesalahan: proyek baru tidak dapat dibuat."
+
+#: .Please+wait%E2%80%A6
+msgid "Please wait…"
+msgstr "Mohon tunggu…"
+
+#: .Retrieving+form,+please+wait...
+msgid "Retrieving form, please wait..."
+msgstr "Mengambil formulir, mohon tunggu..."
+
+#: .Failed+to+reload+project+after+import%21
+msgid "Failed to reload project after import!"
+msgstr "Gagal memuat ulang proyek setelah diimpor!"
+
+#: .Could+not+initialize+XLSForm+import%21
+msgid "Could not initialize XLSForm import!"
+msgstr "Tidak dapat melakukan inisialisasi impor XLSForm!"
+
+#: .Failed+to+reload+project+after+upload%21
+msgid "Failed to reload project after upload!"
+msgstr "Gagal memuat ulang proyek setelah diunggah!"
+
+#: .Could+not+import+XLSForm%21
+msgid "Could not import XLSForm!"
+msgstr "Tidak dapat mengimpor XLSForm!"
+
+#: .Some+fields+contain+errors%21
+msgid "Some fields contain errors!"
+msgstr "Beberapa bagian memiliki kesalahan!"
+
+#: .Project+Name
+msgid "Project Name"
+msgstr "Nama Proyek"
+
+#: .%23%23count%23%23+characters+left
+msgid "##count## characters left"
+msgstr "##count## karakter tersisa"
+
+#: .Use+a+template
+msgid "Use a template"
+msgstr "Gunakan templat"
+
+#: .Choose+one+of+the+options+below+to+continue.+You+will+be+prompted+to+enter+name+and+other+details+in+further+steps.
+msgid ""
+"Choose one of the options below to continue. You will be prompted to enter "
+"name and other details in further steps."
+msgstr "Pilih salah satu opsi di bawah ini untuk melanjutkan. Anda akan diminta untuk memasukkan nama dan detail lainnya pada langkah selanjutnya."
+
+#: .Build+from+scratch
+msgid "Build from scratch"
+msgstr "Buat dari awal"
+
+#: .Upload+an+XLSForm
+msgid "Upload an XLSForm"
+msgstr "Unggah XLSForm"
+
+#: .Import+an+XLSForm+via+URL
+msgid "Import an XLSForm via URL"
+msgstr "Impor XLSForm melalui URL"
+
+#: .Import+an+XLSForm+from+your+computer.
+msgid "Import an XLSForm from your computer."
+msgstr "Impor XLSForm dari komputer Anda."
+
+#: .+Drag+and+drop+the+XLSForm+file+here+or+click+to+browse
+msgid " Drag and drop the XLSForm file here or click to browse"
+msgstr " Seret dan lepaskan file XLSForm di sini atau klik untuk mencari"
+
+#: .Enter+a+valid+XLSForm+URL+in+the+field+below.
+msgid "Enter a valid XLSForm URL in the field below."
+msgstr "Masukkan URL XLSForm yang valid pada bagian di bawah ini."
+
+#: .Having+issues%3F+See+this+help+article.
+msgid "Having issues? See this help article."
+msgstr "Mengalami masalah? Lihat artikel bantuan ini."
+
+#: .URL
+msgid "URL"
+msgstr "URL"
+
+#: .Save+Changes
+msgid "Save Changes"
+msgstr "Simpan Perubahan"
+
+#: .Please+enter+a+title+for+your+project%21
+msgid "Please enter a title for your project!"
+msgstr "Masukkan judul untuk proyek Anda!"
+
+#: .Enter+title+of+project+here
+msgid "Enter title of project here"
+msgstr "Masukkan judul proyek di sini"
+
+#: .Please+enter+a+description+for+your+project
+msgid "Please enter a description for your project"
+msgstr "Masukkan deskripsi untuk proyek Anda"
+
+#: .Enter+short+description+here
+msgid "Enter short description here"
+msgstr "Masukkan deskripsi singkat di sini"
+
+#: .Please+choose+a+sector
+msgid "Please choose a sector"
+msgstr "Pilih sektor"
+
+#: .Please+select+at+least+one+country
+msgid "Please select at least one country"
+msgstr "Pilih setidaknya satu negara"
+
+#: .Please+specify+the+operational+purpose+of+your+project
+msgid "Please specify the operational purpose of your project"
+msgstr "Sebutkan tujuan operasional dari proyek Anda"
+
+#: .Yes
+msgid "Yes"
+msgstr "Ya"
+
+#: .No
+msgid "No"
+msgstr "Tidak"
+
+#: .Please+indicate+whether+or+not+your+project+collects+personally+identifiable+information
+msgid ""
+"Please indicate whether or not your project collects personally identifiable"
+" information"
+msgstr "Tunjukkan apakah proyek Anda mengumpulkan informasi yang dapat diidentifikasi secara pribadi"
+
+#: .Save
+msgid "Save"
+msgstr "Simpan"
+
+#: .Unarchive+Project
+msgid "Unarchive Project"
+msgstr "Buka Arsip Proyek"
+
+#: .Archive+Project
+msgid "Archive Project"
+msgstr "Arsipkan Proyek"
+
+#: .Archive+project+to+stop+accepting+submissions.
+msgid "Archive project to stop accepting submissions."
+msgstr "Arsipkan proyek untuk menghentikan penerimaan kiriman."
+
+#: .Unarchive+project+to+resume+accepting+submissions.
+msgid "Unarchive project to resume accepting submissions."
+msgstr "Buka arsip proyek untuk melanjutkan penerimaan kiriman."
+
+#: .Delete+Project+and+Data
+msgid "Delete Project and Data"
+msgstr "Hapus Proyek dan Data"
+
+#: .Delete+Project
+msgid "Delete Project"
+msgstr "Hapus Proyek"
+
+#: .Back
+msgid "Back"
+msgstr "Kembali"
+
+#: .Form+replacing+is+not+available+due+to+form%27s+Locking+Profile+restrictions.
+msgid ""
+"Form replacing is not available due to form's Locking Profile restrictions."
+msgstr "Penggantian formulir tidak tersedia karena batasan Profil Penguncian formulir."
+
+#: .new
+msgid "new"
+msgstr "baru"
+
+#: .Projects
+msgid "Projects"
+msgstr "Proyek"
+
+#: .Library
+msgid "Library"
+msgstr "Perpustakaan"
+
+#: .Source
+msgid "Source"
+msgstr "Sumber"
+
+#: .Temporary+Access+Restriction+Password+Update+Required
+msgid "Temporary Access Restriction: Password Update Required"
+msgstr "Pembatasan Akses Sementara: Pembaruan Kata Sandi Diperlukan"
+
+#: .You+must+update+your+password+before+proceeding.+Please+do+so+promptly+to+ensure+the+security+of+your+data.
+msgid ""
+"You must update your password before proceeding. Please do so promptly to "
+"ensure the security of your data."
+msgstr "Anda harus memperbarui kata sandi Anda sebelum melanjutkan. Mohon lakukan segera untuk memastikan keamanan data Anda."
+
+#: .Update+password
+msgid "Update password"
+msgstr "Perbarui kata sandi"
+
+#: .Success%21
+msgid "Success!"
+msgstr "Berhasil!"
+
+#: .Submission+Record
+msgid "Submission Record"
+msgstr "Catatan Kiriman"
+
+#: .of
+msgid "of"
+msgstr "dari"
+
+#: .Sharing+Permissions
+msgid "Sharing Permissions"
+msgstr "Izin Berbagi"
+
+#: .Uploading+XLS+file
+msgid "Uploading XLS file"
+msgstr "Mengunggah file XLS"
+
+#: .Uploading+
+msgid "Uploading: "
+msgstr "Mengunggah: "
+
+#: .Create+Library+Item
+msgid "Create Library Item"
+msgstr "Buat Item Perpustakaan"
+
+#: .Template+details
+msgid "Template details"
+msgstr "Detail templat"
+
+#: .Collection+details
+msgid "Collection details"
+msgstr "Detail koleksi"
+
+#: .Edit+tags
+msgid "Edit tags"
+msgstr "Edit tag"
+
+#: .Upload+file
+msgid "Upload file"
+msgstr "Unggah file"
+
+#: .Edit+REST+Service
+msgid "Edit REST Service"
+msgstr "Edit Layanan REST"
+
+#: .New+REST+Service
+msgid "New REST Service"
+msgstr "Layanan Rest Baru"
+
+#: .Table+display+options
+msgid "Table display options"
+msgstr "Opsi tampilan tabel"
+
+#: .Manage+Languages
+msgid "Manage Languages"
+msgstr "Atur Bahasa"
+
+#: .Translations+Table
+msgid "Translations Table"
+msgstr "Tabel Terjemahan"
+
+#: .Manage+Form+Encryption
+msgid "Manage Form Encryption"
+msgstr "Atur Enkripsi Formulir"
+
+#: .Close
+msgid "Close"
+msgstr "Tutup"
+
+#: .Close+Translations+Table%3F
+msgid "Close Translations Table?"
+msgstr "Tutup Tabel Terjemahan?"
+
+#: .You+will+lose+all+unsaved+changes.
+msgid "You will lose all unsaved changes."
+msgstr "Anda akan kehilangan semua perubahan yang belum disimpan."
+
+#: .Log+In
+msgid "Log In"
+msgstr "Masuk"
+
+#: .Search+My+Library
+msgid "Search My Library"
+msgstr "Cari di Perpustakaan Saya"
+
+#: .Search+Public+Collections
+msgid "Search Public Collections"
+msgstr "Cari dalam Koleksi Publik"
+
+#: .Search%E2%80%A6
+msgid "Search…"
+msgstr "Mencari…"
+
+#: .This+project+has+no+submitted+data.+Please+collect+some+and+try+again.
+msgid "This project has no submitted data. Please collect some and try again."
+msgstr "Proyek ini tidak memiliki data yang dikirimkan. Mohon kumpulkan beberapa data dan coba lagi."
+
+#: .results
+msgid "results"
+msgstr "hasil"
+
+#: .Edit
+msgid "Edit"
+msgstr "Edit"
+
+#: .Search
+msgid "Search"
+msgstr "Cari"
+
+#: .Display+options
+msgid "Display options"
+msgstr "Opsi Tampilan"
+
+#: .Prev
+msgid "Prev"
+msgstr "Sebelumnya"
+
+#: .Your+filters+returned+no+submissions.
+msgid "Your filters returned no submissions."
+msgstr "Filter Anda tidak menghasilkan kiriman apa pun."
+
+#: .Page
+msgid "Page"
+msgstr "Halaman"
+
+#: .rows
+msgid "rows"
+msgstr "baris"
+
+#: .Summary
+msgid "Summary"
+msgstr "Ringkasan"
+
+#: .Form
+msgid "Form"
+msgstr "Formulir"
+
+#: .Settings
+msgid "Settings"
+msgstr "Pengaturan"
+
+#: .Today
+msgid "Today"
+msgstr "Hari ini"
+
+#: .Past+7+days
+msgid "Past 7 days"
+msgstr "7 hari terakhir"
+
+#: .Past+31+days
+msgid "Past 31 days"
+msgstr "31 hari terakhir"
+
+#: .Past+3+months
+msgid "Past 3 months"
+msgstr "3 bulan terakhir"
+
+#: .Past+12+months
+msgid "Past 12 months"
+msgstr "12 bulan terakhir"
+
+#: .No+chart+data+available+for+current+period.
+msgid "No chart data available for current period."
+msgstr "Tidak ada bagan data yang tersedia untuk periode ini."
+
+#: .Total
+msgid "Total"
+msgstr "Total"
+
+#: .Please+check+file+name
+msgid "Please check file name"
+msgstr "Periksa nama file"
+
+#: .No+project+selected
+msgid "No project selected"
+msgstr "Tidak ada proyek yang dipilih"
+
+#: .Field+is+empty
+msgid "Field is empty"
+msgstr "Bagian kosong"
+
+#: .Privacy+Notice
+msgid "Privacy Notice"
+msgstr "Pemberitahuan Privasi"
+
+#: .This+will+attach+the+full+dataset+from+%22%23%23ASSET_NAME%23%23%22+as+a+background+XML+file+to+this+form.+While+not+easily+visible,+it+is+technically+possible+for+anyone+entering+data+to+your+form+to+retrieve+and+view+this+dataset.+Do+not+use+this+feature+if+%22%23%23ASSET_NAME%23%23%22+includes+sensitive+data.
+msgid ""
+"This will attach the full dataset from \"##ASSET_NAME##\" as a background "
+"XML file to this form. While not easily visible, it is technically possible "
+"for anyone entering data to your form to retrieve and view this dataset. Do "
+"not use this feature if \"##ASSET_NAME##\" includes sensitive data."
+msgstr "Ini akan melampirkan seluruh set data dari \"##ASSET_NAME##\" sebagai file XML latar belakang ke formulir ini. Meskipun tidak terlihat dengan mudah, secara teknis dimungkinkan bagi siapa pun yang memasukkan data ke formulir Anda untuk mengambil dan melihat set data ini. Jangan gunakan fitur ini jika \"##ASSET_NAME##\" berisi data sensitif."
+
+#: .Acknowledge+and+continue
+msgid "Acknowledge and continue"
+msgstr "Pahami dan lanjutkan"
+
+#: .Select+a+different+project+to+import+data+from
+msgid "Select a different project to import data from"
+msgstr "Pilih proyek yang berbeda untuk mengimpor data"
+
+#: .No+projects+to+connect
+msgid "No projects to connect"
+msgstr "Tidak ada proyek untuk dihubungkan"
+
+#: .Data+sharing+enabled
+msgid "Data sharing enabled"
+msgstr "Berbagi data diaktifkan"
+
+#: .Select+specific+questions+to+share
+msgid "Select specific questions to share"
+msgstr "Pilih pertanyaan-pertanyaan tertentu yang ingin dibagikan"
+
+#: .Select+any+questions+you+want+to+share+in+the+right+side+table
+msgid "Select any questions you want to share in the right side table"
+msgstr "Pilih pertanyaan-pertanyaan apa saja yang ingin Anda bagikan di tabel sisi kanan"
+
+#: .Updating+shared+questions
+msgid "Updating shared questions"
+msgstr "Memperbarui pertanyaan-pertanyaan yang dibagikan"
+
+#: .Data+sharing+disabled
+msgid "Data sharing disabled"
+msgstr "Berbagi data dinonaktifkan"
+
+#: .Give+a+unique+name+to+the+import
+msgid "Give a unique name to the import"
+msgstr "Beri nama unik pada impor tersebut"
+
+#: .Imported
+msgid "Imported"
+msgstr "Diimpor"
+
+#: .Loading+imported+projects
+msgid "Loading imported projects"
+msgstr "Memuat proyek-proyek yang diimpor"
+
+#: .No+data+imported
+msgid "No data imported"
+msgstr "Tidak ada data yang diimpor"
+
+#: .Share+data+with+other+project+forms
+msgid "Share data with other project forms"
+msgstr "Bagikan data dengan formulir proyek lainnya"
+
+#: .Enable+data+sharing+to+allow+other+forms+to+import+and+use+dynamic+data+from+this+project.+Learn+more+about+dynamic+data+attachments
+msgid ""
+"Enable data sharing to allow other forms to import and use dynamic data from"
+" this project. Learn more about dynamic data attachments"
+msgstr "Aktifkan berbagi data untuk memungkinkan formulir lain mengimpor dan menggunakan data dinamis dari proyek ini. Pelajari lebih lanjut tentang lampiran data dinamis"
+
+#: .here
+msgid "here"
+msgstr "di sini"
+
+#: .Import+other+project+data
+msgid "Import other project data"
+msgstr "Impor data proyek lainnya"
+
+#: .Connect+with+other+project(s)+to+import+dynamic+data+from+them+into+this+project.+Learn+more+about+dynamic+data+attachments
+msgid ""
+"Connect with other project(s) to import dynamic data from them into this "
+"project. Learn more about dynamic data attachments"
+msgstr "Hubungkan dengan proyek-proyek lainnya untuk mengimpor data dinamis dari mereka ke proyek ini. Pelajari lebih lanjut tentang lampiran data dinamis"
+
+#: .Cannot+transfer+a+project+to+the+same+account.
+msgid "Cannot transfer a project to the same account."
+msgstr "Tidak dapat mengalihkan proyek ke akun yang sama."
+
+#: .User+not+found.+Please+try+again.
+msgid "User not found. Please try again."
+msgstr "Pengguna tidak ditemukan. Silakan coba lagi."
+
+#: .Please+enter+a+user+name.
+msgid "Please enter a user name."
+msgstr "Masukkan nama pengguna."
+
+#: .Transfer+project+ownership
+msgid "Transfer project ownership"
+msgstr "Alihkan kepemilikan proyek"
+
+#: .Your+transfer+request+is+pending+until+%23%23username%23%23+has+accepted+or+declined+it.
+msgid ""
+"Your transfer request is pending until ##username## has accepted or declined"
+" it."
+msgstr "Permintaan peralihan Anda tertunda hingga ##username## menerima atau menolaknya."
+
+#: .Transfer+ownership+of+this+project+to+another+user.+All+submissions,+data+storage,+and+transcription+and+translation+usage+for+this+project+will+be+transferred+to+the+new+project+owner.
+msgid ""
+"Transfer ownership of this project to another user. All submissions, data "
+"storage, and transcription and translation usage for this project will be "
+"transferred to the new project owner."
+msgstr "Alihkan kepemilikan proyek ini kepada pengguna lain. Semua kiriman, penyimpanan data, dan penggunaan transkrip dan terjemahan untuk proyek ini akan dialihkan kepada pemilik proyek yang baru."
+
+#: .Learn+more+%E2%86%92
+msgid "Learn more →"
+msgstr "Pelajari lebih lanjut →"
+
+#: .Cancel+transfer
+msgid "Cancel transfer"
+msgstr "Batalkan peralihan"
+
+#: .Transfer
+msgid "Transfer"
+msgstr "Alihkan"
+
+#: .Transfer+ownership
+msgid "Transfer ownership"
+msgstr "Alihkan kepemilikan"
+
+#: .This+action+will+transfer+ownership+of+%23%23username%23%23+to+another+user
+msgid "This action will transfer ownership of ##username## to another user"
+msgstr "Tindakan ini akan mengalihkan kepemilikan dari ##username## kepada pengguna lain"
+
+#: .When+you+transfer+ownership+of+the+project+to+another+user,+all+of+the+submissions,+data+storage,+and+transcription+and+translation+usage+for+the+project+will+be+transferred+to+the+new+project+owner.
+msgid ""
+"When you transfer ownership of the project to another user, all of the "
+"submissions, data storage, and transcription and translation usage for the "
+"project will be transferred to the new project owner."
+msgstr "Saat Anda menerima peralihan kepemilikan kepada pengguna lain, semua kiriman, penyimpanan data, dan penggunaan transkrip dan terjemahan untuk proyek ini akan dialihkan kepada pemilik proyek yang baru."
+
+#: .The+new+project+owner+will+receive+an+email+request+to+accept+the+transfer.+You+will+be+notified+when+the+transfer+is+accepted+or+declined.
+msgid ""
+"The new project owner will receive an email request to accept the transfer. "
+"You will be notified when the transfer is accepted or declined."
+msgstr "Pemilik proyek yang baru akan menerima email permintaan untuk menerima peralihan. Anda akan diberitahukan ketika peralihan diterima atau ditolak."
+
+#: .You+will+be+the+owner+of+the+project+until+the+transfer+is+accepted.
+msgid "You will be the owner of the project until the transfer is accepted."
+msgstr "Anda adalah pemilik proyek hingga peralihan diterima."
+
+#: .Once+the+transfer+is+accepted,+you+will+not+be+able+to+undo+this+action.
+msgid ""
+"Once the transfer is accepted, you will not be able to undo this action."
+msgstr "Setelah peralihan diterima, Anda tidak akan bisa membatalkan tindakan ini."
+
+#: .To+complete+the+transfer,+enter+the+username+of+the+new+project+owner
+msgid "To complete the transfer, enter the username of the new project owner"
+msgstr "Untuk menyelesaikan peralihan, masukkan nama pengguna dari pemilik proyek yang baru"
+
+#: .Enter+username+here
+msgid "Enter username here"
+msgstr "Masukkan nama pengguna di sini"
+
+#: .Transfer+project
+msgid "Transfer project"
+msgstr "Alihkan proyek"
+
+#: .Please+[contact+the+support+team]+if+you+think+it%27s+an+error.
+msgid "Please [contact the support team] if you think it's an error."
+msgstr "Silakan [hubungi tim pendukung] jika Anda merasa ini adalah kesalahan."
+
+#: .Please+try+logging+in+using+the+header+button+or+[contact+the+support+team]+if+you+think+it%27s+an+error.
+msgid ""
+"Please try logging in using the header button or [contact the support team] "
+"if you think it's an error."
+msgstr "Silakan coba masuk menggunakan tombol di header atau [hubungi tim pendukung] jika menurut Anda itu adalah kesalahan."
+
+#: .Access+Denied
+msgid "Access Denied"
+msgstr "Akses Ditolak"
+
+#: .You+don%27t+have+access+to+this+page.
+msgid "You don't have access to this page."
+msgstr "Anda tidak memiliki akses ke halaman ini."
+
+#: .Either+you+don%27t+have+access+to+this+page+or+this+page+simply+doesn%27t+exist.
+msgid ""
+"Either you don't have access to this page or this page simply doesn't exist."
+msgstr "Entah Anda tidak memiliki akses ke halaman ini atau halaman ini memang tidak ada."
+
+#: .Something+went+wrong
+msgid "Something went wrong"
+msgstr "Terjadi kesalahan"
+
+#: .We%27re+sorry,+but+there+was+an+unexpected+error+while+trying+to+serve+this+page.
+msgid ""
+"We're sorry, but there was an unexpected error while trying to serve this "
+"page."
+msgstr "Maaf, terjadi kesalahan yang tidak terduga saat mencoba melayani halaman ini."
+
+#: .Please+try+again+later,+or+[contact+the+support+team]+if+this+happens+repeatedly.
+msgid ""
+"Please try again later, or [contact the support team] if this happens "
+"repeatedly."
+msgstr "Silakan coba lagi nanti, atau [hubungi tim dukungan] jika ini terjadi secara berulang."
+
+#: .Additional+details
+msgid "Additional details:"
+msgstr "Detail tambahan:"
+
+#: .There+is+no+data+for+this+question+for+the+current+submission
+msgid "There is no data for this question for the current submission"
+msgstr "Tidak ada data untuk pertanyaan ini untuk kiriman saat ini"
+
+#: .Failed+to+get+owner+data.
+msgid "Failed to get owner data."
+msgstr "Gagal mendapatkan data pemilik."
+
+#: .Date+Created
+msgid "Date Created"
+msgstr "Tanggal Dibuat"
+
+#: .Items
+msgid "Items"
+msgstr "Item"
+
+#: .Organization
+msgid "Organization"
+msgstr "Organisasi"
+
+#: .Country
+msgid "Country"
+msgstr "Negara"
+
+#: .Hide+full+details
+msgid "Hide full details"
+msgstr "Sembunyikan detail lengkap"
+
+#: .Show+full+details
+msgid "Show full details"
+msgstr "Tampilkan detail lengkap"
+
+#: .Failed+to+change+asset+public+status.
+msgid "Failed to change asset public status."
+msgstr "Gagal mengubah status publik aset."
+
+#: .Make+public
+msgid "Make public"
+msgstr "Jadikan publik"
+
+#: .Make+private
+msgid "Make private"
+msgstr "Jadikan privat"
+
+#: .Parent+Collection
+msgid "Parent Collection"
+msgstr "Koleksi Induk"
+
+#: .This+%23%23asset_type%23%23+is+empty.
+msgid "This ##asset_type## is empty."
+msgstr "##asset_type## ini kosong."
+
+#: .Show+less
+msgid "Show less"
+msgstr "Tampilkan lebih sedikit"
+
+#: .Show+more
+msgid "Show more"
+msgstr "Tampilkan lebih banyak"
+
+#: .Your+query+is+too+short
+msgid "Your query is too short"
+msgstr "Kueri Anda terlalu singkat"
+
+#: .failed+to+list+assets
+msgid "failed to list assets"
+msgstr "gagal untuk mencantumkan aset"
+
+#: .Unlabeled
+msgid "Unlabeled"
+msgstr "Tanpa label"
+
+#: .Vertical
+msgid "Vertical"
+msgstr "Vertikal"
+
+#: .Horizontal
+msgid "Horizontal"
+msgstr "Horizontal"
+
+#: .Pie
+msgid "Pie"
+msgstr "Pai"
+
+#: .Donut
+msgid "Donut"
+msgstr "Donat"
+
+#: .Polar+area
+msgid "Polar area"
+msgstr "Area kutub"
+
+#: .Radar
+msgid "Radar"
+msgstr "Radar"
+
+#: .Untitled+Report
+msgid "Untitled Report"
+msgstr "Laporan Tanpa Judul"
+
+#: .Include+the+following+questions
+msgid "Include the following questions:"
+msgstr "Sertakan pertanyaan-pertanyaan berikut:"
+
+#: .Delete
+msgid "Delete"
+msgstr "Hapus"
+
+#: .No+grouping
+msgid "No grouping"
+msgstr "Tanpa pengelompokan"
+
+#: .Type
+msgid "Type"
+msgstr "Tipe"
+
+#: .Name
+msgid "Name"
+msgstr "Nama"
+
+#: .Subscribers
+msgid "Subscribers"
+msgstr "Pelanggan"
+
+#: .Primary+Sector
+msgid "Primary Sector"
+msgstr "Sektor Utama"
+
+#: .Deploy
+msgid "Deploy"
+msgstr "Sebarkan"
+
+#: .Remove+from+collection
+msgid "Remove from collection"
+msgstr "Hapus dari koleksi"
+
+#: .Move+to
+msgid "Move to"
+msgstr "Pindahkan ke"
+
+#: .Unarchive
+msgid "Unarchive"
+msgstr "Buka Arsip"
+
+#: .Archive
+msgid "Archive"
+msgstr "Arsip"
+
+#: .Subscribe
+msgid "Subscribe"
+msgstr "Langganan"
+
+#: .Unsubscribe
+msgid "Unsubscribe"
+msgstr "Berhenti langganan"
+
+#: .Modify+details
+msgid "Modify details"
+msgstr "Ubah detail"
+
+#: .Edit+Tags
+msgid "Edit Tags"
+msgstr "Edit Tag"
+
+#: .Share
+msgid "Share"
+msgstr "Bagikan"
+
+#: .View+containing+Collection
+msgid "View containing Collection"
+msgstr "Lihat isi Koleksi"
+
+#: .Previous
+msgid "Previous"
+msgstr "Sebelumnya"
+
+#: .%23%23count%23%23+items
+msgid "##count## items"
+msgstr "##count## item"
+
+#: .There+are+no+assets+to+display.
+msgid "There are no assets to display."
+msgstr "Tidak ada aset yang ditampilkan."
+
+#: .permissions+were+copied+successfully
+msgid "permissions were copied successfully"
+msgstr "izin berhasil disalin"
+
+#: .You+are+about+to+copy+permissions+from+%23%23source+to+%23%23target.+This+action+cannot+be+undone.
+msgid ""
+"You are about to copy permissions from ##source to ##target. This action "
+"cannot be undone."
+msgstr "Anda akan menyalin izin dari ##source to ##target. Tindakan ini tidak dapat dibatalkan."
+
+#: .Are+you+sure+you+want+to+copy+permissions%3F
+msgid "Are you sure you want to copy permissions?"
+msgstr "Apakah Anda yakin ingin menyalin izin?"
+
+#: .Proceed
+msgid "Proceed"
+msgstr "Lanjutkan"
+
+#: .Copy+team+from+another+project
+msgid "Copy team from another project"
+msgstr "Salin tim dari proyek lain"
+
+#: .This+will+overwrite+any+existing+sharing+settings+defined+in+this+project.
+msgid ""
+"This will overwrite any existing sharing settings defined in this project."
+msgstr "Ini akan menimpa pengaturan berbagi yang ada yang telah ditentukan dalam proyek ini."
+
+#: .Select+source+project%E2%80%A6
+msgid "Select source project…"
+msgstr "Pilih proyek sumber…"
+
+#: .copy
+msgid "copy"
+msgstr "salin"
+
+#: .Enter+usernames+separated+by+comma
+msgid "Enter usernames separated by comma"
+msgstr "Masukkan nama pengguna yang dipisahkan oleh koma"
+
+#: .User+not+found
+msgid "User not found:"
+msgstr "Pengguna tidak ditemukan:"
+
+#: .equals
+msgid "equals"
+msgstr "sama"
+
+#: .Reset+changes
+msgid "Reset changes"
+msgstr "Atur ulang perubahan"
+
+#: .username
+msgid "username"
+msgstr "nama pengguna"
+
+#: .Grant+permissions
+msgid "Grant permissions"
+msgstr "Beri izin"
+
+#: .Update+permissions
+msgid "Update permissions"
+msgstr "Perbarui izin"
+
+#: .Share+publicly+by+link
+msgid "Share publicly by link"
+msgstr "Bagikan secara publik melalui tautan"
+
+#: .Anyone+can+view+this+form
+msgid "Anyone can view this form"
+msgstr "Siapa saja dapat melihat formulir ini"
+
+#: .Anyone+can+view+submissions+made+to+this+form
+msgid "Anyone can view submissions made to this form"
+msgstr "Siapa saja dapat melihat kiriman yang dibuat melalui formulir ini"
+
+#: .Shareable+link
+msgid "Shareable link"
+msgstr "Tautan yang dapat dibagikan"
+
+#: .Remove+permissions%3F
+msgid "Remove permissions?"
+msgstr "Hapus izin?"
+
+#: .This+action+will+remove+all+permissions+for+user+%23%23username%23%23
+msgid "This action will remove all permissions for user ##username##"
+msgstr "Tindakan ini akan menghapus semua izin untuk pengguna ##username##"
+
+#: .Remove
+msgid "Remove"
+msgstr "Hapus"
+
+#: .is+owner
+msgid "is owner"
+msgstr "adalah pemilik"
+
+#: .Pending+owner
+msgid "Pending owner"
+msgstr "Pemilik tertunda"
+
+#: .Paste+your+formatted+table+from+excel+in+the+box+below.
+msgid "Paste your formatted table from excel in the box below."
+msgstr "Tempelkan tabel yang diformat dari Excel Anda dalam kotak di bawah ini."
+
+#: .add+cascade+with+%23+questions
+msgid "add cascade with # questions"
+msgstr "tambahkan jenjang dengan # pertanyaan"
+
+#: .OK
+msgid "OK"
+msgstr "OKE"
+
+#: .Learn+more+about+importing+cascading+lists+from+Excel
+msgid "Learn more about importing cascading lists from Excel"
+msgstr "Pelajari lebih lanjut tentang mengimpor daftar berjenjang dari Excel"
+
+#: .DONE
+msgid "DONE"
+msgstr "SELESAI"
+
+#: .loading
+msgid "loading"
+msgstr "sedang memuat"
+
+#: .no+search+results+found
+msgid "no search results found"
+msgstr "tidak ada hasil pencarian yang ditemukan"
+
+#: .block+of+___+questions
+msgid "block of ___ questions"
+msgstr "blok dari ___ pertanyaan"
+
+#: .search+library
+msgid "search library"
+msgstr "telusuri perpustakaan"
+
+#: .question+has+been+added+to+the+library
+msgid "question has been added to the library"
+msgstr "pertanyaan telah ditambahkan ke perpustakaan"
+
+#: .group+has+been+added+to+the+library+as+a+block
+msgid "group has been added to the library as a block"
+msgstr "grup telah ditambahkan ke perpustakaan sebagai blok"
+
+#: .Marker+Colors
+msgid "Marker Colors"
+msgstr "Warna Penanda"
+
+#: .Query+Limit
+msgid "Query Limit"
+msgstr "Batas Kueri"
+
+#: .Geopoint+question
+msgid "Geopoint question"
+msgstr "Pertanyaan titik geo"
+
+#: .Overlays
+msgid "Overlays"
+msgstr "Hamparan"
+
+#: .Best+for+qualitative+data
+msgid "Best for qualitative data"
+msgstr "Terbaik untuk data kualitatif"
+
+#: .Best+for+sequential+data
+msgid "Best for sequential data"
+msgstr "Terbaik untuk data berurutan"
+
+#: .Best+for+diverging+data
+msgid "Best for diverging data"
+msgstr "Terbaik untuk data yang berbeda"
+
+#: .Please+add+a+name+for+your+layer+file.
+msgid "Please add a name for your layer file."
+msgstr "Tambahkan nama untuk file lapisan Anda."
+
+#: .Upload+error+%23%23error_message%23%23.
+msgid "Upload error: ##error_message##."
+msgstr "Kesalahan unggahan: ##error_message##."
+
+#: .Upload+error+not+a+valid+map+overlay+format.
+msgid "Upload error: not a valid map overlay format."
+msgstr "Kesalahan unggahan: bukan format hamparan tindih peta yang valid."
+
+#: .Delete+File
+msgid "Delete File"
+msgstr "Hapus File"
+
+#: .Are+you+sure+you+want+to+delete+this+file%3F+%3Cbr/%3E%3Cbr/%3E%3Cstrong%3EThis+action+cannot+be+undone.%3C/strong%3E
+msgid ""
+"Are you sure you want to delete this file? <br/><br/><strong>This action "
+"cannot be undone.</strong>"
+msgstr "Apakah Anda yakin ingin menghapus file ini? <br/><br/><strong>Tindakan ini tidak bisa dibatalkan.</strong>"
+
+#: .Choose+the+Geopoint+question+you+would+like+to+display+on+the+map
+msgid "Choose the Geopoint question you would like to display on the map:"
+msgstr "Pilih pertanyaan Titik Geo yang ingin Anda tampilkan di peta:"
+
+#: .Uploaded+layers
+msgid "Uploaded layers"
+msgstr "Lapisan yang diunggah"
+
+#: .Delete+layer
+msgid "Delete layer"
+msgstr "Hapus lapisan"
+
+#: .Use+the+form+below+to+upload+files+with+map+data+in+one+of+these+formats+CSV,+KML,+KMZ,+WKT+or+GEOJSON.+The+data+will+be+made+available+as+layers+for+display+on+the+map.
+msgid ""
+"Use the form below to upload files with map data in one of these formats: "
+"CSV, KML, KMZ, WKT or GEOJSON. The data will be made available as layers for"
+" display on the map."
+msgstr "Gunakan formulir di bawah ini untuk mengunggah file dengan data peta dalam salah satu format berikut: CSV, KML, KMZ, WKT, atau GEOJSON. Data tersebut akan tersedia sebagai lapisan untuk ditampilkan di peta."
+
+#: .Layer+name
+msgid "Layer name"
+msgstr "Nama lapisan"
+
+#: .Upload
+msgid "Upload"
+msgstr "Unggah"
+
+#: .Choose+the+color+set+for+the+disaggregated+map+markers.
+msgid "Choose the color set for the disaggregated map markers."
+msgstr "Pilih set warna untuk penanda peta yang telah terpilah."
+
+#: .By+default+the+map+is+limited+to+the+%23%23QUERY_LIMIT_DEFAULT%23%23+most+recent+submissions.+You+can+temporarily+increase+this+limit+to+a+different+value.+Note+that+this+is+reset+whenever+you+reopen+the+map.
+msgid ""
+"By default the map is limited to the ##QUERY_LIMIT_DEFAULT## most recent "
+"submissions. You can temporarily increase this limit to a different value. "
+"Note that this is reset whenever you reopen the map."
+msgstr "Secara default, peta dibatasi pada kiriman terbaru ##QUERY_LIMIT_DEFAULT##. Anda dapat sementara meningkatkan batas ini ke nilai yang berbeda. Perhatikan bahwa ini akan diatur ulang setiap kali Anda membuka ulang peta."
+
+#: .Could+not+load+REST+Services
+msgid "Could not load REST Services"
+msgstr "Tidak dapat memuat Layanan REST"
+
+#: .Are+you+sure+you+want+to+delete+%23%23target%3F
+msgid "Are you sure you want to delete ##target?"
+msgstr "Apakah Anda yakin ingin menghapus ##target?"
+
+#: .You+are+about+to+delete+%23%23target.+This+action+cannot+be+undone.
+msgid "You are about to delete ##target. This action cannot be undone."
+msgstr "Anda akan menghapus ##target. Tindakan ini tidak dapat dibatalkan."
+
+#: .Confirm
+msgid "Confirm"
+msgstr "Konfirmasi"
+
+#: .Register+a+New+Service
+msgid "Register a New Service"
+msgstr "Daftarkan Layanan Baru"
+
+#: .This+project+doesn%27t+have+any+REST+Services+yet%21
+msgid "This project doesn't have any REST Services yet!"
+msgstr "Proyek ini belum memiliki Layanan REST apa pun!"
+
+#: .You+can+use+REST+Services+to+automatically+post+submissions+to+a+third-party+application.
+msgid ""
+"You can use REST Services to automatically post submissions to a third-party"
+" application."
+msgstr "Anda dapat menggunakan Layanan REST untuk memposting kiriman secara otomatis ke aplikasi pihak ketiga."
+
+#: .REST+Services+%23%23number%23%23
+msgid "REST Services: ##number##"
+msgstr "Layanan REST: ##number##"
+
+#: .Need+help%3F
+msgid "Need help?"
+msgstr "Butuh bantuan?"
+
+#: .Service+Name
+msgid "Service Name"
+msgstr "Nama Layanan"
+
+#: .Success
+msgid "Success"
+msgstr "Berhasil"
+
+#: .Pending
+msgid "Pending"
+msgstr "Tertunda"
+
+#: .Failed
+msgid "Failed"
+msgstr "Gagal"
+
+#: .Could+not+load+REST+Service
+msgid "Could not load REST Service"
+msgstr "Tidak dapat memuat Layanan REST"
+
+#: .Could+not+load+REST+Service+logs
+msgid "Could not load REST Service logs"
+msgstr "Tidak dapat memuat log Layanan REST"
+
+#: .Submission+Failure+Detail+(%23%23id%23%23)
+msgid "Submission Failure Detail (##id##)"
+msgstr "Detail Kegagalan Kiriman (##id##)"
+
+#: .Back+to+REST+Services
+msgid "Back to REST Services"
+msgstr "Kembali ke Layanan REST"
+
+#: .There+are+no+logs+yet
+msgid "There are no logs yet"
+msgstr "Belum ada log"
+
+#: .Submission
+msgid "Submission"
+msgstr "Kiriman"
+
+#: .Retry+all+submissions
+msgid "Retry all submissions"
+msgstr "Coba lagi semua kiriman"
+
+#: .Pending+(%23%23count%23%23%C3%97)
+msgid "Pending (##count##×)"
+msgstr "Tertunda (##count##×)"
+
+#: .Retry+submission
+msgid "Retry submission"
+msgstr "Coba lagi kiriman"
+
+#: .More+info
+msgid "More info"
+msgstr "Info lebih lanjut"
+
+#: .Audit+settings
+msgid "Audit settings"
+msgstr "Pengaturan audit"
+
+#: .Enter+audit+settings+here
+msgid "Enter audit settings here"
+msgstr "Masukkan pengaturan audit di sini"
+
+#: .This+functionality+is+available+in+
+msgid "This functionality is available in "
+msgstr "Fungsi ini tersedia di "
+
+#: .This+survey+will+be+recorded
+msgid "This survey will be recorded"
+msgstr "Survei ini akan direkam"
+
+#: .Enable+audio+recording+in+the+background
+msgid "Enable audio recording in the background"
+msgstr "Aktifkan perekaman audio di latar belakang"
+
+#: .Audio+quality
+msgid "Audio quality"
+msgstr "Kualitas audio"
+
+#: .archived
+msgid "archived"
+msgstr "diarsipkan"
+
+#: .deployed
+msgid "deployed"
+msgstr "disebarkan"
+
+#: .draft
+msgid "draft"
+msgstr "draf"
+
+#: .This+is+a+fully+locked+template.+Go+to+question+settings+to+see+specific+restrictions.
+msgid ""
+"This is a fully locked template. Go to question settings to see specific "
+"restrictions."
+msgstr "Ini adalah templat yang sepenuhnya terkunci. Buka pengaturan pertanyaan untuk melihat batasan tertentu."
+
+#: .This+is+a+partially+locked+template.+Go+to+question+settings+to+see+specific+restrictions.+Expand+this+notification+to+see+form+level+restrictions.
+msgid ""
+"This is a partially locked template. Go to question settings to see specific"
+" restrictions. Expand this notification to see form level restrictions."
+msgstr "Ini adalah templat yang dikunci sebagian. Buka pengaturan pertanyaan untuk melihat batasan tertentu. Perluas pemberitahuan ini untuk melihat batasan tingkat formulir."
+
+#: .This+form+was+created+using+a+fully+locked+template.+This+means+no+edits+were+permitted+by+the+template+creator.
+msgid ""
+"This form was created using a fully locked template. This means no edits "
+"were permitted by the template creator."
+msgstr "Formulir ini dibuat menggunakan templat yang sepenuhnya terkunci. Ini berarti tidak ada pengeditan yang diizinkan oleh pembuat templat."
+
+#: .This+form+was+created+using+a+partially+locked+template.+Go+to+question+settings+to+see+specific+restrictions.+Expand+this+notification+to+see+form+level+restrictions.
+msgid ""
+"This form was created using a partially locked template. Go to question "
+"settings to see specific restrictions. Expand this notification to see form "
+"level restrictions."
+msgstr "Formulir ini dibuat menggunakan templat yang dikunci sebagian. Buka pengaturan pertanyaan untuk melihat batasan tertentu. Perluas pemberitahuan ini untuk melihat batasan tingkat formulir."
+
+#: .see+more
+msgid "see more"
+msgstr "lihat lebih banyak"
+
+#: .Locked+functionalities
+msgid "Locked functionalities"
+msgstr "Fungsi terkunci"
+
+#: .Unlocked+functionalities
+msgid "Unlocked functionalities"
+msgstr "Fungsi tidak terkunci"
+
+#: .Select%E2%80%A6
+msgid "Select…"
+msgstr "Pilih…"
+
+#: .No+options+found
+msgid "No options found"
+msgstr "Tidak ada pilihan yang ditemukan"
+
+#: .Failed+to+cancel+transfer.+The+transfer+may+be+declined+or+accepted+already.+Please+check+your+email.
+msgid ""
+"Failed to cancel transfer. The transfer may be declined or accepted already."
+" Please check your email."
+msgstr "Gagal membatalkan peralihan. Peralihan mungkin sudah ditolak atau diterima. Silakan periksa email Anda."
+
+#: .Failed+to+accept+invite.
+msgid "Failed to accept invite."
+msgstr "Gagal menerima undangan."
+
+#: .Failed+to+decline+invite
+msgid "Failed to decline invite"
+msgstr "Gagal menolak undangan"
+
+#: .Invite+has+been+cancelled+or+expired
+msgid "Invite has been cancelled or expired"
+msgstr "Undangan telah dibatalkan atau kedaluwarsa"
+
+#: .Invite+is+invaild.
+msgid "Invite is invaild."
+msgstr "Undangan tidak valid."
+
+#: .and+one+other+question
+msgid "and one other question"
+msgstr "dan satu pertanyaan lainnya"
+
+#: .and+%23%23+other+questions
+msgid "and ## other questions"
+msgstr "dan ## pertanyaan lainnya"
+
+#: .Exporting+data
+msgid "Exporting data"
+msgstr "Mengekspor data"
+
+#: .Your+export+request+is+currently+being+processed.+Once+the+export+is+complete,+you%27ll+receive+an+email+with+all+the+details.
+msgid ""
+"Your export request is currently being processed. Once the export is "
+"complete, you'll receive an email with all the details."
+msgstr "Permintaan ekspor Anda sedang diproses. Setelah ekspor selesai, Anda akan menerima email dengan semua detailnya."
+
+#: .Incorrect+token
+msgid "Incorrect token"
+msgstr "Token salah"
+
+#: .Could+not+generate+secret+key
+msgid "Could not generate secret key"
+msgstr "Tidak dapat membuat kunci rahasia"
+
+#: .Two-factor+authentication+(2FA)+verifies+your+identity+using+an+authenticator+application+in+addition+to+your+usual+password.+We+recommend+enabling+two-factor+authentication+for+an+additional+layer+of+protection.
+msgid ""
+"Two-factor authentication (2FA) verifies your identity using an "
+"authenticator application in addition to your usual password. We recommend "
+"enabling two-factor authentication for an additional layer of protection."
+msgstr "Autentikasi dua faktor (2FA) memverifikasi identitas Anda menggunakan aplikasi autentikator sebagai tambahan pada kata sandi yang biasa Anda gunakan. Kami merekomendasikan autentikasi dua faktor yang memungkinkan sebagai perlindungan tambahan."
+
+#: .Scan+QR+code+and+enter+the+%23%23number%23%23-digit+token+from+the+application
+msgid "Scan QR code and enter the ##number##-digit token from the application"
+msgstr "Pindai kode QR dan masukkan token ##number## digit dari aplikasi"
+
+#: .After+scanning+the+QR+code+image,+the+authenticator+app+will+display+a+%23%23number%23%23-digit+code+that+you+can+enter+below.
+msgid ""
+"After scanning the QR code image, the authenticator app will display a "
+"##number##-digit code that you can enter below."
+msgstr "Setelah memindai gambar kode QR, aplikasi autentikator akan menampilkan kode ##number## digit yang dapat Anda masukkan di bawah ini."
+
+#: .No+QR+code%3F
+msgid "No QR code?"
+msgstr "Tidak ada kode QR?"
+
+#: .Enter+key+manually
+msgid "Enter key manually"
+msgstr "Masukkan kunci secara manual"
+
+#: .The+following+recovery+codes+will+help+you+access+your+account+in+case+your+authenticator+app+fails.+These+codes+are+unique+and+will+not+be+stored+in+your+Kobo+account.+This+is+your+only+opportunity+to+save+them.+Please+download+the+file+and+keep+it+somewhere+safe.
+msgid ""
+"The following recovery codes will help you access your account in case your "
+"authenticator app fails. These codes are unique and will not be stored in "
+"your Kobo account. This is your only opportunity to save them. Please "
+"download the file and keep it somewhere safe."
+msgstr "Berikut adalah kode pemulihan yang akan membantu Anda mengakses akun Anda jika aplikasi autentikator mengalami masalah. Kode-kode ini unik dan tidak akan disimpan di akun Kobo Anda. Ini adalah kesempatan Anda untuk menyimpannya. Silakan unduh file ini dan simpan di tempat yang aman."
+
+#: .Download+codes
+msgid "Download codes"
+msgstr "Unduh kode"
+
+#: .I+saved+my+codes
+msgid "I saved my codes"
+msgstr "Saya menyimpan kode saya"
+
+#: .Enter+this+key+into+your+authenticator+app+to+generate+a+%23%23number%23%23-digit+token
+msgid ""
+"Enter this key into your authenticator app to generate a ##number##-digit "
+"token"
+msgstr "Masukkan kunci ini ke aplikasi autentikator Anda untuk membuat token ##number## digit"
+
+#: .Once+your+authenticator+app+is+set+up,+generate+a+%23%23number%23%23-digit+token+and+enter+it+in+the+field+below.
+msgid ""
+"Once your authenticator app is set up, generate a ##number##-digit token and"
+" enter it in the field below."
+msgstr "Setelah aplikasi autentikator Anda disiapkan, buat token ##number## digit dan masukkan pada bagian di bawah ini."
+
+#: .Take+me+back+to+QR+code
+msgid "Take me back to QR code"
+msgstr "Bawa saya kembali ke kode QR"
+
+#: .Please+enter+your+%23%23number%23%23-digit+authenticator+token+to+regenerate+your+backup+codes.
+msgid ""
+"Please enter your ##number##-digit authenticator token to regenerate your "
+"backup codes."
+msgstr "Masukkan token autentikator ##number## digit Anda untuk membuat ulang kode cadangan Anda."
+
+#: .Please+enter+your+%23%23number%23%23-digit+authenticator+token+to+deactivate+two-factor+authentication.
+msgid ""
+"Please enter your ##number##-digit authenticator token to deactivate two-"
+"factor authentication."
+msgstr "Masukkan token autentikator ##number## digit Anda untuk menonaktifkan autentikasi dua faktor."
+
+#: .Problems+with+your+token%3F
+msgid "Problems with your token?"
+msgstr "Ada masalah dengan token Anda?"
+
+#: .Please+note+that+generating+new+recovery+codes+will+invalidate+any+previously+generated+codes.
+msgid ""
+"Please note that generating new recovery codes will invalidate any "
+"previously generated codes."
+msgstr "Perhatikan bahwa membuat kode pemulihan baru akan membatalkan kode yang dibuat sebelumnya."
+
+#: .Please+note+that+in+order+to+reconfigure+two-factor+authentication+(2FA),+the+previous+set+up+will+first+be+deleted.+Tokens+or+recovery+codes+from+the+previous+set+up+will+not+be+valid+anymore.
+msgid ""
+"Please note that in order to reconfigure two-factor authentication (2FA), "
+"the previous set up will first be deleted. Tokens or recovery codes from the"
+" previous set up will not be valid anymore."
+msgstr "Perhatikan bahwa untuk mengonfigurasi ulang autentikasi dua faktor (2FA), pengaturan sebelumnya akan dihapus terlebih dahulu. Token atau kode pemulihan dari penyiapan sebelumnya tidak akan berlaku lagi."
+
+#: .Once+your+current+2FA+has+been+deactivated,+you%27ll+be+prompted+to+configure+it+again.+If+you+cannot+complete+the+process,+2FA+will+remain+disabled+for+your+account.+In+this+case,+you+can+enable+it+again+at+any+time+through+the+usual+process.
+msgid ""
+"Once your current 2FA has been deactivated, you'll be prompted to configure "
+"it again. If you cannot complete the process, 2FA will remain disabled for "
+"your account. In this case, you can enable it again at any time through the "
+"usual process."
+msgstr "Setelah 2FA Anda saat ini dinonaktifkan, Anda akan diminta untuk mengonfigurasinya lagi. Jika Anda tidak dapat menyelesaikan proses tersebut, 2FA akan tetap dinonaktifkan untuk akun Anda. Dalam hal ini, Anda dapat mengaktifkannya kembali kapan saja melalui proses biasa."
+
+#: .Issues+with+the+token
+msgid "Issues with the token"
+msgstr "Masalah dengan token"
+
+#: .%23%23ASSET_TYPE%23%23+deleted+permanently
+msgid "##ASSET_TYPE## deleted permanently"
+msgstr "##ASSET_TYPE## dihapus secara permanen"
+
+#: .You+are+about+to+permanently+delete+this+item+from+your+library.
+msgid "You are about to permanently delete this item from your library."
+msgstr "Anda akan menghapus item ini secara permanen dari perpustakaan Anda."
+
+#: .You+are+about+to+permanently+delete+this+draft.
+msgid "You are about to permanently delete this draft."
+msgstr "Anda akan menghapus draf ini secara permanen."
+
+#: .You+are+about+to+permanently+delete+this+form.
+msgid "You are about to permanently delete this form."
+msgstr "Anda akan menghapus formulir ini secara permanen."
+
+#: .All+data+gathered+for+this+form+will+be+deleted.
+msgid "All data gathered for this form will be deleted."
+msgstr "Semua data yang terkumpul untuk formulir ini akan dihapus."
+
+#: .The+form+associated+with+this+project+will+be+deleted.
+msgid "The form associated with this project will be deleted."
+msgstr "Formulir yang terkait dengan proyek ini akan dihapus."
+
+#: .I+understand+that+if+I+delete+this+project+I+will+not+be+able+to+recover+it.
+msgid ""
+"I understand that if I delete this project I will not be able to recover it."
+msgstr "Saya mengerti bahwa jika saya menghapus proyek ini, saya tidak akan dapat mengembalikannya."
+
+#: .Are+you+sure+you+want+to+archive+this+project%3F
+msgid "Are you sure you want to archive this project?"
+msgstr "Apakah Anda yakin ingin mengarsipkan proyek ini?"
+
+#: .Your+form+will+not+accept+submissions+while+it+is+archived.
+msgid "Your form will not accept submissions while it is archived."
+msgstr "Formulir Anda tidak akan menerima kiriman saat diarsipkan."
+
+#: .Are+you+sure+you+want+to+unarchive+this+project%3F
+msgid "Are you sure you want to unarchive this project?"
+msgstr "Apakah Anda yakin ingin membuka arsip proyek ini?"
+
+#: .Cloning...
+msgid "Cloning..."
+msgstr "Kloning..."
+
+#: .cloned+%23%23ASSET_TYPE%23%23+created
+msgid "cloned ##ASSET_TYPE## created"
+msgstr "kloning ##ASSET_TYPE## dibuat"
+
+#: .Create
+msgid "Create"
+msgstr "Buat"
+
+#: .Failed+to+create+new+asset%21
+msgid "Failed to create new asset!"
+msgstr "Gagal membuat aset baru!"
+
+#: .Create+new+template+from+this+project
+msgid "Create new template from this project"
+msgstr "Buat templat baru dari proyek ini"
+
+#: .Enter+the+name+of+the+new+template.
+msgid "Enter the name of the new template."
+msgstr "Masukkan nama templat baru."
+
+#: .Create+new+project+from+this+template
+msgid "Create new project from this template"
+msgstr "Buat proyek baru dari templat ini"
+
+#: .Enter+the+name+of+the+new+project.
+msgid "Enter the name of the new project."
+msgstr "Masukkan nama proyek baru."
+
+#: .Remove+shared+form
+msgid "Remove shared form"
+msgstr "Hapus formulir yang dibagikan"
+
+#: .Are+you+sure+you+want+to+remove+this+shared+form%3F
+msgid "Are you sure you want to remove this shared form?"
+msgstr "Apakah Anda yakin ingin menghapus formulir yang dibagikan ini?"
+
+#: .deploying+to+kobocat...
+msgid "deploying to kobocat..."
+msgstr "menyebarkan ke kobocat..."
+
+#: .deployed+form
+msgid "deployed form"
+msgstr "formulir yang disebarkan"
+
+#: .Overwrite+existing+deployment
+msgid "Overwrite existing deployment"
+msgstr "Timpa penyebaran yang ada"
+
+#: .This+form+has+already+been+deployed.+Are+you+sure+you+want+overwrite+the+existing+deployment%3F
+msgid ""
+"This form has already been deployed. Are you sure you want overwrite the "
+"existing deployment?"
+msgstr "Formulir ini sudah disebarkan. Apakah Anda yakin ingin menimpa penyebaran yang sudah ada?"
+
+#: .This+action+cannot+be+undone.
+msgid "This action cannot be undone."
+msgstr "Tindakan ini tidak bisa dibatalkan."
+
+#: .Deploying...
+msgid "Deploying..."
+msgstr "Menyebarkan..."
+
+#: .redeployed+form
+msgid "redeployed form"
+msgstr "formulir yang disebarkan kembali"
+
+#: .Please+refresh+the+page
+msgid "Please refresh the page"
+msgstr "Muat ulang halaman"
+
+#: .Account+Settings
+msgid "Account Settings"
+msgstr "Pengaturan Akun"
+
+#: .Terms+of+Service
+msgid "Terms of Service"
+msgstr "Syarat Layanan"
+
+#: .Privacy+Policy
+msgid "Privacy Policy"
+msgstr "Kebijakan Privasi"
+
+#: .Logout
+msgid "Logout"
+msgstr "Keluar"
+
+#: .Question+Block
+msgid "Question Block"
+msgstr "Blok Pertanyaan"
+
+#: .Template
+msgid "Template"
+msgstr "Templat"
+
+#: .Collection
+msgid "Collection"
+msgstr "Koleksi"
+
+#: .You+have+no+templates.+Go+to+Library+and+create+some.
+msgid "You have no templates. Go to Library and create some."
+msgstr "Anda tidak memiliki templat. Pergi ke Perpustakaan dan buat beberapa."
+
+#: .Template+name
+msgid "Template name"
+msgstr "Nama templat"
+
+#: .Submission+URL
+msgid "Submission URL"
+msgstr "URL kiriman"
+
+#: .Public+key
+msgid "Public key"
+msgstr "Kunci publik"
+
+#: .Set+encryption
+msgid "Set encryption"
+msgstr "Setel enkripsi"
+
+#: .Learn+more+about+encrypting+forms
+msgid "Learn more about encrypting forms"
+msgstr "Pelajari lebih lanjut tentang mengenkripsi formulir"
+
+#: .Remove+encryption
+msgid "Remove encryption"
+msgstr "Hapus enkripsi"
+
+#: .%23%23type%23%23+%23%23name%23%23+created
+msgid "##type## ##name## created"
+msgstr "##type## ##name## dibuat"
+
+#: .Failed+to+create+%23%23type%23%23
+msgid "Failed to create ##type##"
+msgstr "Gagal membuat ##type##"
+
+#: .Failed+to+update+%23%23type%23%23
+msgid "Failed to update ##type##"
+msgstr "Gagal memperbarui ##type##"
+
+#: .Saving%E2%80%A6
+msgid "Saving…"
+msgstr "Menyimpan…"
+
+#: .Creating%E2%80%A6
+msgid "Creating…"
+msgstr "Membuat…"
+
+#: .Enter+title+of+%23%23type%23%23+here
+msgid "Enter title of ##type## here"
+msgstr "Masukkan judul ##type## di sini"
+
+#: .Upload+as+template
+msgid "Upload as template"
+msgstr "Unggah sebagai templat"
+
+#: .Note+that+this+will+be+ignored+when+uploading+a+collection+file.
+msgid "Note that this will be ignored when uploading a collection file."
+msgstr "Perhatikan bahwa ini akan diabaikan saat mengunggah koleksi file."
+
+#: .Import+data+from+%23%23SOURCE_NAME%23%23
+msgid "Import data from ##SOURCE_NAME##"
+msgstr "Impor data dari ##SOURCE_NAME##"
+
+#: .You+are+about+to+import+%23%23SOURCE_NAME%23%23.+Select+or+deselect+in+the+list+below+to+narrow+down+the+number+of+questions+to+import.
+msgid ""
+"You are about to import ##SOURCE_NAME##. Select or deselect in the list "
+"below to narrow down the number of questions to import."
+msgstr "Anda akan mengimpor ##SOURCE_NAME##. Pilih atau batalkan pilihan dalam daftar di bawah untuk mempersempit jumlah pertanyaan yang akan diimpor."
+
+#: .Select+below+the+questions+you+want+to+import
+msgid "Select below the questions you want to import"
+msgstr "Pilih pertanyaan di bawah yang ingin Anda impor"
+
+#: .Select+all
+msgid "Select all"
+msgstr "Pilih semua"
+
+#: .%7C
+msgid "|"
+msgstr "|"
+
+#: .Deselect+all
+msgid "Deselect all"
+msgstr "Batalkan semua pilihan"
+
+#: .Loading+imported+questions
+msgid "Loading imported questions"
+msgstr "Memuat pertanyaan yang diimpor"
+
+#: .Updating+imported+questions
+msgid "Updating imported questions"
+msgstr "Memperbarui pertanyaan yang diimpor"
+
+#: .Accept
+msgid "Accept"
+msgstr "Terima"
+
+#: .There+was+an+error,+table+settings+could+not+be+saved.
+msgid "There was an error, table settings could not be saved."
+msgstr "Terjadi kesalahan, pengaturan tabel tidak dapat disimpan."
+
+#: .XML+Values
+msgid "XML Values"
+msgstr "Nilai XML"
+
+#: .Labels
+msgid "Labels"
+msgstr "Label"
+
+#: .Display+labels+or+XML+values%3F
+msgid "Display labels or XML values?"
+msgstr "Tampilkan label atau nilai XML?"
+
+#: .Show+group+names+in+table+headers
+msgid "Show group names in table headers"
+msgstr "Tampilkan nama grup di header tabel"
+
+#: .Show+HXL+tags
+msgid "Show HXL tags"
+msgstr "Tampilkan tag HXL"
+
+#: .n/d
+msgid "n/d"
+msgstr "tidak ada data"
+
+#: .Multiple+responses
+msgid "Multiple responses"
+msgstr "Beberapa tanggapan"
+
+#: .Displaying+multiple+submissions+(%23%23count%23%23+selected+of+%23%23total%23%23)
+msgid "Displaying multiple submissions (##count## selected of ##total##)"
+msgstr "Menampilkan beberapa kiriman (##count## dipilih dari ##total##)"
+
+#: .Editing+%22%23%23question%23%23%22+for+%23%23count%23%23+submissions
+msgid "Editing \"##question##\" for ##count## submissions"
+msgstr "Mengedit \"##question##\" untuk kiriman ##count##"
+
+#: .in+the+help+article
+msgid "in the help article"
+msgstr "dalam artikel bantuan"
+
+#: .Required
+msgid "Required"
+msgstr "Diperlukan"
+
+#: .Editing+responses+from+repeat+group+questions+is+not+possible+yet.
+msgid "Editing responses from repeat group questions is not possible yet."
+msgstr "Mengedit tanggapan dari pertanyaan grup berulang belum memungkinkan."
+
+#: .You+are+currently+seeing+multiple+submissions+at+once.+You+can+select+specific+questions+to+edit+or+remove+responses+in+bulk.+If+you+want+to+edit+only+one+submission,+click+on+the+desired+submission+on+the+navigation+menu+on+the+top-left+corner+of+this+table,+or+go+back+to+the+general+table+view.+You+can+learn+more+about+bulk+actions
+msgid ""
+"You are currently seeing multiple submissions at once. You can select "
+"specific questions to edit or remove responses in bulk. If you want to edit "
+"only one submission, click on the desired submission on the navigation menu "
+"on the top-left corner of this table, or go back to the general table view. "
+"You can learn more about bulk actions"
+msgstr "Saat ini Anda melihat beberapa kiriman sekaligus. Anda dapat memilih pertanyaan tertentu untuk mengedit atau menghapus tanggapan secara massal. Jika Anda hanya ingin mengedit satu kiriman, klik kiriman yang diinginkan pada menu navigasi di pojok kiri atas tabel ini, atau kembali ke tampilan tabel umum. Anda dapat mempelajari lebih lanjut tentang tindakan massal"
+
+#: .Updated+responses
+msgid "Updated responses"
+msgstr "Tanggapan yang diperbarui"
+
+#: .Question
+msgid "Question"
+msgstr "Pertanyaan"
+
+#: .Response
+msgid "Response"
+msgstr "Tanggapan"
+
+#: .Action
+msgid "Action"
+msgstr "Tindakan"
+
+#: .Type+to+filter
+msgid "Type to filter"
+msgstr "Ketik untuk memfilter"
+
+#: .Discard+Changes
+msgid "Discard Changes"
+msgstr "Buang Perubahan"
+
+#: .Confirm+%26+close
+msgid "Confirm & close"
+msgstr "Konfirmasi &amp; tutup"
+
+#: .You+are+about+to+edit+responses+for+one+or+multiple+submissions+at+once.+Use+the+XML+syntax+in+the+text+box+below.+You+can+also+select+one+of+the+existing+responses+from+the+table+of+responses.+Learn+more+about+how+to+edit+specific+responses+for+one+or+multiple+submissions
+msgid ""
+"You are about to edit responses for one or multiple submissions at once. Use"
+" the XML syntax in the text box below. You can also select one of the "
+"existing responses from the table of responses. Learn more about how to edit"
+" specific responses for one or multiple submissions"
+msgstr "Anda akan mengedit tanggapan untuk satu atau beberapa kiriman sekaligus. Gunakan sintaksis XML dalam kotak teks di bawah ini. Anda juga dapat memilih salah satu tanggapan yang ada dari tabel tanggapan. Pelajari lebih lanjut tentang cara mengedit tanggapan tertentu untuk satu atau beberapa kiriman"
+
+#: .Type+new+response+for+selected+submissions
+msgid "Type new response for selected submissions"
+msgstr "Ketik tanggapan baru untuk kiriman yang dipilih"
+
+#: .Select
+msgid "Select"
+msgstr "Pilih"
+
+#: .Response+value
+msgid "Response value"
+msgstr "Nilai tanggapan"
+
+#: .Frequency
+msgid "Frequency"
+msgstr "Frekuensi"
+
+#: .Percentage
+msgid "Percentage"
+msgstr "Persentase"
+
+#: .Unsupported+media+type+%23%23QUESTION_TYPE%23%23
+msgid "Unsupported media type: ##QUESTION_TYPE##"
+msgstr "Jenis media yang tidak didukung: ##QUESTION_TYPE##"
+
+#: .Failed+to+update+tags
+msgid "Failed to update tags"
+msgstr "Gagal memperbarui tag"
+
+#: .Update
+msgid "Update"
+msgstr "Perbarui"
+
+#: .JSON
+msgid "JSON"
+msgstr "JSON"
+
+#: .XML
+msgid "XML"
+msgstr "XML"
+
+#: .No+Authorization
+msgid "No Authorization"
+msgstr "Tidak ada Otorisasi"
+
+#: .Basic+Authorization
+msgid "Basic Authorization"
+msgstr "Otorisasi Dasar"
+
+#: .Name+required
+msgid "Name required"
+msgstr "Nama diperlukan"
+
+#: .URL+required
+msgid "URL required"
+msgstr "URL diperlukan"
+
+#: .Please+enter+both+name+and+url+of+your+service.
+msgid "Please enter both name and url of your service."
+msgstr "Masukkan nama dan url layanan Anda."
+
+#: .Custom+HTTP+Headers
+msgid "Custom HTTP Headers"
+msgstr "Header HTTP Khusus"
+
+#: .Value
+msgid "Value"
+msgstr "Nilai"
+
+#: .Add+header
+msgid "Add header"
+msgstr "Tambahkan header"
+
+#: .Add+field(s)
+msgid "Add field(s)"
+msgstr "Tambahkan bagian"
+
+#: .Select+fields+subset
+msgid "Select fields subset"
+msgstr "Pilih himpunan bagian"
+
+#: .Endpoint+URL
+msgid "Endpoint URL"
+msgstr "URL titik akhir"
+
+#: .https//
+msgid "https://"
+msgstr "https://"
+
+#: .Enabled
+msgid "Enabled"
+msgstr "Diaktifkan"
+
+#: .Receive+emails+notifications
+msgid "Receive emails notifications"
+msgstr "Menerima pemberitahuan email"
+
+#: .Security
+msgid "Security"
+msgstr "Keamanan"
+
+#: .Username
+msgid "Username"
+msgstr "Nama pengguna"
+
+#: .Password
+msgid "Password"
+msgstr "Kata sandi"
+
+#: .Add+custom+wrapper+around+JSON+submission+(%25SUBMISSION%25+will+be+replaced+by+JSON)
+msgid ""
+"Add custom wrapper around JSON submission (%SUBMISSION% will be replaced by "
+"JSON)"
+msgstr "Tambahkan pembungkus khusus di sekitar kiriman JSON (%SUBMISSION% akan diganti dengan JSON)"
+
+#: .Add+Custom+Wrapper
+msgid "Add Custom Wrapper"
+msgstr "Tambahkan Pembungkus Khusus"
+
+#: .%2A+Save+Changes
+msgid "* Save Changes"
+msgstr "* Simpan Perubahan"
+
+#: .updated+text
+msgid "updated text"
+msgstr "teks yang diperbarui"
+
+#: .Original+string
+msgid "Original string"
+msgstr "String asli"
+
+#: .Go+back%3F
+msgid "Go back?"
+msgstr "Kembali?"
+
+#: .Delete+language%3F
+msgid "Delete language?"
+msgstr "Hapus bahasa?"
+
+#: .Are+you+sure+you+want+to+delete+this+language%3F+This+action+is+not+reversible.
+msgid ""
+"Are you sure you want to delete this language? This action is not "
+"reversible."
+msgstr "Apakah Anda yakin ingin menghapus bahasa ini? Tindakan ini tidak dapat dibatalkan."
+
+#: .Translation+index+mismatch.+Cannot+delete+language.
+msgid "Translation index mismatch. Cannot delete language."
+msgstr "Ketidaksesuaian indeks terjemahan. Tidak dapat menghapus bahasa."
+
+#: .Change+default+language%3F
+msgid "Change default language?"
+msgstr "Ubah bahasa default?"
+
+#: .Are+you+sure+you+would+like+to+set+%23%23lang%23%23+as+the+default+language+for+this+form%3F
+msgid ""
+"Are you sure you would like to set ##lang## as the default language for this"
+" form?"
+msgstr "Apakah Anda yakin ingin menetapkan ##lang## sebagai bahasa default untuk formulir ini?"
+
+#: .There+is+nothing+to+translate+in+this+form.
+msgid "There is nothing to translate in this form."
+msgstr "Tidak ada yang bisa diterjemahkan dalam formulir ini."
+
+#: .Here+you+can+add+more+languages+to+your+project,+and+translate+the+strings+in+each+of+them.
+msgid ""
+"Here you can add more languages to your project, and translate the strings "
+"in each of them."
+msgstr "Di sini, Anda dapat menambahkan lebih banyak bahasa ke proyek Anda, dan menerjemahkan string di masing-masing bahasa."
+
+#: .For+the+language+code+field,+we+suggest+using+the
+msgid "For the language code field, we suggest using the"
+msgstr "Untuk bagian kode bahasa, kami sarankan menggunakan"
+
+#: .official+language+code
+msgid "official language code"
+msgstr "kode bahasa resmi"
+
+#: .(e.g.+%22English+(en)%22+or+%22Rohingya+(rhg)%22).
+msgid "(e.g. \"English (en)\" or \"Rohingya (rhg)\")."
+msgstr "(misalnya “Inggris (en)” atau “Rohingya (rhg)”)."
+
+#: .Read+more.
+msgid "Read more."
+msgstr "Baca selengkapnya."
+
+#: .Please+name+your+default+language+before+adding+languages+and+translations.
+msgid ""
+"Please name your default language before adding languages and translations."
+msgstr "Beri nama bahasa default Anda sebelum menambahkan bahasa dan terjemahan."
+
+#: .Current+languages
+msgid "Current languages"
+msgstr "Bahasa saat ini"
+
+#: .You+have+named+translations+in+your+form+but+the+default+translation+is+unnamed.+Please+specifiy+a+default+translation+or+make+an+existing+one+default.
+msgid ""
+"You have named translations in your form but the default translation is "
+"unnamed. Please specifiy a default translation or make an existing one "
+"default."
+msgstr "Anda telah menamai terjemahan dalam formulir Anda, tetapi terjemahan default tidak diberi nama. Silakan tentukan terjemahan default atau jadikan terjemahan yang sudah ada sebagai default."
+
+#: .default
+msgid "default"
+msgstr "default"
+
+#: .Make+default
+msgid "Make default"
+msgstr "Jadikan default"
+
+#: .Edit+language
+msgid "Edit language"
+msgstr "Edit bahasa"
+
+#: .Update+translations
+msgid "Update translations"
+msgstr "Perbarui terjemahan"
+
+#: .Delete+language
+msgid "Delete language"
+msgstr "Hapus bahasa"
+
+#: .Add+language
+msgid "Add language"
+msgstr "Tambahkan bahasa"
+
+#: .Add+a+new+language
+msgid "Add a new language"
+msgstr "Tambahkan bahasa baru"
+
+#: .Profile
+msgid "Profile"
+msgstr "Profil"
+
+#: .Usage
+msgid "Usage"
+msgstr "Penggunaan"
+
+#: .Plans
+msgid "Plans"
+msgstr "Paket"
+
+#: .Add-ons
+msgid "Add-ons"
+msgstr "Tambahan"
+
+#: .ACCOUNT
+msgid "ACCOUNT"
+msgstr "AKUN"
+
+#: .Members
+msgid "Members"
+msgstr "Member"
+
+#: .The+submission+could+not+be+found.+It+may+have+been+deleted.+Submission+ID+%23%23id%23%23
+msgid ""
+"The submission could not be found. It may have been deleted. Submission ID: "
+"##id##"
+msgstr "Kiriman tidak dapat ditemukan. Itu mungkin telah dihapus. ID kiriman: ##id##"
+
+#: .Delete+submission%3F
+msgid "Delete submission?"
+msgstr "Hapus kiriman?"
+
+#: .Are+you+sure+you+want+to+delete+this+submission%3F
+msgid "Are you sure you want to delete this submission?"
+msgstr "Apakah Anda yakin ingin menghapus kiriman ini?"
+
+#: .This+action+cannot+be+undone
+msgid "This action cannot be undone"
+msgstr "Tindakan ini tidak bisa dibatalkan"
+
+#: .Validation+status
+msgid "Validation status:"
+msgstr "Status validasi:"
+
+#: .Duplicate+created
+msgid "Duplicate created"
+msgstr "Duplikat dibuat"
+
+#: .A+duplicate+of+the+submission+record+was+successfully+created.+You+can+view+the+new+instance+below+and+make+changes+using+the+action+buttons+below.
+msgid ""
+"A duplicate of the submission record was successfully created. You can view "
+"the new instance below and make changes using the action buttons below."
+msgstr "Duplikat rekaman kiriman berhasil dibuat. Anda dapat melihatnya di bawah dan membuat perubahan menggunakan tombol tindakan di bawah ini."
+
+#: .Source+submission+uuid+
+msgid "Source submission uuid: "
+msgstr "uuid kiriman sumber: "
+
+#: .Discard
+msgid "Discard"
+msgstr "Buang"
+
+#: .Discard+duplicated+submission
+msgid "Discard duplicated submission"
+msgstr "Buang kiriman yang diduplikasikan"
+
+#: .Click+on+the+button+below+to+load+the+most+recent+data+for+this+submission.+
+msgid ""
+"Click on the button below to load the most recent data for this submission. "
+msgstr "Klik tombol di bawah untuk memuat data terbaru untuk kiriman ini. "
+
+#: .Refresh+submission
+msgid "Refresh submission"
+msgstr "Perbarui kiriman"
+
+#: .Display+XML+names
+msgid "Display XML names"
+msgstr "Menampilkan nama XML"
+
+#: .View
+msgid "View"
+msgstr "Lihat"
+
+#: .Duplicate
+msgid "Duplicate"
+msgstr "Duplikat"
+
+#: .Delete+submission
+msgid "Delete submission"
+msgstr "Hapus kiriman"
+
+#: .Unknown+error
+msgid "Unknown error"
+msgstr "Kesalahan tidak diketahui"
+
+#: .Background+audio+recording
+msgid "Background audio recording"
+msgstr "Rekaman audio latar belakang"
+
+#: .N/A
+msgid "N/A"
+msgstr "Tidak Tersedia"
+
+#: .Submission+%23%23submissionIndex%23%23+of+%23%23submissionTotal%23%23
+msgid "Submission ##submissionIndex## of ##submissionTotal##"
+msgstr "Kiriman ##submissionIndex## dari ##submissionTotal##"
+
+#: .download
+msgid "download"
+msgstr "unduh"
+
+#: .Export+is+being+generated,+you+will+receive+an+email+when+it%27s+done
+msgid "Export is being generated, you will receive an email when it's done"
+msgstr "Ekspor sedang dibuat, Anda akan menerima email ketika selesai"
+
+#: .We+couldn%27t+create+the+export,+please+try+again+later+or+contact+support
+msgid ""
+"We couldn't create the export, please try again later or contact support"
+msgstr "Kami tidak dapat membuat ekspor, silakan coba lagi nanti atau hubungi dukungan"
+
+#: .TOS+Update+Message+not+found
+msgid "TOS Update Message not found"
+msgstr "Pesan Pembaruan Persyaratan Layanan tidak ditemukan"
+
+#: .Please+make+sure+the+following+details+are+filled+out+correctly
+msgid "Please make sure the following details are filled out correctly:"
+msgstr "Pastikan rincian berikut diisi dengan benar:"
+
+#: .I+agree,+let%27s+go
+msgid "I agree, let's go"
+msgstr "Saya setuju, mari kita lanjutkan"
+
+#: .I+don%27t+agree,+log+me+out
+msgid "I don't agree, log me out"
+msgstr "Saya tidak setuju, keluarkan saya"
+
+#: .Please+enter+a+title+for+your+%23%23type%23%23
+msgid "Please enter a title for your ##type##"
+msgstr "Masukkan judul untuk ##type## Anda"
+
+#: .untitled+%23%23type%23%23
+msgid "untitled ##type##"
+msgstr "##type## tanpa judul"
+
+#: .untitled+collection
+msgid "untitled collection"
+msgstr "koleksi tanpa judul"
+
+#: .project+title
+msgid "project title"
+msgstr "judul proyek"
+
+#: .Export
+msgid "Export"
+msgstr "Ekspor"
+
+#: .Delete+export%3F
+msgid "Delete export?"
+msgstr "Hapus ekspor?"
+
+#: .Are+you+sure+you+want+to+delete+this+export%3F+This+action+is+not+reversible.
+msgid ""
+"Are you sure you want to delete this export? This action is not reversible."
+msgstr "Apakah Anda yakin ingin menghapus ekspor ini? Tindakan ini tidak dapat dibatalkan."
+
+#: .Unknown
+msgid "Unknown"
+msgstr "Tidak diketahui"
+
+#: .Export+Failed
+msgid "Export Failed"
+msgstr "Ekspor Gagal"
+
+#: .Processing%E2%80%A6
+msgid "Processing…"
+msgstr "Memproses…"
+
+#: .Exports
+msgid "Exports"
+msgstr "Ekspor"
+
+#: .Created
+msgid "Created"
+msgstr "Dibuat"
+
+#: .Include+Groups
+msgid "Include Groups"
+msgstr "Sertakan Kelompok"
+
+#: .Multiple+Versions
+msgid "Multiple Versions"
+msgstr "Beberapa Versi"
+
+#: .There+is+nothing+to+download+yet.
+msgid "There is nothing to download yet."
+msgstr "Belum ada yang bisa diunduh."
+
+#: .Help+Resources
+msgid "Help Resources"
+msgstr "Sumber Bantuan"
+
+#: .KoboToolbox+Help+Center
+msgid "KoboToolbox Help Center"
+msgstr "Pusat Bantuan KoboToolbox"
+
+#: .A+vast+collection+of+user+support+articles+and+tutorials+related+to+Kobo
+msgid ""
+"A vast collection of user support articles and tutorials related to Kobo"
+msgstr "Koleksi yang luas artikel dukungan pengguna dan tutorial yang terkait dengan Kobo"
+
+#: .KoboToolbox+Community+Forum
+msgid "KoboToolbox Community Forum"
+msgstr "Forum Komunitas KoboToolbox"
+
+#: .Post+your+questions+to+get+answers+from+experienced+Kobo+users+around+the+world
+msgid ""
+"Post your questions to get answers from experienced Kobo users around the "
+"world"
+msgstr "Posting pertanyaan Anda untuk mendapatkan jawaban dari pengguna Kobo berpengalaman di seluruh dunia"
+
+#: .Notifications
+msgid "Notifications"
+msgstr "Notifikasi"
+
+#: .Help
+msgid "Help"
+msgstr "Bantuan"
+
+#: .This+export+format+will+not+be+supported+in+the+future.+Please+consider+using+one+of+the+other+export+types+available.
+msgid ""
+"This export format will not be supported in the future. Please consider "
+"using one of the other export types available."
+msgstr "Format ekspor ini tidak akan didukung pada masa mendatang. Silakan pertimbangkan untuk menggunakan salah satu jenis ekspor lain yang tersedia."
+
+#: .Latest+unsaved+settings
+msgid "Latest unsaved settings"
+msgstr "Pengaturan terbaru yang belum disimpan"
+
+#: .Delete+export+settings%3F
+msgid "Delete export settings?"
+msgstr "Hapus pengaturan ekspor?"
+
+#: .Are+you+sure+you+want+to+delete+this+settings%3F+This+action+is+not+reversible.
+msgid ""
+"Are you sure you want to delete this settings? This action is not "
+"reversible."
+msgstr "Apakah Anda yakin ingin menghapus pengaturan ini? Tindakan ini tidak dapat dibatalkan."
+
+#: .None
+msgid "None"
+msgstr "Tidak ada"
+
+#: .Include+fields+from+all+%23%23count%23%23+versions
+msgid "Include fields from all ##count## versions"
+msgstr "Sertakan bagian dari semua versi ##count##"
+
+#: .Export+%23%23SELECT_MANY%23%23+questions+as%E2%80%A6
+msgid "Export ##SELECT_MANY## questions as…"
+msgstr "Ekspor pertanyaan ##SELECT_MANY## sebagai…"
+
+#: .Include+groups+in+headers
+msgid "Include groups in headers"
+msgstr "Sertakan kelompok di header"
+
+#: .Group+separator
+msgid "Group separator"
+msgstr "Pemisah kelompok"
+
+#: .Flatten+GeoJSON
+msgid "Flatten GeoJSON"
+msgstr "Ratakan GeoJSON"
+
+#: .Store+date+and+number+responses+as+text
+msgid "Store date and number responses as text"
+msgstr "Simpan tanggapan tanggal dan nomor sebagai teks"
+
+#: .Include+media+URLs
+msgid "Include media URLs"
+msgstr "Sertakan URL media"
+
+#: .Save+selection+as%E2%80%A6
+msgid "Save selection as…"
+msgstr "Simpan pilihan sebagai…"
+
+#: .Name+your+export+settings
+msgid "Name your export settings"
+msgstr "Beri nama pengaturan ekspor Anda"
+
+#: .Select+questions+to+be+exported
+msgid "Select questions to be exported"
+msgstr "Pilih pertanyaan yang akan diekspor"
+
+#: .Value+and+header+format
+msgid "Value and header format"
+msgstr "Format nilai dan header"
+
+#: .Advanced+options
+msgid "Advanced options"
+msgstr "Opsi tingkat lanjut"
+
+#: .Apply+saved+export+settings
+msgid "Apply saved export settings"
+msgstr "Terapkan pengaturan ekspor yang tersimpan"
+
+#: .No+export+settings+selected
+msgid "No export settings selected"
+msgstr "Tidak ada pengaturan ekspor yang dipilih"
+
+#: .This+field+is+required.
+msgid "This field is required."
+msgstr "Bagian ini diperlukan."
+
+#: .Passwords+don%27t+match
+msgid "Passwords don't match"
+msgstr "Kata sandi tidak cocok"
+
+#: .Current+Password
+msgid "Current Password"
+msgstr "Kata Sandi Saat Ini"
+
+#: .Forgot+Password%3F
+msgid "Forgot Password?"
+msgstr "Lupa Kata Sandi?"
+
+#: .New+Password
+msgid "New Password"
+msgstr "Kata Sandi Baru"
+
+#: .Verify+Password
+msgid "Verify Password"
+msgstr "Verifikasi Kata Sandi"
+
+#: .Save+Password
+msgid "Save Password"
+msgstr "Simpan Kata Sandi"
+
+#: .Could+not+open+window+for+%22%23%23url%23%23%22
+msgid "Could not open window for \"##url##\""
+msgstr "Tidak dapat membuka jendela untuk \"##url##\""
+
+#: .There+was+an+error+loading+Enketo.
+msgid "There was an error loading Enketo."
+msgstr "Terjadi kesalahan saat memuat Enketo."
+
+#: .Update+status+of+selected+submissions
+msgid "Update status of selected submissions"
+msgstr "Perbarui status kiriman yang dipilih"
+
+#: .You+have+selected+%23%23+submissions.+Are+you+sure+you+would+like+to+update+their+status%3F+This+action+is+irreversible.
+msgid ""
+"You have selected ## submissions. Are you sure you would like to update "
+"their status? This action is irreversible."
+msgstr "Anda telah memilih ## kiriman. Apakah Anda yakin ingin memperbarui statusnya? Tindakan ini tidak dapat diubah."
+
+#: .Update+Validation+Status
+msgid "Update Validation Status"
+msgstr "Perbarui Status Validasi"
+
+#: .You+are+about+to+permanently+delete+%23%23count%23%23+submissions.+It+is+not+possible+to+recover+deleted+submissions.
+msgid ""
+"You are about to permanently delete ##count## submissions. It is not "
+"possible to recover deleted submissions."
+msgstr "Anda akan menghapus kiriman ##count## secara permanen. Kiriman yang dihapus tidak dapat dipulihkan."
+
+#: .Delete+selected+submissions
+msgid "Delete selected submissions"
+msgstr "Hapus kiriman yang dipilih"
+
+#: .Delete+selected
+msgid "Delete selected"
+msgstr "Hapus yang dipilih"
+
+#: .%23%23count%23%23+selected
+msgid "##count## selected"
+msgstr "##count## dipilih"
+
+#: .Change+status
+msgid "Change status"
+msgstr "Ubah status"
+
+#: .Set+status+%23%23status%23%23
+msgid "Set status: ##status##"
+msgstr "Tetapkan status: ##status##"
+
+#: .Sort+A%E2%86%92Z
+msgid "Sort A→Z"
+msgstr "Urutkan A→Z"
+
+#: .Sort+Z%E2%86%92A
+msgid "Sort Z→A"
+msgstr "Urutkan Z→A"
+
+#: .Hide+field
+msgid "Hide field"
+msgstr "Sembunyikan bagian"
+
+#: .Unfreeze+field
+msgid "Unfreeze field"
+msgstr "Mencairkan bagian"
+
+#: .Freeze+field
+msgid "Freeze field"
+msgstr "Membekukan bagian"
+
+#: .Select+all+results+(%23%23count%23%23)
+msgid "Select all results (##count##)"
+msgstr "Pilih semua hasil (##count##)"
+
+#: .Select+visible+results+(%23%23count%23%23)
+msgid "Select visible results (##count##)"
+msgstr "Pilih hasil yang terlihat (##count##)"
+
+#: .hide+fields
+msgid "hide fields"
+msgstr "menyembunyikan bagian"
+
+#: .There+was+an+error+getting+the+list+of+plans.
+msgid "There was an error getting the list of plans."
+msgstr "Terjadi kesalahan saat mengambil daftar paket."
+
+#: .There+was+an+error+getting+one-time+add-ons.
+msgid "There was an error getting one-time add-ons."
+msgstr "Terjadi kesalahan saat memuat tambahan satu kali."
+
+#: .We+couldn%27t+make+the+requested+change+to+your+plan.%0AYour+current+plan+has+not+been+changed.
+msgid ""
+"We couldn't make the requested change to your plan.\n"
+"Your current plan has not been changed."
+msgstr "Kami tidak dapat melakukan perubahan yang diminta pada paket Anda.\nPaket Anda saat ini tidak berubah."
+
+#: .You+have+unsaved+changes.+Leave+settings+without+saving%3F
+msgid "You have unsaved changes. Leave settings without saving?"
+msgstr "Anda memiliki perubahan yang belum disimpan. Tinggalkan pengaturan tanpa menyimpan?"
+
+#: .Updated+profile+successfully
+msgid "Updated profile successfully"
+msgstr "Profil diperbarui dengan sukses"
+
+#: .You+can+now+control+whether+to+allow+anonymous+submissions+in+web+forms+for+each+project.+Previously,+this+was+an+account-wide+setting.
+msgid ""
+"You can now control whether to allow anonymous submissions in web forms for "
+"each project. Previously, this was an account-wide setting."
+msgstr "Sekarang Anda dapat mengontrol apakah akan mengizinkan kiriman anonim dalam formulir web untuk setiap proyek. Sebelumnya, ini adalah pengaturan seluruh akun."
+
+#: .This+privacy+feature+is+now+a+per-project+setting.+New+projects+will+require+authentication+by+default.
+msgid ""
+"This privacy feature is now a per-project setting. New projects will require"
+" authentication by default."
+msgstr "Fitur privasi ini sekarang merupakan pengaturan per proyek. Proyek baru akan membutuhkan autentikasi secara default."
+
+#: .Learn+more+about+these+changes+here.
+msgid "Learn more about these changes here."
+msgstr "Pelajari lebih lanjut tentang perubahan tersebut di sini."
+
+#: .Type+
+msgid "Type: "
+msgstr "Jenis: "
+
+#: ..+
+msgid ". "
+msgstr ". "
+
+#: .%231+out+of+%232+respondents+answered+this+question.+
+msgid "#1 out of #2 respondents answered this question. "
+msgstr "#1 dari #2 responden menjawab pertanyaan ini. "
+
+#: .(%23+were+without+data.)
+msgid "(# were without data.)"
+msgstr "(# tidak ada data.)"
+
+#: .Override+Graph+Style
+msgid "Override Graph Style"
+msgstr "Mengesampingkan Gaya Grafik"
+
+#: .Your+plan
+msgid "Your plan"
+msgstr "Paket Anda"
+
+#: .Thanks+for+your+upgrade%21+We+appreciate+your+continued+support.+Reach+out+to+billing@kobotoolbox.org+if+you+have+any+questions+about+your+plan.
+msgid ""
+"Thanks for your upgrade! We appreciate your continued support. Reach out to "
+"billing@kobotoolbox.org if you have any questions about your plan."
+msgstr "Terima kasih atas peningkatan Anda! Kami menghargai dukungan Anda yang berkelanjutan. Hubungi billing@kobotoolbox.org jika Anda memiliki pertanyaan tentang paket Anda."
+
+#: .Thanks+for+your+upgrade%21+We+appreciate+your+continued+support.+If+your+account+is+not+immediately+updated,+wait+a+few+minutes+and+refresh+the+page.
+msgid ""
+"Thanks for your upgrade! We appreciate your continued support. If your "
+"account is not immediately updated, wait a few minutes and refresh the page."
+msgstr "Terima kasih atas peningkatan Anda! Kami menghargai dukungan Anda yang berkelanjutan. Jika akun Anda tidak segera diperbarui, tunggu beberapa menit dan segarkan halaman."
+
+#: .Collapse+full+comparison
+msgid "Collapse full comparison"
+msgstr "Tutup perbandingan lengkap"
+
+#: .Display+full+comparison
+msgid "Display full comparison"
+msgstr "Tampilkan perbandingan lengkap"
+
+#: .show+monthly+plans
+msgid "show monthly plans"
+msgstr "tampilkan paket bulanan"
+
+#: .Monthly
+msgid "Monthly"
+msgstr "Bulanan"
+
+#: .show+annual+plans
+msgid "show annual plans"
+msgstr "tampilkan paket tahunan"
+
+#: .Annual
+msgid "Annual"
+msgstr "Tahunan"
+
+#: .Want+more%3F
+msgid "Want more?"
+msgstr "Ingin lebih banyak?"
+
+#: .Contact+us
+msgid "Contact us"
+msgstr "Hubungi kami"
+
+#: .For+organizations+with+higher+volume+and+advanced+data+collection+needs,+get+in+touch+to+learn+more+about+our+
+msgid ""
+"For organizations with higher volume and advanced data collection needs, get"
+" in touch to learn more about our "
+msgstr "Untuk organisasi dengan volume lebih tinggi dan kebutuhan pengumpulan data tingkat lanjut, hubungi kami untuk mempelajari lebih lanjut tentang "
+
+#: .Enterprise+Plan
+msgid "Enterprise Plan"
+msgstr "Paket Perusahaan"
+
+#: .We+also+offer+custom+solutions+and+private+servers+for+large+organizations.+
+msgid ""
+"We also offer custom solutions and private servers for large organizations. "
+msgstr "Kami juga menawarkan layanan khusus dan server pribadi untuk organisasi besar. "
+
+#: .Contact+our+team
+msgid "Contact our team"
+msgstr "Hubungi tim kami"
+
+#: .+for+more+information.
+msgid " for more information."
+msgstr " untuk informasi lebih lanjut."
+
+#: .Discard+unsaved+changes%3F
+msgid "Discard unsaved changes?"
+msgstr "Buang perubahan yang belum disimpan?"
+
+#: .source+file
+msgid "source file"
+msgstr "sumber file"
+
+#: .XML+values
+msgid "XML values"
+msgstr "Nilai XML"
+
+#: .Item
+msgid "Item"
+msgstr "Item"
+
+#: .of+%23%23total_count%23%23
+msgid "of ##total_count##"
+msgstr "dari ##total_count##"
+
+#: .Transcript
+msgid "Transcript"
+msgstr "Transkrip"
+
+#: .Translations
+msgid "Translations"
+msgstr "Terjemahan"
+
+#: .Analysis
+msgid "Analysis"
+msgstr "Analisis"
+
+#: .%23%23username%23%23+changed+project+name
+msgid "##username## changed project name"
+msgstr "##username## mengubah nama proyek"
+
+#: .%23%23username%23%23+updated+project+settings
+msgid "##username## updated project settings"
+msgstr "##username## memperbarui pengaturan proyek"
+
+#: .%23%23username%23%23+deployed+project
+msgid "##username## deployed project"
+msgstr "proyek ##username## yang disebarkan"
+
+#: .%23%23username%23%23+redeployed+project
+msgid "##username## redeployed project"
+msgstr "proyek ##username## yang disebarkan ulang"
+
+#: .%23%23username%23%23+archived+project
+msgid "##username## archived project"
+msgstr "##username## mengarsipkan proyek"
+
+#: .%23%23username%23%23+unarchived+project
+msgid "##username## unarchived project"
+msgstr "Buka arsip ##username## proyek"
+
+#: .%23%23username%23%23+uploaded+a+new+form
+msgid "##username## uploaded a new form"
+msgstr "##username## mengunggah formulir baru"
+
+#: .%23%23username%23%23+edited+the+form+in+the+formbuilder
+msgid "##username## edited the form in the formbuilder"
+msgstr "##username## mengedit formulir di pembuat formulir"
+
+#: .%23%23username%23%23+exported+data
+msgid "##username## exported data"
+msgstr "##username## mengekspor data"
+
+#: .%23%23username%23%23+modified+qualitative+analysis+questions
+msgid "##username## modified qualitative analysis questions"
+msgstr "##username## memodifikasi pertanyaan analisis kualitatif"
+
+#: .%23%23username%23%23+added+a+media+attachment
+msgid "##username## added a media attachment"
+msgstr "##username## menambahkan lampiran media"
+
+#: .%23%23username%23%23+removed+a+media+attachment
+msgid "##username## removed a media attachment"
+msgstr "##username## menghapus lampiran media"
+
+#: .%23%23username%23%23+connected+project+data+with+another+project
+msgid "##username## connected project data with another project"
+msgstr "##username## menghubungkan data proyek dengan proyek lain"
+
+#: .%23%23username%23%23+disconnected+project+from+another+project
+msgid "##username## disconnected project from another project"
+msgstr "##username## memutuskan hubungan proyek dari proyek lain"
+
+#: .%23%23username%23%23+changed+imported+fields+from+another+project
+msgid "##username## changed imported fields from another project"
+msgstr "##username## mengubah bagian yang diimpor dari proyek lain"
+
+#: .%23%23username%23%23+modified+data+sharing
+msgid "##username## modified data sharing"
+msgstr "##username## memodifikasi berbagi data"
+
+#: .%23%23username%23%23+enabled+data+sharing
+msgid "##username## enabled data sharing"
+msgstr "##username## mengaktifkan berbagi data"
+
+#: .%23%23username%23%23+disabled+data+sharing
+msgid "##username## disabled data sharing"
+msgstr "##username## menonaktifkan berbagi data"
+
+#: .%23%23username%23%23+registered+a+new+REST+service
+msgid "##username## registered a new REST service"
+msgstr "##username## mendaftarkan layanan REST baru"
+
+#: .%23%23username%23%23+modified+a+REST+service
+msgid "##username## modified a REST service"
+msgstr "##username## memodifikasi layanan REST"
+
+#: .%23%23username%23%23+deleted+a+REST+service
+msgid "##username## deleted a REST service"
+msgstr "##username## menghapus layanan REST"
+
+#: .%23%23username%23%23+added+%23%23username2%23%23+to+project
+msgid "##username## added ##username2## to project"
+msgstr "##username## menambahkan ##username2## ke proyek"
+
+#: .%23%23username%23%23+removed+%23%23username2%23%23+from+project
+msgid "##username## removed ##username2## from project"
+msgstr "##username## menghapus ##username2## dari proyek"
+
+#: .%23%23username%23%23+updated+permissions+of+%23%23username2%23%23
+msgid "##username## updated permissions of ##username2##"
+msgstr "##username## memperbarui izin ##username2##"
+
+#: .%23%23username%23%23+made+the+project+publicly+accessible
+msgid "##username## made the project publicly accessible"
+msgstr "##username## membuat proyek dapat diakses publik"
+
+#: .%23%23username%23%23+shared+data+publicly
+msgid "##username## shared data publicly"
+msgstr "##username## membagikan data secara publik"
+
+#: .%23%23username%23%23+transferred+project+ownership+to+%23%23username2%23%23
+msgid "##username## transferred project ownership to ##username2##"
+msgstr "##username## mengalihkan kepemilikan proyek ke ##username2##"
+
+#: .Do+you+want+to+leave+without+saving%3F
+msgid "Do you want to leave without saving?"
+msgstr "Apakah Anda ingin meninggalkan tanpa menyimpan?"
+
+#: .Use+the+button+above+to+select+the+information+to+be+displayed+in+this+area
+msgid ""
+"Use the button above to select the information to be displayed in this area"
+msgstr "Gunakan tombol di atas untuk memilih informasi yang akan ditampilkan di area ini"
+
+#: .Chart+Type
+msgid "Chart Type"
+msgstr "Jenis Grafik"
+
+#: .Colors
+msgid "Colors"
+msgstr "Warna"
+
+#: .Group+By
+msgid "Group By"
+msgstr "Pengelompokan berdasarkan"
+
+#: .Translation
+msgid "Translation"
+msgstr "Terjemahan"
+
+#: .Search...
+msgid "Search..."
+msgstr "Cari..."
+
+#: .Tags+are+loading...
+msgid "Tags are loading..."
+msgstr "Tag sedang dimuat..."
+
+#: .Search+Tags
+msgid "Search Tags"
+msgstr "Cari Tag"
+
+#: .No+results+found
+msgid "No results found"
+msgstr "Tidak ada hasil ditemukan"
+
+#: .Select+Collection+Name
+msgid "Select Collection Name"
+msgstr "Pilih Nama Koleksi"
+
+#: .Collections+are+loading...
+msgid "Collections are loading..."
+msgstr "Koleksi sedang dimuat..."
+
+#: .assets+found
+msgid "assets found"
+msgstr "aset ditemukan"
+
+#: .expand+details
+msgid "expand details"
+msgstr "perluas detail"
+
+#: .Page+%23%23current_page%23%23+of+%23%23total_pages%23%23
+msgid "Page ##current_page## of ##total_pages##"
+msgstr "Halaman ##current_page## dari ##total_pages##"
+
+#: .%23%23number%23%23+rows
+msgid "##number## rows"
+msgstr "##number## baris"
+
+#: .Delete%3F
+msgid "Delete?"
+msgstr "Hapus?"
+
+#: .This+action+is+not+reversible
+msgid "This action is not reversible"
+msgstr "Tindakan ini tidak dapat dibatalkan"
+
+#: .Teams
+msgid "Teams"
+msgstr "Tim"
+
+#: .teams
+msgid "teams"
+msgstr "tim"
+
+#: .Team
+msgid "Team"
+msgstr "Tim"
+
+#: .team
+msgid "team"
+msgstr "tim"
+
+#: .Organizations
+msgid "Organizations"
+msgstr "Organisasi"
+
+#: .organizations
+msgid "organizations"
+msgstr "organisasi"
+
+#: .organization
+msgid "organization"
+msgstr "organisasi"
+
+#: .Could+not+load+media+file
+msgid "Could not load media file"
+msgstr "Tidak dapat memuat file media"
+
+#: .CSV+(legacy)
+msgid "CSV (legacy)"
+msgstr "CSV (turunan)"
+
+#: .CSV
+msgid "CSV"
+msgstr "CSV"
+
+#: .GeoJSON
+msgid "GeoJSON"
+msgstr "GeoJSON"
+
+#: .GPS+coordinates+(KML)
+msgid "GPS coordinates (KML)"
+msgstr "Koordinat GPS (KML)"
+
+#: .SPSS+Labels
+msgid "SPSS Labels"
+msgstr "Label SPSS"
+
+#: .XLS+(legacy)
+msgid "XLS (legacy)"
+msgstr "XLS (turunan)"
+
+#: .XLS
+msgid "XLS"
+msgstr "XLS"
+
+#: .Media+Attachments+(ZIP)
+msgid "Media Attachments (ZIP)"
+msgstr "Lampiran Media (ZIP)"
+
+#: .XML+values+and+headers
+msgid "XML values and headers"
+msgstr "Nilai XML dan header"
+
+#: .Separate+columns
+msgid "Separate columns"
+msgstr "Kolom terpisah"
+
+#: .Single+column
+msgid "Single column"
+msgstr "Kolom tunggal"
+
+#: .Single+and+separate+columns
+msgid "Single and separate columns"
+msgstr "Kolom tunggal dan terpisah"
+
+#: .Type+and+confirm+with+ENTER
+msgid "Type and confirm with ENTER"
+msgstr "Ketik dan konfirmasi dengan MASUKKAN"
+
+#: .An+error+occured
+msgid "An error occured"
+msgstr "Terjadi kesalahan"
+
+#: .An+error+occurred+while+checking+subscription+status
+msgid "An error occurred while checking subscription status"
+msgstr "Terjadi kesalahan saat memeriksa status langganan"
+
+#: .Incorrect+token+or+something+went+wrong
+msgid "Incorrect token or something went wrong"
+msgstr "Token salah atau terjadi kesalahan"
+
+#: .No+organization+found
+msgid "No organization found"
+msgstr "Tidak ada organisasi yang ditemukan"
+
+#: .Couldn%27t+get+usage+data
+msgid "Couldn't get usage data"
+msgstr "Tidak dapat memperoleh data penggunaan"
+
+#: .filter
+msgid "filter"
+msgstr "filter"
+
+#: .There+are+no+filters,+you+can+add+one+below
+msgid "There are no filters, you can add one below"
+msgstr "Tidak ada filter, Anda dapat menambahkannya di bawah"
+
+#: .Add+filter
+msgid "Add filter"
+msgstr "Tambahkan filter"
+
+#: .Apply
+msgid "Apply"
+msgstr "Terapkan"
+
+#: .fields
+msgid "fields"
+msgstr "bagian"
+
+#: .Name+must+be+unique%21
+msgid "Name must be unique!"
+msgstr "Nama harus unik!"
+
+#: .Code+must+be+unique%21
+msgid "Code must be unique!"
+msgstr "Kode harus unik!"
+
+#: .Default+language+name
+msgid "Default language name"
+msgstr "Nama bahasa default"
+
+#: .Language+name
+msgid "Language name"
+msgstr "Nama bahasa"
+
+#: .Default+language+code
+msgid "Default language code"
+msgstr "Kode bahasa default"
+
+#: .Language+code
+msgid "Language code"
+msgstr "Kode bahasa"
+
+#: .Set
+msgid "Set"
+msgstr "Atur"
+
+#: .Select+export+type
+msgid "Select export type"
+msgstr "Pilih jenis ekspor"
+
+#: .There+was+an+issue+fetching+your+plan+information.
+msgid "There was an issue fetching your plan information."
+msgstr "Terjadi kesalahan saat mengambil informasi paket Anda."
+
+#: .Archive+project
+msgid "Archive project"
+msgstr "Arsipkan proyek"
+
+#: .Unarchive+project
+msgid "Unarchive project"
+msgstr "Buka arsip proyek"
+
+#: .Draft+project+selected
+msgid "Draft project selected"
+msgstr "Proyek draf yang dipilih"
+
+#: .Delete+1+project
+msgid "Delete 1 project"
+msgstr "Hapus 1 proyek"
+
+#: .Delete+project
+msgid "Delete project"
+msgstr "Hapus proyek"
+
+#: .Archive/Unarchive
+msgid "Archive/Unarchive"
+msgstr "Arsip/Buka arsip"
+
+#: .Delete+projects
+msgid "Delete projects"
+msgstr "Hapus proyek"
+
+#: .Delete+%23%23count%23%23+projects
+msgid "Delete ##count## projects"
+msgstr "Hapus ##count## proyek"
+
+#: .Share+projects
+msgid "Share projects"
+msgstr "Bagikan proyek"
+
+#: .latitude+(x.y+%C2%B0)
+msgid "latitude (x.y °):"
+msgstr "garis lintang (x,y°):"
+
+#: .longitude+(x.y+%C2%B0)
+msgid "longitude (x.y °):"
+msgstr "garis bujur (x,y°):"
+
+#: .altitude+(m)
+msgid "altitude (m):"
+msgstr "ketinggian (m):"
+
+#: .accuracy+(m)
+msgid "accuracy (m):"
+msgstr "akurasi (m):"
+
+#: .start
+msgid "start"
+msgstr "awal"
+
+#: .end
+msgid "end"
+msgstr "akhir"
+
+#: .today
+msgid "today"
+msgstr "hari ini"
+
+#: .device+ID
+msgid "device ID"
+msgstr "ID perangkat"
+
+#: .phone+number
+msgid "phone number"
+msgstr "nomor telepon"
+
+#: .audit
+msgid "audit"
+msgstr "audit"
+
+#: .__version__
+msgid "__version__"
+msgstr "__versi__"
+
+#: ._id
+msgid "_id"
+msgstr "_id"
+
+#: .instanceID
+msgid "instanceID"
+msgstr "instanceID"
+
+#: .Submitted+by
+msgid "Submitted by"
+msgstr "Disampaikan oleh"
+
+#: .Non-profit+organization
+msgid "Non-profit organization"
+msgstr "Organisasi nirlaba"
+
+#: .Government+institution
+msgid "Government institution"
+msgstr "Institusi pemerintah"
+
+#: .Educational+organization
+msgid "Educational organization"
+msgstr "Organisasi pendidikan"
+
+#: .A+commercial/for-profit+company
+msgid "A commercial/for-profit company"
+msgstr "Perusahaan komersial/berorientasi berlaba"
+
+#: .I+am+not+associated+with+any+organization
+msgid "I am not associated with any organization"
+msgstr "Saya tidak terkait dengan organisasi mana pun"
+
+#: .Male
+msgid "Male"
+msgstr "Laki-laki"
+
+#: .Female
+msgid "Female"
+msgstr "Perempuan"
+
+#: .Other
+msgid "Other"
+msgstr "Lainnya"
+
+#: .Use+this+to+display+your+real+name+to+other+users
+msgid "Use this to display your real name to other users"
+msgstr "Gunakan ini untuk menampilkan nama asli Anda kepada pengguna lain"
+
+#: .Social
+msgid "Social"
+msgstr "Sosial"
+
+#: .Newsletter
+msgid "Newsletter"
+msgstr "Buletin"
+
+#: .Import+failed
+msgid "Import failed"
+msgstr "Impor gagal"
+
+#: .Your+upload+is+taking+longer+than+usual.+Please+get+back+in+few+minutes.
+msgid ""
+"Your upload is taking longer than usual. Please get back in few minutes."
+msgstr "Pengunggahan Anda membutuhkan waktu lebih lama dari biasanya. Silakan kembali dalam beberapa menit."
+
+#: .Your+uploads+are+being+processed.+This+may+take+a+few+moments.+You+will+need+to+refresh+the+page+to+see+them+on+the+list.
+msgid ""
+"Your uploads are being processed. This may take a few moments. You will need"
+" to refresh the page to see them on the list."
+msgstr "Unggahan Anda sedang diproses. Ini mungkin memerlukan waktu beberapa saat. Anda perlu menyegarkan halaman untuk melihatnya dalam daftar."
+
+#: .There+are+no+projects+to+display.
+msgid "There are no projects to display."
+msgstr "Tidak ada proyek untuk ditampilkan."
+
+#: .forgot+password
+msgid "forgot password"
+msgstr "lupa kata sandi"
+
+#: .Mean
+msgid "Mean"
+msgstr "Rata-Rata"
+
+#: .Median
+msgid "Median"
+msgstr "Median"
+
+#: .Mode
+msgid "Mode"
+msgstr "Modus"
+
+#: .Standard+deviation
+msgid "Standard deviation"
+msgstr "Standar deviasi"
+
+#: .Two-factor+authentication
+msgid "Two-factor authentication"
+msgstr "Autentikasi dua faktor"
+
+#: .Authenticator+app
+msgid "Authenticator app"
+msgstr "Aplikasi autentikator"
+
+#: .Reconfigure
+msgid "Reconfigure"
+msgstr "Konfigurasi ulang"
+
+#: .Recovery+codes
+msgid "Recovery codes"
+msgstr "Kode pemulihan"
+
+#: .Generate+new
+msgid "Generate new"
+msgstr "Buat baru"
+
+#: .Two-factor+authentication+was+deactivated+for+your+account+on+%23%23date%23%23
+msgid "Two-factor authentication was deactivated for your account on ##date##"
+msgstr "Autentikasi dua faktor telah dinonaktifkan untuk akun Anda di ##date##"
+
+#: .This+feature+is+not+available+on+your+current+plan.+Please+visit+the+
+msgid "This feature is not available on your current plan. Please visit the "
+msgstr "Fitur ini tidak tersedia dalam paket Anda. Silakan kunjungi "
+
+#: .Plans+page
+msgid "Plans page"
+msgstr "Halaman paket"
+
+#: .+to+upgrade+your+account.
+msgid " to upgrade your account."
+msgstr " untuk meningkatkan akun Anda."
+
+#: .Disabled
+msgid "Disabled"
+msgstr "Dinonaktifkan"
+
+#: .Email+address
+msgid "Email address"
+msgstr "Alamat email"
+
+#: .Type+new+email+address
+msgid "Type new email address"
+msgstr "Ketik alamat email baru"
+
+#: .Check+your+email+%23%23UNVERIFIED_EMAIL%23%23.+
+msgid "Check your email ##UNVERIFIED_EMAIL##. "
+msgstr "Periksa email Anda ##UNVERIFIED_EMAIL##. "
+
+#: .A+verification+link+has+been+sent+to+confirm+your+ownership.+Once+confirmed,+this+address+will+replace+%23%23UNVERIFIED_EMAIL%23%23
+msgid ""
+"A verification link has been sent to confirm your ownership. Once confirmed,"
+" this address will replace ##UNVERIFIED_EMAIL##"
+msgstr "Tautan verifikasi telah dikirim untuk mengonfirmasi kepemilikan Anda. Setelah dikonfirmasi, alamat ini akan menggantikan ##UNVERIFIED_EMAIL##"
+
+#: .Email+was+sent+again+%23%23TIMESTAMP%23%23
+msgid "Email was sent again: ##TIMESTAMP##"
+msgstr "Email dikirim lagi: ##TIMESTAMP##"
+
+#: .%23%23count%23%23+Projects
+msgid "##count## Projects"
+msgstr "Proyek ##count##"
+
+#: .Submissions,+transcription+minutes,+and+translation+characters+reflect+usage+for+the+current+%23%23INTERVAL%23%23+based+on+your+plan+settings.
+msgid ""
+"Submissions, transcription minutes, and translation characters reflect usage"
+" for the current ##INTERVAL## based on your plan settings."
+msgstr "Kiriman, menit transkrip, dan karakter terjemahan mencerminkan penggunaan ##INTERVAL## saat ini berdasarkan pengaturan paket Anda."
+
+#: .Submissions+(Total)
+msgid "Submissions (Total)"
+msgstr "Kiriman (Total)"
+
+#: .Data+storage
+msgid "Data storage"
+msgstr "Penyimpanan Data"
+
+#: .Transcript+minutes
+msgid "Transcript minutes"
+msgstr "Menit transkrip"
+
+#: .Translation+characters
+msgid "Translation characters"
+msgstr "Karakter terjemahan"
+
+#: .%23%23start_date%23%23+to+%23%23end_date%23%23
+msgid "##start_date## to ##end_date##"
+msgstr "##start_date## hingga ##end_date##"
+
+#: .Your+usage
+msgid "Your usage"
+msgstr "Penggunaan Anda"
+
+#: .Last+update+%23%23LAST_UPDATE_TIME%23%23
+msgid "Last update: ##LAST_UPDATE_TIME##"
+msgstr "Pembaruan terakhir: ##LAST_UPDATE_TIME##"
+
+#: .Storage
+msgid "Storage"
+msgstr "Penyimpanan"
+
+#: .per+account
+msgid "per account"
+msgstr "per akun"
+
+#: .Transcription+minutes
+msgid "Transcription minutes"
+msgstr "Menit transkripsi"
+
+#: .Failed+to+get+API+token
+msgid "Failed to get API token"
+msgstr "Gagal mendapatkan token API"
+
+#: .API+Key
+msgid "API Key"
+msgstr "Kunci API"
+
+#: .Single-Sign+On
+msgid "Single-Sign On"
+msgstr "Akses Menyeluruh"
+
+#: .Connect+your+KoboToolbox+account+with+your+organization%27s+identity+provider+for+single-sign+on+(SSO).+Afterwards,+you+will+only+be+able+to+sign+in+via+SSO+unless+you+disable+this+setting+here.+This+will+also+update+your+email+address+in+case+your+current+address+is+different.
+msgid ""
+"Connect your KoboToolbox account with your organization's identity provider "
+"for single-sign on (SSO). Afterwards, you will only be able to sign in via "
+"SSO unless you disable this setting here. This will also update your email "
+"address in case your current address is different."
+msgstr "Menghubungkan akun KoboToolbox Anda dengan penyedia identitas organisasi Anda untuk akses menyeluruh (SSO). Selanjutnya, Anda akan dapat masuk melalui SSO, kecuali jika Anda menonaktifkan pengaturannya. Hal ini juga akan memperbarui alamat email Anda jika email Anda saat ini berbeda."
+
+#: .Already+connected
+msgid "Already connected"
+msgstr "Sudah terhubung"
+
+#: .Disable
+msgid "Disable"
+msgstr "Nonaktifkan"
+
+#: .Recent+account+activity
+msgid "Recent account activity"
+msgstr "Aktivitas akun terbaru"
+
+#: .Data+Submissions+(%23%23count%23%23)
+msgid "Data Submissions (##count##)"
+msgstr "Kiriman Data (##count##)"
+
+#: .Last+activity
+msgid "Last activity"
+msgstr "Aktivitas terakhir"
+
+#: .IP+Address
+msgid "IP Address"
+msgstr "Alamat IP"
+
+#: .Asset+seems+to+not+have+the+processing+feature+enabled%21
+msgid "Asset seems to not have the processing feature enabled!"
+msgstr "Aset tampaknya tidak mengaktifkan fitur pemrosesan!"
+
+#: .Failed+to+get+processing+data.
+msgid "Failed to get processing data."
+msgstr "Gagal mendapatkan data pemrosesan."
+
+#: .Failed+to+set+transcript.
+msgid "Failed to set transcript."
+msgstr "Gagal menyetel transkrip."
+
+#: .Failed+to+delete+transcript.
+msgid "Failed to delete transcript."
+msgstr "Gagal menghapus transkrip."
+
+#: .Failed+to+delete+translation.
+msgid "Failed to delete translation."
+msgstr "Gagal menghapus terjemahan."
+
+#: .Are+you+sure+you+want+to+delete+this+question%3F
+msgid "Are you sure you want to delete this question?"
+msgstr "Apakah Anda yakin ingin menghapus pertanyaan ini?"
+
+#: .Delete+Question
+msgid "Delete Question"
+msgstr "Hapus Pertanyaan"
+
+#: .Duplicate+Question
+msgid "Duplicate Question"
+msgstr "Duplikat Pertanyaan"
+
+#: .Add+Question+to+Library
+msgid "Add Question to Library"
+msgstr "Tambahkan Pertanyaan ke Perpustakaan"
+
+#: .There+has+been+an+issue,+please+try+again+later.
+msgid "There has been an issue, please try again later."
+msgstr "Ada masalah, silakan coba lagi nanti."
+
+#: .Success%21+Your+subscription+will+change+at+the+end+of+the+current+billing+period.
+msgid ""
+"Success! Your subscription will change at the end of the current billing "
+"period."
+msgstr "Berhasil! Langganan Anda akan berubah pada akhir periode penagihan saat ini."
+
+#: .Unlimited
+msgid "Unlimited"
+msgstr "Tanpa Batas"
+
+#: .%23%23minutes%23%23+mins
+msgid "##minutes## mins"
+msgstr "##minutes## menit"
+
+#: .These+settings+affects+the+experience+for+all+project+users.
+msgid "These settings affects the experience for all project users."
+msgstr "Pengaturan ini memengaruhi pengalaman untuk semua pengguna proyek."
+
+#: .Find+a+field
+msgid "Find a field"
+msgstr "Temukan bagian"
+
+#: .No+results
+msgid "No results"
+msgstr "Tidak ada hasil"
+
+#: .%23%23plan_name%23%23+Plan
+msgid "##plan_name## Plan"
+msgstr "Paket ##plan_name##"
+
+#: .Started+on+%23%23start_date%23%23
+msgid "Started on ##start_date##"
+msgstr "Dimulai pada ##start_date##"
+
+#: .Renews+on+%23%23renewal_date%23%23
+msgid "Renews on ##renewal_date##"
+msgstr "Diperbaharui pada ##renewal_date##"
+
+#: .Ends+on+%23%23end_date%23%23
+msgid "Ends on ##end_date##"
+msgstr "Berakhir pada ##end_date##"
+
+#: .Changing+usage+limits+on+%23%23change_date%23%23
+msgid "Changing usage limits on ##change_date##"
+msgstr "Mengubah batasan penggunaan pada ##change_date##"
+
+#: .Switching+to+monthly+on+%23%23change_date%23%23
+msgid "Switching to monthly on ##change_date##"
+msgstr "Beralih ke paket bulanan pada ##change_date##"
+
+#: .Your+%23%23current_plan%23%23+plan+has+been+canceled+but+will+remain+active+until+the+end+of+the+billing+period.
+msgid ""
+"Your ##current_plan## plan has been canceled but will remain active until "
+"the end of the billing period."
+msgstr "Paket ##current_plan## Anda telah dibatalkan namun akan tetap aktif hingga akhir dari periode penagihan."
+
+#: .Your+%23%23current_plan%23%23+plan+will+change+to+the+%23%23next_plan%23%23+plan+on
+msgid "Your ##current_plan## plan will change to the ##next_plan## plan on"
+msgstr "Paket ##current_plan## Anda akan berubah ke paket ##next_plan## pada"
+
+#: ..+You+can+continue+using+%23%23current_plan%23%23+plan+features+until+the+end+of+the+billing+period.
+msgid ""
+". You can continue using ##current_plan## plan features until the end of the"
+" billing period."
+msgstr ". Anda dapat terus menggunakan fitur paket ##current_plan## hingga akhir dari periode penagihan."
+
+#: .Your+%23%23current_plan%23%23+plan+will+change+to+include+up+to+%23%23submission_quantity%23%23+submissions/month+starting+from
+msgid ""
+"Your ##current_plan## plan will change to include up to "
+"##submission_quantity## submissions/month starting from"
+msgstr "Paket ##current_plan## akan berubah untuk mencakupi ##submission_quantity## kiriman/bulan dimulai dari"
+
+#: .Your+%23%23current_plan%23%23+plan+will+change+from+annual+to+monthly+starting+from
+msgid ""
+"Your ##current_plan## plan will change from annual to monthly starting from"
+msgstr "Paket ##current_plan## Anda akan berubah dari tahunan ke bulanan dimulai dari"
+
+#: .%23%23add_on_name%23%23+add-on
+msgid "##add_on_name## add-on"
+msgstr "tambahan ##add_on_name##"
+
+#: .monthly+%23%23plan_name%23%23+plan
+msgid "monthly ##plan_name## plan"
+msgstr "paket ##plan_name## bulanan"
+
+#: .yearly+%23%23plan_name%23%23+plan
+msgid "yearly ##plan_name## plan"
+msgstr "paket ##plan_name## tahunan"
+
+#: .plan
+msgid "plan"
+msgstr "paket"
+
+#: .add-on
+msgid "add-on"
+msgstr "tambahan"
+
+#: .There+was+an+error+processing+your+plan+change.+Your+previous+plan+has+not+been+changed.+Please+try+again+later.
+msgid ""
+"There was an error processing your plan change. Your previous plan has not "
+"been changed. Please try again later."
+msgstr "Terjadi kesalahan saat memproses perubahan paket Anda. Paket Anda sebelumnya tidak berubah. Silakan coba lagi nanti."
+
+#: .Changes+to+your+Plan
+msgid "Changes to your Plan"
+msgstr "Perubahan pada paket Anda"
+
+#: .Processing+your+transaction%E2%80%A6
+msgid "Processing your transaction…"
+msgstr "Memproses transaksi Anda…"
+
+#: .You+are+switching+to+the+%23%23new_product_type%23%23.
+msgid "You are switching to the ##new_product_type##."
+msgstr "Anda sedang beralih ke ##new_product_type##."
+
+#: .Because+this+plan+includes+unlimited+storage,+your+storage+add-on+will+be+canceled.
+msgid ""
+"Because this plan includes unlimited storage, your storage add-on will be "
+"canceled."
+msgstr "Karena paket ini termasuk penyimpanan tanpa batas, tambahan penyimpanan Anda akan dibatalkan."
+
+#: .Your+current+%23%23product_type%23%23+will+remain+in+effect+until+%23%23billing_end_date%23%23.%0A++++++++++++++++++++Starting+on+%23%23billing_end_date%23%23+and+until+you+cancel,+we+will+bill+you+%23%23new_price%23%23.
+msgid ""
+"Your current ##product_type## will remain in effect until ##billing_end_date##.\n"
+"                    Starting on ##billing_end_date## and until you cancel, we will bill you ##new_price##."
+msgstr "Saat ini ##product_type## Anda akan tetap berlaku hingga ##billing_end_date##.\n          Dimulai pada ##billing_end_date## dan hingga Anda membatalkannya, kami akan menagih Anda ##new_price##."
+
+#: .Submit
+msgid "Submit"
+msgstr "Kirim"
+
+#: .Added+on+%23%23date%23%23
+msgid "Added on ##date##"
+msgstr "Ditambahkan pada ##date##"
+
+#: .%23%23name%23%23+x+%23%23quantity%23%23
+msgid "##name## x ##quantity##"
+msgstr "##name## x ##quantity##"
+
+#: .available+add-ons
+msgid "available add-ons"
+msgstr "tambahan tersedia"
+
+#: .Add-ons+can+be+added+to+your+Community+plan+to+increase+your+usage+limits.+If+you+are+approaching+or%0A++++++++++++++have+reached+the+usage+limits+included+with+your+plan,+increase+your+limits+with+add-ons+to+continue%0A++++++++++++++data+collection.
+msgid ""
+"Add-ons can be added to your Community plan to increase your usage limits. If you are approaching or\n"
+"              have reached the usage limits included with your plan, increase your limits with add-ons to continue\n"
+"              data collection."
+msgstr "Tambahan dapat ditambahkan ke paket Komunitas Anda untuk meningkatkan batas penggunaan. Jika Anda mendekati atau telah mencapai batas penggunaan yang termasuk dalam paket Anda, tingkatkan batasan Anda dengan menambahkan tambahan untuk melanjutkan pengumpulan data."
+
+#: .your+active+add-ons
+msgid "your active add-ons"
+msgstr "Tambahan Anda yang aktif"
+
+#: .Active
+msgid "Active"
+msgstr "Aktif"
+
+#: .previous+add-ons
+msgid "previous add-ons"
+msgstr "tambahan sebelumnya"
+
+#: .Inactive
+msgid "Inactive"
+msgstr "Tidak aktif"
+
+#: .Total+Submissions+per+Month
+msgid "Total Submissions per Month"
+msgstr "Total Kiriman per Bulan"
+
+#: .%23%23asr_minutes%23%23+minutes+of+automated+transcription+/%23%23plan_interval%23%23
+msgid "##asr_minutes## minutes of automated transcription /##plan_interval##"
+msgstr "##asr_minutes## menit dari transkripsi otomatis /##plan_interval##"
+
+#: .%23%23mt_characters%23%23+characters+of+machine+translation+/%23%23plan_interval%23%23
+msgid "##mt_characters## characters of machine translation /##plan_interval##"
+msgstr "##mt_characters## karakter dari mesin terjemahan /##plan_interval##"
+
+#: .Original+transcript
+msgid "Original transcript"
+msgstr "Transkrip asli"
+
+#: .Submission+data
+msgid "Submission data"
+msgstr "Data kiriman"
+
+#: .Original+file+(Audio)
+msgid "Original file (Audio)"
+msgstr "File asli (Audio)"
+
+#: .Display+settings
+msgid "Display settings"
+msgstr "Pengaturan tampilan"
+
+#: .Customize+display+settings
+msgid "Customize display settings"
+msgstr "Sesuaikan pengaturan tampilan"
+
+#: .Select+the+information+you+want+to+display+in+the+side+menu+to+support+your+analysis.
+msgid ""
+"Select the information you want to display in the side menu to support your "
+"analysis."
+msgstr "Pilih informasi yang ingin Anda tampilkan di menu samping untuk mendukung analisis Anda."
+
+#: .Select+the+submission+data+to+display.
+msgid "Select the submission data to display."
+msgstr "Pilih data kiriman untuk ditampilkan."
+
+#: .Apply+selection
+msgid "Apply selection"
+msgstr "Terapkan pilihan"
+
+#: .Failed+to+load+analysis+questions
+msgid "Failed to load analysis questions"
+msgstr "Gagal memuat pertanyaan analisis"
+
+#: .Select+field
+msgid "Select field"
+msgstr "Pilih bagian"
+
+#: .Condition
+msgid "Condition"
+msgstr "Kondisi"
+
+#: .Select+condition
+msgid "Select condition"
+msgstr "Pilih kondisi"
+
+#: .Enter+value
+msgid "Enter value"
+msgstr "Masukkan nilai"
+
+#: .There+was+an+error+fetching+usage+data.
+msgid "There was an error fetching usage data."
+msgstr "Terjadi kesalahan saat mengambil data penggunaan."
+
+#: .There+was+an+error+fetching+asset+usage+data.
+msgid "There was an error fetching asset usage data."
+msgstr "Terjadi kesalahan saat mengambil data penggunaan."
+
+#: .You+are+about+to+permanently+delete+%23%23count%23%23+projects
+msgid "You are about to permanently delete ##count## projects"
+msgstr "Anda akan menghapus ##count## proyek secara permanen"
+
+#: .All+data+gathered+for+these+projects+will+be+deleted
+msgid "All data gathered for these projects will be deleted"
+msgstr "Semua data yang dikumpulkan untuk proyek-proyek ini akan dihapus"
+
+#: .Forms+associated+with+these+projects+will+be+deleted
+msgid "Forms associated with these projects will be deleted"
+msgstr "Formulir yang terkait dengan proyek ini akan dihapus"
+
+#: .I+understand+that+if+I+delete+these+projects+I+will+not+be+able+to+recover+them
+msgid ""
+"I understand that if I delete these projects I will not be able to recover "
+"them"
+msgstr "Saya mengerti bahwa jika saya menghapus proyek-proyek ini, saya tidak akan bisa mengembalikannya"
+
+#: .Project+transfer+declined
+msgid "Project transfer declined"
+msgstr "Peralihan proyek ditolak"
+
+#: .You+have+declined+the+request+of+transfer+ownership+for+%23%23PROJECT_NAME%23%23.
+msgid ""
+"You have declined the request of transfer ownership for ##PROJECT_NAME##."
+msgstr "Anda telah menolak permintaan peralihan kepemilikan untuk ##PROJECT_NAME##."
+
+#: .When+you+accept+the+ownership+transfer+of+project+%23%23PROJECT_NAME%23%23,+all+of+the+submissions,+data+storage,+and+transcription+and+translation+usage+for+the+project+will+be+transferred+to+you+and+count+against+your+plan+limits.
+msgid ""
+"When you accept the ownership transfer of project ##PROJECT_NAME##, all of "
+"the submissions, data storage, and transcription and translation usage for "
+"the project will be transferred to you and count against your plan limits."
+msgstr "Saat Anda menerima peralihan kepemilikan proyek ##PROJECT_NAME##, semua kiriman, penyimpanan data, dan penggunaan transkripsi dan terjemahan untuk proyek ini akan dialihkan kepada Anda dan diperhitungkan dalam batas paket Anda."
+
+#: .Once+you+accept,+the+transfer+might+take+a+few+minutes+to+complete.
+msgid "Once you accept, the transfer might take a few minutes to complete."
+msgstr "Setelah Anda menerima, peralihan mungkin membutuhkan beberapa menit untuk selesai."
+
+#: .Current+owner
+msgid "Current owner"
+msgstr "Pemilik saat ini"
+
+#: .Note+The+previous+owner+has+permissions+to+manage+the+project.+You+can+change+user+permissions+in+the+project+sharing+settings.
+msgid ""
+"Note: The previous owner has permissions to manage the project. You can "
+"change user permissions in the project sharing settings."
+msgstr "Catatan: Pemilik sebelumnya memiliki izin untuk mengelola proyek ini. Anda dapat mengubah izin pengguna di pengaturan berbagi proyek."
+
+#: .Decline
+msgid "Decline"
+msgstr "Tolak"
+
+#: .You+have+declined+the+request+of+transfer+ownership+for+%23%23PROJECT_NAME%23%23.+%23%23CURRENT_OWNER_NAME%23%23+will+receive+a+notification+that+the+transfer+was+incomplete.
+msgid ""
+"You have declined the request of transfer ownership for ##PROJECT_NAME##. "
+"##CURRENT_OWNER_NAME## will receive a notification that the transfer was "
+"incomplete."
+msgstr "Anda telah menolak permintaan peralihan kepemilikan untuk ##PROJECT_NAME##. ##CURRENT_OWNER_NAME## akan menerima pemberitahuan bahwa peralihan tidak selesai."
+
+#: .%23%23CURRENT_OWNER_NAME%23%23+will+remain+the+project+owner.
+msgid "##CURRENT_OWNER_NAME## will remain the project owner."
+msgstr "##CURRENT_OWNER_NAME## akan tetap menjadi pemilik proyek."
+
+#: .You+have+accepted+project+ownership+from+%23%23CURRENT_OWNER_NAME%23%23+for+%23%23PROJECT_NAME%23%23.+This+process+can+take+up+to+a+few+minutes+to+complete.
+msgid ""
+"You have accepted project ownership from ##CURRENT_OWNER_NAME## for "
+"##PROJECT_NAME##. This process can take up to a few minutes to complete."
+msgstr "Anda telah menerima kepemilikan proyek dari##CURRENT_OWNER_NAME## untuk ##PROJECT_NAME##. Proses ini dapat memerlukan beberapa menit hingga selesai."
+
+#: .Delete+group
+msgid "Delete group"
+msgstr "Hapus kelompok"
+
+#: .Do+you+want+to+split+the+group+apart+(and+leave+questions+intact)+or+delete+everything+entirely%3F
+msgid ""
+"Do you want to split the group apart (and leave questions intact) or delete "
+"everything entirely?"
+msgstr "Apakah Anda ingin memisahkan kelompok (dan membiarkan pertanyaan tetap utuh) atau menghapus semuanya?"
+
+#: .Ungroup+questions
+msgid "Ungroup questions"
+msgstr "Pisahkan pertanyaan"
+
+#: .Delete+everything
+msgid "Delete everything"
+msgstr "Hapus semuanya"
+
+#: .Locked
+msgid "Locked"
+msgstr "Terkunci"
+
+#: .fully+locked+group
+msgid "fully locked group"
+msgstr "kelompok yang sepenuhnya terkunci"
+
+#: .partially+locked+group
+msgid "partially locked group"
+msgstr "kelompok yang sebagian terkunci"
+
+#: .You+can%27t+display+nested+groups+on+the+same+screen+-+the+setting+has+been+removed+from+the+parent+group
+msgid ""
+"You can't display nested groups on the same screen - the setting has been "
+"removed from the parent group"
+msgstr "Anda tidak dapat menampilkan kelompok bertingkat di layar yang sama - setelan telah dihapus dari kelompok induk"
+
+#: .fully+locked+question
+msgid "fully locked question"
+msgstr "pertanyaan yang sepenuhnya terkunci"
+
+#: .partially+locked+question
+msgid "partially locked question"
+msgstr "pertanyaan yang sebagian terkunci"
+
+#: .Enter+your+question
+msgid "Enter your question"
+msgstr "Masukkan pertanyaan Anda"
+
+#: .There+was+an+error+getting+the+list.
+msgid "There was an error getting the list."
+msgstr "Terjadi kesalahan saat mendapatkan data."
+
+#: .You+are+approaching+your
+msgid "You are approaching your"
+msgstr "Anda mendekati"
+
+#: .You+have+reached+your
+msgid "You have reached your"
+msgstr "Anda telah mencapai"
+
+#: .monthly
+msgid "monthly"
+msgstr "bulanan"
+
+#: .yearly
+msgid "yearly"
+msgstr "tahunan"
+
+#: .+and+
+msgid " and "
+msgstr " dan "
+
+#: .limit
+msgid "limit"
+msgstr "batas"
+
+#: .limits
+msgid "limits"
+msgstr "batas"
+
+#: .about+upgrading+your+plan.
+msgid "about upgrading your plan."
+msgstr "tentang meningkatkan paket Anda."
+
+#: .Please+upgrade+your+plan+or+purchase+an+add-on+to+increase+your+usage+limits.
+msgid ""
+"Please upgrade your plan or purchase an add-on to increase your usage "
+"limits."
+msgstr "Tingkatkan paket Anda atau beli tambahan untuk meningkatkan batas penggunaan Anda."
+
+#: .Monitor+usage
+msgid "Monitor usage"
+msgstr "Pantau penggunaan"
+
+#: .monitor+usage
+msgid "monitor usage"
+msgstr "pantau penggunaan"
+
+#: .Upgrade+now
+msgid "Upgrade now"
+msgstr "Tingkatkan sekarang"
+
+#: .upgrade+now
+msgid "upgrade now"
+msgstr "tingkatkan sekarang"
+
+#: .You+have+reached+your+plan+limit
+msgid "You have reached your plan limit"
+msgstr "Anda telah mencapai batas paket Anda"
+
+#: .Dear
+msgid "Dear"
+msgstr "Yang terhormat"
+
+#: .You+have+reached+the
+msgid "You have reached the"
+msgstr "Anda telah mencapai"
+
+#: .included+with+your+current+plan.
+msgid "included with your current plan."
+msgstr "yang termasuk dalam paket Anda saat ini."
+
+#: .Please
+msgid "Please"
+msgstr "Mohon"
+
+#: .upgrade+your+plan
+msgid "upgrade your plan"
+msgstr "tingkatkan paket Anda"
+
+#: .review+your+usage+in+account+settings
+msgid "review your usage in account settings"
+msgstr "tinjau penggunaan Anda di pengaturan akun"
+
+#: .remind+me+later
+msgid "remind me later"
+msgstr "ingatkan saya nanti"
+
+#: .Available
+msgid "Available"
+msgstr "Tersedia"
+
+#: .Used+this+month
+msgid "Used this month"
+msgstr "Digunakan bulan ini"
+
+#: .Used+this+year
+msgid "Used this year"
+msgstr "Digunakan tahun ini"
+
+#: .Balance
+msgid "Balance"
+msgstr "Saldo"
+
+#: .Default+sort
+msgid "Default sort"
+msgstr "Urutan default"
+
+#: .last+modified+%23%23date%23%23
+msgid "last modified ##date##"
+msgstr "terakhir diubah ##date##"
+
+#: .created+%23%23date%23%23
+msgid "created ##date##"
+msgstr "dibuat ##date##"
+
+#: .Automated+analysis
+msgid "Automated analysis"
+msgstr "Analisis otomatis"
+
+#: .Unsaved+changes
+msgid "Unsaved changes"
+msgstr "Perubahan belum disimpan"
+
+#: .Saved
+msgid "Saved"
+msgstr "Tersimpan"
+
+#: .This+%23%23type%23%23+does+not+have+a+transcript+yet
+msgid "This ##type## does not have a transcript yet"
+msgstr "##type## ini belum memiliki transkrip"
+
+#: .begin
+msgid "begin"
+msgstr "mulai"
+
+#: .Please+select+the+original+language+of+the+%23%23type%23%23
+msgid "Please select the original language of the ##type##"
+msgstr "Pilih bahasa asli ##type##"
+
+#: .back
+msgid "back"
+msgstr "kembali"
+
+#: .manual
+msgid "manual"
+msgstr "manual"
+
+#: .transcribe
+msgid "transcribe"
+msgstr "transkripsi"
+
+#: .Automatic+transcription+in+progress
+msgid "Automatic transcription in progress"
+msgstr "Transkripsi otomatis sedang diproses"
+
+#: .Estimated+time+for+completion+%23%23estimate%23%23
+msgid "Estimated time for completion: ##estimate##"
+msgstr "Perkiraan waktu penyelesaian: ##estimate##"
+
+#: .Automatic+transcription+of+audio+file+from
+msgid "Automatic transcription of audio file from"
+msgstr "Transkripsi otomatis file audio dari"
+
+#: .Transcription+provider
+msgid "Transcription provider"
+msgstr "Penyedia transkripsi"
+
+#: .Automated+transcription+is+provided+by+Google+Cloud+Platform.+By+using+this+service+you+agree+that+your+audio+file+will+be+sent+to+Google%27s+servers+for+the+purpose+of+transcribing.+However,+it+will+not+be+stored+on+Google%27s+servers+beyond+the+short+period+needed+for+completing+the+transcription,+and+we+do+not+allow+Google+to+use+the+audio+for+improving+its+transcription+service.
+msgid ""
+"Automated transcription is provided by Google Cloud Platform. By using this "
+"service you agree that your audio file will be sent to Google's servers for "
+"the purpose of transcribing. However, it will not be stored on Google's "
+"servers beyond the short period needed for completing the transcription, and"
+" we do not allow Google to use the audio for improving its transcription "
+"service."
+msgstr "Transkripsi otomatis disediakan oleh Google Cloud Platform. Dengan menggunakan layanan ini, Anda menyetujui bahwa file audio Anda akan dikirim ke server Google untuk tujuan transkripsi. Namun, file tersebut tidak akan disimpan di server Google setelah periode yang sangat singkat yang diperlukan untuk menyelesaikan transkripsi, dan kami tidak mengizinkan Google menggunakan audio tersebut untuk meningkatkan layanan transkripsinya."
+
+#: .cancel
+msgid "cancel"
+msgstr "batalkan"
+
+#: .create+transcript
+msgid "create transcript"
+msgstr "membuat transkrip"
+
+#: .Delete+transcript%3F
+msgid "Delete transcript?"
+msgstr "Hapus transkrip?"
+
+#: .This+transcript+does+not+have+any+translations+yet
+msgid "This transcript does not have any translations yet"
+msgstr "Transkrip ini belum memiliki terjemahan"
+
+#: .Free
+msgid "Free"
+msgstr "Gratis"
+
+#: .%24%23%23price%23%23
+msgid "$##price##"
+msgstr "$##price##"
+
+#: .%24%23%23price%23%23+USD/month
+msgid "$##price## USD/month"
+msgstr "$##price## USD/bulan"
+
+#: .Upgrade
+msgid "Upgrade"
+msgstr "Meningkatkan"
+
+#: .Manage
+msgid "Manage"
+msgstr "Kelola"
+
+#: .Change+plan
+msgid "Change plan"
+msgstr "Ubah paket"
+
+#: .Please+select+the+language+you+want+to+translate+to
+msgid "Please select the language you want to translate to"
+msgstr "Pilih bahasa yang ingin Anda terjemahkan"
+
+#: .translate
+msgid "translate"
+msgstr "terjemahkan"
+
+#: .Delete+translation%3F
+msgid "Delete translation?"
+msgstr "Hapus terjemahan?"
+
+#: .new+translation
+msgid "new translation"
+msgstr "terjemahan baru"
+
+#: .Automatic+translation+in+progress
+msgid "Automatic translation in progress"
+msgstr "Terjemahan otomatis sedang diproses"
+
+#: .less+than+a+minute
+msgid "less than a minute"
+msgstr "kurang dari 1 menit"
+
+#: .Automatic+translation+of+transcript+to
+msgid "Automatic translation of transcript to"
+msgstr "Terjemahan transkrip otomatis ke"
+
+#: .Translation+provider
+msgid "Translation provider"
+msgstr "Penyedia terjemahan"
+
+#: .Automated+translation+is+provided+by+Google+Cloud+Platform.+By+using+this+service+you+agree+that+your+transcript+text+will+be+sent+to+Google%27s+servers+for+the+purpose+of+translation.+However,+it+will+not+be+stored+on+Google%27s+servers+beyond+the+very+short+period+needed+for+completing+the+translation.
+msgid ""
+"Automated translation is provided by Google Cloud Platform. By using this "
+"service you agree that your transcript text will be sent to Google's servers"
+" for the purpose of translation. However, it will not be stored on Google's "
+"servers beyond the very short period needed for completing the translation."
+msgstr "Terjemahan otomatis disediakan oleh Google Cloud Platform. Dengan menggunakan layanan ini, Anda setuju bahwa teks transkrip Anda akan dikirim ke server Google untuk tujuan terjemahan. Namun, teks tersebut tidak akan disimpan di server Google setelah periode yang sangat singkat yang diperlukan untuk menyelesaikan terjemahan."
+
+#: .create+translation
+msgid "create translation"
+msgstr "membuat terjemahan"
+
+#: .NLP+Package
+msgid "NLP Package"
+msgstr "Paket NLP"
+
+#: .Increase+your+transcription+minutes+and+translations+characters.
+msgid "Increase your transcription minutes and translations characters."
+msgstr "Tingkatkan menit transkripsi dan karakter terjemahan Anda."
+
+#: .File+Storage
+msgid "File Storage"
+msgstr "Penyimpanan File"
+
+#: .Get+up+to+50GB+of+media+storage+on+a+KoboToolbox+public+server.
+msgid "Get up to 50GB of media storage on a KoboToolbox public server."
+msgstr "Dapatkan hingga 50 GB penyimpanan media di server publik KoboToolbox."
+
+#: .Buy+now
+msgid "Buy now"
+msgstr "Beli sekarang"
+
+#: .prices
+msgid "prices"
+msgstr "harga"
+
+#: .quantity
+msgid "quantity"
+msgstr "jumlah"
+
+#: .about+1+minute
+msgid "about 1 minute"
+msgstr "sekitar 1 menit"
+
+#: .about+2+minutes
+msgid "about 2 minutes"
+msgstr "sekitar 2 menit"
+
+#: .about+%23%23number%23%23+minutes
+msgid "about ##number## minutes"
+msgstr "sekitar ##number## menit"
+
+#: .Click+to+add+another+response...
+msgid "Click to add another response..."
+msgstr "Klik untuk menambahkan tanggapan lain..."
+
+#: .All+group+settings
+msgid "All group settings"
+msgstr "Semua pengaturan kelompok"
+
+#: .Skip+Logic
+msgid "Skip Logic"
+msgstr "Lewati Logika"
+
+#: .Locked+Features
+msgid "Locked Features"
+msgstr "Fitur Terkunci"
+
+#: .Question+Options
+msgid "Question Options"
+msgstr "Opsi Pertanyaan"
+
+#: .Validation+Criteria
+msgid "Validation Criteria"
+msgstr "Kriteria Validasi"
+
+#: .Question+label+is+required
+msgid "Question label is required"
+msgstr "Label pertanyaan diperlukan"
+
+#: .Question+hint
+msgid "Question hint"
+msgstr "Petunjuk pertanyaan"
+
+#: .Note+The+Matrix+question+type+only+works+in+Enketo+web+forms+using+the+%27grid%27+style.
+msgid ""
+"Note: The Matrix question type only works in Enketo web forms using the "
+"'grid' style."
+msgstr "Catatan: Jenis pertanyaan Matriks hanya berfungsi di formulir web Enketo yang menggunakan gaya ‘kisi’."
+
+#: .Row+name
+msgid "Row name"
+msgstr "Nama baris"
+
+#: .A+constraint+message+to+be+read+in+case+of+error
+msgid "A constraint message to be read in case of error:"
+msgstr "Pesan kendala untuk dibaca jika terjadi kesalahan:"
+
+#: .Mandatory+response
+msgid "Mandatory response"
+msgstr "Tanggapan wajib"
+
+#: .Custom+logic
+msgid "Custom logic"
+msgstr "Logika khusus"
+
+#: .Mandatory+when+this+formula+is+true
+msgid "Mandatory when this formula is true"
+msgstr "Wajib bila rumus ini benar"
+
+#: .Parameters
+msgid "Parameters"
+msgstr "Parameter"
+
+#: .Row+could+not+be+displayed
+msgid "Row could not be displayed:"
+msgstr "Baris tidak dapat ditampilkan:"
+
+#: .This+question+could+not+be+imported.+Please+re-create+it+manually.+Please+contact+us+at+help@kobotoolbox.org+so+we+can+fix+this+bug%21
+msgid ""
+"This question could not be imported. Please re-create it manually. Please "
+"contact us at help@kobotoolbox.org so we can fix this bug!"
+msgstr "Pertanyaan ini tidak dapat diimpor. Mohon buat ulang secara manual. Silakan hubungi kami di help@kobotoolbox.org agar kami dapat memperbaiki kesalahan ini!"
+
+#: .Accepted+files
+msgid "Accepted files"
+msgstr "File yang diterima"
+
+#: .Add+Question
+msgid "Add Question"
+msgstr "Tambahkan Pertanyaan"
+
+#: .This+form+is+currently+empty.
+msgid "This form is currently empty."
+msgstr "Formulir ini saat ini kosong."
+
+#: .You+can+add+questions,+notes,+prompts,+or+other+fields+by+clicking+on+the+%27%2B%27+sign+below.
+msgid ""
+"You can add questions, notes, prompts, or other fields by clicking on the "
+"'+' sign below."
+msgstr "Anda dapat menambahkan pertanyaan, catatan, petunjuk, atau bagian lainnya dengan mengeklik tanda ‘+’ di bawah."
+
+#: .No+value
+msgid "No value"
+msgstr "Tidak ada nilai"
+
+#: .e.g.+%22.pdf,.doc,.odt%22
+msgid "e.g. \".pdf,.doc,.odt\""
+msgstr "misalnya “.pdf,.doc,.odt”"
+
+#: .Choices+File
+msgid "Choices File"
+msgstr "File Pilihan"
+
+#: .Guidance+hint
+msgid "Guidance hint"
+msgstr "Petunjuk panduan"
+
+#: .Error+Message
+msgid "Error Message"
+msgstr "Pesan Kesalahan"
+
+#: .Data+column+name
+msgid "Data column name"
+msgstr "Nama kolom data"
+
+#: .HXL
+msgid "HXL"
+msgstr "HXL"
+
+#: .%23tag
+msgid "#tag"
+msgstr "#tag"
+
+#: .Only+one+HXL+tag+allowed+per+question.+
+msgid "Only one HXL tag allowed per question. "
+msgstr "Hanya satu tag HXL yang diperbolehkan per pertanyaan. "
+
+#: .Type+attributes+for+this+tag
+msgid "Type attributes for this tag"
+msgstr "Ketik atribut untuk tag ini"
+
+#: .Attributes
+msgid "Attributes"
+msgstr "Atribut"
+
+#: .Default+response
+msgid "Default response"
+msgstr "Tanggapan default"
+
+#: .Repeat
+msgid "Repeat"
+msgstr "Ulangi"
+
+#: .Repeat+this+group+if+necessary
+msgid "Repeat this group if necessary"
+msgstr "Ulangi grup ini jika perlu"
+
+#: .Appearance+(advanced)
+msgid "Appearance (advanced)"
+msgstr "Tampilan (tingkat lanjut)"
+
+#: .View+add-on+details
+msgid "View add-on details"
+msgstr "Lihat detail tambahan"
+
+#: .Add-on+details
+msgid "Add-on details"
+msgstr "Detail tambahan"
+
+#: .%23%23TYPE%23%23
+msgid "##TYPE##"
+msgstr "##TYPE##"
+
+#: .Included+with+%23%23PERIOD%23%23+plan
+msgid "Included with ##PERIOD## plan"
+msgstr "Termasuk dalam paket ##PERIOD##"
+
+#: .From+add-ons
+msgid "From add-ons"
+msgstr "Dari tambahan"
+
+#: .Used+this+%23%23PERIOD%23%23
+msgid "Used this ##PERIOD##"
+msgstr "Gunakan ##PERIOD## ini"
+
+#: .Total+available
+msgid "Total available"
+msgstr "Total tersedia"
+
+#: .Purchased+add-ons
+msgid "Purchased add-ons"
+msgstr "Tambahan yang dibeli"
+
+#: .Please+note+that+any+qualitative+question+created+for+this+record+will+generate+a+new+column+in+the+data+table,+making+the+question+available+for+all+other+records.
+msgid ""
+"Please note that any qualitative question created for this record will "
+"generate a new column in the data table, making the question available for "
+"all other records."
+msgstr "Perlu diperhatikan bahwa pertanyaan kualitatif yang dibuat untuk catatan ini akan menghasilkan kolom baru dalam tabel data, sehingga pertanyaan tersebut tersedia untuk semua catatan lainnya."
+
+#: .There+are+no+qualitative+analysis+questions+yet.
+msgid "There are no qualitative analysis questions yet."
+msgstr "Belum ada pertanyaan analisis kualitatif."
+
+#: .Click+the+%22Add+question%22+button+to+get+started
+msgid "Click the \"Add question\" button to get started"
+msgstr "Klik tombol “Tambah pertanyaan” untuk memulai"
+
+#: .Only+those+with+full+editing+rights+can+create+questions
+msgid "Only those with full editing rights can create questions"
+msgstr "Hanya mereka yang memiliki hak pengeditan penuh yang dapat membuat pertanyaan"
+
+#: .Contact+the+project+owner+for+more+information
+msgid "Contact the project owner for more information"
+msgstr "Hubungi pemilik proyek untuk informasi lebih lanjut"
+
+#: .Upgrade+to+continue+using+this+feature
+msgid "Upgrade to continue using this feature"
+msgstr "Tingkatkan untuk terus menggunakan fitur ini"
+
+#: .You+have+reached+the+%23%23LIMIT%23%23+limit+for+this+%23%23PERIOD%23%23.
+msgid "You have reached the ##LIMIT## limit for this ##PERIOD##."
+msgstr "Anda telah mencapai batas ##LIMIT## untuk##PERIOD##ini."
+
+#: .Please+consider+our+plans+or+add-ons+to+continue+using+this+feature.
+msgid "Please consider our plans or add-ons to continue using this feature."
+msgstr "Pertimbangkan paket atau tambahan kami untuk terus menggunakan fitur ini."
+
+#: .You+can+monitor+your+usage
+msgid "You can monitor your usage"
+msgstr "Anda dapat memantau penggunaan Anda"
+
+#: .Go+back
+msgid "Go back"
+msgstr "Kembali"
+
+#: .automatic
+msgid "automatic"
+msgstr "otomatis"
+
+#: .original
+msgid "original"
+msgstr "asli"
+
+#: .Search+for+a+language
+msgid "Search for a language"
+msgstr "Telusuri bahasa"
+
+#: .Sorry,+didn%27t+find+any+language%E2%80%A6
+msgid "Sorry, didn't find any language…"
+msgstr "Maaf, tidak menemukan bahasa apa pun…"
+
+#: .I+cannot+find+my+language
+msgid "I cannot find my language"
+msgstr "Saya tidak dapat menemukan bahasa saya"
+
+#: .Please+select+the+language
+msgid "Please select the language"
+msgstr "Pilih bahasa"
+
+#: .Change+column+type%3F
+msgid "Change column type?"
+msgstr "Ubah jenis kolom?"
+
+#: .Are+you+sure+you+want+to+change+the+type%3F+This+action+is+irreversible,+your+existing+option+choices+will+be+erased.
+msgid ""
+"Are you sure you want to change the type? This action is irreversible, your "
+"existing option choices will be erased."
+msgstr "Apakah Anda yakin ingin mengubah jenisnya? Tindakan ini tidak dapat diubah, pilihan opsi Anda yang ada akan dihapus."
+
+#: .Change+type
+msgid "Change type"
+msgstr "Ubah jenis"
+
+#: .Option+1
+msgid "Option 1"
+msgstr "Pilihan 1"
+
+#: .Option+2
+msgid "Option 2"
+msgstr "Pilihan 2"
+
+#: .Row
+msgid "Row"
+msgstr "Baris"
+
+#: .Column
+msgid "Column"
+msgstr "Kolom"
+
+#: .Delete+row%3F
+msgid "Delete row?"
+msgstr "Hapus baris?"
+
+#: .Are+you+sure+you+want+to+delete+this+row%3F+This+action+cannot+be+undone.
+msgid ""
+"Are you sure you want to delete this row? This action cannot be undone."
+msgstr "Apakah Anda yakin ingin menghapus baris ini? Tindakan ini tidak bisa dibatalkan."
+
+#: .Delete+column%3F
+msgid "Delete column?"
+msgstr "Hapus kolom?"
+
+#: .Are+you+sure+you+want+to+delete+this+column%3F+This+action+cannot+be+undone.
+msgid ""
+"Are you sure you want to delete this column? This action cannot be undone."
+msgstr "Apakah Anda yakin ingin menghapus kolom ini? Tindakan ini tidak bisa dibatalkan."
+
+#: .Response+Type
+msgid "Response Type"
+msgstr "Jenis Tanggapan"
+
+#: .Label
+msgid "Label"
+msgstr "Label"
+
+#: .Data+Column+Suffix
+msgid "Data Column Suffix"
+msgstr "Akhiran Kolom Data"
+
+#: .Data+Column+Name
+msgid "Data Column Name"
+msgstr "Nama Kolom Data"
+
+#: .Delete+column
+msgid "Delete column"
+msgstr "Hapus kolom"
+
+#: .Data+Column+Prefix
+msgid "Data Column Prefix"
+msgstr "Awalan Kolom Data"
+
+#: .Delete+row
+msgid "Delete row"
+msgstr "Hapus baris"
+
+#: .Unknown+question+type+%23%23type_name%23%23
+msgid "Unknown question type ##type_name##"
+msgstr "Jenis pertanyaan ##type_name## tidak diketahui"
+
+#: .%23%23REMAINING%23%23+remaining
+msgid "##REMAINING## remaining"
+msgstr "##REMAINING## tersisa"
+
+#: .Question+label+cannot+be+empty
+msgid "Question label cannot be empty"
+msgstr "Label pertanyaan tidak boleh kosong"
+
+#: .Some+required+fields+are+missing
+msgid "Some required fields are missing"
+msgstr "Beberapa bagian yang diperlukan tidak ada"
+
+#: .Type+question
+msgid "Type question"
+msgstr "Ketik pertanyaan"
+
+#: .Type+your+answer
+msgid "Type your answer"
+msgstr "Ketik jawaban Anda"
+
+#: .%E2%80%A6keyword+search+in+progress
+msgid "…keyword search in progress"
+msgstr "…pencarian kata kunci dalam proses"
+
+#: .Apply+search
+msgid "Apply search"
+msgstr "Terapkan pencarian"
+
+#: .%23%23number%23%23+instances
+msgid "##number## instances"
+msgstr "##number## contoh"
+
+#: .of+the+keywords
+msgid "of the keywords"
+msgstr "dari kata kunci"
+
+#: .from
+msgid "from"
+msgstr "dari"
+
+#: .Delete+this+question%3F
+msgid "Delete this question?"
+msgstr "Hapus pertanyaan ini?"
+
+#: .Are+you+sure+you+want+to+delete+this+question%3F+This+action+cannot+be+undone.
+msgid ""
+"Are you sure you want to delete this question? This action cannot be undone."
+msgstr "Apakah Anda yakin ingin menghapus pertanyaan ini? Tindakan ini tidak dapat dibatalkan."
+
+#: .Look+for
+msgid "Look for"
+msgstr "Cari"
+
+#: .Type+keywords
+msgid "Type keywords"
+msgstr "Ketik kata kunci"
+
+#: .Search+this+transcript/translation
+msgid "Search this transcript/translation:"
+msgstr "Cari dalam transkrip/terjemahan ini:"
+
+#: .Type+option+name
+msgid "Type option name"
+msgstr "Ketik nama opsi"
+
+#: .Add+new+option
+msgid "Add new option"
+msgstr "Tambah opsi baru"

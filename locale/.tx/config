@@ -1,0 +1,15 @@
+[main]
+host = https://www.transifex.com
+
+[o:kobotoolbox:p:kobotoolbox:r:django]
+file_filter = <lang>/LC_MESSAGES/django.po
+source_file = en/LC_MESSAGES/django.po
+source_lang = en
+type        = PO
+
+[o:kobotoolbox:p:kobotoolbox:r:djangojs]
+file_filter = <lang>/LC_MESSAGES/djangojs.po
+source_file = en/LC_MESSAGES/djangojs.po
+source_lang = en
+type        = PO
+

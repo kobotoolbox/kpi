@@ -32,5 +32,8 @@ storybook-static
 emails
 .claude/
 
+# Ignore locale build files.
+locale/**/*.mo
+
 # We post changelog in github releases, but generate it here. Let's not accidentally commit it.
 CHANGELOG.md
