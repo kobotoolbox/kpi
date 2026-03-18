@@ -1916,6 +1916,27 @@ class AssetDetailApiTests(PermissionsTestMixin, BaseAssetDetailTestCase):
             self.assertIn('anotheruser', usernames)
             self.assertIn(self.thirduser.username, usernames)
 
+    def test_detail_permissions_visibility_org_admin(self):
+        """
+        An org admin (no explicit ObjectPermission) always sees all users'
+        permissions on the detail endpoint, because manage_asset is implied
+        by their org admin role.
+        """
+        anotheruser = User.objects.get(username='anotheruser')
+        self.asset.assign_perm(self.thirduser, PERM_VIEW_ASSET)
+
+        organization = self.asset.owner.organization
+        organization.mmo_override = True
+        organization.save(update_fields=['mmo_override'])
+        organization.add_user(anotheruser, is_admin=True)
+
+        self.client.force_login(anotheruser)
+        response = self.client.get(self.asset_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        usernames = self._get_perm_usernames(response.data['permissions'])
+        self.assertIn('someuser', usernames)
+        self.assertIn(self.thirduser.username, usernames)
+
 
 class AssetsXmlExportApiTests(KpiTestCase):
 
