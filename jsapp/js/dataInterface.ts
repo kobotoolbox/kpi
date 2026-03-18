@@ -200,7 +200,7 @@ interface TransxObject {
   /** transcripts only */
   regionCode?: string | null
 
-  // TODO: see if these below shuld be removed
+  // TODO: see if these below should be removed
   dateCreated?: string
   dateModified?: string
   /** The source of the `value` text. */
