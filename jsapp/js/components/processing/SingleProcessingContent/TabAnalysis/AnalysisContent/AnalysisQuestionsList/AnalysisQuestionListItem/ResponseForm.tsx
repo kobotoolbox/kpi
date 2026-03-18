@@ -20,7 +20,7 @@ interface Props {
   disabledQuestion: boolean
   // This is optional because some types are not clearable
   onClear?: () => Promise<void>
-  onUpdateAnswerVerification?: (verified: boolean) => Promise<void>
+  onUpdateAnswerVerification?: (isAnswerAIGenerated: boolean, verified: boolean) => Promise<void>
   onEdit: (qaQuestion: ResponseManualQualActionParams) => unknown
   onDelete: (qaQuestion: ResponseManualQualActionParams) => Promise<unknown>
   /**
@@ -134,7 +134,7 @@ export default function ResponseForm({
     const newValue = event.currentTarget.checked
     setVerificationStatus(newValue)
     if (onUpdateAnswerVerification) {
-      onUpdateAnswerVerification(newValue)
+      onUpdateAnswerVerification(isAnswerAIGenerated ?? false, newValue)
     }
   }
 

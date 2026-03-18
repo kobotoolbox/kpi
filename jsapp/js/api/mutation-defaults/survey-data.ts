@@ -100,6 +100,7 @@ queryClient.setMutationDefaults(
           case ActionEnum.manual_qual: {
             const { uuid } = datum as PatchedDataSupplementPayloadOneOfManualQual
             const value: ManualQualValue | undefined = 'value' in datum! ? datum.value : undefined
+            const verified: boolean | undefined = 'verified' in datum! ? (datum as any).verified : undefined
             const itemSnapshot = await optimisticallyUpdateItem<assetsDataSupplementRetrieveResponse>(
               getAssetsDataSupplementRetrieveQueryKey(uidAsset, rootUuid),
               (response) =>
@@ -123,6 +124,7 @@ queryClient.setMutationDefaults(
                                       value,
                                     },
                                     _dateCreated: new Date().toISOString(),
+                                    ...(verified !== undefined ? { verified } : {}),
                                   }, // Note: this is the actual optimistally added object.
                                   ...(response?.data?.[questionXpath]?.[action]?.[uuid]?._versions ?? []),
                                 ],
