@@ -162,7 +162,7 @@ describe('getSupplementalDetailsContent', () => {
   it('should return translation value properly for a question inside a group', () => {
     const test = getSupplementalDetailsContent(
       submissionWithNestedSupplementalDetails,
-      '_supplementalDetails/level_a/level_b/level_c/sounds/translation_fr',
+      '_supplementalDetails/level_a/level_b/level_c/sound/translation_fr',
     )
     chai.expect(test).to.equal('Comment vas-tu mon cher ami?')
   })
@@ -202,7 +202,7 @@ describe('getSupplementalDetailsContent', () => {
   it('should return analysis question verified value properly for a question inside a group', () => {
     const test = getSupplementalDetailsContent(
       submissionWithNestedSupplementalDetails,
-      '_supplementalDetails/level_a/level_b/level_c/sounds/9d75988b-7b69-48ec-921d-2ed15b9f5ca7/verified',
+      '_supplementalDetails/level_a/level_b/level_c/sound/9d75988b-7b69-48ec-921d-2ed15b9f5ca7/verified',
     )
     chai.expect(test).to.equal('No')
   })

@@ -79,7 +79,7 @@ type AnalysisResponseValue =
  * This is the object that is returned from interacting with the data endpoint
  * (`/api/v2/assets/:uid/data`), it will be inside the `_supplementalDetails`
  * object for each appropiate submission. It's similar to `AnalysisResponse`,
- * but with more detailed `val` for `qualSelectOne` and `qualSelectMultiple`
+ * but with more detailed value for `qualSelectOne` and `qualSelectMultiple`
  * - containing both `uuid` and `labels` object.
  */
 export interface SubmissionAnalysisResponse extends AnalysisQuestionBase {

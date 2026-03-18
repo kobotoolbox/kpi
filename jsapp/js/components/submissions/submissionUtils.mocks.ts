@@ -3241,7 +3241,7 @@ export const assetWithNestedSupplementalDetails = {
         type: QuestionTypeName.audio,
         $kuid: 'ne3yl16',
         label: ['sound'],
-        $xpath: 'level_a/level_b/level_c/sounds',
+        $xpath: 'level_a/level_b/level_c/sound',
         required: false,
         $autoname: 'sound',
       },
@@ -3286,38 +3286,38 @@ export const assetWithNestedSupplementalDetails = {
     additional_fields: [
       {
         language: 'en',
-        source: 'level_a/level_b/level_c/sounds',
+        source: 'level_a/level_b/level_c/sound',
         type: 'transcript',
-        name: 'level_a/level_b/level_c/sounds/transcript_en',
-        dtpath: 'level_a/level_b/level_c/sounds/transcript_en',
+        name: 'level_a/level_b/level_c/sound/transcript_en',
+        dtpath: 'level_a/level_b/level_c/sound/transcript_en',
       },
       {
         language: 'fr',
-        source: 'level_a/level_b/level_c/sounds',
+        source: 'level_a/level_b/level_c/sound',
         type: 'translation',
-        name: 'level_a/level_b/level_c/sounds/translation_fr',
-        dtpath: 'level_a/level_b/level_c/sounds/translation_fr',
+        name: 'level_a/level_b/level_c/sound/translation_fr',
+        dtpath: 'level_a/level_b/level_c/sound/translation_fr',
       },
       {
         label: 'How many vowels were used?',
-        source: 'level_a/level_b/level_c/sounds',
-        name: 'level_a/level_b/level_c/sounds/9d75988b-7b69-48ec-921d-2ed15b9f5ca7',
+        source: 'level_a/level_b/level_c/sound',
+        name: 'level_a/level_b/level_c/sound/9d75988b-7b69-48ec-921d-2ed15b9f5ca7',
         type: 'qualInteger',
-        dtpath: 'level_a/level_b/level_c/sounds/9d75988b-7b69-48ec-921d-2ed15b9f5ca7',
+        dtpath: 'level_a/level_b/level_c/sound/9d75988b-7b69-48ec-921d-2ed15b9f5ca7',
       },
       {
         label: 'source',
-        source: 'level_a/level_b/level_c/sounds/9d75988b-7b69-48ec-921d-2ed15b9f5ca7',
+        source: 'level_a/level_b/level_c/sound/9d75988b-7b69-48ec-921d-2ed15b9f5ca7',
         type: 'qualSource',
-        name: 'level_a/level_b/level_c/sounds/9d75988b-7b69-48ec-921d-2ed15b9f5ca7/source',
-        dtpath: 'level_a/level_b/level_c/sounds/9d75988b-7b69-48ec-921d-2ed15b9f5ca7/source',
+        name: 'level_a/level_b/level_c/sound/9d75988b-7b69-48ec-921d-2ed15b9f5ca7/source',
+        dtpath: 'level_a/level_b/level_c/sound/9d75988b-7b69-48ec-921d-2ed15b9f5ca7/source',
       },
       {
         label: 'verified',
-        source: 'level_a/level_b/level_c/sounds/9d75988b-7b69-48ec-921d-2ed15b9f5ca7',
+        source: 'level_a/level_b/level_c/sound/9d75988b-7b69-48ec-921d-2ed15b9f5ca7',
         type: 'qualVerification',
-        name: 'level_a/level_b/level_c/sounds/9d75988b-7b69-48ec-921d-2ed15b9f5ca7/verified',
-        dtpath: 'level_a/level_b/level_c/sounds/9d75988b-7b69-48ec-921d-2ed15b9f5ca7/verified',
+        name: 'level_a/level_b/level_c/sound/9d75988b-7b69-48ec-921d-2ed15b9f5ca7/verified',
+        dtpath: 'level_a/level_b/level_c/sound/9d75988b-7b69-48ec-921d-2ed15b9f5ca7/verified',
       },
     ],
   },
@@ -3476,7 +3476,7 @@ export const assetWithNestedSupplementalDetails = {
 export const submissionWithNestedSupplementalDetails = {
   _id: 84,
   'formhub/uuid': 'dc381e94ebda4b928472314b7d0ec5e0',
-  'level_a/level_b/level_c/sounds': 'test-spoken.m4a',
+  'level_a/level_b/level_c/sound': 'test-spoken.m4a',
   __version__: 'vKv4GrbV5Yvgy8xhSuEDTw',
   'meta/instanceID': 'uuid:3d3469d5-07c5-47bc-a7fb-436284c5870e',
   _xform_id_string: 'ah7XL93RtfHaY6PHjaSszu',
@@ -3491,7 +3491,7 @@ export const submissionWithNestedSupplementalDetails = {
       media_file_basename: 'test-spoken.m4a',
       uid: 'atthgV9fRxpxcKyfLMie4zae',
       is_deleted: false,
-      question_xpath: 'level_a/level_b/level_c/sounds',
+      question_xpath: 'level_a/level_b/level_c/sound',
     },
   ],
   _status: 'submitted_via_web',
@@ -3502,7 +3502,7 @@ export const submissionWithNestedSupplementalDetails = {
   _validation_status: {},
   _submitted_by: null,
   _supplementalDetails: {
-    'level_a/level_b/level_c/sounds': {
+    'level_a/level_b/level_c/sound': {
       translation: {
         fr: {
           languageCode: 'fr',
@@ -3516,10 +3516,10 @@ export const submissionWithNestedSupplementalDetails = {
       },
       qual: {
         '9d75988b-7b69-48ec-921d-2ed15b9f5ca7': {
-          uuid: '97fd5387-ac2b-4108-b5b4-37fa91ae0e22',
+          uuid: '9d75988b-7b69-48ec-921d-2ed15b9f5ca7',
           value: 11,
           type: 'qualInteger',
-          xpath: 'level_a/level_b/level_c/sounds',
+          xpath: 'level_a/level_b/level_c/sound',
           labels: {
             _default: 'How many vowels were used?',
           },
@@ -3547,37 +3547,51 @@ export const nestedSupplementalDetailsSurveyDisplayData = {
           label: 'Level B',
           name: 'level_b',
           type: DisplayGroupTypeName.group_regular,
-          xpathNodes: [
-            {
-              childIndex: null,
-              childrenAreRepeatable: false,
-              path: 'level_a',
-            },
-          ],
+          xpathNodes: [{ childIndex: null, childrenAreRepeatable: false, path: 'level_a' }],
           children: [
             {
               label: 'Level C',
               name: 'level_c',
               type: DisplayGroupTypeName.group_regular,
               xpathNodes: [
-                {
-                  childIndex: null,
-                  childrenAreRepeatable: false,
-                  path: 'level_a',
-                },
-                {
-                  childIndex: null,
-                  childrenAreRepeatable: false,
-                  path: 'level_b',
-                },
+                { childIndex: null, childrenAreRepeatable: false, path: 'level_a' },
+                { childIndex: null, childrenAreRepeatable: false, path: 'level_b' },
               ],
               children: [
                 {
-                  data: null,
+                  data: 'test-spoken.m4a',
                   label: 'sound',
                   name: 'sound',
                   type: QuestionTypeName.audio,
                   xpath: 'level_a/level_b/level_c/sound',
+                },
+                {
+                  data: 'How are you doing my dear friend?',
+                  label: 'transcript (en) | sound',
+                  name: '_supplementalDetails/level_a/level_b/level_c/sound/transcript_en',
+                  type: null,
+                  xpath: 'level_a/level_b/level_c/sound/transcript_en',
+                },
+                {
+                  data: 'Comment vas-tu mon cher ami?',
+                  label: 'translation (fr) | sound',
+                  name: '_supplementalDetails/level_a/level_b/level_c/sound/translation_fr',
+                  type: null,
+                  xpath: 'level_a/level_b/level_c/sound/translation_fr',
+                },
+                {
+                  data: '11',
+                  label: 'How many vowels were used? | sound',
+                  name: '_supplementalDetails/level_a/level_b/level_c/sound/9d75988b-7b69-48ec-921d-2ed15b9f5ca7',
+                  type: null,
+                  xpath: 'level_a/level_b/level_c/sound/9d75988b-7b69-48ec-921d-2ed15b9f5ca7',
+                },
+                {
+                  data: 'No',
+                  label: 'Verified | How many vowels were used? | sound',
+                  name: '_supplementalDetails/level_a/level_b/level_c/sound/9d75988b-7b69-48ec-921d-2ed15b9f5ca7/verified',
+                  type: null,
+                  xpath: 'level_a/level_b/level_c/sound/9d75988b-7b69-48ec-921d-2ed15b9f5ca7/verified',
                 },
               ],
             },

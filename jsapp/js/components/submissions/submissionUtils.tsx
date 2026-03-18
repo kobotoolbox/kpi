@@ -712,7 +712,8 @@ export function getSupplementalDetailsContent(
   if (pathParts.type === 'qual') {
     // The last element is some random uuid, but we look for `qual`.
     pathArray.push('qual')
-    pathArray.push(pathParts.analysisQuestionUuid || '')
+    // It is `qual`, so `analysisQuestionUuid` must be there
+    pathArray.push(pathParts.analysisQuestionUuid!)
     const foundResponse: SubmissionAnalysisResponse = get(submission, pathArray, {})
 
     if (foundResponse) {
