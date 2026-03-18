@@ -190,7 +190,7 @@ def get_perm_ids_from_code_names(
 
 
 def get_user_permission_assignments(
-    affected_object, user, object_permission_assignments
+    affected_object, user, object_permission_assignments, user_is_org_admin=False
 ):
     """
     Filters a list of permission assignment dicts (from .values() queries) to
@@ -199,10 +199,14 @@ def get_user_permission_assignments(
     `manage_asset` is detected from `object_permission_assignments` itself,
     avoiding the N+1 queries that `has_perm()` would cause in a list context.
 
+    For org admins, pass `user_is_org_admin=True` (pre-computed by the caller)
+    to grant full visibility without extra DB queries per asset.
+
     Args:
         affected_object (Asset)
         user (User)
         object_permission_assignments (list[dict]): raw dicts from .values()
+        user_is_org_admin (bool): True if the user is an org admin for this asset
     Returns:
         list[dict]
     """
@@ -210,7 +214,7 @@ def get_user_permission_assignments(
         visible_user_ids = {affected_object.owner_id}
     else:
         user_pk = user.pk
-        user_has_manage = any(
+        user_has_manage = user_is_org_admin or any(
             p['user_id'] == user_pk and p['permission__codename'] == PERM_MANAGE_ASSET
             for p in object_permission_assignments
         )
