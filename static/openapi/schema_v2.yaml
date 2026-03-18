@@ -9669,6 +9669,418 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
+  /api/v2/scim/v2/{idp_slug}/Groups:
+    get:
+      operationId: api_v2_scim_v2_Groups_list
+      description: Returns a list of SCIM groups.
+      parameters:
+      - name: count
+        required: false
+        in: query
+        description: Number of results to return per page. Use with `start`.
+        schema:
+          type: integer
+      - in: path
+        name: idp_slug
+        schema:
+          type: string
+        required: true
+      - name: offset
+        required: false
+        in: query
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: startIndex
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
+        schema:
+          type: integer
+      tags:
+      - SCIM
+      responses:
+        '200':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/PaginatedScimGroupList'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedScimGroupList'
+          description: ''
+    post:
+      operationId: api_v2_scim_v2_Groups_create
+      description: Creates a new SCIM group.
+      parameters:
+      - in: path
+        name: idp_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - SCIM
+      requestBody:
+        content:
+          application/scim+json:
+            schema:
+              $ref: '#/components/schemas/ScimGroup'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScimGroup'
+        required: true
+      responses:
+        '201':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimGroup'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScimGroup'
+          description: ''
+  /api/v2/scim/v2/{idp_slug}/Groups/{id}:
+    get:
+      operationId: api_v2_scim_v2_Groups_retrieve
+      description: Returns a specific SCIM group.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        description: A unique value identifying this SCIM Group.
+        required: true
+      - in: path
+        name: idp_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - SCIM
+      responses:
+        '200':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimGroup'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScimGroup'
+          description: ''
+    put:
+      operationId: api_v2_scim_v2_Groups_update
+      description: Replaces a SCIM group entirely.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        description: A unique value identifying this SCIM Group.
+        required: true
+      - in: path
+        name: idp_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - SCIM
+      requestBody:
+        content:
+          application/scim+json:
+            schema:
+              $ref: '#/components/schemas/ScimGroup'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScimGroup'
+        required: true
+      responses:
+        '200':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimGroup'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScimGroup'
+          description: ''
+    patch:
+      operationId: api_v2_scim_v2_Groups_partial_update
+      description: Updates a SCIM group. Supports adding/removing members via patch
+        operations.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        description: A unique value identifying this SCIM Group.
+        required: true
+      - in: path
+        name: idp_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - SCIM
+      requestBody:
+        content:
+          application/scim+json:
+            schema:
+              $ref: '#/components/schemas/PatchedScimGroup'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedScimGroup'
+      responses:
+        '200':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimGroup'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScimGroup'
+          description: ''
+    delete:
+      operationId: api_v2_scim_v2_Groups_destroy
+      description: Deletes a SCIM group.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        description: A unique value identifying this SCIM Group.
+        required: true
+      - in: path
+        name: idp_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - SCIM
+      responses:
+        '204':
+          description: No response body
+  /api/v2/scim/v2/{idp_slug}/ServiceProviderConfig:
+    get:
+      operationId: api_v2_scim_v2_ServiceProviderConfig_retrieve
+      description: Returns the SCIM Service Provider Configuration.
+      parameters:
+      - in: path
+        name: idp_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - SCIM
+      responses:
+        '200':
+          content:
+            application/scim+json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v2/scim/v2/{idp_slug}/Users:
+    get:
+      operationId: api_v2_scim_v2_Users_list
+      description: Returns a list of SCIM users matching the optional query
+      parameters:
+      - name: count
+        required: false
+        in: query
+        description: Number of results to return per page. Use with `start`.
+        schema:
+          type: integer
+      - in: path
+        name: idp_slug
+        schema:
+          type: string
+        required: true
+      - name: offset
+        required: false
+        in: query
+        description: Deprecated alias of `start`.
+        schema:
+          type: integer
+      - name: startIndex
+        required: false
+        in: query
+        description: The initial index from which to return the results. Use with
+          `limit`.
+        schema:
+          type: integer
+      tags:
+      - SCIM
+      responses:
+        '200':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/PaginatedScimUserList'
+          description: ''
+    post:
+      operationId: api_v2_scim_v2_Users_create
+      description: Handle POST requests (user provisioning from IdP).
+      parameters:
+      - in: path
+        name: idp_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - SCIM
+      requestBody:
+        content:
+          application/scim+json:
+            schema:
+              $ref: '#/components/schemas/ScimUser'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScimUser'
+        required: true
+      responses:
+        '201':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimUser'
+          description: ''
+        '409':
+          content:
+            application/scim+json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+        '400':
+          content:
+            application/scim+json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v2/scim/v2/{idp_slug}/Users/{id}:
+    get:
+      operationId: api_v2_scim_v2_Users_retrieve
+      description: Returns a specific SCIM user.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user.
+        required: true
+      - in: path
+        name: idp_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - SCIM
+      responses:
+        '200':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimUser'
+          description: ''
+    put:
+      operationId: api_v2_scim_v2_Users_update
+      description: |-
+        Handle PUT requests (user update from IdP).
+        Authentik can send a PUT request to update a user's details. If it tries to
+        update a user to have a username or email that already exists on another
+        account, we intercept the IntegrityError and return a SCIM 409 Conflict.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user.
+        required: true
+      - in: path
+        name: idp_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - SCIM
+      requestBody:
+        content:
+          application/scim+json:
+            schema:
+              $ref: '#/components/schemas/ScimUser'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScimUser'
+        required: true
+      responses:
+        '200':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimUser'
+          description: ''
+        '409':
+          content:
+            application/scim+json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+    patch:
+      operationId: api_v2_scim_v2_Users_partial_update
+      description: Updates a SCIM user. Currently only supports deactivation via the
+        `active` attribute.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user.
+        required: true
+      - in: path
+        name: idp_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - SCIM
+      requestBody:
+        content:
+          application/scim+json:
+            schema:
+              $ref: '#/components/schemas/PatchedScimUser'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedScimUser'
+      responses:
+        '200':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimUser'
+          description: ''
+    delete:
+      operationId: api_v2_scim_v2_Users_destroy
+      description: Deactivates all Kobo accounts linked to the user's email address.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user.
+        required: true
+      - in: path
+        name: idp_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - SCIM
+      responses:
+        '204':
+          description: No response body
   /api/v2/service_usage/:
     get:
       operationId: api_v2_service_usage_list
@@ -15376,6 +15788,62 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ProjectViewUserResponse'
+    PaginatedScimGroupList:
+      type: object
+      required:
+      - schemas
+      - totalResults
+      - itemsPerPage
+      - startIndex
+      - Resources
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+          example:
+          - urn:ietf:params:scim:api:messages:2.0:ListResponse
+        totalResults:
+          type: integer
+          example: 100
+        itemsPerPage:
+          type: integer
+          example: 10
+        startIndex:
+          type: integer
+          example: 1
+        Resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScimGroup'
+    PaginatedScimUserList:
+      type: object
+      required:
+      - schemas
+      - totalResults
+      - itemsPerPage
+      - startIndex
+      - Resources
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+          example:
+          - urn:ietf:params:scim:api:messages:2.0:ListResponse
+        totalResults:
+          type: integer
+          example: 100
+        itemsPerPage:
+          type: integer
+          example: 10
+        startIndex:
+          type: integer
+          example: 1
+        Resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScimUser'
     PaginatedSocialAccountList:
       type: object
       required:
@@ -16133,6 +16601,40 @@ components:
       properties:
         clone_from:
           type: string
+    PatchedScimGroup:
+      type: object
+      description: Serializes a Django ScimGroup to match the SCIM 2.0 Group schema.
+      properties:
+        schemas:
+          readOnly: true
+        id:
+          type: string
+          readOnly: true
+        displayName:
+          type: string
+        externalId:
+          type: string
+        members:
+          readOnly: true
+    PatchedScimUser:
+      type: object
+      description: Serializes a Django User to match the SCIM 2.0 User schema.
+      properties:
+        schemas:
+          readOnly: true
+        id:
+          type: string
+          readOnly: true
+        userName:
+          type: string
+        name:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+        emails:
+          readOnly: true
+        active:
+          type: boolean
     PermissionAssignmentBulkRequest:
       type: object
       properties:
@@ -17242,6 +17744,52 @@ components:
       - uuid
       - type
       - labels
+    ScimGroup:
+      type: object
+      description: Serializes a Django ScimGroup to match the SCIM 2.0 Group schema.
+      properties:
+        schemas:
+          readOnly: true
+        id:
+          type: string
+          readOnly: true
+        displayName:
+          type: string
+        externalId:
+          type: string
+        members:
+          readOnly: true
+      required:
+      - displayName
+      - id
+      - members
+      - schemas
+    ScimUser:
+      type: object
+      description: Serializes a Django User to match the SCIM 2.0 User schema.
+      properties:
+        schemas:
+          readOnly: true
+        id:
+          type: string
+          readOnly: true
+        userName:
+          type: string
+        name:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+        emails:
+          readOnly: true
+        active:
+          type: boolean
+      required:
+      - active
+      - emails
+      - id
+      - name
+      - schemas
+      - userName
     ServiceUsageBalanceData:
       type: object
       properties:
