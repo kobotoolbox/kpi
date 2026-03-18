@@ -3,6 +3,7 @@ from zoneinfo import ZoneInfo
 
 from django.conf import settings
 from django.db.models import Q
+from django.db.models.expressions import RawSQL
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -43,7 +44,9 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
 
     content_negotiation_class = MediaFileContentNegotiation
     filter_backends = (filters.XFormListObjectPermissionFilter,)
-    queryset = XForm.objects.select_related('user').filter(downloadable=True)
+    queryset = XForm.objects.select_related('user').annotate(
+        version_extracted=RawSQL("(json::jsonb)->>'version'", [])
+    ).defer('json').filter(downloadable=True)
     permission_classes = (permissions.AllowAny,)
     renderer_classes = (XFormListRenderer,)
     serializer_class = XFormListSerializer
@@ -367,9 +370,17 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
             return self.get_response_for_head_request()
 
         # Retrieve all media files for the current form
-        queryset = MetaData.objects.select_related('xform__user').filter(
-            data_type__in=MetaData.MEDIA_FILES_TYPE, xform=xform
-        )
+        queryset = MetaData.objects.select_related('xform__user').only(
+            'pk',
+            'data_type',
+            'data_value',
+            'data_file',
+            'file_hash',
+            'from_kpi',
+            'date_modified',
+            'xform_id',
+            'xform__user__username',
+        ).filter(data_type__in=MetaData.MEDIA_FILES_TYPE, xform=xform)
         object_list = queryset.all()
 
         # Keep only media files that are not considered as expired.
