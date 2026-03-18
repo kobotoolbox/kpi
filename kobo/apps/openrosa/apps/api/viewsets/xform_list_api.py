@@ -43,7 +43,7 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
 
     content_negotiation_class = MediaFileContentNegotiation
     filter_backends = (filters.XFormListObjectPermissionFilter,)
-    queryset = XForm.objects.filter(downloadable=True)
+    queryset = XForm.objects.select_related('user').filter(downloadable=True)
     permission_classes = (permissions.AllowAny,)
     renderer_classes = (XFormListRenderer,)
     serializer_class = XFormListSerializer
@@ -367,7 +367,7 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
             return self.get_response_for_head_request()
 
         # Retrieve all media files for the current form
-        queryset = MetaData.objects.filter(
+        queryset = MetaData.objects.select_related('xform__user').filter(
             data_type__in=MetaData.MEDIA_FILES_TYPE, xform=xform
         )
         object_list = queryset.all()
