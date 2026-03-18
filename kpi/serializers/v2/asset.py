@@ -5,7 +5,7 @@ import re
 from typing import Optional
 
 from constance import config
-from django.conf import settings
+from django.conf import settings as django_settings
 from django.db import transaction
 from django.db.models import F
 from django.utils.translation import gettext as t
@@ -381,7 +381,10 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         serializer_class=AssetVersionListSerializer,
         # Higher-than-normal limit since the client doesn't yet know how to
         # request more than the first page
-        default_limit=100
+        default_limit=django_settings.DEFAULT_API_PAGE_SIZE,
+        source_processor=lambda qs: qs.only(
+            'uid', 'deployed', 'date_modified', 'asset_id', '_content_hash'
+        ),
     )
     deployment__active = serializers.SerializerMethodField()
     deployment__links = serializers.SerializerMethodField()
@@ -886,7 +889,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         # Check if the asset is public (anonymous has discover_asset).
         for op in asset_permission_assignments:
             if (
-                op['user_id'] == settings.ANONYMOUS_USER_ID
+                op['user_id'] == django_settings.ANONYMOUS_USER_ID
                 and op['permission__codename'] == PERM_DISCOVER_ASSET
             ):
                 access_types.append('public')
@@ -1043,10 +1046,10 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
         return parent
 
-    def validate_settings(self, settings: dict) -> dict:
-        if not self.instance or not settings:
-            return settings
-        return {**self.instance.settings, **settings}
+    def validate_settings(self, settings_: dict) -> dict:
+        if not self.instance or not settings_:
+            return settings_
+        return {**self.instance.settings, **settings_}
 
     def _content(self, obj):
         # FIXME: Is this dead code?
@@ -1076,7 +1079,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             return ASSET_STATUS_PRIVATE
 
         for perm_assignment in perm_assignments:
-            if perm_assignment.get('user_id') == settings.ANONYMOUS_USER_ID:
+            if perm_assignment.get('user_id') == django_settings.ANONYMOUS_USER_ID:
                 if perm_assignment.get('permission__codename') == PERM_DISCOVER_ASSET:
                     return ASSET_STATUS_DISCOVERABLE
 
@@ -1199,7 +1202,7 @@ class AssetListSerializer(AssetSerializer):
 
         # Mirror _get_status() logic using the cached anonymous permissions.
         for perm in asset_perm_assignments:
-            if perm['user_id'] == settings.ANONYMOUS_USER_ID:
+            if perm['user_id'] == django_settings.ANONYMOUS_USER_ID:
                 if perm['permission__codename'] == PERM_DISCOVER_ASSET:
                     return ASSET_STATUS_DISCOVERABLE
                 if perm['permission__codename'] == PERM_VIEW_ASSET:
