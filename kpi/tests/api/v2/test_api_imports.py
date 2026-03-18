@@ -107,7 +107,7 @@ class AssetImportTaskTest(BaseTestCase):
         empty_asset = self.client.post(
             reverse(self._get_endpoint('asset-list')),
             data={'asset_type': asset_type},
-            headers={"accept": 'application/json'}
+            headers={'accept': 'application/json'},
         )
         empty_asset_data = empty_asset.json()
         task_data['destination'] = empty_asset_data['url']

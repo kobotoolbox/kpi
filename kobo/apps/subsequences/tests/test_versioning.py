@@ -1,8 +1,8 @@
 import copy
 import itertools
 from datetime import datetime, timedelta
-from zoneinfo import ZoneInfo
 from unittest.mock import patch
+from zoneinfo import ZoneInfo
 
 from ddt import data, ddt, unpack
 from django.test import TestCase

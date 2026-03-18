@@ -1,5 +1,4 @@
-from django.urls import path
-from django.urls import include, re_path
+from django.urls import include, path, re_path
 from rest_framework.routers import SimpleRouter
 
 from kobo.apps.stripe.views import (

@@ -38,17 +38,10 @@ urlpatterns = [
         forms_count_by_submission_report,
         name='forms_by_submissions_count',
     ),
-    path(
-        'reports/forms-by-submissions-count/<str:base_filename>',
-        retrieve_reports
-    ),
-
+    path('reports/forms-by-submissions-count/<str:base_filename>', retrieve_reports),
     # Media storage
     path('reports/media-storage/', media_storage, name='media_storage_report'),
-    path(
-        'reports/media-storage/<str:base_filename>', retrieve_reports
-    ),
-
+    path('reports/media-storage/<str:base_filename>', retrieve_reports),
     # User report
     path('reports/users/', user_report, name='users_report'),
     path('reports/users/<str:base_filename>', retrieve_reports),
@@ -59,15 +52,8 @@ urlpatterns = [
         user_statistics_report,
         name='user_statistics_report',
     ),
-    path(
-        'reports/user-statistics/<str:base_filename>', retrieve_reports
-    ),
-
+    path('reports/user-statistics/<str:base_filename>', retrieve_reports),
     # Users details
-    path(
-        'reports/user-details/', user_details_report, name='user_details_report'
-    ),
-    path(
-        'reports/user-details/<str:base_filename>', retrieve_reports
-    ),
+    path('reports/user-details/', user_details_report, name='user_details_report'),
+    path('reports/user-details/<str:base_filename>', retrieve_reports),
 ]

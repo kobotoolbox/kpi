@@ -1,8 +1,8 @@
 import json
 
 from django.core.serializers.json import DjangoJSONEncoder
-from django.utils.functional import Promise
 from django.utils.encoding import force_str
+from django.utils.functional import Promise
 from django.utils.text import normalize_newlines
 
 
