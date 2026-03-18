@@ -512,7 +512,8 @@ class ObjectPermissionMixin:
         ).intersection(assignable_permissions)
         for implied_perm in implied_perms:
             self.assign_perm(user_obj, implied_perm, deny=deny, _implied=True)
-        # Internal recursive call for an implied permission: skip partial and descendant perms, which are done at the top level.
+        # Internal recursive call for an implied permission: skip partial and descendant
+        # perms, which are done at the top level.
         if _implied:
             return new_permission
 
