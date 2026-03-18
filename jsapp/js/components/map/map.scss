@@ -72,6 +72,7 @@
   }
 
   .form-view__map-button--disabled {
+    pointer-events: none;
     z-index: z-indexes.$z-map-settings-disabled;
   }
 }
