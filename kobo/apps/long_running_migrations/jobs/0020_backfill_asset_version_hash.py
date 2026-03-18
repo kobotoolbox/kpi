@@ -28,9 +28,7 @@ def run():
         AssetVersion.objects.bulk_update(updates, fields=['_content_hash'])
 
 
-
 def get_queryset() -> QuerySet:
-    return (
-        AssetVersion.objects.only('pk', 'uid', 'version_content')
-        .filter(_content_hash__isnull=True)[:CHUNK_SIZE]
-    )
+    return AssetVersion.objects.only('pk', 'uid', 'version_content').filter(
+        _content_hash__isnull=True
+    )[:CHUNK_SIZE]

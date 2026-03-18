@@ -3,8 +3,8 @@ import datetime
 import json
 
 from django.db import models
-from formpack.utils.expand_content import expand_content
 
+from formpack.utils.expand_content import expand_content
 from kpi.fields import KpiUidField
 from kpi.models.abstract_models import AbstractTimeStampedModel
 from kpi.utils.hash import calculate_hash
@@ -49,13 +49,9 @@ class AssetVersion(AbstractTimeStampedModel):
             return self.deployed_content
         legacy_names = self._reversion_version is not None
         if legacy_names:
-            return to_xlsform_structure(
-                self.version_content, deprecated_autoname=True
-            )
+            return to_xlsform_structure(self.version_content, deprecated_autoname=True)
         else:
-            return to_xlsform_structure(
-                self.version_content, move_autonames=True
-            )
+            return to_xlsform_structure(self.version_content, move_autonames=True)
 
     def to_formpack_schema(self):
         return {
