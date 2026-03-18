@@ -227,10 +227,15 @@ queryClient.setMutationDefaults(
                   _versions = []
                 } else if (datumTyped.accepted === true) {
                   // If accepting, update the latest version's status to accepted
-                  const latest = _versions.sort(TransxVersionSortFunction)[0]
-                  if (latest) {
-                    latest._dateAccepted = new Date().toISOString()
-                    latest._data.status = 'complete'
+                  const [versionLatest, ...versionsRest] = [..._versions].sort(TransxVersionSortFunction)
+                  if (versionLatest) {
+                    _versions = [
+                      {
+                        ...versionLatest,
+                        _dateAccepted: new Date().toISOString(),
+                      },
+                      ...versionsRest,
+                    ]
                   }
                 } else {
                   // Otherwise, add new version to the beginning
@@ -282,10 +287,15 @@ queryClient.setMutationDefaults(
                   _versions = []
                 } else if (datumTyped.accepted === true) {
                   // If accepting, update the latest version's status to accepted
-                  const latest = _versions.sort(TransxVersionSortFunction)[0]
-                  if (latest) {
-                    latest._dateAccepted = new Date().toISOString()
-                    latest._data.status = 'complete'
+                  const [versionLatest, ...versionsRest] = [..._versions].sort(TransxVersionSortFunction)
+                  if (versionLatest) {
+                    _versions = [
+                      {
+                        ...versionLatest,
+                        _dateAccepted: new Date().toISOString(),
+                      },
+                      ...versionsRest,
+                    ]
                   }
                 } else {
                   // Otherwise, add new version to the beginning
