@@ -1,4 +1,5 @@
 from allauth.socialaccount.models import SocialAccount, SocialApp
+from django.urls import reverse
 from rest_framework.test import APITestCase
 
 from kobo.apps.audit_log.audit_actions import AuditAction
@@ -25,7 +26,9 @@ class ScimAuditLogTests(APITestCase):
             social_app=self.social_app,
         )
 
-        self.url_base = f'/api/scim/v2/{self.idp.slug}/Users'
+        self.url_base = reverse(
+            'api_v2:kobo_scim:scim-users-list', kwargs={'idp_slug': self.idp.slug}
+        )
 
         self.user1 = User.objects.create_user(
             username='jdoe',
