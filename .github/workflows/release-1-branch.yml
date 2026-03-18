@@ -51,7 +51,7 @@ jobs:
     - name: create next RC branch
       id: branch
       env:
-        NEW_BRANCH: ${{ steps.version.outputs.current_branch }}
+        NEW_BRANCH: ${{ needs.version.outputs.current_branch }}
       run: |
         set -xe
         git checkout -b $NEW_BRANCH

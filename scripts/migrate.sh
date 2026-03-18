@@ -31,7 +31,8 @@ if [ $MIGRATE_STATUS -ne 0 ]; then
         DJANGO_SETTINGS_MODULE=kobo.settings.guardian python manage.py manage_user_reports_mv --create
         echo "Schema lock resolved successfully."
     else
-        echo "KPI migrations failed for an unknown reason."
+        echo "❌ KPI migrations failed. Details below:"
+        echo "$MIGRATE_OUT"
         exit $MIGRATE_STATUS
     fi
 else

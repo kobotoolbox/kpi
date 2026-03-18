@@ -1,0 +1,104 @@
+
+name: Deploy PR preview environment
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'The PR number from "kpi" to build'
+        required: true
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      title: ${{ steps.get_pr_info.outputs.title }}
+
+    steps:
+      - name: Get PR info
+        id: get_pr_info
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Use the GitHub CLI to find the branch name for the PR
+          BRANCH=$(gh pr view ${{ github.event.inputs.pr_number }} \
+            --repo kobotoolbox/kpi \
+            --json headRefName --template '{{.headRefName}}')
+
+          TITLE=$(gh pr view ${{ github.event.inputs.pr_number }} \
+            --repo kobotoolbox/kpi \
+            --json title --template '{{.title}}')
+
+          echo "branch_name=$BRANCH" >> $GITHUB_OUTPUT
+          echo "title=$TITLE" >> $GITHUB_OUTPUT
+          echo "Found branch: $BRANCH"
+
+      - name: Clone kpi repo at PR branch
+        uses: actions/checkout@v4
+        with:
+          repository: kobotoolbox/kpi
+          ref: ${{ steps.get_pr_info.outputs.branch_name }}
+          path: kpi
+
+      - name: Get commit info
+        id: get_commit_info
+        working-directory: ./kpi
+        run: |
+          COMMIT_HASH=$(git rev-parse HEAD)
+          echo "commit_hash=$COMMIT_HASH" >> $GITHUB_OUTPUT
+          echo "Found commit hash: $COMMIT_HASH"
+          COMMIT_MESSAGE=$(git log -1 --pretty=%B | sed 's/"//g') # Remove double quotes to avoid issues
+          echo "commit_message=$COMMIT_MESSAGE" >> $GITHUB_OUTPUT
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          context: ./kpi
+          push: true
+          tags: ghcr.io/kobotoolbox/kpi:pr-${{ github.event.inputs.pr_number }}
+
+      - name: Generate GitHub App Token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.KOBO_BOT_APP_ID }}
+          private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
+          owner: kobotoolbox
+          repositories: "devops"
+
+      - name: Trigger pr deploy build
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: kpi_pr_deploy.yml
+          repo: kobotoolbox/devops
+          ref: main
+          token: ${{ steps.app-token.outputs.token }}
+          inputs: |
+            {
+              "pr_number": "${{ github.event.inputs.pr_number }}",
+              "title": "${{ steps.get_pr_info.outputs.title }}",
+              "commit_hash": "${{ steps.get_commit_info.outputs.commit_hash }}",
+              "commit_message": "${{ steps.get_commit_info.outputs.commit_message }}"
+            }
+
+  notify-failure:
+    needs:
+      - build
+    if: ${{ !cancelled() && failure() }}
+    uses: './.github/workflows/zulip.yml'
+    secrets: inherit
+    with:
+      stream: "PR Preview Environments"
+      topic: PR ${{ github.event.inputs.pr_number }} - ${{ needs.build.outputs.title }}
+      content: "❌ Failed to deploy ephemeral environment for PR #${{ github.event.inputs.pr_number }} [run #${{github.run_number}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}})"
