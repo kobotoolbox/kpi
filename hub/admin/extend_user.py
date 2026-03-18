@@ -266,6 +266,20 @@ class ExtendedUserAdmin(AdvancedSearchMixin, UserAdmin):
 
         return date_removed
 
+    def get_readonly_fields(self, request, obj=None):
+        """
+        Return a tuple of field names that should be read-only in the admin panel.
+
+        If modifying an existing user record, the username field is enforced as
+        read-only to prevent downstream data integrity issues.
+        """
+        readonly_fields = super().get_readonly_fields(request, obj)
+        if obj and 'username' not in readonly_fields:
+            readonly_fields = readonly_fields + ('username',)
+
+        # Allow username editing during user creation
+        return readonly_fields
+
     @admin.display(description='Status')
     def get_status(self, obj):
 
