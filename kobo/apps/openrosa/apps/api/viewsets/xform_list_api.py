@@ -394,7 +394,6 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         """
         xform = self.get_object()
         media_files = {}
-        expired_objects = False
 
         if request.method == 'HEAD':
             return self.get_response_for_head_request()
@@ -415,23 +414,14 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
             )
             .filter(data_type__in=MetaData.MEDIA_FILES_TYPE, xform=xform)
         )
-        object_list = queryset.all()
 
-        # Keep only media files that are not considered as expired.
-        # Expired files may have an out-of-date hash which needs to be refreshed
-        # before being exposed to the serializer
-        for obj in object_list:
-            if not self._is_metadata_expired(obj, request):
-                media_files[obj.pk] = obj
-                continue
-            expired_objects = True
-
-        # Retrieve all media files for the current form again except non
-        # expired ones. The expired objects should have an up-to-date hash now.
-        if expired_objects:
-            refreshed_object_list = queryset.exclude(pk__in=media_files.keys())
-            for refreshed_object in refreshed_object_list.all():
-                media_files[refreshed_object.pk] = refreshed_object
+        # For expired paired-data entries, trigger async regeneration so the
+        # background task updates the hash in MetaData. The current (possibly
+        # stale) hash is served immediately; the next manifest request will
+        # reflect the updated content once the task completes.
+        for obj in queryset.all():
+            self._trigger_paired_data_regen_if_expired(obj, request)
+            media_files[obj.pk] = obj
 
         # Sort objects all the time because EE calculates a hash of the
         # whole manifest to detect any changes the next time EE downloads it.
@@ -522,12 +512,15 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         return assets_by_uid, disclaimers_by_asset_pk
 
     @staticmethod
-    def _is_metadata_expired(obj: MetaData, request: Request) -> bool:
+    def _trigger_paired_data_regen_if_expired(obj: MetaData, request: Request) -> bool:
         """
-        It validates whether the file has been modified for the last X minutes.
-        (where `X` equals `settings.PAIRED_DATA_EXPIRATION`)
+        Schedules async regeneration of a paired-data XML file if its content
+        has exceeded `settings.PAIRED_DATA_EXPIRATION`. A distributed lock
+        prevents duplicate tasks from being scheduled concurrently or while a
+        previous task is still running.
 
-        Notes: Only `xml-external` (paired data XML) files expire.
+        Only applies to `xml-external` (paired data) entries; all other
+        metadata types are ignored.
         """
         if not obj.is_paired_data:
             return False

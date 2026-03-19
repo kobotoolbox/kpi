@@ -133,11 +133,7 @@ def sync_media_files(asset_uid):
     asset.deployment.sync_media_files()
 
 
-@celery_app.task(
-    autoretry_for=(Exception,),
-    max_retries=3,
-    retry_backoff=True,
-)
+@celery_app.task
 def regenerate_paired_data(asset_uid: str, uid_paired_data: str) -> None:
     """
     Regenerates the XML file for a paired data link in the background.
