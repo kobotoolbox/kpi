@@ -50,6 +50,9 @@ Translation lifecycle is integrated in the release process. Notably:
 - if Transifex API is down or errors, it will block a release.
 - release process GHAs has serialization enabled (newer run aborts previous run), and that should be sufficient to handle any race-conditions for pushing to Transifex API.
 
+> WIP notice: currently, at the moment these claims are false, but will be solved by future PRs:
+> - release tagging is still a manual process and not automated in `release-3-tag.yml` file. Therefore, pull & commit manually before tagging.
+
 
 ### Structure
 
