@@ -22,7 +22,6 @@ jobs:
 
   locale:
     uses: './.github/workflows/locale.yml'
-    secrets: inherit
 
   on-failure:
     needs:
