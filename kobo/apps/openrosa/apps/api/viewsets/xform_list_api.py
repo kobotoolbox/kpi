@@ -1,8 +1,9 @@
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
+from django.apps import apps
 from django.conf import settings
-from django.db.models import Q
+from django.db.models import F, Q
 from django.db.models.expressions import RawSQL
 from django.http import Http404
 from django.shortcuts import get_object_or_404
@@ -15,6 +16,7 @@ from rest_framework.response import Response
 
 from kobo.apps.data_collectors.authentication import DataCollectorTokenAuthentication
 from kobo.apps.data_collectors.models import DataCollector
+from kobo.apps.form_disclaimer.models import FormDisclaimer
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.apps.api.tools import get_media_file_response
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
@@ -44,9 +46,7 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
 
     content_negotiation_class = MediaFileContentNegotiation
     filter_backends = (filters.XFormListObjectPermissionFilter,)
-    queryset = XForm.objects.select_related('user').annotate(
-        version_extracted=RawSQL("(json::jsonb)->>'version'", [])
-    ).defer('json').filter(downloadable=True)
+    queryset = XForm.objects.filter(downloadable=True)
     permission_classes = (permissions.AllowAny,)
     renderer_classes = (XFormListRenderer,)
     serializer_class = XFormListSerializer
@@ -62,6 +62,27 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
             for auth_class in self.authentication_classes
             if auth_class not in authentication_classes
         ]
+
+    def get_queryset(self):
+        # Only load the fields we need in the context we need
+        queryset = super().get_queryset()
+
+        if not (self.action.startswith('form_list') or self.action == 'list'):
+            queryset = queryset.only(
+                'user__username', 'kpi_asset_uid', 'id_string', 'pk'
+            )
+        else:
+            queryset = (
+                queryset.select_related('user')
+                .annotate(
+                    version_extracted=RawSQL("(json::jsonb)->>'version'", []),
+                    name_extracted=RawSQL("(json::jsonb)->>'name'", []),
+                )
+                .defer('json')
+            )
+
+        # remove order_by since order by is handled by the client
+        return queryset.order_by()
 
     def get_openrosa_headers(self):
         dt = datetime.now(tz=ZoneInfo('UTC')).strftime('%a, %d %b %Y %H:%M:%S %Z')
@@ -277,8 +298,15 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         if request.method == 'HEAD':
             return self.get_response_for_head_request()
 
+        asset_uids = list(object_list.values_list('kpi_asset_uid', flat=True))
+        assets_by_uid, disclaimers_by_asset_pk = self._fetch_assets_and_disclaimers(
+            asset_uids
+        )
+
         serializer = self.get_serializer(
-            object_list, many=True, require_auth=not bool(kwargs.get('username'))
+            self._enrich_xforms(object_list, assets_by_uid, disclaimers_by_asset_pk),
+            many=True,
+            require_auth=not bool(kwargs.get('username')),
         )
         return Response(serializer.data, headers=self.get_openrosa_headers())
 
@@ -370,17 +398,21 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
             return self.get_response_for_head_request()
 
         # Retrieve all media files for the current form
-        queryset = MetaData.objects.select_related('xform__user').only(
-            'pk',
-            'data_type',
-            'data_value',
-            'data_file',
-            'file_hash',
-            'from_kpi',
-            'date_modified',
-            'xform_id',
-            'xform__user__username',
-        ).filter(data_type__in=MetaData.MEDIA_FILES_TYPE, xform=xform)
+        queryset = (
+            MetaData.objects.select_related('xform__user')
+            .only(
+                'pk',
+                'data_type',
+                'data_value',
+                'data_file',
+                'file_hash',
+                'from_kpi',
+                'date_modified',
+                'xform_id',
+                'xform__user__username',
+            )
+            .filter(data_type__in=MetaData.MEDIA_FILES_TYPE, xform=xform)
+        )
         object_list = queryset.all()
 
         # Keep only media files that are not considered as expired.
@@ -435,6 +467,57 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         if request.method == 'HEAD':
             return self.get_response_for_head_request()
         return get_media_file_response(meta_obj, request)
+
+    @staticmethod
+    def _enrich_xforms(xforms, assets_by_uid: dict, disclaimers_by_asset_pk: dict):
+        """
+        Generator that attaches pre-fetched asset and disclaimer data to each
+        XForm as it is iterated, avoiding N+1 queries during serialization.
+        """
+        global_disclaimers = disclaimers_by_asset_pk.get(None, [])
+        for xform in xforms:
+            if not getattr(xform, '_cached_asset', None):
+                asset = assets_by_uid.get(xform.kpi_asset_uid)
+                if asset is not None:
+                    per_asset = disclaimers_by_asset_pk.get(asset.pk, [])
+                    asset._cached_disclaimers = per_asset + global_disclaimers
+                xform._cached_asset = asset
+            yield xform
+
+    @staticmethod
+    def _fetch_assets_and_disclaimers(asset_uids: list) -> tuple[dict, dict]:
+        """
+        Fetches all assets and their disclaimers in two bulk queries.
+
+        Returns a tuple of:
+        - assets_by_uid: dict mapping asset uid → Asset instance
+        - disclaimers_by_asset_pk: dict mapping asset pk (or None for global) →
+          list of disclaimer dicts
+        """
+
+        Asset = apps.get_model('kpi', 'Asset')
+
+        assets_by_uid = {
+            asset.uid: asset
+            for asset in Asset.all_objects.only('pk', 'name', 'uid', 'owner_id')
+            .filter(uid__in=asset_uids)
+            .order_by()
+        }
+
+        asset_pks = [asset.pk for asset in assets_by_uid.values()]
+
+        disclaimers_by_asset_pk: dict = {}
+        for disclaimer in (
+            FormDisclaimer.objects.annotate(language_code=F('language__code'))
+            .values('language_code', 'message', 'default', 'hidden', 'asset_id')
+            .filter(Q(asset__isnull=True) | Q(asset_id__in=asset_pks))
+            .order_by('-hidden', '-asset_id', 'language_code')
+        ):
+            disclaimers_by_asset_pk.setdefault(disclaimer['asset_id'], []).append(
+                disclaimer
+            )
+
+        return assets_by_uid, disclaimers_by_asset_pk
 
     @staticmethod
     def _is_metadata_expired(obj: MetaData, request: Request) -> bool:
