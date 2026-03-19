@@ -68,7 +68,7 @@ jobs:
   #       echo "changed=${CHANGED}" >> $GITHUB_OUTPUT
 
   #   - name: commit the translateble strings
-  #     if: ${{ steps.pull-changed.outputs.changed === "true" }}
+  #     if: ${{ steps.pull-changed.outputs.changed == "true" }}
   #     run: |
   #       git add .
   #       git commit -m "chore: update transifex translations"
