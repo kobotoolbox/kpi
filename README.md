@@ -38,7 +38,7 @@ Python dependencies are managed with `pip-compile` and `pip-sync` from the [`pip
 
 ## Translations
 
-For most cases no action required, see [Transifex's README](./locale/README.md) for details.
+See [locale's README](./locale/README.md) for details. TL;DR: if CI errors, run `./scripts/generate_locale.sh` locally.
 
 ## Searching
 

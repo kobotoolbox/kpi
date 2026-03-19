@@ -1,6 +1,6 @@
 name: Update Translations
 
-# See docs at `/.tx/README.md`.
+# See docs at `./locale/README.md`.
 
 on:
   push:
@@ -60,5 +60,5 @@ jobs:
     - name: Abort if there are uncommitted translatable string changes.
       run: |
         git diff --stat
-        echo 'see `./locale/README.md`. TL;DR: if this errors, run `.scripts/generate_locale.sh` locally.'
+        echo 'see `./locale/README.md`. TL;DR: if this errors, run `./scripts/generate_locale.sh` locally.'
         git diff-index --exit-code HEAD

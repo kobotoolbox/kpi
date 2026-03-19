@@ -12,7 +12,7 @@ To translate a string:
 
 ## Automation
 
-See automation implementation details at `transifex.yml`, `release-2-stabilize.yml` and `release-3-tag.yml`.
+See automation implementation details at `locale.yml`, `release-2-stabilize.yml` and `release-3-tag.yml`.
 
 Here's how to run those GHA scripts locally, but mind the timing when to do it:
 
