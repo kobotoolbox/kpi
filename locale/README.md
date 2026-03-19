@@ -68,7 +68,9 @@ This is straightforward and avoids potential sync traps.
 There's no special rollback for bad translations: simply create a new KPI image and pull updated translations for it.
 
 The **push** strategy is more nuanced.
-Based on a "forward-only" release process, let's push only changes on current release branch:
+Based on a "forward-only" release process, let's push only changes on current release branch.
+Note that a release branch is considered 'current' once it has been tagged (and likely deployed soon after);
+until then it's considered as 'next' release branch and the previous branch is still 'current'.
 
 | Action     | Branch Context                             | Result   | Reasoning                                                                               |
 | ---------- | ------------------------------------------ | -------- | --------------------------------------------------------------------------------------- |
