@@ -152,6 +152,7 @@ jobs:
         git checkout -B public-beta
         git push -f --set-upstream origin public-beta
 
+  # Note: push only current release branch instead of all past or the next release branch.
   push-to-transifex:
     needs:
       - version
