@@ -38,8 +38,6 @@ Python dependencies are managed with `pip-compile` and `pip-sync` from the [`pip
 
 ## Downloading and compiling the translations
 
-* Pull the submodule into the `locale` directory with `git submodule update`.
-* Optionally configure transifex to pull the latest translations into the `locale` directory with `tx pull --all`
 * Run `python manage.py compilemessages` to create `.mo` files from the `.po` files.
 * To test out locales in the interface, double click "account actions" in the left navbar, use the dropdown to select a language, and refresh.
 
