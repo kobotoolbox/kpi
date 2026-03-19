@@ -35,10 +35,16 @@ jobs:
     ## Testing
 
     - name: Extract translatable strings from Python code.
-      run: python manage.py makemessages --locale en
+      run: |
+        ORIGINAL_LINE="$(cat locale/en/LC_MESSAGES/django.po | grep POT-Creation-Date)"
+        python manage.py makemessages --locale en
+        sed -i "s|\"POT-Creation-Date.*|${ORIGINAL_LINE//\\/\\\\}|" locale/en/LC_MESSAGES/django.po
 
     - name: Extract translatable strings from Javascript/Typescript code.
-      run: python manage.py makemessages --locale en --domain djangojs
+      run: |
+        ORIGINAL_LINE="$(cat locale/en/LC_MESSAGES/djangojs.po | grep POT-Creation-Date)"
+        python manage.py makemessages --locale en --domain djangojs
+        sed -i "s|\"POT-Creation-Date.*|${ORIGINAL_LINE//\\/\\\\}|" locale/en/LC_MESSAGES/djangojs.po
 
     - name: Abort if there are uncommitted translatable string changes.
       run: |
