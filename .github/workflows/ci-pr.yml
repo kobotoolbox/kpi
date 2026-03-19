@@ -14,12 +14,13 @@ jobs:
         name: Detect changed files
         with: { filters: .github/filters.yml }
     outputs:
-      all:      ${{ steps.filter.outputs.all      }}
-      darker:   ${{ steps.filter.outputs.darker   }}
-      biome:    ${{ steps.filter.outputs.biome    }}
-      openapi:  ${{ steps.filter.outputs.openapi  }}
-      pytest:   ${{ steps.filter.outputs.pytest   }}
-      npm-test: ${{ steps.filter.outputs.npm-test }}
+      all:       ${{ steps.filter.outputs.all       }}
+      darker:    ${{ steps.filter.outputs.darker    }}
+      biome:     ${{ steps.filter.outputs.biome     }}
+      openapi:   ${{ steps.filter.outputs.openapi   }}
+      pytest:    ${{ steps.filter.outputs.pytest    }}
+      npm-test:  ${{ steps.filter.outputs.npm-test  }}
+      transifex: ${{ steps.filter.outputs.transifex }}
 
   darker:
     needs: changes
@@ -45,3 +46,12 @@ jobs:
     needs: changes
     if: needs.changes.outputs.all == 'true' || needs.changes.outputs.npm-test == 'true'
     uses: ./.github/workflows/npm-test.yml
+
+  transifex:
+    needs: changes
+    if: needs.changes.outputs.all == 'true' || needs.changes.outputs.transifex == 'true'
+    uses: './.github/workflows/transifex.yml'
+    with:
+      test: ${{ true }}
+      push: ${{ false }}
+      pull: ${{ false }}
