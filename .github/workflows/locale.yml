@@ -9,13 +9,7 @@ on:
 
 
 jobs:
-  version:
-    secrets: inherit
-    uses: './.github/workflows/find-releases.yml'
-
   locale:
-    needs:
-      - version
     runs-on: ubuntu-24.04
     steps:
 
