@@ -166,6 +166,7 @@ jobs:
     if: ${{ !cancelled() && !failure() && needs.version.result == 'success' && needs.version.outputs.current_released == 'true' && !needs.version.outputs.next_patch }}
     runs-on: ubuntu-24.04
     steps:
+    - uses: actions/checkout@v6
     - name: Push to Transifex
       uses: transifex/cli-action@v2
       with:

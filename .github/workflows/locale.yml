@@ -10,7 +10,6 @@ on:
 
 jobs:
   version:
-    if: ${{ startsWith(github.ref, 'refs/heads/release/') }}
     secrets: inherit
     uses: './.github/workflows/find-releases.yml'
 
@@ -23,9 +22,6 @@ jobs:
     ## Setup
 
     - uses: actions/checkout@v6
-      with:
-        submodules: true
-
     - uses: ./.github/actions/checkout-with-github-app-token
       with:
         app-id: ${{ secrets.KOBO_BOT_APP_ID }}
