@@ -75,7 +75,19 @@ export function getColumnLabel(
       const dtpath = key.slice('_supplementalDetails/'.length)
       // FIXME: pass the entire object (or at least the label!) provided by
       // the back end through to this function, without doing all this nonsense
-      const analysisQuestion = asset.analysis_form_json?.additional_fields.filter((f) => f.dtpath === dtpath)[0]
+      const analysisQuestion = asset.analysis_form_json?.additional_fields.find((f) => f.dtpath === dtpath)
+
+      // Here we want to produce "Verified | Analysis question | Source question" type of label
+      if (analysisQuestion?.type === 'qualVerification') {
+        const parentQuestion = asset.analysis_form_json?.additional_fields.find(
+          (f) => f.dtpath === analysisQuestion.source,
+        )
+        if (parentQuestion?.label) {
+          return `${t('Verified')} | ${parentQuestion.label} | ${sourceQuestionLabel}`
+        }
+        return `${t('Verified')} | ${sourceQuestionLabel}`
+      }
+
       if (analysisQuestion?.label) {
         return `${analysisQuestion.label} | ${sourceQuestionLabel}`
       }
