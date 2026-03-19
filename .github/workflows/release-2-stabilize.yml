@@ -163,7 +163,7 @@ jobs:
       - pytest
       - npm-test
       - locale
-    if: ${{ !cancelled() && !failure() && needs.version.result == 'success' && needs.version.outputs.current_released == 'true' && !needs.version.outputs.next_patch }}
+    if: ${{ !cancelled() && !failure() && needs.version.result == 'success' && needs.version.outputs.current_released == 'true' && needs.version.outputs.next_patch == '' }}
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v6
