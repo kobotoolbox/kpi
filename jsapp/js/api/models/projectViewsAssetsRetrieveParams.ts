@@ -16,7 +16,7 @@ export type ProjectViewsAssetsRetrieveParams = {
    */
   limit?: number
   /**
-   * Paginate results with offset parameter
+   * Paginate results with start parameter
    */
-  offset?: number
+  start?: number
 }

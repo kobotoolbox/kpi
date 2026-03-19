@@ -14,15 +14,19 @@ import type { AssetsDataListFormat } from './assetsDataListFormat'
 export type AssetsDataListParams = {
   format?: AssetsDataListFormat
   /**
-   * Number of results to return per page.
+   * Number of results to return per page. Use with `start`.
    */
   limit?: number
+  /**
+   * Deprecated alias of `start`.
+   */
+  offset?: number
   /**
    * Filter the results with search query
    */
   query?: string
   /**
-   * The initial index from which to return the results.
+   * The initial index from which to return the results. Use with `limit`.
    */
   start?: number
 }

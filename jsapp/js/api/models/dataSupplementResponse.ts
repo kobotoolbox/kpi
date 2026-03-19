@@ -10,7 +10,7 @@ The endpoints are grouped by area of intended use. Each category contains relate
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
 
-import type { DataSupplementResponseOneOf } from './dataSupplementResponseOneOf'
+import type { SupplementalDataResponseAction } from './supplementalDataResponseAction'
 export type DataSupplementResponse = {
   _version: string
-} & Record<string, DataSupplementResponseOneOf>
+} & Record<string, SupplementalDataResponseAction>

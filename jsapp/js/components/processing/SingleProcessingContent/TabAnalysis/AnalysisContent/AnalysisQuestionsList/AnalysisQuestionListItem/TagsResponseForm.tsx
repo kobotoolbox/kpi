@@ -1,10 +1,11 @@
 import React from 'react'
 
 import { Radio, TagsInput } from '@mantine/core'
-import type { _DataSupplementResponseOneOfManualQualVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualQualVersionsItem'
+import type { QualVersionItem } from '#/components/processing/common/types'
+import styles from '../../../common/styles.module.scss'
 
 interface Props {
-  qaAnswer?: _DataSupplementResponseOneOfManualQualVersionsItem
+  qaAnswer?: QualVersionItem
   disabled: boolean
   onSave: (values: string[]) => Promise<unknown>
 }
@@ -13,10 +14,13 @@ export default function SelectMultipleResponseForm({ qaAnswer, onSave, disabled 
   return (
     <Radio.Group>
       <TagsInput
-        value={(qaAnswer?._data.value as string[]) ?? []}
+        value={(qaAnswer?._data as any)?.value ?? []}
         onChange={onSave}
         acceptValueOnBlur
         disabled={disabled}
+        classNames={{
+          input: styles.responseBorderDefault,
+        }}
       />
     </Radio.Group>
   )

@@ -1,37 +1,46 @@
 import { Textarea } from '@mantine/core'
-import React, { useState } from 'react'
-import type { _DataSupplementResponseOneOfManualQualVersionsItem } from '#/api/models/_dataSupplementResponseOneOfManualQualVersionsItem'
+import React, { useEffect, useState } from 'react'
+import type { QualVersionItem } from '#/components/processing/common/types'
 import { AUTO_SAVE_TYPING_DELAY } from '../../../common/constants'
+import styles from '../../../common/styles.module.scss'
 
 interface Props {
-  qaAnswer?: _DataSupplementResponseOneOfManualQualVersionsItem
+  qaAnswer?: QualVersionItem
   disabled: boolean
   onSave: (value: string) => Promise<unknown>
+  isAnswerAIGenerated: boolean
 }
 
-export default function TextResponseForm({ qaAnswer, onSave, disabled }: Props) {
-  const [value, setValue] = useState<string>((qaAnswer?._data.value as string) ?? '')
+export default function TextResponseForm({ qaAnswer, onSave, disabled, isAnswerAIGenerated }: Props) {
+  const [value, setValue] = useState<string>(((qaAnswer?._data as any)?.value as string) ?? '')
   const [typingTimer, setTypingTimer] = useState<NodeJS.Timeout>()
-
-  const handleSave = async () => {
+  // Sync local state when a new version is set (e.g. after AI generation)
+  useEffect(() => {
+    if (!isAnswerAIGenerated) return
+    clearTimeout(typingTimer)
+    setValue(((qaAnswer?._data as any)?.value as string) ?? '')
+  }, [qaAnswer?._uuid, isAnswerAIGenerated])
+  const handleBlur = async () => {
     clearTimeout(typingTimer)
     await onSave(value)
   }
-
   const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setValue(event.currentTarget.value)
+    const newValue = event.currentTarget.value
+    setValue(newValue)
     clearTimeout(typingTimer)
-    setTypingTimer(setTimeout(handleSave, AUTO_SAVE_TYPING_DELAY)) // After some seconds we auto save
+    setTypingTimer(setTimeout(() => onSave(newValue), AUTO_SAVE_TYPING_DELAY)) // After some seconds we auto save
   }
-
   return (
     <Textarea
+      classNames={{
+        input: isAnswerAIGenerated ? styles.responseBorderAI : styles.responseBorderDefault,
+      }}
       autosize
       minRows={2}
       value={value}
       onChange={handleChange}
-      placeholder={t('Type your answer')}
-      onBlur={handleSave}
+      placeholder={t('Type your response or use AI')}
+      onBlur={handleBlur}
       disabled={disabled}
     />
   )

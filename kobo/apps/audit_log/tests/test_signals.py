@@ -6,6 +6,7 @@ from ddt import data, ddt
 from django.contrib.auth.signals import user_logged_in
 from django.test import RequestFactory, override_settings
 from django.urls import reverse
+from freezegun import freeze_time
 
 from kobo.apps.accounts.mfa.tests.utils import (
     activate_mfa_for_user,
@@ -103,6 +104,7 @@ class AccessLogsSignalsTestCase(BaseTestCase):
         self.assertEqual(audit_log.user.id, user.id)
         self.assertEqual(audit_log.action, AuditAction.AUTH)
 
+    @freeze_time('2026-01-01 12:00:00')
     def test_mfa_login(self):
         user = AccessLogsSignalsTestCase.user
         activate_mfa_for_user(self.client, user)

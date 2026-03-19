@@ -1,9 +1,17 @@
 from typing import Any
 
 from drf_spectacular.openapi import AutoSchema
-from drf_spectacular.plumbing import ComponentIdentity, ResolvedComponent
+from drf_spectacular.plumbing import (
+    ComponentIdentity,
+    ResolvedComponent,
+    build_object_type,
+)
 
-from kpi.schema_extensions.v2.generic.schema import GENERIC_UUID_SCHEMA
+from kpi.schema_extensions.v2.generic.schema import (
+    GENERIC_INT_SCHEMA,
+    GENERIC_STRING_SCHEMA,
+    GENERIC_UUID_SCHEMA,
+)
 
 
 class ComponentRegistrationMixin:
@@ -32,109 +40,120 @@ class ComponentRegistrationMixin:
 
 class QualComponentsRegistrationMixin(ComponentRegistrationMixin):
 
-    def _register_qual_schema_components(self, auto_schema):
+    def _register_qual_data_schema_components(self, auto_schema):
         references = {}
-        # ---------------------------------------------------------------------
-        # qualInteger
-        #   properties: { value: integer | null }
-        # ---------------------------------------------------------------------
-        references['qual_integer'] = self._register_schema_component(
-            auto_schema,
-            'DataSupplementManualQualDataInteger',
-            {
-                'type': 'object',
+        value_schema_by_type = {
+            'integer': {**GENERIC_INT_SCHEMA, 'nullable': True},
+            'select_multiple': {
+                'type': 'array',
+                'items': GENERIC_UUID_SCHEMA,
+            },
+            'select_one': GENERIC_UUID_SCHEMA,
+            'text': GENERIC_STRING_SCHEMA,
+            'tags': {
+                'type': 'array',
+                'items': GENERIC_STRING_SCHEMA,
+            },
+        }
+
+        schema_base = {
+            'type': 'object',
+            'additionalProperties': False,
+        }
+        for q_type in ['integer', 'text', 'select_one', 'select_multiple', 'tags']:
+
+            # register the schema for the manual version
+            title_case = q_type.title().replace('_', '')
+            manual_schema = {
+                **schema_base,
                 'properties': {
-                    'value': {
-                        'type': 'integer',
-                        'nullable': True,
-                    },
+                    'value': value_schema_by_type[q_type],
                     'uuid': GENERIC_UUID_SCHEMA,
                 },
                 'required': ['uuid', 'value'],
-                'additionalProperties': False,
+            }
+            references[f'manual_qual_{q_type}'] = self._register_schema_component(
+                auto_schema,
+                f'DataSupplementManualQualData{title_case}',
+                schema=manual_schema,
+            )
+
+            # for everything except tags questions, register the schema for
+            # the automatic version, which includes status and error fields
+
+            if q_type != 'tags':
+                automatic_schema = {
+                    **schema_base,
+                    'oneOf': [
+                        # if there is a value, status must be 'complete'
+                        build_object_type(
+                            additionalProperties=False,
+                            properties={
+                                'uuid': GENERIC_UUID_SCHEMA,
+                                'value': value_schema_by_type[q_type],
+                                'status': {
+                                    **GENERIC_STRING_SCHEMA,
+                                    'const': 'complete',
+                                },
+                            },
+                            required=['uuid', 'value', 'status'],
+                        ),
+                        # if status is 'failed', there must be an error and no value
+                        build_object_type(
+                            additionalProperties=False,
+                            properties={
+                                'uuid': GENERIC_UUID_SCHEMA,
+                                'status': {
+                                    **GENERIC_STRING_SCHEMA,
+                                    'const': 'failed',
+                                },
+                                'error': GENERIC_STRING_SCHEMA,
+                            },
+                            required=['status', 'error', 'uuid'],
+                        ),
+                    ],
+                }
+
+                references[f'automatic_qual_{q_type}'] = (
+                    self._register_schema_component(
+                        auto_schema,
+                        f'DataSupplementAutomaticQualData{title_case}Response',
+                        schema=automatic_schema,
+                    )
+                )
+
+        # special case: the payload for automatic QA is just the uuid of the question
+        # to be answered
+        uuid_only = {
+            **schema_base,
+            'properties': {
+                'uuid': GENERIC_UUID_SCHEMA
             },
+            'required': ['uuid'],
+        }
+        references['automatic_qual_payload'] = self._register_schema_component(
+            auto_schema,
+            # match the naming convention drf-spectacular/Orval uses for the other
+            # actions
+            'PatchedDataSupplementPayloadOneOfAutomaticQual',
+            schema=uuid_only,
         )
 
-        # ---------------------------------------------------------------------
-        # qualSelectMultiple
-        #   properties: { value: ['507129be-2aee-4fb9-8ddd-ac766ba35f46', ...] }
-        # ---------------------------------------------------------------------
-        references['qual_select_multiple'] = self._register_schema_component(
-            auto_schema,
-            'DataSupplementManualQualDataSelectMultiple',
-            {
-                'type': 'object',
-                'properties': {
-                    'value': {
-                        'type': 'array',
-                        'items': GENERIC_UUID_SCHEMA,
-                    },
-                    'uuid': GENERIC_UUID_SCHEMA,
-                },
-                'required': ['uuid', 'value'],
-                'additionalProperties': False,
+        # special case: the payload for verifying automatic or manual QA responses
+        verification = {
+            **schema_base,
+            'properties': {
+                'uuid': GENERIC_UUID_SCHEMA,
+                'verified': {'type': 'boolean'},
             },
-        )
-
-        # ---------------------------------------------------------------------
-        # qualSelectOne
-        #   properties: { value: '0bbdb149-c85c-46c2-ad31-583377c423da' }
-        # ---------------------------------------------------------------------
-        references['qual_select_one'] = self._register_schema_component(
+            'required': ['uuid', 'verified'],
+        }
+        references['verification_payload'] = self._register_schema_component(
             auto_schema,
-            'DataSupplementManualQualDataSelectOne',
-            {
-                'type': 'object',
-                'properties': {
-                    'value': GENERIC_UUID_SCHEMA,
-                    'uuid': GENERIC_UUID_SCHEMA,
-                },
-                'required': ['uuid', 'value'],
-                'additionalProperties': False,
-            },
-        )
-
-        # ---------------------------------------------------------------------
-        # qualTags
-        #   properties: { value: [string, ...] }
-        # ---------------------------------------------------------------------
-        references['qual_tags'] = self._register_schema_component(
-            auto_schema,
-            'DataSupplementManualQualDataTags',
-            {
-                'type': 'object',
-                'properties': {
-                    'value': {
-                        'type': 'array',
-                        'items': {
-                            'type': 'string',
-                        },
-                    },
-                    'uuid': GENERIC_UUID_SCHEMA,
-                },
-                'required': ['uuid', 'value'],
-                'additionalProperties': False,
-            },
-        )
-
-        # ---------------------------------------------------------------------
-        # qualText
-        #   properties: { value: string }
-        # ---------------------------------------------------------------------
-        references['qual_text'] = self._register_schema_component(
-            auto_schema,
-            'DataSupplementManualQualDataText',
-            {
-                'type': 'object',
-                'properties': {
-                    'value': {
-                        'type': 'string',
-                    },
-                    'uuid': GENERIC_UUID_SCHEMA,
-                },
-                'required': ['uuid', 'value'],
-                'additionalProperties': False,
-            },
+            # match the naming convention drf-spectacular/Orval uses for the other
+            # actions
+            'PatchedDataSupplementPayloadOneOfVerification',
+            schema=verification,
         )
 
         return references

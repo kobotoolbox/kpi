@@ -3,7 +3,7 @@ import os
 import string
 import subprocess
 import warnings
-from datetime import datetime, timedelta
+from datetime import timedelta
 from mimetypes import add_type
 from urllib.parse import quote_plus
 
@@ -16,10 +16,8 @@ from django.utils.translation import get_language_info
 from django.utils.translation import gettext_lazy as t
 from pymongo import MongoClient
 
-from kobo.apps.stripe.constants import FREE_TIER_EMPTY_DISPLAY, FREE_TIER_NO_THRESHOLDS
 from kpi.constants import PERM_DELETE_ASSET, PERM_MANAGE_ASSET
 from kpi.utils.json import LazyJSONSerializable
-
 from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
 
 env = environ.Env()
@@ -123,6 +121,7 @@ INSTALLED_APPS = (
     'oauth2_provider',
     'django_digest',
     'kobo.apps.organizations',
+    'kobo.apps.kobo_scim.apps.KoboScimConfig',
     'kobo.apps.superuser_stats.SuperuserStatsAppConfig',
     'kobo.apps.service_health',
     'kobo.apps.subsequences',
@@ -375,6 +374,10 @@ CONSTANCE_CONFIG = {
         'IAM & Admin console.\nLeave blank to use a different Google '
         'authentication mechanism.'
     ),
+    'AUTOMATIC_QA_REQUESTS_PER_SECOND': (
+        5,
+        'Number of allowed automatic Qualitative Analysis requests per user per second.'
+    ),
     'USER_METADATA_FIELDS': (
         LazyJSONSerializable([
             {'name': 'name', 'required': True},
@@ -449,26 +452,6 @@ CONSTANCE_CONFIG = {
         180,
         'Number of days to keep submission history',
         'positive_int',
-    ),
-    'FREE_TIER_THRESHOLDS': (
-        LazyJSONSerializable(FREE_TIER_NO_THRESHOLDS),
-        'Free tier thresholds: storage in kilobytes, '
-        'data (number of submissions), '
-        'minutes of transcription, '
-        'number of translation characters',
-        # Use custom field for schema validation
-        'free_tier_threshold_jsonschema',
-    ),
-    'FREE_TIER_DISPLAY': (
-        LazyJSONSerializable(FREE_TIER_EMPTY_DISPLAY),
-        'Free tier frontend settings: name to use for the free tier, '
-        'array of text strings to display on the feature list of the Plans page',
-        'free_tier_display_jsonschema',
-    ),
-    'FREE_TIER_CUTOFF_DATE': (
-        datetime(2050, 1, 1).date(),
-        'Users on the free tier who registered before this date will\n'
-        'use the custom plan defined by FREE_TIER_DISPLAY and FREE_TIER_LIMITS.',
     ),
     'PROJECT_TRASH_RETENTION': (
         7,
@@ -689,14 +672,6 @@ CONSTANCE_CONFIG = {
 }
 
 CONSTANCE_ADDITIONAL_FIELDS = {
-    'free_tier_threshold_jsonschema': [
-        'kpi.fields.jsonschema_form_field.FreeTierThresholdField',
-        {'widget': 'django.forms.Textarea'},
-    ],
-    'free_tier_display_jsonschema': [
-        'kpi.fields.jsonschema_form_field.FreeTierDisplayField',
-        {'widget': 'django.forms.Textarea'},
-    ],
     'i18n_text_jsonfield_schema': [
         'kpi.fields.jsonschema_form_field.I18nTextJSONField',
         {'widget': 'django.forms.Textarea'},
@@ -772,6 +747,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'ASR_MT_GOOGLE_TRANSLATION_LOCATION',
         'ASR_MT_GOOGLE_CREDENTIALS',
         'ASR_MT_GOOGLE_REQUEST_TIMEOUT',
+        'AUTOMATIC_QA_REQUESTS_PER_SECOND'
     ),
     'Security': (
         'SSRF_ALLOWED_IP_ADDRESS',
@@ -824,11 +800,6 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'ASSET_SNAPSHOT_DAYS_RETENTION',
         'IMPORT_TASK_DAYS_RETENTION',
         'SUBMISSION_HISTORY_RETENTION',
-    ),
-    'Tier settings': (
-        'FREE_TIER_THRESHOLDS',
-        'FREE_TIER_DISPLAY',
-        'FREE_TIER_CUTOFF_DATE',
     ),
 }
 
@@ -1021,7 +992,7 @@ if os.path.exists(os.path.join(BASE_DIR, 'dkobo', 'jsapp')):
 
 REST_FRAMEWORK = {
     'URL_FIELD_NAME': 'url',
-    'DEFAULT_PAGINATION_CLASS': 'kpi.paginators.Paginated',
+    'DEFAULT_PAGINATION_CLASS': 'kpi.paginators.DefaultPagination',
     'PAGE_SIZE': 100,
     'DEFAULT_AUTHENTICATION_CLASSES': [
         # SessionAuthentication and BasicAuthentication would be included by
@@ -1716,6 +1687,7 @@ if MASS_EMAILS_CONDENSE_SEND:
 if env.str('AWS_ACCESS_KEY_ID', False):
     AWS_ACCESS_KEY_ID = env.str('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = env.str('AWS_SECRET_ACCESS_KEY')
+    AWS_BEDROCK_REGION_NAME = env.str('AWS_BEDROCK_REGION_NAME', None)
     AWS_SES_REGION_NAME = env.str('AWS_SES_REGION_NAME', None)
     AWS_SES_REGION_ENDPOINT = env.str('AWS_SES_REGION_ENDPOINT', None)
 

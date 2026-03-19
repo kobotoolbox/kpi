@@ -3,7 +3,8 @@ from collections import OrderedDict
 
 from django.utils.module_loading import import_string
 from rest_framework import serializers
-from rest_framework.pagination import LimitOffsetPagination
+
+from kpi.paginators import DefaultPagination
 
 
 class PaginatedApiField(serializers.ReadOnlyField):
@@ -18,13 +19,13 @@ class PaginatedApiField(serializers.ReadOnlyField):
 
         :param serializer_class: The class (not instance) of the desired list
             serializer. Required.
-        :param paginator_class: Optional; defaults to `LimitOffsetPagination`.
+        :param paginator_class: Optional; defaults to `Default`.
         :param default_limit: Optional; defaults to `10`.
         :param source_processor: Optional; a callable that receives `source`
             and must return an usable queryset
         """
         self.serializer_class = serializer_class
-        self.paginator = kwargs.pop('paginator_class', LimitOffsetPagination)()
+        self.paginator = kwargs.pop('paginator_class', DefaultPagination)()
         self.paginator.default_limit = kwargs.pop('default_limit', 10)
         self.source_processor = kwargs.pop('source_processor', None)
         super().__init__(*args, **kwargs)

@@ -28,7 +28,7 @@ export interface FlatRow {
 export interface FlatChoice {
   list_name: string
   name: string
-  label?: string | string[]
+  label?: string | Array<string | null>
   [key: string]: any
 }
 

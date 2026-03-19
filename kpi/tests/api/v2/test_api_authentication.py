@@ -1,9 +1,9 @@
 # coding: utf-8
 import base64
 
-import pytest
 from django.test import override_settings
 from django.urls import reverse
+from freezegun import freeze_time
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 
@@ -13,6 +13,7 @@ from kpi.tests.base_test_case import BaseAssetTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 
 
+@freeze_time('2026-01-01 12:00:00')
 class AuthenticationApiTests(BaseAssetTestCase):
     fixtures = ['test_data']
 
@@ -34,7 +35,6 @@ class AuthenticationApiTests(BaseAssetTestCase):
         # Ensure `self.client` is not authenticated
         self.client.logout()
 
-    @pytest.mark.skip('TODO: Fix this test ASAP')
     def test_token_authentication_with_mfa_enabled(self):
         token, _ = Token.objects.get_or_create(user=self.someuser)
         auth_headers = {
