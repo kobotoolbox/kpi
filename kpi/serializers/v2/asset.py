@@ -804,7 +804,10 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         )
         # Users who have view_asset via a project view can see all permission
         # assignments, even without manage_asset on the asset directly.
-        if user_has_project_view_asset_perm(asset, request.user, PERM_VIEW_ASSET):
+        # Org admins are handled by `has_perm()` which checks `is_admin_only()`.
+        if user_has_project_view_asset_perm(
+            asset, request.user, PERM_VIEW_ASSET
+        ) or asset.has_perm(request.user, PERM_MANAGE_ASSET):
             filtered = all_permissions
         else:
             filtered = get_user_permission_assignments(
@@ -1158,8 +1161,11 @@ class AssetListSerializer(AssetSerializer):
             return super().get_permissions(asset)
 
         user = self.context['request'].user
+        # Set by OrganizationAssetViewSet: True when the requesting user is an
+        # org admin (who has no explicit ObjectPermission records).
+        user_is_org_admin = self.context.get('user_is_org_admin', False)
         asset_permission_assignments = get_user_permission_assignments(
-            asset, user, asset_permission_assignments
+            asset, user, asset_permission_assignments, user_is_org_admin
         )
 
         context = self.context
