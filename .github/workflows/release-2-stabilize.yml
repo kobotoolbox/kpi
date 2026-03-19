@@ -87,8 +87,8 @@ jobs:
   locale:
     needs: changes
     if: needs.changes.outputs.all == 'true' || needs.changes.outputs.locale == 'true'
-    secrets: inherit
     uses: './.github/workflows/locale.yml'
+    secrets: inherit
 
 
   changelog:
