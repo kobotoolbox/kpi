@@ -1,7 +1,6 @@
 from typing import Optional
 
 from django.core.files.base import ContentFile
-from shortuuid import ShortUUID
 
 from kpi.constants import SUBMISSION_FORMAT_TYPE_XML
 from kpi.models.asset_file import AssetFile
@@ -32,7 +31,6 @@ def build_and_save_paired_data_xml(
     )
     parsed_submissions = []
     allowed_fields = paired_data.allowed_fields
-    random_uuid = ShortUUID().random(24)
 
     for submission in submissions:
         # Use `rename_root_node_to='data'` to rename the root node of each
@@ -40,14 +38,14 @@ def build_and_save_paired_data_xml(
         # their `xml-external` formulas any time the asset UID changes,
         # e.g. when cloning a form or creating a project from a template.
         # Set `use_xpath=True` because `paired_data.fields` uses full group
-        # hierarchies, not just question names.
+        # hierarchies, not just question names. This also routes to the faster
+        # `_filter_nodes_by_xpaths()` instead of the recursive `process_node`.
         parsed_submissions.append(
             strip_nodes(
                 submission,
                 allowed_fields,
                 use_xpath=True,
                 rename_root_node_to='data',
-                bulk_action_cache_key=random_uuid,
             )
         )
 
