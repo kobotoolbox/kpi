@@ -46,6 +46,7 @@ import type {
 import './map.scss'
 import './map.marker-colors.scss'
 import { fetchGetUrl } from '../../../js/api'
+import {ErrorResponse} from 'react-router-dom'
 
 const STREETS_LAYER = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
@@ -455,6 +456,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     } else if (this.props.asset.map_styles.querylimit) {
       queryLimit = Number.parseInt(this.props.asset.map_styles.querylimit)
     }
+    console.log('limit', queryLimit)
 
     const fq = ['_id']
     if (selectedQuestion) {
@@ -464,26 +466,33 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       fq.push(this.nameOfFieldInGroup(nextViewBy))
     }
     const sort = [{ id: '_id', desc: true }]
-    dataInterface
-      .getSubmissions(this.props.asset.uid, queryLimit, 0, sort, fq)
-      .done((data: PaginatedResponse<SubmissionResponse>) => {
-        const results = data.results
-        this.setState({ submissions: results }, () => {
-          this.buildMarkers(map)
-          this.buildHeatMap(map)
+
+    // The data API is now limited to 1000 submissions per page regardless of the pageSize. We must now interate
+    // requests determined by the queryLimit
+    let allSubmissions: SubmissionResponse[] = []
+    const pageSize = 1000 // the backend limit
+    const iterations = queryLimit / pageSize
+    for (let offset=0; offset < iterations * pageSize; offset=offset+pageSize) {
+      dataInterface
+        .getSubmissions(this.props.asset.uid, pageSize, offset, sort, fq)
+        .done((data: PaginatedResponse<SubmissionResponse>) => {
+          allSubmissions.push(...data.results)
+        }).fail((error: FailResponse) => {
+          if (error.responseText) {
+            this.setState({ error: error.responseText })
+          } else if (error.statusText) {
+            this.setState({ error: error.statusText })
+          } else {
+            this.setState({
+              error: t('Error: could not load data.'),
+            })
+          }
         })
-      })
-      .fail((error: FailResponse) => {
-        if (error.responseText) {
-          this.setState({ error: error.responseText })
-        } else if (error.statusText) {
-          this.setState({ error: error.statusText })
-        } else {
-          this.setState({
-            error: t('Error: could not load data.'),
-          })
-        }
-      })
+    }
+    this.setState({ submissions: allSubmissions }, () => {
+      this.buildMarkers(map)
+      this.buildHeatMap(map)
+    })
   }
 
   calculateClusterRadius(zoom: number) {
