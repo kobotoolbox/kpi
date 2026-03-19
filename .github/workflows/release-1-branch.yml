@@ -1,6 +1,11 @@
 name: 'CD: branch'
 
 
+concurrency:
+  group: branch-${{ github.ref }}
+  cancel-in-progress: true
+
+
 on:
   workflow_dispatch:
   schedule:
