@@ -43,7 +43,7 @@ npm-test:
   - '.gitignore'                                                # (can affect tools)
   - '.github/workflows/{npm-test,chromatic}.yml'                # ci
 
-transifex:
+locale:
   - '{kpi,kobo,hub}/**/*.!(md)'  # may contain backend translatable strings
   - 'jsapp/**/*.(js|jsx|ts|tsx)' # may contain frontend translatable strings
 

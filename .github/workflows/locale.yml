@@ -24,7 +24,7 @@ jobs:
     secrets: inherit
     uses: './.github/workflows/find-releases.yml'
 
-  transifex:
+  locale:
     needs:
       - version
     if: ${{ needs.version.outputs.current_released == 'true' }}

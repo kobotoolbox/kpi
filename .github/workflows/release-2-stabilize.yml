@@ -45,13 +45,13 @@ jobs:
         name: Detect changed files
         with: { filters: .github/filters.yml }
     outputs:
-      all:       ${{ steps.filter.outputs.all       }}
-      darker:    ${{ steps.filter.outputs.darker    }}
-      biome:     ${{ steps.filter.outputs.biome     }}
-      openapi:   ${{ steps.filter.outputs.openapi   }}
-      pytest:    ${{ steps.filter.outputs.pytest    }}
-      npm-test:  ${{ steps.filter.outputs.npm-test  }}
-      transifex: ${{ steps.filter.outputs.transifex }}
+      all:      ${{ steps.filter.outputs.all      }}
+      darker:   ${{ steps.filter.outputs.darker   }}
+      biome:    ${{ steps.filter.outputs.biome    }}
+      openapi:  ${{ steps.filter.outputs.openapi  }}
+      pytest:   ${{ steps.filter.outputs.pytest   }}
+      npm-test: ${{ steps.filter.outputs.npm-test }}
+      locale:   ${{ steps.filter.outputs.locale   }}
 
 
   darker:
@@ -84,11 +84,11 @@ jobs:
     uses: ./.github/workflows/npm-test.yml
 
 
-  transifex-test:
+  locale:
     needs: changes
-    if: needs.changes.outputs.all == 'true' || needs.changes.outputs.transifex == 'true'
+    if: needs.changes.outputs.all == 'true' || needs.changes.outputs.locale == 'true'
     secrets: inherit
-    uses: './.github/workflows/transifex.yml'
+    uses: './.github/workflows/locale.yml'
     with:
       test: ${{ true }}
       push: ${{ false }}
@@ -104,7 +104,7 @@ jobs:
       - openapi
       - pytest
       - npm-test
-      - transifex-test
+      - locale
     if: ${{ !cancelled() && !failure() && needs.version.result == 'success' }}
     runs-on: ubuntu-24.04
     env:
@@ -141,7 +141,7 @@ jobs:
       - openapi
       - pytest
       - npm-test
-      - transifex-test
+      - locale
     if: ${{ !cancelled() && !failure() && needs.version.result == 'success' && needs.version.outputs.next_branch == 'main' }}
     runs-on: ubuntu-24.04
     steps:
@@ -157,7 +157,7 @@ jobs:
         git checkout -B public-beta
         git push -f --set-upstream origin public-beta
 
-  transifex-push:
+  push-to-transifex:
     needs:
       - version
       - changes
@@ -166,10 +166,10 @@ jobs:
       - openapi
       - pytest
       - npm-test
-      - transifex-test
+      - locale
     if: ${{ !cancelled() && !failure() && needs.version.result == 'success' && needs.version.outputs.current_released == 'true' && !needs.version.outputs.next_patch }}
     secrets: inherit
-    uses: './.github/workflows/transifex.yml'
+    uses: './.github/workflows/locale.yml'
     with:
       test: ${{ false }}
       push: ${{ true }}
@@ -185,7 +185,7 @@ jobs:
       - openapi
       - pytest
       - npm-test
-      - transifex-test
+      - locale
     if: ${{ !cancelled() && !failure() && needs.version.result == 'success' }}
     runs-on: ubuntu-24.04
     steps:
@@ -215,11 +215,11 @@ jobs:
       - openapi
       - pytest
       - npm-test
-      - transifex-test
+      - locale
       - changelog
       - deploy-to-beta
       - merge-forward
-      - transifex-push
+      - push-to-transifex
     if: ${{ !cancelled() && needs.version.result == 'success' }}
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
@@ -245,9 +245,9 @@ jobs:
               || format(':check: passed frontend automated tests ({0} biome, {1} npm-test)', needs.biome.result, needs.npm-test.result)
           }}
         - ${{ (
-              needs.transifex-test.result == 'failure' || needs.transifex-test.result == 'timed_out' )
+              needs.locale.result == 'failure' || needs.locale.result == 'timed_out' )
             && format(':warning: found desynced translation strings: @*devs* please investigate [run #{0}]({1}/{2}/actions/runs/{3})!', github.run_number, github.server_url, github.repository, github.run_id)
-            || needs.transifex-test.result == 'skipped'
+            || needs.locale.result == 'skipped'
               && ':skip_forward: translation strings sync check skipped due no changes in backend nor frontend relates files.'
               || ':check: asserted that translation strings are in sync with codebase.'
           }}
@@ -270,9 +270,9 @@ jobs:
               || ':check: triggered a deploy to [beta](kf.beta.kbtdev.org), see #**Dev>deployments to public-beta** for deployment status'
           }}
         - ${{ (
-              needs.transifex-push.result == 'failure' || needs.transifex-push.result == 'timed_out' )
+              needs.push-to-transifex.result == 'failure' || needs.push-to-transifex.result == 'timed_out' )
             && format(':warning: failed to push translation strings to transifex: @*devs* please investigate [run #{0}]({1}/{2}/actions/runs/{3})!', github.run_number, github.server_url, github.repository, github.run_id)
-            || needs.transifex-push.result == 'skipped'
+            || needs.push-to-transifex.result == 'skipped'
               && ':skip_forward: push translation strings to transifex skipped due not being on current version branch.'
               || ':check: pushed translation strings to transifex.'
           }}
