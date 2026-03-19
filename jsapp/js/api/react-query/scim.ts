@@ -33,6 +33,10 @@ import type { ScimUser } from '../models/scimUser'
 
 import type { ScimV2GroupsListParams } from '../models/scimV2GroupsListParams'
 
+import type { ScimV2ResourceTypesRetrieve200 } from '../models/scimV2ResourceTypesRetrieve200'
+
+import type { ScimV2SchemasRetrieve200 } from '../models/scimV2SchemasRetrieve200'
+
 import type { ScimV2ServiceProviderConfigRetrieve200 } from '../models/scimV2ServiceProviderConfigRetrieve200'
 
 import type { ScimV2UsersCreate400 } from '../models/scimV2UsersCreate400'
@@ -553,6 +557,161 @@ export const useScimV2GroupsDestroy = <TError = unknown, TContext = unknown>(opt
 
   return useMutation(mutationOptions)
 }
+/**
+ * Returns the SCIM supported ResourceTypes.
+ */
+export type scimV2ResourceTypesRetrieveResponse200 = {
+  data: ScimV2ResourceTypesRetrieve200
+  status: 200
+}
+
+export type scimV2ResourceTypesRetrieveResponseComposite = scimV2ResourceTypesRetrieveResponse200
+
+export type scimV2ResourceTypesRetrieveResponse = scimV2ResourceTypesRetrieveResponseComposite & {
+  headers: Headers
+}
+
+export const getScimV2ResourceTypesRetrieveUrl = (idpSlug: string) => {
+  return `/api/v2/scim/v2/${idpSlug}/ResourceTypes`
+}
+
+export const scimV2ResourceTypesRetrieve = async (
+  idpSlug: string,
+  options?: RequestInit,
+): Promise<scimV2ResourceTypesRetrieveResponse> => {
+  return fetchWithAuth<scimV2ResourceTypesRetrieveResponse>(getScimV2ResourceTypesRetrieveUrl(idpSlug), {
+    ...options,
+    method: 'GET',
+  })
+}
+
+export const getScimV2ResourceTypesRetrieveQueryKey = (idpSlug: string) => {
+  return ['api', 'v2', 'scim', 'v2', idpSlug, 'ResourceTypes'] as const
+}
+
+export const getScimV2ResourceTypesRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof scimV2ResourceTypesRetrieve>>,
+  TError = unknown,
+>(
+  idpSlug: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof scimV2ResourceTypesRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getScimV2ResourceTypesRetrieveQueryKey(idpSlug)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof scimV2ResourceTypesRetrieve>>> = ({ signal }) =>
+    scimV2ResourceTypesRetrieve(idpSlug, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: !!idpSlug, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof scimV2ResourceTypesRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type ScimV2ResourceTypesRetrieveQueryResult = NonNullable<
+  Awaited<ReturnType<typeof scimV2ResourceTypesRetrieve>>
+>
+export type ScimV2ResourceTypesRetrieveQueryError = unknown
+
+export function useScimV2ResourceTypesRetrieve<
+  TData = Awaited<ReturnType<typeof scimV2ResourceTypesRetrieve>>,
+  TError = unknown,
+>(
+  idpSlug: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof scimV2ResourceTypesRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getScimV2ResourceTypesRetrieveQueryOptions(idpSlug, options)
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
+/**
+ * Returns the SCIM supported Schemas.
+ */
+export type scimV2SchemasRetrieveResponse200 = {
+  data: ScimV2SchemasRetrieve200
+  status: 200
+}
+
+export type scimV2SchemasRetrieveResponseComposite = scimV2SchemasRetrieveResponse200
+
+export type scimV2SchemasRetrieveResponse = scimV2SchemasRetrieveResponseComposite & {
+  headers: Headers
+}
+
+export const getScimV2SchemasRetrieveUrl = (idpSlug: string) => {
+  return `/api/v2/scim/v2/${idpSlug}/Schemas`
+}
+
+export const scimV2SchemasRetrieve = async (
+  idpSlug: string,
+  options?: RequestInit,
+): Promise<scimV2SchemasRetrieveResponse> => {
+  return fetchWithAuth<scimV2SchemasRetrieveResponse>(getScimV2SchemasRetrieveUrl(idpSlug), {
+    ...options,
+    method: 'GET',
+  })
+}
+
+export const getScimV2SchemasRetrieveQueryKey = (idpSlug: string) => {
+  return ['api', 'v2', 'scim', 'v2', idpSlug, 'Schemas'] as const
+}
+
+export const getScimV2SchemasRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof scimV2SchemasRetrieve>>,
+  TError = unknown,
+>(
+  idpSlug: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof scimV2SchemasRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getScimV2SchemasRetrieveQueryKey(idpSlug)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof scimV2SchemasRetrieve>>> = ({ signal }) =>
+    scimV2SchemasRetrieve(idpSlug, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: !!idpSlug, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof scimV2SchemasRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type ScimV2SchemasRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof scimV2SchemasRetrieve>>>
+export type ScimV2SchemasRetrieveQueryError = unknown
+
+export function useScimV2SchemasRetrieve<TData = Awaited<ReturnType<typeof scimV2SchemasRetrieve>>, TError = unknown>(
+  idpSlug: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof scimV2SchemasRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getScimV2SchemasRetrieveQueryOptions(idpSlug, options)
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
 /**
  * Returns the SCIM Service Provider Configuration.
  */

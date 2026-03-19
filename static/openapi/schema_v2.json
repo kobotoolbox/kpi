@@ -13663,6 +13663,70 @@
                 }
             }
         },
+        "/api/v2/scim/v2/{idp_slug}/ResourceTypes": {
+            "get": {
+                "operationId": "api_v2_scim_v2_ResourceTypes_retrieve",
+                "description": "Returns the SCIM supported ResourceTypes.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "idp_slug",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "SCIM"
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/scim+json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {}
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v2/scim/v2/{idp_slug}/Schemas": {
+            "get": {
+                "operationId": "api_v2_scim_v2_Schemas_retrieve",
+                "description": "Returns the SCIM supported Schemas.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "idp_slug",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "SCIM"
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/scim+json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {}
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/v2/scim/v2/{idp_slug}/ServiceProviderConfig": {
             "get": {
                 "operationId": "api_v2_scim_v2_ServiceProviderConfig_retrieve",
