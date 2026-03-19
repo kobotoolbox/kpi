@@ -91,7 +91,7 @@ jobs:
         echo '---------'
         (cd locale; git diff)
 
-        echo 'if this errors, run ./generate_translatable_strings.sh locally and commit updated strings.'
+        echo 'see `./locale/README.md`. TL;DR: if this errors, run `.scripts/generate_locale.sh` locally.'
 
         git diff-index --exit-code HEAD
 

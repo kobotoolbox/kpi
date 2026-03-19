@@ -3,9 +3,9 @@
 
 ## How to use
 
-Developer might wonder: "I just added a new string to KPI. How to make it translateable?". The short answer is: nothing, it's all automated.
+Run `./scripts/generate_locale.sh` after modifying translateable string in the KPI: either adding, editing, or just moving lines that contain translatable strings. The rest is automated.
 
-Developer might as well wonder: "How to translate the string I just added?". The short answer has 2 options:
+To translate a string:
 - if your PR was based on current release branch, go to Transifex website and it will be there waiting for someone to translate it. The rest is automated.
 - if your PR was based against next release branch or main, the string will not be on Transifex, yet. Wait until your commit becomes part of a current release branch first.
 
