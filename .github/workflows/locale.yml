@@ -2,10 +2,7 @@ name: Update Translations
 
 # See docs at `./locale/README.md`.
 
-on:
-  push:
-    branches: [ "kalvis/transifex" ] # WIP for debugging
-  workflow_call:
+on: workflow_call
 
 
 jobs:
