@@ -1,17 +1,14 @@
 # coding: utf-8
 from django.conf import settings
-from django.core.files.base import ContentFile
 from django.http import Http404
 from django.utils import timezone
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
-from shortuuid import ShortUUID
 
 from kobo.apps.audit_log.base_views import AuditLoggedModelViewSet
 from kobo.apps.audit_log.models import AuditType
-from kpi.constants import SUBMISSION_FORMAT_TYPE_XML
 from kpi.models import Asset, AssetFile, PairedData
 from kpi.permissions import AssetEditorPermission, XMLExternalDataPermission
 from kpi.renderers import SubmissionXMLRenderer
@@ -21,7 +18,7 @@ from kpi.schema_extensions.v2.paired_data.serializers import (
     PairedDataResponse,
 )
 from kpi.serializers.v2.paired_data import PairedDataSerializer
-from kpi.utils.hash import calculate_hash
+from kpi.utils.paired_data import build_and_save_paired_data_xml
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import (
     open_api_200_ok_response,
@@ -29,7 +26,6 @@ from kpi.utils.schema_extensions.response import (
     open_api_204_empty_response,
 )
 from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
-from kpi.utils.xml import add_xml_declaration, strip_nodes
 
 
 @extend_schema(
@@ -208,6 +204,7 @@ class PairedDataViewset(
         # Retrieve data from related asset file.
         # If data has already been fetched once, an `AssetFile` should exist.
         # Otherwise, we create one to store the generated XML.
+        refresh_async = False
         try:
             asset_file = self.asset.asset_files.get(uid=uid_paired_data)
         except AssetFile.DoesNotExist:
@@ -233,65 +230,27 @@ class PairedDataViewset(
                 has_expired = (
                     timedelta.total_seconds() > settings.PAIRED_DATA_EXPIRATION
                 )
+                # File exists and is stale only due to time: regenerate in the
+                # background so the manifest request is not blocked by fetching
+                # and parsing a potentially large number of submissions.
+                refresh_async = has_expired
 
         # ToDo evaluate adding headers for caching and a HTTP 304 status code
         if not has_expired:
             return Response(asset_file.content.file.read().decode())
 
+        if refresh_async:
+            from kpi.tasks import regenerate_paired_data
+
+            regenerate_paired_data.delay(self.asset.uid, uid_paired_data)
+            # Return the current (possibly stale) content immediately.
+            # The manifest will reflect the new hash once the task completes.
+            return Response(asset_file.content.file.read().decode())
+
         # If the content of `asset_file' has expired, let's regenerate the XML
-        submissions = source_asset.deployment.get_submissions(
-            self.asset.owner,
-            format_type=SUBMISSION_FORMAT_TYPE_XML
+        xml_ = build_and_save_paired_data_xml(
+            self.asset, asset_file, paired_data, source_asset, old_hash=old_hash
         )
-        parsed_submissions = []
-        allowed_fields = paired_data.allowed_fields
-        random_uuid = ShortUUID().random(24)
-
-        for submission in submissions:
-            # Use `rename_root_node_to='data'` to rename the root node of each
-            # submission to `data` so that form authors do not have to rewrite
-            # their `xml-external` formulas any time the asset UID changes,
-            # e.g. when cloning a form or creating a project from a template.
-            # Set `use_xpath=True` because `paired_data.fields` uses full group
-            # hierarchies, not just question names.
-            parsed_submissions.append(
-                strip_nodes(
-                    submission,
-                    allowed_fields,
-                    use_xpath=True,
-                    rename_root_node_to='data',
-                    bulk_action_cache_key=random_uuid,
-                )
-            )
-
-        filename = paired_data.filename
-        parsed_submissions_to_str = ''.join(parsed_submissions)
-        root_tag_name = SubmissionXMLRenderer.root_tag_name
-        xml_ = add_xml_declaration(
-            f'<{root_tag_name}>'
-            f'{parsed_submissions_to_str}'
-            f'</{root_tag_name}>'
-        )
-
-        if not parsed_submissions:
-            # We do not want to cache an empty file
-            return Response(xml_)
-
-        # We need to delete the current file (if it exists) when filename
-        # has changed. Otherwise, it would leave an orphan file on storage
-        if asset_file.pk and asset_file.content.name != filename:
-            asset_file.content.delete()
-
-        asset_file.content = ContentFile(xml_.encode(), name=filename)
-
-        # `xml_` is already there in memory, let's use its content to get its
-        # hash and store it within `asset_file` metadata
-        asset_file.set_md5_hash(calculate_hash(xml_, prefix=True))
-        asset_file.save()
-        if old_hash != asset_file.md5_hash:
-            # resync paired data to the deployment backend
-            self.asset.deployment.sync_media_files(AssetFile.PAIRED_DATA)
-
         return Response(xml_)
 
     def get_object_override(self):

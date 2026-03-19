@@ -5,6 +5,7 @@ from constance import config
 from django.apps import apps
 from django.conf import settings
 from django.core import mail
+from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.management import call_command
 
@@ -14,13 +15,16 @@ from kobo.celery import celery_app
 from kpi.constants import LIMIT_HOURS_23
 from kpi.maintenance_tasks import remove_old_asset_snapshots, remove_old_import_tasks
 from kpi.models.asset import Asset
+from kpi.models.asset_file import AssetFile
 from kpi.models.import_export_task import (
     ImportTask,
     SubmissionExportTask,
     SubmissionSynchronousExport,
 )
+from kpi.models.paired_data import PairedData
 from kpi.utils.export_cleanup import delete_expired_exports
 from kpi.utils.object_permission import get_anonymous_user
+from kpi.utils.paired_data import build_and_save_paired_data_xml
 
 
 @celery_app.task(
@@ -127,6 +131,47 @@ def sync_media_files(asset_uid):
         asset.refresh_from_db(fields=['_deployment_data'])
 
     asset.deployment.sync_media_files()
+
+
+@celery_app.task(
+    autoretry_for=(Exception,),
+    max_retries=3,
+    retry_backoff=True,
+)
+def regenerate_paired_data(asset_uid: str, uid_paired_data: str) -> None:
+    """
+    Regenerates the XML file for a paired data link in the background.
+
+    Called when an existing AssetFile has expired, to avoid blocking the
+    manifest request while fetching and parsing submissions from the source.
+    Once complete, the new hash is synced to the OpenRosa MetaData record so
+    the next manifest request reflects the updated content.
+    """
+    asset = Asset.objects.defer('content').get(uid=asset_uid)
+    if not asset.has_deployment:
+        return
+
+    paired_data = PairedData.objects(asset).get(uid_paired_data)
+    if not paired_data:
+        return
+
+    source_asset = paired_data.get_source()
+    if not source_asset or not source_asset.has_deployment:
+        return
+
+    try:
+        asset_file = asset.asset_files.get(uid=uid_paired_data)
+    except AssetFile.DoesNotExist:
+        # File was deleted while the task was queued; nothing to do.
+        return
+
+    old_hash = asset_file.md5_hash
+    build_and_save_paired_data_xml(
+        asset, asset_file, paired_data, source_asset, old_hash=old_hash
+    )
+    # Release the distributed lock so the next manifest request can trigger
+    # a fresh regeneration cycle as soon as the expiry window passes.
+    cache.delete(f'regen_paired_data_{uid_paired_data}')
 
 
 @celery_app.task

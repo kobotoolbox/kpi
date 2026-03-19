@@ -2012,6 +2012,9 @@ OPENROSA_DEFAULT_CONTENT_LENGTH = 10000000
 
 # Expiration time in sec. after which paired data xml file must be regenerated
 PAIRED_DATA_EXPIRATION = 300  # seconds
+# Lock TTL for the async regeneration task; covers the worst-case generation
+# time and ensures the lock expires even if a K8s pod is killed mid-task.
+PAIRED_DATA_REGEN_LOCK_TIMEOUT = 600  # seconds
 
 CALCULATED_HASH_CACHE_EXPIRATION = 300  # seconds
 

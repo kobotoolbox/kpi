@@ -3,10 +3,12 @@ from zoneinfo import ZoneInfo
 
 from django.apps import apps
 from django.conf import settings
+from django.core.cache import cache
 from django.db.models import F, Q
 from django.db.models.expressions import RawSQL
 from django.http import Http404
 from django.shortcuts import get_object_or_404
+from django.urls import resolve, Resolver404
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema
 from rest_framework import permissions, status
@@ -532,22 +534,39 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
 
         timedelta = timezone.now() - obj.date_modified
         if timedelta.total_seconds() > settings.PAIRED_DATA_EXPIRATION:
-            # Force external XML regeneration
-            get_media_file_response(obj, request)
+            # Resolve the paired-data URL to extract `uid_paired_data`, which
+            # is used as the lock key so that the Celery task can release it
+            # upon successful completion.
+            internal_url = obj.data_value.replace(settings.KOBOFORM_URL, '')
+            try:
+                uid_paired_data = resolve(internal_url).kwargs.get(
+                    'uid_paired_data'
+                )
+            except Resolver404:
+                uid_paired_data = None
 
-            # We update the modification time here to avoid requesting that KPI
-            # resynchronize this file multiple times per the
-            # `PAIRED_DATA_EXPIRATION` period. However, this introduces a race
-            # condition where it's possible that KPI *deletes* this file before
-            # we attempt to update it. We avoid that by locking the row
-
-            # TODO: this previously used `select_for_update()`, which locked
-            #  the object for the duration of the *entire* request due to
-            #  Django's `ATOMIC_REQUESTS`. `ATOMIC_REQUESTS` is not True by
-            #  default anymore and the `update()` method is itself
-            #  atomic since it does not reference any value previously read
-            #  from the database. Is that enough?
+            # Use a distributed lock to prevent concurrent or repeated
+            # regeneration. `cache.add()` is atomic (Redis SET NX): it returns
+            # True only when the key did not exist and was successfully set.
+            # The TTL covers worst-case generation time and ensures the lock
+            # expires naturally if a K8s pod is killed mid-task.
+            lock_key = f'regen_paired_data_{uid_paired_data}'
+            if uid_paired_data and not cache.add(
+                lock_key, True, timeout=settings.PAIRED_DATA_REGEN_LOCK_TIMEOUT
+            ):
+                # A task is already scheduled or running — return True so the
+                # manifest caller re-fetches the current (possibly stale) hash
+                # from the DB without queuing a duplicate task.
+                return True
+            # Update `date_modified` before triggering regeneration so that
+            # the next manifest request does not re-trigger while the task
+            # is running. The content may remain stale for at most one expiry
+            # window in case of failure, which is preferable to retrying on
+            # every manifest request.
             MetaData.objects.filter(pk=obj.pk).update(date_modified=timezone.now())
+            # Trigger regeneration — async if the file already exists,
+            # sync (blocking) on first creation.
+            get_media_file_response(obj, request)
             return True
 
         return False
