@@ -89,9 +89,6 @@ fi
 echo "Copying static files to nginx volume…"
 rsync -aq --delete --delete-excluded --exclude="rest_framework" --chown=www-data "${KPI_SRC_DIR}/staticfiles/" "${NGINX_STATIC_DIR}/"
 
-echo "Recompiling translations…"
-python manage.py compilemessages
-
 echo 'KPI initialization completed.'
 
 cd "${KPI_SRC_DIR}"
