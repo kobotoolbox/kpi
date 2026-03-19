@@ -1,6 +1,12 @@
 import unittest
+from datetime import timedelta
+from unittest.mock import patch
 
+from django.conf import settings
+from django.core.cache import cache
 from django.urls import reverse
+from django.utils import timezone
+from freezegun import freeze_time
 from rest_framework import status
 from rest_framework.exceptions import ErrorDetail
 
@@ -12,7 +18,7 @@ from kpi.constants import (
     PERM_VIEW_ASSET,
     PERM_VIEW_SUBMISSIONS,
 )
-from kpi.models import Asset
+from kpi.models import Asset, AssetFile
 from kpi.tests.base_test_case import BaseAssetTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 
@@ -392,35 +398,60 @@ class PairedDataExternalApiTests(BasePairedDataTestCase):
         response = self.client.get(self.external_xml_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    @unittest.skip(reason='Skip until mock back end supports XML submissions')
     def test_get_external_with_changed_source_fields(self):
         self.deploy_source()
+        self._submit_to_source()
+        # Restrict source sharing to `city_name` only — `allowed_fields` becomes
+        # `['city_name']` because the destination has no field filter.
         self.toggle_source_sharing(enabled=True, fields=['city_name'])
+        self.login_as_other_user('anotheruser', 'anotheruser')
         response = self.client.get(self.external_xml_url)
-        expected_xml = ''  # FIXME when XML support is added
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.content, expected_xml)
+        assert response.status_code == status.HTTP_200_OK
+        content = response.content.decode()
+        assert 'city_name' in content
+        assert 'favourite_restaurant' not in content
 
-    @unittest.skip(reason='Skip until mock back end supports XML submissions')
     def test_get_external_with_specific_fields(self):
         self.deploy_source()
-        self.paired_data(fields=['city_name'])
+        self._submit_to_source()
+        # Restrict the destination-side field filter to `city_name` only by
+        # PATCHing the existing link (only one link per source is allowed).
+        # Source shares all fields, so `allowed_fields` becomes `['city_name']`.
+        self.login_as_other_user('anotheruser', 'anotheruser')
+        self.client.patch(
+            self.paired_data_detail_url,
+            {'fields': ['city_name']},
+            format='json',
+        )
         response = self.client.get(self.external_xml_url)
-        expected_xml = ''  # FIXME when XML support is added
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.content, expected_xml)
+        assert response.status_code == status.HTTP_200_OK
+        content = response.content.decode()
+        assert 'city_name' in content
+        assert 'favourite_restaurant' not in content
 
-    @unittest.skip(reason='Skip until mock back end supports XML submissions')
     def test_get_external_with_specific_fields_and_changed_source_fields(self):
         self.deploy_source()
-        self.paired_data(fields=['city_name'])
+        self._submit_to_source()
+        # Destination wants `city_name`; source shares only
+        # `group_restaurant/favourite_restaurant`. The intersection of both field
+        # restrictions is empty, so `allowed_fields` returns `[]`, which means no
+        # filtering is applied and all fields are included in the output.
+        # NOTE: this is a known limitation — see `PairedData.allowed_fields`.
+        self.login_as_other_user('anotheruser', 'anotheruser')
+        self.client.patch(
+            self.paired_data_detail_url,
+            {'fields': ['city_name']},
+            format='json',
+        )
         self.toggle_source_sharing(
             enabled=True, fields=['group_restaurant/favourite_restaurant']
         )
+        self.login_as_other_user('anotheruser', 'anotheruser')
         response = self.client.get(self.external_xml_url)
-        expected_xml = ''  # FIXME when XML support is added
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.content, expected_xml)
+        assert response.status_code == status.HTTP_200_OK
+        content = response.content.decode()
+        assert 'city_name' in content
+        assert 'favourite_restaurant' in content
 
     def deploy_source(self):
         # Refresh source asset from DB, it has been altered by
@@ -428,3 +459,128 @@ class PairedDataExternalApiTests(BasePairedDataTestCase):
         self.source_asset.refresh_from_db()
         self.source_asset.deploy(backend='mock', active=True)
         self.source_asset.save()
+
+    def _submit_to_source(self):
+        """
+        Add a test submission to the deployed source asset so that
+        `external.xml` has actual data to filter.
+        """
+        self.source_asset.deployment.mock_submissions([
+            {
+                'group_restaurant/favourite_restaurant': 'Le Jules Verne',
+                'city_name': 'Paris',
+            }
+        ])
+
+
+class PairedDataAsyncRegenTests(BasePairedDataTestCase):
+    """
+    Tests for the asynchronous paired-data XML regeneration path introduced
+    in `external.xml` and `_trigger_paired_data_regen_if_expired`.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.destination_asset.deploy(backend='mock', active=True)
+        self.destination_asset.save()
+        self.toggle_source_sharing(enabled=True)
+        self.source_asset.assign_perm(self.anotheruser, PERM_VIEW_SUBMISSIONS)
+        self.source_asset.refresh_from_db()
+        self.source_asset.deploy(backend='mock', active=True)
+        self.source_asset.save()
+        self.source_asset.deployment.mock_submissions([
+            {
+                'group_restaurant/favourite_restaurant': 'Le Jules Verne',
+                'city_name': 'Paris',
+            }
+        ])
+        paired_data_response = self.paired_data()
+        self.paired_data_detail_url = paired_data_response.data['url']
+        self.external_xml_url = f'{self.paired_data_detail_url}external.xml'
+        self.login_as_other_user('anotheruser', 'anotheruser')
+
+    def test_first_load_is_synchronous(self):
+        """
+        On first access, the AssetFile does not exist yet so the XML is
+        generated synchronously — no Celery task is scheduled.
+        """
+        with patch('kpi.tasks.regenerate_paired_data') as mock_task:
+            response = self.client.get(self.external_xml_url)
+        assert response.status_code == status.HTTP_200_OK
+        mock_task.delay.assert_not_called()
+        assert self.destination_asset.asset_files.filter(
+            file_type=AssetFile.PAIRED_DATA
+        ).exists()
+
+    def test_stale_file_triggers_async_regen_and_returns_stale_content(self):
+        """
+        When the AssetFile exists but is past `PAIRED_DATA_EXPIRATION`, a
+        Celery task is scheduled and the current (stale) content is returned
+        immediately without blocking.
+        """
+        self._warm_up_asset_file()
+        with patch('kpi.tasks.regenerate_paired_data') as mock_task:
+            response = self.client.get(self.external_xml_url)
+        assert response.status_code == status.HTTP_200_OK
+        mock_task.delay.assert_called_once()
+        assert 'city_name' in response.content.decode()
+
+    def test_manifest_lock_prevents_duplicate_regen(self):
+        """
+        `_trigger_paired_data_regen_if_expired` returns True without calling
+        `get_media_file_response` when the distributed lock is already held,
+        preventing a duplicate task from being scheduled.
+        """
+        from kobo.apps.openrosa.apps.api.viewsets.xform_list_api import (
+            XFormListApi,
+        )
+        from kpi.urls.router_api_v2 import URL_NAMESPACE
+
+        uid_paired_data = 'aTestPairedDataUid1'
+        url = reverse(
+            f'{URL_NAMESPACE}:paired-data-external',
+            kwargs={
+                'uid_asset': 'aTestAssetUid12345',
+                'uid_paired_data': uid_paired_data,
+                'format': 'xml',
+            },
+        )
+
+        class _FakeMetaData:
+            is_paired_data = True
+            date_modified = timezone.now() - timedelta(
+                seconds=settings.PAIRED_DATA_EXPIRATION + 60
+            )
+            pk = 99999
+            data_value = f'{settings.KOBOFORM_URL}{url}'
+
+        lock_key = f'regen_paired_data_{uid_paired_data}'
+        cache.set(lock_key, True)
+        try:
+            with patch(
+                'kobo.apps.openrosa.apps.api.viewsets.xform_list_api'
+                '.get_media_file_response'
+            ) as mock_get:
+                result = XFormListApi._trigger_paired_data_regen_if_expired(
+                    _FakeMetaData(), None
+                )
+            assert result is True
+            mock_get.assert_not_called()
+        finally:
+            cache.delete(lock_key)
+
+    def _warm_up_asset_file(self):
+        """
+        Make the first `external.xml` call frozen in the past so that a
+        subsequent request at real current time sees the file as stale
+        (past `PAIRED_DATA_EXPIRATION`). Returns the created AssetFile.
+        """
+        frozen_past = timezone.now() - timedelta(
+            seconds=settings.PAIRED_DATA_EXPIRATION + 60
+        )
+        with freeze_time(frozen_past):
+            response = self.client.get(self.external_xml_url)
+        assert response.status_code == status.HTTP_200_OK
+        return self.destination_asset.asset_files.get(
+            file_type=AssetFile.PAIRED_DATA
+        )
