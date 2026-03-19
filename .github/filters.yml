@@ -44,8 +44,9 @@ npm-test:
   - '.github/workflows/{npm-test,chromatic}.yml'                # ci
 
 locale:
-  - '{kpi,kobo,hub}/**/*.!(md)'  # may contain backend translatable strings
-  - 'jsapp/**/*.(js|jsx|ts|tsx)' # may contain frontend translatable strings
+  - '{kpi,kobo,hub}/**/*.!(md)'    # may contain backend translatable strings
+  - 'jsapp/**/*.(js|jsx|ts|tsx)'   # may contain frontend translatable strings
+  - '.github/workflows/locale.yml' # ci
 
 # Notably, not included:
 # - '.github/workflows/release-*.yml'               # not running on a PR anyways.
