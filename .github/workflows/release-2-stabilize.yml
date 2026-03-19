@@ -89,10 +89,6 @@ jobs:
     if: needs.changes.outputs.all == 'true' || needs.changes.outputs.locale == 'true'
     secrets: inherit
     uses: './.github/workflows/locale.yml'
-    with:
-      test: ${{ true }}
-      push: ${{ false }}
-      pull: ${{ false }}
 
 
   changelog:
@@ -168,12 +164,13 @@ jobs:
       - npm-test
       - locale
     if: ${{ !cancelled() && !failure() && needs.version.result == 'success' && needs.version.outputs.current_released == 'true' && !needs.version.outputs.next_patch }}
-    secrets: inherit
-    uses: './.github/workflows/locale.yml'
-    with:
-      test: ${{ false }}
-      push: ${{ true }}
-      pull: ${{ false }}
+    runs-on: ubuntu-24.04
+    steps:
+    - name: Push to Transifex
+      uses: transifex/cli-action@v2
+      with:
+        token: ${{ secrets.TRANSIFEX_API }}
+        args: 'push -s'
 
   merge-forward:
     name: Merge forward

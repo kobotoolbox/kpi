@@ -51,7 +51,3 @@ jobs:
     needs: changes
     if: needs.changes.outputs.all == 'true' || needs.changes.outputs.locale == 'true'
     uses: './.github/workflows/locale.yml'
-    with:
-      test: ${{ true }}
-      push: ${{ false }}
-      pull: ${{ false }}

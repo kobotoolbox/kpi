@@ -6,16 +6,6 @@ on:
   push:
     branches: [ "kalvis/transifex" ] # WIP for debugging
   workflow_call:
-    inputs:
-      test:
-        type: boolean
-        default: false
-      push:
-        type: boolean
-        default: false
-      pull:
-        type: boolean
-        default: false
 
 
 jobs:
@@ -27,10 +17,7 @@ jobs:
   locale:
     needs:
       - version
-    if: ${{ needs.version.outputs.current_released == 'true' }}
     runs-on: ubuntu-24.04
-    outputs:
-      pull-changed: ${{ steps.pull-changed.outputs.changed }}
     steps:
 
     ## Setup
@@ -62,83 +49,16 @@ jobs:
     - name: Install Python dependencies
       run: uv pip sync --system dependencies/pip/dev_requirements.txt
 
-    ## Pushing & Testing
-
-    - name: Assert that push is initiated from the current release branch.
-      if: ${{ inputs.push && (needs.version.outputs.current_released != 'true' || !!needs.version.outputs.next_patch) }}
-      run: |
-        echo "ERROR: not on the current release branch. Please investigate the calling workflow how that happened."
-        exit 1
+    ## Testing
 
     - name: Extract translatable strings from Python code.
-      if: ${{ inputs.test }}
       run: python manage.py makemessages --locale en
 
     - name: Extract translatable strings from Javascript/Typescript code.
-      if: ${{ inputs.test }}
       run: python manage.py makemessages --locale en --domain djangojs
 
     - name: Abort if there are uncommitted translatable string changes.
-      if: ${{ inputs.test }}
-      id: test
       run: |
-        # DEBUG
         git diff --stat
-        echo '---------'
-        git diff
-        echo '---------'
-        (cd locale; git diff --stat)
-        echo '---------'
-        (cd locale; git diff)
-
         echo 'see `./locale/README.md`. TL;DR: if this errors, run `.scripts/generate_locale.sh` locally.'
-
         git diff-index --exit-code HEAD
-
-    # WIP
-    # - name: Push to Transifex
-    #   if: ${{ inputs.push }}
-    #   uses: transifex/cli-action@v2
-    #   with:
-    #     token: ${{ secrets.TRANSIFEX_API }}
-    #     args: 'push -s'
-
-    ## Pulling
-
-    - name: Assert that pull is initiated from the current release branch.
-      if: ${{ inputs.pull && (needs.version.outputs.current_released != 'true' || !!needs.version.outputs.next_patch) }}
-      run: |
-        echo "ERROR: not on the current release branch. Please investigate the calling workflow how that happened."
-        exit 1
-
-    - name: Pull Transifex
-      if: ${{ inputs.pull }}
-      uses: transifex/cli-action@v2
-      with:
-        token: ${{ secrets.TRANSIFEX_API }}
-        args: 'pull -a -f --mode reviewed'
-
-    - name: Bail if nothing changed.
-      if: ${{ inputs.pull }}
-      id: pull-changed
-      run: |
-        CHANGED=$(git diff-index --exit-code HEAD &>/dev/null && echo "false" || echo "true")
-        echo "changed=${CHANGED}" >> $GITHUB_OUTPUT
-
-        # DEBUG
-        git diff --stat
-        echo '---------'
-        git diff
-        echo '---------'
-        (cd locale; git diff --stat)
-        echo '---------'
-        (cd locale; git diff)
-
-    # WIP
-    # - name: commit the translateble strings
-    #   if: ${{ inputs.pull && steps.pull-changed.outputs.changed === "true" }}
-    #   run: |
-    #     git add .
-    #     git commit -m "chore: update transifex translations"
-    #     git push
-
