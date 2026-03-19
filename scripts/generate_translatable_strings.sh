@@ -18,3 +18,5 @@ echo 'Extracting translatable strings from Django code.'
 
 echo 'Extracting translatable strings from client code.'
 (cd ${KOBOFORM_SRC_DIR} && python manage.py makemessages --locale en --domain djangojs)
+
+echo 'Commit translatable strings but DO NOT push to transifex - that is handled by CI at the right times.'
