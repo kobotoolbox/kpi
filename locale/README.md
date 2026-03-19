@@ -3,11 +3,12 @@
 
 ## How to use
 
-Run `./scripts/generate_locale.sh` after modifying translateable string in the KPI: either adding, editing, or just moving lines that contain translatable strings. The rest is automated.
+Run `./scripts/generate_locale.sh` after modifying translatable strings in the KPI: either adding, editing, or just moving lines that contain translatable strings.
+The rest is automated.
 
 To translate a string:
-- if your PR was based on current release branch, go to Transifex website and it will be there waiting for someone to translate it. The rest is automated.
-- if your PR was based against next release branch or main, the string will not be on Transifex, yet. Wait until your commit becomes part of a current release branch first.
+- if your PR was based on the current release branch, go to the Transifex website and it will be there waiting for someone to translate it. The rest is automated.
+- if your PR was based on the next release branch or main, the string will not be on Transifex yet. Wait until your commit becomes part of a current release branch first.
 
 
 ## Automation
@@ -44,13 +45,13 @@ tx --token $TX_TOKEN pull -a -f --mode reviewed
 
 The reasoning here heavily depends on the KPI release process property that it's forward-only, meaning, there are no concurrent active release branches at the same time. For example, after .47 image is built, no .43x image will ever be built, only .47x ones.
 
-Someday the forward-only assumption will break and it will required to release an exceptional version on older release branch (e.g. urgent security patch when not all private servers have updated to the newest minor version). In such case it will be impossible to update translations, and that's a fine trade-off for the overall simplicity because such security patches rarely will need translations in the first place.
+Someday the forward-only assumption will break and it will be required to release an exceptional version on older release branch (e.g. urgent security patch when not all private servers have updated to the newest minor version). In such case it will be impossible to update translations, and that's a fine trade-off for the overall simplicity because such security patches rarely will need translations in the first place.
 
 Translation lifecycle is integrated in the release process. Notably:
 - if Transifex API is down or errors, it will block a release.
-- release process GHAs has serialization enabled (newer run aborts previous run), and that should be sufficient to handle any race-conditions for pushing to Transifex API.
+- release process GHAs have serialization enabled (newer run aborts previous run), and that should be sufficient to handle any race-conditions for pushing to Transifex API.
 
-> WIP notice: currently, at the moment these claims are false, but will be solved by future PRs:
+> WIP notice: at the time of writing, these claims are false, but will be solved by future PRs:
 > - release tagging is still a manual process and not automated in `release-3-tag.yml` file. Therefore, pull & commit manually before tagging.
 
 
@@ -82,18 +83,18 @@ until then it's considered as 'next' release branch and the previous branch is s
 
 ### Timing - when to commit translatable strings and translations?
 
-Let's commit translatable strings as part of the PR that caused it, so that translatable strings are always in sync with codebase and the PR review process can take into account the effects of the changes. The only inconvenience is that author has to remember to re-generate them, albeit that's a simple script and CI will assert that. Note that commit and pushing is disconnected, see above.
+Let's commit translatable strings as part of the PR that caused it, so that translatable strings are always in sync with codebase and the PR review process can take into account the effects of the changes. The only inconvenience is that the author has to remember to re-generate them, albeit that's a simple script and CI will assert that. Note that commit and pushing is disconnected, see above.
 
 Let's commit translations at the point of pulling them (see above), so that git history is in-sync with what the images are built on.
 
 
 ### Why add frontend strings like this?
 
-There are 3 reasonable options actually, used or considered over kpi lifetime:
+There are actually 3 reasonable options, used or considered over kpi lifetime:
 - extract with a django python utility (the one used here)
-- extract with a npm javascript dependency
+- extract with an npm javascript dependency
 - json2po-ify the already extracted string by webpack plugin
 
-The first two are kinda the same, but as the first one is already used to extract backend strings just reuse it for frontend as well. Less dependencies to install and bother about.
+The first two are kinda the same, but as the first one is already used to extract backend strings, just reuse it for frontend as well. Less dependencies to install and bother about.
 
 The third is a better question, but it essentially boils down to the argument above: that's just the simplest way to get it done. It's also the fastest on CI, as we don't need to install js deps nor build webpack to get those strings.
