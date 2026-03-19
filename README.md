@@ -38,7 +38,7 @@ Python dependencies are managed with `pip-compile` and `pip-sync` from the [`pip
 
 ## Translations
 
-For most cases no action required, see [Transifex's README](.tx/README.md) for details.
+For most cases no action required, see [Transifex's README](./locale/README.md) for details.
 
 ## Searching
 
