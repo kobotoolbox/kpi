@@ -282,16 +282,24 @@ def _filter_nodes_by_xpaths(
     slash, e.g. `['/group/question/', '/simple_q/']`.
     """
     keep_prefixes = tuple(xpath_matches)
+
+    # Pre-compute the set of all ancestor paths so the per-node ancestor check
+    # is O(1) (set lookup) instead of O(N_fields) (linear scan).
+    # For a kept path '/group/question/', the ancestors are '/group/'.
+    ancestor_paths: set = set()
+    for kp in xpath_matches:
+        path = '/'
+        for part in kp.strip('/').split('/')[:-1]:
+            path = f'{path}{part}/'
+            ancestor_paths.add(path)
+
     # Seed the stack with root's direct children. Root itself is never removed.
     stack = [(child, root, '/') for child in root]
     while stack:
         node, parent, parent_path = stack.pop()
         node_path = f'{parent_path}{node.tag}/'
         is_kept = node_path.startswith(keep_prefixes)
-        # A node is an ancestor if any kept path starts with its own path.
-        is_ancestor = not is_kept and any(
-            kp.startswith(node_path) for kp in keep_prefixes
-        )
+        is_ancestor = not is_kept and node_path in ancestor_paths
         if not is_kept and not is_ancestor:
             parent.remove(node)
         else:
