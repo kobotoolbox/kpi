@@ -1,6 +1,11 @@
 name: 'CD: stabilize'
 
 
+concurrency:
+  group: stabilize-${{ github.ref }}
+  cancel-in-progress: true
+
+
 on:
   push:
     branches: [ 'release/**' ]
