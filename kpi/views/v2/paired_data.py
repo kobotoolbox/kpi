@@ -1,10 +1,11 @@
 # coding: utf-8
+import re
+
 from django.conf import settings
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from django.utils import timezone
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework.decorators import action
-from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from kobo.apps.audit_log.base_views import AuditLoggedModelViewSet
@@ -235,23 +236,27 @@ class PairedDataViewset(
                 # and parsing a potentially large number of submissions.
                 refresh_async = has_expired
 
-        # ToDo evaluate adding headers for caching and a HTTP 304 status code
         if not has_expired:
-            return Response(asset_file.content.file.read().decode())
+            return self._xml_response(
+                request,
+                asset_file.content.file.read().decode(),
+                asset_file.md5_hash,
+            )
 
         if refresh_async:
             from kpi.tasks import regenerate_paired_data
 
+            content = asset_file.content.file.read().decode()
             regenerate_paired_data.delay(self.asset.uid, uid_paired_data)
             # Return the current (possibly stale) content immediately.
             # The manifest will reflect the new hash once the task completes.
-            return Response(asset_file.content.file.read().decode())
+            return self._xml_response(request, content, asset_file.md5_hash)
 
         # If the content of `asset_file' has expired, let's regenerate the XML
         xml_ = build_and_save_paired_data_xml(
             self.asset, asset_file, paired_data, source_asset, old_hash=old_hash
         )
-        return Response(xml_)
+        return self._xml_response(request, xml_, asset_file.md5_hash)
 
     def get_object_override(self):
         obj = self.get_queryset(as_list=False).get(
@@ -285,6 +290,44 @@ class PairedDataViewset(
             source__names[record['uid']] = record['name']
         context_['source__names'] = source__names
         return context_
+
+    @staticmethod
+    def _xml_response(
+        request, xml_content: str, md5_hash: str = None
+    ) -> HttpResponse:
+        """
+        Build an HttpResponse for an XML body with optional ETag validation.
+
+        Gzip compression is handled by nginx upstream, so it is not applied
+        here.
+
+        - If `md5_hash` is provided and the client's `If-None-Match` header
+          matches, returns HTTP 304 Not Modified.
+        - `ETag` and `Cache-Control` headers are added when `md5_hash`
+          is available.
+        """
+        etag_value = md5_hash.split(':')[-1] if md5_hash else None
+
+        if etag_value:
+            # Strip weak-validator prefix (W/) added by nginx when gzip is
+            # applied, then strip surrounding quotes, before comparing.
+            if_none_match = re.sub(
+                r'^W/', '', request.META.get('HTTP_IF_NONE_MATCH', '')
+            ).strip('"')
+            if if_none_match and if_none_match == etag_value:
+                return HttpResponse(status=304)
+
+        xml_bytes = re.sub(r'>\s+<', '><', xml_content).strip().encode('utf-8')
+        response = HttpResponse(xml_bytes, content_type='text/xml; charset=utf-8')
+        response['Content-Length'] = len(xml_bytes)
+
+        if etag_value:
+            response['ETag'] = f'"{etag_value}"'
+            response['Cache-Control'] = (
+                f'private, max-age={settings.PAIRED_DATA_EXPIRATION}'
+            )
+
+        return response
 
 
 class OpenRosaDynamicDataAttachmentViewset(PairedDataViewset):

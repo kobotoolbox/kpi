@@ -569,6 +569,44 @@ class PairedDataAsyncRegenTests(BasePairedDataTestCase):
         finally:
             cache.delete(lock_key)
 
+    def test_response_returns_304_on_matching_etag(self):
+        """
+        When the client sends an `If-None-Match` header matching the current
+        ETag, the server must return HTTP 304 Not Modified without a body.
+        Nginx converts strong ETags to weak ones (W/"...") when gzip is
+        applied; both forms must be accepted.
+        """
+        first = self.client.get(self.external_xml_url)
+        assert first.status_code == status.HTTP_200_OK
+        etag = first['ETag']
+        assert etag
+
+        # Strong ETag (as returned by the view)
+        second = self.client.get(
+            self.external_xml_url, HTTP_IF_NONE_MATCH=etag
+        )
+        assert second.status_code == status.HTTP_304_NOT_MODIFIED
+        assert not second.content
+
+        # Weak ETag (as sent by the browser after nginx gzip conversion)
+        weak_etag = f'W/{etag}'
+        third = self.client.get(
+            self.external_xml_url, HTTP_IF_NONE_MATCH=weak_etag
+        )
+        assert third.status_code == status.HTTP_304_NOT_MODIFIED
+        assert not third.content
+
+    def test_response_xml_has_no_extra_whitespace(self):
+        """
+        The XML response must not contain newlines or indentation whitespace
+        between tags (minified for bandwidth savings; gzip is handled by nginx).
+        """
+        response = self.client.get(self.external_xml_url)
+        assert response.status_code == status.HTTP_200_OK
+        content = response.content.decode('utf-8')
+        assert '>\n<' not in content
+        assert '> <' not in content
+
     def _warm_up_asset_file(self):
         """
         Make the first `external.xml` call frozen in the past so that a
