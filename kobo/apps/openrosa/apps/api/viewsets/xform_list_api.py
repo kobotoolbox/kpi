@@ -406,6 +406,7 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
                 'data_type',
                 'data_value',
                 'data_file',
+                'data_filename',
                 'file_hash',
                 'from_kpi',
                 'date_modified',
