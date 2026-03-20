@@ -35,7 +35,7 @@ from kpi.schema_extensions.v2.organizations.serializers import (
     OrganizationPatchPayload,
     OrganizationServiceUsageResponse,
 )
-from kpi.serializers.v2.asset import AssetListCountSerializer, AssetSerializer
+from kpi.serializers.v2.asset import AssetSerializer
 from kpi.serializers.v2.service_usage import (
     CustomAssetUsageSerializer,
     ServiceUsageSerializer,

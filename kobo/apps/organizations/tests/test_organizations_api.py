@@ -517,8 +517,10 @@ class OrganizationAssetListApiTestCase(BaseOrganizationAssetApiTestCase):
             name='external',
             content={},
         )
-        url = reverse(self._get_endpoint('organizations-counts'),
-            kwargs={'uid_organization': self.organization.id})
+        url = reverse(
+            self._get_endpoint('organizations-counts'),
+            kwargs={'uid_organization': self.organization.id},
+        )
         self.client.force_login(user)
         res = self.client.get(url)
         assert res.status_code == expected_response_code

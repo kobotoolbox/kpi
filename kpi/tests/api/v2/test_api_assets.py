@@ -760,28 +760,50 @@ class AssetListCountsApiTests(BaseAssetTestCase):
         assert counts['archived_count'] == 1
 
     def test_project_view_asset_counts(self):
-        user = User.objects.create_user(username='user', password='password')
-        another_user = User.objects.create_user(username='another_user')
-        regional_assignments = [
-            {
-                'pk': 2,
-                'name': 'Test view 1',
-                'countries': 'ZAF, NAM, ZWE, MOZ, BWA, LSO',
-                'permissions': [
-                    PERM_VIEW_ASSET,
-                    PERM_VIEW_SUBMISSIONS,
-                    PERM_CHANGE_METADATA_ASSET,
-                ],
-                'users': ['someuser', 'anotheruser'],
-            }
-        ]
-        for region in regional_assignments:
-            usernames = region.pop('users')
-            users = [self._get_user_obj(u) for u in usernames]
-            r = ProjectView.objects.create(**region)
-            r.users.set(users)
-            r.save()
-        pass
+        user = User.objects.create_user(username='user')
+        owner = User.objects.create_user(username='owner')
+        project_view = ProjectView.objects.create(
+            name='Test', countries='MOZ', permissions=[PERM_VIEW_ASSET]
+        )
+        project_view.users.add(user)
+        project_view.save()
+        Asset.objects.create(
+            owner=owner,
+            name='draft',
+            asset_type=ASSET_TYPE_SURVEY,
+            settings={'country': [{'value': 'MOZ', 'label': 'Mozambique'}]},
+        )
+        published = Asset.objects.create(
+            owner=owner,
+            name='published',
+            asset_type=ASSET_TYPE_SURVEY,
+            settings={'country': [{'value': 'MOZ', 'label': 'Mozambique'}]},
+        )
+        published.deploy(backend='mock', active=True)
+        archived = Asset.objects.create(
+            owner=owner,
+            name='archived',
+            asset_type=ASSET_TYPE_SURVEY,
+            settings={'country': [{'value': 'MOZ', 'label': 'Mozambique'}]},
+        )
+        archived.deploy(backend='mock', active=False)
+        # different country, shouldn't be counted
+        Asset.objects.create(
+            owner=owner,
+            name='draft',
+            asset_type=ASSET_TYPE_SURVEY,
+            settings={'country': [{'value': 'ZAF', 'label': 'South Africa'}]},
+        )
+        self.client.force_login(user)
+        url = reverse(
+            self._get_endpoint('projectview-counts'),
+            kwargs={'uid_project_view': project_view.uid},
+        )
+        result = self.client.get(url)
+        counts = result.data
+        assert counts['deployed_count'] == 1
+        assert counts['draft_count'] == 1
+        assert counts['archived_count'] == 1
 
 
 class AssetProjectViewListApiTests(BaseAssetTestCase):
