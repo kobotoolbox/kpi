@@ -266,9 +266,7 @@ def xml_tostring(el: ET.Element) -> str:
     return DET.tostring(el, encoding='unicode')
 
 
-def _filter_nodes_by_xpaths(
-    root: etree._Element, xpath_matches: list
-) -> None:
+def _filter_nodes_by_xpaths(root: etree._Element, xpath_matches: list) -> None:
     """
     Remove from `root` all descendant nodes that are neither a kept node nor
     an ancestor of a kept node, according to `xpath_matches`.

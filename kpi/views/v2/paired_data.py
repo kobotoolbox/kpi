@@ -292,9 +292,7 @@ class PairedDataViewset(
         return context_
 
     @staticmethod
-    def _xml_response(
-        request, xml_content: str, md5_hash: str = None
-    ) -> HttpResponse:
+    def _xml_response(request, xml_content: str, md5_hash: str = None) -> HttpResponse:
         """
         Build an HttpResponse for an XML body with optional ETag validation.
 

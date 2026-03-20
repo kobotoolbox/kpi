@@ -55,9 +55,7 @@ def build_and_save_paired_data_xml(
 
     root_tag_name = SubmissionXMLRenderer.root_tag_name
     xml_ = add_xml_declaration(
-        f'<{root_tag_name}>'
-        f'{"".join(parsed_submissions)}'
-        f'</{root_tag_name}>'
+        f'<{root_tag_name}>' f'{"".join(parsed_submissions)}' f'</{root_tag_name}>'
     )
 
     if not parsed_submissions:

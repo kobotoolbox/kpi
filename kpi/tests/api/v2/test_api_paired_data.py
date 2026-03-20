@@ -1,4 +1,3 @@
-import unittest
 from datetime import timedelta
 from unittest.mock import patch
 
@@ -429,7 +428,9 @@ class PairedDataExternalApiTests(BasePairedDataTestCase):
         assert 'city_name' in content
         assert 'favourite_restaurant' not in content
 
-    def test_get_external_returns_empty_when_source_and_destination_fields_dont_overlap(self):
+    def test_get_external_returns_empty_when_source_and_destination_fields_dont_overlap(
+        self,
+    ):
         self.deploy_source()
         self._submit_to_source()
         # Destination wants `city_name`; source shares only
@@ -464,12 +465,14 @@ class PairedDataExternalApiTests(BasePairedDataTestCase):
         Add a test submission to the deployed source asset so that
         `external.xml` has actual data to filter.
         """
-        self.source_asset.deployment.mock_submissions([
-            {
-                'group_restaurant/favourite_restaurant': 'Le Jules Verne',
-                'city_name': 'Paris',
-            }
-        ])
+        self.source_asset.deployment.mock_submissions(
+            [
+                {
+                    'group_restaurant/favourite_restaurant': 'Le Jules Verne',
+                    'city_name': 'Paris',
+                }
+            ]
+        )
 
 
 class PairedDataAsyncRegenTests(BasePairedDataTestCase):
@@ -487,12 +490,14 @@ class PairedDataAsyncRegenTests(BasePairedDataTestCase):
         self.source_asset.refresh_from_db()
         self.source_asset.deploy(backend='mock', active=True)
         self.source_asset.save()
-        self.source_asset.deployment.mock_submissions([
-            {
-                'group_restaurant/favourite_restaurant': 'Le Jules Verne',
-                'city_name': 'Paris',
-            }
-        ])
+        self.source_asset.deployment.mock_submissions(
+            [
+                {
+                    'group_restaurant/favourite_restaurant': 'Le Jules Verne',
+                    'city_name': 'Paris',
+                }
+            ]
+        )
         paired_data_response = self.paired_data()
         self.paired_data_detail_url = paired_data_response.data['url']
         self.external_xml_url = f'{self.paired_data_detail_url}external.xml'
@@ -581,17 +586,13 @@ class PairedDataAsyncRegenTests(BasePairedDataTestCase):
         assert etag
 
         # Strong ETag (as returned by the view)
-        second = self.client.get(
-            self.external_xml_url, HTTP_IF_NONE_MATCH=etag
-        )
+        second = self.client.get(self.external_xml_url, HTTP_IF_NONE_MATCH=etag)
         assert second.status_code == status.HTTP_304_NOT_MODIFIED
         assert not second.content
 
         # Weak ETag (as sent by the browser after nginx gzip conversion)
         weak_etag = f'W/{etag}'
-        third = self.client.get(
-            self.external_xml_url, HTTP_IF_NONE_MATCH=weak_etag
-        )
+        third = self.client.get(self.external_xml_url, HTTP_IF_NONE_MATCH=weak_etag)
         assert third.status_code == status.HTTP_304_NOT_MODIFIED
         assert not third.content
 
@@ -618,6 +619,4 @@ class PairedDataAsyncRegenTests(BasePairedDataTestCase):
         with freeze_time(frozen_past):
             response = self.client.get(self.external_xml_url)
         assert response.status_code == status.HTTP_200_OK
-        return self.destination_asset.asset_files.get(
-            file_type=AssetFile.PAIRED_DATA
-        )
+        return self.destination_asset.asset_files.get(file_type=AssetFile.PAIRED_DATA)

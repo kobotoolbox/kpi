@@ -8,7 +8,7 @@ from django.db.models import F, Q
 from django.db.models.expressions import RawSQL
 from django.http import Http404
 from django.shortcuts import get_object_or_404
-from django.urls import resolve, Resolver404
+from django.urls import Resolver404, resolve
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema
 from rest_framework import permissions, status
@@ -533,9 +533,7 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
             # upon successful completion.
             internal_url = obj.data_value.replace(settings.KOBOFORM_URL, '')
             try:
-                uid_paired_data = resolve(internal_url).kwargs.get(
-                    'uid_paired_data'
-                )
+                uid_paired_data = resolve(internal_url).kwargs.get('uid_paired_data')
             except Resolver404:
                 uid_paired_data = None
 
