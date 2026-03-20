@@ -229,7 +229,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     - partial_update    → PATCH     /api/v2/organizations/{uid_organization}/
     - asset_usage       → GET       /api/v2/organizations/{uid_organization}/asset_usage/
     - assets            → GET       /api/v2/organizations/{uid_organization}/assets/
-    - asset-counts      → GET       /api/v2/organizations/{uid_organization}/asset-counts/
+    - asset-counts      → GET       /api/v2/organizations/{uid_organization}/asset-counts/  # noqa
     - service_usage     → PATCH     /api/v2/organizations/{uid_organization}/service_usage/
 
     Documentation:
