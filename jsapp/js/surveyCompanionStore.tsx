@@ -15,7 +15,7 @@ const surveyCompanionStore = Reflux.createStore({
     // `uid` identifies the library item being added to `survey`
     stores.allAssets.whenLoaded(options.uid, (asset: AssetResponse) => {
       // `asset` is the library item being added to `survey`
-      // be careful not to mutate it, becuase it's kept in a store and not
+      // be careful not to mutate it, because it's kept in a store and not
       // re-fetched from the server each time it's loaded
       const assetCopy = clonedeep(asset)
       // `loadDict()` will mutate its first argument; see `inputParser.parse()`
