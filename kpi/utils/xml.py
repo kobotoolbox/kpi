@@ -3,17 +3,7 @@ from __future__ import annotations
 import re
 from typing import Optional, Union
 from xml.dom import Node
-
-from defusedxml import minidom
-from defusedxml.lxml import fromstring
-from django.db.models import F, Q
-from django.db.models.query import QuerySet
-from django_request_cache import cache_for_request
-from lxml import etree
-from shortuuid import ShortUUID
-
-from kobo.apps.form_disclaimer.models import FormDisclaimer
-from kpi.exceptions import DTDForbiddenException, EntitiesForbiddenException
+from xml.etree import ElementTree as ET
 
 # Goals for the future:
 #
@@ -31,7 +21,16 @@ from kpi.exceptions import DTDForbiddenException, EntitiesForbiddenException
 # "documentation" (the README), except for correcting a typo in the second
 # import:
 from defusedxml import ElementTree as DET
-from xml.etree import ElementTree as ET
+from defusedxml import minidom
+from defusedxml.lxml import fromstring
+from django.db.models import F, Q
+from django.db.models.query import QuerySet
+from django_request_cache import cache_for_request
+from lxml import etree
+from shortuuid import ShortUUID
+
+from kobo.apps.form_disclaimer.models import FormDisclaimer
+from kpi.exceptions import DTDForbiddenException, EntitiesForbiddenException
 
 
 def add_xml_declaration(
@@ -503,15 +502,20 @@ class XMLFormWithDisclaimer:
         # Order by '-asset_id' to ensure that default is overridden later if
         # an override exists for the same language. See `_get_translations()`
 
-        disclaimers = (
-            FormDisclaimer.objects.annotate(language_code=F('language__code'))
-            .values('language_code', 'message', 'default', 'hidden')
-            .filter(Q(asset__isnull=True) | Q(asset=asset))
-            .order_by('-hidden', '-asset_id', 'language_code')
-        )
+        # Use pre-fetched disclaimers when available (set by XFormListApi for
+        # the formList endpoint) to avoid one query per form.
+        if hasattr(asset, '_cached_disclaimers'):
+            disclaimers = asset._cached_disclaimers
+        else:
+            disclaimers = (
+                FormDisclaimer.objects.annotate(language_code=F('language__code'))
+                .values('language_code', 'message', 'default', 'hidden')
+                .filter(Q(asset__isnull=True) | Q(asset=asset))
+                .order_by('-hidden', '-asset_id', 'language_code')
+            )
 
         if not disclaimers:
-            return
+            return None
 
         return disclaimers
 

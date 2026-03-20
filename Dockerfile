@@ -239,12 +239,10 @@ COPY --from=webpack-build-prod --parents \
 ###########################
 RUN python manage.py collectstatic --noinput --ignore rest_framework
 
-######################################
-# Retrieve and compile translations. #
-######################################
-RUN git submodule init && \
-    git submodule update --remote && \
-    python manage.py compilemessages
+#########################
+# Compile translations. #
+#########################
+RUN python manage.py compilemessages
 
 ##########################################
 # Persist the log and email directories. #
