@@ -19,6 +19,8 @@ import type {
   UseQueryResult,
 } from '@tanstack/react-query'
 
+import type { AssetListCount } from '../models/assetListCount'
+
 import type { AssetUsageListParams } from '../models/assetUsageListParams'
 
 import type { EmailAddress } from '../models/emailAddress'
@@ -42,6 +44,8 @@ import type { MeListResponse } from '../models/meListResponse'
 import type { MeSocialAccountsListParams } from '../models/meSocialAccountsListParams'
 
 import type { MemberListResponse } from '../models/memberListResponse'
+
+import type { Organization } from '../models/organization'
 
 import type { OrganizationResponse } from '../models/organizationResponse'
 
@@ -694,6 +698,109 @@ export function useOrganizationsAssetsRetrieve<
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getOrganizationsAssetsRetrieveQueryOptions(uidOrganization, options)
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
+/**
+ * Viewset for managing organizations
+
+Organizations are groups of users with assigned permissions and configurations
+
+- Organization admins can manage the organization and its membership
+- Connect to authentication mechanisms and enforce policy
+- Create teams and projects under the organization
+
+
+Available actions:
+- list              → GET       /api/v2/organizations/
+- retrieve          → GET       /api/v2/organizations/{uid_organization}/
+- partial_update    → PATCH     /api/v2/organizations/{uid_organization}/
+- asset_usage       → GET       /api/v2/organizations/{uid_organization}/asset_usage/
+- assets            → GET       /api/v2/organizations/{uid_organization}/assets/
+- service_usage     → PATCH     /api/v2/organizations/{uid_organization}/service_usage/
+
+Documentation:
+- docs/api/v2/organizations/org_list.md
+- docs/api/v2/organizations/org_retrieve.md
+- docs/api/v2/organizations/org_update.md
+- docs/api/v2/organizations/org_asset_usage.md
+- docs/api/v2/organizations/org_assets.md
+- docs/api/v2/organizations/org_service_usage.md
+ */
+export type organizationsCountsRetrieveResponse200 = {
+  data: Organization
+  status: 200
+}
+
+export type organizationsCountsRetrieveResponseComposite = organizationsCountsRetrieveResponse200
+
+export type organizationsCountsRetrieveResponse = organizationsCountsRetrieveResponseComposite & {
+  headers: Headers
+}
+
+export const getOrganizationsCountsRetrieveUrl = (uidOrganization: string) => {
+  return `/api/v2/organizations/${uidOrganization}/counts/`
+}
+
+export const organizationsCountsRetrieve = async (
+  uidOrganization: string,
+  options?: RequestInit,
+): Promise<organizationsCountsRetrieveResponse> => {
+  return fetchWithAuth<organizationsCountsRetrieveResponse>(getOrganizationsCountsRetrieveUrl(uidOrganization), {
+    ...options,
+    method: 'GET',
+  })
+}
+
+export const getOrganizationsCountsRetrieveQueryKey = (uidOrganization: string) => {
+  return ['api', 'v2', 'organizations', uidOrganization, 'counts'] as const
+}
+
+export const getOrganizationsCountsRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof organizationsCountsRetrieve>>,
+  TError = unknown,
+>(
+  uidOrganization: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof organizationsCountsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getOrganizationsCountsRetrieveQueryKey(uidOrganization)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof organizationsCountsRetrieve>>> = ({ signal }) =>
+    organizationsCountsRetrieve(uidOrganization, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: !!uidOrganization, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof organizationsCountsRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type OrganizationsCountsRetrieveQueryResult = NonNullable<
+  Awaited<ReturnType<typeof organizationsCountsRetrieve>>
+>
+export type OrganizationsCountsRetrieveQueryError = unknown
+
+export function useOrganizationsCountsRetrieve<
+  TData = Awaited<ReturnType<typeof organizationsCountsRetrieve>>,
+  TError = unknown,
+>(
+  uidOrganization: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof organizationsCountsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getOrganizationsCountsRetrieveQueryOptions(uidOrganization, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
@@ -2178,6 +2285,92 @@ export function useProjectViewsAssetsRetrieve<
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getProjectViewsAssetsRetrieveQueryOptions(uidProjectView, params, options)
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
+/**
+ * ## Return counts of deployed, archived, and draft assets in the project view
+
+ */
+export type projectViewsCountsRetrieveResponse200 = {
+  data: AssetListCount
+  status: 200
+}
+
+export type projectViewsCountsRetrieveResponse403 = {
+  data: ErrorDetail
+  status: 403
+}
+
+export type projectViewsCountsRetrieveResponseComposite =
+  | projectViewsCountsRetrieveResponse200
+  | projectViewsCountsRetrieveResponse403
+
+export type projectViewsCountsRetrieveResponse = projectViewsCountsRetrieveResponseComposite & {
+  headers: Headers
+}
+
+export const getProjectViewsCountsRetrieveUrl = (uidProjectView: string) => {
+  return `/api/v2/project-views/${uidProjectView}/counts/`
+}
+
+export const projectViewsCountsRetrieve = async (
+  uidProjectView: string,
+  options?: RequestInit,
+): Promise<projectViewsCountsRetrieveResponse> => {
+  return fetchWithAuth<projectViewsCountsRetrieveResponse>(getProjectViewsCountsRetrieveUrl(uidProjectView), {
+    ...options,
+    method: 'GET',
+  })
+}
+
+export const getProjectViewsCountsRetrieveQueryKey = (uidProjectView: string) => {
+  return ['api', 'v2', 'project-views', uidProjectView, 'counts'] as const
+}
+
+export const getProjectViewsCountsRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof projectViewsCountsRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidProjectView: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof projectViewsCountsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getProjectViewsCountsRetrieveQueryKey(uidProjectView)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof projectViewsCountsRetrieve>>> = ({ signal }) =>
+    projectViewsCountsRetrieve(uidProjectView, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: !!uidProjectView, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof projectViewsCountsRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type ProjectViewsCountsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof projectViewsCountsRetrieve>>>
+export type ProjectViewsCountsRetrieveQueryError = ErrorDetail
+
+export function useProjectViewsCountsRetrieve<
+  TData = Awaited<ReturnType<typeof projectViewsCountsRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidProjectView: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof projectViewsCountsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getProjectViewsCountsRetrieveQueryOptions(uidProjectView, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 

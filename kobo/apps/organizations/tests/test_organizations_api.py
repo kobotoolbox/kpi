@@ -491,8 +491,8 @@ class OrganizationAssetListApiTestCase(BaseOrganizationAssetApiTestCase):
     )
     @unpack
     def test_count_only_organization_assets(self, username, expected_response_code):
-        # clear out assets
         user = User.objects.get(username=username)
+        # clear out assets
         Asset.objects.all().delete()
         Asset.objects.create(
             owner=self.someuser,
@@ -511,7 +511,7 @@ class OrganizationAssetListApiTestCase(BaseOrganizationAssetApiTestCase):
             content={}
         )
         archived.deploy(backend='mock', active=False)
-
+        # should not be counted
         Asset.objects.create(
             owner=self.bob,
             name='external',
