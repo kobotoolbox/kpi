@@ -17,7 +17,10 @@ from kpi.mixins.object_permission import ObjectPermissionViewSetMixin
 from kpi.models import Asset, ProjectViewExportTask
 from kpi.paginators import FastPagination
 from kpi.permissions import IsAuthenticated
-from kpi.serializers.v2.asset import AssetMetadataListSerializer
+from kpi.serializers.v2.asset import (
+    AssetListCountSerializer,
+    AssetMetadataListSerializer,
+)
 from kpi.serializers.v2.user import UserListSerializer
 from kpi.tasks import export_task_in_background
 from kpi.utils.object_permission import get_database_user
@@ -101,6 +104,14 @@ from .serializers import ProjectViewSerializer
             ),
         ],
     ),
+    counts=extend_schema(
+        description=read_md('project_views', 'counts.md'),
+        responses=open_api_200_ok_response(
+            AssetListCountSerializer,
+            require_auth=False,
+            validate_payload=False,
+        ),
+    ),
 )
 class ProjectViewViewSet(
     AssetViewSetListMixin, ObjectPermissionViewSetMixin, viewsets.ReadOnlyModelViewSet
@@ -169,6 +180,22 @@ class ProjectViewViewSet(
             queryset, serializer_class=AssetMetadataListSerializer
         )
 
+    @action(
+        detail=True,
+        methods=['GET'],
+    )
+    def counts(self, request, uid_project_view):
+        if not user_has_view_perms(request.user, uid_project_view):
+            raise Http404
+        assets = Asset.objects.filter(asset_type=ASSET_TYPE_SURVEY).only(
+            '_deployment_status'
+        )
+        queryset = self.filter_queryset(
+            self._get_regional_queryset(assets, uid_project_view, obj_type='asset')
+        )
+        serializer = AssetListCountSerializer(queryset)
+        return Response(serializer.data)
+
     @extend_schema(
         description=read_md('project_views', 'export_list.md'),
         responses=open_api_200_ok_response(ProjectViewExportResponse),
@@ -206,7 +233,6 @@ class ProjectViewViewSet(
                     res['result'] = request.build_absolute_uri(export.result.url)
 
             return Response(res)
-
 
         export_task = ProjectViewExportTask.objects.create(
             user=user,

@@ -35,7 +35,7 @@ from kpi.schema_extensions.v2.organizations.serializers import (
     OrganizationPatchPayload,
     OrganizationServiceUsageResponse,
 )
-from kpi.serializers.v2.asset import AssetSerializer
+from kpi.serializers.v2.asset import AssetListCountSerializer, AssetSerializer
 from kpi.serializers.v2.service_usage import (
     CustomAssetUsageSerializer,
     ServiceUsageSerializer,
@@ -119,12 +119,7 @@ class OrganizationAssetViewSet(AssetViewSet):
         )
 
         queryset = super().get_queryset(*args, **kwargs)
-        if self.action == 'list':
-            return queryset.filter(
-                owner=organization.owner_user_object
-            )
-        else:
-            raise NotImplementedError
+        return queryset.filter(owner=organization.owner_user_object)
 
 
 @extend_schema(tags=['User / team / organization / usage'])
@@ -251,8 +246,16 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         # `get_object()` checks permissions
         organization = self.get_object()
 
-        # Permissions check is done by `OrganizationAssetViewSet` permission classes
         asset_view = OrganizationAssetViewSet.as_view({'get': 'list'})
+        django_http_request = request._request
+        django_http_request.permissions_checked = True
+        django_http_request.organization = organization
+        return asset_view(request=django_http_request)
+
+    @action(detail=True, methods=['GET'], permission_classes=[IsOrgAdminPermission])
+    def counts(self, request: Request, *args, **kwargs):
+        organization = self.get_object()
+        asset_view = OrganizationAssetViewSet.as_view({'get': 'counts'})
         django_http_request = request._request
         django_http_request.permissions_checked = True
         django_http_request.organization = organization

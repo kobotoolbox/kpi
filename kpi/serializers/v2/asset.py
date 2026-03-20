@@ -1288,3 +1288,28 @@ class AssetMetadataListSerializer(AssetListSerializer):
     def _get_view(self) -> str:
         request = self.context['request']
         return request.parser_context['kwargs']['uid_project_view']
+
+
+class AssetListCountSerializer(serializers.Serializer):
+    class Meta:
+        fields = ('deployed_count', 'archived_count', 'draft_count')
+
+    deployed_count = serializers.SerializerMethodField()
+    archived_count = serializers.SerializerMethodField()
+    draft_count = serializers.SerializerMethodField()
+
+    @extend_schema_field(OpenApiTypes.INT)
+    def get_deployed_count(self, queryset):
+        return queryset.filter(
+            _deployment_status=AssetDeploymentStatus.DEPLOYED
+        ).count()
+
+    @extend_schema_field(OpenApiTypes.INT)
+    def get_archived_count(self, queryset):
+        return queryset.filter(
+            _deployment_status=AssetDeploymentStatus.ARCHIVED
+        ).count()
+
+    @extend_schema_field(OpenApiTypes.INT)
+    def get_draft_count(self, queryset):
+        return queryset.filter(_deployment_status=AssetDeploymentStatus.DRAFT).count()

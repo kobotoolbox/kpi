@@ -4,6 +4,7 @@ import os
 from datetime import datetime
 
 import dateutil.parser
+from ddt import data, ddt
 from django.conf import settings
 from django.urls import reverse
 from django.utils import timezone
@@ -711,6 +712,76 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
             if result['uid'] == asset_uid:
                 return result['permissions']
         return None
+
+
+@ddt
+class AssetListCountsApiTests(BaseAssetTestCase):
+
+    URL_NAMESPACE = ROUTER_URL_NAMESPACE
+
+    @data(True, False)
+    def test_asset_counts_endpoint(self, as_owner):
+        user = User.objects.create_user(username='user', password='password')
+        another_user = User.objects.create_user(username='another_user')
+        draft = Asset.objects.create(
+            owner=user,
+            name='draft',
+            asset_type=ASSET_TYPE_SURVEY,
+        )
+        published = Asset.objects.create(
+            owner=user,
+            name='published',
+            asset_type=ASSET_TYPE_SURVEY,
+        )
+        archived = Asset.objects.create(
+            owner=user,
+            name='archived',
+            asset_type=ASSET_TYPE_SURVEY,
+        )
+        # will only be counted when owner is viewing
+        Asset.objects.create(
+            owner=user,
+            name='unshared',
+            asset_type=ASSET_TYPE_SURVEY,
+        )
+        if not as_owner:
+            draft.assign_perm(another_user, PERM_VIEW_ASSET)
+            published.assign_perm(another_user, PERM_VIEW_ASSET)
+            archived.assign_perm(another_user, PERM_VIEW_ASSET)
+        user_to_login = user if as_owner else another_user
+        self.client.force_login(user_to_login)
+        published.deploy(backend='mock', active=True)
+        archived.deploy(backend='mock', active=False)
+        url = reverse(self._get_endpoint('asset-counts'))
+        response = self.client.get(url)
+        counts = response.data
+        assert counts['deployed_count'] == 1
+        assert counts['draft_count'] == (2 if as_owner else 1)
+        assert counts['archived_count'] == 1
+
+    def test_project_view_asset_counts(self):
+        user = User.objects.create_user(username='user', password='password')
+        another_user = User.objects.create_user(username='another_user')
+        regional_assignments = [
+            {
+                'pk': 2,
+                'name': 'Test view 1',
+                'countries': 'ZAF, NAM, ZWE, MOZ, BWA, LSO',
+                'permissions': [
+                    PERM_VIEW_ASSET,
+                    PERM_VIEW_SUBMISSIONS,
+                    PERM_CHANGE_METADATA_ASSET,
+                ],
+                'users': ['someuser', 'anotheruser'],
+            }
+        ]
+        for region in regional_assignments:
+            usernames = region.pop('users')
+            users = [self._get_user_obj(u) for u in usernames]
+            r = ProjectView.objects.create(**region)
+            r.users.set(users)
+            r.save()
+        pass
 
 
 class AssetProjectViewListApiTests(BaseAssetTestCase):

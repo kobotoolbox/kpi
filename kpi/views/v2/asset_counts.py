@@ -19,7 +19,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
 )
 @extend_schema_view(
     list=extend_schema(
-        description=read_md('kpi', 'assets/count.md'),
+        description=read_md('kpi', 'assets/submissions_count.md'),
         responses=open_api_200_ok_response(
             AssetCountResponse,
             raise_access_forbidden=False,
