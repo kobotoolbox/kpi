@@ -104,8 +104,8 @@ from .serializers import ProjectViewSerializer
             ),
         ],
     ),
-    counts=extend_schema(
-        description=read_md('project_views', 'counts.md'),
+    asset_counts=extend_schema(
+        description=read_md('project_views', 'asset_counts.md'),
         responses=open_api_200_ok_response(
             AssetListCountSerializer,
             require_auth=False,
@@ -121,6 +121,7 @@ class ProjectViewViewSet(
 
     Available actions:
      - assets        → GET   /api/v2/project-views/{uid_project_view}/assets/
+     - asset-counts  → GET   /api/v2/project-views/{uid_project_view}/asset-counts/
      - export_list   → GET   /api/v2/project-views/{uid_project_view}/{obj_type}/export/
      - export_post   → POST  /api/v2/project-views/{uid_project_view}/{obj_type}/export/
      - list          → GET   /api/v2/project-views/
@@ -129,6 +130,7 @@ class ProjectViewViewSet(
 
      Documentation:
      - docs/api/v2/project-views/assets.md
+     - docs/api/v2/project-views/asset_counts.md
      - docs/api/v2/project-views/export_list.md
      - docs/api/v2/project-views/export_post.md
      - docs/api/v2/project-views/list.md
@@ -180,11 +182,8 @@ class ProjectViewViewSet(
             queryset, serializer_class=AssetMetadataListSerializer
         )
 
-    @action(
-        detail=True,
-        methods=['GET'],
-    )
-    def counts(self, request, uid_project_view):
+    @action(detail=True, methods=['GET'], url_path='asset-counts')
+    def asset_counts(self, request, uid_project_view):
         if not user_has_view_perms(request.user, uid_project_view):
             raise Http404
         assets = Asset.objects.filter(asset_type=ASSET_TYPE_SURVEY).only(

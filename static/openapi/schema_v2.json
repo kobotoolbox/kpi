@@ -10969,6 +10969,64 @@
                 }
             }
         },
+        "/api/v2/organizations/{uid_organization}/asset-counts/": {
+            "get": {
+                "operationId": "api_v2_organizations_asset_counts_retrieve",
+                "description": "## Return counts of deployed, archived, and draft assets owned by the organization\n",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "uid_organization",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "A unique value identifying this organization.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "User / team / organization / usage"
+                ],
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "TokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AssetListCount"
+                                }
+                            }
+                        },
+                        "description": null
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "NotFound": {
+                                        "value": {
+                                            "detail": "Not found."
+                                        },
+                                        "summary": "Not Found"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/v2/organizations/{uid_organization}/asset_usage/": {
             "get": {
                 "operationId": "api_v2_organizations_asset_usage_list",
@@ -11101,46 +11159,6 @@
                                         },
                                         "summary": "Not Found"
                                     }
-                                }
-                            }
-                        },
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/api/v2/organizations/{uid_organization}/counts/": {
-            "get": {
-                "operationId": "api_v2_organizations_counts_retrieve",
-                "description": "Viewset for managing organizations\n\nOrganizations are groups of users with assigned permissions and configurations\n\n- Organization admins can manage the organization and its membership\n- Connect to authentication mechanisms and enforce policy\n- Create teams and projects under the organization\n\n\nAvailable actions:\n- list              → GET       /api/v2/organizations/\n- retrieve          → GET       /api/v2/organizations/{uid_organization}/\n- partial_update    → PATCH     /api/v2/organizations/{uid_organization}/\n- asset_usage       → GET       /api/v2/organizations/{uid_organization}/asset_usage/\n- assets            → GET       /api/v2/organizations/{uid_organization}/assets/\n- service_usage     → PATCH     /api/v2/organizations/{uid_organization}/service_usage/\n\nDocumentation:\n- docs/api/v2/organizations/org_list.md\n- docs/api/v2/organizations/org_retrieve.md\n- docs/api/v2/organizations/org_update.md\n- docs/api/v2/organizations/org_asset_usage.md\n- docs/api/v2/organizations/org_assets.md\n- docs/api/v2/organizations/org_service_usage.md",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "uid_organization",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "A unique value identifying this organization.",
-                        "required": true
-                    }
-                ],
-                "tags": [
-                    "User / team / organization / usage"
-                ],
-                "security": [
-                    {
-                        "BasicAuth": []
-                    },
-                    {
-                        "TokenAuth": []
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Organization"
                                 }
                             }
                         },
@@ -13225,6 +13243,81 @@
                 }
             }
         },
+        "/api/v2/project-views/{uid_project_view}/asset-counts/": {
+            "get": {
+                "operationId": "api_v2_project_views_asset_counts_retrieve",
+                "description": "## Return counts of deployed, archived, and draft assets in the project view\n",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "uid_project_view",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "User / team / organization / usage"
+                ],
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "TokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AssetListCount"
+                                }
+                            }
+                        },
+                        "description": null
+                    },
+                    "403": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "AccessDenied": {
+                                        "value": {
+                                            "detail": "You do not have permission to perform this action."
+                                        },
+                                        "summary": "Access Denied"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "NotFound": {
+                                        "value": {
+                                            "detail": "Not found."
+                                        },
+                                        "summary": "Not Found"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/v2/project-views/{uid_project_view}/assets/": {
             "get": {
                 "operationId": "api_v2_project_views_assets_retrieve",
@@ -13329,81 +13422,6 @@
                                             }
                                         },
                                         "summary": "Bad request"
-                                    }
-                                }
-                            }
-                        },
-                        "description": ""
-                    }
-                }
-            }
-        },
-        "/api/v2/project-views/{uid_project_view}/counts/": {
-            "get": {
-                "operationId": "api_v2_project_views_counts_retrieve",
-                "description": "## Return counts of deployed, archived, and draft assets in the project view\n",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "uid_project_view",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "required": true
-                    }
-                ],
-                "tags": [
-                    "User / team / organization / usage"
-                ],
-                "security": [
-                    {
-                        "BasicAuth": []
-                    },
-                    {
-                        "TokenAuth": []
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/AssetListCount"
-                                }
-                            }
-                        },
-                        "description": null
-                    },
-                    "403": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorDetail"
-                                },
-                                "examples": {
-                                    "AccessDenied": {
-                                        "value": {
-                                            "detail": "You do not have permission to perform this action."
-                                        },
-                                        "summary": "Access Denied"
-                                    }
-                                }
-                            }
-                        },
-                        "description": ""
-                    },
-                    "404": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorDetail"
-                                },
-                                "examples": {
-                                    "NotFound": {
-                                        "value": {
-                                            "detail": "Not found."
-                                        },
-                                        "summary": "Not Found"
                                     }
                                 }
                             }
@@ -20803,96 +20821,6 @@
                 },
                 "required": [
                     "html"
-                ]
-            },
-            "Organization": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "type": "string",
-                        "readOnly": true
-                    },
-                    "url": {
-                        "type": "string",
-                        "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/",
-                        "readOnly": true
-                    },
-                    "name": {
-                        "type": "string",
-                        "description": "The name of the organization",
-                        "maxLength": 200
-                    },
-                    "website": {
-                        "type": "string"
-                    },
-                    "organization_type": {
-                        "$ref": "#/components/schemas/OrganizationTypeEnum"
-                    },
-                    "created": {
-                        "type": "string",
-                        "format": "date-time",
-                        "readOnly": true
-                    },
-                    "modified": {
-                        "type": "string",
-                        "format": "date-time",
-                        "readOnly": true
-                    },
-                    "is_owner": {
-                        "type": "boolean",
-                        "readOnly": true
-                    },
-                    "is_mmo": {
-                        "type": "boolean",
-                        "readOnly": true
-                    },
-                    "request_user_role": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/MemberRoleEnum"
-                            }
-                        ],
-                        "readOnly": true
-                    },
-                    "members": {
-                        "type": "string",
-                        "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/members/",
-                        "readOnly": true
-                    },
-                    "assets": {
-                        "type": "string",
-                        "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/assets/",
-                        "readOnly": true
-                    },
-                    "service_usage": {
-                        "type": "string",
-                        "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/service_usage/",
-                        "readOnly": true
-                    },
-                    "asset_usage": {
-                        "type": "string",
-                        "format": "uri",
-                        "example": "https://kf.kobotoolbox.org/api/v2/organizations/orgzeph7Ub8tVmJ82JBbH96n/assets_usage/",
-                        "readOnly": true
-                    }
-                },
-                "required": [
-                    "asset_usage",
-                    "assets",
-                    "created",
-                    "id",
-                    "is_mmo",
-                    "is_owner",
-                    "members",
-                    "modified",
-                    "name",
-                    "request_user_role",
-                    "service_usage",
-                    "url"
                 ]
             },
             "OrganizationResponse": {

@@ -35,7 +35,7 @@ from kpi.schema_extensions.v2.organizations.serializers import (
     OrganizationPatchPayload,
     OrganizationServiceUsageResponse,
 )
-from kpi.serializers.v2.asset import AssetSerializer
+from kpi.serializers.v2.asset import AssetSerializer, AssetListCountSerializer
 from kpi.serializers.v2.service_usage import (
     CustomAssetUsageSerializer,
     ServiceUsageSerializer,
@@ -202,6 +202,15 @@ class OrganizationAssetViewSet(AssetViewSet):
             validate_payload=False,
         ),
     ),
+    asset_counts=extend_schema(
+        description=read_md('kpi', 'organizations/org_asset_counts.md'),
+        responses=open_api_200_ok_response(
+            AssetListCountSerializer,
+            require_auth=False,
+            raise_access_forbidden=False,
+            validate_payload=False,
+        ),
+    ),
 )
 class OrganizationViewSet(viewsets.ModelViewSet):
     """
@@ -220,6 +229,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     - partial_update    → PATCH     /api/v2/organizations/{uid_organization}/
     - asset_usage       → GET       /api/v2/organizations/{uid_organization}/asset_usage/
     - assets            → GET       /api/v2/organizations/{uid_organization}/assets/
+    - asset-counts      → GET       /api/v2/organizations/{uid_organization}/asset-counts/
     - service_usage     → PATCH     /api/v2/organizations/{uid_organization}/service_usage/
 
     Documentation:
@@ -227,6 +237,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     - docs/api/v2/organizations/org_retrieve.md
     - docs/api/v2/organizations/org_update.md
     - docs/api/v2/organizations/org_asset_usage.md
+    - docs/api/v2/organizations/org_asset_counts.md
     - docs/api/v2/organizations/org_assets.md
     - docs/api/v2/organizations/org_service_usage.md
     """
@@ -252,8 +263,13 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         django_http_request.organization = organization
         return asset_view(request=django_http_request)
 
-    @action(detail=True, methods=['GET'], permission_classes=[IsOrgAdminPermission])
-    def counts(self, request: Request, *args, **kwargs):
+    @action(
+        detail=True,
+        methods=['GET'],
+        permission_classes=[IsOrgAdminPermission],
+        url_path='asset-counts',
+    )
+    def asset_counts(self, request: Request, *args, **kwargs):
         organization = self.get_object()
         asset_view = OrganizationAssetViewSet.as_view({'get': 'counts'})
         django_http_request = request._request
