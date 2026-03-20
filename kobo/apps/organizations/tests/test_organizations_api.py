@@ -518,7 +518,7 @@ class OrganizationAssetListApiTestCase(BaseOrganizationAssetApiTestCase):
             content={},
         )
         url = reverse(
-            self._get_endpoint('organizations-counts'),
+            self._get_endpoint('organizations-asset-counts'),
             kwargs={'uid_organization': self.organization.id},
         )
         self.client.force_login(user)

@@ -796,7 +796,7 @@ class AssetListCountsApiTests(BaseAssetTestCase):
         )
         self.client.force_login(user)
         url = reverse(
-            self._get_endpoint('projectview-counts'),
+            self._get_endpoint('projectview-asset-counts'),
             kwargs={'uid_project_view': project_view.uid},
         )
         result = self.client.get(url)
