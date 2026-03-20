@@ -1637,6 +1637,9 @@ ACCOUNT_USERNAME_VALIDATORS = 'kobo.apps.accounts.validators.username_validators
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
 ACCOUNT_EMAIL_UNKNOWN_ACCOUNTS = False
 ACCOUNT_EMAIL_VERIFICATION = env.str('ACCOUNT_EMAIL_VERIFICATION', 'mandatory')
+ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = env.int(
+    'ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS', 1
+)
 ACCOUNT_FORMS = {
     'login': 'kobo.apps.accounts.forms.LoginForm',
     'signup': 'kobo.apps.accounts.forms.SignupForm',
