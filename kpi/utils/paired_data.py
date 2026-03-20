@@ -31,23 +31,27 @@ def build_and_save_paired_data_xml(
     )
     parsed_submissions = []
     allowed_fields = paired_data.allowed_fields
-
-    for submission in submissions:
-        # Use `rename_root_node_to='data'` to rename the root node of each
-        # submission to `data` so that form authors do not have to rewrite
-        # their `xml-external` formulas any time the asset UID changes,
-        # e.g. when cloning a form or creating a project from a template.
-        # Set `use_xpath=True` because `paired_data.fields` uses full group
-        # hierarchies, not just question names. This also routes to the faster
-        # `_filter_nodes_by_xpaths()` instead of the recursive `process_node`.
-        parsed_submissions.append(
-            strip_nodes(
-                submission,
-                allowed_fields,
-                use_xpath=True,
-                rename_root_node_to='data',
+    # `allowed_fields` semantics (see `PairedData.allowed_fields`):
+    #   None  → no restriction from either side; keep all fields.
+    #   []    → source and destination restrictions do not overlap;
+    #           no data should be exposed — skip submission parsing.
+    #   [...]  → keep only the listed fields.
+    if allowed_fields is None or allowed_fields:
+        for submission in submissions:
+            # Use `rename_root_node_to='data'` to rename the root node of
+            # each submission to `data` so that form authors do not have to
+            # rewrite their `xml-external` formulas any time the asset UID
+            # changes, e.g. when cloning a form or creating a project from
+            # a template. Set `use_xpath=True` because `paired_data.fields`
+            # uses full group hierarchies, not just question names.
+            parsed_submissions.append(
+                strip_nodes(
+                    submission,
+                    allowed_fields,
+                    use_xpath=True,
+                    rename_root_node_to='data',
+                )
             )
-        )
 
     root_tag_name = SubmissionXMLRenderer.root_tag_name
     xml_ = add_xml_declaration(
