@@ -429,14 +429,13 @@ class PairedDataExternalApiTests(BasePairedDataTestCase):
         assert 'city_name' in content
         assert 'favourite_restaurant' not in content
 
-    def test_get_external_with_specific_fields_and_changed_source_fields(self):
+    def test_get_external_returns_empty_when_source_and_destination_fields_dont_overlap(self):
         self.deploy_source()
         self._submit_to_source()
         # Destination wants `city_name`; source shares only
         # `group_restaurant/favourite_restaurant`. The intersection of both field
         # restrictions is empty, so `allowed_fields` returns `[]`, which means no
-        # filtering is applied and all fields are included in the output.
-        # NOTE: this is a known limitation — see `PairedData.allowed_fields`.
+        # data should be exposed — the XML is returned with no submissions.
         self.login_as_other_user('anotheruser', 'anotheruser')
         self.client.patch(
             self.paired_data_detail_url,
@@ -450,8 +449,8 @@ class PairedDataExternalApiTests(BasePairedDataTestCase):
         response = self.client.get(self.external_xml_url)
         assert response.status_code == status.HTTP_200_OK
         content = response.content.decode()
-        assert 'city_name' in content
-        assert 'favourite_restaurant' in content
+        assert 'city_name' not in content
+        assert 'favourite_restaurant' not in content
 
     def deploy_source(self):
         # Refresh source asset from DB, it has been altered by
