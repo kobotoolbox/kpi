@@ -15,6 +15,7 @@ from hub.utils.i18n import I18nUtils
 from kobo.apps.accounts.mfa.models import MfaAvailableToUser
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 from kobo.static_lists import COUNTRIES
+from kpi.models import ExtraProjectMetadataField
 from kpi.utils.object_permission import get_database_user
 
 
@@ -101,8 +102,6 @@ class EnvironmentView(APIView):
 
     @staticmethod
     def process_extra_project_metadata_configs(request):
-        from kpi.models import ExtraProjectMetadataField
-
         fields = ExtraProjectMetadataField.objects.all()
 
         extra_fields_data = []
