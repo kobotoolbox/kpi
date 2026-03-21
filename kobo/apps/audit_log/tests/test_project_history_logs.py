@@ -177,7 +177,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(logs.count(), 1)
         log = logs.first()
         # check the log has the expected fields and metadata
-        self.assertEqual(log.object_id, self.asset.id)
+        self.assertEqual(log.object_id, str(self.asset.id))
         self.assertEqual(log.action, expected_action)
         self._check_common_metadata(log.metadata, expected_subtype)
         return log.metadata
@@ -1014,7 +1014,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         log_query = ProjectHistoryLog.objects.filter(metadata__asset_uid=self.asset.uid)
         self.assertEqual(log_query.count(), expected_logs_count)
         form_replace_log = log_query.filter(action=AuditAction.REPLACE_FORM).first()
-        self.assertEqual(form_replace_log.object_id, self.asset.id)
+        self.assertEqual(form_replace_log.object_id, str(self.asset.id))
         self._check_common_metadata(
             form_replace_log.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE
         )
@@ -1101,7 +1101,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(log_query.count(), 1)
         log = log_query.first()
         self._check_common_metadata(log.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
-        self.assertEqual(log.object_id, self.asset.id)
+        self.assertEqual(log.object_id, str(self.asset.id))
 
     @data(
         ('archive', AuditAction.ARCHIVE),
@@ -1703,7 +1703,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(logs.count(), 1)
         log = logs.first()
         # check the log has the expected fields and metadata
-        self.assertEqual(log.object_id, self.asset.id)
+        self.assertEqual(log.object_id, str(self.asset.id))
         self.assertEqual(log.action, AuditAction.MODIFY_SUBMISSION)
         self._check_common_metadata(log.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
         submitted_by = username if username is not None else 'AnonymousUser'
@@ -1894,7 +1894,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
         self.assertEqual(logs.count(), 1)
         log = logs.first()
 
-        self.assertEqual(log.object_id, self.asset.id)
+        self.assertEqual(log.object_id, str(self.asset.id))
         self.assertEqual(log.action, AuditAction.ADD_SUBMISSION)
         self._check_common_metadata(log.metadata, PROJECT_HISTORY_LOG_PROJECT_SUBTYPE)
         username = (

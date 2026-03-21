@@ -1,0 +1,3482 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# 
+# Translators:
+# Translators:
+# Translators:
+# Benedikt Huber <benedikt.huber@drk-baden.de>, 2021
+# DRK LV Badisches Rotes Kreuz, 2021
+# Olivier Leger, 2025
+msgid ""
+msgstr ""
+"Project-Id-Version: KoboToolbox\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-11-24 16:30+0000\n"
+"PO-Revision-Date: 2016-03-14 19:56+0000\n"
+"Last-Translator: Olivier Leger, 2025\n"
+"Language-Team: German (http://app.transifex.com/kobotoolbox/kobotoolbox/language/de/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: de\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: hub/templates/admin/loginas/change_form.html:7
+msgid "Log in as user"
+msgstr "Als Benutzer*in einloggen"
+
+#: kobo/apps/accounts/forms.py:67
+msgid "Please enter a valid URL"
+msgstr "Bitte geben Sie eine gültige URL ein"
+
+#: kobo/apps/accounts/forms.py:75 kobo/apps/organizations/models.py:45
+msgid "Non-profit organization"
+msgstr "Non-Profit-Organisation"
+
+#: kobo/apps/accounts/forms.py:76 kobo/apps/organizations/models.py:46
+msgid "Government institution"
+msgstr "Regierungsbehörde"
+
+#: kobo/apps/accounts/forms.py:77 kobo/apps/organizations/models.py:47
+#| msgid "Educational Services / Higher Education"
+msgid "Educational organization"
+msgstr "Bildungseinrichtung"
+
+#: kobo/apps/accounts/forms.py:78 kobo/apps/organizations/models.py:48
+msgid "A commercial/for-profit company"
+msgstr "Kommerzielles/gewinnorientiertes Unternehmen"
+
+#: kobo/apps/accounts/forms.py:79 kobo/apps/organizations/models.py:49
+msgid "I am not associated with any organization"
+msgstr "Ich bin mit keiner Organisation verbunden"
+
+#: kobo/apps/accounts/forms.py:87
+msgid "Male"
+msgstr "Männlich"
+
+#: kobo/apps/accounts/forms.py:88
+msgid "Female"
+msgstr "Weiblich"
+
+#: kobo/apps/accounts/forms.py:89 kobo/static_lists.py:37
+msgid "Other"
+msgstr "Divers"
+
+#: kobo/apps/accounts/forms.py:123
+#: kobo/apps/accounts/templates/legal/registration_legal.html:8
+msgid "Terms of Service"
+msgstr "Geschäftsbedingungen"
+
+#: kobo/apps/accounts/forms.py:130
+#: kobo/apps/accounts/templates/legal/registration_legal.html:13
+msgid "Privacy Policy"
+msgstr "Datenschutzrichtlinien"
+
+#: kobo/apps/accounts/forms.py:132
+msgid "I agree with the ##terms_of_service## and ##privacy_policy##"
+msgstr "Ich stimme den ##terms_of_service## und ##privacy_policy## zu"
+
+#: kobo/apps/accounts/forms.py:146
+msgid "Password confirmation"
+msgstr "Passwortbestätigung"
+
+#: kobo/apps/accounts/forms.py:148
+msgid "name@organization.org"
+msgstr "name@organization.org"
+
+#: kobo/apps/accounts/forms.py:223
+#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:127
+msgid "This field is required."
+msgstr "Dies ist ein Pflichtfeld."
+
+#: kobo/apps/accounts/forms.py:269
+msgid "Email must match SSO server email"
+msgstr ""
+
+#: kobo/apps/accounts/forms.py:322
+msgid "You must type the same password each time."
+msgstr "Sie müssen jedes Mal das gleiche Passwort eingeben."
+
+#: kobo/apps/accounts/mfa/templates/mfa/authenticate.html:19
+msgid "Please enter your verification token"
+msgstr "Bitte geben Sie Ihr Verifizierungstoken ein"
+
+#: kobo/apps/accounts/mfa/templates/mfa/authenticate.html:22
+msgid ""
+"Please enter the verification token displayed by your authenticator app."
+msgstr "Bitte geben Sie das Verifizierungstoken ein, das Ihre Authentifizierungs-App anzeigt."
+
+#: kobo/apps/accounts/mfa/templates/mfa/authenticate.html:29
+msgid "Problems with the token"
+msgstr "Probleme mit dem Token"
+
+#: kobo/apps/accounts/mfa/templates/mfa/authenticate.html:38
+msgid "Continue"
+msgstr "Weiter"
+
+#: kobo/apps/accounts/mfa/templates/mfa/authenticate.html:45
+msgid "Verification issues"
+msgstr "Probleme bei der Verifizierung"
+
+#: kobo/apps/accounts/mfa/templates/mfa/authenticate.html:50
+msgid "Back"
+msgstr "Zurück"
+
+#: kobo/apps/accounts/serializers.py:41 kobo/apps/accounts/serializers.py:46
+#: kpi/serializers/current_user.py:321
+msgid "This action is not allowed."
+msgstr ""
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_message.txt:3
+msgid ""
+"To confirm the new email address associated with your KoboToolbox account, "
+"please follow the link below."
+msgstr "Um die neue E-Mail-Adresse zu bestätigen, die mit Ihrem KoboToolbox-Konto verknüpft ist, folgen Sie bitte dem unten stehenden Link."
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_message.txt:7
+msgid ""
+"This link will expire in one hour. To request a new verification link, "
+"please go to your account settings and re-enter your new email address:"
+msgstr "Die Gültigkeit dieses Links wird in einer Stunde ablaufen. Um einen neuen Verifizierungslink anzufordern, gehen Sie bitte zu Ihren Kontoeinstellungen und geben Sie erneut Ihre neue E-Mail-Adresse ein:"
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_message.txt:10
+#: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:29
+#: kobo/apps/accounts/templates/account/email/password_reset_key_message.txt:15
+#: kobo/apps/accounts/templates/account/email/unknown_account_message.txt:15
+#: kobo/apps/hook/templates/reports/failures_email_body.html:37
+#: kobo/apps/hook/templates/reports/failures_email_body.txt:29
+msgid "Best,"
+msgstr "Mit freundlichen Grüßen"
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:10
+msgid "Thanks for signing up with KoboToolbox!"
+msgstr "Danke, dass Sie sich bei KoboToolbox registriert haben!"
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:12
+msgid ""
+"Confirming your account will give you access to KoboToolbox applications. "
+"Please visit the following URL to finish activation of your new account."
+msgstr "Durch Bestätigen Ihres Kontos erhalten Sie Zugriff auf die KoboToolbox-Applikationen. Bitte besuchen Sie die folgende URL, um die Aktivierung Ihres neuen Kontos abzuschließen."
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:16
+#| msgid "Username"
+msgid "Your username is:"
+msgstr ""
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:25
+msgid ""
+"For help getting started, check out the KoboToolbox user documentation: "
+"https://support.kobotoolbox.com"
+msgstr ""
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:27
+msgid ""
+"You can also join the KoboToolbox community forum to ask questions, share "
+"solutions, and chat with thousands of users: "
+"https://community.kobotoolbox.org"
+msgstr "Sie können auch dem Forum dem KoboToolbox-Community-Forum beitreten, um Fragen zu stellen, Lösungen auszutauschen und mit Tausenden von Benutzer*innen zu chatten: https://community.kobotoolbox.org"
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_signup_subject.txt:10
+msgid "Activate your KoboToolbox Account"
+msgstr "KoboToolbox-Konto aktivieren"
+
+#: kobo/apps/accounts/templates/account/email/email_confirmation_subject.txt:3
+msgid "KoboToolbox account email address verification"
+msgstr "Verifizierung der E-Mail-Adresse des KoboToolbox-Kontos"
+
+#: kobo/apps/accounts/templates/account/email/password_reset_key_message.txt:4
+#: kobo/apps/accounts/templates/account/email/unknown_account_message.txt:5
+msgid "Hello from KoboToolbox,"
+msgstr "Hallo von KoboToolbox,"
+
+#: kobo/apps/accounts/templates/account/email/password_reset_key_message.txt:6
+msgid "We’ve received a password reset request for your user account."
+msgstr "Wir haben eine Anfrage zum Zurücksetzen des Passworts für Ihr Benutzerkonto erhalten."
+
+#: kobo/apps/accounts/templates/account/email/password_reset_key_message.txt:8
+msgid "To reset your password, click the link below."
+msgstr "Um Ihr Passwort zurückzusetzen, klicken Sie auf den unten stehenden Link."
+
+#: kobo/apps/accounts/templates/account/email/password_reset_key_message.txt:11
+#, python-format
+msgid "Your username is %(username)s."
+msgstr "Ihr Benutzername ist %(username)s."
+
+#: kobo/apps/accounts/templates/account/email/password_reset_key_message.txt:13
+#: kobo/apps/accounts/templates/account/email/unknown_account_message.txt:9
+msgid ""
+"If you did not request a password reset, you can safely ignore this email."
+msgstr "Wenn Sie keine Rücksetzung Ihres Passworts beantragt haben, können Sie diese E-Mail ignorieren."
+
+#: kobo/apps/accounts/templates/account/email/password_reset_key_subject.txt:3
+msgid "KoboToolbox Password Reset"
+msgstr "KoboToolbox-Passwort zurücksetzen"
+
+#: kobo/apps/accounts/templates/account/email/unknown_account_message.txt:6
+msgid ""
+"You are receiving this email because you or someone else has requested a "
+"password for their KoboToolbox account."
+msgstr "Sie erhalten diese E-Mail, weil Sie oder eine andere Person ein Passwort für das KoboToolbox-Konto angefordert haben."
+
+#: kobo/apps/accounts/templates/account/email/unknown_account_message.txt:7
+#, python-format
+msgid ""
+"However, we do not have any record of an account with email %(email)s in our"
+" database."
+msgstr "Wir haben jedoch keine Aufzeichnungen über ein Konto mit der E-Mail-Adresse %(email)s in unserer Datenbank."
+
+#: kobo/apps/accounts/templates/account/email/unknown_account_message.txt:11
+msgid ""
+"If it was you, please try another email address you might have used to "
+"create your account, or double check that your account was not registered on"
+" a different KoboToolbox server."
+msgstr "Wenn die Anfrage von Ihnen kommt, versuchen Sie eine andere E-Mail-Adresse, die Sie zum Erstellen Ihres Kontos verwendet haben, oder überprüfen Sie, ob Ihr Konto nicht auf einem anderen KoboToolbox-Server registriert wurde."
+
+#: kobo/apps/accounts/templates/account/email/unknown_account_subject.txt:3
+msgid "KoboToolbox Password Reset Unsuccessful"
+msgstr "Zurücksetzen des KoboToolbox-Passworts fehlgeschlagen"
+
+#: kobo/apps/accounts/templates/account/email_confirm.html:18
+msgid "Confirm E-mail Address"
+msgstr "Bestätigen Sie Ihre E-Mail-Adresse"
+
+#: kobo/apps/accounts/templates/account/email_confirm.html:22
+#, python-format
+msgid ""
+"Please confirm that <a href=\"mailto:%(email)s\">%(email)s</a> is an e-mail "
+"address for user %(user_display)s."
+msgstr "Bitte bestätigen Sie, dass <a href=\"mailto:%(email)s\">%(email)s</a> eine E-Mail-Adresse für den/die Benutzer*in %(user_display)s ist."
+
+#: kobo/apps/accounts/templates/account/email_confirm.html:29
+msgid "Confirm"
+msgstr "Bestätigen"
+
+#: kobo/apps/accounts/templates/account/email_confirm.html:33
+msgid "Activation failed"
+msgstr "Aktivierung fehlgeschlagen"
+
+#: kobo/apps/accounts/templates/account/email_confirm.html:36
+msgid ""
+"Sorry, we couldn't activate your account. The link we sent you has expired."
+msgstr "Wir konnten Ihr Konto leider nicht aktivieren, da der Link abgelaufen ist."
+
+#: kobo/apps/accounts/templates/account/email_confirm.html:42
+msgid ""
+"This e-mail confirmation link expired or is invalid. If you need to request "
+"a new link to verify your email address change, please go to your account "
+"settings page and enter your email address again."
+msgstr ""
+
+#: kobo/apps/accounts/templates/account/login.html:29
+msgid "Login"
+msgstr "Einloggen"
+
+#: kobo/apps/accounts/templates/account/login.html:36
+#: kobo/apps/accounts/templates/account/signup.html:14
+msgid "Create an account"
+msgstr "Ein Konto erstellen"
+
+#: kobo/apps/accounts/templates/account/login.html:41
+msgid "Forgot password?"
+msgstr "Passwort vergessen?"
+
+#: kobo/apps/accounts/templates/account/login.html:50
+msgid "Log in using SSO"
+msgstr "Einloggen mit SSO"
+
+#: kobo/apps/accounts/templates/account/login.html:52
+#: kobo/apps/accounts/templates/account/signup.html:63
+msgid ""
+"If you set up Single Sign On in your account settings, you will only be able"
+" to log in through this method."
+msgstr "Wenn Sie in Ihren Kontoeinstellungen die Einmalanmeldung eingerichtet haben, können Sie sich nur über diese Methode einloggen."
+
+#: kobo/apps/accounts/templates/account/password_reset.html:10
+msgid "Password Reset"
+msgstr "Passwort-Zurücksetzung"
+
+#: kobo/apps/accounts/templates/account/password_reset.html:19
+msgid "Reset Password"
+msgstr "Passwort zurücksetzen"
+
+#: kobo/apps/accounts/templates/account/password_reset_complete.html:11
+#: kobo/apps/accounts/templates/account/password_reset_from_key_done.html:11
+msgid "Password reset successfully"
+msgstr "Passwort erfolgreich zurückgesetzt"
+
+#: kobo/apps/accounts/templates/account/password_reset_complete.html:14
+#: kobo/apps/accounts/templates/account/password_reset_from_key_done.html:14
+#: kobo/apps/accounts/templates/socialaccount/login.html:34
+msgid "Log in"
+msgstr "Einloggen"
+
+#: kobo/apps/accounts/templates/account/password_reset_done.html:12
+msgid ""
+"Your request has been received. If the email address you entered corresponds"
+" to an account on this service, a message has been sent with password reset "
+"instructions. If you do not receive an email, your account might be "
+"registered under a different address, or you might have entered your address"
+" incorrectly."
+msgstr "Ihre Anfrage wurde empfangen. Falls die von Ihnen eingegebene E-Mail-Adresse einem Konto bei diesem Dienst entspricht, wurde eine Nachricht mit Anweisungen zum Zurücksetzen des Passworts gesendet. Falls Sie keine E-Mail erhalten, ist Ihr Konto möglicherweise unter einer anderen Adresse registriert oder Sie haben Ihre Adresse falsch eingegeben."
+
+#: kobo/apps/accounts/templates/account/password_reset_from_key.html:13
+msgid "Password reset failed"
+msgstr "Passwort-Zurücksetzung fehlgeschlagen"
+
+#: kobo/apps/accounts/templates/account/password_reset_from_key.html:25
+#: kobo/apps/openrosa/apps/logger/templates/bulk_submission_form.html:15
+msgid "Submit"
+msgstr "Absenden"
+
+#: kobo/apps/accounts/templates/account/signup.html:47
+msgid "Create Account"
+msgstr "Konto erstellen"
+
+#: kobo/apps/accounts/templates/account/signup.html:51
+#: kobo/apps/accounts/templates/socialaccount/login.html:39
+msgid "or"
+msgstr "oder"
+
+#: kobo/apps/accounts/templates/account/signup.html:51
+msgid "login"
+msgstr "einloggen"
+
+#: kobo/apps/accounts/templates/account/signup.html:61
+msgid "Register using SSO"
+msgstr "Registrierung unter Verwendung von SSO"
+
+#: kobo/apps/accounts/templates/account/signup.html:75
+msgid "Register with SSO"
+msgstr "Mit SSO registrieren"
+
+#: kobo/apps/accounts/templates/account/verification_sent.html:8
+msgid "Confirm your email address"
+msgstr "Bestätigen Sie Ihre E-Mail-Adresse"
+
+#: kobo/apps/accounts/templates/account/verification_sent.html:11
+msgid "Please click the activation link in the email just sent to you."
+msgstr "Bitte klicken Sie auf den Aktivierungslink, den wir Ihnen per E-Mail zugesandt haben."
+
+#: kobo/apps/accounts/templates/socialaccount/authentication_error.html:7
+#: kobo/apps/accounts/templates/socialaccount/authentication_error.html:13
+msgid "SSO Login Failure"
+msgstr "SSO-Anmeldung fehlgeschlagen"
+
+#: kobo/apps/accounts/templates/socialaccount/authentication_error.html:17
+msgid "An error occurred while attempting to login using your SSO account."
+msgstr "Beim Versuch, sich mit Ihrem SSO-Konto einzuloggen, ist ein Fehler aufgetreten."
+
+#: kobo/apps/accounts/templates/socialaccount/authentication_error.html:20
+#: kpi/templates/custom_404.html:12
+msgid "Go back"
+msgstr "Zurück"
+
+#: kobo/apps/accounts/templates/socialaccount/connections.html:5
+msgid "Connect your Account to SSO"
+msgstr "Konto mit SSO verbinden"
+
+#: kobo/apps/accounts/templates/socialaccount/connections.html:10
+msgid "Manage your SSO Account"
+msgstr "SSO-Konto verwalten"
+
+#: kobo/apps/accounts/templates/socialaccount/connections.html:15
+msgid ""
+"You can sign in to your KoboToolbox account using any of the following SSO "
+"providers:"
+msgstr "Sie können sich bei Ihrem KoboToolbox-Konto mit einem der folgenden SSO-Anbieter anmelden:"
+
+#: kobo/apps/accounts/templates/socialaccount/connections.html:39
+msgid "Remove"
+msgstr "Entfernen"
+
+#: kobo/apps/accounts/templates/socialaccount/connections.html:45
+msgid "You currently have no third-party accounts connected to this account."
+msgstr "Sie haben derzeit keine Konten von Drittanbietern, die mit diesem Konto verbunden sind."
+
+#: kobo/apps/accounts/templates/socialaccount/connections.html:51
+msgid "Add an SSO Account"
+msgstr "SSO-Konto hinzufügen"
+
+#: kobo/apps/accounts/templates/socialaccount/login.html:14
+msgid "Set up Single Sign On"
+msgstr "Einmalanmeldung (SSO) einrichten"
+
+#: kobo/apps/accounts/templates/socialaccount/login.html:16
+#, python-format
+msgid ""
+"Click the button below to connect your KoboToolbox account with your "
+"%(appname)s account."
+msgstr "Klicken Sie auf den Button unten, um Ihr KoboToolbox-Konto mit Ihrem %(appname)s-Konto zu verbinden."
+
+#: kobo/apps/accounts/templates/socialaccount/login.html:18
+msgid "This will allow you to use single sign-on (SSO) in the future."
+msgstr "Dadurch können Sie in Zukunft die Einmalanmeldung (SSO) nutzen."
+
+#: kobo/apps/accounts/templates/socialaccount/login.html:23
+#, python-format
+msgid "Connect with %(appname)s"
+msgstr "Verbinden mit %(appname)s"
+
+#: kobo/apps/accounts/templates/socialaccount/login.html:27
+msgid "Log in with "
+msgstr "Einloggen mit "
+
+#: kobo/apps/accounts/templates/socialaccount/login.html:29
+#, python-format
+msgid "Log in to KoboToolbox with your %(appname)s account."
+msgstr "Loggen Sie sich mit Ihrem %(appname)s-Konto bei KoboToolbox ein."
+
+#: kobo/apps/accounts/templates/socialaccount/login.html:39
+msgid "go back"
+msgstr "Zurück"
+
+#: kobo/apps/accounts/templates/socialaccount/signup.html:11
+#, python-format
+msgid "Welcome to KoboToolbox, %(username)s!"
+msgstr "Willkommen bei KoboToolbox, %(username)s!"
+
+#: kobo/apps/accounts/templates/socialaccount/signup.html:13
+msgid "Welcome to KoboToolbox!"
+msgstr "Willkommen bei KoboToolbox!"
+
+#: kobo/apps/accounts/templates/socialaccount/signup.html:18
+#, python-format
+msgid "You are about to use your %(appname)s account to login to KoboToolbox."
+msgstr "Sie sind dabei, sich mit Ihrem %(appname)s-Konto bei KoboToolbox einzuloggen."
+
+#: kobo/apps/accounts/templates/socialaccount/signup.html:18
+msgid "As a final step, please complete the following form"
+msgstr "Als letzten Schritt füllen Sie bitte das folgende Formular aus"
+
+#: kobo/apps/accounts/templates/socialaccount/signup.html:44
+msgid "Save and Access"
+msgstr "Speichern und aufrufen"
+
+#: kobo/apps/accounts/validators.py:7
+msgid ""
+"Usernames must be between 2 and 30 characters in length, and may only "
+"consist of lowercase letters, numbers, and underscores, where the first "
+"character must be a letter."
+msgstr "Benutzernamen müssen zwischen 2 und 30 Zeichen lang sein und dürfen nur aus Kleinbuchstaben, Zahlen und Unterstrichen bestehen, wobei das erste Zeichen ein Buchstabe sein muss."
+
+#: kobo/apps/hook/serializers/v2/hook.py:85
+#| msgid "Invalid token."
+msgid "Invalid scheme"
+msgstr "Ungültiges Schema"
+
+#: kobo/apps/hook/serializers/v2/hook.py:88
+msgid "Unsecured endpoint is not allowed"
+msgstr "Ungesicherter Endpunkt ist nicht zulässig"
+
+#: kobo/apps/hook/serializers/v2/hook.py:99
+#| msgid "Invalid token."
+msgid "Invalid JSON"
+msgstr "Ungültiger JSON"
+
+#: kobo/apps/hook/serializers/v2/hook.py:109
+msgid "Can be used only with JSON submission format"
+msgstr "Kann nur mit dem JSON-Übermittlungsformat verwendet werden"
+
+#: kobo/apps/hook/tasks.py:145
+msgid "REST Services Failure Report"
+msgstr "Fehlerbericht für REST-Service"
+
+#: kobo/apps/hook/templates/reports/failures_email_body.html:3
+#: kobo/apps/hook/templates/reports/failures_email_body.txt:3
+msgid "Project name"
+msgstr "Projektname"
+
+#: kobo/apps/hook/templates/reports/failures_email_body.html:4
+#: kobo/apps/hook/templates/reports/failures_email_body.txt:4
+msgid "Hook"
+msgstr "Hook"
+
+#: kobo/apps/hook/templates/reports/failures_email_body.html:5
+#: kobo/apps/hook/templates/reports/failures_email_body.txt:5
+msgid "Submission"
+msgstr "Übermittlung"
+
+#: kobo/apps/hook/templates/reports/failures_email_body.html:6
+#: kobo/apps/hook/templates/reports/failures_email_body.txt:6
+msgid "Status code"
+msgstr "Status-Code"
+
+#: kobo/apps/hook/templates/reports/failures_email_body.html:7
+#: kobo/apps/hook/templates/reports/failures_email_body.txt:7
+msgid "Message"
+msgstr "Nachricht"
+
+#: kobo/apps/hook/templates/reports/failures_email_body.html:8
+#: kobo/apps/hook/templates/reports/failures_email_body.txt:8
+msgid "Date"
+msgstr "Datum"
+
+#: kobo/apps/hook/templates/reports/failures_email_body.html:10
+#: kobo/apps/hook/templates/reports/failures_email_body.txt:10
+#: kobo/apps/organizations/templates/emails/accepted_org_invite.html:2
+#: kobo/apps/organizations/templates/emails/accepted_org_invite.txt:2
+#: kobo/apps/organizations/templates/emails/declined_org_invite.html:2
+#: kobo/apps/organizations/templates/emails/declined_org_invite.txt:2
+#: kobo/apps/organizations/templates/emails/expired_org_invite.html:4
+#: kobo/apps/organizations/templates/emails/expired_org_invite.txt:4
+#: kobo/apps/project_ownership/templates/emails/accepted_invite.html:5
+#: kobo/apps/project_ownership/templates/emails/accepted_invite.txt:3
+#: kobo/apps/project_ownership/templates/emails/declined_invite.html:5
+#: kobo/apps/project_ownership/templates/emails/declined_invite.txt:5
+#: kobo/apps/project_ownership/templates/emails/expired_invite.html:5
+#: kobo/apps/project_ownership/templates/emails/expired_invite.txt:5
+#: kobo/apps/project_ownership/templates/emails/new_invite.html:5
+#: kobo/apps/project_ownership/templates/emails/new_invite.txt:5
+#: kobo/apps/project_ownership/templates/emails/new_invite_org.html:5
+#: kobo/apps/project_ownership/templates/emails/new_invite_org.txt:5
+msgid "Dear"
+msgstr "Sehr geehrte*r"
+
+#: kobo/apps/hook/templates/reports/failures_email_body.html:11
+#: kobo/apps/hook/templates/reports/failures_email_body.txt:12
+msgid "Some submissions could not be sent to their external endpoints."
+msgstr "Einige Übermittlungen konnten nicht an ihre externen Endpunkte gesendet werden."
+
+#: kobo/apps/hook/views/v2/hook.py:186
+msgid "Task successfully scheduled"
+msgstr "Aufgabe erfolgreich terminiert"
+
+#: kobo/apps/hook/views/v2/hook.py:222
+msgid "No data to retry"
+msgstr "Keine Daten zum erneuten Versuch vorhanden"
+
+#: kobo/apps/hook/views/v2/hook.py:225
+msgid "Can not retry on disabled hooks"
+msgstr "Bei deaktivierten Hooks kann es nicht erneut versucht werden"
+
+#: kobo/apps/hook/views/v2/hook_log.py:130
+msgid "An error has occurred when sending the data. Please try again later."
+msgstr "Beim Senden der Daten ist ein Fehler aufgetreten. Bitte versuchen Sie es später noch einmal."
+
+#: kobo/apps/hook/views/v2/hook_log.py:135
+msgid "Data is being or has already been processed"
+msgstr "Daten werden verarbeitet oder wurden bereits verarbeitet"
+
+#: kobo/apps/languages/templates/admin/languages_change_list.html:8
+msgid "Import"
+msgstr "Importieren"
+
+#: kobo/apps/mass_emails/tasks.py:244
+msgid "Not available"
+msgstr ""
+
+#: kobo/apps/openrosa/apps/api/exceptions.py:12
+msgid "This is not supported by the legacy API anymore"
+msgstr "Wird nicht mehr von der Legacy-API unterstützt"
+
+#: kobo/apps/openrosa/apps/api/exceptions.py:19
+msgid "No confirmation provided"
+msgstr "Fehlende Bestätigung"
+
+#: kobo/apps/openrosa/apps/api/tools.py:71
+#, python-format
+msgid "User %(user)s has no permission to add xforms to account %(account)s"
+msgstr "Benutzer*in %(user)s ist nicht berechtigt, XForms zum Konto %(account)s hinzuzufügen"
+
+#: kobo/apps/openrosa/apps/api/tools.py:83
+#, python-format
+msgid "User %(user)s has no permission to change this form."
+msgstr "Benutzer*in %(user)s ist nicht berechtigt, dieses Formular zu ändern."
+
+#: kobo/apps/openrosa/apps/api/tools.py:112
+msgid "You do not have permission to view data from this form."
+msgstr "Sie sind nicht berechtigt, Daten dieses Formulars einzusehen."
+
+#: kobo/apps/openrosa/apps/api/viewsets/attachment_viewset.py:177
+#, python-format
+msgid "Filename '%s' not found."
+msgstr "Dateiname „%s“ nicht gefunden."
+
+#: kobo/apps/openrosa/apps/api/viewsets/briefcase_api.py:42
+#, python-format
+#| msgid "Invalid token."
+msgid "Invalid formId %s."
+msgstr "Ungültige Formular-ID %s."
+
+#: kobo/apps/openrosa/apps/api/viewsets/briefcase_api.py:200
+#, python-format
+msgid "%s successfully published."
+msgstr "%s erfolgreich veröffentlicht."
+
+#: kobo/apps/openrosa/apps/api/viewsets/briefcase_api.py:205
+msgid "Missing xml file."
+msgstr "Fehlende XML-Datei."
+
+#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:325
+#, python-format
+msgid "Invalid pk `%(pk)s`"
+msgstr "Projektschlüssel `%(pk)s` ungültig"
+
+#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:329
+#, python-format
+msgid "Invalid dataid `%(dataid)s`"
+msgstr "Daten-ID `%(dataid)s` ungültig"
+
+#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:344
+msgid "No data matches with given query."
+msgstr "Keine Daten stimmen mit der Abfrage überein."
+
+#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:361
+#, python-format
+msgid "Invalid pk %(pk)s"
+msgstr "Projektschlüssel %(pk)s ungültig"
+
+#: kobo/apps/openrosa/apps/api/viewsets/xform_submission_api.py:69
+msgid "No submission key provided."
+msgstr "Fehlender Übermittlungsschlüssel."
+
+#: kobo/apps/openrosa/apps/api/viewsets/xform_submission_api.py:296
+msgid "Unable to create submission."
+msgstr "Übermittlung kann nicht erstellt werden."
+
+#: kobo/apps/openrosa/apps/api/viewsets/xform_viewset.py:55
+#, python-format
+msgid "'%(export_type)s' format not known or not implemented!"
+msgstr "„%(export_type)s“-Format unbekannt oder nicht implementiert!"
+
+#: kobo/apps/openrosa/apps/api/viewsets/xform_viewset.py:91
+msgid "Dates must be in the format YY_MM_DD_hh_mm_ss"
+msgstr "Daten müssen im Format YY_MM_DD_hh_mm_ss angegeben werden"
+
+#: kobo/apps/openrosa/apps/api/viewsets/xform_viewset.py:109
+msgid "No records found to export"
+msgstr "Keine Datensätze für den Export gefunden"
+
+#: kobo/apps/openrosa/apps/api/viewsets/xform_viewset.py:140
+msgid "No XLSForm found."
+msgstr "Keine XLSForm gefunden."
+
+#: kobo/apps/openrosa/apps/api/viewsets/xform_viewset.py:585
+msgid "Only a form's owner can overwrite its contents"
+msgstr "Inhalte eines Formulars kann nur dessen Eigentümer*in überschreiben"
+
+#: kobo/apps/openrosa/apps/logger/exceptions.py:21
+msgid "Attachment with same name already exists"
+msgstr ""
+
+#: kobo/apps/openrosa/apps/logger/exceptions.py:26
+msgid "Submission with this instance ID already exists"
+msgstr ""
+
+#: kobo/apps/openrosa/apps/logger/exceptions.py:31
+msgid "Duplicate Instance"
+msgstr "Doppelte Instanz"
+
+#: kobo/apps/openrosa/apps/logger/exceptions.py:48
+msgid "Empty instance"
+msgstr "Leere Instanz"
+
+#: kobo/apps/openrosa/apps/logger/exceptions.py:53
+msgid "Could not determine the user"
+msgstr ""
+
+#: kobo/apps/openrosa/apps/logger/exceptions.py:58
+msgid "Could not determine the instance ID"
+msgstr ""
+
+#: kobo/apps/openrosa/apps/logger/exceptions.py:67
+msgid "The instance could not be parsed"
+msgstr ""
+
+#: kobo/apps/openrosa/apps/logger/exceptions.py:72
+msgid "Submission is currently being processed."
+msgstr ""
+
+#: kobo/apps/openrosa/apps/logger/models/xform.py:67
+msgid "Require authentication to see form and submit data"
+msgstr "Authentifizierung erforderlich, um Formulare anzuzeigen und Daten zu übermitteln"
+
+#: kobo/apps/openrosa/apps/logger/models/xform.py:75
+msgid "ID"
+msgstr "ID"
+
+#: kobo/apps/openrosa/apps/logger/models/xform.py:104
+msgid "XForm"
+msgstr "XForm"
+
+#: kobo/apps/openrosa/apps/logger/models/xform.py:105
+msgid "XForms"
+msgstr "XForms"
+
+#: kobo/apps/openrosa/apps/logger/models/xform.py:203
+#, python-format
+msgid ""
+"Your updated form's id_string '%(new_id)s' must match the existing forms' "
+"id_string '%(old_id)s'."
+msgstr "Der id_string „%(new_id)s“ des neuen Formulars muss mit dem id_string „%(old_id)s“ des bestehenden Formulars übereinstimmen."
+
+#: kobo/apps/openrosa/apps/logger/models/xform.py:212
+msgid ""
+"In strict mode, the XForm ID must be a valid slug and contain no spaces."
+msgstr "Im strengen Modus muss die XForm-ID ein zulässiger Slug sein und darf keine Leerzeichen enthalten."
+
+#: kobo/apps/openrosa/apps/logger/models/xform.py:226
+msgid "Submission Count"
+msgstr "Anzahl Übermittlungen"
+
+#: kobo/apps/openrosa/apps/logger/models/xform.py:274
+msgid "There should be a single id string."
+msgstr "Nur eine ID-Zeichenfolge möglich."
+
+#: kobo/apps/openrosa/apps/logger/models/xform.py:299
+msgid "There should be a single title."
+msgstr "Nur ein Titel möglich."
+
+#: kobo/apps/openrosa/apps/logger/views.py:68
+#: kobo/apps/openrosa/libs/serializers/data_serializer.py:111
+msgid "Successful submission."
+msgstr "Übermittlung erfolgreich."
+
+#: kobo/apps/openrosa/apps/logger/views.py:94
+msgid ""
+"There was a problem receiving your ODK submission. [Error: IO Error reading "
+"data]"
+msgstr "Es gab ein Problem beim Empfang Ihrer ODK-Übermittlung. [Fehler: IO-Fehler beim Lesen der Daten]"
+
+#: kobo/apps/openrosa/apps/logger/views.py:98
+msgid ""
+"There was a problem receiving your ODK submission. [Error: multiple "
+"submission files (?)]"
+msgstr "Es gab ein Problem beim Empfang Ihrer ODK-Übermittlung. [Fehler: mehrere Übermittlungsdateien (?)]"
+
+#: kobo/apps/openrosa/apps/logger/views.py:120
+#, python-format
+msgid ""
+"Submission complete. Out of %(total)d survey instances, %(success)d were "
+"imported, (%(rejected)d were rejected as duplicates, missing forms, etc.)"
+msgstr "Übermittlung erfolgreich. Von %(total)d Umfrageinstanzen wurden %(success)d importiert (%(rejected)d wurden wegen Duplikaten, fehlenden Formularen etc.verworfen)"
+
+#: kobo/apps/openrosa/apps/logger/views.py:190
+#, python-format
+msgid "No XLS file for your form %(id)s"
+msgstr "Keine XLS-Datei für das Formular %(id)s"
+
+#: kobo/apps/openrosa/apps/logger/views.py:208
+#: kobo/apps/openrosa/apps/viewer/views.py:48
+#: kobo/apps/openrosa/apps/viewer/views.py:101
+#: kobo/apps/openrosa/apps/viewer/views.py:120
+#: kobo/apps/openrosa/apps/viewer/views.py:161
+#: kobo/apps/openrosa/apps/viewer/views.py:189
+#: kobo/apps/openrosa/apps/viewer/views.py:268
+msgid "Not shared."
+msgstr "Nicht geteilt."
+
+#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:35
+#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:76
+#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:104
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:525
+msgid "XML string must have a survey element."
+msgstr "Die XML-Zeichenkette muss ein Umfrageelement enthalten."
+
+#: kobo/apps/openrosa/apps/main/forms.py:18
+msgid "Media upload"
+msgstr "Medien-Upload"
+
+#: kobo/apps/openrosa/apps/main/forms.py:30
+#: kobo/apps/openrosa/libs/utils/quick_converter.py:9
+msgid "XLS File"
+msgstr "XLS-Datei"
+
+#: kobo/apps/openrosa/apps/main/templates/405.html:5
+msgid "405 Error: Method Not Allowed!"
+msgstr "Fehler 405: Methode nicht erlaubt!"
+
+#: kobo/apps/openrosa/apps/main/templates/500.html:5
+msgid "500 Error"
+msgstr "Fehler 500"
+
+#: kobo/apps/openrosa/apps/main/templates/500.html:8
+msgid ""
+"If this is a significant error that needs to be fixed, please send a support"
+" request to support@kobotoolbox.org with information about what triggered "
+"this error."
+msgstr "Muss ein schwerwiegender Fehler dringend behoben werden, senden Sie bitte eine Supportanfrage an support@kobotoolbox.org und schildern Sie, wie der Fehler auftrat."
+
+#: kobo/apps/openrosa/apps/main/templates/restricted_access.html:5
+msgid "403 - Restricted access"
+msgstr "403 – Fehlende Berechtigung"
+
+#: kobo/apps/openrosa/apps/main/templates/restricted_access.html:8
+#, python-format
+msgid ""
+"Your access is restricted. Please reclaim your access by <a "
+"href=\"%(koboform_url)s/accounts/password/reset/\">changing your "
+"password</a>."
+msgstr ""
+
+#: kobo/apps/openrosa/apps/viewer/models/export.py:17
+msgid "Invalid export type specified"
+msgstr "Ungültiger Exporttyp angegeben"
+
+#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:141
+#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:193
+msgid "Invalid start/limit params"
+msgstr "Ungültige Start-/Endparameter"
+
+#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:157
+#, python-format
+msgid "Invalid pipeline! %s"
+msgstr "Ungültige Pipeline! %s"
+
+#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:159
+#, python-format
+msgid "Invalid query! %s"
+msgstr "Ungültige Abfrage! %s"
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:10
+msgid "Exports"
+msgstr "Exporte"
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:26
+msgid "New Export"
+msgstr "Neuer Export"
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:28
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:41
+msgid "Advanced Export"
+msgstr "Erweiterter Export"
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:33
+msgid ""
+"Note: exports include only questions that remain in the most recent version "
+"of the form."
+msgstr "Hinweis: Exporte enthalten nur Fragen, die in der aktuellen Version des Formulars vorhanden sind."
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:44
+msgid "Delimiter to use to separate group names from field names"
+msgstr "Trennzeichen für Gruppen- und Felderbezeichnungen"
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:46
+msgid "Dot"
+msgstr "Punkt"
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:47
+msgid "Slash"
+msgstr "Schrägstrich"
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:51
+msgid "DONT split select multiple choice answers into separate columns"
+msgstr "Teilen Sie Fragen mit Auswahlantworten NICHT über mehrere Spalten auf"
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:55
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:99
+msgid "Cancel"
+msgstr "Abbrechen"
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:56
+msgid "Create Export"
+msgstr "Export erstellen"
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:65
+#| msgid "Username"
+msgid "Filename"
+msgstr "Dateiname"
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:66
+msgid "Date Created"
+msgstr "Erstellungsdatum"
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:67
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:100
+msgid "Delete"
+msgstr "Löschen"
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:82
+msgid "Pending ..."
+msgstr "Ausstehend ..."
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:83
+msgid "Click to refresh"
+msgstr "Zum Aktualisieren klicken"
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:93
+msgid "Delete Export"
+msgstr "Export löschen"
+
+#: kobo/apps/openrosa/apps/viewer/templates/export_list.html:96
+msgid "Are you sure you want to delete this export?"
+msgstr "Sind Sie sicher, dass Sie diesen Export löschen möchten?"
+
+#: kobo/apps/openrosa/apps/viewer/views.py:57
+#, python-format
+msgid "%s is not a valid delimiter"
+msgstr "%s ist kein gültiges Trennzeichen"
+
+#: kobo/apps/openrosa/apps/viewer/views.py:77
+#, python-format
+msgid "%s is not a valid export type"
+msgstr "%s ist kein gültiger Exporttyp"
+
+#: kobo/apps/openrosa/apps/viewer/views.py:96
+#| msgid "Invalid token."
+msgid "Invalid export type"
+msgstr "Ungültiger Exporttyp"
+
+#: kobo/apps/openrosa/apps/viewer/views.py:242
+#: kobo/apps/openrosa/apps/viewer/views.py:246
+msgid "Attachment not found"
+msgstr "Anhang nicht gefunden"
+
+#: kobo/apps/openrosa/apps/viewer/views.py:307
+msgid "Error: Attachment not found"
+msgstr "Fehler: Anhang nicht gefunden"
+
+#: kobo/apps/openrosa/libs/authentication.py:51
+msgid ""
+"Using basic authentication without HTTPS transmits credentials in clear "
+"text! You MUST connect via HTTPS to use basic authentication."
+msgstr "Bei Verwendung der Basisauthentifizierung ohne HTTPS werden die Anmeldedaten in Klarschrift übertragen. Sie MÜSSEN eine Verbindung über HTTPS herstellen, um die Basisauthentifizierung zu verwenden."
+
+#: kobo/apps/openrosa/libs/mixins/mfa.py:25
+msgid ""
+"Multi-factor authentication is enabled for this account. ##authentication "
+"class## cannot be used."
+msgstr "Die Multi-Faktor-Authentifizierung ist für dieses Konto aktiviert. ##authentication class## kann nicht verwendet werden."
+
+#: kobo/apps/openrosa/libs/serializers/clone_xform_serializer.py:34
+#, python-format
+msgid "User '%(value)s' does not exist."
+msgstr "Benutzer*in „%(value)s“ nicht vorhanden."
+
+#: kobo/apps/openrosa/libs/serializers/data_serializer.py:45
+#, python-format
+msgid "Invalid query: %(query)s"
+msgstr "Ungültige Abfrage: %(query)s"
+
+#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:18
+msgid "Data License"
+msgstr "Datenlizenz"
+
+#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:19
+msgid "Form License"
+msgstr "Formularlizenz"
+
+#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:20
+msgid "Media"
+msgstr "Medien"
+
+#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:21
+msgid "Public Link"
+msgstr "Öffentlicher Link"
+
+#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:22
+msgid "Source"
+msgstr "Quelle"
+
+#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:23
+msgid "Supporting Document"
+msgstr "Ergänzendes Dokument"
+
+#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:24
+msgid "Paired Data"
+msgstr "Gekoppelte Daten"
+
+#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:72
+msgid "Project not found"
+msgstr "Projekt nicht gefunden"
+
+#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:76
+msgid "You do not have sufficient permissions to perform this action"
+msgstr "Ihnen fehlt die Berechtigung für diese Aktion"
+
+#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:122
+msgid "Invalid url {}"
+msgstr "Ungültige URL {}"
+
+#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:156
+#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:167
+#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:174
+msgid "Cannot determine content type"
+msgstr "Inhaltstyp nicht bestimmbar"
+
+#: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:189
+#| msgid "Invalid token."
+msgid "Invalid content type"
+msgstr "Ungültiger Inhaltstyp"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:8
+msgid "Afghanistan"
+msgstr "Afghanistan"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:9
+msgid "Albania"
+msgstr "Albanien"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:10
+msgid "Algeria"
+msgstr "Algerien"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:11
+msgid "American Samoa"
+msgstr "Amerikanisch-Samoa"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:12
+msgid "Andorra"
+msgstr "Andorra"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:13
+msgid "Angola"
+msgstr "Angola"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:14
+msgid "Anguilla"
+msgstr "Anguilla"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:15
+msgid "Antarctica"
+msgstr "Antarktis"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:16
+msgid "Antigua and Barbuda"
+msgstr "Antigua und Barbuda"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:17
+msgid "Argentina"
+msgstr "Argentinien"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:18
+msgid "Armenia"
+msgstr "Armenien"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:19
+msgid "Aruba"
+msgstr "Aruba"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:20
+msgid "Australia"
+msgstr "Australien"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:21
+msgid "Austria"
+msgstr "Österreich"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:22
+msgid "Azerbaijan"
+msgstr "Aserbaidschan"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:23
+msgid "Bahamas"
+msgstr "Bahamas"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:24
+msgid "Bahrain"
+msgstr "Bahrain"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:25
+msgid "Bangladesh"
+msgstr "Bangladesch"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:26
+msgid "Barbados"
+msgstr "Barbados"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:27
+msgid "Belarus"
+msgstr "Belarus"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:28
+msgid "Belgium"
+msgstr "Belgien"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:29
+msgid "Belize"
+msgstr "Belize"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:30
+msgid "Benin"
+msgstr "Benin"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:31
+msgid "Bermuda"
+msgstr "Bermuda"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:32
+msgid "Bhutan"
+msgstr "Bhutan"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:33
+msgid "Bolivia"
+msgstr "Bolivien"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:34
+msgid "Bonaire, Sint Eustatius and Saba"
+msgstr "Bonaire, Sint Eustatius und Saba"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:35
+msgid "Bosnia and Herzegovina"
+msgstr "Bosnien und Herzegowina"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:36
+msgid "Botswana"
+msgstr "Botswana"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:37
+msgid "Brazil"
+msgstr "Brasilien"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:38
+msgid "British Indian Ocean Territory"
+msgstr "Britisches Territorium im Indischen Ozean"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:39
+msgid "Brunei Darussalam"
+msgstr "Brunei Darussalam"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:40
+msgid "Bulgaria"
+msgstr "Bulgarien"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:41
+msgid "Burkina Faso"
+msgstr "Burkina Faso"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:42
+msgid "Burundi"
+msgstr "Burundi"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:43
+msgid "Cambodia"
+msgstr "Kambodscha"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:44
+msgid "Cameroon"
+msgstr "Kamerun"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:45
+msgid "Canada"
+msgstr "Kanada"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:46
+msgid "Cape Verde"
+msgstr "Kap Verde"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:47
+msgid "Cayman Islands"
+msgstr "Kaimaninseln"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:48
+msgid "Central African Republic"
+msgstr "Zentralafrikanische Republik"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:49
+msgid "Chad"
+msgstr "Tschad"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:50
+msgid "Chile"
+msgstr "Chile"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:51
+msgid "China"
+msgstr "China"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:52
+msgid "Christmas Island"
+msgstr "Weihnachtsinsel"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:53
+msgid "Cocos (Keeling) Islands"
+msgstr "Kokosinseln, Keelinginseln"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:54
+msgid "Colombia"
+msgstr "Kolumbien"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:55
+msgid "Comoros"
+msgstr "Komoren"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:56
+msgid "Congo"
+msgstr "Kongo"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:57
+msgid "Congo, The Democratic Republic of the"
+msgstr "Kongo, Demokratische Republik"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:58
+msgid "Cook Islands"
+msgstr "Cookinseln"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:59
+msgid "Costa Rica"
+msgstr "Costa Rica"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:60
+msgid "Ivory Coast"
+msgstr "Elfenbeinküste"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:61
+msgid "Croatia"
+msgstr "Kroatien"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:62
+msgid "Cuba"
+msgstr "Kuba"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:63
+msgid "Curacao"
+msgstr "Curaçao"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:64
+msgid "Cyprus"
+msgstr "Zypern"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:65
+msgid "Czech Republic"
+msgstr "Tschechien"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:66
+msgid "Denmark"
+msgstr "Dänemark"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:67
+msgid "Djibouti"
+msgstr "Dschibuti"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:68
+msgid "Dominica"
+msgstr "Dominica"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:69
+msgid "Dominican Republic"
+msgstr "Dominikanische Republik"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:70
+msgid "Ecuador"
+msgstr "Ecuador"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:71
+msgid "Egypt"
+msgstr "Ägypten"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:72
+msgid "El Salvador"
+msgstr "El Salvador"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:73
+msgid "Equatorial Guinea"
+msgstr "Äquatorialguinea"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:74
+msgid "Eritrea"
+msgstr "Eritrea"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:75
+msgid "Estonia"
+msgstr "Estland"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:76
+msgid "Ethiopia"
+msgstr "Äthiopien"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:77
+msgid "Falkland Islands (Malvinas)"
+msgstr "Falklandinseln (Malwinen)"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:78
+msgid "Faroe Islands"
+msgstr "Färöer"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:79
+msgid "Fiji"
+msgstr "Fidschi"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:80
+msgid "Finland"
+msgstr "Finnland"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:81
+msgid "France"
+msgstr "Frankreich"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:82
+msgid "French Guiana"
+msgstr "Französisch-Guayana"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:83
+msgid "French Polynesia"
+msgstr "Französisch-Polynesien"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:84
+msgid "French Southern Territories"
+msgstr "Französische Südgebiete"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:85
+msgid "Gabon"
+msgstr "Gabun"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:86
+msgid "Gambia"
+msgstr "Gambia"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:87
+msgid "Georgia"
+msgstr "Georgien"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:88
+msgid "Germany"
+msgstr "Deutschland"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:89
+msgid "Ghana"
+msgstr "Ghana"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:90
+msgid "Gibraltar"
+msgstr "Gibraltar"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:91
+msgid "Greece"
+msgstr "Griechenland"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:92
+msgid "Greenland"
+msgstr "Grönland"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:93
+msgid "Grenada"
+msgstr "Grenada"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:94
+msgid "Guadeloupe"
+msgstr "Guadeloupe"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:95
+msgid "Guam"
+msgstr "Guam"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:96
+msgid "Guatemala"
+msgstr "Guatemala"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:97
+msgid "Guernsey"
+msgstr "Guernsey"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:98
+msgid "Guinea"
+msgstr "Guinea"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:99
+msgid "Guinea-Bissau"
+msgstr "Guinea-Bissau"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:100
+msgid "Guyana"
+msgstr "Guyana"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:101
+msgid "Haiti"
+msgstr "Haiti"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:102
+msgid "Heard Island and McDonald Islands"
+msgstr "Heard und McDonaldinseln"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:103
+msgid "Holy See (Vatican City State)"
+msgstr "Heiliger Stuhl (Vatikanstadt)"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:104
+msgid "Honduras"
+msgstr "Honduras"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:105
+msgid "Hong Kong"
+msgstr "Hongkong"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:106
+msgid "Hungary"
+msgstr "Ungarn"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:107
+msgid "Iceland"
+msgstr "Island"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:108
+msgid "India"
+msgstr "Indien"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:109
+msgid "Indonesia"
+msgstr "Indonesien"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:110
+msgid "Installations in International Waters"
+msgstr "Anlagen in internationalen Gewässern"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:111
+msgid "Iran, Islamic Republic of"
+msgstr "Iran, Islamische Republik"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:112
+msgid "Iraq"
+msgstr "Irak"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:113
+msgid "Ireland"
+msgstr "Irland"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:114
+msgid "Isle of Man"
+msgstr "Isle of Man"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:115
+msgid "Israel"
+msgstr "Israel"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:116
+msgid "Italy"
+msgstr "Italien"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:117
+msgid "Jamaica"
+msgstr "Jamaika"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:118
+msgid "Japan"
+msgstr "Japan"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:119
+msgid "Jersey"
+msgstr "Jersey"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:120
+msgid "Jordan"
+msgstr "Jordanien"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:121
+msgid "Kazakhstan"
+msgstr "Kasachstan"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:122
+msgid "Kenya"
+msgstr "Kenia"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:123
+msgid "Kiribati"
+msgstr "Kiribati"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:124
+msgid "Korea, Democratic People's Republic of"
+msgstr "Korea, Demokratische Republik"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:125
+msgid "Korea, Republic of"
+msgstr "Korea, Republik"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:127
+msgid "Kosovo"
+msgstr "Kosovo"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:128
+msgid "Kuwait"
+msgstr "Kuwait"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:129
+msgid "Kyrgyzstan"
+msgstr "Kirgisistan"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:130
+msgid "Lao People's Democratic Republic"
+msgstr "Laos, Demokratische Volksrepublik"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:131
+msgid "Latvia"
+msgstr "Lettland"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:132
+msgid "Lebanon"
+msgstr "Libanon"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:133
+msgid "Lesotho"
+msgstr "Lesotho"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:134
+msgid "Liberia"
+msgstr "Liberia"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:135
+msgid "Libyan Arab Jamahiriya"
+msgstr "Libysch-Arabische Dschamahirija"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:136
+msgid "Liechtenstein"
+msgstr "Liechtenstein"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:137
+msgid "Lithuania"
+msgstr "Litauen"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:138
+msgid "Luxembourg"
+msgstr "Luxemburg"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:139
+msgid "Macao"
+msgstr "Macao"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:140
+msgid "Macedonia, The former Yugoslav Republic of"
+msgstr "Mazedonien, Ehemalige jugoslawische Republik"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:141
+msgid "Madagascar"
+msgstr "Madagaskar"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:142
+msgid "Malawi"
+msgstr "Malawi"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:143
+msgid "Malaysia"
+msgstr "Malaysia"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:144
+msgid "Maldives"
+msgstr "Malediven"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:145
+msgid "Mali"
+msgstr "Mali"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:146
+msgid "Malta"
+msgstr "Malta"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:147
+msgid "Marshall Islands"
+msgstr "Marshallinseln"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:148
+msgid "Martinique"
+msgstr "Martinique"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:149
+msgid "Mauritania"
+msgstr "Mauretanien"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:150
+msgid "Mauritius"
+msgstr "Mauritius"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:151
+msgid "Mayotte"
+msgstr "Mayotte"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:152
+msgid "Mexico"
+msgstr "Mexiko"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:153
+msgid "Micronesia, Federated States of"
+msgstr "Mikronesien, Föderierten Staaten von"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:154
+msgid "Moldova, Republic of"
+msgstr "Moldau, Republik"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:155
+msgid "Monaco"
+msgstr "Monaco"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:156
+msgid "Mongolia"
+msgstr "Mongolei"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:157
+msgid "Montenegro"
+msgstr "Montenegro"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:158
+msgid "Montserrat"
+msgstr "Montserrat"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:159
+msgid "Morocco"
+msgstr "Marokko"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:160
+msgid "Mozambique"
+msgstr "Mosambik"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:161
+msgid "Myanmar"
+msgstr "Myanmar"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:162
+msgid "Namibia"
+msgstr "Namibia"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:163
+msgid "Nauru"
+msgstr "Nauru"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:164
+msgid "Nepal"
+msgstr "Nepal"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:165
+msgid "Netherlands"
+msgstr "Niederlande"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:166
+msgid "New Caledonia"
+msgstr "Neukaledonien"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:167
+msgid "New Zealand"
+msgstr "Neuseeland"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:168
+msgid "Nicaragua"
+msgstr "Nicaragua"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:169
+msgid "Niger"
+msgstr "Niger"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:170
+msgid "Nigeria"
+msgstr "Nigeria"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:171
+msgid "Niue"
+msgstr "Niue"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:172
+msgid "Norfolk Island"
+msgstr "Norfolkinsel"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:173
+msgid "Northern Mariana Islands"
+msgstr "Nördliche Marianen"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:174
+msgid "Norway"
+msgstr "Norwegen"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:175
+msgid "Oman"
+msgstr "Oman"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:176
+msgid "Pakistan"
+msgstr "Pakistan"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:177
+msgid "Palau"
+msgstr "Palau"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:178
+msgid "Palestinian Territory, Occupied"
+msgstr "Palästinensische Autonomiegebiete"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:179
+msgid "Panama"
+msgstr "Panama"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:180
+msgid "Papua New Guinea"
+msgstr "Papua-Neuguinea"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:181
+msgid "Paraguay"
+msgstr "Paraguay"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:182
+msgid "Peru"
+msgstr "Peru"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:183
+msgid "Philippines"
+msgstr "Philippinen"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:184
+msgid "Pitcairn"
+msgstr "Pitcairninseln"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:185
+msgid "Poland"
+msgstr "Polen"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:186
+msgid "Portugal"
+msgstr "Portugal"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:187
+msgid "Puerto Rico"
+msgstr "Puerto Rico"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:188
+msgid "Qatar"
+msgstr "Katar"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:189
+msgid "Reunion"
+msgstr "La Réunion"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:190
+msgid "Romania"
+msgstr "Rumänien"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:191
+msgid "Russian Federation"
+msgstr "Russische Föderation"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:192
+msgid "Rwanda"
+msgstr "Ruanda"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:193
+msgid "Saint Helena"
+msgstr "St. Helena"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:194
+msgid "Saint Kitts and Nevis"
+msgstr "St. Kitts und Nevis"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:195
+msgid "Saint Lucia"
+msgstr "St. Lucia"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:196
+msgid "Saint Pierre and Miquelon"
+msgstr "Saint-Pierre und Miquelon"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:197
+msgid "Saint Vincent and the Grenadines"
+msgstr "St. Vincent und die Grenadinen"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:198
+msgid "Samoa"
+msgstr "Samoa"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:199
+msgid "San Marino"
+msgstr "San Marino"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:200
+msgid "Sao Tome and Principe"
+msgstr "São Tomé und Príncipe"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:201
+msgid "Saudi Arabia"
+msgstr "Saudi-Arabien"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:202
+msgid "Senegal"
+msgstr "Senegal"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:203
+msgid "Serbia"
+msgstr "Serbien"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:204
+msgid "Seychelles"
+msgstr "Seychellen"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:205
+msgid "Sierra Leone"
+msgstr "Sierra Leone"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:206
+msgid "Singapore"
+msgstr "Singapur"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:207
+msgid "Sint Maarten (Dutch Part)"
+msgstr "Sint Maarten (Niederlande)"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:208
+msgid "Slovakia"
+msgstr "Slowakei"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:209
+msgid "Slovenia"
+msgstr "Slowenien"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:210
+msgid "Solomon Islands"
+msgstr "Salomonen"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:211
+msgid "Somalia"
+msgstr "Somalia"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:212
+msgid "South Africa"
+msgstr "Südafrika"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:213
+msgid "South Georgia and the South Sandwich Islands"
+msgstr "Südgeorgien und die Südlichen Sandwichinseln"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:214
+msgid "South Sudan"
+msgstr "Südsudan"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:215
+msgid "Spain"
+msgstr "Spanien"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:216
+msgid "Sri Lanka"
+msgstr "Sri Lanka"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:217
+msgid "Sudan"
+msgstr "Sudan"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:218
+#| msgid "Username"
+msgid "Suriname"
+msgstr "Suriname"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:219
+msgid "Svalbard and Jan Mayen"
+msgstr "Spitzbergen und Jan Mayen"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:220
+msgid "Swaziland"
+msgstr "Swasiland"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:221
+msgid "Sweden"
+msgstr "Schweden"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:222
+msgid "Switzerland"
+msgstr "Schweiz"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:223
+msgid "Syrian Arab Republic"
+msgstr "Syrien, Arabische Republik"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:224
+msgid "Taiwan, Province of China"
+msgstr "Taiwan, Chinesische Provinz"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:225
+msgid "Tajikistan"
+msgstr "Tadschikistan"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:226
+msgid "Tanzania, United Republic of"
+msgstr "Tansania, Vereinigte Republik"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:227
+msgid "Thailand"
+msgstr "Thailand"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:228
+msgid "Timor-Leste"
+msgstr "Osttimor"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:229
+msgid "Togo"
+msgstr "Togo"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:230
+msgid "Tokelau"
+msgstr "Tokelau"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:231
+msgid "Tonga"
+msgstr "Tonga"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:232
+msgid "Trinidad and Tobago"
+msgstr "Trinidad und Tobago"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:233
+msgid "Tunisia"
+msgstr "Tunesien"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:234
+msgid "Turkey"
+msgstr "Türkei"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:235
+msgid "Turkmenistan"
+msgstr "Turkmenistan"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:236
+msgid "Turks and Caicos Islands"
+msgstr "Turks- und Caicosinseln"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:237
+msgid "Tuvalu"
+msgstr "Tuvalu"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:238
+msgid "Uganda"
+msgstr "Uganda"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:239
+msgid "Ukraine"
+msgstr "Ukraine"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:240
+msgid "United Arab Emirates"
+msgstr "Vereinigte Arabische Emirate"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:241
+msgid "United Kingdom"
+msgstr "Vereinigtes Königreich"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:242
+msgid "United States"
+msgstr "Vereinigte Staaten von Amerika"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:243
+msgid "United States Minor Outlying Islands"
+msgstr "United States Minor Outlying Islands"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:244
+msgid "Uruguay"
+msgstr "Uruguay"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:245
+msgid "Uzbekistan"
+msgstr "Usbekistan"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:246
+msgid "Vanuatu"
+msgstr "Vanuatu"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:247
+msgid "Venezuela"
+msgstr "Venezuela"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:248
+msgid "Viet Nam"
+msgstr "Vietnam"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:249
+msgid "Virgin Islands, British"
+msgstr "Jungferninseln, Britische"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:250
+msgid "Virgin Islands, U.S."
+msgstr "Jungferninseln, Amerikanische"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:251
+msgid "Wallis and Futuna"
+msgstr "Wallis und Futuna"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:252
+msgid "Western Sahara"
+msgstr "Westsahara"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:253
+msgid "Yemen"
+msgstr "Jemen"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:254
+msgid "Zambia"
+msgstr "Sambia"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:255
+msgid "Zimbabwe"
+msgstr "Simbabwe"
+
+#: kobo/apps/openrosa/libs/utils/country_field.py:256
+msgid "Unknown or unspecified country"
+msgstr "Unbekanntes oder nicht spezifiziertes Land"
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:134
+msgid "Forbidden"
+msgstr "Verboten"
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:144
+msgid ""
+"Forbidden attempt to edit a submission. To make a new submission, Remove "
+"`deprecatedID` from the submission XML and try again."
+msgstr "Unzulässiger Versuch, eine Übermittlung zu bearbeiten. Entfernen Sie `deprecatedID` aus der XML-Übermittlung und versuchen Sie es erneut."
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:456
+msgid "Username or ID required."
+msgstr "Benutzername oder ID erforderlich."
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:459
+msgid "Received empty submission. No instance was created"
+msgstr "Leere Übermittlung empfangen. Keine Instanz wurde erstellt"
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:462
+msgid "Instance ID is required"
+msgstr ""
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:465
+msgid "Form is not active"
+msgstr "Formular inaktiv"
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:468
+msgid "Temporarily unavailable"
+msgstr "Vorübergehend nicht verfügbar"
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:474
+msgid "The owner of this survey has exceeded their submission limit."
+msgstr ""
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:478
+msgid "The owner of this survey has exceeded their storage limit."
+msgstr ""
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:483
+msgid "Account is not active"
+msgstr ""
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:486
+msgid "Form does not exist on this account"
+msgstr "Das Formular existiert nicht auf diesem Konto"
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:489
+msgid "Improperly formatted XML."
+msgstr "XML falsch formatiert."
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:507
+msgid "Access denied"
+msgstr "Zugriff verweigert"
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:514
+msgid "File likely corrupted during transmission, please try later."
+msgstr "Die Datei wurde wahrscheinlich während der Übertragung beschädigt, bitte versuchen Sie es später erneut."
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:651
+#| msgid "Invalid token."
+msgid "Invalid URL format."
+msgstr "Ungültiges URL-Format."
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:663
+msgid "Form validation timeout, please try again."
+msgstr "Zeitüberschreitung bei der Überprüfung des Formulars, bitte versuchen Sie es erneut."
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:722
+#: kobo/apps/openrosa/libs/utils/viewer_tools.py:76
+#, python-format
+msgid "Exception in request: %(class)s: %(error)s"
+msgstr "Ausnahme in Anfrage: %(class)s: %(error)s"
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:755
+msgid "The requested file could not be found."
+msgstr "Datei konnte nicht gefunden werden."
+
+#: kobo/apps/openrosa/libs/utils/middleware.py:184 kpi/exceptions.py:111
+msgid ""
+"Your access is restricted. Please reclaim your access by changing your "
+"password at ##koboform_url##/accounts/password/reset/."
+msgstr "Ihr Zugriff ist eingeschränkt. Um wieder Zugang zu erhalten, ändern Sie bitte Ihr Passwort unter ##koboform_url##/accounts/password/reset/."
+
+#: kobo/apps/organizations/models.py:373
+msgid "an admin"
+msgstr ""
+
+#: kobo/apps/organizations/models.py:373
+msgid "a member"
+msgstr ""
+
+#: kobo/apps/organizations/models.py:414
+msgid "You're invited to join ##organization_name## organization"
+msgstr ""
+
+#: kobo/apps/organizations/serializers.py:161
+msgid "Invalid role. Only 'admin' or 'member' are allowed"
+msgstr ""
+
+#: kobo/apps/organizations/tasks.py:84
+msgid "Organization invite has expired"
+msgstr ""
+
+#: kobo/apps/organizations/templates/emails/accepted_org_invite.html:4
+#: kobo/apps/organizations/templates/emails/accepted_org_invite.txt:4
+#, python-format
+msgid ""
+"%(recipient_username)s (%(recipient_email)s) has accepted your request to "
+"join %(organization_name)s organization."
+msgstr ""
+
+#: kobo/apps/organizations/templates/emails/accepted_org_invite.html:6
+#: kobo/apps/organizations/templates/emails/accepted_org_invite.txt:6
+msgid ""
+"All projects, submissions, data storage, transcription and translation usage"
+" for their projects will be transferred to you."
+msgstr ""
+
+#: kobo/apps/organizations/templates/emails/declined_org_invite.html:4
+#: kobo/apps/organizations/templates/emails/declined_org_invite.txt:4
+#, python-format
+msgid ""
+"%(recipient)s has declined your request to join %(organization_name)s "
+"organization."
+msgstr ""
+
+#: kobo/apps/organizations/templates/emails/expired_org_invite.html:5
+#: kobo/apps/organizations/templates/emails/expired_org_invite.txt:5
+#, python-format
+msgid ""
+"The request you have sent to <b>%(recipient)s</b> to join the "
+"%(organization)s organization has expired."
+msgstr ""
+
+#: kobo/apps/organizations/templates/emails/registered_user_invite.html:3
+#: kobo/apps/organizations/templates/emails/registered_user_invite.html:5
+#: kobo/apps/organizations/templates/emails/registered_user_invite.txt:3
+#: kobo/apps/organizations/templates/emails/registered_user_invite.txt:5
+msgid "Hello"
+msgstr ""
+
+#: kobo/apps/organizations/templates/emails/registered_user_invite.html:8
+#: kobo/apps/organizations/templates/emails/registered_user_invite.txt:8
+#, python-format
+msgid ""
+"%(sender_name)s (%(sender_email)s, username %(sender_username)s) has invited"
+" you to join %(organization_name)s organization as %(recipient_role)s."
+msgstr ""
+
+#: kobo/apps/organizations/templates/emails/registered_user_invite.html:10
+#: kobo/apps/organizations/templates/emails/registered_user_invite.txt:10
+#, python-format
+msgid ""
+"If you already have an account (or have several accounts), please sign in "
+"with the correct account. If you don't already have a KoboToolbox account, "
+"you can create one <a href=\"%(base_url)s/accounts/signup/\" "
+"target=\"_blank\">here</a>. After creating your account, click on the link "
+"below to accept the invite."
+msgstr ""
+
+#: kobo/apps/organizations/templates/emails/registered_user_invite.html:13
+#: kobo/apps/organizations/templates/emails/registered_user_invite.txt:13
+#: kobo/apps/organizations/templates/emails/unregistered_user_invite.html:6
+#: kobo/apps/organizations/templates/emails/unregistered_user_invite.txt:6
+msgid "What joining the organization means for you:"
+msgstr ""
+
+#: kobo/apps/organizations/templates/emails/registered_user_invite.html:15
+#: kobo/apps/organizations/templates/emails/registered_user_invite.txt:14
+#: kobo/apps/organizations/templates/emails/unregistered_user_invite.html:8
+#: kobo/apps/organizations/templates/emails/unregistered_user_invite.txt:7
+msgid ""
+"You will benefit from higher usage limits and additional features, as well "
+"as priority user support."
+msgstr ""
+
+#: kobo/apps/organizations/templates/emails/registered_user_invite.html:16
+#: kobo/apps/organizations/templates/emails/registered_user_invite.txt:15
+#: kobo/apps/organizations/templates/emails/unregistered_user_invite.html:9
+#: kobo/apps/organizations/templates/emails/unregistered_user_invite.txt:8
+#, python-format
+msgid ""
+"Any projects owned by your account will be transferred to "
+"%(organization_name)s and all admins in that organization will have access "
+"to your projects and data."
+msgstr ""
+
+#: kobo/apps/organizations/templates/emails/registered_user_invite.html:17
+#: kobo/apps/organizations/templates/emails/registered_user_invite.txt:16
+#: kobo/apps/organizations/templates/emails/unregistered_user_invite.html:10
+#: kobo/apps/organizations/templates/emails/unregistered_user_invite.txt:9
+msgid ""
+"You will continue to have full management permissions for all projects "
+"previously owned by you."
+msgstr ""
+
+#: kobo/apps/organizations/templates/emails/registered_user_invite.html:20
+#: kobo/apps/organizations/templates/emails/registered_user_invite.txt:18
+msgid ""
+"If you want to transfer any projects to another account or remove a project,"
+" please do so before accepting the invitation. This action cannot be undone."
+msgstr ""
+
+#: kobo/apps/organizations/templates/emails/registered_user_invite.html:22
+#: kobo/apps/organizations/templates/emails/registered_user_invite.txt:20
+#, python-format
+msgid ""
+"To respond to this invitation, please use the following link: "
+"%(base_url)s/#/projects/home?organization_invite=%(invite_uid)s&organization_id=%(organization_id)s"
+msgstr ""
+
+#: kobo/apps/organizations/templates/emails/unregistered_user_invite.html:2
+#: kobo/apps/organizations/templates/emails/unregistered_user_invite.txt:2
+msgid "Hello,"
+msgstr ""
+
+#: kobo/apps/organizations/templates/emails/unregistered_user_invite.html:4
+#: kobo/apps/organizations/templates/emails/unregistered_user_invite.txt:4
+#, python-format
+msgid ""
+"We’d like to give you a warm welcome to KoboToolbox. You’re invited to join "
+"%(organization_name)s organization as %(recipient_role)s with "
+"%(recipient_username)s."
+msgstr ""
+
+#: kobo/apps/organizations/templates/emails/unregistered_user_invite.html:13
+#: kobo/apps/organizations/templates/emails/unregistered_user_invite.txt:11
+#, python-format
+msgid ""
+"It takes less than 2 minutes to create your account to join the "
+"organization. Please create your account here: %(base_url)s/accounts/signup/"
+msgstr ""
+
+#: kobo/apps/organizations/templates/emails/unregistered_user_invite.html:14
+#: kobo/apps/organizations/templates/emails/unregistered_user_invite.txt:13
+msgid ""
+"Once you have finished creating your account, respond to this invitation "
+"using the following link:"
+msgstr ""
+
+#: kobo/apps/organizations/templates/emails/unregistered_user_invite.html:16
+#: kobo/apps/organizations/templates/emails/unregistered_user_invite.txt:14
+#, python-format
+msgid ""
+"%(base_url)s/#/projects/home?organization_invite=%(invite_uid)s&organization_id=%(organization_id)s"
+msgstr ""
+
+#: kobo/apps/project_ownership/models/invite.py:98
+msgid "KoboToolbox project ownership transfer accepted"
+msgstr "Übertragung der Eigentümerrolle des KoboToolbox-Projekts akzeptiert"
+
+#: kobo/apps/project_ownership/models/invite.py:133
+msgid "Action required: KoboToolbox project ownership transfer request"
+msgstr "Aktion erforderlich: Antrag auf Übertragung der Eigentümerrolle am KoboToolbox-Projekt"
+
+#: kobo/apps/project_ownership/models/invite.py:160
+msgid "KoboToolbox project ownership transfer incomplete"
+msgstr "Übertragung der Eigentümerrolle des KoboToolbox-Projekts unvollständig"
+
+#: kobo/apps/project_ownership/models/transfer.py:251
+msgid "Project ownership transferred"
+msgstr "Eigentümerrolle des Projekts wurde übertragen"
+
+#: kobo/apps/project_ownership/models/transfer.py:253
+msgid ""
+"Please note that the ownership of the project **##project_name##** has been "
+"transferred from **##previous_owner##** to **##new_owner##**."
+msgstr "Bitte beachten Sie, dass die Eigentümerrolle für dieses Projekt **##project_name##** von **##previous_owner##** auf **##new_owner##** übertragen wurde."
+
+#: kobo/apps/project_ownership/models/transfer.py:257
+msgid ""
+"Dear ##username##,\n"
+"\n"
+"Please note that the ownership of the project **##project_name##** has been transferred from **##previous_owner##** to **##new_owner##**.\n"
+"\n"
+"Note: You will continue to have the same project permissions until they are changed."
+msgstr "Hallo ##username##,\n\nbitte beachten Sie, dass die Eigentümerrolle am Projekt **##project_name##** von **##previous_owner## ** auf **##new_owner##** übertragen wurde.\n\nHinweis: Sie haben weiterhin dieselben Projektberechtigungen, bis sie geändert werden."
+
+#: kobo/apps/project_ownership/serializers/invite.py:101
+#: kobo/apps/project_ownership/serializers/invite.py:172
+#: kobo/apps/project_ownership/serializers/invite.py:181
+msgid "This field cannot be modified"
+msgstr "Dieses Feld kann nicht geändert werden"
+
+#: kobo/apps/project_ownership/serializers/invite.py:111
+msgid "You must be the owner of each project you want to transfer"
+msgstr "Sie müssen der/die Eigentümer*in jedes Projekts sein, das Sie übertragen möchten"
+
+#: kobo/apps/project_ownership/serializers/invite.py:147
+msgid ""
+"Project `##asset_uid##` cannot be transferred. Current status: ##status##"
+msgstr "Projekt `##asset_uid##` kann nicht übertragen werden. Aktueller Status: ##status##"
+
+#: kobo/apps/project_ownership/serializers/invite.py:167
+msgid "Must not be in the same organization"
+msgstr ""
+
+#: kobo/apps/project_ownership/tasks.py:185
+msgid "Invite has expired"
+msgstr "Die Einladung ist abgelaufen"
+
+#: kobo/apps/project_ownership/templates/emails/accepted_invite.html:3
+#: kobo/apps/project_ownership/templates/emails/declined_invite.html:3
+#: kobo/apps/project_ownership/templates/emails/declined_invite.txt:3
+#: kobo/apps/project_ownership/templates/emails/expired_invite.html:3
+#: kobo/apps/project_ownership/templates/emails/expired_invite.txt:3
+#: kobo/apps/project_ownership/templates/emails/new_invite.html:3
+#: kobo/apps/project_ownership/templates/emails/new_invite.txt:3
+#: kobo/apps/project_ownership/templates/emails/new_invite_org.html:3
+#: kobo/apps/project_ownership/templates/emails/new_invite_org.txt:3
+msgid "Projects:"
+msgstr "Projekte:"
+
+#: kobo/apps/project_ownership/templates/emails/accepted_invite.html:8
+#, python-format
+msgid ""
+"%(recipient)s has accepted your request to transfer ownership of the project"
+" <a href=\"%(base_url)s/#/forms/%(asset_uid)s/landing\">%(asset_name)s</a> "
+"to you."
+msgstr "%(recipient)s hat Ihren Antrag auf Übertragung der Eigentümerrolle für das Projekt <a href=\"%(base_url)s/#/forms/%(asset_uid)s/landing\">%(asset_name)s</a> auf Sie angenommen."
+
+#: kobo/apps/project_ownership/templates/emails/accepted_invite.html:10
+msgid ""
+"All submissions, data storage, and transcription and translation usage for "
+"this project will be transferred to the new project owner."
+msgstr "Alle Übermittlungen, die Datenspeicherung sowie die Transkriptions- und Übersetzungsnutzung für dieses Projekt gehen auf den/die neue*n Projekteigentümer*in über."
+
+#: kobo/apps/project_ownership/templates/emails/accepted_invite.html:12
+#: kobo/apps/project_ownership/templates/emails/accepted_invite.txt:10
+msgid ""
+"Note: You will continue to have permissions to manage the project until the "
+"user permissions are changed."
+msgstr "Hinweis: Sie haben weiterhin die Berechtigung, das Projekt zu verwalten, bis die Benutzerberechtigungen geändert werden."
+
+#: kobo/apps/project_ownership/templates/emails/accepted_invite.html:14
+#: kobo/apps/project_ownership/templates/emails/accepted_invite.txt:12
+#, python-format
+msgid ""
+"%(recipient)s has accepted your request to transfer ownership of these "
+"projects:"
+msgstr "%(recipient)s hat Ihren Antrag auf Übertragung der Eigentümerrolle für diese Projekte angenommen:"
+
+#: kobo/apps/project_ownership/templates/emails/accepted_invite.html:23
+#: kobo/apps/project_ownership/templates/emails/accepted_invite.txt:17
+msgid ""
+"All submissions, data storage, and transcription and translation usage for "
+"these projects will be transferred to the new project owner."
+msgstr "Alle Übermittlungen, die Datenspeicherung sowie die Transkriptions- und Übersetzungsnutzung für diese Projekte werden an den/die neue*n Projekteigentümer*in übertragen."
+
+#: kobo/apps/project_ownership/templates/emails/accepted_invite.html:25
+#: kobo/apps/project_ownership/templates/emails/accepted_invite.txt:19
+msgid ""
+"Note: You will continue to have permissions to manage these projects until "
+"the user permissions are changed."
+msgstr "Hinweis: Sie haben weiterhin die Berechtigung, diese Projekte zu verwalten, bis die Benutzerberechtigungen geändert werden."
+
+#: kobo/apps/project_ownership/templates/emails/accepted_invite.txt:6
+#, python-format
+msgid ""
+"%(recipient)s has accepted your request to transfer ownership of the project"
+" %(asset_name)s (%(base_url)s/#/forms/%(asset_uid)s/landing) to you."
+msgstr "%(recipient)s hat Ihren Antrag angenommen, die Eigentümerrolle für das Projekt %(asset_name)s (%(base_url)s/#/forms/%(asset_uid)s /landing) auf Sie zu übertragen."
+
+#: kobo/apps/project_ownership/templates/emails/accepted_invite.txt:8
+msgid ""
+"All submissions, data storage, and transcription and translation usage for "
+"the project will be transferred to the new project owner."
+msgstr "Alle Übermittlungen, die Datenspeicherung sowie die Transkriptions- und Übersetzungsnutzung für das Projekt gehen auf den/die neue*n Projekteigentümer*in über."
+
+#: kobo/apps/project_ownership/templates/emails/declined_invite.html:8
+#, python-format
+msgid ""
+"%(recipient)s has declined your request to transfer ownership of the project"
+" <a href=\"%(base_url)s/#/forms/%(asset_uid)s/landing\">%(asset_name)s</a>."
+msgstr "%(recipient)s hat Ihren Antrag auf Übertragung der Eigentümerrolle für das Projekt <a href=\"%(base_url)s/#/forms/%(asset_uid)s/landing\">%(asset_name)s</a> auf Sie abgelehnt."
+
+#: kobo/apps/project_ownership/templates/emails/declined_invite.html:10
+#: kobo/apps/project_ownership/templates/emails/declined_invite.txt:9
+msgid ""
+"You will remain the owner of the project. The submissions, data storage, and"
+" transcription and translation usage for the project have not been "
+"transferred."
+msgstr "Sie bleiben der/die Eigentümer*in des Projekts. Die Übermittlungen, die Datenspeicherung sowie die Transkriptions- und Übersetzungsnutzung für das Projekt wurden nicht übertragen."
+
+#: kobo/apps/project_ownership/templates/emails/declined_invite.html:12
+#: kobo/apps/project_ownership/templates/emails/declined_invite.txt:11
+#, python-format
+msgid ""
+"%(recipient)s has declined your request to transfer ownership of these "
+"projects:"
+msgstr "%(recipient)s hat Ihren Antrag auf Übertragung der Eigentümerrolle an diesen Projekten abgelehnt:"
+
+#: kobo/apps/project_ownership/templates/emails/declined_invite.html:20
+#: kobo/apps/project_ownership/templates/emails/declined_invite.txt:16
+msgid ""
+"You will remain the owner of these projects. The submissions, data storage, "
+"and transcription and translation usage for these projects have not been "
+"transferred."
+msgstr "Sie bleiben der/die Eigentümer*in dieser Projekte. Die Übermittlungen, die Datenspeicherung sowie die Transkriptions- und Übersetzungsnutzung für diese Projekte wurden nicht übertragen."
+
+#: kobo/apps/project_ownership/templates/emails/declined_invite.txt:7
+#, python-format
+msgid ""
+"%(recipient)s has declined your request to transfer ownership of the project"
+" %(asset_name)s (%(base_url)s/#/forms/%(asset_uid)s/landing)."
+msgstr "%(recipient)s hat Ihren Antrag auf Übertragung der Eigentümerrolle für das Projekt %(asset_name)s (%(base_url)s/#/forms/%(asset_uid)s/landing) abgelehnt."
+
+#: kobo/apps/project_ownership/templates/emails/expired_invite.html:6
+#, python-format
+msgid "The request you have sent to <b>%(recipient)s</b> has expired."
+msgstr "Die Anfrage, die Sie an <b>%(recipient)s</b> gesendet haben, ist abgelaufen."
+
+#: kobo/apps/project_ownership/templates/emails/expired_invite.txt:7
+#, python-format
+msgid "The request you have sent to %(recipient)s has expired."
+msgstr "Die Anfrage, die Sie an %(recipient)s gesendet haben, ist abgelaufen."
+
+#: kobo/apps/project_ownership/templates/emails/new_invite.html:8
+#: kobo/apps/project_ownership/templates/emails/new_invite_org.html:8
+#, python-format
+msgid ""
+"%(sender_username)s (%(sender_email)s) has requested to transfer ownership "
+"of the project <a "
+"href=\"%(base_url)s/#/forms/%(asset_uid)s/landing\">%(asset_name)s</a> to "
+"you."
+msgstr "%(sender_username)s (%(sender_email)s ) hat beantragt, die Eigentümerrolle für das Projekt <a href=\"%(base_url)s/#/forms/%(asset_uid)s/landing\">%(asset_name)s</a> auf Sie zu übertragen."
+
+#: kobo/apps/project_ownership/templates/emails/new_invite.html:10
+#: kobo/apps/project_ownership/templates/emails/new_invite.html:20
+#: kobo/apps/project_ownership/templates/emails/new_invite.txt:16
+msgid ""
+"When you accept the ownership transfer, all of the submissions, data "
+"storage, and transcription and translation usage for these projects will be "
+"transferred to you and count against your plan limits."
+msgstr "Wenn Sie die Übertragung der Eigentümerrolle akzeptieren, werden alle Übermittlungen, die Datenspeicherung sowie die Transkriptions- und Übersetzungsnutzung für diese Projekte auf Sie übertragen und auf Ihre Tariflimits angerechnet."
+
+#: kobo/apps/project_ownership/templates/emails/new_invite.html:12
+#: kobo/apps/project_ownership/templates/emails/new_invite.txt:11
+#: kobo/apps/project_ownership/templates/emails/new_invite_org.html:21
+#: kobo/apps/project_ownership/templates/emails/new_invite_org.txt:18
+#, python-format
+msgid ""
+"%(sender_username)s (%(sender_email)s) has requested to transfer ownership "
+"of the following projects to you:"
+msgstr "%(sender_username)s (%(sender_email)s ) hat beantragt, die Eigentümerrolle für die folgenden Projekte auf Sie zu übertragen:"
+
+#: kobo/apps/project_ownership/templates/emails/new_invite.html:23
+#: kobo/apps/project_ownership/templates/emails/new_invite.txt:19
+#: kobo/apps/project_ownership/templates/emails/new_invite_org.html:40
+#: kobo/apps/project_ownership/templates/emails/new_invite_org.txt:32
+msgid "If you are unsure, please contact the current owner."
+msgstr "Wenn Sie unsicher sind, wenden Sie sich bitte an den/die derzeitige*n Eigentümer*in."
+
+#: kobo/apps/project_ownership/templates/emails/new_invite.html:25
+#: kobo/apps/project_ownership/templates/emails/new_invite.txt:21
+#: kobo/apps/project_ownership/templates/emails/new_invite_org.html:42
+#: kobo/apps/project_ownership/templates/emails/new_invite_org.txt:34
+#, python-format
+msgid "This transfer request will expire in %(invite_expiry)s days."
+msgstr "Diese Übertragungsanfrage läuft in %(invite_expiry)s Tagen ab."
+
+#: kobo/apps/project_ownership/templates/emails/new_invite.html:27
+#: kobo/apps/project_ownership/templates/emails/new_invite.txt:23
+#: kobo/apps/project_ownership/templates/emails/new_invite_org.html:44
+#: kobo/apps/project_ownership/templates/emails/new_invite_org.txt:36
+#, python-format
+msgid ""
+"To respond to this transfer request, please use the following link: "
+"%(base_url)s/#/projects/home?invite=%(invite_uid)s"
+msgstr "Um auf diese Übertragungsanfrage zu antworten, verwenden Sie bitte den folgenden Link: %(base_url)s/#/projects/home?invite=%(invite_uid)s"
+
+#: kobo/apps/project_ownership/templates/emails/new_invite.txt:7
+#: kobo/apps/project_ownership/templates/emails/new_invite_org.txt:7
+#, python-format
+msgid ""
+"%(sender_username)s (%(sender_email)s) has requested to transfer ownership "
+"of the project %(asset_name)s (%(base_url)s/#/forms/%(asset_uid)s/landing) "
+"to you."
+msgstr "%(sender_username)s (%(sender_email)s) hat beantragt, die Eigentümerrolle für das Projekt %(asset_name)s (%(base_url)s/#/forms/%(asset_uid)s/landing) auf Sie zu übertragen."
+
+#: kobo/apps/project_ownership/templates/emails/new_invite.txt:9
+msgid ""
+"When you accept the ownership transfer, all of the submissions, data "
+"storage, and transcription and translation usage for the project will be "
+"transferred to you and count against your plan limits."
+msgstr "Wenn Sie die Übertragung der Eigentümerrolle akzeptieren, werden alle Übermittlungen, die Datenspeicherung sowie die Transkriptions- und Übersetzungsnutzung für diese Projekte auf Sie übertragen und auf Ihre Tariflimits angerechnet."
+
+#: kobo/apps/project_ownership/templates/emails/new_invite_org.html:10
+#: kobo/apps/project_ownership/templates/emails/new_invite_org.html:29
+#: kobo/apps/project_ownership/templates/emails/new_invite_org.txt:9
+msgid ""
+"Because you are part of a team, this project will be owned by the team, but "
+"you will retain the ability to manage project permissions. If you do not "
+"want the team to own this project, then don’t click on the link below."
+msgstr ""
+
+#: kobo/apps/project_ownership/templates/emails/new_invite_org.html:12
+msgid ""
+"If you accept the transfer: <ul> <li>All submissions, data storage, and "
+"transcription/translation usage for this project will count toward the "
+"team’s plan limits</li> <li>If you leave the team in the future, your "
+"account will still retain manage project permissions for this project</li> "
+"</ul>"
+msgstr ""
+
+#: kobo/apps/project_ownership/templates/emails/new_invite_org.html:31
+msgid ""
+"If you accept the transfer: <ul> <li>All submissions, data storage, and "
+"transcription/translation usage for these projects will count toward the "
+"team’s plan limits</li> </ul>"
+msgstr ""
+
+#: kobo/apps/project_ownership/templates/emails/new_invite_org.txt:11
+msgid ""
+"If you accept the transfer: - All submissions, data storage, and "
+"transcription/translation usage for this project will count toward the "
+"team’s plan limits - If you leave the team in the future, your account will "
+"still retain manage project permissions for this project"
+msgstr ""
+
+#: kobo/apps/project_ownership/templates/emails/new_invite_org.txt:23
+msgid ""
+"Because you are part of a team, these projects will be owned by the team, "
+"but you will retain the ability to manage project permissions. If you do not"
+" want the team to own these projects, then don’t click on the link below."
+msgstr ""
+
+#: kobo/apps/project_ownership/templates/emails/new_invite_org.txt:25
+msgid ""
+"If you accept the transfer: - All submissions, data storage, and "
+"transcription/translation usage for these projects will count toward the "
+"team’s plan limits"
+msgstr ""
+
+#: kobo/apps/reports/report_data.py:134
+msgid "`{}` not found."
+msgstr "`{}` wurde nicht gefunden."
+
+#: kobo/apps/reports/report_data.py:138
+msgid "`{}` is not a select one question."
+msgstr "`{}` ist keine Einzelauswahlfrage."
+
+#: kobo/apps/stripe/admin.py:35
+#, python-format
+msgid "%d plan add-on was created."
+msgid_plural "%d plan add-ons were created."
+msgstr[0] "%d Tarif-Add-on erstellt."
+msgstr[1] "%d Tarif-Add-ons erstellt."
+
+#: kobo/settings/base.py:284
+msgid ""
+"If you cannot access your authenticator app, please enter one of your backup"
+" codes instead. If you cannot access those either, then you will need to "
+"request assistance by contacting [##support email##](mailto:##support "
+"email##)."
+msgstr "Wenn Sie nicht auf Ihre Authentifizierungs-App zugreifen können, geben Sie bitte stattdessen einen Ihrer Backup-Codes ein. Wenn Sie auch darauf nicht zugreifen können, müssen Sie Hilfe anfordern, indem Sie sich an [##support email##](mailto:##support email##) wenden."
+
+#: kobo/settings/base.py:551
+msgid ""
+"The password must be at least 10 characters long and contain 3 or more of "
+"the following: uppercase letters, lowercase letters, numbers, and special "
+"characters. It cannot be similar to your name, username, or email address."
+msgstr "Das Passwort muss mindestens 10 Zeichen lang sein und mindestens 3 der folgenden Zeichen enthalten: Großbuchstaben, Kleinbuchstaben, Zahlen und Sonderzeichen. Es darf nicht Ihrem Namen, Benutzernamen oder Ihrer E-Mail-Adresse ähneln."
+
+#: kobo/static_lists.py:13
+msgid "Public Administration"
+msgstr "Öffentliche Verwaltung"
+
+#: kobo/static_lists.py:14
+msgid "Arts, Entertainment, and Recreation"
+msgstr "Kunst, Unterhaltung und Erholung"
+
+#: kobo/static_lists.py:15
+msgid "Educational Services / Higher Education"
+msgstr "Bildungsdienstleistungen / Hochschulbildung"
+
+#: kobo/static_lists.py:16
+msgid "Health Services / Public Health"
+msgstr "Gesundheitsdienste / öffentliche Gesundheit"
+
+#: kobo/static_lists.py:17
+msgid "Finance and Insurance"
+msgstr "Finanzen und Versicherung"
+
+#: kobo/static_lists.py:18
+msgid "Information / Media"
+msgstr "Informationen / Medien"
+
+#: kobo/static_lists.py:19
+msgid "Economic/Social Development"
+msgstr "Wirtschaftliche/soziale Entwicklung"
+
+#: kobo/static_lists.py:20
+msgid "Security / Police / Peacekeeping"
+msgstr "Sicherheit / Polizei / Friedenssicherung"
+
+#: kobo/static_lists.py:21
+msgid "Disarmament & Demobilization"
+msgstr "Abrüstung und Demobilisierung"
+
+#: kobo/static_lists.py:22
+msgid "Environment"
+msgstr "Umwelt"
+
+#: kobo/static_lists.py:23
+msgid "Private sector"
+msgstr "Privater Sektor"
+
+#: kobo/static_lists.py:24
+msgid "Humanitarian - Coordination / Information Management"
+msgstr "Humanitäre Hilfe – Koordination/Informationsmanagement"
+
+#: kobo/static_lists.py:25
+msgid "Humanitarian - Multiple Clusters"
+msgstr "Humanitäre Hilfe – mehrere Cluster"
+
+#: kobo/static_lists.py:26
+msgid "Humanitarian - Camp Management & Coordination"
+msgstr "Humanitäre Hilfe – Camp-Management und -Koordination"
+
+#: kobo/static_lists.py:27
+msgid "Humanitarian - Early Recovery"
+msgstr "Humanitäre Hilfe – Frühe Wiederherstellung"
+
+#: kobo/static_lists.py:28
+msgid "Humanitarian - Education"
+msgstr "Humanitäre Hilfe – Bildung"
+
+#: kobo/static_lists.py:29
+msgid "Humanitarian - Emergency Shelter"
+msgstr "Humanitäre Hilfe – Notunterkunft"
+
+#: kobo/static_lists.py:30
+msgid "Humanitarian - Emergency Telecoms"
+msgstr "Humanitäre Hilfe – Notfall-Telekommunikation"
+
+#: kobo/static_lists.py:31
+msgid "Humanitarian - Food Security"
+msgstr "Humanitäre Hilfe – Ernährungssicherheit"
+
+#: kobo/static_lists.py:32
+msgid "Humanitarian - Health"
+msgstr "Humanitäre Hilfe – Gesundheit"
+
+#: kobo/static_lists.py:33
+msgid "Humanitarian - Logistics"
+msgstr "Humanitäre Hilfe – Logistik"
+
+#: kobo/static_lists.py:34
+msgid "Humanitarian - Nutrition"
+msgstr "Humanitäre Hilfe – Ernährung"
+
+#: kobo/static_lists.py:35
+msgid "Humanitarian - Protection"
+msgstr "Humanitäre Hilfe – Schutz"
+
+#: kobo/static_lists.py:36
+msgid "Humanitarian - Sanitation, Water & Hygiene"
+msgstr "Humanitäre Hilfe – Sanitärversorgung, Wasser und Hygiene"
+
+#: kobo/static_lists.py:350 kobo/static_lists.py:362
+msgid "Sector"
+msgstr "Sektor"
+
+#: kobo/static_lists.py:351 kobo/static_lists.py:366
+msgid "Country"
+msgstr "Land"
+
+#: kobo/static_lists.py:352
+msgid "Operational purpose of data"
+msgstr "Operativer Zweck der Daten"
+
+#: kobo/static_lists.py:353
+msgid "Does this project collect personally identifiable information?"
+msgstr "Erfasst dieses Projekt personenbezogene Daten?"
+
+#: kobo/static_lists.py:354
+msgid "Description"
+msgstr "Beschreibung"
+
+#: kobo/static_lists.py:358 kpi/password_validation.py:109
+msgid "Full name"
+msgstr "Vollständiger Name des Eigentümers bzw. der Eigentümerin"
+
+#: kobo/static_lists.py:359 kpi/password_validation.py:110
+msgid "Organization name"
+msgstr "Name der Organisation"
+
+#: kobo/static_lists.py:360
+msgid "Organization type"
+msgstr "Organisationstyp"
+
+#: kobo/static_lists.py:361
+msgid "Organization website"
+msgstr "Webseite der Organisation"
+
+#: kobo/static_lists.py:363
+msgid "Gender"
+msgstr "Geschlecht"
+
+#: kobo/static_lists.py:364
+msgid "Bio"
+msgstr "Über mich"
+
+#: kobo/static_lists.py:365
+msgid "City"
+msgstr "Stadt"
+
+#: kobo/static_lists.py:367
+msgid "Twitter"
+msgstr "Twitter"
+
+#: kobo/static_lists.py:368
+msgid "LinkedIn"
+msgstr "LinkedIn"
+
+#: kobo/static_lists.py:369
+msgid "Instagram"
+msgstr "Instagram"
+
+#: kobo/static_lists.py:370
+msgid "I want to receive occasional updates about KoboToolbox"
+msgstr "Ich möchte gelegentlich Updates über KoboToolbox erhalten"
+
+#: kpi/authentication.py:70
+#| msgid "Invalid token."
+msgid "Invalid username/password"
+msgstr "Benutzername/Kennwort ungültig"
+
+#: kpi/deployment_backends/base_backend.py:138
+msgid "No submissions match the given `submission_ids`"
+msgstr "Keine Übermittlungen stimmen mit den angegebenen `submission_ids` überein"
+
+#: kpi/deployment_backends/base_backend.py:603
+msgid ""
+"This param is not implemented. Use `count` property of the response instead."
+msgstr "Dieser Parameter ist nicht implementiert. Verwenden Sie stattdessen `count` Eigenschaft der Antwort."
+
+#: kpi/deployment_backends/base_backend.py:614
+msgid "This param is not supported in `XML` format"
+msgstr "Dieser Parameter wird im `XML`-Format nicht unterstützt"
+
+#: kpi/deployment_backends/base_backend.py:619
+msgid "This is not supported in `XML` format"
+msgstr "Dies wird im `XML`-Format nicht unterstützt"
+
+#: kpi/deployment_backends/base_backend.py:639
+#: kpi/deployment_backends/base_backend.py:668
+#: kpi/deployment_backends/base_backend.py:690 kpi/views/v2/data.py:448
+msgid "Value must be valid JSON."
+msgstr "Der Wert muss ein gültiges JSON sein."
+
+#: kpi/deployment_backends/base_backend.py:644
+msgid "Value must be a list."
+msgstr "Der Wert muss eine Liste sein."
+
+#: kpi/deployment_backends/base_backend.py:675
+#: kpi/deployment_backends/base_backend.py:682
+msgid "A positive integer is required."
+msgstr "Eine positive ganze Zahl ist erforderlich."
+
+#: kpi/deployment_backends/openrosa_backend.py:405
+msgid "Your submission XML is malformed."
+msgstr "Ihr Übermittlungs-XML ist fehlerhaft."
+
+#: kpi/deployment_backends/openrosa_backend.py:411
+msgid "Your submission XML is missing critical elements."
+msgstr "In Ihrer Übermittlungs-XML fehlen wichtige Elemente."
+
+#: kpi/deployment_backends/openrosa_backend.py:449
+msgid ""
+"The submission you attempted to edit could not be found, or you do not have "
+"access to it."
+msgstr "Die Übermittlung, die Sie bearbeiten wollten, konnte nicht gefunden werden oder Sie haben keinen Zugriff darauf."
+
+#: kpi/deployment_backends/openrosa_backend.py:1005
+msgid "Successful submission"
+msgstr "Übermittlung erfolgreich"
+
+#: kpi/exceptions.py:54
+msgid "Invalid payload for bulk updating of submissions"
+msgstr "Ungültige Nutzlast für die Massenaktualisierung von Übermittlungen"
+
+#: kpi/exceptions.py:73
+msgid "Must call `asset.connect_deployment()` first"
+msgstr "Muss zuerst `asset.connect_deployment()` abrufen"
+
+#: kpi/exceptions.py:84
+msgid "XML contains forbidden DTDs"
+msgstr "XML enthält verbotene DTDs"
+
+#: kpi/exceptions.py:95
+msgid "XML contains forbidden entities"
+msgstr "XML enthält verbotene Elemente"
+
+#: kpi/exceptions.py:120
+msgid "Invalid search. Please try again"
+msgstr "Ungültige Suche. Bitte versuchen Sie es erneut."
+
+#: kpi/exceptions.py:125
+msgid "Deployment links to an unexpected KoboCAT XForm"
+msgstr "Link zur Bereitstellung verweist auf unerwartetes KoboCAT-XForm"
+
+#: kpi/exceptions.py:161
+msgid "An error occurred trying to duplicate the submission"
+msgstr "Beim Versuch, die Übermittlung zu duplizieren, ist ein Fehler aufgetreten"
+
+#: kpi/exceptions.py:179
+msgid "The specified object has not been deployed"
+msgstr "Das angegebene Objekt wurde nicht bereitgestellt"
+
+#: kpi/exceptions.py:188
+msgid "Bad syntax"
+msgstr "Syntaxfehler"
+
+#: kpi/exceptions.py:193
+msgid "Not supported field lookup"
+msgstr "Feldsuche wird nicht unterstützt"
+
+#: kpi/exceptions.py:216
+msgid "Your query is too short"
+msgstr "Ihre Anfrage ist zu kurz"
+
+#: kpi/exceptions.py:230
+msgid "The owner of this asset has exeeded their usage limit"
+msgstr ""
+
+#: kpi/fields/jsonschema_form_field.py:23
+#: kpi/fields/jsonschema_form_field.py:26
+msgid "Enter valid JSON."
+msgstr "Geben Sie ein gültiges JSON ein."
+
+#: kpi/fields/jsonschema_form_field.py:158
+msgid "`##place_holder##` field cannot be hidden."
+msgstr "Das `##place_holder##`-Feld kann nicht ausgeblendet werden."
+
+#: kpi/fields/writable_json.py:33
+#, python-brace-format
+msgid "Unable to parse JSON: {error}"
+msgstr "JSON kann nicht analysiert werden:{error}"
+
+#: kpi/mixins/mfa.py:22
+msgid "Multi-factor authentication is enabled for this account. "
+msgstr "Für dieses Konto ist eine mehrstufige Authentifizierung aktiviert. "
+
+#: kpi/models/asset.py:317
+msgid "Can view asset"
+msgstr "Kann Assets ansehen"
+
+#: kpi/models/asset.py:318
+msgid "Can discover asset in public lists"
+msgstr "Kann Assets in öffentlichen Listen entdecken"
+
+#: kpi/models/asset.py:319
+msgid "Can manage all aspects of asset"
+msgstr "Kann alle Aspekte des Assets verwalten"
+
+#: kpi/models/asset.py:321
+msgid "Can submit data to asset"
+msgstr "Kann Daten an das Asset übermitteln"
+
+#: kpi/models/asset.py:322
+msgid "Can view submitted data for asset"
+msgstr "Kann übermittelte Daten für Assets anzeigen"
+
+#: kpi/models/asset.py:323
+msgid ""
+"Can make partial actions on submitted data for asset for specific users"
+msgstr "Kann Teilaktionen für übermittelte Asset-Daten für bestimmte Benutzer*innen durchführen"
+
+#: kpi/models/asset.py:326
+msgid "Can modify submitted data for asset"
+msgstr "Kann übermittelte Daten für das Asset ändern"
+
+#: kpi/models/asset.py:327
+msgid "Can delete submitted data for asset"
+msgstr "Kann übermittelte Daten für das Asset löschen"
+
+#: kpi/models/asset.py:328
+msgid "Can validate submitted data asset"
+msgstr "Kann übermittelte Datenbestände überprüfen"
+
+#: kpi/models/asset.py:347
+msgid "project"
+msgstr "Projekt"
+
+#: kpi/models/asset.py:347
+msgid "form"
+msgstr "Formular"
+
+#: kpi/models/asset.py:349
+msgid "template"
+msgstr "Vorlage"
+
+#: kpi/models/asset.py:350
+msgid "block"
+msgstr "Block"
+
+#: kpi/models/asset.py:351
+msgid "question"
+msgstr "Frage"
+
+#: kpi/models/asset.py:352
+msgid "text"
+msgstr "Text"
+
+#: kpi/models/asset.py:353
+msgid "empty"
+msgstr "leer"
+
+#: kpi/models/asset.py:354
+msgid "collection"
+msgstr "Sammlung"
+
+#: kpi/models/asset.py:361
+msgid "View ##asset_type_label##"
+msgstr "##asset_type_label## anzeigen"
+
+#: kpi/models/asset.py:362
+msgid "Edit ##asset_type_label##"
+msgstr "##asset_type_label## bearbeiten"
+
+#: kpi/models/asset.py:363
+msgid "Discover ##asset_type_label##"
+msgstr "##asset_type_label## entdecken"
+
+#: kpi/models/asset.py:364
+msgid "Manage ##asset_type_label##"
+msgstr "##asset_type_label## verwalten"
+
+#: kpi/models/asset.py:365
+msgid "Add submissions"
+msgstr "Übermittlungen hinzufügen"
+
+#: kpi/models/asset.py:366
+msgid "View submissions"
+msgstr "Übermittlungen anzeigen"
+
+#: kpi/models/asset.py:369
+msgid "Act on submissions only from specific users"
+msgstr "Nur auf Übermittlungen von bestimmten Benutzer*innen handeln"
+
+#: kpi/models/asset.py:372
+msgid "View submissions only from specific users"
+msgstr "Übermittlungen nur von bestimmten Benutzer*innen anzeigen"
+
+#: kpi/models/asset.py:375
+msgid "Edit submissions only from specific users"
+msgstr "Übermittlungen nur von bestimmten Benutzer*innen bearbeiten"
+
+#: kpi/models/asset.py:378
+msgid "Delete submissions only from specific users"
+msgstr "Übermittlungen nur von bestimmten Benutzer*innen löschen"
+
+#: kpi/models/asset.py:381
+msgid "Validate submissions only from specific users"
+msgstr "Übermitlungen nur von bestimmten Benutzer*innen überprüfen"
+
+#: kpi/models/asset.py:384
+msgid "Edit submissions"
+msgstr "Übermittlungen bearbeiten"
+
+#: kpi/models/asset.py:385
+msgid "Delete submissions"
+msgstr "Übermittlungen löschen"
+
+#: kpi/models/asset.py:386
+msgid "Validate submissions"
+msgstr "Übermittlungen überprüfen"
+
+#: kpi/models/asset.py:729
+msgid "Only partial permissions for submissions are supported"
+msgstr "Es werden nur Teilberechtigungen für Übermittlungen unterstützt"
+
+#: kpi/models/asset.py:1490
+msgid "Can not assign '{}' permission to owner"
+msgstr "Die Berechtigung '{}' kann dem/der Eigentümer*in nicht zugewiesen werden"
+
+#: kpi/models/asset.py:1494
+msgid "Can not assign '{}' permission. Partial permissions are missing."
+msgstr "Die Berechtigung '{}' kann nicht zugewiesen werden. Teilberechtigungen fehlen."
+
+#: kpi/models/authorized_application.py:43
+msgid "Invalid token."
+msgstr "Ungültiges Token."
+
+#: kpi/models/import_export_task.py:153
+msgid "Cannot access data"
+msgstr "Auf Daten kann nicht zugegriffen werden"
+
+#: kpi/models/import_export_task.py:762
+msgid "This data does not exist or you do not have access to it"
+msgstr "Diese Daten sind nicht vorhanden oder Sie haben keinen Zugriff darauf"
+
+#: kpi/password_validation.py:95
+msgid "You cannot reuse your last password."
+msgstr "Sie können Ihr letztes Passwort nicht wiederverwenden."
+
+#: kpi/password_validation.py:103
+msgid "Your password cannot be the same as your previous one."
+msgstr "Ihr Passwort darf nicht mit Ihrem vorherigen identisch sein."
+
+#: kpi/password_validation.py:177
+msgid ""
+"The password must contain at least ##number of rules## different kinds of "
+"characters."
+msgstr "Das Passwort muss mindestens ##number of rules## verschiedene Zeichenarten enthalten."
+
+#: kpi/serializers/current_user.py:205
+msgid "Incorrect current password."
+msgstr "Falsches aktuelles Passwort."
+
+#: kpi/serializers/current_user.py:225
+msgid "`current_password` and `new_password` must both be"
+msgstr "`current_password`und `new_password` müssen sein"
+
+#: kpi/serializers/current_user.py:265
+#: kpi/serializers/v2/asset_permission_assignment.py:286
+msgid "This field may not be blank."
+msgstr "Dieses Feld darf nicht leer sein."
+
+#: kpi/serializers/v2/asset.py:161
+#, python-format
+msgid "%(count)d project has been undeleted"
+msgstr "%(count)d Projekt wurde wiederhergestellt"
+
+#: kpi/serializers/v2/asset.py:167
+#, python-format
+msgid "%(count)d project has been deleted"
+msgstr "%(count)d Projekt wurde gelöscht"
+
+#: kpi/serializers/v2/asset.py:174
+#, python-format
+msgid "%(count)d project has been unarchived"
+msgstr "%(count)d Projekt wurde dearchiviert"
+
+#: kpi/serializers/v2/asset.py:180
+#, python-format
+msgid "%(count)d project has been archived"
+msgstr "%(count)d Projekt wurde archiviert"
+
+#: kpi/serializers/v2/asset.py:196
+msgid "One or many projects have been deleted already!"
+msgstr "Ein oder mehrere Projekte wurden bereits gelöscht!"
+
+#: kpi/serializers/v2/asset.py:204
+msgid "One or many projects are already being deleted!"
+msgstr "Ein oder mehrere Projekte werden bereits gelöscht!"
+
+#: kpi/serializers/v2/asset.py:280
+msgid "`action` parameter is required"
+msgstr "`action`-Parameter ist erforderlich"
+
+#: kpi/serializers/v2/asset.py:285
+msgid "Supported values for `action` are: "
+msgstr "Unterstützte Werte für `action` sind: "
+
+#: kpi/serializers/v2/asset.py:307
+msgid "Draft projects cannot be archived"
+msgstr "Projektentwürfe können nicht archiviert werden"
+
+#: kpi/serializers/v2/asset.py:313 kpi/serializers/v2/data.py:61
+#| msgid "Information / Media"
+msgid "Confirmation is required"
+msgstr "Eine Bestätigung ist erforderlich"
+
+#: kpi/serializers/v2/asset.py:974
+msgid "The property is required"
+msgstr "Die Eigenschaft ist erforderlich"
+
+#: kpi/serializers/v2/asset.py:978
+msgid "The property must be an array"
+msgstr "Die Eigenschaft muss ein Array sein"
+
+#: kpi/serializers/v2/asset.py:1000
+#, python-brace-format
+msgid "Some fields are invalid, choices are: `{valid_fields}`"
+msgstr "Einige Felder sind ungültig. Zur Auswahl stehen: `{valid_fields}`"
+
+#: kpi/serializers/v2/asset.py:1022
+msgid "User cannot update current parent collection"
+msgstr "Der/die Benutzer*in kann die aktuelle übergeordnete Sammlung nicht aktualisieren"
+
+#: kpi/serializers/v2/asset.py:1032
+#: kpi/tests/api/v2/test_api_collections.py:476
+msgid "Target collection not found"
+msgstr "Zielsammlung nicht gefunden"
+
+#: kpi/serializers/v2/asset.py:1036
+#: kpi/tests/api/v2/test_api_collections.py:466
+msgid "User cannot update target parent collection"
+msgstr "Der/die Benutzer*in kann die übergeordnete Zielsammlung nicht aktualisieren"
+
+#: kpi/serializers/v2/asset_export_settings.py:64
+msgid "`export_settings` must contain all the following required keys: {}"
+msgstr "`export_settings` muss alle folgenden erforderlichen Schlüssel enthalten: {}"
+
+#: kpi/serializers/v2/asset_export_settings.py:75
+msgid "`export_settings` can contain only the following valid keys: {}"
+msgstr "`export_settings` kann nur die folgenden gültigen Schlüssel enthalten: {}"
+
+#: kpi/serializers/v2/asset_export_settings.py:87
+msgid "`multiple_select` must be either {}"
+msgstr "`multiple_select` muss entweder {} sein"
+
+#: kpi/serializers/v2/asset_export_settings.py:94
+msgid "`type` must be either {}"
+msgstr "`type` muss entweder {} sein"
+
+#: kpi/serializers/v2/asset_export_settings.py:104
+msgid "`group_sep` must be a non-empty value"
+msgstr "`group_sep` muss ein nicht leerer Wert sein"
+
+#: kpi/serializers/v2/asset_export_settings.py:109
+msgid "`lang` for this asset must be either {}"
+msgstr "`lang` für dieses Asset muss entweder {} sein"
+
+#: kpi/serializers/v2/asset_export_settings.py:119
+#: kpi/serializers/v2/export_task.py:232
+msgid "Must be a JSON object"
+msgstr "Muss ein JSON-Objekt sein"
+
+#: kpi/serializers/v2/asset_export_settings.py:134
+#: kpi/serializers/v2/export_task.py:250
+msgid "All values in the array must be integers"
+msgstr "Alle Werte im Array müssen ganze Zahlen sein"
+
+#: kpi/serializers/v2/asset_export_settings.py:145
+msgid "`fields` must be an array"
+msgstr "`fields` muss ein Array sein"
+
+#: kpi/serializers/v2/asset_export_settings.py:149
+msgid "All values in the `fields` array must be strings"
+msgstr "Alle Werte im `fields`-Array müssen Zeichenfolgen sein"
+
+#: kpi/serializers/v2/asset_file.py:121
+msgid "JSON is invalid"
+msgstr "JSON ist ungültig"
+
+#: kpi/serializers/v2/asset_file.py:134
+#| msgid "Invalid token."
+msgid "Invalid content"
+msgstr "Ungültiger Inhalt"
+
+#: kpi/serializers/v2/asset_file.py:147
+msgid "No files have been submitted"
+msgstr "Es wurden keine Dateien gesendet"
+
+#: kpi/serializers/v2/asset_file.py:162
+msgid "File already exists"
+msgstr "Die Datei existiert bereits"
+
+#: kpi/serializers/v2/asset_file.py:212
+msgid ""
+"You cannot upload media file with two different ways at the same time. "
+"Please choose between binary upload, base64 or remote URL."
+msgstr "Sie können Mediendateien nicht auf zwei verschiedene Arten gleichzeitig hochladen. Bitte wählen Sie zwischen binärem Upload, Base64 oder Remote-URL."
+
+#: kpi/serializers/v2/asset_file.py:225
+#: kpi/views/v2/asset_permission_assignment.py:256
+msgid "This field is required"
+msgstr "Dies ist ein Pflichtfeld"
+
+#: kpi/serializers/v2/asset_file.py:233
+msgid "`redirect_url` is required"
+msgstr "`redirect_url` ist erforderlich"
+
+#: kpi/serializers/v2/asset_file.py:243
+msgid "`filename` is required"
+msgstr "`filename` ist erforderlich"
+
+#: kpi/serializers/v2/asset_file.py:257
+msgid "`redirect_url` is invalid"
+msgstr "`redirect_url` ist ungültig"
+
+#: kpi/serializers/v2/asset_file.py:291
+msgid "Only `{}` MIME types are allowed"
+msgstr "Es sind nur `{}`-MIME-Typen zulässig"
+
+#: kpi/serializers/v2/asset_permission_assignment.py:159
+msgid "This field is required for the '{}' permission"
+msgstr "Dieses Feld ist für die Berechtigung `{}` erforderlich"
+
+#: kpi/serializers/v2/asset_permission_assignment.py:173
+#: kpi/serializers/v2/asset_permission_assignment.py:178
+#: kpi/serializers/v2/asset_permission_assignment.py:184
+#: kpi/serializers/v2/asset_permission_assignment.py:493
+msgid "Invalid `url`"
+msgstr "Ungültig: `url`"
+
+#: kpi/serializers/v2/asset_permission_assignment.py:189
+#| msgid "Invalid token."
+msgid "Invalid `filters`"
+msgstr "Ungültig: `filters`"
+
+#: kpi/serializers/v2/asset_permission_assignment.py:206
+#, python-brace-format
+msgid ""
+"{permission} cannot be assigned explicitly to Asset objects of this type."
+msgstr "{permission} kann Asset-Objekten dieses Typs nicht explizit zugewiesen werden."
+
+#: kpi/serializers/v2/asset_permission_assignment.py:285
+msgid "Not a valid list."
+msgstr "Keine gültige Liste."
+
+#: kpi/serializers/v2/asset_permission_assignment.py:486
+#: kpi/serializers/v2/asset_permission_assignment.py:489
+msgid "Invalid hyperlink - Object does not exist."
+msgstr "Ungültiger Hyperlink – Objekt existiert nicht."
+
+#: kpi/serializers/v2/attachment_delete.py:12
+msgid "The attachment UID to delete"
+msgstr ""
+
+#: kpi/serializers/v2/attachment_delete.py:17
+msgid "List of submission root UUIDs to delete attachments from"
+msgstr ""
+
+#: kpi/serializers/v2/attachment_delete.py:28
+msgid "`attachment_uid` and `submission_root_uuids` cannot be used together"
+msgstr ""
+
+#: kpi/serializers/v2/attachment_delete.py:38
+msgid "`attachment_uid` or `submission_root_uuids` must be provided"
+msgstr ""
+
+#: kpi/serializers/v2/attachment_delete.py:46
+msgid "List cannot be empty"
+msgstr ""
+
+#: kpi/serializers/v2/attachment_delete.py:79
+#| msgid "Invalid token."
+msgid "Invalid attachment UID"
+msgstr ""
+
+#: kpi/serializers/v2/attachment_delete.py:81
+msgid "One or more of the root UUIDs are invalid"
+msgstr ""
+
+#: kpi/serializers/v2/attachment_delete.py:93 kpi/views/v2/data.py:690
+msgid "The specified asset has not been deployed"
+msgstr "Das angegebene Asset wurde nicht bereitgestellt"
+
+#: kpi/serializers/v2/data.py:70
+msgid "`submission_ids` must only contain integer values"
+msgstr "`submission_ids` darf nur ganzzahlige Werte enthalten"
+
+#: kpi/serializers/v2/data.py:75
+msgid "`submission_ids` must contain at least one value"
+msgstr "`submission_ids` muss mindestens einen Wert enthalten"
+
+#: kpi/serializers/v2/data.py:83
+msgid "`data` is required"
+msgstr "`data` ist erforderlich"
+
+#: kpi/serializers/v2/data.py:91
+msgid "`validation_status.uid` is required"
+msgstr "`validation_status.uid` ist erforderlich"
+
+#: kpi/serializers/v2/export_task.py:126
+msgid "Must contain all the following required keys: {}"
+msgstr "Muss alle folgenden erforderlichen Schlüssel enthalten: {}"
+
+#: kpi/serializers/v2/export_task.py:140
+msgid "Can contain only the following valid keys: {}"
+msgstr "Kann nur die folgenden gültigen Schlüssel enthalten: {}"
+
+#: kpi/serializers/v2/export_task.py:155 kpi/serializers/v2/export_task.py:240
+msgid "Must be an array"
+msgstr "Muss ein Array sein"
+
+#: kpi/serializers/v2/export_task.py:162
+msgid "All values in the array must be strings"
+msgstr "Alle Werte im Array müssen Zeichenfolgen sein"
+
+#: kpi/serializers/v2/export_task.py:172
+msgid "Must be a non-empty value"
+msgstr "Muss ein nicht leerer Wert sein"
+
+#: kpi/serializers/v2/export_task.py:185
+msgid "For this asset must be either {}"
+msgstr "Für dieses Asset muss es entweder {} sein"
+
+#: kpi/serializers/v2/export_task.py:197 kpi/serializers/v2/export_task.py:261
+msgid "Must be either {}"
+msgstr "Muss entweder {} sein"
+
+#: kpi/serializers/v2/export_task.py:207
+msgid "The asset must be deployed."
+msgstr "Das Asset muss bereitgestellt werden."
+
+#: kpi/serializers/v2/export_task.py:224
+msgid "The export name must be a string."
+msgstr "Der Exportname muss eine Zeichenfolge sein."
+
+#: kpi/serializers/v2/paired_data.py:92
+msgid "Source cannot be changed"
+msgstr "Die Quelle kann nicht geändert werden"
+
+#: kpi/serializers/v2/paired_data.py:98
+#, python-brace-format
+msgid "Data sharing for `{source_uid}` is not enabled"
+msgstr "Die Datenfreigabe für `{source_uid}` ist nicht aktiviert"
+
+#: kpi/serializers/v2/paired_data.py:110
+#, python-brace-format
+msgid "Pairing data with `{source_uid}` is not allowed"
+msgstr "Das Koppeln von Daten mit `{source_uid}` ist nicht zulässig"
+
+#: kpi/serializers/v2/paired_data.py:115
+#, python-brace-format
+msgid "Source `{source}` is already paired"
+msgstr "Die Quelle `{source}` ist bereits gekoppelt"
+
+#: kpi/serializers/v2/paired_data.py:157
+#, python-brace-format
+msgid "Some fields are invalid, choices are: `{source_fields}`"
+msgstr "Einige Felder sind ungültig. Zur Auswahl stehen: `{source_fields}`"
+
+#: kpi/serializers/v2/paired_data.py:182
+msgid "Only letters, numbers and `-` are allowed"
+msgstr "Es sind nur Buchstaben, Zahlen und `-` erlaubt"
+
+#: kpi/serializers/v2/paired_data.py:189
+msgid "Extension must be `xml`"
+msgstr "Erweiterung muss `xml` sein"
+
+#: kpi/serializers/v2/paired_data.py:222
+#, python-brace-format
+msgid "`{basename}` is already used"
+msgstr "`{basename}` wird bereits verwendet"
+
+#: kpi/serializers/v2/user_asset_subscription.py:42
+#, python-brace-format
+msgid "Invalid asset type. Only `{asset_type}` is allowed"
+msgstr "Ungültiger Asset-Typ. Nur `{asset_type}` ist erlaubt"
+
+#: kpi/templates/custom_404.html:7
+msgid "Page not found (404)"
+msgstr "Seite nicht gefunden (404)"
+
+#: kpi/templates/custom_404.html:10
+msgid ""
+"This page does not exist on the server. Please check the URL or link that "
+"sent you here."
+msgstr "Diese Seite existiert auf dem Server nicht. Bitte überprüfen Sie die verwendete URL bzw. den verwendeten Link."
+
+#: kpi/templates/custom_500.html:7
+msgid "Server error (500)"
+msgstr "Serverfehler (500)"
+
+#: kpi/templates/custom_500.html:10
+msgid "Something went wrong when trying to process your request."
+msgstr "Bei der Verarbeitung der Anfrage ist ein Fehler aufgetreten."
+
+#: kpi/templates/modern_browsers.html:3 kpi/templates/modern_browsers.html:5
+msgid "Modern Browsers"
+msgstr "Moderne Browser"
+
+#: kpi/templates/modern_browsers.html:8
+msgid ""
+"Ouch! Sorry, you were probably sent here because your browser is outdated or"
+" perhaps it has its key features disabled by using \"private browsing\" "
+"mode."
+msgstr "Entschuldigung, Sie wurden wahrscheinlich hierher geschickt, weil Ihr Browser veraltet ist oder vielleicht weil seine Schlüsselfunktionen durch den „privates Browsen“-Modus deaktiviert wurden."
+
+#: kpi/templates/modern_browsers.html:12
+msgid ""
+"If you are using an outdated browser, we recommend upgrading to a recent "
+"version of one of the following excellent modern browsers:"
+msgstr "Falls Sie einen veralteten Browser verwenden, empfehlen wir eine Aktualisierung auf eine aktuelle Version von einer der folgenden hervorragenden modernen Browser:"
+
+#: kpi/templates/modern_browsers.html:17
+msgid "Firefox download page"
+msgstr "Firefox-Download-Seite"
+
+#: kpi/templates/modern_browsers.html:18
+msgid "Firefox"
+msgstr "Firefox"
+
+#: kpi/templates/modern_browsers.html:22
+msgid "Chrome download page"
+msgstr "Chrome-Download-Seite"
+
+#: kpi/templates/modern_browsers.html:23
+msgid "Chrome"
+msgstr "Chrome"
+
+#: kpi/templates/modern_browsers.html:27
+msgid "Edge download page"
+msgstr "Edge-Download-Seite"
+
+#: kpi/templates/modern_browsers.html:28
+msgid "Edge"
+msgstr "Edge"
+
+#: kpi/templates/modern_browsers.html:32
+msgid "Opera download page"
+msgstr "Opera-Download-Seite"
+
+#: kpi/templates/modern_browsers.html:33
+msgid "Opera"
+msgstr "Opera"
+
+#: kpi/tests/test_registration.py:71
+msgid "This email domain is not allowed to create an account"
+msgstr "Mit dieser E-Mail-Domäne darf kein Konto erstellt werden"
+
+#: kpi/utils/two_database_configuration_checker.py:41
+msgid "Exactly two databases must be configured"
+msgstr "Es müssen genau zwei Datenbanken konfiguriert werden"
+
+#: kpi/utils/two_database_configuration_checker.py:42
+msgid ""
+"KPI and KoBoCAT must each have their own databases. Configure the KPI "
+"database as 'default' and the KoBoCAT database as 'kobocat'."
+msgstr "KPI und KoBoCAT müssen jeweils über eigene Datenbanken verfügen. Konfigurieren Sie die KPI-Datenbank als „default“ und die KoBoCAT-Datenbank als „kobocat“."
+
+#: kpi/utils/two_database_configuration_checker.py:63
+msgid "KPI may not share a database with KoBoCAT"
+msgstr "KPI darf keine Datenbank mit KoBoCAT teilen"
+
+#: kpi/utils/two_database_configuration_checker.py:64
+msgid "KPI and KoBoCAT must each have their own databases."
+msgstr "KPI und KoBoCAT müssen jeweils über eigene Datenbanken verfügen."
+
+#: kpi/utils/two_database_configuration_checker.py:133
+msgid "Incomplete migration from shared-database installation"
+msgstr "Unvollständige Migration von der Installation der gemeinsam genutzten Datenbank"
+
+#: kpi/utils/two_database_configuration_checker.py:134
+msgid ""
+"The KoBoCAT database was originally shared by KPI, but the KPI tables were "
+"not copied from that shared database to the new, KPI-only database."
+msgstr "Die KoBoCAT-Datenbank wurde ursprünglich von KPI gemeinsam genutzt, die KPI-Tabellen wurden jedoch nicht von dieser gemeinsam genutzten Datenbank in die neue reine KPI-Datenbank kopiert."
+
+#: kpi/views/current_user.py:86
+#| msgid "Invalid token."
+msgid "Invalid confirmation"
+msgstr "Ungültige Bestätigung"
+
+#: kpi/views/current_user.py:90
+msgid "You still own projects. Delete or transfer them first."
+msgstr ""
+
+#: kpi/views/v2/asset_export_settings.py:206
+msgid "Only the following formats are available: ##format list##"
+msgstr "Es stehen nur die folgenden Formate zur Verfügung: ##format list##"
+
+#: kpi/views/v2/asset_permission_assignment.py:260
+#: kpi/views/v2/asset_permission_assignment.py:323
+msgid "Owner's permissions cannot be deleted"
+msgstr "Die Berechtigungen des/der Eigentümer*in können nicht gelöscht werden"
+
+#: kpi/views/v2/asset_permission_assignment.py:293
+msgid "Source and destination objects don't seem to have the same type"
+msgstr "Quell- und Zielobjekte scheinen nicht denselben Typ zu haben"
+
+#: kpi/views/v2/attachment.py:179
+msgid "`xpath` query parameter is required"
+msgstr "`xpath`-Abfrageparameter ist erforderlich"
+
+#: kpi/views/v2/attachment.py:209
+msgid "Invalid XPath syntax"
+msgstr "Ungültige XPath-Syntax"
+
+#: kpi/views/v2/attachment.py:213
+msgid "The path could not be found in the submission"
+msgstr "Der Pfad konnte in der Übermittlung nicht gefunden werden"
+
+#: kpi/views/v2/attachment.py:223
+msgid "The error occurred during conversion"
+msgstr "Der Fehler ist während der Konvertierung aufgetreten"
+
+#: kpi/views/v2/attachment.py:227
+msgid "Conversion is not supported for {}"
+msgstr "Die Konvertierung wird für {} nicht unterstützt"
+
+#: kpi/views/v2/data.py:679
+msgid "A positive integer is required"
+msgstr "Eine positive ganze Zahl ist erforderlich"
+
+#~ msgid "User"
+#~ msgstr "Username"
+
+#~ msgid "Username"
+#~ msgstr "Username"

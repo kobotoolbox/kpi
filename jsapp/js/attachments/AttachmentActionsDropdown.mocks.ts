@@ -96,7 +96,6 @@ export const assetWithImage: AssetResponse = {
   report_custom: {},
   advanced_features: {},
   analysis_form_json: {
-    engines: {},
     additional_fields: [],
   },
   map_styles: {},
