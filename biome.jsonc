@@ -55,7 +55,6 @@
       "correctness": {
         "noEmptyPattern": "off", // Recommended rule. TODO: review 6 cases and enable.
         "noInnerDeclarations": "off", // Recommended rule. TODO: review 19 cases and enable.
-        "noInvalidUseBeforeDeclaration": "off", // Recommended rule. TODO: review 0 cases and enable.
         "noSwitchDeclarations": "off", // Recommended rule. TODO: review 2 cases and enable.
         "noUnsafeOptionalChaining": "off", // Recommended rule. TODO: review 5 cases and enable.
         "noUnusedFunctionParameters": "off", // Recommended rule. TODO: review 14 cases and enable.
@@ -64,8 +63,7 @@
         "useExhaustiveDependencies": "off", // Recommended rule. TODO: review 103 cases and enable.
         "useHookAtTopLevel": "off", // Recommended rule. TODO: review 28 cases and enable.
         "useJsxKeyInIterable": "off", // Recommended rule. TODO: review 1 cases and enable.
-        "useParseIntRadix": "off", // Recommended rule. TODO: review 16 cases and enable.
-        "useValidTypeof": "off" // Recommended rule. TODO: review 0 cases and enable.
+        "useParseIntRadix": "off" // Recommended rule. TODO: review 16 cases and enable.
       },
       "suspicious": {
         "noArrayIndexKey": "off", // Recommended rule. TODO: review 39 cases and enable.
@@ -114,15 +112,11 @@
         "noStaticElementInteractions": "off", // Recommended rule. TODO: review 20 cases and enable.
         "noSvgWithoutTitle": "off", // Recommended rule. TODO: review 1 cases and enable.
         "useAltText": "off", // Recommended rule. TODO: review 1 cases and enable.
-        "useAriaPropsForRole": "off", // Recommended rule. TODO: review 0 cases and enable.
         "useAriaPropsSupportedByRole": "off", // Recommended rule. TODO: review 1 cases and enable.
         "useButtonType": "off", // Recommended rule. TODO: review 31 cases and enable.
-        "useFocusableInteractive": "off", // Recommended rule. TODO: review 0 cases and enable.
         "useIframeTitle": "off", // Recommended rule. TODO: review 4 cases and enable.
         "useKeyWithClickEvents": "off", // Recommended rule. TODO: review 24 cases and enable.
-        "useKeyWithMouseEvents": "off", // Recommended rule. TODO: review 0 cases and enable.
         "useMediaCaption": "off", // Recommended rule. TODO: review 2 cases and enable.
-        "useSemanticElements": "off", // Recommended rule. TODO: review 0 cases and enable.
         "useValidAnchor": "off" // Recommended rule. TODO: review 4 cases and enable.
       },
       "style": {
@@ -136,11 +130,9 @@
         "noYodaExpression": "error", // Enable all safely fixable rules.
         "useAsConstAssertion": "error", // Enable all safely fixable rules.
         "useCollapsedElseIf": "error", // Enable all safely fixable rules.
-        "useDefaultParameterLast": "off", // Recommended rule. TODO: review 0 cases and enable.
         "useExportType": "error", // Enable all safely fixable rules.
         "useNamingConvention": "off", // TODO: Enable all safely fixable rules.
         "useNodeAssertStrict": "error", // Enable all safely fixable rules.
-        "useNodejsImportProtocol": "off", // Recommended rule. TODO: review 0 cases and enable.
         "useSelfClosingElements": "error", // Enable all safely fixable rules.
         "useSingleVarDeclarator": "off", // Recommended rule. TODO: review 8 cases and enable.
         "useTemplate": "off" // Recommended rule. TODO: review 88 cases and enable.
