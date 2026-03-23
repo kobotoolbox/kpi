@@ -365,7 +365,7 @@ class ScimSchemasView(APIView):
     """
 
     authentication_classes = [ScimAuthentication]
-    permission_classes = []
+    permission_classes = [IsAuthenticatedIdP]
     parser_classes = [SCIMParser, JSONParser]
     renderer_classes = [SCIMRenderer]
 
@@ -543,7 +543,7 @@ class ScimResourceTypesView(APIView):
     """
 
     authentication_classes = [ScimAuthentication]
-    permission_classes = []
+    permission_classes = [IsAuthenticatedIdP]
     parser_classes = [SCIMParser, JSONParser]
     renderer_classes = [SCIMRenderer]
 
