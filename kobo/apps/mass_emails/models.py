@@ -249,7 +249,7 @@ class MassEmailRecord(AbstractTimeStampedModel):
     email_job = models.ForeignKey(
         MassEmailJob, on_delete=models.PROTECT, related_name='records'
     )
-    status = models.CharField(choices=EmailStatus.choices, null=True, blank=True)
+    status = models.CharField(choices=EmailStatus, null=True, blank=True)
     uid = KpiUidField(uid_prefix='mer')
 
     class Meta:

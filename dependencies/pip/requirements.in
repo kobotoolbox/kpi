@@ -6,8 +6,8 @@ git+https://github.com/kobotoolbox/formpack.git@e43428525a77d2957141a54f8b1dd467
 
 # More up-to-date version of django-digest than PyPI seems to have.
 # Also, python-digest is an unlisted dependency thereof.
-git+https://github.com/dimagi/python-digest@5c94bb74516b977b60180ee832765c0695ff2b56#egg=python_digest
-git+https://github.com/kobotoolbox/django-digest@3995226ed8e5bd1cb32c640aae970f8c104f6156#egg=django_digest
+git+https://github.com/dimagi/python-digest@9c77ff12e7d7fedf792b25fddd7f443e1d02206f#egg=python_digest
+git+https://github.com/kobotoolbox/django-digest@a417e901c55d7c0aee89e2aab719975f45dbec4e#egg=django_digest
 
 # ssrf protect
 git+https://github.com/kobotoolbox/ssrf-protect@9b97d3f0fd8f737a38dd7a6b64efeffc03ab3cdd#egg=ssrf_protect
@@ -17,7 +17,7 @@ git+https://github.com/kobotoolbox/ssrf-protect@9b97d3f0fd8f737a38dd7a6b64efeffc
 git+https://github.com/trevoriancox/django-dont-vary-on.git@01a804122b7ddcdc22f50b40993f91c27b03bef6#egg=django-dont-vary-on
 
 # Regular PyPI packages
-Django>=4.2,<4.3
+Django>=5.1,<5.2
 Markdown
 Pygments
 amqp
@@ -32,7 +32,7 @@ django-allauth>=65.11.2
 django-allauth[mfa]
 django-braces
 django-celery-beat
-django-constance<4  # temporary 20260226
+django-constance>=4
 django-cors-headers
 django-csp<4  # temporary 20260226
 django-debug-toolbar<5  # temporary 20260226
@@ -43,7 +43,7 @@ django-import-export-celery
 django-extensions<4  # temporary 20260226
 django-oauth-toolkit<3  # temporary 20260226
 django-organizations
-django-redis<6  # temporary 20260226
+django-redis
 django-storages[azure,boto3]
 django-amazon-ses
 django-webpack-loader
@@ -51,7 +51,6 @@ django-loginas
 django-markdownx
 django-prometheus
 
-django-reversion<6  # temporary 20260226
 django-taggit<6  # temporary 20260226
 django-private-storage
 djangorestframework
@@ -111,7 +110,6 @@ django-trench
 sentry-sdk<2  # temporary 20260226
 
 # Kobocat
-django-guardian<3  # temporary 20260226
 modilabs-python-utils
 djangorestframework-csv
 djangorestframework-jsonp

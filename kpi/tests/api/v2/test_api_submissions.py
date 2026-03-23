@@ -891,7 +891,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
                 'pk': 9999,
             },
         )
-        response = self.client.delete(url, HTTP_ACCEPT='application/json')
+        response = self.client.delete(url, headers={'accept': 'application/json'})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_delete_submission_as_anonymous(self):
@@ -912,7 +912,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
             },
         )
 
-        response = self.client.delete(url, HTTP_ACCEPT='application/json')
+        response = self.client.delete(url, headers={'accept': 'application/json'})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_delete_submission_not_shared_as_anotheruser(self):
@@ -932,7 +932,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
             },
         )
 
-        response = self.client.delete(url, HTTP_ACCEPT='application/json')
+        response = self.client.delete(url, headers={'accept': 'application/json'})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_delete_submission_shared_as_anotheruser(self):
@@ -951,18 +951,18 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
                 'pk': submission['_id'],
             },
         )
-        response = self.client.delete(url, HTTP_ACCEPT='application/json')
+        response = self.client.delete(url, headers={'accept': 'application/json'})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
         # `another_user` should not be able to delete with 'change_submissions'
         # permission.
         self.asset.assign_perm(self.anotheruser, PERM_CHANGE_SUBMISSIONS)
-        response = self.client.delete(url, HTTP_ACCEPT='application/json')
+        response = self.client.delete(url, headers={'accept': 'application/json'})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
         # Let's assign them 'delete_submissions'. Everything should be ok then!
         self.asset.assign_perm(self.anotheruser, PERM_DELETE_SUBMISSIONS)
-        response = self.client.delete(url, HTTP_ACCEPT='application/json')
+        response = self.client.delete(url, headers={'accept': 'application/json'})
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         response = self.client.get(self.submission_list_url, {'format': 'json'})
         self.assertEqual(response.data['count'], len(self.submissions) - 1)
@@ -995,7 +995,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
             },
         )
         response = self.client.delete(
-            url, content_type='application/json', HTTP_ACCEPT='application/json'
+            url, content_type='application/json', headers={'accept': 'application/json'}
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -1010,7 +1010,7 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
             },
         )
         response = self.client.delete(
-            url, content_type='application/json', HTTP_ACCEPT='application/json'
+            url, content_type='application/json', headers={'accept': 'application/json'}
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         response = self.client.get(self.submission_list_url, {'format': 'json'})

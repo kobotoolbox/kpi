@@ -17,7 +17,6 @@ from django.utils.translation import gettext_lazy as t
 from pymongo import MongoClient
 
 from kpi.constants import PERM_DELETE_ASSET, PERM_MANAGE_ASSET
-from kpi.utils.json import LazyJSONSerializable
 from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
 
 env = environ.Env()
@@ -96,7 +95,6 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_prometheus',
-    'reversion',
     'private_storage',
     'kobo.apps.KpiConfig',
     'kobo.apps.accounts',
@@ -297,7 +295,7 @@ CONSTANCE_CONFIG = {
         'Enable two-factor authentication'
     ),
     'MFA_LOCALIZED_HELP_TEXT': (
-        LazyJSONSerializable({
+        {
             'default': t(
                 'If you cannot access your authenticator app, please enter one '
                 'of your backup codes instead. If you cannot access those '
@@ -309,7 +307,7 @@ CONSTANCE_CONFIG = {
                 'a valid language code, but this entry is here to show you '
                 'an example of adding another message in a different language.'
             )
-        }),
+        },
         (
             'Guidance message presented when users click the '
             '"Problems with the token" link.\n\n'
@@ -379,7 +377,7 @@ CONSTANCE_CONFIG = {
         'Number of allowed automatic Qualitative Analysis requests per user per second.'
     ),
     'USER_METADATA_FIELDS': (
-        LazyJSONSerializable([
+        [
             {'name': 'name', 'required': True},
             {'name': 'organization', 'required': False},
             {'name': 'organization_type', 'required': False},
@@ -392,7 +390,7 @@ CONSTANCE_CONFIG = {
             {'name': 'linkedin', 'required': False},
             {'name': 'instagram', 'required': False},
             {'name': 'newsletter_subscription', 'required': False},
-        ]),
+        ],
         # The available fields are hard-coded in the front end
         'Display (and optionally require) these metadata fields for users.\n'
         "Possible fields are:\n"
@@ -406,11 +404,11 @@ CONSTANCE_CONFIG = {
         'long_metadata_fields_jsonschema'
     ),
     'PROJECT_METADATA_FIELDS': (
-        LazyJSONSerializable([
+        [
             {'name': 'sector', 'required': False},
             {'name': 'country', 'required': False},
             {'name': 'description', 'required': False},
-        ]),
+        ],
         # The available fields are hard-coded in the front end
         'Display (and optionally require) these metadata fields for projects.\n'
         "Possible fields are:\n"
@@ -555,9 +553,8 @@ CONSTANCE_CONFIG = {
         'Enable custom password guidance text to help users create their passwords.',
     ),
     'CUSTOM_PASSWORD_GUIDANCE_TEXT': (
-        LazyJSONSerializable(
-            {
-                'default': t(
+        {
+            'default': t(
                     'The password must be at least 10 characters long and'
                     ' contain 3 or more of the following: uppercase letters,'
                     ' lowercase letters, numbers, and special characters. It'
@@ -570,8 +567,7 @@ CONSTANCE_CONFIG = {
                     ' you an example of adding another message in a different'
                     ' language.'
                 ),
-            }
-        ),
+        },
         (
             'Guidance message presented when users create or modify a password. '
             'It should reflect the defined password rules.\n\n'
@@ -804,7 +800,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
 }
 
 # Tell django-constance to use a database model instead of Redis
-CONSTANCE_BACKEND = 'kobo.apps.constance_backends.database.DatabaseBackend'
+CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
 CONSTANCE_DATABASE_CACHE_BACKEND = 'default'
 
 

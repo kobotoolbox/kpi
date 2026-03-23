@@ -1,8 +1,8 @@
 import json
 
 from django.core.serializers.json import DjangoJSONEncoder
-from django.utils.functional import Promise
 from django.utils.encoding import force_str
+from django.utils.functional import Promise
 from django.utils.text import normalize_newlines
 
 
@@ -16,11 +16,13 @@ class LazyJSONEncoder(DjangoJSONEncoder):
 
 class LazyJSONSerializable:
     """
-    Wrapper for python objects (such as lists or dicts) which contain lazy gettext
-    objects and could not be interpreted when the application loads.
+    Legacy class kept for pickle deserialization compatibility.
 
-    It can be JSON serialized.
+    Constance 4 migration `0003_drop_pickle` needs to unpickle existing DB
+    values that were stored as `LazyJSONSerializable` instances. Once that
+    migration has run in all environments, this class can be removed.
     """
+
     def __init__(self, o):
         self.object = o
 

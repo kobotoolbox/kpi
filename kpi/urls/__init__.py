@@ -27,11 +27,12 @@ urlpatterns = [
         'patch': 'partial_update',
         'delete': 'destroy',
     }), name='currentuser-detail'),
-    re_path(r'^', include(router_api_v1_urls)),
-    re_path(r'^api/v2/', include((router_api_v2_urls, URL_NAMESPACE))),
+    path('', include(router_api_v1_urls)),
+    path('api/v2/', include((router_api_v2_urls, URL_NAMESPACE))),
+    path('api/scim/v2/', include('kobo.apps.kobo_scim.urls')),
     path('', include('kobo.apps.accounts.urls')),
     path('', include('kobo.apps.service_health.urls')),
-    re_path(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
+    path('o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
     # DEPRECATED, remove with v1
     path(
         'authorized_application/authenticate_user/',
@@ -44,7 +45,7 @@ urlpatterns = [
         name='authorized-application-authenticate-user',
     ),
     path('modern_browsers/', modern_browsers),
-    re_path(r'^i18n/', include('django.conf.urls.i18n')),
+    path('i18n/', include('django.conf.urls.i18n')),
     # Translation catalog for client code.
     path('jsi18n/', JavaScriptCatalog.as_view(),
          name='javascript-catalog'),
@@ -52,10 +53,10 @@ urlpatterns = [
     path('environment/', EnvironmentView.as_view(), name='environment'),
     re_path(r'^configurationfile/(?P<slug>[^/]+)/?',
             ConfigurationFile.content_view, name='configurationfile'),
-    re_path(r'^private-media/', include(private_storage.urls)),
+    path('private-media/', include(private_storage.urls)),
     # Statistics for superusers
-    re_path(
-        r'^superuser_stats/',
+    path(
+        'superuser_stats/',
         include(('kobo.apps.superuser_stats.urls', 'superuser_stats')),
     ),
     path('logout-all/', logout_from_all_devices, name='logout_all'),
@@ -64,8 +65,8 @@ urlpatterns = [
 
 if settings.STRIPE_ENABLED:
     urlpatterns = [
-        re_path(r'^api/v2/stripe/', include('kobo.apps.stripe.urls')),
-        re_path(r'^api/v2/stripe/', include('djstripe.urls', namespace='djstripe')),
+        path('api/v2/stripe/', include('kobo.apps.stripe.urls')),
+        path('api/v2/stripe/', include('djstripe.urls', namespace='djstripe')),
     ] + urlpatterns
 
 
