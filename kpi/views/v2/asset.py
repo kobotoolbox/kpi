@@ -901,7 +901,9 @@ class AssetViewSet(
     @action(detail=False, methods=['GET'])
     def counts(self, request):
         self._filtered_queryset = self.filter_queryset(self.get_queryset())
-        serializer = AssetListCountSerializer(self._filtered_queryset)
+        serializer = AssetListCountSerializer(
+            self._filtered_queryset, context={'request': request}
+        )
         return Response(serializer.data)
 
     @action(detail=False, methods=['GET'])

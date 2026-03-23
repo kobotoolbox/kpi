@@ -20,11 +20,11 @@ from kpi.constants import API_NAMESPACES
 from kpi.permissions import AdvancedSubmissionPermission
 from kpi.renderers import BasicHTMLRenderer
 from kpi.views.v2.asset import AssetViewSet
-from kpi.views.v2.asset_counts import AssetCountsViewSet
 from kpi.views.v2.asset_export_settings import AssetExportSettingsViewSet
 from kpi.views.v2.asset_file import AssetFileViewSet
 from kpi.views.v2.asset_permission_assignment import AssetPermissionAssignmentViewSet
 from kpi.views.v2.asset_snapshot import AssetSnapshotViewSet
+from kpi.views.v2.asset_submission_counts import AssetSubmissionCountsViewSet
 from kpi.views.v2.asset_usage import AssetUsageViewSet
 from kpi.views.v2.asset_version import AssetVersionViewSet
 from kpi.views.v2.attachment import AttachmentViewSet
@@ -86,11 +86,12 @@ URL_NAMESPACE = API_NAMESPACES['v2']
 router_api_v2 = OpenRosaCompatibleExtendedRouter()
 asset_routes = router_api_v2.register(r'assets', AssetViewSet, basename='asset')
 
-asset_routes.register(r'counts',
-                      AssetCountsViewSet,
-                      basename='asset-counts',
-                      parents_query_lookups=['asset'],
-                      )
+asset_routes.register(
+    r'counts',
+    AssetSubmissionCountsViewSet,
+    basename='asset-counts',
+    parents_query_lookups=['asset'],
+)
 
 asset_routes.register(r'files',
                       AssetFileViewSet,

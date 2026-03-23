@@ -110,6 +110,7 @@ from .serializers import ProjectViewSerializer
             AssetListCountSerializer,
             require_auth=False,
             validate_payload=False,
+            raise_access_forbidden=False,
         ),
     ),
 )
@@ -121,7 +122,7 @@ class ProjectViewViewSet(
 
     Available actions:
      - assets        → GET   /api/v2/project-views/{uid_project_view}/assets/
-     - asset-counts  → GET   /api/v2/project-views/{uid_project_view}/asset-counts/
+     - asset-counts  → GET   /api/v2/project-views/{uid_project_view}/assets/counts/
      - export_list   → GET   /api/v2/project-views/{uid_project_view}/{obj_type}/export/
      - export_post   → POST  /api/v2/project-views/{uid_project_view}/{obj_type}/export/
      - list          → GET   /api/v2/project-views/
@@ -182,7 +183,7 @@ class ProjectViewViewSet(
             queryset, serializer_class=AssetMetadataListSerializer
         )
 
-    @action(detail=True, methods=['GET'], url_path='asset-counts')
+    @action(detail=True, methods=['GET'], url_path='assets/counts')
     def asset_counts(self, request, uid_project_view):
         if not user_has_view_perms(request.user, uid_project_view):
             raise Http404
@@ -192,7 +193,9 @@ class ProjectViewViewSet(
         queryset = self.filter_queryset(
             self._get_regional_queryset(assets, uid_project_view, obj_type='asset')
         )
-        serializer = AssetListCountSerializer(queryset)
+        serializer = AssetListCountSerializer(
+            queryset, context=self.get_serializer_context()
+        )
         return Response(serializer.data)
 
     @extend_schema(

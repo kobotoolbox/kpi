@@ -1298,18 +1298,28 @@ class AssetListCountSerializer(serializers.Serializer):
     archived_count = serializers.SerializerMethodField()
     draft_count = serializers.SerializerMethodField()
 
+    def _request_is_anonymous(self):
+        request = self.context['request']
+        return request.user.is_anonymous
+
     @extend_schema_field(OpenApiTypes.INT)
     def get_deployed_count(self, queryset):
+        if self._request_is_anonymous():
+            return 0
         return queryset.filter(
             _deployment_status=AssetDeploymentStatus.DEPLOYED
         ).count()
 
     @extend_schema_field(OpenApiTypes.INT)
     def get_archived_count(self, queryset):
+        if self._request_is_anonymous():
+            return 0
         return queryset.filter(
             _deployment_status=AssetDeploymentStatus.ARCHIVED
         ).count()
 
     @extend_schema_field(OpenApiTypes.INT)
     def get_draft_count(self, queryset):
+        if self._request_is_anonymous():
+            return 0
         return queryset.filter(_deployment_status=AssetDeploymentStatus.DRAFT).count()

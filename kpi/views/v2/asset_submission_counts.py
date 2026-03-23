@@ -36,7 +36,7 @@ from kpi.utils.viewset_mixins import AssetNestedObjectViewsetMixin
         ],
     )
 )
-class AssetCountsViewSet(
+class AssetSubmissionCountsViewSet(
     AssetNestedObjectViewsetMixin,
     NestedViewSetMixin,
     mixins.ListModelMixin,
@@ -49,8 +49,9 @@ class AssetCountsViewSet(
     - counts         → GET /api/v2/assets/{uid_asset}/counts/
 
     Documentation:
-    - docs/api/v2/assets/counts.md
+    - docs/api/v2/assets/submission_counts.md
     """
+
     parent_model = Asset
     permission_classes = [ViewSubmissionPermission]
 

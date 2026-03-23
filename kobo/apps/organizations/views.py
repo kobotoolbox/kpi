@@ -35,7 +35,7 @@ from kpi.schema_extensions.v2.organizations.serializers import (
     OrganizationPatchPayload,
     OrganizationServiceUsageResponse,
 )
-from kpi.serializers.v2.asset import AssetSerializer, AssetListCountSerializer
+from kpi.serializers.v2.asset import AssetListCountSerializer, AssetSerializer
 from kpi.serializers.v2.service_usage import (
     CustomAssetUsageSerializer,
     ServiceUsageSerializer,
@@ -229,7 +229,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     - partial_update    → PATCH     /api/v2/organizations/{uid_organization}/
     - asset_usage       → GET       /api/v2/organizations/{uid_organization}/asset_usage/
     - assets            → GET       /api/v2/organizations/{uid_organization}/assets/
-    - asset-counts      → GET       /api/v2/organizations/{uid_organization}/asset-counts/  # noqa
+    - asset-counts      → GET       /api/v2/organizations/{uid_organization}/assets/counts'  # noqa
     - service_usage     → PATCH     /api/v2/organizations/{uid_organization}/service_usage/
 
     Documentation:
@@ -267,7 +267,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         detail=True,
         methods=['GET'],
         permission_classes=[IsOrgAdminPermission],
-        url_path='asset-counts',
+        url_path='assets/counts',
     )
     def asset_counts(self, request: Request, *args, **kwargs):
         organization = self.get_object()

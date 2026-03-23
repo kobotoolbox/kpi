@@ -6,6 +6,7 @@ from datetime import datetime
 import dateutil.parser
 from ddt import data, ddt
 from django.conf import settings
+from django.contrib.auth.models import AnonymousUser
 from django.urls import reverse
 from django.utils import timezone
 from model_bakery import baker
@@ -719,38 +720,49 @@ class AssetListCountsApiTests(BaseAssetTestCase):
 
     URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.user = User.objects.create_user(username='user')
+        cls.another_user = User.objects.create_user(username='another_user')
+
+    def _create_one_asset_per_status(self, owner, asset_settings=None):
+        common_creation_kwargs = {'owner': owner, 'asset_type': ASSET_TYPE_SURVEY}
+        if asset_settings:
+            common_creation_kwargs['settings'] = asset_settings
+        draft = Asset.objects.create(
+            name='draft',
+            **common_creation_kwargs,
+        )
+        deployed = Asset.objects.create(
+            name='deployed',
+            **common_creation_kwargs,
+        )
+        deployed.deploy(backend='mock', active=True)
+        archived = Asset.objects.create(
+            name='archived',
+            **common_creation_kwargs,
+        )
+        archived.deploy(backend='mock', active=False)
+        return draft, deployed, archived
+
     @data(True, False)
     def test_asset_counts_endpoint(self, as_owner):
-        user = User.objects.create_user(username='user', password='password')
-        another_user = User.objects.create_user(username='another_user')
-        draft = Asset.objects.create(
-            owner=user,
-            name='draft',
-            asset_type=ASSET_TYPE_SURVEY,
-        )
-        published = Asset.objects.create(
-            owner=user,
-            name='published',
-            asset_type=ASSET_TYPE_SURVEY,
-        )
-        archived = Asset.objects.create(
-            owner=user,
-            name='archived',
-            asset_type=ASSET_TYPE_SURVEY,
-        )
+        draft, deployed, archived = self._create_one_asset_per_status(owner=self.user)
+
         # will only be counted when owner is viewing
         Asset.objects.create(
-            owner=user,
+            owner=self.user,
             name='unshared',
             asset_type=ASSET_TYPE_SURVEY,
         )
         if not as_owner:
-            draft.assign_perm(another_user, PERM_VIEW_ASSET)
-            published.assign_perm(another_user, PERM_VIEW_ASSET)
-            archived.assign_perm(another_user, PERM_VIEW_ASSET)
-        user_to_login = user if as_owner else another_user
+            draft.assign_perm(self.another_user, PERM_VIEW_ASSET)
+            deployed.assign_perm(self.another_user, PERM_VIEW_ASSET)
+            archived.assign_perm(self.another_user, PERM_VIEW_ASSET)
+        user_to_login = self.user if as_owner else self.another_user
         self.client.force_login(user_to_login)
-        published.deploy(backend='mock', active=True)
+        deployed.deploy(backend='mock', active=True)
         archived.deploy(backend='mock', active=False)
         url = reverse(self._get_endpoint('asset-counts'))
         response = self.client.get(url)
@@ -760,33 +772,17 @@ class AssetListCountsApiTests(BaseAssetTestCase):
         assert counts['archived_count'] == 1
 
     def test_project_view_asset_counts(self):
-        user = User.objects.create_user(username='user')
-        owner = User.objects.create_user(username='owner')
+        owner = self.another_user
         project_view = ProjectView.objects.create(
             name='Test', countries='MOZ', permissions=[PERM_VIEW_ASSET]
         )
-        project_view.users.add(user)
+        project_view.users.add(self.user)
         project_view.save()
-        Asset.objects.create(
-            owner=owner,
-            name='draft',
-            asset_type=ASSET_TYPE_SURVEY,
-            settings={'country': [{'value': 'MOZ', 'label': 'Mozambique'}]},
+        self._create_one_asset_per_status(
+            owner,
+            asset_settings={'country': [{'value': 'MOZ', 'label': 'Mozambique'}]},
         )
-        published = Asset.objects.create(
-            owner=owner,
-            name='published',
-            asset_type=ASSET_TYPE_SURVEY,
-            settings={'country': [{'value': 'MOZ', 'label': 'Mozambique'}]},
-        )
-        published.deploy(backend='mock', active=True)
-        archived = Asset.objects.create(
-            owner=owner,
-            name='archived',
-            asset_type=ASSET_TYPE_SURVEY,
-            settings={'country': [{'value': 'MOZ', 'label': 'Mozambique'}]},
-        )
-        archived.deploy(backend='mock', active=False)
+
         # different country, shouldn't be counted
         Asset.objects.create(
             owner=owner,
@@ -794,7 +790,7 @@ class AssetListCountsApiTests(BaseAssetTestCase):
             asset_type=ASSET_TYPE_SURVEY,
             settings={'country': [{'value': 'ZAF', 'label': 'South Africa'}]},
         )
-        self.client.force_login(user)
+        self.client.force_login(self.user)
         url = reverse(
             self._get_endpoint('projectview-asset-counts'),
             kwargs={'uid_project_view': project_view.uid},
@@ -804,6 +800,19 @@ class AssetListCountsApiTests(BaseAssetTestCase):
         assert counts['deployed_count'] == 1
         assert counts['draft_count'] == 1
         assert counts['archived_count'] == 1
+
+    def test_asset_counts_are_zero_for_anonymous_user(self):
+        self.client.logout()
+        for asset in self._create_one_asset_per_status(self.user):
+            asset.assign_perm(AnonymousUser, PERM_VIEW_ASSET)
+        url = reverse(self._get_endpoint('asset-counts'))
+
+        response = self.client.get(url)
+        counts = response.data
+        # counts should be zero even anonymous view access is enabled
+        assert counts['deployed_count'] == 0
+        assert counts['draft_count'] == 0
+        assert counts['archived_count'] == 0
 
 
 class AssetProjectViewListApiTests(BaseAssetTestCase):

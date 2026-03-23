@@ -10969,64 +10969,6 @@
                 }
             }
         },
-        "/api/v2/organizations/{uid_organization}/asset-counts/": {
-            "get": {
-                "operationId": "api_v2_organizations_asset_counts_retrieve",
-                "description": "## Return counts of deployed, archived, and draft assets owned by the organization\n",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "uid_organization",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "A unique value identifying this organization.",
-                        "required": true
-                    }
-                ],
-                "tags": [
-                    "User / team / organization / usage"
-                ],
-                "security": [
-                    {
-                        "BasicAuth": []
-                    },
-                    {
-                        "TokenAuth": []
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/AssetListCount"
-                                }
-                            }
-                        },
-                        "description": null
-                    },
-                    "404": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorDetail"
-                                },
-                                "examples": {
-                                    "NotFound": {
-                                        "value": {
-                                            "detail": "Not found."
-                                        },
-                                        "summary": "Not Found"
-                                    }
-                                }
-                            }
-                        },
-                        "description": ""
-                    }
-                }
-            }
-        },
         "/api/v2/organizations/{uid_organization}/asset_usage/": {
             "get": {
                 "operationId": "api_v2_organizations_asset_usage_list",
@@ -11141,6 +11083,64 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/PaginatedAssetList"
+                                }
+                            }
+                        },
+                        "description": null
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "NotFound": {
+                                        "value": {
+                                            "detail": "Not found."
+                                        },
+                                        "summary": "Not Found"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v2/organizations/{uid_organization}/assets/counts/": {
+            "get": {
+                "operationId": "api_v2_organizations_assets_counts_retrieve",
+                "description": "## Return counts of deployed, archived, and draft assets owned by the organization\n",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "uid_organization",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "A unique value identifying this organization.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "User / team / organization / usage"
+                ],
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "TokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AssetListCount"
                                 }
                             }
                         },
@@ -13243,81 +13243,6 @@
                 }
             }
         },
-        "/api/v2/project-views/{uid_project_view}/asset-counts/": {
-            "get": {
-                "operationId": "api_v2_project_views_asset_counts_retrieve",
-                "description": "## Return counts of deployed, archived, and draft assets in the project view\n",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "uid_project_view",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "required": true
-                    }
-                ],
-                "tags": [
-                    "User / team / organization / usage"
-                ],
-                "security": [
-                    {
-                        "BasicAuth": []
-                    },
-                    {
-                        "TokenAuth": []
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/AssetListCount"
-                                }
-                            }
-                        },
-                        "description": null
-                    },
-                    "403": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorDetail"
-                                },
-                                "examples": {
-                                    "AccessDenied": {
-                                        "value": {
-                                            "detail": "You do not have permission to perform this action."
-                                        },
-                                        "summary": "Access Denied"
-                                    }
-                                }
-                            }
-                        },
-                        "description": ""
-                    },
-                    "404": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorDetail"
-                                },
-                                "examples": {
-                                    "NotFound": {
-                                        "value": {
-                                            "detail": "Not found."
-                                        },
-                                        "summary": "Not Found"
-                                    }
-                                }
-                            }
-                        },
-                        "description": ""
-                    }
-                }
-            }
-        },
         "/api/v2/project-views/{uid_project_view}/assets/": {
             "get": {
                 "operationId": "api_v2_project_views_assets_retrieve",
@@ -13422,6 +13347,63 @@
                                             }
                                         },
                                         "summary": "Bad request"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v2/project-views/{uid_project_view}/assets/counts/": {
+            "get": {
+                "operationId": "api_v2_project_views_assets_counts_retrieve",
+                "description": "## Return counts of deployed, archived, and draft assets in the project view\n",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "uid_project_view",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "User / team / organization / usage"
+                ],
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "TokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AssetListCount"
+                                }
+                            }
+                        },
+                        "description": null
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "NotFound": {
+                                        "value": {
+                                            "detail": "Not found."
+                                        },
+                                        "summary": "Not Found"
                                     }
                                 }
                             }
