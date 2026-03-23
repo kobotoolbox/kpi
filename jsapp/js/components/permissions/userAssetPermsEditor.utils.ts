@@ -1,6 +1,12 @@
 import clonedeep from 'lodash.clonedeep'
 import { recordEntries } from '#/utils'
 import permConfig from './permConfig'
+import type {
+  CheckboxNameAll,
+  CheckboxNamePartialByResponses,
+  CheckboxNamePartialByUsers,
+  PermissionCodename,
+} from './permConstants'
 import {
   CHECKBOX_DISABLED_SUFFIX,
   CHECKBOX_NAMES,
@@ -8,12 +14,6 @@ import {
   PARTIAL_BY_RESPONSES_PERM_PAIRS,
   PARTIAL_BY_USERS_PERM_PAIRS,
   PARTIAL_IMPLIED_CHECKBOX_PAIRS,
-} from './permConstants'
-import type {
-  CheckboxNameAll,
-  CheckboxNamePartialByResponses,
-  CheckboxNamePartialByUsers,
-  PermissionCodename,
 } from './permConstants'
 import type { PermsFormDataPartialWithUsername } from './permParser'
 import type { AssignablePermsMap } from './sharingForm.component'

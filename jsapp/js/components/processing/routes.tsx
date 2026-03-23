@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { Navigate, Route, generatePath, useParams } from 'react-router-dom'
+import { generatePath, Navigate, Route, useParams } from 'react-router-dom'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import PermProtectedRoute from '#/router/permProtectedRoute'
 import { PROCESSING_ROUTES } from '#/router/routerConstants'

@@ -7,15 +7,15 @@ import bem from '#/bem'
 import Button from '#/components/common/button'
 import Modal from '#/components/common/modal'
 import ReportsModalTabs, {
-  ReportsModalTabNames,
   DEFAULT_REPORTS_MODAL_TAB,
+  ReportsModalTabNames,
 } from '#/components/reports/reportsModalTabs.component'
 import type { FailResponse } from '#/dataInterface'
 import { recordKeys } from '#/utils'
 import ReportColorsEditor from './reportColorsEditor.component'
-import ReportTypeEditor from './reportTypeEditor.component'
 import type { ReportsState } from './reports'
 import type { ReportStyle, ReportStyleName } from './reportsConstants'
+import ReportTypeEditor from './reportTypeEditor.component'
 
 interface ReportStyleSettingsSingleQuestionProps {
   parentState: ReportsState

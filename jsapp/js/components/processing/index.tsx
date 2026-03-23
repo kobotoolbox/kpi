@@ -12,10 +12,10 @@ import CenteredMessage from '#/components/common/centeredMessage.component'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { addDefaultUuidPrefix } from '#/utils'
 import type { LanguageCode } from '../languages/languagesStore'
+import styles from './index.module.scss'
 import SingleProcessingContent from './SingleProcessingContent'
 import SingleProcessingHeader from './SingleProcessingHeader'
 import SingleProcessingSidebar from './SingleProcessingSidebar'
-import styles from './index.module.scss'
 
 interface RouteParams extends Record<string, string | undefined> {
   uid: string

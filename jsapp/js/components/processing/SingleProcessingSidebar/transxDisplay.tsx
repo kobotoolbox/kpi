@@ -2,9 +2,9 @@ import React from 'react'
 
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import { AsyncLanguageDisplayLabel } from '#/components/languages/languagesUtils'
-import TransxDate from '../SingleProcessingContent/components/transxDate'
 import bodyStyles from '../common/processingBody.module.scss'
 import type { TranscriptVersionItemWithValue, TransxVersionItem } from '../common/types'
+import TransxDate from '../SingleProcessingContent/components/transxDate'
 import styles from './transxDisplay.module.scss'
 
 interface TransxDisplayProps {

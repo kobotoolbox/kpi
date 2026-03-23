@@ -1,8 +1,8 @@
 import React from 'react'
 
 import bem from '#/bem'
-import { CHART_COLOR_SETS } from './reportsConstants'
 import type { ChartColorSet, ReportStyle } from './reportsConstants'
+import { CHART_COLOR_SETS } from './reportsConstants'
 
 interface ReportColorsEditorProps {
   onChange: (newColors: string[]) => void

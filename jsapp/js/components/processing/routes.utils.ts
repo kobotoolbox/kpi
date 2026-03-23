@@ -3,7 +3,7 @@
 
 import { generatePath, matchPath } from 'react-router-dom'
 import { router } from '#/router/legacy'
-import { PROCESSING_ROUTES, PROCESSING_ROUTE_GENERIC, ROUTES } from '#/router/routerConstants'
+import { PROCESSING_ROUTE_GENERIC, PROCESSING_ROUTES, ROUTES } from '#/router/routerConstants'
 import { getCurrentPath } from '#/router/routerUtils'
 import { recordValues } from '#/utils'
 

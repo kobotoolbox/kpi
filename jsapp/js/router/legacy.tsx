@@ -1,4 +1,5 @@
 /** Don't use anything here for new components */
+
 import React, { type FC } from 'react'
 
 import type { Router } from '@remix-run/router'

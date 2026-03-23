@@ -1,5 +1,6 @@
-import { Radio, Stack } from '@mantine/core'
 import React, { type ChangeEvent } from 'react'
+
+import { Radio, Stack } from '@mantine/core'
 
 export interface RadioGroupOption {
   uuid: string

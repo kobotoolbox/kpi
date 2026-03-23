@@ -1,5 +1,6 @@
-import { Loader } from '@mantine/core'
 import React from 'react'
+
+import { Loader } from '@mantine/core'
 import type { DataResponse } from '#/api/models/dataResponse'
 import {
   type assetsDataListResponse,

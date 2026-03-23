@@ -15,7 +15,7 @@ import { MODAL_TYPES } from '#/constants'
 import type { AssetContent, AssetResponse, SureveyRowOrChoiceTranslatableProp, SurveyRow } from '#/dataInterface'
 import envStore from '#/envStore'
 import pageState from '#/pageState.store'
-import { type LangObject, escapeHtml, getLangString, notify } from '#/utils'
+import { escapeHtml, getLangString, type LangObject, notify } from '#/utils'
 
 const LANGUAGE_SUPPORT_URL = 'language_dashboard.html'
 

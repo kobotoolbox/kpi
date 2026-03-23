@@ -1,4 +1,4 @@
-import { ThemeIcon, rem } from '@mantine/core'
+import { rem, ThemeIcon } from '@mantine/core'
 
 export const ThemeIconThemeKobo = ThemeIcon.extend({
   vars: (theme, props) => {

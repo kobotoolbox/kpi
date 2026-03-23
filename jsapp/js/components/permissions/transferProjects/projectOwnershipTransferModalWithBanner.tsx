@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 
 import { useSearchParams } from 'react-router-dom'
-import ProjectTransferInviteBanner from './projectTransferInviteBanner'
 import type { TransferInviteState } from './projectTransferInviteBanner'
-import { type TransferStatuses, isInviteForLoggedInUser } from './transferProjects.api'
+import ProjectTransferInviteBanner from './projectTransferInviteBanner'
+import { isInviteForLoggedInUser, type TransferStatuses } from './transferProjects.api'
 import TransferProjectsInvite from './transferProjectsInvite.component'
 
 /**

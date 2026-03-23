@@ -6,7 +6,6 @@ import type { SupplementalDataManualTranscription } from '#/api/models/supplemen
 import type { SupplementalDataManualTranslation } from '#/api/models/supplementalDataManualTranslation'
 import type { SupplementalDataVersionItemAutomatic } from '#/api/models/supplementalDataVersionItemAutomatic'
 import type { SupplementalDataVersionItemManual } from '#/api/models/supplementalDataVersionItemManual'
-
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { ProcessingTab } from '#/components/processing/routes.utils'
 import type {

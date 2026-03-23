@@ -1,8 +1,8 @@
 import { fetchGet } from '#/api'
 import type { PaginatedResponse } from '#/dataInterface'
-import { PROJECT_FIELDS } from '#/projects/projectViews/constants'
-import type { ProjectFieldName } from '#/projects/projectViews/constants'
 import type { ProjectsTableOrder } from '#/projects/projectsTable/projectsTable'
+import type { ProjectFieldName } from '#/projects/projectViews/constants'
+import { PROJECT_FIELDS } from '#/projects/projectViews/constants'
 
 export interface AssetWithUsage {
   asset: string

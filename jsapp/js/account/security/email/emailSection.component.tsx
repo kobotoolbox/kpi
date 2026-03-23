@@ -11,8 +11,8 @@ import TextBox from '#/components/common/textBox'
 import type { FailResponse } from '#/dataInterface'
 import sessionStore from '#/stores/session'
 import { formatTime, notify } from '#/utils'
-import { deleteUnverifiedUserEmails, getUserEmails, setUserEmail } from './emailSection.api'
 import type { EmailResponse } from './emailSection.api'
+import { deleteUnverifiedUserEmails, getUserEmails, setUserEmail } from './emailSection.api'
 import styles from './emailSection.module.scss'
 
 interface EmailState {

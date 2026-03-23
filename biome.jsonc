@@ -43,7 +43,19 @@
   "assist": {
     "actions": {
       "source": {
-        "organizeImports": "off"
+        "organizeImports": {
+          "level": "on",
+          "options": {
+            "groups": [
+              "react", // special line for React
+              ":BLANK_LINE:",
+              ":PACKAGE:", // External dependencies
+              "#*/**", // Internal global imports
+              "../**", // Local parent imports
+              "./**" // Local sibling/child imports
+            ]
+          }
+        }
       }
     }
   },

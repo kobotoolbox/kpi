@@ -14,14 +14,14 @@ import { userCan, userHasPermForSubmission } from '#/components/permissions/util
 import SubmissionDataTable from '#/components/submissions/submissionDataTable'
 import { getBackgroundAudioAttachment, markAttachmentAsDeleted } from '#/components/submissions/submissionUtils'
 import type { SubmissionPageName } from '#/components/submissions/table.types'
+import type { ValidationStatusOptionName } from '#/components/submissions/validationStatus.constants'
 import {
   VALIDATION_STATUS_OPTIONS,
   ValidationStatusAdditionalName,
 } from '#/components/submissions/validationStatus.constants'
-import type { ValidationStatusOptionName } from '#/components/submissions/validationStatus.constants'
 import { EnketoActions, MODAL_TYPES } from '#/constants'
-import { dataInterface } from '#/dataInterface'
 import type { AssetResponse, FailResponse, SubmissionResponse, ValidationStatusResponse } from '#/dataInterface'
+import { dataInterface } from '#/dataInterface'
 import enketoHandler from '#/enketoHandler'
 import pageState from '#/pageState.store'
 import { launchPrinting } from '#/utils'

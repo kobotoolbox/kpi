@@ -20,8 +20,8 @@ import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import Modal from '#/components/common/modal'
 import {
-  type KoboMatrixParserParams,
   getFormBuilderAssetType,
+  type KoboMatrixParserParams,
   koboMatrixParser,
   surveyToValidJson,
   unnullifyTranslations,
@@ -37,8 +37,8 @@ import {
 import MetadataEditor from '#/components/metadataEditor'
 import {
   ASSET_TYPES,
-  AVAILABLE_FORM_STYLES,
   AssetTypeName,
+  AVAILABLE_FORM_STYLES,
   type FormStyleDefinition,
   type FormStyleName,
   NAME_MAX_LENGTH,
@@ -59,8 +59,8 @@ import {
   type AssetRequestObject,
   type AssetResponse,
   type AssetResponseFile,
-  type FailResponse,
   dataInterface,
+  type FailResponse,
 } from '../dataInterface'
 import SurveyScope from '../models/surveyScope'
 import { type SurveyStateStoreData, stores } from '../stores'

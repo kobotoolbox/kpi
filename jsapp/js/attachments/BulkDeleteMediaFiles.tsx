@@ -1,6 +1,7 @@
+import { useState } from 'react'
+
 import { Anchor, Box, Button, Checkbox, FocusTrap, Group, Modal, Stack, Text } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
-import { useState } from 'react'
 import { actions } from '#/actions'
 import { handleApiFail } from '#/api'
 import Alert from '#/components/common/alert'

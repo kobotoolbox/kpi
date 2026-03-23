@@ -1,5 +1,6 @@
-import { Textarea } from '@mantine/core'
 import React, { useEffect, useState } from 'react'
+
+import { Textarea } from '@mantine/core'
 import type { QualVersionItem } from '#/components/processing/common/types'
 import { AUTO_SAVE_TYPING_DELAY } from '../../../common/constants'
 import styles from '../../../common/styles.module.scss'

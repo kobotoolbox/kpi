@@ -11,6 +11,7 @@ import {
   VALIDATION_STATUS_ID_PROP,
 } from '#/components/submissions/tableConstants'
 import { ValidationStatusAdditionalName } from '#/components/submissions/validationStatus.constants'
+import type { AnyRowTypeName } from '#/constants'
 import {
   ADDITIONAL_SUBMISSION_PROPS,
   GROUP_TYPES_BEGIN,
@@ -19,7 +20,6 @@ import {
   QUESTION_TYPES,
   SUPPLEMENTAL_DETAILS_PROP,
 } from '#/constants'
-import type { AnyRowTypeName } from '#/constants'
 import type { AssetResponse, SubmissionResponse, SurveyRow } from '#/dataInterface'
 import { recordKeys, recordValues } from '#/utils'
 

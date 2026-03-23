@@ -1,5 +1,6 @@
-import type { UseQueryOptions } from '@tanstack/react-query'
 import type React from 'react'
+
+import type { UseQueryOptions } from '@tanstack/react-query'
 import type { ErrorDetail } from '#/api/models/errorDetail'
 import type { organizationsRetrieveResponse } from '#/api/react-query/user-team-organization-usage'
 import {

@@ -1,5 +1,6 @@
-import prettyBytes from 'pretty-bytes'
 import { useCallback } from 'react'
+
+import prettyBytes from 'pretty-bytes'
 import {
   type BaseProduct,
   type Checkout,

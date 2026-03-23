@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react'
 
 import { recordKeys } from '#/utils'
-import languagesStore from './languagesStore'
 import type { LanguageCode } from './languagesStore'
+import languagesStore from './languagesStore'
 
 /**
  * A simpler alternative to `AsyncLanguageDisplayLabel` for situations when you

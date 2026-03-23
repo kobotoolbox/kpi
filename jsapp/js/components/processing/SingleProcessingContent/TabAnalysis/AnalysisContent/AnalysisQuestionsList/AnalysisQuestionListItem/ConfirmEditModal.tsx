@@ -1,7 +1,7 @@
 import type { ModalProps } from '@mantine/core'
 import { Group, Modal, Stack, Text } from '@mantine/core'
-import ButtonNew from '#/components/common/ButtonNew'
 import Alert from '#/components/common/alert'
+import ButtonNew from '#/components/common/ButtonNew'
 
 export interface ConfirmEditModalProps extends ModalProps {
   onConfirmEdit: () => void

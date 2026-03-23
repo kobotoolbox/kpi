@@ -4,10 +4,10 @@ import {
   type CellContext,
   type Column,
   type ColumnPinningPosition,
-  type PaginationState,
-  type TableOptions,
   flexRender,
   getCoreRowModel,
+  type PaginationState,
+  type TableOptions,
   useReactTable,
 } from '@tanstack/react-table'
 import cx from 'classnames'

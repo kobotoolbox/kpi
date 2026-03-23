@@ -1,34 +1,26 @@
 // Leaflet
 // TODO: use something diifferent than leaflet-omnivore as it is not maintained
 // and last realease was 8(!) years ago.
+
+// Libraries
+import React from 'react'
+
 import omnivore, { type OmnivoreFunction } from '@mapbox/leaflet-omnivore'
 import cx from 'classnames'
 import JSZip from 'jszip'
 import L, { type LayerGroup } from 'leaflet'
-// Libraries
-import React from 'react'
 import bem from '../../../js/bem'
 import 'leaflet/dist/leaflet.css'
 import 'leaflet.heat'
 import 'leaflet.markercluster'
 import 'leaflet.markercluster/dist/MarkerCluster.css'
-import { check } from '@placemarkio/check-geojson'
 
+import { check } from '@placemarkio/check-geojson'
+import { actions } from '../../../js/actions'
+import { getRowName, getSurveyFlatPaths } from '../../../js/assetUtils'
 import CenteredMessage from '../../../js/components/common/centeredMessage.component'
 import LoadingSpinner from '../../../js/components/common/loadingSpinner'
 import Modal from '../../../js/components/common/modal'
-// Partial components
-import PopoverMenu from '../../../js/popoverMenu'
-import MapSettings from './MapSettings'
-
-import { actions } from '../../../js/actions'
-import { getRowName, getSurveyFlatPaths } from '../../../js/assetUtils'
-// Stores, hooks and utilities
-import { dataInterface } from '../../../js/dataInterface'
-import pageState from '../../../js/pageState.store'
-import { type WithRouterProps, withRouter } from '../../../js/router/legacy'
-import { findFirstGeopoint, notify, parseLatLng, recordKeys } from '../../../js/utils'
-
 // Constants and types
 import { ASSET_FILE_TYPES, MODAL_TYPES, QUERY_LIMIT_DEFAULT, QUESTION_TYPES } from '../../../js/constants'
 import type {
@@ -41,10 +33,19 @@ import type {
   SurveyChoice,
   SurveyRow,
 } from '../../../js/dataInterface'
+// Stores, hooks and utilities
+import { dataInterface } from '../../../js/dataInterface'
+import pageState from '../../../js/pageState.store'
+// Partial components
+import PopoverMenu from '../../../js/popoverMenu'
+import { type WithRouterProps, withRouter } from '../../../js/router/legacy'
+import { findFirstGeopoint, notify, parseLatLng, recordKeys } from '../../../js/utils'
+import MapSettings from './MapSettings'
 
 // Styles
 import './map.scss'
 import './map.marker-colors.scss'
+
 import { fetchGetUrl } from '../../../js/api'
 
 const STREETS_LAYER = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {

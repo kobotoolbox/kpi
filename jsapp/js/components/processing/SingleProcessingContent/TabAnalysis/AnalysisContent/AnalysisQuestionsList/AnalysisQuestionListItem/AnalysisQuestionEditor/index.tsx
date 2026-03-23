@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react'
+import React, { useCallback, useState } from 'react'
 
 import { Stack, ThemeIcon } from '@mantine/core'
 import clonedeep from 'lodash.clonedeep'
@@ -10,9 +10,9 @@ import TextBox from '#/components/common/textBox'
 import { LOCALLY_EDITED_PLACEHOLDER_UUID } from '#/components/processing/common/constants'
 import { generateUuid } from '#/utils'
 import { type AdvancedFeatureResponseManualQual, getQuestionTypeDefinition } from '../../../../common/utils'
+import styles from './index.module.scss'
 import KeywordSearchFieldsEditor from './KeywordSearchFieldsEditor'
 import SelectXFieldsEditor from './SelectXFieldsEditor'
-import styles from './index.module.scss'
 
 interface Props {
   advancedFeature: AdvancedFeatureResponseManualQual

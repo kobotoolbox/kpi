@@ -7,7 +7,6 @@ import bem from '#/bem'
 import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { HOOK_LOG_STATUSES, MODAL_TYPES } from '#/constants'
-import { dataInterface } from '#/dataInterface'
 import type {
   ExternalServiceHookResponse,
   ExternalServiceLogResponse,
@@ -15,6 +14,7 @@ import type {
   PaginatedResponse,
   RetryExternalServiceLogsResponse,
 } from '#/dataInterface'
+import { dataInterface } from '#/dataInterface'
 import pageState from '#/pageState.store'
 import { getRouteAssetUid } from '#/router/routerUtils'
 import { formatTime, notify } from '#/utils'

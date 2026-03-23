@@ -7,10 +7,10 @@ import type { AssetResponse } from '#/dataInterface'
 import { recordValues } from '#/utils'
 import type { DisplaysList } from '../common/types'
 import {
-  StaticDisplays,
   getAllTranslationsFromSupplementData,
   getDefaultDisplaysForTab,
   getLatestTranscriptVersionItem,
+  StaticDisplays,
 } from '../common/utils'
 import { getActiveTab } from '../routes.utils'
 import styles from './index.module.scss'

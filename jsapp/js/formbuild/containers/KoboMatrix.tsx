@@ -1,7 +1,8 @@
+import React from 'react'
+
 import alertify from 'alertifyjs'
 import { List, Map, type OrderedMap } from 'immutable'
 import orderBy from 'lodash.orderby'
-import React from 'react'
 import autoBind from 'react-autobind'
 import Select from 'react-select'
 import Checkbox from '#/components/common/checkbox'

@@ -9,7 +9,7 @@ The endpoints are grouped by area of intended use. Each category contains relate
 **General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as "assets".
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
-import { useMutation, useQuery } from '@tanstack/react-query'
+
 import type {
   MutationFunction,
   QueryFunction,
@@ -18,95 +18,51 @@ import type {
   UseQueryOptions,
   UseQueryResult,
 } from '@tanstack/react-query'
-
+import { useMutation, useQuery } from '@tanstack/react-query'
 import type { AdvancedFeatureCreateResponse } from '../models/advancedFeatureCreateResponse'
-
 import type { AdvancedFeaturePostRequest } from '../models/advancedFeaturePostRequest'
-
 import type { AdvancedFeatureResponse } from '../models/advancedFeatureResponse'
-
 import type { AssetsDataAttachmentsListParams } from '../models/assetsDataAttachmentsListParams'
-
 import type { AssetsDataListParams } from '../models/assetsDataListParams'
-
 import type { AssetsDataRetrieveParams } from '../models/assetsDataRetrieveParams'
-
 import type { AssetsExportSettingsDataRetrieveParams } from '../models/assetsExportSettingsDataRetrieveParams'
-
 import type { AssetsExportSettingsListParams } from '../models/assetsExportSettingsListParams'
-
 import type { AssetsExportsListParams } from '../models/assetsExportsListParams'
-
 import type { AssetsFilesListParams } from '../models/assetsFilesListParams'
-
 import type { AssetsPairedDataListParams } from '../models/assetsPairedDataListParams'
-
 import type { AttachmentRetrieveParams } from '../models/attachmentRetrieveParams'
-
 import type { CreateFilePayload } from '../models/createFilePayload'
-
 import type { DataBulkDelete } from '../models/dataBulkDelete'
-
 import type { DataBulkUpdateResponse } from '../models/dataBulkUpdateResponse'
-
 import type { DataResponse } from '../models/dataResponse'
-
 import type { DataStatusesUpdate } from '../models/dataStatusesUpdate'
-
 import type { DataSupplementResponse } from '../models/dataSupplementResponse'
-
 import type { DataValidationStatusUpdateResponse } from '../models/dataValidationStatusUpdateResponse'
-
 import type { EnketoEditResponse } from '../models/enketoEditResponse'
-
 import type { EnketoViewResponse } from '../models/enketoViewResponse'
-
 import type { ErrorDetail } from '../models/errorDetail'
-
 import type { ErrorObject } from '../models/errorObject'
-
 import type { ExportCreatePayload } from '../models/exportCreatePayload'
-
 import type { ExportResponse } from '../models/exportResponse'
-
 import type { ExportSettingCreatePayload } from '../models/exportSettingCreatePayload'
-
 import type { ExportSettingResponse } from '../models/exportSettingResponse'
-
 import type { ExternalResponse } from '../models/externalResponse'
-
 import type { FilesResponse } from '../models/filesResponse'
-
 import type { PaginatedDataResponseList } from '../models/paginatedDataResponseList'
-
 import type { PaginatedExportResponseList } from '../models/paginatedExportResponseList'
-
 import type { PaginatedExportSettingResponseList } from '../models/paginatedExportSettingResponseList'
-
 import type { PaginatedFilesResponseList } from '../models/paginatedFilesResponseList'
-
 import type { PaginatedPairedDataResponseList } from '../models/paginatedPairedDataResponseList'
-
 import type { PairedData } from '../models/pairedData'
-
 import type { PairedDataResponse } from '../models/pairedDataResponse'
-
 import type { PatchedAdvancedFeaturePatchRequest } from '../models/patchedAdvancedFeaturePatchRequest'
-
 import type { PatchedDataBulkUpdate } from '../models/patchedDataBulkUpdate'
-
 import type { PatchedDataSupplementPayload } from '../models/patchedDataSupplementPayload'
-
-import type { PatchedDataValidationStatusUpdatePayload } from '../models/patchedDataValidationStatusUpdatePayload'
-
 import type { PatchedDataValidationStatusesUpdatePayload } from '../models/patchedDataValidationStatusesUpdatePayload'
-
+import type { PatchedDataValidationStatusUpdatePayload } from '../models/patchedDataValidationStatusUpdatePayload'
 import type { PatchedExportSettingUpdatePayload } from '../models/patchedExportSettingUpdatePayload'
-
 import type { PatchedPairedDataPatchPayload } from '../models/patchedPairedDataPatchPayload'
-
 import type { ReportResponse } from '../models/reportResponse'
-
 import { fetchWithAuth } from '../orval.mutator'
 
 // https://stackoverflow.com/questions/49579094/typescript-conditional-types-filter-out-readonly-properties-pick-only-requir/49579497#49579497

@@ -1,7 +1,7 @@
-import type { SelectProps } from '@mantine/core'
-import { CloseButton, Group, Select as MantineSelect } from '@mantine/core'
 import { useEffect, useState } from 'react'
 
+import type { SelectProps } from '@mantine/core'
+import { CloseButton, Group, Select as MantineSelect } from '@mantine/core'
 import type { IconSize } from './icon'
 import Icon from './icon'
 

@@ -9,7 +9,7 @@ The endpoints are grouped by area of intended use. Each category contains relate
 **General note**: All projects (whether deployed or draft), as well as all library content (questions, blocks, templates, and collections) in the user-facing application are represented in the API as "assets".
  * OpenAPI spec version: 2.0.0 (api_v2)
  */
-import { useMutation, useQuery } from '@tanstack/react-query'
+
 import type {
   MutationFunction,
   QueryFunction,
@@ -18,75 +18,41 @@ import type {
   UseQueryOptions,
   UseQueryResult,
 } from '@tanstack/react-query'
-
+import { useMutation, useQuery } from '@tanstack/react-query'
 import type { Asset } from '../models/asset'
-
 import type { AssetBulkRequest } from '../models/assetBulkRequest'
-
 import type { AssetBulkResponse } from '../models/assetBulkResponse'
-
 import type { AssetCreateRequest } from '../models/assetCreateRequest'
-
 import type { AssetMetadataResponse } from '../models/assetMetadataResponse'
-
 import type { AssetsCountsListParams } from '../models/assetsCountsListParams'
-
 import type { AssetsListParams } from '../models/assetsListParams'
-
 import type { AssetsRetrieveParams } from '../models/assetsRetrieveParams'
-
 import type { AssetsVersionsListParams } from '../models/assetsVersionsListParams'
-
 import type { DeploymentCreateRequest } from '../models/deploymentCreateRequest'
-
 import type { DeploymentResponse } from '../models/deploymentResponse'
-
 import type { ErrorDetail } from '../models/errorDetail'
-
 import type { ErrorObject } from '../models/errorObject'
-
 import type { HashResponse } from '../models/hashResponse'
-
 import type { ImportCreateRequest } from '../models/importCreateRequest'
-
 import type { ImportCreateResponse } from '../models/importCreateResponse'
-
 import type { ImportResponse } from '../models/importResponse'
-
 import type { ImportsListParams } from '../models/importsListParams'
-
 import type { PaginatedAssetCountResponseList } from '../models/paginatedAssetCountResponseList'
-
 import type { PaginatedAssetList } from '../models/paginatedAssetList'
-
 import type { PaginatedImportResponseList } from '../models/paginatedImportResponseList'
-
 import type { PaginatedProjectInviteResponseList } from '../models/paginatedProjectInviteResponseList'
-
 import type { PaginatedTagListResponseList } from '../models/paginatedTagListResponseList'
-
 import type { PaginatedVersionListResponseList } from '../models/paginatedVersionListResponseList'
-
 import type { PatchedAssetPatchRequest } from '../models/patchedAssetPatchRequest'
-
 import type { PatchedDeploymentPatchRequest } from '../models/patchedDeploymentPatchRequest'
-
 import type { PatchedInviteUpdatePayload } from '../models/patchedInviteUpdatePayload'
-
 import type { ProjectInviteCreatePayload } from '../models/projectInviteCreatePayload'
-
 import type { ProjectInviteResponse } from '../models/projectInviteResponse'
-
 import type { ProjectOwnershipInvitesListParams } from '../models/projectOwnershipInvitesListParams'
-
 import type { TagRetrieveResponse } from '../models/tagRetrieveResponse'
-
 import type { TagsListParams } from '../models/tagsListParams'
-
 import type { TransferListResponse } from '../models/transferListResponse'
-
 import type { VersionRetrieveResponse } from '../models/versionRetrieveResponse'
-
 import { fetchWithAuth } from '../orval.mutator'
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]

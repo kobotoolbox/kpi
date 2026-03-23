@@ -1,5 +1,4 @@
 import $ from 'jquery'
-
 import { makeAutoObservable, when } from 'mobx'
 import { handleApiFail } from '#/api'
 import { ROOT_URL } from '#/constants'

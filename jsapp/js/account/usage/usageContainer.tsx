@@ -12,7 +12,6 @@ import { USAGE_WARNING_RATIO } from '#/constants'
 import useWhenStripeIsEnabled from '#/hooks/useWhenStripeIsEnabled.hook'
 import { useLimitDisplay } from '../stripe.utils'
 import OneTimeAddOnUsageModal from './oneTimeAddOnUsageModal/oneTimeAddOnUsageModal.component'
-
 import cardStyles from './usage.module.scss'
 
 interface UsageContainerProps {

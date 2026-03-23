@@ -1,6 +1,7 @@
+import React from 'react'
+
 import { Box, Group, Stack, Text, UnstyledButton } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
-import React from 'react'
 import { Link } from 'react-router-dom'
 import type { Asset } from '#/api/models/asset'
 import type { AssetResponse } from '#/dataInterface'

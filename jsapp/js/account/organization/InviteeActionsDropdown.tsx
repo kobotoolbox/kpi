@@ -2,7 +2,6 @@ import type { ReactNode } from 'react'
 
 import { Group, LoadingOverlay, Menu, Modal, Stack, Text } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
-import { ServerError } from '#/api/ServerError'
 import type { ErrorDetail } from '#/api/models/errorDetail'
 import type { ErrorObject } from '#/api/models/errorObject'
 import type { InviteResponse } from '#/api/models/inviteResponse'
@@ -11,6 +10,7 @@ import {
   useOrganizationsInvitesDestroy,
   useOrganizationsInvitesPartialUpdate,
 } from '#/api/react-query/user-team-organization-usage'
+import { ServerError } from '#/api/ServerError'
 import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import ButtonNew from '#/components/common/ButtonNew'
 import { getAssetUIDFromUrl, notify } from '#/utils'

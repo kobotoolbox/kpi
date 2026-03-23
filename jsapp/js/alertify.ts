@@ -1,4 +1,5 @@
 // This is a collection of DRY wrappers for alertifyjs.
+
 import type { ReactElement } from 'react'
 
 import alertify from 'alertifyjs'

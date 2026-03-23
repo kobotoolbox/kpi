@@ -36,10 +36,11 @@
   </ul>
 
 */
+
 import React from 'react'
 
-import cx from 'classnames'
 import type { Argument as ClassnamesArgument } from 'classnames'
+import cx from 'classnames'
 import { recordEntries } from '#/utils'
 
 const reactCreateBemElement = (base: string, el = 'div') => {

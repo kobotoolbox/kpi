@@ -5,10 +5,10 @@ import React from 'react'
 import bem, { makeBem } from '#/bem'
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
-import KoboSelect from '#/components/common/koboSelect'
 import type { KoboSelectOption } from '#/components/common/koboSelect'
-import languagesStore from './languagesStore'
+import KoboSelect from '#/components/common/koboSelect'
 import type { DetailedLanguage, LanguageCode, TransxServiceCode } from './languagesStore'
+import languagesStore from './languagesStore'
 
 bem.RegionSelector = makeBem(null, 'region-selector', 'section')
 bem.RegionSelector__loading = makeBem(bem.RegionSelector, 'loading')

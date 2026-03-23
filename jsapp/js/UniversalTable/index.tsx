@@ -3,8 +3,8 @@ import React, { useMemo } from 'react'
 import type { UseQueryResult } from '@tanstack/react-query'
 import type { ErrorObject } from 'schema-utils/declarations/validate'
 import type { ErrorDetail } from '#/api/models/errorDetail'
-import UniversalTableCore from './UniversalTableCore'
 import type { UniversalTableColumn } from './UniversalTableCore'
+import UniversalTableCore from './UniversalTableCore'
 
 export type { UniversalTableColumn } from './UniversalTableCore'
 

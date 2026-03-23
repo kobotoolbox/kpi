@@ -14,9 +14,9 @@ import { userCan } from '#/components/permissions/utils'
 import type { AssetResponse } from '#/dataInterface'
 import type { IconName } from '#/k-icons'
 import pageState from '#/pageState.store'
-import { RequireOrg } from '#/router/RequireOrg'
-import { router, withRouter } from '#/router/legacy'
 import type { WithRouterProps } from '#/router/legacy'
+import { router, withRouter } from '#/router/legacy'
+import { RequireOrg } from '#/router/RequireOrg'
 import {
   getLoginUrl,
   isAnyFormRoute,
