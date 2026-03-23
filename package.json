@@ -234,6 +234,7 @@
     "test-watch": "jest --config ./jsapp/jest/unit.config.ts --watch",
     "lint": "npm run lint:biome && npm run lint:eslint && npm run lint:types && npm run lint:css",
     "lint:biome": "biome check",
+    "lint:biome-summary": "biome check --max-diagnostics 9999 2>&1 | sed -nE 's/^[^ ]+[ ]+(lint\\/[^ ]+).*/\\1/p' | sort | uniq -c | sort -nr",
     "lint:eslint": "eslint 'jsapp/js/'",
     "lint:eslint-summary": "npm run lint -- --ext .js,.jsx,.ts,.tsx --format compact | grep '(@' | grep ' - ' | sed -r 's/.* (\\w+ -) .*(\\(@.*)$/\\1 \\2/' | sort | uniq -c | sort -nr",
     "lint:types": "tsc -p tsconfig.json --noEmit",
