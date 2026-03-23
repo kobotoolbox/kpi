@@ -1188,20 +1188,22 @@ class Asset(
         self.save(update_fields=['summary'])
 
     @property
-    def version__content_hash(self):
+    def version__content_hash(self) -> str | None:
         # Avoid reading the property `self.latest_version` more than once, since
         # it may execute a database query each time it's read
-        latest_version = self.latest_version
-        if latest_version:
+        if latest_version := self.latest_version:
             return latest_version.content_hash
 
+        return None
+
     @property
-    def version_id(self):
+    def version_id(self) -> str | None:
         # Avoid reading the property `self.latest_version` more than once, since
         # it may execute a database query each time it's read
-        latest_version = self.latest_version
-        if latest_version:
+        if latest_version := self.latest_version:
             return latest_version.uid
+
+        return None
 
     @property
     def version_number_and_date(self) -> str:

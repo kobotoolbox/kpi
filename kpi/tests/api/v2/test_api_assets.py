@@ -1393,16 +1393,16 @@ class AssetDetailApiTests(PermissionsTestMixin, BaseAssetDetailTestCase):
         self.assertEqual(new_asset.content['translations'], [None])
 
     def test_deployed_version_pagination(self):
-        PAGE_LENGTH = 100
+        page_length = settings.DEFAULT_API_PAGE_SIZE
         version = self.asset.latest_version
         preexisting_count = self.asset.deployed_versions.count()
         version.deployed = True
-        for i in range(PAGE_LENGTH + 11):
+        for i in range(page_length + 11):
             version.uid = ''
             version.pk = None
             version.save()
         self.assertEqual(
-            preexisting_count + PAGE_LENGTH + 11,
+            preexisting_count + page_length + 11,
             self.asset.deployed_versions.count()
         )
         response = self.client.get(self.asset_url, format='json')
@@ -1412,7 +1412,7 @@ class AssetDetailApiTests(PermissionsTestMixin, BaseAssetDetailTestCase):
         )
         self.assertEqual(
             len(response.data['deployed_versions']['results']),
-            PAGE_LENGTH
+            page_length
         )
 
     def check_asset_writable_json_field(self, field_name, **kwargs):

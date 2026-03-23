@@ -151,14 +151,6 @@ export const assetWithBgAudioAndNLP: AssetResponse = {
     },
   },
   analysis_form_json: {
-    engines: {
-      'engines/transcript_manual': {
-        details: 'A human provided transcription',
-      },
-      'engines/translation': {
-        details: 'A human provided translation',
-      },
-    },
     additional_fields: [
       {
         dtpath: 'background-audio/transcript_en',
@@ -167,12 +159,6 @@ export const assetWithBgAudioAndNLP: AssetResponse = {
         label: 'background-audio - transcript',
         name: 'background-audio/transcript_en',
         source: 'background-audio',
-        xpath: 'background-audio/transcript/en',
-        settings: {
-          mode: 'manual',
-          engine: 'engines/transcript_manual',
-        },
-        path: ['background-audio', 'transcript'],
       },
       {
         dtpath: 'background-audio/translation_fr',
@@ -181,12 +167,6 @@ export const assetWithBgAudioAndNLP: AssetResponse = {
         label: 'background-audio - translation',
         name: 'background-audio/translation_fr',
         source: 'background-audio',
-        xpath: 'background-audio/translation/fr',
-        settings: {
-          mode: 'manual',
-          engine: 'engines/translation_manual',
-        },
-        path: ['background-audio', 'translation'],
       },
       {
         label: 'Is this bg audio?',
@@ -195,9 +175,6 @@ export const assetWithBgAudioAndNLP: AssetResponse = {
         type: 'qualSelectOne',
         language: '??',
         source: 'background-audio',
-        xpath: 'background-audio/e59a3552-c06c-43f2-92f1-8e3607052624',
-        settings: '??',
-        path: ['background-audio', 'e59a3552-c06c-43f2-92f1-8e3607052624'],
         choices: [
           {
             uuid: '9064acd3-dd10-46ff-a0f8-0861b5e35fcb',
@@ -612,14 +589,6 @@ export const assetWithNestedGroupsAndNLP: AssetResponse = {
     },
   },
   analysis_form_json: {
-    engines: {
-      'engines/transcript_manual': {
-        details: 'A human provided transcription',
-      },
-      'engines/translation': {
-        details: 'A human provided translation',
-      },
-    },
     additional_fields: [
       {
         dtpath: 'outer_group/middle_group/inner_group/What_did_you_hear/transcript_pl',
@@ -628,12 +597,6 @@ export const assetWithNestedGroupsAndNLP: AssetResponse = {
         label: 'What_did_you_hear - transcript',
         name: 'outer_group/middle_group/inner_group/What_did_you_hear/transcript_pl',
         source: 'outer_group/middle_group/inner_group/What_did_you_hear',
-        xpath: 'outer_group/middle_group/inner_group/What_did_you_hear/transcript/pl',
-        settings: {
-          mode: 'manual',
-          engine: 'engines/transcript_manual',
-        },
-        path: ['outer_group/middle_group/inner_group/What_did_you_hear', 'transcript'],
       },
       {
         dtpath: 'outer_group/middle_group/inner_group/What_did_you_hear/translation_de',
@@ -642,12 +605,6 @@ export const assetWithNestedGroupsAndNLP: AssetResponse = {
         label: 'What_did_you_hear - translation',
         name: 'outer_group/middle_group/inner_group/What_did_you_hear/translation_de',
         source: 'outer_group/middle_group/inner_group/What_did_you_hear',
-        xpath: 'outer_group/middle_group/inner_group/What_did_you_hear/translation/de',
-        settings: {
-          mode: 'manual',
-          engine: 'engines/translation_manual',
-        },
-        path: ['outer_group/middle_group/inner_group/What_did_you_hear', 'translation'],
       },
     ],
   },
