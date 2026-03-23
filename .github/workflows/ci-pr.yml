@@ -51,3 +51,5 @@ jobs:
     needs: changes
     if: needs.changes.outputs.all == 'true' || needs.changes.outputs.locale == 'true'
     uses: './.github/workflows/locale.yml'
+    with:
+      base: ${{ github.event.pull_request.base.sha }}

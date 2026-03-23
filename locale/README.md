@@ -3,8 +3,7 @@
 
 ## How to use
 
-Run `./scripts/generate_locale.sh` after modifying translatable strings in the KPI: either adding, editing, or just moving lines that contain translatable strings.
-The rest is automated.
+No action required to make a string translate-able, it's all automated.
 
 To translate a string:
 - if your PR was based on the current release branch, go to the Transifex website and it will be there waiting for someone to translate it. The rest is automated.
@@ -28,25 +27,34 @@ uv venv --clear -p 3.10
 uv pip sync dependencies/pip/dev_requirements.txt
 source .venv/bin/activate
 
-## To write new source strings:
+## To build new source strings (see `scripts/generate_locale.sh`)
 python manage.py makemessages --locale en
 python manage.py makemessages --locale en --domain djangojs
 (cd locale; git diff --stat)
 # tx push # be careful not to push from the wrong branch, better leave this to CI.
-# (cd locale; git add .; git commit -m'chore: add new source strings'; git push)
 
-## To fetch new translated strings:
+## To pull new translated strings (see `download_translations.bash`):
 tx --token $TX_TOKEN pull -a -f --mode reviewed
 (cd locale; git diff --stat)
-# (cd locale; git add .; git commit -m'chore: add new translated strings'; git push)
+# (cd locale; git add .; git commit -m "chore(locale): update translations from transifex"; git push)
 ```
 
 
 ## Details
 
-The reasoning here heavily depends on the KPI release process property that it's forward-only, meaning, there are no concurrent active release branches at the same time. For example, after .47 image is built, no .43x image will ever be built, only .47x ones.
+The reasoning here heavily depends on two design choices.
 
-Someday the forward-only assumption will break and it will be required to release an exceptional version on older release branch (e.g. urgent security patch when not all private servers have updated to the newest minor version). In such case it will be impossible to update translations, and that's a fine trade-off for the overall simplicity because such security patches rarely will need translations in the first place.
+First, that the source translatable strings is in the english language.
+In other words, there is no english translation and therefore to update english copy it's required to edit the source code.
+That's a tradeoff for simplicity, although KPI considers to use more structured textids instead of english language someday in future.
+Note that Transifex [doesn't support changing source language](https://help.transifex.com/en/articles/6208590-is-it-possible-to-change-my-project-s-source-language).
+
+Second, the KPI release process is forward-only, meaning, there are no concurrent active release branches at the same time.
+For example, after .47 image is built, no .43x image will ever be built, only .47x ones.
+
+Someday the forward-only assumption will break and it will be required to release an exceptional version on older release branch.
+For example, an urgent security patch when not all private servers have updated to the newest minor version.
+In such case it will be impossible to update translations, and that's a fine trade-off for the overall simplicity because such security patches will rarely need translations in the first place.
 
 Translation lifecycle is integrated in the release process. Notably:
 - if Transifex API is down or errors, it will block a release.
@@ -84,7 +92,9 @@ until then it's considered as 'next' release branch and the previous branch is s
 
 ### Timing - when to commit translatable strings and translations?
 
-Let's commit translatable strings as part of the PR that caused it, so that translatable strings are always in sync with codebase and the PR review process can take into account the effects of the changes. The only inconvenience is that the author has to remember to re-generate them, albeit that's a simple script and CI will assert that. Note that commit and pushing is disconnected, see above.
+Let's never commit translatable strings.
+Translatable strings can be deterministically built on-demand based on the source code, so let's do that instead.
+Note that commit and pushing is disconnected, see above.
 
 Let's commit translations at the point of pulling them (see above), so that git history is in-sync with what the images are built on.
 

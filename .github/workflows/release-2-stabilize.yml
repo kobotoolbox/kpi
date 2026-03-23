@@ -88,6 +88,8 @@ jobs:
     needs: changes
     if: needs.changes.outputs.all == 'true' || needs.changes.outputs.locale == 'true'
     uses: './.github/workflows/locale.yml'
+    with:
+      base: 'HEAD^'
 
 
   changelog:
@@ -164,14 +166,11 @@ jobs:
       - npm-test
       - locale
     if: ${{ !cancelled() && !failure() && needs.version.result == 'success' && needs.version.outputs.current_released == 'true' && needs.version.outputs.next_patch == '' }}
-    runs-on: ubuntu-24.04
-    steps:
-    - uses: actions/checkout@v6
-    - name: Push to Transifex
-      uses: transifex/cli-action@v2
-      with:
-        token: ${{ secrets.TRANSIFEX_API }}
-        args: 'push -s'
+    uses: './.github/workflows/locale.yml'
+    secrets: inherit
+    with:
+      push: true
+
 
   merge-forward:
     name: Merge forward
@@ -241,13 +240,6 @@ jobs:
             || (needs.biome.result == 'skipped' && needs.npm-test.result == 'skipped')
               && ':skip_forward: all frontend jobs skipped due no changes in frontend relates files.'
               || format(':check: passed frontend automated tests ({0} biome, {1} npm-test)', needs.biome.result, needs.npm-test.result)
-          }}
-        - ${{ (
-              needs.locale.result == 'failure' || needs.locale.result == 'timed_out' )
-            && format(':warning: found desynced translation strings: @*devs* please investigate [run #{0}]({1}/{2}/actions/runs/{3})!', github.run_number, github.server_url, github.repository, github.run_id)
-            || needs.locale.result == 'skipped'
-              && ':skip_forward: translation strings sync check skipped due no changes in backend nor frontend relates files.'
-              || ':check: asserted that translation strings are in sync with codebase.'
           }}
         - ${{ (needs.merge-forward.result == 'failure' || needs.merge-forward.result == 'timed_out')
             && format(':warning: failed to merge forward: @*devs* please investigate [run #{0}]({1}/{2}/actions/runs/{3}), it likely requires a manual merge to `{4}`!', github.run_number, github.server_url, github.repository, github.run_id, needs.version.outputs.next_branch)
