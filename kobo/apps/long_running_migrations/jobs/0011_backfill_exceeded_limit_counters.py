@@ -1,7 +1,9 @@
 from django.conf import settings
 from django.db.models.query import QuerySet
 
+from hub.models import ExtraUserDetail
 from kobo.apps.kobo_auth.shortcuts import User
+from kpi.utils.django_orm_helper import UpdateJSONFieldAttributes
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.stripe.utils.limit_enforcement import check_exceeded_limit
 
@@ -23,8 +25,10 @@ def process_user(user_id, username):
     user = User.objects.get(pk=user_id)
     if counter is None:
         counter = check_exceeded_limit(user, UsageType.STORAGE_BYTES)
-    user.extra_details.data['done_storage_limits_check'] = True
-    user.extra_details.save()
+    extra_details, _ = ExtraUserDetail.objects.get_or_create(user=user)
+    ExtraUserDetail.objects.filter(pk=extra_details.pk).update(
+        data=UpdateJSONFieldAttributes('data', updates={'done_storage_limits_check': True})
+    )
 
     return 1 if counter is None else 0
 
