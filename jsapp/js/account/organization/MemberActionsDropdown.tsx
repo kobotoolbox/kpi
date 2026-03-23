@@ -2,8 +2,9 @@ import { type ReactNode, useState } from 'react'
 
 import { Menu } from '@mantine/core'
 
-import subscriptionStore from '#/account/subscriptionStore'
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
+
+import subscriptionStore from '#/account/subscriptionStore'
 import envStore from '#/envStore'
 import router from '#/router/router'
 import { ROUTES } from '#/router/routerConstants'

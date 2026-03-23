@@ -2,6 +2,8 @@ import React from 'react'
 
 import { Navigate, Route } from 'react-router-dom'
 
+import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
+
 import {
   ACCOUNT_ROUTES,
   AccountSettings,
@@ -13,7 +15,6 @@ import {
   PlansRoute,
   SecurityRoute,
 } from '#/account/routes.constants'
-import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
 import { RequireOrgPermissions } from '#/router/RequireOrgPermissions.component'
 import RequireAuth from '#/router/requireAuth'
 

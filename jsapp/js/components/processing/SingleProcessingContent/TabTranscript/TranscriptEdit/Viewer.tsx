@@ -1,10 +1,11 @@
 import React from 'react'
 
-import { destroyConfirm } from '#/alertify'
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import { useAssetsDataSupplementPartialUpdate } from '#/api/react-query/survey-data'
+
+import { destroyConfirm } from '#/alertify'
 import Button from '#/components/common/button'
 import { userCan } from '#/components/permissions/utils'
 import type { TranscriptVersionItem } from '#/components/processing/common/types'

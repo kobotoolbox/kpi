@@ -1,4 +1,5 @@
 import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
+
 import Badge, { type BadgeColor } from '#/components/common/badge'
 
 import styles from './organizationBadge.module.scss'

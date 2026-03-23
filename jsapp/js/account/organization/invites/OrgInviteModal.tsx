@@ -2,8 +2,6 @@ import React, { useState } from 'react'
 
 import { Button, FocusTrap, Group, Modal, Stack, Text } from '@mantine/core'
 
-import { getSimpleMMOLabel } from '#/account/organization/organization.utils'
-import subscriptionStore from '#/account/subscriptionStore'
 import type { ErrorDetail } from '#/api/models/errorDetail'
 import type { InviteResponse } from '#/api/models/inviteResponse'
 import { InviteStatusChoicesEnum } from '#/api/models/inviteStatusChoicesEnum'
@@ -11,6 +9,9 @@ import {
   useOrganizationsInvitesPartialUpdate,
   useOrganizationsInvitesRetrieve,
 } from '#/api/react-query/user-team-organization-usage'
+
+import { getSimpleMMOLabel } from '#/account/organization/organization.utils'
+import subscriptionStore from '#/account/subscriptionStore'
 import Alert from '#/components/common/alert'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import envStore from '#/envStore'

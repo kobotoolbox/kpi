@@ -3,6 +3,7 @@ import get from 'lodash.get'
 
 import type { _DataResponseAttachmentsItem } from '#/api/models/_dataResponseAttachmentsItem'
 import type { DataResponse } from '#/api/models/dataResponse'
+
 import { getRowName, getSurveyFlatPaths, getTranslatedRowLabel, isRowSpecialLabelHolder } from '#/assetUtils'
 import DeletedAttachment from '#/attachments/deletedAttachment.component'
 import { getSupplementalPathParts } from '#/components/processing/processingUtils'

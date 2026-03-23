@@ -8,6 +8,7 @@ import {
   getOrganizationsRetrieveQueryKey,
   useOrganizationsRetrieve,
 } from '#/api/react-query/user-team-organization-usage'
+
 import { useSession } from '#/stores/useSession'
 
 /**

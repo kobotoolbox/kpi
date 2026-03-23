@@ -14,6 +14,7 @@ import type { SupplementalDataVersionItemManual } from '#/api/models/supplementa
 import type { SupplementalDataVersionItemManualWithDep } from '#/api/models/supplementalDataVersionItemManualWithDep'
 import type { SupplementalDataVersionItemQual } from '#/api/models/supplementalDataVersionItemQual'
 import type { SupplementalDataVersionItemQualAutomatic } from '#/api/models/supplementalDataVersionItemQualAutomatic'
+
 import type { LanguageCode } from '#/components/languages/languagesStore'
 
 import type { StaticDisplays } from './utils'

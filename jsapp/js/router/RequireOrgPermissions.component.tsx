@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 
 import type { MemberRoleEnum } from '#/api/models/memberRoleEnum'
 import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
+
 import LoadingSpinner from '#/components/common/loadingSpinner'
 
 interface Props {

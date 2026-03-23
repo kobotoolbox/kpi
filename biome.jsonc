@@ -51,6 +51,8 @@
               ":BLANK_LINE:",
               ":PACKAGE:", // External dependencies
               ":BLANK_LINE:",
+              "#/api/**", // Internal-ish API imports
+              ":BLANK_LINE:",
               "#*/**", // Internal global imports
               ":BLANK_LINE:",
               "../**", // Local parent imports

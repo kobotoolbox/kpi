@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
 
-import { fetchPost, handleApiFail } from '#/api'
 import { invalidatePaginatedList } from '#/api/mutation-defaults/common'
+
+import { fetchPost, handleApiFail } from '#/api'
 import Checkbox from '#/components/common/checkbox'
 import KoboPrompt from '#/components/modals/koboPrompt'
 import customViewStore from '#/projects/customViewStore'

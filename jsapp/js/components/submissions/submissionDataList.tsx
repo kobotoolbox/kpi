@@ -3,6 +3,7 @@ import './submissionDataList.scss'
 import React from 'react'
 
 import type { DataResponse } from '#/api/models/dataResponse'
+
 import type { FlatQuestion } from '#/assetUtils'
 import { getFlatQuestionsList, getLanguageIndex } from '#/assetUtils'
 import bem, { makeBem } from '#/bem'

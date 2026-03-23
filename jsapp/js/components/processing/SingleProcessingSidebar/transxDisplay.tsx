@@ -1,6 +1,7 @@
 import React from 'react'
 
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
+
 import { AsyncLanguageDisplayLabel } from '#/components/languages/languagesUtils'
 
 import bodyStyles from '../common/processingBody.module.scss'

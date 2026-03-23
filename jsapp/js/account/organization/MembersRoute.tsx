@@ -4,9 +4,6 @@ import { Box, Divider, Group, Stack, Text, Title } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { keepPreviousData } from '@tanstack/react-query'
 
-import InviteModal from '#/account/organization/InviteModal'
-import { getSimpleMMOLabel } from '#/account/organization/organization.utils'
-import subscriptionStore from '#/account/subscriptionStore'
 import type { ErrorObject } from '#/api/models/errorObject'
 import { InviteStatusChoicesEnum } from '#/api/models/inviteStatusChoicesEnum'
 import type { MemberListResponse } from '#/api/models/memberListResponse'
@@ -16,6 +13,10 @@ import {
   useOrganizationsMembersList,
 } from '#/api/react-query/user-team-organization-usage'
 import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
+
+import InviteModal from '#/account/organization/InviteModal'
+import { getSimpleMMOLabel } from '#/account/organization/organization.utils'
+import subscriptionStore from '#/account/subscriptionStore'
 import ActionIcon from '#/components/common/ActionIcon'
 import Avatar from '#/components/common/avatar'
 import ButtonNew from '#/components/common/ButtonNew'

@@ -4,10 +4,11 @@ import { toJS } from 'mobx'
 import { observer } from 'mobx-react-lite'
 import Dropzone from 'react-dropzone'
 
+import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
+
 import OrgInviteAcceptedBanner from '#/account/organization/invites/OrgInviteAcceptedBanner'
 import OrgInviteModalWrapper from '#/account/organization/invites/OrgInviteModalWrapper'
 import { fetchPostUrl, handleApiFail } from '#/api'
-import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
 import ProjectOwnershipTransferModalWithBanner from '#/components/permissions/transferProjects/projectOwnershipTransferModalWithBanner'

@@ -1,10 +1,11 @@
 import React, { useMemo, useState } from 'react'
 
+import type { OrganizationResponse } from '#/api/models/organizationResponse'
+
 import styles from '#/account/addOns/addOnList.module.scss'
 import { useDisplayPrice } from '#/account/plans/useDisplayPrice.hook'
 import { postCheckout, postCustomerPortal } from '#/account/stripe.api'
 import type { Product, SubscriptionInfo } from '#/account/stripe.types'
-import type { OrganizationResponse } from '#/api/models/organizationResponse'
 import Button from '#/components/common/ButtonNew'
 import Select from '#/components/common/Select'
 

@@ -1,6 +1,7 @@
 import React from 'react'
 
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
+
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { AsyncLanguageDisplayLabel } from '#/components/languages/languagesUtils'
 import type { TranslationVersionItem } from '#/components/processing/common/types'

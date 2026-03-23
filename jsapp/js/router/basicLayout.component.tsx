@@ -5,6 +5,7 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import DocumentTitle from 'react-document-title'
 
 import { queryClient } from '#/api/queryClient'
+
 import bem from '#/bem'
 import AccountMenu from '#/components/header/accountMenu'
 import MainHeaderBase from '#/components/header/mainHeaderBase.component'
