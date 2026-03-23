@@ -150,7 +150,7 @@ class AccessLogsSignalsTestCase(BaseTestCase):
         self.assertEqual(audit_log.user.id, new_user.id)
         self.assertEqual(audit_log.action, AuditAction.AUTH)
 
-        # Verify that the ADMIN_UPDATE log was also created with the correct user and action
+        # Verify that the ADMIN_UPDATE log was also created
         admin_update_log = AuditLog.objects.get(action=AuditAction.ADMIN_UPDATE)
         self.assertEqual(admin_update_log.user.id, AccessLogsSignalsTestCase.user.id)
         self.assertEqual(admin_update_log.action, AuditAction.ADMIN_UPDATE)
@@ -302,7 +302,6 @@ class TestAdminAuditLogIntegration(BaseTestCase):
         audit_log = response.data['results'][0]
         self.assertEqual(audit_log['log_type'], AuditType.ADMIN_INTERFACE)
         self.assertEqual(audit_log['action'], AuditAction.ADMIN_CREATE)
-
 
     def test_admin_update_triggers_audit_log(self):
         """
