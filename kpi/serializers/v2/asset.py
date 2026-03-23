@@ -95,6 +95,7 @@ from .asset_export_settings import AssetExportSettingsSerializer
 from .asset_file import AssetFileSerializer
 from .asset_permission_assignment import AssetPermissionAssignmentReadSerializer
 from .asset_version import AssetVersionListSerializer
+from ...utils.permissions import is_user_anonymous
 
 
 class AssetBulkActionsSerializer(serializers.Serializer):
@@ -1300,7 +1301,7 @@ class AssetListCountSerializer(serializers.Serializer):
 
     def _request_is_anonymous(self):
         request = self.context['request']
-        return request.user.is_anonymous
+        return is_user_anonymous(request.user)
 
     @extend_schema_field(OpenApiTypes.INT)
     def get_deployed_count(self, queryset):
