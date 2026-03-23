@@ -58,6 +58,5 @@ class ExtraProjectMetadataFieldAdmin(admin.ModelAdmin):
 
     label_display.short_description = _('Default Label')
 
-
 # Register your models here.
 admin.site.register(AuthorizedApplication)
