@@ -46,6 +46,29 @@ describe('getSupplementalPathParts', () => {
     })
   })
 
+  it('should return proper path parts for analysis question verification', () => {
+    const path = '_supplementalDetails/your_name/a1234567-a123-123a-12a3-123aaaa45678/verified'
+    const test = getSupplementalPathParts(path)
+    chai.expect(test).to.deep.equal({
+      sourceRowName: 'your_name',
+      sourceRowPath: 'your_name',
+      type: 'qualVerification',
+      analysisQuestionUuid: 'a1234567-a123-123a-12a3-123aaaa45678',
+    })
+  })
+
+  it('should return proper path parts for analysis question verification of a nested question', () => {
+    const path =
+      '_supplementalDetails/outer_group/middle_group/inner_group/What_did_you_hear/a1234567-a123-123a-12a3-123aaaa45678/verified'
+    const test = getSupplementalPathParts(path)
+    chai.expect(test).to.deep.equal({
+      sourceRowName: 'What_did_you_hear',
+      sourceRowPath: 'outer_group/middle_group/inner_group/What_did_you_hear',
+      type: 'qualVerification',
+      analysisQuestionUuid: 'a1234567-a123-123a-12a3-123aaaa45678',
+    })
+  })
+
   it('should return proper path parts for analysis question of a nested question', () => {
     const path =
       '_supplementalDetails/outer_group/middle_group/inner_group/What_did_you_hear/a1234567-a123-123a-12a3-123aaaa45678'

@@ -1,6 +1,5 @@
-# coding: utf-8
-import csv
 import codecs
+import csv
 from typing import Dict
 
 from django.contrib import admin
@@ -10,6 +9,7 @@ from django.template.response import TemplateResponse
 from django.urls import path
 
 from kpi.utils.strings import strtobool
+from ..forms import ImportForm
 from .transcription import (
     TranscriptionService,
     TranscriptionServiceLanguageM2MInline,
@@ -18,7 +18,6 @@ from .translation import (
     TranslationService,
     TranslationServiceLanguageM2MInline,
 )
-from ..forms import ImportForm
 
 
 class Language(models.Model):
@@ -315,7 +314,9 @@ class LanguageAdmin(admin.ModelAdmin):
             Language.objects.all().delete()
             languages = {
                 language.code: language
-                for language in Language.objects.bulk_create(new_languages)
+                for language in Language.objects.bulk_create(
+                    new_languages, batch_size=100
+                )
             }
 
             new_region_objects = []

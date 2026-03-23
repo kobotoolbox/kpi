@@ -490,7 +490,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
         )
         log = ProjectHistoryLog.objects.first()
         self.assertEqual(log.action, AuditAction.CREATE)
-        self.assertEqual(log.object_id, 1)
+        self.assertEqual(log.object_id, '1')
         # metadata should contain all additional fields that were stored in updated_data
         # under the given label
         self.assertDictEqual(
@@ -516,7 +516,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
         )
         log = ProjectHistoryLog.objects.first()
         self.assertEqual(log.action, AuditAction.DELETE)
-        self.assertEqual(log.object_id, 1)
+        self.assertEqual(log.object_id, '1')
         # metadata should contain all additional fields that were stored in updated_data
         # under the given label
         self.assertDictEqual(log.metadata['label'], {'field_1': 'a', 'field_2': 'b'})
@@ -547,7 +547,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
         )
         log = ProjectHistoryLog.objects.first()
         self.assertEqual(log.action, AuditAction.UPDATE)
-        self.assertEqual(log.object_id, 1)
+        self.assertEqual(log.object_id, '1')
         # we should use the updated data for the log
         self.assertDictEqual(
             log.metadata['label'], {'field_1': 'new_field1', 'field_2': 'new_field2'}
@@ -589,7 +589,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
         self.assertEqual(ProjectHistoryLog.objects.count(), 1)
         log = ProjectHistoryLog.objects.first()
         self.assertEqual(log.action, AuditAction.REPLACE_FORM)
-        self.assertEqual(log.object_id, asset.id)
+        self.assertEqual(log.object_id, str(asset.id))
 
         # data from 'messages' should be copied to the log
         self.assertDictEqual(
@@ -627,7 +627,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
         ProjectHistoryLog.create_from_import_task(task)
         self.assertEqual(ProjectHistoryLog.objects.count(), 2)
         log = ProjectHistoryLog.objects.filter(action=AuditAction.REPLACE_FORM).first()
-        self.assertEqual(log.object_id, asset.id)
+        self.assertEqual(log.object_id, str(asset.id))
 
         self.assertDictEqual(
             log.metadata,
@@ -643,7 +643,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
         name_log = ProjectHistoryLog.objects.filter(
             action=AuditAction.UPDATE_NAME
         ).first()
-        self.assertEqual(log.object_id, asset.id)
+        self.assertEqual(log.object_id, str(asset.id))
 
         self.assertDictEqual(
             name_log.metadata,
@@ -673,7 +673,7 @@ class ProjectHistoryLogModelTestCase(BaseAuditLogTestCase):
         )
         self.assertEqual(ProjectHistoryLog.objects.count(), 1)
         log = ProjectHistoryLog.objects.first()
-        self.assertEqual(log.object_id, 1)
+        self.assertEqual(log.object_id, '1')
         # should create a regular 'MODIFY_USER_PERMISSIONS' log
         self.assertEqual(log.action, AuditAction.MODIFY_USER_PERMISSIONS)
         permissions = log.metadata['permissions']

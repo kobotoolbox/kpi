@@ -383,7 +383,7 @@ How these selections are determined varies by feature.
       </details>
 
       <details><summary>Response</summary>
-      `400 - Cannot translate without transcription`
+      `400 - No transcription found`
       </details>
 
 4. Add transcript in English - English transcript is now shown in the submission row

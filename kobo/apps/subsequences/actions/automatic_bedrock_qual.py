@@ -20,6 +20,7 @@ from kobo.apps.subsequences.constants import (
     QUESTION_TYPE_TAGS,
     QUESTION_TYPE_TEXT,
     SELECT_QUESTIONS,
+    SOURCE_TYPE_AUTOMATIC,
 )
 from kobo.apps.subsequences.exceptions import (
     AnalysisQuestionNotFound,
@@ -34,7 +35,9 @@ from kobo.apps.subsequences.prompts import (
     choices_list_placeholder,
     example_format_placeholder,
     format_choices,
+    format_hint,
     get_example_format,
+    hint_placeholder,
     num_choice_placeholder,
     parse_choices_response,
     parse_integer_response,
@@ -252,6 +255,8 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         qa_question = self._get_question(question_uuid)
         question_text = qa_question['labels']['_default']
         question_type = qa_question['type']
+        hint = qa_question.get('hint', {}).get('labels', {}).get('_default')
+        hint = f' {format_hint(hint)}' if hint else ''
 
         # get the correct template based on question type
         prompt_template = PROMPTS_BY_QUESTION_TYPE[question_type]
@@ -259,15 +264,21 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         # if it's not a select question, we only need the transcript and the question
         # text to fill out the prompt
         if question_type not in SELECT_QUESTIONS:
-            return prompt_template.replace(
-                response_placeholder, transcript_text
-            ).replace(analysis_question_placeholder, question_text)
+            return (
+                prompt_template.replace(response_placeholder, transcript_text)
+                .replace(analysis_question_placeholder, question_text)
+                .replace(hint_placeholder, hint)
+            )
         else:
             # for select questions, need to get all the choices
             visible_choices = self._get_visible_choices(qa_question)
-            visible_choice_labels = [
-                choice['labels']['_default'] for choice in visible_choices
-            ]
+            visible_choice_labels = []
+            for choice in visible_choices:
+                label = choice['labels']['_default']
+                choice_hint = (
+                    choice.get('hint', {}).get('labels', {}).get('_default', '')
+                )
+                visible_choice_labels.append({'label': label, 'hint': choice_hint})
             choices_text = format_choices(visible_choice_labels)
             choices_count = len(visible_choices)
             example_format = get_example_format(question_type, choices_count)
@@ -277,6 +288,7 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
                 .replace(num_choice_placeholder, str(choices_count))
                 .replace(example_format_placeholder, example_format)
                 .replace(choices_list_placeholder, choices_text)
+                .replace(hint_placeholder, hint)
             )
 
     def get_question_params(self):
@@ -454,6 +466,9 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
                     selected_indexes = parse_choices_response(
                         full_response_text, len(visible_choices), False
                     )
+                    if len(selected_indexes) == 0:
+                        # empty string is the correct empty value for select one
+                        return {'value': '', 'status': 'complete'}
                     index = selected_indexes[0]
                     selected_uuid = visible_choices[index]['uuid']
                     return {'value': selected_uuid, 'status': 'complete'}
@@ -490,3 +505,7 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         for param in incoming_params:
             if param['uuid'] not in current_uuids:
                 self.params.append(param)
+
+    @property
+    def source(self):
+        return SOURCE_TYPE_AUTOMATIC

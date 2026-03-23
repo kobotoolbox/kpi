@@ -14,6 +14,7 @@ analysis_question_placeholder = '{{analysisQuestion}}'
 num_choice_placeholder = '{{numChoices}}'
 example_format_placeholder = '{{exampleFormat}}'
 choices_list_placeholder = '{{choicesList}}'
+hint_placeholder = '{{hint}}'
 
 MODEL_TEMPERATURE = 0.1
 MAX_TOKENS = 1000
@@ -29,7 +30,7 @@ PROMPTS_BY_QUESTION_TYPE = {
     'interview response. You must determine a numerical value that answers that '
     'question. Only provide the number, no additional text.'
     '\n\nInterview Response: {{interviewResponse}}'
-    '\n\nAnalysis Question: {{analysisQuestion}}',
+    '\n\nAnalysis Question: {{analysisQuestion}}{{hint}}',
     QUESTION_TYPE_TEXT: 'You are analyzing an interview response to answer a specific'
     ' question. Follow these rules:'
     '\n\n1. BASE YOUR ANSWER ONLY ON EVIDENCE: Only use '
@@ -50,14 +51,14 @@ PROMPTS_BY_QUESTION_TYPE = {
     'address the question.'
     '\n\nInterview Response:'
     '\n{{interviewResponse}}'
-    '\nAnalysis Question: {{analysisQuestion}}'
+    '\nAnalysis Question: {{analysisQuestion}}{{hint}}'
     '\n\nProvide your analysis:',
     QUESTION_TYPE_SELECT_MULTIPLE: 'Carefully analyze the interview response below to '
     'enable you to determine which of the options should apply to the analysis '
     'question. The analysis question and options are listed below the interview '
     'response.'
     '\n\nInterview Response: {{interviewResponse}}'
-    '\n\nAnalysis Question: {{analysisQuestion}}'
+    '\n\nAnalysis Question: {{analysisQuestion}}{{hint}}'
     '\n\nIMPORTANT: Select only the options from the list below that best apply to the '
     'analysis question (if any). Respond ONLY with exactly {{numChoices}} boolean '
     'values separated by commas, representing TRUE or FALSE for each option. Multiple '
@@ -87,17 +88,36 @@ PROMPTS_BY_QUESTION_TYPE = {
 }
 
 
-def format_choices(choices: list[str]) -> str:
+def format_choices(choices: list[dict]) -> str:
     """
     Format choices to pass in the LLM prompt
 
     Update this method to change what goes in the {{ choicesList }} placeholder
 
-    :param choices: list[str] List of choices as strings, eg ['Yes', 'No', 'Maybe']
+    :param choices: list[dict] List of choices as dicts with labels and hints
+                    eg [{'label':'Yes', 'hint': 'Select this if true'}]
     :return: formatted choices as string
     """
-    enumerated_choices = [f'{i}. {choice}' for i, choice in enumerate(choices)]
+    enumerated_choices = []
+    for i, choice in enumerate(choices):
+        choice_as_string = choice['label']
+        if hint := choice.get('hint'):
+            choice_as_string = f'{choice_as_string} ({hint})'
+        enumerated_choices.append(choice_as_string)
     return '\n'.join(enumerated_choices)
+
+
+def format_hint(hint: str) -> str:
+    """
+    Format hints to pass in the LLM prompt
+
+    Update this method to change what goes in the {{ hint }} placeholder. This is done
+    separately from the main template because there may not be a hint
+
+    :param hint: hint label
+    :return: formatted hint
+    """
+    return hint
 
 
 def get_example_format(question_type: str, num_choices: int) -> str:
@@ -150,10 +170,6 @@ def parse_choices_response(
         if len(selected_answer_indexes) > 1:
             raise InvalidResponseFromLLMException(
                 'LLM returned multiple answers for a single select'
-            )
-        if len(selected_answer_indexes) == 0:
-            raise InvalidResponseFromLLMException(
-                'LLM returned no answers for a single select'
             )
     return selected_answer_indexes
 

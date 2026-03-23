@@ -37,6 +37,10 @@ from kobo.apps.subsequences.exceptions import (
     TranscriptionNotFound,
 )
 from kobo.apps.subsequences.models import SubmissionSupplement
+from kobo.apps.subsequences.throttling import (
+    check_automatic_qa_throttle,
+    is_automatic_qa_request
+)
 from kpi.authentication import EnketoSessionAuthentication
 from kpi.constants import (
     PERM_CHANGE_SUBMISSIONS,
@@ -538,6 +542,10 @@ class DataViewSet(
         # make it clear, a root uuid is expected here
         submission_root_uuid = root_uuid
 
+        # Throttle automatic QA requests
+        if request.method == 'PATCH' and is_automatic_qa_request(request.data):
+            check_automatic_qa_throttle(request, self)
+
         deployment = self._get_deployment()
         try:
             submission = list(
@@ -586,9 +594,7 @@ class DataViewSet(
             # TODO: more descriptive errors
             raise serializers.ValidationError({'detail': 'Invalid payload'})
         except TranscriptionNotFound:
-            raise serializers.ValidationError(
-                {'detail': 'Cannot translate without transcription'}
-            )
+            raise serializers.ValidationError({'detail': 'No transcription found'})
         except SubsequenceVerificationError:
             raise serializers.ValidationError({'detail': 'No response to verify'})
         except SubsequenceAcceptanceError:

@@ -1,6 +1,10 @@
+from allauth.socialaccount.models import SocialAccount, SocialApp
+from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from kobo.apps.audit_log.audit_actions import AuditAction
+from kobo.apps.audit_log.models import AuditLog
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.kobo_scim.models import IdentityProvider
 
@@ -8,15 +12,26 @@ from kobo.apps.kobo_scim.models import IdentityProvider
 class ScimUsersAPITests(APITestCase):
 
     def setUp(self):
+        # Create a SocialApp mapping
+        self.social_app = SocialApp.objects.create(
+            provider='openid_connect',
+            provider_id='test-provider-id',
+            name='Test Provider',
+            client_id='test-client-id',
+        )
+
         # Create an Identity Provider
         self.idp = IdentityProvider.objects.create(
             name='Test IdP',
             slug='test-idp',
             scim_api_key='secret-token',
             is_active=True,
+            social_app=self.social_app,
         )
 
-        self.url = f'/api/scim/v2/{self.idp.slug}/Users'
+        self.url = reverse(
+            'api_v2:kobo_scim:scim-users-list', kwargs={'idp_slug': self.idp.slug}
+        )
 
         # Create some test users
         self.user1 = User.objects.create_user(
@@ -34,24 +49,34 @@ class ScimUsersAPITests(APITestCase):
             password='password123',
         )
 
+        # Link the users to the IdP's social app provider
+        SocialAccount.objects.create(
+            user=self.user1, provider=self.social_app.provider_id, uid='jdoe-uid'
+        )
+        SocialAccount.objects.create(
+            user=self.user2, provider=self.social_app.provider_id, uid='asmith-uid'
+        )
+
     def test_authentication_required(self):
-        response = self.client.get(self.url)
+        response = self.client.get(self.url, HTTP_ACCEPT='application/scim+json')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_authentication_invalid_token(self):
         self.client.credentials(HTTP_AUTHORIZATION='Bearer invalid-token')
-        response = self.client.get(self.url)
+        response = self.client.get(self.url, HTTP_ACCEPT='application/scim+json')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_successful_authentication(self):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
-        response = self.client.get(self.url)
+        response = self.client.get(self.url, HTTP_ACCEPT='application/scim+json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_idp_slug_mismatch(self):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
-        wrong_url = '/api/scim/v2/wrong-idp/Users'
-        response = self.client.get(wrong_url)
+        wrong_url = reverse(
+            'api_v2:kobo_scim:scim-users-list', kwargs={'idp_slug': 'wrong-idp'}
+        )
+        response = self.client.get(wrong_url, HTTP_ACCEPT='application/scim+json')
         # Assuming our view returns empty list dynamically based on viewset permissions
         # if idp doesn't match
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -59,7 +84,7 @@ class ScimUsersAPITests(APITestCase):
 
     def test_get_users_list_format(self):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
-        response = self.client.get(self.url)
+        response = self.client.get(self.url, HTTP_ACCEPT='application/scim+json')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()
@@ -76,16 +101,129 @@ class ScimUsersAPITests(APITestCase):
 
         # Check standard SCIM fields mapping on the first user
         user1_data = next(u for u in resources if u['userName'] == 'jdoe')
-        self.assertEqual(user1_data['id'], self.user1.id)
+        self.assertEqual(user1_data['id'], str(self.user1.id))
         self.assertEqual(user1_data['active'], True)
         self.assertEqual(user1_data['name']['givenName'], 'John')
         self.assertEqual(user1_data['name']['familyName'], 'Doe')
         self.assertEqual(user1_data['emails'][0]['value'], 'jdoe@example.com')
         self.assertEqual(user1_data['emails'][0]['primary'], True)
 
+    def test_create_user_success(self):
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
+        payload = {
+            'schemas': ['urn:ietf:params:scim:schemas:core:2.0:User'],
+            'userName': 'newscimuser',
+            'name': {'givenName': 'New', 'familyName': 'Scim'},
+            'emails': [
+                {'primary': True, 'value': 'newscimuser@example.com', 'type': 'work'}
+            ],
+            'active': True,
+        }
+
+        response = self.client.post(
+            self.url,
+            payload,
+            format='json',
+            HTTP_ACCEPT='application/scim+json',
+        )
+
+        self.assertEqual(
+            response.status_code, status.HTTP_201_CREATED, response.content
+        )
+        data = response.json()
+        self.assertEqual(data['userName'], 'newscimuser')
+
+        # Verify in DB
+        user = User.objects.get(username='newscimuser')
+        self.assertEqual(user.email, 'newscimuser@example.com')
+        self.assertEqual(user.first_name, 'New')
+
+        # Verify SocialAccount link
+        social_account = SocialAccount.objects.get(
+            user=user, provider=self.idp.social_app.provider_id
+        )
+        self.assertIsNotNone(social_account)
+
+    def test_create_user_existing_email_links_successfully(self):
+        # If an IdP sends a user that already exists locally,
+        # we should link them gracefully
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
+
+        existing_user = User.objects.create_user(
+            username='existing_local',
+            email='existing_match@example.com',
+        )
+        # Note: Not linked to SocialAccount yet!
+
+        payload = {
+            'schemas': ['urn:ietf:params:scim:schemas:core:2.0:User'],
+            'userName': 'idp_username',
+            'emails': [{'primary': True, 'value': 'existing_match@example.com'}],
+            'active': True,
+        }
+
+        response = self.client.post(
+            self.url,
+            payload,
+            format='json',
+            HTTP_ACCEPT='application/scim+json',
+        )
+
+        self.assertEqual(
+            response.status_code, status.HTTP_201_CREATED, response.content
+        )
+
+        # Verify it didn't create a new user but found the existing one by email
+        social_account = SocialAccount.objects.get(
+            user=existing_user, provider=self.idp.social_app.provider_id
+        )
+        self.assertIsNotNone(social_account)
+
+    def test_create_user_reactivates_existing_inactive_user(self):
+        # A previously de-provisioned user gets re-assigned to the Kobo App in Authentik
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
+
+        # User already exists and is deactivated
+        deactivated_user = User.objects.create_user(
+            username='rejoined_user', email='rejoined@example.com', is_active=False
+        )
+
+        payload = {
+            'schemas': ['urn:ietf:params:scim:schemas:core:2.0:User'],
+            'userName': 'rejoined_user',
+            'emails': [{'primary': True, 'value': 'rejoined@example.com'}],
+            'active': True,
+        }
+
+        response = self.client.post(
+            self.url,
+            payload,
+            format='json',
+            HTTP_ACCEPT='application/scim+json',
+        )
+
+        self.assertEqual(
+            response.status_code, status.HTTP_201_CREATED, response.content
+        )
+
+        # Verify the user was NOT duplicated
+        self.assertEqual(User.objects.filter(username='rejoined_user').count(), 1)
+
+        # Verify the user was reactivated
+        deactivated_user.refresh_from_db()
+        self.assertTrue(deactivated_user.is_active)
+
+        # Verify linkage
+        social_account = SocialAccount.objects.get(
+            user=deactivated_user, provider=self.idp.social_app.provider_id
+        )
+        self.assertIsNotNone(social_account)
+
     def test_get_user_by_id(self):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
-        response = self.client.get(f'{self.url}/{self.user1.id}')
+        response = self.client.get(
+            f'{self.url}/{self.user1.id}', HTTP_ACCEPT='application/scim+json'
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()
@@ -95,12 +233,18 @@ class ScimUsersAPITests(APITestCase):
 
     def test_pagination(self):
         # Create a third user
-        User.objects.create_user(username='bwayne', email='bwayne@example.com')
+        user3 = User.objects.create_user(username='bwayne', email='bwayne@example.com')
+        SocialAccount.objects.create(
+            user=user3, provider=self.social_app.provider_id, uid='bwayne-uid'
+        )
 
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
 
         # Request page 2, count 1 -> This means startIndex=2, count=1
-        response = self.client.get(f'{self.url}?startIndex=2&count=1')
+        response = self.client.get(
+            f'{self.url}?startIndex=2&count=1',
+            HTTP_ACCEPT='application/scim+json',
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()
 
@@ -114,7 +258,10 @@ class ScimUsersAPITests(APITestCase):
 
     def test_filtering_by_username(self):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
-        response = self.client.get(f'{self.url}?filter=userName eq "jdoe"')
+        response = self.client.get(
+            f'{self.url}?filter=userName eq "jdoe"',
+            HTTP_ACCEPT='application/scim+json',
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()
@@ -123,9 +270,247 @@ class ScimUsersAPITests(APITestCase):
 
     def test_filtering_by_email(self):
         self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
-        response = self.client.get(f'{self.url}?filter=emails eq "asmith@example.com"')
+        response = self.client.get(
+            f'{self.url}?filter=emails eq "asmith@example.com"',
+            HTTP_ACCEPT='application/scim+json',
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()
         self.assertEqual(data['totalResults'], 1)
         self.assertEqual(data['Resources'][0]['userName'], 'asmith')
+
+    def test_delete_user_deactivates_all_matching_emails(self):
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
+
+        # Create another user with the same email as user1 (jdoe@example.com)
+        user3 = User.objects.create_user(
+            username='jdoe_sso',
+            email='jdoe@example.com',
+            first_name='John',
+            last_name='Doe',
+            is_active=True,
+        )
+
+        response = self.client.delete(
+            f'{self.url}/{self.user1.id}', HTTP_ACCEPT='application/scim+json'
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        # Verify that both users with the same email are deactivated
+        self.user1.refresh_from_db()
+        user3.refresh_from_db()
+        self.assertFalse(self.user1.is_active)
+        self.assertFalse(user3.is_active)
+
+        # Verify user2 (different email) is still active
+        self.user2.refresh_from_db()
+        self.assertTrue(self.user2.is_active)
+
+    def test_delete_user_without_email_deactivates_only_that_user(self):
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
+
+        user_no_email = User.objects.create_user(
+            username='noemail',
+            first_name='No',
+            last_name='Email',
+            is_active=True,
+        )
+        SocialAccount.objects.create(
+            user=user_no_email, provider=self.social_app.provider_id, uid='noemail-uid'
+        )
+
+        # Also ensure user1 is active
+        self.assertTrue(self.user1.is_active)
+
+        response = self.client.delete(
+            f'{self.url}/{user_no_email.id}',
+            HTTP_ACCEPT='application/scim+json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        user_no_email.refresh_from_db()
+        self.assertFalse(user_no_email.is_active)
+
+        # Verify user1 is not affected
+        self.user1.refresh_from_db()
+        self.assertTrue(self.user1.is_active)
+
+    def test_delete_user_wrong_idp(self):
+        # Create a second Identity Provider and SocialApp
+        social_app_2 = SocialApp.objects.create(
+            provider='other_provider',
+            provider_id='other-provider-id',
+            name='Other Provider',
+            client_id='other-client-id',
+        )
+
+        idp_2 = IdentityProvider.objects.create(
+            name='Other IdP',
+            slug='other-idp',
+            scim_api_key='other-secret-token',
+            is_active=True,
+            social_app=social_app_2,
+        )
+
+        # We try to use idp_2's credentials to delete user1
+        # (user1 is linked to the first IdP)
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {idp_2.scim_api_key}')
+
+        url_2 = reverse(
+            'api_v2:kobo_scim:scim-users-list',
+            kwargs={'idp_slug': idp_2.slug},
+        )
+        response = self.client.delete(
+            f'{url_2}/{self.user1.id}', HTTP_ACCEPT='application/scim+json'
+        )
+
+        # The queryset filtering prevents idp_2 from seeing user1, so it should 404
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+        # Verify user1 is not affected
+        self.user1.refresh_from_db()
+        self.assertTrue(self.user1.is_active)
+
+    def test_patch_deactivate_user(self):
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
+
+        # Create another user with the same email as user1 (jdoe@example.com)
+        user3 = User.objects.create_user(
+            username='jdoe_sso',
+            email='jdoe@example.com',
+            first_name='John',
+            last_name='Doe',
+            is_active=True,
+        )
+
+        payload = {
+            'schemas': ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
+            'Operations': [{'op': 'replace', 'path': 'active', 'value': False}],
+        }
+
+        response = self.client.patch(
+            f'{self.url}/{self.user1.id}',
+            payload,
+            format='json',
+            HTTP_ACCEPT='application/scim+json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.json()
+        self.assertFalse(data.get('active', True))
+
+        # Verify that both users with the same email are deactivated
+        self.user1.refresh_from_db()
+        user3.refresh_from_db()
+        self.assertFalse(self.user1.is_active)
+        self.assertFalse(user3.is_active)
+
+    def test_patch_unsupported_operation(self):
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
+
+        payload = {
+            'schemas': ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
+            'Operations': [
+                {'op': 'replace', 'path': 'name.familyName', 'value': 'Smith'}
+            ],
+        }
+
+        response = self.client.patch(
+            f'{self.url}/{self.user1.id}',
+            payload,
+            format='json',
+            HTTP_ACCEPT='application/scim+json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        self.user1.refresh_from_db()
+        self.assertTrue(self.user1.is_active)
+
+    def test_manual_reactivation_after_scim_deprovisioning(self):
+        """
+        Test that a superuser can manually reactivate a user after SCIM deprovisioning.
+        """
+        # SCIM deprovisioning request
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
+        response = self.client.delete(
+            f'{self.url}/{self.user1.id}', HTTP_ACCEPT='application/scim+json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        self.user1.refresh_from_db()
+        self.assertFalse(self.user1.is_active)
+
+        # Superuser manually reactivates user1
+        self.user1.is_active = True
+        self.user1.save()
+
+        self.user1.refresh_from_db()
+        self.assertTrue(self.user1.is_active)
+
+    def test_scim_deprovisioning_is_idempotent(self):
+        """
+        Test that multiple SCIM deprovisioning requests for the same user are
+        idempotent. Ensure that if multiple deprovisioning requests are received
+        for the same email, the user is deactivated after the first request, and
+        subsequent requests do not cause errors or additional deactivations.
+        """
+        # First deprovisioning request
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
+        response1 = self.client.delete(
+            f'{self.url}/{self.user1.id}', HTTP_ACCEPT='application/scim+json'
+        )
+        self.assertEqual(response1.status_code, status.HTTP_204_NO_CONTENT)
+
+        self.user1.refresh_from_db()
+        self.assertFalse(self.user1.is_active)
+
+        logs_after_first = AuditLog.objects.filter(
+            object_id=self.user1.id,
+            action=AuditAction.DEACTIVATION,
+        ).count()
+        self.assertEqual(logs_after_first, 1)
+
+        # Second deprovisioning request (simulating IdP resending the event)
+        response2 = self.client.delete(
+            f'{self.url}/{self.user1.id}', HTTP_ACCEPT='application/scim+json'
+        )
+        self.assertEqual(response2.status_code, status.HTTP_204_NO_CONTENT)
+
+        # Verify Bob is still inactive
+        self.user1.refresh_from_db()
+        self.assertFalse(self.user1.is_active)
+
+        logs_after_second = AuditLog.objects.filter(
+            object_id=self.user1.id,
+            action=AuditAction.DEACTIVATION,
+        ).count()
+        # Both requests will be logged
+        self.assertEqual(logs_after_second, 2)
+
+    def test_subsequent_scim_request_deactivates_after_manual_reactivation(self):
+        # First deprovisioning
+        self.client.credentials(HTTP_AUTHORIZATION=f'Bearer {self.idp.scim_api_key}')
+        self.client.delete(
+            f'{self.url}/{self.user1.id}', HTTP_ACCEPT='application/scim+json'
+        )
+        self.user1.refresh_from_db()
+        self.assertFalse(self.user1.is_active)
+
+        # Manual reactivation by superuser
+        self.user1.is_active = True
+        self.user1.save()
+        self.user1.refresh_from_db()
+        self.assertTrue(self.user1.is_active)
+
+        # Second deprovisioning request from IdP
+        response = self.client.delete(
+            f'{self.url}/{self.user1.id}', HTTP_ACCEPT='application/scim+json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        self.user1.refresh_from_db()
+        self.assertFalse(self.user1.is_active)

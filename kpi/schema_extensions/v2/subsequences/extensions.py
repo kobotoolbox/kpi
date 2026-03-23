@@ -97,6 +97,12 @@ class SubsequenceParamsFieldExtension(
             },
             'qualUuid': {'type': 'string', 'format': 'uuid'},
         }
+        definitions['qualHint'] = {
+            'type': 'object',
+            'additionalProperties': False,
+            'labels': definitions['qualLabels'],
+            'required': 'labels',
+        }
         definitions['qualChoice'] = {
             'type': 'object',
             'additionalProperties': False,
@@ -107,6 +113,7 @@ class SubsequenceParamsFieldExtension(
                     'type': 'object',
                     'properties': {'deleted': {'type': 'boolean'}},
                 },
+                'hint': definitions['qualHint'],
             },
             'required': ['labels', 'uuid'],
         }
@@ -121,6 +128,7 @@ class SubsequenceParamsFieldExtension(
                     'type': 'object',
                     'properties': {'deleted': {'type': 'boolean'}},
                 },
+                'hint': definitions['qualHint'],
             },
             'required': ['uuid', 'type', 'labels'],
         }
@@ -139,6 +147,7 @@ class SubsequenceParamsFieldExtension(
                     'type': 'object',
                     'properties': {'deleted': {'type': 'boolean'}},
                 },
+                'hint': definitions['qualHint'],
             },
             'required': ['uuid', 'type', 'labels', 'choices'],
         }

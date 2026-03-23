@@ -392,7 +392,7 @@ class PairedDataExternalApiTests(BasePairedDataTestCase):
         response = self.client.get(self.external_xml_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    @unittest.skip(reason='Skip until mock back end supports XML submissions')
+    @unittest.skip(reason='Superseded by updated tests in PR #6847')
     def test_get_external_with_changed_source_fields(self):
         self.deploy_source()
         self.toggle_source_sharing(enabled=True, fields=['city_name'])
@@ -401,7 +401,7 @@ class PairedDataExternalApiTests(BasePairedDataTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.content, expected_xml)
 
-    @unittest.skip(reason='Skip until mock back end supports XML submissions')
+    @unittest.skip(reason='Superseded by updated tests in PR #6847')
     def test_get_external_with_specific_fields(self):
         self.deploy_source()
         self.paired_data(fields=['city_name'])
@@ -410,7 +410,7 @@ class PairedDataExternalApiTests(BasePairedDataTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.content, expected_xml)
 
-    @unittest.skip(reason='Skip until mock back end supports XML submissions')
+    @unittest.skip(reason='Superseded by updated tests in PR #6847')
     def test_get_external_with_specific_fields_and_changed_source_fields(self):
         self.deploy_source()
         self.paired_data(fields=['city_name'])
