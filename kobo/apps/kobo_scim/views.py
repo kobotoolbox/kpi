@@ -348,6 +348,19 @@ class ScimServiceProviderConfigView(APIView):
             'changePassword': {'supported': False},
             'sort': {'supported': False},
             'etag': {'supported': False},
+            'authenticationSchemes': [
+                {
+                    'name': 'Bearer Token',
+                    'description': 'Authentication via SCIM API Key provided in the Authorization header as a Bearer token.',
+                    'specUri': 'https://tools.ietf.org/html/rfc6750',
+                    'type': 'oauthbearertoken',
+                    'primary': True,
+                }
+            ],
+            'meta': {
+                'resourceType': 'ServiceProviderConfig',
+                'location': request.build_absolute_uri(),
+            },
         }
         return Response(payload, status=status.HTTP_200_OK)
 
@@ -371,6 +384,7 @@ class ScimSchemasView(APIView):
 
     @extend_schema(responses={200: OpenApiTypes.OBJECT})
     def get(self, request, *args, **kwargs):
+        location = request.build_absolute_uri().rstrip('/')
         payload = {
             'schemas': ['urn:ietf:params:scim:api:messages:2.0:ListResponse'],
             'totalResults': 2,
@@ -378,13 +392,19 @@ class ScimSchemasView(APIView):
             'startIndex': 1,
             'Resources': [
                 {
+                    'schemas': ['urn:ietf:params:scim:schemas:core:2.0:Schema'],
                     'id': 'urn:ietf:params:scim:schemas:core:2.0:User',
                     'name': 'User',
                     'description': 'User Account',
+                    'meta': {
+                        'resourceType': 'Schema',
+                        'location': f'{location}/urn:ietf:params:scim:schemas:core:2.0:User', #  noqa
+                    },
                     'attributes': [
                         {
                             'name': 'userName',
                             'type': 'string',
+                            'description': 'Unique identifier for the User',
                             'multiValued': False,
                             'required': True,
                             'caseExact': False,
@@ -395,6 +415,7 @@ class ScimSchemasView(APIView):
                         {
                             'name': 'name',
                             'type': 'complex',
+                            'description': "The components of the user's real name.",
                             'multiValued': False,
                             'required': False,
                             'mutability': 'readWrite',
@@ -403,6 +424,7 @@ class ScimSchemasView(APIView):
                                 {
                                     'name': 'familyName',
                                     'type': 'string',
+                                    'description': 'The family name of the User.',
                                     'multiValued': False,
                                     'required': False,
                                     'caseExact': False,
@@ -413,6 +435,7 @@ class ScimSchemasView(APIView):
                                 {
                                     'name': 'givenName',
                                     'type': 'string',
+                                    'description': 'The given name of the User.',
                                     'multiValued': False,
                                     'required': False,
                                     'caseExact': False,
@@ -425,6 +448,7 @@ class ScimSchemasView(APIView):
                         {
                             'name': 'emails',
                             'type': 'complex',
+                            'description': 'Email addresses for the user.',
                             'multiValued': True,
                             'required': False,
                             'mutability': 'readWrite',
@@ -433,6 +457,7 @@ class ScimSchemasView(APIView):
                                 {
                                     'name': 'value',
                                     'type': 'string',
+                                    'description': 'Email address.',
                                     'multiValued': False,
                                     'required': False,
                                     'caseExact': False,
@@ -443,6 +468,7 @@ class ScimSchemasView(APIView):
                                 {
                                     'name': 'primary',
                                     'type': 'boolean',
+                                    'description': "A boolean value indicating the 'primary' or preferred attribute value for this attribute.", #  noqa
                                     'multiValued': False,
                                     'required': False,
                                     'mutability': 'readWrite',
@@ -453,6 +479,8 @@ class ScimSchemasView(APIView):
                         {
                             'name': 'active',
                             'type': 'boolean',
+                            'description': 'A Boolean value indicating the '
+                            "User's administrative status.",
                             'multiValued': False,
                             'required': False,
                             'mutability': 'readWrite',
@@ -461,6 +489,8 @@ class ScimSchemasView(APIView):
                         {
                             'name': 'externalId',
                             'type': 'string',
+                            'description': 'A String that is an identifier for the '
+                            'resource as defined by the provisioning client.',
                             'multiValued': False,
                             'required': False,
                             'caseExact': False,
@@ -471,13 +501,19 @@ class ScimSchemasView(APIView):
                     ],
                 },
                 {
+                    'schemas': ['urn:ietf:params:scim:schemas:core:2.0:Schema'],
                     'id': 'urn:ietf:params:scim:schemas:core:2.0:Group',
                     'name': 'Group',
                     'description': 'Group',
+                    'meta': {
+                        'resourceType': 'Schema',
+                        'location': f'{location}/urn:ietf:params:scim:schemas:core:2.0:Group', #  noqa
+                    },
                     'attributes': [
                         {
                             'name': 'displayName',
                             'type': 'string',
+                            'description': 'A human-readable name for the Group.',
                             'multiValued': False,
                             'required': True,
                             'caseExact': False,
@@ -488,6 +524,7 @@ class ScimSchemasView(APIView):
                         {
                             'name': 'members',
                             'type': 'complex',
+                            'description': 'A list of members of the Group.',
                             'multiValued': True,
                             'required': False,
                             'mutability': 'readWrite',
@@ -496,6 +533,7 @@ class ScimSchemasView(APIView):
                                 {
                                     'name': 'value',
                                     'type': 'string',
+                                    'description': 'Identifier of the member of this Group.', #  noqa
                                     'multiValued': False,
                                     'required': False,
                                     'caseExact': False,
@@ -506,6 +544,7 @@ class ScimSchemasView(APIView):
                                 {
                                     'name': 'display',
                                     'type': 'string',
+                                    'description': 'A human-readable name, primarily used for display purposes.', #  noqa
                                     'multiValued': False,
                                     'required': False,
                                     'caseExact': False,
@@ -518,6 +557,7 @@ class ScimSchemasView(APIView):
                         {
                             'name': 'externalId',
                             'type': 'string',
+                            'description': 'A String that is an identifier for the resource as defined by the provisioning client.', #  noqa
                             'multiValued': False,
                             'required': False,
                             'caseExact': False,
@@ -549,6 +589,7 @@ class ScimResourceTypesView(APIView):
 
     @extend_schema(responses={200: OpenApiTypes.OBJECT})
     def get(self, request, *args, **kwargs):
+        location = request.build_absolute_uri().rstrip('/')
         payload = {
             'schemas': ['urn:ietf:params:scim:api:messages:2.0:ListResponse'],
             'totalResults': 2,
@@ -563,6 +604,10 @@ class ScimResourceTypesView(APIView):
                     'description': 'User Account',
                     'schema': 'urn:ietf:params:scim:schemas:core:2.0:User',
                     'schemaExtensions': [],
+                    'meta': {
+                        'resourceType': 'ResourceType',
+                        'location': f'{location}/User',
+                    },
                 },
                 {
                     'schemas': ['urn:ietf:params:scim:schemas:core:2.0:ResourceType'],
@@ -572,6 +617,10 @@ class ScimResourceTypesView(APIView):
                     'description': 'Group',
                     'schema': 'urn:ietf:params:scim:schemas:core:2.0:Group',
                     'schemaExtensions': [],
+                    'meta': {
+                        'resourceType': 'ResourceType',
+                        'location': f'{location}/Group',
+                    },
                 },
             ],
         }
