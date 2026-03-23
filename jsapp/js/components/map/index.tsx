@@ -534,7 +534,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
           count: mapMarkers[m].count,
           id: mapMarkers[m].id,
           labels: choice?.label || undefined,
-          value: m !== 'undefined' ? m : undefined,
+          value: m === 'undefined' ? undefined : m,
         })
       })
 
@@ -768,10 +768,10 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     }, 1000)
 
     const name = evt.currentTarget.getAttribute('data-name') || undefined
-    if (name !== undefined) {
-      this.props.router.navigate(`/forms/${this.props.asset.uid}/data/map/${name}`)
-    } else {
+    if (name === undefined) {
       this.props.router.navigate(`/forms/${this.props.asset.uid}/data/map`)
+    } else {
+      this.props.router.navigate(`/forms/${this.props.asset.uid}/data/map/${name}`)
     }
   }
 

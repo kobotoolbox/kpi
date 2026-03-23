@@ -91,10 +91,10 @@ export function deleteAsset(
         })
       })
     }
-  } else if (asset.asset_type !== ASSET_TYPES.survey.id) {
-    msg = t('You are about to permanently delete this item from your library.')
-  } else {
+  } else if (asset.asset_type === ASSET_TYPES.survey.id) {
     msg = t('You are about to permanently delete this draft.')
+  } else {
+    msg = t('You are about to permanently delete this item from your library.')
   }
   const opts = {
     title: `${t('Delete')} ${assetTypeLabel} "${safeName}"`,

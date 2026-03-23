@@ -716,7 +716,7 @@ class ProjectSettings extends React.Component {
   }
 
   checkModalStyle() {
-    return this.props.context !== PROJECT_SETTINGS_CONTEXTS.EXISTING ? styles.modal : null
+    return this.props.context === PROJECT_SETTINGS_CONTEXTS.EXISTING ? null : styles.modal
   }
 
   renderChooseTemplateButton() {

@@ -14,7 +14,7 @@ const assetsMock = (override?: Partial<PaginatedResponse<AssetResponse>>) =>
     endpoints.ASSETS_URL,
     (info) => {
       const searchParams = new URL(info.request.url).searchParams
-      const limit = searchParams.get('limit') !== null ? Number(searchParams.get('limit')) : undefined
+      const limit = searchParams.get('limit') === null ? undefined : Number(searchParams.get('limit'))
 
       return HttpResponse.json({
         ...defaultMockResponse,

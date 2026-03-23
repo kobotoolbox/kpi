@@ -113,10 +113,10 @@ export function getSectorDisplayString(asset: AssetResponse | ProjectViewAsset):
      * and then switching to french would result in seeing spanish labels)
      */
     const sectorLabel = envStore.getSectorLabel(asset.settings.sector.value)
-    if (sectorLabel !== undefined) {
-      output = sectorLabel
-    } else {
+    if (sectorLabel === undefined) {
       output = asset.settings.sector.value
+    } else {
+      output = sectorLabel
     }
   }
 

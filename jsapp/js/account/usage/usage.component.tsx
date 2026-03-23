@@ -123,21 +123,21 @@ export default function Usage() {
     // limits aren't superceded by an "unlimited" usage limit.
     switch (type) {
       case USAGE_TYPE.SUBMISSIONS:
-        return limits.submissionsRecurringLimit !== Limits.unlimited
-          ? availableAddons.filter((addon) => addon.total_usage_limits.submission_limit)
-          : []
+        return limits.submissionsRecurringLimit === Limits.unlimited
+          ? []
+          : availableAddons.filter((addon) => addon.total_usage_limits.submission_limit)
       case USAGE_TYPE.TRANSCRIPTION:
-        return limits.nlpMinuteRecurringLimit !== Limits.unlimited
-          ? availableAddons.filter((addon) => addon.total_usage_limits.asr_seconds_limit)
-          : []
+        return limits.nlpMinuteRecurringLimit === Limits.unlimited
+          ? []
+          : availableAddons.filter((addon) => addon.total_usage_limits.asr_seconds_limit)
       case USAGE_TYPE.TRANSLATION:
-        return limits.nlpCharacterRecurringLimit !== Limits.unlimited
-          ? availableAddons.filter((addon) => addon.total_usage_limits.mt_characters_limit)
-          : []
+        return limits.nlpCharacterRecurringLimit === Limits.unlimited
+          ? []
+          : availableAddons.filter((addon) => addon.total_usage_limits.mt_characters_limit)
       case USAGE_TYPE.LLM:
-        return limits.llmRequestsRecurringLimit !== Limits.unlimited
-          ? availableAddons.filter((addon) => addon.total_usage_limits.llm_requests_limit)
-          : []
+        return limits.llmRequestsRecurringLimit === Limits.unlimited
+          ? []
+          : availableAddons.filter((addon) => addon.total_usage_limits.llm_requests_limit)
       default:
         return []
     }
