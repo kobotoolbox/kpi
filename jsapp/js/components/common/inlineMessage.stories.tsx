@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
+
 import InlineMessage from '#/components/common/inlineMessage'
 
 const meta: Meta<typeof InlineMessage> = {

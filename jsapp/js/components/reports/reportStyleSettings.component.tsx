@@ -1,6 +1,7 @@
 import React from 'react'
 
 import clonedeep from 'lodash.clonedeep'
+
 import { actions } from '#/actions'
 import { handleApiFail } from '#/api'
 import { getRowName } from '#/assetUtils'
@@ -13,6 +14,7 @@ import ReportsModalTabs, {
   ReportsModalTabNames,
 } from '#/components/reports/reportsModalTabs.component'
 import type { FailResponse, LabelValuePair } from '#/dataInterface'
+
 import ReportColorsEditor from './reportColorsEditor.component'
 import type { ReportsState } from './reports'
 import type { ReportStyle, ReportStyleName } from './reportsConstants'

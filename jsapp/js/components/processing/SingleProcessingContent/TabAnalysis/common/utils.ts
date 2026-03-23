@@ -2,6 +2,7 @@ import type { ActionEnum } from '#/api/models/actionEnum'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { ResponseManualQualActionParams } from '#/api/models/responseManualQualActionParams'
 import type { QualVersionItem } from '#/components/processing/common/types'
+
 import { ANALYSIS_QUESTION_TYPES } from './constants'
 
 export interface AdvancedFeatureResponseManualQual extends AdvancedFeatureResponse {

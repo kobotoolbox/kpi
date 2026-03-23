@@ -1,5 +1,7 @@
 import Reflux from 'reflux'
+
 import type { PermissionDefinition } from '#/dataInterface'
+
 import type { PermissionCodename } from './permConstants'
 
 /**

@@ -2,6 +2,7 @@ import { useState } from 'react'
 
 import { Anchor, Box, Button, Checkbox, FocusTrap, Group, Modal, Stack, Text } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
+
 import { actions } from '#/actions'
 import { handleApiFail } from '#/api'
 import Alert from '#/components/common/alert'
@@ -10,6 +11,7 @@ import { userHasPermForSubmission } from '#/components/permissions/utils'
 import { getMediaCount } from '#/components/submissions/submissionUtils'
 import type { AssetResponse, FailResponse, SubmissionResponse } from '#/dataInterface'
 import { notify, removeDefaultUuidPrefix } from '#/utils'
+
 import { useRemoveBulkAttachments } from './attachmentsQuery'
 
 interface BulkDeleteMediaFilesProps {

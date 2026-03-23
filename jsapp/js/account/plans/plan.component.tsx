@@ -3,6 +3,7 @@ import React, { useCallback, useContext, useEffect, useMemo, useReducer, useRef,
 import classnames from 'classnames'
 import { when } from 'mobx'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+
 import { PlanContainer } from '#/account/plans/planContainer.component'
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 import type { Price, Product, SinglePricedProduct, SubscriptionInfo } from '#/account/stripe.types'
@@ -17,8 +18,10 @@ import envStore from '#/envStore'
 import { useRefreshApiFetcher } from '#/hooks/useRefreshApiFetcher.hook'
 import useWhen from '#/hooks/useWhen.hook'
 import { notify } from '#/utils'
+
 import { postCheckout, postCustomerPortal } from '../stripe.api'
 import { ProductsContext } from '../useProducts.hook'
+
 import styles from './plan.module.scss'
 
 export interface PlanState {

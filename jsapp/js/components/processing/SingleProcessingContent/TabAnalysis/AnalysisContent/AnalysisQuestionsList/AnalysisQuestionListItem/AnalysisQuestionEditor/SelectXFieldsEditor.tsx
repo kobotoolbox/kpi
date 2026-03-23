@@ -5,6 +5,7 @@ import type { ResponseQualSelectQuestionParamsChoicesItem } from '#/api/models/r
 import Button from '#/components/common/button'
 import TextBox from '#/components/common/textBox'
 import { generateUuid } from '#/utils'
+
 import styles from './SelectXFieldsEditor.module.scss'
 
 interface Props {

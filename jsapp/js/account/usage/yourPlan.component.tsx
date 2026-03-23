@@ -11,6 +11,7 @@ import Badge, { type BadgeColor } from '#/components/common/badge'
 import envStore from '#/envStore'
 import sessionStore from '#/stores/session'
 import { formatDate } from '#/utils'
+
 import { getSubscriptionChangeDetails } from '../stripe.utils'
 import { ProductsContext } from '../useProducts.hook'
 

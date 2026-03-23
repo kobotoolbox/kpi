@@ -5,6 +5,7 @@ import React from 'react'
 import alertify from 'alertifyjs'
 import cx from 'classnames'
 import Dropzone, { type FileWithPreview } from 'react-dropzone'
+
 // Stores, hooks and utilities
 import { actions } from '../../../js/actions'
 import { getQuestionOrChoiceDisplayName, getRowName } from '../../../js/assetUtils'

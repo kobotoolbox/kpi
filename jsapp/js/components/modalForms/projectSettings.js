@@ -7,6 +7,7 @@ import autoBind from 'react-autobind'
 import Dropzone from 'react-dropzone'
 import reactMixin from 'react-mixin'
 import Reflux from 'reflux'
+
 import { actions } from '#/actions'
 import { archiveAsset, deleteAsset, unarchiveAsset } from '#/assetQuickActions'
 import assetUtils from '#/assetUtils'

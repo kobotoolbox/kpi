@@ -9,6 +9,7 @@ import KoboModalFooter from '#/components/modals/koboModalFooter'
 import KoboModalHeader from '#/components/modals/koboModalHeader'
 import envStore from '#/envStore'
 import { notify } from '#/utils'
+
 import { getSimpleMMOLabel } from './organization.utils'
 
 interface MemberRemoveModalProps {

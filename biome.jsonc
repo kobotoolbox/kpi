@@ -50,8 +50,11 @@
               "react", // special line for React
               ":BLANK_LINE:",
               ":PACKAGE:", // External dependencies
+              ":BLANK_LINE:",
               "#*/**", // Internal global imports
+              ":BLANK_LINE:",
               "../**", // Local parent imports
+              ":BLANK_LINE:",
               "./**" // Local sibling/child imports
             ]
           }

@@ -10,6 +10,7 @@ import DocumentTitle from 'react-document-title'
 import Markdown from 'react-markdown'
 import { useBeforeUnload, useBlocker, unstable_usePrompt as usePrompt } from 'react-router-dom'
 import Select from 'react-select'
+
 import type { AssetSnapshotResponse } from '#/api/models/assetSnapshotResponse'
 import { invalidateItem } from '#/api/mutation-defaults/common'
 import { getAssetsRetrieveQueryKey, useAssetsRetrieve } from '#/api/react-query/manage-projects-and-library-content'
@@ -49,6 +50,7 @@ import {
 import envStore from '#/envStore'
 import type { RouterProp } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
+
 import dkobo_xlform from '../../xlform/src/_xlform.init'
 import type { Survey } from '../../xlform/src/model.survey'
 import type { SurveyDetail } from '../../xlform/src/model.surveyDetail'
@@ -65,6 +67,7 @@ import {
 import SurveyScope from '../models/surveyScope'
 import { type SurveyStateStoreData, stores } from '../stores'
 import { escapeHtml, recordKeys } from '../utils'
+
 import AssetNavigator from './AssetNavigator'
 
 const ErrorMessage = makeBem(null, 'error-message')

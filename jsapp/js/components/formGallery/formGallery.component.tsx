@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useReducer } from 'react'
 
 import { Box, Center, Flex, Image, Modal } from '@mantine/core'
 import ReactSelect from 'react-select'
+
 import { fetchGet, fetchGetUrl } from '#/api'
 import { getFlatQuestionsList } from '#/assetUtils'
 import DeletedAttachment from '#/attachments/deletedAttachment.component'
@@ -11,6 +12,7 @@ import bem, { makeBem } from '#/bem'
 import ActionIcon from '#/components/common/ActionIcon'
 import Button from '#/components/common/button'
 import type { AssetResponse, PaginatedResponse, SubmissionResponse } from '#/dataInterface'
+
 import { initialState, reducer } from './formGallery.reducer'
 import { selectFilterQuery, selectImageAttachments, selectShowLoadMore } from './formGallery.selectors'
 

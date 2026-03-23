@@ -1,6 +1,7 @@
 import React from 'react'
 
 import TOSForm from '#/tos/tosForm.component'
+
 import BasicLayout from './basicLayout.component'
 import styles from './tosAgreement.module.scss'
 

@@ -3,6 +3,7 @@
  */
 
 import Reflux from 'reflux'
+
 import { dataInterface } from '#/dataInterface'
 import { notify } from '#/utils'
 

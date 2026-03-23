@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react'
 
 import { Box, Flex, Modal, ScrollArea, Stack, Text } from '@mantine/core'
+
 import { getFlatQuestionsList, getLanguageIndex } from '#/assetUtils'
 import Button from '#/components/common/button'
 import type { KoboSelectOption } from '#/components/common/koboSelect'
@@ -14,6 +15,7 @@ import { getActiveTab, ProcessingTab } from '#/components/processing/routes.util
 import { XML_VALUES_OPTION_VALUE } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import { recordValues } from '#/utils'
+
 import type { DisplaysList, TranscriptVersionItem, TranslationVersionItem } from '../common/types'
 import { StaticDisplays } from '../common/utils'
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 
 import { Button, FocusTrap, Group, Modal, Stack, Text } from '@mantine/core'
+
 import { getSimpleMMOLabel } from '#/account/organization/organization.utils'
 import subscriptionStore from '#/account/subscriptionStore'
 import type { ErrorDetail } from '#/api/models/errorDetail'

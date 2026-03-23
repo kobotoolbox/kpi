@@ -1,6 +1,7 @@
 import React from 'react'
 
 import { observer } from 'mobx-react'
+
 import assetStore from '#/assetStore'
 import { getAssetIcon } from '#/assetUtils'
 import bem from '#/bem'
@@ -25,6 +26,7 @@ import {
   isPublicCollectionsRoute,
 } from '#/router/routerUtils'
 import sessionStore from '#/stores/session'
+
 import AccountMenu from './accountMenu'
 import GitRev from './gitRev.component'
 import styles from './mainHeader.module.scss'

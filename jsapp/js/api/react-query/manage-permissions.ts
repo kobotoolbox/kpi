@@ -19,6 +19,7 @@ import type {
   UseQueryResult,
 } from '@tanstack/react-query'
 import { useMutation, useQuery } from '@tanstack/react-query'
+
 import type { ErrorDetail } from '../models/errorDetail'
 import type { ErrorObject } from '../models/errorObject'
 import type { PatchedPermissionAssignmentCloneRequest } from '../models/patchedPermissionAssignmentCloneRequest'

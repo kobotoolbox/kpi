@@ -2,6 +2,7 @@ import React from 'react'
 
 import alertify from 'alertifyjs'
 import classNames from 'classnames'
+
 import type { AssetStoreData } from '#/assetStore'
 import assetStore from '#/assetStore'
 import bem from '#/bem'
@@ -9,6 +10,7 @@ import Button from '#/components/common/button'
 import type { KoboSelectOption } from '#/components/common/koboSelect'
 import KoboSelect from '#/components/common/koboSelect'
 import { escapeHtml, notify } from '#/utils'
+
 import { actions } from '../../actions'
 import { stores } from '../../stores'
 

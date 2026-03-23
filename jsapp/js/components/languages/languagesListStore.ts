@@ -1,8 +1,10 @@
 import { makeAutoObservable } from 'mobx'
+
 import { handleApiFail } from '#/api'
 import { endpoints } from '#/api.endpoints'
 import { ROOT_URL } from '#/constants'
 import type { FailResponse, PaginatedResponse } from '#/dataInterface'
+
 import type { ListLanguage } from './languagesStore'
 import languagesStore from './languagesStore'
 

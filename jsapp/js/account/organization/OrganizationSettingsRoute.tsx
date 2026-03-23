@@ -17,6 +17,7 @@ import LoadingSpinner from '#/components/common/loadingSpinner'
 import TextBox from '#/components/common/textBox'
 import envStore from '#/envStore'
 import useWhenStripeIsEnabled from '#/hooks/useWhenStripeIsEnabled.hook'
+
 import { getSimpleMMOLabel } from './organization.utils'
 
 export const ORGANIZATION_TYPES: { [P in OrganizationTypeEnum]: { name: P; label: string } } = {

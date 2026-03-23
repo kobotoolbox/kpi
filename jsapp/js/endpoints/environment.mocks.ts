@@ -1,5 +1,7 @@
 import { HttpResponse, http } from 'msw'
+
 import { endpoints } from '#/api.endpoints'
+
 import type { EnvironmentResponse } from '../envStore'
 
 /**

@@ -9,6 +9,7 @@ import omnivore, { type OmnivoreFunction } from '@mapbox/leaflet-omnivore'
 import cx from 'classnames'
 import JSZip from 'jszip'
 import L, { type LayerGroup } from 'leaflet'
+
 import bem from '../../../js/bem'
 import 'leaflet/dist/leaflet.css'
 import 'leaflet.heat'
@@ -16,6 +17,7 @@ import 'leaflet.markercluster'
 import 'leaflet.markercluster/dist/MarkerCluster.css'
 
 import { check } from '@placemarkio/check-geojson'
+
 import { actions } from '../../../js/actions'
 import { getRowName, getSurveyFlatPaths } from '../../../js/assetUtils'
 import CenteredMessage from '../../../js/components/common/centeredMessage.component'
@@ -40,6 +42,7 @@ import pageState from '../../../js/pageState.store'
 import PopoverMenu from '../../../js/popoverMenu'
 import { type WithRouterProps, withRouter } from '../../../js/router/legacy'
 import { findFirstGeopoint, notify, parseLatLng, recordKeys } from '../../../js/utils'
+
 import MapSettings from './MapSettings'
 
 // Styles

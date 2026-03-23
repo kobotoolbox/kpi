@@ -9,7 +9,9 @@ import LoadingSpinner from '#/components/common/loadingSpinner'
 import type { FailResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import { currentLang, notify } from '#/utils'
+
 import { useSession } from '../stores/useSession'
+
 import styles from './tosForm.module.scss'
 
 /** A slug for the `sitewide_messages` endpoint */

@@ -1,6 +1,7 @@
 import React, { lazy, Suspense } from 'react'
 
 import { NavLink } from 'react-router-dom'
+
 import bem from '#/bem'
 import Button from '#/components/common/ButtonNew'
 import LibrarySidebar from '#/components/library/librarySidebar'
@@ -9,10 +10,12 @@ import envStore from '#/envStore'
 import pageState from '#/pageState.store'
 import RequireAuth from '#/router/requireAuth'
 import { PROJECTS_ROUTES, ROUTES } from '#/router/routerConstants'
+
 import { MODAL_TYPES } from '../constants'
 import { routerIsActive } from '../router/legacy'
 import SidebarFormsList from '../sidebar/SidebarFormsList'
 import sessionStore from '../stores/session'
+
 import Icon from './common/icon'
 
 const AccountSidebar = lazy(() => import('#/account/accountSidebar'))

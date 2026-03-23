@@ -4,6 +4,7 @@ import { Text } from '@mantine/core'
 import Fuse from 'fuse.js'
 import clonedeep from 'lodash.clonedeep'
 import autoBind from 'react-autobind'
+
 import { actions } from '#/actions'
 import { getFlatQuestionsList, getSurveyFlatPaths, renderQuestionTypeIcon } from '#/assetUtils'
 import bem from '#/bem'

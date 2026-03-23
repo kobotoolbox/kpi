@@ -1,4 +1,5 @@
 import type { Filter } from 'react-table'
+
 import { getRowName, getSurveyFlatPaths, injectSupplementalRowsIntoListOfRows } from '#/assetUtils'
 import { getSupplementalPathParts } from '#/components/processing/processingUtils'
 import {

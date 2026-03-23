@@ -1,6 +1,7 @@
 import React from 'react'
 
 import { Navigate, Route } from 'react-router-dom'
+
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
 import { RequireOrgPermissions } from '#/router/RequireOrgPermissions.component'
 import RequireAuth from '#/router/requireAuth'

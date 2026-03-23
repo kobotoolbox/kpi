@@ -3,6 +3,7 @@
  */
 
 import Reflux from 'reflux'
+
 import { ROOT_URL } from '#/constants'
 import type {
   BulkSubmissionsRequest,

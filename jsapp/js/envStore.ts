@@ -1,7 +1,9 @@
 import { makeAutoObservable } from 'mobx'
+
 import { fetchGet } from '#/api'
 import { endpoints } from '#/api.endpoints'
 import type { LabelValuePair, TransxLanguages } from '#/dataInterface'
+
 import type { UserFieldName } from './account/account.constants'
 
 export interface EnvironmentResponse {

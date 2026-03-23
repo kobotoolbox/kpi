@@ -1,4 +1,5 @@
 import chai from 'chai'
+
 import customViewStore from './customViewStore'
 import { HOME_DEFAULT_VISIBLE_FIELDS } from './projectViews/constants'
 

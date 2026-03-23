@@ -4,6 +4,7 @@ import React from 'react'
 
 import autoBind from 'react-autobind'
 import TagsInput from 'react-tagsinput'
+
 import { cleanupTags } from '#/assetUtils'
 
 const DEFAULT_PLACEHOLDER = t('Type and confirm with ENTER')

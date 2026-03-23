@@ -12,7 +12,9 @@ import Badge from '#/components/common/badge'
 import LimitNotifications from '#/components/usageLimits/limitNotifications.component'
 import useWhen from '#/hooks/useWhen.hook'
 import { formatDate } from '#/utils'
+
 import { ProductsContext } from '../useProducts.hook'
+
 import styles from './addOns.module.scss'
 
 export default function addOns() {

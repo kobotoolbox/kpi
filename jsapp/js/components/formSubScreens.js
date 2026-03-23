@@ -3,14 +3,17 @@ import React, { Suspense } from 'react'
 import autoBind from 'react-autobind'
 import DocumentTitle from 'react-document-title'
 import reactMixin from 'react-mixin'
+
 import bem from '#/bem'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import TransferProjects from '#/components/permissions/transferProjects/transferProjects.component'
 import { withRouter } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
+
 import { actions } from '../actions'
 import { PROJECT_SETTINGS_CONTEXTS } from '../constants'
 import mixins from '../mixins'
+
 import FormMap from './map'
 import FormMedia from './modalForms/formMedia'
 import ProjectSettings from './modalForms/projectSettings'

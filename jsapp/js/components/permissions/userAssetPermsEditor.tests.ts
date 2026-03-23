@@ -1,4 +1,5 @@
 import constants from '#/constants'
+
 import permConfig from './permConfig'
 import { endpoints } from './permParser.mocks'
 import type { AssignablePermsMap } from './sharingForm.component'

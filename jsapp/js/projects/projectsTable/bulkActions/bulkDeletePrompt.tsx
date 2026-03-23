@@ -7,6 +7,7 @@ import KoboPrompt from '#/components/modals/koboPrompt'
 import customViewStore from '#/projects/customViewStore'
 import { SidebarFormsListQueryKey } from '#/sidebar/SidebarFormsList'
 import { notify } from '#/utils'
+
 import styles from './bulkDeletePrompt.module.scss'
 
 type AssetsBulkAction = 'archive' | 'delete' | 'unarchive'

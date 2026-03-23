@@ -6,7 +6,9 @@ import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse
 import type { TranscriptVersionItem } from '#/components/processing/common/types'
 import { isSupplementVersionAutomatic } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
+
 import bodyStyles from '../../../common/processingBody.module.scss'
+
 import Editor from './Editor'
 import Viewer from './Viewer'
 

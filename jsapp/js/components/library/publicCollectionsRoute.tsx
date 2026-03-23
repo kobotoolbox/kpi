@@ -1,11 +1,13 @@
 import React from 'react'
 
 import DocumentTitle from 'react-document-title'
+
 import bem from '#/bem'
 import AssetsTable from '#/components/assetsTable/assetsTable'
 import { AssetsTableContextName } from '#/components/assetsTable/assetsTableConstants'
 import { ROOT_BREADCRUMBS } from '#/components/library/libraryConstants'
 import type { OrderDirection } from '#/projects/projectViews/constants'
+
 import type { PublicCollectionsStoreData } from './publicCollectionsStore'
 import publicCollectionsStore from './publicCollectionsStore'
 

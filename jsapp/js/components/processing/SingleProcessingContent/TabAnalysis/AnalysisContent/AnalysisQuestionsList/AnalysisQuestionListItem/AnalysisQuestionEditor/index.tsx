@@ -2,6 +2,7 @@ import React, { useCallback, useState } from 'react'
 
 import { Stack, ThemeIcon } from '@mantine/core'
 import clonedeep from 'lodash.clonedeep'
+
 import type { ResponseManualQualActionParams } from '#/api/models/responseManualQualActionParams'
 import type { ResponseQualSelectQuestionParamsChoicesItem } from '#/api/models/responseQualSelectQuestionParamsChoicesItem'
 import Button from '#/components/common/button'
@@ -9,7 +10,9 @@ import Icon from '#/components/common/icon'
 import TextBox from '#/components/common/textBox'
 import { LOCALLY_EDITED_PLACEHOLDER_UUID } from '#/components/processing/common/constants'
 import { generateUuid } from '#/utils'
+
 import { type AdvancedFeatureResponseManualQual, getQuestionTypeDefinition } from '../../../../common/utils'
+
 import styles from './index.module.scss'
 import KeywordSearchFieldsEditor from './KeywordSearchFieldsEditor'
 import SelectXFieldsEditor from './SelectXFieldsEditor'

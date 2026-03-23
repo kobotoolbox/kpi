@@ -2,9 +2,11 @@ import React, { useEffect } from 'react'
 
 import classnames from 'classnames'
 import TextareaAutosize from 'react-textarea-autosize'
+
 import type { ButtonSize } from '#/components/common/button'
 import { ButtonToIconMap } from '#/components/common/button'
 import type { IconName } from '#/k-icons'
+
 import Icon from './icon'
 import styles from './textBox.module.scss'
 

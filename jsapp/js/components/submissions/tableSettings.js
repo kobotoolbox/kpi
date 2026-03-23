@@ -3,6 +3,7 @@ import './tableSettings.scss'
 import React from 'react'
 
 import autoBind from 'react-autobind'
+
 import { actions } from '#/actions'
 import bem from '#/bem'
 import Button from '#/components/common/button'

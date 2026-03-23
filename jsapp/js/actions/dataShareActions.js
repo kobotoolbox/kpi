@@ -3,6 +3,7 @@
  */
 
 import Reflux from 'reflux'
+
 import { MAX_DISPLAYED_STRING_LENGTH } from '#/constants'
 import { dataInterface } from '#/dataInterface'
 import { getAssetUIDFromUrl, notify, truncateFile, truncateString } from '#/utils'

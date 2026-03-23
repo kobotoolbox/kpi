@@ -4,6 +4,7 @@ import React from 'react'
 
 import autoBind from 'react-autobind'
 import Dropzone from 'react-dropzone'
+
 import { actions } from '#/actions'
 import bem, { makeBem } from '#/bem'
 import Button from '#/components/common/button'

@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
+
 import KoboDropdown from '#/components/common/koboDropdown'
 
 const meta: Meta<typeof KoboDropdown> = {

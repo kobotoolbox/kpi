@@ -3,6 +3,7 @@ import './mediaCell.scss'
 import React from 'react'
 
 import autoBind from 'react-autobind'
+
 import { actions } from '#/actions'
 import AttachmentActionsDropdown from '#/attachments/AttachmentActionsDropdown'
 import DeletedAttachment from '#/attachments/deletedAttachment.component'

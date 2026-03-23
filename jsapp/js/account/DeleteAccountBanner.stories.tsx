@@ -1,10 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import type { DecoratorFunction } from '@storybook/types'
 import { withRouter } from 'storybook-addon-remix-react-router'
+
 import assetsMock from '#/endpoints/assets.mocks'
 import organizationMock from '#/endpoints/organization.mocks'
 import { queryClientDecorator } from '#/query/queryClient.mocks'
 import RequireAuth from '#/router/requireAuth'
+
 import DeleteAccountBanner from './DeleteAccountBanner'
 
 const RequireAuthDecorator: DecoratorFunction = (Story) => <RequireAuth>{Story()}</RequireAuth>

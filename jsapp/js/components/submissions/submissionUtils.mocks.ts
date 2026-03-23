@@ -7,6 +7,7 @@ import {
   QuestionTypeName,
 } from '#/constants'
 import type { AssetResponse, SubmissionResponse, SurveyChoice, SurveyRow } from '#/dataInterface'
+
 import { type DisplayGroup, DisplayGroupTypeName } from './submissionUtils'
 
 export const simpleSurvey = [

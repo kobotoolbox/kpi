@@ -1,6 +1,7 @@
 import { getRowName } from '#/assetUtils'
 import { AssetTypeName } from '#/constants'
 import type { AssetContent } from '#/dataInterface'
+
 import {
   type AssetLockingProfileDefinition,
   FORM_RESTRICTIONS,

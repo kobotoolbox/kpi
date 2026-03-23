@@ -19,6 +19,7 @@ import type {
   UseQueryResult,
 } from '@tanstack/react-query'
 import { useMutation, useQuery } from '@tanstack/react-query'
+
 import type { PaginatedScimGroupList } from '../models/paginatedScimGroupList'
 import type { PaginatedScimUserList } from '../models/paginatedScimUserList'
 import type { PatchedScimGroup } from '../models/patchedScimGroup'

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 
 import cx from 'classnames'
+
 import type { DataResponse } from '#/api/models/dataResponse'
 import { queryClient } from '#/api/queryClient'
 import {
@@ -13,7 +14,9 @@ import {
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import type { AssetResponse } from '#/dataInterface'
 import { getAudioDuration, removeDefaultUuidPrefix } from '#/utils'
+
 import bodyStyles from '../../common/processingBody.module.scss'
+
 import { getAttachmentForProcessing, secondsToTranscriptionEstimate } from './transcript.utils'
 
 /** Until the estimate is loaded we display dot dot dot. */

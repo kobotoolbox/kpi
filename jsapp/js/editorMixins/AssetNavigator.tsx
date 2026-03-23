@@ -4,12 +4,14 @@ import { Center, Checkbox, Group, Loader, MultiSelect, Select, Stack, Text, Text
 import { useDebouncedValue } from '@mantine/hooks'
 import * as Sentry from '@sentry/react'
 import ReactDOM from 'react-dom'
+
 import type { Asset } from '#/api/models/asset'
 import type { TagListResponse } from '#/api/models/tagListResponse'
 import { useAssetsList, useTagsList } from '#/api/react-query/manage-projects-and-library-content'
 import Icon from '#/components/common/icon'
 import { COMMON_QUERIES } from '#/constants'
 import type { LabelValuePair } from '#/dataInterface'
+
 import AssetNavigatorCard from './AssetNavigatorCard'
 
 // A stub types for sortable

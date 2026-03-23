@@ -1,7 +1,9 @@
 import alertify from 'alertifyjs'
 import Reflux from 'reflux'
+
 import { replaceSupportEmail } from '#/textUtils'
 import { notify } from '#/utils'
+
 import dataShareActions from './actions/dataShareActions'
 import exportsActions from './actions/exportsActions'
 import libraryActions from './actions/library'

@@ -3,6 +3,7 @@ import React, { useState } from 'react'
 import cx from 'classnames'
 import { observer } from 'mobx-react-lite'
 import { NavLink } from 'react-router-dom'
+
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 import subscriptionStore from '#/account/subscriptionStore'
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
@@ -11,7 +12,9 @@ import Icon from '#/components/common/icon'
 import envStore from '#/envStore'
 import useWhenStripeIsEnabled from '#/hooks/useWhenStripeIsEnabled.hook'
 import type { IconName } from '#/k-icons'
+
 import Badge from '../components/common/badge'
+
 import styles from './accountSidebar.module.scss'
 import { getSimpleMMOLabel } from './organization/organization.utils'
 

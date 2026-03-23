@@ -4,6 +4,7 @@ import React from 'react'
 
 import alertify from 'alertifyjs'
 import Select from 'react-select'
+
 import { actions } from '#/actions'
 import bem from '#/bem'
 import Button from '#/components/common/button'

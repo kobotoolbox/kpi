@@ -4,6 +4,7 @@ import React from 'react'
 import DocumentTitle from 'react-document-title'
 import type { FileWithPreview } from 'react-dropzone'
 import Dropzone from 'react-dropzone'
+
 import bem from '#/bem'
 import AssetsTable from '#/components/assetsTable/assetsTable'
 import { AssetsTableContextName } from '#/components/assetsTable/assetsTableConstants'
@@ -13,6 +14,7 @@ import mixins from '#/mixins'
 import pageState from '#/pageState.store'
 import type { OrderDirection } from '#/projects/projectViews/constants'
 import { validFileTypes } from '#/utils'
+
 import type { MyLibraryStoreData } from './myLibraryStore'
 import myLibraryStore from './myLibraryStore'
 

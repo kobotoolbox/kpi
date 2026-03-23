@@ -2,6 +2,7 @@ import React, { useEffect, useMemo } from 'react'
 
 import { Center, Group, Loader, Text } from '@mantine/core'
 import { useInfiniteQuery } from '@tanstack/react-query'
+
 import { actions } from '#/actions'
 import type { VersionListResponse } from '#/api/models/versionListResponse'
 import { queryClient } from '#/api/queryClient'

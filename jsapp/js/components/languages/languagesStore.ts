@@ -1,4 +1,5 @@
 import $ from 'jquery'
+
 import { endpoints } from '#/api.endpoints'
 import { ROOT_URL } from '#/constants'
 import type { FailResponse } from '#/dataInterface'

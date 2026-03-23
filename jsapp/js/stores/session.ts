@@ -1,4 +1,5 @@
 import { action, makeAutoObservable } from 'mobx'
+
 import { fetchPost } from '#/api'
 import { endpoints } from '#/api.endpoints'
 import type { Json } from '#/components/common/common.interfaces'

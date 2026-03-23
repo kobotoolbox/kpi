@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react'
 
 import cx from 'classnames'
+
 import Icon from '#/components/common/icon'
 import sessionStore from '#/stores/session'
+
 import { useSafeUsernameStorageKey } from '../hooks/useSafeUsernameStorageKey'
+
 import styles from './newFeatureDialog.module.scss'
 
 interface NewFeatureDialogProps {

@@ -2,6 +2,7 @@ import React from 'react'
 
 import { Flex, Text } from '@mantine/core'
 import alertify from 'alertifyjs'
+
 import { actions } from '#/actions'
 import { getLanguageIndex } from '#/assetUtils'
 import bem from '#/bem'

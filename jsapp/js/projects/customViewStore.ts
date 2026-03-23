@@ -1,11 +1,13 @@
 import $ from 'jquery'
 import isEqual from 'lodash.isequal'
 import { makeAutoObservable, reaction } from 'mobx'
+
 import { handleApiFail } from '#/api'
 import searchBoxStore from '#/components/header/searchBoxStore'
 import { COMMON_QUERIES } from '#/constants'
 import type { AssetResponse, FailResponse, PaginatedResponse, ProjectViewAsset } from '#/dataInterface'
 import session from '#/stores/session'
+
 import type { ProjectsTableOrder } from './projectsTable/projectsTable'
 import type { ProjectFieldName, ProjectsFilterDefinition } from './projectViews/constants'
 import { DEFAULT_VISIBLE_FIELDS, PROJECT_FIELDS } from './projectViews/constants'

@@ -2,6 +2,7 @@ import React from 'react'
 
 import cx from 'classnames'
 import clonedeep from 'lodash.clonedeep'
+
 import { actions } from '#/actions'
 import assetStore from '#/assetStore'
 import { getSurveyFlatPaths } from '#/assetUtils'
@@ -17,6 +18,7 @@ import type { AssetResponse, PermissionBase, PermissionResponse } from '#/dataIn
 import userExistence from '#/users/userExistence.store'
 import { ANON_USERNAME, buildUserUrl } from '#/users/utils'
 import { notify, recordEntries } from '#/utils'
+
 import type {
   CheckboxNameAll,
   CheckboxNamePartialByResponses,

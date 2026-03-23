@@ -5,6 +5,7 @@ import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import type { AssetResponse } from '#/dataInterface'
+
 import bodyStyles from '../../common/processingBody.module.scss'
 import { CreateSteps } from '../../common/types'
 import {
@@ -12,6 +13,7 @@ import {
   getLatestAutomaticTranslationVersionItem,
   isSupplementVersionAutomatic,
 } from '../../common/utils'
+
 import TranslationAdd from './TranslationAdd'
 import Editor from './TranslationEdit/Editor'
 import Viewer from './TranslationEdit/Viewer'

@@ -1,5 +1,7 @@
 import clonedeep from 'lodash.clonedeep'
+
 import { recordEntries } from '#/utils'
+
 import permConfig from './permConfig'
 import type {
   CheckboxNameAll,

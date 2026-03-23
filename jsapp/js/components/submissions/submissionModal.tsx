@@ -4,6 +4,7 @@ import React from 'react'
 
 import alertify from 'alertifyjs'
 import clonedeep from 'lodash.clonedeep'
+
 import { actions } from '#/actions'
 import Button from '#/components/common/button'
 import CenteredMessage from '#/components/common/centeredMessage.component'
@@ -25,6 +26,7 @@ import { dataInterface } from '#/dataInterface'
 import enketoHandler from '#/enketoHandler'
 import pageState from '#/pageState.store'
 import { launchPrinting } from '#/utils'
+
 import SubmissionBackgroundAudio from './SubmissionBackgroundAudio'
 
 const DETAIL_NOT_FOUND = '{"detail":"Not found."}'

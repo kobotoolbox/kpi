@@ -4,6 +4,7 @@ import alertify from 'alertifyjs'
 import autoBind from 'react-autobind'
 import reactMixin from 'react-mixin'
 import Reflux from 'reflux'
+
 import { actions } from '#/actions'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import Modal from '#/components/common/modal'
@@ -25,6 +26,7 @@ import TableSettings from '#/components/submissions/tableSettings'
 import { ASSET_TYPES, MODAL_TYPES, PROJECT_SETTINGS_CONTEXTS } from '#/constants'
 import pageState from '#/pageState.store'
 import { stores } from '#/stores'
+
 // This should either be more generic or else be it's own component in the account directory.
 import MFAModals from './mfaModals'
 

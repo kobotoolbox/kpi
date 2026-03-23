@@ -15,6 +15,7 @@ import type { SupplementalDataVersionItemManualWithDep } from '#/api/models/supp
 import type { SupplementalDataVersionItemQual } from '#/api/models/supplementalDataVersionItemQual'
 import type { SupplementalDataVersionItemQualAutomatic } from '#/api/models/supplementalDataVersionItemQualAutomatic'
 import type { LanguageCode } from '#/components/languages/languagesStore'
+
 import type { StaticDisplays } from './utils'
 
 export type OneOfTransx =

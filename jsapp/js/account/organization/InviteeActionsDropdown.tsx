@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 
 import { Group, LoadingOverlay, Menu, Modal, Stack, Text } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
+
 import type { ErrorDetail } from '#/api/models/errorDetail'
 import type { ErrorObject } from '#/api/models/errorObject'
 import type { InviteResponse } from '#/api/models/inviteResponse'

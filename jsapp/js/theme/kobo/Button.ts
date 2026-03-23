@@ -1,5 +1,6 @@
 import type { ButtonVariant } from '@mantine/core'
 import { Button, rem } from '@mantine/core'
+
 import classes from './Button.module.css'
 
 type ButtonVariantCustom =

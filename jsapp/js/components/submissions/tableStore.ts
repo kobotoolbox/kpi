@@ -1,5 +1,6 @@
 import clonedeep from 'lodash.clonedeep'
 import Reflux from 'reflux'
+
 import { actions } from '#/actions'
 import assetStore from '#/assetStore'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'

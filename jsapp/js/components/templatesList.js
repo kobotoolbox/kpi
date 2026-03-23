@@ -10,11 +10,13 @@ import React from 'react'
 import autoBind from 'react-autobind'
 import reactMixin from 'react-mixin'
 import Reflux from 'reflux'
+
 import { getAssetOwnerDisplayName } from '#/assetUtils'
 import bem from '#/bem'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import sessionStore from '#/stores/session'
 import { formatTime } from '#/utils'
+
 import { dataInterface } from '../dataInterface'
 
 class TemplatesList extends React.Component {

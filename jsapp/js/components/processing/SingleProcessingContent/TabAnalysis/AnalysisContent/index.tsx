@@ -6,7 +6,9 @@ import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { ResponseManualQualActionParams } from '#/api/models/responseManualQualActionParams'
 import type { AssetResponse } from '#/dataInterface'
+
 import type { AdvancedFeatureResponseManualQual } from '../common/utils'
+
 import AnalysisQuestionsList from './AnalysisQuestionsList'
 import AnalysisContentEmpty from './analysisContentEmpty'
 import styles from './index.module.scss'

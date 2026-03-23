@@ -7,9 +7,11 @@ import type { LanguageCode } from '#/components/languages/languagesStore'
 import { CreateSteps } from '#/components/processing/common/types'
 import type { AssetResponse } from '#/dataInterface'
 import envStore from '#/envStore'
+
 import StepSelectLanguage from '../../components/StepSelectLanguage'
 import { getProcessedFileLabel, getQuestionType } from '../common/utils'
 import { getAttachmentForProcessing } from '../transcript.utils'
+
 import StepBegin from './StepBegin'
 import StepCreateAutomated from './StepCreateAutomated'
 import StepCreateManual from './StepCreateManual'

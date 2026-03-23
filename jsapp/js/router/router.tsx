@@ -1,6 +1,7 @@
 import React, { Suspense } from 'react'
 
 import { createHashRouter, createRoutesFromElements, Navigate, Route } from 'react-router-dom'
+
 import accountRoutes from '#/account/routes'
 import App from '#/app'
 import { FormPage, LibraryAssetEditor } from '#/components/formEditors'
@@ -11,6 +12,7 @@ import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import processingRoutes from '#/components/processing/routes'
 import projectsRoutes from '#/projects/routes'
 import PermProtectedRoute from '#/router/permProtectedRoute'
+
 import { injectRouter } from './legacy'
 import RequireAuth from './requireAuth'
 import { PROJECTS_ROUTES, ROUTES } from './routerConstants'

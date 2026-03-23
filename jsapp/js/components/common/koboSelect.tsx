@@ -4,6 +4,7 @@ import React from 'react'
 
 import Fuse from 'fuse.js'
 import $ from 'jquery'
+
 import bem, { makeBem } from '#/bem'
 import type { ButtonSize } from '#/components/common/button'
 import { ButtonToIconMap } from '#/components/common/button'

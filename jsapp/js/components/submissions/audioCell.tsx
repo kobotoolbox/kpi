@@ -10,6 +10,7 @@ import MiniAudioPlayer from '#/components/common/miniAudioPlayer'
 import { goToProcessing } from '#/components/processing/routes.utils'
 import type { SubmissionAttachment, SubmissionResponse } from '#/dataInterface'
 import { removeDefaultUuidPrefix } from '#/utils'
+
 import { shouldProcessingBeAccessible } from './submissionUtils'
 
 bem.AudioCell = makeBem(null, 'audio-cell')

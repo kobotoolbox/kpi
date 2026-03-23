@@ -1,6 +1,7 @@
 import React from 'react'
 
 import alertify from 'alertifyjs'
+
 import { actions } from '#/actions'
 import BulkDeleteMediaFiles from '#/attachments/BulkDeleteMediaFiles'
 import bem from '#/bem'
@@ -23,6 +24,7 @@ import type { AssetResponse, BulkSubmissionsRequest, SubmissionResponse } from '
 import pageState from '#/pageState.store'
 import PopoverMenu from '#/popoverMenu'
 import { recordKeys, renderCheckbox } from '#/utils'
+
 import { buildFilterQuery } from './tableUtils'
 
 interface TableBulkOptionsProps {

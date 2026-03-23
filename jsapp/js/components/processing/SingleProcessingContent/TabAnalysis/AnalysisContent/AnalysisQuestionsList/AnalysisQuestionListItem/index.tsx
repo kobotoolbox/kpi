@@ -4,6 +4,7 @@ import { useDisclosure } from '@mantine/hooks'
 import classnames from 'classnames'
 import type { Identifier, XYCoord } from 'dnd-core'
 import { useDrag, useDrop } from 'react-dnd'
+
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
@@ -25,7 +26,9 @@ import { getLatestQualVersionItem, getLatestTranscriptVersionItem } from '#/comp
 import { DND_TYPES } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
 import { removeDefaultUuidPrefix } from '#/utils'
+
 import { type AdvancedFeatureResponseManualQual, getEmptyAnswer, isAnswerAIGenerated } from '../../../common/utils'
+
 import AnalysisQuestionEditor from './AnalysisQuestionEditor'
 import ConfirmEditModal from './ConfirmEditModal'
 import IntegerResponseForm from './IntegerResponseForm'

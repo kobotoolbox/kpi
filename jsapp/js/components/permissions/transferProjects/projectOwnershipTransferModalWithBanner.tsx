@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 
 import { useSearchParams } from 'react-router-dom'
+
 import type { TransferInviteState } from './projectTransferInviteBanner'
 import ProjectTransferInviteBanner from './projectTransferInviteBanner'
 import { isInviteForLoggedInUser, type TransferStatuses } from './transferProjects.api'

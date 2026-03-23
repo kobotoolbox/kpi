@@ -2,10 +2,12 @@ import React, { useCallback } from 'react'
 
 import cx from 'classnames'
 import { observer } from 'mobx-react-lite'
+
 import securityStyles from '#/account/security/securityRoute.module.scss'
 import Button from '#/components/common/button'
 import envStore, { type SocialApp } from '#/envStore'
 import sessionStore from '#/stores/session'
+
 import { deleteSocialAccount } from './sso.api'
 import styles from './ssoSection.module.scss'
 

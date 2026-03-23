@@ -2,8 +2,11 @@ import React from 'react'
 
 import { Paper } from '@mantine/core'
 import cx from 'classnames'
+
 import type { ResponseQualSelectQuestionParams } from '#/api/models/responseQualSelectQuestionParams'
+
 import styles from '../../../common/styles.module.scss'
+
 import RadioGroup from './RadioGroup'
 
 interface Props {

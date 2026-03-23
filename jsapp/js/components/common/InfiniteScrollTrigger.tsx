@@ -2,6 +2,7 @@ import React, { useEffect } from 'react'
 
 import { Center, Loader, Text } from '@mantine/core'
 import { useIntersection } from '@mantine/hooks'
+
 import ButtonNew from './ButtonNew'
 
 interface InfiniteScrollTriggerProps {

@@ -4,6 +4,7 @@
 
 import chai from 'chai'
 import chaiExclude from 'chai-exclude'
+
 import {
   getMediaAttachment,
   getSubmissionDisplayData,
@@ -56,6 +57,7 @@ chai.use(chaiExclude)
 // After a recent chai / deep-eql update, tests relying on this behavior would
 // fail. Hence, use this looser comparison function.
 import chaiDeepEqualIgnoreUndefined from 'chai-deep-equal-ignore-undefined'
+
 import type { SubmissionSupplementalDetails } from '#/dataInterface'
 
 chai.use(chaiDeepEqualIgnoreUndefined)

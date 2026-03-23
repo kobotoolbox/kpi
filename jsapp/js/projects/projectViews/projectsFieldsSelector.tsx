@@ -8,6 +8,7 @@ import KoboModalContent from '#/components/modals/koboModalContent'
 import KoboModalFooter from '#/components/modals/koboModalFooter'
 import KoboModalHeader from '#/components/modals/koboModalHeader'
 import { recordValues } from '#/utils'
+
 import type { ProjectFieldName } from './constants'
 import { PROJECT_FIELDS } from './constants'
 import styles from './projectsFieldsSelector.module.scss'

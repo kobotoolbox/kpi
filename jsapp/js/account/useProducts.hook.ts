@@ -1,6 +1,7 @@
 import { createContext } from 'react'
 
 import { when } from 'mobx'
+
 import { getProducts } from '#/account/stripe.api'
 import type { Product } from '#/account/stripe.types'
 import envStore from '#/envStore'

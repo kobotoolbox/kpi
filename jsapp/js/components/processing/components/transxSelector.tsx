@@ -1,6 +1,7 @@
 import React from 'react'
 
 import isEqual from 'lodash.isequal'
+
 import type { ButtonSize } from '#/components/common/button'
 import type { KoboSelectOption, KoboSelectType } from '#/components/common/koboSelect'
 import KoboSelect from '#/components/common/koboSelect'

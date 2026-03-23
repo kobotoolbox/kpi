@@ -3,6 +3,7 @@ import './validationStatusDropdown.scss'
 import React from 'react'
 
 import Select, { components, type DropdownIndicatorProps, type OptionProps, type SingleValueProps } from 'react-select'
+
 import bem from '#/bem'
 import type {
   ValidationStatusOption,

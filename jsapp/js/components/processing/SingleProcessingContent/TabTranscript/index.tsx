@@ -5,11 +5,13 @@ import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { SupplementalDataVersionItemAutomatic } from '#/api/models/supplementalDataVersionItemAutomatic'
 import type { AssetResponse } from '#/dataInterface'
+
 import {
   getLatestTranscriptVersionItem,
   isSupplementVersionAutomatic,
   isSupplementVersionWithValue,
 } from '../../common/utils'
+
 import TranscriptCreate from './TranscriptCreate'
 import TranscriptEdit from './TranscriptEdit'
 import TranscriptPoll from './TranscriptPoll'

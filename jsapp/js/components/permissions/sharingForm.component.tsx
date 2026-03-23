@@ -26,6 +26,7 @@ import sessionStore from '#/stores/session'
 import { replaceBracketsWithLink } from '#/textUtils'
 import { ANON_USERNAME, ANON_USERNAME_URL } from '#/users/utils'
 import { recordKeys, recordValues } from '#/utils'
+
 import CopyTeamPermissions from './copyTeamPermissions.component'
 import type { UserWithPerms } from './permParser'
 import { parseBackendData, parseUserWithPermsList } from './permParser'

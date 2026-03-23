@@ -7,6 +7,7 @@ import DocumentTitle from 'react-document-title'
 import reactMixin from 'react-mixin'
 import { Link, NavLink } from 'react-router-dom'
 import Reflux from 'reflux'
+
 import { actions } from '#/actions'
 import bem from '#/bem'
 import Avatar from '#/components/common/avatar'
@@ -18,7 +19,9 @@ import mixins from '#/mixins'
 import pageState from '#/pageState.store'
 import SubmissionsCountGraph from '#/project/submissionsCountGraph.component'
 import { ANON_USERNAME, getUsernameFromUrl } from '#/users/utils'
+
 import LimitNotifications from '../usageLimits/limitNotifications.component'
+
 import FormSummaryProjectInfo from './formSummaryProjectInfo'
 
 class FormSummary extends React.Component {

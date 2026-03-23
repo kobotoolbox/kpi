@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 
 import classnames from 'classnames'
 import { when } from 'mobx'
+
 import { fetchPatch } from '#/api'
 import { endpoints } from '#/api.endpoints'
 import Button from '#/components/common/button'
@@ -12,6 +13,7 @@ import type { FailResponse } from '#/dataInterface'
 import envStore from '#/envStore'
 import sessionStore from '#/stores/session'
 import { notify } from '#/utils'
+
 import styles from './updatePasswordForm.module.scss'
 
 const FIELD_REQUIRED_ERROR = t('This field is required.')

@@ -1,10 +1,12 @@
 import React from 'react'
 
 import { NavLink } from 'react-router-dom'
+
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 import securityStyles from '#/account/security/securityRoute.module.scss'
 import Button from '#/components/common/button'
 import { PATHS } from '#/router/routerConstants'
+
 import styles from './passwordSection.module.scss'
 
 const HIDDEN_TOKEN_VALUE = '● '.repeat(10)

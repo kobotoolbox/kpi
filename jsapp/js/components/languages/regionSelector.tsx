@@ -7,6 +7,7 @@ import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
 import type { KoboSelectOption } from '#/components/common/koboSelect'
 import KoboSelect from '#/components/common/koboSelect'
+
 import type { DetailedLanguage, LanguageCode, TransxServiceCode } from './languagesStore'
 import languagesStore from './languagesStore'
 

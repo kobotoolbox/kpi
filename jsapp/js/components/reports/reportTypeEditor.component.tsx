@@ -1,6 +1,7 @@
 import React from 'react'
 
 import { recordEntries } from '#/utils'
+
 import type { ReportStyle, ReportStyleName } from './reportsConstants'
 import { CHART_STYLES } from './reportsConstants'
 import styles from './reportTypeEditor.module.scss'

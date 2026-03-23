@@ -1,6 +1,7 @@
 import React from 'react'
 
 import alertify from 'alertifyjs'
+
 import { actions } from '#/actions'
 import assetStore from '#/assetStore'
 import bem from '#/bem'
