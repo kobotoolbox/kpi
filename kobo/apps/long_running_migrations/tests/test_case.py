@@ -50,9 +50,11 @@ class LongRunningMigrationTestCase(TestCase):
             'connection in transaction status ACTIVE',
             "can't change 'autocommit' now: connection in transaction status ACTIVE",
         ]
+        migration = LongRunningMigration.objects.create(name='sample_task')
         for error_message in retry_errors:
             with self.subTest(error_message=error_message):
-                migration = LongRunningMigration.objects.create(name='sample_task')
+                migration.status = LongRunningMigrationStatus.CREATED
+                migration.save(update_fields=['status'])
                 mock_module = MagicMock()
                 mock_module.run.side_effect = Exception(error_message)
                 with patch.object(migration, '_load_module', return_value=mock_module):

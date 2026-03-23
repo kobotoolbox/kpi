@@ -81,7 +81,7 @@ class LongRunningMigration(AbstractTimeStampedModel):
             if any(retry_error in error for retry_error in retry_errors):
                 return
             self.status = LongRunningMigrationStatus.FAILED
-            self.error = str(e)
+            self.error = error
             self.save(update_fields=['status', 'date_modified', 'error'])
             return
 
