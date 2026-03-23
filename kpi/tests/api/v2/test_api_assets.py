@@ -6,7 +6,6 @@ from datetime import datetime
 import dateutil.parser
 from ddt import data, ddt
 from django.conf import settings
-from django.contrib.auth.models import AnonymousUser
 from django.urls import reverse
 from django.utils import timezone
 from model_bakery import baker
@@ -804,7 +803,7 @@ class AssetListCountsApiTests(BaseAssetTestCase):
     def test_asset_counts_are_zero_for_anonymous_user(self):
         self.client.logout()
         for asset in self._create_one_asset_per_status(self.user):
-            asset.assign_perm(AnonymousUser, PERM_VIEW_ASSET)
+            asset.assign_perm(get_anonymous_user(), PERM_VIEW_ASSET)
         url = reverse(self._get_endpoint('asset-counts'))
 
         response = self.client.get(url)
