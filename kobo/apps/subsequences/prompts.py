@@ -171,10 +171,6 @@ def parse_choices_response(
             raise InvalidResponseFromLLMException(
                 'LLM returned multiple answers for a single select'
             )
-        if len(selected_answer_indexes) == 0:
-            raise InvalidResponseFromLLMException(
-                'LLM returned no answers for a single select'
-            )
     return selected_answer_indexes
 
 
