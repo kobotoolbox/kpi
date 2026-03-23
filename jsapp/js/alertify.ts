@@ -1,8 +1,10 @@
 // This is a collection of DRY wrappers for alertifyjs.
+
 import type { ReactElement } from 'react'
 
 import alertify from 'alertifyjs'
 import ReactDOMServer from 'react-dom/server'
+
 import { KeyNames } from '#/constants'
 import type { IconName } from '#/k-icons'
 import { escapeHtml } from '#/utils'

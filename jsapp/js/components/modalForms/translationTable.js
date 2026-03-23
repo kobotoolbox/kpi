@@ -3,6 +3,7 @@ import React from 'react'
 import alertify from 'alertifyjs'
 import ReactTable from 'react-table'
 import TextareaAutosize from 'react-textarea-autosize'
+
 import { actions } from '#/actions'
 import bem from '#/bem'
 import Button from '#/components/common/button'

@@ -4,13 +4,15 @@ import React from 'react'
 
 import { Group } from '@mantine/core'
 import autoBind from 'react-autobind'
+
 import { findRow, renderQuestionTypeIcon } from '#/assetUtils'
 import AttachmentActionsDropdown from '#/attachments/AttachmentActionsDropdown'
 import DeletedAttachment from '#/attachments/deletedAttachment.component'
 import bem, { makeBem } from '#/bem'
-import SimpleTable from '#/components/common/SimpleTable'
 import Button from '#/components/common/button'
+import SimpleTable from '#/components/common/SimpleTable'
 import { goToProcessing } from '#/components/processing/routes.utils'
+import type { DisplayResponse } from '#/components/submissions/submissionUtils'
 import {
   DISPLAY_GROUP_TYPES,
   DisplayGroup,
@@ -18,11 +20,11 @@ import {
   getSubmissionDisplayData,
   shouldProcessingBeAccessible,
 } from '#/components/submissions/submissionUtils'
-import type { DisplayResponse } from '#/components/submissions/submissionUtils'
-import { META_QUESTION_TYPES, QUESTION_TYPES, RANK_LEVEL_TYPE, SCORE_ROW_TYPE } from '#/constants'
 import type { AnyRowTypeName, MetaQuestionTypeName } from '#/constants'
+import { META_QUESTION_TYPES, QUESTION_TYPES, RANK_LEVEL_TYPE, SCORE_ROW_TYPE } from '#/constants'
 import type { AssetResponse, SubmissionResponse } from '#/dataInterface'
 import { formatDate, formatTimeDate } from '#/utils'
+
 import AudioPlayer from '../common/audioPlayer'
 
 bem.SubmissionDataTable = makeBem(null, 'submission-data-table')

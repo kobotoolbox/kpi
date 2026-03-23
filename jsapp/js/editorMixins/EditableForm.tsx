@@ -10,9 +10,11 @@ import DocumentTitle from 'react-document-title'
 import Markdown from 'react-markdown'
 import { useBeforeUnload, useBlocker, unstable_usePrompt as usePrompt } from 'react-router-dom'
 import Select from 'react-select'
+
 import type { AssetSnapshotResponse } from '#/api/models/assetSnapshotResponse'
 import { invalidateItem } from '#/api/mutation-defaults/common'
 import { getAssetsRetrieveQueryKey, useAssetsRetrieve } from '#/api/react-query/manage-projects-and-library-content'
+
 import assetUtils from '#/assetUtils'
 import bem, { makeBem } from '#/bem'
 import Alert from '#/components/common/alert'
@@ -20,8 +22,8 @@ import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import Modal from '#/components/common/modal'
 import {
-  type KoboMatrixParserParams,
   getFormBuilderAssetType,
+  type KoboMatrixParserParams,
   koboMatrixParser,
   surveyToValidJson,
   unnullifyTranslations,
@@ -37,8 +39,8 @@ import {
 import MetadataEditor from '#/components/metadataEditor'
 import {
   ASSET_TYPES,
-  AVAILABLE_FORM_STYLES,
   AssetTypeName,
+  AVAILABLE_FORM_STYLES,
   type FormStyleDefinition,
   type FormStyleName,
   NAME_MAX_LENGTH,
@@ -49,6 +51,7 @@ import {
 import envStore from '#/envStore'
 import type { RouterProp } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
+
 import dkobo_xlform from '../../xlform/src/_xlform.init'
 import type { Survey } from '../../xlform/src/model.survey'
 import type { SurveyDetail } from '../../xlform/src/model.surveyDetail'
@@ -59,12 +62,13 @@ import {
   type AssetRequestObject,
   type AssetResponse,
   type AssetResponseFile,
-  type FailResponse,
   dataInterface,
+  type FailResponse,
 } from '../dataInterface'
 import SurveyScope from '../models/surveyScope'
 import { type SurveyStateStoreData, stores } from '../stores'
 import { escapeHtml, recordKeys } from '../utils'
+
 import AssetNavigator from './AssetNavigator'
 
 const ErrorMessage = makeBem(null, 'error-message')

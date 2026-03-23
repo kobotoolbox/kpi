@@ -9,6 +9,7 @@ import { decodeURLParamWithSlash } from '#/components/processing/routes.utils'
 import type { AssetResponse, FailResponse } from '#/dataInterface'
 import AccessDenied from '#/router/accessDenied'
 import type { WithRouterProps } from '#/router/legacy'
+
 import { withRouter } from './legacy'
 
 interface PermProtectedRouteProps extends WithRouterProps {

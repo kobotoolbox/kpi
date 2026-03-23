@@ -3,6 +3,7 @@ import React, { useState } from 'react'
 import UpdatePasswordForm from '#/account/security/password/updatePasswordForm.component'
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
+
 import BasicLayout from './basicLayout.component'
 import styles from './invalidatedPassword.module.scss'
 

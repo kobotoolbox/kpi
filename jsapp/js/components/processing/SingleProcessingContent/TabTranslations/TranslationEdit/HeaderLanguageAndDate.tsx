@@ -1,9 +1,12 @@
 import React from 'react'
+
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
+
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { AsyncLanguageDisplayLabel } from '#/components/languages/languagesUtils'
 import type { TranslationVersionItem } from '#/components/processing/common/types'
-import { TransxVersionSortFunction, isSupplementVersionWithValue } from '#/components/processing/common/utils'
+import { isSupplementVersionWithValue, TransxVersionSortFunction } from '#/components/processing/common/utils'
+
 import bodyStyles from '../../../common/processingBody.module.scss'
 import TransxSelector from '../../../components/transxSelector'
 import TransxDate from '../../components/transxDate'

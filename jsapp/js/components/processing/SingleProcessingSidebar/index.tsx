@@ -2,17 +2,20 @@ import React, { useEffect, useMemo, useState } from 'react'
 
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
+
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import type { AssetResponse } from '#/dataInterface'
 import { recordValues } from '#/utils'
+
 import type { DisplaysList } from '../common/types'
 import {
-  StaticDisplays,
   getAllTranslationsFromSupplementData,
   getDefaultDisplaysForTab,
   getLatestTranscriptVersionItem,
+  StaticDisplays,
 } from '../common/utils'
 import { getActiveTab } from '../routes.utils'
+
 import styles from './index.module.scss'
 import SidebarDisplaySettings from './sidebarDisplaySettings'
 import SidebarSubmissionData from './sidebarSubmissionData'

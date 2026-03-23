@@ -2,9 +2,11 @@ import React, { useState } from 'react'
 
 import cx from 'classnames'
 import clonedeep from 'lodash.clonedeep'
+
 import Button from '#/components/common/button'
 import KoboModal from '#/components/modals/koboModal'
 import KoboModalHeader from '#/components/modals/koboModalHeader'
+
 import type { ProjectFieldName, ProjectsFilterDefinition } from './constants'
 import styles from './projectsFilter.module.scss'
 import ProjectsFilterEditor from './projectsFilterEditor'

@@ -3,6 +3,7 @@ import './checkbox.scss'
 import React from 'react'
 
 import autoBind from 'react-autobind'
+
 import bem, { makeBem } from '#/bem'
 
 bem.Checkbox = makeBem(null, 'checkbox')

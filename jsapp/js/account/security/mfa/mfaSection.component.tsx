@@ -1,6 +1,7 @@
 import React from 'react'
 
 import cx from 'classnames'
+
 import securityStyles from '#/account/security/securityRoute.module.scss'
 import type { MfaActivatedResponse, MfaUserMethodsResponse } from '#/actions/mfaActions'
 import mfaActions from '#/actions/mfaActions'
@@ -12,6 +13,7 @@ import { MODAL_TYPES } from '#/constants'
 import envStore from '#/envStore'
 import pageState from '#/pageState.store'
 import { formatTime } from '#/utils'
+
 import styles from './mfaSection.module.scss'
 
 interface SecurityState {

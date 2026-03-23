@@ -1,10 +1,14 @@
-import cx from 'classnames'
 import React from 'react'
+
+import cx from 'classnames'
+
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
+
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import type { AssetResponse } from '#/dataInterface'
+
 import bodyStyles from '../../../common/processingBody.module.scss'
 import Editor from '../TranscriptEdit/Editor'
 

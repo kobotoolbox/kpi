@@ -1,14 +1,18 @@
-import { Loader } from '@mantine/core'
 import React from 'react'
+
+import { Loader } from '@mantine/core'
+
 import type { DataResponse } from '#/api/models/dataResponse'
 import {
   type assetsDataListResponse,
   getAssetsDataListQueryKey,
   useAssetsDataList,
 } from '#/api/react-query/survey-data'
+
 import Button from '#/components/common/button'
 import { goToProcessing } from '#/components/processing/routes.utils'
 import { removeDefaultUuidPrefix } from '#/utils'
+
 import styles from './index.module.scss'
 
 const selectNeighborResults = (data: assetsDataListResponse) => {

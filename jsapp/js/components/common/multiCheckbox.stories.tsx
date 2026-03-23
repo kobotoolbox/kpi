@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
+
 import MultiCheckbox from './multiCheckbox'
 
 const meta: Meta<typeof MultiCheckbox> = {

@@ -1,8 +1,8 @@
 /* eslint-disable import/export */
 // ^^ eslint doesn't understand direct exports.
 
-export * from './user-team-organization-usage'
 export * from './survey-data'
+export * from './user-team-organization-usage'
 
 /**
  * Write at least invalidation for every mutation in use.

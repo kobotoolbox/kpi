@@ -4,16 +4,20 @@ import { Badge } from '@mantine/core'
 import { useIsMutating } from '@tanstack/react-query'
 import classNames from 'classnames'
 import cloneDeep from 'lodash.clonedeep'
+
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
 import type { DataSupplementResponse } from '#/api/models/dataSupplementResponse'
 import type { ResponseManualQualActionParams } from '#/api/models/responseManualQualActionParams'
+
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
 import KoboDropdown from '#/components/common/koboDropdown'
 import { userCan } from '#/components/permissions/utils'
 import type { AssetResponse } from '#/dataInterface'
+
 import { getAllTranslationsFromSupplementData, getLatestTranscriptVersionItem } from '../../common/utils'
+
 import styles from './AnalysisHeader.module.scss'
 import { ANALYSIS_QUESTION_TYPES } from './common/constants'
 

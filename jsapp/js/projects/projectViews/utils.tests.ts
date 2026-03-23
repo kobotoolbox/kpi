@@ -1,4 +1,5 @@
 import chai from 'chai'
+
 import type { ProjectsFilterDefinition } from './constants'
 import { buildQueriesFromFilters, removeIncorrectFilters } from './utils'
 

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 
 import classnames from 'classnames'
 import { useNavigate } from 'react-router-dom'
+
 import assetStore from '#/assetStore'
 import { userCan, userCanPartially } from '#/components/permissions/utils'
 import type { AssetResponse } from '#/dataInterface'
@@ -14,6 +15,7 @@ import {
   isFormSummaryRoute,
 } from '#/router/routerUtils'
 import sessionStore from '#/stores/session'
+
 import styles from './projectTopTabs.module.scss'
 
 export default function ProjectTopTabs() {

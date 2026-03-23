@@ -29,8 +29,10 @@ import moment from 'moment'
 import { Cookies } from 'react-cookie'
 import { createRoot } from 'react-dom/client'
 import Modal from 'react-modal'
+
 import AllRoutes from '#/router/allRoutes'
 import { csrfSafeMethod, currentLang } from '#/utils'
+
 import RegistrationPasswordApp from './registrationPasswordApp'
 
 const sentryDsnEl = document.head.querySelector('meta[name=sentry-dsn]')

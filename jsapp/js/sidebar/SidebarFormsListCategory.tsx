@@ -1,16 +1,21 @@
+import React from 'react'
+
 import { Box, Group, Stack, Text, UnstyledButton } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
-import React from 'react'
 import { Link } from 'react-router-dom'
+
 import type { Asset } from '#/api/models/asset'
+
 import type { AssetResponse } from '#/dataInterface'
 import type { IconName } from '#/k-icons'
 import { ROUTES } from '#/router/routerConstants'
 import { getRouteAssetUid } from '#/router/routerUtils'
+
 import AssetName from '../components/common/assetName'
 import Badge from '../components/common/badge'
 import Icon from '../components/common/icon'
 import { userCan } from '../components/permissions/utils'
+
 import styles from './SidebarFormsList.module.scss'
 
 interface SidebarFormsListCategoryProps {

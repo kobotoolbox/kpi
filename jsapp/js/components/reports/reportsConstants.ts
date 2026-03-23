@@ -1,4 +1,5 @@
 import type { ChartType } from 'chart.js/auto'
+
 import type { AnyRowTypeName } from '#/constants'
 
 export interface ReportStyle {

@@ -1,6 +1,7 @@
 import React from 'react'
 
 import alertify from 'alertifyjs'
+
 import { actions } from '#/actions'
 import assetStore from '#/assetStore'
 import bem from '#/bem'
@@ -11,7 +12,9 @@ import { router } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
 import sessionStore from '#/stores/session'
 import { escapeHtml } from '#/utils'
+
 import { permissionsActions } from '../../actions/permissions'
+
 import permConfig from './permConfig'
 import { PERMISSIONS_CODENAMES } from './permConstants'
 import type { AssignablePermsMap } from './sharingForm.component'

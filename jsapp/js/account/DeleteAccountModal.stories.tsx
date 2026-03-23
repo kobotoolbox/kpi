@@ -1,6 +1,7 @@
 import { Button, Center, type ModalProps } from '@mantine/core'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { useArgs } from 'storybook/internal/preview-api'
+
 import DeleteAccountModal from './DeleteAccountModal'
 
 const RenderModal = ({ ...args }: ModalProps) => {

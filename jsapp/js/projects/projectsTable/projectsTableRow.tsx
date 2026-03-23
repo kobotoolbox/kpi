@@ -2,6 +2,7 @@ import React from 'react'
 
 import cx from 'classnames'
 import { Link } from 'react-router-dom'
+
 import assetUtils from '#/assetUtils'
 import AssetName from '#/components/common/assetName'
 import AssetStatusBadge from '#/components/common/assetStatusBadge'
@@ -9,11 +10,12 @@ import Avatar from '#/components/common/avatar'
 import Badge from '#/components/common/badge'
 import Checkbox from '#/components/common/checkbox'
 import type { AssetResponse, ProjectViewAsset } from '#/dataInterface'
-import { PROJECT_FIELDS } from '#/projects/projectViews/constants'
 import type { ProjectFieldDefinition, ProjectFieldName } from '#/projects/projectViews/constants'
+import { PROJECT_FIELDS } from '#/projects/projectViews/constants'
 import { ROUTES } from '#/router/routerConstants'
 import sessionStore from '#/stores/session'
 import { formatTime, recordValues } from '#/utils'
+
 import styles from './projectsTableRow.module.scss'
 
 interface ProjectsTableRowProps {

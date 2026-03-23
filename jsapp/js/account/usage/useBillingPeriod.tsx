@@ -1,8 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 import { when } from 'mobx'
+
 import { ACTIVE_STRIPE_STATUSES } from '#/constants'
 import envStore from '#/envStore'
 import { QueryKeys } from '#/query/queryKeys'
+
 import type { RecurringInterval } from '../stripe.types'
 import subscriptionStore from '../subscriptionStore'
 

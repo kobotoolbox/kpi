@@ -1,7 +1,10 @@
-import { Card, Group, Pill, Stack, Text } from '@mantine/core'
 import React from 'react'
+
+import { Card, Group, Pill, Stack, Text } from '@mantine/core'
+
 import type { Asset } from '#/api/models/asset'
 import { AssetTypeEnum } from '#/api/models/assetTypeEnum'
+
 import { parseTags } from '#/assetParserUtils'
 import AssetName from '#/components/common/assetName'
 import Icon from '#/components/common/icon'

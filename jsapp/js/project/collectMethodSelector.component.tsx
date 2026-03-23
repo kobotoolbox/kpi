@@ -3,6 +3,7 @@ import React from 'react'
 import KoboSelect from '#/components/common/koboSelect'
 import { COLLECTION_METHODS, type CollectionMethodName } from '#/constants'
 import { recordEntries } from '#/utils'
+
 import styles from './collectMethodSelector.module.scss'
 
 interface CollectMethodSelectorProps {

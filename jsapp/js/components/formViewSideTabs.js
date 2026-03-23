@@ -4,12 +4,14 @@ import autoBind from 'react-autobind'
 import reactMixin from 'react-mixin'
 import { NavLink } from 'react-router-dom'
 import Reflux from 'reflux'
+
 import assetStore from '#/assetStore'
 import bem from '#/bem'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userCan } from '#/components/permissions/utils'
 import { withRouter } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
+
 import mixins from '../mixins'
 
 export function getFormDataTabs(assetUid) {

@@ -1,4 +1,5 @@
 import React from 'react'
+
 import bem from '../../../js/bem'
 import type { AssetMapStyles, ColorSetName } from '../../../js/dataInterface'
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 
 import cx from 'classnames'
+
 import { ActionEnum } from '#/api/models/actionEnum'
 import type { AdvancedFeatureResponse } from '#/api/models/advancedFeatureResponse'
 import type { DataResponse } from '#/api/models/dataResponse'
@@ -9,6 +10,7 @@ import {
   useAssetsAdvancedFeaturesPartialUpdate,
   useAssetsDataSupplementPartialUpdate,
 } from '#/api/react-query/survey-data'
+
 import Alert from '#/components/common/alert'
 import Button from '#/components/common/button'
 import LoadingSpinner from '#/components/common/loadingSpinner'
@@ -18,6 +20,7 @@ import { SUBSEQUENCES_SCHEMA_VERSION } from '#/components/processing/common/cons
 import { getLatestAutomaticTranslationVersionItem } from '#/components/processing/common/utils'
 import type { AssetResponse } from '#/dataInterface'
 import { notify, removeDefaultUuidPrefix } from '#/utils'
+
 import bodyStyles from '../../../common/processingBody.module.scss'
 
 interface Props {

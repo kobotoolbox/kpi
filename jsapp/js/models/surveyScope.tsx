@@ -1,10 +1,12 @@
 import findIndex from 'lodash.findindex'
 import isEmpty from 'lodash.isempty'
 import map from 'lodash.map'
+
 import { unnullifyTranslations } from '#/components/formBuilder/formBuilderUtils'
 import { ASSET_TYPES, type AssetTypeDefinition, CHOICE_LISTS, QUESTION_TYPES } from '#/constants'
 import type { AssetContent } from '#/dataInterface'
 import { notify } from '#/utils'
+
 import type { BaseRow, Row } from '../../xlform/src/model.row'
 import type { FlatChoice, FlatRow, FlatSurvey, Survey } from '../../xlform/src/model.survey'
 import type { Group } from '../../xlform/src/model.surveyFragment'

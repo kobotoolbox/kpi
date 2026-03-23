@@ -1,14 +1,17 @@
+import React from 'react'
+
 import alertify from 'alertifyjs'
 import { List, Map, type OrderedMap } from 'immutable'
 import orderBy from 'lodash.orderby'
-import React from 'react'
 import autoBind from 'react-autobind'
 import Select from 'react-select'
+
 import Checkbox from '#/components/common/checkbox'
 import type { AnyRowTypeName } from '#/constants'
 import type { LabelValuePair, SurveyChoice } from '#/dataInterface'
 import { bemComponents } from '#/libs/reactBemComponents'
 import { txtid } from '#/utils'
+
 import { sluggify } from '../../../xlform/src/model.utils'
 
 const bem = bemComponents({

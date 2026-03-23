@@ -7,6 +7,7 @@ import DocumentTitle from 'react-document-title'
 import reactMixin from 'react-mixin'
 import { Link } from 'react-router-dom'
 import Reflux from 'reflux'
+
 import { actions } from '#/actions'
 import { cloneAssetAsTemplate, deployAsset, unarchiveAsset } from '#/assetQuickActions'
 import bem from '#/bem'
@@ -19,8 +20,7 @@ import NewFeatureDialog from '#/components/newFeatureDialog.component'
 import permConfig from '#/components/permissions/permConfig'
 import { PERMISSIONS_CODENAMES } from '#/components/permissions/permConstants'
 import { userCan, userCanRemoveSharedProject } from '#/components/permissions/utils'
-import { COLLECTION_METHODS, MODAL_TYPES } from '#/constants'
-import { HELP_ARTICLE_ANON_SUBMISSIONS_URL } from '#/constants'
+import { COLLECTION_METHODS, HELP_ARTICLE_ANON_SUBMISSIONS_URL, MODAL_TYPES } from '#/constants'
 import envStore from '#/envStore'
 import mixins from '#/mixins'
 import pageState from '#/pageState.store'
@@ -31,7 +31,9 @@ import { ROUTES } from '#/router/routerConstants'
 import sessionStore from '#/stores/session'
 import { ANON_USERNAME, buildUserUrl } from '#/users/utils'
 import { formatTime, notify, recordKeys } from '#/utils'
+
 import LimitNotifications from '../usageLimits/limitNotifications.component'
+
 import FormHistory from './FormHistory'
 
 const ANON_CAN_ADD_PERM_URL = permConfig.getPermissionByCodename(PERMISSIONS_CODENAMES.add_submissions).url

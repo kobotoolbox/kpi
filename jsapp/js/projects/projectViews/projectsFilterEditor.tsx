@@ -5,6 +5,7 @@ import KoboSelect from '#/components/common/koboSelect'
 import TextBox from '#/components/common/textBox'
 import envStore from '#/envStore'
 import { generateUuid, recordValues } from '#/utils'
+
 import type { FilterConditionName, ProjectFieldName, ProjectsFilterDefinition } from './constants'
 import { FILTER_CONDITIONS, PROJECT_FIELDS } from './constants'
 import styles from './projectsFilterEditor.module.scss'

@@ -1,17 +1,19 @@
 import React from 'react'
 
-import Chart from 'chart.js/auto'
 import type { ChartConfiguration, ChartDataset, ChartType } from 'chart.js/auto'
+import Chart from 'chart.js/auto'
 import clonedeep from 'lodash.clonedeep'
 import isEqual from 'lodash.isequal'
 import zip from 'lodash.zip'
 import { observer } from 'mobx-react'
+
 import bem from '#/bem'
 import Button from '#/components/common/button'
 import sessionStore from '#/stores/session'
-import ReportTable from './reportTable.component'
-import { CHART_COLOR_SETS, CHART_STYLES } from './reportsConstants'
+
 import type { ReportsResponse, ReportsResponseData } from './reportsConstants'
+import { CHART_COLOR_SETS, CHART_STYLES } from './reportsConstants'
+import ReportTable from './reportTable.component'
 
 export type PreparedTable = Array<[string | null | undefined, number | undefined, number | undefined]>
 

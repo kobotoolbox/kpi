@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
+
 import Checkbox from './checkbox'
 
 const meta: Meta<typeof Checkbox> = {

@@ -4,6 +4,7 @@ import Button from '#/components/common/button'
 import KoboModal from '#/components/modals/koboModal'
 import KoboModalContent from '#/components/modals/koboModalContent'
 import KoboModalHeader from '#/components/modals/koboModalHeader'
+
 import styles from './textModalCell.module.scss'
 
 interface TextModalCellProps {

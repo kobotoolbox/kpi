@@ -1,4 +1,5 @@
 import type { Updater } from '@tanstack/react-query'
+
 import { queryClient } from '../queryClient'
 
 /**

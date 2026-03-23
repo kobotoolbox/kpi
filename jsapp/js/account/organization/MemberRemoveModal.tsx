@@ -1,6 +1,7 @@
-import subscriptionStore from '#/account/subscriptionStore'
 import { useOrganizationsMembersDestroy } from '#/api/react-query/user-team-organization-usage'
 import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
+
+import subscriptionStore from '#/account/subscriptionStore'
 import Button from '#/components/common/button'
 import InlineMessage from '#/components/common/inlineMessage'
 import KoboModal from '#/components/modals/koboModal'
@@ -9,6 +10,7 @@ import KoboModalFooter from '#/components/modals/koboModalFooter'
 import KoboModalHeader from '#/components/modals/koboModalHeader'
 import envStore from '#/envStore'
 import { notify } from '#/utils'
+
 import { getSimpleMMOLabel } from './organization.utils'
 
 interface MemberRemoveModalProps {

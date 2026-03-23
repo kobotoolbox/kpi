@@ -1,6 +1,7 @@
 import React from 'react'
 
 import clonedeep from 'lodash.clonedeep'
+
 import { actions } from '#/actions'
 import { handleApiFail } from '#/api'
 import bem from '#/bem'
@@ -10,6 +11,7 @@ import Modal from '#/components/common/modal'
 import TextBox from '#/components/common/textBox'
 import type { CustomReportSettings, ReportsResponse } from '#/components/reports/reportsConstants'
 import type { AssetResponse, FailResponse } from '#/dataInterface'
+
 import { getReportRowTranslatedLabel } from './reports.utils'
 
 interface CustomReportEditorProps {

@@ -3,11 +3,14 @@ import React, { useState } from 'react'
 import cx from 'classnames'
 import { observer } from 'mobx-react-lite'
 import { useNavigate } from 'react-router-dom'
+
 import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
 import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
+
 import Icon from '#/components/common/icon'
 import KoboDropdown from '#/components/common/koboDropdown'
 import { PROJECTS_ROUTES } from '#/router/routerConstants'
+
 import { HOME_VIEW, ORG_VIEW } from './constants'
 import projectViewsStore from './projectViewsStore'
 import styles from './viewSwitcher.module.scss'

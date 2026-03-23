@@ -1,6 +1,8 @@
 import React from 'react'
+
 import { type WithRouterProps, withRouter } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
+
 import EditableForm from '../editorMixins/EditableForm'
 
 /**

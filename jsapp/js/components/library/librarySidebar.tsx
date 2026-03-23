@@ -1,6 +1,7 @@
 import React from 'react'
 
 import { NavLink } from 'react-router-dom'
+
 import bem from '#/bem'
 import Button from '#/components/common/button'
 import { MODAL_TYPES } from '#/constants'
@@ -8,6 +9,7 @@ import pageState from '#/pageState.store'
 import { routerIsActive } from '#/router/legacy'
 import { ROUTES } from '#/router/routerConstants'
 import sessionStore from '#/stores/session'
+
 import myLibraryStore from './myLibraryStore'
 
 interface LibrarySidebarState {

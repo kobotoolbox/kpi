@@ -1,4 +1,5 @@
 import chai from 'chai'
+
 import { getSupplementalPathParts } from './processingUtils'
 
 describe('getSupplementalPathParts', () => {

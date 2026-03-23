@@ -1,15 +1,16 @@
 import { getRowName } from '#/assetUtils'
 import { AssetTypeName } from '#/constants'
 import type { AssetContent } from '#/dataInterface'
+
 import {
   type AssetLockingProfileDefinition,
   FORM_RESTRICTIONS,
   GROUP_RESTRICTIONS,
   type IndexedAssetLockingProfileDefinition,
-  LOCKING_PROFILES_PROP_NAME,
-  LOCKING_PROFILE_PROP_NAME,
   LOCK_ALL_PROP_NAME,
   LOCK_ALL_RESTRICTION_NAMES,
+  LOCKING_PROFILE_PROP_NAME,
+  LOCKING_PROFILES_PROP_NAME,
   type LockingRestrictionDefinition,
   type LockingRestrictionName,
   QUESTION_RESTRICTIONS,

@@ -1,9 +1,12 @@
 import clonedeep from 'lodash.clonedeep'
 import Reflux from 'reflux'
+
 import { actions } from '#/actions'
 import { stores } from '#/stores'
+
 import dkobo_xlform from '../xlform/src/_xlform.init'
 import type { Survey } from '../xlform/src/model.survey'
+
 import type { AssetResponse } from './dataInterface'
 
 const surveyCompanionStore = Reflux.createStore({

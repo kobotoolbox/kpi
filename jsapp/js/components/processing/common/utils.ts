@@ -9,6 +9,7 @@ import type { SupplementalDataVersionItemManual } from '#/api/models/supplementa
 
 import type { LanguageCode } from '#/components/languages/languagesStore'
 import { ProcessingTab } from '#/components/processing/routes.utils'
+
 import type {
   DisplaysList,
   QualVersionItem,

@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 
 import { useNavigate } from 'react-router-dom'
+
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 import bem from '#/bem'
 import Avatar from '#/components/common/avatar'
@@ -12,6 +13,7 @@ import PopoverMenu from '#/popoverMenu'
 import { isAnyRouteBlockerActive } from '#/router/routerUtils'
 import sessionStore from '#/stores/session'
 import { currentLang } from '#/utils'
+
 import OrganizationBadge from './organizationBadge.component'
 
 /**
