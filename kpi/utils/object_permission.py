@@ -148,6 +148,21 @@ def get_objects_for_user(
     # queries, and it's nice to be able to pass in request.user blindly.
     user = get_database_user(user)
 
+    # Known limitation: this filter only checks for the existence of a
+    # deny=False row and does not verify the absence of a corresponding
+    # deny=True row. When a permission is explicitly revoked on a child asset
+    # via remove_perm(), deny records are created but the inherited deny=False
+    # rows are not removed (in purpose). Both coexist in the DB: has_perm() handles
+    # this correctly by subtracting deny from grant, but this queryset does not,
+    # so the child asset appears in the list even though the user cannot access
+    # it, i.e.: in the UI, the user will see the children but will not be to
+    # take actions on them.
+    #
+    # This is an edge case (only occurs when remove_perm() is called on an
+    # asset that has only inherited permissions). Fixing it properly would
+    # require a correlated subquery (EXISTS) that runs for every asset in the
+    # result set, penalizing the common case to handle a rare one.
+    # See https://linear.app/kobotoolbox/issue/DEV-1846/collection-shows-children-with-explicitly-revoked-inherited  # noqa
     if all_perms_required:
         for codename in codenames:
             perm_id = get_perm_ids_from_code_names(codename)
