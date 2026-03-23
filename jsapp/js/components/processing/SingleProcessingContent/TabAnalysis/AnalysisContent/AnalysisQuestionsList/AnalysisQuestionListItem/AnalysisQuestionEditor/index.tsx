@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react'
 
-import { Stack, ThemeIcon } from '@mantine/core'
+import { Box, Input, Stack, ThemeIcon } from '@mantine/core'
 import clonedeep from 'lodash.clonedeep'
 import type { ResponseManualQualActionParams } from '#/api/models/responseManualQualActionParams'
 import type { ResponseQualSelectQuestionParamsChoicesItem } from '#/api/models/responseQualSelectQuestionParamsChoicesItem'
@@ -53,6 +53,17 @@ export default function AnalysisQuestionEditor({
       },
     }))
     if (newLabel !== '') setErrorMessageLabel(() => undefined)
+  }, [])
+
+  const handleChangeHint = useCallback((newHint: string) => {
+    setNewQaQuestion(() => ({
+      ...clonedeep(newQaQuestion),
+      hint: {
+        labels: {
+          _default: newHint,
+        },
+      },
+    }))
   }, [])
 
   function handleChangeChoices(choices: ResponseQualSelectQuestionParamsChoicesItem[]) {
@@ -118,6 +129,8 @@ export default function AnalysisQuestionEditor({
     onCancel()
   }
 
+  const hintValue = (newQaQuestion.hint?.labels as { [key: string]: string | undefined })?._default
+
   return (
     // TODO: mantineify the rest of this component, it's partially complete to remove dependency on deprecated styles
     // DEV-1237
@@ -143,6 +156,18 @@ export default function AnalysisQuestionEditor({
           <Button type='secondary' size='m' label={t('Cancel')} onClick={handleCancel} isDisabled={disabled} />
         </form>
       </header>
+
+      <Box pl='40px' mb='12px'>
+        <Input
+          value={hintValue}
+          onChange={(evt: React.ChangeEvent<HTMLInputElement>) => {
+            handleChangeHint(evt.target.value)
+          }}
+          placeholder={t('Add a hint (optional)')}
+          variant='transparent'
+          size='s'
+        />
+      </Box>
 
       {newQaQuestion.type === 'qualAutoKeywordCount' && (
         <KeywordSearchFieldsEditor

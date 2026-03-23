@@ -1,3 +1,4 @@
+import { Box, Group, Input, Stack } from '@mantine/core'
 import React from 'react'
 import type { ResponseQualSelectQuestionParams } from '#/api/models/responseQualSelectQuestionParams'
 import type { ResponseQualSelectQuestionParamsChoicesItem } from '#/api/models/responseQualSelectQuestionParamsChoicesItem'
@@ -26,6 +27,15 @@ export default function SelectXFieldsEditor({ qaQuestion, onChange, disabled }: 
     )
   }
 
+  function handleEditHint(uuid: string, newHint: string) {
+    onChange(
+      qaQuestion.choices.map((choice) => ({
+        ...choice,
+        ...(choice.uuid === uuid ? { hint: { labels: { _default: newHint } } } : {}),
+      })),
+    )
+  }
+
   function handleAdd() {
     onChange([...qaQuestion.choices, { uuid: generateUuid(), labels: { _default: '' } }])
   }
@@ -42,26 +52,42 @@ export default function SelectXFieldsEditor({ qaQuestion, onChange, disabled }: 
     <>
       {qaQuestion.choices
         .filter((choice) => !choice.options?.deleted) // Filter "deleted" choices.
-        .map((choice) => (
-          <div className={styles.choice} key={choice.uuid}>
-            <TextBox
-              value={choice.labels._default}
-              onChange={(newLabel: string) => handleEditLabel(choice.uuid, newLabel)}
-              placeholder={t('Type option name')}
-              className={styles.labelInput}
-              size='m'
-              renderFocused
-            />
+        .map((choice) => {
+          const hintValue = (choice.hint?.labels as { [key: string]: string | undefined })?._default
+          return (
+            <Stack className={styles.choice} key={choice.uuid}>
+              <Group>
+                <TextBox
+                  value={choice.labels._default}
+                  onChange={(newLabel: string) => handleEditLabel(choice.uuid, newLabel)}
+                  placeholder={t('Type option name')}
+                  className={styles.labelInput}
+                  size='m'
+                  renderFocused
+                />
 
-            <Button
-              type='secondary-danger'
-              size='m'
-              startIcon='trash'
-              onClick={() => handleDelete(choice.uuid)}
-              isDisabled={disabled}
-            />
-          </div>
-        ))}
+                <Button
+                  type='secondary-danger'
+                  size='m'
+                  startIcon='trash'
+                  onClick={() => handleDelete(choice.uuid)}
+                  isDisabled={disabled}
+                />
+              </Group>
+              <Box>
+                <Input
+                  value={hintValue}
+                  onChange={(evt: React.ChangeEvent<HTMLInputElement>) => {
+                    handleEditHint(choice.uuid, evt.target.value)
+                  }}
+                  placeholder={t('Add a hint (optional)')}
+                  variant='transparent'
+                  size='s'
+                />
+              </Box>
+            </Stack>
+          )
+        })}
 
       <div className={styles.addOption}>
         <Button
