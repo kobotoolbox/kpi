@@ -3,6 +3,7 @@ import copy
 import jsonschema
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.handlers.wsgi import WSGIRequest
 from django.db import models
 from django.db.models import Case, Count, F, Min, Q, Value, When
@@ -114,8 +115,10 @@ class AuditLog(models.Model):
         using=None,
         update_fields=None,
     ):
-        if not self.user_uid:
+        try:
             self.user_uid = self.user.extra_details.uid
+        except (AttributeError, ObjectDoesNotExist):
+            self.user_uid = ''
 
         super().save(
             force_insert=force_insert,

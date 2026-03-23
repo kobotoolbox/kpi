@@ -140,27 +140,6 @@ def remove_partial_perms(sender, instance, user, **kwargs):
     request.permissions_removed[user.username].add(PERM_PARTIAL_SUBMISSIONS)
 
 
-def _build_human_readable_log_message(log_entry, model_name):
-    """
-    Constructs a human-readable message from a Django LogEntry
-    """
-    user = log_entry.user
-    obj_repr = log_entry.object_repr
-    obj_id = log_entry.object_id
-
-    if log_entry.action_flag == ADDITION:
-        return f"{user} created {model_name} '{obj_repr}' (pk: {obj_id})"
-
-    elif log_entry.action_flag == CHANGE:
-        changes = log_entry.get_change_message()
-        return f"{user} updated {model_name} '{obj_repr}' (pk: {obj_id}): {changes}"
-
-    elif log_entry.action_flag == DELETION:
-        return f"{user} deleted {model_name} '{obj_repr}' (pk: {obj_id})"
-
-    return log_entry.get_change_message()
-
-
 @receiver(post_save, sender=LogEntry)
 def save_log_entry_to_audit_log(instance, created, **kwargs):
     """
@@ -200,3 +179,24 @@ def save_log_entry_to_audit_log(instance, created, **kwargs):
         log_type=AuditType.ADMIN_INTERFACE,
         metadata=metadata
     )
+
+
+def _build_human_readable_log_message(log_entry, model_name):
+    """
+    Constructs a human-readable message from a Django LogEntry
+    """
+    user = log_entry.user
+    obj_repr = log_entry.object_repr
+    obj_id = log_entry.object_id
+
+    if log_entry.action_flag == ADDITION:
+        return f"{user} created {model_name} '{obj_repr}' (pk: {obj_id})"
+
+    elif log_entry.action_flag == CHANGE:
+        changes = log_entry.get_change_message()
+        return f"{user} updated {model_name} '{obj_repr}' (pk: {obj_id}): {changes}"
+
+    elif log_entry.action_flag == DELETION:
+        return f"{user} deleted {model_name} '{obj_repr}' (pk: {obj_id})"
+
+    return log_entry.get_change_message()
