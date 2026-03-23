@@ -76,7 +76,7 @@ class QueryParseActions:
             pass
         else:
             if lower_value in ['true', 'false']:
-                return bool(strtobool(lower_value))
+                return strtobool(lower_value)
 
         value = cls._normalize_numeric_value(value)
 

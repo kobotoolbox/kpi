@@ -770,9 +770,9 @@ class AssetViewSet(
             # discover_asset/view_asset for anonymous (memory optimization).
             # Pass ?current_user_permissions_only=false to load all users'
             # permissions (needed when the client displays full permission lists).
-            current_user_permissions_only = bool(strtobool(
+            current_user_permissions_only = strtobool(
                 self.request.query_params.get('current_user_permissions_only', False)
-            ))
+            )
             context_['object_permissions_per_asset'] = self.cache_all_assets_perms(
                 asset_ids, current_user_permissions_only
             )

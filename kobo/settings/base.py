@@ -531,8 +531,8 @@ CONSTANCE_CONFIG = {
         (
             '[[:lower:]]\n'
             '[[:upper:]]\n'
-            '\d\n'
-            '[\W_]'
+            '\\d\n'
+            '[\\W_]'
         ),
         'List all custom character rules as regular expressions supported '
         'by `regex` python library.\n'

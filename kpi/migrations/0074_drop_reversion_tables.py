@@ -70,7 +70,7 @@ class Migration(migrations.Migration):
     """
 
     dependencies = [
-        ('kpi', '0072_extraprojectmetadatafield'),
+        ('kpi', '0073_merge_conflicting_0072'),
     ]
 
     operations = get_operations()
