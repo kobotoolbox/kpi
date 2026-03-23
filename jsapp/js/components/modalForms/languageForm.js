@@ -154,7 +154,7 @@ class LanguageForm extends React.Component {
           <Button
             type='primary'
             size='l'
-            label={this.props.langIndex !== undefined ? t('Update') : this.props.isDefault ? t('Set') : t('Add')}
+            label={this.props.langIndex === undefined ? (this.props.isDefault ? t('Set') : t('Add')) : t('Update')}
             isSubmit
             isPending={this.props.isPending}
             isDisabled={isAnyFieldEmpty}

@@ -153,7 +153,9 @@ class PermProtectedRoute extends React.Component<PermProtectedRouteProps, PermPr
     const { xpath, ...restParams } = params
     const decodedXPath = decodeURLParamWithSlash(xpath)
 
-    if (xpath !== decodedXPath) {
+    if (xpath === decodedXPath) {
+      return props
+    } else {
       return {
         ...rest,
         params: {
@@ -161,8 +163,6 @@ class PermProtectedRoute extends React.Component<PermProtectedRouteProps, PermPr
           ...restParams,
         },
       }
-    } else {
-      return props
     }
   }
 

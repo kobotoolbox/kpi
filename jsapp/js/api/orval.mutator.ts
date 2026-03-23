@@ -17,8 +17,12 @@ export const fetchWithAuth = async <T>(url: string, config: FetchWithAuthConfig)
       ...config.headers,
       Accept: 'application/json',
       // Pass authentication data only when it's required.
-      ...(config.method !== 'GET' ? { 'Content-Type': 'application/json' } : null),
-      ...(config.method !== 'GET' && csrfCookie ? { 'X-CSRFToken': csrfCookie[1] } : null),
+      ...(config.method === 'GET'
+        ? null
+        : {
+            'Content-Type': 'application/json',
+            ...(csrfCookie ? { 'X-CSRFToken': csrfCookie[1] } : null),
+          }),
     },
   })
 

@@ -74,10 +74,10 @@ export const PlanContainer = ({
         {items.map((item) => (
           <li key={item.label}>
             <div className={styles.iconContainer}>
-              {item.icon !== 'negative' ? (
-                <Icon name='check' size='m' color={item.icon === 'positive_pro' ? 'teal' : 'storm'} />
-              ) : (
+              {item.icon === 'negative' ? (
                 <Icon name='close' size='m' color='mid-red' />
+              ) : (
+                <Icon name='check' size='m' color={item.icon === 'positive_pro' ? 'teal' : 'storm'} />
               )}
             </div>
             {item.label}

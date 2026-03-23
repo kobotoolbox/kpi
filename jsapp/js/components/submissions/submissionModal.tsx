@@ -449,11 +449,11 @@ export default class SubmissionModal extends React.Component<SubmissionModalProp
           options={VALIDATION_STATUS_OPTIONS}
           selectedOption={selectedOption}
           onChange={(newSelectedOption: string | null) => {
-            if (newSelectedOption !== null) {
+            if (newSelectedOption === null) {
+              this.onValidationStatusChange(ValidationStatusAdditionalName.no_status)
+            } else {
               const castOption = newSelectedOption as ValidationStatusOptionName
               this.onValidationStatusChange(castOption)
-            } else {
-              this.onValidationStatusChange(ValidationStatusAdditionalName.no_status)
             }
           }}
           isPending={this.state.isValidationStatusChangePending}
