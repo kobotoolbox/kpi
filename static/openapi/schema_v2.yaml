@@ -17946,6 +17946,7 @@ components:
           $ref: '#/components/schemas/PriceWithProduct'
         quantity:
           type: integer
+          nullable: true
       required:
       - id
       - price

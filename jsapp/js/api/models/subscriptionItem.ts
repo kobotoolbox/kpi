@@ -15,5 +15,6 @@ export interface SubscriptionItem {
   /** @maxLength 255 */
   id: string
   price: PriceWithProduct
-  quantity: number
+  /** @nullable */
+  quantity: number | null
 }

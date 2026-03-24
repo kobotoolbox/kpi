@@ -454,6 +454,36 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         self.assertEqual(sub_data['customer'], customer.id)
         self.assertEqual(sub_data['metadata'], {})
 
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    def test_default_tax_rates_is_array(self):
+        """
+        Ensure default_tax_rates is always an array in subscription data.
+        The field comes from COALESCE(sub.stripe_data->'default_tax_rates', '[]'::jsonb)
+        and must be a list (empty or populated), not a rich object.
+        """
+        from djstripe.enums import BillingScheme
+        from djstripe.models import Customer
+
+        customer = baker.make(Customer, subscriber=self.organization)
+        baker.make(
+            'djstripe.Subscription',
+            customer=customer,
+            items__price__livemode=False,
+            items__price__stripe_data={'billing_scheme': BillingScheme.per_unit},
+            livemode=False,
+            metadata={'organization_id': str(self.organization.id)},
+        )
+        refresh_user_reports_materialized_view(concurrently=False)
+
+        user_data = self._get_someuser_data()
+        assert len(user_data['subscriptions']) == 1
+
+        sub = user_data['subscriptions'][0]
+        assert 'default_tax_rates' in sub
+        assert isinstance(sub['default_tax_rates'], list)
+
     def _get_someuser_data(self):
 
         response = self.client.get(self.url)

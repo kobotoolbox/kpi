@@ -25108,7 +25108,8 @@
                         "$ref": "#/components/schemas/PriceWithProduct"
                     },
                     "quantity": {
-                        "type": "integer"
+                        "type": "integer",
+                        "nullable": true
                     }
                 },
                 "required": [
