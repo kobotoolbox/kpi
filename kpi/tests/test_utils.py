@@ -726,6 +726,28 @@ class XmlUtilsTestCase(TestCase):
 
         )
 
+    def test_strip_xml_nodes_by_xpaths_prunes_entire_subtrees(self):
+        """
+        Verify that _filter_nodes_by_xpaths prunes entire excluded subtrees,
+        not just the direct children listed in nodes_to_keep. A node excluded
+        at the parent level must not leave any of its descendants behind.
+        """
+        source = (
+            '<root>'
+            '  <kept_group><kept_q>Value</kept_q></kept_group>'
+            '  <excluded_group>'
+            '    <child1>Child 1</child1>'
+            '    <child2><grandchild>Grandchild</grandchild></child2>'
+            '  </excluded_group>'
+            '</root>'
+        )
+        expected = '<root><kept_group><kept_q>Value</kept_q></kept_group></root>'
+        result = strip_nodes(source, ['kept_group/kept_q'], use_xpath=True)
+        self.__compare_xml(result, expected)
+        assert 'excluded_group' not in result
+        assert 'child1' not in result
+        assert 'grandchild' not in result
+
     def test_get_or_create_element(self):
         initial_xml_with_ns = """
             <hello xmlns="http://opendatakit.org/submissions">

@@ -70,9 +70,18 @@ class LongRunningMigration(AbstractTimeStampedModel):
             return
         except Exception as e:
             # Log the error and update the status to 'failed'
-            logging.error(f'LongRunningMigration.execute(): {str(e)}')
+            error = str(e)
+            logging.error(f'LongRunningMigration.execute(): {error}')
+            retry_errors = [
+                'another command is already in progress',
+                'sending query failed',
+                "can't change 'autocommit' now",
+                'connection in transaction status ACTIVE',
+            ]
+            if any(retry_error in error for retry_error in retry_errors):
+                return
             self.status = LongRunningMigrationStatus.FAILED
-            self.error = str(e)
+            self.error = error
             self.save(update_fields=['status', 'date_modified', 'error'])
             return
 
