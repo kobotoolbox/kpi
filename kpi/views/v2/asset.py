@@ -674,13 +674,18 @@ class AssetViewSet(
 
             try:
                 country = record['settings']['country']
-                value = country['value']
-                label = country['label']
             except (KeyError, TypeError):
                 pass
             else:
-                if value and value not in metadata['countries']:
-                    metadata['countries'][value] = label
+                # "country" is actually a list of countries
+                for country_record in country:
+                    try:
+                        value = country_record['value']
+                        label = country_record['label']
+                    except (KeyError, TypeError):
+                        continue
+                    if value and value not in metadata['countries']:
+                        metadata['countries'][value] = label
 
             try:
                 sector = record['settings']['sector']
