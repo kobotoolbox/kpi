@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('djstripe', '0002_2_10'),
+        ('djstripe', '0001_initial'),
         ('organizations', '0001_squashed_0004_remove_organization_uid'),
     ]
 
