@@ -9700,7 +9700,27 @@ paths:
           type: integer
       tags:
       - SCIM
+      security:
+      - ScimAuth: []
       responses:
+        '401':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '403':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
         '200':
           content:
             application/scim+json:
@@ -9730,7 +9750,27 @@ paths:
             schema:
               $ref: '#/components/schemas/ScimGroup'
         required: true
+      security:
+      - ScimAuth: []
       responses:
+        '401':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '403':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
         '201':
           content:
             application/scim+json:
@@ -9758,7 +9798,27 @@ paths:
         required: true
       tags:
       - SCIM
+      security:
+      - ScimAuth: []
       responses:
+        '401':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '403':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
         '200':
           content:
             application/scim+json:
@@ -9794,7 +9854,27 @@ paths:
             schema:
               $ref: '#/components/schemas/ScimGroup'
         required: true
+      security:
+      - ScimAuth: []
       responses:
+        '401':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '403':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
         '200':
           content:
             application/scim+json:
@@ -9830,7 +9910,27 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/PatchedScimGroup'
+      security:
+      - ScimAuth: []
       responses:
+        '401':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '403':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
         '200':
           content:
             application/scim+json:
@@ -9857,7 +9957,27 @@ paths:
         required: true
       tags:
       - SCIM
+      security:
+      - ScimAuth: []
       responses:
+        '401':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '403':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
         '204':
           description: No response body
   /api/v2/scim/v2/{idp_slug}/ResourceTypes:
@@ -9872,7 +9992,21 @@ paths:
         required: true
       tags:
       - SCIM
+      security:
+      - ScimAuth: []
       responses:
+        '401':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '403':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
         '200':
           content:
             application/scim+json:
@@ -9892,7 +10026,21 @@ paths:
         required: true
       tags:
       - SCIM
+      security:
+      - ScimAuth: []
       responses:
+        '401':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '403':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
         '200':
           content:
             application/scim+json:
@@ -9912,7 +10060,21 @@ paths:
         required: true
       tags:
       - SCIM
+      security:
+      - ScimAuth: []
       responses:
+        '401':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '403':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
         '200':
           content:
             application/scim+json:
@@ -9951,7 +10113,21 @@ paths:
           type: integer
       tags:
       - SCIM
+      security:
+      - ScimAuth: []
       responses:
+        '401':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '403':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
         '200':
           content:
             application/scim+json:
@@ -9978,7 +10154,21 @@ paths:
             schema:
               $ref: '#/components/schemas/ScimUser'
         required: true
+      security:
+      - ScimAuth: []
       responses:
+        '401':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '403':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
         '201':
           content:
             application/scim+json:
@@ -10017,7 +10207,21 @@ paths:
         required: true
       tags:
       - SCIM
+      security:
+      - ScimAuth: []
       responses:
+        '401':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '403':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
         '200':
           content:
             application/scim+json:
@@ -10054,7 +10258,21 @@ paths:
             schema:
               $ref: '#/components/schemas/ScimUser'
         required: true
+      security:
+      - ScimAuth: []
       responses:
+        '401':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '403':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
         '200':
           content:
             application/scim+json:
@@ -10094,7 +10312,21 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/PatchedScimUser'
+      security:
+      - ScimAuth: []
       responses:
+        '401':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '403':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
         '200':
           content:
             application/scim+json:
@@ -10118,7 +10350,21 @@ paths:
         required: true
       tags:
       - SCIM
+      security:
+      - ScimAuth: []
       responses:
+        '401':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
+        '403':
+          content:
+            application/scim+json:
+              schema:
+                $ref: '#/components/schemas/ScimError'
+          description: ''
         '204':
           description: No response body
   /api/v2/service_usage/:
@@ -17792,6 +18038,25 @@ components:
       - uuid
       - type
       - labels
+    ScimError:
+      type: object
+      description: Serializes SCIM 2.0 Error responses matching RFC7644
+      properties:
+        schemas:
+          type: array
+          items:
+            type: string
+          default:
+          - urn:ietf:params:scim:api:messages:2.0:Error
+        detail:
+          type: string
+          description: A detailed, human-readable message.
+        status:
+          type: string
+          description: The HTTP status code.
+      required:
+      - detail
+      - status
     ScimGroup:
       type: object
       description: Serializes a Django ScimGroup to match the SCIM 2.0 Group schema.
@@ -19563,6 +19828,11 @@ components:
     BasicAuth:
       type: http
       scheme: basic
+    ScimAuth:
+      type: http
+      scheme: bearer
+      description: Authentication via SCIM API Key provided in the Authorization header
+        as a Bearer token.
     TokenAuth:
       type: apiKey
       in: header

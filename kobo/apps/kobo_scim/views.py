@@ -1,4 +1,5 @@
 import re
+import json
 
 from allauth.socialaccount.models import SocialAccount
 from django.conf import settings
@@ -19,6 +20,9 @@ from kobo.apps.kobo_scim.authentication import IsAuthenticatedIdP, ScimAuthentic
 from kobo.apps.kobo_scim.models import ScimGroup
 from kobo.apps.kobo_scim.pagination import ScimPagination
 from kobo.apps.kobo_scim.renderers import SCIMParser, SCIMRenderer
+from kobo.apps.kobo_scim.schema_extensions.v2.generic.serializers import (
+    ScimErrorSerializer,
+)
 from kobo.apps.kobo_scim.serializers import ScimGroupSerializer, ScimUserSerializer
 
 
@@ -37,8 +41,6 @@ def normalize_scim_patch_operations(operations):
         value = new_op.get('value')
 
         if isinstance(value, str):
-            import json
-
             try:
                 # If it's a stringified JSON blob, attempt to parse it
                 new_op['value'] = json.loads(value)
@@ -48,6 +50,15 @@ def normalize_scim_patch_operations(operations):
         normalized.append(new_op)
 
     return normalized
+
+def scim_responses(success_map):
+    responses = {
+        401: ScimErrorSerializer,
+        403: ScimErrorSerializer,
+    }
+    if success_map:
+        responses.update(success_map)
+    return responses
 
 
 def scim_extend_schema(**kwargs):
@@ -68,21 +79,21 @@ def scim_extend_schema(**kwargs):
 @extend_schema_view(
     list=extend_schema(
         description='Returns a list of SCIM users matching the optional query',
-        responses={200: ScimUserSerializer(many=True)},
+        responses=scim_responses({200: ScimUserSerializer(many=True)}),
     ),
     retrieve=extend_schema(
         description='Returns a specific SCIM user.',
-        responses={200: ScimUserSerializer},
+        responses=scim_responses({200: ScimUserSerializer}),
     ),
     destroy=extend_schema(
         description="Deactivates all Kobo accounts linked to the user's "
         + 'email address.',
-        responses={204: None},
+        responses=scim_responses({204: None}),
     ),
     partial_update=extend_schema(
         description='Updates a SCIM user. Currently only supports '
         'deactivation via the `active` attribute.',
-        responses={200: ScimUserSerializer},
+        responses=scim_responses({200: ScimUserSerializer}),
     ),
 )
 class ScimUserViewSet(
@@ -107,11 +118,13 @@ class ScimUserViewSet(
     renderer_classes = [SCIMRenderer]
 
     @extend_schema(
-        responses={
-            201: ScimUserSerializer,
-            409: OpenApiTypes.OBJECT,
-            400: OpenApiTypes.OBJECT,
-        }
+        responses=scim_responses(
+            {
+                201: ScimUserSerializer,
+                409: OpenApiTypes.OBJECT,
+                400: OpenApiTypes.OBJECT,
+            }
+        )
     )
     def create(self, request, *args, **kwargs):
         """
@@ -217,10 +230,12 @@ class ScimUserViewSet(
             )
 
     @extend_schema(
-        responses={
-            200: ScimUserSerializer,
-            409: OpenApiTypes.OBJECT,
-        }
+        responses=scim_responses(
+            {
+                200: ScimUserSerializer,
+                409: OpenApiTypes.OBJECT,
+            }
+        )
     )
     def update(self, request, *args, **kwargs):
         """
@@ -382,7 +397,7 @@ class ScimServiceProviderConfigView(APIView):
     parser_classes = [SCIMParser, JSONParser]
     renderer_classes = [SCIMRenderer]
 
-    @extend_schema(responses={200: OpenApiTypes.OBJECT})
+    @extend_schema(responses=scim_responses({200: OpenApiTypes.OBJECT}))
     def get(self, request, *args, **kwargs):
         # We only support patch and basic filtering
         payload = {
@@ -396,10 +411,7 @@ class ScimServiceProviderConfigView(APIView):
             'authenticationSchemes': [
                 {
                     'name': 'Bearer Token',
-                    'description': (
-                        'Authentication via SCIM API Key provided in the Authorization '
-                        'header as a Bearer token.'
-                    ),
+                    'description': 'Authentication via SCIM API Key provided in the Authorization header as a Bearer token.',
                     'specUri': 'https://tools.ietf.org/html/rfc6750',
                     'type': 'oauthbearertoken',
                     'primary': True,
@@ -430,7 +442,7 @@ class ScimSchemasView(APIView):
     parser_classes = [SCIMParser, JSONParser]
     renderer_classes = [SCIMRenderer]
 
-    @extend_schema(responses={200: OpenApiTypes.OBJECT})
+    @extend_schema(responses=scim_responses({200: OpenApiTypes.OBJECT}))
     def get(self, request, *args, **kwargs):
         location = request.build_absolute_uri().rstrip('/')
         payload = {
@@ -446,9 +458,7 @@ class ScimSchemasView(APIView):
                     'description': 'User Account',
                     'meta': {
                         'resourceType': 'Schema',
-                        'location': (
-                            f'{location}/urn:ietf:params:scim:schemas:core:2.0:User'
-                        ),
+                        'location': f'{location}/urn:ietf:params:scim:schemas:core:2.0:User',  #  noqa
                     },
                     'attributes': [
                         {
@@ -518,10 +528,7 @@ class ScimSchemasView(APIView):
                                 {
                                     'name': 'primary',
                                     'type': 'boolean',
-                                    'description': (
-                                        "A boolean value indicating the 'primary' or "
-                                        'preferred attribute value for this attribute.'
-                                    ),
+                                    'description': "A boolean value indicating the 'primary' or preferred attribute value for this attribute.",  #  noqa
                                     'multiValued': False,
                                     'required': False,
                                     'mutability': 'readWrite',
@@ -560,9 +567,7 @@ class ScimSchemasView(APIView):
                     'description': 'Group',
                     'meta': {
                         'resourceType': 'Schema',
-                        'location': (
-                            f'{location}/urn:ietf:params:scim:schemas:core:2.0:Group'
-                        ),
+                        'location': f'{location}/urn:ietf:params:scim:schemas:core:2.0:Group',  #  noqa
                     },
                     'attributes': [
                         {
@@ -588,9 +593,7 @@ class ScimSchemasView(APIView):
                                 {
                                     'name': 'value',
                                     'type': 'string',
-                                    'description': (
-                                        'Identifier of the member of this Group.'
-                                    ),
+                                    'description': 'Identifier of the member of this Group.',  #  noqa
                                     'multiValued': False,
                                     'required': False,
                                     'caseExact': False,
@@ -601,10 +604,7 @@ class ScimSchemasView(APIView):
                                 {
                                     'name': 'display',
                                     'type': 'string',
-                                    'description': (
-                                        'A human-readable name, primarily used for '
-                                        'display purposes.'
-                                    ),
+                                    'description': 'A human-readable name, primarily used for display purposes.',  #  noqa
                                     'multiValued': False,
                                     'required': False,
                                     'caseExact': False,
@@ -617,10 +617,7 @@ class ScimSchemasView(APIView):
                         {
                             'name': 'externalId',
                             'type': 'string',
-                            'description': (
-                                'A String that is an identifier for the resource as '
-                                'defined by the provisioning client.'
-                            ),
+                            'description': 'A String that is an identifier for the resource as defined by the provisioning client.',  #  noqa
                             'multiValued': False,
                             'required': False,
                             'caseExact': False,
@@ -650,7 +647,7 @@ class ScimResourceTypesView(APIView):
     parser_classes = [SCIMParser, JSONParser]
     renderer_classes = [SCIMRenderer]
 
-    @extend_schema(responses={200: OpenApiTypes.OBJECT})
+    @extend_schema(responses=scim_responses({200: OpenApiTypes.OBJECT}))
     def get(self, request, *args, **kwargs):
         location = request.build_absolute_uri().rstrip('/')
         payload = {
@@ -694,25 +691,27 @@ class ScimResourceTypesView(APIView):
 @extend_schema_view(
     list=extend_schema(
         description='Returns a list of SCIM groups.',
-        responses={200: ScimGroupSerializer(many=True)},
+        responses=scim_responses({200: ScimGroupSerializer(many=True)}),
     ),
     retrieve=extend_schema(
         description='Returns a specific SCIM group.',
-        responses={200: ScimGroupSerializer},
+        responses=scim_responses({200: ScimGroupSerializer}),
     ),
     create=extend_schema(
         description='Creates a new SCIM group.',
-        responses={201: ScimGroupSerializer},
+        responses=scim_responses({201: ScimGroupSerializer}),
     ),
-    destroy=extend_schema(description='Deletes a SCIM group.', responses={204: None}),
+    destroy=extend_schema(
+        description='Deletes a SCIM group.', responses=scim_responses({204: None})
+    ),
     partial_update=extend_schema(
         description='Updates a SCIM group. Supports adding/removing members via '
         'patch operations.',
-        responses={200: ScimGroupSerializer},
+        responses=scim_responses({200: ScimGroupSerializer}),
     ),
     update=extend_schema(
         description='Replaces a SCIM group entirely.',
-        responses={200: ScimGroupSerializer},
+        responses=scim_responses({200: ScimGroupSerializer}),
     ),
 )
 class ScimGroupViewSet(viewsets.ModelViewSet):
