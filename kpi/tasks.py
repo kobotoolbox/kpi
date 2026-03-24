@@ -143,31 +143,33 @@ def regenerate_paired_data(asset_uid: str, uid_paired_data: str) -> None:
     Once complete, the new hash is synced to the OpenRosa MetaData record so
     the next manifest request reflects the updated content.
     """
-    asset = Asset.objects.defer('content').get(uid=asset_uid)
-    if not asset.has_deployment:
-        return
-
-    paired_data = PairedData.objects(asset).get(uid_paired_data)
-    if not paired_data:
-        return
-
-    source_asset = paired_data.get_source()
-    if not source_asset or not source_asset.has_deployment:
-        return
-
     try:
-        asset_file = asset.asset_files.get(uid=uid_paired_data)
-    except AssetFile.DoesNotExist:
-        # File was deleted while the task was queued; nothing to do.
-        return
+        asset = Asset.objects.defer('content').get(uid=asset_uid)
+        if not asset.has_deployment:
+            return
 
-    old_hash = asset_file.md5_hash
-    build_and_save_paired_data_xml(
-        asset, asset_file, paired_data, source_asset, old_hash=old_hash
-    )
-    # Release the distributed lock so the next manifest request can trigger
-    # a fresh regeneration cycle as soon as the expiry window passes.
-    cache.delete(f'regen_paired_data_{uid_paired_data}')
+        paired_data = PairedData.objects(asset).get(uid_paired_data)
+        if not paired_data:
+            return
+
+        source_asset = paired_data.get_source()
+        if not source_asset or not source_asset.has_deployment:
+            return
+
+        try:
+            asset_file = asset.asset_files.get(uid=uid_paired_data)
+        except AssetFile.DoesNotExist:
+            # File was deleted while the task was queued; nothing to do.
+            return
+
+        old_hash = asset_file.md5_hash
+        build_and_save_paired_data_xml(
+            asset, asset_file, paired_data, source_asset, old_hash=old_hash
+        )
+    finally:
+        # Release the distributed lock so the next manifest request can trigger
+        # a fresh regeneration cycle as soon as the expiry window passes.
+        cache.delete(f'regen_paired_data_{uid_paired_data}')
 
 
 @celery_app.task

@@ -546,18 +546,24 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
             if uid_paired_data and not cache.add(
                 lock_key, True, timeout=settings.PAIRED_DATA_REGEN_LOCK_TIMEOUT
             ):
-                # A task is already scheduled or running — return True so the
-                # manifest caller re-fetches the current (possibly stale) hash
-                # from the DB without queuing a duplicate task.
+                # A task is already scheduled or running — serve the current
+                # (possibly stale) content without queuing a duplicate task.
                 return True
             # Update `date_modified` before triggering regeneration so that
-            # the next manifest request does not re-trigger while the task
-            # is running. The content may remain stale for at most one expiry
-            # window in case of failure, which is preferable to retrying on
-            # every manifest request.
+            # subsequent requests do not immediately re-trigger while a task
+            # or synchronous generation is in progress. The content may remain
+            # stale for at most one expiry window in case of failure, which is
+            # preferable to retrying on every manifest request.
             MetaData.objects.filter(pk=obj.pk).update(date_modified=timezone.now())
             # Trigger regeneration — async if the file already exists,
-            # sync (blocking) on first creation.
+            # sync (blocking) on first creation or when content is cleared.
+            # Note: in the sync case no Celery task is scheduled, so the lock
+            # is never explicitly released and will remain held until
+            # PAIRED_DATA_REGEN_LOCK_TIMEOUT expires. This is intentional:
+            # the TTL exists precisely to cover both pod-kill scenarios and
+            # long-running tasks, so relying on it for the (rare) sync path
+            # is correct and avoids a window where a duplicate task could be
+            # scheduled while Celery is still running.
             get_media_file_response(obj, request)
             return True
 

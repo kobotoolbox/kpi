@@ -1,3 +1,4 @@
+import re
 from typing import Optional
 
 from django.core.files.base import ContentFile
@@ -61,6 +62,10 @@ def build_and_save_paired_data_xml(
     if not parsed_submissions:
         # Do not cache an empty file; return the empty structure as-is.
         return xml_
+
+    # Minify once here so the stored bytes, the hash, and the served bytes
+    # are all consistent — avoiding a redundant O(n) regex on every request.
+    xml_ = re.sub(r'>\s+<', '><', xml_).strip()
 
     filename = paired_data.filename
 

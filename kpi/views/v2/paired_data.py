@@ -1,6 +1,4 @@
 # coding: utf-8
-import re
-
 from django.conf import settings
 from django.http import Http404, HttpResponse
 from django.utils import timezone
@@ -307,15 +305,27 @@ class PairedDataViewset(
         etag_value = md5_hash.split(':')[-1] if md5_hash else None
 
         if etag_value:
-            # Strip weak-validator prefix (W/) added by nginx when gzip is
-            # applied, then strip surrounding quotes, before comparing.
-            if_none_match = re.sub(
-                r'^W/', '', request.META.get('HTTP_IF_NONE_MATCH', '')
-            ).strip('"')
-            if if_none_match and if_none_match == etag_value:
-                return HttpResponse(status=304)
+            # `If-None-Match` can contain multiple comma-separated ETags.
+            # Handle weak validators (W/ prefix added by nginx when gzip is
+            # applied) and the wildcard (*) per-token.
+            raw_if_none_match = request.META.get('HTTP_IF_NONE_MATCH', '')
+            if raw_if_none_match:
+                for candidate in raw_if_none_match.split(','):
+                    token = candidate.strip()
+                    if not token:
+                        continue
+                    if token.startswith('W/'):
+                        token = token[2:].lstrip()
+                    if (
+                        token.startswith('"')
+                        and token.endswith('"')
+                        and len(token) >= 2
+                    ):
+                        token = token[1:-1]
+                    if token == '*' or token == etag_value:
+                        return HttpResponse(status=304)
 
-        xml_bytes = re.sub(r'>\s+<', '><', xml_content).strip().encode('utf-8')
+        xml_bytes = xml_content.encode()
         response = HttpResponse(xml_bytes, content_type='text/xml; charset=utf-8')
         response['Content-Length'] = len(xml_bytes)
 
