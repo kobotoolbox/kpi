@@ -411,7 +411,10 @@ class ScimServiceProviderConfigView(APIView):
             'authenticationSchemes': [
                 {
                     'name': 'Bearer Token',
-                    'description': 'Authentication via SCIM API Key provided in the Authorization header as a Bearer token.',
+                    'description': (
+                        'Authentication via SCIM API Key provided in the Authorization '
+                        'header as a Bearer token.'
+                    ),
                     'specUri': 'https://tools.ietf.org/html/rfc6750',
                     'type': 'oauthbearertoken',
                     'primary': True,
@@ -458,7 +461,9 @@ class ScimSchemasView(APIView):
                     'description': 'User Account',
                     'meta': {
                         'resourceType': 'Schema',
-                        'location': f'{location}/urn:ietf:params:scim:schemas:core:2.0:User',  #  noqa
+                        'location': (
+                            f'{location}/urn:ietf:params:scim:schemas:core:2.0:User'
+                        ),
                     },
                     'attributes': [
                         {
@@ -528,7 +533,10 @@ class ScimSchemasView(APIView):
                                 {
                                     'name': 'primary',
                                     'type': 'boolean',
-                                    'description': "A boolean value indicating the 'primary' or preferred attribute value for this attribute.",  #  noqa
+                                    'description': (
+                                        "A boolean value indicating the 'primary' or "
+                                        'preferred attribute value for this attribute.'
+                                    ),
                                     'multiValued': False,
                                     'required': False,
                                     'mutability': 'readWrite',
@@ -567,7 +575,9 @@ class ScimSchemasView(APIView):
                     'description': 'Group',
                     'meta': {
                         'resourceType': 'Schema',
-                        'location': f'{location}/urn:ietf:params:scim:schemas:core:2.0:Group',  #  noqa
+                        'location': (
+                            f'{location}/urn:ietf:params:scim:schemas:core:2.0:Group'
+                        ),
                     },
                     'attributes': [
                         {
@@ -593,7 +603,9 @@ class ScimSchemasView(APIView):
                                 {
                                     'name': 'value',
                                     'type': 'string',
-                                    'description': 'Identifier of the member of this Group.',  #  noqa
+                                    'description': (
+                                        'Identifier of the member of this Group.'
+                                    ),
                                     'multiValued': False,
                                     'required': False,
                                     'caseExact': False,
@@ -604,7 +616,10 @@ class ScimSchemasView(APIView):
                                 {
                                     'name': 'display',
                                     'type': 'string',
-                                    'description': 'A human-readable name, primarily used for display purposes.',  #  noqa
+                                    'description': (
+                                        'A human-readable name, primarily used for '
+                                        'display purposes.'
+                                    ),
                                     'multiValued': False,
                                     'required': False,
                                     'caseExact': False,
@@ -617,7 +632,10 @@ class ScimSchemasView(APIView):
                         {
                             'name': 'externalId',
                             'type': 'string',
-                            'description': 'A String that is an identifier for the resource as defined by the provisioning client.',  #  noqa
+                            'description': (
+                                'A String that is an identifier for the resource as '
+                                'defined by the provisioning client.'
+                            ),
                             'multiValued': False,
                             'required': False,
                             'caseExact': False,
