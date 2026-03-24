@@ -22,6 +22,32 @@ from kobo.apps.kobo_scim.renderers import SCIMParser, SCIMRenderer
 from kobo.apps.kobo_scim.serializers import ScimGroupSerializer, ScimUserSerializer
 
 
+def normalize_scim_patch_operations(operations):
+    """
+    Normalizes SCIM PATCH operations. scim-for-keycloak sends the `value` payload as an
+    escaped stringified JSON block instead of a native dictionary when `path` is
+    omitted.
+    """
+    if not isinstance(operations, list):
+        return []
+        
+    normalized = []
+    for op in operations:
+        new_op = dict(op)
+        value = new_op.get('value')
+        
+        if isinstance(value, str):
+            import json
+            try:
+                # If it's a stringified JSON blob, attempt to parse it
+                new_op['value'] = json.loads(value)
+            except json.JSONDecodeError:
+                pass
+                
+        normalized.append(new_op)
+        
+    return normalized
+
 def scim_extend_schema(**kwargs):
     """
     Applies common SCIM OpenAPI parameters (e.g. idp_slug) to viewsets/views.
@@ -300,24 +326,41 @@ class ScimUserViewSet(
 
     def partial_update(self, request, *args, **kwargs):
         instance = self.get_object()
-        operations = request.data.get('Operations', [])
+        operations = normalize_scim_patch_operations(request.data.get('Operations', []))
 
-        deactivate = False
+        active_status = None
         for op in operations:
-            if op.get('op', '').lower() == 'replace' and op.get('path') == 'active':
-                if op.get('value') is False:
-                    deactivate = True
+            if op.get('op', '').lower() == 'replace':
+                path = op.get('path')
+                value = op.get('value')
+                
+                # Case 1: path is 'active', value is directly provided
+                if path == 'active' and value is not None:
+                    active_status = str(value).lower() == 'true'
+                        
+                # Case 2: path is omitted, value is an object (or stringified object)
+                elif not path and isinstance(value, dict) and 'active' in value:
+                    active_status = str(value['active']).lower() == 'true'
 
-        if deactivate:
-            # Reuse the destroy logic which deactivates the user(s)
-            self.perform_destroy(instance)
+        if active_status is not None:
+            if active_status is False:
+                # Disabling the user
+                self.perform_destroy(instance)
+            else:
+                # Re-enabling the user
+                instance.is_active = True
+                instance.save(update_fields=['is_active'])
+
             # SCIM expects the updated resource returned on successful PATCH
             instance.refresh_from_db()
             serializer = self.get_serializer(instance)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         return Response(
-            {'detail': 'Operation not supported or invalid'},
+            {
+                'detail': 'Operation not supported or invalid',
+                'received_operations': operations
+            },
             status=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -740,7 +783,7 @@ class ScimGroupViewSet(viewsets.ModelViewSet):
 
     def partial_update(self, request, *args, **kwargs):
         instance = self.get_object()
-        operations = request.data.get('Operations', [])
+        operations = normalize_scim_patch_operations(request.data.get('Operations', []))
 
         for op in operations:
             op_type = op.get('op', '').lower()
