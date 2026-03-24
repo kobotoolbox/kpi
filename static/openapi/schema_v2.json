@@ -23295,6 +23295,11 @@
                     },
                     "members": {
                         "readOnly": true
+                    },
+                    "meta": {
+                        "type": "object",
+                        "additionalProperties": {},
+                        "readOnly": true
                     }
                 }
             },
@@ -23322,6 +23327,11 @@
                     },
                     "active": {
                         "type": "boolean"
+                    },
+                    "meta": {
+                        "type": "object",
+                        "additionalProperties": {},
+                        "readOnly": true
                     }
                 }
             },
@@ -24910,12 +24920,18 @@
                     },
                     "members": {
                         "readOnly": true
+                    },
+                    "meta": {
+                        "type": "object",
+                        "additionalProperties": {},
+                        "readOnly": true
                     }
                 },
                 "required": [
                     "displayName",
                     "id",
                     "members",
+                    "meta",
                     "schemas"
                 ]
             },
@@ -24943,12 +24959,18 @@
                     },
                     "active": {
                         "type": "boolean"
+                    },
+                    "meta": {
+                        "type": "object",
+                        "additionalProperties": {},
+                        "readOnly": true
                     }
                 },
                 "required": [
                     "active",
                     "emails",
                     "id",
+                    "meta",
                     "name",
                     "schemas",
                     "userName"

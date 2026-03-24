@@ -16656,6 +16656,10 @@ components:
           type: string
         members:
           readOnly: true
+        meta:
+          type: object
+          additionalProperties: {}
+          readOnly: true
     PatchedScimUser:
       type: object
       description: Serializes a Django User to match the SCIM 2.0 User schema.
@@ -16675,6 +16679,10 @@ components:
           readOnly: true
         active:
           type: boolean
+        meta:
+          type: object
+          additionalProperties: {}
+          readOnly: true
     PermissionAssignmentBulkRequest:
       type: object
       properties:
@@ -17799,10 +17807,15 @@ components:
           type: string
         members:
           readOnly: true
+        meta:
+          type: object
+          additionalProperties: {}
+          readOnly: true
       required:
       - displayName
       - id
       - members
+      - meta
       - schemas
     ScimUser:
       type: object
@@ -17823,10 +17836,15 @@ components:
           readOnly: true
         active:
           type: boolean
+        meta:
+          type: object
+          additionalProperties: {}
+          readOnly: true
       required:
       - active
       - emails
       - id
+      - meta
       - name
       - schemas
       - userName
