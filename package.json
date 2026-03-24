@@ -6,6 +6,8 @@
     "node": "^20.18.1 || ^22.4.1"
   },
   "dependencies": {
+    "@danielx/civet": "^0.11.5",
+    "@enuf/watch-civet": "^0.0.11",
     "@fontsource/roboto": "^4.5.8",
     "@fontsource/roboto-mono": "^4.4.2",
     "@mantine/core": "^7.15.0",
@@ -212,7 +214,8 @@
       "react-dom": "$react-dom"
     },
     "storybook": "$storybook",
-    "coffee-script": "$coffeescript"
+    "coffee-script": "$coffeescript",
+    "@danielx/civet": "$@danielx/civet"
   },
   "scripts": {
     "preinstall": "npm run hint",
