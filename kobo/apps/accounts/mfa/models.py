@@ -76,7 +76,7 @@ class MfaMethodsWrapper(AbstractTimeStampedModel):
         using=None,
         update_fields=None,
     ):
-        self.pk is None
+        created = self.pk is None
 
         if not self.is_active and not self.date_disabled:
             self.date_disabled = now()
@@ -93,6 +93,9 @@ class MfaMethodsWrapper(AbstractTimeStampedModel):
             using=using,
             update_fields=update_fields,
         )
+
+        if not created:
+            UserProfile.set_mfa_status(user_id=self.user_id, is_active=self.is_active)
 
 
 class MfaMethod(TrenchMFAMethod, AbstractTimeStampedModel):
