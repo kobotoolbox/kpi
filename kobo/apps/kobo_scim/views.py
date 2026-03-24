@@ -30,22 +30,23 @@ def normalize_scim_patch_operations(operations):
     """
     if not isinstance(operations, list):
         return []
-        
+
     normalized = []
     for op in operations:
         new_op = dict(op)
         value = new_op.get('value')
-        
+
         if isinstance(value, str):
             import json
+
             try:
                 # If it's a stringified JSON blob, attempt to parse it
                 new_op['value'] = json.loads(value)
             except json.JSONDecodeError:
                 pass
-                
+
         normalized.append(new_op)
-        
+
     return normalized
 
 def scim_extend_schema(**kwargs):
@@ -333,11 +334,11 @@ class ScimUserViewSet(
             if op.get('op', '').lower() == 'replace':
                 path = op.get('path')
                 value = op.get('value')
-                
+
                 # Case 1: path is 'active', value is directly provided
                 if path == 'active' and value is not None:
                     active_status = str(value).lower() == 'true'
-                        
+
                 # Case 2: path is omitted, value is an object (or stringified object)
                 elif not path and isinstance(value, dict) and 'active' in value:
                     active_status = str(value['active']).lower() == 'true'
@@ -359,7 +360,7 @@ class ScimUserViewSet(
         return Response(
             {
                 'detail': 'Operation not supported or invalid',
-                'received_operations': operations
+                'received_operations': operations,
             },
             status=status.HTTP_400_BAD_REQUEST,
         )
@@ -441,7 +442,7 @@ class ScimSchemasView(APIView):
                     'description': 'User Account',
                     'meta': {
                         'resourceType': 'Schema',
-                        'location': f'{location}/urn:ietf:params:scim:schemas:core:2.0:User', #  noqa
+                        'location': f'{location}/urn:ietf:params:scim:schemas:core:2.0:User',  #  noqa
                     },
                     'attributes': [
                         {
@@ -511,7 +512,7 @@ class ScimSchemasView(APIView):
                                 {
                                     'name': 'primary',
                                     'type': 'boolean',
-                                    'description': "A boolean value indicating the 'primary' or preferred attribute value for this attribute.", #  noqa
+                                    'description': "A boolean value indicating the 'primary' or preferred attribute value for this attribute.",  #  noqa
                                     'multiValued': False,
                                     'required': False,
                                     'mutability': 'readWrite',
@@ -550,7 +551,7 @@ class ScimSchemasView(APIView):
                     'description': 'Group',
                     'meta': {
                         'resourceType': 'Schema',
-                        'location': f'{location}/urn:ietf:params:scim:schemas:core:2.0:Group', #  noqa
+                        'location': f'{location}/urn:ietf:params:scim:schemas:core:2.0:Group',  #  noqa
                     },
                     'attributes': [
                         {
@@ -576,7 +577,7 @@ class ScimSchemasView(APIView):
                                 {
                                     'name': 'value',
                                     'type': 'string',
-                                    'description': 'Identifier of the member of this Group.', #  noqa
+                                    'description': 'Identifier of the member of this Group.',  #  noqa
                                     'multiValued': False,
                                     'required': False,
                                     'caseExact': False,
@@ -587,7 +588,7 @@ class ScimSchemasView(APIView):
                                 {
                                     'name': 'display',
                                     'type': 'string',
-                                    'description': 'A human-readable name, primarily used for display purposes.', #  noqa
+                                    'description': 'A human-readable name, primarily used for display purposes.',  #  noqa
                                     'multiValued': False,
                                     'required': False,
                                     'caseExact': False,
@@ -600,7 +601,7 @@ class ScimSchemasView(APIView):
                         {
                             'name': 'externalId',
                             'type': 'string',
-                            'description': 'A String that is an identifier for the resource as defined by the provisioning client.', #  noqa
+                            'description': 'A String that is an identifier for the resource as defined by the provisioning client.',  #  noqa
                             'multiValued': False,
                             'required': False,
                             'caseExact': False,
