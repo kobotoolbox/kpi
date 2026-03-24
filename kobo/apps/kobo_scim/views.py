@@ -51,6 +51,7 @@ def normalize_scim_patch_operations(operations):
 
     return normalized
 
+
 def scim_responses(success_map):
     responses = {
         401: ScimErrorSerializer,
