@@ -21,12 +21,12 @@ asgiref==3.11.1
     #   django-cors-headers
 asttokens==3.0.1
     # via stack-data
-attrs==25.4.0
+attrs==26.1.0
     # via
     #   aiohttp
     #   jsonschema
     #   referencing
-azure-core==1.38.2
+azure-core==1.39.0
     # via
     #   azure-storage-blob
     #   django-storages
@@ -40,13 +40,13 @@ billiard==4.2.4
     # via
     #   -r dependencies/pip/requirements.in
     #   celery
-black==26.1.0
+black==26.3.1
     # via darker
-boto3==1.42.58
+boto3==1.42.74
     # via
     #   django-amazon-ses
     #   django-storages
-botocore==1.42.58
+botocore==1.42.74
     # via
     #   boto3
     #   s3transfer
@@ -63,7 +63,7 @@ cffi==2.0.0
     # via
     #   cryptography
     #   pynacl
-charset-normalizer==3.4.4
+charset-normalizer==3.4.6
     # via requests
 click==8.3.1
     # via
@@ -85,7 +85,7 @@ coverage[toml]==6.5.0
     #   pytest-cov
 coveralls==3.3.1
     # via -r dependencies/pip/dev_requirements.in
-cron-descriptor==2.0.6
+cron-descriptor==1.4.5
     # via django-celery-beat
 cryptography==44.0.3
     # via
@@ -109,8 +109,6 @@ decorator==5.2.1
     # via
     #   fabric
     #   ipython
-deepmerge==1.1.1
-    # via -r dependencies/pip/requirements.in
 defusedxml==0.7.1
     # via
     #   -r dependencies/pip/requirements.in
@@ -126,7 +124,7 @@ dj-static==0.0.6
     # via -r dependencies/pip/requirements.in
 dj-stripe==2.10.3
     # via -r dependencies/pip/requirements.in
-django==5.1.15
+django==5.2.12
     # via
     #   -r dependencies/pip/requirements.in
     #   dj-stripe
@@ -156,7 +154,7 @@ django==5.1.15
     #   drf-spectacular
     #   jsonfield
     #   model-bakery
-django-allauth[mfa]==65.14.3
+django-allauth[mfa]==65.15.0
     # via -r dependencies/pip/requirements.in
 django-amazon-ses==4.0.1
     # via -r dependencies/pip/requirements.in
@@ -164,27 +162,27 @@ django-author==1.2.0
     # via django-import-export-celery
 django-braces==1.17.0
     # via -r dependencies/pip/requirements.in
-django-celery-beat==2.8.1
+django-celery-beat==2.9.0
     # via -r dependencies/pip/requirements.in
-django-constance==4.3.4
+django-constance==4.3.5
     # via -r dependencies/pip/requirements.in
 django-cors-headers==4.9.0
     # via -r dependencies/pip/requirements.in
-django-csp==3.8
+django-csp==4.0
     # via -r dependencies/pip/requirements.in
-django-debug-toolbar==4.4.6
-    # via -r dependencies/pip/requirements.in
+django-debug-toolbar==6.2.0
+    # via -r dependencies/pip/dev_requirements.in
 django-digest @ git+https://github.com/kobotoolbox/django-digest@a417e901c55d7c0aee89e2aab719975f45dbec4e#egg=django_digest
     # via -r dependencies/pip/requirements.in
 django-dont-vary-on @ git+https://github.com/trevoriancox/django-dont-vary-on.git@01a804122b7ddcdc22f50b40993f91c27b03bef6#egg=django-dont-vary-on
     # via -r dependencies/pip/requirements.in
 django-environ==0.13.0
     # via -r dependencies/pip/requirements.in
-django-extensions==3.2.3
+django-extensions==4.1
     # via
     #   -r dependencies/pip/requirements.in
     #   django-organizations
-django-filter==24.3
+django-filter==25.1
     # via -r dependencies/pip/requirements.in
 django-import-export==4.4.0
     # via
@@ -196,9 +194,9 @@ django-loginas==0.3.14
     # via -r dependencies/pip/requirements.in
 django-markdownx==4.0.9
     # via -r dependencies/pip/requirements.in
-django-oauth-toolkit==2.4.0
+django-oauth-toolkit==3.2.0
     # via -r dependencies/pip/requirements.in
-django-organizations==2.5.0
+django-organizations==2.6.0
     # via -r dependencies/pip/requirements.in
 django-private-storage==3.1.3
     # via -r dependencies/pip/requirements.in
@@ -212,7 +210,7 @@ django-request-cache==1.5.0
     # via -r dependencies/pip/requirements.in
 django-storages[azure, boto3]==1.14.6
     # via -r dependencies/pip/requirements.in
-django-taggit==5.0.1
+django-taggit==6.1.0
     # via -r dependencies/pip/requirements.in
 django-timezone-field==7.2.1
     # via django-celery-beat
@@ -222,7 +220,7 @@ django-userforeignkey==0.6.1
     # via django-request-cache
 django-webpack-loader==3.2.3
     # via -r dependencies/pip/requirements.in
-djangorestframework==3.16.1
+djangorestframework==3.17.1
     # via
     #   -r dependencies/pip/requirements.in
     #   djangorestframework-csv
@@ -287,9 +285,9 @@ google-api-core[grpc]==2.30.0
     #   google-cloud-speech
     #   google-cloud-storage
     #   google-cloud-translate
-google-api-python-client==2.190.0
+google-api-python-client==2.193.0
     # via -r dependencies/pip/requirements.in
-google-auth==2.48.0
+google-auth==2.49.1
     # via
     #   google-api-core
     #   google-api-python-client
@@ -304,7 +302,7 @@ google-cloud-core==2.5.0
     # via
     #   google-cloud-storage
     #   google-cloud-translate
-google-cloud-speech==2.36.1
+google-cloud-speech==2.37.0
     # via -r dependencies/pip/requirements.in
 google-cloud-storage==2.19.0
     # via -r dependencies/pip/requirements.in
@@ -316,7 +314,7 @@ google-crc32c==1.8.0
     #   google-resumable-media
 google-resumable-media==2.8.0
     # via google-cloud-storage
-googleapis-common-protos[grpc]==1.72.0
+googleapis-common-protos[grpc]==1.73.0
     # via
     #   google-api-core
     #   grpc-google-iam-v1
@@ -361,7 +359,7 @@ ipython==8.38.0
     # via -r dependencies/pip/dev_requirements.in
 isodate==0.7.2
     # via azure-storage-blob
-isort==8.0.0
+isort==8.0.1
     # via darker
 jedi==0.19.2
     # via ipython
@@ -417,7 +415,7 @@ mypy-extensions==1.1.0
     # via black
 ndg-httpsclient==0.5.1
     # via -r dependencies/pip/requirements.in
-numpy==2.2.6
+numpy==2.4.3
     # via pandas
 oauthlib==3.3.1
     # via
@@ -432,6 +430,7 @@ openpyxl==3.1.3
 packaging==26.0
     # via
     #   black
+    #   django-csp
     #   drf-extensions
     #   kombu
     #   mongomock
@@ -450,9 +449,9 @@ pillow==12.1.1
     # via
     #   django-markdownx
     #   pillow-heif
-pillow-heif==0.22.0
+pillow-heif==1.3.0
     # via -r dependencies/pip/requirements.in
-platformdirs==4.9.2
+platformdirs==4.9.4
     # via black
 pluggy==1.6.0
     # via pytest
@@ -473,7 +472,7 @@ proto-plus==1.27.1
     #   google-api-core
     #   google-cloud-speech
     #   google-cloud-translate
-protobuf==6.33.5
+protobuf==6.33.6
     # via
     #   google-api-core
     #   google-cloud-speech
@@ -490,12 +489,11 @@ ptyprocess==0.7.0
     # via pexpect
 pure-eval==0.2.3
     # via stack-data
-pyasn1==0.6.2
+pyasn1==0.6.3
     # via
     #   -r dependencies/pip/requirements.in
     #   ndg-httpsclient
     #   pyasn1-modules
-    #   rsa
 pyasn1-modules==0.4.2
     # via google-auth
 pycodestyle==2.14.0
@@ -509,7 +507,7 @@ pygments==2.19.2
     #   -r dependencies/pip/requirements.in
     #   ipython
     #   pytest
-pyjwt==2.11.0
+pyjwt==2.12.1
     # via twilio
 pymongo==4.10.1
     # via -r dependencies/pip/requirements.in
@@ -553,9 +551,8 @@ python-digest @ git+https://github.com/dimagi/python-digest@9c77ff12e7d7fedf792b
     # via -r dependencies/pip/requirements.in
 pytokens==0.4.1
     # via black
-pytz==2025.2
+pytz==2026.1.post1
     # via
-    #   django-oauth-toolkit
     #   flower
     #   mongomock
     #   pandas
@@ -579,7 +576,7 @@ referencing==0.37.0
     # via
     #   jsonschema
     #   jsonschema-specifications
-regex==2026.2.19
+regex==2026.2.28
     # via -r dependencies/pip/requirements.in
 requests==2.32.5
     # via
@@ -601,15 +598,13 @@ rpds-py==0.30.0
     # via
     #   jsonschema
     #   referencing
-rsa==4.9.1
-    # via google-auth
-ruff==0.15.4
+ruff==0.15.7
     # via -r dependencies/pip/dev_requirements.in
 s3transfer==0.16.0
     # via boto3
 sentinels==1.1.1
     # via mongomock
-sentry-sdk==1.45.1
+sentry-sdk==2.56.0
     # via -r dependencies/pip/requirements.in
 setuptools-git==1.2
     # via django-author
@@ -638,30 +633,29 @@ static3==0.7.0
     #   dj-static
 statistics==1.0.3.5
     # via formpack
-stripe==11.6.0
+stripe==14.4.1
     # via dj-stripe
 tablib==3.9.0
     # via django-import-export
-tabulate==0.9.0
+tabulate==0.10.0
     # via -r dependencies/pip/requirements.in
 toml==0.10.2
     # via
     #   darker
     #   darkgraylib
-tornado==6.5.4
+tornado==6.5.5
     # via flower
 traitlets==5.14.3
     # via
     #   ipython
     #   matplotlib-inline
-twilio==9.10.2
+twilio==9.10.4
     # via django-trench
 typing-extensions==4.15.0
     # via
     #   aiosignal
     #   azure-core
     #   azure-storage-blob
-    #   cron-descriptor
     #   grpcio
     #   jwcrypto
     #   psycopg
@@ -674,8 +668,10 @@ tzdata==2025.3
     #   pandas
 tzlocal==5.3.1
     # via celery
-ua-parser==0.18.0
+ua-parser==1.0.1
     # via -r dependencies/pip/requirements.in
+ua-parser-builtins==202603
+    # via ua-parser
 uritemplate==4.2.0
     # via
     #   drf-spectacular
@@ -695,9 +691,9 @@ vine==5.1.0
     #   kombu
 wcwidth==0.6.0
     # via prompt-toolkit
-werkzeug==3.1.6
+werkzeug==3.1.7
     # via -r dependencies/pip/requirements.in
-wrapt==2.1.1
+wrapt==2.1.2
     # via deprecated
 xlrd==2.0.1
     # via
@@ -714,7 +710,7 @@ xlwt==1.3.0
     # via
     #   -r dependencies/pip/requirements.in
     #   xlutils
-yarl==1.22.0
+yarl==1.23.0
     # via aiohttp
 yubico-client==1.13.0
     # via django-trench
