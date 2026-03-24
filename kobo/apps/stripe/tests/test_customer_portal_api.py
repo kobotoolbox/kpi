@@ -46,7 +46,9 @@ class TestCustomerPortalAPITestCase(BaseTestCase):
                 customer=self.customer,
                 stripe_data={'status': 'active'},
             )
-            baker.make(SubscriptionItem, subscription=self.subscription, price=self.price)
+            baker.make(
+                SubscriptionItem, subscription=self.subscription, price=self.price
+            )
 
     def _get_url_for_expected_request(self, create_subscription=True, product_type='plan'):
         self._create_stripe_data(create_subscription, product_type)

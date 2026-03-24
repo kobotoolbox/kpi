@@ -11,8 +11,7 @@ from kobo.apps.user_reports.utils.migrations import (
 
 def apply_fix(apps, schema_editor):
     if getattr(settings, 'SKIP_HEAVY_MIGRATIONS', False):
-        print(
-            f"""
+        print(f"""
             ⚠️ ATTENTION ⚠️
             Drop the existing materialized view
 
@@ -26,10 +25,7 @@ def apply_fix(apps, schema_editor):
 
             {CREATE_INDEXES_SQL}
 
-            """.replace(
-                'CREATE UNIQUE INDEX', 'CREATE UNIQUE INDEX CONCURRENTLY'
-            )
-        )
+            """.replace('CREATE UNIQUE INDEX', 'CREATE UNIQUE INDEX CONCURRENTLY'))
         return
 
     # This pulls the *latest* SQL from your updated migrations.py

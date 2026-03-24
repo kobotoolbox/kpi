@@ -1,10 +1,9 @@
 import stripe
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Max, Prefetch
+from django.db.models import IntegerField, Max, Prefetch
 from django.db.models.fields.json import KeyTransform
 from django.db.models.functions import Cast
-from django.db.models import IntegerField
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from django_dont_vary_on.decorators import only_vary_on

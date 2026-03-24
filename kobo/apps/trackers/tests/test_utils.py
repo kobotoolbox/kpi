@@ -46,7 +46,9 @@ class TrackersUtilitiesTestCase(BaseTestCase):
             active=True,
             metadata=product_metadata,
         )
-        price = baker.make(Price, active=True, product=product, stripe_data={'type': 'one_time'})
+        price = baker.make(
+            Price, active=True, product=product, stripe_data={'type': 'one_time'}
+        )
         product.save()
         return product, price
 

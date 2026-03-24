@@ -159,7 +159,9 @@ class Organization(AbstractOrganization):
                 )
                 .order_by('-djstripe_customers__subscriptions__stripe_data__ended_at')
                 .values(
-                    anchor=F('djstripe_customers__subscriptions__stripe_data__ended_at'),
+                    anchor=F(
+                        'djstripe_customers__subscriptions__stripe_data__ended_at'
+                    ),
                 )
                 .first()
             )

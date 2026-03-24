@@ -217,8 +217,12 @@ def get_current_billing_period_dates_for_active_plans(
         )
         .values(
             org_id=F('id'),
-            anchor=F('djstripe_customers__subscriptions__stripe_data__billing_cycle_anchor'),
-            start=F('djstripe_customers__subscriptions__stripe_data__current_period_start'),
+            anchor=F(
+                'djstripe_customers__subscriptions__stripe_data__billing_cycle_anchor'
+            ),
+            start=F(
+                'djstripe_customers__subscriptions__stripe_data__current_period_start'
+            ),
             end=F('djstripe_customers__subscriptions__stripe_data__current_period_end'),
             interval=F(
                 'djstripe_customers__subscriptions__items__price__stripe_data__recurring__interval'  # noqa: E501

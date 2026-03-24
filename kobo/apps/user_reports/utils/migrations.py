@@ -2,7 +2,6 @@
 
 from django.conf import settings
 
-
 CREATE_MV_BASE_SQL = f"""
     CREATE MATERIALIZED VIEW user_reports_userreportsmv AS
     WITH user_nlp_usage AS (

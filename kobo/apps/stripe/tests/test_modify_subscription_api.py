@@ -1,12 +1,17 @@
-import stripe
+from unittest.mock import patch
+from urllib.parse import urlencode
 
 from django.urls import reverse
-
-from djstripe.models import Customer, Price, Product, Subscription, SubscriptionItem, SubscriptionSchedule
+from djstripe.models import (
+    Customer,
+    Price,
+    Product,
+    Subscription,
+    SubscriptionItem,
+    SubscriptionSchedule,
+)
 from model_bakery import baker
 from rest_framework import status
-from urllib.parse import urlencode
-from unittest.mock import patch
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.organizations.models import Organization
@@ -50,20 +55,24 @@ class TestChangePlanAPITestCase(BaseTestCase):
 
     def _subscribe_organization(self, customer, price, quantity=1):
         subscription_item = baker.make(
-            SubscriptionItem, price=price, livemode=False,
+            SubscriptionItem,
+            price=price,
+            livemode=False,
             stripe_data={'quantity': quantity},
         )
         subscription = baker.make(
-            Subscription, customer=customer, livemode=False,
+            Subscription,
+            customer=customer,
+            livemode=False,
             stripe_data={'status': 'active'},
         )
         subscription_item.subscription = subscription
         subscription_item.save()
         return subscription
 
-    @patch("stripe.Subscription.modify")
-    @patch("stripe.SubscriptionSchedule.create")
-    @patch("stripe.SubscriptionSchedule.modify")
+    @patch('stripe.Subscription.modify')
+    @patch('stripe.SubscriptionSchedule.create')
+    @patch('stripe.SubscriptionSchedule.modify')
     def _modify_price(self, price_from, quantity_from, price_to, quantity_to, schedule_modify, subscription_schedule_create, subscription_modify):
         subscription_modify.return_value = {'pending_update': None}
         customer, organization = self._create_customer_organization()

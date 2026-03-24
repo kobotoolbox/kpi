@@ -63,10 +63,9 @@ class PlanAddOn(models.Model):
 
         Returns True if a PlanAddOn was created, false otherwise.
         """
-        if (
-            charge.payment_intent.stripe_data.get('status') != PaymentIntentStatus.succeeded
-            or not charge.metadata.get('price_id', None)
-        ):
+        if charge.payment_intent.stripe_data.get(
+            'status'
+        ) != PaymentIntentStatus.succeeded or not charge.metadata.get('price_id', None):
             # make sure the charge is for a successful addon purchase
             return False
 
@@ -135,7 +134,9 @@ class PlanAddOn(models.Model):
                 organization__id__in=[org.id for org in organizations]
             )
         all_add_on_totals = (
-            PlanAddOn.objects.filter(organizations_filter & Q(charge__stripe_data__refunded=False))
+            PlanAddOn.objects.filter(
+                organizations_filter & Q(charge__stripe_data__refunded=False)
+            )
             .values('organization_id')
             .annotate(
                 asr_seconds_remaining=Coalesce(
@@ -245,9 +246,9 @@ class PlanAddOn(models.Model):
 
     @admin.display(boolean=True, description='available')
     def is_available(self) -> bool:
-        return not (self.is_expended or self.charge.stripe_data.get('refunded')) and bool(
-            self.organization
-        )
+        return not (
+            self.is_expended or self.charge.stripe_data.get('refunded')
+        ) and bool(self.organization)
 
     def deduct(self, limit_type, amount_used):
         """
