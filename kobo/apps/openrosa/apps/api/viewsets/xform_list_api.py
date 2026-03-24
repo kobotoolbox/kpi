@@ -3,10 +3,12 @@ from zoneinfo import ZoneInfo
 
 from django.apps import apps
 from django.conf import settings
+from django.core.cache import cache
 from django.db.models import F, Q
 from django.db.models.expressions import RawSQL
 from django.http import Http404
 from django.shortcuts import get_object_or_404
+from django.urls import Resolver404, resolve
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema
 from rest_framework import permissions, status
@@ -392,7 +394,6 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         """
         xform = self.get_object()
         media_files = {}
-        expired_objects = False
 
         if request.method == 'HEAD':
             return self.get_response_for_head_request()
@@ -414,23 +415,14 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
             )
             .filter(data_type__in=MetaData.MEDIA_FILES_TYPE, xform=xform)
         )
-        object_list = queryset.all()
 
-        # Keep only media files that are not considered as expired.
-        # Expired files may have an out-of-date hash which needs to be refreshed
-        # before being exposed to the serializer
-        for obj in object_list:
-            if not self._is_metadata_expired(obj, request):
-                media_files[obj.pk] = obj
-                continue
-            expired_objects = True
-
-        # Retrieve all media files for the current form again except non
-        # expired ones. The expired objects should have an up-to-date hash now.
-        if expired_objects:
-            refreshed_object_list = queryset.exclude(pk__in=media_files.keys())
-            for refreshed_object in refreshed_object_list.all():
-                media_files[refreshed_object.pk] = refreshed_object
+        # For expired paired-data entries, trigger async regeneration so the
+        # background task updates the hash in MetaData. The current (possibly
+        # stale) hash is served immediately; the next manifest request will
+        # reflect the updated content once the task completes.
+        for obj in queryset.all():
+            self._trigger_paired_data_regen_if_expired(obj, request)
+            media_files[obj.pk] = obj
 
         # Sort objects all the time because EE calculates a hash of the
         # whole manifest to detect any changes the next time EE downloads it.
@@ -521,34 +513,58 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         return assets_by_uid, disclaimers_by_asset_pk
 
     @staticmethod
-    def _is_metadata_expired(obj: MetaData, request: Request) -> bool:
+    def _trigger_paired_data_regen_if_expired(obj: MetaData, request: Request) -> bool:
         """
-        It validates whether the file has been modified for the last X minutes.
-        (where `X` equals `settings.PAIRED_DATA_EXPIRATION`)
+        Schedules async regeneration of a paired-data XML file if its content
+        has exceeded `settings.PAIRED_DATA_EXPIRATION`. A distributed lock
+        prevents duplicate tasks from being scheduled concurrently or while a
+        previous task is still running.
 
-        Notes: Only `xml-external` (paired data XML) files expire.
+        Only applies to `xml-external` (paired data) entries; all other
+        metadata types are ignored.
         """
         if not obj.is_paired_data:
             return False
 
         timedelta = timezone.now() - obj.date_modified
         if timedelta.total_seconds() > settings.PAIRED_DATA_EXPIRATION:
-            # Force external XML regeneration
-            get_media_file_response(obj, request)
+            # Resolve the paired-data URL to extract `uid_paired_data`, which
+            # is used as the lock key so that the Celery task can release it
+            # upon successful completion.
+            internal_url = obj.data_value.replace(settings.KOBOFORM_URL, '')
+            try:
+                uid_paired_data = resolve(internal_url).kwargs.get('uid_paired_data')
+            except Resolver404:
+                uid_paired_data = None
 
-            # We update the modification time here to avoid requesting that KPI
-            # resynchronize this file multiple times per the
-            # `PAIRED_DATA_EXPIRATION` period. However, this introduces a race
-            # condition where it's possible that KPI *deletes* this file before
-            # we attempt to update it. We avoid that by locking the row
-
-            # TODO: this previously used `select_for_update()`, which locked
-            #  the object for the duration of the *entire* request due to
-            #  Django's `ATOMIC_REQUESTS`. `ATOMIC_REQUESTS` is not True by
-            #  default anymore and the `update()` method is itself
-            #  atomic since it does not reference any value previously read
-            #  from the database. Is that enough?
+            # Use a distributed lock to prevent concurrent or repeated
+            # regeneration. `cache.add()` is atomic (Redis SET NX): it returns
+            # True only when the key did not exist and was successfully set.
+            # The TTL covers worst-case generation time and ensures the lock
+            # expires naturally if a K8s pod is killed mid-task.
+            lock_key = f'regen_paired_data_{uid_paired_data}'
+            if uid_paired_data and not cache.add(
+                lock_key, True, timeout=settings.PAIRED_DATA_REGEN_LOCK_TIMEOUT
+            ):
+                # A task is already scheduled or running — serve the current
+                # (possibly stale) content without queuing a duplicate task.
+                return True
+            # Update `date_modified` before triggering regeneration so that
+            # subsequent requests do not immediately re-trigger while a task
+            # or synchronous generation is in progress. The content may remain
+            # stale for at most one expiry window in case of failure, which is
+            # preferable to retrying on every manifest request.
             MetaData.objects.filter(pk=obj.pk).update(date_modified=timezone.now())
+            # Trigger regeneration — async if the file already exists,
+            # sync (blocking) on first creation or when content is cleared.
+            # Note: in the sync case no Celery task is scheduled, so the lock
+            # is never explicitly released and will remain held until
+            # PAIRED_DATA_REGEN_LOCK_TIMEOUT expires. This is intentional:
+            # the TTL exists precisely to cover both pod-kill scenarios and
+            # long-running tasks, so relying on it for the (rare) sync path
+            # is correct and avoids a window where a duplicate task could be
+            # scheduled while Celery is still running.
+            get_media_file_response(obj, request)
             return True
 
         return False

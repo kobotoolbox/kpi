@@ -1075,3 +1075,31 @@ class ApiBulkAssetPermissionTestCase(BaseApiAssetPermissionTestCase):
         )
         response = self.client.post(bulk_endpoint, assignments, format='json')
         assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_downgrade_change_asset_to_view_asset_keeps_view_asset(self):
+        """
+        Regression test: downgrading 'change_asset' to 'view_asset' via the
+        bulk endpoint must not remove the user entirely.
+
+        'change_asset' implies 'view_asset'. After assigning 'change_asset',
+        'view_asset' already exists in the DB as a direct ObjectPermission.
+        When the next bulk call removes 'change_asset' but keeps 'view_asset',
+        the user should still retain 'view_asset'.
+        """
+        someuser = User.objects.get(username='someuser')
+        self.asset.assign_perm(someuser, PERM_CHANGE_ASSET)
+        assert self.asset.has_perm(someuser, PERM_CHANGE_ASSET)
+        assert self.asset.has_perm(someuser, PERM_VIEW_ASSET)
+
+        bulk_endpoint = reverse(
+            self._get_endpoint('asset-permission-assignment-bulk-actions'),
+            kwargs={'uid_asset': self.asset.uid},
+        )
+        assignments = self.translate_usernames_and_codenames_to_urls(
+            [{'user': 'someuser', 'permission': PERM_VIEW_ASSET}]
+        )
+        response = self.client.post(bulk_endpoint, assignments, format='json')
+        assert response.status_code == status.HTTP_200_OK
+
+        assert not self.asset.has_perm(someuser, PERM_CHANGE_ASSET)
+        assert self.asset.has_perm(someuser, PERM_VIEW_ASSET)
