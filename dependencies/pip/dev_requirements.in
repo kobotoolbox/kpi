@@ -15,6 +15,7 @@ pytest-env
 pytest-xdist
 fakeredis
 freezegun
+django-debug-toolbar
 
 # KoboCAT
 httmock
