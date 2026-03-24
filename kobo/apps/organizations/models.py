@@ -1,3 +1,4 @@
+# flake8: noqa: E501
 from functools import partial
 from typing import Literal
 
@@ -131,7 +132,7 @@ class Organization(AbstractOrganization):
                     'djstripe_customers__subscriptions__stripe_data__current_period_end'
                 ),
                 recurring_interval=F(
-                    'djstripe_customers__subscriptions__items__price__stripe_data__recurring__interval'  # noqa: E501
+                    'djstripe_customers__subscriptions__items__price__stripe_data__recurring__interval'
                 ),
                 product_metadata=F(
                     'djstripe_customers__subscriptions__items__price__product__metadata'

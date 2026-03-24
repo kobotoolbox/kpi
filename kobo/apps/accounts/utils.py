@@ -1,3 +1,4 @@
+# flake8: noqa: E501
 from django.conf import settings
 
 from kobo.apps.kobo_auth.shortcuts import User

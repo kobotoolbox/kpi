@@ -19,6 +19,7 @@ from kobo.apps.organizations.models import Organization
 from kobo.apps.organizations.utils import get_billing_dates
 from kobo.apps.stripe.models import ExceededLimitCounter
 from kobo.apps.stripe.tests.utils import (
+    _create_customer_from_org,
     _create_one_time_addon_product,
     _create_payment,
     generate_free_plan,
@@ -621,6 +622,39 @@ class OrganizationsUtilsTestCase(BaseTestCase):
         )
 
         assert get_default_plan_name() == product.name
+
+    def test_canceled_subscription_fixture_sets_ended_at(self):
+        subscription = generate_plan_subscription(
+            self.organization, status='canceled'
+        )
+        assert 'ended_at' in subscription.stripe_data
+        assert subscription.stripe_data['ended_at'] is not None
+
+        billing_dates = get_current_billing_period_dates_based_on_canceled_plans(
+            orgs=[self.organization]
+        )
+        assert self.organization.id in billing_dates
+
+    def test_create_payment_charge_stripe_data(self):
+        customer = _create_customer_from_org(self.second_organization)
+        product = _create_one_time_addon_product()
+        price = product.default_price
+
+        charge = _create_payment(customer, price, product)
+        assert charge.stripe_data['paid'] is True
+        assert charge.stripe_data['amount_refunded'] == 0
+
+        refunded_charge = _create_payment(
+            customer, price, product, refunded=True
+        )
+        assert refunded_charge.stripe_data['paid'] is True
+        assert refunded_charge.stripe_data['amount_refunded'] == 2000
+
+        failed_charge = _create_payment(
+            customer, price, product, payment_status='payment_failed'
+        )
+        assert failed_charge.stripe_data['paid'] is False
+        assert failed_charge.stripe_data['amount_refunded'] == 0
 
 
 class ExceededLimitsTestCase(BaseServiceUsageTestCase):

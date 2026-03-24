@@ -4,6 +4,7 @@ from typing import Optional
 from django.apps import apps
 from django.conf import settings
 from django.db.models import BigIntegerField, F, Max, Q, QuerySet, Window
+from django.db.models.fields.json import KeyTextTransform
 from django.db.models.functions import Cast, Coalesce
 
 from kobo.apps.organizations.constants import UsageType
@@ -264,7 +265,7 @@ def get_paid_subscription_limits(organization_ids: list[str], **kwargs) -> Query
             ),
             llm_requests_limit=Coalesce(F(price_requests_key), F(product_requests_key)),
             sub_start_date=Cast(
-                F('stripe_data__start_date'),
+                KeyTextTransform('start_date', 'stripe_data'),
                 output_field=BigIntegerField(),
             ),
             product_type=F('items__price__product__metadata__product_type'),

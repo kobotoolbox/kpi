@@ -5,6 +5,7 @@ from zoneinfo import ZoneInfo
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.db.models import BigIntegerField, F, Max, Q, Window
+from django.db.models.fields.json import KeyTextTransform
 from django.db.models.functions import Cast
 from django.utils import timezone
 
@@ -114,13 +115,16 @@ def get_current_billing_period_dates_based_on_canceled_plans(
     all_cancellation_dates = (
         all_orgs.filter(
             djstripe_customers__subscriptions__stripe_data__status='canceled',
-            djstripe_customers__subscriptions__items__price__product__metadata__product_type='plan',  # noqa
+            djstripe_customers__subscriptions__items__price__product__metadata__product_type='plan',  # noqa: E501
         )
         .values('id')
         .annotate(
             anchor=Max(
                 Cast(
-                    F('djstripe_customers__subscriptions__stripe_data__ended_at'),
+                    KeyTextTransform(
+                        'ended_at',
+                        'djstripe_customers__subscriptions__stripe_data',
+                    ),
                     output_field=BigIntegerField(),
                 )
             ),
@@ -212,8 +216,8 @@ def get_current_billing_period_dates_for_active_plans(
 
     all_active_plans = (
         orgs.filter(
-            djstripe_customers__subscriptions__stripe_data__status__in=ACTIVE_STRIPE_STATUSES,
-            djstripe_customers__subscriptions__items__price__product__metadata__product_type='plan',  # noqa
+            djstripe_customers__subscriptions__stripe_data__status__in=ACTIVE_STRIPE_STATUSES,  # noqa: E501
+            djstripe_customers__subscriptions__items__price__product__metadata__product_type='plan',  # noqa: E501
         )
         .values(
             org_id=F('id'),
@@ -228,7 +232,10 @@ def get_current_billing_period_dates_for_active_plans(
                 'djstripe_customers__subscriptions__items__price__stripe_data__recurring__interval'  # noqa: E501
             ),
             start_date=Cast(
-                F('djstripe_customers__subscriptions__stripe_data__start_date'),
+                KeyTextTransform(
+                    'start_date',
+                    'djstripe_customers__subscriptions__stripe_data',
+                ),
                 output_field=BigIntegerField(),
             ),
         )

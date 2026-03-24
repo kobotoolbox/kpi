@@ -68,7 +68,7 @@ def generate_plan_subscription(
         active=True,
         product=product,
         metadata=price_metadata,
-        stripe_data={'recurring': {'interval': interval}},
+        stripe_data={'recurring': {'interval': interval}, 'unit_amount': 1000},
     )
     plan = baker.make(
         Plan,
@@ -109,6 +109,11 @@ def generate_plan_subscription(
             'current_period_end': int((created_date + period_offset).timestamp()),
             'current_period_start': int((created_date - period_offset).timestamp()),
             'start_date': int(created_date.timestamp()),
+            **(
+                {'ended_at': int(created_date.timestamp())}
+                if status == 'canceled'
+                else {}
+            ),
         },
     )
     subscription_item.subscription = subscription
@@ -167,8 +172,8 @@ def _create_payment(
         amount=payment_total,
         stripe_data={
             'refunded': refunded,
-            'paid': True,
-            'amount_refunded': 0 if refunded else payment_total,
+            'paid': payment_status == 'succeeded',
+            'amount_refunded': payment_total if refunded else 0,
         },
     )
     charge.metadata = {

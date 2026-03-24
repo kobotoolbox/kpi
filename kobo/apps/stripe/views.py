@@ -2,7 +2,7 @@ import stripe
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import IntegerField, Max, Prefetch
-from django.db.models.fields.json import KeyTransform
+from django.db.models.fields.json import KeyTextTransform
 from django.db.models.functions import Cast
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
@@ -616,7 +616,7 @@ class ProductViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
         .annotate(
             highest_unit_amount=Max(
                 Cast(
-                    KeyTransform('unit_amount', 'prices__stripe_data'),
+                    KeyTextTransform('unit_amount', 'prices__stripe_data'),
                     output_field=IntegerField(),
                 )
             )

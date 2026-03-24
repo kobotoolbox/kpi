@@ -161,7 +161,7 @@ class ProductSerializer(BaseProductSerializer):
 
 class SubscriptionItemSerializer(serializers.ModelSerializer):
     price = PriceWithProductSerializer()
-    quantity = serializers.IntegerField()
+    quantity = serializers.IntegerField(allow_null=True)
 
     class Meta:
         model = SubscriptionItem
