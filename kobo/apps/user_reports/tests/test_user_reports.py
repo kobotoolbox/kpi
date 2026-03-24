@@ -92,7 +92,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
             'djstripe.Subscription',
             customer=self.customer,
             items__price__livemode=False,
-            items__price__billing_scheme=BillingScheme.per_unit,
+            items__price__stripe_data={'billing_scheme': BillingScheme.per_unit},
             livemode=False,
             metadata={'organization_id': str(self.organization.id)},
         )
@@ -143,7 +143,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
             'djstripe.Subscription',
             customer=customer,
             items__price__livemode=False,
-            items__price__billing_scheme=BillingScheme.per_unit,
+            items__price__stripe_data={'billing_scheme': BillingScheme.per_unit},
             livemode=False,
             metadata={'organization_id': str(self.organization.id)},
         )
@@ -151,7 +151,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
             'djstripe.Subscription',
             customer=customer,
             items__price__livemode=False,
-            items__price__billing_scheme=BillingScheme.per_unit,
+            items__price__stripe_data={'billing_scheme': BillingScheme.per_unit},
             livemode=False,
             metadata={'organization_id': str(self.organization.id)},
         )
@@ -431,10 +431,10 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
             'djstripe.Subscription',
             customer=customer,
             items__price__livemode=False,
-            items__price__billing_scheme=BillingScheme.per_unit,
+            items__price__stripe_data={'billing_scheme': BillingScheme.per_unit},
             livemode=False,
             metadata={},
-            status='active'
+            stripe_data={'status': 'active'},
         )
 
         # Verify that the subscription is not visible in the API
@@ -581,9 +581,10 @@ class UserReportsFilterAndOrderingTestCase(BaseTestCase):
             'djstripe.Subscription',
             customer=self.customer,
             items__price__livemode=False,
-            items__price__billing_scheme=BillingScheme.per_unit,
+            items__price__stripe_data={'billing_scheme': BillingScheme.per_unit},
             livemode=False,
             metadata={'organization_id': str(self.organization.id)},
+            stripe_data={'status': 'active'},
         )
         refresh_user_reports_materialized_view(concurrently=False)
 

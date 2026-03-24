@@ -44,14 +44,15 @@ class TestStripeMFALogin(KpiTestCase):
 
     def _create_subscription(self, unit_amount=0, billing_status='active'):
         self.customer = baker.make(Customer, subscriber=self.organization)
-        self.price = baker.make(Price, unit_amount=unit_amount)
+        self.price = baker.make(Price, stripe_data={'unit_amount': unit_amount})
         self.subscription_item = baker.make(SubscriptionItem, price=self.price)
         self.subscription = baker.make(
             Subscription,
             customer=self.customer,
-            items=[self.subscription_item],
-            status=billing_status,
+            stripe_data={'status': billing_status},
         )
+        self.subscription_item.subscription = self.subscription
+        self.subscription_item.save()
 
     def _reset_whitelist(self, whitelisted_users=[]):
         MfaAvailableToUser.objects.all().delete()

@@ -116,22 +116,22 @@ class Organization(AbstractOrganization):
         return (
             Organization.objects.prefetch_related('djstripe_customers')
             .filter(
-                djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES,
+                djstripe_customers__subscriptions__stripe_data__status__in=ACTIVE_STRIPE_STATUSES,
                 djstripe_customers__subscriber=self.id,
             )
-            .order_by('-djstripe_customers__subscriptions__start_date')
+            .order_by('-djstripe_customers__subscriptions__stripe_data__start_date')
             .values(
                 billing_cycle_anchor=F(
-                    'djstripe_customers__subscriptions__billing_cycle_anchor'
+                    'djstripe_customers__subscriptions__stripe_data__billing_cycle_anchor'
                 ),
                 current_period_start=F(
-                    'djstripe_customers__subscriptions__current_period_start'
+                    'djstripe_customers__subscriptions__stripe_data__current_period_start'
                 ),
                 current_period_end=F(
-                    'djstripe_customers__subscriptions__current_period_end'
+                    'djstripe_customers__subscriptions__stripe_data__current_period_end'
                 ),
                 recurring_interval=F(
-                    'djstripe_customers__subscriptions__items__price__recurring__interval'  # noqa: E501
+                    'djstripe_customers__subscriptions__items__price__stripe_data__recurring__interval'  # noqa: E501
                 ),
                 product_metadata=F(
                     'djstripe_customers__subscriptions__items__price__product__metadata'
@@ -154,12 +154,12 @@ class Organization(AbstractOrganization):
             qs = (
                 Organization.objects.prefetch_related('djstripe_customers')
                 .filter(
-                    djstripe_customers__subscriptions__status='canceled',
+                    djstripe_customers__subscriptions__stripe_data__status='canceled',
                     djstripe_customers__subscriber=self.id,
                 )
-                .order_by('-djstripe_customers__subscriptions__ended_at')
+                .order_by('-djstripe_customers__subscriptions__stripe_data__ended_at')
                 .values(
-                    anchor=F('djstripe_customers__subscriptions__ended_at'),
+                    anchor=F('djstripe_customers__subscriptions__stripe_data__ended_at'),
                 )
                 .first()
             )
@@ -242,7 +242,7 @@ class Organization(AbstractOrganization):
         return (
             Organization.objects.prefetch_related('djstripe_customers')
             .filter(
-                djstripe_customers__subscriptions__status__in=ACTIVE_STRIPE_STATUSES,
+                djstripe_customers__subscriptions__stripe_data__status__in=ACTIVE_STRIPE_STATUSES,
                 djstripe_customers__subscriptions__items__price__product__metadata__product_type='plan',  # noqa
                 djstripe_customers__subscriptions__items__price__product__metadata__mmo_enabled='true',  # noqa
                 djstripe_customers__subscriber=self.id,
@@ -291,7 +291,7 @@ class OrganizationUser(AbstractOrganizationUser):
             customer = Customer.objects.get(subscriber=self.organization.id)
             subscriptions = Subscription.objects.filter(
                 customer=customer,
-                status__in=ACTIVE_STRIPE_STATUSES,
+                stripe_data__status__in=ACTIVE_STRIPE_STATUSES,
             )
 
             unique_plans = set()

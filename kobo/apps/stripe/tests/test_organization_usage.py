@@ -217,11 +217,15 @@ class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
         )
         assert (
             response.data['current_period_start']
-            == subscription.current_period_start.isoformat()
+            == datetime.fromtimestamp(
+                subscription.current_period_start, tz=ZoneInfo('UTC')
+            ).isoformat()
         )
         assert (
             response.data['current_period_end']
-            == subscription.current_period_end.isoformat()
+            == datetime.fromtimestamp(
+                subscription.current_period_end, tz=ZoneInfo('UTC')
+            ).isoformat()
         )
 
     def test_annual_plan_period(self):
@@ -242,11 +246,15 @@ class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
         )
         assert (
             response.data['current_period_start']
-            == subscription.current_period_start.isoformat()
+            == datetime.fromtimestamp(
+                subscription.current_period_start, tz=ZoneInfo('UTC')
+            ).isoformat()
         )
         assert (
             response.data['current_period_end']
-            == subscription.current_period_end.isoformat()
+            == datetime.fromtimestamp(
+                subscription.current_period_end, tz=ZoneInfo('UTC')
+            ).isoformat()
         )
 
     def test_plan_canceled_this_month(self):
@@ -260,9 +268,12 @@ class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
         num_submissions = 5
         add_mock_submissions([self.asset], num_submissions, 15)
 
-        canceled_at = timezone.now()
-        subscription.status = 'canceled'
-        subscription.ended_at = canceled_at
+        canceled_at = timezone.now().replace(microsecond=0)
+        subscription.stripe_data = {
+            **subscription.stripe_data,
+            'status': 'canceled',
+            'ended_at': int(canceled_at.timestamp()),
+        }
         subscription.save()
 
         current_billing_period_end = canceled_at + relativedelta(months=1)
@@ -287,9 +298,12 @@ class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
         num_submissions = 5
         add_mock_submissions([self.asset], num_submissions)
 
-        canceled_at = timezone.now() - relativedelta(days=45)
-        subscription.status = 'canceled'
-        subscription.ended_at = canceled_at
+        canceled_at = (timezone.now() - relativedelta(days=45)).replace(microsecond=0)
+        subscription.stripe_data = {
+            **subscription.stripe_data,
+            'status': 'canceled',
+            'ended_at': int(canceled_at.timestamp()),
+        }
         subscription.save()
 
         current_billing_period_start = canceled_at + relativedelta(months=1)
@@ -345,8 +359,11 @@ class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
         with freeze_time(subscribe_date):
             subscription = generate_plan_subscription(self.organization)
 
-        subscription.status = 'canceled'
-        subscription.ended_at = cancel_date
+        subscription.stripe_data = {
+            **subscription.stripe_data,
+            'status': 'canceled',
+            'ended_at': int(cancel_date.timestamp()),
+        }
         subscription.save()
 
         with freeze_time(frozen_datetime_now):
@@ -407,8 +424,11 @@ class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
             subscription = generate_plan_subscription(self.organization)
 
         # Cancel subscription on Oct 31, 2024
-        subscription.status = 'canceled'
-        subscription.ended_at = cancel_date
+        subscription.stripe_data = {
+            **subscription.stripe_data,
+            'status': 'canceled',
+            'ended_at': int(cancel_date.timestamp()),
+        }
         subscription.save()
 
         fake_now = datetime.fromisoformat(fake_now_str)
@@ -438,25 +458,34 @@ class OrganizationServiceUsageAPITestCase(BaseServiceUsageTestCase):
             self.organization, age_days=60
         )
 
-        subscription.status = 'canceled'
-        subscription.ended_at = timezone.now() - relativedelta(days=45)
+        subscription.stripe_data = {
+            **subscription.stripe_data,
+            'status': 'canceled',
+            'ended_at': int((timezone.now() - relativedelta(days=45)).timestamp()),
+        }
         subscription.save()
 
         subscription = generate_plan_subscription(
             self.organization, age_days=40
         )
 
-        subscription.status = 'canceled'
-        subscription.ended_at = timezone.now() - relativedelta(days=35)
+        subscription.stripe_data = {
+            **subscription.stripe_data,
+            'status': 'canceled',
+            'ended_at': int((timezone.now() - relativedelta(days=35)).timestamp()),
+        }
         subscription.save()
 
         subscription = generate_plan_subscription(
             self.organization, age_days=30
         )
 
-        canceled_at = timezone.now() - relativedelta(days=20)
-        subscription.status = 'canceled'
-        subscription.ended_at = canceled_at
+        canceled_at = (timezone.now() - relativedelta(days=20)).replace(microsecond=0)
+        subscription.stripe_data = {
+            **subscription.stripe_data,
+            'status': 'canceled',
+            'ended_at': int(canceled_at.timestamp()),
+        }
         subscription.save()
 
         current_billing_period_start = canceled_at
@@ -553,8 +582,11 @@ class OrganizationsModelIntegrationTestCase(BaseTestCase):
             self.organization, metadata=product_metadata
         )
         assert self.organization.is_mmo is False
-        subscription.status = 'canceled'
-        subscription.ended_at = timezone.now()
+        subscription.stripe_data = {
+            **subscription.stripe_data,
+            'status': 'canceled',
+            'ended_at': int(timezone.now().timestamp()),
+        }
         subscription.save()
 
         product_metadata['mmo_enabled'] = 'true'
@@ -569,6 +601,9 @@ class OrganizationsModelIntegrationTestCase(BaseTestCase):
         assert self.organization.is_mmo is True
 
         # ensure inactive mmo-enabled subscriptions are ignored
-        mmo_subscription.status = 'canceled'
+        mmo_subscription.stripe_data = {
+            **mmo_subscription.stripe_data,
+            'status': 'canceled',
+        }
         mmo_subscription.save()
         assert self.organization.is_mmo is False

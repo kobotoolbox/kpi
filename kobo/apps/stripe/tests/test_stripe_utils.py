@@ -279,7 +279,9 @@ class OrganizationsUtilsTestCase(BaseTestCase):
         assert limit == 1234
 
     def test_get_current_billing_dates_by_org(self):
-        forty_five_days_ago = timezone.now() - relativedelta(days=45)
+        forty_five_days_ago = (
+            timezone.now() - relativedelta(days=45)
+        ).replace(microsecond=0)
         now = timezone.now().replace(tzinfo=ZoneInfo('UTC'))
         first_of_this_month = datetime(now.year, now.month, 1, tzinfo=ZoneInfo('UTC'))
         first_of_next_month = first_of_this_month + relativedelta(months=1)
@@ -287,20 +289,24 @@ class OrganizationsUtilsTestCase(BaseTestCase):
         canceled_subscription = generate_plan_subscription(
             self.organization, age_days=60
         )
-        canceled_subscription.status = 'canceled'
-        canceled_subscription.ended_at = forty_five_days_ago
+        canceled_subscription.stripe_data = {
+            **canceled_subscription.stripe_data,
+            'status': 'canceled',
+            'ended_at': int(forty_five_days_ago.timestamp()),
+        }
         canceled_subscription.save()
 
+        period_start = datetime.fromisoformat('2025-03-05').replace(tzinfo=ZoneInfo('UTC'))
+        period_end = datetime.fromisoformat('2025-04-03').replace(tzinfo=ZoneInfo('UTC'))
         active_subscription = generate_plan_subscription(
             self.second_organization, metadata={}
         )
         # make sure the active subscription dates are not the first of the month
-        active_subscription.current_period_start = datetime.fromisoformat(
-            '2025-03-05'
-        ).replace(tzinfo=ZoneInfo('UTC'))
-        active_subscription.current_period_end = datetime.fromisoformat(
-            '2025-04-03'
-        ).replace(tzinfo=ZoneInfo('UTC'))
+        active_subscription.stripe_data = {
+            **active_subscription.stripe_data,
+            'current_period_start': int(period_start.timestamp()),
+            'current_period_end': int(period_end.timestamp()),
+        }
         active_subscription.save()
 
         third_org = baker.make(
@@ -313,19 +319,13 @@ class OrganizationsUtilsTestCase(BaseTestCase):
         assert billing_dates_by_org[third_org.id]['end'] == first_of_next_month
 
         # second org has an active subscription, use its current period dates
-        assert (
-            billing_dates_by_org[self.second_organization.id]['start']
-            == active_subscription.current_period_start
-        )
-        assert (
-            billing_dates_by_org[self.second_organization.id]['end']
-            == active_subscription.current_period_end
-        )
+        assert billing_dates_by_org[self.second_organization.id]['start'] == period_start
+        assert billing_dates_by_org[self.second_organization.id]['end'] == period_end
 
         # self.organization has a canceled subscription, use the canceled subscription
         # logic to determine the expected dates
         expected_start, expected_end = get_billing_dates_after_canceled_subscription(
-            canceled_subscription.ended_at
+            forty_five_days_ago
         )
         assert billing_dates_by_org[self.organization.id]['start'] == expected_start
         assert billing_dates_by_org[self.organization.id]['end'] == expected_end
@@ -339,8 +339,20 @@ class OrganizationsUtilsTestCase(BaseTestCase):
             self.organization, metadata=product_metadata
         )
         # make sure the active subscription dates are not the first of the month
-        subscription.current_period_start = datetime.fromisoformat('2025-03-03')
-        subscription.current_period_end = datetime.fromisoformat('2025-04-03')
+        subscription.stripe_data = {
+            **subscription.stripe_data,
+            'current_period_start': int(
+                datetime.fromisoformat('2025-03-03').replace(
+                    tzinfo=ZoneInfo('UTC')
+                ).timestamp()
+            ),
+            'current_period_end': int(
+                datetime.fromisoformat('2025-04-03').replace(
+                    tzinfo=ZoneInfo('UTC')
+                ).timestamp()
+            ),
+        }
+        subscription.save()
         billing_dates_by_org = get_current_billing_period_dates_by_org()
         # results should be the default period rather than the addon period
         assert (
@@ -353,20 +365,28 @@ class OrganizationsUtilsTestCase(BaseTestCase):
     ):
         # create two canceled subscriptions, once canceled 30 days ago and one
         # canceled 45 days ago
-        thirty_days_ago = timezone.now() - relativedelta(days=30)
-        forty_five_days_ago = timezone.now() - relativedelta(days=45)
+        thirty_days_ago = (timezone.now() - relativedelta(days=30)).replace(microsecond=0)
+        forty_five_days_ago = (
+            timezone.now() - relativedelta(days=45)
+        ).replace(microsecond=0)
         canceled_subscription = generate_plan_subscription(
             self.organization, age_days=60
         )
-        canceled_subscription.status = 'canceled'
-        canceled_subscription.ended_at = forty_five_days_ago
+        canceled_subscription.stripe_data = {
+            **canceled_subscription.stripe_data,
+            'status': 'canceled',
+            'ended_at': int(forty_five_days_ago.timestamp()),
+        }
         canceled_subscription.save()
 
         second_canceled_subscription = generate_plan_subscription(
             self.organization, age_days=60
         )
-        second_canceled_subscription.status = 'canceled'
-        second_canceled_subscription.ended_at = thirty_days_ago
+        second_canceled_subscription.stripe_data = {
+            **second_canceled_subscription.stripe_data,
+            'status': 'canceled',
+            'ended_at': int(thirty_days_ago.timestamp()),
+        }
         second_canceled_subscription.save()
 
         # billing dates should be determined from the cancellation date 30 days ago
@@ -389,18 +409,25 @@ class OrganizationsUtilsTestCase(BaseTestCase):
 
         assert (
             billing_dates_by_org[self.organization.id]['start']
-            == new_subscription.current_period_start
+            == datetime.fromtimestamp(
+                new_subscription.current_period_start, tz=ZoneInfo('UTC')
+            )
         )
         assert (
             billing_dates_by_org[self.organization.id]['end']
-            == new_subscription.current_period_end
+            == datetime.fromtimestamp(
+                new_subscription.current_period_end, tz=ZoneInfo('UTC')
+            )
         )
 
     def test_get_billing_dates_prioritizes_active_subscriptions(self):
         # create two subscriptions and cancel one
         canceled_sub = generate_plan_subscription(self.organization)
-        canceled_sub.status = 'canceled'
-        canceled_sub.ended_at = timezone.now() - timedelta(days=3)
+        canceled_sub.stripe_data = {
+            **canceled_sub.stripe_data,
+            'status': 'canceled',
+            'ended_at': int((timezone.now() - timedelta(days=3)).timestamp()),
+        }
         canceled_sub.save()
         # should prioritize active subscription even if it's older
         active_sub = generate_plan_subscription(self.organization, age_days=30)
@@ -409,11 +436,15 @@ class OrganizationsUtilsTestCase(BaseTestCase):
 
         assert (
             billing_dates_by_org[self.organization.id]['start']
-            == active_sub.current_period_start
+            == datetime.fromtimestamp(
+                active_sub.current_period_start, tz=ZoneInfo('UTC')
+            )
         )
         assert (
             billing_dates_by_org[self.organization.id]['end']
-            == active_sub.current_period_end
+            == datetime.fromtimestamp(
+                active_sub.current_period_end, tz=ZoneInfo('UTC')
+            )
         )
 
     def test_queries_for_billing_dates_for_single_org(self):
@@ -431,8 +462,11 @@ class OrganizationsUtilsTestCase(BaseTestCase):
         with self.assertNumQueries(1):
             get_billing_dates(self.organization)
 
-        sub.status = 'canceled'
-        sub.ended_at = timezone.now() - timedelta(days=3)
+        sub.stripe_data = {
+            **sub.stripe_data,
+            'status': 'canceled',
+            'ended_at': int((timezone.now() - timedelta(days=3)).timestamp()),
+        }
         sub.save()
 
         # with a canceled plan, will take 2 queries
@@ -554,7 +588,7 @@ class OrganizationsUtilsTestCase(BaseTestCase):
             subscription = generate_plan_subscription(
                 self.organization, product_metadata
             )
-            product = subscription.plan.product
+            product = subscription.items.first().price.product
             product.name = 'My plan'
             product.save()
         if has_addon:
@@ -562,7 +596,7 @@ class OrganizationsUtilsTestCase(BaseTestCase):
             subscription = generate_plan_subscription(
                 self.organization, product_metadata
             )
-            product = subscription.plan.product
+            product = subscription.items.first().price.product
             product.name = 'My addon'
             product.save()
         org_user = self.organization.organization_users.first()

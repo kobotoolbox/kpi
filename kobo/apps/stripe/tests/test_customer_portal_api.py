@@ -2,7 +2,7 @@ from unittest.mock import patch
 from urllib.parse import urlencode
 
 from django.urls import reverse
-from djstripe.models import Customer, Price, Product, Subscription
+from djstripe.models import Customer, Price, Product, Subscription, SubscriptionItem
 from model_bakery import baker
 from rest_framework import status
 
@@ -43,10 +43,10 @@ class TestCustomerPortalAPITestCase(BaseTestCase):
         if create_subscription:
             self.subscription = baker.make(
                 Subscription,
-                status='active',
                 customer=self.customer,
-                items__price=self.price
+                stripe_data={'status': 'active'},
             )
+            baker.make(SubscriptionItem, subscription=self.subscription, price=self.price)
 
     def _get_url_for_expected_request(self, create_subscription=True, product_type='plan'):
         self._create_stripe_data(create_subscription, product_type)

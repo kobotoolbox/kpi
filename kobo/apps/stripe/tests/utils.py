@@ -34,9 +34,8 @@ def generate_free_plan():
     baker.make(
         Price,
         active=True,
-        recurring={'interval': 'month'},
-        unit_amount=0,
         product=product,
+        stripe_data={'recurring': {'interval': 'month'}, 'unit_amount': 0},
     )
     return product
 
@@ -67,12 +66,18 @@ def generate_plan_subscription(
     price = baker.make(
         Price,
         active=True,
-        recurring={'interval': interval},
         product=product,
         metadata=price_metadata,
+        stripe_data={'recurring': {'interval': interval}},
     )
     plan = baker.make(
-        Plan, product=product, billing_scheme='per_unit', amount=1.0, currency='usd'
+        Plan,
+        stripe_data={
+            'billing_scheme': 'per_unit',
+            'amount': 100,
+            'currency': 'usd',
+            'product': product.id,
+        },
     )
 
     period_offset = relativedelta(weeks=2)
@@ -87,21 +92,28 @@ def generate_plan_subscription(
     }
 
     subscription_item = baker.make(
-        SubscriptionItem, price=price, quantity=1, livemode=False, plan=plan
+        SubscriptionItem,
+        price=price,
+        livemode=False,
+        plan=plan,
+        stripe_data={'quantity': 1},
     )
-    return baker.make(
+    subscription = baker.make(
         Subscription,
         customer=customer,
-        status=status,
-        items=[subscription_item],
         livemode=False,
-        billing_cycle_anchor=created_date - period_offset,
-        current_period_end=created_date + period_offset,
-        current_period_start=created_date - period_offset,
-        start_date=created_date,
-        plan=subscription_item.plan,
         metadata=subscription_metadata,
+        stripe_data={
+            'status': status,
+            'billing_cycle_anchor': int((created_date - period_offset).timestamp()),
+            'current_period_end': int((created_date + period_offset).timestamp()),
+            'current_period_start': int((created_date - period_offset).timestamp()),
+            'start_date': int(created_date.timestamp()),
+        },
     )
+    subscription_item.subscription = subscription
+    subscription_item.save()
+    return subscription
 
 
 def generate_mmo_subscription(organization: Organization, customer: Customer = None):
@@ -120,9 +132,11 @@ def _create_one_time_addon_product(limit_metadata=None):
         active=True,
         metadata=metadata,
     )
-    price = baker.make(Price, active=True, product=product, type='one_time')
+    price = baker.make(
+        Price, active=True, product=product, stripe_data={'type': 'one_time'}
+    )
     price.save()
-    product.default_price = price
+    product.stripe_data = {'default_price': price.id}
     product.save()
     return product
 
@@ -134,24 +148,28 @@ def _create_payment(
     payment_intent = baker.make(
         PaymentIntent,
         customer=customer,
-        status=payment_status,
-        payment_method_types=['card'],
         livemode=False,
-        amount=payment_total,
-        amount_capturable=payment_total,
-        amount_received=payment_total,
+        stripe_data={
+            'status': payment_status,
+            'payment_method_types': ['card'],
+            'amount': payment_total,
+            'amount_capturable': payment_total,
+            'amount_received': payment_total,
+        },
     )
     charge = baker.prepare(
         Charge,
         customer=customer,
-        refunded=refunded,
         created=timezone.now(),
         payment_intent=payment_intent,
-        paid=True,
         status=payment_status,
         livemode=False,
-        amount_refunded=0 if refunded else payment_total,
         amount=payment_total,
+        stripe_data={
+            'refunded': refunded,
+            'paid': True,
+            'amount_refunded': 0 if refunded else payment_total,
+        },
     )
     charge.metadata = {
         'price_id': price.id,

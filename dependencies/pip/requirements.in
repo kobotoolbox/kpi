@@ -27,7 +27,7 @@ celery[redis]
 dict2xml
 defusedxml
 dj-static
-dj-stripe
+dj-stripe>=2.10
 django-allauth>=65.11.2
 django-allauth[mfa]
 django-braces

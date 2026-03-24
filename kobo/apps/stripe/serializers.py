@@ -89,7 +89,7 @@ class ChangePlanSerializer(PriceIdSerializer):
     subscription_id = serializers.SlugRelatedField(
         'id',
         queryset=Subscription.objects.filter(
-            status__in=['active'],
+            stripe_data__status__in=['active'],
         ),
         required=True,
         allow_empty=False,

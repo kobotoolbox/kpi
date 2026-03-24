@@ -2,6 +2,9 @@ import stripe
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Max, Prefetch
+from django.db.models.fields.json import KeyTransform
+from django.db.models.functions import Cast
+from django.db.models import IntegerField
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from django_dont_vary_on.decorators import only_vary_on
@@ -352,7 +355,7 @@ class CustomerPortalView(APIView):
             Customer.objects.filter(
                 subscriber_id=organization_id,
                 subscriber__owner__organization_user__user_id=user,
-                subscriptions__status__in=ACTIVE_STRIPE_STATUSES,
+                subscriptions__stripe_data__status__in=ACTIVE_STRIPE_STATUSES,
                 livemode=settings.STRIPE_LIVE_MODE,
             )
             .values(
@@ -531,8 +534,6 @@ class SubscriptionViewSet(viewsets.ReadOnlyModelViewSet):
         return self.queryset.filter(
             livemode=settings.STRIPE_LIVE_MODE,
             customer__subscriber__users=self.request.user,
-        ).select_related(
-            'schedule'
         ).prefetch_related(
             Prefetch(
                 'items',
@@ -613,7 +614,14 @@ class ProductViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
         .prefetch_related(
             Prefetch('prices', queryset=Price.objects.filter(active=True))
         )
-        .annotate(highest_unit_amount=Max('prices__unit_amount'))
+        .annotate(
+            highest_unit_amount=Max(
+                Cast(
+                    KeyTransform('unit_amount', 'prices__stripe_data'),
+                    output_field=IntegerField(),
+                )
+            )
+        )
         .order_by('highest_unit_amount')
         .distinct()
     )

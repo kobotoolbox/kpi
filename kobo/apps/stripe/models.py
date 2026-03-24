@@ -64,7 +64,7 @@ class PlanAddOn(models.Model):
         Returns True if a PlanAddOn was created, false otherwise.
         """
         if (
-            charge.payment_intent.status != PaymentIntentStatus.succeeded
+            charge.payment_intent.stripe_data.get('status') != PaymentIntentStatus.succeeded
             or not charge.metadata.get('price_id', None)
         ):
             # make sure the charge is for a successful addon purchase
@@ -90,7 +90,7 @@ class PlanAddOn(models.Model):
             and not Subscription.objects.filter(
                 customer__subscriber=organization,
                 items__price__product__metadata__has_key__in=[tags],
-                status__in=ACTIVE_STRIPE_STATUSES,
+                stripe_data__status__in=ACTIVE_STRIPE_STATUSES,
             ).exists()
         ):
             # this user doesn't have the subscription level they need for this addon
@@ -135,7 +135,7 @@ class PlanAddOn(models.Model):
                 organization__id__in=[org.id for org in organizations]
             )
         all_add_on_totals = (
-            PlanAddOn.objects.filter(organizations_filter & Q(charge__refunded=False))
+            PlanAddOn.objects.filter(organizations_filter & Q(charge__stripe_data__refunded=False))
             .values('organization_id')
             .annotate(
                 asr_seconds_remaining=Coalesce(
@@ -245,7 +245,7 @@ class PlanAddOn(models.Model):
 
     @admin.display(boolean=True, description='available')
     def is_available(self) -> bool:
-        return not (self.is_expended or self.charge.refunded) and bool(
+        return not (self.is_expended or self.charge.stripe_data.get('refunded')) and bool(
             self.organization
         )
 
@@ -296,7 +296,7 @@ class PlanAddOn(models.Model):
         add_ons = PlanAddOn.objects.filter(
             organization__id=organization.id,
             limits_remaining__has_key=limit_key,
-            charge__refunded=False,
+            charge__stripe_data__refunded=False,
             **{f'{metadata_key}__gt': 0},
         ).order_by(metadata_key)
         remaining = amount
