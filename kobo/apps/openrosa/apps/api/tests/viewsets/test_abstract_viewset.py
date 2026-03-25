@@ -8,8 +8,6 @@ from django.core.files.base import ContentFile
 from django.test import TestCase
 from django.utils import timezone
 from django_digest.test import DigestAuth
-from rest_framework import status
-from rest_framework.reverse import reverse
 from rest_framework.test import APIRequestFactory
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -21,7 +19,6 @@ from kobo.apps.openrosa.libs.tests.mixins.make_submission_mixin import (
 )
 from kobo.apps.openrosa.libs.tests.mixins.request_mixin import RequestMixin
 from kobo.apps.openrosa.libs.utils import logger_tools
-from kpi.urls.router_api_v2 import URL_NAMESPACE
 from kpi.utils.object_permission import get_database_user
 
 

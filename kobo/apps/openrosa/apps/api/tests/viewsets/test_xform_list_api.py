@@ -777,17 +777,6 @@ class TestXFormListApiAsDataCollector(TestXFormListApiBase):
         self.xform_without_auth.require_auth = False
         self.xform_without_auth.save(update_fields=['require_auth'])
 
-        data = {
-            'owner': self.user.username,
-            'public': False,
-            'public_data': False,
-            'description': 'transportation_with_attachment',
-            'downloadable': True,
-            'encrypted': False,
-            'id_string': 'transportation_with_attachment',
-            'title': 'transportation_with_attachment',
-        }
-
         path = os.path.join(
             settings.OPENROSA_APP_DIR,
             'apps',
