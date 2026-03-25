@@ -636,13 +636,11 @@ class AssetViewSet(
         return asset
 
     def get_queryset(self, *args, **kwargs):
-
         if self.detail:
             # For detail views, we must explicitly bypass the NestedViewSetMixin.
             return super(NestedViewSetMixin, self).get_queryset(*args, **kwargs)
-
         queryset = super().get_queryset(*args, **kwargs)
-        if self.action == 'list':
+        if not self.detail:
             return queryset.model.optimize_queryset_for_list(queryset)
         else:
             # This is called to retrieve an individual record. How much do we
