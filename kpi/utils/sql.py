@@ -3,18 +3,15 @@ from contextlib import contextmanager
 
 import sqlparse
 
-_LOCK = threading.Lock()
+lock = threading.Lock()
+
 
 @contextmanager
 def disable_max_tokens(*args, **kwargs):
-    """
-    Temporarily turns off SQLParse MAX_GROUPING_TOKENS. Use only for trusted SQL input
-    """
-    with _LOCK:
-        current_max_tokens = sqlparse.engine.grouping.MAX_GROUPING_TOKENS
+    with lock:
+        old_limit = sqlparse.engine.grouping.MAX_GROUPING_TOKENS
         sqlparse.engine.grouping.MAX_GROUPING_TOKENS = None
-    try:
-        yield
-    finally:
-        with _LOCK:
-            sqlparse.engine.grouping.MAX_GROUPING_TOKENS = current_max_tokens
+        try:
+            yield
+        finally:
+            sqlparse.engine.grouping.MAX_GROUPING_TOKENS = old_limit

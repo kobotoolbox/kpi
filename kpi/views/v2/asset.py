@@ -639,9 +639,11 @@ class AssetViewSet(
         if self.detail:
             # For detail views, we must explicitly bypass the NestedViewSetMixin.
             return super(NestedViewSetMixin, self).get_queryset(*args, **kwargs)
-        queryset = super().get_queryset(*args, **kwargs)
         # if it's not a detail view, it requires a list, so optimize for list
-        return queryset.model.optimize_queryset_for_list(queryset)
+        queryset = super().get_queryset(*args, **kwargs)
+        if self.action == 'list':
+            return queryset.model.optimize_queryset_for_list(queryset)
+        return queryset
 
     def get_metadata(self, queryset):
         """
