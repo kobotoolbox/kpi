@@ -5,7 +5,6 @@ from django.conf import settings
 from django.contrib.auth.models import AnonymousUser, Permission
 from django.core.files.base import ContentFile
 from django.test import TestCase
-from django.utils import timezone
 from django_digest.test import DigestAuth
 from rest_framework import status
 from rest_framework.reverse import reverse
@@ -98,7 +97,7 @@ class TestAbstractViewSet(RequestMixin, MakeSubmissionMixin, TestCase):
         self.xform.kpi_asset_uid = asset.uid
         self.xform.save()
         response = self.client.get(
-            reverse(URL_NAMESPACE+':asset-detail', args=[asset.uid])
+            reverse(URL_NAMESPACE + ':asset-detail', args=[asset.uid])
         )
 
         if assert_creation is True:

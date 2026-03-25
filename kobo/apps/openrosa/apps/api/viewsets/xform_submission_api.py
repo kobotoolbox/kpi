@@ -37,9 +37,6 @@ from kobo.apps.openrosa.schema_extensions.v2.submission.serializers import (
     OpenRosaResponse,
     SubmissionResponse,
 )
-from kpi.schema_extensions.v2.openrosa.serializers import (
-    OpenRosaSubmissionRequest as OpenRosaPayload,
-)
 from kpi.authentication import (
     BasicAuthentication,
     DigestAuthentication,
@@ -47,6 +44,9 @@ from kpi.authentication import (
     TokenAuthentication,
 )
 from kpi.parsers import RawFilenameMultiPartParser
+from kpi.schema_extensions.v2.openrosa.serializers import (
+    OpenRosaSubmissionRequest as OpenRosaPayload,
+)
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import open_api_201_created_response
@@ -87,7 +87,9 @@ def create_instance_from_json(username, request):
 
 @extend_schema_view(
     create_authenticated=extend_schema(
-        description=read_md('openrosa', 'submission/authenticated.md', api_version='openrosa'),
+        description=read_md(
+            'openrosa', 'submission/authenticated.md', api_version='openrosa'
+        ),
         request={
             'multipart/form-data': OpenRosaPayload,
             'application/json': JSONSubmissionPayload,
@@ -112,7 +114,9 @@ def create_instance_from_json(username, request):
         operation_id='submission_authenticated',
     ),
     create_anonymous=extend_schema(
-        description=read_md('openrosa', 'submission/anonymous.md', api_version='openrosa'),
+        description=read_md(
+            'openrosa', 'submission/anonymous.md', api_version='openrosa'
+        ),
         request={
             'multipart/form-data': OpenRosaPayload,
             'application/json': JSONSubmissionPayload,
@@ -139,7 +143,9 @@ def create_instance_from_json(username, request):
         operation_id='submission_anonymous',
     ),
     create_data_collector=extend_schema(
-        description=read_md('openrosa', 'submission/data_collector.md', api_version='openrosa'),
+        description=read_md(
+            'openrosa', 'submission/data_collector.md', api_version='openrosa'
+        ),
         request={
             'multipart/form-data': OpenRosaPayload,
             'application/json': JSONSubmissionPayload,

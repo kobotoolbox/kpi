@@ -92,7 +92,9 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         return {
             'Date': dt,
             'X-OpenRosa-Version': '1.0',
-            'X-OpenRosa-Accept-Content-Length': settings.OPENROSA_DEFAULT_CONTENT_LENGTH,
+            'X-OpenRosa-Accept-Content-Length': (
+                settings.OPENROSA_DEFAULT_CONTENT_LENGTH
+            ),
             'Content-Type': 'text/xml; charset=utf-8',
         }
 
@@ -176,7 +178,9 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         return queryset
 
     @extend_schema(
-        description=read_md('openrosa', 'formlist/anonymous.md', api_version='openrosa'),
+        description=read_md(
+            'openrosa', 'formlist/anonymous.md', api_version='openrosa'
+        ),
         responses=open_api_200_ok_response(
             XFormListSerializer,
             media_type='application/xml',
@@ -217,7 +221,9 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         return self.list(request, *args, **kwargs)
 
     @extend_schema(
-        description=read_md('openrosa', 'formlist/authenticated.md', api_version='openrosa'),
+        description=read_md(
+            'openrosa', 'formlist/authenticated.md', api_version='openrosa'
+        ),
         responses=open_api_200_ok_response(
             XFormListSerializer,
             media_type='application/xml',
@@ -255,7 +261,9 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         return self.list(request, *args, **kwargs)
 
     @extend_schema(
-        description=read_md('openrosa', 'formlist/data_collector.md', api_version='openrosa'),
+        description=read_md(
+            'openrosa', 'formlist/data_collector.md', api_version='openrosa'
+        ),
         responses=open_api_200_ok_response(
             XFormListSerializer,
             media_type='application/xml',
@@ -321,7 +329,9 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         )
 
     @extend_schema(
-        description=read_md('openrosa', 'manifest/anonymous.md', api_version='openrosa'),
+        description=read_md(
+            'openrosa', 'manifest/anonymous.md', api_version='openrosa'
+        ),
         responses=open_api_200_ok_response(
             OpenRosaFormManifestResponse,
             media_type='application/xml',
@@ -341,7 +351,9 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         return self.manifest(request, *args, **kwargs)
 
     @extend_schema(
-        description=read_md('openrosa', 'manifest/data_collector.md', api_version='openrosa'),
+        description=read_md(
+            'openrosa', 'manifest/data_collector.md', api_version='openrosa'
+        ),
         responses=open_api_200_ok_response(
             OpenRosaFormManifestResponse,
             media_type='application/xml',
@@ -362,7 +374,9 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         return self.manifest(request, *args, **kwargs)
 
     @extend_schema(
-        description=read_md('openrosa', 'manifest/authenticated.md', api_version='openrosa'),
+        description=read_md(
+            'openrosa', 'manifest/authenticated.md', api_version='openrosa'
+        ),
         responses=open_api_200_ok_response(
             OpenRosaFormManifestResponse,
             media_type='application/xml',
