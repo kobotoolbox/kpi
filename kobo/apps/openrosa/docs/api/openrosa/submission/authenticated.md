@@ -6,24 +6,38 @@ This endpoint is used for adding submissions as an authenticated user.
 
 ### XML Submission
 
-You can submit an XML XForm submission using a `POST` request with `multipart/form-data`.
+Submit an XForm instance as an XML file using `multipart/form-data`.
 
 **Example:**
 
 ```shell
-curl -X POST -F xml_submission_file=@/path/to/submission.xml \
-https://kc.kobotoolbox.org/submission
+curl -X POST https://kc.kobotoolbox.org/submission \
+  -u user:password \
+  -F xml_submission_file=@/path/to/submission.xml
 ```
 
 ### JSON Submission
 
-You can also submit a JSON XForm submission.
+Submit an XForm instance as JSON using `application/json`.
+
+The body must include:
+- `id`: the form's `id_string` (visible in the form URL or settings)
+- `submission`: the form data as a JSON object
+- `submission.meta.instanceID`: a unique UUID for this submission (required)
 
 **Example:**
 
 ```shell
-curl -X POST -d '{"id": "{uid_asset}", "submission": {submission_json}}' \
-http://localhost:8000/submission -u user:pass -H "Content-Type: application/json"
+curl -X POST https://kc.kobotoolbox.org/submission \
+  -u user:password \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": "{id_string}",
+    "submission": {
+      "question_1": "value_1",
+      "meta": {
+        "instanceID": "uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+      }
+    }
+  }'
 ```
-
-The `{uid_asset}` is the `id_string` of your form, and `{submission_json}` is the submission data in JSON format.
