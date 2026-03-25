@@ -190,11 +190,8 @@ class XFormPermissionFilterMixin:
 
         # Anonymous user should not be able to list any data from publicly
         # shared xforms except if they know the direct link.
-        # if `xform` is provided,
-        # e.g.: `/api/v1/metadata.json?xform=1` for XForm #1
-        # or they access a metadata object directly
-        # e.g.: `/api/v1/metadata/5.json` for MetaData #5
-        # we include all publicly shared xforms
+        # If `xform` is provided via query param or direct object access,
+        # we include all publicly shared xforms.
         if xform:
             if xform.shared:
                 kwargs = {keyword: xform.pk}

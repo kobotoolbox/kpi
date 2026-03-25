@@ -82,17 +82,6 @@ class TestXFormListApiWithoutAuthRequired(TestXFormListApiBase):
         self.xform_without_auth.require_auth = False
         self.xform_without_auth.save(update_fields=['require_auth'])
 
-        data = {
-            'owner': self.user.username,
-            'public': False,
-            'public_data': False,
-            'description': 'transportation_with_attachment',
-            'downloadable': True,
-            'encrypted': False,
-            'id_string': 'transportation_with_attachment',
-            'title': 'transportation_with_attachment',
-        }
-
         path = os.path.join(
             settings.OPENROSA_APP_DIR,
             'apps',
@@ -108,7 +97,7 @@ class TestXFormListApiWithoutAuthRequired(TestXFormListApiBase):
             kwargs={'username': self.user.username, 'pk': self.xform_without_auth.pk},
         )
 
-        self.publish_xls_form(data=data, path=path)
+        self.publish_xls_form(path=path)
         self.client.logout()
         self.assertNotEqual(self.xform.pk, self.xform_without_auth.pk)
         self.assertEqual(XForm.objects.all().count(), 2)
@@ -808,7 +797,7 @@ class TestXFormListApiAsDataCollector(TestXFormListApiBase):
             'transportation',
             'transportation_with_attachment.xls',
         )
-        self.publish_xls_form(data=data, path=path)
+        self.publish_xls_form(path=path)
         self.assertNotEqual(self.xform.pk, self.xform_without_auth.pk)
         self.assertEqual(XForm.objects.all().count(), 2)
         self.assertEqual(XForm.objects.filter(require_auth=False).count(), 1)

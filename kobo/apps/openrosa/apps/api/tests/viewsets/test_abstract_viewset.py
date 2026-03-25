@@ -8,6 +8,8 @@ from django.core.files.base import ContentFile
 from django.test import TestCase
 from django.utils import timezone
 from django_digest.test import DigestAuth
+from rest_framework import status
+from rest_framework.reverse import reverse
 from rest_framework.test import APIRequestFactory
 
 from kobo.apps.kobo_auth.shortcuts import User
@@ -52,29 +54,7 @@ class TestAbstractViewSet(RequestMixin, MakeSubmissionMixin, TestCase):
         self._add_permissions_to_user(AnonymousUser())
         self.maxDiff = None
 
-    def publish_xls_form(
-        self, path=None, data=None, use_api=False
-    ):
-        # KoboCAT (v1) API does not allow project creation anymore.
-        # Only KPI API allows that. The project can be only added to KoboCAT
-        # during deployment. Thus, this method will create the XForm object directly
-        # without an API call except if `use_api` is True.
-
-        # Some unit tests still need to test the result of API `v1`
-        # (i.e.: KoboCAT API). For example, to ensure project creation is
-        # not allowed anymore.
-        if not data:
-            data = {
-                'owner': self.user.username,
-                'public': False,
-                'public_data': False,
-                'description': 'transportation_2011_07_25',
-                'downloadable': True,
-                'encrypted': False,
-                'id_string': 'transportation_2011_07_25',
-                'title': 'transportation_2011_07_25',
-            }
-
+    def publish_xls_form(self, path=None):
         if not path:
             path = os.path.join(
                 settings.OPENROSA_APP_DIR,
@@ -108,13 +88,6 @@ class TestAbstractViewSet(RequestMixin, MakeSubmissionMixin, TestCase):
         asset.save()
         self.xform.kpi_asset_uid = asset.uid
         self.xform.save(update_fields=['kpi_asset_uid'])
-        response = self.client.get(
-            reverse(URL_NAMESPACE + ':asset-detail', args=[asset.uid])
-        )
-
-        if assert_creation is True:
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
-            self.form_data = response.data
 
     def user_profile_data(self):
         return {
