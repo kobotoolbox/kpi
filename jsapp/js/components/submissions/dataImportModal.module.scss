@@ -1,0 +1,118 @@
+@use 'scss/colors';
+@use 'scss/mixins';
+
+// Help block — info text + support article link
+.helpBlock {
+  margin-bottom: 20px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: colors.$kobo-gray-700;
+
+  p {
+    margin: 0 0 6px;
+  }
+
+  a {
+    color: colors.$kobo-blue;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+// File picker row
+.fileRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.fileName {
+  font-size: 13px;
+  color: colors.$kobo-gray-700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 300px;
+}
+
+// Visually hidden file input — triggered by the Choose file button
+.hiddenInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+// Disclaimer — checkbox row with warning text
+.disclaimer {
+  font-size: 13px;
+  line-height: 1.5;
+  color: colors.$kobo-gray-800;
+}
+
+// Progress block (uploading phase)
+.progressBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 0;
+  font-size: 13px;
+  color: colors.$kobo-gray-700;
+
+  p {
+    margin: 0;
+  }
+}
+
+.progressBar {
+  width: 100%;
+  height: 8px;
+  appearance: none;
+  border: none;
+  border-radius: 4px;
+  background-color: colors.$kobo-gray-300;
+  overflow: hidden;
+
+  &::-webkit-progress-bar {
+    background-color: colors.$kobo-gray-300;
+    border-radius: 4px;
+  }
+
+  &::-webkit-progress-value {
+    background-color: colors.$kobo-blue;
+    border-radius: 4px;
+    transition: width 0.2s ease;
+  }
+
+  &::-moz-progress-bar {
+    background-color: colors.$kobo-blue;
+    border-radius: 4px;
+  }
+}
+
+.progressLabel {
+  font-size: 12px;
+  color: colors.$kobo-gray-600;
+  align-self: flex-end;
+}
+
+// Success / error result block
+.resultBlock {
+  padding: 4px 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: colors.$kobo-gray-700;
+
+  p {
+    margin: 0;
+  }
+}
+
+.errorText {
+  color: colors.$kobo-red;
+}

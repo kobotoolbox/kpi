@@ -110,6 +110,10 @@ $kobo-modal-header-icon-margin: 10px;
   &.kobo-modal__header-icon--storm {
     color: colors.$kobo-storm;
   }
+
+  &.kobo-modal__header-icon--grey {
+    color: colors.$kobo-gray-800;
+  }
 }
 
 .kobo-modal__content {

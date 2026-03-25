@@ -2010,4 +2010,24 @@ export const dataInterface: DataInterface = {
       data: data,
     })
   },
+
+  /**
+   * Returns the URL used to import submission data from an Excel file.
+   * Used by DataImportModal to construct the XHR request (which needs progress
+   * events and therefore can't use jQuery's $ajax).
+   */
+  getSubmissionImportUrl(assetUid: string): string {
+    return `${ROOT_URL}/api/v2/assets/${assetUid}/data/import/`
+  },
+
+  /**
+   * Poll the status of an async submission import task.
+   * The task UID is returned by the import endpoint when the job is queued.
+   */
+  getSubmissionImportStatus(assetUid: string, taskUid: string): JQuery.jqXHR<any> {
+    return $ajax({
+      url: `${ROOT_URL}/api/v2/assets/${assetUid}/data/import/${taskUid}/`,
+      method: 'GET',
+    })
+  },
 }

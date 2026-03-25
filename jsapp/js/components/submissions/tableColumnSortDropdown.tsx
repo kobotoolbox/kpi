@@ -20,6 +20,8 @@ interface TableColumnSortDropdownProps {
   onHide: (fieldId: string) => void
   isFieldFrozen: boolean
   onFrozenChange: (fieldId: string, isFrozen: boolean) => void
+  isHighlightingDuplicates: boolean
+  onHighlightDuplicatesChange: (fieldId: string) => void
   /**
    * To be put inside trigger, before the predefined content. Please note that
    * the trigger as a whole is clickable, so this additional content would need
@@ -45,6 +47,7 @@ export default function TableColumnSortDropdown(props: TableColumnSortDropdownPr
       <div className='table-column-sort-dropdown-trigger' dir='auto'>
         {props.additionalTriggerContent}
         {props.sortValue && <i className={sortIcon.join(' ')} />}
+        {props.isHighlightingDuplicates && <i className='k-icon k-icon-duplicate' />}
         <i className='k-icon k-icon-caret-up' />
         <i className='k-icon k-icon-caret-down' />
       </div>
@@ -135,6 +138,13 @@ export default function TableColumnSortDropdown(props: TableColumnSortDropdownPr
               ]}
             </button>
           )}
+          <button
+            className='sort-dropdown-menu-button'
+            onClick={() => props.onHighlightDuplicatesChange(props.fieldId)}
+          >
+            <i className='k-icon k-icon-duplicate' />
+            <span>{props.isHighlightingDuplicates ? t('Clear duplicate highlight') : t('Highlight duplicates')}</span>
+          </button>
         </React.Fragment>
       }
     />

@@ -1,0 +1,77 @@
+@use 'scss/mixins';
+@use 'scss/colors';
+@use 'js/components/modals/koboModal.scss';
+
+.root {
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.buttonHasFilters {
+  background-color: colors.$kobo-bg-blue !important;
+}
+
+.content {
+  padding: koboModal.$kobo-modal-padding koboModal.$kobo-modal-padding 0;
+  overflow-y: auto;
+}
+
+.emptyNote {
+  color: colors.$kobo-gray-700;
+  margin: 0 0 koboModal.$kobo-modal-padding;
+}
+
+.filterRow {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.filterField {
+  flex: 2;
+  min-width: 0;
+}
+
+.filterCondition {
+  flex: 1.5;
+  min-width: 0;
+}
+
+.filterValue {
+  flex: 2;
+  min-width: 0;
+}
+
+.filterDelete {
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-end;
+  padding-bottom: 2px;
+}
+
+.filterDeleteOffset {
+  // Align delete button with the input rows when labels are shown on first row
+  padding-bottom: 2px;
+  margin-top: 22px;
+}
+
+.rowLabel {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: colors.$kobo-gray-700;
+  margin-bottom: 4px;
+}
+
+.footer {
+  @include mixins.centerRowFlex;
+
+  justify-content: space-between;
+  gap: 8px;
+  padding: koboModal.$kobo-modal-padding;
+
+  > *:first-child {
+    margin-right: auto;
+  }
+}

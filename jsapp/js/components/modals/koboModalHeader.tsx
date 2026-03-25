@@ -8,7 +8,7 @@ import type { IconName } from '#/k-icons'
 bem.KoboModal__header = makeBem(bem.KoboModal, 'header', 'header')
 bem.KoboModal__headerIcon = makeBem(bem.KoboModal, 'header-icon', 'span')
 
-export type KoboModalHeaderIconColors = 'blue' | 'mid-red' | 'storm'
+export type KoboModalHeaderIconColors = 'blue' | 'mid-red' | 'storm' | 'grey'
 export type KoboModalHeaderBackgroundColors = 'red' | 'grey' | 'white'
 
 interface KoboModalHeaderProps {

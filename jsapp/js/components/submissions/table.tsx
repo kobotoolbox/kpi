@@ -93,11 +93,13 @@ import { stores } from '#/stores'
 import { formatTimeDateShort, recordKeys } from '#/utils'
 import ActionIcon from '../common/ActionIcon'
 import LimitNotifications from '../usageLimits/limitNotifications.component'
+import DataImportModal from './dataImportModal'
 import RepeatGroupCell from './RepeatGroupCell'
 import AudioCell from './audioCell'
 import MediaCell from './mediaCell'
 
 const DEFAULT_PAGE_SIZE = 30
+const NUM_DUPLICATE_COLORS = 5
 
 interface DataTableProps {
   asset: AssetResponse
@@ -129,6 +131,9 @@ interface DataTableState {
   fetchInstance?: ReactTableInstance
   lastChecked: string | null
   shiftSelection: DataTableSelectedRows
+  showDataImportModal: boolean
+  /** fieldId of the column currently being highlighted for duplicates, or null */
+  highlightDuplicatesColumn: string | null
 }
 
 /**
@@ -174,6 +179,8 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       submissionPager: undefined,
       lastChecked: null,
       shiftSelection: {},
+      showDataImportModal: false,
+      highlightDuplicatesColumn: null,
     }
   }
 
@@ -407,6 +414,64 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     tableStore.setFrozenColumn(fieldId, isFrozen)
   }
 
+  onHighlightDuplicatesChange(fieldId: string) {
+    const newValue = this.state.highlightDuplicatesColumn === fieldId ? null : fieldId
+    this.setState({ highlightDuplicatesColumn: newValue }, () => {
+      this._prepColumns(this.state.submissions)
+    })
+  }
+
+  /**
+   * Computes which rows to display when duplicate-highlight mode is active.
+   * Returns null when the mode is off, or an object with the filtered+grouped
+   * rows and a map from cell value → colour-group index.
+   */
+  getHighlightDuplicatesData(): {
+    rows: SubmissionResponse[]
+    groupMap: Map<string, number>
+    hasDuplicates: boolean
+  } | null {
+    const { highlightDuplicatesColumn, submissions } = this.state
+    if (!highlightDuplicatesColumn) {
+      return null
+    }
+
+    // Count how many times each value appears in this column
+    const valueCounts = new Map<string, number>()
+    submissions.forEach((row) => {
+      const value = String(row[highlightDuplicatesColumn] ?? '')
+      valueCounts.set(value, (valueCounts.get(value) ?? 0) + 1)
+    })
+
+    // Keep only rows whose value appears more than once
+    const duplicateRows = submissions.filter(
+      (row) => (valueCounts.get(String(row[highlightDuplicatesColumn] ?? '')) ?? 0) > 1,
+    )
+
+    if (duplicateRows.length === 0) {
+      return { rows: [], groupMap: new Map(), hasDuplicates: false }
+    }
+
+    // Sort so rows with the same value are adjacent (visual grouping)
+    const sorted = [...duplicateRows].sort((a, b) => {
+      const aVal = String(a[highlightDuplicatesColumn] ?? '')
+      const bVal = String(b[highlightDuplicatesColumn] ?? '')
+      return aVal.localeCompare(bVal)
+    })
+
+    // Assign a stable colour-group index to each unique duplicate value
+    const groupMap = new Map<string, number>()
+    let groupIndex = 0
+    sorted.forEach((row) => {
+      const value = String(row[highlightDuplicatesColumn] ?? '')
+      if (!groupMap.has(value)) {
+        groupMap.set(value, groupIndex++)
+      }
+    })
+
+    return { rows: sorted, groupMap, hasDuplicates: true }
+  }
+
   // We need to distinguish between repeated groups with nested values
   // and other question types that use a flat nested key (i.e. with '/').
   // If submission response contains the parent key, we should use that.
@@ -580,6 +645,8 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             onHide={this.onHideField.bind(this)}
             isFieldFrozen={tableStore.isFieldFrozen(VALIDATION_STATUS_ID_PROP)}
             onFrozenChange={this.onFieldFrozenChange.bind(this)}
+            isHighlightingDuplicates={this.state.highlightDuplicatesColumn === VALIDATION_STATUS_ID_PROP}
+            onHighlightDuplicatesChange={this.onHighlightDuplicatesChange.bind(this)}
             additionalTriggerContent={<span className='column-header-title'>{t('Validation')}</span>}
           />
         </div>
@@ -779,6 +846,10 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
         elClassNames.push('is-sorted')
       }
 
+      if (this.state.highlightDuplicatesColumn === key) {
+        elClassNames.push('is-highlighting-duplicates')
+      }
+
       let columnIcon: React.DetailedReactHTMLElement<{}, HTMLElement> | null = null
       if (q && q.type) {
         columnIcon = renderQuestionTypeIcon(q.type)
@@ -807,6 +878,8 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
                 onHide={this.onHideField.bind(this)}
                 isFieldFrozen={tableStore.isFieldFrozen(key)}
                 onFrozenChange={this.onFieldFrozenChange.bind(this)}
+                isHighlightingDuplicates={this.state.highlightDuplicatesColumn === key}
+                onHighlightDuplicatesChange={this.onHighlightDuplicatesChange.bind(this)}
                 additionalTriggerContent={
                   <span className='column-header-title' title={columnName}>
                     {columnIcon}
@@ -852,9 +925,8 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
               let mediaAttachment = null
 
               const attachmentIndex: number = row.original._attachments.findIndex(
-                (attachment: SubmissionAttachment) => {
-                  return attachment.media_file_basename === row.value
-                },
+                (attachment: SubmissionAttachment) =>
+                  attachment.media_file_basename === row.value,
               )
 
               if (q.type !== QUESTION_TYPES.text.id && row.original._attachments[attachmentIndex]) {
@@ -974,7 +1046,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       // We set filters here, so they apply for all columns
       if (isTableColumnFilterableByDropdown(columnQuestion?.type)) {
         col.filterable = true
-        col.Filter = ({ filter, onChange }) => (
+        const DropdownFilter = ({ filter, onChange }: { filter: any; onChange: (val: string) => void }) => (
           <select
             onChange={(event) => onChange(event.target.value)}
             style={{ width: '100%' }}
@@ -993,9 +1065,10 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
               })}
           </select>
         )
+        col.Filter = DropdownFilter
       } else if (isTableColumnFilterableByTextInput(columnQuestion?.type, col.id)) {
         col.filterable = true
-        col.Filter = ({ filter, onChange }) => (
+        const TextFilter = ({ filter, onChange }: { filter: any; onChange: (val: string) => void }) => (
           <DebounceInput
             value={filter ? filter.value : undefined}
             debounceTimeout={750}
@@ -1004,6 +1077,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             placeholder={t('Search')}
           />
         )
+        col.Filter = TextFilter
       }
 
       // Ensure frozen columns stay correctly aligned to the left, even after
@@ -1173,11 +1247,11 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     enketoHandler.openSubmission(this.props.asset.uid, sid, EnketoActions.edit)
   }
 
-  onPageStateUpdated(pageState: PageStateStoreState) {
+  onPageStateUpdated(pageStateUpdate: PageStateStoreState) {
     // This function serves purpose only for Submission Modal and only when
     // user reaches the end of currently loaded submissions in the table with
     // the "next" button (and similarly with "prev" button).
-    if (pageState.modal && pageState.modal.type === MODAL_TYPES.SUBMISSION && !pageState.modal.sid) {
+    if (pageStateUpdate.modal && pageStateUpdate.modal.type === MODAL_TYPES.SUBMISSION && !pageStateUpdate.modal.sid) {
       // HACK: this is our way of forcing `react-table` to switch page. There is
       // a way to manually control pagination, but it would require some
       // refactoring to happen. This hack (i.e. using internal `setState` of
@@ -1185,15 +1259,15 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       // `react-table` to v7, but since that major version is a huge overhaul,
       // we would be refactoring everything regardless.
       let page = 0
-      if (pageState.modal.page === 'next') {
+      if (pageStateUpdate.modal.page === 'next') {
         page = this.state.currentPage + 1
-      } else if (pageState.modal.page === 'prev') {
+      } else if (pageStateUpdate.modal.page === 'prev') {
         page = this.state.currentPage - 1
       }
       const fetchInstance = this.state.fetchInstance
       fetchInstance?.setState({ page: page })
 
-      this.setState({ submissionPager: pageState.modal.page }, this.fetchDataForCurrentInstance.bind(this))
+      this.setState({ submissionPager: pageStateUpdate.modal.page }, this.fetchDataForCurrentInstance.bind(this))
     }
   }
 
@@ -1208,7 +1282,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
     if (isChecked) {
       const updatedSelectedRows = { ...selectedRows, [sid]: true }
-      const updatedShiftSelection = {
+      let updatedShiftSelection = {
         ...shiftSelection,
         [sid]: isShiftKeyPressed,
       }
@@ -1219,7 +1293,8 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
         const [start, end] = [lastChecked, sid].map(Number)
         for (let i = Math.min(start, end); i <= Math.max(start, end); i++) {
           updatedSelectedRows[i] = true
-          delete updatedShiftSelection[i]
+          const { [i]: _, ...rest } = updatedShiftSelection
+          updatedShiftSelection = rest
         }
       }
       this.setState({
@@ -1242,14 +1317,15 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
    * Handles whole page bulk checkbox change
    */
   bulkSelectAllRows(isChecked: boolean) {
-    const s = this.state.selectedRows
-    this.state.submissions.forEach((r) => {
-      if (isChecked) {
+    let s = { ...this.state.selectedRows }
+    if (isChecked) {
+      this.state.submissions.forEach((r) => {
         s[r._id] = true
-      } else {
-        delete s[r._id]
-      }
-    })
+      })
+    } else {
+      const uncheckedIds = new Set(this.state.submissions.map((r) => String(r._id)))
+      s = Object.fromEntries(Object.entries(s).filter(([key]) => !uncheckedIds.has(key)))
+    }
 
     // If the entirety of the results has been selected, selectAll should be true
     // Useful when the # of results is smaller than the page size.
@@ -1378,6 +1454,9 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
     const pages = Math.floor((this.state.resultsTotal - 1) / this.state.pageSize + 1)
 
+    const duplicateData = this.getHighlightDuplicatesData()
+    const tableData = duplicateData ? duplicateData.rows : this.state.submissions
+
     const tableClasses = ['-highlight']
     if (this.state.showHXLTags) {
       tableClasses.push('has-hxl-tags-visible')
@@ -1408,6 +1487,15 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             <Button
               type='text'
               size='m'
+              startIcon='upload'
+              onClick={() => this.setState({ showDataImportModal: true })}
+              tooltip={t('Import data from Excel')}
+              tooltipPosition='right'
+            />
+
+            <Button
+              type='text'
+              size='m'
               startIcon='expand'
               onClick={this.toggleFullscreen.bind(this)}
               tooltip={t('Toggle fullscreen')}
@@ -1425,7 +1513,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
           </bem.FormView__item>
         </bem.FormView__group>
         <ReactTable
-          data={this.state.submissions}
+          data={tableData}
           columns={this.state.columns}
           defaultPageSize={DEFAULT_PAGE_SIZE}
           pageSizeOptions={[10, 30, 50, 100, 200, 500]}
@@ -1448,7 +1536,11 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             </React.Fragment>
           }
           loadingText={<LoadingSpinner />}
-          noDataText={t('Your filters returned no submissions.')}
+          noDataText={
+            this.state.highlightDuplicatesColumn !== null && duplicateData && !duplicateData.hasDuplicates
+              ? t('No duplicates found in this column.')
+              : t('Your filters returned no submissions.')
+          }
           pageText={t('Page')}
           ofText={t('of')}
           rowsText={t('rows')}
@@ -1457,11 +1549,25 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
               onScroll: this.onTableScroll.bind(this),
             }
           }}
+          getTrProps={(_state: any, rowInfo?: any) => {
+            if (duplicateData?.hasDuplicates && rowInfo?.original) {
+              const value = String(rowInfo.original[this.state.highlightDuplicatesColumn!] ?? '')
+              const groupIndex = (duplicateData.groupMap.get(value) ?? 0) % NUM_DUPLICATE_COLORS
+              return { className: `rt-tr-duplicate-group-${groupIndex}` }
+            }
+            return {}
+          }}
           filterable
           // Enables RTL support in table cells
           getTdProps={() => {
             return { dir: 'auto' }
           }}
+        />
+
+        <DataImportModal
+          asset={this.props.asset}
+          isOpen={this.state.showDataImportModal}
+          onClose={() => this.setState({ showDataImportModal: false })}
         />
       </bem.FormView>
     )

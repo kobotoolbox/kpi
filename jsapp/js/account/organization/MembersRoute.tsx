@@ -1,6 +1,7 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 
 import { Box, Divider, Group, Stack, Text, Title } from '@mantine/core'
+import MembersFilter, { type MemberFilterDefinition } from './MembersFilter'
 import { useDisclosure } from '@mantine/hooks'
 import { keepPreviousData } from '@tanstack/react-query'
 import UniversalTable, { DEFAULT_PAGE_SIZE, type UniversalTableColumn } from '#/UniversalTable'
@@ -27,6 +28,9 @@ import MemberActionsDropdown from './MemberActionsDropdown'
 import MemberRoleSelector from './MemberRoleSelector'
 import styles from './membersRoute.module.scss'
 
+type SortColumn = 'name' | 'status' | 'date_joined' | 'role'
+type SortDirection = 'asc' | 'desc'
+
 export default function MembersRoute() {
   const [organization] = useOrganizationAssumed()
   const isUserAdminOrOwner =
@@ -39,6 +43,32 @@ export default function MembersRoute() {
     limit: DEFAULT_PAGE_SIZE,
     offset: 0,
   })
+
+  const [searchQuery, setSearchQuery] = useState('')
+  const [activeFilters, setActiveFilters] = useState<MemberFilterDefinition[]>([])
+
+  const [sortColumn, setSortColumn] = useState<SortColumn | null>(null)
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc')
+
+  function handleSort(column: SortColumn) {
+    if (sortColumn === column) {
+      setSortDirection((d) => (d === 'asc' ? 'desc' : 'asc'))
+    } else {
+      setSortColumn(column)
+      setSortDirection('asc')
+    }
+  }
+
+  function SortHeader({ label, column }: { label: string; column: SortColumn }) {
+    const isActive = sortColumn === column
+    const iconName = isActive && sortDirection === 'asc' ? 'k-icon-angle-up' : 'k-icon-angle-down'
+    return (
+      <button className={styles.sortHeader} onClick={() => handleSort(column)}>
+        {label}
+        <i className={`k-icon ${iconName} ${styles.sortIcon}${isActive ? ` ${styles.sortIconActive}` : ''}`} />
+      </button>
+    )
+  }
 
   const membersQuery = useOrganizationsMembersList(organization.id, pagination, {
     query: {
@@ -69,10 +99,105 @@ export default function MembersRoute() {
     return { invite, member }
   }
 
+  const sortedQueryResult = useMemo(() => {
+    if (membersQuery.data?.status !== 200) return membersQuery
+
+    const query = searchQuery.trim().toLowerCase()
+
+    let filtered = membersQuery.data.data.results
+
+    // Apply search
+    if (query) {
+      filtered = filtered.filter((obj) => {
+        const isInvite =
+          obj.invite?.status === InviteStatusChoicesEnum.pending ||
+          obj.invite?.status === InviteStatusChoicesEnum.resent
+        const name = isInvite
+          ? (obj.invite?.invitee ?? '')
+          : obj.user__extra_details__name || obj.user__username
+        return name.toLowerCase().includes(query)
+      })
+    }
+
+    // Apply filters
+    if (activeFilters.length > 0) {
+      filtered = filtered.filter((obj) => {
+        const isInvite =
+          obj.invite?.status === InviteStatusChoicesEnum.pending ||
+          obj.invite?.status === InviteStatusChoicesEnum.resent
+
+        return activeFilters.every((f) => {
+          if (!f.field || !f.condition || f.value === undefined) return true
+
+          let matches = false
+          if (f.field === 'status') {
+            const memberStatus = isInvite ? 'invited' : 'active'
+            matches = memberStatus === f.value
+          } else if (f.field === 'role') {
+            const memberRole = isInvite ? (obj.invite?.invitee_role ?? '') : obj.role
+            matches = memberRole === f.value
+          } else if (f.field === 'twofa') {
+            const hasTwofa = !isInvite && obj.user__has_mfa_enabled
+            matches = f.value === 'enabled' ? hasTwofa : !hasTwofa
+          }
+
+          return f.condition === 'isNot' ? !matches : matches
+        })
+      })
+    }
+
+    if (!sortColumn) {
+      return {
+        ...membersQuery,
+        data: { status: 200 as const, data: { ...membersQuery.data.data, results: filtered } },
+      } as typeof membersQuery
+    }
+
+    const results = [...filtered].sort((a, b) => {
+      const isInviteA =
+        a.invite?.status === InviteStatusChoicesEnum.pending || a.invite?.status === InviteStatusChoicesEnum.resent
+      const isInviteB =
+        b.invite?.status === InviteStatusChoicesEnum.pending || b.invite?.status === InviteStatusChoicesEnum.resent
+
+      let aVal: string
+      let bVal: string
+
+      switch (sortColumn) {
+        case 'name':
+          aVal = isInviteA ? (a.invite?.invitee ?? '') : (a.user__extra_details__name || a.user__username)
+          bVal = isInviteB ? (b.invite?.invitee ?? '') : (b.user__extra_details__name || b.user__username)
+          break
+        case 'status':
+          aVal = isInviteA ? 'invited' : 'active'
+          bVal = isInviteB ? 'invited' : 'active'
+          break
+        case 'date_joined':
+          aVal = isInviteA ? (a.invite?.created ?? '') : a.date_joined
+          bVal = isInviteB ? (b.invite?.created ?? '') : b.date_joined
+          break
+        case 'role':
+          aVal = isInviteA ? (a.invite?.invitee_role ?? '') : a.role
+          bVal = isInviteB ? (b.invite?.invitee_role ?? '') : b.role
+          break
+      }
+
+      const cmp = aVal.toLowerCase().localeCompare(bVal.toLowerCase())
+      return sortDirection === 'asc' ? cmp : -cmp
+    })
+
+    return {
+      ...membersQuery,
+      data: {
+        status: 200 as const,
+        data: { ...membersQuery.data.data, results },
+      },
+    } as typeof membersQuery
+  }, [membersQuery, searchQuery, activeFilters, sortColumn, sortDirection])
+
   const columns: Array<UniversalTableColumn<MemberListResponse>> = [
     {
       key: 'user__extra_details__name',
-      label: t('Name'),
+      label: <SortHeader label={t('Name')} column='name' />,
       cellFormatter: (obj: MemberListResponse) => {
         const { invite, member } = getMemberOrInviteDetails(obj)
         return (
@@ -91,7 +216,7 @@ export default function MembersRoute() {
     },
     {
       key: 'invite',
-      label: t('Status'),
+      label: <SortHeader label={t('Status')} column='status' />,
       size: 120,
       cellFormatter: (obj: MemberListResponse) => {
         const { invite } = getMemberOrInviteDetails(obj)
@@ -104,7 +229,7 @@ export default function MembersRoute() {
     },
     {
       key: 'date_joined',
-      label: t('Date added'),
+      label: <SortHeader label={t('Date added')} column='date_joined' />,
       size: 140,
       cellFormatter: (obj: MemberListResponse) => {
         const { invite, member } = getMemberOrInviteDetails(obj)
@@ -113,7 +238,7 @@ export default function MembersRoute() {
     },
     {
       key: 'role',
-      label: t('Role'),
+      label: <SortHeader label={t('Role')} column='role' />,
       size: 140,
       cellFormatter: (obj: MemberListResponse) => {
         const { invite, member } = getMemberOrInviteDetails(obj)
@@ -233,9 +358,19 @@ export default function MembersRoute() {
         </Box>
       )}
 
+      <div className={styles.searchRow}>
+        <input
+          className={styles.searchInput}
+          placeholder={t('Search members by name')}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.currentTarget.value)}
+        />
+        <MembersFilter filters={activeFilters} onFiltersChange={setActiveFilters} />
+      </div>
+
       <UniversalTable<MemberListResponse, ErrorObject>
         columns={columns}
-        queryResult={membersQuery}
+        queryResult={sortedQueryResult}
         pagination={pagination}
         setPagination={setPagination}
       />

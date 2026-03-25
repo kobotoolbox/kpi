@@ -3,15 +3,13 @@
 # This file is distributed under the same license as the PACKAGE package.
 # 
 # Translators:
-# Translators:
-# Translators:
 # d0d1b3721f62133f8e8b6eb710e58ad1, 2017
 # d0d1b3721f62133f8e8b6eb710e58ad1, 2017
 msgid ""
 msgstr ""
 "Project-Id-Version: KoboToolbox\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-24 16:30+0000\n"
+"POT-Creation-Date: 2024-11-20 19:07+0000\n"
 "PO-Revision-Date: 2016-03-14 19:56+0000\n"
 "Last-Translator: d0d1b3721f62133f8e8b6eb710e58ad1, 2017\n"
 "Language-Team: Portuguese (http://app.transifex.com/kobotoolbox/kobotoolbox/language/pt/)\n"
@@ -25,107 +23,105 @@ msgstr ""
 msgid "Log in as user"
 msgstr "Fazer login como usuário"
 
-#: kobo/apps/accounts/forms.py:67
+#: kobo/apps/accounts/forms.py:68
 msgid "Please enter a valid URL"
 msgstr "Digite um URL válido"
 
-#: kobo/apps/accounts/forms.py:75 kobo/apps/organizations/models.py:45
+#: kobo/apps/accounts/forms.py:76
 msgid "Non-profit organization"
 msgstr "Organização sem fins lucrativos"
 
-#: kobo/apps/accounts/forms.py:76 kobo/apps/organizations/models.py:46
+#: kobo/apps/accounts/forms.py:77
 msgid "Government institution"
 msgstr "Instituição governamental"
 
-#: kobo/apps/accounts/forms.py:77 kobo/apps/organizations/models.py:47
-#| msgid "Educational Services / Higher Education"
+#: kobo/apps/accounts/forms.py:78
 msgid "Educational organization"
 msgstr "Organização educacional"
 
-#: kobo/apps/accounts/forms.py:78 kobo/apps/organizations/models.py:48
+#: kobo/apps/accounts/forms.py:79
 msgid "A commercial/for-profit company"
 msgstr "Uma empresa comercial/com fins lucrativos"
 
-#: kobo/apps/accounts/forms.py:79 kobo/apps/organizations/models.py:49
+#: kobo/apps/accounts/forms.py:80
 msgid "I am not associated with any organization"
 msgstr "Não sou vinculado a nenhuma organização"
 
-#: kobo/apps/accounts/forms.py:87
+#: kobo/apps/accounts/forms.py:88
 msgid "Male"
 msgstr "Masculino"
 
-#: kobo/apps/accounts/forms.py:88
+#: kobo/apps/accounts/forms.py:89
 msgid "Female"
 msgstr "Feminino"
 
-#: kobo/apps/accounts/forms.py:89 kobo/static_lists.py:37
+#: kobo/apps/accounts/forms.py:90 kobo/static_lists.py:37
 msgid "Other"
 msgstr "Outro"
 
-#: kobo/apps/accounts/forms.py:123
+#: kobo/apps/accounts/forms.py:124
 #: kobo/apps/accounts/templates/legal/registration_legal.html:8
 msgid "Terms of Service"
 msgstr "Termos de Serviço"
 
-#: kobo/apps/accounts/forms.py:130
+#: kobo/apps/accounts/forms.py:131
 #: kobo/apps/accounts/templates/legal/registration_legal.html:13
 msgid "Privacy Policy"
 msgstr "Política de Privacidade"
 
-#: kobo/apps/accounts/forms.py:132
+#: kobo/apps/accounts/forms.py:133
 msgid "I agree with the ##terms_of_service## and ##privacy_policy##"
 msgstr "Eu concordo com os ##terms_of_service## e com a ##privacy_policy##"
 
-#: kobo/apps/accounts/forms.py:146
+#: kobo/apps/accounts/forms.py:147
 msgid "Password confirmation"
 msgstr "Confirmação de senha"
 
-#: kobo/apps/accounts/forms.py:148
+#: kobo/apps/accounts/forms.py:149
 msgid "name@organization.org"
 msgstr "name@organization.org"
 
-#: kobo/apps/accounts/forms.py:223
+#: kobo/apps/accounts/forms.py:224
 #: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:127
 msgid "This field is required."
 msgstr "Este campo é obrigatório."
 
-#: kobo/apps/accounts/forms.py:269
-msgid "Email must match SSO server email"
-msgstr ""
-
-#: kobo/apps/accounts/forms.py:322
+#: kobo/apps/accounts/forms.py:317
 msgid "You must type the same password each time."
 msgstr "Você deve digitar sempre a mesma senha."
 
-#: kobo/apps/accounts/mfa/templates/mfa/authenticate.html:19
+#: kobo/apps/accounts/mfa/forms.py:57
+msgid "Enter the ##token length##-character token"
+msgstr "Insira o token de ##token length## caracteres"
+
+#: kobo/apps/accounts/mfa/forms.py:69
+msgid "Your token is invalid"
+msgstr "Seu token é inválido"
+
+#: kobo/apps/accounts/mfa/templates/mfa_token.html:22
 msgid "Please enter your verification token"
 msgstr "Insira seu código de verificação"
 
-#: kobo/apps/accounts/mfa/templates/mfa/authenticate.html:22
+#: kobo/apps/accounts/mfa/templates/mfa_token.html:26
 msgid ""
 "Please enter the verification token displayed by your authenticator app."
 msgstr "Insira o código de verificação exibido em seu aplicativo de autenticação."
 
-#: kobo/apps/accounts/mfa/templates/mfa/authenticate.html:29
+#: kobo/apps/accounts/mfa/templates/mfa_token.html:33
 msgid "Problems with the token"
 msgstr "Problemas com o código"
 
-#: kobo/apps/accounts/mfa/templates/mfa/authenticate.html:38
+#: kobo/apps/accounts/mfa/templates/mfa_token.html:38
 msgid "Continue"
 msgstr "Continuar"
 
-#: kobo/apps/accounts/mfa/templates/mfa/authenticate.html:45
+#: kobo/apps/accounts/mfa/templates/mfa_token.html:46
 msgid "Verification issues"
 msgstr "Problemas de verificação"
 
-#: kobo/apps/accounts/mfa/templates/mfa/authenticate.html:50
+#: kobo/apps/accounts/mfa/templates/mfa_token.html:54
 msgid "Back"
 msgstr "Voltar"
-
-#: kobo/apps/accounts/serializers.py:41 kobo/apps/accounts/serializers.py:46
-#: kpi/serializers/current_user.py:321
-msgid "This action is not allowed."
-msgstr ""
 
 #: kobo/apps/accounts/templates/account/email/email_confirmation_message.txt:3
 msgid ""
@@ -159,15 +155,14 @@ msgid ""
 msgstr "Confirmar a sua conta lhe dará acesso a aplicativos do KoboToolbox. Portanto, visite a seguinte URL para finalizar a ativação da sua nova conta."
 
 #: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:16
-#| msgid "Username"
-msgid "Your username is:"
-msgstr ""
+msgid "Your username is: "
+msgstr "Seu nome de usuário é: "
 
 #: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:25
 msgid ""
 "For help getting started, check out the KoboToolbox user documentation: "
-"https://support.kobotoolbox.com"
-msgstr ""
+"https://support.kobotoolbox.com "
+msgstr "Para ajudar você a começar, aqui está a documentação de usuário do KoboToolbox: https://support.kobotoolbox.com "
 
 #: kobo/apps/accounts/templates/account/email/email_confirmation_signup_message.txt:27
 msgid ""
@@ -236,36 +231,36 @@ msgstr "Se foi você, experimente inserir outro endereço de e-mail que porventu
 msgid "KoboToolbox Password Reset Unsuccessful"
 msgstr "Redefinição de senha do KoboToolbox sem sucesso"
 
-#: kobo/apps/accounts/templates/account/email_confirm.html:18
+#: kobo/apps/accounts/templates/account/email_confirm.html:15
 msgid "Confirm E-mail Address"
 msgstr "Confirme seu endereço de e-mail"
 
-#: kobo/apps/accounts/templates/account/email_confirm.html:22
+#: kobo/apps/accounts/templates/account/email_confirm.html:19
 #, python-format
 msgid ""
 "Please confirm that <a href=\"mailto:%(email)s\">%(email)s</a> is an e-mail "
 "address for user %(user_display)s."
 msgstr "Confirme que <a href=\"mailto:%(email)s\">%(email)s</a> é um endereço de e-mail para o usuário %(user_display)s."
 
-#: kobo/apps/accounts/templates/account/email_confirm.html:29
+#: kobo/apps/accounts/templates/account/email_confirm.html:26
 msgid "Confirm"
 msgstr "Confirmar"
 
-#: kobo/apps/accounts/templates/account/email_confirm.html:33
+#: kobo/apps/accounts/templates/account/email_confirm.html:30
 msgid "Activation failed"
 msgstr "A ativação falhou"
 
-#: kobo/apps/accounts/templates/account/email_confirm.html:36
+#: kobo/apps/accounts/templates/account/email_confirm.html:33
 msgid ""
 "Sorry, we couldn't activate your account. The link we sent you has expired."
 msgstr "Desculpe, não pudemos ativar sua conta. O link que lhe enviamos expirou."
 
-#: kobo/apps/accounts/templates/account/email_confirm.html:42
+#: kobo/apps/accounts/templates/account/email_confirm.html:39
 msgid ""
-"This e-mail confirmation link expired or is invalid. If you need to request "
-"a new link to verify your email address change, please go to your account "
-"settings page and enter your email address again."
-msgstr ""
+"This e-mail confirmation link expired or is invalid.\n"
+"      If you need to request a new link to verify your email address change,\n"
+"      please go to your account settings page and enter your email address again."
+msgstr "Este link de confirmação de e-mail expirou ou é inválido.\n      Se você precisar solicitar um novo link para verificar a sua alteração de endereço de e-mail,\n      vá para a página de configuração de sua conta e insira seu endereço de e-mail novamente."
 
 #: kobo/apps/accounts/templates/account/login.html:29
 msgid "Login"
@@ -459,25 +454,23 @@ msgid ""
 "character must be a letter."
 msgstr "Os nomes de usuário devem ter entre 2 e 30 caracteres e podem conter apenas letras minúsculas, números e sublinhados, sendo que o primeiro caractere deve ser uma letra."
 
-#: kobo/apps/hook/serializers/v2/hook.py:85
-#| msgid "Invalid token."
+#: kobo/apps/hook/serializers/v2/hook.py:46
 msgid "Invalid scheme"
 msgstr "Esquema inválido"
 
-#: kobo/apps/hook/serializers/v2/hook.py:88
+#: kobo/apps/hook/serializers/v2/hook.py:49
 msgid "Unsecured endpoint is not allowed"
 msgstr "O terminal externo não seguro não é permitido"
 
-#: kobo/apps/hook/serializers/v2/hook.py:99
-#| msgid "Invalid token."
+#: kobo/apps/hook/serializers/v2/hook.py:60
 msgid "Invalid JSON"
 msgstr "JSON inválido"
 
-#: kobo/apps/hook/serializers/v2/hook.py:109
+#: kobo/apps/hook/serializers/v2/hook.py:70
 msgid "Can be used only with JSON submission format"
 msgstr "Pode ser usado somente com o formato de envio JSON"
 
-#: kobo/apps/hook/tasks.py:145
+#: kobo/apps/hook/tasks.py:146
 msgid "REST Services Failure Report"
 msgstr "Relatório de Falha dos Serviços REST"
 
@@ -513,12 +506,6 @@ msgstr "Data"
 
 #: kobo/apps/hook/templates/reports/failures_email_body.html:10
 #: kobo/apps/hook/templates/reports/failures_email_body.txt:10
-#: kobo/apps/organizations/templates/emails/accepted_org_invite.html:2
-#: kobo/apps/organizations/templates/emails/accepted_org_invite.txt:2
-#: kobo/apps/organizations/templates/emails/declined_org_invite.html:2
-#: kobo/apps/organizations/templates/emails/declined_org_invite.txt:2
-#: kobo/apps/organizations/templates/emails/expired_org_invite.html:4
-#: kobo/apps/organizations/templates/emails/expired_org_invite.txt:4
 #: kobo/apps/project_ownership/templates/emails/accepted_invite.html:5
 #: kobo/apps/project_ownership/templates/emails/accepted_invite.txt:3
 #: kobo/apps/project_ownership/templates/emails/declined_invite.html:5
@@ -527,8 +514,6 @@ msgstr "Data"
 #: kobo/apps/project_ownership/templates/emails/expired_invite.txt:5
 #: kobo/apps/project_ownership/templates/emails/new_invite.html:5
 #: kobo/apps/project_ownership/templates/emails/new_invite.txt:5
-#: kobo/apps/project_ownership/templates/emails/new_invite_org.html:5
-#: kobo/apps/project_ownership/templates/emails/new_invite_org.txt:5
 msgid "Dear"
 msgstr "Caro(a)"
 
@@ -537,33 +522,29 @@ msgstr "Caro(a)"
 msgid "Some submissions could not be sent to their external endpoints."
 msgstr "Não foi possível mandar alguns envios para o terminal externo."
 
-#: kobo/apps/hook/views/v2/hook.py:186
+#: kobo/apps/hook/views/v2/hook.py:178
 msgid "Task successfully scheduled"
 msgstr "Tarefa agendada com sucesso"
 
-#: kobo/apps/hook/views/v2/hook.py:222
+#: kobo/apps/hook/views/v2/hook.py:214
 msgid "No data to retry"
 msgstr "Sem dados para tentar novamente"
 
-#: kobo/apps/hook/views/v2/hook.py:225
+#: kobo/apps/hook/views/v2/hook.py:217
 msgid "Can not retry on disabled hooks"
 msgstr "Não é possível tentar novamente em webhooks desativados"
 
-#: kobo/apps/hook/views/v2/hook_log.py:130
+#: kobo/apps/hook/views/v2/hook_log.py:120
 msgid "An error has occurred when sending the data. Please try again later."
 msgstr "Ocorreu um erro ao enviar os dados. Tente novamente mais tarde."
 
-#: kobo/apps/hook/views/v2/hook_log.py:135
+#: kobo/apps/hook/views/v2/hook_log.py:125
 msgid "Data is being or has already been processed"
 msgstr "Os dados estão sendo ou já foram processados"
 
 #: kobo/apps/languages/templates/admin/languages_change_list.html:8
 msgid "Import"
 msgstr "Importar"
-
-#: kobo/apps/mass_emails/tasks.py:244
-msgid "Not available"
-msgstr ""
 
 #: kobo/apps/openrosa/apps/api/exceptions.py:12
 msgid "This is not supported by the legacy API anymore"
@@ -573,64 +554,103 @@ msgstr "Isto não é mais suportado pelo Legacy API"
 msgid "No confirmation provided"
 msgstr "Nenhuma confirmação fornecida"
 
-#: kobo/apps/openrosa/apps/api/tools.py:71
+#: kobo/apps/openrosa/apps/api/tools.py:70
 #, python-format
 msgid "User %(user)s has no permission to add xforms to account %(account)s"
 msgstr "Usuário %(user)s não tem permissão para adicionar xforms à conta %(account)s"
 
-#: kobo/apps/openrosa/apps/api/tools.py:83
+#: kobo/apps/openrosa/apps/api/tools.py:82
 #, python-format
 msgid "User %(user)s has no permission to change this form."
 msgstr "Usuário %(user)s não tem permissão para alterar esse formulário."
 
-#: kobo/apps/openrosa/apps/api/tools.py:112
+#: kobo/apps/openrosa/apps/api/tools.py:111
 msgid "You do not have permission to view data from this form."
 msgstr "Você não tem permissão para visualizar dados deste formulário."
 
-#: kobo/apps/openrosa/apps/api/viewsets/attachment_viewset.py:177
+#: kobo/apps/openrosa/apps/api/viewsets/attachment_viewset.py:174
 #, python-format
 msgid "Filename '%s' not found."
 msgstr "Nome do arquivo “%s” não encontrado."
 
-#: kobo/apps/openrosa/apps/api/viewsets/briefcase_api.py:42
+#: kobo/apps/openrosa/apps/api/viewsets/briefcase_api.py:40
 #, python-format
-#| msgid "Invalid token."
 msgid "Invalid formId %s."
 msgstr "FormId %s inválido."
 
-#: kobo/apps/openrosa/apps/api/viewsets/briefcase_api.py:200
+#: kobo/apps/openrosa/apps/api/viewsets/briefcase_api.py:195
 #, python-format
 msgid "%s successfully published."
 msgstr "%s publicado com sucesso."
 
-#: kobo/apps/openrosa/apps/api/viewsets/briefcase_api.py:205
+#: kobo/apps/openrosa/apps/api/viewsets/briefcase_api.py:200
 msgid "Missing xml file."
 msgstr "Aquivo XML faltando."
 
-#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:325
+#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:407
+#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:436
+msgid "`query` and `instance_ids` can't be used together"
+msgstr "`query` e `instance_ids` não podem ser usados juntos"
+
+#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:411
+#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:440
+msgid "Invalid `query` or `submission_ids` params"
+msgstr "Parâmetros `query` ou `submission_ids` inválidos"
+
+#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:418
+msgid "{} submissions have been deleted"
+msgstr "{} os envios foram excluídos"
+
+#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:446
+msgid "No `validation_status.uid` provided"
+msgstr "Sem `validation_status.uid` fornecido"
+
+#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:451
+msgid "{} submissions have been updated"
+msgstr "{} os envios foram atualizados"
+
+#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:487
 #, python-format
 msgid "Invalid pk `%(pk)s`"
 msgstr "Pk `%(pk)s` inválido"
 
-#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:329
+#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:491
 #, python-format
 msgid "Invalid dataid `%(dataid)s`"
 msgstr "Dataid `%(dataid)s` inválido"
 
-#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:344
+#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:506
 msgid "No data matches with given query."
 msgstr "Nenhum dado correspondente à consulta fornecida."
 
-#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:361
+#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:523
 #, python-format
 msgid "Invalid pk %(pk)s"
 msgstr "Pk %(pk)s inválido"
 
-#: kobo/apps/openrosa/apps/api/viewsets/xform_submission_api.py:69
+#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:627
+msgid "Data id not provided."
+msgstr "Dados do id não fornecidos."
+
+#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:631
+msgid "`return_url` not provided."
+msgstr "`return_url` não fornecido."
+
+#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:643
+msgid ""
+"Cannot edit submissions while \"Require authentication to see form and "
+"submit data\" is disabled for your project"
+msgstr "Não é possível editar os envio enquanto “Exigir autenticação para ver o formulário e enviar dados” estiver desabilitada para o seu projeto"
+
+#: kobo/apps/openrosa/apps/api/viewsets/data_viewset.py:667
+msgid "Data id not provided"
+msgstr "Dados de identificação não fornecidos"
+
+#: kobo/apps/openrosa/apps/api/viewsets/xform_submission_api.py:56
 msgid "No submission key provided."
 msgstr "Nenhuma chave de envio fornecida."
 
-#: kobo/apps/openrosa/apps/api/viewsets/xform_submission_api.py:296
+#: kobo/apps/openrosa/apps/api/viewsets/xform_submission_api.py:205
 msgid "Unable to create submission."
 msgstr "Incapaz de criar envio."
 
@@ -655,80 +675,64 @@ msgstr "Nenhum XLSForm encontrado."
 msgid "Only a form's owner can overwrite its contents"
 msgstr "Apenas o proprietário de um formulário pode reescrever seu conteúdo"
 
-#: kobo/apps/openrosa/apps/logger/exceptions.py:21
-msgid "Attachment with same name already exists"
-msgstr ""
-
-#: kobo/apps/openrosa/apps/logger/exceptions.py:26
-msgid "Submission with this instance ID already exists"
-msgstr ""
-
-#: kobo/apps/openrosa/apps/logger/exceptions.py:31
-msgid "Duplicate Instance"
-msgstr "Instância duplicada"
-
-#: kobo/apps/openrosa/apps/logger/exceptions.py:48
-msgid "Empty instance"
-msgstr "Instância vazia"
-
-#: kobo/apps/openrosa/apps/logger/exceptions.py:53
-msgid "Could not determine the user"
-msgstr ""
-
-#: kobo/apps/openrosa/apps/logger/exceptions.py:58
-msgid "Could not determine the instance ID"
-msgstr ""
-
-#: kobo/apps/openrosa/apps/logger/exceptions.py:67
-msgid "The instance could not be parsed"
-msgstr ""
-
-#: kobo/apps/openrosa/apps/logger/exceptions.py:72
-msgid "Submission is currently being processed."
-msgstr ""
-
-#: kobo/apps/openrosa/apps/logger/models/xform.py:67
+#: kobo/apps/openrosa/apps/logger/models/xform.py:71
 msgid "Require authentication to see form and submit data"
 msgstr "Exigir autenticação para ver o fomulário e enviar dados"
 
-#: kobo/apps/openrosa/apps/logger/models/xform.py:75
+#: kobo/apps/openrosa/apps/logger/models/xform.py:79
 msgid "ID"
 msgstr "ID"
 
-#: kobo/apps/openrosa/apps/logger/models/xform.py:104
+#: kobo/apps/openrosa/apps/logger/models/xform.py:107
 msgid "XForm"
 msgstr "XForm"
 
-#: kobo/apps/openrosa/apps/logger/models/xform.py:105
+#: kobo/apps/openrosa/apps/logger/models/xform.py:108
 msgid "XForms"
 msgstr "XForms"
 
-#: kobo/apps/openrosa/apps/logger/models/xform.py:203
+#: kobo/apps/openrosa/apps/logger/models/xform.py:111
+msgid "Can make submissions to the form"
+msgstr "É possível fazer envios para o formulário"
+
+#: kobo/apps/openrosa/apps/logger/models/xform.py:112
+msgid "Can transfer form ownership."
+msgstr "É possível transferir propriedade do formulário."
+
+#: kobo/apps/openrosa/apps/logger/models/xform.py:113
+msgid "Can validate submissions"
+msgstr "É possível validar os envios"
+
+#: kobo/apps/openrosa/apps/logger/models/xform.py:114
+msgid "Can delete submissions"
+msgstr "É possível excluir os envios"
+
+#: kobo/apps/openrosa/apps/logger/models/xform.py:242
 #, python-format
 msgid ""
 "Your updated form's id_string '%(new_id)s' must match the existing forms' "
 "id_string '%(old_id)s'."
 msgstr "A id_string “%(new_id)s” do seu formulário atualizado deve corresponder à id_string “%(old_id)s” dos formulários existentes."
 
-#: kobo/apps/openrosa/apps/logger/models/xform.py:212
+#: kobo/apps/openrosa/apps/logger/models/xform.py:251
 msgid ""
 "In strict mode, the XForm ID must be a valid slug and contain no spaces."
 msgstr "No modo estrito, o ID do XForm deve ser um slug válido e não conter espaços."
 
-#: kobo/apps/openrosa/apps/logger/models/xform.py:226
+#: kobo/apps/openrosa/apps/logger/models/xform.py:265
 msgid "Submission Count"
 msgstr "Contagem de envios"
 
-#: kobo/apps/openrosa/apps/logger/models/xform.py:274
+#: kobo/apps/openrosa/apps/logger/models/xform.py:301
 msgid "There should be a single id string."
 msgstr "Deve haver um único id string."
 
-#: kobo/apps/openrosa/apps/logger/models/xform.py:299
+#: kobo/apps/openrosa/apps/logger/models/xform.py:326
 msgid "There should be a single title."
 msgstr "Deve haver um único título."
 
 #: kobo/apps/openrosa/apps/logger/views.py:68
-#: kobo/apps/openrosa/libs/serializers/data_serializer.py:111
+#: kobo/apps/openrosa/libs/serializers/data_serializer.py:114
 msgid "Successful submission."
 msgstr "Envio bem-sucedido."
 
@@ -757,19 +761,35 @@ msgid "No XLS file for your form %(id)s"
 msgstr "Nenhum arquivo XLS para o seu formulário %(id)s"
 
 #: kobo/apps/openrosa/apps/logger/views.py:208
-#: kobo/apps/openrosa/apps/viewer/views.py:48
-#: kobo/apps/openrosa/apps/viewer/views.py:101
-#: kobo/apps/openrosa/apps/viewer/views.py:120
-#: kobo/apps/openrosa/apps/viewer/views.py:161
-#: kobo/apps/openrosa/apps/viewer/views.py:189
-#: kobo/apps/openrosa/apps/viewer/views.py:268
+#: kobo/apps/openrosa/apps/viewer/views.py:52
+#: kobo/apps/openrosa/apps/viewer/views.py:102
+#: kobo/apps/openrosa/apps/viewer/views.py:121
+#: kobo/apps/openrosa/apps/viewer/views.py:162
+#: kobo/apps/openrosa/apps/viewer/views.py:190
+#: kobo/apps/openrosa/apps/viewer/views.py:266
 msgid "Not shared."
 msgstr "Não compartilhado."
 
+#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:25
+msgid "Duplicate Instance"
+msgstr "Instância duplicada"
+
+#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:30
+msgid "Could not determine the user."
+msgstr "Impossível determinar o usuário."
+
 #: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:35
-#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:76
-#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:104
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:525
+msgid "The instance could not be parsed."
+msgstr "A instância não pôde ser analisada."
+
+#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:40
+msgid "Empty instance"
+msgstr "Instância vazia"
+
+#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:53
+#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:96
+#: kobo/apps/openrosa/apps/logger/xform_instance_parser.py:111
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:348
 msgid "XML string must have a survey element."
 msgstr "XML string deve conter um elemento de consulta."
 
@@ -804,26 +824,26 @@ msgstr "403 - Acesso restrito"
 #: kobo/apps/openrosa/apps/main/templates/restricted_access.html:8
 #, python-format
 msgid ""
-"Your access is restricted. Please reclaim your access by <a "
-"href=\"%(koboform_url)s/accounts/password/reset/\">changing your "
-"password</a>."
-msgstr ""
+"\n"
+"    Your access is restricted. Please reclaim your access by <a href=\"%(koboform_url)s/accounts/password/reset/\">changing your password</a>.\n"
+"  "
+msgstr "\n    Seu acesso está restrito. Portanto, recupere seu acesso <a href=\"%(koboform_url)s/accounts/password/reset/\">alterando a sua senha</a>.\n  "
 
 #: kobo/apps/openrosa/apps/viewer/models/export.py:17
 msgid "Invalid export type specified"
 msgstr "Tipo de exportação inválida especificado"
 
-#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:141
-#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:193
+#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:111
+#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:163
 msgid "Invalid start/limit params"
 msgstr "Parâmetros de início/limite inválidos"
 
-#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:157
+#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:127
 #, python-format
 msgid "Invalid pipeline! %s"
 msgstr "Pipeline inválido! %s"
 
-#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:159
+#: kobo/apps/openrosa/apps/viewer/models/parsed_instance.py:129
 #, python-format
 msgid "Invalid query! %s"
 msgstr "Consulta inválida! %s"
@@ -873,7 +893,6 @@ msgid "Create Export"
 msgstr "Criar exportação"
 
 #: kobo/apps/openrosa/apps/viewer/templates/export_list.html:65
-#| msgid "Username"
 msgid "Filename"
 msgstr "Nome do arquivo"
 
@@ -902,27 +921,26 @@ msgstr "Excluir exportação"
 msgid "Are you sure you want to delete this export?"
 msgstr "Você tem certeza que deseja excluir essa exportação?"
 
-#: kobo/apps/openrosa/apps/viewer/views.py:57
+#: kobo/apps/openrosa/apps/viewer/views.py:61
 #, python-format
 msgid "%s is not a valid delimiter"
 msgstr "%s não é um delimitador válido"
 
-#: kobo/apps/openrosa/apps/viewer/views.py:77
+#: kobo/apps/openrosa/apps/viewer/views.py:80
 #, python-format
 msgid "%s is not a valid export type"
 msgstr "%s não é um tipo de exportação válido"
 
-#: kobo/apps/openrosa/apps/viewer/views.py:96
-#| msgid "Invalid token."
+#: kobo/apps/openrosa/apps/viewer/views.py:97
 msgid "Invalid export type"
 msgstr "Tipo de exportação inválida"
 
-#: kobo/apps/openrosa/apps/viewer/views.py:242
-#: kobo/apps/openrosa/apps/viewer/views.py:246
+#: kobo/apps/openrosa/apps/viewer/views.py:240
+#: kobo/apps/openrosa/apps/viewer/views.py:244
 msgid "Attachment not found"
 msgstr "Anexo não encontrado"
 
-#: kobo/apps/openrosa/apps/viewer/views.py:307
+#: kobo/apps/openrosa/apps/viewer/views.py:301
 msgid "Error: Attachment not found"
 msgstr "Erro: Anexo não encontrado"
 
@@ -943,7 +961,7 @@ msgstr "A autenticação de múltiplos fatores está habilitada para esta conta.
 msgid "User '%(value)s' does not exist."
 msgstr "Usuário “%(value)s” não existe."
 
-#: kobo/apps/openrosa/libs/serializers/data_serializer.py:45
+#: kobo/apps/openrosa/libs/serializers/data_serializer.py:47
 #, python-format
 msgid "Invalid query: %(query)s"
 msgstr "Consulta inválida: %(query)s"
@@ -995,7 +1013,6 @@ msgid "Cannot determine content type"
 msgstr "Não é possível determinar o tipo do conteúdo"
 
 #: kobo/apps/openrosa/libs/serializers/metadata_serializer.py:189
-#| msgid "Invalid token."
 msgid "Invalid content type"
 msgstr "Tipo de conteúdo inválido"
 
@@ -1836,7 +1853,6 @@ msgid "Sudan"
 msgstr "Sudão"
 
 #: kobo/apps/openrosa/libs/utils/country_field.py:218
-#| msgid "Username"
 msgid "Suriname"
 msgstr "Suriname"
 
@@ -1992,276 +2008,99 @@ msgstr "Zimbábue"
 msgid "Unknown or unspecified country"
 msgstr "Desconhecido ou países não especificado"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:134
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:125
 msgid "Forbidden"
 msgstr "Proibido"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:144
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:135
 msgid ""
 "Forbidden attempt to edit a submission. To make a new submission, Remove "
 "`deprecatedID` from the submission XML and try again."
 msgstr "Tentativa de editar um envio proibida. Para realizar um novo envio, Remova `deprecatedID` do envio XML e tente novamente."
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:456
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:306
 msgid "Username or ID required."
 msgstr "Nome de usuário ou ID obrigatórios."
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:459
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:309
 msgid "Received empty submission. No instance was created"
 msgstr "Envio vazio recebido. Nenhuma instância foi criada"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:462
-msgid "Instance ID is required"
-msgstr ""
-
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:465
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:312
 msgid "Form is not active"
 msgstr "O formulário não está ativo"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:468
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:315
 msgid "Temporarily unavailable"
 msgstr "Temporariamente inativo"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:474
-msgid "The owner of this survey has exceeded their submission limit."
-msgstr ""
-
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:478
-msgid "The owner of this survey has exceeded their storage limit."
-msgstr ""
-
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:483
-msgid "Account is not active"
-msgstr ""
-
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:486
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:318
 msgid "Form does not exist on this account"
 msgstr "Formulário não existe nessa conta"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:489
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:321
 msgid "Improperly formatted XML."
 msgstr "XML formatado incorretamente."
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:507
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:324
+msgid "Duplicate submission"
+msgstr "Envio duplicado"
+
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:330
 msgid "Access denied"
 msgstr "Acesso negado"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:514
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:337
 msgid "File likely corrupted during transmission, please try later."
 msgstr "É possível que o arquivo tenha sido corrompido durante a transmissão. Tente mais tarde."
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:651
-#| msgid "Invalid token."
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:475
 msgid "Invalid URL format."
 msgstr "Formato da URL inválido."
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:663
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:487
 msgid "Form validation timeout, please try again."
 msgstr "Tempo de validação do formulário esgotado. Tente novamente."
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:722
-#: kobo/apps/openrosa/libs/utils/viewer_tools.py:76
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:556
+#: kobo/apps/openrosa/libs/utils/viewer_tools.py:63
 #, python-format
 msgid "Exception in request: %(class)s: %(error)s"
 msgstr "Exceção na solicitação: %(class)s:%(error)s"
 
-#: kobo/apps/openrosa/libs/utils/logger_tools.py:755
+#: kobo/apps/openrosa/libs/utils/logger_tools.py:589
 msgid "The requested file could not be found."
 msgstr "O arquivo solicitado não pôde ser encontrado."
 
-#: kobo/apps/openrosa/libs/utils/middleware.py:184 kpi/exceptions.py:111
+#: kobo/apps/openrosa/libs/utils/middleware.py:181 kpi/exceptions.py:102
 msgid ""
 "Your access is restricted. Please reclaim your access by changing your "
 "password at ##koboform_url##/accounts/password/reset/."
 msgstr "Seu acesso está restrito. Recupere seu acesso alterando sua senha em ##koboform_url##/contas/senha/redefinir/."
 
-#: kobo/apps/organizations/models.py:373
-msgid "an admin"
-msgstr ""
-
-#: kobo/apps/organizations/models.py:373
-msgid "a member"
-msgstr ""
-
-#: kobo/apps/organizations/models.py:414
-msgid "You're invited to join ##organization_name## organization"
-msgstr ""
-
-#: kobo/apps/organizations/serializers.py:161
-msgid "Invalid role. Only 'admin' or 'member' are allowed"
-msgstr ""
-
-#: kobo/apps/organizations/tasks.py:84
-msgid "Organization invite has expired"
-msgstr ""
-
-#: kobo/apps/organizations/templates/emails/accepted_org_invite.html:4
-#: kobo/apps/organizations/templates/emails/accepted_org_invite.txt:4
-#, python-format
-msgid ""
-"%(recipient_username)s (%(recipient_email)s) has accepted your request to "
-"join %(organization_name)s organization."
-msgstr ""
-
-#: kobo/apps/organizations/templates/emails/accepted_org_invite.html:6
-#: kobo/apps/organizations/templates/emails/accepted_org_invite.txt:6
-msgid ""
-"All projects, submissions, data storage, transcription and translation usage"
-" for their projects will be transferred to you."
-msgstr ""
-
-#: kobo/apps/organizations/templates/emails/declined_org_invite.html:4
-#: kobo/apps/organizations/templates/emails/declined_org_invite.txt:4
-#, python-format
-msgid ""
-"%(recipient)s has declined your request to join %(organization_name)s "
-"organization."
-msgstr ""
-
-#: kobo/apps/organizations/templates/emails/expired_org_invite.html:5
-#: kobo/apps/organizations/templates/emails/expired_org_invite.txt:5
-#, python-format
-msgid ""
-"The request you have sent to <b>%(recipient)s</b> to join the "
-"%(organization)s organization has expired."
-msgstr ""
-
-#: kobo/apps/organizations/templates/emails/registered_user_invite.html:3
-#: kobo/apps/organizations/templates/emails/registered_user_invite.html:5
-#: kobo/apps/organizations/templates/emails/registered_user_invite.txt:3
-#: kobo/apps/organizations/templates/emails/registered_user_invite.txt:5
-msgid "Hello"
-msgstr ""
-
-#: kobo/apps/organizations/templates/emails/registered_user_invite.html:8
-#: kobo/apps/organizations/templates/emails/registered_user_invite.txt:8
-#, python-format
-msgid ""
-"%(sender_name)s (%(sender_email)s, username %(sender_username)s) has invited"
-" you to join %(organization_name)s organization as %(recipient_role)s."
-msgstr ""
-
-#: kobo/apps/organizations/templates/emails/registered_user_invite.html:10
-#: kobo/apps/organizations/templates/emails/registered_user_invite.txt:10
-#, python-format
-msgid ""
-"If you already have an account (or have several accounts), please sign in "
-"with the correct account. If you don't already have a KoboToolbox account, "
-"you can create one <a href=\"%(base_url)s/accounts/signup/\" "
-"target=\"_blank\">here</a>. After creating your account, click on the link "
-"below to accept the invite."
-msgstr ""
-
-#: kobo/apps/organizations/templates/emails/registered_user_invite.html:13
-#: kobo/apps/organizations/templates/emails/registered_user_invite.txt:13
-#: kobo/apps/organizations/templates/emails/unregistered_user_invite.html:6
-#: kobo/apps/organizations/templates/emails/unregistered_user_invite.txt:6
-msgid "What joining the organization means for you:"
-msgstr ""
-
-#: kobo/apps/organizations/templates/emails/registered_user_invite.html:15
-#: kobo/apps/organizations/templates/emails/registered_user_invite.txt:14
-#: kobo/apps/organizations/templates/emails/unregistered_user_invite.html:8
-#: kobo/apps/organizations/templates/emails/unregistered_user_invite.txt:7
-msgid ""
-"You will benefit from higher usage limits and additional features, as well "
-"as priority user support."
-msgstr ""
-
-#: kobo/apps/organizations/templates/emails/registered_user_invite.html:16
-#: kobo/apps/organizations/templates/emails/registered_user_invite.txt:15
-#: kobo/apps/organizations/templates/emails/unregistered_user_invite.html:9
-#: kobo/apps/organizations/templates/emails/unregistered_user_invite.txt:8
-#, python-format
-msgid ""
-"Any projects owned by your account will be transferred to "
-"%(organization_name)s and all admins in that organization will have access "
-"to your projects and data."
-msgstr ""
-
-#: kobo/apps/organizations/templates/emails/registered_user_invite.html:17
-#: kobo/apps/organizations/templates/emails/registered_user_invite.txt:16
-#: kobo/apps/organizations/templates/emails/unregistered_user_invite.html:10
-#: kobo/apps/organizations/templates/emails/unregistered_user_invite.txt:9
-msgid ""
-"You will continue to have full management permissions for all projects "
-"previously owned by you."
-msgstr ""
-
-#: kobo/apps/organizations/templates/emails/registered_user_invite.html:20
-#: kobo/apps/organizations/templates/emails/registered_user_invite.txt:18
-msgid ""
-"If you want to transfer any projects to another account or remove a project,"
-" please do so before accepting the invitation. This action cannot be undone."
-msgstr ""
-
-#: kobo/apps/organizations/templates/emails/registered_user_invite.html:22
-#: kobo/apps/organizations/templates/emails/registered_user_invite.txt:20
-#, python-format
-msgid ""
-"To respond to this invitation, please use the following link: "
-"%(base_url)s/#/projects/home?organization_invite=%(invite_uid)s&organization_id=%(organization_id)s"
-msgstr ""
-
-#: kobo/apps/organizations/templates/emails/unregistered_user_invite.html:2
-#: kobo/apps/organizations/templates/emails/unregistered_user_invite.txt:2
-msgid "Hello,"
-msgstr ""
-
-#: kobo/apps/organizations/templates/emails/unregistered_user_invite.html:4
-#: kobo/apps/organizations/templates/emails/unregistered_user_invite.txt:4
-#, python-format
-msgid ""
-"We’d like to give you a warm welcome to KoboToolbox. You’re invited to join "
-"%(organization_name)s organization as %(recipient_role)s with "
-"%(recipient_username)s."
-msgstr ""
-
-#: kobo/apps/organizations/templates/emails/unregistered_user_invite.html:13
-#: kobo/apps/organizations/templates/emails/unregistered_user_invite.txt:11
-#, python-format
-msgid ""
-"It takes less than 2 minutes to create your account to join the "
-"organization. Please create your account here: %(base_url)s/accounts/signup/"
-msgstr ""
-
-#: kobo/apps/organizations/templates/emails/unregistered_user_invite.html:14
-#: kobo/apps/organizations/templates/emails/unregistered_user_invite.txt:13
-msgid ""
-"Once you have finished creating your account, respond to this invitation "
-"using the following link:"
-msgstr ""
-
-#: kobo/apps/organizations/templates/emails/unregistered_user_invite.html:16
-#: kobo/apps/organizations/templates/emails/unregistered_user_invite.txt:14
-#, python-format
-msgid ""
-"%(base_url)s/#/projects/home?organization_invite=%(invite_uid)s&organization_id=%(organization_id)s"
-msgstr ""
-
-#: kobo/apps/project_ownership/models/invite.py:98
+#: kobo/apps/project_ownership/models/invite.py:96
 msgid "KoboToolbox project ownership transfer accepted"
 msgstr "Aceita a transferência da responsabilidade pelo projeto KoboToolbox"
 
-#: kobo/apps/project_ownership/models/invite.py:133
+#: kobo/apps/project_ownership/models/invite.py:126
 msgid "Action required: KoboToolbox project ownership transfer request"
 msgstr "Ação obrigatória: solicitação de transferência da responsabilidade pelo projeto KoboToolbox"
 
-#: kobo/apps/project_ownership/models/invite.py:160
+#: kobo/apps/project_ownership/models/invite.py:153
 msgid "KoboToolbox project ownership transfer incomplete"
 msgstr "Transferência da responsabilidade pelo projeto KoboToolbox não foi concluída"
 
-#: kobo/apps/project_ownership/models/transfer.py:251
+#: kobo/apps/project_ownership/models/transfer.py:224
 msgid "Project ownership transferred"
 msgstr "Responsabilidade pelo projeto transferida"
 
-#: kobo/apps/project_ownership/models/transfer.py:253
+#: kobo/apps/project_ownership/models/transfer.py:226
 msgid ""
 "Please note that the ownership of the project **##project_name##** has been "
 "transferred from **##previous_owner##** to **##new_owner##**."
 msgstr "Observe que a responsabilidade pelo projeto **##project_name##** foi transferida de **##previous_owner##** para **##new_owner##**."
 
-#: kobo/apps/project_ownership/models/transfer.py:257
+#: kobo/apps/project_ownership/models/transfer.py:230
 msgid ""
 "Dear ##username##,\n"
 "\n"
@@ -2270,26 +2109,22 @@ msgid ""
 "Note: You will continue to have the same project permissions until they are changed."
 msgstr "Caro(a) ##username##,\n\nA responsabilidade pelo projeto **##project_name##** foi transferida de **##previous_owner##** para **##new_owner##**.\n\nNota: suas permissões relativas ao projeto serão mantidas até que sejam alteradas."
 
-#: kobo/apps/project_ownership/serializers/invite.py:101
+#: kobo/apps/project_ownership/serializers/invite.py:100
+#: kobo/apps/project_ownership/serializers/invite.py:163
 #: kobo/apps/project_ownership/serializers/invite.py:172
-#: kobo/apps/project_ownership/serializers/invite.py:181
 msgid "This field cannot be modified"
 msgstr "Este campo não pode ser modificado"
 
-#: kobo/apps/project_ownership/serializers/invite.py:111
+#: kobo/apps/project_ownership/serializers/invite.py:110
 msgid "You must be the owner of each project you want to transfer"
 msgstr "Você deve ser o responsável de cada projeto que deseja transferir"
 
-#: kobo/apps/project_ownership/serializers/invite.py:147
+#: kobo/apps/project_ownership/serializers/invite.py:146
 msgid ""
 "Project `##asset_uid##` cannot be transferred. Current status: ##status##"
 msgstr "O projeto `##asset_uid##` não pode ser transferido. Status atual: ##status##"
 
-#: kobo/apps/project_ownership/serializers/invite.py:167
-msgid "Must not be in the same organization"
-msgstr ""
-
-#: kobo/apps/project_ownership/tasks.py:185
+#: kobo/apps/project_ownership/tasks.py:182
 msgid "Invite has expired"
 msgstr "O convite expirou"
 
@@ -2300,8 +2135,6 @@ msgstr "O convite expirou"
 #: kobo/apps/project_ownership/templates/emails/expired_invite.txt:3
 #: kobo/apps/project_ownership/templates/emails/new_invite.html:3
 #: kobo/apps/project_ownership/templates/emails/new_invite.txt:3
-#: kobo/apps/project_ownership/templates/emails/new_invite_org.html:3
-#: kobo/apps/project_ownership/templates/emails/new_invite_org.txt:3
 msgid "Projects:"
 msgstr "Projetos:"
 
@@ -2410,7 +2243,6 @@ msgid "The request you have sent to %(recipient)s has expired."
 msgstr "A solicitação que você enviou a %(recipient)s expirou."
 
 #: kobo/apps/project_ownership/templates/emails/new_invite.html:8
-#: kobo/apps/project_ownership/templates/emails/new_invite_org.html:8
 #, python-format
 msgid ""
 "%(sender_username)s (%(sender_email)s) has requested to transfer ownership "
@@ -2430,8 +2262,6 @@ msgstr "Ao aceitar a transferência da responsabilidade, todos os envios, armaze
 
 #: kobo/apps/project_ownership/templates/emails/new_invite.html:12
 #: kobo/apps/project_ownership/templates/emails/new_invite.txt:11
-#: kobo/apps/project_ownership/templates/emails/new_invite_org.html:21
-#: kobo/apps/project_ownership/templates/emails/new_invite_org.txt:18
 #, python-format
 msgid ""
 "%(sender_username)s (%(sender_email)s) has requested to transfer ownership "
@@ -2440,23 +2270,17 @@ msgstr "%(sender_username)s (%(sender_email)s) solicitou a transferência a voc�
 
 #: kobo/apps/project_ownership/templates/emails/new_invite.html:23
 #: kobo/apps/project_ownership/templates/emails/new_invite.txt:19
-#: kobo/apps/project_ownership/templates/emails/new_invite_org.html:40
-#: kobo/apps/project_ownership/templates/emails/new_invite_org.txt:32
 msgid "If you are unsure, please contact the current owner."
 msgstr "Caso tenha dúvidas, entre em contato com o atual responsável."
 
 #: kobo/apps/project_ownership/templates/emails/new_invite.html:25
 #: kobo/apps/project_ownership/templates/emails/new_invite.txt:21
-#: kobo/apps/project_ownership/templates/emails/new_invite_org.html:42
-#: kobo/apps/project_ownership/templates/emails/new_invite_org.txt:34
 #, python-format
 msgid "This transfer request will expire in %(invite_expiry)s days."
 msgstr "Esta solicitação de transferência expirará em %(invite_expiry)s dia(s)."
 
 #: kobo/apps/project_ownership/templates/emails/new_invite.html:27
 #: kobo/apps/project_ownership/templates/emails/new_invite.txt:23
-#: kobo/apps/project_ownership/templates/emails/new_invite_org.html:44
-#: kobo/apps/project_ownership/templates/emails/new_invite_org.txt:36
 #, python-format
 msgid ""
 "To respond to this transfer request, please use the following link: "
@@ -2464,7 +2288,6 @@ msgid ""
 msgstr "Para responder a esta solicitação de transferência, acesse o link: %(base_url)s/#/projects/home?invite=%(invite_uid)s"
 
 #: kobo/apps/project_ownership/templates/emails/new_invite.txt:7
-#: kobo/apps/project_ownership/templates/emails/new_invite_org.txt:7
 #, python-format
 msgid ""
 "%(sender_username)s (%(sender_email)s) has requested to transfer ownership "
@@ -2479,62 +2302,15 @@ msgid ""
 "transferred to you and count against your plan limits."
 msgstr "Ao aceitar a transferência da responsabilidade, todos os envios, armazenamento de dados, e uso de transcrição e tradução para o projeto serão transferidos a você e deduzidos do limite do seu plano."
 
-#: kobo/apps/project_ownership/templates/emails/new_invite_org.html:10
-#: kobo/apps/project_ownership/templates/emails/new_invite_org.html:29
-#: kobo/apps/project_ownership/templates/emails/new_invite_org.txt:9
-msgid ""
-"Because you are part of a team, this project will be owned by the team, but "
-"you will retain the ability to manage project permissions. If you do not "
-"want the team to own this project, then don’t click on the link below."
-msgstr ""
-
-#: kobo/apps/project_ownership/templates/emails/new_invite_org.html:12
-msgid ""
-"If you accept the transfer: <ul> <li>All submissions, data storage, and "
-"transcription/translation usage for this project will count toward the "
-"team’s plan limits</li> <li>If you leave the team in the future, your "
-"account will still retain manage project permissions for this project</li> "
-"</ul>"
-msgstr ""
-
-#: kobo/apps/project_ownership/templates/emails/new_invite_org.html:31
-msgid ""
-"If you accept the transfer: <ul> <li>All submissions, data storage, and "
-"transcription/translation usage for these projects will count toward the "
-"team’s plan limits</li> </ul>"
-msgstr ""
-
-#: kobo/apps/project_ownership/templates/emails/new_invite_org.txt:11
-msgid ""
-"If you accept the transfer: - All submissions, data storage, and "
-"transcription/translation usage for this project will count toward the "
-"team’s plan limits - If you leave the team in the future, your account will "
-"still retain manage project permissions for this project"
-msgstr ""
-
-#: kobo/apps/project_ownership/templates/emails/new_invite_org.txt:23
-msgid ""
-"Because you are part of a team, these projects will be owned by the team, "
-"but you will retain the ability to manage project permissions. If you do not"
-" want the team to own these projects, then don’t click on the link below."
-msgstr ""
-
-#: kobo/apps/project_ownership/templates/emails/new_invite_org.txt:25
-msgid ""
-"If you accept the transfer: - All submissions, data storage, and "
-"transcription/translation usage for these projects will count toward the "
-"team’s plan limits"
-msgstr ""
-
-#: kobo/apps/reports/report_data.py:134
+#: kobo/apps/reports/report_data.py:141
 msgid "`{}` not found."
 msgstr "`{}` não encontrada."
 
-#: kobo/apps/reports/report_data.py:138
+#: kobo/apps/reports/report_data.py:146
 msgid "`{}` is not a select one question."
 msgstr "`{}` não é uma pergunta de seleção única."
 
-#: kobo/apps/stripe/admin.py:35
+#: kobo/apps/stripe/admin.py:36
 #, python-format
 msgid "%d plan add-on was created."
 msgid_plural "%d plan add-ons were created."
@@ -2542,7 +2318,7 @@ msgstr[0] "O complemento do plano %d foi criado."
 msgstr[1] "Os complementos do plano %d foram criados."
 msgstr[2] "Os complementos do plano %d foram criados."
 
-#: kobo/settings/base.py:284
+#: kobo/settings/base.py:273
 msgid ""
 "If you cannot access your authenticator app, please enter one of your backup"
 " codes instead. If you cannot access those either, then you will need to "
@@ -2550,7 +2326,7 @@ msgid ""
 "email##)."
 msgstr "Caso não consiga acessar seu aplicativo autenticador, insira um de seus códigos de backup. Se você também não puder acessá-los, será necessário solicitar assistência entrando em contato com [##support email##](mailto:##support email##)."
 
-#: kobo/settings/base.py:551
+#: kobo/settings/base.py:509
 msgid ""
 "The password must be at least 10 characters long and contain 3 or more of "
 "the following: uppercase letters, lowercase letters, numbers, and special "
@@ -2718,7 +2494,6 @@ msgid "I want to receive occasional updates about KoboToolbox"
 msgstr "Quero receber atualizações ocasionais sobre o KoboToolbox"
 
 #: kpi/authentication.py:70
-#| msgid "Invalid token."
 msgid "Invalid username/password"
 msgstr "Nome de usuário/senha inválidos"
 
@@ -2726,99 +2501,95 @@ msgstr "Nome de usuário/senha inválidos"
 msgid "No submissions match the given `submission_ids`"
 msgstr "Nenhum envio corresponde ao `submission_ids` fornecido"
 
-#: kpi/deployment_backends/base_backend.py:603
+#: kpi/deployment_backends/base_backend.py:572
 msgid ""
 "This param is not implemented. Use `count` property of the response instead."
 msgstr "Este parâmetro não foi implementado. Use a propriedade `count` da resposta em vez disso."
 
-#: kpi/deployment_backends/base_backend.py:614
+#: kpi/deployment_backends/base_backend.py:583
 msgid "This param is not supported in `XML` format"
 msgstr "Este parâmetro não é compatível com o formato `XML`"
 
-#: kpi/deployment_backends/base_backend.py:619
+#: kpi/deployment_backends/base_backend.py:588
 msgid "This is not supported in `XML` format"
 msgstr "Este não é compatível com o formato `XML`"
 
-#: kpi/deployment_backends/base_backend.py:639
-#: kpi/deployment_backends/base_backend.py:668
-#: kpi/deployment_backends/base_backend.py:690 kpi/views/v2/data.py:448
+#: kpi/deployment_backends/base_backend.py:608
+#: kpi/deployment_backends/base_backend.py:636
+#: kpi/deployment_backends/base_backend.py:658 kpi/views/v2/data.py:529
 msgid "Value must be valid JSON."
 msgstr "O valor deve ser JSON válido."
 
-#: kpi/deployment_backends/base_backend.py:644
+#: kpi/deployment_backends/base_backend.py:613
 msgid "Value must be a list."
 msgstr "O valor deve ser uma lista."
 
-#: kpi/deployment_backends/base_backend.py:675
-#: kpi/deployment_backends/base_backend.py:682
+#: kpi/deployment_backends/base_backend.py:643
+#: kpi/deployment_backends/base_backend.py:650
 msgid "A positive integer is required."
 msgstr "Um número inteiro positivo é obrigatório."
 
-#: kpi/deployment_backends/openrosa_backend.py:405
+#: kpi/deployment_backends/openrosa_backend.py:334
 msgid "Your submission XML is malformed."
 msgstr "Seu XML de envio está malformado."
 
-#: kpi/deployment_backends/openrosa_backend.py:411
+#: kpi/deployment_backends/openrosa_backend.py:340
 msgid "Your submission XML is missing critical elements."
 msgstr "Faltam elementos críticos em seu XML de envio."
 
-#: kpi/deployment_backends/openrosa_backend.py:449
+#: kpi/deployment_backends/openrosa_backend.py:354
 msgid ""
 "The submission you attempted to edit could not be found, or you do not have "
 "access to it."
 msgstr "O envio que você tentou editar não pôde ser encontrado, ou você não tem acesso a ele."
 
-#: kpi/deployment_backends/openrosa_backend.py:1005
+#: kpi/deployment_backends/openrosa_backend.py:883
 msgid "Successful submission"
 msgstr "Envio bem-sucedido"
 
-#: kpi/exceptions.py:54
+#: kpi/exceptions.py:49
 msgid "Invalid payload for bulk updating of submissions"
 msgstr "Carga inválida para atualização em massa de envios"
 
-#: kpi/exceptions.py:73
+#: kpi/exceptions.py:64
 msgid "Must call `asset.connect_deployment()` first"
 msgstr "Primeiro deve ligar para `asset.connect_deployment()`"
 
-#: kpi/exceptions.py:84
+#: kpi/exceptions.py:75
 msgid "XML contains forbidden DTDs"
 msgstr "XML contém DTDs proibidos"
 
-#: kpi/exceptions.py:95
+#: kpi/exceptions.py:86
 msgid "XML contains forbidden entities"
 msgstr "XML contém entidades proibidas"
 
-#: kpi/exceptions.py:120
+#: kpi/exceptions.py:111
 msgid "Invalid search. Please try again"
 msgstr "Busca inválida. Tente novamente"
 
-#: kpi/exceptions.py:125
+#: kpi/exceptions.py:116
 msgid "Deployment links to an unexpected KoboCAT XForm"
 msgstr "Links de implantação para um KoboCAT XForm inesperado"
 
-#: kpi/exceptions.py:161
+#: kpi/exceptions.py:152
 msgid "An error occurred trying to duplicate the submission"
 msgstr "Ocorreu um erro ao tentar duplicar o envio"
 
-#: kpi/exceptions.py:179
+#: kpi/exceptions.py:170
 msgid "The specified object has not been deployed"
 msgstr "O objeto especificado não foi disponibilizado"
 
-#: kpi/exceptions.py:188
+#: kpi/exceptions.py:179
 msgid "Bad syntax"
 msgstr "Sintaxe incorreta"
 
-#: kpi/exceptions.py:193
+#: kpi/exceptions.py:184
 msgid "Not supported field lookup"
 msgstr "Pesquisa de campo não compatível"
 
-#: kpi/exceptions.py:216
+#: kpi/exceptions.py:195
 msgid "Your query is too short"
 msgstr "Sua consulta é muito curta"
-
-#: kpi/exceptions.py:230
-msgid "The owner of this asset has exeeded their usage limit"
-msgstr ""
 
 #: kpi/fields/jsonschema_form_field.py:23
 #: kpi/fields/jsonschema_form_field.py:26
@@ -2829,7 +2600,7 @@ msgstr "Insira um JSON válido."
 msgid "`##place_holder##` field cannot be hidden."
 msgstr "O campo `##place_holder##` não pode ser ocultado."
 
-#: kpi/fields/writable_json.py:33
+#: kpi/fields/writable_json.py:30
 #, python-brace-format
 msgid "Unable to parse JSON: {error}"
 msgstr "Não é possível analisar o JSON: {error}"
@@ -2838,140 +2609,140 @@ msgstr "Não é possível analisar o JSON: {error}"
 msgid "Multi-factor authentication is enabled for this account. "
 msgstr "A autenticação de múltiplos fatores está habilitada para esta conta. "
 
-#: kpi/models/asset.py:317
+#: kpi/models/asset.py:277
 msgid "Can view asset"
 msgstr "Pode visualizar o recurso"
 
-#: kpi/models/asset.py:318
+#: kpi/models/asset.py:278
 msgid "Can discover asset in public lists"
 msgstr "Pode descobrir recursos em listas públicas"
 
-#: kpi/models/asset.py:319
+#: kpi/models/asset.py:279
 msgid "Can manage all aspects of asset"
 msgstr "Pode gerenciar todos os aspectos do recurso"
 
-#: kpi/models/asset.py:321
+#: kpi/models/asset.py:281
 msgid "Can submit data to asset"
 msgstr "Pode enviar dados ao recurso"
 
-#: kpi/models/asset.py:322
+#: kpi/models/asset.py:282
 msgid "Can view submitted data for asset"
 msgstr "Pode visualizar os dados enviados ao recurso"
 
-#: kpi/models/asset.py:323
+#: kpi/models/asset.py:283
 msgid ""
 "Can make partial actions on submitted data for asset for specific users"
 msgstr "Pode realizar ações parciais nos dados enviados ao recurso para usuários específicos"
 
-#: kpi/models/asset.py:326
+#: kpi/models/asset.py:286
 msgid "Can modify submitted data for asset"
 msgstr "Pode modificar dados enviados ao recurso"
 
-#: kpi/models/asset.py:327
+#: kpi/models/asset.py:287
 msgid "Can delete submitted data for asset"
 msgstr "Pode excluir dados enviados ao recurso"
 
-#: kpi/models/asset.py:328
+#: kpi/models/asset.py:288
 msgid "Can validate submitted data asset"
 msgstr "Pode validar o recurso de dados enviado"
 
-#: kpi/models/asset.py:347
+#: kpi/models/asset.py:311
 msgid "project"
 msgstr "projeto"
 
-#: kpi/models/asset.py:347
+#: kpi/models/asset.py:311
 msgid "form"
 msgstr "formulário"
 
-#: kpi/models/asset.py:349
+#: kpi/models/asset.py:313
 msgid "template"
 msgstr "modelo"
 
-#: kpi/models/asset.py:350
+#: kpi/models/asset.py:314
 msgid "block"
 msgstr "bloqueio"
 
-#: kpi/models/asset.py:351
+#: kpi/models/asset.py:315
 msgid "question"
 msgstr "pergunta"
 
-#: kpi/models/asset.py:352
+#: kpi/models/asset.py:316
 msgid "text"
 msgstr "texto"
 
-#: kpi/models/asset.py:353
+#: kpi/models/asset.py:317
 msgid "empty"
 msgstr "vazio"
 
-#: kpi/models/asset.py:354
+#: kpi/models/asset.py:318
 msgid "collection"
 msgstr "coleção"
 
-#: kpi/models/asset.py:361
+#: kpi/models/asset.py:325
 msgid "View ##asset_type_label##"
 msgstr "Visualizar ##asset_type_label##"
 
-#: kpi/models/asset.py:362
+#: kpi/models/asset.py:326
 msgid "Edit ##asset_type_label##"
 msgstr "Editar ##asset_type_label##"
 
-#: kpi/models/asset.py:363
+#: kpi/models/asset.py:327
 msgid "Discover ##asset_type_label##"
 msgstr "Descobrir ##asset_type_label##"
 
-#: kpi/models/asset.py:364
+#: kpi/models/asset.py:328
 msgid "Manage ##asset_type_label##"
 msgstr "Gerenciar ##asset_type_label##"
 
-#: kpi/models/asset.py:365
+#: kpi/models/asset.py:329
 msgid "Add submissions"
 msgstr "Adicionar envios"
 
-#: kpi/models/asset.py:366
+#: kpi/models/asset.py:330
 msgid "View submissions"
 msgstr "Visualizar envios"
 
-#: kpi/models/asset.py:369
+#: kpi/models/asset.py:333
 msgid "Act on submissions only from specific users"
 msgstr "Atuar apenas em envios de usuários específicos"
 
-#: kpi/models/asset.py:372
+#: kpi/models/asset.py:336
 msgid "View submissions only from specific users"
 msgstr "Visualizar apenas envios de usuários específicos"
 
-#: kpi/models/asset.py:375
+#: kpi/models/asset.py:339
 msgid "Edit submissions only from specific users"
 msgstr "Editar apenas envios de usuários específicos"
 
-#: kpi/models/asset.py:378
+#: kpi/models/asset.py:342
 msgid "Delete submissions only from specific users"
 msgstr "Excluir apenas envios de usuários específicos"
 
-#: kpi/models/asset.py:381
+#: kpi/models/asset.py:345
 msgid "Validate submissions only from specific users"
 msgstr "Validar apenas envios de usuários específicos"
 
-#: kpi/models/asset.py:384
+#: kpi/models/asset.py:348
 msgid "Edit submissions"
 msgstr "Editar envios"
 
-#: kpi/models/asset.py:385
+#: kpi/models/asset.py:349
 msgid "Delete submissions"
 msgstr "Excluir envios"
 
-#: kpi/models/asset.py:386
+#: kpi/models/asset.py:350
 msgid "Validate submissions"
 msgstr "Validar envios"
 
-#: kpi/models/asset.py:729
+#: kpi/models/asset.py:681
 msgid "Only partial permissions for submissions are supported"
 msgstr "Somente permissões parciais para envios são compatíveis"
 
-#: kpi/models/asset.py:1490
+#: kpi/models/asset.py:1390
 msgid "Can not assign '{}' permission to owner"
 msgstr "Não é possível atribuir a permissão '{}' ao proprietário"
 
-#: kpi/models/asset.py:1494
+#: kpi/models/asset.py:1394
 msgid "Can not assign '{}' permission. Partial permissions are missing."
 msgstr "Não é possível atribuir a permissão '{}'. Faltam permissões parciais."
 
@@ -2979,11 +2750,11 @@ msgstr "Não é possível atribuir a permissão '{}'. Faltam permissões parciai
 msgid "Invalid token."
 msgstr "Token inválido."
 
-#: kpi/models/import_export_task.py:153
+#: kpi/models/import_export_task.py:138
 msgid "Cannot access data"
 msgstr "Não é possível acessar os dados"
 
-#: kpi/models/import_export_task.py:762
+#: kpi/models/import_export_task.py:588
 msgid "This data does not exist or you do not have access to it"
 msgstr "Este dado não existe ou você não tem acesso a ele"
 
@@ -3001,88 +2772,87 @@ msgid ""
 "characters."
 msgstr "A senha deve conter pelo menos ##number of rules## tipos diferentes de caracteres."
 
-#: kpi/serializers/current_user.py:205
+#: kpi/serializers/current_user.py:179
 msgid "Incorrect current password."
 msgstr "Senha atual incorreta."
 
-#: kpi/serializers/current_user.py:225
+#: kpi/serializers/current_user.py:199
 msgid "`current_password` and `new_password` must both be"
 msgstr "`current_password` e `new_password` ambos devem ser"
 
-#: kpi/serializers/current_user.py:265
-#: kpi/serializers/v2/asset_permission_assignment.py:286
+#: kpi/serializers/current_user.py:239
+#: kpi/serializers/v2/asset_permission_assignment.py:291
 msgid "This field may not be blank."
 msgstr "Este campo não pode ficar em branco."
 
-#: kpi/serializers/v2/asset.py:161
+#: kpi/serializers/v2/asset.py:133
 #, python-format
 msgid "%(count)d project has been undeleted"
 msgstr "O projeto %(count)d foi restaurado"
 
-#: kpi/serializers/v2/asset.py:167
+#: kpi/serializers/v2/asset.py:139
 #, python-format
 msgid "%(count)d project has been deleted"
 msgstr "O projeto %(count)d foi excluído"
 
-#: kpi/serializers/v2/asset.py:174
+#: kpi/serializers/v2/asset.py:146
 #, python-format
 msgid "%(count)d project has been unarchived"
 msgstr "O projeto %(count)d foi desarquivado"
 
-#: kpi/serializers/v2/asset.py:180
+#: kpi/serializers/v2/asset.py:152
 #, python-format
 msgid "%(count)d project has been archived"
 msgstr "O projeto %(count)d foi arquivado"
 
-#: kpi/serializers/v2/asset.py:196
+#: kpi/serializers/v2/asset.py:168
 msgid "One or many projects have been deleted already!"
 msgstr "Um ou mais projetos já foram excluídos!"
 
-#: kpi/serializers/v2/asset.py:204
+#: kpi/serializers/v2/asset.py:176
 msgid "One or many projects are already being deleted!"
 msgstr "Um ou mais projetos já estão sendo excluídos!"
 
-#: kpi/serializers/v2/asset.py:280
+#: kpi/serializers/v2/asset.py:253
 msgid "`action` parameter is required"
 msgstr "O parâmetro`action` é obrigatório"
 
-#: kpi/serializers/v2/asset.py:285
+#: kpi/serializers/v2/asset.py:258
 msgid "Supported values for `action` are: "
 msgstr "Os valores compatíveis com `action` são: "
 
-#: kpi/serializers/v2/asset.py:307
+#: kpi/serializers/v2/asset.py:280
 msgid "Draft projects cannot be archived"
 msgstr "Os projetos de rascunho não podem ser arquivados"
 
-#: kpi/serializers/v2/asset.py:313 kpi/serializers/v2/data.py:61
-#| msgid "Information / Media"
+#: kpi/serializers/v2/asset.py:286 kpi/serializers/v2/data.py:61
 msgid "Confirmation is required"
 msgstr "A confirmação é obrigatória"
 
-#: kpi/serializers/v2/asset.py:974
+#: kpi/serializers/v2/asset.py:843
 msgid "The property is required"
 msgstr "A propriedade é obrigatória"
 
-#: kpi/serializers/v2/asset.py:978
+#: kpi/serializers/v2/asset.py:847
 msgid "The property must be an array"
 msgstr "A propriedade deve ser uma matriz"
 
-#: kpi/serializers/v2/asset.py:1000
+#: kpi/serializers/v2/asset.py:869
 #, python-brace-format
 msgid "Some fields are invalid, choices are: `{valid_fields}`"
 msgstr "Alguns campos estão inválidos. As opções são: `{valid_fields}`"
 
-#: kpi/serializers/v2/asset.py:1022
+#: kpi/serializers/v2/asset.py:891
 msgid "User cannot update current parent collection"
 msgstr "O usuário não pode atualizar a coleção principal atual"
 
-#: kpi/serializers/v2/asset.py:1032
-#: kpi/tests/api/v2/test_api_collections.py:476
+#: kpi/serializers/v2/asset.py:901
+#: kpi/tests/api/v2/test_api_collections.py:470
 msgid "Target collection not found"
 msgstr "Coleção de destino não encontrada"
 
-#: kpi/serializers/v2/asset.py:1036
-#: kpi/tests/api/v2/test_api_collections.py:466
+#: kpi/serializers/v2/asset.py:905
+#: kpi/tests/api/v2/test_api_collections.py:460
 msgid "User cannot update target parent collection"
 msgstr "O usuário não pode atualizar a coleção principal alvo"
 
@@ -3111,12 +2881,12 @@ msgid "`lang` for this asset must be either {}"
 msgstr "`lang` para este recurso deve ser {}"
 
 #: kpi/serializers/v2/asset_export_settings.py:119
-#: kpi/serializers/v2/export_task.py:232
+#: kpi/serializers/v2/export_task.py:229
 msgid "Must be a JSON object"
 msgstr "Deve ser um objeto JSON"
 
 #: kpi/serializers/v2/asset_export_settings.py:134
-#: kpi/serializers/v2/export_task.py:250
+#: kpi/serializers/v2/export_task.py:247
 msgid "All values in the array must be integers"
 msgstr "Todos os valores na matriz devem ser inteiros"
 
@@ -3128,113 +2898,77 @@ msgstr "`fields` deve ser uma matriz"
 msgid "All values in the `fields` array must be strings"
 msgstr "Todos os valores na `fields` matriz devem ser cadeias de caracteres"
 
-#: kpi/serializers/v2/asset_file.py:121
+#: kpi/serializers/v2/asset_file.py:117
 msgid "JSON is invalid"
 msgstr "JSON é inválido"
 
-#: kpi/serializers/v2/asset_file.py:134
-#| msgid "Invalid token."
+#: kpi/serializers/v2/asset_file.py:130
 msgid "Invalid content"
 msgstr "Conteúdo inválido"
 
-#: kpi/serializers/v2/asset_file.py:147
+#: kpi/serializers/v2/asset_file.py:143
 msgid "No files have been submitted"
 msgstr "Nenhum arquivo foi enviado"
 
-#: kpi/serializers/v2/asset_file.py:162
+#: kpi/serializers/v2/asset_file.py:158
 msgid "File already exists"
 msgstr "O arquivo já existe"
 
-#: kpi/serializers/v2/asset_file.py:212
+#: kpi/serializers/v2/asset_file.py:208
 msgid ""
 "You cannot upload media file with two different ways at the same time. "
 "Please choose between binary upload, base64 or remote URL."
 msgstr "Você não pode carregar arquivos de mídia de duas maneiras diferentes ao mesmo tempo. Escolha entre carregamento binário, base64 ou URL remoto."
 
-#: kpi/serializers/v2/asset_file.py:225
-#: kpi/views/v2/asset_permission_assignment.py:256
+#: kpi/serializers/v2/asset_file.py:221
 msgid "This field is required"
 msgstr "Este campo é obrigatório"
 
-#: kpi/serializers/v2/asset_file.py:233
+#: kpi/serializers/v2/asset_file.py:229
 msgid "`redirect_url` is required"
 msgstr "`redirect_url` é obrigatório"
 
-#: kpi/serializers/v2/asset_file.py:243
+#: kpi/serializers/v2/asset_file.py:239
 msgid "`filename` is required"
 msgstr "`filename` é obrigatório"
 
-#: kpi/serializers/v2/asset_file.py:257
+#: kpi/serializers/v2/asset_file.py:253
 msgid "`redirect_url` is invalid"
 msgstr "`redirect_url` é inválido"
 
-#: kpi/serializers/v2/asset_file.py:291
+#: kpi/serializers/v2/asset_file.py:287
 msgid "Only `{}` MIME types are allowed"
 msgstr "Somente `{}` tipos MIME são permitidos"
 
-#: kpi/serializers/v2/asset_permission_assignment.py:159
+#: kpi/serializers/v2/asset_permission_assignment.py:164
 msgid "This field is required for the '{}' permission"
 msgstr "Este campo é obrigatório para a permissão “{}”"
 
-#: kpi/serializers/v2/asset_permission_assignment.py:173
 #: kpi/serializers/v2/asset_permission_assignment.py:178
-#: kpi/serializers/v2/asset_permission_assignment.py:184
-#: kpi/serializers/v2/asset_permission_assignment.py:493
+#: kpi/serializers/v2/asset_permission_assignment.py:183
+#: kpi/serializers/v2/asset_permission_assignment.py:189
+#: kpi/serializers/v2/asset_permission_assignment.py:498
 msgid "Invalid `url`"
 msgstr "`url` inválido"
 
-#: kpi/serializers/v2/asset_permission_assignment.py:189
-#| msgid "Invalid token."
+#: kpi/serializers/v2/asset_permission_assignment.py:194
 msgid "Invalid `filters`"
 msgstr "`filters` inválido"
 
-#: kpi/serializers/v2/asset_permission_assignment.py:206
+#: kpi/serializers/v2/asset_permission_assignment.py:211
 #, python-brace-format
 msgid ""
 "{permission} cannot be assigned explicitly to Asset objects of this type."
 msgstr "{permission} não pode ser atribuído explicitamente a objetos de recurso deste tipo."
 
-#: kpi/serializers/v2/asset_permission_assignment.py:285
+#: kpi/serializers/v2/asset_permission_assignment.py:290
 msgid "Not a valid list."
 msgstr "Não é uma lista válida."
 
-#: kpi/serializers/v2/asset_permission_assignment.py:486
-#: kpi/serializers/v2/asset_permission_assignment.py:489
+#: kpi/serializers/v2/asset_permission_assignment.py:491
+#: kpi/serializers/v2/asset_permission_assignment.py:494
 msgid "Invalid hyperlink - Object does not exist."
 msgstr "Hiperlink inválido - O objeto não existe."
-
-#: kpi/serializers/v2/attachment_delete.py:12
-msgid "The attachment UID to delete"
-msgstr ""
-
-#: kpi/serializers/v2/attachment_delete.py:17
-msgid "List of submission root UUIDs to delete attachments from"
-msgstr ""
-
-#: kpi/serializers/v2/attachment_delete.py:28
-msgid "`attachment_uid` and `submission_root_uuids` cannot be used together"
-msgstr ""
-
-#: kpi/serializers/v2/attachment_delete.py:38
-msgid "`attachment_uid` or `submission_root_uuids` must be provided"
-msgstr ""
-
-#: kpi/serializers/v2/attachment_delete.py:46
-msgid "List cannot be empty"
-msgstr ""
-
-#: kpi/serializers/v2/attachment_delete.py:79
-#| msgid "Invalid token."
-msgid "Invalid attachment UID"
-msgstr ""
-
-#: kpi/serializers/v2/attachment_delete.py:81
-msgid "One or more of the root UUIDs are invalid"
-msgstr ""
-
-#: kpi/serializers/v2/attachment_delete.py:93 kpi/views/v2/data.py:690
-msgid "The specified asset has not been deployed"
-msgstr "O recurso especificado não foi disponibilizado"
 
 #: kpi/serializers/v2/data.py:70
 msgid "`submission_ids` must only contain integer values"
@@ -3252,80 +2986,80 @@ msgstr "`data` é obrigatório"
 msgid "`validation_status.uid` is required"
 msgstr "`validation_status.uid` é obrigatório"
 
-#: kpi/serializers/v2/export_task.py:126
+#: kpi/serializers/v2/export_task.py:123
 msgid "Must contain all the following required keys: {}"
 msgstr "Deve conter todas as chaves obrigatórias a seguir: {}"
 
-#: kpi/serializers/v2/export_task.py:140
+#: kpi/serializers/v2/export_task.py:137
 msgid "Can contain only the following valid keys: {}"
 msgstr "Pode conter apenas as chaves válidas a seguir: {}"
 
-#: kpi/serializers/v2/export_task.py:155 kpi/serializers/v2/export_task.py:240
+#: kpi/serializers/v2/export_task.py:152 kpi/serializers/v2/export_task.py:237
 msgid "Must be an array"
 msgstr "Deve ser uma matriz"
 
-#: kpi/serializers/v2/export_task.py:162
+#: kpi/serializers/v2/export_task.py:159
 msgid "All values in the array must be strings"
 msgstr "Todos os valores na matriz devem ser cadeias de caracteres"
 
-#: kpi/serializers/v2/export_task.py:172
+#: kpi/serializers/v2/export_task.py:169
 msgid "Must be a non-empty value"
 msgstr "Deve ser um valor não vazio"
 
-#: kpi/serializers/v2/export_task.py:185
+#: kpi/serializers/v2/export_task.py:182
 msgid "For this asset must be either {}"
 msgstr "Para este recurso deve ser {}"
 
-#: kpi/serializers/v2/export_task.py:197 kpi/serializers/v2/export_task.py:261
+#: kpi/serializers/v2/export_task.py:194 kpi/serializers/v2/export_task.py:258
 msgid "Must be either {}"
 msgstr "Deve ser {}"
 
-#: kpi/serializers/v2/export_task.py:207
+#: kpi/serializers/v2/export_task.py:204
 msgid "The asset must be deployed."
 msgstr "O recurso deve ser disponibilizado."
 
-#: kpi/serializers/v2/export_task.py:224
+#: kpi/serializers/v2/export_task.py:221
 msgid "The export name must be a string."
 msgstr "O nome de exportação deve ser uma cadeia de caracteres."
 
-#: kpi/serializers/v2/paired_data.py:92
+#: kpi/serializers/v2/paired_data.py:87
 msgid "Source cannot be changed"
 msgstr "A origem não pode ser alterada"
 
-#: kpi/serializers/v2/paired_data.py:98
+#: kpi/serializers/v2/paired_data.py:93
 #, python-brace-format
 msgid "Data sharing for `{source_uid}` is not enabled"
 msgstr "O compartilhamento de dados para o `{source_uid}` não está habilitado"
 
-#: kpi/serializers/v2/paired_data.py:110
+#: kpi/serializers/v2/paired_data.py:105
 #, python-brace-format
 msgid "Pairing data with `{source_uid}` is not allowed"
 msgstr "O emparelhamento de dados com o `{source_uid}` não é permitido"
 
-#: kpi/serializers/v2/paired_data.py:115
+#: kpi/serializers/v2/paired_data.py:110
 #, python-brace-format
 msgid "Source `{source}` is already paired"
 msgstr "A origem `{source}` já está emparelhada"
 
-#: kpi/serializers/v2/paired_data.py:157
+#: kpi/serializers/v2/paired_data.py:152
 #, python-brace-format
 msgid "Some fields are invalid, choices are: `{source_fields}`"
 msgstr "Alguns campos estão inválidos. As opções são: `{source_fields}`"
 
-#: kpi/serializers/v2/paired_data.py:182
+#: kpi/serializers/v2/paired_data.py:177
 msgid "Only letters, numbers and `-` are allowed"
 msgstr "Apenas letras, números e `-` são permitidos"
 
-#: kpi/serializers/v2/paired_data.py:189
+#: kpi/serializers/v2/paired_data.py:184
 msgid "Extension must be `xml`"
 msgstr "A extensão deve ser `xml`"
 
-#: kpi/serializers/v2/paired_data.py:222
+#: kpi/serializers/v2/paired_data.py:217
 #, python-brace-format
 msgid "`{basename}` is already used"
 msgstr "`{basename}` já está em uso"
 
-#: kpi/serializers/v2/user_asset_subscription.py:42
+#: kpi/serializers/v2/user_asset_subscription.py:47
 #, python-brace-format
 msgid "Invalid asset type. Only `{asset_type}` is allowed"
 msgstr "Tipo de recurso inválido. Apenas `{asset_type}` é permitido"
@@ -3429,54 +3163,46 @@ msgid ""
 "not copied from that shared database to the new, KPI-only database."
 msgstr "O banco de dados KoBoCAT foi originalmente compartilhado por KPI, mas as tabelas de KPI não foram copiadas desse banco de dados compartilhado para o novo banco de dados somente de KPI."
 
-#: kpi/views/current_user.py:86
-#| msgid "Invalid token."
+#: kpi/views/current_user.py:113
 msgid "Invalid confirmation"
 msgstr "Confirmação inválida"
 
-#: kpi/views/current_user.py:90
-msgid "You still own projects. Delete or transfer them first."
-msgstr ""
-
-#: kpi/views/v2/asset_export_settings.py:206
+#: kpi/views/v2/asset_export_settings.py:228
 msgid "Only the following formats are available: ##format list##"
 msgstr "Apenas os seguintes formatos estão disponíveis: ##format list##"
 
-#: kpi/views/v2/asset_permission_assignment.py:260
-#: kpi/views/v2/asset_permission_assignment.py:323
-msgid "Owner's permissions cannot be deleted"
-msgstr "As permissões do proprietário não podem ser excluídas"
-
-#: kpi/views/v2/asset_permission_assignment.py:293
+#: kpi/views/v2/asset_permission_assignment.py:211
 msgid "Source and destination objects don't seem to have the same type"
 msgstr "Os objetos de origem e destino não parecem ter o mesmo tipo"
 
-#: kpi/views/v2/attachment.py:179
+#: kpi/views/v2/asset_permission_assignment.py:240
+msgid "Owner's permissions cannot be deleted"
+msgstr "As permissões do proprietário não podem ser excluídas"
+
+#: kpi/views/v2/attachment.py:93
 msgid "`xpath` query parameter is required"
 msgstr "O parâmetro de consulta `xpath` é obrigatório"
 
-#: kpi/views/v2/attachment.py:209
+#: kpi/views/v2/attachment.py:115
 msgid "Invalid XPath syntax"
 msgstr "Sintaxe XPath inválida"
 
-#: kpi/views/v2/attachment.py:213
+#: kpi/views/v2/attachment.py:119
 msgid "The path could not be found in the submission"
 msgstr "O caminho não pôde ser encontrado no envio"
 
-#: kpi/views/v2/attachment.py:223
+#: kpi/views/v2/attachment.py:129
 msgid "The error occurred during conversion"
 msgstr "O erro ocorreu durante a conversão"
 
-#: kpi/views/v2/attachment.py:227
+#: kpi/views/v2/attachment.py:133
 msgid "Conversion is not supported for {}"
 msgstr "A conversão não é compatível com {}"
 
-#: kpi/views/v2/data.py:679
+#: kpi/views/v2/data.py:692
 msgid "A positive integer is required"
 msgstr "Um número inteiro positivo é obrigatório"
 
-#~ msgid "User"
-#~ msgstr "Username"
-
-#~ msgid "Username"
-#~ msgstr "Username"
+#: kpi/views/v2/data.py:703
+msgid "The specified asset has not been deployed"
+msgstr "O recurso especificado não foi disponibilizado"

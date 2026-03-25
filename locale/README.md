@@ -1,7 +1,4 @@
-
-> This README is outdated and soon will be replaced.
-
-# KPI UI Translations
+# KPI UI Translations 
 
 This repository contains the localisations for the [KoboToolBox KPI](https://github.com/kobotoolbox/kpi) project.
 
@@ -28,7 +25,7 @@ You might be wondering: "I just added a new string to KPI. How do I translate it
 
 ## Step 3: Upload the new strings to Transifex
 
-Note: It's recommended that you install and run Transifex-CLI in a virtual environment or container
+Note: It's recommended that you install and run Transifex-CLI in a virtual environment or container  
 * Install the Transifex-CLI if you haven't already:
   * `curl -o- https://raw.githubusercontent.com/transifex/cli/master/install.sh | bash`
   * Retrieve your API Token from the Transifex website in https://app.transifex.com/user/settings/api/

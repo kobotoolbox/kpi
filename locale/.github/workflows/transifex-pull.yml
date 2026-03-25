@@ -1,0 +1,22 @@
+name: Pull New Translations from Transifex
+on:
+  schedule: 
+    - cron: 0 0 1,14 * *
+  workflow_dispatch:
+
+jobs:
+    build:
+      runs-on: ubuntu-latest
+
+      steps:
+        - uses: actions/checkout@v4
+        - name: Pull reviewed translations
+          uses: transifex/cli-action@v2
+          with:
+            token: ${{ secrets.TRANSIFEX_API }}
+            args: 'pull -a -f --mode reviewed'
+        - name: Commit the files pulled from transifex to the form-builder-translations repo
+          uses: EndBug/add-and-commit@v9
+          with:
+            author_name: github-actions
+            author_email: 41898282+github-actions[bot]@users.noreply.github.com

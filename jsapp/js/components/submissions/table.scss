@@ -475,6 +475,20 @@ $s-data-table-font: 13px;
     background-color: color.adjust(colors.$kobo-light-teal, $lightness: 8%);
   }
 
+  .rt-th.is-highlighting-duplicates {
+    background-color: colors.$kobo-light-storm;
+  }
+
+  // Duplicate-highlight mode: colour-code rows by group so duplicates are visually grouped.
+  // 5 rotating colours using existing Kobo palette tokens.
+  // These selectors are intentionally more specific than .rt-td.is-frozen so the
+  // colour shows through on pinned columns too.
+  .rt-tr.rt-tr-duplicate-group-0 .rt-td { background-color: colors.$kobo-bg-teal; }
+  .rt-tr.rt-tr-duplicate-group-1 .rt-td { background-color: colors.$kobo-bg-blue; }
+  .rt-tr.rt-tr-duplicate-group-2 .rt-td { background-color: colors.$kobo-pink; }
+  .rt-tr.rt-tr-duplicate-group-3 .rt-td { background-color: colors.$kobo-light-amber; }
+  .rt-tr.rt-tr-duplicate-group-4 .rt-td { background-color: colors.$kobo-light-green; }
+
   // NOTE: submissions actions column is always frozen as first column
   .rt-th.rt-sub-actions,
   .rt-td.rt-sub-actions {
