@@ -203,7 +203,7 @@ export default function ResponseForm({
       {children && <Box pl='40px'>{children}</Box>}
 
       {shouldDisplayAnyButtonOrBadge() && ffAutoQAEnabled && (
-        <Group pl='40px' w='100%' style={{ justifyContent: 'space-between' }}>
+        <Group pl='40px' w='100%'>
           {shouldDisplayGenerateWithAIButton() && (
             <ButtonNew
               variant='transparent'
@@ -236,9 +236,10 @@ export default function ResponseForm({
               {t('Clear')}
             </ButtonNew>
           )}
-          <Group style={{ justifyContent: 'space-between' }}>
+
+          <Group ml='auto' gap='xs'>
             {shouldDisplayAIGeneratedBadge() && (
-              <Group pl='40px' c='var(--mantine-color-blue-5)' gap='xs'>
+              <Group c='var(--mantine-color-blue-5)' gap='xs'>
                 <Icon name='sparkles' size='m' />
                 <Text>{t('AI generated')}</Text>
               </Group>
