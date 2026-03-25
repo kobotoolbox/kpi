@@ -165,10 +165,28 @@ paths:
                   value:
                     detail: Not found.
                   summary: Not Found
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
           description: ''
         '400':
           content:
             application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                BadRequest:
+                  value:
+                    detail:
+                      field_name:
+                      - Error message
+                  summary: Bad request
+            text/xml:
               schema:
                 $ref: '#/components/schemas/ErrorObject'
               examples:
@@ -482,10 +500,28 @@ paths:
                   value:
                     detail: Not found.
                   summary: Not Found
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
           description: ''
         '400':
           content:
             application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                BadRequest:
+                  value:
+                    detail:
+                      field_name:
+                      - Error message
+                  summary: Bad request
+            text/xml:
               schema:
                 $ref: '#/components/schemas/ErrorObject'
               examples:
@@ -689,6 +725,14 @@ paths:
                   value:
                     detail: Authentication credentials were not provided.
                   summary: Not authenticated
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotAuthenticated:
+                  value:
+                    detail: Authentication credentials were not provided.
+                  summary: Not authenticated
           description: ''
         '404':
           content:
@@ -700,10 +744,28 @@ paths:
                   value:
                     detail: Not found.
                   summary: Not Found
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
           description: ''
         '400':
           content:
             application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                BadRequest:
+                  value:
+                    detail:
+                      field_name:
+                      - Error message
+                  summary: Bad request
+            text/xml:
               schema:
                 $ref: '#/components/schemas/ErrorObject'
               examples:
