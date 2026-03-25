@@ -24,11 +24,11 @@ jobs:
       matrix:
         python-version: ['3.10']
         test-path:
-          - kpi/tests/api/v1/
+          - kobo/apps/openrosa/apps/api/
           - kpi/tests/api/v2/
           - kpi/tests/ --ignore=kpi/tests/api/
           - hub/ kobo/apps/ --ignore=kobo/apps/openrosa/
-          - kobo/apps/openrosa/
+          - kobo/apps/openrosa/ --ignore=kobo/apps/openrosa/apps/api/
         extra-pytest-options:
           - --ds kobo.settings.testing
           - --ds kobo.settings.testing_no_stripe --ignore kobo/apps/stripe
