@@ -3,6 +3,7 @@ import os
 
 from django.test import override_settings
 from django.urls import reverse
+from django.utils import timezone
 from django_digest.test import DigestAuth
 from rest_framework.test import APIRequestFactory
 
@@ -13,6 +14,8 @@ from kobo.apps.openrosa.apps.api.viewsets.briefcase_api import BriefcaseApi
 from kobo.apps.openrosa.apps.api.viewsets.xform_submission_api import XFormSubmissionApi
 from kobo.apps.openrosa.apps.logger.models import Instance, XForm
 from kobo.apps.openrosa.libs.utils.storage import rmdir
+from kpi.fields import KpiUidField
+from kpi.utils.hash import calculate_hash
 
 NUM_INSTANCES = 4
 
@@ -377,9 +380,27 @@ class TestBriefcaseAPI(TestAbstractViewSet):
             self.assertEqual(XForm.objects.count(), count + 1)
             self.assertContains(response, 'successfully published.', status_code=201)
         self.xform = XForm.objects.order_by('pk').reverse()[0]
-        self.xform.asset.save()
-        self.xform.kpi_asset_uid = self.xform.asset.uid
-        self.xform.save()
+        # Permissions are resolved through the KPI asset, so we need a saved asset
+        # with a simulated deployment to populate `_deployment_data`.
+        asset = self.xform.asset
+        asset.date_deployed = timezone.now()
+        asset.uid = KpiUidField.generate_unique_id('a')
+        asset._deployment_data = {
+            'active': True,
+            'backend': 'mock',
+            'version': KpiUidField.generate_unique_id('v'),
+            'backend_response': {
+                'hash': calculate_hash(self.form_def_path, prefix=True),
+                'uuid': self.xform.uuid,
+                'formid': self.xform.pk,
+                'id_string': self.xform.id_string,
+                'kpi_asset_uid': asset.uid,
+            },
+        }
+        asset.deployment.store_data(asset._deployment_data)
+        asset.save()
+        self.xform.kpi_asset_uid = asset.uid
+        self.xform.save(update_fields=['kpi_asset_uid'])
 
     def test_form_upload(self):
         view = BriefcaseApi.as_view({'post': 'create'})

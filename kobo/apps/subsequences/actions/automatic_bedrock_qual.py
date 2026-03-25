@@ -466,6 +466,9 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
                     selected_indexes = parse_choices_response(
                         full_response_text, len(visible_choices), False
                     )
+                    if len(selected_indexes) == 0:
+                        # empty string is the correct empty value for select one
+                        return {'value': '', 'status': 'complete'}
                     index = selected_indexes[0]
                     selected_uuid = visible_choices[index]['uuid']
                     return {'value': selected_uuid, 'status': 'complete'}

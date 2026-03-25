@@ -1608,6 +1608,9 @@ ACCOUNT_USERNAME_VALIDATORS = 'kobo.apps.accounts.validators.username_validators
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
 ACCOUNT_EMAIL_UNKNOWN_ACCOUNTS = False
 ACCOUNT_EMAIL_VERIFICATION = env.str('ACCOUNT_EMAIL_VERIFICATION', 'mandatory')
+ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = env.int(
+    'ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS', 1
+)
 ACCOUNT_FORMS = {
     'login': 'kobo.apps.accounts.forms.LoginForm',
     'signup': 'kobo.apps.accounts.forms.SignupForm',
@@ -1984,6 +1987,9 @@ OPENROSA_DEFAULT_CONTENT_LENGTH = 10000000
 
 # Expiration time in sec. after which paired data xml file must be regenerated
 PAIRED_DATA_EXPIRATION = 300  # seconds
+# Lock TTL for the async regeneration task; covers the worst-case generation
+# time and ensures the lock expires even if a K8s pod is killed mid-task.
+PAIRED_DATA_REGEN_LOCK_TIMEOUT = 600  # seconds
 
 CALCULATED_HASH_CACHE_EXPIRATION = 300  # seconds
 

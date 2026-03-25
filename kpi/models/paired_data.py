@@ -71,26 +71,40 @@ class PairedData(OpenRosaManifestInterface,
         return f'<PairedData {self.paired_data_uid} ({self.filename})>'
 
     @property
-    def allowed_fields(self):
+    def allowed_fields(self) -> list | None:
         """
-        Return only the fields (aka questions) that the destination project is
-        allowed to pull data from.
+        Return the fields the destination project is allowed to pull from the
+        source.
+
+        Return value semantics:
+        - `None`  — no restriction from either side; keep all fields.
+        - non-empty list — keep only the listed fields.
+        - empty list — the source and destination field restrictions
+          have no overlap; **no data should be exposed**.
+
+        Callers must treat `None` as "no restriction" and `[]` as
+        "nothing allowed", which are two distinct states.
         """
+
         source_asset = self.get_source()
         if not source_asset:
             raise PairedDataException('No source asset found.')
 
         source_fields = source_asset.data_sharing['fields']
+
         if not source_fields:
-            return self.fields
+            # Source places no restriction: apply only the destination filter.
+            # Return None when neither side restricts (keep all).
+            return self.fields if self.fields else None
 
         if not self.fields:
+            # Destination places no restriction: apply only the source filter.
             return source_fields
 
-        source_set = set(source_fields)
-        self_set = set(self.fields)
-
-        return list(self_set.intersection(source_set))
+        # Both sides specify fields: return the intersection.
+        # An empty intersection means the two restrictions are incompatible and
+        # no fields should be shared — return [] to signal "nothing allowed".
+        return list(set(self.fields).intersection(source_fields))
 
     @property
     def asset_file(self):

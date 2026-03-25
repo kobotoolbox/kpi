@@ -101,11 +101,9 @@ echo -e '\n\n## Job: Pytest'
 
 echo -e '\n\n### Step: Update translations'
 if [ -n "$GOSU_USER" ]; then
-    gosu "$GOSU_USER" git submodule init
-    gosu "$GOSU_USER" git submodule update --remote
     gosu "$GOSU_USER" python manage.py compilemessages -v 0
 else
-    git submodule init && git submodule update --remote && python manage.py compilemessages -v 0
+    python manage.py compilemessages -v 0
 fi
 echo -e '\n\n### Step: Test back-end code'
 echo 'Disclaimer: CI uses pytest with coverage option, this script does not.'
