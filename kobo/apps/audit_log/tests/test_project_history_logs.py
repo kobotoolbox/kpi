@@ -1797,8 +1797,10 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             data_collector = DataCollector.objects.create(name='DC', group=dcg)
             dcg.assets.add(self.asset)
             kwargs = {'token': data_collector.token}
-        else:
+        elif user_type == 'anon':
             kwargs = {'username': self.user.username}
+        else:  # user
+            kwargs = {}
         url = reverse(
             endpoint,
             kwargs=kwargs,
