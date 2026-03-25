@@ -56,12 +56,73 @@ from kpi.utils.object_permission import get_database_user
 from kpi.utils.schema_extensions.markdown import read_md
 from kpi.utils.schema_extensions.response import (
     ErrorDetailSerializer,
+    ErrorSerializer,
     open_api_201_created_response,
 )
 from ..utils.rest_framework.viewsets import OpenRosaGenericViewSet
 from ..utils.xml import extract_confirmation_message
 
 xml_error_re = re.compile('>(.*)<')
+
+# 202 and 409 are possible on all submission endpoints regardless of auth method.
+# - 202: identical duplicate submission but with new attachment(s)
+# - 409: same instance UUID reused with different content
+_SUBMISSION_EXTRA_RESPONSES = {
+    (status.HTTP_202_ACCEPTED, 'application/json'): OpenApiResponse(
+        response=ErrorSerializer(),
+        description='Exact duplicate (same XML hash, no new attachments)',
+        examples=[
+            OpenApiExample(
+                name='Duplicate Instance',
+                value={'error': 'Duplicate Instance'},
+                response_only=True,
+                media_type='application/json',
+            )
+        ],
+    ),
+    (status.HTTP_202_ACCEPTED, 'text/xml'): OpenApiResponse(
+        response=OpenRosaResponse(),
+        description='Exact duplicate (same XML hash, no new attachments)',
+        examples=[
+            OpenApiExample(
+                name='Duplicate Instance',
+                value='<OpenRosaResponse xmlns="http://openrosa.org/http/response">'
+                '<message>Duplicate Instance</message>'
+                '</OpenRosaResponse>',
+                response_only=True,
+                media_type='text/xml',
+            )
+        ],
+    ),
+    (status.HTTP_409_CONFLICT, 'application/json'): OpenApiResponse(
+        response=ErrorSerializer(),
+        description='Instance UUID already used with different content',
+        examples=[
+            OpenApiExample(
+                name='Conflict',
+                value={
+                    'error': 'Submission with this instance ID already exists'
+                },
+                response_only=True,
+                media_type='application/json',
+            )
+        ],
+    ),
+    (status.HTTP_409_CONFLICT, 'text/xml'): OpenApiResponse(
+        response=OpenRosaResponse(),
+        description='Instance UUID already used with different content',
+        examples=[
+            OpenApiExample(
+                name='Conflict',
+                value='<OpenRosaResponse xmlns="http://openrosa.org/http/response">'
+                '<message>Submission with this instance ID already exists</message>'
+                '</OpenRosaResponse>',
+                response_only=True,
+                media_type='text/xml',
+            )
+        ],
+    ),
+}
 
 
 def is_json(request):
@@ -116,6 +177,7 @@ def create_instance_from_json(username, request):
                 raise_access_forbidden=False,
                 error_media_type='text/xml',
             ),
+            **_SUBMISSION_EXTRA_RESPONSES,
         },
         examples=[get_json_submission_openapi_example()],
         tags=['OpenRosa Form Submission'],
@@ -145,6 +207,7 @@ def create_instance_from_json(username, request):
                 raise_access_forbidden=False,
                 error_media_type='text/xml',
             ),
+            **_SUBMISSION_EXTRA_RESPONSES,
         },
         examples=[get_json_submission_openapi_example()],
         tags=['OpenRosa Form Submission'],
@@ -174,6 +237,7 @@ def create_instance_from_json(username, request):
                 raise_access_forbidden=False,
                 error_media_type='text/xml',
             ),
+            **_SUBMISSION_EXTRA_RESPONSES,
             # An invalid collector token raises AuthenticationFailed (401).
             # `require_auth=False` above suppresses the generic 401, so we
             # add it explicitly here with the correct message.

@@ -197,6 +197,42 @@ paths:
                       - Error message
                   summary: Bad request
           description: ''
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                DuplicateInstance:
+                  value:
+                    error: Duplicate Instance
+                  summary: Duplicate Instance
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/OpenRosaResponse'
+              examples:
+                DuplicateInstance:
+                  value: <OpenRosaResponse xmlns="http://openrosa.org/http/response"><message>Duplicate
+                    Instance</message></OpenRosaResponse>
+                  summary: Duplicate Instance
+          description: Exact duplicate (same XML hash, no new attachments)
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                Conflict:
+                  value:
+                    error: Submission with this instance ID already exists
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/OpenRosaResponse'
+              examples:
+                Conflict:
+                  value: <OpenRosaResponse xmlns="http://openrosa.org/http/response"><message>Submission
+                    with this instance ID already exists</message></OpenRosaResponse>
+          description: Instance UUID already used with different content
   /{username}/xformsManifest/{id}:
     get:
       operationId: manifest_anonymous
@@ -532,6 +568,42 @@ paths:
                       - Error message
                   summary: Bad request
           description: ''
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                DuplicateInstance:
+                  value:
+                    error: Duplicate Instance
+                  summary: Duplicate Instance
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/OpenRosaResponse'
+              examples:
+                DuplicateInstance:
+                  value: <OpenRosaResponse xmlns="http://openrosa.org/http/response"><message>Duplicate
+                    Instance</message></OpenRosaResponse>
+                  summary: Duplicate Instance
+          description: Exact duplicate (same XML hash, no new attachments)
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                Conflict:
+                  value:
+                    error: Submission with this instance ID already exists
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/OpenRosaResponse'
+              examples:
+                Conflict:
+                  value: <OpenRosaResponse xmlns="http://openrosa.org/http/response"><message>Submission
+                    with this instance ID already exists</message></OpenRosaResponse>
+          description: Instance UUID already used with different content
         '401':
           content:
             application/json:
@@ -795,6 +867,42 @@ paths:
                       - Error message
                   summary: Bad request
           description: ''
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                DuplicateInstance:
+                  value:
+                    error: Duplicate Instance
+                  summary: Duplicate Instance
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/OpenRosaResponse'
+              examples:
+                DuplicateInstance:
+                  value: <OpenRosaResponse xmlns="http://openrosa.org/http/response"><message>Duplicate
+                    Instance</message></OpenRosaResponse>
+                  summary: Duplicate Instance
+          description: Exact duplicate (same XML hash, no new attachments)
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                Conflict:
+                  value:
+                    error: Submission with this instance ID already exists
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/OpenRosaResponse'
+              examples:
+                Conflict:
+                  value: <OpenRosaResponse xmlns="http://openrosa.org/http/response"><message>Submission
+                    with this instance ID already exists</message></OpenRosaResponse>
+          description: Instance UUID already used with different content
   /xformsManifest/{id}:
     get:
       operationId: manifest_authenticated
@@ -837,6 +945,16 @@ paths:
           description: ''
 components:
   schemas:
+    Error:
+      type: object
+      description: |-
+        Used for OpenRosa endpoints that return `{'error': '...'}` instead of
+        the standard `{'detail': '...'}` shape.
+      properties:
+        error:
+          type: string
+      required:
+      - error
     ErrorDetail:
       type: object
       properties:
