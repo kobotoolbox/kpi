@@ -6,6 +6,10 @@ import {
   removeEmptyObjects,
 } from './submissionUtils'
 import {
+  allQualSurveyDisplayData,
+  assetWithAllQual,
+  assetWithNestedSupplementalDetails,
+  assetWithSupplementalDetails,
   everythingSurveyAsset,
   everythingSurveyDisplayData,
   everythingSurveySubmission,
@@ -21,6 +25,7 @@ import {
   nestedRepeatSurveyAsset,
   nestedRepeatSurveyDisplayData,
   nestedRepeatSurveySubmission,
+  nestedSupplementalDetailsSurveyDisplayData,
   repeatSurveyAsset,
   repeatSurveyDisplayData,
   repeatSurveySubmission,
@@ -29,9 +34,11 @@ import {
   simpleSurveyDisplayDataEmpty,
   simpleSurveySubmission,
   simpleSurveySubmissionEmpty,
+  submissionWithAllQual,
   submissionWithAttachmentsWithUnicode,
   submissionWithNestedSupplementalDetails,
   submissionWithSupplementalDetails,
+  supplementalDetailsSurveyDisplayData,
 } from './submissionUtils.mocks'
 
 // getSubmissionDisplayData() returns objects that have prototype chains, while
@@ -99,6 +106,28 @@ describe('getSubmissionDisplayData', () => {
     const target = matrixRepeatSurveyDisplayData
     chai.expect(test).excludingEvery(['__proto__']).to.deepEqualIgnoreUndefined(target)
   })
+
+  it('should return a valid data for a submission with supplemental details', () => {
+    const test = getSubmissionDisplayData(assetWithSupplementalDetails, 0, submissionWithSupplementalDetails)
+    const target = supplementalDetailsSurveyDisplayData
+    chai.expect(test).excludingEvery(['__proto__']).to.deepEqualIgnoreUndefined(target)
+  })
+
+  it('should return a valid data for a submission with a nested supplemental details', () => {
+    const test = getSubmissionDisplayData(
+      assetWithNestedSupplementalDetails,
+      0,
+      submissionWithNestedSupplementalDetails,
+    )
+    const target = nestedSupplementalDetailsSurveyDisplayData
+    chai.expect(test).excludingEvery(['__proto__']).to.deepEqualIgnoreUndefined(target)
+  })
+
+  it('should return a valid data for a project with all qualitative analysis questions', () => {
+    const test = getSubmissionDisplayData(assetWithAllQual, 0, submissionWithAllQual)
+    const target = allQualSurveyDisplayData
+    chai.expect(test).excludingEvery(['__proto__']).to.deepEqualIgnoreUndefined(target)
+  })
 })
 
 describe('getMediaAttachment', () => {
@@ -133,12 +162,12 @@ describe('getSupplementalDetailsContent', () => {
   it('should return translation value properly for a question inside a group', () => {
     const test = getSupplementalDetailsContent(
       submissionWithNestedSupplementalDetails,
-      '_supplementalDetails/level_a/level_b/level_c/sounds/translation_fr',
+      '_supplementalDetails/level_a/level_b/level_c/sound/translation_fr',
     )
     chai.expect(test).to.equal('Comment vas-tu mon cher ami?')
   })
 
-  it('should return analysis question value properly for qual_select_multiple', () => {
+  it('should return analysis question value properly for qualSelectMultiple', () => {
     const test = getSupplementalDetailsContent(
       submissionWithSupplementalDetails,
       '_supplementalDetails/Secret_password_as_an_audio_file/1a89e0da-3344-4b5d-b919-ab8b072e0918',
@@ -146,7 +175,7 @@ describe('getSupplementalDetailsContent', () => {
     chai.expect(test).to.equal('First, Third')
   })
 
-  it('should return analysis question value properly for qual_tags', () => {
+  it('should return analysis question value properly for qualTags', () => {
     const test = getSupplementalDetailsContent(
       submissionWithSupplementalDetails,
       '_supplementalDetails/Secret_password_as_an_audio_file/b05f29f7-8b58-4dd7-8695-c29cb04f3f7a',
@@ -154,12 +183,28 @@ describe('getSupplementalDetailsContent', () => {
     chai.expect(test).to.equal('best, things, ever recorder by human, 3')
   })
 
-  it('should return analysis question value properly for qual_integer', () => {
+  it('should return analysis question value properly for qualInteger', () => {
     const test = getSupplementalDetailsContent(
       submissionWithSupplementalDetails,
       '_supplementalDetails/Secret_password_as_an_audio_file/97fd5387-ac2b-4108-b5b4-37fa91ae0e22',
     )
     chai.expect(test).to.equal('12345')
+  })
+
+  it('should return analysis question verified value properly', () => {
+    const test = getSupplementalDetailsContent(
+      submissionWithSupplementalDetails,
+      '_supplementalDetails/Secret_password_as_an_audio_file/ab0e40e1-fbcc-43e9-9d00-b9b3314089cb/verified',
+    )
+    chai.expect(test).to.equal('No')
+  })
+
+  it('should return analysis question verified value properly for a question inside a group', () => {
+    const test = getSupplementalDetailsContent(
+      submissionWithNestedSupplementalDetails,
+      '_supplementalDetails/level_a/level_b/level_c/sound/9d75988b-7b69-48ec-921d-2ed15b9f5ca7/verified',
+    )
+    chai.expect(test).to.equal('No')
   })
 })
 
@@ -218,30 +263,36 @@ describe('removeEmptyFromSupplementalDetails', () => {
   it('should remove empty strings and deleted qual responses', () => {
     const supplementalDetails: SubmissionSupplementalDetails = {
       How_much_can_you_handle: {
-        qual: [
-          {
-            val: '',
-            type: 'qual_text',
-            uuid: '',
+        qual: {
+          123: {
+            value: '',
+            type: 'qualText',
+            uuid: '123',
             labels: { _default: 'foo' },
             xpath: '',
+            verified: false,
+            source: 'manual',
           },
-          {
-            val: 'foo',
-            type: 'qual_text',
-            uuid: '',
+          234: {
+            value: 'foo',
+            type: 'qualText',
+            uuid: '234',
             labels: { _default: 'foo' },
             xpath: '',
+            verified: false,
+            source: 'manual',
           },
-          {
-            val: 'bar',
+          345: {
+            value: 'bar',
             options: { deleted: true },
-            type: 'qual_text',
-            uuid: '',
+            type: 'qualText',
+            uuid: '345',
             labels: { _default: 'foo' },
-            xpath: '',
+            xpath: '345',
+            verified: false,
+            source: 'manual',
           },
-        ],
+        },
       },
     }
 
@@ -249,15 +300,17 @@ describe('removeEmptyFromSupplementalDetails', () => {
 
     chai.expect(result).to.eql({
       How_much_can_you_handle: {
-        qual: [
-          {
-            val: 'foo',
-            type: 'qual_text',
-            uuid: '',
+        qual: {
+          234: {
+            value: 'foo',
+            type: 'qualText',
+            uuid: '234',
             labels: { _default: 'foo' },
             xpath: '',
+            verified: false,
+            source: 'manual',
           },
-        ],
+        },
       },
     })
   })
@@ -265,23 +318,27 @@ describe('removeEmptyFromSupplementalDetails', () => {
   it('should remove qual array if all responses are removed', () => {
     const supplementalDetails: SubmissionSupplementalDetails = {
       How_much_can_you_handle: {
-        qual: [
-          {
-            val: '',
-            type: 'qual_text',
+        qual: {
+          123: {
+            value: '',
+            type: 'qualText',
             labels: { _default: 'foo' },
-            uuid: '',
+            uuid: '123',
             xpath: '',
+            verified: false,
+            source: 'manual',
           },
-          {
-            val: 'bar',
+          234: {
+            value: 'bar',
             options: { deleted: true },
-            type: 'qual_text',
+            type: 'qualText',
             labels: { _default: 'foo' },
-            uuid: '',
+            uuid: '234',
             xpath: '',
+            verified: false,
+            source: 'manual',
           },
-        ],
+        },
       },
     }
 
@@ -293,7 +350,7 @@ describe('removeEmptyFromSupplementalDetails', () => {
   it('should remove nested empty objects', () => {
     const supplementalDetails: SubmissionSupplementalDetails = {
       How_much_can_you_handle: {
-        qual: [],
+        qual: {},
       },
       question2: {},
     }
@@ -306,15 +363,17 @@ describe('removeEmptyFromSupplementalDetails', () => {
   it('should handle already clean supplemental details', () => {
     const supplementalDetails: SubmissionSupplementalDetails = {
       How_much_can_you_handle: {
-        qual: [
-          {
-            val: 'foo',
-            type: 'qual_text',
+        qual: {
+          123: {
+            value: 'foo',
+            type: 'qualText',
             labels: { _default: 'foo' },
-            uuid: '',
+            uuid: '123',
             xpath: '',
+            verified: false,
+            source: 'manual',
           },
-        ],
+        },
       },
     }
 
@@ -326,44 +385,54 @@ describe('removeEmptyFromSupplementalDetails', () => {
   it('should handle multiple kinds of empty responses', () => {
     const supplementalDetails: SubmissionSupplementalDetails = {
       How_much_can_you_handle: {
-        qual: [
-          {
-            val: '',
-            type: 'qual_text',
+        qual: {
+          123: {
+            value: '',
+            type: 'qualText',
             labels: { _default: 'foo' },
-            uuid: '',
+            uuid: '123',
             xpath: '',
+            verified: false,
+            source: 'manual',
           },
-          {
-            val: [],
-            type: 'qual_text',
+          234: {
+            value: [],
+            type: 'qualText',
             labels: { _default: 'foo' },
-            uuid: '',
+            uuid: '234',
             xpath: '',
+            verified: false,
+            source: 'manual',
           },
-          {
-            val: null,
-            type: 'qual_text',
+          345: {
+            value: null,
+            type: 'qualText',
             labels: { _default: 'foo' },
-            uuid: '',
+            uuid: '345',
             xpath: '',
+            verified: false,
+            source: 'manual',
           },
-          {
-            val: 'foo',
+          456: {
+            value: 'foo',
             options: { deleted: true },
-            type: 'qual_text',
+            type: 'qualText',
             labels: { _default: 'foo' },
-            uuid: '',
+            uuid: '456',
             xpath: '',
+            verified: false,
+            source: 'manual',
           },
-          {
-            val: 'bar',
-            type: 'qual_text',
+          567: {
+            value: 'bar',
+            type: 'qualText',
             labels: { _default: 'foo' },
-            uuid: '',
+            uuid: '567',
             xpath: '',
+            verified: false,
+            source: 'manual',
           },
-        ],
+        },
       },
     }
 
@@ -371,15 +440,17 @@ describe('removeEmptyFromSupplementalDetails', () => {
 
     chai.expect(result).to.eql({
       How_much_can_you_handle: {
-        qual: [
-          {
-            val: 'bar',
-            type: 'qual_text',
+        qual: {
+          567: {
+            value: 'bar',
+            type: 'qualText',
             labels: { _default: 'foo' },
-            uuid: '',
+            uuid: '567',
             xpath: '',
+            verified: false,
+            source: 'manual',
           },
-        ],
+        },
       },
     })
   })

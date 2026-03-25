@@ -14,6 +14,9 @@ import type {
 } from '#/dataInterface'
 import { addDefaultUuidPrefix, matchUuid, notify } from '#/utils'
 
+/**
+ * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
+ */
 const submissionsActions = Reflux.createActions({
   getSubmission: { children: ['completed', 'failed'] },
   getSubmissionByUuid: { children: ['completed', 'failed'] },

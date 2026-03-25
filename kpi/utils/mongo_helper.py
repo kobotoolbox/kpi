@@ -58,6 +58,9 @@ class MongoHelper:
         '$options',
         '$all',
         '$elemMatch',
+        '$ne',
+        '$expr',
+        '$ifNull',
     ]
 
     ENCODING_SUBSTITUTIONS = [
@@ -73,7 +76,7 @@ class MongoHelper:
     # Match KoBoCAT's variables of ParsedInstance class
     USERFORM_ID = '_userform_id'
     SUBMISSION_UUID = '_uuid'
-    DEFAULT_BATCHSIZE = 1000
+    SUBMISSION_ROOT_UUID = 'meta/rootUuid'
     COLLECTION = 'instances'
 
     @classmethod
@@ -151,14 +154,13 @@ class MongoHelper:
         if limit is not None:
             cursor.limit(limit)
 
-        if sort is not None and len(sort) == 1:
-            sort = MongoHelper.to_safe_dict(sort, reading=True)
-            sort_key = list(sort.keys())[0]
-            sort_dir = int(sort[sort_key])  # -1 for desc, 1 for asc
-            cursor.sort(sort_key, sort_dir)
+        if sort is not None:
+            sorts = MongoHelper.to_safe_dict(sort, reading=True)
+            sort_params = [(key, int(val)) for key, val in sorts.items()]
+            cursor.sort(sort_params)
 
         # set batch size
-        cursor.batch_size = cls.DEFAULT_BATCHSIZE
+        cursor.batch_size = settings.DEFAULT_BATCH_SIZE
 
         return cursor, total_count
 
@@ -168,10 +170,10 @@ class MongoHelper:
         Return the appropriate query timeout in milliseconds
         """
         if celery_app.current_worker_task:
-            max_time_secs = settings.MONGO_CELERY_QUERY_TIMEOUT
+            max_time_secs = settings.DATABASE_CELERY_QUERY_TIMEOUT
         else:
-            max_time_secs = settings.MONGO_QUERY_TIMEOUT
-        return max_time_secs * 1000
+            max_time_secs = settings.DATABASE_QUERY_TIMEOUT
+        return max_time_secs
 
     @classmethod
     def is_attribute_invalid(cls, key: str) -> str:
@@ -411,6 +413,15 @@ class MongoHelper:
                     fields.append(cls.SUBMISSION_UUID)
                 else:
                     fields[cls.SUBMISSION_UUID] = 1
+
+            # `cls.SUBMISSION_ROOT_UUID` must be included in the query.
+            # If missing, it is injected on the fly using `_uuid`, which can lead to
+            # incorrect values for edited submissions (the root UUID never changes).
+            if cls.SUBMISSION_ROOT_UUID not in fields:
+                if isinstance(fields, list):
+                    fields.append(cls.SUBMISSION_ROOT_UUID)
+                else:
+                    fields[cls.SUBMISSION_ROOT_UUID] = 1
 
             # Retrieve only specified fields from Mongo. Remove
             # `cls.USERFORM_ID` from those fields in case users try to add it.

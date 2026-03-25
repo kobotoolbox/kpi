@@ -2,6 +2,7 @@
 from django.test import override_settings
 from django.test.client import Client
 from django.urls import reverse
+from freezegun import freeze_time
 from rest_framework import status
 
 from kobo.apps.accounts.mfa.tests.utils import get_mfa_code_for_user
@@ -20,6 +21,7 @@ class TestAuthBase(TestBase):
         self._logout()
 
     @staticmethod
+    @freeze_time('2026-01-01 12:00:00')
     def activate_mfa(user: 'kobo_auth.User'):
         client = Client()
         client.force_login(user=user)

@@ -1,4 +1,5 @@
 import clonedeep from 'lodash.clonedeep'
+import type { DataResponse } from '#/api/models/dataResponse'
 import { isSelfOwned } from '#/assetUtils'
 import { AssetTypeName } from '#/constants'
 import type {
@@ -250,7 +251,7 @@ export function userHasPermForSubmission(
   /** Permission to check if user can do at least partially */
   permName: PermissionCodename,
   asset: AssetResponse,
-  submission: SubmissionResponse,
+  submission: SubmissionResponse | DataResponse,
 ) {
   // TODO optimize this to avoid calling `userCan()` and `userCanPartially()`
   // repeatedly in the table view

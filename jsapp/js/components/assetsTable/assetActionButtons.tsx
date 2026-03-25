@@ -19,6 +19,7 @@ import {
   cloneAssetAsSurvey,
   cloneAssetAsTemplate,
   deleteAsset,
+  deployAsset,
   manageAssetLanguages,
   manageAssetSettings,
   manageAssetSharing,
@@ -36,7 +37,6 @@ import { userCan } from '#/components/permissions/utils'
 import { ACCESS_TYPES, ASSET_TYPES } from '#/constants'
 import type { AssetDownloads, AssetResponse } from '#/dataInterface'
 import type { IconName } from '#/k-icons'
-import mixins from '#/mixins'
 import PopoverMenu from '#/popoverMenu'
 import { withRouter } from '#/router/legacy'
 import type { WithRouterProps } from '#/router/legacy'
@@ -123,7 +123,7 @@ class AssetActionButtons extends React.Component<AssetActionButtonsProps, AssetA
   }
 
   editLanguages() {
-    manageAssetLanguages(this.props.asset.uid)
+    manageAssetLanguages(this.props.asset)
   }
 
   share() {
@@ -159,7 +159,7 @@ class AssetActionButtons extends React.Component<AssetActionButtonsProps, AssetA
   }
 
   deploy() {
-    mixins.dmix.deployAsset(this.props.asset)
+    deployAsset(this.props.asset)
   }
 
   archive() {

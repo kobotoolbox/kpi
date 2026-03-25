@@ -24,7 +24,6 @@ import { ASSET_TYPES, MODAL_TYPES } from './constants'
 import type { AssetResponse, DeploymentResponse, ProjectViewAsset } from './dataInterface'
 import { router, routerIsActive } from './router/legacy'
 import { ROUTES } from './router/routerConstants'
-import { stores } from './stores'
 import { notify, renderCheckbox } from './utils'
 
 export function openInFormBuilder(uid: string) {
@@ -36,16 +35,10 @@ export function openInFormBuilder(uid: string) {
 }
 
 export function deleteAsset(
-  assetOrUid: AssetResponse | ProjectViewAsset | string,
+  asset: AssetResponse | ProjectViewAsset,
   name: string,
   callback?: (deletedAssetUid: string) => void,
 ) {
-  let asset: AssetResponse | ProjectViewAsset
-  if (typeof assetOrUid === 'object') {
-    asset = assetOrUid
-  } else {
-    asset = stores.allAssets.byUid[assetOrUid]
-  }
   const assetTypeLabel = ASSET_TYPES[asset.asset_type].label
 
   const safeName = escape(name)
@@ -122,15 +115,9 @@ export function deleteAsset(
 
 /** Displays a confirmation popup before archiving. */
 export function archiveAsset(
-  assetOrUid: AssetResponse | ProjectViewAsset | string,
+  asset: AssetResponse | ProjectViewAsset,
   callback?: (response: DeploymentResponse) => void,
 ) {
-  let asset: AssetResponse | ProjectViewAsset
-  if (typeof assetOrUid === 'object') {
-    asset = assetOrUid
-  } else {
-    asset = stores.allAssets.byUid[assetOrUid]
-  }
   // TODO: stop using alertify here, use KoboPrompt
   const dialog = alertify.dialog('confirm')
   const opts = {
@@ -161,15 +148,9 @@ export function archiveAsset(
 
 /** Displays a confirmation popup before unarchiving. */
 export function unarchiveAsset(
-  assetOrUid: AssetResponse | ProjectViewAsset | string,
+  asset: AssetResponse | ProjectViewAsset,
   callback?: (response: DeploymentResponse) => void,
 ) {
-  let asset: AssetResponse | ProjectViewAsset
-  if (typeof assetOrUid === 'object') {
-    asset = assetOrUid
-  } else {
-    asset = stores.allAssets.byUid[assetOrUid]
-  }
   // TODO: stop using alertify here, use KoboPrompt
   const dialog = alertify.dialog('confirm')
   const opts = {
@@ -198,13 +179,7 @@ export function unarchiveAsset(
 }
 
 /** Creates a duplicate of an asset. */
-export function cloneAsset(assetOrUid: AssetResponse | ProjectViewAsset | string) {
-  let asset: AssetResponse | ProjectViewAsset
-  if (typeof assetOrUid === 'object') {
-    asset = assetOrUid
-  } else {
-    asset = stores.allAssets.byUid[assetOrUid]
-  }
+export function cloneAsset(asset: AssetResponse | ProjectViewAsset) {
   const assetTypeLabel = ASSET_TYPES[asset.asset_type].label
 
   let newName
@@ -480,10 +455,9 @@ export function replaceAssetForm(asset: AssetResponse | ProjectViewAsset) {
  * receive `uid` and will fetch all data by itself, or be given all the data
  * up front via `asset` parameter.
  */
-export function manageAssetLanguages(uid: string, asset?: AssetResponse) {
+export function manageAssetLanguages(asset: AssetResponse) {
   pageState.showModal({
     type: MODAL_TYPES.FORM_LANGUAGES,
-    assetUid: uid,
     asset: asset,
   })
 }

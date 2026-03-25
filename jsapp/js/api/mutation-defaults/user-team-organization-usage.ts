@@ -18,7 +18,12 @@ import {
 import session from '#/stores/session'
 import { getAssetUIDFromUrl } from '#/utils'
 import { queryClient } from '../queryClient'
-import { invalidateItem, invalidateList, optimisticallyUpdateItem, optimisticallyUpdateList } from './common'
+import {
+  invalidateItem,
+  invalidatePaginatedList,
+  optimisticallyUpdateItem,
+  optimisticallyUpdatePaginatedList,
+} from './common'
 
 queryClient.setMutationDefaults(
   getOrganizationsPartialUpdateMutationOptions().mutationKey!,
@@ -29,7 +34,7 @@ queryClient.setMutationDefaults(
      */
     mutation: {
       onSettled: (_data, _error, variables) => {
-        invalidateList(getOrganizationsListQueryKey())
+        invalidatePaginatedList(getOrganizationsListQueryKey())
         invalidateItem(getOrganizationsRetrieveQueryKey(variables.uidOrganization))
       },
     },
@@ -51,8 +56,8 @@ queryClient.setMutationDefaults(
      */
     mutation: {
       onSettled: (_data, _error, variables) => {
-        invalidateList(getOrganizationsInvitesListQueryKey(variables.uidOrganization))
-        invalidateList(getOrganizationsMembersListQueryKey(variables.uidOrganization))
+        invalidatePaginatedList(getOrganizationsInvitesListQueryKey(variables.uidOrganization))
+        invalidatePaginatedList(getOrganizationsMembersListQueryKey(variables.uidOrganization))
       },
     },
   }),
@@ -70,7 +75,7 @@ queryClient.setMutationDefaults(
         // Note: `useOrganizationsInvitesList` is unused, skipping optimistically updating it.
         const invitesSnapshots: [readonly unknown[], unknown][] = []
 
-        const membersSnapshots = await optimisticallyUpdateList<organizationsMembersListResponse>(
+        const membersSnapshots = await optimisticallyUpdatePaginatedList<organizationsMembersListResponse>(
           getOrganizationsMembersListQueryKey(uidOrganization),
           (response) =>
             ({
@@ -113,7 +118,7 @@ queryClient.setMutationDefaults(
         // Note: `useOrganizationsInvitesList` is unused, skipping optimistically updating it.
         const invitesSnapshots: [readonly unknown[], unknown][] = []
 
-        const membersSnapshots = await optimisticallyUpdateList<organizationsMembersListResponse>(
+        const membersSnapshots = await optimisticallyUpdatePaginatedList<organizationsMembersListResponse>(
           getOrganizationsMembersListQueryKey(uidOrganization),
           (response) =>
             ({
@@ -178,7 +183,7 @@ queryClient.setMutationDefaults(
      */
     mutation: {
       onMutate: async ({ uidOrganization, username }) => {
-        const listSnapshots = await optimisticallyUpdateList<organizationsMembersListResponse>(
+        const listSnapshots = await optimisticallyUpdatePaginatedList<organizationsMembersListResponse>(
           getOrganizationsMembersListQueryKey(uidOrganization),
           (response) =>
             ({
@@ -220,7 +225,7 @@ queryClient.setMutationDefaults(
       onMutate: async ({ uidOrganization, username, data: { role } }) => {
         if (!role) return
 
-        const listSnapshots = await optimisticallyUpdateList<organizationsMembersListResponse>(
+        const listSnapshots = await optimisticallyUpdatePaginatedList<organizationsMembersListResponse>(
           getOrganizationsMembersListQueryKey(uidOrganization),
           (response) =>
             ({

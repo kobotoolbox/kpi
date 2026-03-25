@@ -435,7 +435,7 @@ class ProjectTrashTestCase(TestCase, AssetSubmissionTestMixin):
         empty_project(project_trash.pk)
         assert not Asset.all_objects.filter(uid=asset_uid).exists()
         assert not xform_queryset.exists()
-        assert not Instance.objects.filter(xform_id__in=xform_ids)
+        assert not Instance.objects.filter(xform_id__in=xform_ids).exists()
         assert (
             settings.MONGO_DB.instances.count_documents(
                 {'_userform_id': mongo_userform_id}

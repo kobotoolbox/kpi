@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 import traceback
 import zipfile
 from datetime import datetime
@@ -8,7 +9,6 @@ from tempfile import NamedTemporaryFile
 
 import requests
 from django.conf import settings
-from django.core.files.storage import FileSystemStorage
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.mail import mail_admins
 from django.utils.translation import gettext as t
@@ -18,6 +18,7 @@ from kpi.constants import UNSUPPORTED_INLINE_MIMETYPES
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
+from kpi.utils.storage import is_filesystem_storage
 
 SLASH = '/'
 
@@ -122,14 +123,37 @@ def get_client_ip(request):
 
 def get_human_readable_client_user_agent(request):
     """
-    Parse the user-agent into a human-readable <Browser> (<OS>) string
+    Parse the user-agent into a human-readable <Browser> (<OS>) string.
+    Handles ODK Collect user agents specifically.
     """
     user_agent = request.META.get('HTTP_USER_AGENT', None)
-    if not user_agent or user_agent == '':
+
+    if not user_agent:
         return 'No information available'
+
+    collect_match = re.search(
+        r'org\.(odk|koboc)\.collect\.android/(v[\d.]+)', user_agent
+    )
+    if collect_match:
+        app_name = (
+            'Kobo Collect'
+            if collect_match.group(1) == 'koboc'
+            else 'ODK Collect'
+        )
+        version = collect_match.group(2)
+        android_match = re.search(r'Android ([\d.]+)', user_agent)
+        android_version = android_match.group(1) if android_match else 'Unknown'
+        return f'{app_name} {version} (Android {android_version})'
+
     parsed = ua_parse.Parse(user_agent)
     browser = parsed['user_agent']['family']
     user_os = parsed['os']['family']
+
+    enketo_match = re.search(r'Enketo/(\d+\.\d+\.\d+)', user_agent)
+    if enketo_match:
+        version = enketo_match.group(1)
+        return f'{browser} - Enketo {version} ({user_os})'
+
     return f'{browser} ({user_os})'
 
 
@@ -218,7 +242,7 @@ def create_attachments_zipfile(attachments, output_file=None):
             # The default, file-system storage won't allow changing the `seek`
             # attribute, which is fine because seeking on local files works
             # perfectly anyway
-            if not isinstance(default_storage, FileSystemStorage):
+            if not is_filesystem_storage(default_storage):
                 logging.warning(
                     f'{default_storage.__class__} may not be a local storage class, but '
                     f'disabling seeking failed: {e}'

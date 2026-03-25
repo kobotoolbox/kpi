@@ -21,6 +21,7 @@ ENV = 'dev'
 
 # Expiration time in sec. after which paired data xml file must be regenerated
 PAIRED_DATA_EXPIRATION = 5
+PAIRED_DATA_REGEN_LOCK_TIMEOUT = 10  # seconds
 
 CALCULATED_HASH_CACHE_EXPIRATION = 5
 

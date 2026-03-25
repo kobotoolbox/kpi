@@ -274,6 +274,51 @@ class AssetContentTests(AssetsTestCase):
         except:
             self.assertEqual(self.asset.content.get('translations'), ['lang1', None])
 
+    def test_fix_unnamed_language_leak_on_hint_addition(self):
+        """
+        Verifies that adding a hint to an undeployed form with multiple languages
+        does not create an unnamed (None) language and maintains correct translations.
+        """
+        # Setup with 2 languages
+        languages = ['English (en)', 'French (fr)']
+        initial_content = {
+            'schema': '1',
+            'survey': [
+                {'name': 'start', 'type': 'start', '$kuid': 'DmDARxejl'},
+                {'name': 'end', 'type': 'end', '$kuid': 'ZuYDDLIlj'},
+                {
+                    'name': 'q1',
+                    'type': 'text',
+                    'label': ['Question 1', 'Question 1 FR'],
+                    '$kuid': 'abc123',
+                },
+            ],
+            'settings': {'default_language': 'English (en)'},
+            'translations': languages,
+            'translated': ['label'],
+        }
+
+        asset = Asset.objects.create(
+            owner=self.user, asset_type='survey', content=initial_content
+        )
+
+        # Simulate adding a hint to the question
+        builder_payload = deepcopy(asset.content)
+        if 'hint' not in builder_payload['translated']:
+            builder_payload['translated'].append('hint')
+        builder_payload['survey'][2]['hint'] = 'This is a new hint'
+
+        asset.content = builder_payload
+        asset.save()
+        asset.refresh_from_db()
+
+        # Verify translations: Ensure they weren't removed or added to (no 'None')
+        self.assertEqual(asset.content['translations'], ['English (en)', 'French (fr)'])
+        self.assertEqual(len(asset.content['translations']), 2)
+        self.assertNotIn(None, asset.content['translations'])
+
+        self.assertIn('hint', asset.content['translated'])
+
     def test_flatten_empty_relevant(self):
         content = self._wrap_field('relevant', [])
         a1 = Asset.objects.create(content=content, asset_type='survey')
@@ -1090,7 +1135,8 @@ class TestAssetDataCollectors(TestCase):
     def test_enketo_links_updated_when_first_group_set(self):
         self.asset.data_collector_group = self.data_collector_group
         with patch.object(
-            self.asset.deployment, 'set_data_collector_enketo_links'
+            self.asset.deployment,
+            'create_enketo_survey_links_for_single_data_collector',
         ) as patched_set_links:
             self.asset.save()
         patched_set_links.assert_any_call(self.dc0.token)
@@ -1106,10 +1152,11 @@ class TestAssetDataCollectors(TestCase):
         dc1_0 = DataCollector.objects.create(group=second_group, name='dc1_0')
         dc1_1 = DataCollector.objects.create(group=second_group, name='dc1_1')
         with patch.object(
-            self.asset.deployment, 'set_data_collector_enketo_links'
+            self.asset.deployment,
+            'create_enketo_survey_links_for_single_data_collector',
         ) as patched_set_links:
             with patch.object(
-                self.asset.deployment, 'remove_data_collector_enketo_links'
+                self.asset.deployment, 'remove_enketo_links_for_single_data_collector'
             ) as patched_remove_links:
                 self.asset.data_collector_group = second_group
                 self.asset.save()
@@ -1126,7 +1173,7 @@ class TestAssetDataCollectors(TestCase):
         self.asset.save()
 
         with patch.object(
-            self.asset.deployment, 'remove_data_collector_enketo_links'
+            self.asset.deployment, 'remove_enketo_links_for_single_data_collector'
         ) as patched_remove_links:
             self.asset.data_collector_group = None
             self.asset.save()
@@ -1139,7 +1186,8 @@ class TestAssetDataCollectors(TestCase):
         undeployed_asset.data_collector_group = self.data_collector_group
 
         with patch.object(
-            MockDeploymentBackend, 'set_data_collector_enketo_links'
+            MockDeploymentBackend,
+            'create_enketo_survey_links_for_single_data_collector',
         ) as patched_set_links:
             undeployed_asset.save()
             patched_set_links.assert_not_called()

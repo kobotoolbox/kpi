@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from unittest.mock import patch
 
 import pytest
+from allauth.socialaccount.models import SocialAccount
 from django.conf import settings
 from django.core.cache import cache
 from django.db import connection
@@ -117,6 +118,54 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
             self.subscription.metadata['organization_id'],
         )
 
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    def test_social_accounts_are_not_duplicated_with_multiple_subscriptions(self):
+        """
+        Ensure that social accounts are not duplicated when a user is attached to
+        multiple subscriptions
+        """
+        from djstripe.enums import BillingScheme
+        from djstripe.models import Customer
+
+        SocialAccount.objects.create(
+            user=self.someuser,
+            provider='acted',
+            uid='test-social-uid',
+        )
+
+        customer = baker.make(Customer, subscriber=self.organization)
+
+        # Create two subscriptions for same organization
+        baker.make(
+            'djstripe.Subscription',
+            customer=customer,
+            items__price__livemode=False,
+            items__price__billing_scheme=BillingScheme.per_unit,
+            livemode=False,
+            metadata={'organization_id': str(self.organization.id)},
+        )
+        baker.make(
+            'djstripe.Subscription',
+            customer=customer,
+            items__price__livemode=False,
+            items__price__billing_scheme=BillingScheme.per_unit,
+            livemode=False,
+            metadata={'organization_id': str(self.organization.id)},
+        )
+
+        refresh_user_reports_materialized_view(concurrently=False)
+
+        data = self._get_someuser_data()
+
+        social = data['social_accounts']
+        subs = data['subscriptions']
+
+        self.assertEqual(len(subs), 2)
+        self.assertEqual(len(social), 1)
+        self.assertEqual(social[0]['uid'], 'test-social-uid')
+
     def test_service_usage_data_is_correctly_returned(self):
         """
         Test that the service usage data is correctly calculated and returned
@@ -164,7 +213,7 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         service_usage = someuser_data['service_usage']
         # Assert total usage counts from the snapshot
         self.assertEqual(service_usage['total_submission_count']['current_period'], 15)
-        self.assertEqual(service_usage['total_submission_count']['all_time'], 150)
+        self.assertEqual(service_usage['total_submission_count']['cumulative'], 150)
         self.assertEqual(service_usage['total_storage_bytes'], 200000000)
         self.assertEqual(
             service_usage['total_nlp_usage']['asr_seconds_current_period'], 100
@@ -299,6 +348,110 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         self.assertEqual(results[0]['username'], 'adminuser')
         self.assertEqual(results[1]['username'], 'someuser')
         self.assertEqual(results[2]['username'], 'anotheruser')
+
+    def test_service_usage_handles_unlimited_limits(self):
+        """
+        Test that when limits are NULL (unlimited), the API returns a balance object
+        with 'effective_limit': null instead of the object being null
+        """
+        DailyXFormSubmissionCounter.objects.create(
+            user_id=self.someuser.id, date=timezone.now().date(), counter=500
+        )
+
+        mock_limits = {
+            self.someuser.organization.id: {
+                f'{UsageType.SUBMISSION}_limit': float('inf'),
+                f'{UsageType.STORAGE_BYTES}_limit': float('inf'),
+                f'{UsageType.ASR_SECONDS}_limit': float('inf'),
+                f'{UsageType.MT_CHARACTERS}_limit': float('inf'),
+            }
+        }
+
+        with patch(
+            'kobo.apps.user_reports.tasks.get_organizations_effective_limits',
+            return_value=mock_limits,
+        ):
+            cache.clear()
+            refresh_user_report_snapshots()
+            someuser_data = self._get_someuser_data()
+
+        balances = someuser_data['service_usage']['balances']
+        self.assertIsNotNone(balances['submission'])
+        self.assertIsNone(balances['submission']['effective_limit'])
+        self.assertEqual(balances['submission']['balance_percent'], 0)
+        self.assertFalse(balances['submission']['exceeded'])
+
+        self.assertIsNotNone(balances['storage_bytes'])
+        self.assertIsNone(balances['storage_bytes']['effective_limit'])
+        self.assertFalse(balances['storage_bytes']['exceeded'])
+
+        self.assertIsNotNone(balances['asr_seconds'])
+        self.assertIsNone(balances['asr_seconds']['effective_limit'])
+
+        self.assertIsNotNone(balances['mt_characters'])
+        self.assertIsNone(balances['mt_characters']['effective_limit'])
+
+    def test_last_updated_fallback_for_users_without_snapshot(self):
+        """
+        Test that users without a BillingAndUsageSnapshot (e.g., no org) still
+        get a valid 'last_updated' timestamp from the materialized view refresh
+        """
+        User.objects.create(username='new_user')
+
+        refresh_user_reports_materialized_view(concurrently=False)
+
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        results = response.data['results']
+        new_user_data = next(
+            (user for user in results if user['username'] == 'new_user'), None
+        )
+        self.assertIsNotNone(new_user_data)
+        last_updated_str = new_user_data.get('last_updated')
+        self.assertIsNotNone(last_updated_str)
+
+    @pytest.mark.skipif(
+        not settings.STRIPE_ENABLED, reason='Requires stripe functionality'
+    )
+    def test_subscription_linked_via_customer_without_metadata(self):
+        """
+        Link subscriptions via `Customer.subscriber_id` to ensure the org owner
+        can see their subscription even when Stripe metadata is missing
+        """
+        from djstripe.enums import BillingScheme
+        from djstripe.models import Customer
+
+        # Create a Customer linked to the Organization
+        customer = baker.make(Customer, subscriber=self.organization)
+
+        # Create a Subscription for this Customer with EMPTY metadata
+        subscription = baker.make(
+            'djstripe.Subscription',
+            customer=customer,
+            items__price__livemode=False,
+            items__price__billing_scheme=BillingScheme.per_unit,
+            livemode=False,
+            metadata={},
+            status='active'
+        )
+
+        # Verify that the subscription is not visible in the API
+        user_data = self._get_someuser_data()
+        self.assertEqual(len(user_data['subscriptions']), 0)
+
+        refresh_user_reports_materialized_view(concurrently=False)
+
+        user_data = self._get_someuser_data()
+
+        # Verify that the subscription is now visible and linked to the correct
+        # customer and organization, even without metadata
+        self.assertEqual(len(user_data['subscriptions']), 1)
+
+        sub_data = user_data['subscriptions'][0]
+        self.assertEqual(sub_data['id'], subscription.id)
+        self.assertEqual(sub_data['customer'], customer.id)
+        self.assertEqual(sub_data['metadata'], {})
 
     def _get_someuser_data(self):
 

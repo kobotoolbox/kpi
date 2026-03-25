@@ -86,20 +86,58 @@ class BaseServiceUsageTestCase(BaseAssetTestCase):
         self._deployment = self.asset.deployment
 
     def add_nlp_tracker(self, asset, date, userid, seconds, characters, requests):
-        counter = {
+        """
+        Create or merge an NLPUsageCounter row.
+
+        If a row already exists for (date, user, asset), merge by summing:
+        - counters JSON keys
+        - total_* fields
+
+        This makes test helpers idempotent and compatible with uniqueness constraints.
+        """
+
+        delta_counters = {
             'google_asr_seconds': seconds,
             'google_mt_characters': characters,
             'some_service_llm_requests': requests,
         }
-        return NLPUsageCounter.objects.create(
+        counter, created = NLPUsageCounter.objects.get_or_create(
             user_id=userid,
             asset=asset,
             date=date,
-            counters=counter,
-            total_asr_seconds=seconds,
-            total_mt_characters=characters,
-            total_llm_requests=requests,
+            defaults={
+                'counters': delta_counters,
+                'total_asr_seconds': seconds,
+                'total_mt_characters': characters,
+                'total_llm_requests': requests,
+            },
         )
+
+        if created:
+            return counter
+
+        # Merge JSON counters (sum per key)
+        merged = dict(counter.counters or {})
+        for k, v in delta_counters.items():
+            merged[k] = int(merged.get(k, 0) or 0) + int(v or 0)
+
+        # Merge totals (sum)
+        counter.counters = merged
+        counter.total_asr_seconds = (counter.total_asr_seconds or 0) + (seconds or 0)
+        counter.total_mt_characters = (counter.total_mt_characters or 0) + (
+            characters or 0
+        )
+        counter.total_llm_requests = (counter.total_llm_requests or 0) + (requests or 0)
+
+        counter.save(
+            update_fields=[
+                'counters',
+                'total_asr_seconds',
+                'total_mt_characters',
+                'total_llm_requests',
+            ]
+        )
+        return counter
 
     def add_nlp_trackers(
         self,

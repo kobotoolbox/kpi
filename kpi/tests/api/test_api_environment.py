@@ -1,4 +1,3 @@
-import datetime
 
 import pytest
 from constance import config
@@ -20,7 +19,6 @@ from kobo.apps.accounts.models import SocialAppCustomData
 from kobo.apps.constance_backends.utils import to_python_object
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.stripe.constants import FREE_TIER_EMPTY_DISPLAY, FREE_TIER_NO_THRESHOLDS
 from kpi.tests.base_test_case import BaseTestCase
 from kpi.tests.utils.mixins import RequiresStripeAPIKeyMixin
 from kpi.utils.fuzzy_int import FuzzyInt
@@ -31,19 +29,6 @@ class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
     fixtures = ['test_data']
 
     today = timezone.now()
-    free_tier_thresholds = {
-        'storage': 11111111111111,
-        'data': 2222222222222,
-        'transcription_minutes': 333333,
-        'translation_chars': 4444444,
-    }
-    free_tier_display = {
-      'name': 'Test',
-      'features': [
-          'Feature 1',
-          'Feature 2',
-      ]
-    }
 
     @classmethod
     def setUpTestData(cls):
@@ -53,6 +38,14 @@ class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
         self.url = reverse('environment')
         self.user = User.objects.get(username='someuser')
         self.password = 'someuser'
+
+        baker.make(
+            'ExtraProjectMetadataField',
+            name='test_field',
+            type='text',
+            is_required=True,
+        )
+
         self.dict_checks = {
             'terms_of_service_url': config.TERMS_OF_SERVICE_URL,
             'privacy_policy_url': config.PRIVACY_POLICY_URL,
@@ -68,6 +61,9 @@ class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
                 len(to_python_object(config.PROJECT_METADATA_FIELDS)),
             )
             and self.assertIn({'name': 'organization', 'required': False}, x),
+            'extra_project_metadata_fields': lambda x: self.assertEqual(len(x), 1)
+            and self.assertEqual(x[0]['name'], 'test_field')
+            and self.assertEqual(x[0]['required'], True),
             'user_metadata_fields': lambda x: self.assertEqual(
                 len(x),
                 len(to_python_object(config.USER_METADATA_FIELDS)),
@@ -106,8 +102,6 @@ class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
             'mfa_code_length': settings.TRENCH_AUTH['CODE_LENGTH'],
             # stripe key added below if stripe is enabled
             'stripe_public_key': None,
-            'free_tier_thresholds': to_python_object(config.FREE_TIER_THRESHOLDS),
-            'free_tier_display': to_python_object(config.FREE_TIER_DISPLAY),
             'social_apps': [],
             'enable_password_entropy_meter': (config.ENABLE_PASSWORD_ENTROPY_METER),
             'enable_custom_password_guidance_text': (
@@ -156,7 +150,7 @@ class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
         self._check_response_dict(response.data)
 
     def test_template_context_processor(self):
-        """ Not an API test, but hey: nevermind the hobgoblins """
+        """Not an API test, but hey: nevermind the hobgoblins"""
         context = RequestContext(HttpRequest())  # NB: empty request
         template = Template('{{ config.TERMS_OF_SERVICE_URL }}')
         result = template.render(context)
@@ -186,9 +180,7 @@ class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
 
         # someuser should have per-user availability
         self.assertTrue(
-            self.client.login(
-                username=self.user.username, password=self.password
-            )
+            self.client.login(username=self.user.username, password=self.password)
         )
         response = self.client.get(self.url, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -226,91 +218,6 @@ class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
         self.assertTrue(response.data['mfa_enabled'])
         self.assertFalse(response.data['mfa_per_user_availability'])
         self.assertTrue(response.data['mfa_has_availability_list'])
-
-    @override_config(
-        FREE_TIER_CUTOFF_DATE=today.date(),
-        FREE_TIER_THRESHOLDS=free_tier_thresholds,
-        FREE_TIER_DISPLAY=free_tier_display,
-    )
-    def test_free_tier_override_respects_cutoff_date(
-        self,
-    ):
-        user = baker.make(
-            settings.AUTH_USER_MODEL,
-            username='thresholds_test',
-            date_joined=self.today
-        )
-        self.client.force_login(user)
-
-        # A user who joined today should see the custom free tier
-        response = self.client.get(self.url, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['free_tier_thresholds'], self.free_tier_thresholds)
-        self.assertEqual(response.data['free_tier_display'], self.free_tier_display)
-
-        # A user who joined yesterday should see the custom free tier
-        user.date_joined = self.today - datetime.timedelta(days=1)
-        user.save()
-        response = self.client.get(self.url, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['free_tier_thresholds'], self.free_tier_thresholds)
-        self.assertEqual(response.data['free_tier_display'], self.free_tier_display)
-
-        # A user who joined tomorrow should *not* see the custom free tier
-        user.date_joined = self.today + datetime.timedelta(days=1)
-        user.save()
-        response = self.client.get(self.url, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['free_tier_thresholds'], FREE_TIER_NO_THRESHOLDS)
-        self.assertEqual(response.data['free_tier_display'], FREE_TIER_EMPTY_DISPLAY)
-
-    @pytest.mark.skip(
-        'The "FREE_TIER_CUTOFF_DATE" has passed. '
-        'The related conditions are no longer applicable.'
-    )
-    @override_config(
-        FREE_TIER_CUTOFF_DATE=today.date(),
-        FREE_TIER_THRESHOLDS=free_tier_thresholds,
-        FREE_TIER_DISPLAY=free_tier_display,
-    )
-    def test_free_tier_override_uses_organization_owner_join_date(
-        self,
-    ):
-        """
-        If the user is in an organization, the custom free tier should only
-        be displayed if the organization owner joined on/before FREE_TIER_CUTOFF_DATE
-        """
-        org_user = baker.make(
-            settings.AUTH_USER_MODEL,
-            username='org_user',
-            date_joined=self.today + datetime.timedelta(days=1),
-        )
-        org_owner = baker.make(
-            settings.AUTH_USER_MODEL,
-            username='org_owner',
-            date_joined=self.today,
-        )
-
-        organization = baker.make('Organization')
-        # The first user added to the organization automatically becomes the owner
-        organization.add_user(org_owner)
-        organization.add_user(org_user)
-        organization.save()
-        self.client.force_login(org_user)
-
-        # a user whose organization owner registered today should see the custom free tier
-        response = self.client.get(self.url, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['free_tier_thresholds'], self.free_tier_thresholds)
-        self.assertEqual(response.data['free_tier_display'], self.free_tier_display)
-
-        # a user whose organization owner registered tomorrow should *not* see the custom free tier
-        org_owner.date_joined = self.today + datetime.timedelta(days=1)
-        org_owner.save()
-        response = self.client.get(self.url, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['free_tier_thresholds'], FREE_TIER_NO_THRESHOLDS)
-        self.assertEqual(response.data['free_tier_display'], FREE_TIER_EMPTY_DISPLAY)
 
     @override_settings(SOCIALACCOUNT_PROVIDERS={})
     def test_social_apps(self):
@@ -378,3 +285,23 @@ class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
         response = self.client.get(self.url, format='json')
         assert response.status_code == status.HTTP_200_OK
         assert response.data['stripe_public_key'] == 'fake_public_key'
+
+    def test_extra_project_metadata_select_fields_options(self):
+        baker.make(
+            'ExtraProjectMetadataField',
+            name='regions',
+            type='multi_select',
+            options=[
+                {"name": "africa", "label": {"default": "Africa"}},  # noqa Q000
+                {"name": "europe", "label": {"default": "Europe"}},  # noqa Q000
+            ],
+        )
+
+        response = self.client.get(self.url, format='json')
+
+        extra_fields = response.data['extra_project_metadata_fields']
+        regions_field = next(f for f in extra_fields if f['name'] == 'regions')
+
+        self.assertEqual(len(regions_field['options']), 2)
+        self.assertEqual(regions_field['options'][0]['name'], 'africa')
+        self.assertEqual(regions_field['options'][0]['label']['default'], 'Africa')

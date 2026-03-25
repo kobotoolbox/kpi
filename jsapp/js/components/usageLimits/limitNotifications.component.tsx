@@ -26,6 +26,7 @@ const LimitNotifications = ({ pageCanShowModal = false, accountPage = false }: L
 
   const { data: serviceUsageData } = useOrganizationsServiceUsageSummary()
 
+  // Note: not using `useOrganizationAssumed` due being used within routes that are accessible by anonymous users.
   const session = useSession()
   const organizationId = session.isPending ? undefined : session.currentLoggedAccount?.organization?.uid
   const orgQuery = useOrganizationsRetrieve(organizationId!, {
@@ -66,7 +67,7 @@ const LimitNotifications = ({ pageCanShowModal = false, accountPage = false }: L
     })
   }
 
-  if (!stripeEnabled || serviceUsageData?.status !== 200) {
+  if (!stripeEnabled || serviceUsageData?.status !== 200 || orgQuery.data?.status !== 200 || !organizationId) {
     return null
   }
 

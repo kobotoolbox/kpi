@@ -7,6 +7,10 @@ $s-icon-m: 20px;
 $s-icon-l: 22px;
 $s-icon-xl: 28px;
 
+.k-icon--size-inherit {
+  font-size: inherit;
+}
+
 .k-icon--size-xxs {
   font-size: $s-icon-xxs;
 }

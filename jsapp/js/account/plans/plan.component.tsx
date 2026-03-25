@@ -3,7 +3,6 @@ import React, { useCallback, useContext, useEffect, useMemo, useReducer, useRef,
 import classnames from 'classnames'
 import { when } from 'mobx'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import AddOnList from '#/account/addOns/addOnList.component'
 import { PlanContainer } from '#/account/plans/planContainer.component'
 import { ACCOUNT_ROUTES } from '#/account/routes.constants'
 import type { Price, Product, SinglePricedProduct, SubscriptionInfo } from '#/account/stripe.types'
@@ -14,7 +13,6 @@ import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import Button from '#/components/common/ButtonNew'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import { ACTIVE_STRIPE_STATUSES } from '#/constants'
-import type { FreeTierThresholds } from '#/envStore'
 import envStore from '#/envStore'
 import { useRefreshApiFetcher } from '#/hooks/useRefreshApiFetcher.hook'
 import useWhen from '#/hooks/useWhen.hook'
@@ -30,10 +28,6 @@ export interface PlanState {
   featureTypes: string[]
 }
 
-interface PlanProps {
-  showAddOns?: boolean
-}
-
 // An interface for our action
 type DataUpdates =
   | {
@@ -47,11 +41,6 @@ type DataUpdates =
   | {
       type: 'month' | 'year'
     }
-
-export interface FreeTierOverride extends FreeTierThresholds {
-  name: string | null
-  [key: `feature_list_${number}`]: string | null
-}
 
 const initialState: PlanState = {
   subscribedProduct: null,
@@ -83,7 +72,7 @@ function planReducer(state: PlanState, action: DataUpdates): PlanState {
   }
 }
 
-export default function Plan(props: PlanProps) {
+export default function Plan() {
   // useReducer type defs incorrectly require an initializer arg - see https://github.com/facebook/react/issues/27052
   const [state, dispatch]: [PlanState, (arg: DataUpdates) => void] = useReducer(planReducer, initialState)
   const [expandComparison, setExpandComparison] = useState(false)
@@ -128,25 +117,6 @@ export default function Plan(props: PlanProps) {
     (subscription: SubscriptionInfo) => ACTIVE_STRIPE_STATUSES.includes(subscription.status),
     [],
   )
-
-  const freeTierOverride = useMemo((): FreeTierOverride | null => {
-    if (envStore.isReady) {
-      const thresholds = envStore.data.free_tier_thresholds
-      const display = envStore.data.free_tier_display
-      const featureList: { [key: string]: string | null } = {}
-
-      display.feature_list.forEach((feature, key) => {
-        featureList[`feature_list_${key + 1}`] = feature
-      })
-
-      return {
-        name: display.name,
-        ...thresholds,
-        ...featureList,
-      }
-    }
-    return null
-  }, [envStore.isReady])
 
   const hasActiveSubscription = useMemo(() => {
     if (state.subscribedProduct) {
@@ -378,89 +348,76 @@ export default function Plan(props: PlanProps) {
         ref={pageBody}
         className={classnames(styles.accountPlan, {
           [styles.wait]: isBusy,
-          [styles.showAddOns]: props.showAddOns,
         })}
       >
-        {!props.showAddOns && (
-          <>
-            <div className={styles.plansSection}>
-              <form className={styles.intervalToggle}>
-                <input
-                  type='radio'
-                  id='switch_left'
-                  name='switchToggle'
-                  value='month'
-                  aria-label={t('show monthly plans')}
-                  onChange={() => !isDisabled && dispatch({ type: 'month' })}
-                  aria-disabled={isDisabled}
-                  checked={state.filterToggle}
-                />
-                <label htmlFor='switch_left'> {t('Monthly')}</label>
+        <>
+          <div className={styles.plansSection}>
+            <form className={styles.intervalToggle}>
+              <input
+                type='radio'
+                id='switch_left'
+                name='switchToggle'
+                value='month'
+                aria-label={t('show monthly plans')}
+                onChange={() => !isDisabled && dispatch({ type: 'month' })}
+                aria-disabled={isDisabled}
+                checked={state.filterToggle}
+              />
+              <label htmlFor='switch_left'> {t('Monthly')}</label>
 
-                <input
-                  type='radio'
-                  id='switch_right'
-                  name='switchToggle'
-                  value='year'
-                  onChange={() => !isDisabled && dispatch({ type: 'year' })}
-                  aria-disabled={isDisabled}
-                  checked={!state.filterToggle}
-                  aria-label={t('show annual plans')}
-                />
-                <label htmlFor='switch_right'>{t('Annual')}</label>
-              </form>
+              <input
+                type='radio'
+                id='switch_right'
+                name='switchToggle'
+                value='year'
+                onChange={() => !isDisabled && dispatch({ type: 'year' })}
+                aria-disabled={isDisabled}
+                checked={!state.filterToggle}
+                aria-label={t('show annual plans')}
+              />
+              <label htmlFor='switch_right'>{t('Annual')}</label>
+            </form>
 
-              <div className={styles.allPlans}>
-                {filteredPriceProducts.map((product: SinglePricedProduct) => (
-                  <div className={styles.stripePlans} key={product.id}>
-                    <PlanContainer
-                      key={product.price.id}
-                      freeTierOverride={freeTierOverride}
-                      expandComparison={expandComparison}
-                      isSubscribedProduct={isSubscribedProduct}
-                      product={product}
-                      filteredPriceProducts={filteredPriceProducts}
-                      hasManageableStatus={hasManageableStatus}
-                      setIsBusy={setIsBusy}
-                      isDisabled={isDisabled}
-                      state={state}
-                      buySubscription={buySubscription}
-                      activeSubscriptions={activeSubscriptions}
-                    />
-                  </div>
-                ))}
-                <div className={styles.minimizedCards}>{comparisonButton()}</div>
-              </div>
-              <div className={styles.maximizedCards}>{comparisonButton()}</div>
-              {shouldShowExtras && (
-                <div className={styles.enterpriseBanner}>
-                  <div className={styles.enterpriseBannerText}>
-                    <h1 className={styles.enterpriseBannerTitle}> {t('Enterprise')}</h1>
-                    <p className={styles.enterpriseBannerDetails}>
-                      {t(
-                        "If your organization needs more data capacity and advanced features, let's chat about our Enterprise Plan! We also offer custom solutions and private servers for larger teams. Get in touch to learn more.",
-                      )}
-                    </p>
-                  </div>
-                  <div className={styles.enterpriseBannerButtonContainer}>
-                    <Button size='lg' component='a' href='https://www.kobotoolbox.org/contact/' target='_blank'>
-                      {t('Contact us')}
-                    </Button>
-                  </div>
+            <div className={styles.allPlans}>
+              {filteredPriceProducts.map((product: SinglePricedProduct) => (
+                <div className={styles.stripePlans} key={product.id}>
+                  <PlanContainer
+                    key={product.price.id}
+                    expandComparison={expandComparison}
+                    isSubscribedProduct={isSubscribedProduct}
+                    product={product}
+                    filteredPriceProducts={filteredPriceProducts}
+                    hasManageableStatus={hasManageableStatus}
+                    setIsBusy={setIsBusy}
+                    isDisabled={isDisabled}
+                    state={state}
+                    buySubscription={buySubscription}
+                    activeSubscriptions={activeSubscriptions}
+                  />
                 </div>
-              )}
+              ))}
+              <div className={styles.minimizedCards}>{comparisonButton()}</div>
             </div>
-          </>
-        )}
-        {props.showAddOns && (
-          <AddOnList
-            isBusy={isBusy}
-            setIsBusy={setIsBusy}
-            products={products.products}
-            organization={organization}
-            onClickBuy={buySubscription}
-          />
-        )}
+            <div className={styles.maximizedCards}>{comparisonButton()}</div>
+            {shouldShowExtras && (
+              <div className={styles.enterpriseBanner}>
+                <div className={styles.enterpriseBannerText}>
+                  <h1 className={styles.enterpriseBannerTitle}> {t('Enterprise')}</h1>
+                  <p className={styles.enterpriseBannerDetails}>
+                    {t(
+                      "If your organization needs more data capacity and advanced features, let's chat about our Enterprise Plan! We also offer custom solutions and private servers for larger teams. Get in touch to learn more.",
+                    )}
+                  </p>
+                </div>
+                <div className={styles.enterpriseBannerButtonContainer}>
+                  <Button size='lg' component='a' href='https://www.kobotoolbox.org/contact/' target='_blank'>
+                    {t('Contact us')}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </>
         {showGoTop && (
           <button onClick={handleScrollUp} className={styles.scrollToTopButton}>
             <i className='k-icon k-icon-arrow-up k-icon--size-m' />

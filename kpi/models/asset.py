@@ -8,31 +8,20 @@ import jsonschema
 from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.contrib.postgres.indexes import BTreeIndex, GinIndex
+from django.core.cache import cache
 from django.db import models, transaction
 from django.db.models import F, Prefetch, Q
 from django.utils.translation import gettext_lazy as t
-from formpack.utils.flatten_content import flatten_content
-from formpack.utils.json_hash import json_hash
-from formpack.utils.kobo_locking import strip_kobo_locking_profile
 from taggit.managers import TaggableManager, _TaggableManager
 from taggit.utils import require_instance_manager
 
+from formpack.utils.flatten_content import flatten_content
+from formpack.utils.json_hash import json_hash
+from formpack.utils.kobo_locking import strip_kobo_locking_profile
 from kobo.apps.data_collectors.models import DataCollectorGroup
 from kobo.apps.reports.constants import DEFAULT_REPORTS_KEY, SPECIFIC_REPORTS_KEY
-from kobo.apps.subsequences.advanced_features_params_schema import (
-    ADVANCED_FEATURES_PARAMS_SCHEMA,
-)
-from kobo.apps.subsequences.utils import (
-    advanced_feature_instances,
-    advanced_submission_jsonschema,
-)
-from kobo.apps.subsequences.utils.deprecation import (
-    get_sanitized_advanced_features,
-    get_sanitized_dict_keys,
-    get_sanitized_known_columns,
-    qpath_to_xpath,
-)
-from kobo.apps.subsequences.utils.parse_known_cols import parse_known_cols
+from kobo.apps.subsequences.utils.supplement_data import get_analysis_form_json
+from kobo.apps.subsequences.utils.versioning import migrate_advanced_features
 from kpi.constants import (
     ASSET_TYPE_BLOCK,
     ASSET_TYPE_COLLECTION,
@@ -259,7 +248,7 @@ class Asset(
     #   }
     # }
     paired_data = LazyDefaultJSONBField(default=dict)
-    pending_delete = models.BooleanField(default=False)
+    pending_delete = models.BooleanField(default=False, db_index=True)
     # `_deployment_status` is calculated field, therefore should **NOT** be
     # set directly.
     _deployment_status = models.CharField(
@@ -503,6 +492,7 @@ class Asset(
         Can be disabled / skipped by calling with parameter:
         asset.save(adjust_content=False)
         """
+        self.__normalize_settings_and_translations(self.content)
         self._standardize(self.content)
 
         self._make_default_translation_first(self.content)
@@ -536,52 +526,7 @@ class Asset(
             self.name = re.sub(r'[\n\t]+', '', _title)
 
     def analysis_form_json(self, omit_question_types=None):
-        if omit_question_types is None:
-            omit_question_types = []
-
-        additional_fields = list(self._get_additional_fields())
-        engines = dict(self._get_engines())
-        output = {'engines': engines, 'additional_fields': additional_fields}
-        try:
-            qual_survey = self.advanced_features['qual']['qual_survey']
-        except KeyError:
-            return output
-        for qual_question in qual_survey:
-            # Surely some of this stuff is not actually used…
-            # (added to match extend_col_deets() from
-            # kobo/apps/subsequences/utils/parse_known_cols)
-            #
-            # See also injectSupplementalRowsIntoListOfRows() in
-            # assetUtils.ts
-            try:
-                xpath = qual_question['xpath']
-            except KeyError:
-                xpath = self.get_xpath_from_qpath(qual_question['qpath'])
-
-            field = dict(
-                label=qual_question['labels']['_default'],
-                name=f"{xpath}/{qual_question['uuid']}",
-                dtpath=f"{xpath}/{qual_question['uuid']}",
-                type=qual_question['type'],
-                # could say '_default' or the language of the transcript,
-                # but really that would be meaningless and misleading
-                language='??',
-                source=xpath,
-                xpath=f"{xpath}/{qual_question['uuid']}",
-                # seems not applicable given the transx questions describe
-                # manual vs. auto here and which engine was used
-                settings='??',
-                path=[xpath, qual_question['uuid']],
-            )
-            if field['type'] in omit_question_types:
-                continue
-            try:
-                field['choices'] = qual_question['choices']
-            except KeyError:
-                pass
-            additional_fields.append(field)
-
-        return output
+        return get_analysis_form_json(self)
 
     def clone(self, version_uid=None):
         # not currently used, but this is how "to_clone_dict" should work
@@ -631,32 +576,11 @@ class Asset(
         return self.permissions.filter(permission__codename=PERM_DISCOVER_ASSET,
                                        user_id=settings.ANONYMOUS_USER_ID).exists()
 
-    def get_advanced_feature_instances(self):
-        return advanced_feature_instances(self.content, self.advanced_features)
-
-    def get_advanced_submission_schema(self, url=None, content=False):
-
-        if len(self.advanced_features) == 0:
-            NO_FEATURES_MSG = 'no advanced features activated for this form'
-            return {'type': 'object', '$description': NO_FEATURES_MSG}
-
-        if advanced_features := get_sanitized_advanced_features(self):
-            self.advanced_features = advanced_features
-
-        last_deployed_version = self.deployed_versions.first()
-        if content:
-            return advanced_submission_jsonschema(
-                content, self.advanced_features, url=url
-            )
-        if last_deployed_version is None:
-            NO_DEPLOYMENT_MSG = 'asset needs a deployment for this feature'
-            return {'type': 'object', '$description': NO_DEPLOYMENT_MSG}
-        content = last_deployed_version.version_content
-        return advanced_submission_jsonschema(
-            content, self.advanced_features, url=url
-        )
-
-    def get_all_attachment_xpaths(self) -> list:
+    def get_all_attachment_xpaths(self, only_cached_data: bool = False) -> list | None:
+        """
+        Get all attachment xpaths from deployed versions.
+        Results are cached in Redis for 24 hours.
+        """
 
         # We previously used `cache_for_request`, but it provides no benefit in Celery
         # tasks. A "protected" property on the Asset instance now serves the same
@@ -666,6 +590,18 @@ class Asset(
         ) is not None:
             return _all_attachment_xpaths
 
+        cache_key = (
+            f'all_attachment_xpaths:{self.uid}:{self.latest_deployed_version_uid}'
+        )
+
+        # Try to get from Redis cache
+        cached_xpaths = cache.get(cache_key)
+
+        if cached_xpaths is not None:
+            return cached_xpaths
+        elif only_cached_data:
+            return None
+
         # return deployed versions first
         versions = self.asset_versions.filter(deployed=True).order_by('-date_modified')
         xpaths = set()
@@ -673,15 +609,34 @@ class Asset(
             if xpaths_from_version := self.get_attachment_xpaths_from_version(version):
                 xpaths.update(xpaths_from_version)
 
-        setattr(self, '_all_attachment_xpaths', list(xpaths))
+        xpaths_list = list(xpaths)
+
+        # Store in Redis cache
+        cache.set(cache_key, xpaths_list, timeout=settings.ATTACHMENT_XPATHS_CACHE_TTL)
+
+        setattr(self, '_all_attachment_xpaths', xpaths_list)
         return self._all_attachment_xpaths
 
-    def get_attachment_xpaths_from_version(self, version=None) -> Optional[list]:
+    def get_attachment_xpaths_from_version(
+        self, version: AssetVersion = None
+    ) -> list | None:
+        """
+        Get attachment xpaths from a specific version.
+
+        Results are cached in Redis for 24 hours.
+        """
 
         if version:
             content = version.to_formpack_schema()['content']
+            cache_key = f'attachment_xpaths:{self.uid}:{version.uid}'
         else:
             content = self.content
+            cache_key = f'attachment_xpaths:{self.uid}:no-version'
+
+        cached_xpaths = cache.get(cache_key)
+
+        if cached_xpaths is not None:
+            return cached_xpaths
 
         survey = content['survey']
 
@@ -709,7 +664,12 @@ class Asset(
         # Inject missing `$xpath` properties
         self._insert_xpath(content)
 
-        return _get_xpaths(survey)
+        xpaths_list = _get_xpaths(survey)
+
+        # Store in Redis cache
+        cache.set(cache_key, xpaths_list, timeout=settings.ATTACHMENT_XPATHS_CACHE_TTL)
+
+        return xpaths_list
 
     def get_filters_for_partial_perm(
         self, user_id: int, perm: str = PERM_VIEW_SUBMISSIONS
@@ -840,27 +800,12 @@ class Asset(
 
         return None
 
-    def get_xpath_from_qpath(self, qpath: str) -> str:
-
-        # We could have used `cache_for_request` in the `qpath_to_xpath` utility,
-        # but it provides no benefit in Celery tasks.
-        # Instead, we use a "protected" property on the Asset model to cache the result
-        # during the lifetime of the asset instance.
-        qpaths_xpaths_mapping = getattr(self, '_qpaths_xpaths_mapping', {})
-
-        try:
-            xpath = qpaths_xpaths_mapping[qpath]
-        except KeyError:
-            qpaths_xpaths_mapping[qpath] = qpath_to_xpath(qpath, self)
-            xpath = qpaths_xpaths_mapping[qpath]
-
-        setattr(self, '_qpaths_xpaths_mapping', qpaths_xpaths_mapping)
-        return xpath
-
     @property
     def has_advanced_features(self):
         if self.advanced_features is None:
             return False
+        # FIXME: has dubious utility with new advanced_features
+        # that always have `_version`?
         return len(self.advanced_features) > 0
 
     def has_subscribed_user(self, user_id):
@@ -919,8 +864,6 @@ class Asset(
                 'owner',
             )
             .prefetch_related(
-                'permissions__permission',
-                'permissions__user',
                 # `Prefetch(..., to_attr='prefetched_list')` stores the prefetched
                 # related objects in a list (`prefetched_list`) that we can use in
                 # other methods to avoid additional queries; see:
@@ -1029,11 +972,8 @@ class Asset(
         if adjust_content:
             self.adjust_content_on_save()
 
-        if (
-            not update_fields
-            or update_fields and 'advanced_features' in update_fields
-        ):
-            self.validate_advanced_features()
+        if not update_fields or update_fields and 'advanced_features' in update_fields:
+            migrate_advanced_features(self, save_asset=False)
 
         # standardize settings (only when required)
         if (
@@ -1200,36 +1140,6 @@ class Asset(
             self.search_field[key] = value
         jsonschema.validate(instance=self.search_field, schema=SEARCH_FIELD_SCHEMA)
 
-    def update_submission_extra(self, content, user=None):
-        submission_uuid = content.get('submission')
-        # the view had better have handled this
-        assert submission_uuid is not None
-
-        # `select_for_update()` can only lock things that exist; make sure
-        # a `SubmissionExtras` exists for this submission before proceeding
-        self.submission_extras.get_or_create(submission_uuid=submission_uuid)
-
-        with transaction.atomic():
-            sub = (
-                self.submission_extras.filter(submission_uuid=submission_uuid)
-                .select_for_update()
-                .first()
-            )
-            instances = self.get_advanced_feature_instances()
-            if sub_extra_content := get_sanitized_dict_keys(sub.content, self):
-                sub.content = sub_extra_content
-
-            compiled_content = {**sub.content}
-
-            for instance in instances:
-                compiled_content = instance.compile_revised_record(
-                    compiled_content, edits=content
-                )
-            sub.content = compiled_content
-            sub.save()
-
-        return sub
-
     def update_languages(self, children=None):
         """
         Updates object's languages by aggregating all its children's languages
@@ -1277,33 +1187,23 @@ class Asset(
         self.summary['languages'] = languages
         self.save(update_fields=['summary'])
 
-    def validate_advanced_features(self):
-        if self.advanced_features is None:
-            self.advanced_features = {}
-
-        if advanced_features := get_sanitized_advanced_features(self):
-            self.advanced_features = advanced_features
-
-        jsonschema.validate(
-            instance=self.advanced_features,
-            schema=ADVANCED_FEATURES_PARAMS_SCHEMA,
-        )
-
     @property
-    def version__content_hash(self):
+    def version__content_hash(self) -> str | None:
         # Avoid reading the property `self.latest_version` more than once, since
         # it may execute a database query each time it's read
-        latest_version = self.latest_version
-        if latest_version:
+        if latest_version := self.latest_version:
             return latest_version.content_hash
 
+        return None
+
     @property
-    def version_id(self):
+    def version_id(self) -> str | None:
         # Avoid reading the property `self.latest_version` more than once, since
         # it may execute a database query each time it's read
-        latest_version = self.latest_version
-        if latest_version:
+        if latest_version := self.latest_version:
             return latest_version.uid
+
+        return None
 
     @property
     def version_number_and_date(self) -> str:
@@ -1316,22 +1216,6 @@ class Asset(
             count = count + 1
 
         return f'{count} {self.date_modified:(%Y-%m-%d %H:%M:%S)}'
-
-    def _get_additional_fields(self):
-
-        # TODO Remove line below when when every asset is repopulated with `xpath`
-        self.known_cols = get_sanitized_known_columns(self)
-
-        return parse_known_cols(self.known_cols)
-
-    def _get_engines(self):
-        """
-        engines are individual NLP services that can be used
-        """
-        for instance in self.get_advanced_feature_instances():
-            if hasattr(instance, 'engines'):
-                for key, val in instance.engines():
-                    yield key, val
 
     def _populate_report_styles(self):
         default = self.report_styles.get(DEFAULT_REPORTS_KEY, {})
@@ -1561,6 +1445,39 @@ class Asset(
             and 'data_collector_group_id' in fields
         ):
             self._initial_data_collector_group_id = self.data_collector_group_id
+
+    def __normalize_settings_and_translations(self, content):
+        """
+        Ensures settings are a dictionary, preserves existing translations from the DB,
+        and prevents the 'null' language leak by suffixing plain strings with the
+        default language.
+        """
+        settings_data = content.get('settings', {})
+        if isinstance(settings_data, list):
+            flattened_settings = {}
+            for item in settings_data:
+                if isinstance(item, dict):
+                    flattened_settings.update(item)
+            content['settings'] = flattened_settings
+            settings_data = flattened_settings
+
+        # Get existing translations from DB so they don't disappear
+        existing_translations = []
+        if self.pk:
+            db_instance = Asset.objects.filter(pk=self.pk).only('content').first()
+            if db_instance and 'translations' in db_instance.content:
+                existing_translations = db_instance.content['translations']
+
+        # If payload is empty of translations but DB has them, restore them
+        if not content.get('translations') and existing_translations:
+            content['translations'] = existing_translations
+
+        # Suffix plain hint strings to the default language
+        default_lang = settings_data.get('default_language')
+        if default_lang:
+            for row in content.get('survey', []):
+                if 'hint' in row and isinstance(row['hint'], str):
+                    row[f'hint::{default_lang}'] = row.pop('hint')
 
 
 class UserAssetSubscription(models.Model):

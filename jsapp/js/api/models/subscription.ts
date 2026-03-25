@@ -31,6 +31,7 @@ export interface Subscription {
   application_fee_percent: string | null
   readonly djstripe_created: string
   readonly djstripe_updated: string
+  stripe_data?: unknown
   /** @maxLength 255 */
   id: string
   /**

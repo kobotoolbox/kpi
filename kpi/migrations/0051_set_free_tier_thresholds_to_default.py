@@ -1,15 +1,8 @@
-from constance import config
 from django.db import migrations
 
-from kobo.apps.stripe.constants import FREE_TIER_NO_THRESHOLDS
-from kpi.utils.json import LazyJSONSerializable
 
-
-def reset_free_tier_thresholds(apps, schema_editor):
-    # The constance defaults for FREE_TIER_THRESHOLDS changed, so we set existing config to the new default value
-    setattr(config, 'FREE_TIER_THRESHOLDS', LazyJSONSerializable(FREE_TIER_NO_THRESHOLDS))
-
-
+# The free tier option for older users is no longer offered,
+# so the migration here has been removed
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -18,7 +11,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunPython(
-            reset_free_tier_thresholds,
+            migrations.RunPython.noop,
             migrations.RunPython.noop,
         )
     ]

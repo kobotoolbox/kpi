@@ -79,8 +79,7 @@ const defaultMockResponse: PaginatedResponse<AssetResponse> = {
       report_styles: { default: {}, specified: { wb1gg11: {} }, kuid_names: { wb1gg11: 'wb1gg11' } },
       report_custom: {},
       advanced_features: {},
-      advanced_submission_schema: { type: 'object', $description: 'no advanced features activated for this form' },
-      analysis_form_json: { engines: {}, additional_fields: [] },
+      analysis_form_json: { additional_fields: [] },
       map_styles: {},
       map_custom: {},
       content: {
@@ -257,8 +256,7 @@ const defaultMockResponse: PaginatedResponse<AssetResponse> = {
       report_styles: { default: {}, specified: { wb1gg11: {} }, kuid_names: { wb1gg11: 'wb1gg11' } },
       report_custom: {},
       advanced_features: {},
-      advanced_submission_schema: { type: 'object', $description: 'no advanced features activated for this form' },
-      analysis_form_json: { engines: {}, additional_fields: [] },
+      analysis_form_json: { additional_fields: [] },
       map_styles: {},
       map_custom: {},
       content: {

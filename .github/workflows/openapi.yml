@@ -68,8 +68,11 @@ jobs:
         # based on https://github.com/actions/runner/issues/241#issuecomment-2019042651
         # and https://github.com/actions/runner/issues/241#issuecomment-842566950
         shell: 'script --return --quiet --log-out /dev/null --command "bash --noprofile --norc -eo pipefail {0}"'
+        # temporary 20260227: Let the CI pass with this warning:
+        #   > FutureWarning: You are using a Python version (3.10.19) which Google will stop supporting
+        #   > in new releases of google.cloud.translate_v3 once it reaches its end of life (2026-10-04).
         run: |
-          if ./scripts/generate_api.sh --skip-orval 2>&1 | tee /dev/tty | grep -q "Warning"; then
+          if ./scripts/generate_api.sh --skip-orval 2>&1 | tee /dev/tty | grep -qP "(?<!\bFuture)Warning"; then
             echo ""
             echo "A warning found, aborted! Please treat drf-spectacular warnings as errors and resolve them."
             echo "P.S. This is only the first warning. You may want to run the script locally to see all warnings at once."
