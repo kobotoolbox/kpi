@@ -674,7 +674,7 @@ class AssetViewSet(
 
             try:
                 # "country" is actually a list of countries
-                countries = record['settings'].get('country', [])
+                countries = record['settings'].get('country') or []
             except (KeyError, TypeError):
                 pass
             else:
@@ -688,7 +688,7 @@ class AssetViewSet(
                         metadata['countries'][value] = label
 
             try:
-                sector = record['settings'].get('sector', {})
+                sector = record['settings'].get('sector') or {}
                 value = sector['value']
                 label = sector['label']
             except (KeyError, TypeError):
