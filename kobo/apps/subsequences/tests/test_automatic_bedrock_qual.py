@@ -637,21 +637,20 @@ class TestAutomaticQAThrottling(BaseAutomaticBedrockQualTestCase):
 
     @override_config(AUTOMATIC_QA_REQUESTS_PER_SECOND=5)
     @freeze_time('2026-03-16 12:00:00')
-    def test_automatic_qa_throttles_after_limit(self):
+    @patch('kobo.apps.subsequences.actions.automatic_bedrock_qual.boto3.client')
+    def test_automatic_qa_throttles_after_limit(self, mock_boto):
         """
         Test that after a certain number of requests to trigger automatic QA,
         the user is throttled and receives a 429 response
         """
-        with patch(
-            'kobo.apps.subsequences.actions.automatic_bedrock_qual.boto3.client',
-            return_value=MockLLMClient('LLM text'),
-        ):
-            # Simulate 5 successful requests
-            for i in range(5):
-                response = self.client.patch(
-                    self.supplement_details_url, data=self.qa_payload, format='json'
-                )
-                assert response.status_code == status.HTTP_200_OK
+        mock_boto.return_value = MockLLMClient('LLM text')
+
+        # Simulate 5 successful requests
+        for i in range(5):
+            response = self.client.patch(
+                self.supplement_details_url, data=self.qa_payload, format='json'
+            )
+            assert response.status_code == status.HTTP_200_OK
 
         # The 6th request should be throttled
         response = self.client.patch(
@@ -686,20 +685,19 @@ class TestAutomaticQAThrottling(BaseAutomaticBedrockQualTestCase):
 
     @override_config(AUTOMATIC_QA_REQUESTS_PER_SECOND=5)
     @freeze_time('2026-03-16 12:00:00')
-    def test_throttling_is_per_user(self):
+    @patch('kobo.apps.subsequences.actions.automatic_bedrock_qual.boto3.client')
+    def test_throttling_is_per_user(self, mock_boto):
         """
         Test that if one user hits the automatic QA throttle, it does not affect
         other users
         """
+        mock_boto.return_value = MockLLMClient('LLM text')
+
         # Exhaust the limit for UserA
-        with patch(
-            'kobo.apps.subsequences.actions.automatic_bedrock_qual.boto3.client',
-            return_value=MockLLMClient('LLM text'),
-        ):
-            for _ in range(5):
-                self.client.patch(
-                    self.supplement_details_url, data=self.qa_payload, format='json'
-                )
+        for _ in range(5):
+            self.client.patch(
+                self.supplement_details_url, data=self.qa_payload, format='json'
+            )
 
         # Verify UserA is throttled
         response = self.client.patch(
@@ -714,11 +712,7 @@ class TestAutomaticQAThrottling(BaseAutomaticBedrockQualTestCase):
         self.client.force_login(user_b)
 
         # UserB should not be throttled even though UserA is throttled
-        with patch(
-            'kobo.apps.subsequences.actions.automatic_bedrock_qual.boto3.client',
-            return_value=MockLLMClient('LLM text'),
-        ):
-            response = self.client.patch(
-                self.supplement_details_url, data=self.qa_payload, format='json'
-            )
+        response = self.client.patch(
+            self.supplement_details_url, data=self.qa_payload, format='json'
+        )
         assert response.status_code == status.HTTP_200_OK
