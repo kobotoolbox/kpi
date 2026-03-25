@@ -81,7 +81,9 @@ export default function TransferProjects(props: TransferProjectsProps) {
       return
     }
 
-    if (username !== '') {
+    if (username === '') {
+      setTransfer({ ...transfer, usernameError: t('Please enter a user name.') })
+    } else {
       setTransfer({ ...transfer, usernameError: false, submitPending: true })
       sendInvite(username, props.asset.uid)
         .then((data) => {
@@ -107,8 +109,6 @@ export default function TransferProjects(props: TransferProjectsProps) {
 
           setTransfer({ ...transfer, submitPending: false })
         })
-    } else {
-      setTransfer({ ...transfer, usernameError: t('Please enter a user name.') })
     }
   }
 

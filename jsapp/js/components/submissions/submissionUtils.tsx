@@ -319,7 +319,7 @@ export function getSubmissionDisplayData(
 
         // Build xpath array from existing nodes in parent group
         parentGroup.xpathNodes.forEach((node) => {
-          const nodeCount = node.childIndex !== null ? `[${node.childIndex}]` : ''
+          const nodeCount = node.childIndex === null ? '' : `[${node.childIndex}]`
           xpath.push(`${node.path}` + nodeCount)
         })
 
@@ -557,7 +557,7 @@ export function getRepeatGroupAnswers(
       // we have repeat group `band_member` with `image` type question `portrait_photo`, then the attachment for third
       // member would use `band_member[3]/portrait_photo` path. There might be more complex groups, so let's hope it
       // works for them too :fingers_crossed:.
-      const responseNumber = responseIndex !== undefined ? responseIndex + 1 : undefined
+      const responseNumber = responseIndex === undefined ? undefined : responseIndex + 1
       const levelParentKey = fullPath.split('/').slice(0, currentDepth).join('/')
       const attachmentPath = appendTextToPathAtLevel(fullPath, levelParentKey, `[${responseNumber}]`)
       const attachment = getMediaAttachment(responseData, String(submissionResponseValue), attachmentPath)

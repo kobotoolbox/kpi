@@ -16,10 +16,10 @@ export function getDataWithResponses(
     if (item.data.responses || item.data.values || item.data.mean) {
       if (rowsByIdentifier[item.name] !== undefined) {
         item.row.label = rowsByIdentifier[item.name].label
-      } else if (item.name !== undefined) {
-        item.row.label = item.name
-      } else {
+      } else if (item.name === undefined) {
         item.row.label = t('untitled')
+      } else {
+        item.row.label = item.name
       }
       dataWithResponses.push(item)
     }

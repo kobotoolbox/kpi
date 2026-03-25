@@ -48,7 +48,7 @@ export function createUniversalTableExampleDataColumns(
       key: 'date_created',
       label: 'Date created',
       // is pinned when "one" or "multiple" selected
-      isPinned: hasColumnsPinnedLeft !== 'none' ? ('left' as ColumnPinningPosition) : false,
+      isPinned: hasColumnsPinnedLeft === 'none' ? false : ('left' as ColumnPinningPosition),
     },
     {
       key: 'ip',
@@ -60,7 +60,7 @@ export function createUniversalTableExampleDataColumns(
       key: 'age',
       label: 'Age',
       // is pinned when "one" or "multiple" selected
-      isPinned: hasColumnsPinnedRight !== 'none' ? ('right' as ColumnPinningPosition) : false,
+      isPinned: hasColumnsPinnedRight === 'none' ? false : ('right' as ColumnPinningPosition),
       size: 60,
     },
     {

@@ -167,12 +167,12 @@ const Button = (props: ButtonProps) => {
 
   return (
     <>
-      {props.tooltip !== undefined ? (
+      {props.tooltip === undefined ? (
+        renderButton()
+      ) : (
         <Tooltip text={props.tooltip} ariaLabel={props.tooltip} alignment={props.tooltipPosition}>
           {renderButton()}
         </Tooltip>
-      ) : (
-        renderButton()
       )}
     </>
   )

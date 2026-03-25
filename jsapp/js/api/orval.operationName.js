@@ -54,7 +54,7 @@ const sanitize = (value, options) => {
   let newValue = value
 
   if (special !== true) {
-    newValue = newValue.replace(/[!"`'#%&,:;<>=@{}~\$\(\)\*\+\/\\\?\[\]\^\|]/g, '')
+    newValue = newValue.replace(/[!"`'#%&,:;<>=@{}~$()*+/\\?[\]^|]/g, '')
   }
 
   if (whitespace !== true) {

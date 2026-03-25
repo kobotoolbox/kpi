@@ -79,6 +79,12 @@
         "source.fixAll.biome": "explicit"
       }
     },
+    "[jsonc]": {
+      "editor.defaultFormatter": "biomejs.biome",
+      "editor.codeActionsOnSave": {
+        "source.fixAll.biome": "explicit"
+      }
+    },
 
     // Mantine / PostCSS
     "cssVariables.lookupFiles": [

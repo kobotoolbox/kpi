@@ -48,7 +48,7 @@ export default function SidebarDisplaySettings({
     return [
       { label: t('XML values'), value: XML_VALUES_OPTION_VALUE },
       ...languages.map((language) => ({
-        label: language !== null ? `${baseLabel} - ${language}` : baseLabel,
+        label: language === null ? baseLabel : `${baseLabel} - ${language}`,
         value: language ?? '',
       })),
     ]

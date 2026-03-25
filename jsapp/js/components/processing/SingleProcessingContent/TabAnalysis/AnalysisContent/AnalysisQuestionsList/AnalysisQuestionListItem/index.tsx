@@ -340,7 +340,7 @@ export default function AnalysisQuestionListItem({
       case 'qualSelectOne': {
         // Use local state if available, otherwise fall back to server data
         const currentValue =
-          localRadioValue !== undefined ? localRadioValue : ((queryAnswer.data?._data as any)?.value as string)
+          localRadioValue === undefined ? ((queryAnswer.data?._data as any)?.value as string) : localRadioValue
         const hasValue = !!currentValue
 
         // select one requires a custom clear function
