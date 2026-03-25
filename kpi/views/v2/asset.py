@@ -673,12 +673,12 @@ class AssetViewSet(
                         metadata['languages'].add(language)
 
             try:
-                country = record['settings']['country']
+                # "country" is actually a list of countries
+                countries = record['settings'].get('country', [])
             except (KeyError, TypeError):
                 pass
             else:
-                # "country" is actually a list of countries
-                for country_record in country:
+                for country_record in countries:
                     try:
                         value = country_record['value']
                         label = country_record['label']
@@ -688,7 +688,7 @@ class AssetViewSet(
                         metadata['countries'][value] = label
 
             try:
-                sector = record['settings']['sector']
+                sector = record['settings'].get('sector', {})
                 value = sector['value']
                 label = sector['label']
             except (KeyError, TypeError):
