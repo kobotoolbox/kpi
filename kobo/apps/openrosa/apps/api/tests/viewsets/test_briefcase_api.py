@@ -322,9 +322,27 @@ class TestBriefcaseAPI(TestAbstractViewSet):
             xform = publish_form(publish)
             assert isinstance(xform, XForm)
             self.xform = xform
-            self.xform.asset.save()
-            self.xform.kpi_asset_uid = self.xform.asset.uid
-            self.xform.save()
+        # Permissions are resolved through the KPI asset, so we need a saved asset
+        # with a simulated deployment to populate `_deployment_data`.
+        asset = self.xform.asset
+        asset.date_deployed = timezone.now()
+        asset.uid = KpiUidField.generate_unique_id('a')
+        asset._deployment_data = {
+            'active': True,
+            'backend': 'mock',
+            'version': KpiUidField.generate_unique_id('v'),
+            'backend_response': {
+                'hash': calculate_hash(self.form_def_path, prefix=True),
+                'uuid': self.xform.uuid,
+                'formid': self.xform.pk,
+                'id_string': self.xform.id_string,
+                'kpi_asset_uid': asset.uid,
+            },
+        }
+        asset.deployment.store_data(asset._deployment_data)
+        asset.save()
+        self.xform.kpi_asset_uid = asset.uid
+        self.xform.save(update_fields=['kpi_asset_uid'])
 
     def test_submission_with_instance_id_on_root_node(self):
         view = XFormSubmissionApi.as_view({'post': 'create'})

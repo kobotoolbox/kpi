@@ -5,6 +5,7 @@ from django.conf import settings
 from django.contrib.auth.models import AnonymousUser, Permission
 from django.core.files.base import ContentFile
 from django.test import TestCase
+from django.utils import timezone
 from django_digest.test import DigestAuth
 from rest_framework import status
 from rest_framework.reverse import reverse
@@ -91,11 +92,24 @@ class TestAbstractViewSet(RequestMixin, MakeSubmissionMixin, TestCase):
             xls_file = ContentFile(f.read(), name='transportation.xls')
 
         self.xform = logger_tools.publish_xls_form(xls_file, self.user)
-        # The permissions are based on the asset, so we need the asset to be saved
+        # Permissions are resolved through the KPI asset, so we need a saved asset
+        # with a simulated deployment to populate `_deployment_data`.
         asset = self.xform.asset
+        asset.date_deployed = timezone.now()
+        asset._deployment_data = {
+            'active': True,
+            'backend': 'mock',
+            'backend_response': {
+                'uuid': self.xform.uuid,
+                'formid': self.xform.pk,
+                'id_string': self.xform.id_string,
+                'kpi_asset_uid': asset.uid,
+            },
+        }
+        asset.deployment.store_data(asset._deployment_data)
         asset.save()
         self.xform.kpi_asset_uid = asset.uid
-        self.xform.save()
+        self.xform.save(update_fields=['kpi_asset_uid'])
         response = self.client.get(
             reverse(URL_NAMESPACE + ':asset-detail', args=[asset.uid])
         )
