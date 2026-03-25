@@ -49,7 +49,7 @@ class AssetSubmissionCountsViewSet(
     - counts         → GET /api/v2/assets/{uid_asset}/counts/
 
     Documentation:
-    - docs/api/v2/assets/submission_counts.md
+    - docs/api/v2/assets/submissions_count.md
     """
 
     parent_model = Asset
