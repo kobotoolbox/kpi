@@ -298,16 +298,16 @@ CONSTANCE_CONFIG = {
     ),
     'MFA_LOCALIZED_HELP_TEXT': (
         LazyJSONSerializable({
-            'default': t(
-                'If you cannot access your authenticator app, please enter one '
-                'of your backup codes instead. If you cannot access those '
-                'either, then you will need to request assistance by '
-                'contacting [##support email##](mailto:##support email##).'
-            ),
-            'some-other-language': (
-                'This will never appear because `some-other-language` is not '
-                'a valid language code, but this entry is here to show you '
-                'an example of adding another message in a different language.'
+                'default': t(
+                    'If you cannot access your authenticator app, please enter one '
+                    'of your backup codes instead. If you cannot access those '
+                    'either, then you will need to request assistance by '
+                    'contacting [##support email##](mailto:##support email##).'
+                ),
+                'some-other-language': (
+                    'This will never appear because `some-other-language` is not '
+                    'a valid language code, but this entry is here to show you '
+                    'an example of adding another message in a different language.'
             )
         }),
         (
@@ -380,18 +380,18 @@ CONSTANCE_CONFIG = {
     ),
     'USER_METADATA_FIELDS': (
         LazyJSONSerializable([
-            {'name': 'name', 'required': True},
-            {'name': 'organization', 'required': False},
-            {'name': 'organization_type', 'required': False},
-            {'name': 'organization_website', 'required': False},
-            {'name': 'sector', 'required': False},
-            {'name': 'bio', 'required': False},
-            {'name': 'city', 'required': False},
-            {'name': 'country', 'required': False},
-            {'name': 'twitter', 'required': False},
-            {'name': 'linkedin', 'required': False},
-            {'name': 'instagram', 'required': False},
-            {'name': 'newsletter_subscription', 'required': False},
+                {'name': 'name', 'required': True},
+                {'name': 'organization', 'required': False},
+                {'name': 'organization_type', 'required': False},
+                {'name': 'organization_website', 'required': False},
+                {'name': 'sector', 'required': False},
+                {'name': 'bio', 'required': False},
+                {'name': 'city', 'required': False},
+                {'name': 'country', 'required': False},
+                {'name': 'twitter', 'required': False},
+                {'name': 'linkedin', 'required': False},
+                {'name': 'instagram', 'required': False},
+                {'name': 'newsletter_subscription', 'required': False},
         ]),
         # The available fields are hard-coded in the front end
         'Display (and optionally require) these metadata fields for users.\n'
@@ -407,9 +407,9 @@ CONSTANCE_CONFIG = {
     ),
     'PROJECT_METADATA_FIELDS': (
         LazyJSONSerializable([
-            {'name': 'sector', 'required': False},
-            {'name': 'country', 'required': False},
-            {'name': 'description', 'required': False},
+                {'name': 'sector', 'required': False},
+                {'name': 'country', 'required': False},
+                {'name': 'description', 'required': False},
         ]),
         # The available fields are hard-coded in the front end
         'Display (and optionally require) these metadata fields for projects.\n'
@@ -1514,7 +1514,7 @@ CELERY_BEAT_SCHEDULE = {
     },
     # Schedule every day at midnight UTC
     'mass-email-record-mark-as-failed': {
-        'task': 'kobo.apps.mass_emails.tasks.mark_old_enqueued_mass_email_record_as_failed', # noqa
+        'task': 'kobo.apps.mass_emails.tasks.mark_old_enqueued_mass_email_record_as_failed',  # noqa
         'schedule': crontab(minute=0, hour=0),
         'options': {'queue': 'kpi_low_priority_queue'}
     },
@@ -1814,7 +1814,7 @@ LOGGING = {
             'level': 'ERROR',
             'handlers': ['console'],
             'propagate': False
-        },
+    },
     }
 }
 
@@ -1862,10 +1862,10 @@ if start_port := env.int('METRICS_START_PORT', None):
 # Based upon https://github.com/tblobaum/git-rev/blob/master/index.js
 GIT_REV = {}
 for git_rev_key, git_command in (
-        ('short', ('git', 'rev-parse', '--short', 'HEAD')),
-        ('long', ('git', 'rev-parse', 'HEAD')),
-        ('branch', ('git', 'rev-parse', '--abbrev-ref', 'HEAD')),
-        ('tag', ('git', 'describe', '--exact-match', '--tags')),
+    ('short', ('git', 'rev-parse', '--short', 'HEAD')),
+    ('long', ('git', 'rev-parse', 'HEAD')),
+    ('branch', ('git', 'rev-parse', '--abbrev-ref', 'HEAD')),
+    ('tag', ('git', 'describe', '--exact-match', '--tags')),
 ):
     try:
         GIT_REV[git_rev_key] = subprocess.check_output(
@@ -2210,3 +2210,7 @@ HOOK_STALLED_RETRY_TIMEOUT = 1440
 
 # Cache time-to-live (in seconds) for attachment XPaths
 ATTACHMENT_XPATHS_CACHE_TTL = 86400
+
+# Change referrer policy for the openmap to work
+# See: https://wiki.openstreetmap.org/wiki/Blocked_tiles#Referer_is_required
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
