@@ -3,13 +3,13 @@ import copy
 import jsonschema
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
-from django.core.exceptions import ObjectDoesNotExist
 from django.core.handlers.wsgi import WSGIRequest
 from django.db import models
 from django.db.models import Case, Count, F, Min, Q, Value, When
 from django.db.models.functions import Cast, Concat, Trunc
 from django.utils import timezone
 
+from hub.models import ExtraUserDetail
 from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.audit_log_metadata_schemas import (
     PROJECT_HISTORY_LOG_METADATA_SCHEMA,
@@ -115,10 +115,16 @@ class AuditLog(models.Model):
         using=None,
         update_fields=None,
     ):
-        try:
-            self.user_uid = self.user.extra_details.uid
-        except (AttributeError, ObjectDoesNotExist):
-            self.user_uid = ''
+        if not self.user_uid:
+            if self.user_id:
+                extra_details = getattr(self.user, 'extra_details', None)
+                if extra_details is None:
+                    extra_details, _ = ExtraUserDetail.objects.get_or_create(
+                        user_id=self.user_id
+                    )
+                self.user_uid = extra_details.uid
+            else:
+                self.user_uid = ''
 
         super().save(
             force_insert=force_insert,
