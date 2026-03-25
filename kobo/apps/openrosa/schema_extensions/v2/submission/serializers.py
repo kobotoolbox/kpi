@@ -25,14 +25,6 @@ SubmissionResponse = inline_serializer_class(
 )
 
 
-OpenRosaPayload = inline_serializer_class(
-    name='OpenRosaPayload',
-    fields={
-        'xml_submission_file': serializers.FileField(),
-    },
-)
-
-
 JSONSubmissionPayload = inline_serializer_class(
     name='JSONSubmissionPayload',
     fields={

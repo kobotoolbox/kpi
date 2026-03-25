@@ -34,9 +34,11 @@ from kobo.apps.openrosa.schema_extensions.v2.submission.examples import (
 )
 from kobo.apps.openrosa.schema_extensions.v2.submission.serializers import (
     JSONSubmissionPayload,
-    OpenRosaPayload,
     OpenRosaResponse,
     SubmissionResponse,
+)
+from kpi.schema_extensions.v2.openrosa.serializers import (
+    OpenRosaSubmissionRequest as OpenRosaPayload,
 )
 from kpi.authentication import (
     BasicAuthentication,

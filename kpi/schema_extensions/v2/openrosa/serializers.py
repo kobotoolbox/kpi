@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from kpi.utils.schema_extensions.fields import BinaryFileField
 from kpi.utils.schema_extensions.serializers import inline_serializer_class
 from .fields import (
     OpenRosaFileRequestField,
@@ -42,7 +43,7 @@ OpenRosaSubmissionResponse = inline_serializer_class(
 OpenRosaSubmissionRequest = inline_serializer_class(
     name='OpenRosaSubmissionRequest',
     fields={
-        'xml_submission_file': serializers.FileField(),
+        'xml_submission_file': BinaryFileField(),
     },
 )
 

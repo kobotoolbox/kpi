@@ -100,7 +100,7 @@ paths:
         content:
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/OpenRosaPayload'
+              $ref: '#/components/schemas/OpenRosaSubmissionRequest'
           application/json:
             schema:
               $ref: '#/components/schemas/JSONSubmissionPayload'
@@ -417,7 +417,7 @@ paths:
         content:
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/OpenRosaPayload'
+              $ref: '#/components/schemas/OpenRosaSubmissionRequest'
           application/json:
             schema:
               $ref: '#/components/schemas/JSONSubmissionPayload'
@@ -624,7 +624,7 @@ paths:
         content:
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/OpenRosaPayload'
+              $ref: '#/components/schemas/OpenRosaSubmissionRequest'
           application/json:
             schema:
               $ref: '#/components/schemas/JSONSubmissionPayload'
@@ -833,14 +833,6 @@ components:
           example: https://kf.kobotoolbox.org/api/v2/asset_snapshots/{uid_asset_snapshot}/manifest
       required:
       - manifest
-    OpenRosaPayload:
-      type: object
-      properties:
-        xml_submission_file:
-          type: string
-          format: uri
-      required:
-      - xml_submission_file
     OpenRosaResponse:
       type: object
       properties:
@@ -869,7 +861,7 @@ components:
       properties:
         xml_submission_file:
           type: string
-          format: uri
+          format: binary
       required:
       - xml_submission_file
     OpenRosaSubmissionResponse:

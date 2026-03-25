@@ -77,7 +77,7 @@
                     "content": {
                         "multipart/form-data": {
                             "schema": {
-                                "$ref": "#/components/schemas/OpenRosaPayload"
+                                "$ref": "#/components/schemas/OpenRosaSubmissionRequest"
                             }
                         },
                         "application/json": {
@@ -474,7 +474,7 @@
                     "content": {
                         "multipart/form-data": {
                             "schema": {
-                                "$ref": "#/components/schemas/OpenRosaPayload"
+                                "$ref": "#/components/schemas/OpenRosaSubmissionRequest"
                             }
                         },
                         "application/json": {
@@ -705,7 +705,7 @@
                     "content": {
                         "multipart/form-data": {
                             "schema": {
-                                "$ref": "#/components/schemas/OpenRosaPayload"
+                                "$ref": "#/components/schemas/OpenRosaSubmissionRequest"
                             }
                         },
                         "application/json": {
@@ -1009,18 +1009,6 @@
                     "manifest"
                 ]
             },
-            "OpenRosaPayload": {
-                "type": "object",
-                "properties": {
-                    "xml_submission_file": {
-                        "type": "string",
-                        "format": "uri"
-                    }
-                },
-                "required": [
-                    "xml_submission_file"
-                ]
-            },
             "OpenRosaResponse": {
                 "type": "object",
                 "properties": {
@@ -1060,7 +1048,7 @@
                 "properties": {
                     "xml_submission_file": {
                         "type": "string",
-                        "format": "uri"
+                        "format": "binary"
                     }
                 },
                 "required": [
