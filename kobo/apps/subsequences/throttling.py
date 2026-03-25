@@ -15,7 +15,7 @@ class AutomaticQARateThrottle(SimpleRateThrottle):
     def get_cache_key(self, request, view):
         user = getattr(request, 'user', None)
         if user and user.is_authenticated:
-            # Cache key format: 'automatic_qa:<user_id>'
+            # Cache key format: 'throttle_automatic_qa_<user_id>'
             return self.cache_format % {
                 'scope': self.scope,
                 'ident': user.pk
