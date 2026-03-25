@@ -1293,8 +1293,6 @@ class AssetMetadataListSerializer(AssetListSerializer):
 
 
 class AssetListCountSerializer(serializers.Serializer):
-    class Meta:
-        fields = ('deployed_count', 'archived_count', 'draft_count')
 
     deployed_count = serializers.SerializerMethodField()
     archived_count = serializers.SerializerMethodField()
