@@ -404,7 +404,9 @@ class XFormListApi(OpenRosaReadOnlyModelViewSet):
         - xform_manifest (data collector)    → GET /collector/{token}/xformManifest/{id}
 
         Documentation:
-        - docs/api/openrosa/manifest/list.md
+        - docs/api/openrosa/manifest/authenticated.md
+        - docs/api/openrosa/manifest/anonymous.md
+        - docs/api/openrosa/manifest/data_collector.md
         """
         xform = self.get_object()
         media_files = {}

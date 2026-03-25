@@ -9,7 +9,7 @@
         "/{username}/formList": {
             "get": {
                 "operationId": "form_list_anonymous",
-                "description": "## Implement part of the OpenRosa Form List API\n\n⚠️This endpoint is **only available** from the koboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️\n\nThis endpoint is used for adding submissions as anonymous user.\n",
+                "description": "## Implement part of the OpenRosa Form List API\n\n⚠️This endpoint is **only available** from the KoboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️\n\nThis endpoint is used for adding submissions as anonymous user.\n",
                 "parameters": [
                     {
                         "in": "path",
@@ -47,7 +47,7 @@
         "/{username}/submission": {
             "post": {
                 "operationId": "submission_anonymous",
-                "description": "## Implement part of the OpenRosa Form Submission API\n\n⚠️This endpoint is **only available** from the koboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️\n\nThis endpoint is used for adding submissions as an anonymous user.\n\n### XML Submission\n\nSubmit an XForm instance as an XML file using `multipart/form-data`.\n\n**Example:**\n\n```shell\ncurl -X POST https://kc.kobotoolbox.org/{username}/submission \\\n  -F xml_submission_file=@/path/to/submission.xml\n```\n\n### JSON Submission\n\nSubmit an XForm instance as JSON using `application/json`.\n\nThe body must include:\n- `id`: the form's `id_string` (visible in the form URL or settings)\n- `submission`: the form data as a JSON object\n- `submission.meta.instanceID`: a unique UUID for this submission (required)\n\n**Example:**\n\n```shell\ncurl -X POST https://kc.kobotoolbox.org/{username}/submission \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\n    \"id\": \"{id_string}\",\n    \"submission\": {\n      \"question_1\": \"value_1\",\n      \"meta\": {\n        \"instanceID\": \"uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx\"\n      }\n    }\n  }'\n```\n",
+                "description": "## Implement part of the OpenRosa Form Submission API\n\n⚠️This endpoint is **only available** from the KoboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️\n\nThis endpoint is used for adding submissions as an anonymous user.\n\n### XML Submission\n\nSubmit an XForm instance as an XML file using `multipart/form-data`.\n\n**Example:**\n\n```shell\ncurl -X POST https://kc.kobotoolbox.org/{username}/submission \\\n  -F xml_submission_file=@/path/to/submission.xml\n```\n\n### JSON Submission\n\nSubmit an XForm instance as JSON using `application/json`.\n\nThe body must include:\n- `id`: the form's `id_string` (visible in the form URL or settings)\n- `submission`: the form data as a JSON object\n- `submission.meta.instanceID`: a unique UUID for this submission (required)\n\n**Example:**\n\n```shell\ncurl -X POST https://kc.kobotoolbox.org/{username}/submission \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\n    \"id\": \"{id_string}\",\n    \"submission\": {\n      \"question_1\": \"value_1\",\n      \"meta\": {\n        \"instanceID\": \"uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx\"\n      }\n    }\n  }'\n```\n",
                 "parameters": [
                     {
                         "in": "query",
@@ -225,7 +225,7 @@
         "/{username}/xformsManifest/{id}": {
             "get": {
                 "operationId": "manifest_anonymous",
-                "description": "## Implement part of the OpenRosa Manifest API\n\n⚠️This endpoint is **only available** from the koboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️\n\nThis endpoint return the URLs of form media files so they can be fetched and displayed as needed during form rendering.\nThis endpoints will also open the form in **creation** mode and is used as an anonymous user.\n",
+                "description": "## Implement part of the OpenRosa Manifest API\n\n⚠️This endpoint is **only available** from the KoboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️\n\nThis endpoint return the URLs of form media files so they can be fetched and displayed as needed during form rendering.\nThis endpoints will also open the form in **creation** mode and is used as an anonymous user.\n",
                 "parameters": [
                     {
                         "in": "path",
@@ -436,7 +436,7 @@
         "/collector/{token}/formList": {
             "get": {
                 "operationId": "form_list_data_collector",
-                "description": "## Implement part of the OpenRosa Form List API\n\n⚠️This endpoint is **only available** from the koboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️\n\nThis endpoint is used for adding submissions as a data collector.\n",
+                "description": "## Implement part of the OpenRosa Form List API\n\n⚠️This endpoint is **only available** from the KoboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️\n\nThis endpoint is used for adding submissions as a data collector.\n",
                 "parameters": [
                     {
                         "in": "path",
@@ -474,7 +474,7 @@
         "/collector/{token}/submission": {
             "post": {
                 "operationId": "submission_data_collector",
-                "description": "## Implement part of the OpenRosa Form Submission API\n\n⚠️This endpoint is **only available** from the koboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️\n\nThis endpoint is used for adding submissions as a data collector.\n\n### XML Submission\n\nSubmit an XForm instance as an XML file using `multipart/form-data`.\n\n**Example:**\n\n```shell\ncurl -X POST https://kc.kobotoolbox.org/collector/{token}/submission \\\n  -F xml_submission_file=@/path/to/submission.xml\n```\n\n### JSON Submission\n\nSubmit an XForm instance as JSON using `application/json`.\n\nThe body must include:\n- `id`: the form's `id_string` (visible in the form URL or settings)\n- `submission`: the form data as a JSON object\n- `submission.meta.instanceID`: a unique UUID for this submission (required)\n\n**Example:**\n\n```shell\ncurl -X POST https://kc.kobotoolbox.org/collector/{token}/submission \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\n    \"id\": \"{id_string}\",\n    \"submission\": {\n      \"question_1\": \"value_1\",\n      \"meta\": {\n        \"instanceID\": \"uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx\"\n      }\n    }\n  }'\n```\n",
+                "description": "## Implement part of the OpenRosa Form Submission API\n\n⚠️This endpoint is **only available** from the KoboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️\n\nThis endpoint is used for adding submissions as a data collector.\n\n### XML Submission\n\nSubmit an XForm instance as an XML file using `multipart/form-data`.\n\n**Example:**\n\n```shell\ncurl -X POST https://kc.kobotoolbox.org/collector/{token}/submission \\\n  -F xml_submission_file=@/path/to/submission.xml\n```\n\n### JSON Submission\n\nSubmit an XForm instance as JSON using `application/json`.\n\nThe body must include:\n- `id`: the form's `id_string` (visible in the form URL or settings)\n- `submission`: the form data as a JSON object\n- `submission.meta.instanceID`: a unique UUID for this submission (required)\n\n**Example:**\n\n```shell\ncurl -X POST https://kc.kobotoolbox.org/collector/{token}/submission \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\n    \"id\": \"{id_string}\",\n    \"submission\": {\n      \"question_1\": \"value_1\",\n      \"meta\": {\n        \"instanceID\": \"uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx\"\n      }\n    }\n  }'\n```\n",
                 "parameters": [
                     {
                         "in": "query",
@@ -645,6 +645,37 @@
                             }
                         },
                         "description": ""
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "InvalidToken": {
+                                        "value": {
+                                            "detail": "Invalid token."
+                                        },
+                                        "summary": "Invalid token"
+                                    }
+                                }
+                            },
+                            "text/xml": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "InvalidToken": {
+                                        "value": {
+                                            "detail": "Invalid token."
+                                        },
+                                        "summary": "Invalid token"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
                     }
                 }
             }
@@ -652,7 +683,7 @@
         "/collector/{token}/xformsManifest/{id}": {
             "get": {
                 "operationId": "manifest_data_collector",
-                "description": "## Implement part of the OpenRosa Manifest API\n\n⚠️This endpoint is **only available** from the koboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️\n\nThis endpoint return the URLs of form media files so they can be fetched and displayed as needed during form rendering.\nThis endpoints will also open the form in **creation** mode and is used as an anonymous user.\n",
+                "description": "## Implement part of the OpenRosa Manifest API\n\n⚠️This endpoint is **only available** from the KoboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️\n\nThis endpoint return the URLs of form media files so they can be fetched and displayed as needed during form rendering.\nThis endpoints will also open the form in **creation** mode and is used as an anonymous user.\n",
                 "parameters": [
                     {
                         "in": "path",
@@ -717,7 +748,7 @@
         "/formList": {
             "get": {
                 "operationId": "form_list_authenticated",
-                "description": "## Implement part of the OpenRosa Form List API\n\n⚠️This endpoint is **only available** from the koboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️\n\nThis endpoint is used for adding submissions as authenticated user.\n",
+                "description": "## Implement part of the OpenRosa Form List API\n\n⚠️This endpoint is **only available** from the KoboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️\n\nThis endpoint is used for adding submissions as authenticated user.\n",
                 "tags": [
                     "OpenRosa Form List"
                 ],
@@ -744,7 +775,7 @@
         "/submission": {
             "post": {
                 "operationId": "submission_authenticated",
-                "description": "## Implement part of the OpenRosa Form Submission API\n\n⚠️This endpoint is **only available** from the koboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️\n\nThis endpoint is used for adding submissions as an authenticated user.\n\n### XML Submission\n\nSubmit an XForm instance as an XML file using `multipart/form-data`.\n\n**Example:**\n\n```shell\ncurl -X POST https://kc.kobotoolbox.org/submission \\\n  -u user:password \\\n  -F xml_submission_file=@/path/to/submission.xml\n```\n\n### JSON Submission\n\nSubmit an XForm instance as JSON using `application/json`.\n\nThe body must include:\n- `id`: the form's `id_string` (visible in the form URL or settings)\n- `submission`: the form data as a JSON object\n- `submission.meta.instanceID`: a unique UUID for this submission (required)\n\n**Example:**\n\n```shell\ncurl -X POST https://kc.kobotoolbox.org/submission \\\n  -u user:password \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\n    \"id\": \"{id_string}\",\n    \"submission\": {\n      \"question_1\": \"value_1\",\n      \"meta\": {\n        \"instanceID\": \"uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx\"\n      }\n    }\n  }'\n```\n",
+                "description": "## Implement part of the OpenRosa Form Submission API\n\n⚠️This endpoint is **only available** from the KoboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️\n\nThis endpoint is used for adding submissions as an authenticated user.\n\n### XML Submission\n\nSubmit an XForm instance as an XML file using `multipart/form-data`.\n\n**Example:**\n\n```shell\ncurl -X POST https://kc.kobotoolbox.org/submission \\\n  -u user:password \\\n  -F xml_submission_file=@/path/to/submission.xml\n```\n\n### JSON Submission\n\nSubmit an XForm instance as JSON using `application/json`.\n\nThe body must include:\n- `id`: the form's `id_string` (visible in the form URL or settings)\n- `submission`: the form data as a JSON object\n- `submission.meta.instanceID`: a unique UUID for this submission (required)\n\n**Example:**\n\n```shell\ncurl -X POST https://kc.kobotoolbox.org/submission \\\n  -u user:password \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\n    \"id\": \"{id_string}\",\n    \"submission\": {\n      \"question_1\": \"value_1\",\n      \"meta\": {\n        \"instanceID\": \"uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx\"\n      }\n    }\n  }'\n```\n",
                 "parameters": [
                     {
                         "in": "query",
@@ -944,7 +975,7 @@
         "/xformsManifest/{id}": {
             "get": {
                 "operationId": "manifest_authenticated",
-                "description": "## Implement part of the OpenRosa Manifest API\n\n⚠️This endpoint is **only available** from the koboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️\n\nThis endpoint return the URLs of form media files so they can be fetched and displayed as needed during form rendering.\nThis endpoints will also open the form in **creation** mode and is used as an authenticated user.\n",
+                "description": "## Implement part of the OpenRosa Manifest API\n\n⚠️This endpoint is **only available** from the KoboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️\n\nThis endpoint return the URLs of form media files so they can be fetched and displayed as needed during form rendering.\nThis endpoints will also open the form in **creation** mode and is used as an authenticated user.\n",
                 "parameters": [
                     {
                         "in": "path",

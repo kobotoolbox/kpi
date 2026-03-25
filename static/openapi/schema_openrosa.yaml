@@ -13,7 +13,7 @@ paths:
       description: |
         ## Implement part of the OpenRosa Form List API
 
-        ⚠️This endpoint is **only available** from the koboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
+        ⚠️This endpoint is **only available** from the KoboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
 
         This endpoint is used for adding submissions as anonymous user.
       parameters:
@@ -41,7 +41,7 @@ paths:
       description: |
         ## Implement part of the OpenRosa Form Submission API
 
-        ⚠️This endpoint is **only available** from the koboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
+        ⚠️This endpoint is **only available** from the KoboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
 
         This endpoint is used for adding submissions as an anonymous user.
 
@@ -203,7 +203,7 @@ paths:
       description: |
         ## Implement part of the OpenRosa Manifest API
 
-        ⚠️This endpoint is **only available** from the koboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
+        ⚠️This endpoint is **only available** from the KoboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
 
         This endpoint return the URLs of form media files so they can be fetched and displayed as needed during form rendering.
         This endpoints will also open the form in **creation** mode and is used as an anonymous user.
@@ -348,7 +348,7 @@ paths:
       description: |
         ## Implement part of the OpenRosa Form List API
 
-        ⚠️This endpoint is **only available** from the koboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
+        ⚠️This endpoint is **only available** from the KoboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
 
         This endpoint is used for adding submissions as a data collector.
       parameters:
@@ -376,7 +376,7 @@ paths:
       description: |
         ## Implement part of the OpenRosa Form Submission API
 
-        ⚠️This endpoint is **only available** from the koboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
+        ⚠️This endpoint is **only available** from the KoboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
 
         This endpoint is used for adding submissions as a data collector.
 
@@ -532,13 +532,32 @@ paths:
                       - Error message
                   summary: Bad request
           description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                InvalidToken:
+                  value:
+                    detail: Invalid token.
+                  summary: Invalid token
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                InvalidToken:
+                  value:
+                    detail: Invalid token.
+                  summary: Invalid token
+          description: ''
   /collector/{token}/xformsManifest/{id}:
     get:
       operationId: manifest_data_collector
       description: |
         ## Implement part of the OpenRosa Manifest API
 
-        ⚠️This endpoint is **only available** from the koboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
+        ⚠️This endpoint is **only available** from the KoboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
 
         This endpoint return the URLs of form media files so they can be fetched and displayed as needed during form rendering.
         This endpoints will also open the form in **creation** mode and is used as an anonymous user.
@@ -584,7 +603,7 @@ paths:
       description: |
         ## Implement part of the OpenRosa Form List API
 
-        ⚠️This endpoint is **only available** from the koboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
+        ⚠️This endpoint is **only available** from the KoboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
 
         This endpoint is used for adding submissions as authenticated user.
       tags:
@@ -605,7 +624,7 @@ paths:
       description: |
         ## Implement part of the OpenRosa Form Submission API
 
-        ⚠️This endpoint is **only available** from the koboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
+        ⚠️This endpoint is **only available** from the KoboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
 
         This endpoint is used for adding submissions as an authenticated user.
 
@@ -782,7 +801,7 @@ paths:
       description: |
         ## Implement part of the OpenRosa Manifest API
 
-        ⚠️This endpoint is **only available** from the koboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
+        ⚠️This endpoint is **only available** from the KoboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
 
         This endpoint return the URLs of form media files so they can be fetched and displayed as needed during form rendering.
         This endpoints will also open the form in **creation** mode and is used as an authenticated user.

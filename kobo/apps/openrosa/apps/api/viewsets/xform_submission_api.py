@@ -3,7 +3,12 @@ import re
 
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as t
-from drf_spectacular.utils import extend_schema, extend_schema_view
+from drf_spectacular.utils import (
+    OpenApiExample,
+    OpenApiResponse,
+    extend_schema,
+    extend_schema_view,
+)
 from rest_framework import mixins, permissions, status
 from rest_framework.authentication import get_authorization_header
 from rest_framework.decorators import action
@@ -49,7 +54,10 @@ from kpi.schema_extensions.v2.openrosa.serializers import (
 )
 from kpi.utils.object_permission import get_database_user
 from kpi.utils.schema_extensions.markdown import read_md
-from kpi.utils.schema_extensions.response import open_api_201_created_response
+from kpi.utils.schema_extensions.response import (
+    ErrorDetailSerializer,
+    open_api_201_created_response,
+)
 from ..utils.rest_framework.viewsets import OpenRosaGenericViewSet
 from ..utils.xml import extract_confirmation_message
 
@@ -165,6 +173,31 @@ def create_instance_from_json(username, request):
                 require_auth=False,
                 raise_access_forbidden=False,
                 error_media_type='text/xml',
+            ),
+            # An invalid collector token raises AuthenticationFailed (401).
+            # `require_auth=False` above suppresses the generic 401, so we
+            # add it explicitly here with the correct message.
+            (status.HTTP_401_UNAUTHORIZED, 'application/json'): OpenApiResponse(
+                response=ErrorDetailSerializer(),
+                examples=[
+                    OpenApiExample(
+                        name='Invalid token',
+                        value={'detail': 'Invalid token.'},
+                        response_only=True,
+                        media_type='application/json',
+                    )
+                ],
+            ),
+            (status.HTTP_401_UNAUTHORIZED, 'text/xml'): OpenApiResponse(
+                response=ErrorDetailSerializer(),
+                examples=[
+                    OpenApiExample(
+                        name='Invalid token',
+                        value={'detail': 'Invalid token.'},
+                        response_only=True,
+                        media_type='text/xml',
+                    )
+                ],
             ),
         },
         examples=[get_json_submission_openapi_example()],
