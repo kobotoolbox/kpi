@@ -406,7 +406,6 @@ class ProjectHistoryLog(AuditLog):
             'submission-validation-status': cls._create_from_submission_request,
             'assetsnapshot-submission-openrosa': cls._create_from_submission_request,
             'submissions': cls._create_from_submission_request,
-            'submissions-list': cls._create_from_submission_request,
             'submission-detail': cls._create_from_submission_request,
             'submission-supplement': cls._create_from_submission_extra_request,
             'advanced-features-list': cls._create_from_question_advanced_feature_request,  # noqa
