@@ -236,7 +236,7 @@
                             },
                             "text/xml": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/OpenRosaResponse"
+                                    "$ref": "#/components/schemas/OpenRosaMessageResponse"
                                 },
                                 "examples": {
                                     "DuplicateInstance": {
@@ -264,7 +264,7 @@
                             },
                             "text/xml": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/OpenRosaResponse"
+                                    "$ref": "#/components/schemas/OpenRosaMessageResponse"
                                 },
                                 "examples": {
                                     "Conflict": {
@@ -719,7 +719,7 @@
                             },
                             "text/xml": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/OpenRosaResponse"
+                                    "$ref": "#/components/schemas/OpenRosaMessageResponse"
                                 },
                                 "examples": {
                                     "DuplicateInstance": {
@@ -747,7 +747,7 @@
                             },
                             "text/xml": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/OpenRosaResponse"
+                                    "$ref": "#/components/schemas/OpenRosaMessageResponse"
                                 },
                                 "examples": {
                                     "Conflict": {
@@ -1098,7 +1098,7 @@
                             },
                             "text/xml": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/OpenRosaResponse"
+                                    "$ref": "#/components/schemas/OpenRosaMessageResponse"
                                 },
                                 "examples": {
                                     "DuplicateInstance": {
@@ -1126,7 +1126,7 @@
                             },
                             "text/xml": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/OpenRosaResponse"
+                                    "$ref": "#/components/schemas/OpenRosaMessageResponse"
                                 },
                                 "examples": {
                                     "Conflict": {
@@ -1239,6 +1239,8 @@
                         "description": "XForm ID String"
                     },
                     "submission": {
+                        "type": "object",
+                        "additionalProperties": {},
                         "description": "The JSON submission data"
                     }
                 },
@@ -1321,6 +1323,17 @@
                 },
                 "required": [
                     "manifest"
+                ]
+            },
+            "OpenRosaMessageResponse": {
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "message"
                 ]
             },
             "OpenRosaResponse": {

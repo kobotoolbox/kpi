@@ -39,6 +39,7 @@ from kobo.apps.openrosa.schema_extensions.v2.submission.examples import (
 )
 from kobo.apps.openrosa.schema_extensions.v2.submission.serializers import (
     JSONSubmissionPayload,
+    OpenRosaMessageResponse,
     OpenRosaResponse,
     SubmissionResponse,
 )
@@ -65,7 +66,7 @@ from ..utils.xml import extract_confirmation_message
 xml_error_re = re.compile('>(.*)<')
 
 # 202 and 409 are possible on all submission endpoints regardless of auth method.
-# - 202: identical duplicate submission but with new attachment(s)
+# - 202: identical duplicate submission
 # - 409: same instance UUID reused with different content
 _SUBMISSION_EXTRA_RESPONSES = {
     (status.HTTP_202_ACCEPTED, 'application/json'): OpenApiResponse(
@@ -81,7 +82,7 @@ _SUBMISSION_EXTRA_RESPONSES = {
         ],
     ),
     (status.HTTP_202_ACCEPTED, 'text/xml'): OpenApiResponse(
-        response=OpenRosaResponse(),
+        response=OpenRosaMessageResponse(),
         description='Exact duplicate (same XML hash, no new attachments)',
         examples=[
             OpenApiExample(
@@ -109,7 +110,7 @@ _SUBMISSION_EXTRA_RESPONSES = {
         ],
     ),
     (status.HTTP_409_CONFLICT, 'text/xml'): OpenApiResponse(
-        response=OpenRosaResponse(),
+        response=OpenRosaMessageResponse(),
         description='Instance UUID already used with different content',
         examples=[
             OpenApiExample(

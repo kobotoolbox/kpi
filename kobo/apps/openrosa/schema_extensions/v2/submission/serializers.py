@@ -11,6 +11,15 @@ OpenRosaResponse = inline_serializer_class(
     },
 )
 
+# Lightweight variant used for error/status responses that only carry a message
+# (e.g. 202 duplicate, 409 conflict) — no submissionMetadata field.
+OpenRosaMessageResponse = inline_serializer_class(
+    name='OpenRosaMessageResponse',
+    fields={
+        'message': serializers.CharField(),
+    },
+)
+
 
 SubmissionResponse = inline_serializer_class(
     name='SubmissionResponse',
@@ -29,6 +38,9 @@ JSONSubmissionPayload = inline_serializer_class(
     name='JSONSubmissionPayload',
     fields={
         'id': serializers.CharField(help_text='XForm ID String'),
-        'submission': serializers.JSONField(help_text='The JSON submission data'),
+        'submission': serializers.DictField(
+            child=serializers.JSONField(),
+            help_text='The JSON submission data',
+        ),
     },
 )

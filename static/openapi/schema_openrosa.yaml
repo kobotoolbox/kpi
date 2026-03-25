@@ -209,7 +209,7 @@ paths:
                   summary: Duplicate Instance
             text/xml:
               schema:
-                $ref: '#/components/schemas/OpenRosaResponse'
+                $ref: '#/components/schemas/OpenRosaMessageResponse'
               examples:
                 DuplicateInstance:
                   value: <OpenRosaResponse xmlns="http://openrosa.org/http/response"><message>Duplicate
@@ -227,7 +227,7 @@ paths:
                     error: Submission with this instance ID already exists
             text/xml:
               schema:
-                $ref: '#/components/schemas/OpenRosaResponse'
+                $ref: '#/components/schemas/OpenRosaMessageResponse'
               examples:
                 Conflict:
                   value: <OpenRosaResponse xmlns="http://openrosa.org/http/response"><message>Submission
@@ -580,7 +580,7 @@ paths:
                   summary: Duplicate Instance
             text/xml:
               schema:
-                $ref: '#/components/schemas/OpenRosaResponse'
+                $ref: '#/components/schemas/OpenRosaMessageResponse'
               examples:
                 DuplicateInstance:
                   value: <OpenRosaResponse xmlns="http://openrosa.org/http/response"><message>Duplicate
@@ -598,7 +598,7 @@ paths:
                     error: Submission with this instance ID already exists
             text/xml:
               schema:
-                $ref: '#/components/schemas/OpenRosaResponse'
+                $ref: '#/components/schemas/OpenRosaMessageResponse'
               examples:
                 Conflict:
                   value: <OpenRosaResponse xmlns="http://openrosa.org/http/response"><message>Submission
@@ -879,7 +879,7 @@ paths:
                   summary: Duplicate Instance
             text/xml:
               schema:
-                $ref: '#/components/schemas/OpenRosaResponse'
+                $ref: '#/components/schemas/OpenRosaMessageResponse'
               examples:
                 DuplicateInstance:
                   value: <OpenRosaResponse xmlns="http://openrosa.org/http/response"><message>Duplicate
@@ -897,7 +897,7 @@ paths:
                     error: Submission with this instance ID already exists
             text/xml:
               schema:
-                $ref: '#/components/schemas/OpenRosaResponse'
+                $ref: '#/components/schemas/OpenRosaMessageResponse'
               examples:
                 Conflict:
                   value: <OpenRosaResponse xmlns="http://openrosa.org/http/response"><message>Submission
@@ -975,6 +975,8 @@ components:
           type: string
           description: XForm ID String
         submission:
+          type: object
+          additionalProperties: {}
           description: The JSON submission data
       required:
       - id
@@ -1032,6 +1034,13 @@ components:
           example: https://kf.kobotoolbox.org/api/v2/asset_snapshots/{uid_asset_snapshot}/manifest
       required:
       - manifest
+    OpenRosaMessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+      - message
     OpenRosaResponse:
       type: object
       properties:
