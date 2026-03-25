@@ -10,10 +10,10 @@ from django.utils import dateparse, translation
 from django_celery_beat.models import CrontabSchedule, PeriodicTask
 
 from ..tasks import failures_reports
-from .hook_test_case import HookTestCase
+from .base import BaseHookTestCase
 
 
-class EmailTestCase(HookTestCase):
+class EmailTestCase(BaseHookTestCase):
 
     def _create_periodic_task(self):
         beat_schedule = settings.CELERY_BEAT_SCHEDULE.get('send-hooks-failures-reports')

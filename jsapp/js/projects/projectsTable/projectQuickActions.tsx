@@ -1,5 +1,7 @@
 import React from 'react'
 
+import { MemberRoleEnum } from '#/api/models/memberRoleEnum'
+import { useOrganizationAssumed } from '#/api/useOrganizationAssumed'
 import { archiveAsset, deleteAsset, manageAssetSharing, unarchiveAsset } from '#/assetQuickActions'
 import { getAssetDisplayName } from '#/assetUtils'
 import Button from '#/components/common/button'
@@ -21,12 +23,14 @@ interface ProjectQuickActionsProps {
  * instead.
  */
 const ProjectQuickActions = ({ asset }: ProjectQuickActionsProps) => {
+  const [organization] = useOrganizationAssumed()
+
   // The `userCan` method requires `permissions` property to be present in the
   // `asset` object. For performance reasons `ProjectViewAsset` doesn't have
   // that property, and it is fine, as we don't expect Project View to have
   // a lot of options available.
   const isChangingPossible = userCan('change_asset', asset)
-  const isManagingPossible = userCan('manage_asset', asset)
+  const isManagingPossible = userCan('manage_asset', asset) || organization.request_user_role === MemberRoleEnum.admin
   const isProjectViewAsset = !('permissions' in asset)
 
   return (

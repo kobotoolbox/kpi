@@ -25,7 +25,7 @@ def async_execute(migration_id: int):
             cache.delete(lock_key)
 
 
-@celery_app.task(queue='kpi_low_priority_queue')
+@celery_app.task(queue='kpi_long_running_tasks_queue')
 def execute_long_running_migrations():
     # Adding an offset to account for potential delays in task execution and
     # clock drift between the Celery workers and the database, ensuring tasks

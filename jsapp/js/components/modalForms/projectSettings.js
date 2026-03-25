@@ -8,6 +8,7 @@ import Dropzone from 'react-dropzone'
 import reactMixin from 'react-mixin'
 import Reflux from 'reflux'
 import { actions } from '#/actions'
+import { archiveAsset, deleteAsset, unarchiveAsset } from '#/assetQuickActions'
 import assetUtils from '#/assetUtils'
 import Button from '#/components/common/button'
 import InlineMessage from '#/components/common/inlineMessage'
@@ -279,7 +280,7 @@ class ProjectSettings extends React.Component {
   deleteProject(evt) {
     evt.preventDefault()
 
-    this.deleteAsset(this.state.formAsset.uid, this.state.formAsset.name, this.goToProjectsList.bind(this))
+    deleteAsset(this.state.formAsset, this.state.formAsset.name, this.goToProjectsList.bind(this))
   }
 
   // archive flow
@@ -294,13 +295,13 @@ class ProjectSettings extends React.Component {
 
   archiveProject(evt) {
     evt.preventDefault()
-    this.archiveAsset(this.state.formAsset.uid)
+    archiveAsset(this.state.formAsset)
     this.setState({ isAwaitingArchiveCompleted: true })
   }
 
   unarchiveProject(evt) {
     evt.preventDefault()
-    this.unarchiveAsset(this.state.formAsset.uid)
+    unarchiveAsset(this.state.formAsset)
     this.setState({ isAwaitingUnarchiveCompleted: true })
   }
 

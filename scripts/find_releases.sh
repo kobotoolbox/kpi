@@ -38,6 +38,12 @@ if [[ $current_branch != "release/"* ]]; then
     exit 1
 fi
 
+if [[ "$(git tag -l $current_minor* | grep -E "^$current_minor.?$" | tail -1 || true)" == "" ]]; then
+    echo "current_released=false" >> $GITHUB_OUTPUT
+else
+    echo "current_released=true" >> $GITHUB_OUTPUT
+fi
+
 
 # Find previous version. Note: prev_patch is the patch of minor that's already released, empty if minor is not released.
 

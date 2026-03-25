@@ -1,6 +1,11 @@
 name: 'CD: tag'
 
 
+concurrency:
+  group: tag-${{ github.ref }}
+  cancel-in-progress: true
+
+
 on:
   push:
     tags:

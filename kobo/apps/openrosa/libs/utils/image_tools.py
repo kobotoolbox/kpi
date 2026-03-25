@@ -6,7 +6,6 @@ from tempfile import NamedTemporaryFile
 import requests
 from django.conf import settings
 from django.core.files.base import ContentFile
-from django.core.files.storage import FileSystemStorage
 from PIL import Image
 from pillow_heif import register_heif_opener
 
@@ -15,6 +14,7 @@ from kpi.constants import UNSUPPORTED_INLINE_MIMETYPES
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
+from kpi.utils.storage import is_filesystem_storage
 
 
 def flat(*nums):
@@ -82,7 +82,7 @@ def _save_thumbnails(image, original_path, size, suffix):
 def resize(filename):
     image = None
     register_heif_opener()
-    if isinstance(default_storage, FileSystemStorage):
+    if is_filesystem_storage(default_storage):
         path = default_storage.path(filename)
         image = Image.open(path)
         original_path = filename

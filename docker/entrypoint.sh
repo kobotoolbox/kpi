@@ -78,22 +78,16 @@ if [[ ! -d "${KPI_SRC_DIR}/staticfiles" ]] || ! python "${KPI_SRC_DIR}/docker/ch
         fi
 
         echo "Rebuilding client code…"
-        npm run build
+        SKIP_TS_CHECK=true npm run build:app
 
         echo "Building static files from live code…"
-        python manage.py collectstatic --noinput
+        python manage.py collectstatic --noinput --ignore rest_framework
+
     fi
 fi
 
 echo "Copying static files to nginx volume…"
-rsync -aq --delete --chown=www-data "${KPI_SRC_DIR}/staticfiles/" "${NGINX_STATIC_DIR}/"
-
-if [[ ! -d "${KPI_SRC_DIR}/locale" ]] || [[ -z "$(ls -A ${KPI_SRC_DIR}/locale)" ]]; then
-    echo "Fetching translations…"
-    git submodule init && \
-    git submodule update --remote && \
-    python manage.py compilemessages
-fi
+rsync -aq --delete --delete-excluded --exclude="rest_framework" --chown=www-data "${KPI_SRC_DIR}/staticfiles/" "${NGINX_STATIC_DIR}/"
 
 echo 'KPI initialization completed.'
 

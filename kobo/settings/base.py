@@ -3,7 +3,7 @@ import os
 import string
 import subprocess
 import warnings
-from datetime import datetime, timedelta
+from datetime import timedelta
 from mimetypes import add_type
 from urllib.parse import quote_plus
 
@@ -16,10 +16,8 @@ from django.utils.translation import get_language_info
 from django.utils.translation import gettext_lazy as t
 from pymongo import MongoClient
 
-from kobo.apps.stripe.constants import FREE_TIER_EMPTY_DISPLAY, FREE_TIER_NO_THRESHOLDS
 from kpi.constants import PERM_DELETE_ASSET, PERM_MANAGE_ASSET
 from kpi.utils.json import LazyJSONSerializable
-
 from ..static_lists import EXTRA_LANG_INFO, SECTOR_CHOICE_DEFAULTS
 
 env = environ.Env()
@@ -123,6 +121,7 @@ INSTALLED_APPS = (
     'oauth2_provider',
     'django_digest',
     'kobo.apps.organizations',
+    'kobo.apps.kobo_scim.apps.KoboScimConfig',
     'kobo.apps.superuser_stats.SuperuserStatsAppConfig',
     'kobo.apps.service_health',
     'kobo.apps.subsequences',
@@ -180,6 +179,7 @@ MIDDLEWARE = [
     'django_userforeignkey.middleware.UserForeignKeyMiddleware',
     'django_request_cache.middleware.RequestCacheMiddleware',
     'author.middlewares.AuthorDefaultBackendMiddleware',
+    'hub.middleware.V1AccessLoggingMiddleware',
 ]
 
 
@@ -206,6 +206,18 @@ CONSTANCE_CONFIG = {
     'REGISTRATION_DOMAIN_NOT_ALLOWED_ERROR_MESSAGE': (
         'This email domain is not allowed to create an account',
         'Error message for emails not listed in REGISTRATION_ALLOWED_EMAIL_DOMAINS '
+        'if field is not blank'
+    ),
+    'REGISTRATION_BLACKLIST_EMAIL_DOMAINS': (
+        '',
+        'Email domains to block from registering new accounts, one per line, '
+        'or blank to allow all email domains'
+    ),
+    'REGISTRATION_BLACKLIST_ERROR_MESSAGE': (
+        'Account creation restricted for this server. Your organization uses a '
+        'separate private KoboToolbox server. Please contact your organization '
+        'support team for assistance.',
+        'Error message for emails blacklisted in REGISTRATION_BLACKLIST_EMAIL_DOMAINS '
         'if field is not blank'
     ),
     'TERMS_OF_SERVICE_URL': ('', 'URL for terms of service document'),
@@ -362,6 +374,10 @@ CONSTANCE_CONFIG = {
         'IAM & Admin console.\nLeave blank to use a different Google '
         'authentication mechanism.'
     ),
+    'AUTOMATIC_QA_REQUESTS_PER_SECOND': (
+        5,
+        'Number of allowed automatic Qualitative Analysis requests per user per second.'
+    ),
     'USER_METADATA_FIELDS': (
         LazyJSONSerializable([
             {'name': 'name', 'required': True},
@@ -436,26 +452,6 @@ CONSTANCE_CONFIG = {
         180,
         'Number of days to keep submission history',
         'positive_int',
-    ),
-    'FREE_TIER_THRESHOLDS': (
-        LazyJSONSerializable(FREE_TIER_NO_THRESHOLDS),
-        'Free tier thresholds: storage in kilobytes, '
-        'data (number of submissions), '
-        'minutes of transcription, '
-        'number of translation characters',
-        # Use custom field for schema validation
-        'free_tier_threshold_jsonschema',
-    ),
-    'FREE_TIER_DISPLAY': (
-        LazyJSONSerializable(FREE_TIER_EMPTY_DISPLAY),
-        'Free tier frontend settings: name to use for the free tier, '
-        'array of text strings to display on the feature list of the Plans page',
-        'free_tier_display_jsonschema',
-    ),
-    'FREE_TIER_CUTOFF_DATE': (
-        datetime(2050, 1, 1).date(),
-        'Users on the free tier who registered before this date will\n'
-        'use the custom plan defined by FREE_TIER_DISPLAY and FREE_TIER_LIMITS.',
     ),
     'PROJECT_TRASH_RETENTION': (
         7,
@@ -676,14 +672,6 @@ CONSTANCE_CONFIG = {
 }
 
 CONSTANCE_ADDITIONAL_FIELDS = {
-    'free_tier_threshold_jsonschema': [
-        'kpi.fields.jsonschema_form_field.FreeTierThresholdField',
-        {'widget': 'django.forms.Textarea'},
-    ],
-    'free_tier_display_jsonschema': [
-        'kpi.fields.jsonschema_form_field.FreeTierDisplayField',
-        {'widget': 'django.forms.Textarea'},
-    ],
     'i18n_text_jsonfield_schema': [
         'kpi.fields.jsonschema_form_field.I18nTextJSONField',
         {'widget': 'django.forms.Textarea'},
@@ -726,6 +714,8 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'REGISTRATION_OPEN',
         'REGISTRATION_ALLOWED_EMAIL_DOMAINS',
         'REGISTRATION_DOMAIN_NOT_ALLOWED_ERROR_MESSAGE',
+        'REGISTRATION_BLACKLIST_EMAIL_DOMAINS',
+        'REGISTRATION_BLACKLIST_ERROR_MESSAGE',
         'TERMS_OF_SERVICE_URL',
         'PRIVACY_POLICY_URL',
         'SOURCE_CODE_URL',
@@ -757,6 +747,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'ASR_MT_GOOGLE_TRANSLATION_LOCATION',
         'ASR_MT_GOOGLE_CREDENTIALS',
         'ASR_MT_GOOGLE_REQUEST_TIMEOUT',
+        'AUTOMATIC_QA_REQUESTS_PER_SECOND'
     ),
     'Security': (
         'SSRF_ALLOWED_IP_ADDRESS',
@@ -809,11 +800,6 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'ASSET_SNAPSHOT_DAYS_RETENTION',
         'IMPORT_TASK_DAYS_RETENTION',
         'SUBMISSION_HISTORY_RETENTION',
-    ),
-    'Tier settings': (
-        'FREE_TIER_THRESHOLDS',
-        'FREE_TIER_DISPLAY',
-        'FREE_TIER_CUTOFF_DATE',
     ),
 }
 
@@ -929,9 +915,12 @@ USE_TZ = True
 
 CAN_LOGIN_AS = lambda request, target_user: request.user.is_superuser
 
-# Impose a limit on the number of records returned by the submission list
-# endpoint. This overrides any `?limit=` query parameter sent by a client
-SUBMISSION_LIST_LIMIT = 1000
+# Default page size when no limit is specified in API requests.
+# Currently for submission lists only, but naming is future-proof for all endpoints
+DEFAULT_API_PAGE_SIZE = env.int('DEFAULT_API_PAGE_SIZE', 100)
+# Maximum page size for API responses. Currently applies to submission lists only,
+# but will likely be extended to all endpoints in the future
+MAX_API_PAGE_SIZE = env.int('MAX_API_PAGE_SIZE', 1000)
 
 # uWSGI, NGINX, etc. allow only a limited amount of time to process a request.
 # Set this value to match their limits
@@ -1003,7 +992,7 @@ if os.path.exists(os.path.join(BASE_DIR, 'dkobo', 'jsapp')):
 
 REST_FRAMEWORK = {
     'URL_FIELD_NAME': 'url',
-    'DEFAULT_PAGINATION_CLASS': 'kpi.paginators.Paginated',
+    'DEFAULT_PAGINATION_CLASS': 'kpi.paginators.DefaultPagination',
     'PAGE_SIZE': 100,
     'DEFAULT_AUTHENTICATION_CLASSES': [
         # SessionAuthentication and BasicAuthentication would be included by
@@ -1051,6 +1040,7 @@ SPECTACULAR_SETTINGS = {
     'AUTHENTICATION_WHITELIST': [
         'kpi.authentication.BasicAuthentication',
         'kpi.authentication.TokenAuthentication',
+        'kobo.apps.kobo_scim.authentication.ScimAuthentication',
     ],
     'ENUM_NAME_OVERRIDES': {
         'InviteStatusChoicesEnum': 'kobo.apps.organizations.models.OrganizationInviteStatusChoices.choices',  # noqa
@@ -1060,6 +1050,8 @@ SPECTACULAR_SETTINGS = {
         'StripePriceType': 'kpi.schema_extensions.v2.stripe.schema.PRICE_TYPE_ENUM',
         'StripeIntervalEnum': 'kpi.schema_extensions.v2.stripe.schema.INTERVAL_ENUM',
         'StripeUsageType': 'kpi.schema_extensions.v2.stripe.schema.USAGE_TYPE_ENUM',
+        'QualSimpleQuestionParamsTypeEnum': 'kpi.schema_extensions.v2.subsequences.schema.SIMPLE_QUESTION_TYPE_ENUM',  # noqa
+        'QualSelectQuestionParamsTypeEnum': 'kpi.schema_extensions.v2.subsequences.schema.SELECT_QUESTION_TYPE_ENUM',  # noqa
     },
     # We only want to blacklist BasicHTMLRenderer, but nothing like RENDERER_WHITELIST
     # exists 🤦
@@ -1518,7 +1510,7 @@ CELERY_BEAT_SCHEDULE = {
     'long-running-migrations': {
         'task': 'kobo.apps.long_running_migrations.tasks.execute_long_running_migrations',  # noqa
         'schedule': crontab(minute='*/15'),
-        'options': {'queue': 'kpi_low_priority_queue'}
+        'options': {'queue': 'kpi_long_running_tasks_queue'},
     },
     # Schedule every day at midnight UTC
     'mass-email-record-mark-as-failed': {
@@ -1535,6 +1527,34 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'kobo.apps.mass_emails.tasks.generate_mass_email_user_lists',
         'schedule': crontab(minute=0),
         'options': {'queue': 'kpi_queue'},
+    },
+    'fix-stale-submissions-suspended-flag': {
+        'task': (
+            'kobo.apps.openrosa.apps.logger.tasks.fix_stale_submissions_suspended_flag'
+        ),
+        'schedule': crontab(minute='*/15', hour='2-5', day_of_week=0),
+        'description': (
+            'Unlock accounts locked by `sync_storage_counters` task'
+        ),
+        'options': {'queue': 'kpi_long_running_tasks_queue'},
+    },
+    'sync-storage-counters': {
+        'task': 'kobo.apps.openrosa.apps.logger.tasks.sync_storage_counters',
+        'schedule': crontab(minute=30, hour=0, day_of_week=0),
+        'description': (
+            'Synchronize out of sync attachment storage bytes of profile and projects'
+        ),
+        'options': {'queue': 'kpi_long_running_tasks_queue'},
+    },
+    'retry-stalled-submissions': {
+        'task': 'kobo.apps.hook.tasks.retry_stalled_pending_submissions',
+        'schedule': crontab(minute='*/30'),  # Every 30 minutes
+        'options': {'queue': 'kpi_low_priority_queue'},
+    },
+    'mark-zombie-submissions': {
+        'task': 'kobo.apps.hook.tasks.mark_zombie_processing_submissions',
+        'schedule': crontab(minute='*/30'),  # Every 30 minutes
+        'options': {'queue': 'kpi_low_priority_queue'},
     },
 }
 
@@ -1589,6 +1609,9 @@ ACCOUNT_USERNAME_VALIDATORS = 'kobo.apps.accounts.validators.username_validators
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
 ACCOUNT_EMAIL_UNKNOWN_ACCOUNTS = False
 ACCOUNT_EMAIL_VERIFICATION = env.str('ACCOUNT_EMAIL_VERIFICATION', 'mandatory')
+ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = env.int(
+    'ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS', 1
+)
 ACCOUNT_FORMS = {
     'login': 'kobo.apps.accounts.forms.LoginForm',
     'signup': 'kobo.apps.accounts.forms.SignupForm',
@@ -1668,6 +1691,7 @@ if MASS_EMAILS_CONDENSE_SEND:
 if env.str('AWS_ACCESS_KEY_ID', False):
     AWS_ACCESS_KEY_ID = env.str('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = env.str('AWS_SECRET_ACCESS_KEY')
+    AWS_BEDROCK_REGION_NAME = env.str('AWS_BEDROCK_REGION_NAME', None)
     AWS_SES_REGION_NAME = env.str('AWS_SES_REGION_NAME', None)
     AWS_SES_REGION_ENDPOINT = env.str('AWS_SES_REGION_ENDPOINT', None)
 
@@ -1784,12 +1808,12 @@ LOGGING = {
         'console_logger': {
             'handlers': ['console'],
             'level': 'DEBUG',
-            'propagate': True
+            'propagate': False,
         },
         'django.db.backends': {
             'level': 'ERROR',
             'handlers': ['console'],
-            'propagate': True
+            'propagate': False
         },
     }
 }
@@ -1913,14 +1937,18 @@ mongo_client = MongoClient(
 )
 MONGO_DB = mongo_client[mongo_db_name]
 
-# If a request or task makes a database query and then times out, the database
-# server should not spin forever attempting to fulfill that query.
+# Maximum query duration (in milliseconds) for PostgreSQL (statement_timeout)
+# and MongoDB (maxTimeMS). Applied per environment:
+#   - Web requests: DATABASE_QUERY_TIMEOUT, based on SYNCHRONOUS_REQUEST_TIME_LIMIT
+#   - Celery workers: DATABASE_CELERY_QUERY_TIMEOUT, based on CELERY_TASK_TIME_LIMIT
 # ⚠️⚠️
-# These settings should never be used directly.
-# Use MongoHelper.get_max_time_ms() in the code instead
+# For MongoDB, use MongoHelper.get_max_time_ms() rather than referencing these
+# directly.
 # ⚠️⚠️
-MONGO_QUERY_TIMEOUT = SYNCHRONOUS_REQUEST_TIME_LIMIT + 5  # seconds
-MONGO_CELERY_QUERY_TIMEOUT = CELERY_TASK_TIME_LIMIT + 10  # seconds
+DATABASE_QUERY_TIMEOUT = (
+    env.int('DATABASE_QUERY_TIMEOUT', SYNCHRONOUS_REQUEST_TIME_LIMIT + 5) * 1000
+)  # milliseconds
+DATABASE_CELERY_QUERY_TIMEOUT = (CELERY_TASK_TIME_LIMIT + 10) * 1000  # milliseconds
 
 
 SESSION_ENGINE = 'redis_sessions.session'
@@ -1960,6 +1988,9 @@ OPENROSA_DEFAULT_CONTENT_LENGTH = 10000000
 
 # Expiration time in sec. after which paired data xml file must be regenerated
 PAIRED_DATA_EXPIRATION = 300  # seconds
+# Lock TTL for the async regeneration task; covers the worst-case generation
+# time and ensures the lock expires even if a K8s pod is killed mid-task.
+PAIRED_DATA_REGEN_LOCK_TIMEOUT = 600  # seconds
 
 CALCULATED_HASH_CACHE_EXPIRATION = 300  # seconds
 
@@ -2159,12 +2190,23 @@ IMPORT_EXPORT_CELERY_STORAGE_ALIAS = 'import_export_celery'
 ORG_INVITATION_RESENT_RESET_AFTER = 15 * 60  # in seconds
 
 # Batch sizes
+DEFAULT_BATCH_SIZE = 1000
 LOG_DELETION_BATCH_SIZE = 1000
 USER_ASSET_ORG_TRANSFER_BATCH_SIZE = 1000
 SUBMISSION_DELETION_BATCH_SIZE = 1000
 LONG_RUNNING_MIGRATION_BATCH_SIZE = 2000
+LONG_RUNNING_MIGRATION_SMALL_BATCH_SIZE = 100
 VERSION_DELETION_BATCH_SIZE = 2000
+S3_DELETE_BATCH_SIZE = 1000
+AZURE_DELETE_BATCH_SIZE = 256
 
 # Number of stuck tasks should be restarted at a time
 MAX_RESTARTED_TASKS = 100
 MAX_RESTARTED_TRANSFERS = 20
+
+# Maximum timeout (in minutes) for hook processing
+HOOK_STALLED_PENDING_TIMEOUT = 120
+HOOK_STALLED_RETRY_TIMEOUT = 1440
+
+# Cache time-to-live (in seconds) for attachment XPaths
+ATTACHMENT_XPATHS_CACHE_TTL = 86400

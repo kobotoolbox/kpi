@@ -22,16 +22,6 @@ const environmentResponse: EnvironmentResponse = {
   frontend_max_retry_time: 120,
   use_team_label: true,
   usage_limit_enforcement: false,
-  free_tier_display: {
-    name: null,
-    feature_list: [],
-  },
-  free_tier_thresholds: {
-    storage: null,
-    data: null,
-    transcription_minutes: null,
-    translation_chars: null,
-  },
   sector_choices: [
     ['Public Administration', 'Public Administration'],
     ['Arts, Entertainment, and Recreation', 'Arts, Entertainment, and Recreation'],
@@ -348,7 +338,6 @@ const environmentResponse: EnvironmentResponse = {
     '<p>If you cannot access your authenticator app, please enter one of your backup codes instead. If you cannot access those either, then you will need to request assistance by contacting <a href="mailto:support@kobo.local">support@kobo.local</a>.</p>',
   mfa_enabled: true,
   mfa_per_user_availability: false,
-  mfa_has_availability_list: false,
   mfa_code_length: 6,
   enable_password_entropy_meter: true,
   enable_custom_password_guidance_text: false,

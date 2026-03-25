@@ -1,6 +1,4 @@
 # coding: utf-8
-import json
-import logging
 
 import constance
 from allauth.socialaccount.models import SocialApp
@@ -15,11 +13,9 @@ from rest_framework.views import APIView
 from hub.models.sitewide_message import SitewideMessage
 from hub.utils.i18n import I18nUtils
 from kobo.apps.accounts.mfa.models import MfaAvailableToUser
-from kobo.apps.constance_backends.utils import to_python_object
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
-from kobo.apps.organizations.models import OrganizationOwner
-from kobo.apps.stripe.constants import FREE_TIER_EMPTY_DISPLAY, FREE_TIER_NO_THRESHOLDS
 from kobo.static_lists import COUNTRIES
+from kpi.models import ExtraProjectMetadataField
 from kpi.utils.object_permission import get_database_user
 
 
@@ -66,19 +62,14 @@ class EnvironmentView(APIView):
             for key in cls.SIMPLE_CONFIGS
         }
 
-    JSON_CONFIGS = [
-        'FREE_TIER_DISPLAY',
-        'FREE_TIER_THRESHOLDS',
-    ]
-
     def get(self, request, *args, **kwargs):
         data = {}
         data.update(self.process_simple_configs())
-        data.update(self.process_json_configs())
         data.update(self.process_choice_configs())
         data.update(self.process_mfa_configs(request))
         data.update(self.process_password_configs(request))
         data.update(self.process_project_metadata_configs(request))
+        data.update(self.process_extra_project_metadata_configs(request))
         data.update(self.process_user_metadata_configs(request))
         data.update(self.process_other_configs(request))
         data.update(self.static_configs(request))
@@ -109,20 +100,23 @@ class EnvironmentView(APIView):
         data['interface_languages'] = settings.LANGUAGES
         return data
 
-    @classmethod
-    def process_json_configs(cls):
-        data = {}
-        for key in cls.JSON_CONFIGS:
-            value = getattr(constance.config, key)
-            try:
-                value = to_python_object(value)
-            except json.JSONDecodeError:
-                logging.error(
-                    f'Configuration value for `{key}` has invalid JSON'
-                )
-                continue
-            data[key.lower()] = value
-        return data
+    @staticmethod
+    def process_extra_project_metadata_configs(request):
+        fields = ExtraProjectMetadataField.objects.all()
+
+        extra_fields_data = []
+        for field in fields:
+            extra_fields_data.append(
+                {
+                    'name': field.name,
+                    'label': field.label,
+                    'type': field.type,
+                    'required': field.is_required,
+                    'options': field.options,
+                }
+            )
+
+        return {'extra_project_metadata_fields': extra_fields_data}
 
     @staticmethod
     def process_mfa_configs(request):
@@ -194,22 +188,6 @@ class EnvironmentView(APIView):
                 ) from e
         else:
             data['stripe_public_key'] = None
-
-        # If the user isn't eligible for the free tier override, don't send free tier data to the frontend
-        if request.user.id:
-            # if the user is in an organization, use the organization owner's join date
-            owner_join_date = OrganizationOwner.objects.filter(
-                organization__organization_users__user=request.user
-            ).values_list('organization_user__user__date_joined', flat=True).first()
-            if owner_join_date:
-                date_joined = owner_join_date.date()
-            else:
-                # default to checking the user's join date
-                date_joined = request.user.date_joined.date()
-            # if they didn't register on/before FREE_TIER_CUTOFF_DATE, don't display the custom free tier
-            if date_joined > constance.config.FREE_TIER_CUTOFF_DATE:
-                data['free_tier_thresholds'] = FREE_TIER_NO_THRESHOLDS
-                data['free_tier_display'] = FREE_TIER_EMPTY_DISPLAY
 
         data[
             'terms_of_service__sitewidemessage__exists'

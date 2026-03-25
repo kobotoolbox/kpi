@@ -3,6 +3,7 @@ import os
 
 from django.test import override_settings
 from django.urls import reverse
+from django.utils import timezone
 from django_digest.test import DigestAuth
 from rest_framework.test import APIRequestFactory
 
@@ -14,6 +15,8 @@ from kobo.apps.openrosa.apps.api.viewsets.xform_submission_api import XFormSubmi
 from kobo.apps.openrosa.apps.logger.models import Instance, XForm
 from kobo.apps.openrosa.libs.utils.logger_tools import publish_form, publish_xml_form
 from kobo.apps.openrosa.libs.utils.storage import rmdir
+from kpi.fields import KpiUidField
+from kpi.utils.hash import calculate_hash
 
 NUM_INSTANCES = 4
 

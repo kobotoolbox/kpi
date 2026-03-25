@@ -1,5 +1,5 @@
-@use 'scss/colors';
-@use 'scss/mixins';
+@use "scss/colors";
+@use "scss/mixins";
 
 .audio-player {
   @include mixins.centerRowFlex;
@@ -25,6 +25,9 @@
   margin-bottom: 20px;
 
   label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     color: colors.$kobo-storm;
     font-size: 16px;
     font-weight: 600;

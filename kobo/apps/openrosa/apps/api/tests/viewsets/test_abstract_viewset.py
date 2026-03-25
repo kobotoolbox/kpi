@@ -6,6 +6,7 @@ from django.conf import settings
 from django.contrib.auth.models import AnonymousUser, Permission
 from django.core.files.base import ContentFile
 from django.test import TestCase
+from django.utils import timezone
 from django_digest.test import DigestAuth
 from rest_framework.test import APIRequestFactory
 
@@ -18,6 +19,8 @@ from kobo.apps.openrosa.libs.tests.mixins.make_submission_mixin import (
 )
 from kobo.apps.openrosa.libs.tests.mixins.request_mixin import RequestMixin
 from kobo.apps.openrosa.libs.utils import logger_tools
+from kpi.fields import KpiUidField
+from kpi.utils.hash import calculate_hash
 from kpi.utils.object_permission import get_database_user
 
 

@@ -11,7 +11,8 @@ import { recordValues } from '#/utils'
 const buttonVariants: Array<ButtonProps['variant']> = [
   'filled',
   'light',
-  // 'outline',
+  'outline',
+  'transparent',
   // 'white',
   // 'subtle',
   // 'default',
@@ -20,7 +21,6 @@ const buttonVariants: Array<ButtonProps['variant']> = [
   //// Custom:
   'danger',
   'danger-secondary',
-  'transparent',
 ]
 
 const buttonSizes: MantineSize[] = [
