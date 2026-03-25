@@ -50,7 +50,7 @@ from kobo.apps.openrosa.apps.main.models import MetaData, UserProfile
 from kobo.apps.openrosa.apps.viewer.models import ParsedInstance
 from kobo.apps.openrosa.libs.utils.logger_tools import create_instance, publish_xls_form
 from kobo.apps.openrosa.libs.utils.viewer_tools import get_mongo_userform_id
-from kobo.apps.subsequences.utils import stream_with_extras
+from kobo.apps.subsequences.utils.supplement_data import stream_with_supplements
 from kobo.apps.trackers.models import NLPUsageCounter
 from kpi.constants import (
     PERM_ADD_SUBMISSIONS,
@@ -162,6 +162,9 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             }
         )
         super().connect(active)
+
+    def create_enketo_survey_links_for_single_data_collector(self, token):
+        set_data_collector_enketo_links(token, [self.xform.id_string])
 
     @property
     def form_uuid(self):
@@ -351,6 +354,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             # very un-Pythonic!
             if element is not None:
                 element.text = date_formatted
+
         # Rely on `meta/instanceID` being present. If it's absent, something is
         # fishy enough to warrant raising an exception instead of continuing
         # silently
@@ -399,6 +403,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
 
         The returned Response should be in XML (expected format by Enketo Express)
         """
+
         user = request.user
         submission_xml = xml_submission_file.read()
         try:
@@ -694,12 +699,6 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         }
         return links
 
-    def set_data_collector_enketo_links(self, token):
-        set_data_collector_enketo_links(token, [self.xform.id_string])
-
-    def remove_data_collector_enketo_links(self, token):
-        remove_data_collector_enketo_links(token, [self.xform.id_string])
-
     def get_enketo_survey_links(self):
         if not self.get_data('backend_response'):
             return {}
@@ -791,6 +790,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         user: settings.AUTH_USER_MODEL,
         format_type: str = SUBMISSION_FORMAT_TYPE_JSON,
         submission_ids: list = None,
+        for_output: bool = False,
         **mongo_query_params,
     ) -> Union[Generator[dict, None, None], list]:
         """
@@ -818,6 +818,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         params = self.validate_submission_list_params(
             user, format_type=format_type, **mongo_query_params
         )
+        params['for_output'] = for_output
         fetch_one = len(mongo_query_params['submission_ids']) == 1
 
         if format_type == SUBMISSION_FORMAT_TYPE_JSON:
@@ -940,6 +941,9 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
                 'version': self.asset.version_id,
             }
         )
+
+    def remove_enketo_links_for_single_data_collector(self, token):
+        remove_data_collector_enketo_links(token, [self.xform.id_string])
 
     def rename_enketo_id_key(
         self, previous_owner_username: str, project_identifier: str = None
@@ -1524,22 +1528,13 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         # Apply a default sort of _id to prevent unpredictable natural sort
         if not params.get('sort'):
             params['sort'] = {'_id': 1}
+        for_output = params.pop('for_output', False)
         mongo_cursor, total_count = MongoHelper.get_instances(
             self.mongo_userform_id, **params
         )
 
         # Python-only attribute used by `kpi.views.v2.data.DataViewSet.list()`
         self.current_submission_count = total_count
-
-        add_supplemental_details_to_query = self.asset.has_advanced_features
-
-        fields = params.get('fields', [])
-        if len(fields) > 0 and '_uuid' not in fields:
-            # skip the query if submission '_uuid' is not even q'd from mongo
-            add_supplemental_details_to_query = False
-
-        if add_supplemental_details_to_query:
-            mongo_cursor = stream_with_extras(mongo_cursor, self.asset)
 
         if fetch_one:
             # Try to retrieve attachment xpaths from cache first.
@@ -1577,7 +1572,7 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
         else:
             attachment_xpaths = self.asset.get_all_attachment_xpaths()
 
-        return (
+        mongo_cursor = (
             self._inject_properties(
                 MongoHelper.to_readable_dict(submission),
                 attachment_xpaths,
@@ -1585,12 +1580,19 @@ class OpenRosaDeploymentBackend(BaseDeploymentBackend):
             for submission in mongo_cursor
         )
 
+        fields = params.get('fields', [])
+        if len(fields) > 0 and self.SUBMISSION_ROOT_UUID_XPATH not in fields:
+            # skip the query if submission '_uuid' is not even q'd from mongo
+            return mongo_cursor
+
+        return stream_with_supplements(self.asset, mongo_cursor, for_output=for_output)
+
     def __get_submissions_in_xml(self, **params) -> Generator[str, None, None]:
         """
         Retrieve submissions directly from PostgreSQL.
         Submissions can be filtered with `params`.
         """
-
+        params.pop('for_output', False)
         mongo_filters = ['query', 'permission_filters']
         use_mongo = any(
             mongo_filter in mongo_filters

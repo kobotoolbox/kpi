@@ -266,7 +266,7 @@ module.exports = do ->
       modelId = $et.closest('.survey__row').data('row-id')
       view = @__rowViews.get(modelId)
       throw new Error("view is not found for target element")  unless view
-      view
+      return view
 
     toggleCardSettings: (evt)->
       @_getViewForTarget(evt).toggleSettings()
@@ -628,7 +628,12 @@ module.exports = do ->
         closestAddrow.focus()
         $(document).one('keydown click', (evt) =>
           closestAddrow.removeClass('btn--addrow-force-show')
-          closestAddrow.blur()
+          # HACKFIX: previously it was `closestAddrow.blur()` but there was some weird race condition that causes UI
+          # crash when deleting a row while the addrow button was focused. To avoid this crash, we move focus to body
+          # instead of blurring the problematic node. Also we run it only if necessary.
+          if document.activeElement is closestAddrow[0]
+            document.body.focus()
+          return
         )
 
       null_top_row = @formEditorEl.find(".survey-editor__null-top-row").removeClass("expanded")

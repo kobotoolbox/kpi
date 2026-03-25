@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import include, path
 from rest_framework.renderers import JSONRenderer
 from rest_framework_extensions.routers import ExtendedDefaultRouter
 
@@ -14,8 +14,10 @@ from kobo.apps.organizations.views import (
 )
 from kobo.apps.project_ownership.urls import router as project_ownership_router
 from kobo.apps.project_views.views import ProjectViewViewSet
+from kobo.apps.subsequences.views import QuestionAdvancedFeatureViewSet
 from kobo.apps.user_reports.views import UserReportsViewSet
 from kpi.constants import API_NAMESPACES
+from kpi.permissions import AdvancedSubmissionPermission
 from kpi.renderers import BasicHTMLRenderer
 from kpi.views.v2.asset import AssetViewSet
 from kpi.views.v2.asset_counts import AssetCountsViewSet
@@ -141,6 +143,13 @@ asset_routes.register(
     parents_query_lookups=['asset'],
 )
 
+asset_routes.register(
+    r'advanced-features',
+    QuestionAdvancedFeatureViewSet,
+    basename='advanced-features',
+    parents_query_lookups=['asset'],
+)
+
 data_routes = asset_routes.register(r'data',
                                     DataViewSet,
                                     basename='submission',
@@ -231,4 +240,27 @@ enketo_url_aliases = [
     ),
 ]
 
-urls_patterns = router_api_v2.urls + enketo_url_aliases
+# Declared here instead of using `@action` on the ViewSet because it requires a
+# custom lookup field (`root_uuid`), which is not supported by DRF Spectacular.
+supplement_url_pattern = [
+    path(
+        'assets/<uid_asset>/data/<root_uuid>/supplement/',
+        DataViewSet.as_view(
+            {'get': 'supplement', 'patch': 'supplement'},
+            renderer_classes=[JSONRenderer],
+            permission_classes=[AdvancedSubmissionPermission],
+        ),
+        name='submission-supplement',
+    ),
+]
+
+kobo_scim_pattern = [
+    path(
+        'scim/v2/',
+        include('kobo.apps.kobo_scim.urls', namespace='kobo_scim'),
+    ),
+]
+
+urls_patterns = (
+    router_api_v2.urls + enketo_url_aliases + supplement_url_pattern + kobo_scim_pattern
+)

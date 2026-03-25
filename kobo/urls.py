@@ -64,7 +64,6 @@ urlpatterns = [
         r'^accounts/register/?',
         RedirectView.as_view(url='/accounts/signup/', permanent=False),
     ),
-    re_path(r'^', include('kobo.apps.subsequences.urls')),
     re_path(r'^', include('kpi.urls')),
     re_path(r'^', include('kobo.apps.openrosa.apps.main.urls')),
     re_path(r'^markdownx/', include('markdownx.urls')),

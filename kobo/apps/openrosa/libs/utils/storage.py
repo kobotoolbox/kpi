@@ -7,4 +7,5 @@ def rmdir(directory: str):
     Delete `directory` (and recursively all files and folders inside it).
     `directory` location must be relative to default storage.
     """
+
     kpi_rmdir(directory, default_kobocat_storage)

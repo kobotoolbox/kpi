@@ -3,6 +3,7 @@ import base64
 
 from django.test import override_settings
 from django.urls import reverse
+from freezegun import freeze_time
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 
@@ -12,6 +13,7 @@ from kpi.tests.base_test_case import BaseAssetTestCase
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 
 
+@freeze_time('2026-01-01 12:00:00')
 class AuthenticationApiTests(BaseAssetTestCase):
     fixtures = ['test_data']
 

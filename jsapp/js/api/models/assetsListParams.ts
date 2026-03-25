@@ -16,15 +16,23 @@ export type AssetsListParams = {
    */
   current_user_permissions_only?: boolean
   /**
-   * Number of results to return per page.
+   * Number of results to return per page. Use with `start`.
    */
   limit?: number
   /**
-   * The initial index from which to return the results.
+   * Deprecated alias of `start`.
    */
   offset?: number
   /**
    * Which field to use when ordering the results.
    */
   ordering?: string
+  /**
+   * Filter the results with search query
+   */
+  q?: string
+  /**
+   * The initial index from which to return the results. Use with `limit`.
+   */
+  start?: number
 }

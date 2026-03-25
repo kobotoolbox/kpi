@@ -207,6 +207,20 @@ from kpi.utils.strings import to_bool
         ),
         parameters=[
             OpenApiParameter(
+                name='q',
+                type=str,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description='Filter the results with search query',
+            ),
+            OpenApiParameter(
+                name='ordering',
+                type=str,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description='Which field to use when ordering the results.',
+            ),
+            OpenApiParameter(
                 name='current_user_permissions_only',
                 type=bool,
                 required=False,
@@ -395,7 +409,7 @@ class AssetViewSet(
         'latest_version.uid',
         'data_sharing',
         'content',
-        'advanced_features.qual.qual_survey',
+        'advanced_features._actionConfigs',
         'owner.username',
     ]
     log_type = AuditType.PROJECT_HISTORY

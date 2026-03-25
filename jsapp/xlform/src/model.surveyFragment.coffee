@@ -51,6 +51,7 @@ module.exports = do ->
 
       _toJSON = rr.toJSON
 
+      # We don't allow cloning of matrix rows. This function would log an error if ever called by mistake
       rr.clone = ()->
         console.error('clone kobomatrix rows')
         return

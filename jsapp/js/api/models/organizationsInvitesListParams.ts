@@ -12,11 +12,15 @@ The endpoints are grouped by area of intended use. Each category contains relate
 
 export type OrganizationsInvitesListParams = {
   /**
-   * Number of results to return per page.
+   * Number of results to return per page. Use with `start`.
    */
   limit?: number
   /**
-   * The initial index from which to return the results.
+   * Deprecated alias of `start`.
    */
   offset?: number
+  /**
+   * The initial index from which to return the results. Use with `limit`.
+   */
+  start?: number
 }

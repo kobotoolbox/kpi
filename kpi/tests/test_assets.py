@@ -1135,7 +1135,8 @@ class TestAssetDataCollectors(TestCase):
     def test_enketo_links_updated_when_first_group_set(self):
         self.asset.data_collector_group = self.data_collector_group
         with patch.object(
-            self.asset.deployment, 'set_data_collector_enketo_links'
+            self.asset.deployment,
+            'create_enketo_survey_links_for_single_data_collector',
         ) as patched_set_links:
             self.asset.save()
         patched_set_links.assert_any_call(self.dc0.token)
@@ -1151,10 +1152,11 @@ class TestAssetDataCollectors(TestCase):
         dc1_0 = DataCollector.objects.create(group=second_group, name='dc1_0')
         dc1_1 = DataCollector.objects.create(group=second_group, name='dc1_1')
         with patch.object(
-            self.asset.deployment, 'set_data_collector_enketo_links'
+            self.asset.deployment,
+            'create_enketo_survey_links_for_single_data_collector',
         ) as patched_set_links:
             with patch.object(
-                self.asset.deployment, 'remove_data_collector_enketo_links'
+                self.asset.deployment, 'remove_enketo_links_for_single_data_collector'
             ) as patched_remove_links:
                 self.asset.data_collector_group = second_group
                 self.asset.save()
@@ -1171,7 +1173,7 @@ class TestAssetDataCollectors(TestCase):
         self.asset.save()
 
         with patch.object(
-            self.asset.deployment, 'remove_data_collector_enketo_links'
+            self.asset.deployment, 'remove_enketo_links_for_single_data_collector'
         ) as patched_remove_links:
             self.asset.data_collector_group = None
             self.asset.save()
@@ -1184,7 +1186,8 @@ class TestAssetDataCollectors(TestCase):
         undeployed_asset.data_collector_group = self.data_collector_group
 
         with patch.object(
-            MockDeploymentBackend, 'set_data_collector_enketo_links'
+            MockDeploymentBackend,
+            'create_enketo_survey_links_for_single_data_collector',
         ) as patched_set_links:
             undeployed_asset.save()
             patched_set_links.assert_not_called()

@@ -8,7 +8,7 @@ on:
     # - In the best case, will QA, tag and deploy on the same Tuesday or Wednesday.
     # - In an ok case, will QA, tag and deploy on the next Monday-Wednesday.
     # - In the worst case, the last chance is to deploy on after-next Monday.
-    - cron: '17 5 * * 2'
+    - cron: '17 5 * * 3'
 
 
 jobs:
@@ -51,7 +51,7 @@ jobs:
     - name: create next RC branch
       id: branch
       env:
-        NEW_BRANCH: ${{ steps.version.outputs.current_branch }}
+        NEW_BRANCH: ${{ needs.version.outputs.current_branch }}
       run: |
         set -xe
         git checkout -b $NEW_BRANCH
