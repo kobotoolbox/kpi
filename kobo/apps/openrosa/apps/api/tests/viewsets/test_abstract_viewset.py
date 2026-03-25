@@ -19,8 +19,7 @@ from kobo.apps.openrosa.libs.tests.mixins.make_submission_mixin import (
 )
 from kobo.apps.openrosa.libs.tests.mixins.request_mixin import RequestMixin
 from kobo.apps.openrosa.libs.utils import logger_tools
-from kpi.fields import KpiUidField
-from kpi.utils.hash import calculate_hash
+from kpi.urls.router_api_v2 import URL_NAMESPACE
 from kpi.utils.object_permission import get_database_user
 
 
@@ -91,11 +90,31 @@ class TestAbstractViewSet(RequestMixin, MakeSubmissionMixin, TestCase):
             xls_file = ContentFile(f.read(), name='transportation.xls')
 
         self.xform = logger_tools.publish_xls_form(xls_file, self.user)
-        # The permissions are based on the asset, so we need the asset to be saved
+        # Permissions are resolved through the KPI asset, so we need a saved asset
+        # with a simulated deployment to populate `_deployment_data`.
         asset = self.xform.asset
+        asset.date_deployed = timezone.now()
+        asset._deployment_data = {
+            'active': True,
+            'backend': 'mock',
+            'backend_response': {
+                'uuid': self.xform.uuid,
+                'formid': self.xform.pk,
+                'id_string': self.xform.id_string,
+                'kpi_asset_uid': asset.uid,
+            },
+        }
+        asset.deployment.store_data(asset._deployment_data)
         asset.save()
         self.xform.kpi_asset_uid = asset.uid
-        self.xform.save()
+        self.xform.save(update_fields=['kpi_asset_uid'])
+        response = self.client.get(
+            reverse(URL_NAMESPACE + ':asset-detail', args=[asset.uid])
+        )
+
+        if assert_creation is True:
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.form_data = response.data
 
     def user_profile_data(self):
         return {

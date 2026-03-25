@@ -9,7 +9,6 @@ from rest_framework.urlpatterns import format_suffix_patterns
 from kobo.apps.openrosa.apps.api.viewsets.attachment_viewset import AttachmentViewSet
 from kobo.apps.openrosa.apps.api.viewsets.briefcase_api import BriefcaseApi
 from kobo.apps.openrosa.apps.api.viewsets.data_viewset import DataViewSet
-from kobo.apps.openrosa.apps.api.viewsets.xform_submission_api import XFormSubmissionApi
 from kpi.models.asset import Asset
 from .utils.rest_framework.views import OpenRosaAPIView
 
@@ -146,7 +145,7 @@ class MultiLookupRouter(routers.DefaultRouter):
             ### Forms
             * [/api/v1/forms](/api/v1/forms) - List, Retrieve form information
             * [/api/v1/media](/api/v1/media) - List, Retrieve media attachments
-            * [/api/v1/submissions](/api/v1/submissions) - Submit XForms to a form
+            * [/api/v1/metadata](/api/v1/metadata) - List, Retrieve form metadata
 
             ### Users and Organizations
             * [/api/v1/user](/api/v1/user) - Return authenticated user profile info
@@ -390,7 +389,6 @@ class MultiLookupRouterWithPatchList(MultiLookupRouter):
 router = MultiLookupRouter(trailing_slash=False)
 
 router.register(r'media', AttachmentViewSet, basename='attachment')
-router.register(r'submissions', XFormSubmissionApi, basename='submissions')
 router.register(r'briefcase', BriefcaseApi, basename='briefcase')
 
 router_with_patch_list = MultiLookupRouterWithPatchList(trailing_slash=False)
