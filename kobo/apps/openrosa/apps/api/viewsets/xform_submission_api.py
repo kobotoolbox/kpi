@@ -177,7 +177,6 @@ class XFormSubmissionApi(
     """
     ViewSet for managing the enketo submission
     Documentation:
-    - docs/api/openrosa/submission/create.md
     - docs/api/openrosa/submission/anonymous.md
     - docs/api/openrosa/submission/authenticated.md
     - docs/api/openrosa/submission/data_collector.md

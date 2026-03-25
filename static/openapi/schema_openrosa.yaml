@@ -13,7 +13,7 @@ paths:
       description: |
         ## Implement part of the OpenRosa Form List API
 
-        ⚠️This endpoint is **only available** from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
+        ⚠️This endpoint is **only available** from the koboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
 
         This endpoint is used for adding submissions as anonymous user.
       parameters:
@@ -38,10 +38,10 @@ paths:
   /{username}/submission:
     post:
       operationId: submission_anonymous
-      description: |+
+      description: |
         ## Implement part of the OpenRosa Form Submission API
 
-        ⚠️This endpoint is **only available** from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
+        ⚠️This endpoint is **only available** from the koboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
 
         This endpoint is used for adding submissions as an anonymous user.
 
@@ -63,12 +63,11 @@ paths:
         **Example:**
 
         ```shell
-        curl -X POST -d '{"id": "{uid_asset}", "submission": {submission_json}}' \
-        http://localhost:8000/{username}/submission -H "Content-Type: application/json"
+        curl -X POST -d '{"id": "{id_string}", "submission": {submission_json}}' \
+        https://kc.kobotoolbox.org/{username}/submission -H "Content-Type: application/json"
         ```
 
-        The `{uid_asset}` is the `id_string` of your form, and `{submission_json}` is the submission data in JSON format.
-
+        The `{id_string}` is the `id_string` of your form, and `{submission_json}` is the submission data in JSON format.
       parameters:
       - in: query
         name: format
@@ -174,7 +173,7 @@ paths:
       description: |
         ## Implement part of the OpenRosa Manifest API
 
-        ⚠️This endpoint is **only available** from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
+        ⚠️This endpoint is **only available** from the koboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
 
         This endpoint return the URLs of form media files so they can be fetched and displayed as needed during form rendering.
         This endpoints will also open the form in **creation** mode and is used as an anonymous user.
@@ -319,7 +318,7 @@ paths:
       description: |
         ## Implement part of the OpenRosa Form List API
 
-        ⚠️This endpoint is **only available** from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
+        ⚠️This endpoint is **only available** from the koboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
 
         This endpoint is used for adding submissions as a data collector.
       parameters:
@@ -344,10 +343,10 @@ paths:
   /collector/{token}/submission:
     post:
       operationId: submission_data_collector
-      description: |+
+      description: |
         ## Implement part of the OpenRosa Form Submission API
 
-        ⚠️This endpoint is **only available** from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
+        ⚠️This endpoint is **only available** from the koboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
 
         This endpoint is used for adding submissions as a data collector.
 
@@ -374,7 +373,6 @@ paths:
         ```
 
         The `{uid_asset}` is the `id_string` of your form, and `{submission_json}` is the submission data in JSON format.
-
       parameters:
       - in: query
         name: format
@@ -480,7 +478,7 @@ paths:
       description: |
         ## Implement part of the OpenRosa Manifest API
 
-        ⚠️This endpoint is **only available** from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
+        ⚠️This endpoint is **only available** from the koboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
 
         This endpoint return the URLs of form media files so they can be fetched and displayed as needed during form rendering.
         This endpoints will also open the form in **creation** mode and is used as an anonymous user.
@@ -526,7 +524,7 @@ paths:
       description: |
         ## Implement part of the OpenRosa Form List API
 
-        ⚠️This endpoint is **only available** from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
+        ⚠️This endpoint is **only available** from the koboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
 
         This endpoint is used for adding submissions as authenticated user.
       tags:
@@ -544,10 +542,10 @@ paths:
   /submission:
     post:
       operationId: submission_authenticated
-      description: |+
+      description: |
         ## Implement part of the OpenRosa Form Submission API
 
-        ⚠️This endpoint is **only available** from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
+        ⚠️This endpoint is **only available** from the koboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
 
         This endpoint is used for adding submissions as an authenticated user.
 
@@ -574,7 +572,6 @@ paths:
         ```
 
         The `{uid_asset}` is the `id_string` of your form, and `{submission_json}` is the submission data in JSON format.
-
       parameters:
       - in: query
         name: format
@@ -685,7 +682,7 @@ paths:
       description: |
         ## Implement part of the OpenRosa Manifest API
 
-        ⚠️This endpoint is **only available** from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
+        ⚠️This endpoint is **only available** from the koboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
 
         This endpoint return the URLs of form media files so they can be fetched and displayed as needed during form rendering.
         This endpoints will also open the form in **creation** mode and is used as an authenticated user.
