@@ -13,7 +13,7 @@ import ReportTable from './reportTable.component'
 import { CHART_COLOR_SETS, CHART_STYLES } from './reportsConstants'
 import type { ReportsResponse, ReportsResponseData } from './reportsConstants'
 
-export type PreparedTable = Array<[string | undefined, number | undefined, number | undefined]>
+export type PreparedTable = Array<[string | null | undefined, number | undefined, number | undefined]>
 
 function truncateLabel(label: string, length = 25) {
   if (label.length > length) {
@@ -118,7 +118,7 @@ class ReportViewItem extends React.Component<ReportViewItemProps> {
     if (data.values !== undefined) {
       if (data.responseLabels) {
         data.responseLabels.forEach((r, i) => {
-          if (data.responseLabels) {
+          if (data.responseLabels && r !== null) {
             data.responseLabels[i] = truncateLabel(r)
           }
         })
@@ -159,7 +159,7 @@ class ReportViewItem extends React.Component<ReportViewItemProps> {
       }
       if (data.responseLabels) {
         data.responseLabels.forEach((r, i) => {
-          if (data.responseLabels) {
+          if (data.responseLabels && r !== null) {
             data.responseLabels[i] = truncateLabel(r)
           }
         })

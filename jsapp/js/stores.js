@@ -38,18 +38,11 @@ function changes(orig_obj, new_obj) {
 
 export var stores = {}
 
-stores.tags = Reflux.createStore({
-  init() {
-    this.queries = {}
-    this.listenTo(actions.resources.listTags.completed, this.listTagsCompleted)
-  },
-  listTagsCompleted(data) {
-    this.trigger(data.results)
-  },
-})
-
 const MAX_SEARCH_AGE = 5 * 60 // seconds
 
+/**
+ * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
+ */
 stores.surveyState = Reflux.createStore({
   init() {
     this.state = {}
@@ -63,29 +56,9 @@ stores.surveyState = Reflux.createStore({
   },
 })
 
-stores.assetSearch = Reflux.createStore({
-  init() {
-    this.queries = {}
-    this.listenTo(actions.search.assets.completed, this.onSearchAssetsCompleted)
-  },
-  getRecentSearch(queryString) {
-    if (queryString in this.queries) {
-      var age = new Date().getTime() - this.queries[queryString][1].getTime()
-      if (age < MAX_SEARCH_AGE * 1000) {
-        return this.queries[queryString][0]
-      }
-    }
-    return false
-  },
-  onSearchAssetsCompleted(searchData, response) {
-    response.query = searchData.q
-    this.queries[searchData.q] = [response, new Date()]
-    if (response.count > 0) {
-      this.trigger(response)
-    }
-  },
-})
-
+/**
+ * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
+ */
 stores.translations = Reflux.createStore({
   init() {
     this.state = {
@@ -106,6 +79,9 @@ stores.translations = Reflux.createStore({
   },
 })
 
+/**
+ * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
+ */
 stores.snapshots = Reflux.createStore({
   init() {
     this.listenTo(actions.resources.createSnapshot.completed, this.snapshotCreated)
@@ -126,6 +102,8 @@ stores.snapshots = Reflux.createStore({
  * NOTE: this is not a reliable source of complete assets (i.e. ones with
  * `content`) as `onListAssetsCompleted` will overwrite asset-with-content with
  * one without it.
+ *
+ * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
  */
 stores.allAssets = Reflux.createStore({
   init() {
@@ -133,8 +111,6 @@ stores.allAssets = Reflux.createStore({
     this.byUid = {}
     this._waitingOn = {}
 
-    this.listenTo(actions.search.assets.completed, this.onListAssetsCompleted)
-    this.listenTo(actions.search.assets.failed, this.onListAssetsFailed)
     this.listenTo(actions.resources.updateAsset.completed, this.onUpdateAssetCompleted)
     this.listenTo(actions.resources.deleteAsset.completed, this.onDeleteAssetCompleted)
     this.listenTo(actions.resources.cloneAsset.completed, this.onCloneAssetCompleted)

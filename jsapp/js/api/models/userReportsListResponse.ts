@@ -1,4 +1,3 @@
-import type { ServiceUsageResponse } from './serviceUsageResponse'
 import type { UserReportsListResponseExtraDetails } from './userReportsListResponseExtraDetails'
 import type { UserReportsListResponseOrganizations } from './userReportsListResponseOrganizations'
 /**
@@ -14,6 +13,7 @@ The endpoints are grouped by area of intended use. Each category contains relate
  */
 import type { UserReportsListResponseSocialAccountsItem } from './userReportsListResponseSocialAccountsItem'
 import type { UserReportsListResponseSubscriptionsItem } from './userReportsListResponseSubscriptionsItem'
+import type { UserReportsServiceUsageResponse } from './userReportsServiceUsageResponse'
 
 export interface UserReportsListResponse {
   user_uid: string
@@ -34,8 +34,8 @@ export interface UserReportsListResponse {
   organizations: UserReportsListResponseOrganizations
   extra_details: UserReportsListResponseExtraDetails
   subscriptions: UserReportsListResponseSubscriptionsItem[]
-  current_service_usage: ServiceUsageResponse
+  service_usage: UserReportsServiceUsageResponse
   account_restricted: boolean
   asset_count: number
-  deployed_asset_count: number
+  active_project_count: number
 }

@@ -151,6 +151,10 @@ class XForm(AbstractTimeStampedModel):
         return num_submissions == 0
 
     def data_dictionary(self, use_cache: bool = False):
+        # When the XForm is already in memory (e.g. fetched via `select_related`), and
+        # with `use_cache=True`, `data_dictionary()` builds the `DataDictionary`
+        # object directly from the XForm's in-memory `__dict__`, skipping the DB
+        # entirely.
         from kobo.apps.openrosa.apps.viewer.models.data_dictionary import DataDictionary
 
         if not use_cache:
@@ -258,9 +262,12 @@ class XForm(AbstractTimeStampedModel):
         Retrieves the name of the XML tag representing the root node of the "survey"
         in the XForm XML structure.
 
-        It should always be present in `self.json`.
+        It should always be present in `self.json`. When `name_extracted` is
+        annotated by the viewset queryset, it is used directly to avoid loading
+        the full `json` field.
         """
-
+        if getattr(self, 'name_extracted', None) is not None:
+            return self.name_extracted
         form_json = json.loads(self.json)
         return form_json['name']
 

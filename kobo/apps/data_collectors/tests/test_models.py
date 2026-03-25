@@ -119,7 +119,7 @@ class TestDataCollector(BaseTestCase):
         asset.deploy(backend='mock')
         data_collector = DataCollector.objects.create(name='DC', group=another_group)
         with patch.object(
-            asset.deployment, 'remove_data_collector_enketo_links'
+            asset.deployment, 'remove_enketo_links_for_single_data_collector'
         ) as patched_remove_links:
             asset.remove_perm(anotheruser, PERM_MANAGE_ASSET)
         assert asset.data_collector_group is None
@@ -143,7 +143,7 @@ class TestDataCollector(BaseTestCase):
         data_collector = DataCollector.objects.create(name='DC', group=another_group)
         self.client.force_login(user=someuser)
         with patch.object(
-            MockDeploymentBackend, 'remove_data_collector_enketo_links'
+            MockDeploymentBackend, 'remove_enketo_links_for_single_data_collector'
         ) as patched_remove_links:
             url = reverse(
                 'api_v2:asset-permission-assignment-bulk-actions',
@@ -153,3 +153,11 @@ class TestDataCollector(BaseTestCase):
         asset.refresh_from_db()
         assert asset.data_collector_group is None
         patched_remove_links.assert_called_once_with(data_collector.token)
+
+    @patch('kobo.apps.data_collectors.signals.remove_data_collector_enketo_links')
+    def test_delete_data_collector_group_removes_enketo_links(self, patched_remove):
+        data_collector_0 = DataCollector.objects.create(
+            name='DC0', group=self.data_collector_group
+        )
+        self.data_collector_group.delete()
+        patched_remove.assert_called_once_with(data_collector_0.token)

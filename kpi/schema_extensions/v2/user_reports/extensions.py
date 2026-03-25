@@ -212,6 +212,19 @@ SUBSCRIPTION_SCHEMA = build_object_type(
 )
 
 
+class SubmissionCountFieldExtension(OpenApiSerializerFieldExtension):
+    target_class = 'kpi.schema_extensions.v2.user_reports.fields.SubmissionCountField'
+
+    def map_serializer_field(self, auto_schema, direction):
+        return build_object_type(
+            properties={
+                'retention_days': build_basic_type(OpenApiTypes.INT),
+                'cumulative': build_basic_type(OpenApiTypes.INT),
+                'current_period': build_basic_type(OpenApiTypes.INT),
+            }
+        )
+
+
 class SubscriptionsFieldExtension(OpenApiSerializerFieldExtension):
     target_class = 'kpi.schema_extensions.v2.user_reports.fields.SubscriptionsField'
 

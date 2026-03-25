@@ -7,6 +7,9 @@ import Reflux from 'reflux'
 import { dataInterface } from '#/dataInterface'
 import { notify } from '#/utils'
 
+/**
+ * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
+ */
 const exportsActions = Reflux.createActions({
   getExport: { children: ['completed', 'failed'] },
   getExports: { children: ['completed', 'failed'] },

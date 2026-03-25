@@ -16,11 +16,11 @@ export type OrganizationsAssetUsageListParams = {
    */
   limit?: number
   /**
-   * Paginate results with offset parameter
-   */
-  offset?: number
-  /**
    * Which field to use when ordering the results.
    */
   ordering?: string
+  /**
+   * Paginate results with start parameter
+   */
+  start?: number
 }

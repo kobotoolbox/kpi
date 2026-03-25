@@ -1,39 +1,39 @@
 # coding: utf-8
 import csv
 import datetime
+import io
 import json
 import os
-import io
 from time import sleep
 
 import requests
 from django.conf import settings
-from django.core.files.storage import FileSystemStorage
 from django.urls import reverse
 from django.utils.dateparse import parse_datetime
 from openpyxl import load_workbook
 
+from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
-from kobo.apps.openrosa.apps.viewer.views import (
-    delete_export,
-    export_list,
-    create_export,
-    export_progress,
-    export_download,
-)
-from kobo.apps.openrosa.apps.viewer.xls_writer import XlsWriter
 from kobo.apps.openrosa.apps.viewer.models.export import Export
 from kobo.apps.openrosa.apps.viewer.models.parsed_instance import ParsedInstance
-from kobo.apps.openrosa.apps.logger.models import Instance
 from kobo.apps.openrosa.apps.viewer.tasks import create_xls_export
+from kobo.apps.openrosa.apps.viewer.views import (
+    create_export,
+    delete_export,
+    export_download,
+    export_list,
+    export_progress,
+)
+from kobo.apps.openrosa.apps.viewer.xls_writer import XlsWriter
 from kobo.apps.openrosa.libs.utils.export_tools import (
+    dict_to_joined_export,
     generate_export,
     increment_index_in_filename,
-    dict_to_joined_export,
 )
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
+from kpi.utils.storage import is_filesystem_storage
 
 AMBULANCE_KEY = (
     'transport/available_transportation_types_to_referral_facility/ambulance'
@@ -149,7 +149,7 @@ class TestExports(TestBase):
         # anonymous user has to login first
         response = self.anon.post(create_export_url)
         self.assertEqual(response.status_code, 302)
-        self.assertIn("/accounts/login", response['location'])
+        self.assertIn('/accounts/login', response['location'])
 
         response = self.client.post(create_export_url)
         self.assertEqual(response.status_code, 302)
@@ -173,7 +173,7 @@ class TestExports(TestBase):
         # anonymous user has to login first
         response = self.anon.post(delete_url, post_data)
         self.assertEqual(response.status_code, 302)
-        self.assertIn("/accounts/login", response['location'])
+        self.assertIn('/accounts/login', response['location'])
 
         response = self.client.post(delete_url, post_data)
         self.assertEqual(response.status_code, 302)
@@ -304,45 +304,53 @@ class TestExports(TestBase):
         self.assertEqual(response.status_code, 400)
 
     def test_add_index_to_filename(self):
-        filename = "file_name-123f.txt"
+        filename = 'file_name-123f.txt'
         new_filename = increment_index_in_filename(filename)
-        expected_filename = "file_name-123f-1.txt"
+        expected_filename = 'file_name-123f-1.txt'
         self.assertEqual(new_filename, expected_filename)
 
         # test file that already has an index
-        filename = "file_name-123.txt"
+        filename = 'file_name-123.txt'
         new_filename = increment_index_in_filename(filename)
-        expected_filename = "file_name-124.txt"
+        expected_filename = 'file_name-124.txt'
         self.assertEqual(new_filename, expected_filename)
 
     def test_export_download_url(self):
         self._publish_transportation_form()
         self._submit_transport_instance()
-        export = generate_export(Export.CSV_EXPORT, 'csv', self.user.username,
-                                 self.xform.id_string)
-        csv_export_url = reverse(export_download, kwargs={
-            "username": self.user.username,
-            "id_string": self.xform.id_string,
-            "export_type": Export.CSV_EXPORT,
-            "filename": export.filename
-        })
+        export = generate_export(
+            Export.CSV_EXPORT, 'csv', self.user.username, self.xform.id_string
+        )
+        csv_export_url = reverse(
+            export_download,
+            kwargs={
+                'username': self.user.username,
+                'id_string': self.xform.id_string,
+                'export_type': Export.CSV_EXPORT,
+                'filename': export.filename,
+            },
+        )
         response = self.client.get(csv_export_url)
-        if not isinstance(default_storage, FileSystemStorage):
+        if not is_filesystem_storage(default_storage):
             self.assertEqual(response.status_code, 302)
         else:
             self.assertEqual(response.status_code, 200)
 
         # test xls
-        export = generate_export(Export.XLS_EXPORT, 'xls', self.user.username,
-                                 self.xform.id_string)
-        xls_export_url = reverse(export_download, kwargs={
-            "username": self.user.username,
-            "id_string": self.xform.id_string,
-            "export_type": Export.XLS_EXPORT,
-            "filename": export.filename
-        })
+        export = generate_export(
+            Export.XLS_EXPORT, 'xls', self.user.username, self.xform.id_string
+        )
+        xls_export_url = reverse(
+            export_download,
+            kwargs={
+                'username': self.user.username,
+                'id_string': self.xform.id_string,
+                'export_type': Export.XLS_EXPORT,
+                'filename': export.filename,
+            },
+        )
         response = self.client.get(xls_export_url)
-        if not isinstance(default_storage, FileSystemStorage):
+        if not is_filesystem_storage(default_storage):
             self.assertEqual(response.status_code, 302)
         else:
             self.assertEqual(response.status_code, 200)
@@ -354,14 +362,18 @@ class TestExports(TestBase):
         """
         self._publish_transportation_form()
         self._submit_transport_instance()
-        export = generate_export(Export.CSV_EXPORT, 'csv', self.user.username,
-                                 self.xform.id_string)
-        export_url = reverse(export_download, kwargs={
-            "username": self.user.username,
-            "id_string": self.xform.id_string,
-            "export_type": Export.CSV_EXPORT,
-            "filename": export.filename
-        })
+        export = generate_export(
+            Export.CSV_EXPORT, 'csv', self.user.username, self.xform.id_string
+        )
+        export_url = reverse(
+            export_download,
+            kwargs={
+                'username': self.user.username,
+                'id_string': self.xform.id_string,
+                'export_type': Export.CSV_EXPORT,
+                'filename': export.filename,
+            },
+        )
         # delete the export
         export.delete()
         # access the export
@@ -403,7 +415,7 @@ class TestExports(TestBase):
             'filename': export.filename
         })
         response = self.client.get(csv_export_url)
-        if not isinstance(default_storage, FileSystemStorage):
+        if not is_filesystem_storage(default_storage):
             assert response.status_code == 302
             response = requests.get(response.headers['Location'])
 
@@ -447,7 +459,7 @@ class TestExports(TestBase):
             'filename': export.filename
         })
         response = self.client.get(csv_export_url)
-        if not isinstance(default_storage, FileSystemStorage):
+        if not is_filesystem_storage(default_storage):
             assert response.status_code == 302
             response = requests.get(response.headers['Location'])
 
@@ -464,7 +476,7 @@ class TestExports(TestBase):
             'transport/loop_over_transport_types_frequency/ambulance/'
             'frequency_to_referral_facility'
         )
-        self.assertEqual(data[initial_count][key], "monthly")
+        self.assertEqual(data[initial_count][key], 'monthly')
 
     def test_export_ids_dont_have_comma_separation(self):
         """
@@ -479,10 +491,11 @@ class TestExports(TestBase):
         self.assertEqual(export.pk, 1234)
         export_list_url = reverse(
             export_list, kwargs={
-                "username": self.user.username,
-                "id_string": self.xform.id_string,
-                "export_type": Export.XLS_EXPORT
-            })
+                'username': self.user.username,
+                'id_string': self.xform.id_string,
+                'export_type': Export.XLS_EXPORT,
+            },
+        )
         response = self.client.get(export_list_url)
         self.assertContains(response, '#delete-1234"')
         self.assertNotContains(response, '#delete-1,234"')
@@ -506,8 +519,8 @@ class TestExports(TestBase):
         params = {'export_ids': [export.id]}
         response = self.client.get(progress_url, params)
         status = json.loads(response.content)[0]
-        self.assertEqual(status["complete"], False)
-        self.assertEqual(status["filename"], None)
+        self.assertEqual(status['complete'], False)
+        self.assertEqual(status['filename'], None)
 
         export.internal_status = Export.FAILED
         export.save()
@@ -520,8 +533,8 @@ class TestExports(TestBase):
         params = {'export_ids': [export.id]}
         response = self.client.get(progress_url, params)
         status = json.loads(response.content)[0]
-        self.assertEqual(status["complete"], True)
-        self.assertEqual(status["filename"], None)
+        self.assertEqual(status['complete'], True)
+        self.assertEqual(status['filename'], None)
 
         # make a submission and create a valid export
         self._submit_transport_instance()
@@ -531,8 +544,8 @@ class TestExports(TestBase):
         params = {'export_ids': [export.id]}
         response = self.client.get(progress_url, params)
         status = json.loads(response.content)[0]
-        self.assertEqual(status["complete"], True)
-        self.assertIsNotNone(status["filename"])
+        self.assertEqual(status['complete'], True)
+        self.assertIsNotNone(status['filename'])
 
     def test_exports_outdated_doesnt_consider_failed_exports(self):
         self._publish_transportation_form()
@@ -688,9 +701,12 @@ class TestExports(TestBase):
             data)
         # check that ambulance is one the values within the transport/available
         # _transportation_types_to_referral_facility column
-        self.assertTrue("ambulance" in data[
-            'transport/available_transportation_types_to_referral_facility'
-        ].split(" "))
+        self.assertTrue(
+            'ambulance'
+            in data[
+                'transport/available_transportation_types_to_referral_facility'
+            ].split(' ')
+        )
 
         create_xls_export_url = reverse(create_export, kwargs={
             'username': self.user.username,
@@ -726,151 +742,135 @@ class TestExports(TestBase):
             in data)
         # check that ambulance is one the values within the transport/available
         # _transportation_types_to_referral_facility column
-        self.assertTrue("ambulance" in data[
-            'transport/available_transportation_types_to_referral_facility'
-        ].split(" "))
+        self.assertTrue(
+            'ambulance'
+            in data[
+                'transport/available_transportation_types_to_referral_facility'
+            ].split(' ')
+        )
 
     def test_dict_to_joined_export_works(self):
-        data =\
-            {
-                'name': 'Abe',
-                'age': '35',
-                '_geolocation': [None, None],
-                'attachments': ['abcd.jpg', 'efgh.jpg'],
-                'children':
-                [
-                    {
-                        'children/name': 'Mike',
-                        'children/age': '5',
-                        'children/cartoons':
-                        [
-                            {
-                                'children/cartoons/name': 'Tom & Jerry',
-                                'children/cartoons/why': 'Tom is silly',
-                            },
-                            {
-                                'children/cartoons/name': 'Flinstones',
-                                'children/cartoons/why':
-                                "I like bamb bam\u0107",
-                            }
-                        ]
-                    },
-                    {
-                        'children/name': 'John',
-                        'children/age': '2',
-                        'children/cartoons': []
-                    },
-                    {
-                        'children/name': 'Imora',
-                        'children/age': '3',
-                        'children/cartoons':
-                        [
-                            {
-                                'children/cartoons/name': 'Shrek',
-                                'children/cartoons/why': 'He\'s so funny'
-                            },
-                            {
-                                'children/cartoons/name': 'Dexter\'s Lab',
-                                'children/cartoons/why': 'He thinks hes smart',
-                                'children/cartoons/characters':
-                                [
-                                    {
-                                        'children/cartoons/characters/name':
-                                        'Dee Dee',
-                                        'children/cartoons/characters/good_or_'
-                                        'evil': 'good'
-                                    },
-                                    {
-                                        'children/cartoons/characters/name':
-                                        'Dexter',
-                                        'children/cartoons/characters/good_or_'
-                                        'evil': 'evil'
-                                    },
-                                ]
-                            }
-                        ]
-                    }
-                ]
-            }
-        expected_output =\
-            {
-                'survey': {
-                    'name': 'Abe',
-                    'age': '35'
+        data = {
+            'name': 'Abe',
+            'age': '35',
+            '_geolocation': [None, None],
+            'attachments': ['abcd.jpg', 'efgh.jpg'],
+            'children': [
+                {
+                    'children/name': 'Mike',
+                    'children/age': '5',
+                    'children/cartoons': [
+                        {
+                            'children/cartoons/name': 'Tom & Jerry',
+                            'children/cartoons/why': 'Tom is silly',
+                        },
+                        {
+                            'children/cartoons/name': 'Flinstones',
+                            'children/cartoons/why': 'I like bamb bam\u0107',
+                        },
+                    ],
                 },
-                'children':
-                [
-                    {
-                        'children/name': 'Mike',
-                        'children/age': '5',
-                        '_index': 1,
-                        '_parent_table_name': 'survey',
-                        '_parent_index': 1
-                    },
-                    {
-                        'children/name': 'John',
-                        'children/age': '2',
-                        '_index': 2,
-                        '_parent_table_name': 'survey',
-                        '_parent_index': 1
-                    },
-                    {
-                        'children/name': 'Imora',
-                        'children/age': '3',
-                        '_index': 3,
-                        '_parent_table_name': 'survey',
-                        '_parent_index': 1
-                    },
-                ],
-                'children/cartoons':
-                [
-                    {
-                        'children/cartoons/name': 'Tom & Jerry',
-                        'children/cartoons/why': 'Tom is silly',
-                        '_index': 1,
-                        '_parent_table_name': 'children',
-                        '_parent_index': 1
-                    },
-                    {
-                        'children/cartoons/name': 'Flinstones',
-                        'children/cartoons/why': "I like bamb bam\u0107",
-                        '_index': 2,
-                        '_parent_table_name': 'children',
-                        '_parent_index': 1
-                    },
-                    {
-                        'children/cartoons/name': 'Shrek',
-                        'children/cartoons/why': 'He\'s so funny',
-                        '_index': 3,
-                        '_parent_table_name': 'children',
-                        '_parent_index': 3
-                    },
-                    {
-                        'children/cartoons/name': 'Dexter\'s Lab',
-                        'children/cartoons/why': 'He thinks hes smart',
-                        '_index': 4,
-                        '_parent_table_name': 'children',
-                        '_parent_index': 3
-                    }
-                ],
-                'children/cartoons/characters':
-                [
-                    {
-                        'children/cartoons/characters/name': 'Dee Dee',
-                        'children/cartoons/characters/good_or_evil': 'good',
-                        '_index': 1,
-                        '_parent_table_name': 'children/cartoons',
-                        '_parent_index': 4
-                    },
-                    {
-                        'children/cartoons/characters/name': 'Dexter',
-                        'children/cartoons/characters/good_or_evil': 'evil',
-                        '_index': 2,
-                        '_parent_table_name': 'children/cartoons',
-                        '_parent_index': 4
-                    }
-                ]
-            }
+                {'children/name': 'John', 'children/age': '2', 'children/cartoons': []},
+                {
+                    'children/name': 'Imora',
+                    'children/age': '3',
+                    'children/cartoons': [
+                        {
+                            'children/cartoons/name': 'Shrek',
+                            'children/cartoons/why': "He's so funny",
+                        },
+                        {
+                            'children/cartoons/name': "Dexter's Lab",
+                            'children/cartoons/why': 'He thinks hes smart',
+                            'children/cartoons/characters': [
+                                {
+                                    'children/cartoons/characters/name': 'Dee Dee',
+                                    'children/cartoons/characters/good_or_'
+                                    'evil': 'good',
+                                },
+                                {
+                                    'children/cartoons/characters/name': 'Dexter',
+                                    'children/cartoons/characters/good_or_'
+                                    'evil': 'evil',
+                                },
+                            ],
+                        },
+                    ],
+                },
+            ],
+        }
+        expected_output = {
+            'survey': {'name': 'Abe', 'age': '35'},
+            'children': [
+                {
+                    'children/name': 'Mike',
+                    'children/age': '5',
+                    '_index': 1,
+                    '_parent_table_name': 'survey',
+                    '_parent_index': 1,
+                },
+                {
+                    'children/name': 'John',
+                    'children/age': '2',
+                    '_index': 2,
+                    '_parent_table_name': 'survey',
+                    '_parent_index': 1,
+                },
+                {
+                    'children/name': 'Imora',
+                    'children/age': '3',
+                    '_index': 3,
+                    '_parent_table_name': 'survey',
+                    '_parent_index': 1,
+                },
+            ],
+            'children/cartoons': [
+                {
+                    'children/cartoons/name': 'Tom & Jerry',
+                    'children/cartoons/why': 'Tom is silly',
+                    '_index': 1,
+                    '_parent_table_name': 'children',
+                    '_parent_index': 1,
+                },
+                {
+                    'children/cartoons/name': 'Flinstones',
+                    'children/cartoons/why': 'I like bamb bam\u0107',
+                    '_index': 2,
+                    '_parent_table_name': 'children',
+                    '_parent_index': 1,
+                },
+                {
+                    'children/cartoons/name': 'Shrek',
+                    'children/cartoons/why': "He's so funny",
+                    '_index': 3,
+                    '_parent_table_name': 'children',
+                    '_parent_index': 3,
+                },
+                {
+                    'children/cartoons/name': "Dexter's Lab",
+                    'children/cartoons/why': 'He thinks hes smart',
+                    '_index': 4,
+                    '_parent_table_name': 'children',
+                    '_parent_index': 3,
+                },
+            ],
+            'children/cartoons/characters': [
+                {
+                    'children/cartoons/characters/name': 'Dee Dee',
+                    'children/cartoons/characters/good_or_evil': 'good',
+                    '_index': 1,
+                    '_parent_table_name': 'children/cartoons',
+                    '_parent_index': 4,
+                },
+                {
+                    'children/cartoons/characters/name': 'Dexter',
+                    'children/cartoons/characters/good_or_evil': 'evil',
+                    '_index': 2,
+                    '_parent_table_name': 'children/cartoons',
+                    '_parent_index': 4,
+                },
+            ],
+        }
         survey_name = 'survey'
         indices = {survey_name: 0}
         output = dict_to_joined_export(data, 1, indices, survey_name)
@@ -887,7 +887,8 @@ class TestExports(TestBase):
         # 2nd level
         self.assertEqual(len(output['children/cartoons']), 4)
         for cartoon in enumerate(
-                ['Tom & Jerry', 'Flinstones', 'Shrek', 'Dexter\'s Lab']):
+            ['Tom & Jerry', 'Flinstones', 'Shrek', "Dexter's Lab"]
+        ):
             index = cartoon[0]
             name = cartoon[1]
             self.assertEqual(
@@ -906,35 +907,35 @@ class TestExports(TestBase):
 
     def test_dict_to_joined_export_notes(self):
         submission = {
-            "_id": 579828,
-            "_submission_time": "2013-07-03T08:26:10",
-            "_uuid": "5b4752eb-e13c-483e-87cb-e67ca6bb61e5",
-            "_xform_id_string": "test_data_types",
-            "_userform_id": "larryweya_test_data_types",
-            "_status": "submitted_via_web",
-            "_notes": [
+            '_id': 579828,
+            '_submission_time': '2013-07-03T08:26:10',
+            '_uuid': '5b4752eb-e13c-483e-87cb-e67ca6bb61e5',
+            '_xform_id_string': 'test_data_types',
+            '_userform_id': 'larryweya_test_data_types',
+            '_status': 'submitted_via_web',
+            '_notes': [
                 {
-                    "note": "Note 1",
-                    "date_created": "2013-07-03T08:26:10",
-                    "id": 356,
-                    "date_modified": "2013-07-03T08:26:10"
+                    'note': 'Note 1',
+                    'date_created': '2013-07-03T08:26:10',
+                    'id': 356,
+                    'date_modified': '2013-07-03T08:26:10',
                 },
                 {
-                    "note": "Note 2",
-                    "date_created": "2013-07-03T08:34:40",
-                    "id": 357,
-                    "date_modified": "2013-07-03T08:34:40"
+                    'note': 'Note 2',
+                    'date_created': '2013-07-03T08:34:40',
+                    'id': 357,
+                    'date_modified': '2013-07-03T08:34:40',
                 },
                 {
-                    "note": "Note 3",
-                    "date_created": "2013-07-03T08:56:14",
-                    "id": 361,
-                    "date_modified": "2013-07-03T08:56:14"
-                }
+                    'note': 'Note 3',
+                    'date_created': '2013-07-03T08:56:14',
+                    'id': 361,
+                    'date_modified': '2013-07-03T08:56:14',
+                },
             ],
-            "meta/instanceID": "uuid:5b4752eb-e13c-483e-87cb-e67ca6bb61e5",
-            "formhub/uuid": "633ec390e024411ba5ce634db7807e62",
-            "amount": "",
+            'meta/instanceID': 'uuid:5b4752eb-e13c-483e-87cb-e67ca6bb61e5',
+            'formhub/uuid': '633ec390e024411ba5ce634db7807e62',
+            'amount': '',
         }
 
         survey_name = 'tutorial'
