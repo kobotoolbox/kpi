@@ -85,7 +85,7 @@ def create_instance_from_json(username, request):
 
 @extend_schema_view(
     create_authenticated=extend_schema(
-        description=read_md('openrosa', 'submission/authenticated.md'),
+        description=read_md('openrosa', 'submission/authenticated.md', api_version='openrosa'),
         request={
             'multipart/form-data': OpenRosaPayload,
             'application/json': JSONSubmissionPayload,
@@ -112,7 +112,7 @@ def create_instance_from_json(username, request):
         operation_id='submission_authenticated',
     ),
     create_anonymous=extend_schema(
-        description=read_md('openrosa', 'submission/anonymous.md'),
+        description=read_md('openrosa', 'submission/anonymous.md', api_version='openrosa'),
         request={
             'multipart/form-data': OpenRosaPayload,
             'application/json': JSONSubmissionPayload,
@@ -140,7 +140,7 @@ def create_instance_from_json(username, request):
         operation_id='submission_anonymous',
     ),
     create_data_collector=extend_schema(
-        description=read_md('openrosa', 'submission/data_collector.md'),
+        description=read_md('openrosa', 'submission/data_collector.md', api_version='openrosa'),
         request={
             'multipart/form-data': OpenRosaPayload,
             'application/json': JSONSubmissionPayload,
@@ -177,10 +177,10 @@ class XFormSubmissionApi(
     """
     ViewSet for managing the enketo submission
     Documentation:
-    - docs/api/v2/submission/create.md
-    - docs/api/v2/submission/anonymous.md
-    - docs/api/v2/submission/authenticated.md
-    - docs/api/v2/submission/data_collector.md
+    - docs/api/openrosa/submission/create.md
+    - docs/api/openrosa/submission/anonymous.md
+    - docs/api/openrosa/submission/authenticated.md
+    - docs/api/openrosa/submission/data_collector.md
 
     Available actions:
     - create        → POST /submission
