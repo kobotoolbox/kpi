@@ -19,7 +19,11 @@ from zoneinfo import ZoneInfo
 import constance
 from dict2xml import dict2xml
 from django.conf import settings
-from django.core.exceptions import PermissionDenied, ValidationError
+from django.core.exceptions import (
+    MultipleObjectsReturned,
+    PermissionDenied,
+    ValidationError,
+)
 from django.core.files.base import File
 from django.core.mail import mail_admins
 from django.db import IntegrityError, connections, transaction
@@ -950,8 +954,8 @@ def _get_instance(
     """
 
     # check if it is an edit submission
-    old_uuid = get_deprecated_uuid_from_xml(xml)
-    if old_uuid and (instance := Instance.objects.filter(uuid=old_uuid).first()):
+    if instance_data := _get_instance_from_deprecated_id(xml, xform):
+        instance, old_uuid = instance_data
         # edits
         check_edit_submission_permissions(request, xform)
         InstanceHistory.objects.create(
@@ -998,6 +1002,34 @@ def _get_instance(
         raise
 
     return instance
+
+
+def _get_instance_from_deprecated_id(
+    xml: str, xform: XForm
+) -> tuple[Instance, str] | None:
+
+    old_uuid = get_deprecated_uuid_from_xml(xml)
+
+    if not old_uuid:
+        return None
+
+    try:
+        instance = Instance.objects.get(uuid=old_uuid, xform_id=xform.pk)
+    except MultipleObjectsReturned:
+        root_uuid, use_fallback = get_root_uuid_from_xml(xml)
+
+        # Try to disambiguate using root_uuid. Raise error if fallback mode is used
+        # or if no matching instance is found by root_uuid
+        if use_fallback or not (
+            instance := Instance.objects.filter(
+                root_uuid=root_uuid, xform_id=xform.pk
+            ).first()
+        ):
+            raise ConflictingSubmissionUUIDError(
+                'Multiple submissions found with the same DeprecatedID'
+            )
+
+    return instance, old_uuid
 
 
 def _has_edit_xform_permission(

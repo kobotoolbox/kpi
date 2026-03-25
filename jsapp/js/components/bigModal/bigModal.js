@@ -9,6 +9,7 @@ import RESTServicesForm from '#/components/RESTServices/RESTServicesForm'
 import LoadingSpinner from '#/components/common/loadingSpinner'
 import Modal from '#/components/common/modal'
 import DataAttachmentColumnsForm from '#/components/dataAttachments/dataAttachmentColumnsForm'
+import TranslationSettings from '#/components/modalForms/TranslationSettings'
 import { AssetTagsForm } from '#/components/modalForms/assetTagsForm'
 import BulkEditSubmissionsForm from '#/components/modalForms/bulkEditSubmissionsForm'
 import EncryptForm from '#/components/modalForms/encryptForm'
@@ -16,7 +17,6 @@ import { LibraryAssetForm } from '#/components/modalForms/libraryAssetForm'
 import LibraryNewItemForm from '#/components/modalForms/libraryNewItemForm'
 import LibraryUploadForm from '#/components/modalForms/libraryUploadForm'
 import ProjectSettings from '#/components/modalForms/projectSettings'
-import TranslationSettings from '#/components/modalForms/translationSettings'
 import TranslationTable from '#/components/modalForms/translationTable'
 import SharingForm from '#/components/permissions/sharingForm.component'
 import SubmissionModal from '#/components/submissions/submissionModal'
@@ -364,7 +364,7 @@ class BigModal extends React.Component {
             <RESTServicesForm assetUid={this.props.params.assetUid} hookUid={this.props.params.hookUid} />
           )}
           {this.props.params.type === MODAL_TYPES.FORM_LANGUAGES && (
-            <TranslationSettings asset={this.props.params.asset} assetUid={this.props.params.assetUid} />
+            <TranslationSettings asset={this.props.params.asset} />
           )}
           {this.props.params.type === MODAL_TYPES.FORM_TRANSLATIONS_TABLE && (
             <TranslationTable

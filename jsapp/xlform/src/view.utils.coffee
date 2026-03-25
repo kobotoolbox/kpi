@@ -11,6 +11,7 @@ module.exports = do ->
     eventName = eventName.replace(regex, '-');
     return eventName
 
+  # DEAD CODE TODO: Doesn't seem to be used anywhere?
   viewUtils.reorderElemsByData = (selector, parent, dataAttribute)->
     arr = []
     parentEl = false
@@ -33,6 +34,7 @@ module.exports = do ->
       attArr.push """<span class="atts"><i>#{key}</i>="<em>#{val}</em>"</span>"""
     return attArr.join("&nbsp;")
 
+  # DEAD CODE TODO: unused?
   viewUtils.debugFrame = do ->
     $div = false
     debugFrameStyle =
@@ -58,6 +60,7 @@ module.exports = do ->
         return
     return showFn
 
+  # DEAD CODE TODO: unused?
   viewUtils.launchQuestionLibrary = do ->
     launch = (opts={})->
       wrap = $("<div>", class: "js-click-remove-iframe iframe-bg-shade")
@@ -70,7 +73,7 @@ module.exports = do ->
 
     return launch
 
-  # TODO: check if this is dead code, we don't seem to be using this anywhere
+  # DEAD CODE TODO: unused?
   viewUtils.enketoIframe = do ->
     enketoServer = "https://enketo.org"
     enketoPreviewUri = "/webform/preview"
@@ -98,6 +101,7 @@ module.exports = do ->
       $(".iframe-bg-shade").remove()
       return $(".enketo-holder").remove()
 
+    # DEAD CODE TODO: unused?
     launch.fromCsv = (surveyCsv, options={})->
       # Probably dead code? Can't find it being called anywhere, and the
       # endpoint it uses doesn't exist anymore. -jnm 20230207

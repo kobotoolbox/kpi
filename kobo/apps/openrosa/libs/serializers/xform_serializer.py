@@ -44,14 +44,17 @@ class XFormListSerializer(serializers.Serializer):
             'manifestUrl',
         )
 
-    @extend_schema_field(OpenApiTypes.OBJECT)
-    def get_version(self, obj):
-        # Returns version data
+    @extend_schema_field(OpenApiTypes.STR)
+    def get_version(self, obj) -> str:
         # The data returned may vary depending on the contents of the
         # version field in the settings of the XLS file when the asset was
-        # created or updated
-        obj_json = json.loads(obj.json)
-        return obj_json.get('version')
+        # created or updated.
+        # `version_extracted` is annotated by the viewset queryset to avoid
+        # loading the full `json` field (can be 10MB+ per form).
+        if hasattr(obj, 'version_extracted'):
+            return obj.version_extracted
+        full = json.loads(obj.json)
+        return full.get('version')
 
     @extend_schema_field(OpenApiTypes.STR)
     @check_obj
@@ -109,7 +112,7 @@ class XFormManifestSerializer(serializers.Serializer):
     @check_obj
     def get_url(self, obj):
         request = self.context.get('request')
-        kwargs = {'pk': obj.xform.pk, 'metadata': obj.pk}
+        kwargs = {'pk': obj.xform_id, 'metadata': obj.pk}
         token = request.parser_context.get('kwargs', {}).get('token', None)
         if token:
             kwargs['token'] = token

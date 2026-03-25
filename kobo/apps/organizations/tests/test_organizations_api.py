@@ -680,7 +680,7 @@ class OrganizationAssetDetailApiTestCase(BaseOrganizationAssetApiTestCase):
             kwargs={'uid_asset': asset_uid},
         )
         response = self.client.post(url, data=payload)
-        response.status_code == expected_status_code
+        assert response.status_code == expected_status_code
 
 
 class OrganizationAdminsDataApiTestCase(

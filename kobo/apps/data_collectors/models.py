@@ -47,4 +47,7 @@ class DataCollector(AbstractTimeStampedModel):
 
     @classmethod
     def generate_key(cls):
-        return secrets.token_hex(20)
+        # enketo treats urls as case-insensitive (?!) and automatically
+        # converts /collector/ToKeN to /collector/token
+        # We need an exact match, so just use lower case tokens
+        return secrets.token_urlsafe(20).lower()

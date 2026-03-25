@@ -12,7 +12,6 @@ from kobo.apps.kobo_auth.models import User
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kobo.apps.openrosa.libs.utils.image_tools import get_optimized_image_path, resize
 from kpi.constants import SAFE_INLINE_MIMETYPES
-from kpi.deployment_backends.kc_access.storage import KobocatFileSystemStorage
 from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
@@ -21,6 +20,7 @@ from kpi.fields.kpi_uid import KpiUidField
 from kpi.mixins.audio_transcoding import AudioTranscodingMixin
 from kpi.models.abstract_models import AbstractTimeStampedModel
 from kpi.utils.hash import calculate_hash
+from kpi.utils.storage import is_filesystem_storage
 from .instance import Instance
 
 
@@ -111,7 +111,7 @@ class Attachment(AbstractTimeStampedModel, AudioTranscodingMixin):
             content = self.get_transcoded_audio('mp3')
             default_storage.save(self.mp3_storage_path, ContentFile(content))
 
-        if isinstance(default_storage, KobocatFileSystemStorage):
+        if is_filesystem_storage(default_storage):
             return f'{self.media_file.path}.mp3'
 
         return default_storage.url(self.mp3_storage_path)
@@ -122,7 +122,7 @@ class Attachment(AbstractTimeStampedModel, AudioTranscodingMixin):
         Return the absolute path on local file system of the attachment.
         Otherwise, return the AWS url (e.g. https://...)
         """
-        if isinstance(default_storage, KobocatFileSystemStorage):
+        if is_filesystem_storage(default_storage):
             return self.media_file.path
 
         return self.media_file.url
@@ -170,7 +170,7 @@ class Attachment(AbstractTimeStampedModel, AudioTranscodingMixin):
             if not default_storage.exists(optimized_image_path):
                 resize(self.media_file.name)
 
-        if isinstance(default_storage, KobocatFileSystemStorage):
+        if is_filesystem_storage(default_storage):
             # Django normally sanitizes accented characters in file names during
             # save on disk but some languages have extra letters
             # (out of ASCII character set) and must be encoded to let NGINX serve

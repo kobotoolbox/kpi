@@ -731,6 +731,10 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
         case ADDITIONAL_SUBMISSION_PROPS._submitted_by:
           index = 'z92'
           break
+        // Ensure `meta/rootUuid` is the last one
+        case ADDITIONAL_SUBMISSION_PROPS['meta/rootUuid']:
+          index = 'z999'
+          break
         // set index for `background-audio` to the very first column with `_`
         case backgroundAudioName:
           index = '_1'
@@ -754,11 +758,28 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
 
           // Detect supplemental details column and put it after its source column.
           if (q === undefined && key.startsWith(SUPPLEMENTAL_DETAILS_PROP)) {
-            const keyArray = key.split('/')
-            const relatedKey = keyArray.at(-2)
-            const sourceColumn = relatedKey
-              ? columnsToRender.find((column) => column.id === flatPaths[relatedKey])
-              : undefined
+            let sourceColumn: TableColumn | undefined
+
+            // First, try to find a parent that is also a supplemental detail (e.g., for '.../<uuid>/verified')
+            const parentKeyWithPrefix = key.substring(0, key.lastIndexOf('/'))
+            sourceColumn = columnsToRender.find((column) => column.id === parentKeyWithPrefix)
+
+            // If not found, try to find the original survey question as the parent
+            if (!sourceColumn) {
+              const pathWithoutPrefix = key.substring(SUPPLEMENTAL_DETAILS_PROP.length + 1)
+              const parentKeyWithoutPrefix = pathWithoutPrefix.substring(0, pathWithoutPrefix.lastIndexOf('/'))
+              sourceColumn = columnsToRender.find((column) => column.id === parentKeyWithoutPrefix)
+
+              // Fallback to the original flatPaths approach for groups/nested structures
+              if (!sourceColumn) {
+                const keyArray = key.split('/')
+                const relatedKey = keyArray.at(-2)
+                sourceColumn = relatedKey
+                  ? columnsToRender.find((column) => column.id === flatPaths[relatedKey])
+                  : undefined
+              }
+            }
+
             if (sourceColumn) {
               // This way if we have a source column with index `2`, and
               // the supplemental column with index `5`, we will set
@@ -882,7 +903,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
                     mediaName={row.value}
                     submissionIndex={row.index + 1}
                     submissionTotal={this.state.submissions.length}
-                    submissionData={row.original}
+                    submission={row.original}
                     asset={this.props.asset}
                   />
                 )
@@ -902,7 +923,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
             }
             if (q && q.type === QUESTION_TYPES.select_multiple.id && row.value && !tableStore.getTranslationIndex()) {
               const values = row.value.split(' ')
-              const labels: string[] = []
+              const labels: Array<string | null> = []
               values.forEach((valueItem: string) => {
                 const choice = choices.find(
                   (choiceItem) => choiceItem.list_name === q?.select_from_list_name && choiceItem.name === valueItem,

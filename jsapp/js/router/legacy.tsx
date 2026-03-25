@@ -26,7 +26,7 @@ const getRoutePath = (location: Location, params: Params): string => {
   return path
 }
 
-interface RouterProp {
+export interface RouterProp {
   location: Location
   navigate: NavigateFunction
   params: Readonly<Params<string>>

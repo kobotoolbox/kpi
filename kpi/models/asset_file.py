@@ -6,6 +6,7 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
+from kobo.apps.storage_backends.base import DefaultKpiPrivateStorageProxy
 from kpi.constants import API_NAMESPACES
 from kpi.fields import KpiUidField
 from kpi.fields.file import PrivateExtendedFileField
@@ -100,7 +101,10 @@ class AssetFile(AbstractTimeStampedModel, AbstractFormMedia):
     file_type = models.CharField(choices=TYPE_CHOICES, max_length=32)
     description = models.CharField(max_length=255)
     content = PrivateExtendedFileField(
-        upload_to=upload_to, max_length=380, null=True
+        storage=DefaultKpiPrivateStorageProxy(),
+        upload_to=upload_to,
+        max_length=380,
+        null=True,
     )
     metadata = models.JSONField(default=dict)
     date_deleted = models.DateTimeField(null=True, default=None)

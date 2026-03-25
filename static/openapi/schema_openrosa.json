@@ -413,7 +413,7 @@
                         "name": "token",
                         "schema": {
                             "type": "string",
-                            "pattern": "^\\w+$"
+                            "pattern": "^[^/]+$"
                         },
                         "required": true
                     }
@@ -462,7 +462,7 @@
                         "name": "token",
                         "schema": {
                             "type": "string",
-                            "pattern": "^\\w+$"
+                            "pattern": "^[^/]+$"
                         },
                         "required": true
                     }
@@ -608,7 +608,7 @@
                         "name": "token",
                         "schema": {
                             "type": "string",
-                            "pattern": "^\\w+$"
+                            "pattern": "^[^/]+$"
                         },
                         "required": true
                     }

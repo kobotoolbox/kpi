@@ -40,7 +40,7 @@ class UserReportsSerializer(serializers.ModelSerializer):
             'service_usage',
             'account_restricted',
             'asset_count',
-            'deployed_asset_count',
+            'active_project_count',
             'last_updated',
         ]
 

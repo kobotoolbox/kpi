@@ -3,9 +3,10 @@ import posixpath
 
 from django.db.models import FileField
 from django.db.models.fields.files import FieldFile
-from storages.backends.s3 import ClientError, S3Storage
+from storages.backends.s3 import ClientError
 
 from kpi.utils.log import logging
+from kpi.utils.storage import is_s3_storage
 
 
 class ExtendedFieldFile(FieldFile):
@@ -20,7 +21,7 @@ class ExtendedFieldFile(FieldFile):
         filename = os.path.basename(old_path)
         new_path = f'{target_folder}/{filename}'
 
-        if isinstance(self.storage, S3Storage):
+        if is_s3_storage(self.storage):
             copy_source = {
                 'Bucket': self.storage.bucket.name,
                 'Key': self.name,

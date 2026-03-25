@@ -1,22 +1,23 @@
 import json
+import math
 import re
-from collections.abc import Callable, Iterator, Generator
+from collections.abc import Callable, Generator, Iterator
 from io import StringIO
-from typing import Any, Optional
+from typing import Any
 
 from dict2xml import dict2xml
 from django.core.serializers.json import DjangoJSONEncoder
 from django.template.loader import get_template
 from django.utils.xmlutils import SimplerXMLGenerator
 from rest_framework import renderers, status
-from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.request import Request
 from rest_framework.exceptions import ErrorDetail, ParseError
+from rest_framework.request import Request
 from rest_framework_xml.renderers import XMLRenderer as DRFXMLRenderer
 
 import formpack
 from kobo.apps.reports.report_data import build_formpack
 from kpi.constants import GEO_QUESTION_TYPES
+from kpi.paginators import DefaultPagination
 from kpi.utils.xml import add_xml_declaration
 
 
@@ -102,7 +103,7 @@ class BasicHTMLRenderer(renderers.BaseRenderer):
             limit = (
                 int(
                     request.query_params.get(
-                        LimitOffsetPagination.limit_query_param, default_limit
+                        DefaultPagination.limit_query_param, default_limit
                     )
                 )
                 if request
@@ -137,6 +138,28 @@ class MP3ConversionRenderer(MediaFileRenderer):
 
     media_type = 'audio/mpeg'
     format = 'mp3'
+
+
+class SanitizedJSONRenderer(renderers.JSONRenderer):
+
+    def render(self, data, accepted_media_type=None, renderer_context=None):
+        return super().render(
+            self._sanitize_non_finite(data), accepted_media_type, renderer_context
+        )
+
+    @classmethod
+    def _sanitize_non_finite(cls, obj):
+        """
+        Recursively replace non-finite float values (NaN, Infinity, -Infinity)
+        with None so the response is valid JSON.
+        """
+        if isinstance(obj, float) and not math.isfinite(obj):
+            return None
+        if isinstance(obj, dict):
+            return {k: cls._sanitize_non_finite(v) for k, v in obj.items()}
+        if isinstance(obj, list):
+            return [cls._sanitize_non_finite(item) for item in obj]
+        return obj
 
 
 class OpenRosaRenderer(DRFXMLRenderer):

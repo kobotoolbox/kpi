@@ -7,6 +7,7 @@ from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.openrosa.apps.main.tests.test_base import TestBase
 from kobo.apps.openrosa.libs.permissions import assign_perm, remove_perm
 from kpi.constants import PERM_CHANGE_ASSET, PERM_DELETE_SUBMISSIONS, PERM_VIEW_ASSET
+from kpi.utils.fuzzy_int import FuzzyInt
 
 
 def _data_list(formid):
@@ -379,6 +380,12 @@ class TestDataViewSet(TestBase):
         # Flag bob's xform as pending delete
         self.xform.pending_delete = True
         self.xform.save(update_fields=['pending_delete'])
+        self.xform.asset.pending_delete = True
+        self.xform.asset.save(
+            create_version=False,
+            adjust_content=False,
+            update_fields=['pending_delete'],
+        )
 
         # Ensure XForm data is not accessible anymore
         request = self.factory.get('/', **self.extra)
@@ -406,12 +413,12 @@ class TestDataViewSet(TestBase):
         view = DataViewSet.as_view({'get': 'list'})
         request = self.factory.get('/', **self.extra)
         formid = self.xform.pk
-        with self.assertNumQueries(14):
+        with self.assertNumQueries(FuzzyInt(12, 14)):
             view(request, pk=formid)
         # test adding submissions does not increase query count
         self._make_submissions()
         self._make_submissions()
-        with self.assertNumQueries(14):
+        with self.assertNumQueries(FuzzyInt(12, 14)):
             view(request, pk=formid)
 
     def test_query_counts_with_attachments(self):
@@ -420,9 +427,9 @@ class TestDataViewSet(TestBase):
         view = DataViewSet.as_view({'get': 'list'})
         request = self.factory.get('/', **self.extra)
         formid = self.xform.pk
-        with self.assertNumQueries(14):
+        with self.assertNumQueries(FuzzyInt(12, 14)):
             view(request, pk=formid)
         self._submit_transport_instance_w_attachment()
         self._submit_transport_instance_w_attachment()
-        with self.assertNumQueries(14):
+        with self.assertNumQueries(FuzzyInt(12, 14)):
             view(request, pk=formid)

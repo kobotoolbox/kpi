@@ -7,12 +7,14 @@ import unittest
 import uuid
 from datetime import datetime
 from unittest import mock
+from unittest.mock import patch
 from zoneinfo import ZoneInfo
 
 import lxml
 import pytest
 import responses
 from constance.test import override_config
+from ddt import data, ddt, unpack
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.db import connection
@@ -35,6 +37,7 @@ from kobo.apps.openrosa.libs.utils.common_tags import META_ROOT_UUID
 from kobo.apps.openrosa.libs.utils.logger_tools import dict2xform
 from kobo.apps.organizations.constants import UsageType
 from kobo.apps.project_ownership.utils import create_invite
+from kobo.apps.subsequences.models import QuestionAdvancedFeature, SubmissionSupplement
 from kpi.constants import (
     ASSET_TYPE_SURVEY,
     PERM_ADD_SUBMISSIONS,
@@ -66,6 +69,7 @@ from kpi.tests.utils.transaction import immediate_on_commit
 from kpi.tests.utils.xml import get_form_and_submission_tag_names
 from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from kpi.utils.fuzzy_int import FuzzyInt
+from kpi.utils.mongo_helper import MongoHelper
 from kpi.utils.object_permission import get_anonymous_user
 from kpi.utils.xml import (
     edit_submission_xml,
@@ -429,12 +433,13 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         response = self.client.post(self.submission_list_url, data=submission)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_query_counts_for_list_submissions(self):
+    @patch('hub.models.v1_user_tracker.V1UserTracker.objects.update_or_create')
+    def test_query_counts_for_list_submissions(self, mock_tracker):
         # query count differs when stripe is enabled/disabled
-        with self.assertNumQueries(FuzzyInt(16, 17)):
+        with self.assertNumQueries(FuzzyInt(16, 18)):
             # regular
             self.client.get(self.submission_list_url, {'format': 'json'})
-        with self.assertNumQueries(FuzzyInt(16, 17)):
+        with self.assertNumQueries(FuzzyInt(16, 18)):
             # with params
             self.client.get(
                 self.submission_list_url,
@@ -452,16 +457,17 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
                 },
             )
 
-    def test_query_count_does_not_increase_with_more_submissions(self):
+    @patch('hub.models.v1_user_tracker.V1UserTracker.objects.update_or_create')
+    def test_query_count_does_not_increase_with_more_submissions(self, mock_tracker):
         with CaptureQueriesContext(connection) as context:
             self.client.get(self.submission_list_url, {'format': 'json'})
         count = context.final_queries - context.initial_queries
         # add a few submissions
         self._add_submissions()
-        with self.assertNumQueries(count):
+        with self.assertNumQueries(FuzzyInt(count - 1, count)):
             self.client.get(self.submission_list_url, {'format': 'json'})
         # get second page
-        with self.assertNumQueries(count):
+        with self.assertNumQueries(FuzzyInt(count - 1, count)):
             self.client.get(
                 self.submission_list_url, {
                     'format': 'json',
@@ -511,7 +517,8 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         someuser is the owner of the project.
         Test that hard-coded maximum limit cannot be exceeded by user's requests.
         """
-        limit = settings.SUBMISSION_LIST_LIMIT
+
+        limit = settings.MAX_API_PAGE_SIZE
         excess = 10
         asset = Asset.objects.create(
             name='Lots of submissions',
@@ -533,12 +540,12 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
             kwargs={'uid_asset': asset.uid, 'format': 'json'},
         )
 
-        # Server-wide limit should apply if no limit specified
+        # Server-wide default limit should apply if no limit specified
         response = self.client.get(submission_list_url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data['results']), limit)
+        self.assertEqual(len(response.data['results']), settings.DEFAULT_API_PAGE_SIZE)
         # Limit specified in query parameters should not be able to exceed
-        # server-wide limit
+        # the server-wide limit
         response = self.client.get(
             submission_list_url, {'limit': limit + excess, 'format': 'json'}
         )
@@ -753,6 +760,38 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
         response = self.client.get(url, {'format': 'json'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['_id'], submission['_id'])
+
+    def test_retrieve_submission_by_root_uuid(self):
+        """
+        someuser is the owner of the project.
+        someuser can view one of their submission.
+        """
+
+        submission = settings.MONGO_DB.instances.find_one(
+            {'_id': self.submissions[0]['_id']}
+        )
+
+        # fake edit
+        old_uuid = submission['meta/instanceID']
+        submission['meta/deprecatedID'] = old_uuid
+        submission['meta/rootUuid'] = old_uuid
+        submission['meta/instanceID'] = 'foo:bar'
+        submission['_uuid'] = 'foo:bar'
+        MongoHelper.replace_one(submission)
+
+        url = reverse(
+            self._get_endpoint('submission-detail'),
+            kwargs={
+                'uid_asset': self.asset.uid,
+                'pk': submission['meta/rootUuid'],
+            },
+        )
+
+        response = self.client.get(url, {'format': 'json'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['_id'], submission['_id'])
+        self.assertEqual(response.data['_uuid'], 'foo:bar')
+        self.assertEqual(response.data['meta/rootUuid'], old_uuid)
 
     def test_retrieve_submission_not_shared_as_anotheruser(self):
         """
@@ -1209,7 +1248,214 @@ class SubmissionApiTests(SubmissionDeleteTestCaseMixin, BaseSubmissionTestCase):
             assert response.status_code == status.HTTP_200_OK
             assert response.data['_submitted_by'] == 'anotheruser'
 
+    def test_get_data_with_failed_transcription_no_value(self):
+        """
+        When a transcription fails (e.g., no audio attachment), the stored
+        data may not have a 'value' field. Reading this data should not
+        crash with a 500 error.
+        """
 
+        QuestionAdvancedFeature.objects.create(
+            asset=self.asset,
+            question_xpath='q1',  # q1 is not an audio question, but works for tests
+            action='automatic_google_transcription',
+            params=[{'language': 'fr'}],
+        )
+        # Create a mock submission supplement with no 'value' field
+        failed_transcription_data = {
+            'q1': {
+                'automatic_google_transcription': {
+                    '_dateCreated': '2026-01-11T01:29:00.908261Z',
+                    '_dateModified': '2026-01-11T01:29:00.908261Z',
+                    '_versions': [
+                        {
+                            '_data': {
+                                'language': 'en',
+                                'status': 'failed',
+                                'error': 'Any error',
+                            },
+                            '_dateCreated': '2026-01-11T01:29:00.908261Z',
+                            '_uuid': '08668365-c922-48ea-9f0e-26935ca2755e',
+                        }
+                    ],
+                }
+            },
+            '_version': '20250820',
+        }
+
+        SubmissionSupplement.objects.create(
+            asset=self.asset,
+            submission_uuid=self.submissions[0]['_uuid'],
+            content=failed_transcription_data,
+        )
+        data_url = reverse(self._get_endpoint('submission-list'), args=[self.asset.uid])
+        response = self.client.get(data_url, format='json')
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_simplified_supplemental_detail_for_delete(self):
+
+        # q1 is not an audio question in the asset, but works fine for this test anyway.
+        QuestionAdvancedFeature.objects.create(
+            asset=self.asset,
+            question_xpath='q1',  # q1 is not an audio question, but works for tests
+            action='automatic_google_transcription',
+            params=[{'language': 'fr'}],
+        )
+        QuestionAdvancedFeature.objects.create(
+            asset=self.asset,
+            question_xpath='q1',
+            action='manual_transcription',
+            params=[{'language': 'fr'}],
+        )
+        # Create a mock submission supplement with the following scenario:
+        # - Question has been manually transcribed
+        # - Question has been automatically transcribed
+        # - Manual transcription has been deleted
+        transcription_data = {
+            'q1': {
+                'automatic_google_transcription': {
+                    '_dateCreated': '2026-01-11T01:29:00.908261Z',
+                    '_dateModified': '2026-01-11T01:29:00.908261Z',
+                    '_versions': [
+                        {
+                            '_data': {
+                                'language': 'fr',
+                                'status': 'completed',
+                                'value': 'Bonjour le monde!',
+                            },
+                            '_dateAccepted': '2026-01-11T01:29:00.908261Z',
+                            '_dateCreated': '2026-01-11T01:29:00.908261Z',
+                            '_uuid': '08668365-c922-48ea-9f0e-26935ca2755e',
+                        }
+                    ],
+                },
+                'manual_transcription': {
+                    '_dateCreated': '2026-01-10T01:29:00.908261Z',
+                    '_dateModified': '2026-01-11T01:30:00.908261Z',
+                    '_versions': [
+                        {
+                            '_data': {
+                                'language': 'en',
+                                'value': None,
+                            },
+                            '_dateCreated': '2026-01-11T01:30:00.908261Z',
+                            '_uuid': '2222222-2222-2222-2222-222222222222',
+                        },
+                        {
+                            '_data': {'language': 'en', 'value': 'Bonjour la foule!'},
+                            '_dateCreated': '2026-01-10T01:29:00.908261Z',
+                            '_dateAccepted': '2026-01-10T01:29:00.908261Z',
+                            '_uuid': '1111111-1111-1111-1111-111111111111',
+                        },
+                    ],
+                },
+            },
+            '_version': '20250820',
+        }
+
+        SubmissionSupplement.objects.create(
+            asset=self.asset,
+            submission_uuid=self.submissions[0]['_uuid'],
+            content=transcription_data,
+        )
+        data_url = reverse(self._get_endpoint('submission-list'), args=[self.asset.uid])
+        response = self.client.get(data_url, format='json')
+        assert response.status_code == status.HTTP_200_OK
+        assert (
+            response.data['results'][0]['_supplementalDetails']['q1']['transcript'][
+                'value'
+            ]
+            is None
+        )
+
+    def test_simplified_supplemental_detail_for_acceptance(self):
+
+        # q1 is not an audio question in the asset, but works fine for this test anyway.
+        QuestionAdvancedFeature.objects.create(
+            asset=self.asset,
+            question_xpath='q1',  # q1 is not an audio question, but works for tests
+            action='automatic_google_transcription',
+            params=[{'language': 'fr'}],
+        )
+        QuestionAdvancedFeature.objects.create(
+            asset=self.asset,
+            question_xpath='q1',
+            action='manual_transcription',
+            params=[{'language': 'fr'}],
+        )
+        # Create a mock submission supplement with the following scenario:
+        # - Question has been manually transcribed
+        # - Question has been automatically transcribed
+        # - Manual transcription has been deleted
+        transcription_data = {
+            'q1': {
+                'automatic_google_transcription': {
+                    '_dateCreated': '2026-01-11T01:29:00.908261Z',
+                    '_dateModified': '2026-01-11T01:29:00.908261Z',
+                    '_versions': [
+                        {
+                            '_data': {
+                                'language': 'fr',
+                                'status': 'completed',
+                                'value': 'Bonjour le monde!',
+                            },
+                            '_dateCreated': '2026-01-11T01:29:00.908261Z',
+                            '_uuid': '08668365-c922-48ea-9f0e-26935ca2755e',
+                        }
+                    ],
+                },
+                'manual_transcription': {
+                    '_dateCreated': '2026-01-10T01:29:00.908261Z',
+                    '_dateModified': '2026-01-10T01:29:00.908261Z',
+                    '_versions': [
+                        {
+                            '_data': {'language': 'en', 'value': 'Bonjour la foule!'},
+                            '_dateCreated': '2026-01-10T01:29:00.908261Z',
+                            '_dateAccepted': '2026-01-10T01:29:00.908261Z',
+                            '_uuid': '1111111-1111-1111-1111-111111111111',
+                        }
+                    ],
+                },
+            },
+            '_version': '20250820',
+        }
+
+        SubmissionSupplement.objects.create(
+            asset=self.asset,
+            submission_uuid=self.submissions[0]['_uuid'],
+            content=transcription_data,
+        )
+        data_url = reverse(self._get_endpoint('submission-list'), args=[self.asset.uid])
+        response = self.client.get(data_url, format='json')
+        assert response.status_code == status.HTTP_200_OK
+        assert (
+            response.data['results'][0]['_supplementalDetails']['q1']['transcript'][
+                'value'
+            ]
+            == 'Bonjour la foule!'
+        )
+
+        transcription_data['q1']['automatic_google_transcription']['_versions'][0][
+            '_dateAccepted'
+        ] = '2026-01-11T01:29:00.908261Z'
+
+        SubmissionSupplement.objects.filter(
+            asset=self.asset,
+            submission_uuid=self.submissions[0]['_uuid'],
+        ).update(content=transcription_data)
+
+        data_url = reverse(self._get_endpoint('submission-list'), args=[self.asset.uid])
+        response = self.client.get(data_url, format='json')
+        assert response.status_code == status.HTTP_200_OK
+        assert (
+            response.data['results'][0]['_supplementalDetails']['q1']['transcript'][
+                'value'
+            ]
+            == 'Bonjour le monde!'
+        )
+
+
+@ddt
 class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase):
     """
     Tests for editing submissions.
@@ -2104,6 +2350,92 @@ class SubmissionEditApiTests(SubmissionEditTestCaseMixin, BaseSubmissionTestCase
         )
         assert ph_bulk.metadata['submission']['submitted_by'] == deleted_username
 
+    @data(
+        # Both root_uuid are null
+        (True, True),
+        # Original root_uuid is null, duplicate has a value
+        (True, False),
+        # Original root_uuid has a value, duplicate is null
+        (False, True),
+        # Both root_uuid have values
+        (False, False),
+    )
+    @unpack
+    def test_cannot_edit_duplicate_submissions(
+        self, orig_root_uuid_is_null, duplicate_root_uuid_is_null
+    ):
+        """
+        Test editing submissions when duplicate instances exist with the same UUID.
+
+        A duplicate submission exists with the same UUID.
+        This test covers four scenarios based on the root_uuid values:
+        - Both original and duplicate have null root_uuid (legacy submissions)
+        - Original has null root_uuid, duplicate has a value
+        - Original has a value, duplicate has null root_uuid
+        - Both have non-null root_uuid values
+
+        In all cases, attempting to get the edit link should return 409 CONFLICT
+        because the system cannot safely determine which submission to edit.
+        """
+
+        # Get the current submission's UUID
+        submission_uuid = remove_uuid_prefix(self.submission['_uuid'])
+
+        if orig_root_uuid_is_null:
+            # Set the original submission's root_uuid to null to simulate legacy data
+            Instance.objects.filter(pk=self.submission['_id']).update(root_uuid=None)
+
+        # Create a duplicate instance with the same UUID
+        different_root_uuid = str(uuid.uuid4())
+        duplicate = Instance.objects.create(
+            xml=self.asset.deployment.get_submission(
+                self.submission['_id'], self.asset.owner, SUBMISSION_FORMAT_TYPE_XML
+            ),
+            user=self.someuser,
+            xform_id=self.asset.deployment.xform_id,
+            uuid=submission_uuid,
+            root_uuid=different_root_uuid
+        )
+        ParsedInstance.objects.create(instance=duplicate)
+
+        if duplicate_root_uuid_is_null:
+            # Set the duplicate submission's root_uuid to null to simulate legacy data
+            Instance.objects.filter(pk=duplicate.pk).update(root_uuid=None)
+
+        # Verify we have 2 instances with the same UUID
+        assert (
+            Instance.objects.filter(
+                uuid=submission_uuid,
+                xform_id=self.asset.deployment.xform_id,
+            ).count()
+            == 2
+        )
+
+        # Attempt to get the edit link - should fail with 409
+        submission_edit_link_url = reverse(
+            self._get_endpoint('submission-enketo-edit'),
+            kwargs={
+                'uid_asset': self.asset.uid,
+                'pk': self.submission['_id'],
+            },
+        )
+
+        response = self.client.get(submission_edit_link_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_409_CONFLICT
+        assert 'cannot be edited' in response.data['detail']
+
+        # Sanity check! Try with the duplicate - should get the same result
+        submission_edit_link_url = reverse(
+            self._get_endpoint('submission-enketo-edit'),
+            kwargs={
+                'uid_asset': self.asset.uid,
+                'pk': duplicate.pk,
+            },
+        )
+        response = self.client.get(submission_edit_link_url, {'format': 'json'})
+        assert response.status_code == status.HTTP_409_CONFLICT
+        assert 'cannot be edited' in response.data['detail']
+
 
 class SubmissionViewApiTests(SubmissionViewTestCaseMixin, BaseSubmissionTestCase):
 
@@ -2477,33 +2809,63 @@ class SubmissionDuplicateApiTests(
 
     def test_duplicate_submission_with_extras(self):
         dummy_extra = {
+            '_version': '20250820',
             'q1': {
-                'transcript': {
-                    'value': 'dummy transcription',
-                    'languageCode': 'en',
+                'manual_transcription': {
+                    '_dateCreated': '2025-01-01T00:00:00Z',
+                    '_dateModified': '2025-01-01T00:00:00Z',
+                    '_versions': [
+                        {
+                            '_dateCreated': '2025-01-01T00:00:00Z',
+                            '_dateAccepted': '2025-01-01T00:00:00Z',
+                            '_data': {
+                                'value': 'dummy transcription',
+                                'langaugeCode': 'en',
+                            },
+                            '_uuid': '12345',
+                        }
+                    ],
                 },
-                'translation': {
-                    'tx1': {
-                        'value': 'dummy translation',
-                        'languageCode': 'xx',
-                    }
+                'manual_translation': {
+                    '_dateCreated': '2025-01-01T00:00:00Z',
+                    '_dateModified': '2025-01-01T00:00:00Z',
+                    '_versions': [
+                        {
+                            '_dateCreated': '2025-01-01T00:00:00Z',
+                            '_dateAccepted': '2025-01-01T00:00:00Z',
+                            '_data': {
+                                'value': 'dummy translation',
+                                'langaugeCode': 'xx',
+                            },
+                            '_uuid': '678910',
+                        }
+                    ],
                 },
             },
-            'submission': self.submission['_uuid']
         }
-        self.asset.update_submission_extra(dummy_extra)
+        SubmissionSupplement.objects.create(
+            submission_uuid=self.submission['_uuid'],
+            asset=self.asset,
+            content=dummy_extra,
+        )
         response = self.client.post(self.submission_url, {'format': 'json'})
         duplicated_submission = response.data
         duplicated_extra = self.asset.submission_extras.filter(
             submission_uuid=duplicated_submission['_uuid']
         ).first()
         assert (
-            duplicated_extra.content['q1']['translation']['tx1']['value']
-            == dummy_extra['q1']['translation']['tx1']['value']
+            duplicated_extra.content['q1']['manual_translation']['_versions'][0][
+                '_data'
+            ]['value']
+            == dummy_extra['q1']['manual_translation']['_versions'][0]['_data']['value']
         )
         assert (
-            duplicated_extra.content['q1']['transcript']['value']
-            == dummy_extra['q1']['transcript']['value']
+            duplicated_extra.content['q1']['manual_transcription']['_versions'][0][
+                '_data'
+            ]['value']
+            == dummy_extra['q1']['manual_transcription']['_versions'][0]['_data'][
+                'value'
+            ]
         )
 
     def test_duplicate_edited_submission(self):

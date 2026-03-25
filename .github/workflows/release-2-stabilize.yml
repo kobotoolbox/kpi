@@ -1,6 +1,11 @@
 name: 'CD: stabilize'
 
 
+concurrency:
+  group: stabilize-${{ github.ref }}
+  cancel-in-progress: true
+
+
 on:
   push:
     branches: [ 'release/**' ]
@@ -221,7 +226,7 @@ jobs:
             && format(':warning: failed to queue to deploy to beta: @*devs* please investigate [run #{0}]({1}/{2}/actions/runs/{3})!', github.run_number, github.server_url, github.repository, github.run_id)
             || needs.deploy-to-beta.result == 'skipped'
               && ':skip_forward: deploy to beta skipped due failed automated tests or due not being the latest release.'
-              || ':check: triggered a deploy to [beta](kf.beta.kbtdev.org), see #**Kobo Dev>deployments to public-beta** for deployment status'
+              || ':check: triggered a deploy to [beta](kf.beta.kbtdev.org), see #**Dev>deployments to public-beta** for deployment status'
           }}
 
 

@@ -68,3 +68,6 @@ updates:
       # https://linear.app/kobotoolbox/issue/DEV-867/choredeps-update-storybookaddon-webpack5-compiler-swc-to-3x
       - dependency-name: "@storybook/addon-webpack5-compiler-swc"
         versions: [ ">=3.0.0" ]
+
+      # https://linear.app/kobotoolbox/issue/DEV-1790/dependabot-automerged-dependency-that-fails-tests
+      - dependency-name: "storybook"

@@ -121,7 +121,7 @@ urlpatterns = [
         name='form-list',
     ),
     re_path(
-        r'^collector/(?P<token>\w+)/formList$',
+        r'^collector/(?P<token>[^/]+)/formList$',
         XFormListApi.as_view({'get': 'form_list_dc'}),
         name='form-list',
     ),
@@ -136,7 +136,7 @@ urlpatterns = [
         name='manifest-url',
     ),
     re_path(
-        r'^collector/(?P<token>\w+)/xformsManifest/(?P<pk>[\d+^/]+)$',
+        r'^collector/(?P<token>[^/]+)/xformsManifest/(?P<pk>[\d+^/]+)$',
         XFormListApi.as_view({'get': 'manifest_dc'}),
         name='manifest-url',
     ),
@@ -152,13 +152,13 @@ urlpatterns = [
         name='xform-media',
     ),
     re_path(
-        r'^collector/(?P<token>\w+)/xformsMedia/(?P<pk>[\d+^/]+)'
+        r'^collector/(?P<token>[^/]+)/xformsMedia/(?P<pk>[\d+^/]+)'
         r'/(?P<metadata>[\d+^/.]+)$',
         XFormListApi.as_view({'get': 'media'}),
         name='xform-media',
     ),
     re_path(
-        r'^collector/(?P<token>\w+)/xformsMedia/(?P<pk>[\d+^/]+)'
+        r'^collector/(?P<token>[^/]+)/xformsMedia/(?P<pk>[\d+^/]+)'
         r'/(?P<metadata>[\d+^/.]+)\.(?P<format>[a-z0-9]+)$',
         XFormListApi.as_view({'get': 'media'}),
         name='xform-media',
@@ -182,7 +182,7 @@ urlpatterns = [
         name='submissions',
     ),
     re_path(
-        r'^collector/(?P<token>\w+)/submission$',
+        r'^collector/(?P<token>[^/]+)/submission$',
         XFormSubmissionApi.as_view(
             {'post': 'create_data_collector', 'head': 'create_data_collector'}
         ),
@@ -211,7 +211,7 @@ urlpatterns = [
         name='download_jsonform',
     ),
     re_path(
-        r'^collector/(?P<token>\w+)/forms/(?P<pk>[\d+^/]+)/form\.xml$',
+        r'^collector/(?P<token>[^/]+)/forms/(?P<pk>[\d+^/]+)/form\.xml$',
         XFormListApi.as_view({'get': 'retrieve'}),
         name='download_xform',
     ),

@@ -95,12 +95,7 @@ export const assetWithImage: AssetResponse = {
   },
   report_custom: {},
   advanced_features: {},
-  advanced_submission_schema: {
-    type: 'object',
-    $description: 'no advanced features activated for this form',
-  },
   analysis_form_json: {
-    engines: {},
     additional_fields: [],
   },
   map_styles: {},
