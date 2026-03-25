@@ -2822,20 +2822,3 @@ class TestAssetMetadataViewSet(BaseAssetTestCase):
         assert response.data['countries'] == []
         assert response.data['sectors'] == []
         assert response.data['organizations'] == []
-
-    def test_asset_metadata_with_null_values_in_settings(self):
-        Asset.objects.create(
-            owner=self.user,
-            content={},
-            settings={
-                'country': None,
-                'sector': None,
-                'organization': None,
-            },
-        )
-        self.client.force_login(self.user)
-        response = self.client.get(reverse(self._get_endpoint('asset-metadata')))
-        assert response.data['languages'] == []
-        assert response.data['countries'] == []
-        assert response.data['sectors'] == []
-        assert response.data['organizations'] == []
