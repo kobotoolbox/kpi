@@ -15,6 +15,7 @@ from hub.utils.i18n import I18nUtils
 from kobo.apps.accounts.mfa.models import MfaAvailableToUser
 from kobo.apps.hook.constants import SUBMISSION_PLACEHOLDER
 from kobo.static_lists import COUNTRIES
+from kpi.models import ExtraProjectMetadataField
 from kpi.utils.object_permission import get_database_user
 
 
@@ -68,6 +69,7 @@ class EnvironmentView(APIView):
         data.update(self.process_mfa_configs(request))
         data.update(self.process_password_configs(request))
         data.update(self.process_project_metadata_configs(request))
+        data.update(self.process_extra_project_metadata_configs(request))
         data.update(self.process_user_metadata_configs(request))
         data.update(self.process_other_configs(request))
         data.update(self.static_configs(request))
@@ -97,6 +99,24 @@ class EnvironmentView(APIView):
         data['country_choices'] = COUNTRIES
         data['interface_languages'] = settings.LANGUAGES
         return data
+
+    @staticmethod
+    def process_extra_project_metadata_configs(request):
+        fields = ExtraProjectMetadataField.objects.all()
+
+        extra_fields_data = []
+        for field in fields:
+            extra_fields_data.append(
+                {
+                    'name': field.name,
+                    'label': field.label,
+                    'type': field.type,
+                    'required': field.is_required,
+                    'options': field.options,
+                }
+            )
+
+        return {'extra_project_metadata_fields': extra_fields_data}
 
     @staticmethod
     def process_mfa_configs(request):

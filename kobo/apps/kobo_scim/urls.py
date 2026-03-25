@@ -3,6 +3,8 @@ from rest_framework import routers
 
 from kobo.apps.kobo_scim.views import (
     ScimGroupViewSet,
+    ScimResourceTypesView,
+    ScimSchemasView,
     ScimServiceProviderConfigView,
     ScimUserViewSet,
 )
@@ -21,5 +23,15 @@ urlpatterns = [
         '<slug:idp_slug>/ServiceProviderConfig',
         ScimServiceProviderConfigView.as_view(),
         name='scim-service-provider-config',
+    ),
+    path(
+        '<slug:idp_slug>/Schemas',
+        ScimSchemasView.as_view(),
+        name='scim-schemas',
+    ),
+    path(
+        '<slug:idp_slug>/ResourceTypes',
+        ScimResourceTypesView.as_view(),
+        name='scim-resource-types',
     ),
 ] + router.urls
