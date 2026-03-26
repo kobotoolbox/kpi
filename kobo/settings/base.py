@@ -2240,6 +2240,6 @@ ATTACHMENT_XPATHS_CACHE_TTL = 86400
 # https://wiki.openstreetmap.org/wiki/Blocked_tiles#Referer_is_required
 # Can be overridden per environment via the SECURE_REFERRER_POLICY environment variable.
 SECURE_REFERRER_POLICY = env(
-    "SECURE_REFERRER_POLICY",
-    default="strict-origin-when-cross-origin",
+    'SECURE_REFERRER_POLICY',
+    default='strict-origin-when-cross-origin',
 )
