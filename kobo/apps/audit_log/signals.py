@@ -1,3 +1,4 @@
+import json
 from collections import defaultdict
 
 from celery.signals import task_success
@@ -10,6 +11,7 @@ from django_userforeignkey.request import get_current_request
 
 from kobo.apps.audit_log.audit_actions import AuditAction
 from kobo.apps.audit_log.models import AuditLog, AuditType
+from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.openrosa.libs.utils.common_tags import SUBMITTED_BY
 from kpi.constants import ASSET_TYPE_SURVEY, PERM_PARTIAL_SUBMISSIONS
 from kpi.models import Asset, ImportTask
@@ -194,9 +196,9 @@ def log_constance_update(key, old_value, new_value, **kwargs):
         return
 
     user = getattr(request, 'user', None)
-    if not user or not user.is_authenticated:
+    if not isinstance(user, User) or not user.is_authenticated or not user.is_superuser:
         logging.warning(
-            'Config updated but no authenticated user found to log it with.'
+            'Config updated but no authenticated superuser found to log it with.'
         )
         return
 
@@ -211,8 +213,8 @@ def log_constance_update(key, old_value, new_value, **kwargs):
         metadata={
             'message': message,
             'key': key,
-            'old_value': old_value,
-            'new_value': new_value,
+            'old_value': _sanitize_for_json(old_value),
+            'new_value': _sanitize_for_json(new_value),
         }
     )
 
@@ -236,3 +238,14 @@ def _build_human_readable_log_message(log_entry, model_name):
         return f"{user} deleted {model_name} '{obj_repr}' (pk: {obj_id})"
 
     return log_entry.get_change_message()
+
+
+def _sanitize_for_json(value):
+    """
+    Sanitizes a value for JSON serialization
+    """
+    try:
+        json.loads(json.dumps(value))
+        return value
+    except (TypeError, ValueError):
+        return str(value)

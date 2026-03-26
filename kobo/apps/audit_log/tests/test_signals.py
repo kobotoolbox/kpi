@@ -4,6 +4,7 @@ from unittest.mock import Mock, patch
 from allauth.account.models import EmailAddress
 from constance.signals import config_updated
 from ddt import data, ddt
+from django.contrib.auth.models import AnonymousUser
 from django.contrib.auth.signals import user_logged_in
 from django.test import RequestFactory, override_settings
 from django.urls import reverse
@@ -449,3 +450,50 @@ class TestConstanceAuditLogSignal(BaseTestCase):
         self.assertEqual(latest_log.metadata['message'], expected_message)
         self.assertEqual(latest_log.metadata['old_value'], 'old@example.com')
         self.assertEqual(latest_log.metadata['new_value'], 'new@example.com')
+
+    @patch('kobo.apps.audit_log.signals.get_current_request')
+    def test_constance_update_ignored_without_request(self, mock_get_request):
+        """
+        Tests that programmatic config updates (no web request) are ignored safely
+        """
+        mock_get_request.return_value = None
+        initial_count = AuditLog.objects.filter(
+            action=AuditAction.UPDATE_CONSTANCE
+        ).count()
+
+        config_updated.send(
+            sender=None,
+            key='SUPPORT_EMAIL',
+            old_value='old@example.com',
+            new_value='new@example.com'
+        )
+
+        self.assertEqual(
+            AuditLog.objects.filter(action=AuditAction.UPDATE_CONSTANCE).count(),
+            initial_count
+        )
+
+    @patch('kobo.apps.audit_log.signals.get_current_request')
+    def test_constance_update_ignored_unauthenticated_user(self, mock_get_request):
+        """
+        Tests that config updates by unauthenticated/anonymous users are ignored
+        """
+        mock_request = Mock()
+        mock_request.user = AnonymousUser()
+        mock_get_request.return_value = mock_request
+
+        initial_count = AuditLog.objects.filter(
+            action=AuditAction.UPDATE_CONSTANCE
+        ).count()
+
+        config_updated.send(
+            sender=None,
+            key='SUPPORT_EMAIL',
+            old_value='old@example.com',
+            new_value='new@example.com'
+        )
+
+        self.assertEqual(
+            AuditLog.objects.filter(action=AuditAction.UPDATE_CONSTANCE).count(),
+            initial_count
+        )
