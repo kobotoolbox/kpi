@@ -253,14 +253,12 @@ export default function ResponseForm({
                     {t('Please verify if correct')}
                   </Text>
                 )}
-                {/* TODO: See about setting paddingInLineStart gap globally for checkbox */}
                 <Checkbox
                   label={t('Verified')}
                   checked={displayedVerificationStatus}
                   onChange={handleVerificationChange}
                   disabled={disabledAnswer}
                   size='sm'
-                  styles={{ label: { paddingInlineStart: '7px' } }}
                 />
               </Group>
             )}
