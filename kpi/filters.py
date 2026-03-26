@@ -35,7 +35,6 @@ from kpi.utils.permissions import is_user_anonymous
 from kpi.utils.query_parser import ParseError, get_parsed_parameters, parse
 
 from .models import Asset, ObjectPermission
-from .utils.sql import disable_max_tokens
 
 
 class DeploymentFilter:
@@ -211,19 +210,16 @@ class KpiObjectPermissionsFilter(filters.BaseFilterBackend):
         # a lazy query, Django creates (left) joins on tables when queryset is
         # interpreted and it is way slower than running this extra query.
 
-        # this could potentially be thousands of asset ids, which is fine, but we need
-        # sqlparse to be ok with returning that many tokens
-        with disable_max_tokens():
-            asset_ids = list(
-                (
-                    owned_and_explicit_shared.union(subscribed)
-                    # Since user would be subscribed to a collection and not
-                    # the assets themselves, we append children of subscribed
-                    # collections to the queryset in order for `?q=parent__uid`
-                    # queries to return the collection's children
-                    .union(queryset.filter(parent__in=subscribed).values('pk'))
-                ).values_list('id', flat=True)
-            )
+        asset_ids = list(
+            (
+                owned_and_explicit_shared.union(subscribed)
+                # Since user would be subscribed to a collection and not
+                # the assets themselves, we append children of subscribed
+                # collections to the queryset in order for `?q=parent__uid`
+                # queries to return the collection's children
+                .union(queryset.filter(parent__in=subscribed).values('pk'))
+            ).values_list('id', flat=True)
+        )
         return queryset.filter(pk__in=asset_ids)
 
     def _get_queryset_for_data_sharing_enabled(
