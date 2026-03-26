@@ -8,8 +8,8 @@ import pytest
 from botocore.exceptions import ClientError
 from constance.test import override_config
 from ddt import data, ddt, unpack
-from django.core.cache import cache
 from django.conf import settings
+from django.core.cache import cache
 from django.utils import timezone
 from freezegun import freeze_time
 from rest_framework import status
@@ -470,6 +470,47 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
         }
         with pytest.raises(AnalysisQuestionNotFound):
             self.action.generate_llm_prompt(action_data)
+
+    def test_generate_prompt_fails_if_no_visible_choices(self):
+        # regression test. this really shouldn't happen if we're validating schemas
+        # properly
+        queryset = QuestionAdvancedFeature.objects.filter(
+            asset=self.asset, question_xpath='q1', action=Action.MANUAL_QUAL
+        )
+        # use update to bypass schema validation
+        queryset.update(
+            params=[
+                {
+                    'type': 'qualSelectMultiple',
+                    'uuid': 'b1f8c6a9-2d4e-4a73-8c5f-9e0b6d1a2374',
+                    'labels': {'_default': 'What themes were present in the story?'},
+                    'choices': [
+                        {
+                            'uuid': 'c4a9e2d1-7b6f-4a83-9d5e-1f8c3b2a0647',
+                            'labels': {'_default': 'Empathy'},
+                            'options': {'deleted': True},
+                        },
+                        {
+                            'uuid': 'c4a9e2d1-7b6f-4a83-9d5e-1f8c3b2a0647',
+                            'labels': {'_default': 'Apathy'},
+                            'options': {'deleted': True},
+                        },
+                    ],
+                }
+            ]
+        )
+        # need to reload the action to pick up the new params for _dependencies
+        action = QuestionAdvancedFeature.objects.get(
+            asset=self.asset,
+            action=Action.AUTOMATIC_BEDROCK_QUAL,
+            question_xpath='q1',
+        ).to_action()
+        action_data = {
+            'uuid': 'b1f8c6a9-2d4e-4a73-8c5f-9e0b6d1a2374',
+            '_dependency': self._dependency_dict_from_transcript_dict(),
+        }
+        with pytest.raises(AnalysisQuestionNotFound):
+            action.generate_llm_prompt(action_data)
 
     @data(
         # question uuid, parsing method name
