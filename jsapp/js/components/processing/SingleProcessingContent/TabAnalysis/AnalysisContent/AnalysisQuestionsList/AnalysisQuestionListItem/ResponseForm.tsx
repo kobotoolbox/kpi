@@ -81,16 +81,13 @@ export default function ResponseForm({
    * We also hide it if there is no transcript or if `onGenerateWithAI` callback is not provided.
    */
   const shouldDisplayGenerateWithAIButton =
-    hasTranscript &&
-    onGenerateWithAI !== undefined &&
-    (!hasAnswer || (hasEmptyValueAnswerVal && !isAnswerAIGenerated))
+    hasTranscript && onGenerateWithAI !== undefined && (!hasAnswer || (hasEmptyValueAnswerVal && !isAnswerAIGenerated))
 
   /** "Clear" button will be displayed if there is non-empty answer, or if answer is AI generated */
   const shouldDisplayClearButton =
     onClear !== undefined && ((hasAnswer && !hasEmptyValueAnswerVal) || (hasAnswer && isAnswerAIGenerated))
 
-  const shouldDisplayVerificationCheckbox =
-    (hasAnswer && !hasEmptyValueAnswerVal) || (hasAnswer && isAnswerAIGenerated)
+  const shouldDisplayVerificationCheckbox = (hasAnswer && !hasEmptyValueAnswerVal) || (hasAnswer && isAnswerAIGenerated)
 
   const shouldDisplayAIGeneratedBadge = hasAnswer && isAnswerAIGenerated
 
