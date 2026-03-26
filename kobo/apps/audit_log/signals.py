@@ -1,6 +1,7 @@
 from collections import defaultdict
 
 from celery.signals import task_success
+from constance.signals import config_updated
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE, DELETION
 from django.contrib.auth.signals import user_logged_in
 from django.db.models.signals import post_delete, post_save
@@ -178,6 +179,41 @@ def save_log_entry_to_audit_log(instance, created, **kwargs):
         action=audit_action,
         log_type=AuditType.ADMIN_INTERFACE,
         metadata=metadata
+    )
+
+
+@receiver(config_updated)
+def log_constance_update(key, old_value, new_value, **kwargs):
+    """
+    Listens for updates to Constance config values and logs them in the AuditLog
+    """
+    request = get_current_request()
+
+    if request is None:
+        logging.warning('Config updated but no request found to log it with.')
+        return
+
+    user = getattr(request, 'user', None)
+    if not user or not user.is_authenticated:
+        logging.warning(
+            'Config updated but no authenticated user found to log it with.'
+        )
+        return
+
+    message = f'{user} updated config key "{key}" from "{old_value}" to "{new_value}"'
+    AuditLog.objects.create(
+        user=user,
+        app_label='constance',
+        model_name='constance',
+        object_id=key,
+        action=AuditAction.UPDATE_CONSTANCE,
+        log_type=AuditType.ADMIN_INTERFACE,
+        metadata={
+            'message': message,
+            'key': key,
+            'old_value': old_value,
+            'new_value': new_value,
+        }
     )
 
 
