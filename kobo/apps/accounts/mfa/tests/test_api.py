@@ -4,6 +4,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.openrosa.apps.main.models import UserProfile
 from kpi.tests.kpi_test_case import BaseTestCase
 from ..models import MfaAvailableToUser, MfaMethodsWrapper
 from .utils import activate_mfa_for_user, get_mfa_code_for_user
@@ -134,3 +135,28 @@ class MfaApiTestCase(BaseTestCase):
             user=self.someuser, name=METHOD
         ).secret
         assert first_secret != second_secret
+
+    def test_mfa_activation_syncs_user_profile(self):
+        """
+        Test that activating MFA also updates the `is_mfa_active` flag in UserProfile
+        """
+        profile, _ = UserProfile.objects.get_or_create(user=self.someuser)
+        profile.refresh_from_db()
+        self.assertTrue(profile.is_mfa_active)
+
+    def test_mfa_deactivation_syncs_user_profile(self):
+        """
+        Test that deactivating MFA also updates the `is_mfa_active` flag in UserProfile
+        """
+        profile, _ = UserProfile.objects.get_or_create(user=self.someuser)
+        profile.refresh_from_db()
+        self.assertTrue(profile.is_mfa_active)
+
+        code = get_mfa_code_for_user(self.someuser)
+        response = self.client.post(
+            reverse('mfa-deactivate', args=(METHOD,)), data={'code': code}
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+        profile.refresh_from_db()
+        self.assertFalse(profile.is_mfa_active)
