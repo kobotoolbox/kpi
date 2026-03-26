@@ -1,3 +1,4 @@
+from django.utils.translation import gettext as t
 from rest_framework import serializers
 
 

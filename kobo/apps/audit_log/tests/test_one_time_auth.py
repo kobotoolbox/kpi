@@ -168,5 +168,5 @@ class TestOneTimeAuthentication(BaseTestCase):
         self.assertEqual(access_log.metadata['authorized_app_name'], 'Auth app')
 
     def test_failed_request_does_not_create_log(self):
-        self.client.get(reverse('asset-list'))
+        self.client.get(reverse(self._get_endpoint('asset-list')))
         self.assertEqual(AuditLog.objects.count(), 0)
