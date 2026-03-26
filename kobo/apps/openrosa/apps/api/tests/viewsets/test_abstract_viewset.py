@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from typing import Union
 
 from django.conf import settings
@@ -7,12 +8,9 @@ from django.core.files.base import ContentFile
 from django.test import TestCase
 from django.utils import timezone
 from django_digest.test import DigestAuth
-from rest_framework import status
-from rest_framework.reverse import reverse
 from rest_framework.test import APIRequestFactory
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.apps.api.viewsets.metadata_viewset import MetaDataViewSet
 from kobo.apps.openrosa.apps.logger.models import Attachment
 from kobo.apps.openrosa.apps.main import tests as main_tests
 from kobo.apps.openrosa.apps.main.models import MetaData, UserProfile
@@ -21,7 +19,6 @@ from kobo.apps.openrosa.libs.tests.mixins.make_submission_mixin import (
 )
 from kobo.apps.openrosa.libs.tests.mixins.request_mixin import RequestMixin
 from kobo.apps.openrosa.libs.utils import logger_tools
-from kpi.urls.router_api_v2 import URL_NAMESPACE
 from kpi.utils.object_permission import get_database_user
 
 
@@ -54,29 +51,7 @@ class TestAbstractViewSet(RequestMixin, MakeSubmissionMixin, TestCase):
         self._add_permissions_to_user(AnonymousUser())
         self.maxDiff = None
 
-    def publish_xls_form(
-        self, path=None, data=None, assert_creation=True, use_api=False
-    ):
-        # KoboCAT (v1) API does not allow project creation anymore.
-        # Only KPI API allows that. The project can be only added to KoboCAT
-        # during deployment. Thus, this method will create the XForm object directly
-        # without an API call except if `use_api` is True.
-
-        # Some unit tests still need to test the result of API `v1`
-        # (i.e.: KoboCAT API). For example, to ensure project creation is
-        # not allowed anymore.
-        if not data:
-            data = {
-                'owner': self.user.username,
-                'public': False,
-                'public_data': False,
-                'description': 'transportation_2011_07_25',
-                'downloadable': True,
-                'encrypted': False,
-                'id_string': 'transportation_2011_07_25',
-                'title': 'transportation_2011_07_25',
-            }
-
+    def publish_xls_form(self, path=None):
         if not path:
             path = os.path.join(
                 settings.OPENROSA_APP_DIR,
@@ -110,13 +85,6 @@ class TestAbstractViewSet(RequestMixin, MakeSubmissionMixin, TestCase):
         asset.save()
         self.xform.kpi_asset_uid = asset.uid
         self.xform.save(update_fields=['kpi_asset_uid'])
-        response = self.client.get(
-            reverse(URL_NAMESPACE + ':asset-detail', args=[asset.uid])
-        )
-
-        if assert_creation is True:
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
-            self.form_data = response.data
 
     def user_profile_data(self):
         return {
@@ -261,38 +229,11 @@ class TestAbstractViewSet(RequestMixin, MakeSubmissionMixin, TestCase):
         attachment = Attachment.objects.all().reverse()[0]
         self.attachment = attachment
 
-    def _post_form_metadata(self, data, test=True):
-        count = MetaData.objects.count()
-        view = MetaDataViewSet.as_view({'post': 'create'})
-        request = self.factory.post('/', data, **self.extra)
-
-        response = view(request)
-
-        if test:
-            self.assertEqual(response.status_code, 201)
-            another_count = MetaData.objects.count()
-            self.assertEqual(another_count, count + 1)
-            self.metadata = MetaData.objects.get(pk=response.data['id'])
-            self.metadata_data = response.data
-
-        return response
-
-    def _add_form_metadata(
-        self, xform, data_type, data_value, path=None, test=True
-    ):
-        data = {
-            'data_type': data_type,
-            'data_value': data_value,
-            'xform': xform.pk
-        }
-
+    def _add_form_metadata(self, xform, data_type, data_value, path=None):
+        data_file = None
         if path and data_value:
             with open(path, 'rb') as media_file:
-                data.update({
-                    'data_file': media_file,
-                })
-                response = self._post_form_metadata(data, test)
-        else:
-            response = self._post_form_metadata(data, test)
-
-        return response
+                data_file = ContentFile(media_file.read(), name=Path(path).name)
+        self.metadata = MetaData.objects.create(
+            data_type=data_type, data_value=data_value, data_file=data_file, xform=xform
+        )

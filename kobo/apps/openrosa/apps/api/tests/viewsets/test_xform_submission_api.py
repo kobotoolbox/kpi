@@ -360,17 +360,6 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
 
     def test_post_attachments_with_invisible_characters_persist(self):
 
-        data = {
-            'owner': self.user.username,
-            'public': True,
-            'public_data': True,
-            'description': 'transportation_with_attachment',
-            'downloadable': True,
-            'encrypted': False,
-            'id_string': 'transportation_with_attachment',
-            'title': 'transportation_with_attachment',
-        }
-
         path = os.path.join(
             settings.OPENROSA_APP_DIR,
             'apps',
@@ -380,7 +369,7 @@ class TestXFormSubmissionApi(TestAbstractViewSet):
             'transportation',
             'transportation_with_attachment.xls',
         )
-        self.publish_xls_form(data=data, path=path)
+        self.publish_xls_form(path=path)
 
         xml_path = os.path.join(
             self.main_directory,
