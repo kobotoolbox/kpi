@@ -91,8 +91,8 @@ URL Pattern | View Class or Function | View Name | KPI `v2` Endpoint
 `/assets/bulk/` | `kpi.views.v1.asset.AssetViewSet` | `asset-bulk` | `/api/v2/assets/bulk/`
 `/assets/hash/` | `kpi.views.v1.asset.AssetViewSet` | `asset-hash` | `/api/v2/assets/hash/`
 `/assets/metadata/` | `kpi.views.v1.asset.AssetViewSet` | `asset-metadata` | `/api/v2/assets/metadata/`
-`/authorized_application/authenticate_user/` | `kpi.views.authorized_application_authenticate_user` | `authenticate_user` | `/api/v2/assets/authorized_application/authenticate_user/`
-`/authorized_application/users/` | `kpi.views.v1.authorized_application_user.AuthorizedApplicationUserViewSet` | `authorized_applications-list` | `/api/v2/assets/authorized_application/users/`
+`/authorized_application/authenticate_user/` | `kpi.views.authorized_application_authenticate_user` | `authenticate_user` | `/api/v2/authorized_application/authenticate_user/`
+`/authorized_application/users/` | `kpi.views.v1.authorized_application_user.AuthorizedApplicationUserViewSet` | `authorized_applications-list` | `/api/v2/authorized_application/users/`
 `/exports/` | `kpi.views.v1.export_task.ExportTaskViewSet` | `submissionexporttask-list` | `/api/v2/assets/<parent_lookup_asset>/exports/`
 `/exports/<uid>/` | `kpi.views.v1.export_task.ExportTaskViewSet` | `submissionexporttask-detail` | `/api/v2/assets/<parent_lookup_asset>/exports/<uid>/`
 `/imports/` | `kpi.views.v1.import_task.ImportTaskViewSet` | `importtask-list` | `/api/v2/imports/`
@@ -127,10 +127,10 @@ endpoints were fully removed in release 2.026.__ (see above).
 
 URL Pattern | View Class or Function | Description
 -- | -- | --
-*`DELETE`* `/api/v1/data/<instance id>/<submission id>` | `kobo.apps.openrosa.apps.api.viewsets.data_viewset.DataViewSet.destroy` | Delete submissions
-*`PATCH`, `GET`* `/api/v1/data/<instance id>/<submission id>/validation_status` | `kobo.apps.openrosa.apps.api.viewsets.data_viewset.DataViewSet.validation_status` | Modify validation status of specific instance
-*`GET`* `/api/v1/data/<instance id>/bulk_validation_status` | `kobo.apps.openrosa.apps.api.viewsets.data_viewset.DataViewSet.bulk_validation_status` | Bulk set multiple instance validation status
-*`GET`* `/api/v1/data/<instance id>/bulk_delete` | `kobo.apps.openrosa.apps.api.viewsets.data_viewset.DataViewSet.bulk_delete` | Bulk delete submissions
-*`GET`* `/api/v1/data/<instance id>/<submission_id>/enketo` | `kobo.apps.openrosa.apps.api.viewsets.data_viewset.DataViewSet.enketo` | Proxy for enketo_edit
-*`GET`* `/api/v1/data/<instance id>/<submission_id>/enketo_edit` | `kobo.apps.openrosa.apps.api.viewsets.data_viewset.DataViewSet.enketo_edit` | Handle enketo edit request
-*`GET`* `/api/v1/data/<instance id>/<submission_id>/enketo_view` | `kobo.apps.openrosa.apps.api.viewsets.data_viewset.DataViewSet.enketo_view` | Handle enketo view request
+_`DELETE`_ `/api/v1/data/<instance id>/<submission id>` | `kobo.apps.openrosa.apps.api.viewsets.data_viewset.DataViewSet.destroy` | Delete submissions
+_`PATCH`, `GET`_ `/api/v1/data/<instance id>/<submission id>/validation_status` | `kobo.apps.openrosa.apps.api.viewsets.data_viewset.DataViewSet.validation_status` | Modify validation status of specific instance
+_`GET`_ `/api/v1/data/<instance id>/bulk_validation_status` | `kobo.apps.openrosa.apps.api.viewsets.data_viewset.DataViewSet.bulk_validation_status` | Bulk set multiple instance validation status
+_`GET`_ `/api/v1/data/<instance id>/bulk_delete` | `kobo.apps.openrosa.apps.api.viewsets.data_viewset.DataViewSet.bulk_delete` | Bulk delete submissions
+_`GET`_ `/api/v1/data/<instance id>/<submission_id>/enketo` | `kobo.apps.openrosa.apps.api.viewsets.data_viewset.DataViewSet.enketo` | Proxy for enketo_edit
+_`GET`_ `/api/v1/data/<instance id>/<submission_id>/enketo_edit` | `kobo.apps.openrosa.apps.api.viewsets.data_viewset.DataViewSet.enketo_edit` | Handle enketo edit request
+_`GET`_ `/api/v1/data/<instance id>/<submission_id>/enketo_view` | `kobo.apps.openrosa.apps.api.viewsets.data_viewset.DataViewSet.enketo_view` | Handle enketo view request
