@@ -32,6 +32,7 @@ from kobo.apps.subsequences.constants import (
 from kobo.apps.subsequences.exceptions import (
     AnalysisQuestionNotFound,
     ManualQualNotFound,
+    AnalysisQuestionIncorrectlyConfigured,
 )
 from kobo.apps.subsequences.models import QuestionAdvancedFeature
 from kobo.apps.subsequences.prompts import (
@@ -509,7 +510,7 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
             'uuid': 'b1f8c6a9-2d4e-4a73-8c5f-9e0b6d1a2374',
             '_dependency': self._dependency_dict_from_transcript_dict(),
         }
-        with pytest.raises(AnalysisQuestionNotFound):
+        with pytest.raises(AnalysisQuestionIncorrectlyConfigured):
             action.generate_llm_prompt(action_data)
 
     @data(
