@@ -2237,4 +2237,8 @@ ATTACHMENT_XPATHS_CACHE_TTL = 86400
 
 # Change referrer policy for the openmap to work
 # See: https://wiki.openstreetmap.org/wiki/Blocked_tiles#Referer_is_required
-SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+# Can be overridden per environment via the SECURE_REFERRER_POLICY environment variable.
+SECURE_REFERRER_POLICY = env(
+    "SECURE_REFERRER_POLICY",
+    default="strict-origin-when-cross-origin",
+)
