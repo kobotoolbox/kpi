@@ -3,6 +3,8 @@ import re
 from django.db import models, transaction
 from private_storage.fields import PrivateFileField
 
+from kobo.apps.storage_backends.base import default_kpi_private_storage
+
 
 class AbstractMarkdownxModel(models.Model):
 
@@ -44,6 +46,7 @@ class MarkdownxUploaderFile(models.Model):
     content = PrivateFileField(
         # Avoid collisions with usernames, which must begin with `[a-z]`
         # (see `kpi.forms.USERNAME_REGEX`)
+        storage=default_kpi_private_storage,
         upload_to='__markdown_media_files/%Y/%m/%d',
         max_length=380,
     )

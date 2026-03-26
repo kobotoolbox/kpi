@@ -41,6 +41,10 @@ const LANGUAGE_SELECTOR_RESET_EVENT = 'LanguageSelector:resetall'
 
 const MINIMUM_SEARCH_LENGTH = 2
 
+// TODO: instead of relying on this hackish way of unselecting a language from the outside of the component, let's
+// come up with a better way. Ideally we should be able to unselect a language and to preselect one too. The second
+// functionality is trickier to accomplish as list of languages is coming from paginated API, and the preselected
+// language might be on some unknown not-first page of results.
 /** Use this function to reset all LanguageSelectors :) */
 export function resetAllLanguageSelectors() {
   const event = new CustomEvent(LANGUAGE_SELECTOR_RESET_EVENT)

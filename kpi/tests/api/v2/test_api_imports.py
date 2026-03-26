@@ -111,7 +111,10 @@ class AssetImportTaskTest(BaseTestCase):
         )
         empty_asset_data = empty_asset.json()
         task_data['destination'] = empty_asset_data['url']
-        return self.client.post(reverse('importtask-list'), task_data)
+        return self.client.post(
+            reverse(self._get_endpoint('importtask-list')),
+            task_data
+        )
 
     @responses.activate
     def test_import_asset_from_xls_url(self):

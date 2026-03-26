@@ -2,12 +2,13 @@ import './submissionDataList.scss'
 
 import React from 'react'
 
+import type { DataResponse } from '#/api/models/dataResponse'
 import { getFlatQuestionsList, getLanguageIndex } from '#/assetUtils'
 import type { FlatQuestion } from '#/assetUtils'
 import bem, { makeBem } from '#/bem'
+import type { LanguageCode } from '#/components/languages/languagesStore'
 import { getRowData } from '#/components/submissions/submissionUtils'
-import type { AssetResponse, SubmissionResponse } from '#/dataInterface'
-import singleProcessingStore from '../processing/singleProcessingStore'
+import type { AssetResponse } from '#/dataInterface'
 
 bem.SubmissionDataList = makeBem(null, 'submission-data-list', 'ul')
 bem.SubmissionDataListQuestion = makeBem(null, 'submission-data-list-question', 'li')
@@ -17,11 +18,13 @@ bem.SubmissionDataListQuestion__response = makeBem(bem.SubmissionDataListQuestio
 
 interface SubmissionDataListProps {
   asset: AssetResponse
-  submissionData: SubmissionResponse
+  submission: DataResponse
   /** A list of questions that should be omitted from display. */
   hideQuestions?: string[]
   /** Whether to display the path (the groups) or not. */
   hideGroups?: boolean
+  /** Language code or string to determine which labels to display (or XML values if set to XML_VALUES_OPTION_VALUE). */
+  questionLabelLanguage?: LanguageCode | string
 }
 
 export default class SubmissionDataList extends React.Component<SubmissionDataListProps> {
@@ -35,12 +38,12 @@ export default class SubmissionDataList extends React.Component<SubmissionDataLi
       return null
     }
 
-    // check if the question shouldn't be hidden
+    // check if the question should be hidden
     if (Array.isArray(this.props.hideQuestions) && this.props.hideQuestions.includes(question.name)) {
       return null
     }
 
-    const response = getRowData(question.name, this.props.asset.content.survey || [], this.props.submissionData)
+    const response = getRowData(question.name, this.props.asset.content.survey || [], this.props.submission)
 
     return (
       <bem.SubmissionDataListQuestion key={question.name}>
@@ -62,7 +65,8 @@ export default class SubmissionDataList extends React.Component<SubmissionDataLi
       return null
     }
 
-    const languageIndex = getLanguageIndex(this.props.asset, singleProcessingStore.getCurrentlyDisplayedLanguage())
+    const displayLanguage = this.props.questionLabelLanguage || ''
+    const languageIndex = getLanguageIndex(this.props.asset, displayLanguage)
 
     const items = getFlatQuestionsList(this.props.asset.content.survey, languageIndex)
 

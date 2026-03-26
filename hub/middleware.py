@@ -2,6 +2,8 @@ from django.conf import settings
 from django.middleware.locale import LocaleMiddleware as DjangoLocaleMiddleware
 from django.utils.deprecation import MiddlewareMixin
 
+from hub.models.v1_user_tracker import V1UserTracker
+
 
 class LocaleMiddleware(DjangoLocaleMiddleware):
     def process_response(self, request, response):
@@ -38,3 +40,33 @@ class UsernameInResponseHeaderMiddleware(MiddlewareMixin):
         if user.is_authenticated:
             response['X-KoBoNaUt'] = request.user.username
         return response
+
+
+class V1AccessLoggingMiddleware(MiddlewareMixin):
+    """
+    Middleware to log access to deprecated v1 endpoints by authenticated users
+    """
+    def process_request(self, request):
+        if not request.user.is_authenticated:
+            return None
+
+        legacy_patterns = [
+            '/api/v1/',
+            '/assets/',
+            '/asset_snapshots/',
+            '/asset_subscriptions/',
+            '/exports/',
+            '/imports/',
+            '/permissions/',
+            '/reports/',
+            '/tags/',
+            '/authorized_application/',
+            '/users/',
+        ]
+
+        if any(request.path.startswith(pattern) for pattern in legacy_patterns):
+            V1UserTracker.objects.update_or_create(
+                user=request.user,
+                defaults={'last_accessed_path': request.path},
+            )
+        return None

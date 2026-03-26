@@ -7,11 +7,11 @@ from django.views.i18n import JavaScriptCatalog
 from kobo.apps.openrosa import koboform
 from kobo.apps.openrosa.apps.api.urls import (
     BriefcaseApi,
-    XFormListApi,
-    XFormSubmissionApi,
     router,
     router_with_patch_list,
 )
+from kobo.apps.openrosa.apps.api.viewsets.xform_list_api import XFormListApi
+from kobo.apps.openrosa.apps.api.viewsets.xform_submission_api import XFormSubmissionApi
 from kobo.apps.openrosa.apps.logger.views import (
     bulksubmission,
     bulksubmission_form,
@@ -72,16 +72,6 @@ urlpatterns = [
         BriefcaseApi.as_view({'get': 'retrieve', 'head': 'retrieve'}),
         name='view-download-submission',
     ),
-    re_path(
-        r'^formUpload$',
-        BriefcaseApi.as_view({'post': 'create', 'head': 'create'}),
-        name='form-upload',
-    ),
-    re_path(
-        r'^upload$',
-        BriefcaseApi.as_view({'post': 'create', 'head': 'create'}),
-        name='upload',
-    ),
     # exporting stuff
     re_path(
         r'^(?P<username>\w+)/exports/(?P<id_string>[^/]+)/(?P<export_type>\w+)'
@@ -131,7 +121,7 @@ urlpatterns = [
         name='form-list',
     ),
     re_path(
-        r'^collector/(?P<token>\w+)/formList$',
+        r'^collector/(?P<token>[^/]+)/formList$',
         XFormListApi.as_view({'get': 'form_list_dc'}),
         name='form-list',
     ),
@@ -146,7 +136,7 @@ urlpatterns = [
         name='manifest-url',
     ),
     re_path(
-        r'^collector/(?P<token>\w+)/xformsManifest/(?P<pk>[\d+^/]+)$',
+        r'^collector/(?P<token>[^/]+)/xformsManifest/(?P<pk>[\d+^/]+)$',
         XFormListApi.as_view({'get': 'manifest_dc'}),
         name='manifest-url',
     ),
@@ -162,13 +152,13 @@ urlpatterns = [
         name='xform-media',
     ),
     re_path(
-        r'^collector/(?P<token>\w+)/xformsMedia/(?P<pk>[\d+^/]+)'
+        r'^collector/(?P<token>[^/]+)/xformsMedia/(?P<pk>[\d+^/]+)'
         r'/(?P<metadata>[\d+^/.]+)$',
         XFormListApi.as_view({'get': 'media'}),
         name='xform-media',
     ),
     re_path(
-        r'^collector/(?P<token>\w+)/xformsMedia/(?P<pk>[\d+^/]+)'
+        r'^collector/(?P<token>[^/]+)/xformsMedia/(?P<pk>[\d+^/]+)'
         r'/(?P<metadata>[\d+^/.]+)\.(?P<format>[a-z0-9]+)$',
         XFormListApi.as_view({'get': 'media'}),
         name='xform-media',
@@ -192,7 +182,7 @@ urlpatterns = [
         name='submissions',
     ),
     re_path(
-        r'^collector/(?P<token>\w+)/submission$',
+        r'^collector/(?P<token>[^/]+)/submission$',
         XFormSubmissionApi.as_view(
             {'post': 'create_data_collector', 'head': 'create_data_collector'}
         ),
@@ -221,7 +211,7 @@ urlpatterns = [
         name='download_jsonform',
     ),
     re_path(
-        r'^collector/(?P<token>\w+)/forms/(?P<pk>[\d+^/]+)/form\.xml$',
+        r'^collector/(?P<token>[^/]+)/forms/(?P<pk>[\d+^/]+)/form\.xml$',
         XFormListApi.as_view({'get': 'retrieve'}),
         name='download_xform',
     ),

@@ -67,7 +67,9 @@ export default class AssetRoute extends React.Component<AssetRouteProps, AssetRo
   loadCurrentAsset() {
     const uid = getRouteAssetUid()
     if (uid) {
-      actions.resources.loadAsset({ id: uid })
+      // We need to force get the asset when visiting the route to ensure we get fresh one. Without this, navigating
+      // away from Form Buiilder here will result in cached data being displayed.
+      actions.resources.loadAsset({ id: uid }, true)
     }
   }
 

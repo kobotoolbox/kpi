@@ -4,21 +4,27 @@ import re
 from ddt import data, ddt
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 from django.utils.http import urlencode
 from django_digest.test import Client as DigestClient
 from rest_framework import status
 from rest_framework.reverse import reverse
 
 from kobo.apps.data_collectors.models import DataCollector, DataCollectorGroup
+from kobo.apps.form_disclaimer.models import FormDisclaimer
 from kobo.apps.kobo_auth.shortcuts import User
+from kobo.apps.languages.models.language import Language
 from kobo.apps.openrosa.apps.api.tests.viewsets.test_abstract_viewset import (
     TestAbstractViewSet,
 )
+from kobo.apps.openrosa.apps.api.viewsets.xform_list_api import XFormListApi
 from kobo.apps.openrosa.apps.logger.models.xform import XForm
 from kobo.apps.openrosa.libs.permissions import assign_perm
 from kobo.apps.organizations.models import Organization
 from kpi.constants import PERM_ADD_SUBMISSIONS, PERM_MANAGE_ASSET, PERM_VIEW_ASSET
 from kpi.models import Asset
+from kpi.utils.xml import XMLFormWithDisclaimer
 
 EMPTY_LIST_CONTENT = '<?xml version="1.0" encoding="utf-8"?>\n<xforms xmlns="http://openrosa.org/xforms/xformsList"></xforms>'  # noqa
 
@@ -76,17 +82,6 @@ class TestXFormListApiWithoutAuthRequired(TestXFormListApiBase):
         self.xform_without_auth.require_auth = False
         self.xform_without_auth.save(update_fields=['require_auth'])
 
-        data = {
-            'owner': self.user.username,
-            'public': False,
-            'public_data': False,
-            'description': 'transportation_with_attachment',
-            'downloadable': True,
-            'encrypted': False,
-            'id_string': 'transportation_with_attachment',
-            'title': 'transportation_with_attachment',
-        }
-
         path = os.path.join(
             settings.OPENROSA_APP_DIR,
             'apps',
@@ -102,7 +97,7 @@ class TestXFormListApiWithoutAuthRequired(TestXFormListApiBase):
             kwargs={'username': self.user.username, 'pk': self.xform_without_auth.pk},
         )
 
-        self.publish_xls_form(data=data, path=path)
+        self.publish_xls_form(path=path)
         self.client.logout()
         self.assertNotEqual(self.xform.pk, self.xform_without_auth.pk)
         self.assertEqual(XForm.objects.all().count(), 2)
@@ -348,8 +343,7 @@ class TestXFormListApiWithAuthRequired(TestXFormListApiBase):
             self.assertTrue(
                 response.has_header('X-OpenRosa-Accept-Content-Length'))
             self.assertTrue(response.has_header('Date'))
-            self.assertEqual(response['Content-Type'],
-                             'text/xml; charset=utf-8')
+            self.assertEqual(response['Content-Type'], 'text/xml; charset=utf-8')
 
     def test_get_xform_list_inactive_form(self):
         self.xform.downloadable = False
@@ -783,17 +777,6 @@ class TestXFormListApiAsDataCollector(TestXFormListApiBase):
         self.xform_without_auth.require_auth = False
         self.xform_without_auth.save(update_fields=['require_auth'])
 
-        data = {
-            'owner': self.user.username,
-            'public': False,
-            'public_data': False,
-            'description': 'transportation_with_attachment',
-            'downloadable': True,
-            'encrypted': False,
-            'id_string': 'transportation_with_attachment',
-            'title': 'transportation_with_attachment',
-        }
-
         path = os.path.join(
             settings.OPENROSA_APP_DIR,
             'apps',
@@ -803,7 +786,7 @@ class TestXFormListApiAsDataCollector(TestXFormListApiBase):
             'transportation',
             'transportation_with_attachment.xls',
         )
-        self.publish_xls_form(data=data, path=path)
+        self.publish_xls_form(path=path)
         self.assertNotEqual(self.xform.pk, self.xform_without_auth.pk)
         self.assertEqual(XForm.objects.all().count(), 2)
         self.assertEqual(XForm.objects.filter(require_auth=False).count(), 1)
@@ -818,7 +801,7 @@ class TestXFormListApiAsDataCollector(TestXFormListApiBase):
         if token_type == 'valid':
             return self.data_collector.token
         elif token_type == 'invalid':
-            return 'badtoken'
+            return 'bad_token'
         else:
             return self.data_collector_no_assets.token
 
@@ -1015,3 +998,166 @@ class TestXFormListApiAsDataCollector(TestXFormListApiBase):
             self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         else:
             self.validate_openrosa_head_response(response)
+
+
+class TestXFormListApiWithDisclaimer(TestXFormListApiBase):
+    """
+    Tests covering the bulk prefetch of assets and disclaimers introduced to
+    avoid N+1 queries on the formList endpoint.
+
+    Key changes under test:
+    - `XFormListApi._fetch_assets_and_disclaimers()`: bulk-fetches Asset and
+      FormDisclaimer records in two queries.
+    - `XFormListApi._enrich_xforms()`: attaches `_cached_asset` and
+      `_cached_disclaimers` to each XForm before serialization.
+    - `XMLFormWithDisclaimer._get_disclaimers()`: uses `_cached_disclaimers`
+      when available, skipping the per-form DB query.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.language_en = Language.objects.create(code='en', name='English')
+
+    def test_fetch_assets_and_disclaimers_returns_global_disclaimer(self):
+        FormDisclaimer.objects.create(
+            language=self.language_en,
+            default=True,
+            message='Global disclaimer',
+        )
+        asset_uids = [self.xform.kpi_asset_uid]
+        assets_by_uid, disclaimers_by_asset_pk = (
+            XFormListApi._fetch_assets_and_disclaimers(asset_uids)
+        )
+
+        assert self.xform.kpi_asset_uid in assets_by_uid
+        # Global disclaimers are keyed under None
+        assert None in disclaimers_by_asset_pk
+        global_disclaimers = disclaimers_by_asset_pk[None]
+        assert len(global_disclaimers) == 1
+        assert global_disclaimers[0]['message'] == 'Global disclaimer'
+
+    def test_fetch_assets_and_disclaimers_returns_asset_specific_disclaimer(self):
+        asset = self.xform.asset
+        FormDisclaimer.objects.create(
+            language=self.language_en,
+            message='Per-asset disclaimer',
+            asset=asset,
+        )
+        asset_uids = [self.xform.kpi_asset_uid]
+        assets_by_uid, disclaimers_by_asset_pk = (
+            XFormListApi._fetch_assets_and_disclaimers(asset_uids)
+        )
+
+        assert asset.pk in disclaimers_by_asset_pk
+        asset_disclaimers = disclaimers_by_asset_pk[asset.pk]
+        assert len(asset_disclaimers) == 1
+        assert asset_disclaimers[0]['message'] == 'Per-asset disclaimer'
+
+    def test_enrich_xforms_attaches_cached_asset_and_disclaimers(self):
+        FormDisclaimer.objects.create(
+            language=self.language_en,
+            default=True,
+            message='Global disclaimer',
+        )
+        asset_uids = [self.xform.kpi_asset_uid]
+        assets_by_uid, disclaimers_by_asset_pk = (
+            XFormListApi._fetch_assets_and_disclaimers(asset_uids)
+        )
+
+        enriched_xforms = list(
+            XFormListApi._enrich_xforms(
+                XForm.objects.filter(pk=self.xform.pk),
+                assets_by_uid,
+                disclaimers_by_asset_pk,
+            )
+        )
+
+        assert len(enriched_xforms) == 1
+        xform = enriched_xforms[0]
+        assert getattr(xform, '_cached_asset', None) is not None
+        assert xform._cached_asset.uid == self.xform.kpi_asset_uid
+        assert hasattr(xform._cached_asset, '_cached_disclaimers')
+        cached = xform._cached_asset._cached_disclaimers
+        assert len(cached) == 1
+        assert cached[0]['message'] == 'Global disclaimer'
+
+    def test_get_disclaimers_uses_cache_without_db_query(self):
+        """
+        When `_cached_disclaimers` is set on the asset, `_get_disclaimers()`
+        must return it directly without issuing any SQL query.
+        """
+        asset = self.xform.asset
+        asset._cached_disclaimers = [
+            {
+                'language_code': 'en',
+                'message': 'Cached message',
+                'default': True,
+                'hidden': False,
+                'asset_id': asset.pk,
+            }
+        ]
+        self.xform._cached_asset = asset
+
+        with CaptureQueriesContext(connection) as ctx:
+            XMLFormWithDisclaimer(self.xform)
+
+        disclaimer_queries = [
+            q['sql']
+            for q in ctx.captured_queries
+            if 'form_disclaimer' in q['sql'].lower()
+        ]
+        assert len(disclaimer_queries) == 0, (
+            'Expected no form_disclaimer queries when _cached_disclaimers is set'
+        )
+
+    def test_disclaimer_message_appears_in_xml_with_disclaimer(self):
+        """
+        After enrichment, `xml_with_disclaimer` must contain the disclaimer
+        message injected into the XForm XML.
+        """
+        FormDisclaimer.objects.create(
+            language=self.language_en,
+            default=True,
+            message='Test disclaimer content',
+        )
+        asset_uids = [self.xform.kpi_asset_uid]
+        assets_by_uid, disclaimers_by_asset_pk = (
+            XFormListApi._fetch_assets_and_disclaimers(asset_uids)
+        )
+        enriched_xforms = list(
+            XFormListApi._enrich_xforms(
+                XForm.objects.filter(pk=self.xform.pk),
+                assets_by_uid,
+                disclaimers_by_asset_pk,
+            )
+        )
+
+        xform = enriched_xforms[0]
+        assert 'Test disclaimer content' in xform.xml_with_disclaimer
+
+    def test_hash_differs_when_disclaimer_is_present(self):
+        """
+        `md5_hash_with_disclaimer` must differ from `md5_hash` when a
+        disclaimer is injected, so Enketo detects the form changed.
+        """
+        hash_without = self.xform.md5_hash
+
+        FormDisclaimer.objects.create(
+            language=self.language_en,
+            default=True,
+            message='Disclaimer that changes the hash',
+        )
+        asset_uids = [self.xform.kpi_asset_uid]
+        assets_by_uid, disclaimers_by_asset_pk = (
+            XFormListApi._fetch_assets_and_disclaimers(asset_uids)
+        )
+        enriched_xforms = list(
+            XFormListApi._enrich_xforms(
+                XForm.objects.filter(pk=self.xform.pk),
+                assets_by_uid,
+                disclaimers_by_asset_pk,
+            )
+        )
+
+        xform = enriched_xforms[0]
+        assert hash_without != xform.md5_hash_with_disclaimer

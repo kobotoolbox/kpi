@@ -1,0 +1,28 @@
+.categoryButton {
+  color: var(--mantine-color-gray-2);
+}
+
+.categoryButtonIcon {
+  color: var(--mantine-color-gray-2);
+}
+
+.categoryButton:hover {
+  color: var(--mantine-color-gray-0);
+
+  .categoryButtonIcon {
+    color: var(--mantine-color-gray-0);
+  }
+}
+
+.projectLink {
+  color: var(--mantine-color-gray-2);
+}
+
+.projectLink:hover {
+  color: var(--mantine-color-gray-0);
+}
+
+.categoryList {
+  overflow-y: auto;
+  overflow-x: hidden;
+}

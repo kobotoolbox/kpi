@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo } from 'react'
 
 import classnames from 'classnames'
-import type { FreeTierOverride, PlanState } from '#/account/plans/plan.component'
+import type { PlanState } from '#/account/plans/plan.component'
 import styles from '#/account/plans/plan.module.scss'
 import { PlanButton } from '#/account/plans/planButton.component'
 import { useDisplayPrice } from '#/account/plans/useDisplayPrice.hook'
@@ -14,7 +14,6 @@ interface PlanContainerProps {
   product: SinglePricedProduct
   isDisabled: boolean
   isSubscribedProduct: (product: SinglePricedProduct) => boolean
-  freeTierOverride: FreeTierOverride | null
   expandComparison: boolean
   state: PlanState
   filteredPriceProducts: SinglePricedProduct[]
@@ -27,7 +26,6 @@ interface PlanContainerProps {
 export const PlanContainer = ({
   product,
   state,
-  freeTierOverride,
   expandComparison,
   filteredPriceProducts,
   isDisabled,
@@ -60,12 +58,8 @@ export const PlanContainer = ({
 
   const isDowngrading = useMemo(() => isDowngrade(activeSubscriptions, product.price), [activeSubscriptions, product])
 
-  const getFeatureMetadata = (product: SinglePricedProduct, featureItem: string) => {
-    if (product.price.unit_amount === 0 && freeTierOverride && freeTierOverride.hasOwnProperty(featureItem)) {
-      return freeTierOverride[featureItem as keyof FreeTierOverride]
-    }
-    return product.price.metadata?.[featureItem] || product.metadata[featureItem]
-  }
+  const getFeatureMetadata = (product: SinglePricedProduct, featureItem: string) =>
+    product.price.metadata?.[featureItem] || product.metadata[featureItem]
 
   const renderFeaturesList = (
     items: Array<{
@@ -147,9 +141,7 @@ export const PlanContainer = ({
         })}
       >
         <div className={styles.planDetailsContainer}>
-          <h1 className={styles.priceName}>
-            {product.price?.unit_amount ? product.name : freeTierOverride?.name || product.name}
-          </h1>
+          <h1 className={styles.priceName}>{product.name}</h1>
           <div className={styles.priceTitle}>{displayPrice}</div>
           <ul className={styles.featureContainer}>
             {recordKeys(product.metadata).map(

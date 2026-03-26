@@ -13,6 +13,9 @@ import { notify } from '#/utils'
 
 Reflux.use(RefluxPromise(window.Promise))
 
+/**
+ * @deprecated migrate to react-query whenever you need to adjust things beyond simple rename
+ */
 export const permissionsActions = Reflux.createActions({
   getConfig: { children: ['completed', 'failed'] },
   getAssetPermissions: { children: ['completed', 'failed'] },

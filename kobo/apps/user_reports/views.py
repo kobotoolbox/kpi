@@ -57,7 +57,7 @@ class UserReportsViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         'total_nlp_usage_asr_seconds_all_time',
         'total_nlp_usage_mt_characters_all_time',
         'asset_count',
-        'deployed_asset_count',
+        'active_project_count',
     ]
     ordering = ['username']
     search_fields = ['username', 'email', 'first_name', 'last_name']

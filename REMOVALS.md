@@ -120,7 +120,7 @@ URL Pattern | View Class or Function | View Name
 
 ## Obsolete Data Access and Management
 
-The following data access and management API endpoints have been remov in favor of using the OpenRosa classes withing python code in Kpi.
+The following data access and management API endpoints have been removed in favor of using the OpenRosa classes withing python code in Kpi.
 
 URL Pattern | View Class or Function | Description
 -- | -- | --

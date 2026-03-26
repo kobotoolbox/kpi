@@ -175,7 +175,7 @@ class KpiObjectPermissionsFilter(filters.BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
 
         user = request.user
-        if user.is_superuser and view.action != 'list':
+        if user.is_superuser and view.detail:
             # For a list, we won't deluge the superuser with everyone else's
             # stuff. This isn't a list, though, so return it all
             return queryset
@@ -199,7 +199,7 @@ class KpiObjectPermissionsFilter(filters.BaseFilterBackend):
 
         owned_and_explicit_shared = self._get_owned_and_explicitly_shared(user)
 
-        if view.action != 'list':
+        if view.detail:
             # Not a list, so discoverability doesn't matter
             assets = owned_and_explicit_shared.union(self._get_publics())
             return queryset.filter(pk__in=assets)
@@ -365,7 +365,9 @@ class KpiObjectPermissionsFilter(filters.BaseFilterBackend):
             perms = ObjectPermission.objects.filter(
                 deny=False,
                 user=user,
-                permission_id=view_asset_perm_id)
+                permission_id=view_asset_perm_id,
+                asset__owner__is_active=True,
+            )
 
         return perms.values('asset')
 

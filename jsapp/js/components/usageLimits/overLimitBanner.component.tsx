@@ -90,6 +90,7 @@ function getMessage(
 const OverLimitBanner = (props: OverLimitBannerProps) => {
   const navigate = useNavigate()
 
+  // Careful: using `useOrganizationAssumed` because parent component `LimitNotifications` will handle fetching it.
   const [organization] = useOrganizationAssumed()
 
   if (!envStore.isReady || !subscriptionStore.isInitialised || !props.limits.length) {

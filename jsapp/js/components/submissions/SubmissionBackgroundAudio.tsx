@@ -46,7 +46,7 @@ export default function SubmissionBackgroundAudio(props: SubmissionBackgroundAud
             <AttachmentActionsDropdown
               asset={props.asset}
               attachmentUid={props.audio.uid}
-              submissionData={props.submission}
+              submission={props.submission}
               onDeleted={() => {
                 props.onDeleted()
               }}

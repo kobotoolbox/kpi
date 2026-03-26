@@ -122,6 +122,7 @@ export const simpleSurveyAsset = {
   permissions: [],
   export_settings: [],
   data_sharing: {},
+  files: [],
 } as const satisfies AssetResponse
 
 export const simpleSurveySubmission = {
@@ -343,6 +344,7 @@ export const repeatSurveyAsset = {
   permissions: [],
   export_settings: [],
   data_sharing: {},
+  files: [],
 } as const satisfies AssetResponse
 
 // NOTE: the second repeat submission has no First_name and Middle_name to test stuff better
@@ -542,6 +544,7 @@ export const nestedRepeatSurveyAsset = {
   permissions: [],
   export_settings: [],
   data_sharing: {},
+  files: [],
 } as const satisfies AssetResponse
 
 export const nestedRepeatSurveySubmission = {
@@ -837,6 +840,7 @@ export const matrixSurveyAsset = {
   permissions: [],
   export_settings: [],
   data_sharing: {},
+  files: [],
 } as const satisfies AssetResponse
 
 export const matrixSurveySubmission = {
@@ -1139,6 +1143,7 @@ export const groupsSurveyAsset = {
   permissions: [],
   export_settings: [],
   data_sharing: {},
+  files: [],
 } as const satisfies AssetResponse
 
 export const groupsSurveySubmission = {
@@ -1720,6 +1725,7 @@ export const everythingSurveyAsset = {
   permissions: [],
   export_settings: [],
   data_sharing: {},
+  files: [],
 } as const satisfies AssetResponse
 
 export const everythingSurveySubmission = {
@@ -2173,6 +2179,7 @@ export const matrixRepeatSurveyAsset = {
   permissions: [],
   export_settings: [],
   data_sharing: {},
+  files: [],
 } as const satisfies AssetResponse
 
 export const matrixRepeatSurveySubmission = {
@@ -2525,7 +2532,7 @@ export const assetWithSupplementalDetails = {
     qual: {
       qual_survey: [
         {
-          type: 'qual_text',
+          type: 'qualText',
           uuid: 'ab0e40e1-fbcc-43e9-9d00-b9b3314089cb',
           xpath: 'Use_the_camera_s_mic_ne_to_record_a_sound',
           scope: 'by_question#survey',
@@ -2534,7 +2541,7 @@ export const assetWithSupplementalDetails = {
           },
         },
         {
-          type: 'qual_integer',
+          type: 'qualInteger',
           uuid: '97fd5387-ac2b-4108-b5b4-37fa91ae0e22',
           xpath: 'Use_the_camera_s_mic_ne_to_record_a_sound',
           scope: 'by_question#survey',
@@ -2543,7 +2550,7 @@ export const assetWithSupplementalDetails = {
           },
         },
         {
-          type: 'qual_tags',
+          type: 'qualTags',
           uuid: 'b05f29f7-8b58-4dd7-8695-c29cb04f3f7a',
           xpath: 'Use_the_camera_s_mic_ne_to_record_a_sound',
           scope: 'by_question#survey',
@@ -2552,7 +2559,7 @@ export const assetWithSupplementalDetails = {
           },
         },
         {
-          type: 'qual_select_multiple',
+          type: 'qualSelectMultiple',
           uuid: '1a89e0da-3344-4b5d-b919-ab8b072e0918',
           xpath: 'Use_the_camera_s_mic_ne_to_record_a_sound',
           scope: 'by_question#survey',
@@ -2581,7 +2588,7 @@ export const assetWithSupplementalDetails = {
           ],
         },
         {
-          type: 'qual_auto_keyword_count',
+          type: 'qualAutoKeywordCount',
           uuid: 'd4813284-d928-43b7-bde5-133eabe76024',
           xpath: 'Use_the_camera_s_mic_ne_to_record_a_sound',
           scope: 'by_question#survey',
@@ -2590,7 +2597,7 @@ export const assetWithSupplementalDetails = {
           },
         },
         {
-          type: 'qual_tags',
+          type: 'qualTags',
           uuid: '056c8f57-0733-4669-a84e-aa9726ffbf6b',
           xpath: 'Use_the_camera_s_mic_ne_to_record_a_sound',
           scope: 'by_question#survey',
@@ -2601,288 +2608,71 @@ export const assetWithSupplementalDetails = {
       ],
     },
   },
-  advanced_submission_schema: {
-    type: 'object',
-    $description:
-      'PATCH or POST a matching JSON structure to a submission and it will be stored and processed accordingly.',
-    url: 'http://kf.kobo.local/advanced_submission_post/aDDywpeYGnvuDLTeiveyxZ',
-    properties: {
-      submission: {
-        type: 'string',
-        description: 'the uuid of the submission',
-      },
-      A_video_WTF: {
-        type: 'object',
-        properties: {
-          transcript: {
-            $ref: '#/definitions/transcript',
-          },
-          translated: {
-            $ref: '#/definitions/translation',
-          },
-        },
-        additionalProperties: false,
-      },
-      Secret_password_as_an_audio_file: {
-        type: 'object',
-        properties: {
-          transcript: {
-            $ref: '#/definitions/transcript',
-          },
-          translated: {
-            $ref: '#/definitions/translation',
-          },
-        },
-        additionalProperties: false,
-      },
-      Your_name_here: {
-        type: 'object',
-        properties: {
-          translated: {
-            $ref: '#/definitions/translation',
-          },
-        },
-        additionalProperties: false,
-      },
-    },
-    additionalProperties: false,
-    required: ['submission'],
-    definitions: {
-      transcript: {
-        type: 'object',
-        properties: {
-          value: {
-            type: 'string',
-          },
-          engine: {
-            type: 'string',
-          },
-          dateCreated: {
-            type: 'string',
-            format: 'date-time',
-          },
-          dateModified: {
-            type: 'string',
-            format: 'date-time',
-          },
-          languageCode: {
-            type: 'string',
-          },
-          revisions: {
-            type: 'array',
-            items: {
-              $ref: '#/definitions/transcriptRevision',
-            },
-          },
-        },
-        additionalProperties: false,
-        required: ['value'],
-      },
-      transcriptRevision: {
-        type: 'object',
-        properties: {
-          value: {
-            type: 'string',
-          },
-          engine: {
-            type: 'string',
-          },
-          dateModified: {
-            type: 'string',
-            format: 'date-time',
-          },
-          languageCode: {
-            type: 'string',
-          },
-        },
-        additionalProperties: false,
-        required: ['value'],
-      },
-      xtranslation: {
-        type: 'object',
-        additionalProperties: false,
-        required: ['value', 'languageCode'],
-        properties: {
-          value: {
-            type: 'string',
-          },
-          engine: {
-            type: 'string',
-          },
-          dateCreated: {
-            type: 'string',
-            format: 'date-time',
-          },
-          dateModified: {
-            type: 'string',
-            format: 'date-time',
-          },
-          languageCode: {
-            type: 'string',
-          },
-          revisions: {
-            type: 'array',
-            items: {
-              $ref: '#/definitions/translationRevision',
-            },
-          },
-        },
-      },
-      translation: {
-        type: 'object',
-        properties: {
-          pl: {
-            $ref: '#/definitions/xtranslation',
-          },
-          de: {
-            $ref: '#/definitions/xtranslation',
-          },
-        },
-        additionalProperties: false,
-      },
-      translationRevision: {
-        type: 'object',
-        properties: {
-          value: {
-            type: 'string',
-          },
-          engine: {
-            type: 'string',
-          },
-          dateModified: {
-            type: 'string',
-            format: 'date-time',
-          },
-          languageCode: {
-            type: 'string',
-          },
-        },
-        additionalProperties: false,
-        required: ['value'],
-      },
-    },
-  },
   analysis_form_json: {
-    engines: {
-      'engines/transcript_manual': {
-        details: 'A human provided transcription',
-      },
-      'engines/translated': {
-        details: 'A human provided translation',
-      },
-    },
     additional_fields: [
       {
         type: 'transcript',
         name: 'A_video_WTF/transcript',
         dtpath: 'A_video_WTF/transcript_pl',
-        xpath: 'A_video_WTF/transcript/pl',
         label: 'A_video_WTF - transcript',
         language: 'pl',
-        path: ['A_video_WTF', 'transcript'],
         source: 'A_video_WTF',
-        settings: {
-          mode: 'auto',
-          engine: 'engines/transcript_manual',
-        },
       },
       {
         type: 'transcript',
         name: 'Secret_password_as_an_audio_file/transcript',
         dtpath: 'Secret_password_as_an_audio_file/transcript_fr',
-        xpath: 'Secret_password_as_an_audio_file/transcript/fr',
         label: 'Secret_password_as_an_audio_file - transcript',
         language: 'fr',
-        path: ['Secret_password_as_an_audio_file', 'transcript'],
         source: 'Secret_password_as_an_audio_file',
-        settings: {
-          mode: 'auto',
-          engine: 'engines/transcript_manual',
-        },
       },
       {
         type: 'translation',
         name: 'Your_name_here/translation_pl',
         dtpath: 'Your_name_here/translation_pl',
-        xpath: 'Your_name_here/translation/pl',
         label: 'Your_name_here - translation (pl)',
         language: 'pl',
-        path: ['Your_name_here', 'translation_pl'],
         source: 'Your_name_here',
-        settings: {
-          mode: 'auto',
-          engine: 'engines/translated',
-        },
       },
       {
         type: 'translation',
         name: 'Your_name_here/translation_de',
         dtpath: 'Your_name_here/translation_de',
-        xpath: 'Your_name_here/translation/de',
         label: 'Your_name_here - translation (de)',
         language: 'de',
-        path: ['Your_name_here', 'translation_de'],
         source: 'Your_name_here',
-        settings: {
-          mode: 'auto',
-          engine: 'engines/translated',
-        },
       },
       {
         type: 'translation',
         name: 'A_video_WTF/translation_pl',
         dtpath: 'A_video_WTF/translation_pl',
-        xpath: 'A_video_WTF/translation/pl',
         label: 'A_video_WTF - translation (pl)',
         language: 'pl',
-        path: ['A_video_WTF', 'translation_pl'],
         source: 'A_video_WTF',
-        settings: {
-          mode: 'auto',
-          engine: 'engines/translated',
-        },
       },
       {
         type: 'translation',
         name: 'A_video_WTF/translation_de',
         dtpath: 'A_video_WTF/translation_de',
-        xpath: 'A_video_WTF/translation/de',
         label: 'A_video_WTF - translation (de)',
         language: 'de',
-        path: ['A_video_WTF', 'translation_de'],
         source: 'A_video_WTF',
-        settings: {
-          mode: 'auto',
-          engine: 'engines/translated',
-        },
       },
       {
         type: 'translation',
         name: 'Secret_password_as_an_audio_file/translation_pl',
         dtpath: 'Secret_password_as_an_audio_file/translation_pl',
-        xpath: 'Secret_password_as_an_audio_file/translation/pl',
         label: 'Secret_password_as_an_audio_file - translation (pl)',
         language: 'pl',
-        path: ['Secret_password_as_an_audio_file', 'translation_pl'],
         source: 'Secret_password_as_an_audio_file',
-        settings: {
-          mode: 'auto',
-          engine: 'engines/translated',
-        },
       },
       {
         type: 'translation',
         name: 'Secret_password_as_an_audio_file/translation_de',
         dtpath: 'Secret_password_as_an_audio_file/translation_de',
-        xpath: 'Secret_password_as_an_audio_file/translation/de',
         label: 'Secret_password_as_an_audio_file - translation (de)',
         language: 'de',
-        path: ['Secret_password_as_an_audio_file', 'translation_de'],
         source: 'Secret_password_as_an_audio_file',
-        settings: {
-          mode: 'auto',
-          engine: 'engines/translated',
-        },
       },
     ],
   },
@@ -2891,48 +2681,6 @@ export const assetWithSupplementalDetails = {
   content: {
     schema: '1',
     survey: [
-      {
-        name: 'start',
-        type: MetaQuestionTypeName.start,
-        $kuid: '8sHgNqqM9',
-        $autoname: 'start',
-      },
-      {
-        name: 'end',
-        type: MetaQuestionTypeName.end,
-        $kuid: 'VpPsXe5aq',
-        $autoname: 'end',
-      },
-      {
-        name: 'today',
-        type: MetaQuestionTypeName.today,
-        $kuid: 'HuEzX4mel',
-        $autoname: 'today',
-      },
-      {
-        name: 'username',
-        type: MetaQuestionTypeName.username,
-        $kuid: '4dINVeRnR',
-        $autoname: 'username',
-      },
-      {
-        name: 'deviceid',
-        type: MetaQuestionTypeName.deviceid,
-        $kuid: 'q8Rvs1sqk',
-        $autoname: 'deviceid',
-      },
-      {
-        name: 'phonenumber',
-        type: MetaQuestionTypeName.phonenumber,
-        $kuid: 'Oqbll19yc',
-        $autoname: 'phonenumber',
-      },
-      {
-        name: 'audit',
-        type: MetaQuestionTypeName.audit,
-        $kuid: '4Fbwq3mxP',
-        $autoname: 'audit',
-      },
       {
         name: 'Your_name_here',
         type: QuestionTypeName.text,
@@ -2964,21 +2712,6 @@ export const assetWithSupplementalDetails = {
         label: ['Secret password as an audio file'],
         required: false,
         $autoname: 'Secret_password_as_an_audio_file',
-      },
-      {
-        name: '__version__',
-        type: QuestionTypeName.calculate,
-        $kuid: 'Hd5Iz0aWv',
-        required: false,
-        $autoname: '__version__',
-        calculation: "'vhazs7e47xB9GYwY3tbYtS'",
-      },
-      {
-        name: '_version_',
-        type: QuestionTypeName.calculate,
-        $kuid: 'kU3D6JQPQ',
-        $autoname: '_version_',
-        calculation: "'vjtVxWH3Xmcoz6VFtqfbVr'",
       },
     ],
     settings: {
@@ -3120,6 +2853,7 @@ export const assetWithSupplementalDetails = {
   access_types: null,
   data_sharing: {},
   paired_data: 'http://kf.kobo.local/api/v2/assets/aDDywpeYGnvuDLTeiveyxZ/paired-data/',
+  files: [],
 } as const satisfies AssetResponse
 
 export const submissionWithSupplementalDetails = {
@@ -3193,134 +2927,1343 @@ export const submissionWithSupplementalDetails = {
           languageCode: 'pl',
         },
       },
-      qual: [
-        {
-          val: ['best', 'things', 'ever recorder by human', '3'],
-          type: 'qual_tags',
+      qual: {
+        'b05f29f7-8b58-4dd7-8695-c29cb04f3f7a': {
+          value: ['best', 'things', 'ever recorder by human', '3'],
+          type: 'qualTags',
           uuid: 'b05f29f7-8b58-4dd7-8695-c29cb04f3f7a',
           labels: { _default: 'Another tag question here?' },
           xpath: '',
+          verified: false,
+          source: 'manual',
         },
-        {
-          val: 12345,
-          type: 'qual_integer',
+        '97fd5387-ac2b-4108-b5b4-37fa91ae0e22': {
+          value: 12345,
+          type: 'qualInteger',
           uuid: '97fd5387-ac2b-4108-b5b4-37fa91ae0e22',
           labels: { _default: 'Another integer question here?' },
           xpath: '',
+          verified: false,
+          source: 'manual',
         },
-        {
-          val: 'a thing',
-          type: 'qual_text',
+        'ab0e40e1-fbcc-43e9-9d00-b9b3314089cb': {
+          value: 'a thing',
+          type: 'qualText',
           uuid: 'ab0e40e1-fbcc-43e9-9d00-b9b3314089cb',
           labels: { _default: 'Another text question here?' },
           xpath: '',
+          verified: false,
+          source: 'manual',
         },
-        {
-          val: [
+        '1a89e0da-3344-4b5d-b919-ab8b072e0918': {
+          value: [
             {
               labels: {
                 _default: 'First',
               },
-              val: 'b180037c-930b-4025-ba21-1d59ee07485d',
+              uuid: 'b180037c-930b-4025-ba21-1d59ee07485d',
             },
             {
               labels: {
                 _default: 'Third',
               },
-              val: 'fa63c403-2a26-426c-97d6-9b8cfc277545',
+              uuid: 'fa63c403-2a26-426c-97d6-9b8cfc277545',
             },
           ],
-          type: 'qual_select_multiple',
+          type: 'qualSelectMultiple',
           uuid: '1a89e0da-3344-4b5d-b919-ab8b072e0918',
           labels: { _default: 'Another select question here?' },
           xpath: '',
+          verified: false,
+          source: 'manual',
         },
-        {
-          val: ['wow', 'this works', 'f me', 'alpha beta gamma'],
-          type: 'qual_tags',
+        '056c8f57-0733-4669-a84e-aa9726ffbf6b': {
+          value: ['wow', 'this works', 'f me', 'alpha beta gamma'],
+          type: 'qualTags',
           uuid: '056c8f57-0733-4669-a84e-aa9726ffbf6b',
           labels: { _default: 'Another tag question here?' },
           xpath: '',
+          verified: false,
+          source: 'manual',
         },
-        {
-          val: {
+        '6f230992-b0c4-4cf4-a4a3-a5bd5b50ab4d': {
+          value: {
             labels: {
               _default: 'Yes',
             },
-            val: '33f4e83d-4bd7-4dbc-b80b-94cac72944fb',
+            uuid: '33f4e83d-4bd7-4dbc-b80b-94cac72944fb',
           },
-          type: 'qual_select_one',
+          type: 'qualSelectOne',
           uuid: '6f230992-b0c4-4cf4-a4a3-a5bd5b50ab4d',
           labels: { _default: 'Another select question here?' },
           xpath: '',
+          verified: false,
+          source: 'manual',
         },
-      ],
+      },
     },
   },
 } as const satisfies SubmissionResponse
 
+export const supplementalDetailsSurveyDisplayData = {
+  type: DisplayGroupTypeName.group_root,
+  label: null,
+  name: null,
+  xpathNodes: [],
+  children: [
+    {
+      data: 'David',
+      label: 'Your name here',
+      name: 'Your_name_here',
+      type: QuestionTypeName.text,
+      xpath: 'Your_name_here',
+    },
+    {
+      data: null,
+      label: 'translation (pl) | Your name here',
+      name: '_supplementalDetails/Your_name_here/translation_pl',
+      type: null,
+      xpath: 'Your_name_here/translation_pl',
+    },
+    {
+      data: null,
+      label: 'translation (de) | Your name here',
+      name: '_supplementalDetails/Your_name_here/translation_de',
+      type: null,
+      xpath: 'Your_name_here/translation_de',
+    },
+    {
+      data: null,
+      label: 'Your selfie goes here',
+      name: 'Your_selfie_goes_here',
+      type: QuestionTypeName.image,
+      xpath: 'Your_selfie_goes_here',
+    },
+    {
+      data: null,
+      label: 'A video? WTF',
+      name: 'A_video_WTF',
+      type: QuestionTypeName.video,
+      xpath: 'A_video_WTF',
+    },
+    {
+      data: null,
+      label: 'transcript (pl) | A video? WTF',
+      name: '_supplementalDetails/A_video_WTF/transcript_pl',
+      type: null,
+      xpath: 'A_video_WTF/transcript_pl',
+    },
+    {
+      data: null,
+      label: 'translation (pl) | A video? WTF',
+      name: '_supplementalDetails/A_video_WTF/translation_pl',
+      type: null,
+      xpath: 'A_video_WTF/translation_pl',
+    },
+    {
+      data: null,
+      label: 'translation (de) | A video? WTF',
+      name: '_supplementalDetails/A_video_WTF/translation_de',
+      type: null,
+      xpath: 'A_video_WTF/translation_de',
+    },
+    {
+      data: '8BP076-09-rushjet1-unknown_sector-12_42_20.mp3',
+      label: 'Secret password as an audio file',
+      name: 'Secret_password_as_an_audio_file',
+      type: QuestionTypeName.audio,
+      xpath: 'Secret_password_as_an_audio_file',
+    },
+    {
+      data: 'This is french transcript text.',
+      label: 'transcript (fr) | Secret password as an audio file',
+      name: '_supplementalDetails/Secret_password_as_an_audio_file/transcript_fr',
+      type: null,
+      xpath: 'Secret_password_as_an_audio_file/transcript_fr',
+    },
+    {
+      data: 'This is polish translation text.',
+      label: 'translation (pl) | Secret password as an audio file',
+      name: '_supplementalDetails/Secret_password_as_an_audio_file/translation_pl',
+      type: null,
+      xpath: 'Secret_password_as_an_audio_file/translation_pl',
+    },
+    {
+      data: 'This is german translation text.',
+      label: 'translation (de) | Secret password as an audio file',
+      name: '_supplementalDetails/Secret_password_as_an_audio_file/translation_de',
+      type: null,
+      xpath: 'Secret_password_as_an_audio_file/translation_de',
+    },
+  ],
+} as const satisfies DisplayGroup
+
+export const assetWithNestedSupplementalDetails = {
+  url: 'http://kf.local.kbtdev.org/api/v2/assets/ah7XL93RtfHaY6PHjaSszu/',
+  owner: 'http://kf.local.kbtdev.org/api/v2/users/uu/',
+  owner__username: 'uu',
+  parent: null,
+  settings: {
+    sector: {},
+    country: [],
+    description: '',
+    collects_pii: null,
+    organization: '',
+    country_codes: [],
+    operational_purpose: null,
+  },
+  asset_type: AssetTypeName.survey,
+  files: [],
+  summary: {
+    geo: false,
+    labels: ['sound'],
+    columns: ['type', 'label', 'required'],
+    lock_all: false,
+    lock_any: false,
+    languages: [],
+    row_count: 1,
+    name_quality: {
+      ok: 1,
+      bad: 0,
+      good: 0,
+      total: 1,
+      firsts: {
+        ok: {
+          name: 'sound',
+          index: 1,
+          label: ['sound'],
+        },
+      },
+    },
+    default_translation: null,
+  },
+  date_created: '2026-03-14T09:16:12.770849Z',
+  date_modified: '2026-03-14T09:19:35.318371Z',
+  date_deployed: '2026-03-14T09:18:47.815527Z',
+  version_id: 'vLDsMjX5Lfk9D6Ean3j6Kx',
+  version__content_hash: '0b8d35af89f2dd225aa877fc2a32d21455de22eb',
+  version_count: 3,
+  has_deployment: true,
+  deployed_version_id: 'vKv4GrbV5Yvgy8xhSuEDTw',
+  deployed_versions: {
+    count: 1,
+    next: null,
+    previous: null,
+    results: [
+      {
+        uid: 'vKv4GrbV5Yvgy8xhSuEDTw',
+        url: 'http://kf.local.kbtdev.org/api/v2/assets/ah7XL93RtfHaY6PHjaSszu/versions/vKv4GrbV5Yvgy8xhSuEDTw/',
+        content_hash: '0b8d35af89f2dd225aa877fc2a32d21455de22eb',
+        date_deployed: '2026-03-14T09:18:47.806Z',
+        date_modified: '2026-03-14T09:18:47.806Z',
+      },
+    ],
+  },
+  deployment__links: {
+    url: 'http://ee.local.kbtdev.org/1I1C6QVT',
+    single_url: 'http://ee.local.kbtdev.org/single/1I1C6QVT',
+    single_once_url: 'http://ee.local.kbtdev.org/single/362bfb464b3be795c7a3710e4fa3f354',
+    offline_url: 'http://ee.local.kbtdev.org/x/1I1C6QVT',
+    preview_url: 'http://ee.local.kbtdev.org/preview/1I1C6QVT',
+    iframe_url: 'http://ee.local.kbtdev.org/i/1I1C6QVT',
+    single_iframe_url: 'http://ee.local.kbtdev.org/single/i/1I1C6QVT',
+    single_once_iframe_url: 'http://ee.local.kbtdev.org/single/i/362bfb464b3be795c7a3710e4fa3f354',
+  },
+  deployment__active: true,
+  deployment__data_download_links: {
+    xls_legacy: 'http://kc.local.kbtdev.org/uu/exports/ah7XL93RtfHaY6PHjaSszu/xls/',
+    csv_legacy: 'http://kc.local.kbtdev.org/uu/exports/ah7XL93RtfHaY6PHjaSszu/csv/',
+    zip_legacy: 'http://kc.local.kbtdev.org/uu/exports/ah7XL93RtfHaY6PHjaSszu/zip/',
+    kml_legacy: 'http://kc.local.kbtdev.org/uu/exports/ah7XL93RtfHaY6PHjaSszu/kml/',
+    xls: 'http://kc.local.kbtdev.org/uu/reports/ah7XL93RtfHaY6PHjaSszu/export.xlsx',
+    csv: 'http://kc.local.kbtdev.org/uu/reports/ah7XL93RtfHaY6PHjaSszu/export.csv',
+  },
+  deployment__submission_count: 1,
+  deployment__last_submission_time: '2026-03-14T09:19:26.655Z',
+  deployment__encrypted: false,
+  deployment__uuid: 'dc381e94ebda4b928472314b7d0ec5e0',
+  deployment_status: 'deployed',
+  report_styles: {
+    default: {},
+    specified: {
+      level_a: {},
+      level_b: {},
+      level_c: {},
+      ne3yl16: {},
+      '/gr2gy72': {},
+      '/mv1df89': {},
+      '/np3ms98': {},
+    },
+    kuid_names: {
+      level_a: 'mv1df89',
+      level_b: 'gr2gy72',
+      level_c: 'np3ms98',
+      ne3yl16: 'ne3yl16',
+      '/gr2gy72': '/gr2gy72',
+      '/mv1df89': '/mv1df89',
+      '/np3ms98': '/np3ms98',
+    },
+  },
+  report_custom: {},
+  advanced_features: {
+    _version: '20250820',
+  },
+  map_styles: {},
+  map_custom: {},
+  content: {
+    schema: '1',
+    survey: [
+      {
+        name: 'level_a',
+        type: GroupTypeBeginName.begin_group,
+        $kuid: 'mv1df89',
+        label: ['Level A'],
+        $xpath: 'level_a',
+        $autoname: 'level_a',
+      },
+      {
+        name: 'level_b',
+        type: GroupTypeBeginName.begin_group,
+        $kuid: 'gr2gy72',
+        label: ['Level B'],
+        $xpath: 'level_a/level_b',
+        $autoname: 'level_b',
+      },
+      {
+        name: 'level_c',
+        type: GroupTypeBeginName.begin_group,
+        $kuid: 'np3ms98',
+        label: ['Level C'],
+        $xpath: 'level_a/level_b/level_c',
+        $autoname: 'level_c',
+      },
+      {
+        type: QuestionTypeName.audio,
+        $kuid: 'ne3yl16',
+        label: ['sound'],
+        $xpath: 'level_a/level_b/level_c/sound',
+        required: false,
+        $autoname: 'sound',
+      },
+      {
+        type: GroupTypeEndName.end_group,
+        $kuid: '/np3ms98',
+      },
+      {
+        type: GroupTypeEndName.end_group,
+        $kuid: '/gr2gy72',
+      },
+      {
+        type: GroupTypeEndName.end_group,
+        $kuid: '/mv1df89',
+      },
+    ],
+    settings: {},
+    translated: ['label'],
+    translations: [null],
+  },
+  downloads: [
+    {
+      format: 'xls',
+      url: 'http://kf.local.kbtdev.org/api/v2/assets/ah7XL93RtfHaY6PHjaSszu.xls',
+    },
+    {
+      format: 'xml',
+      url: 'http://kf.local.kbtdev.org/api/v2/assets/ah7XL93RtfHaY6PHjaSszu.xml',
+    },
+  ],
+  embeds: [
+    {
+      format: 'xls',
+      url: 'http://kf.local.kbtdev.org/api/v2/assets/ah7XL93RtfHaY6PHjaSszu/xls/',
+    },
+    {
+      format: 'xform',
+      url: 'http://kf.local.kbtdev.org/api/v2/assets/ah7XL93RtfHaY6PHjaSszu/xform/',
+    },
+  ],
+  analysis_form_json: {
+    additional_fields: [
+      {
+        language: 'en',
+        source: 'level_a/level_b/level_c/sound',
+        type: 'transcript',
+        name: 'level_a/level_b/level_c/sound/transcript_en',
+        dtpath: 'level_a/level_b/level_c/sound/transcript_en',
+      },
+      {
+        language: 'fr',
+        source: 'level_a/level_b/level_c/sound',
+        type: 'translation',
+        name: 'level_a/level_b/level_c/sound/translation_fr',
+        dtpath: 'level_a/level_b/level_c/sound/translation_fr',
+      },
+      {
+        label: 'How many vowels were used?',
+        source: 'level_a/level_b/level_c/sound',
+        name: 'level_a/level_b/level_c/sound/9d75988b-7b69-48ec-921d-2ed15b9f5ca7',
+        type: 'qualInteger',
+        dtpath: 'level_a/level_b/level_c/sound/9d75988b-7b69-48ec-921d-2ed15b9f5ca7',
+      },
+      {
+        label: 'source',
+        source: 'level_a/level_b/level_c/sound/9d75988b-7b69-48ec-921d-2ed15b9f5ca7',
+        type: 'qualSource',
+        name: 'level_a/level_b/level_c/sound/9d75988b-7b69-48ec-921d-2ed15b9f5ca7/source',
+        dtpath: 'level_a/level_b/level_c/sound/9d75988b-7b69-48ec-921d-2ed15b9f5ca7/source',
+      },
+      {
+        label: 'verified',
+        source: 'level_a/level_b/level_c/sound/9d75988b-7b69-48ec-921d-2ed15b9f5ca7',
+        type: 'qualVerification',
+        name: 'level_a/level_b/level_c/sound/9d75988b-7b69-48ec-921d-2ed15b9f5ca7/verified',
+        dtpath: 'level_a/level_b/level_c/sound/9d75988b-7b69-48ec-921d-2ed15b9f5ca7/verified',
+      },
+    ],
+  },
+  xform_link: 'http://kf.local.kbtdev.org/api/v2/assets/ah7XL93RtfHaY6PHjaSszu/xform/',
+  hooks_link: 'http://kf.local.kbtdev.org/api/v2/assets/ah7XL93RtfHaY6PHjaSszu/hooks/',
+  tag_string: '',
+  uid: 'ah7XL93RtfHaY6PHjaSszu',
+  kind: 'asset',
+  xls_link: 'http://kf.local.kbtdev.org/api/v2/assets/ah7XL93RtfHaY6PHjaSszu/xls/',
+  name: 'audio with qual and nested',
+  assignable_permissions: [
+    {
+      url: 'http://kf.local.kbtdev.org/api/v2/permissions/view_asset/',
+      label: 'View form',
+    },
+    {
+      url: 'http://kf.local.kbtdev.org/api/v2/permissions/change_asset/',
+      label: 'Edit form',
+    },
+    {
+      url: 'http://kf.local.kbtdev.org/api/v2/permissions/manage_asset/',
+      label: 'Manage project',
+    },
+    {
+      url: 'http://kf.local.kbtdev.org/api/v2/permissions/add_submissions/',
+      label: 'Add submissions',
+    },
+    {
+      url: 'http://kf.local.kbtdev.org/api/v2/permissions/view_submissions/',
+      label: 'View submissions',
+    },
+    {
+      url: 'http://kf.local.kbtdev.org/api/v2/permissions/partial_submissions/',
+      label: {
+        default: 'Act on submissions only from specific users',
+        view_submissions: 'View submissions only from specific users',
+        change_submissions: 'Edit submissions only from specific users',
+        delete_submissions: 'Delete submissions only from specific users',
+        validate_submissions: 'Validate submissions only from specific users',
+      },
+    },
+    {
+      url: 'http://kf.local.kbtdev.org/api/v2/permissions/change_submissions/',
+      label: 'Edit submissions',
+    },
+    {
+      url: 'http://kf.local.kbtdev.org/api/v2/permissions/delete_submissions/',
+      label: 'Delete submissions',
+    },
+    {
+      url: 'http://kf.local.kbtdev.org/api/v2/permissions/validate_submissions/',
+      label: 'Validate submissions',
+    },
+  ],
+  permissions: [
+    {
+      url: 'http://kf.local.kbtdev.org/api/v2/assets/ah7XL93RtfHaY6PHjaSszu/permission-assignments/p2Ez7bGEYWWpCBuPg5ExqC/',
+      user: 'http://kf.local.kbtdev.org/api/v2/users/AnonymousUser/',
+      permission: 'http://kf.local.kbtdev.org/api/v2/permissions/add_submissions/',
+      label: 'Add submissions',
+    },
+    {
+      url: 'http://kf.local.kbtdev.org/api/v2/assets/ah7XL93RtfHaY6PHjaSszu/permission-assignments/pqLcsBrHmJnqxcYZrvQSnr/',
+      user: 'http://kf.local.kbtdev.org/api/v2/users/uu/',
+      permission: 'http://kf.local.kbtdev.org/api/v2/permissions/add_submissions/',
+      label: 'Add submissions',
+    },
+    {
+      url: 'http://kf.local.kbtdev.org/api/v2/assets/ah7XL93RtfHaY6PHjaSszu/permission-assignments/p6AoZTSjFrZJ9qKD9xnyUh/',
+      user: 'http://kf.local.kbtdev.org/api/v2/users/uu/',
+      permission: 'http://kf.local.kbtdev.org/api/v2/permissions/change_asset/',
+      label: 'Edit form',
+    },
+    {
+      url: 'http://kf.local.kbtdev.org/api/v2/assets/ah7XL93RtfHaY6PHjaSszu/permission-assignments/pRPmV7Ydnua787gmbPfBt9/',
+      user: 'http://kf.local.kbtdev.org/api/v2/users/uu/',
+      permission: 'http://kf.local.kbtdev.org/api/v2/permissions/change_submissions/',
+      label: 'Edit submissions',
+    },
+    {
+      url: 'http://kf.local.kbtdev.org/api/v2/assets/ah7XL93RtfHaY6PHjaSszu/permission-assignments/pXNMxZCKb9WFYjVCiZC5zk/',
+      user: 'http://kf.local.kbtdev.org/api/v2/users/uu/',
+      permission: 'http://kf.local.kbtdev.org/api/v2/permissions/delete_submissions/',
+      label: 'Delete submissions',
+    },
+    {
+      url: 'http://kf.local.kbtdev.org/api/v2/assets/ah7XL93RtfHaY6PHjaSszu/permission-assignments/pBz8gwMhp7kSg84gK3oikf/',
+      user: 'http://kf.local.kbtdev.org/api/v2/users/uu/',
+      permission: 'http://kf.local.kbtdev.org/api/v2/permissions/manage_asset/',
+      label: 'Manage project',
+    },
+    {
+      url: 'http://kf.local.kbtdev.org/api/v2/assets/ah7XL93RtfHaY6PHjaSszu/permission-assignments/pA98aZjeDYqhRurFqkKDKN/',
+      user: 'http://kf.local.kbtdev.org/api/v2/users/uu/',
+      permission: 'http://kf.local.kbtdev.org/api/v2/permissions/validate_submissions/',
+      label: 'Validate submissions',
+    },
+    {
+      url: 'http://kf.local.kbtdev.org/api/v2/assets/ah7XL93RtfHaY6PHjaSszu/permission-assignments/p5wgmNdYZh8GJr73ydhKiv/',
+      user: 'http://kf.local.kbtdev.org/api/v2/users/uu/',
+      permission: 'http://kf.local.kbtdev.org/api/v2/permissions/view_asset/',
+      label: 'View form',
+    },
+    {
+      url: 'http://kf.local.kbtdev.org/api/v2/assets/ah7XL93RtfHaY6PHjaSszu/permission-assignments/pFuQETa2HQLGe3oVBnE7Fh/',
+      user: 'http://kf.local.kbtdev.org/api/v2/users/uu/',
+      permission: 'http://kf.local.kbtdev.org/api/v2/permissions/view_submissions/',
+      label: 'View submissions',
+    },
+  ],
+  effective_permissions: [
+    {
+      codename: 'view_asset',
+    },
+    {
+      codename: 'view_submissions',
+    },
+    {
+      codename: 'validate_submissions',
+    },
+    {
+      codename: 'change_submissions',
+    },
+    {
+      codename: 'change_asset',
+    },
+    {
+      codename: 'manage_asset',
+    },
+    {
+      codename: 'delete_submissions',
+    },
+    {
+      codename: 'add_submissions',
+    },
+    {
+      codename: 'delete_asset',
+    },
+  ],
+  exports: 'http://kf.local.kbtdev.org/api/v2/assets/ah7XL93RtfHaY6PHjaSszu/exports/',
+  export_settings: [],
+  data: 'http://kf.local.kbtdev.org/api/v2/assets/ah7XL93RtfHaY6PHjaSszu/data/',
+  children: {
+    count: 0,
+  },
+  subscribers_count: 0,
+  status: 'shared',
+  access_types: null,
+  data_sharing: {},
+  paired_data: 'http://kf.local.kbtdev.org/api/v2/assets/ah7XL93RtfHaY6PHjaSszu/paired-data/',
+  project_ownership: null,
+  owner_label: "uu's organization",
+  last_modified_by: 'uu',
+} as const satisfies AssetResponse
+
 export const submissionWithNestedSupplementalDetails = {
-  _id: 77,
-  'formhub/uuid': '54445e08ab6d4011ae648adc6ae8c9bc',
-  start: '2025-03-27T16:49:25.353+01:00',
-  end: '2025-03-27T16:49:37.202+01:00',
-  'level_a/level_b/level_c/sounds': 'test-spoken-16_49_36.m4a',
-  __version__: 'v64akAvRrHhkMpxFysVGcK',
-  'meta/instanceID': 'uuid:64c7fe7c-4542-472d-8eab-6e42f68c7a0b',
-  _xform_id_string: 'aw6mhS4KnoG5E8EbQp9KgF',
-  _uuid: '64c7fe7c-4542-472d-8eab-6e42f68c7a0b',
-  'meta/rootUuid': 'uuid:64c7fe7c-4542-472d-8eab-6e42f68c7a0b',
+  _id: 84,
+  'formhub/uuid': 'dc381e94ebda4b928472314b7d0ec5e0',
+  'level_a/level_b/level_c/sound': 'test-spoken.m4a',
+  __version__: 'vKv4GrbV5Yvgy8xhSuEDTw',
+  'meta/instanceID': 'uuid:3d3469d5-07c5-47bc-a7fb-436284c5870e',
+  _xform_id_string: 'ah7XL93RtfHaY6PHjaSszu',
+  _uuid: '3d3469d5-07c5-47bc-a7fb-436284c5870e',
+  'meta/rootUuid': 'uuid:3d3469d5-07c5-47bc-a7fb-436284c5870e',
   _attachments: [
     {
-      download_url: 'http://kf.kobo.local/api/v2/assets/aw6mhS4KnoG5E8EbQp9KgF/data/77/attachments/70/',
-      download_large_url: 'http://kf.kobo.local/api/v2/assets/aw6mhS4KnoG5E8EbQp9KgF/data/77/attachments/70/',
-      download_medium_url: 'http://kf.kobo.local/api/v2/assets/aw6mhS4KnoG5E8EbQp9KgF/data/77/attachments/70/',
-      download_small_url: 'http://kf.kobo.local/api/v2/assets/aw6mhS4KnoG5E8EbQp9KgF/data/77/attachments/70/',
+      download_url:
+        'http://kf.local.kbtdev.org/api/v2/assets/ah7XL93RtfHaY6PHjaSszu/data/84/attachments/atthgV9fRxpxcKyfLMie4zae/',
       mimetype: 'audio/x-m4a',
-      filename:
-        'zefir/attachments/54445e08ab6d4011ae648adc6ae8c9bc/64c7fe7c-4542-472d-8eab-6e42f68c7a0b/test-spoken-16_49_36.m4a',
-      uid: 'aw6mhS4KnoG5E8EbQp9KgP',
-      question_xpath: 'level_a/level_b/level_c/sounds',
-      media_file_basename: 'test-spoken-16_49_36.m4a',
+      filename: 'uu/attachments/dc381e94ebda4b928472314b7d0ec5e0/3d3469d5-07c5-47bc-a7fb-436284c5870e/test-spoken.m4a',
+      media_file_basename: 'test-spoken.m4a',
+      uid: 'atthgV9fRxpxcKyfLMie4zae',
+      is_deleted: false,
+      question_xpath: 'level_a/level_b/level_c/sound',
     },
   ],
   _status: 'submitted_via_web',
   _geolocation: [null, null],
-  _submission_time: '2025-03-27T15:49:38',
+  _submission_time: '2026-03-14T09:19:26',
   _tags: [],
   _notes: [],
   _validation_status: {},
   _submitted_by: null,
   _supplementalDetails: {
-    'level_a/level_b/level_c/sounds': {
-      qual: [
-        {
-          val: ['first', 'second', 'third', 'fourth', 'fifth'],
-          type: 'qual_tags',
-          uuid: '5dc7f202-8103-43a8-a48f-8f9b3c8f955f',
-          scope: 'by_question#survey',
-          xpath: 'level_a/level_b/level_c/sounds',
-          labels: {
-            _default: 'What kind?',
-          },
-        },
-      ],
-      transcript: {
-        value: 'How are you doing my dear friend?',
-        revisions: [],
-        dateCreated: '2025-03-27 15:49:59',
-        dateModified: '2025-03-27 15:49:59',
-        languageCode: 'en',
-      },
+    'level_a/level_b/level_c/sound': {
       translation: {
         fr: {
-          value: 'Comment vas-tu mon cher ami?',
-          revisions: [],
-          dateCreated: '2025-03-27T15:50:09Z',
-          dateModified: '2025-03-27T15:50:09Z',
           languageCode: 'fr',
+          value: 'Comment vas-tu mon cher ami?',
+        },
+      },
+      transcript: {
+        languageCode: 'en',
+        value: 'How are you doing my dear friend?',
+        regionCode: null,
+      },
+      qual: {
+        '9d75988b-7b69-48ec-921d-2ed15b9f5ca7': {
+          uuid: '9d75988b-7b69-48ec-921d-2ed15b9f5ca7',
+          value: 11,
+          type: 'qualInteger',
+          xpath: 'level_a/level_b/level_c/sound',
+          labels: {
+            _default: 'How many vowels were used?',
+          },
+          verified: false,
+          source: 'generated with AI',
         },
       },
     },
   },
 } as const satisfies SubmissionResponse
+
+export const nestedSupplementalDetailsSurveyDisplayData = {
+  label: null,
+  name: null,
+  type: DisplayGroupTypeName.group_root,
+  xpathNodes: [],
+  children: [
+    {
+      label: 'Level A',
+      name: 'level_a',
+      type: DisplayGroupTypeName.group_regular,
+      xpathNodes: [],
+      children: [
+        {
+          label: 'Level B',
+          name: 'level_b',
+          type: DisplayGroupTypeName.group_regular,
+          xpathNodes: [{ childIndex: null, childrenAreRepeatable: false, path: 'level_a' }],
+          children: [
+            {
+              label: 'Level C',
+              name: 'level_c',
+              type: DisplayGroupTypeName.group_regular,
+              xpathNodes: [
+                { childIndex: null, childrenAreRepeatable: false, path: 'level_a' },
+                { childIndex: null, childrenAreRepeatable: false, path: 'level_b' },
+              ],
+              children: [
+                {
+                  data: 'test-spoken.m4a',
+                  label: 'sound',
+                  name: 'sound',
+                  type: QuestionTypeName.audio,
+                  xpath: 'level_a/level_b/level_c/sound',
+                },
+                {
+                  data: 'How are you doing my dear friend?',
+                  label: 'transcript (en) | sound',
+                  name: '_supplementalDetails/level_a/level_b/level_c/sound/transcript_en',
+                  type: null,
+                  xpath: 'level_a/level_b/level_c/sound/transcript_en',
+                },
+                {
+                  data: 'Comment vas-tu mon cher ami?',
+                  label: 'translation (fr) | sound',
+                  name: '_supplementalDetails/level_a/level_b/level_c/sound/translation_fr',
+                  type: null,
+                  xpath: 'level_a/level_b/level_c/sound/translation_fr',
+                },
+                {
+                  data: '11',
+                  label: 'How many vowels were used? | sound',
+                  name: '_supplementalDetails/level_a/level_b/level_c/sound/9d75988b-7b69-48ec-921d-2ed15b9f5ca7',
+                  type: null,
+                  xpath: 'level_a/level_b/level_c/sound/9d75988b-7b69-48ec-921d-2ed15b9f5ca7',
+                },
+                {
+                  data: 'No',
+                  label: 'Verified | How many vowels were used? | sound',
+                  name: '_supplementalDetails/level_a/level_b/level_c/sound/9d75988b-7b69-48ec-921d-2ed15b9f5ca7/verified',
+                  type: null,
+                  xpath: 'level_a/level_b/level_c/sound/9d75988b-7b69-48ec-921d-2ed15b9f5ca7/verified',
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  ],
+} as const satisfies DisplayGroup
+
+export const assetWithAllQual = {
+  url: 'http://kf.local.kbtdev.org/api/v2/assets/aHr9cvC5c9zRvBukogQyio/',
+  owner: 'http://kf.local.kbtdev.org/api/v2/users/uu/',
+  owner__username: 'uu',
+  parent: null,
+  settings: {
+    sector: {},
+    country: [],
+    description: '',
+    collects_pii: null,
+    organization: '',
+    country_codes: [],
+    operational_purpose: null,
+  },
+  asset_type: AssetTypeName.survey,
+  files: [],
+  summary: {
+    geo: false,
+    labels: ['Record a sound'],
+    columns: ['type', 'label', 'required'],
+    lock_all: false,
+    lock_any: false,
+    languages: [],
+    row_count: 1,
+    name_quality: {
+      ok: 1,
+      bad: 0,
+      good: 0,
+      total: 1,
+      firsts: {
+        ok: {
+          name: 'Record_a_sound',
+          index: 1,
+          label: ['Record a sound'],
+        },
+      },
+    },
+    default_translation: null,
+  },
+  date_created: '2026-03-12T13:40:26.252978Z',
+  date_modified: '2026-03-12T13:40:42.801780Z',
+  date_deployed: '2026-03-12T13:40:42.801672Z',
+  version_id: 'vvcsjakV9xJwGmq7ttLW2f',
+  version__content_hash: 'e097393df24729ae15e9525448aa96a7fe3b9d37',
+  version_count: 2,
+  has_deployment: true,
+  deployed_version_id: 'vvcsjakV9xJwGmq7ttLW2f',
+  deployed_versions: {
+    count: 1,
+    next: null,
+    previous: null,
+    results: [
+      {
+        uid: 'vvcsjakV9xJwGmq7ttLW2f',
+        url: 'http://kf.local.kbtdev.org/api/v2/assets/aHr9cvC5c9zRvBukogQyio/versions/vvcsjakV9xJwGmq7ttLW2f/',
+        content_hash: 'e097393df24729ae15e9525448aa96a7fe3b9d37',
+        date_deployed: '2026-03-12T13:40:42.793Z',
+        date_modified: '2026-03-12T13:40:42.793Z',
+      },
+    ],
+  },
+  deployment__links: {
+    url: 'http://ee.local.kbtdev.org/MXIRxRYd',
+    single_url: 'http://ee.local.kbtdev.org/single/MXIRxRYd',
+    single_once_url: 'http://ee.local.kbtdev.org/single/6837186b3fd6e943be5c5814675b5187',
+    offline_url: 'http://ee.local.kbtdev.org/x/MXIRxRYd',
+    preview_url: 'http://ee.local.kbtdev.org/preview/MXIRxRYd',
+    iframe_url: 'http://ee.local.kbtdev.org/i/MXIRxRYd',
+    single_iframe_url: 'http://ee.local.kbtdev.org/single/i/MXIRxRYd',
+    single_once_iframe_url: 'http://ee.local.kbtdev.org/single/i/6837186b3fd6e943be5c5814675b5187',
+  },
+  deployment__active: true,
+  deployment__data_download_links: {
+    xls_legacy: 'http://kc.local.kbtdev.org/uu/exports/aHr9cvC5c9zRvBukogQyio/xls/',
+    csv_legacy: 'http://kc.local.kbtdev.org/uu/exports/aHr9cvC5c9zRvBukogQyio/csv/',
+    zip_legacy: 'http://kc.local.kbtdev.org/uu/exports/aHr9cvC5c9zRvBukogQyio/zip/',
+    kml_legacy: 'http://kc.local.kbtdev.org/uu/exports/aHr9cvC5c9zRvBukogQyio/kml/',
+    xls: 'http://kc.local.kbtdev.org/uu/reports/aHr9cvC5c9zRvBukogQyio/export.xlsx',
+    csv: 'http://kc.local.kbtdev.org/uu/reports/aHr9cvC5c9zRvBukogQyio/export.csv',
+  },
+  deployment__submission_count: 3,
+  deployment__last_submission_time: '2026-03-13T11:34:17.350Z',
+  deployment__encrypted: false,
+  deployment__uuid: '08f437fab2bf4c7398ace511ab2ac09e',
+  deployment_status: 'deployed',
+  report_styles: {
+    default: {},
+    specified: {
+      ry5ul43: {},
+    },
+    kuid_names: {
+      ry5ul43: 'ry5ul43',
+    },
+  },
+  report_custom: {},
+  advanced_features: {
+    _version: '20250820',
+  },
+  map_styles: {},
+  map_custom: {},
+  content: {
+    schema: '1',
+    survey: [
+      {
+        type: QuestionTypeName.audio,
+        $kuid: 'ry5ul43',
+        label: ['Record a sound'],
+        $xpath: 'Record_a_sound',
+        required: false,
+        $autoname: 'Record_a_sound',
+      },
+    ],
+    settings: {},
+    translated: ['label'],
+    translations: [null],
+  },
+  downloads: [
+    {
+      format: 'xls',
+      url: 'http://kf.local.kbtdev.org/api/v2/assets/aHr9cvC5c9zRvBukogQyio.xls',
+    },
+    {
+      format: 'xml',
+      url: 'http://kf.local.kbtdev.org/api/v2/assets/aHr9cvC5c9zRvBukogQyio.xml',
+    },
+  ],
+  embeds: [
+    {
+      format: 'xls',
+      url: 'http://kf.local.kbtdev.org/api/v2/assets/aHr9cvC5c9zRvBukogQyio/xls/',
+    },
+    {
+      format: 'xform',
+      url: 'http://kf.local.kbtdev.org/api/v2/assets/aHr9cvC5c9zRvBukogQyio/xform/',
+    },
+  ],
+  analysis_form_json: {
+    additional_fields: [
+      {
+        language: 'en',
+        source: 'Record_a_sound',
+        type: 'transcript',
+        name: 'Record_a_sound/transcript_en',
+        dtpath: 'Record_a_sound/transcript_en',
+      },
+      {
+        language: 'pl',
+        source: 'Record_a_sound',
+        type: 'translation',
+        name: 'Record_a_sound/translation_pl',
+        dtpath: 'Record_a_sound/translation_pl',
+      },
+      {
+        label: 'Favourite thing?',
+        source: 'Record_a_sound',
+        name: 'Record_a_sound/00bec76a-bcde-4a81-b203-36421b355cb4',
+        type: 'qualSelectMultiple',
+        dtpath: 'Record_a_sound/00bec76a-bcde-4a81-b203-36421b355cb4',
+        choices: [
+          {
+            uuid: 'a8bea451-73b3-443d-bd4e-203cf6cbe195',
+            labels: {
+              _default: 'Pizza',
+            },
+          },
+          {
+            uuid: '07c55932-e22c-4f98-8a75-2f6fe357f752',
+            labels: {
+              _default: 'Pie',
+            },
+          },
+          {
+            uuid: 'a640f40b-7f45-46ba-9fec-757618651492',
+            labels: {
+              _default: 'Pineapple',
+            },
+          },
+        ],
+      },
+      {
+        label: 'source',
+        source: 'Record_a_sound/00bec76a-bcde-4a81-b203-36421b355cb4',
+        type: 'qualSource',
+        name: 'Record_a_sound/00bec76a-bcde-4a81-b203-36421b355cb4/source',
+        dtpath: 'Record_a_sound/00bec76a-bcde-4a81-b203-36421b355cb4/source',
+      },
+      {
+        label: 'verified',
+        source: 'Record_a_sound/00bec76a-bcde-4a81-b203-36421b355cb4',
+        type: 'qualVerification',
+        name: 'Record_a_sound/00bec76a-bcde-4a81-b203-36421b355cb4/verified',
+        dtpath: 'Record_a_sound/00bec76a-bcde-4a81-b203-36421b355cb4/verified',
+      },
+      {
+        label: 'Which one?',
+        source: 'Record_a_sound',
+        name: 'Record_a_sound/5c9f3d58-6c8f-4b03-a064-a0cbf17c2c37',
+        type: 'qualSelectOne',
+        dtpath: 'Record_a_sound/5c9f3d58-6c8f-4b03-a064-a0cbf17c2c37',
+        choices: [
+          {
+            uuid: '3325b87a-4bd3-4ca2-a659-8a3b5ff0d395',
+            labels: {
+              _default: 'First',
+            },
+          },
+          {
+            uuid: '967d9411-eb8f-4e5f-b68a-cfe2b5f2197e',
+            labels: {
+              _default: 'Second',
+            },
+          },
+        ],
+      },
+      {
+        label: 'source',
+        source: 'Record_a_sound/5c9f3d58-6c8f-4b03-a064-a0cbf17c2c37',
+        type: 'qualSource',
+        name: 'Record_a_sound/5c9f3d58-6c8f-4b03-a064-a0cbf17c2c37/source',
+        dtpath: 'Record_a_sound/5c9f3d58-6c8f-4b03-a064-a0cbf17c2c37/source',
+      },
+      {
+        label: 'verified',
+        source: 'Record_a_sound/5c9f3d58-6c8f-4b03-a064-a0cbf17c2c37',
+        type: 'qualVerification',
+        name: 'Record_a_sound/5c9f3d58-6c8f-4b03-a064-a0cbf17c2c37/verified',
+        dtpath: 'Record_a_sound/5c9f3d58-6c8f-4b03-a064-a0cbf17c2c37/verified',
+      },
+      {
+        label: 'Your guess?',
+        source: 'Record_a_sound',
+        name: 'Record_a_sound/405993ae-e24f-4ba7-813b-873048586744',
+        type: 'qualInteger',
+        dtpath: 'Record_a_sound/405993ae-e24f-4ba7-813b-873048586744',
+      },
+      {
+        label: 'source',
+        source: 'Record_a_sound/405993ae-e24f-4ba7-813b-873048586744',
+        type: 'qualSource',
+        name: 'Record_a_sound/405993ae-e24f-4ba7-813b-873048586744/source',
+        dtpath: 'Record_a_sound/405993ae-e24f-4ba7-813b-873048586744/source',
+      },
+      {
+        label: 'verified',
+        source: 'Record_a_sound/405993ae-e24f-4ba7-813b-873048586744',
+        type: 'qualVerification',
+        name: 'Record_a_sound/405993ae-e24f-4ba7-813b-873048586744/verified',
+        dtpath: 'Record_a_sound/405993ae-e24f-4ba7-813b-873048586744/verified',
+      },
+      {
+        label: 'Categories hm?',
+        source: 'Record_a_sound',
+        name: 'Record_a_sound/23d8b58a-392b-4776-8a1a-65753b5d35af',
+        type: 'qualTags',
+        dtpath: 'Record_a_sound/23d8b58a-392b-4776-8a1a-65753b5d35af',
+      },
+      {
+        label: 'source',
+        source: 'Record_a_sound/23d8b58a-392b-4776-8a1a-65753b5d35af',
+        type: 'qualSource',
+        name: 'Record_a_sound/23d8b58a-392b-4776-8a1a-65753b5d35af/source',
+        dtpath: 'Record_a_sound/23d8b58a-392b-4776-8a1a-65753b5d35af/source',
+      },
+      {
+        label: 'verified',
+        source: 'Record_a_sound/23d8b58a-392b-4776-8a1a-65753b5d35af',
+        type: 'qualVerification',
+        name: 'Record_a_sound/23d8b58a-392b-4776-8a1a-65753b5d35af/verified',
+        dtpath: 'Record_a_sound/23d8b58a-392b-4776-8a1a-65753b5d35af/verified',
+      },
+      {
+        label: 'How many vowels were used?',
+        source: 'Record_a_sound',
+        name: 'Record_a_sound/e90ccb3a-3a63-4b0e-ac24-570ebc38d3db',
+        type: 'qualText',
+        dtpath: 'Record_a_sound/e90ccb3a-3a63-4b0e-ac24-570ebc38d3db',
+      },
+      {
+        label: 'source',
+        source: 'Record_a_sound/e90ccb3a-3a63-4b0e-ac24-570ebc38d3db',
+        type: 'qualSource',
+        name: 'Record_a_sound/e90ccb3a-3a63-4b0e-ac24-570ebc38d3db/source',
+        dtpath: 'Record_a_sound/e90ccb3a-3a63-4b0e-ac24-570ebc38d3db/source',
+      },
+      {
+        label: 'verified',
+        source: 'Record_a_sound/e90ccb3a-3a63-4b0e-ac24-570ebc38d3db',
+        type: 'qualVerification',
+        name: 'Record_a_sound/e90ccb3a-3a63-4b0e-ac24-570ebc38d3db/verified',
+        dtpath: 'Record_a_sound/e90ccb3a-3a63-4b0e-ac24-570ebc38d3db/verified',
+      },
+    ],
+  },
+  xform_link: 'http://kf.local.kbtdev.org/api/v2/assets/aHr9cvC5c9zRvBukogQyio/xform/',
+  hooks_link: 'http://kf.local.kbtdev.org/api/v2/assets/aHr9cvC5c9zRvBukogQyio/hooks/',
+  tag_string: '',
+  uid: 'aHr9cvC5c9zRvBukogQyio',
+  kind: 'asset',
+  xls_link: 'http://kf.local.kbtdev.org/api/v2/assets/aHr9cvC5c9zRvBukogQyio/xls/',
+  name: 'DEV-1831 veri data table',
+  assignable_permissions: [
+    {
+      url: 'http://kf.local.kbtdev.org/api/v2/permissions/view_asset/',
+      label: 'View form',
+    },
+    {
+      url: 'http://kf.local.kbtdev.org/api/v2/permissions/change_asset/',
+      label: 'Edit form',
+    },
+    {
+      url: 'http://kf.local.kbtdev.org/api/v2/permissions/manage_asset/',
+      label: 'Manage project',
+    },
+    {
+      url: 'http://kf.local.kbtdev.org/api/v2/permissions/add_submissions/',
+      label: 'Add submissions',
+    },
+    {
+      url: 'http://kf.local.kbtdev.org/api/v2/permissions/view_submissions/',
+      label: 'View submissions',
+    },
+    {
+      url: 'http://kf.local.kbtdev.org/api/v2/permissions/partial_submissions/',
+      label: {
+        default: 'Act on submissions only from specific users',
+        view_submissions: 'View submissions only from specific users',
+        change_submissions: 'Edit submissions only from specific users',
+        delete_submissions: 'Delete submissions only from specific users',
+        validate_submissions: 'Validate submissions only from specific users',
+      },
+    },
+    {
+      url: 'http://kf.local.kbtdev.org/api/v2/permissions/change_submissions/',
+      label: 'Edit submissions',
+    },
+    {
+      url: 'http://kf.local.kbtdev.org/api/v2/permissions/delete_submissions/',
+      label: 'Delete submissions',
+    },
+    {
+      url: 'http://kf.local.kbtdev.org/api/v2/permissions/validate_submissions/',
+      label: 'Validate submissions',
+    },
+  ],
+  permissions: [
+    {
+      url: 'http://kf.local.kbtdev.org/api/v2/assets/aHr9cvC5c9zRvBukogQyio/permission-assignments/p7DgzmbZd54qNEDfWbLJuM/',
+      user: 'http://kf.local.kbtdev.org/api/v2/users/AnonymousUser/',
+      permission: 'http://kf.local.kbtdev.org/api/v2/permissions/add_submissions/',
+      label: 'Add submissions',
+    },
+    {
+      url: 'http://kf.local.kbtdev.org/api/v2/assets/aHr9cvC5c9zRvBukogQyio/permission-assignments/pVM8UAZsWP5Yh2DeG5xddb/',
+      user: 'http://kf.local.kbtdev.org/api/v2/users/uu/',
+      permission: 'http://kf.local.kbtdev.org/api/v2/permissions/add_submissions/',
+      label: 'Add submissions',
+    },
+    {
+      url: 'http://kf.local.kbtdev.org/api/v2/assets/aHr9cvC5c9zRvBukogQyio/permission-assignments/pRYKWV4PVrzDhX9CuKZTw6/',
+      user: 'http://kf.local.kbtdev.org/api/v2/users/uu/',
+      permission: 'http://kf.local.kbtdev.org/api/v2/permissions/change_asset/',
+      label: 'Edit form',
+    },
+    {
+      url: 'http://kf.local.kbtdev.org/api/v2/assets/aHr9cvC5c9zRvBukogQyio/permission-assignments/prwqe5U6pzbPp6ZwabhX5u/',
+      user: 'http://kf.local.kbtdev.org/api/v2/users/uu/',
+      permission: 'http://kf.local.kbtdev.org/api/v2/permissions/change_submissions/',
+      label: 'Edit submissions',
+    },
+    {
+      url: 'http://kf.local.kbtdev.org/api/v2/assets/aHr9cvC5c9zRvBukogQyio/permission-assignments/pbMfLB5prbPbXEAmTXreEF/',
+      user: 'http://kf.local.kbtdev.org/api/v2/users/uu/',
+      permission: 'http://kf.local.kbtdev.org/api/v2/permissions/delete_submissions/',
+      label: 'Delete submissions',
+    },
+    {
+      url: 'http://kf.local.kbtdev.org/api/v2/assets/aHr9cvC5c9zRvBukogQyio/permission-assignments/pEpg8D3C4zWGyejR7rE7NU/',
+      user: 'http://kf.local.kbtdev.org/api/v2/users/uu/',
+      permission: 'http://kf.local.kbtdev.org/api/v2/permissions/manage_asset/',
+      label: 'Manage project',
+    },
+    {
+      url: 'http://kf.local.kbtdev.org/api/v2/assets/aHr9cvC5c9zRvBukogQyio/permission-assignments/pMBiube2x8haLBbxbHLkYN/',
+      user: 'http://kf.local.kbtdev.org/api/v2/users/uu/',
+      permission: 'http://kf.local.kbtdev.org/api/v2/permissions/validate_submissions/',
+      label: 'Validate submissions',
+    },
+    {
+      url: 'http://kf.local.kbtdev.org/api/v2/assets/aHr9cvC5c9zRvBukogQyio/permission-assignments/p2vszH2HxntoyCVaUoGRe6/',
+      user: 'http://kf.local.kbtdev.org/api/v2/users/uu/',
+      permission: 'http://kf.local.kbtdev.org/api/v2/permissions/view_asset/',
+      label: 'View form',
+    },
+    {
+      url: 'http://kf.local.kbtdev.org/api/v2/assets/aHr9cvC5c9zRvBukogQyio/permission-assignments/p269achC8F4r5iJWPSGA2R/',
+      user: 'http://kf.local.kbtdev.org/api/v2/users/uu/',
+      permission: 'http://kf.local.kbtdev.org/api/v2/permissions/view_submissions/',
+      label: 'View submissions',
+    },
+  ],
+  effective_permissions: [
+    {
+      codename: 'delete_submissions',
+    },
+    {
+      codename: 'change_asset',
+    },
+    {
+      codename: 'manage_asset',
+    },
+    {
+      codename: 'add_submissions',
+    },
+    {
+      codename: 'view_asset',
+    },
+    {
+      codename: 'view_submissions',
+    },
+    {
+      codename: 'delete_asset',
+    },
+    {
+      codename: 'change_submissions',
+    },
+    {
+      codename: 'validate_submissions',
+    },
+  ],
+  exports: 'http://kf.local.kbtdev.org/api/v2/assets/aHr9cvC5c9zRvBukogQyio/exports/',
+  export_settings: [],
+  data: 'http://kf.local.kbtdev.org/api/v2/assets/aHr9cvC5c9zRvBukogQyio/data/',
+  children: {
+    count: 0,
+  },
+  subscribers_count: 0,
+  status: 'shared',
+  access_types: null,
+  data_sharing: {},
+  paired_data: 'http://kf.local.kbtdev.org/api/v2/assets/aHr9cvC5c9zRvBukogQyio/paired-data/',
+  project_ownership: null,
+  owner_label: "uu's organization",
+  last_modified_by: 'uu',
+} as const satisfies AssetResponse
+
+export const submissionWithAllQual = {
+  _id: 81,
+  'formhub/uuid': '08f437fab2bf4c7398ace511ab2ac09e',
+  Record_a_sound: 'test-spoken.m4a',
+  __version__: 'vvcsjakV9xJwGmq7ttLW2f',
+  'meta/instanceID': 'uuid:d0423cd7-6751-4f5c-8a1f-4e19cf6407d3',
+  _xform_id_string: 'aHr9cvC5c9zRvBukogQyio',
+  _uuid: 'd0423cd7-6751-4f5c-8a1f-4e19cf6407d3',
+  'meta/rootUuid': 'uuid:d0423cd7-6751-4f5c-8a1f-4e19cf6407d3',
+  _attachments: [
+    {
+      download_url:
+        'http://kf.local.kbtdev.org/api/v2/assets/aHr9cvC5c9zRvBukogQyio/data/81/attachments/att35cyjCdDK5i27zz4XLumm/',
+      mimetype: 'audio/x-m4a',
+      filename: 'uu/attachments/08f437fab2bf4c7398ace511ab2ac09e/d0423cd7-6751-4f5c-8a1f-4e19cf6407d3/test-spoken.m4a',
+      media_file_basename: 'test-spoken.m4a',
+      uid: 'att35cyjCdDK5i27zz4XLumm',
+      is_deleted: false,
+      question_xpath: 'Record_a_sound',
+    },
+  ],
+  _status: 'submitted_via_web',
+  _geolocation: [null, null],
+  _submission_time: '2026-03-12T13:40:59',
+  _tags: [],
+  _notes: [],
+  _validation_status: {},
+  _submitted_by: null,
+  _supplementalDetails: {
+    Record_a_sound: {
+      qual: {
+        '00bec76a-bcde-4a81-b203-36421b355cb4': {
+          value: [
+            {
+              uuid: 'a8bea451-73b3-443d-bd4e-203cf6cbe195',
+              labels: {
+                _default: 'Pizza',
+              },
+            },
+            {
+              uuid: '07c55932-e22c-4f98-8a75-2f6fe357f752',
+              labels: {
+                _default: 'Pie',
+              },
+            },
+            {
+              uuid: 'a640f40b-7f45-46ba-9fec-757618651492',
+              labels: {
+                _default: 'Pineapple',
+              },
+            },
+          ],
+          type: 'qualSelectMultiple',
+          xpath: 'Record_a_sound',
+          labels: {
+            _default: 'Favourite thing?',
+          },
+          verified: false,
+          source: 'manual',
+        },
+        '23d8b58a-392b-4776-8a1a-65753b5d35af': {
+          value: ['foo', 'bar'],
+          type: 'qualTags',
+          xpath: 'Record_a_sound',
+          labels: {
+            _default: 'Categories hm?',
+          },
+          verified: false,
+          source: 'manual',
+        },
+        '405993ae-e24f-4ba7-813b-873048586744': {
+          value: 3,
+          type: 'qualInteger',
+          xpath: 'Record_a_sound',
+          labels: {
+            _default: 'Your guess?',
+          },
+          verified: false,
+          source: 'manual',
+        },
+        '5c9f3d58-6c8f-4b03-a064-a0cbf17c2c37': {
+          value: {
+            uuid: '967d9411-eb8f-4e5f-b68a-cfe2b5f2197e',
+            labels: {
+              _default: 'Second',
+            },
+          },
+          type: 'qualSelectOne',
+          xpath: 'Record_a_sound',
+          labels: {
+            _default: 'Which one?',
+          },
+          verified: false,
+          source: 'manual',
+        },
+        'e90ccb3a-3a63-4b0e-ac24-570ebc38d3db': {
+          value: 'The interview response \u201cHello it is me!\u201d contains five vowels (e, o, i, i, e).',
+          type: 'qualText',
+          xpath: 'Record_a_sound',
+          labels: {
+            _default: 'How many vowels were used?',
+          },
+          verified: true,
+          source: 'generated with AI',
+        },
+      },
+      translation: {
+        pl: {
+          languageCode: 'pl',
+          value: 'Cze\u015b\u0107, to ja!',
+        },
+      },
+      transcript: {
+        languageCode: 'en',
+        value: 'Hello it is me!',
+        regionCode: null,
+      },
+    },
+  },
+} as const satisfies SubmissionResponse
+
+export const allQualSurveyDisplayData = {
+  label: null,
+  name: null,
+  type: DisplayGroupTypeName.group_root,
+  xpathNodes: [],
+  children: [
+    {
+      data: 'test-spoken.m4a',
+      label: 'Record a sound',
+      name: 'Record_a_sound',
+      type: QuestionTypeName.audio,
+      xpath: 'Record_a_sound',
+    },
+    {
+      data: 'Hello it is me!',
+      label: 'transcript (en) | Record a sound',
+      name: '_supplementalDetails/Record_a_sound/transcript_en',
+      type: null,
+      xpath: 'Record_a_sound/transcript_en',
+    },
+    {
+      data: 'Cześć, to ja!',
+      label: 'translation (pl) | Record a sound',
+      name: '_supplementalDetails/Record_a_sound/translation_pl',
+      type: null,
+      xpath: 'Record_a_sound/translation_pl',
+    },
+    {
+      data: 'Pizza, Pie, Pineapple',
+      label: 'Favourite thing? | Record a sound',
+      name: '_supplementalDetails/Record_a_sound/00bec76a-bcde-4a81-b203-36421b355cb4',
+      type: null,
+      xpath: 'Record_a_sound/00bec76a-bcde-4a81-b203-36421b355cb4',
+    },
+    {
+      data: 'No',
+      label: 'Verified | Favourite thing? | Record a sound',
+      name: '_supplementalDetails/Record_a_sound/00bec76a-bcde-4a81-b203-36421b355cb4/verified',
+      type: null,
+      xpath: 'Record_a_sound/00bec76a-bcde-4a81-b203-36421b355cb4/verified',
+    },
+    {
+      data: 'Second',
+      label: 'Which one? | Record a sound',
+      name: '_supplementalDetails/Record_a_sound/5c9f3d58-6c8f-4b03-a064-a0cbf17c2c37',
+      type: null,
+      xpath: 'Record_a_sound/5c9f3d58-6c8f-4b03-a064-a0cbf17c2c37',
+    },
+    {
+      data: 'No',
+      label: 'Verified | Which one? | Record a sound',
+      name: '_supplementalDetails/Record_a_sound/5c9f3d58-6c8f-4b03-a064-a0cbf17c2c37/verified',
+      type: null,
+      xpath: 'Record_a_sound/5c9f3d58-6c8f-4b03-a064-a0cbf17c2c37/verified',
+    },
+    {
+      data: '3',
+      label: 'Your guess? | Record a sound',
+      name: '_supplementalDetails/Record_a_sound/405993ae-e24f-4ba7-813b-873048586744',
+      type: null,
+      xpath: 'Record_a_sound/405993ae-e24f-4ba7-813b-873048586744',
+    },
+    {
+      data: 'No',
+      label: 'Verified | Your guess? | Record a sound',
+      name: '_supplementalDetails/Record_a_sound/405993ae-e24f-4ba7-813b-873048586744/verified',
+      type: null,
+      xpath: 'Record_a_sound/405993ae-e24f-4ba7-813b-873048586744/verified',
+    },
+    {
+      data: 'foo, bar',
+      label: 'Categories hm? | Record a sound',
+      name: '_supplementalDetails/Record_a_sound/23d8b58a-392b-4776-8a1a-65753b5d35af',
+      type: null,
+      xpath: 'Record_a_sound/23d8b58a-392b-4776-8a1a-65753b5d35af',
+    },
+    {
+      data: 'No',
+      label: 'Verified | Categories hm? | Record a sound',
+      name: '_supplementalDetails/Record_a_sound/23d8b58a-392b-4776-8a1a-65753b5d35af/verified',
+      type: null,
+      xpath: 'Record_a_sound/23d8b58a-392b-4776-8a1a-65753b5d35af/verified',
+    },
+    {
+      data: 'The interview response “Hello it is me!” contains five vowels (e, o, i, i, e).',
+      label: 'How many vowels were used? | Record a sound',
+      name: '_supplementalDetails/Record_a_sound/e90ccb3a-3a63-4b0e-ac24-570ebc38d3db',
+      type: null,
+      xpath: 'Record_a_sound/e90ccb3a-3a63-4b0e-ac24-570ebc38d3db',
+    },
+    {
+      data: 'Yes',
+      label: 'Verified | How many vowels were used? | Record a sound',
+      name: '_supplementalDetails/Record_a_sound/e90ccb3a-3a63-4b0e-ac24-570ebc38d3db/verified',
+      type: null,
+      xpath: 'Record_a_sound/e90ccb3a-3a63-4b0e-ac24-570ebc38d3db/verified',
+    },
+  ],
+} as const satisfies DisplayGroup

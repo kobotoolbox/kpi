@@ -10,7 +10,7 @@ const ButtonToIconMap: Partial<Record<NonNullable<ButtonProps['size']>, IconSize
   lg: 'm',
 }
 
-// See boilerpate at: https://mantine.dev/guides/polymorphic/#wrapping-polymorphic-components
+// See boilerplate at: https://mantine.dev/guides/polymorphic/#wrapping-polymorphic-components
 
 export interface ButtonProps extends ButtonPropsMantine {
   tooltip?: React.ReactNode
@@ -43,5 +43,16 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 )
 Button.displayName = 'Button'
 
-// See boilerpate at: https://mantine.dev/guides/polymorphic/#wrapping-polymorphic-components
+// See boilerplate at: https://mantine.dev/guides/polymorphic/#wrapping-polymorphic-components
+/**
+ * For the button variants we use built in ones when possible. This means:
+ * - "filled" means "primary"
+ * - "light" means "secondary"
+ * - "outline" means "tertiary"
+ * - "transparent" means what it says
+ *
+ * Custom ones are:
+ * - "danger"
+ * - "danger-secondary"
+ */
 export default createPolymorphicComponent<'button', ButtonProps>(Button)

@@ -466,21 +466,6 @@ class UtilsTestCase(TestCase):
         )
         assert got == expected
 
-        # Explicit v1 namespace should produce a v1-style URL
-        expected = 'http://testserver/assets/foo/'
-        got = versioned_reverse(
-            'asset-detail',
-            url_namespace=API_NAMESPACES['v1'],
-            kwargs={'uid_asset': 'foo'},
-        )
-        assert got == expected
-
-        # Same result using args instead of kwargs for v1
-        got = versioned_reverse(
-            'asset-detail', url_namespace=API_NAMESPACES['v1'], args=('foo',)
-        )
-        assert got == expected
-
     @override_settings(KOBOFORM_URL='http://testserver')
     def test_versioned_reverse_with_request(self):
 
@@ -499,16 +484,6 @@ class UtilsTestCase(TestCase):
 
         # Same behaviour when passing args instead of kwargs
         got = versioned_reverse('asset-detail', args=('foo',), request=request)
-        assert got == expected
-
-        # Explicit v1 namespace should override request version
-        expected = 'http://testserver/assets/foo/'
-        got = versioned_reverse(
-            'asset-detail',
-            url_namespace=API_NAMESPACES['v1'],
-            args=('foo',),
-            request=request,
-        )
         assert got == expected
 
         # No versioning_scheme → should fall back to default (v2)
@@ -701,6 +676,28 @@ class XmlUtilsTestCase(TestCase):
             expected,
 
         )
+
+    def test_strip_xml_nodes_by_xpaths_prunes_entire_subtrees(self):
+        """
+        Verify that _filter_nodes_by_xpaths prunes entire excluded subtrees,
+        not just the direct children listed in nodes_to_keep. A node excluded
+        at the parent level must not leave any of its descendants behind.
+        """
+        source = (
+            '<root>'
+            '  <kept_group><kept_q>Value</kept_q></kept_group>'
+            '  <excluded_group>'
+            '    <child1>Child 1</child1>'
+            '    <child2><grandchild>Grandchild</grandchild></child2>'
+            '  </excluded_group>'
+            '</root>'
+        )
+        expected = '<root><kept_group><kept_q>Value</kept_q></kept_group></root>'
+        result = strip_nodes(source, ['kept_group/kept_q'], use_xpath=True)
+        self.__compare_xml(result, expected)
+        assert 'excluded_group' not in result
+        assert 'child1' not in result
+        assert 'grandchild' not in result
 
     def test_get_or_create_element(self):
         initial_xml_with_ns = """

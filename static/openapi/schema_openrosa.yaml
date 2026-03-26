@@ -13,7 +13,7 @@ paths:
       description: |
         ## Implement part of the OpenRosa Form List API
 
-        ⚠️This endpoint is **only available** from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
+        ⚠️This endpoint is **only available** from the KoboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
 
         This endpoint is used for adding submissions as anonymous user.
       parameters:
@@ -38,13 +38,48 @@ paths:
   /{username}/submission:
     post:
       operationId: submission_anonymous
-      description: |+
-        ## Implement the OpenRosa Form Submission API
+      description: |
+        ## Implement part of the OpenRosa Form Submission API
 
-        ⚠️This endpoint is only available from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
+        ⚠️This endpoint is **only available** from the KoboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
 
         This endpoint is used for adding submissions as an anonymous user.
 
+        ### XML Submission
+
+        Submit an XForm instance as an XML file using `multipart/form-data`.
+
+        **Example:**
+
+        ```shell
+        curl -X POST https://kc.kobotoolbox.org/{username}/submission \
+          -F xml_submission_file=@/path/to/submission.xml
+        ```
+
+        ### JSON Submission
+
+        Submit an XForm instance as JSON using `application/json`.
+
+        The body must include:
+        - `id`: the form's `id_string` (visible in the form URL or settings)
+        - `submission`: the form data as a JSON object
+        - `submission.meta.instanceID`: a unique UUID for this submission (required)
+
+        **Example:**
+
+        ```shell
+        curl -X POST https://kc.kobotoolbox.org/{username}/submission \
+          -H "Content-Type: application/json" \
+          -d '{
+            "id": "{id_string}",
+            "submission": {
+              "question_1": "value_1",
+              "meta": {
+                "instanceID": "uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+              }
+            }
+          }'
+        ```
       parameters:
       - in: query
         name: format
@@ -65,33 +100,72 @@ paths:
         content:
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/OpenRosaPayload'
+              $ref: '#/components/schemas/OpenRosaSubmissionRequest'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JSONSubmissionPayload'
+            examples:
+              JSONSubmission:
+                value:
+                  id: transportation_2011_07_25
+                  submission:
+                    transport:
+                      item: bicycle
+                      quantity: 1
+                    meta:
+                      instanceID: uuid:f3d8dc65-91a6-4d0f-9e97-802128083390
+                summary: JSON submission
         required: true
       security:
       - BasicAuth: []
       - TokenAuth: []
       - {}
       responses:
-        '200':
+        '201':
           content:
-            application/xml:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmissionResponse'
+              examples:
+                JSONResponse:
+                  value:
+                    message: Successful submission.
+                    formid: transportation_2011_07_25
+                    encrypted: false
+                    instanceID: uuid:f3d8dc65-91a6-4d0f-9e97-802128083390
+                    submissionDate: '2023-05-24T10:00:00Z'
+                    markedAsCompleteDate: '2023-05-24T10:00:01Z'
+                  summary: JSON response
+            text/xml:
               schema:
                 $ref: '#/components/schemas/OpenRosaResponse'
+              examples:
+                XMLResponse:
+                  value: |-
+                    <OpenRosaResponse xmlns="http://openrosa.org/http/response">
+                        <message>Successful submission.</message>
+                        <submissionMetadata
+                            xmlns="http://www.opendatakit.org/xforms"
+                            id="transportation_2011_07_25"
+                            instanceID="uuid:f3d8dc65-91a6-4d0f-9e97-802128083390"
+                            submissionDate="2023-05-24T10:00:00Z"
+                            isComplete="true"
+                            markedAsCompleteDate="2023-05-24T10:00:01Z"
+                        />
+                    </OpenRosaResponse>
+                  summary: XML response
           description: null
-        '401':
+        '404':
           content:
-            application/xml:
+            application/json:
               schema:
                 $ref: '#/components/schemas/ErrorDetail'
               examples:
-                NotAuthenticated:
+                NotFound:
                   value:
-                    detail: Authentication credentials were not provided.
-                  summary: Not authenticated
-          description: ''
-        '404':
-          content:
-            application/xml:
+                    detail: Not found.
+                  summary: Not Found
+            text/xml:
               schema:
                 $ref: '#/components/schemas/ErrorDetail'
               examples:
@@ -102,7 +176,17 @@ paths:
           description: ''
         '400':
           content:
-            application/xml:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                BadRequest:
+                  value:
+                    detail:
+                      field_name:
+                      - Error message
+                  summary: Bad request
+            text/xml:
               schema:
                 $ref: '#/components/schemas/ErrorObject'
               examples:
@@ -113,13 +197,49 @@ paths:
                       - Error message
                   summary: Bad request
           description: ''
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                DuplicateInstance:
+                  value:
+                    error: Duplicate Instance
+                  summary: Duplicate Instance
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/OpenRosaMessageResponse'
+              examples:
+                DuplicateInstance:
+                  value: <OpenRosaResponse xmlns="http://openrosa.org/http/response"><message>Duplicate
+                    Instance</message></OpenRosaResponse>
+                  summary: Duplicate Instance
+          description: Exact duplicate (same XML hash, no new attachments)
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                Conflict:
+                  value:
+                    error: Submission with this instance ID already exists
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/OpenRosaMessageResponse'
+              examples:
+                Conflict:
+                  value: <OpenRosaResponse xmlns="http://openrosa.org/http/response"><message>Submission
+                    with this instance ID already exists</message></OpenRosaResponse>
+          description: Instance UUID already used with different content
   /{username}/xformsManifest/{id}:
     get:
       operationId: manifest_anonymous
       description: |
         ## Implement part of the OpenRosa Manifest API
 
-        ⚠️This endpoint is **only available** from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
+        ⚠️This endpoint is **only available** from the KoboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
 
         This endpoint return the URLs of form media files so they can be fetched and displayed as needed during form rendering.
         This endpoints will also open the form in **creation** mode and is used as an anonymous user.
@@ -264,7 +384,7 @@ paths:
       description: |
         ## Implement part of the OpenRosa Form List API
 
-        ⚠️This endpoint is **only available** from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
+        ⚠️This endpoint is **only available** from the KoboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
 
         This endpoint is used for adding submissions as a data collector.
       parameters:
@@ -272,7 +392,7 @@ paths:
         name: token
         schema:
           type: string
-          pattern: ^\w+$
+          pattern: ^[^/]+$
         required: true
       tags:
       - OpenRosa Form List
@@ -289,13 +409,48 @@ paths:
   /collector/{token}/submission:
     post:
       operationId: submission_data_collector
-      description: |+
-        ## Implement the OpenRosa Form Submission API
+      description: |
+        ## Implement part of the OpenRosa Form Submission API
 
-        ⚠️This endpoint is only available from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
+        ⚠️This endpoint is **only available** from the KoboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
 
         This endpoint is used for adding submissions as a data collector.
 
+        ### XML Submission
+
+        Submit an XForm instance as an XML file using `multipart/form-data`.
+
+        **Example:**
+
+        ```shell
+        curl -X POST https://kc.kobotoolbox.org/collector/{token}/submission \
+          -F xml_submission_file=@/path/to/submission.xml
+        ```
+
+        ### JSON Submission
+
+        Submit an XForm instance as JSON using `application/json`.
+
+        The body must include:
+        - `id`: the form's `id_string` (visible in the form URL or settings)
+        - `submission`: the form data as a JSON object
+        - `submission.meta.instanceID`: a unique UUID for this submission (required)
+
+        **Example:**
+
+        ```shell
+        curl -X POST https://kc.kobotoolbox.org/collector/{token}/submission \
+          -H "Content-Type: application/json" \
+          -d '{
+            "id": "{id_string}",
+            "submission": {
+              "question_1": "value_1",
+              "meta": {
+                "instanceID": "uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+              }
+            }
+          }'
+        ```
       parameters:
       - in: query
         name: format
@@ -308,7 +463,7 @@ paths:
         name: token
         schema:
           type: string
-          pattern: ^\w+$
+          pattern: ^[^/]+$
         required: true
       tags:
       - OpenRosa Form Submission
@@ -316,33 +471,72 @@ paths:
         content:
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/OpenRosaPayload'
+              $ref: '#/components/schemas/OpenRosaSubmissionRequest'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JSONSubmissionPayload'
+            examples:
+              JSONSubmission:
+                value:
+                  id: transportation_2011_07_25
+                  submission:
+                    transport:
+                      item: bicycle
+                      quantity: 1
+                    meta:
+                      instanceID: uuid:f3d8dc65-91a6-4d0f-9e97-802128083390
+                summary: JSON submission
         required: true
       security:
       - BasicAuth: []
       - TokenAuth: []
       - {}
       responses:
-        '200':
+        '201':
           content:
-            application/xml:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmissionResponse'
+              examples:
+                JSONResponse:
+                  value:
+                    message: Successful submission.
+                    formid: transportation_2011_07_25
+                    encrypted: false
+                    instanceID: uuid:f3d8dc65-91a6-4d0f-9e97-802128083390
+                    submissionDate: '2023-05-24T10:00:00Z'
+                    markedAsCompleteDate: '2023-05-24T10:00:01Z'
+                  summary: JSON response
+            text/xml:
               schema:
                 $ref: '#/components/schemas/OpenRosaResponse'
+              examples:
+                XMLResponse:
+                  value: |-
+                    <OpenRosaResponse xmlns="http://openrosa.org/http/response">
+                        <message>Successful submission.</message>
+                        <submissionMetadata
+                            xmlns="http://www.opendatakit.org/xforms"
+                            id="transportation_2011_07_25"
+                            instanceID="uuid:f3d8dc65-91a6-4d0f-9e97-802128083390"
+                            submissionDate="2023-05-24T10:00:00Z"
+                            isComplete="true"
+                            markedAsCompleteDate="2023-05-24T10:00:01Z"
+                        />
+                    </OpenRosaResponse>
+                  summary: XML response
           description: null
-        '401':
+        '404':
           content:
-            application/xml:
+            application/json:
               schema:
                 $ref: '#/components/schemas/ErrorDetail'
               examples:
-                NotAuthenticated:
+                NotFound:
                   value:
-                    detail: Authentication credentials were not provided.
-                  summary: Not authenticated
-          description: ''
-        '404':
-          content:
-            application/xml:
+                    detail: Not found.
+                  summary: Not Found
+            text/xml:
               schema:
                 $ref: '#/components/schemas/ErrorDetail'
               examples:
@@ -353,7 +547,17 @@ paths:
           description: ''
         '400':
           content:
-            application/xml:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                BadRequest:
+                  value:
+                    detail:
+                      field_name:
+                      - Error message
+                  summary: Bad request
+            text/xml:
               schema:
                 $ref: '#/components/schemas/ErrorObject'
               examples:
@@ -364,13 +568,68 @@ paths:
                       - Error message
                   summary: Bad request
           description: ''
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                DuplicateInstance:
+                  value:
+                    error: Duplicate Instance
+                  summary: Duplicate Instance
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/OpenRosaMessageResponse'
+              examples:
+                DuplicateInstance:
+                  value: <OpenRosaResponse xmlns="http://openrosa.org/http/response"><message>Duplicate
+                    Instance</message></OpenRosaResponse>
+                  summary: Duplicate Instance
+          description: Exact duplicate (same XML hash, no new attachments)
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                Conflict:
+                  value:
+                    error: Submission with this instance ID already exists
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/OpenRosaMessageResponse'
+              examples:
+                Conflict:
+                  value: <OpenRosaResponse xmlns="http://openrosa.org/http/response"><message>Submission
+                    with this instance ID already exists</message></OpenRosaResponse>
+          description: Instance UUID already used with different content
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                InvalidToken:
+                  value:
+                    detail: Invalid token.
+                  summary: Invalid token
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                InvalidToken:
+                  value:
+                    detail: Invalid token.
+                  summary: Invalid token
+          description: ''
   /collector/{token}/xformsManifest/{id}:
     get:
       operationId: manifest_data_collector
       description: |
         ## Implement part of the OpenRosa Manifest API
 
-        ⚠️This endpoint is **only available** from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
+        ⚠️This endpoint is **only available** from the KoboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
 
         This endpoint return the URLs of form media files so they can be fetched and displayed as needed during form rendering.
         This endpoints will also open the form in **creation** mode and is used as an anonymous user.
@@ -385,7 +644,7 @@ paths:
         name: token
         schema:
           type: string
-          pattern: ^\w+$
+          pattern: ^[^/]+$
         required: true
       tags:
       - OpenRosa Form Manifest
@@ -416,7 +675,7 @@ paths:
       description: |
         ## Implement part of the OpenRosa Form List API
 
-        ⚠️This endpoint is **only available** from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
+        ⚠️This endpoint is **only available** from the KoboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
 
         This endpoint is used for adding submissions as authenticated user.
       tags:
@@ -434,13 +693,50 @@ paths:
   /submission:
     post:
       operationId: submission_authenticated
-      description: |+
-        ## Implement the OpenRosa Form Submission API
+      description: |
+        ## Implement part of the OpenRosa Form Submission API
 
-        ⚠️This endpoint is only available from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
+        ⚠️This endpoint is **only available** from the KoboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
 
         This endpoint is used for adding submissions as an authenticated user.
 
+        ### XML Submission
+
+        Submit an XForm instance as an XML file using `multipart/form-data`.
+
+        **Example:**
+
+        ```shell
+        curl -X POST https://kc.kobotoolbox.org/submission \
+          -u user:password \
+          -F xml_submission_file=@/path/to/submission.xml
+        ```
+
+        ### JSON Submission
+
+        Submit an XForm instance as JSON using `application/json`.
+
+        The body must include:
+        - `id`: the form's `id_string` (visible in the form URL or settings)
+        - `submission`: the form data as a JSON object
+        - `submission.meta.instanceID`: a unique UUID for this submission (required)
+
+        **Example:**
+
+        ```shell
+        curl -X POST https://kc.kobotoolbox.org/submission \
+          -u user:password \
+          -H "Content-Type: application/json" \
+          -d '{
+            "id": "{id_string}",
+            "submission": {
+              "question_1": "value_1",
+              "meta": {
+                "instanceID": "uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+              }
+            }
+          }'
+        ```
       parameters:
       - in: query
         name: format
@@ -455,22 +751,72 @@ paths:
         content:
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/OpenRosaPayload'
+              $ref: '#/components/schemas/OpenRosaSubmissionRequest'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JSONSubmissionPayload'
+            examples:
+              JSONSubmission:
+                value:
+                  id: transportation_2011_07_25
+                  submission:
+                    transport:
+                      item: bicycle
+                      quantity: 1
+                    meta:
+                      instanceID: uuid:f3d8dc65-91a6-4d0f-9e97-802128083390
+                summary: JSON submission
         required: true
       security:
       - BasicAuth: []
       - TokenAuth: []
       - {}
       responses:
-        '200':
+        '201':
           content:
-            application/xml:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmissionResponse'
+              examples:
+                JSONResponse:
+                  value:
+                    message: Successful submission.
+                    formid: transportation_2011_07_25
+                    encrypted: false
+                    instanceID: uuid:f3d8dc65-91a6-4d0f-9e97-802128083390
+                    submissionDate: '2023-05-24T10:00:00Z'
+                    markedAsCompleteDate: '2023-05-24T10:00:01Z'
+                  summary: JSON response
+            text/xml:
               schema:
                 $ref: '#/components/schemas/OpenRosaResponse'
+              examples:
+                XMLResponse:
+                  value: |-
+                    <OpenRosaResponse xmlns="http://openrosa.org/http/response">
+                        <message>Successful submission.</message>
+                        <submissionMetadata
+                            xmlns="http://www.opendatakit.org/xforms"
+                            id="transportation_2011_07_25"
+                            instanceID="uuid:f3d8dc65-91a6-4d0f-9e97-802128083390"
+                            submissionDate="2023-05-24T10:00:00Z"
+                            isComplete="true"
+                            markedAsCompleteDate="2023-05-24T10:00:01Z"
+                        />
+                    </OpenRosaResponse>
+                  summary: XML response
           description: null
         '401':
           content:
-            application/xml:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotAuthenticated:
+                  value:
+                    detail: Authentication credentials were not provided.
+                  summary: Not authenticated
+            text/xml:
               schema:
                 $ref: '#/components/schemas/ErrorDetail'
               examples:
@@ -481,7 +827,15 @@ paths:
           description: ''
         '404':
           content:
-            application/xml:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+            text/xml:
               schema:
                 $ref: '#/components/schemas/ErrorDetail'
               examples:
@@ -492,7 +846,17 @@ paths:
           description: ''
         '400':
           content:
-            application/xml:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorObject'
+              examples:
+                BadRequest:
+                  value:
+                    detail:
+                      field_name:
+                      - Error message
+                  summary: Bad request
+            text/xml:
               schema:
                 $ref: '#/components/schemas/ErrorObject'
               examples:
@@ -503,13 +867,49 @@ paths:
                       - Error message
                   summary: Bad request
           description: ''
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                DuplicateInstance:
+                  value:
+                    error: Duplicate Instance
+                  summary: Duplicate Instance
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/OpenRosaMessageResponse'
+              examples:
+                DuplicateInstance:
+                  value: <OpenRosaResponse xmlns="http://openrosa.org/http/response"><message>Duplicate
+                    Instance</message></OpenRosaResponse>
+                  summary: Duplicate Instance
+          description: Exact duplicate (same XML hash, no new attachments)
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                Conflict:
+                  value:
+                    error: Submission with this instance ID already exists
+            text/xml:
+              schema:
+                $ref: '#/components/schemas/OpenRosaMessageResponse'
+              examples:
+                Conflict:
+                  value: <OpenRosaResponse xmlns="http://openrosa.org/http/response"><message>Submission
+                    with this instance ID already exists</message></OpenRosaResponse>
+          description: Instance UUID already used with different content
   /xformsManifest/{id}:
     get:
       operationId: manifest_authenticated
       description: |
         ## Implement part of the OpenRosa Manifest API
 
-        ⚠️This endpoint is **only available** from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
+        ⚠️This endpoint is **only available** from the KoboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️
 
         This endpoint return the URLs of form media files so they can be fetched and displayed as needed during form rendering.
         This endpoints will also open the form in **creation** mode and is used as an authenticated user.
@@ -545,6 +945,16 @@ paths:
           description: ''
 components:
   schemas:
+    Error:
+      type: object
+      description: |-
+        Used for OpenRosa endpoints that return `{'error': '...'}` instead of
+        the standard `{'detail': '...'}` shape.
+      properties:
+        error:
+          type: string
+      required:
+      - error
     ErrorDetail:
       type: object
       properties:
@@ -558,6 +968,19 @@ components:
         detail: {}
       required:
       - detail
+    JSONSubmissionPayload:
+      type: object
+      properties:
+        id:
+          type: string
+          description: XForm ID String
+        submission:
+          type: object
+          additionalProperties: {}
+          description: The JSON submission data
+      required:
+      - id
+      - submission
     OpenRosaFormListResponse:
       type: array
       items:
@@ -611,13 +1034,13 @@ components:
           example: https://kf.kobotoolbox.org/api/v2/asset_snapshots/{uid_asset_snapshot}/manifest
       required:
       - manifest
-    OpenRosaPayload:
+    OpenRosaMessageResponse:
       type: object
       properties:
-        xml_submission_file:
+        message:
           type: string
       required:
-      - xml_submission_file
+      - message
     OpenRosaResponse:
       type: object
       properties:
@@ -646,7 +1069,7 @@ components:
       properties:
         xml_submission_file:
           type: string
-          format: uri
+          format: binary
       required:
       - xml_submission_file
     OpenRosaSubmissionResponse:
@@ -672,6 +1095,30 @@ components:
       - formhub
       - meta
       - question
+    SubmissionResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        formid:
+          type: string
+        encrypted:
+          type: boolean
+        instanceID:
+          type: string
+        submissionDate:
+          type: string
+          format: date-time
+        markedAsCompleteDate:
+          type: string
+          format: date-time
+      required:
+      - encrypted
+      - formid
+      - instanceID
+      - markedAsCompleteDate
+      - message
+      - submissionDate
     XFormList:
       type: array
       items:

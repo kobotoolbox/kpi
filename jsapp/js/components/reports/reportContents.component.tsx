@@ -99,7 +99,7 @@ export default class ReportContents extends React.Component<ReportContentsProps>
           if (vals?.[0]?.[1] && 'responses' in vals?.[0]?.[1] && vals?.[0]?.[1]?.responses) {
             const respValues = vals[0][1].responses
 
-            const newLabels: string[] = []
+            const newLabels: Array<string | null> = []
             const qGB = asset.content?.survey?.find((z) => z.name === groupBy || z.$autoname === groupBy)
             respValues.forEach((r, ind) => {
               choice = asset.content?.choices?.find(

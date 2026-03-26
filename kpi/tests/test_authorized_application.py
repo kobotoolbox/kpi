@@ -8,6 +8,7 @@ from rest_framework import status
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.models.authorized_application import AuthorizedApplication
+from kpi.urls.router_api_v2 import URL_NAMESPACE as ROUTER_URL_NAMESPACE
 from .base_test_case import BaseTestCase
 
 
@@ -15,6 +16,8 @@ from .base_test_case import BaseTestCase
 class AuthorizedApplicationUserTestCase(BaseTestCase):
 
     fixtures = ['test_data']
+
+    URL_NAMESPACE = ROUTER_URL_NAMESPACE
 
     def setUp(self):
         self.app = AuthorizedApplication.objects.create(name='TestApp')

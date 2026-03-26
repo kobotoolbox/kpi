@@ -63,7 +63,7 @@ describe('translations hack', () => {
       )
     })
 
-    it('should reorder translated props if survey has same default language as base survey but in different order', () => {
+    it('should reorder translated props if survey has same default language as base survey but in different order (as last)', () => {
       const test = {
         baseSurvey: { _initialParams: { translations_0: 'English (en)' } },
         survey: [
@@ -81,6 +81,31 @@ describe('translations hack', () => {
           },
         ],
         translations: [null, 'Francais (fr)', 'Polski (pl)'],
+        translations_0: 'English (en)',
+      }
+      expect(nullifyTranslations(test.translations, test.translated, test.survey, test.baseSurvey)).to.deep.equal(
+        target,
+      )
+    })
+
+    it('should reorder translated props if survey has same default language as base survey but in different order (as not last)', () => {
+      const test = {
+        baseSurvey: { _initialParams: { translations_0: 'English (en)' } },
+        survey: [
+          {
+            label: ['Allo', 'Cześć', 'Hello', 'Hallo'],
+          },
+        ],
+        translations: ['Francais (fr)', 'Polski (pl)', 'English (en)', 'Deutsch (de)'],
+        translated: ['label'],
+      }
+      const target = {
+        survey: [
+          {
+            label: ['Hello', 'Allo', 'Cześć', 'Hallo'],
+          },
+        ],
+        translations: [null, 'Francais (fr)', 'Polski (pl)', 'Deutsch (de)'],
         translations_0: 'English (en)',
       }
       expect(nullifyTranslations(test.translations, test.translated, test.survey, test.baseSurvey)).to.deep.equal(

@@ -9,7 +9,7 @@
         "/{username}/formList": {
             "get": {
                 "operationId": "form_list_anonymous",
-                "description": "## Implement part of the OpenRosa Form List API\n\n⚠️This endpoint is **only available** from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️\n\nThis endpoint is used for adding submissions as anonymous user.\n",
+                "description": "## Implement part of the OpenRosa Form List API\n\n⚠️This endpoint is **only available** from the KoboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️\n\nThis endpoint is used for adding submissions as anonymous user.\n",
                 "parameters": [
                     {
                         "in": "path",
@@ -47,7 +47,7 @@
         "/{username}/submission": {
             "post": {
                 "operationId": "submission_anonymous",
-                "description": "## Implement the OpenRosa Form Submission API\n\n⚠️This endpoint is only available from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️\n\nThis endpoint is used for adding submissions as an anonymous user.\n\n",
+                "description": "## Implement part of the OpenRosa Form Submission API\n\n⚠️This endpoint is **only available** from the KoboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️\n\nThis endpoint is used for adding submissions as an anonymous user.\n\n### XML Submission\n\nSubmit an XForm instance as an XML file using `multipart/form-data`.\n\n**Example:**\n\n```shell\ncurl -X POST https://kc.kobotoolbox.org/{username}/submission \\\n  -F xml_submission_file=@/path/to/submission.xml\n```\n\n### JSON Submission\n\nSubmit an XForm instance as JSON using `application/json`.\n\nThe body must include:\n- `id`: the form's `id_string` (visible in the form URL or settings)\n- `submission`: the form data as a JSON object\n- `submission.meta.instanceID`: a unique UUID for this submission (required)\n\n**Example:**\n\n```shell\ncurl -X POST https://kc.kobotoolbox.org/{username}/submission \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\n    \"id\": \"{id_string}\",\n    \"submission\": {\n      \"question_1\": \"value_1\",\n      \"meta\": {\n        \"instanceID\": \"uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx\"\n      }\n    }\n  }'\n```\n",
                 "parameters": [
                     {
                         "in": "query",
@@ -77,7 +77,29 @@
                     "content": {
                         "multipart/form-data": {
                             "schema": {
-                                "$ref": "#/components/schemas/OpenRosaPayload"
+                                "$ref": "#/components/schemas/OpenRosaSubmissionRequest"
+                            }
+                        },
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/JSONSubmissionPayload"
+                            },
+                            "examples": {
+                                "JSONSubmission": {
+                                    "value": {
+                                        "id": "transportation_2011_07_25",
+                                        "submission": {
+                                            "transport": {
+                                                "item": "bicycle",
+                                                "quantity": 1
+                                            },
+                                            "meta": {
+                                                "instanceID": "uuid:f3d8dc65-91a6-4d0f-9e97-802128083390"
+                                            }
+                                        }
+                                    },
+                                    "summary": "JSON submission"
+                                }
                             }
                         }
                     },
@@ -93,37 +115,56 @@
                     {}
                 ],
                 "responses": {
-                    "200": {
+                    "201": {
                         "content": {
-                            "application/xml": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SubmissionResponse"
+                                },
+                                "examples": {
+                                    "JSONResponse": {
+                                        "value": {
+                                            "message": "Successful submission.",
+                                            "formid": "transportation_2011_07_25",
+                                            "encrypted": false,
+                                            "instanceID": "uuid:f3d8dc65-91a6-4d0f-9e97-802128083390",
+                                            "submissionDate": "2023-05-24T10:00:00Z",
+                                            "markedAsCompleteDate": "2023-05-24T10:00:01Z"
+                                        },
+                                        "summary": "JSON response"
+                                    }
+                                }
+                            },
+                            "text/xml": {
                                 "schema": {
                                     "$ref": "#/components/schemas/OpenRosaResponse"
+                                },
+                                "examples": {
+                                    "XMLResponse": {
+                                        "value": "<OpenRosaResponse xmlns=\"http://openrosa.org/http/response\">\n    <message>Successful submission.</message>\n    <submissionMetadata\n        xmlns=\"http://www.opendatakit.org/xforms\"\n        id=\"transportation_2011_07_25\"\n        instanceID=\"uuid:f3d8dc65-91a6-4d0f-9e97-802128083390\"\n        submissionDate=\"2023-05-24T10:00:00Z\"\n        isComplete=\"true\"\n        markedAsCompleteDate=\"2023-05-24T10:00:01Z\"\n    />\n</OpenRosaResponse>",
+                                        "summary": "XML response"
+                                    }
                                 }
                             }
                         },
                         "description": null
                     },
-                    "401": {
+                    "404": {
                         "content": {
-                            "application/xml": {
+                            "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ErrorDetail"
                                 },
                                 "examples": {
-                                    "NotAuthenticated": {
+                                    "NotFound": {
                                         "value": {
-                                            "detail": "Authentication credentials were not provided."
+                                            "detail": "Not found."
                                         },
-                                        "summary": "Not authenticated"
+                                        "summary": "Not Found"
                                     }
                                 }
-                            }
-                        },
-                        "description": ""
-                    },
-                    "404": {
-                        "content": {
-                            "application/xml": {
+                            },
+                            "text/xml": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ErrorDetail"
                                 },
@@ -141,7 +182,24 @@
                     },
                     "400": {
                         "content": {
-                            "application/xml": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorObject"
+                                },
+                                "examples": {
+                                    "BadRequest": {
+                                        "value": {
+                                            "detail": {
+                                                "field_name": [
+                                                    "Error message"
+                                                ]
+                                            }
+                                        },
+                                        "summary": "Bad request"
+                                    }
+                                }
+                            },
+                            "text/xml": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ErrorObject"
                                 },
@@ -160,6 +218,62 @@
                             }
                         },
                         "description": ""
+                    },
+                    "202": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                },
+                                "examples": {
+                                    "DuplicateInstance": {
+                                        "value": {
+                                            "error": "Duplicate Instance"
+                                        },
+                                        "summary": "Duplicate Instance"
+                                    }
+                                }
+                            },
+                            "text/xml": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OpenRosaMessageResponse"
+                                },
+                                "examples": {
+                                    "DuplicateInstance": {
+                                        "value": "<OpenRosaResponse xmlns=\"http://openrosa.org/http/response\"><message>Duplicate Instance</message></OpenRosaResponse>",
+                                        "summary": "Duplicate Instance"
+                                    }
+                                }
+                            }
+                        },
+                        "description": "Exact duplicate (same XML hash, no new attachments)"
+                    },
+                    "409": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                },
+                                "examples": {
+                                    "Conflict": {
+                                        "value": {
+                                            "error": "Submission with this instance ID already exists"
+                                        }
+                                    }
+                                }
+                            },
+                            "text/xml": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OpenRosaMessageResponse"
+                                },
+                                "examples": {
+                                    "Conflict": {
+                                        "value": "<OpenRosaResponse xmlns=\"http://openrosa.org/http/response\"><message>Submission with this instance ID already exists</message></OpenRosaResponse>"
+                                    }
+                                }
+                            }
+                        },
+                        "description": "Instance UUID already used with different content"
                     }
                 }
             }
@@ -167,7 +281,7 @@
         "/{username}/xformsManifest/{id}": {
             "get": {
                 "operationId": "manifest_anonymous",
-                "description": "## Implement part of the OpenRosa Manifest API\n\n⚠️This endpoint is **only available** from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️\n\nThis endpoint return the URLs of form media files so they can be fetched and displayed as needed during form rendering.\nThis endpoints will also open the form in **creation** mode and is used as an anonymous user.\n",
+                "description": "## Implement part of the OpenRosa Manifest API\n\n⚠️This endpoint is **only available** from the KoboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️\n\nThis endpoint return the URLs of form media files so they can be fetched and displayed as needed during form rendering.\nThis endpoints will also open the form in **creation** mode and is used as an anonymous user.\n",
                 "parameters": [
                     {
                         "in": "path",
@@ -378,14 +492,14 @@
         "/collector/{token}/formList": {
             "get": {
                 "operationId": "form_list_data_collector",
-                "description": "## Implement part of the OpenRosa Form List API\n\n⚠️This endpoint is **only available** from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️\n\nThis endpoint is used for adding submissions as a data collector.\n",
+                "description": "## Implement part of the OpenRosa Form List API\n\n⚠️This endpoint is **only available** from the KoboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️\n\nThis endpoint is used for adding submissions as a data collector.\n",
                 "parameters": [
                     {
                         "in": "path",
                         "name": "token",
                         "schema": {
                             "type": "string",
-                            "pattern": "^\\w+$"
+                            "pattern": "^[^/]+$"
                         },
                         "required": true
                     }
@@ -416,7 +530,7 @@
         "/collector/{token}/submission": {
             "post": {
                 "operationId": "submission_data_collector",
-                "description": "## Implement the OpenRosa Form Submission API\n\n⚠️This endpoint is only available from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️\n\nThis endpoint is used for adding submissions as a data collector.\n\n",
+                "description": "## Implement part of the OpenRosa Form Submission API\n\n⚠️This endpoint is **only available** from the KoboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️\n\nThis endpoint is used for adding submissions as a data collector.\n\n### XML Submission\n\nSubmit an XForm instance as an XML file using `multipart/form-data`.\n\n**Example:**\n\n```shell\ncurl -X POST https://kc.kobotoolbox.org/collector/{token}/submission \\\n  -F xml_submission_file=@/path/to/submission.xml\n```\n\n### JSON Submission\n\nSubmit an XForm instance as JSON using `application/json`.\n\nThe body must include:\n- `id`: the form's `id_string` (visible in the form URL or settings)\n- `submission`: the form data as a JSON object\n- `submission.meta.instanceID`: a unique UUID for this submission (required)\n\n**Example:**\n\n```shell\ncurl -X POST https://kc.kobotoolbox.org/collector/{token}/submission \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\n    \"id\": \"{id_string}\",\n    \"submission\": {\n      \"question_1\": \"value_1\",\n      \"meta\": {\n        \"instanceID\": \"uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx\"\n      }\n    }\n  }'\n```\n",
                 "parameters": [
                     {
                         "in": "query",
@@ -434,7 +548,7 @@
                         "name": "token",
                         "schema": {
                             "type": "string",
-                            "pattern": "^\\w+$"
+                            "pattern": "^[^/]+$"
                         },
                         "required": true
                     }
@@ -446,7 +560,29 @@
                     "content": {
                         "multipart/form-data": {
                             "schema": {
-                                "$ref": "#/components/schemas/OpenRosaPayload"
+                                "$ref": "#/components/schemas/OpenRosaSubmissionRequest"
+                            }
+                        },
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/JSONSubmissionPayload"
+                            },
+                            "examples": {
+                                "JSONSubmission": {
+                                    "value": {
+                                        "id": "transportation_2011_07_25",
+                                        "submission": {
+                                            "transport": {
+                                                "item": "bicycle",
+                                                "quantity": 1
+                                            },
+                                            "meta": {
+                                                "instanceID": "uuid:f3d8dc65-91a6-4d0f-9e97-802128083390"
+                                            }
+                                        }
+                                    },
+                                    "summary": "JSON submission"
+                                }
                             }
                         }
                     },
@@ -462,37 +598,56 @@
                     {}
                 ],
                 "responses": {
-                    "200": {
+                    "201": {
                         "content": {
-                            "application/xml": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SubmissionResponse"
+                                },
+                                "examples": {
+                                    "JSONResponse": {
+                                        "value": {
+                                            "message": "Successful submission.",
+                                            "formid": "transportation_2011_07_25",
+                                            "encrypted": false,
+                                            "instanceID": "uuid:f3d8dc65-91a6-4d0f-9e97-802128083390",
+                                            "submissionDate": "2023-05-24T10:00:00Z",
+                                            "markedAsCompleteDate": "2023-05-24T10:00:01Z"
+                                        },
+                                        "summary": "JSON response"
+                                    }
+                                }
+                            },
+                            "text/xml": {
                                 "schema": {
                                     "$ref": "#/components/schemas/OpenRosaResponse"
+                                },
+                                "examples": {
+                                    "XMLResponse": {
+                                        "value": "<OpenRosaResponse xmlns=\"http://openrosa.org/http/response\">\n    <message>Successful submission.</message>\n    <submissionMetadata\n        xmlns=\"http://www.opendatakit.org/xforms\"\n        id=\"transportation_2011_07_25\"\n        instanceID=\"uuid:f3d8dc65-91a6-4d0f-9e97-802128083390\"\n        submissionDate=\"2023-05-24T10:00:00Z\"\n        isComplete=\"true\"\n        markedAsCompleteDate=\"2023-05-24T10:00:01Z\"\n    />\n</OpenRosaResponse>",
+                                        "summary": "XML response"
+                                    }
                                 }
                             }
                         },
                         "description": null
                     },
-                    "401": {
+                    "404": {
                         "content": {
-                            "application/xml": {
+                            "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ErrorDetail"
                                 },
                                 "examples": {
-                                    "NotAuthenticated": {
+                                    "NotFound": {
                                         "value": {
-                                            "detail": "Authentication credentials were not provided."
+                                            "detail": "Not found."
                                         },
-                                        "summary": "Not authenticated"
+                                        "summary": "Not Found"
                                     }
                                 }
-                            }
-                        },
-                        "description": ""
-                    },
-                    "404": {
-                        "content": {
-                            "application/xml": {
+                            },
+                            "text/xml": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ErrorDetail"
                                 },
@@ -510,7 +665,24 @@
                     },
                     "400": {
                         "content": {
-                            "application/xml": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorObject"
+                                },
+                                "examples": {
+                                    "BadRequest": {
+                                        "value": {
+                                            "detail": {
+                                                "field_name": [
+                                                    "Error message"
+                                                ]
+                                            }
+                                        },
+                                        "summary": "Bad request"
+                                    }
+                                }
+                            },
+                            "text/xml": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ErrorObject"
                                 },
@@ -529,6 +701,93 @@
                             }
                         },
                         "description": ""
+                    },
+                    "202": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                },
+                                "examples": {
+                                    "DuplicateInstance": {
+                                        "value": {
+                                            "error": "Duplicate Instance"
+                                        },
+                                        "summary": "Duplicate Instance"
+                                    }
+                                }
+                            },
+                            "text/xml": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OpenRosaMessageResponse"
+                                },
+                                "examples": {
+                                    "DuplicateInstance": {
+                                        "value": "<OpenRosaResponse xmlns=\"http://openrosa.org/http/response\"><message>Duplicate Instance</message></OpenRosaResponse>",
+                                        "summary": "Duplicate Instance"
+                                    }
+                                }
+                            }
+                        },
+                        "description": "Exact duplicate (same XML hash, no new attachments)"
+                    },
+                    "409": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                },
+                                "examples": {
+                                    "Conflict": {
+                                        "value": {
+                                            "error": "Submission with this instance ID already exists"
+                                        }
+                                    }
+                                }
+                            },
+                            "text/xml": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OpenRosaMessageResponse"
+                                },
+                                "examples": {
+                                    "Conflict": {
+                                        "value": "<OpenRosaResponse xmlns=\"http://openrosa.org/http/response\"><message>Submission with this instance ID already exists</message></OpenRosaResponse>"
+                                    }
+                                }
+                            }
+                        },
+                        "description": "Instance UUID already used with different content"
+                    },
+                    "401": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "InvalidToken": {
+                                        "value": {
+                                            "detail": "Invalid token."
+                                        },
+                                        "summary": "Invalid token"
+                                    }
+                                }
+                            },
+                            "text/xml": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "InvalidToken": {
+                                        "value": {
+                                            "detail": "Invalid token."
+                                        },
+                                        "summary": "Invalid token"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
                     }
                 }
             }
@@ -536,7 +795,7 @@
         "/collector/{token}/xformsManifest/{id}": {
             "get": {
                 "operationId": "manifest_data_collector",
-                "description": "## Implement part of the OpenRosa Manifest API\n\n⚠️This endpoint is **only available** from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️\n\nThis endpoint return the URLs of form media files so they can be fetched and displayed as needed during form rendering.\nThis endpoints will also open the form in **creation** mode and is used as an anonymous user.\n",
+                "description": "## Implement part of the OpenRosa Manifest API\n\n⚠️This endpoint is **only available** from the KoboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️\n\nThis endpoint return the URLs of form media files so they can be fetched and displayed as needed during form rendering.\nThis endpoints will also open the form in **creation** mode and is used as an anonymous user.\n",
                 "parameters": [
                     {
                         "in": "path",
@@ -552,7 +811,7 @@
                         "name": "token",
                         "schema": {
                             "type": "string",
-                            "pattern": "^\\w+$"
+                            "pattern": "^[^/]+$"
                         },
                         "required": true
                     }
@@ -601,7 +860,7 @@
         "/formList": {
             "get": {
                 "operationId": "form_list_authenticated",
-                "description": "## Implement part of the OpenRosa Form List API\n\n⚠️This endpoint is **only available** from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️\n\nThis endpoint is used for adding submissions as authenticated user.\n",
+                "description": "## Implement part of the OpenRosa Form List API\n\n⚠️This endpoint is **only available** from the KoboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️\n\nThis endpoint is used for adding submissions as authenticated user.\n",
                 "tags": [
                     "OpenRosa Form List"
                 ],
@@ -628,7 +887,7 @@
         "/submission": {
             "post": {
                 "operationId": "submission_authenticated",
-                "description": "## Implement the OpenRosa Form Submission API\n\n⚠️This endpoint is only available from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️\n\nThis endpoint is used for adding submissions as an authenticated user.\n\n",
+                "description": "## Implement part of the OpenRosa Form Submission API\n\n⚠️This endpoint is **only available** from the KoboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️\n\nThis endpoint is used for adding submissions as an authenticated user.\n\n### XML Submission\n\nSubmit an XForm instance as an XML file using `multipart/form-data`.\n\n**Example:**\n\n```shell\ncurl -X POST https://kc.kobotoolbox.org/submission \\\n  -u user:password \\\n  -F xml_submission_file=@/path/to/submission.xml\n```\n\n### JSON Submission\n\nSubmit an XForm instance as JSON using `application/json`.\n\nThe body must include:\n- `id`: the form's `id_string` (visible in the form URL or settings)\n- `submission`: the form data as a JSON object\n- `submission.meta.instanceID`: a unique UUID for this submission (required)\n\n**Example:**\n\n```shell\ncurl -X POST https://kc.kobotoolbox.org/submission \\\n  -u user:password \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\n    \"id\": \"{id_string}\",\n    \"submission\": {\n      \"question_1\": \"value_1\",\n      \"meta\": {\n        \"instanceID\": \"uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx\"\n      }\n    }\n  }'\n```\n",
                 "parameters": [
                     {
                         "in": "query",
@@ -649,7 +908,29 @@
                     "content": {
                         "multipart/form-data": {
                             "schema": {
-                                "$ref": "#/components/schemas/OpenRosaPayload"
+                                "$ref": "#/components/schemas/OpenRosaSubmissionRequest"
+                            }
+                        },
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/JSONSubmissionPayload"
+                            },
+                            "examples": {
+                                "JSONSubmission": {
+                                    "value": {
+                                        "id": "transportation_2011_07_25",
+                                        "submission": {
+                                            "transport": {
+                                                "item": "bicycle",
+                                                "quantity": 1
+                                            },
+                                            "meta": {
+                                                "instanceID": "uuid:f3d8dc65-91a6-4d0f-9e97-802128083390"
+                                            }
+                                        }
+                                    },
+                                    "summary": "JSON submission"
+                                }
                             }
                         }
                     },
@@ -665,11 +946,35 @@
                     {}
                 ],
                 "responses": {
-                    "200": {
+                    "201": {
                         "content": {
-                            "application/xml": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SubmissionResponse"
+                                },
+                                "examples": {
+                                    "JSONResponse": {
+                                        "value": {
+                                            "message": "Successful submission.",
+                                            "formid": "transportation_2011_07_25",
+                                            "encrypted": false,
+                                            "instanceID": "uuid:f3d8dc65-91a6-4d0f-9e97-802128083390",
+                                            "submissionDate": "2023-05-24T10:00:00Z",
+                                            "markedAsCompleteDate": "2023-05-24T10:00:01Z"
+                                        },
+                                        "summary": "JSON response"
+                                    }
+                                }
+                            },
+                            "text/xml": {
                                 "schema": {
                                     "$ref": "#/components/schemas/OpenRosaResponse"
+                                },
+                                "examples": {
+                                    "XMLResponse": {
+                                        "value": "<OpenRosaResponse xmlns=\"http://openrosa.org/http/response\">\n    <message>Successful submission.</message>\n    <submissionMetadata\n        xmlns=\"http://www.opendatakit.org/xforms\"\n        id=\"transportation_2011_07_25\"\n        instanceID=\"uuid:f3d8dc65-91a6-4d0f-9e97-802128083390\"\n        submissionDate=\"2023-05-24T10:00:00Z\"\n        isComplete=\"true\"\n        markedAsCompleteDate=\"2023-05-24T10:00:01Z\"\n    />\n</OpenRosaResponse>",
+                                        "summary": "XML response"
+                                    }
                                 }
                             }
                         },
@@ -677,7 +982,20 @@
                     },
                     "401": {
                         "content": {
-                            "application/xml": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "NotAuthenticated": {
+                                        "value": {
+                                            "detail": "Authentication credentials were not provided."
+                                        },
+                                        "summary": "Not authenticated"
+                                    }
+                                }
+                            },
+                            "text/xml": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ErrorDetail"
                                 },
@@ -695,7 +1013,20 @@
                     },
                     "404": {
                         "content": {
-                            "application/xml": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "NotFound": {
+                                        "value": {
+                                            "detail": "Not found."
+                                        },
+                                        "summary": "Not Found"
+                                    }
+                                }
+                            },
+                            "text/xml": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ErrorDetail"
                                 },
@@ -713,7 +1044,24 @@
                     },
                     "400": {
                         "content": {
-                            "application/xml": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorObject"
+                                },
+                                "examples": {
+                                    "BadRequest": {
+                                        "value": {
+                                            "detail": {
+                                                "field_name": [
+                                                    "Error message"
+                                                ]
+                                            }
+                                        },
+                                        "summary": "Bad request"
+                                    }
+                                }
+                            },
+                            "text/xml": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ErrorObject"
                                 },
@@ -732,6 +1080,62 @@
                             }
                         },
                         "description": ""
+                    },
+                    "202": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                },
+                                "examples": {
+                                    "DuplicateInstance": {
+                                        "value": {
+                                            "error": "Duplicate Instance"
+                                        },
+                                        "summary": "Duplicate Instance"
+                                    }
+                                }
+                            },
+                            "text/xml": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OpenRosaMessageResponse"
+                                },
+                                "examples": {
+                                    "DuplicateInstance": {
+                                        "value": "<OpenRosaResponse xmlns=\"http://openrosa.org/http/response\"><message>Duplicate Instance</message></OpenRosaResponse>",
+                                        "summary": "Duplicate Instance"
+                                    }
+                                }
+                            }
+                        },
+                        "description": "Exact duplicate (same XML hash, no new attachments)"
+                    },
+                    "409": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Error"
+                                },
+                                "examples": {
+                                    "Conflict": {
+                                        "value": {
+                                            "error": "Submission with this instance ID already exists"
+                                        }
+                                    }
+                                }
+                            },
+                            "text/xml": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OpenRosaMessageResponse"
+                                },
+                                "examples": {
+                                    "Conflict": {
+                                        "value": "<OpenRosaResponse xmlns=\"http://openrosa.org/http/response\"><message>Submission with this instance ID already exists</message></OpenRosaResponse>"
+                                    }
+                                }
+                            }
+                        },
+                        "description": "Instance UUID already used with different content"
                     }
                 }
             }
@@ -739,7 +1143,7 @@
         "/xformsManifest/{id}": {
             "get": {
                 "operationId": "manifest_authenticated",
-                "description": "## Implement part of the OpenRosa Manifest API\n\n⚠️This endpoint is **only available** from the Kobocat domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️\n\nThis endpoint return the URLs of form media files so they can be fetched and displayed as needed during form rendering.\nThis endpoints will also open the form in **creation** mode and is used as an authenticated user.\n",
+                "description": "## Implement part of the OpenRosa Manifest API\n\n⚠️This endpoint is **only available** from the KoboCAT domains (ex: kc.kobotoolbox.org or kc-eu.kobotoolbox.org)⚠️\n\nThis endpoint return the URLs of form media files so they can be fetched and displayed as needed during form rendering.\nThis endpoints will also open the form in **creation** mode and is used as an authenticated user.\n",
                 "parameters": [
                     {
                         "in": "path",
@@ -795,6 +1199,18 @@
     },
     "components": {
         "schemas": {
+            "Error": {
+                "type": "object",
+                "description": "Used for OpenRosa endpoints that return `{'error': '...'}` instead of\nthe standard `{'detail': '...'}` shape.",
+                "properties": {
+                    "error": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "error"
+                ]
+            },
             "ErrorDetail": {
                 "type": "object",
                 "properties": {
@@ -813,6 +1229,24 @@
                 },
                 "required": [
                     "detail"
+                ]
+            },
+            "JSONSubmissionPayload": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "description": "XForm ID String"
+                    },
+                    "submission": {
+                        "type": "object",
+                        "additionalProperties": {},
+                        "description": "The JSON submission data"
+                    }
+                },
+                "required": [
+                    "id",
+                    "submission"
                 ]
             },
             "OpenRosaFormListResponse": {
@@ -891,15 +1325,15 @@
                     "manifest"
                 ]
             },
-            "OpenRosaPayload": {
+            "OpenRosaMessageResponse": {
                 "type": "object",
                 "properties": {
-                    "xml_submission_file": {
+                    "message": {
                         "type": "string"
                     }
                 },
                 "required": [
-                    "xml_submission_file"
+                    "message"
                 ]
             },
             "OpenRosaResponse": {
@@ -941,7 +1375,7 @@
                 "properties": {
                     "xml_submission_file": {
                         "type": "string",
-                        "format": "uri"
+                        "format": "binary"
                     }
                 },
                 "required": [
@@ -981,6 +1415,39 @@
                     "formhub",
                     "meta",
                     "question"
+                ]
+            },
+            "SubmissionResponse": {
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "type": "string"
+                    },
+                    "formid": {
+                        "type": "string"
+                    },
+                    "encrypted": {
+                        "type": "boolean"
+                    },
+                    "instanceID": {
+                        "type": "string"
+                    },
+                    "submissionDate": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "markedAsCompleteDate": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "encrypted",
+                    "formid",
+                    "instanceID",
+                    "markedAsCompleteDate",
+                    "message",
+                    "submissionDate"
                 ]
             },
             "XFormList": {

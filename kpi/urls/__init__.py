@@ -4,13 +4,12 @@ from django.urls import include, path, re_path
 from django.views.i18n import JavaScriptCatalog
 
 from hub.models import ConfigurationFile
-from kpi.views import authorized_application_authenticate_user, home, modern_browsers
+from kpi.views import home, modern_browsers
 from kpi.views.current_user import CurrentUserViewSet
 from kpi.views.environment import EnvironmentView
 from kpi.views.token import TokenView
 from kpi.views.v2.authorized_application_user import AuthorizedApplicationUserViewSet
 from kpi.views.v2.logout import logout_from_all_devices
-from .router_api_v1 import urls_patterns as router_api_v1_urls
 from .router_api_v2 import URL_NAMESPACE
 from .router_api_v2 import urls_patterns as router_api_v2_urls
 
@@ -27,17 +26,10 @@ urlpatterns = [
         'patch': 'partial_update',
         'delete': 'destroy',
     }), name='currentuser-detail'),
-    re_path(r'^', include(router_api_v1_urls)),
     re_path(r'^api/v2/', include((router_api_v2_urls, URL_NAMESPACE))),
     path('', include('kobo.apps.accounts.urls')),
     path('', include('kobo.apps.service_health.urls')),
     re_path(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
-    # DEPRECATED, remove with v1
-    path(
-        'authorized_application/authenticate_user/',
-        authorized_application_authenticate_user,
-        name='authenticate_user',
-    ),
     path(
         'api/v2/authorized_application/authenticate_user/',
         AuthorizedApplicationUserViewSet.as_view({'post': 'authenticate_user'}),

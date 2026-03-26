@@ -1,5 +1,4 @@
 import type { AssetAdvancedFeatures } from './assetAdvancedFeatures'
-import type { AssetAdvancedSubmissionSchema } from './assetAdvancedSubmissionSchema'
 import type { AssetAnalysisFormJson } from './assetAnalysisFormJson'
 import type { AssetAssignablePermissionsItem } from './assetAssignablePermissionsItem'
 import type { AssetChildren } from './assetChildren'
@@ -64,13 +63,12 @@ export interface Asset {
   report_styles?: AssetReportStyles
   report_custom?: AssetReportCustom
   advanced_features?: AssetAdvancedFeatures
-  readonly advanced_submission_schema: AssetAdvancedSubmissionSchema
-  readonly analysis_form_json: AssetAnalysisFormJson
   map_styles?: AssetMapStyles
   map_custom?: AssetMapCustom
   content?: AssetContent
   readonly downloads: readonly AssetDownloadsItem[]
   readonly embeds: readonly AssetEmbedsItem[]
+  readonly analysis_form_json: AssetAnalysisFormJson
   readonly xform_link: string
   readonly hooks_link: string
   tag_string?: string
