@@ -12169,7 +12169,7 @@ components:
         data:
           type: string
           format: uri
-          example: https://kf.kobotoolbox.org/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/submissions/
+          example: https://kf.kobotoolbox.org/api/v2/assets/aBeA23YCYjkGTFvYVHuAyU/data/
           readOnly: true
         children:
           type: object

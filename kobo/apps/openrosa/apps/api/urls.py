@@ -8,7 +8,6 @@ from rest_framework.urlpatterns import format_suffix_patterns
 
 from kobo.apps.openrosa.apps.api.viewsets.attachment_viewset import AttachmentViewSet
 from kobo.apps.openrosa.apps.api.viewsets.briefcase_api import BriefcaseApi
-from kobo.apps.openrosa.apps.api.viewsets.xform_submission_api import XFormSubmissionApi
 from kpi.models.asset import Asset
 from .utils.rest_framework.views import OpenRosaAPIView
 
