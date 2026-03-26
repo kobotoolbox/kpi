@@ -24,6 +24,7 @@ def extract_confirmation_message(xml_string: str) -> Optional[str]:
     if not confirmation_message_xpath:
         return
 
+    confirmation_message_xpath = confirmation_message_xpath.strip()
     _, submit_message_root_tag, *other_parts = (
         confirmation_message_xpath.split('/')
     )
