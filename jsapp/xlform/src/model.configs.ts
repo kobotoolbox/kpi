@@ -1,0 +1,485 @@
+// 📘 generated from ./model.configs.civet 
+// "civet -coffeeCompat"
+// "civet -coffeeClasses"
+
+/*
+defaultSurveyDetails
+--------------------
+These values will be populated in the form builder and the user
+will have the option to turn them on or off.
+
+Details pulled from ODK documents / google docs. Notably this one:
+  https://docs.google.com/spreadsheet/ccc?key=0AgpC5gsTSm_4dDRVOEprRkVuSFZUWTlvclJ6UFRvdFE#gid=0
+*/
+
+import _ from 'underscore'
+import Backbone from 'backbone'
+import { txtid } from '#/utils'
+
+const defaultSurveyDetails = {
+  start_time: {
+    name: 'start',
+    label: 'start time',
+    description: 'Records when the survey was begun',
+    default: true,
+  },
+  end_time: {
+    name: 'end',
+    label: 'end time',
+    description: 'records when the survey was marked as completed',
+    default: true,
+  },
+  startgeo: {
+    name: 'start-geopoint',
+    label: 'start geopoint early',
+    description: '"warms up" the GPS to make it quicker to get an accurate reading',
+    default: false,
+  },
+  today: {
+    name: 'today',
+    label: 'today',
+    description: "includes today's date",
+    default: false,
+  },
+  username: {
+    name: 'username',
+    label: 'username',
+    description: "includes interviewer's username",
+    default: false,
+  },
+  simserial: {
+    name: 'simserial',
+    label: 'sim serial',
+    description: 'records the serial number of the network sim card',
+    default: false,
+    deprecated: true,
+  },
+  subscriberid: {
+    name: 'subscriberid',
+    label: 'subscriber id',
+    description: 'records the subscriber id of the sim card',
+    default: false,
+    deprecated: true,
+  },
+  deviceid: {
+    name: 'deviceid',
+    label: 'device id',
+    aliases: ['imei'],
+    description: 'Records the internal device ID number (works on Android phones)',
+    default: false,
+  },
+  phoneNumber: {
+    name: 'phonenumber',
+    label: 'phone number',
+    description: "Records the device's phone number, when available",
+    default: false,
+  },
+  audit: {
+    name: 'audit',
+    label: 'audit',
+    description: 'Records the behavior of enumerators as they navigate through a form',
+    default: false,
+  },
+  bg_aud: {
+    name: 'background-audio',
+    label: 'background audio',
+    description: 'record bg audio',
+    default: false,
+  },
+}
+
+class SurveyDetailSchemaItem extends Backbone.Model {
+  _forSurvey() {
+    return {
+      name: this.get('name'),
+      label: this.get('label'),
+      description: this.get('description'),
+      default: this.get('default'),
+      deprecated: this.get('deprecated'),
+    }
+  }
+}
+
+class SurveyDetailSchema extends Backbone.Collection {
+  model = SurveyDetailSchemaItem
+  _typeList: string[] | undefined
+  typeList() {
+    return this._typeList ?? (this._typeList = this.models.map((item) => item.get('name')))
+  }
+}
+
+const surveyDetailSchema = new SurveyDetailSchema(_.values(defaultSurveyDetails))
+
+/*
+  Default values for rows of each question type
+*/
+const defaultsGeneral = {
+  label: {
+    value: 'New Question',
+  },
+}
+const defaultsForType = {
+  geotrace: {
+    label: {
+      value: 'Record a line',
+    },
+    required: {
+      value: false,
+      _hideUnlessChanged: true,
+    },
+  },
+  geoshape: {
+    label: {
+      value: 'Record an area',
+    },
+    required: {
+      value: false,
+      _hideUnlessChanged: true,
+    },
+  },
+  geopoint: {
+    label: {
+      value: 'Record your current location',
+    },
+    required: {
+      value: false,
+      _hideUnlessChanged: true,
+    },
+  },
+  image: {
+    label: {
+      value: 'Point and shoot! Use the camera to take a photo',
+    },
+  },
+  video: {
+    label: {
+      value: 'Use the camera to record a video',
+    },
+  },
+  audio: {
+    label: {
+      value: "Use the camera's microphone to record a sound",
+    },
+  },
+  file: {
+    label: {
+      value: 'Upload a file',
+    },
+  },
+  note: {
+    label: {
+      value: 'This note can be read out loud',
+    },
+    required: {
+      value: false,
+      _hideUnlessChanged: true,
+    },
+  },
+  integer: {
+    label: {
+      value: 'Enter a number',
+    },
+  },
+  barcode: {
+    label: {
+      value: 'Use the camera to scan a barcode',
+    },
+  },
+  decimal: {
+    label: {
+      value: 'Enter a number',
+    },
+  },
+  date: {
+    label: {
+      value: 'Enter a date',
+    },
+  },
+  range: {
+    label: {
+      value: 'Enter a number within a specified range',
+    },
+  },
+  calculate: {
+    calculation: {
+      value: '',
+    },
+    label: {
+      value: 'calculation',
+    },
+    required: {
+      value: false,
+      _hideUnlessChanged: true,
+    },
+  },
+  hidden: {
+    label: {
+      value: 'hidden',
+    },
+    required: {
+      value: false,
+      _hideUnlessChanged: true,
+    },
+  },
+  datetime: {
+    label: {
+      value: 'Enter a date and time',
+    },
+  },
+  time: {
+    label: {
+      value: 'Enter a time',
+    },
+  },
+  acknowledge: {
+    label: {
+      value: 'Acknowledge',
+    },
+  },
+  select_one_from_file: {
+    label: {
+      value: 'Select One from file',
+    },
+    file: {
+      value: 'DEFAULT_CHOICES_FILE',
+    },
+  },
+  select_multiple_from_file: {
+    label: {
+      value: 'Select Multiple from file',
+    },
+    file: {
+      value: 'DEFAULT_CHOICES_FILE',
+    },
+  },
+  'xml-external': {
+    label: {
+      value: 'File_name',
+    },
+    required: {
+      value: false,
+      _hideUnlessChanged: true,
+    },
+  },
+}
+
+const paramTypes = {
+  number: 'number',
+  boolean: 'boolean',
+  maxPixels: 'maxPixels',
+}
+
+const questionParams = {
+  range: {
+    start: {
+      type: paramTypes.number,
+      defaultValue: 0,
+    },
+    end: {
+      type: paramTypes.number,
+      defaultValue: 10,
+    },
+    step: {
+      type: paramTypes.number,
+      defaultValue: 1,
+    },
+  },
+  image: {
+    'max-pixels': {
+      type: paramTypes.maxPixels,
+      defaultValue: 2048,
+    },
+  },
+  select_one: {
+    randomize: {
+      type: paramTypes.boolean,
+    },
+    seed: {
+      type: paramTypes.number,
+    },
+  },
+  select_multiple: {
+    randomize: {
+      type: paramTypes.boolean,
+    },
+    seed: {
+      type: paramTypes.number,
+    },
+  },
+}
+
+const columns = [
+  'type',
+  'name',
+  'file',
+  'label',
+  'hint',
+  'guidance_hint',
+  'required',
+  'relevant',
+  'default',
+  'constraint',
+]
+
+const rowTypes = ( {
+  note:        {name: 'note',        label: 'Note', preventRequired: true},
+  acknowledge: {name: 'acknowledge', label: 'Acknowledge'},
+  text:        {name: 'text',        label: 'Text'},           /* expects text */
+  integer:     {name: 'integer',     label: 'Integer'},        /* e.g. 42 */
+  decimal:     {name: 'decimal',     label: 'Decimal'},        /* e.g. 3.14 */
+  range:       {name: 'range',       label: 'Range'},         /* e.g. 1-5 */
+  geopoint:    {name: 'geopoint',    label: 'Geopoint (GPS)'}, /* Can use satellite GPS coordinates */
+  geotrace:    {name: 'geotrace',    label: 'Geotrace (GPS)'}, /* Can use satellite GPS coordinates */
+  geoshape:    {name: 'geoshape',    label: 'Geoshape (GPS)'}, /* Can use satellite GPS coordinates */
+  image:       {name: 'image',       label: 'Image', isMedia: true}, /* Can use phone camera, for example */
+  barcode:     {name: 'barcode',     label: 'Barcode / QR code'}, /* Can scan a barcode using the phone camera */
+  date:        {name: 'date',        label: 'Date'},          /*  e.g. (4 July, 1776) */
+  time:        {name: 'time',        label: 'Time'},
+  datetime:    {name: 'datetime',    label: 'Date and Time'}, /* e.g. (2012-Jan-4 3:04PM) */
+  audio:       {name: 'audio',       label: 'Audio', isMedia: true}, /* Can use phone microphone to record audio */
+  video:       {name: 'video',       label: 'Video', isMedia: true}, /* Can use phone camera to record video */
+  file:        {name: 'file',        label: 'File'},
+  calculate:   {name: 'calculate',   label: 'Calculate'},
+  hidden:      {name: 'hidden',      label: 'Hidden'},
+  select_one:  {name: 'select_one',  label: 'Select', orOtherOption: true, specifyChoice: true},
+  score:       {name: 'score',       label: 'Score'},
+  score__row:  {name: 'score__row',  label: 'Score Row'},
+  rank:        {name: 'rank',        label: 'Rank'},
+  kobomatrix:  {name: 'kobomatrix',  label: 'Advanced Matrix'},
+  rank__level: {name: 'rank__level', label: 'Rank Level'},
+  select_multiple: {name: 'select_multiple', label: 'Multiple choice', orOtherOption: true, specifyChoice: true},
+  select_one_from_file:      {name: 'select_one_from_file',      label: 'Select one from file'},
+  select_multiple_from_file: {name: 'select_multiple_from_file', label: 'Select multiple from file'},
+  'xml-external': {name: 'xml-external', label: 'External XML'},
+  'background-geopoint': {name: 'background-geopoint', label: 'Background geopoint', supportedByUI: false},
+}
+)
+
+const lookupRowType = (typeId: keyof typeof rowTypes) => rowTypes[typeId]
+
+const autoset_kuid = true
+
+const columnOrder = (key: string ) => {
+  if (-1 === columns.indexOf(key)) {
+    columns.push(key)
+  }
+  return columns.indexOf(key)
+}
+
+const newRowDetails = {
+  name: {
+    value: '',
+  },
+  type: {
+    value: 'text',
+  },
+  hint: {
+    value: '',
+    _hideUnlessChanged: true,
+  },
+  guidance_hint: {
+    value: '',
+  },
+  required: {
+    value: false,
+    _hideUnlessChanged: true,
+  },
+  relevant: {
+    value: '',
+    _hideUnlessChanged: true,
+  },
+  default: {
+    value: '',
+    _hideUnlessChanged: true,
+  },
+  constraint: {
+    value: '',
+    _hideUnlessChanged: true,
+  },
+  constraint_message: {
+    value: '',
+    _hideUnlessChanged: true,
+  },
+  tags: {
+    value: '',
+    _hideUnlessChanged: true,
+  },
+  appearance: {
+    value: '',
+    _hideUnlessChanged: true,
+  },
+}
+
+const newGroupDetails = {
+  name: {
+    value: function() {
+      return `group_${txtid()}`
+    },
+  },
+  label: {
+    value: 'Group',
+  },
+  type: {
+    value: 'group',
+  },
+  _isRepeat: {
+    value: false,
+  },
+  relevant: {
+    value: '',
+    _hideUnlessChanged: true,
+  },
+  appearance: {
+    value: '',
+    _hideUnlessChanged: true,
+  },
+}
+
+
+const question_types = {}
+
+/*
+   String representations of boolean values which are accepted as true from the XLSForm.
+*/
+
+const truthyValues = [
+  'yes',
+  'YES',
+  'true',
+  'true()',
+  'TRUE',
+]
+const falsyValues = [
+  'no',
+  'NO',
+  'false',
+  'false()',
+  'FALSE',
+]
+
+// Alternative: XLF.configs.boolOutputs = {"true": "yes", "false": "no"}
+const boolOutputs = {'true': 'true', 'false': 'false'}
+
+
+const configs = {
+  defaultSurveyDetails,
+  SurveyDetailSchemaItem,
+  SurveyDetailSchema,
+  surveyDetailSchema,
+  defaultsGeneral,
+  defaultsForType,
+  paramTypes,
+  questionParams,
+  columns,
+  lookupRowType,
+  autoset_kuid,
+  columnOrder,
+  newRowDetails,
+  newGroupDetails,
+  question_types,
+  truthyValues,
+  falsyValues,
+  boolOutputs,
+}
+
+export default configs
