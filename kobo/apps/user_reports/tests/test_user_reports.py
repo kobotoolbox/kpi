@@ -71,9 +71,11 @@ class UserReportsViewSetAPITestCase(BaseTestCase):
         self.assertEqual(
             response.json(),
             {
-                'details': 'The data source for user reports is missing. '
-                'Please run 0002_create_user_reports_mv to create the '
-                'materialized view: user_reports_userreportsmv.',
+                'details': (
+                    'The data source for user reports is missing. '
+                    'Please run `./manage.py manage_user_reports_mv --create` to '
+                    'create the materialized view: user_reports_userreportsmv.'
+                )
             },
         )
 
