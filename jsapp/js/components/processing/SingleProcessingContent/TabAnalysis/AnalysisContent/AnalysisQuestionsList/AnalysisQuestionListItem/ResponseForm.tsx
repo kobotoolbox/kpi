@@ -92,7 +92,10 @@ export default function ResponseForm({
   const shouldDisplayAIGeneratedBadge = hasAnswer && isAnswerAIGenerated
 
   const shouldDisplayAnyButtonOrBadge =
-    shouldDisplayGenerateWithAIButton || shouldDisplayClearButton || shouldDisplayAIGeneratedBadge
+    shouldDisplayGenerateWithAIButton ||
+    shouldDisplayClearButton ||
+    shouldDisplayAIGeneratedBadge ||
+    shouldDisplayVerificationCheckbox
 
   const handleClear = async () => {
     if (!onClear) return
@@ -124,12 +127,13 @@ export default function ResponseForm({
 
   const handleVerificationChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = event.currentTarget.checked
+    const previousValue = answer?.verified ?? false
     setVerificationStatus(newValue)
     if (onUpdateAnswerVerification) {
       try {
         await onUpdateAnswerVerification(isAnswerAIGenerated ?? false, newValue)
       } catch {
-        setVerificationStatus(undefined)
+        setVerificationStatus(previousValue)
       }
     }
   }
