@@ -85,6 +85,7 @@ class MfaMethodsWrapper(AbstractTimeStampedModel):
         if update_fields:
             update_fields += ['date_disabled']
 
+        should_sync = update_fields is None or 'is_active' in update_fields
         super().save(
             force_insert=force_insert,
             force_update=force_update,
@@ -92,8 +93,16 @@ class MfaMethodsWrapper(AbstractTimeStampedModel):
             update_fields=update_fields,
         )
 
+        if should_sync:
+            # Sync MFA status with UserProfile
+            UserProfile.set_mfa_status(user_id=self.user_id, is_active=self.is_active)
+
+    def delete(self, using=None, keep_parents=False):
+        user_id = self.user_id
+        super().delete(using, keep_parents)
+
         # Sync MFA status with UserProfile
-        UserProfile.set_mfa_status(user_id=self.user_id, is_active=self.is_active)
+        UserProfile.set_mfa_status(user_id=user_id, is_active=False)
 
 
 class MfaMethod(TrenchMFAMethod, AbstractTimeStampedModel):
