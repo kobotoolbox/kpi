@@ -118,6 +118,8 @@ export default function ResponseForm({
     }
   }
 
+  const hintValue = (qaQuestion.hint?.labels as { [key: string]: string | undefined })?._default
+
   return (
     <Stack gap='10px'>
       <Group align={'flex-start'} gap={'xs'}>
@@ -172,6 +174,12 @@ export default function ResponseForm({
           </>
         )}
       </Group>
+
+      {hintValue && (
+        <Text pl='40px' m='0' ta='left' c='var(--mantine-color-gray-2)' mt='calc(-1 * var(--stack-gap))'>
+          {hintValue}
+        </Text>
+      )}
 
       {/* Hard coded left padding to account for the 32px icon size + 8px gap */}
       {children && <Box pl='40px'>{children}</Box>}

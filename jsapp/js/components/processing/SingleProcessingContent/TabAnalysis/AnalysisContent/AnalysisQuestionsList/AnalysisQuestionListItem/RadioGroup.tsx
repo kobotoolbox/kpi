@@ -1,9 +1,10 @@
-import { Radio, Stack } from '@mantine/core'
+import { Radio, Stack, Text } from '@mantine/core'
 import React, { type ChangeEvent } from 'react'
 
 export interface RadioGroupOption {
   uuid: string
   label: string
+  hint?: string
   disabled?: boolean
 }
 
@@ -23,14 +24,21 @@ export default function RadioGroup({ options, value, onChange, disabled }: Radio
     <Radio.Group value={value} onChange={onChange}>
       <Stack gap={'xs'}>
         {options.map((option) => (
-          <Radio
-            key={option.uuid}
-            value={option.uuid}
-            label={`${option.label}`}
-            onChange={handleChange}
-            checked={value === option.uuid}
-            disabled={disabled || option.disabled}
-          />
+          <Stack gap='0'>
+            <Radio
+              key={option.uuid}
+              value={option.uuid}
+              label={`${option.label}`}
+              onChange={handleChange}
+              checked={value === option.uuid}
+              disabled={disabled || option.disabled}
+            />
+            {option.hint && (
+              <Text pl='26px' fz='xs' m='0' ta='left' c='var(--mantine-color-gray-2)'>
+                {option.hint}
+              </Text>
+            )}
+          </Stack>
         ))}
       </Stack>
     </Radio.Group>
