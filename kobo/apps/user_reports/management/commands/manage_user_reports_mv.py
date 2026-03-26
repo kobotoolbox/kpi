@@ -28,8 +28,7 @@ class Command(BaseCommand):
             default=False,
             help=(
                 'Bypass SKIP_HEAVY_MIGRATIONS and run immediately. '
-                'Indexes are created with CONCURRENTLY to avoid locking '
-                'the view. Use this when calling from a background job.'
+                'Use this when calling from a background job.'
             ),
         )
 
@@ -68,14 +67,8 @@ class Command(BaseCommand):
                     self.stdout.write(
                         '⏳Creating materialized view (this may take several minutes)…'
                     )
-                    create_indexes_sql = CREATE_INDEXES_SQL
-                    if options['force']:
-                        create_indexes_sql = create_indexes_sql.replace(
-                            'CREATE UNIQUE INDEX',
-                            'CREATE UNIQUE INDEX CONCURRENTLY',
-                        )
                     cursor.execute(CREATE_MV_SQL)
-                    cursor.execute(create_indexes_sql)
+                    cursor.execute(CREATE_INDEXES_SQL)
                     self.stdout.write(self.style.SUCCESS('Created.'))
 
     @staticmethod
