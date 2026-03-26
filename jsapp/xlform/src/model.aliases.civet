@@ -53,8 +53,8 @@ module.exports = do ->
     return ['survey']
 
   q.testGroupable = (type)->
-    # Returns an object if type is group or repeat (begin or end)
-    #  otherwise, returns false
+    // Returns an object if type is group or repeat (begin or end)
+    //  otherwise, returns false
     out = false
     if type in aliases_dict.group
       out = {type: 'group'}

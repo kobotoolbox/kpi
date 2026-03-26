@@ -49,12 +49,12 @@ class rowDetailsSkipLogic.SkipLogicCriterion extends Backbone.Model
 
 
   change_question: (cid) ->
-    # old_question_type = this._get_question()?.get_type() or { name: null }
-    # # compiles incorrectly (extra != null)
-    # - old_question_type = ((_ref = this._get_question()) != null ? _ref.get_type() : void 0) || { name: null };
-    # + old_question_type = ((_ref = this._get_question()) ? _ref.get_type() : void 0) || { name: null };
-    # old_question_type = @neverDefined?.increment_coffee_ref()
-    # old_question_type = (if `this._get_question()` then this._get_question().get_type()) or { name: null }
+    // old_question_type = this._get_question()?.get_type() or { name: null }
+    // // compiles incorrectly (extra != null)
+    // - old_question_type = ((_ref = this._get_question()) != null ? _ref.get_type() : void 0) || { name: null };
+    // + old_question_type = ((_ref = this._get_question()) ? _ref.get_type() : void 0) || { name: null };
+    // old_question_type = @neverDefined?.increment_coffee_ref()
+    // old_question_type = (if `this._get_question()` then this._get_question().get_type()) or { name: null }
     old_question_type = @_get_question()?.get_type?() or { name: null }
     @set('question_cid', cid)
     question_type = @_get_question().get_type()
@@ -84,12 +84,12 @@ class rowDetailsSkipLogic.SkipLogicCriterion extends Backbone.Model
     @set('operator', operator_model)
 
     if (type.response_type || question_type.response_type) != @get('response_value')?.get('type')
-      # -        return this.change_response(((_ref1 = this.get('response_value')) != null ?
-      # +        return this.change_response(((_ref1 = this.get('response_value')) != null ?
-      # -           _ref1.get(this._get_question()._isSelectQuestion() ? 'cid' : 'value')
-      # -             : void 0) || '');
-      # +           this._get_question()._isSelectQuestion() ? _ref1.get('cid') : _ref1.get('value')
-      # +             : void 0) || '');
+      // -        return this.change_response(((_ref1 = this.get('response_value')) != null ?
+      // +        return this.change_response(((_ref1 = this.get('response_value')) != null ?
+      // -           _ref1.get(this._get_question()._isSelectQuestion() ? 'cid' : 'value')
+      // -             : void 0) || '');
+      // +           this._get_question()._isSelectQuestion() ? _ref1.get('cid') : _ref1.get('value')
+      // +             : void 0) || '');
       @change_response @get('response_value')?.get(if @_get_question()._isSelectQuestion() then 'cid' else 'value') or ''
     return
   get_correct_type: () ->
@@ -116,12 +116,12 @@ class rowDetailsSkipLogic.SkipLogicCriterion extends Backbone.Model
       choices = choicelist.options.models
       this.set_option_names(choices)
 
-      # current_value = response_model?.get('value')
-      # choices = @_get_question().getList().options.models
+      // current_value = response_model?.get('value')
+      // choices = @_get_question().getList().options.models
 
-      # _.each choices, (model) ->
-      #   if !model.get('name')?
-      #     model.set('name', rowDetailsSkipLogic.sluggify model.get 'label')
+      // _.each choices, (model) ->
+      //   if !model.get('name')?
+      //     model.set('name', rowDetailsSkipLogic.sluggify model.get 'label')
 
       choice_cids = _.map(choices, (model) -> model.cid)
 
@@ -173,7 +173,7 @@ class rowDetailsSkipLogic.SkipLogicOperator extends rowDetailsSkipLogic.Operator
       '<',
       '<=',
     ].indexOf(symbol) > -1)
-    # @set('is_negated', symbol == '!=')
+    // @set('is_negated', symbol == '!=')
 
 class rowDetailsSkipLogic.TextOperator extends rowDetailsSkipLogic.SkipLogicOperator
   serialize: (question_name, response_value) ->
@@ -254,10 +254,10 @@ class rowDetailsSkipLogic.DecimalResponseModel extends rowDetailsSkipLogic.Respo
         else
           value = +value.replace(',', '')
 
-      # if value.lastIndexOf(',') > value.lastIndexOf('.')
-      #   final_value = +(value.replace(/\./g, '').replace(',', '.'))
-      # else
-      #   final_value = +(value.replace(',', ''))
+      // if value.lastIndexOf(',') > value.lastIndexOf('.')
+      //   final_value = +(value.replace(/\./g, '').replace(',', '.'))
+      // else
+      //   final_value = +(value.replace(',', ''))
     @set('value', value, validate: true)
     return
 

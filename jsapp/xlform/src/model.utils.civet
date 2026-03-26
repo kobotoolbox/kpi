@@ -71,13 +71,13 @@ module.exports = do ->
   utils.sluggify = (str, opts={})->
     if str == ''
       return ''
-    # Convert text to a friendly format. Rules are passed as options
+    // Convert text to a friendly format. Rules are passed as options
     opts = _.defaults(opts, {
-        # l/r strip: strip spaces from begin/end of string
+        // l/r strip: strip spaces from begin/end of string
         lrstrip: false
         lstrip: false
         rstrip: false
-        # descriptor: used in error messages
+        // descriptor: used in error messages
         descriptor: "slug"
         lowerCase: true
         replaceNonWordCharacters: true
@@ -86,7 +86,7 @@ module.exports = do ->
         validXmlTag: false
         underscores: true
         characterLimit: 30
-        # preventDuplicates: an array with a list of values that should be avoided
+        // preventDuplicates: an array with a list of values that should be avoided
         preventDuplicates: false
         incrementorPadding: false
       })
@@ -113,8 +113,8 @@ module.exports = do ->
       else
         regex = /\W+/g
       str = str.replace(regex, '_')
-      # possibly a bit specific, but removes an underscore from the end
-      # of the string
+      // possibly a bit specific, but removes an underscore from the end
+      // of the string
       if str.match(/._$/)
         str = str.replace(/_$/, '')
 

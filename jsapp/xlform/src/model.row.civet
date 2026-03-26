@@ -82,7 +82,7 @@ module.exports = do ->
       survey_arr.push @toJSON2()
       return
 
-    # TODO: see if we need both toJSON* methods, and if yes, please describe both (differences)
+    // TODO: see if we need both toJSON* methods, and if yes, please describe both (differences)
     toJSON2: ->
       outObj = {}
       for [key, val] in @attributesArray()
@@ -162,7 +162,7 @@ module.exports = do ->
       rr.clone = ()->
         attributes = rr.toJSON2()
 
-        # Strip unique IDs and old list references from the main row (to force autofill of proper values)
+        // Strip unique IDs and old list references from the main row (to force autofill of proper values)
         delete attributes['$kuid']
         delete attributes['kobo--rank-items']
         delete attributes['kobo--score-choices']
@@ -178,17 +178,17 @@ module.exports = do ->
         r2._isCloned = true
 
         if rr._rankRows
-          # if rr is a rank question
+          // if rr is a rank question
           for rankRow in rr._rankRows.models
             rankRowJson = rankRow.toJSON()
-            # Strip $kuid from sub-rows
+            // Strip $kuid from sub-rows
             delete rankRowJson['$kuid']
             r2._rankRows.add(rankRowJson)
 
           r2._rankLevels = rr.getSurvey().choices.add(name: txtid())
           for item in rr.getList().options.models
             itemJson = item.toJSON()
-            # Strip $kuid from items
+            // Strip $kuid from items
             delete itemJson['$kuid']
             r2._rankLevels.options.add(itemJson)
 
@@ -196,17 +196,17 @@ module.exports = do ->
           r2.convertAttributesToRowDetails()
           r2.get('type').set('list', r2._rankLevels)
         else
-          # if rr is a score question
+          // if rr is a score question
           for scoreRow in rr._scoreRows.models
             scoreRowJson = scoreRow.toJSON()
-            # Strip $kuid from sub-rows
+            // Strip $kuid from sub-rows
             delete scoreRowJson['$kuid']
             r2._scoreRows.add(scoreRowJson)
 
           r2._scoreChoices = rr.getSurvey().choices.add(name: txtid())
           for item in rr.getList().options.models
             itemJson = item.toJSON()
-            # Strip $kuid from items
+            // Strip $kuid from items
             delete itemJson['$kuid']
             r2._scoreChoices.options.add(itemJson)
 
@@ -381,9 +381,9 @@ module.exports = do ->
         typeDetail.set("value", tpVal, silent: true)
 
       processType = (rd, newType, ctxt)=>
-        # if value changes, it could be set from an initialization value
-        # or it could be changed elsewhere.
-        # we need to keep typeId, listName, and orOther in sync.
+        // if value changes, it could be set from an initialization value
+        // or it could be changed elsewhere.
+        // we need to keep typeId, listName, and orOther in sync.
         if _.isObject(newType)
           tpid = _.keys(newType)[0]
           p2 = _.values(newType)[0]
@@ -426,7 +426,7 @@ module.exports = do ->
     getTypeId: ->
       return @get('type').get('typeId')
 
-    # Clones this row in a deep way (i.e. also clones list of choices etc.) and returns the new clone-row
+    // Clones this row in a deep way (i.e. also clones list of choices etc.) and returns the new clone-row
     clone: ->
       attributes = {}
       options =
@@ -437,8 +437,8 @@ module.exports = do ->
         silent: true
 
       _.each @attributes, (value, key) =>
-        # Prevent copying the hardcoded list reference and the unique row id. They will be autofilled with proper values
-        # in the lines below
+        // Prevent copying the hardcoded list reference and the unique row id. They will be autofilled with proper values
+        // in the lines below
         if key not in ['$kuid', 'select_from_list_name']
           attributes[key] = @getValue key
 
@@ -446,17 +446,17 @@ module.exports = do ->
 
       newRowType = newRow.get('type')
       if newRowType.get('typeId') in ['select_one', 'select_multiple']
-        # Clone the choices list (as it is a distinct entity)
+        // Clone the choices list (as it is a distinct entity)
         clonedList = @getList().clone()
 
-        # Ensure new list has a unique name
+        // Ensure new list has a unique name
         listName = txtid()
         clonedList.set('name', listName)
 
-        # Register the cloned list with the global choices collection
+        // Register the cloned list with the global choices collection
         @getSurvey().choices.add(clonedList)
 
-        # Bind the new list and explicitly overwrite the type string
+        // Bind the new list and explicitly overwrite the type string
         newRowType.set('list', clonedList)
         newRowType.set('listName', listName)
         newRowType.set('value', "#{newRowType.get('typeId')} #{listName}")

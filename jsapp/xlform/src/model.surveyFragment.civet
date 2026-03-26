@@ -53,7 +53,7 @@ module.exports = do ->
 
       _toJSON = rr.toJSON
 
-      # We don't allow cloning of matrix rows. This function would log an error if ever called by mistake
+      // We don't allow cloning of matrix rows. This function would log an error if ever called by mistake
       rr.clone = ()->
         console.error('clone kobomatrix rows')
         return
@@ -122,7 +122,7 @@ module.exports = do ->
     @_afterIterator(cb, ctx)  if '_afterIterator' of @
     return
 
-  # This is an extended Backbone.Collection (because $base.BaseCollection extends Backbone.Collection)
+  // This is an extended Backbone.Collection (because $base.BaseCollection extends Backbone.Collection)
   class surveyFragment.SurveyFragment extends $base.BaseCollection
     constructor: (arg, opts)->
       super(arg, opts)
@@ -170,8 +170,8 @@ module.exports = do ->
         if row.cid is cid
           match = row
           return match
-        # maybe implement a way to bust out
-        # of this loop with false response.
+        // maybe implement a way to bust out
+        // of this loop with false response.
         return !match
       @forEachRow fn, options
       return match
@@ -182,17 +182,17 @@ module.exports = do ->
         if (row.getValue("name") || $utils.sluggifyLabel row.getValue('label')) is name
           match = row
           return match
-        # maybe implement a way to bust out
-        # of this loop with false response.
+        // maybe implement a way to bust out
+        // of this loop with false response.
         return !match
       ,opts
       return match
     addRowAtIndex: (r, index)-> @addRow(r, at: index)
 
     addRow: (r, opts={})->
-      # The row we want to add needs to be added in some parent at some index.
-      # Here, using the provided parent, we find index for new row. We base it on the given after or before (row).
-      # Fallback is using root list of rows as parent (with no index - TODO come up with explanation why and what)
+      // The row we want to add needs to be added in some parent at some index.
+      // Here, using the provided parent, we find index for new row. We base it on the given after or before (row).
+      // Fallback is using root list of rows as parent (with no index - TODO come up with explanation why and what)
       if (afterRow = opts.after)
         delete opts.after
         opts._parent = afterRow._parent
@@ -216,7 +216,7 @@ module.exports = do ->
       return
 
     _addGroup: (opts)->
-      # move to surveyFrag
+      // move to surveyFrag
       opts._parent = @rows
 
       unless 'type' of opts
@@ -256,13 +256,13 @@ module.exports = do ->
       return
 
     _allRows: ->
-      # move to surveyFrag
+      // move to surveyFrag
       rows = []
       @forEachRow ((r)-> rows.push(r)  if r.constructor.kls is "Row"), {}
       return rows
 
     finalize: ->
-      # move to surveyFrag
+      // move to surveyFrag
       @forEachRow ((r)=> r.finalize()), includeGroups: true
       return @
 
@@ -388,12 +388,12 @@ module.exports = do ->
     type = obj?.type
 
     if type in INVALID_TYPES_AT_THIS_STAGE
-      # inputParser should have converted groups and repeats into a structure by this point
+      // inputParser should have converted groups and repeats into a structure by this point
       throw new Error("Invalid type at this stage: #{type}")
       return
 
     if type in formSettingsTypes
-      # e.g. "today"
+      // e.g. "today"
       throw new Error("#{type} is not properly handled as a SurveyDetail")
       return $surveyDetail.SurveyDetail
     else if type is 'score'
@@ -414,7 +414,7 @@ module.exports = do ->
       try
         return new RowConstructor(obj, _.extend({}, ctxt, _parent: ctxt.collection))
       catch e
-        # Store exceptions in with the survey
+        // Store exceptions in with the survey
         return new $row.RowError(obj, _.extend({}, ctxt, error: e, _parent: ctxt.collection))
     comparator: (m)-> m.ordinal
 

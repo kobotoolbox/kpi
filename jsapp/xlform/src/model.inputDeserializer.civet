@@ -1,9 +1,9 @@
 "civet coffeeCompat"
 
 ###
-# [inputDeserializer]
-#  wrapper around methods for converting raw input into survey structure
-# ______________________________________________________________________
+// [inputDeserializer]
+//  wrapper around methods for converting raw input into survey structure
+// ______________________________________________________________________
 ###
 
 _ = require 'underscore'
@@ -17,9 +17,9 @@ module.exports = do ->
       validateParse(r, ctx)
     return r
 
-  # [inputDeserializer.deserialize] parses csv string, json string,
-  #  or object into survey object
-  # -------------------------------
+  // [inputDeserializer.deserialize] parses csv string, json string,
+  //  or object into survey object
+  // -------------------------------
   deserialize = do ->
     _csv_to_params = (csv_repr)->
       cobj = csv.sheeted(csv_repr)
@@ -33,8 +33,8 @@ module.exports = do ->
       return out
 
     _parse_sheets = (repr)->
-      # If a sheet has a first-row which is an array, that array will be treated as column
-      # headers and any subsequent array-rows will be matched up
+      // If a sheet has a first-row which is an array, that array will be treated as column
+      // headers and any subsequent array-rows will be matched up
 
       for shtName, sheet of repr
         if _.isArray(sheet) and sheet.length > 0 and _.isArray(sheet[0])
@@ -52,7 +52,7 @@ module.exports = do ->
           repr[shtName] = out_sheet
       return repr
 
-    # returns: function
+    // returns: function
     return (repr, ctx={})->
       if _.isString repr
         return _csv_to_params repr
@@ -60,13 +60,13 @@ module.exports = do ->
         return _parse_sheets repr
       else
 
-  # [inputDeserializer.validateParse]
-  #  ensure correct sheet names exist in imported surveys
-  # ---------------------------------
+  // [inputDeserializer.validateParse]
+  //  ensure correct sheet names exist in imported surveys
+  // ---------------------------------
   validateParse = do ->
     requiredSheetNameList = $aliases.q.requiredSheetNameList()
 
-    # returns: function
+    // returns: function
     return (repr, ctx={})->
       valid_with_sheet = false
       for sheetId in requiredSheetNameList

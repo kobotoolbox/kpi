@@ -30,8 +30,8 @@ module.exports = do ->
         @set("name", sname)
 
       ###
-      # We don't use locking profiles in any way yet, so we just store it for
-      # saving - for checking these out, coffee code is using raw survey JSON.
+      // We don't use locking profiles in any way yet, so we just store it for
+      // saving - for checking these out, coffee code is using raw survey JSON.
       ###
       @lockingProfiles = options[LOCKING_PROFILES_PROP_NAME]
 
@@ -68,8 +68,8 @@ module.exports = do ->
       return new Survey(options, addlOpts)
 
     linkUpChoiceLists: ->
-      # In case of cascading selects, this will ensure choiceLists are connected to
-      # sub choice lists through a private "__cascadeList" property
+      // In case of cascading selects, this will ensure choiceLists are connected to
+      // sub choice lists through a private "__cascadeList" property
       choiceKeys = @choices.getListNames()
       for choiceList in @choices.models
         overlapping_choice_keys = _.intersection(choiceKeys, choiceList.getOptionKeys(true))
@@ -80,7 +80,7 @@ module.exports = do ->
       return
 
     insert_row: (row, index) ->
-      # TODO: why? `_isCloned` is being used only once, in `ScoreRankMixin`'s `clone` function.
+      // TODO: why? `_isCloned` is being used only once, in `ScoreRankMixin`'s `clone` function.
       if row._isCloned
         @rows.add(row, at: index)
       else
@@ -101,7 +101,7 @@ module.exports = do ->
     insertSurvey: (survey, index=-1, targetGroupId)->
       index = @rows.length if index is -1
       for row, row_i in survey.rows.models
-        # if target is a group, not root list of rows, we need to switch
+        // if target is a group, not root list of rows, we need to switch
         target = @
         if targetGroupId
           foundGroup = @findRowByCid(targetGroupId, {includeGroups: true})
@@ -112,7 +112,7 @@ module.exports = do ->
 
         index_incr = index + row_i
 
-        # inserting a group
+        // inserting a group
         if row.rows
           if row.forEachRow
             row.forEachRow(
@@ -129,10 +129,10 @@ module.exports = do ->
             }
           )
 
-          # inserting a group (block from Library) doesn't trigger change event
-          # anywhere else, so we do it here manually
+          // inserting a group (block from Library) doesn't trigger change event
+          // anywhere else, so we do it here manually
           @trigger('change')
-        # inserting a question
+        // inserting a question
         else
           @_ensure_row_list_is_copied(row)
           name_detail = row.get('name')
@@ -228,7 +228,7 @@ module.exports = do ->
         return
       @forEachRow(fn, includeGroups: false)
 
-      # summaryObj
+      // summaryObj
       return {
         rowCount: rowCount
         hasGps: hasGps
@@ -248,7 +248,7 @@ module.exports = do ->
         parent = @
       parent.rows.add(row, {at: index})
 
-      # line below looks like BAD CODE™ but in fact it enables row reordering
+      // line below looks like BAD CODE™ but in fact it enables row reordering
       row._parent = parent.rows
 
       if opts.event
@@ -269,8 +269,8 @@ module.exports = do ->
         out[sheet] = content.rowObjects
       return out
     toCsvJson: ()->
-      # build an object that can be easily passed to the "csv" library
-      # to generate the XL(S)Form spreadsheet
+      // build an object that can be easily passed to the "csv" library
+      // to generate the XL(S)Form spreadsheet
 
       @finalize()
 
@@ -341,7 +341,7 @@ module.exports = do ->
       return sheeted.toString()
 
   Survey.load = (csv_repr, _usingSurveyLoadCsv=false)->
-    # log('switch to Survey.load.csv')  if !_usingSurveyLoadCsv
+    // log('switch to Survey.load.csv')  if !_usingSurveyLoadCsv
     if _.isString(csv_repr) and not _is_csv(csv_repr)
       throw Error("Invalid CSV passed to form builder")
     _deserialized = $inputDeserializer.deserialize csv_repr
@@ -359,11 +359,11 @@ module.exports = do ->
     return new Survey(_parsed)
 
   _is_csv = (csv_repr)->
-    # checks that a string has a newline and a comma,
-    # a very simplistic test of a csv
+    // checks that a string has a newline and a comma,
+    // a very simplistic test of a csv
     return '\n' in csv_repr and ',' in csv_repr
 
-  # Settings (assigned to each $survey.Survey instance)
+  // Settings (assigned to each $survey.Survey instance)
   class Settings extends $base.BaseModel
     validation: {}
     toCsvJson: ->

@@ -23,9 +23,9 @@ module.exports = do ->
       return
     list: -> @collection
     getKeys: (with_val)->
-      # returns a list of columns in the xlsform.
-      # if `with_val` is true, only returns columns that
-      # have an associated value.
+      // returns a list of columns in the xlsform.
+      // if `with_val` is true, only returns columns that
+      // have an associated value.
       keys = []
       for key, attribute of @attributes
         if !with_val
@@ -54,8 +54,8 @@ module.exports = do ->
       return @collection.getSurvey()
 
     getList: ->
-      # used for cascading selects: if choiceList is connected to
-      # another choiceList, pass it on.
+      // used for cascading selects: if choiceList is connected to
+      // another choiceList, pass it on.
       if @__cascadedList
         return @__cascadedList
       else
@@ -126,7 +126,7 @@ module.exports = do ->
       return _.uniq(option_keys)
 
     finalize: ->
-      # ensure that all options have names
+      // ensure that all options have names
       names = []
       for option in @options.models
         label = option.get("label")
@@ -144,14 +144,14 @@ module.exports = do ->
         names.push name
       return
 
-    # This is a helper function for `BaseRowView.clone`, it makes a copy of the choices list in the parent row
+    // This is a helper function for `BaseRowView.clone`, it makes a copy of the choices list in the parent row
     clone: () ->
       json = @toJSON()
 
-      # Assign a new unique identifier for the cloned list
+      // Assign a new unique identifier for the cloned list
       json.name = txtid()
 
-      # Strip out $kuid from each option so they are treated as brand new entities
+      // Strip out $kuid from each option so they are treated as brand new entities
       if json.options
         for optionAttr in json.options
           delete optionAttr['$kuid']
@@ -166,7 +166,7 @@ module.exports = do ->
     toJSON: ()->
       @finalize()
 
-      # Returns {name: '', options: []}
+      // Returns {name: '', options: []}
       return {
         name: @get("name")
         options: @options.invoke("toJSON")

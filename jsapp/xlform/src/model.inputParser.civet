@@ -101,7 +101,7 @@ module.exports = do ->
 
     return _curGrp().export().__rows
 
-  # normalizes required value - truthy values become `true` and falsy values become `false`
+  // normalizes required value - truthy values become `true` and falsy values become `false`
   normalizeRequiredValues = (survey) ->
     normalizedSurvey = cloneDeep(survey)
     for row in normalizedSurvey
@@ -113,14 +113,14 @@ module.exports = do ->
 
   inputParser.parseArr = parseArr
 
-  # pass baseSurvey whenever you import other asset into existing form
+  // pass baseSurvey whenever you import other asset into existing form
   inputParser.parse = (o, baseSurvey)->
     translations = o.translations
 
     nullified = formBuilderUtils.nullifyTranslations(o.translations, o.translated, o.survey, baseSurvey)
 
-    # we edit the received object directly, which is totally a case of BAD CODE™
-    # but in fact is a necessary part of the nullify hack
+    // we edit the received object directly, which is totally a case of BAD CODE™
+    // but in fact is a necessary part of the nullify hack
     o.survey = nullified.survey;
     o.translations = nullified.translations
     o.translations_0 = nullified.translations_0
@@ -128,14 +128,14 @@ module.exports = do ->
     if o.survey
       o.survey = normalizeRequiredValues(o.survey)
 
-    # sorts groups and repeats into groups and repeats (recreates the structure)
+    // sorts groups and repeats into groups and repeats (recreates the structure)
     if o.survey
       o.survey = parseArr('survey', o.survey, o.translations)
 
     if o.choices
       o.choices = parseArr('choices', o.choices, o.translations)
 
-    # settings is sometimes packaged as an array length=1
+    // settings is sometimes packaged as an array length=1
     if o.settings and _.isArray(o.settings) and o.settings.length is 1
       o.settings = o.settings[0]
 
@@ -154,12 +154,12 @@ module.exports = do ->
       choices.add(name: cn, options: tmp[cn])
     return choices
 
-  # groupByVisibility = (inp, hidden=[], remain=[])->
-  #   hiddenTypes = $aliases.q.hiddenTypes()
-  #   throw Error("inputParser.sortByVisibility requires an array")  unless _.isArray(inp)
-  #   for row in inp
-  #     dest = if row.type? in hiddenTypes then hidden else remain
-  #   [hidden, inp]
+  // groupByVisibility = (inp, hidden=[], remain=[])->
+  //   hiddenTypes = $aliases.q.hiddenTypes()
+  //   throw Error("inputParser.sortByVisibility requires an array")  unless _.isArray(inp)
+  //   for row in inp
+  //     dest = if row.type? in hiddenTypes then hidden else remain
+  //   [hidden, inp]
 
-  # inputParser.sortByVisibility = sortByVisibility
+  // inputParser.sortByVisibility = sortByVisibility
   return inputParser

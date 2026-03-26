@@ -27,7 +27,7 @@ module.exports = do ->
   class base.BaseCollection extends Backbone.Collection
     constructor: (arg, opts)->
       if arg and "_parent" of arg
-        # temporary error, during transition
+        // temporary error, during transition
         throw new Error("_parent chould be assigned as property to 2nd argument to XLF.BaseCollection (not first)")
       @_parent = opts._parent  if opts and opts._parent
       super(arg, opts)
@@ -88,8 +88,8 @@ module.exports = do ->
       return parent
 
   _innerValue = (val)->
-    # occasionally, the value passed to rowDetail
-    # is an object, which evaluates to true
+    // occasionally, the value passed to rowDetail
+    // is an object, which evaluates to true
     if _.isObject(val)
       return val.value
     else
@@ -115,10 +115,10 @@ module.exports = do ->
       if @key of $rowDetailMixins
         _.extend(@, $rowDetailMixins[@key])
       super()
-      # We should consider pulling the value from the CSV at this stage
-      # depending on the question type. truthy-CSV values should be set here
-      # In the quick fix, this is done in the view for 'required' rowDetails
-      # (grep: XLF.configs.truthyValues)
+      // We should consider pulling the value from the CSV at this stage
+      // depending on the question type. truthy-CSV values should be set here
+      // In the quick fix, this is done in the view for 'required' rowDetails
+      // (grep: XLF.configs.truthyValues)
 
       if value not in [undefined, null]
         vals2set = {}
@@ -135,8 +135,8 @@ module.exports = do ->
 
     postInitialize: ()->
     initialize: ()->
-      # todo: change "_hideUnlessChanged" to describe something about the form, not the representation of the form.
-      # E.g. undefinedUnlessChanged or definedIffChanged
+      // todo: change "_hideUnlessChanged" to describe something about the form, not the representation of the form.
+      // E.g. undefinedUnlessChanged or definedIffChanged
       if @get("_hideUnlessChanged")
         @hidden = true
         @_oValue = @get("value")
@@ -145,15 +145,15 @@ module.exports = do ->
           return
 
       @on "change:value", (rd, val, ctxt)=>
-        # @_parent.trigger "change", @key, val, ctxt
+        // @_parent.trigger "change", @key, val, ctxt
         @_parent.trigger "detail-change", @key, val, ctxt
         @getSurvey().trigger "row-detail-change", @_parent, @key, val, ctxt
-      # if @key is "type"
-      #   @on "change:list", (rd, val, ctxt)=>
-      #     @_parent.trigger "change", @key, val, ctxt
+      // if @key is "type"
+      //   @on "change:list", (rd, val, ctxt)=>
+      //     @_parent.trigger "change", @key, val, ctxt
         return
 
-      # when attributes change, register changes with parent survey
+      // when attributes change, register changes with parent survey
       if @key in ["name", "label", "hint", "guidance_hint", "required",
                   "calculation", "default", "appearance",
                   "constraint_message", "tags"] or @key.match(/^.+::.+/)
