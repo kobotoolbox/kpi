@@ -1300,8 +1300,12 @@ class AssetListCountSerializer(serializers.Serializer):
     archived_count = serializers.SerializerMethodField()
     draft_count = serializers.SerializerMethodField()
 
-    def __init__(self, queryset, *args, **kwargs):
-        super().__init__(queryset, *args, **kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # this shouldn't happen, but otherwise drf complains
+        if len(args) == 0:
+            return
+        queryset = args[0]
         # technically this causes a wasted query when the user is anonymous, but then
         # the initial queryset is empty so it does not matter
         self.aggregates = queryset.aggregate(

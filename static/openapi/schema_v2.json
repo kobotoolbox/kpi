@@ -3053,7 +3053,7 @@
         "/api/v2/assets/{uid_asset}/counts/": {
             "get": {
                 "operationId": "api_v2_assets_counts_list",
-                "description": "## Count the daily amount of submission\n\nReturns up to the last 31 days of daily counts and total counts of submissions to a survey.\n\n\nUse the `days` query to get the daily counts from the last x amount of days.\nDefault amount is 30 days\n\n\n```shell\ncurl -X GET https://kf.kobotoolbox.org/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/counts/?days=7\n```\n",
+                "description": "## Count the daily amount of submissions\n\nReturns up to the last 31 days of daily counts and total counts of submissions to a survey.\n\n\nUse the `days` query to get the daily counts from the last x amount of days.\nDefault amount is 30 days\n\n\n```shell\ncurl -X GET https://kf.kobotoolbox.org/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/counts/?days=7\n```\n",
                 "parameters": [
                     {
                         "name": "limit",
