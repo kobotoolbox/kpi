@@ -641,7 +641,7 @@ class AssetViewSet(
             return super(NestedViewSetMixin, self).get_queryset(*args, **kwargs)
         queryset = super().get_queryset(*args, **kwargs)
         if self.action == 'list':
-            # we actually only want this for the 'list' action, not the other non-detail
+            # we only want this for the 'list' action, not the other non-detail
             # endpoints, which don't need all the prefetched info
             return queryset.model.optimize_queryset_for_list(queryset)
         return queryset
