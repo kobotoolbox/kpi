@@ -125,11 +125,15 @@ export default function ResponseForm({
   const displayedVerificationStatus =
     verificationStatus !== undefined ? verificationStatus : (answer?.verified ?? false)
 
-  const handleVerificationChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleVerificationChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = event.currentTarget.checked
     setVerificationStatus(newValue)
     if (onUpdateAnswerVerification) {
-      onUpdateAnswerVerification(isAnswerAIGenerated ?? false, newValue)
+      try {
+        await onUpdateAnswerVerification(isAnswerAIGenerated ?? false, newValue)
+      } catch {
+        setVerificationStatus(undefined)
+      }
     }
   }
 
