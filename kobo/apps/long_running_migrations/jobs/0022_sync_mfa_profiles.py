@@ -6,7 +6,7 @@ from kpi.utils.log import logging
 
 
 def run():
-    logging.info('[LRM 0021] - Starting MFA profile sync')
+    logging.info('[LRM 0022] - Starting MFA profile sync')
 
     # Evaluate query to a list to support cross-database subqueries
     active_mfa_user_ids = list(
@@ -28,6 +28,6 @@ def run():
         ).update(is_mfa_active=False)
 
     logging.info(
-        f'[LRM 0021] - Completed MFA profile sync. '
+        f'[LRM 0022] - Completed MFA profile sync. '
         f'Enabled: {updated_true}, Disabled: {updated_false}.'
     )
