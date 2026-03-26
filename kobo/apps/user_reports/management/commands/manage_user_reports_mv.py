@@ -22,6 +22,12 @@ class Command(BaseCommand):
         parser.add_argument(
             '--create', action='store_true', help='Create the view and indexes'
         )
+        parser.add_argument(
+            '--concurrent',
+            action='store_true',
+            default=False,
+            help='Create indexes concurrently (non-blocking)',
+        )
 
     def handle(self, *args, **options):
         with connection.cursor() as cursor:
@@ -58,8 +64,14 @@ class Command(BaseCommand):
                     self.stdout.write(
                         '⏳Creating materialized view (this may take several minutes)…'
                     )
+                    create_indexes_sql = CREATE_INDEXES_SQL
+                    if options['concurrent']:
+                        create_indexes_sql = create_indexes_sql.replace(
+                            'CREATE UNIQUE INDEX',
+                            'CREATE UNIQUE INDEX CONCURRENTLY',
+                        )
                     cursor.execute(CREATE_MV_SQL)
-                    cursor.execute(CREATE_INDEXES_SQL)
+                    cursor.execute(create_indexes_sql)
                     self.stdout.write(self.style.SUCCESS('Created.'))
 
     @staticmethod
