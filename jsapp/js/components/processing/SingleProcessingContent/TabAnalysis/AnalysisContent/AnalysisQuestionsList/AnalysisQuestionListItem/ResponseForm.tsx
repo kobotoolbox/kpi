@@ -203,11 +203,12 @@ export default function ResponseForm({
       {children && <Box pl='40px'>{children}</Box>}
 
       {shouldDisplayAnyButtonOrBadge && ffAutoQAEnabled && (
-        <Group pl='40px' w='100%'>
+        <Group pl='40px' w='100%' align='center'>
           {shouldDisplayGenerateWithAIButton && (
             <ButtonNew
               variant='transparent'
               h='fit-content'
+              lh='var(--mantine-line-height)'
               size='md'
               p={0}
               disabled={disabledAnswer}
@@ -225,6 +226,7 @@ export default function ResponseForm({
             <ButtonNew
               variant='transparent'
               h='fit-content'
+              lh='var(--mantine-line-height)'
               size='md'
               p={0}
               disabled={disabledAnswer}
