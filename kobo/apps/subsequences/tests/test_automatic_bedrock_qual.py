@@ -502,10 +502,10 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
             ):
                 prompt = action.generate_llm_prompt(action_data)
         assert prompt == (
-            f'transcript: &lt;xml&gt;transcript&lt;/xml&gt;'
-            f'question: &lt;xml&gt;question&lt;/xml&gt; (&lt;xml&gt;hint&lt;/xml&gt;), '
-            f'choices: &lt;xml&gt;choice&lt;/xml&gt;'
-            f' (&lt;xml&gt;choice hint&lt;/xml&gt;)'
+            'transcript: &lt;xml&gt;transcript&lt;/xml&gt;'
+            'question: &lt;xml&gt;question&lt;/xml&gt; (&lt;xml&gt;hint&lt;/xml&gt;), '
+            'choices: &lt;xml&gt;choice&lt;/xml&gt;'
+            ' (&lt;xml&gt;choice hint&lt;/xml&gt;)'
         )
 
     def test_generate_prompt_fails_if_no_manual_question(self):
