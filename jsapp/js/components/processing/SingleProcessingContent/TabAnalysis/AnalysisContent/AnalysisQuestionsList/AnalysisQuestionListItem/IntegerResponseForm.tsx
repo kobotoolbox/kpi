@@ -18,7 +18,7 @@ export default function IntegerResponseForm({ qaAnswer, onSave, disabled, isAnsw
 
   // Sync local state when a new version is set (e.g. after AI generation)
   useEffect(() => {
-    const newValue = ((qaAnswer?._data as any)?.value as string) ?? ''
+    const newValue = ((qaAnswer?._data as any)?.value as number | undefined) ?? ''
     if (isAnswerAIGenerated || newValue === '') {
       clearTimeout(typingTimer)
       setValue(newValue)
