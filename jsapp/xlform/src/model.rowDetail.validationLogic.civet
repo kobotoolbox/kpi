@@ -1,3 +1,5 @@
+"civet coffeeCompat"
+
 Backbone = require 'backbone'
 $skipLogicModel = require './model.rowDetails.skipLogic'
 

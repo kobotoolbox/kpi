@@ -1,3 +1,5 @@
+"civet coffeeCompat"
+
 ###
 # [inputDeserializer]
 #  wrapper around methods for converting raw input into survey structure

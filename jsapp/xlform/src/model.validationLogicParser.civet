@@ -1,3 +1,5 @@
+"civet coffeeCompat"
+
 $factory = require('./model.validationLogicParserFactory')
 
 module.exports = do ->

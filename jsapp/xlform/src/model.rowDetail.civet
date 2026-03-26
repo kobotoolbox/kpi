@@ -1,3 +1,5 @@
+"civet coffeeCompat"
+
 $base = require './model.base'
 
 module.exports = do ->

@@ -1,3 +1,5 @@
+"civet coffeeCompat"
+
 $skipLogicHelpers = require './mv.skipLogicHelpers'
 $modelRowDetailsSkipLogic = require './model.rowDetails.skipLogic'
 $viewRowDetailSkipLogic = require './view.rowDetail.SkipLogic'

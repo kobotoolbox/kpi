@@ -1,3 +1,5 @@
+"civet coffeeCompat"
+
 csv = require './csv'
 
 module.exports = do ->

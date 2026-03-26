@@ -1,3 +1,5 @@
+"civet coffeeCompat"
+
 _ = require 'underscore'
 cloneDeep = require('lodash.clonedeep')
 $aliases = require './model.aliases'

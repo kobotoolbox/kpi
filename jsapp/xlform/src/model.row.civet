@@ -1,3 +1,5 @@
+"civet coffeeCompat"
+
 global = @
 
 _ = require 'underscore'
