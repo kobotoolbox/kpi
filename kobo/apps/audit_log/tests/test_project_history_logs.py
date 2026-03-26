@@ -1872,7 +1872,11 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
             endpoint,
             kwargs=kwargs,
         )
-        data = {'xml_submission_file': SimpleUploadedFile('name.txt', xml_tostring(xml).encode())}
+        data = {
+            'xml_submission_file': SimpleUploadedFile(
+                'name.txt', xml_tostring(xml).encode()
+            )
+        }
         # ensure anonymous users are allowed to submit
         self.asset.assign_perm(perm=PERM_ADD_SUBMISSIONS, user_obj=AnonymousUser())
 

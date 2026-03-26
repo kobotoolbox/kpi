@@ -19,7 +19,9 @@ def extract_confirmation_message(xml_string: str) -> Optional[str]:
         return
 
     # Extract the kobo:submitMessage attribute from the root element
-    confirmation_message_xpath = root.attrib.get('{http://kobotoolbox.org/xforms}submitMessage')
+    confirmation_message_xpath = root.attrib.get(
+        '{http://kobotoolbox.org/xforms}submitMessage'
+    )
 
     if not confirmation_message_xpath:
         return
