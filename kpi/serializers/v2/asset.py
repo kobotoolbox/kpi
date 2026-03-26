@@ -1303,7 +1303,7 @@ class AssetListCountSerializer(serializers.Serializer):
     def __init__(self, queryset, *args, **kwargs):
         super().__init__(queryset, *args, **kwargs)
         # technically this causes a wasted query when the user is anonymous, but then
-        # the queryset initial queryset is empty so it does not matter
+        # the initial queryset is empty so it does not matter
         self.aggregates = queryset.aggregate(
             draft_count=Count(
                 'pk',
