@@ -103,38 +103,45 @@ queryClient.setMutationDefaults(
             const verified: boolean | undefined = 'verified' in datum! ? (datum as any).verified : undefined
             const itemSnapshot = await optimisticallyUpdateItem<assetsDataSupplementRetrieveResponse>(
               getAssetsDataSupplementRetrieveQueryKey(uidAsset, rootUuid),
-              (response) =>
-                ({
+              (response) => {
+                if (response?.status !== 200) return response
+                const existingVersions = response?.data?.[questionXpath]?.[action]?.[uuid]?._versions ?? []
+
+                // For verification-only updates, update `verified` on the most recent existing
+                // version rather than prepending a new one (which would have value: undefined
+                // and corrupt the answer in optimistic UI)
+                const newVersions =
+                  value !== undefined
+                    ? [
+                        {
+                          _uuid: '<mock-uuid-not-used>',
+                          _data: { uuid, value },
+                          _dateCreated: new Date().toISOString(),
+                          ...(verified !== undefined ? { verified } : {}),
+                        }, // Note: this is the actual optimistically added object.
+                        ...existingVersions,
+                      ]
+                    : existingVersions.length > 0 && verified !== undefined
+                      ? [{ ...existingVersions[0], verified }, ...existingVersions.slice(1)]
+                      : existingVersions
+
+                return {
                   ...response,
                   data: {
                     ...response?.data,
-                    ...(response?.status === 200
-                      ? {
-                          [questionXpath]: {
-                            ...response?.data?.[questionXpath],
-                            [action]: {
-                              ...response?.data?.[questionXpath]?.[action],
-                              [uuid]: {
-                                ...response?.data?.[questionXpath]?.[action]?.[uuid],
-                                _versions: [
-                                  {
-                                    _uuid: '<mock-uuid-not-used>',
-                                    _data: {
-                                      uuid,
-                                      value,
-                                    },
-                                    _dateCreated: new Date().toISOString(),
-                                    ...(verified !== undefined ? { verified } : {}),
-                                  }, // Note: this is the actual optimistally added object.
-                                  ...(response?.data?.[questionXpath]?.[action]?.[uuid]?._versions ?? []),
-                                ],
-                              },
-                            } as SupplementalDataManualQual,
-                          },
-                        }
-                      : {}),
+                    [questionXpath]: {
+                      ...response?.data?.[questionXpath],
+                      [action]: {
+                        ...response?.data?.[questionXpath]?.[action],
+                        [uuid]: {
+                          ...response?.data?.[questionXpath]?.[action]?.[uuid],
+                          _versions: newVersions,
+                        },
+                      } as SupplementalDataManualQual,
+                    },
                   },
-                }) as assetsDataSupplementRetrieveResponse,
+                } as assetsDataSupplementRetrieveResponse
+              },
             )
 
             return {
