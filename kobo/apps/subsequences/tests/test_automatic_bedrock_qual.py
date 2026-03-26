@@ -8,8 +8,8 @@ import pytest
 from botocore.exceptions import ClientError
 from constance.test import override_config
 from ddt import data, ddt, unpack
-from django.core.cache import cache
 from django.conf import settings
+from django.core.cache import cache
 from django.utils import timezone
 from freezegun import freeze_time
 from rest_framework import status
@@ -62,6 +62,16 @@ from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
 
 valid_external_data = []
+
+
+def easy_choice_format(choices):
+    formatted_choices = []
+    for choice in choices:
+        formatted = choice['label']
+        if hint := choice.get('hint'):
+            formatted = f'{formatted} ({hint})'
+        formatted_choices.append(formatted)
+    return ','.join(formatted_choices)
 
 
 @ddt
@@ -324,6 +334,10 @@ class TestBedrockAutomaticBedrockQual(BaseAutomaticBedrockQualTestCase):
 
 
 @ddt
+@patch(
+    'kobo.apps.subsequences.actions.automatic_bedrock_qual.format_choices',
+    easy_choice_format,
+)
 class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
 
     def setUp(self):
@@ -399,14 +413,10 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
         choice_count = len(qa_choices)
         with patch.dict(PROMPTS_BY_QUESTION_TYPE, mock_templates_by_type):
             with patch(
-                'kobo.apps.subsequences.actions.automatic_bedrock_qual.format_choices',
-                lambda choices: ','.join([choice['label'] for choice in choices]),
+                'kobo.apps.subsequences.actions.automatic_bedrock_qual.get_example_format',  # noqa
+                return_value='example format string',
             ):
-                with patch(
-                    'kobo.apps.subsequences.actions.automatic_bedrock_qual.get_example_format',  # noqa
-                    return_value='example format string',
-                ):
-                    prompt = self.action.generate_llm_prompt(action_data)
+                prompt = self.action.generate_llm_prompt(action_data)
         expected_choices_string = ','.join(choices_labels)
         assert prompt == (
             f'{qa_question_uuid} transcript: {transcript_text},'
@@ -426,6 +436,8 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
             'labels': {'_default': 'choice hint'}
         }
         choice_text = select_one_question['choices'][0]['labels']['_default']
+        # just take the first choice (which now has a hint)
+        select_one_question['choices'] = select_one_question['choices'][:-1]
         question_text = self._get_question_text_by_uuid(BEDROCK_QUAL_SELECT_ONE_UUID)
 
         manual.params = [select_one_question]
@@ -434,12 +446,6 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
             'uuid': BEDROCK_QUAL_SELECT_ONE_UUID,
             '_dependency': self._dependency_dict_from_transcript_dict(),
         }
-
-        def format_choices(choices):
-            first_choice = choices[0]
-            label = first_choice['label']
-            hint = first_choice['hint']
-            return f'{label} ({hint})'
 
         template = (
             f'question: {analysis_question_placeholder}{hint_placeholder},'
@@ -450,15 +456,56 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
                 'kobo.apps.subsequences.actions.automatic_bedrock_qual.format_hint',
                 lambda hint: f'({hint})',
             ):
-                with patch(
-                    'kobo.apps.subsequences.actions.automatic_bedrock_qual.format_choices',  # noqa
-                    format_choices,
-                ):
-                    prompt = self.action.generate_llm_prompt(action_data)
+                prompt = self.action.generate_llm_prompt(action_data)
 
         assert prompt == (
             f'question: {question_text} (question hint), '
             f'choices: {choice_text} (choice hint)'
+        )
+
+    def test_generate_llm_prompt_escapes_xml(self):
+        manual_qual = QuestionAdvancedFeature.objects.get(
+            asset=self.asset, question_xpath='q1', action=Action.MANUAL_QUAL
+        )
+        manual_qual.params = [
+            {
+                'uuid': BEDROCK_QUAL_SELECT_ONE_UUID,
+                'labels': {'_default': '<xml>question</xml>'},
+                'hint': {'labels': {'_default': '<xml>hint</xml>'}},
+                'type': 'qualSelectOne',
+                'choices': [
+                    {
+                        'labels': {'_default': '<xml>choice</xml>'},
+                        'uuid': BEDROCK_CHOICE_NO_UUID,
+                        'hint': {'labels': {'_default': '<xml>choice hint</xml>'}},
+                    }
+                ],
+            }
+        ]
+        manual_qual.save(update_fields=['params'])
+        action = self.feature.to_action()
+        template = (
+            f'transcript: {response_placeholder}'
+            f'question: {analysis_question_placeholder}{hint_placeholder},'
+            f' choices: {choices_list_placeholder}'
+        )
+        action_data = {
+            'uuid': BEDROCK_QUAL_SELECT_ONE_UUID,
+            '_dependency': self._dependency_dict_from_transcript_dict(),
+        }
+        action_data['_dependency']['value'] = '<xml>transcript</xml>'
+
+        with patch.dict(PROMPTS_BY_QUESTION_TYPE, {QUESTION_TYPE_SELECT_ONE: template}):
+            with patch(
+                'kobo.apps.subsequences.actions.automatic_bedrock_qual.format_hint',
+                lambda hint: f'({hint})',
+            ):
+                prompt = action.generate_llm_prompt(action_data)
+        assert prompt == (
+            f'transcript: &lt;xml&gt;transcript&lt;/xml&gt;'
+            f'question: &lt;xml&gt;question&lt;/xml&gt; (&lt;xml&gt;hint&lt;/xml&gt;), '
+            f'choices: &lt;xml&gt;choice&lt;/xml&gt;'
+            f' (&lt;xml&gt;choice hint&lt;/xml&gt;)'
         )
 
     def test_generate_prompt_fails_if_no_manual_question(self):
