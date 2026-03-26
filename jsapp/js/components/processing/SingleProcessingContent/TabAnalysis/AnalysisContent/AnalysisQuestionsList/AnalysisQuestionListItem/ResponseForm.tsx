@@ -71,7 +71,8 @@ export default function ResponseForm({
    * example the "Generate with AI" might return empty response for `qual_select_one`, because none of the choices are
    * to be selected.
    */
-  const hasAnswer = answer !== undefined
+  const hasAnswer = answer !== undefined && (!('status' in answer._data) || answer._data.status === 'complete')
+
   const hasEmptyValueAnswerVal = hasEmptyValueAnswer(qaQuestion.type, answer)
 
   /**
@@ -79,28 +80,22 @@ export default function ResponseForm({
    *
    * We also hide it if there is no transcript or if `onGenerateWithAI` callback is not provided.
    */
-  const shouldDisplayGenerateWithAIButton = () => {
-    return (
-      hasTranscript &&
-      onGenerateWithAI !== undefined &&
-      (!hasAnswer || (hasEmptyValueAnswerVal && !isAnswerAIGenerated))
-    )
-  }
+  const shouldDisplayGenerateWithAIButton =
+    hasTranscript &&
+    onGenerateWithAI !== undefined &&
+    (!hasAnswer || (hasEmptyValueAnswerVal && !isAnswerAIGenerated))
 
-  /**
-   * "Clear" button will be displayed if there is non-empty answer, or if answer is AI generated
-   */
-  const shouldDisplayClearButton = () => {
-    return onClear !== undefined && ((hasAnswer && !hasEmptyValueAnswerVal) || (hasAnswer && isAnswerAIGenerated))
-  }
+  /** "Clear" button will be displayed if there is non-empty answer, or if answer is AI generated */
+  const shouldDisplayClearButton =
+    onClear !== undefined && ((hasAnswer && !hasEmptyValueAnswerVal) || (hasAnswer && isAnswerAIGenerated))
 
-  const shouldDisplayAIGeneratedBadge = () => {
-    return isAnswerAIGenerated
-  }
+  const shouldDisplayVerificationCheckbox =
+    (hasAnswer && !hasEmptyValueAnswerVal) || (hasAnswer && isAnswerAIGenerated)
 
-  const shouldDisplayAnyButtonOrBadge = () => {
-    return shouldDisplayGenerateWithAIButton() || shouldDisplayClearButton() || shouldDisplayAIGeneratedBadge()
-  }
+  const shouldDisplayAIGeneratedBadge = hasAnswer && isAnswerAIGenerated
+
+  const shouldDisplayAnyButtonOrBadge =
+    shouldDisplayGenerateWithAIButton || shouldDisplayClearButton || shouldDisplayAIGeneratedBadge
 
   const handleClear = async () => {
     if (!onClear) return
@@ -202,9 +197,9 @@ export default function ResponseForm({
       {/* Hard coded left padding to account for the 32px icon size + 8px gap */}
       {children && <Box pl='40px'>{children}</Box>}
 
-      {shouldDisplayAnyButtonOrBadge() && ffAutoQAEnabled && (
+      {shouldDisplayAnyButtonOrBadge && ffAutoQAEnabled && (
         <Group pl='40px' w='100%'>
-          {shouldDisplayGenerateWithAIButton() && (
+          {shouldDisplayGenerateWithAIButton && (
             <ButtonNew
               variant='transparent'
               h='fit-content'
@@ -221,7 +216,7 @@ export default function ResponseForm({
             </ButtonNew>
           )}
 
-          {shouldDisplayClearButton() && (
+          {shouldDisplayClearButton && (
             <ButtonNew
               variant='transparent'
               h='fit-content'
@@ -238,20 +233,27 @@ export default function ResponseForm({
           )}
 
           <Group ml='auto' gap='xs'>
-            {shouldDisplayAIGeneratedBadge() && (
+            {shouldDisplayAIGeneratedBadge && (
               <Group c='var(--mantine-color-blue-5)' gap='xs'>
                 <Icon name='sparkles' size='m' />
                 <Text>{t('AI generated')}</Text>
               </Group>
             )}
-            {(answer || hasEmptyValueAnswerVal) && (
-              <Checkbox
-                label={t('Verified')}
-                checked={displayedVerificationStatus}
-                onChange={handleVerificationChange}
-                disabled={disabledAnswer}
-                size='sm'
-              />
+            {shouldDisplayVerificationCheckbox && (
+              <Group gap='xs'>
+                {!displayedVerificationStatus && (
+                  <Text fz='md' m={0}>
+                    {t('Please verify if correct')}
+                  </Text>
+                )}
+                <Checkbox
+                  label={t('Verified')}
+                  checked={displayedVerificationStatus}
+                  onChange={handleVerificationChange}
+                  disabled={disabledAnswer}
+                  size='sm'
+                />
+              </Group>
             )}
           </Group>
         </Group>
