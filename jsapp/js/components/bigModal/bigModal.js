@@ -122,7 +122,7 @@ class BigModal extends React.Component {
         break
 
       case MODAL_TYPES.ENKETO_PREVIEW:
-        stores.snapshots.listen(this.enketoSnapshotCreation.bind(this))
+        this.listenTo(stores.snapshots, this.enketoSnapshotCreation)
         actions.resources.createSnapshot({
           asset: this.props.params.assetUrl,
         })
