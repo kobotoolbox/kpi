@@ -87,6 +87,9 @@ class AttachmentTrashStorageCountersTestCase(BaseTestCase, AssetSubmissionTestMi
         response = self.client.delete(submission_detail_url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
+        self.xform.refresh_from_db()
+        self.user_profile.refresh_from_db()
+
         # Verify that the attachment storage counter is not decreased twice
         self.assertEqual(
             self.xform.attachment_storage_bytes, decremented_xform_bytes
