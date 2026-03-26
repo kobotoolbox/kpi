@@ -380,7 +380,7 @@ class TestAttachmentViewSet(TestAbstractViewSet):
         # to it, even the soft-deleted one.
         self.client.delete(
             reverse(
-                'submission-detail',
+                'api_v2:submission-detail',
                 kwargs={'pk': instance.pk, 'uid_asset': self.xform.kpi_asset_uid},
             ),
             format='json',

@@ -396,7 +396,7 @@ class TestExports(TestBase):
             xform=self.xform).order_by('id').reverse()[0].id
         self.xform.asset.deploy(backend='mock')
         delete_url = reverse(
-            'submission-detail',
+            'api_v2:submission-detail',
             kwargs={'pk': instance_id, 'uid_asset': self.xform.kpi_asset_uid}
         )
         self.client.delete(delete_url)
