@@ -639,9 +639,10 @@ class AssetViewSet(
         if self.detail:
             # For detail views, we must explicitly bypass the NestedViewSetMixin.
             return super(NestedViewSetMixin, self).get_queryset(*args, **kwargs)
-        # if it's not a detail view, it requires a list, so optimize for list
         queryset = super().get_queryset(*args, **kwargs)
         if self.action == 'list':
+            # we actually only want this for the 'list' action, not the other non-detail
+            # endpoints, which don't need all the prefetched info
             return queryset.model.optimize_queryset_for_list(queryset)
         return queryset
 
