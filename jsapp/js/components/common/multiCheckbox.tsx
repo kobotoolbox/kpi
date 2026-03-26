@@ -54,7 +54,8 @@ export default function MultiCheckbox(props: MultiCheckboxProps) {
               onChange={(isChecked: boolean) => {
                 onChange(itemIndex, isChecked)
               }}
-              label={item.label}
+              // When there's a hint displayed, the label needs to be more prominent
+              label={item.hint ? <strong>{item.label}</strong> : item.label}
             />
 
             {item.hint && (

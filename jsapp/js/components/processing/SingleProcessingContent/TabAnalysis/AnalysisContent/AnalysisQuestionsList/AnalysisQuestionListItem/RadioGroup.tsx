@@ -28,7 +28,8 @@ export default function RadioGroup({ options, value, onChange, disabled }: Radio
             <Radio
               key={option.uuid}
               value={option.uuid}
-              label={`${option.label}`}
+              // When there's a hint displayed, the label needs to be more prominent
+              label={option.hint ? <strong>{option.label}</strong> : option.label}
               onChange={handleChange}
               checked={value === option.uuid}
               disabled={disabled || option.disabled}
