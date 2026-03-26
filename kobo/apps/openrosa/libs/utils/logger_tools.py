@@ -12,6 +12,7 @@ from datetime import date, datetime, timezone
 from typing import Generator, Optional, Union
 from wsgiref.util import FileWrapper
 from xml.dom import Node
+from xml.etree.ElementTree import ParseError
 from xml.parsers.expat import ExpatError
 from zoneinfo import ZoneInfo
 
@@ -489,7 +490,7 @@ def http_open_rosa_error_handler(func, request):
     except XForm.DoesNotExist:
         result.error = t('Form does not exist on this account')
         result.http_error_response = OpenRosaResponseNotFound(result.error)
-    except ExpatError:
+    except (ExpatError, ParseError):
         result.error = t('Improperly formatted XML.')
         result.http_error_response = OpenRosaResponseBadRequest(result.error)
     except (ConflictingSubmissionUUIDError, ConflictingAttachmentBasenameError) as e:

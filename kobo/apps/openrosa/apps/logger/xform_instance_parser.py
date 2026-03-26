@@ -5,6 +5,7 @@ import sys
 from datetime import datetime
 from typing import Optional, Union
 from xml.dom import Node
+from xml.dom.minidom import Document
 
 import dateutil.parser
 import six
@@ -26,7 +27,7 @@ def add_uuid_prefix(uuid_: str) -> str:
 
 def get_meta_node_from_xml(
     xml_str: str, meta_name: str
-) -> Union[None, tuple[str, 'xml.dom.minidom.Document']]:
+) -> Union[None, tuple[Node, Document]]:
     xml = clean_and_parse_xml(xml_str)
     children = xml.childNodes
     # children ideally contain a single element
@@ -117,7 +118,7 @@ def get_deprecated_uuid_from_xml(xml):
     return None
 
 
-def clean_and_parse_xml(xml_string: str) -> 'xml.dom.minidom.Document':
+def clean_and_parse_xml(xml_string: str) -> Document:
     clean_xml_str = xml_string.strip()
     clean_xml_str = re.sub(r'>\s+<', '><', smart_str(clean_xml_str))
     xml_obj = minidom_parsestring(clean_xml_str)

@@ -66,8 +66,6 @@ def minidom_parsestring(text: Union[str, bytes]) -> minidom.Document:
     """
     Thin wrapper so callers don't import minidom directly for parsing.
     """
-    if isinstance(text, bytes):
-        text = text.decode()
     return minidom.parseString(text)
 
 
