@@ -46,8 +46,8 @@ export default function AnalysisQuestionEditor({
   const [errorMessageChoices, setErrorMessageChoices] = useState<string | undefined>()
 
   const handleChangeLabel = useCallback((newLabel: string) => {
-    setNewQaQuestion(() => ({
-      ...clonedeep(newQaQuestion),
+    setNewQaQuestion((prev) => ({
+      ...clonedeep(prev),
       labels: {
         _default: newLabel,
       },
@@ -56,8 +56,8 @@ export default function AnalysisQuestionEditor({
   }, [])
 
   const handleChangeHint = useCallback((newHint: string) => {
-    setNewQaQuestion(() => ({
-      ...clonedeep(newQaQuestion),
+    setNewQaQuestion((prev) => ({
+      ...clonedeep(prev),
       hint: {
         labels: {
           _default: newHint,
@@ -129,7 +129,7 @@ export default function AnalysisQuestionEditor({
     onCancel()
   }
 
-  const hintValue = (newQaQuestion.hint?.labels as { [key: string]: string | undefined })?._default
+  const hintValue = (newQaQuestion.hint?.labels as { [key: string]: string | undefined })?._default || ''
 
   return (
     // TODO: mantineify the rest of this component, it's partially complete to remove dependency on deprecated styles

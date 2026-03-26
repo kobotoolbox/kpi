@@ -24,9 +24,8 @@ export default function RadioGroup({ options, value, onChange, disabled }: Radio
     <Radio.Group value={value} onChange={onChange}>
       <Stack gap={'xs'}>
         {options.map((option) => (
-          <Stack gap='0'>
+          <Stack gap='0' key={option.uuid}>
             <Radio
-              key={option.uuid}
               value={option.uuid}
               // When there's a hint displayed, the label needs to be more prominent
               label={option.hint ? <strong>{option.label}</strong> : option.label}

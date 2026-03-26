@@ -53,7 +53,7 @@ export default function SelectXFieldsEditor({ qaQuestion, onChange, disabled }: 
       {qaQuestion.choices
         .filter((choice) => !choice.options?.deleted) // Filter "deleted" choices.
         .map((choice) => {
-          const hintValue = (choice.hint?.labels as { [key: string]: string | undefined })?._default
+          const hintValue = (choice.hint?.labels as { [key: string]: string | undefined })?._default || ''
           return (
             <Stack className={styles.choice} key={choice.uuid}>
               <Group>
