@@ -122,13 +122,10 @@ class BigModal extends React.Component {
         break
 
       case MODAL_TYPES.ENKETO_PREVIEW:
-        const uid = this.props.params.assetid || this.props.params.uid
-        stores.allAssets.whenLoaded(uid, (asset) => {
-          actions.resources.createSnapshot({
-            asset: asset.url,
-          })
+        stores.snapshots.listen(this.enketoSnapshotCreation.bind(this))
+        actions.resources.createSnapshot({
+          asset: this.props.params.assetUrl,
         })
-        this.listenTo(stores.snapshots, this.enketoSnapshotCreation)
 
         this.setState({
           title: t('Form Preview'),
