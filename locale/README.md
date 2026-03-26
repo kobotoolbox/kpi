@@ -24,7 +24,7 @@ curl -o- https://raw.githubusercontent.com/transifex/cli/master/install.sh | bas
 ## Install Python dependencies
 pipx install uv
 uv venv --clear -p 3.10
-uv pip sync dependencies/pip/dev_requirements.txt
+uv pip sync dependencies/pip/requirements.txt
 source .venv/bin/activate
 
 ## To build new source strings (see `scripts/generate_locale.sh`)
