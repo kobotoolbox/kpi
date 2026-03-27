@@ -50,7 +50,7 @@ export default function MultiCheckbox(props: MultiCheckboxProps) {
     <bem.MultiCheckbox m={`type-${props.type}`} className={props.className} dir='auto'>
       {props.items.map((item, itemIndex) => {
         // Hide hint behind feature flag
-        if (autoQAEnabled) {
+        if (!autoQAEnabled) {
           delete item.hint
         }
 

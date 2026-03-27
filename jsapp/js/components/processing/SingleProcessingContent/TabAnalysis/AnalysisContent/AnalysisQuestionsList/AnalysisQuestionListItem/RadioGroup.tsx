@@ -27,7 +27,7 @@ export default function RadioGroup({ options, value, onChange, disabled }: Radio
     <Radio.Group value={value} onChange={onChange}>
       <Stack gap={'xs'}>
         {options.map((option) => {
-          if (autoQAEnabled) {
+          if (!autoQAEnabled) {
             delete option.hint
           }
 
