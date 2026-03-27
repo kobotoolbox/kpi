@@ -8,8 +8,9 @@ import pytest
 from botocore.exceptions import ClientError
 from constance.test import override_config
 from ddt import data, ddt, unpack
-from django.core.cache import cache
 from django.conf import settings
+from django.core.cache import cache
+from django.test import override_settings
 from django.utils import timezone
 from freezegun import freeze_time
 from rest_framework import status
@@ -616,10 +617,15 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
         assert result.get('error') == 'LLM returned empty response'
 
 
+@override_settings(CACHES={
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    }
+})
 class TestAutomaticQAThrottling(BaseAutomaticBedrockQualTestCase):
     def setUp(self):
         super().setUp()
-        cache.delete(f'throttle_automatic_qa_{self.asset.owner.id}')
+        cache.clear()
         self.submission_uuid = self._add_submission()
         self.transcript_dict = self._add_manual_transcription(self.submission_uuid)
         self.supplement_details_url = reverse(
