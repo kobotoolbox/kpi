@@ -60,7 +60,9 @@ export default function AnalysisQuestionEditor({
       const updated = clonedeep(prev)
       // If user deletes hint it becomes an empty string, and we want to remove it rather than store empty string
       if (newHint.trim()) {
-        updated.hint = { labels: { _default: newHint } }
+        const existingHint = updated.hint ?? {}
+        const existingLabels = updated.hint?.labels ?? {}
+        updated.hint = { ...existingHint, labels: { ...existingLabels, _default: newHint } }
       } else {
         delete updated.hint
       }
