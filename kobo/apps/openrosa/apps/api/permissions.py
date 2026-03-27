@@ -209,28 +209,4 @@ class XFormDataPermissions(ObjectPermissionsWithViewRestricted):
         return super().has_object_permission(request, view, obj)
 
 
-class AttachmentObjectPermissions(DjangoObjectPermissions):
-
-    def __init__(self, *args, **kwargs):
-        # The default `perms_map` does not include GET, OPTIONS, PATCH or HEAD.
-        # See http://www.django-rest-framework.org/api-guide/filtering/#djangoobjectpermissionsfilter  # noqa
-        self.perms_map = deepcopy(DjangoObjectPermissions.perms_map)
-        self.perms_map['GET'] = ['kpi.view_asset']
-        self.perms_map['OPTIONS'] = ['kpi.view_asset']
-        self.perms_map['HEAD'] = ['kpi.view_asset']
-        return super().__init__(*args, **kwargs)
-
-    def has_permission(self, request, view):
-        if request.user and request.user.is_superuser:
-            return True
-
-        return super().has_permission(request, view)
-
-    def has_object_permission(self, request, view, obj):
-        if request.user and request.user.is_superuser:
-            return True
-
-        return super().has_object_permission(request, view, obj.xform.asset)
-
-
 __permissions__ = [DjangoObjectPermissions, IsAuthenticated]

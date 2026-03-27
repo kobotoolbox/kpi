@@ -6,7 +6,6 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.urlpatterns import format_suffix_patterns
 
-from kobo.apps.openrosa.apps.api.viewsets.attachment_viewset import AttachmentViewSet
 from kobo.apps.openrosa.apps.api.viewsets.briefcase_api import BriefcaseApi
 from kpi.models.asset import Asset
 from .utils.rest_framework.views import OpenRosaAPIView
@@ -138,9 +137,6 @@ class MultiLookupRouter(routers.DefaultRouter):
             """
             ## Kobo JSON Rest API endpoints:
 
-            ### Forms
-            * [/api/v1/media](/api/v1/media) - List, Retrieve media attachments
-
             ## Status Codes
 
             * **200** - Successful [`GET`, `PATCH`, `PUT`]
@@ -264,7 +260,6 @@ class MultiLookupRouterWithPatchList(MultiLookupRouter):
 
 router = MultiLookupRouter(trailing_slash=False)
 
-router.register(r'media', AttachmentViewSet, basename='attachment')
 router.register(r'briefcase', BriefcaseApi, basename='briefcase')
 
 router_with_patch_list = MultiLookupRouterWithPatchList(trailing_slash=False)
