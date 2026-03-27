@@ -161,7 +161,35 @@ export default function FormMap(props: FormMapProps) {
 
   const survey = props.asset.content?.survey || []
   const hasGeoPoint = survey.some((row) => row.type === QUESTION_TYPES.geopoint.id)
-  const [state, setState] = useState<FormMapState>({
+  //const [state, setState] = useState<FormMapState>({
+  //  map: undefined,
+  //  markers: undefined,
+  //  heatmap: undefined,
+  //  markersVisible: true,
+  //  markerMap: undefined,
+  //  fields: [],
+  //  hasGeoPoint: hasGeoPoint,
+  //  submissions: [],
+  //  error: undefined,
+  //  isFullscreen: false,
+  //  showExpandedLegend: true,
+  //  langIndex: 0,
+  //  filteredByMarker: undefined,
+  //  componentRefreshed: false,
+  //  showMapSettings: false,
+  //  overridenStyles: undefined,
+  //  clearDisaggregatedPopover: false,
+  //  noData: false,
+  //  foundSelectedQuestion: null,
+  //})
+
+  // Note:
+  // Old "state" was acting like a global variable
+  // But some things seem to need to be out of the useState hook and some seem to need to be in it.
+  // foundSelectedQuestion doesn't work in a useState hook and therefor no points exist on the map unless it is updated
+  // in this kind of variable
+  // toggleFullscreen doesn't work when it is updated in this variable and needs to be updated in a useState hook
+  let vars: FormMapState = {
     map: undefined,
     markers: undefined,
     heatmap: undefined,
@@ -181,13 +209,9 @@ export default function FormMap(props: FormMapProps) {
     clearDisaggregatedPopover: false,
     noData: false,
     foundSelectedQuestion: null,
-  })
-
-  const didMount = useRef(false)
-  const prevProps = useRef(props)
+  }
 
   useEffect(() => {
-    if (!didMount.current){
       const fields: SurveyRow[] = []
       const fieldTypes = ['select_one', 'select_multiple', 'integer', 'decimal', 'text']
       props.asset.content?.survey?.forEach((q) => {
@@ -209,11 +233,13 @@ export default function FormMap(props: FormMapProps) {
 
       STREETS_LAYER.addTo(map)
 
-      setState({
-        ...state,
-        map: map,
-        fields: fields,
-      })
+      //setState({
+      //  ...state,
+      //  map: map,
+      //  fields: fields,
+      //})
+      vars.map = map
+      vars.fields = fields
 
       if (props.asset.deployment__submission_count > QUERY_LIMIT_DEFAULT) {
         notify(
@@ -238,16 +264,7 @@ export default function FormMap(props: FormMapProps) {
       //  }
       //  unlisteners.forEach((clb) => clb())
       //}
-    didMount.current = true
-    } else {
-      if (prevProps.current.viewby !== props.viewby) {
-        const map = refreshMap()
-        if (map) {
-          requestData(map, props.viewby)
-        }
-      }
-    }
-  }, [state])
+  }, [])
 
   dataInterface.getAssetFiles(props.asset.uid, ASSET_FILE_TYPES.map_layer.id).done(() => {})
 
@@ -265,7 +282,7 @@ export default function FormMap(props: FormMapProps) {
         const layerMatch = files.filter((file) => file.description === controlLayer.name)
         if (!layerMatch.length) {
           controls.removeLayer(controlLayer.layer)
-          state.map?.removeLayer(controlLayer.layer)
+          vars.map?.removeLayer(controlLayer.layer)
         }
       }
     })
@@ -347,7 +364,7 @@ export default function FormMap(props: FormMapProps) {
             .then(JSZip.loadAsync)
             .then((zip) => zip.file('doc.kml')?.async('string'))
             .then((kmlContent) => {
-              if (kmlContent && state.map) {
+              if (kmlContent && vars.map) {
                 // We don't need to react to `.on('ready')` here, as KML file is already loaded and we just need to
                 // parse it (works synchronously)
                 const parsedOverlayLayer = omnivore.kml.parse(kmlContent)
@@ -382,9 +399,9 @@ export default function FormMap(props: FormMapProps) {
    * Handle map layer successfully loaded by omnivore.
    */
   const onOmnivoreLayerReady = (overlayLayer: LayerGroup | undefined, description: string) => {
-    if (overlayLayer && state.map) {
+    if (overlayLayer && vars.map) {
       controls.addOverlay(overlayLayer, description)
-      overlayLayer.addTo(state.map)
+      overlayLayer.addTo(vars.map)
 
       // Add popups to each layer feature (i.e. each point)
       overlayLayer.eachLayer((l) => {
@@ -402,7 +419,8 @@ export default function FormMap(props: FormMapProps) {
 
   const onSetMapStylesCompleted = () => {
     // asset is updated, no need to store oberriden styles as they are identical
-    setState({ ...state, overridenStyles: undefined })
+    //setState({ ...state, overridenStyles: undefined })
+    vars.overridenStyles = undefined
   }
 
   /**
@@ -428,10 +446,10 @@ export default function FormMap(props: FormMapProps) {
     // Map cannot actually show more than one question at a time, so we must always have a question specified.
     // The list below describes the priority to find the question:
     let selectedQuestion: string | null = null
-    if (state.overridenStyles?.selectedQuestion) {
+    if (vars.overridenStyles?.selectedQuestion) {
       // 1. If the user has selected a question themselves but has not refreshed, the state will hold the "overriden"
       //    selected question. We should use this first.
-      selectedQuestion = state.overridenStyles.selectedQuestion
+      selectedQuestion = vars.overridenStyles.selectedQuestion
     } else if (props.asset.map_styles.selectedQuestion) {
       // 2. If the user has selected a question before (at any point), the `map_styles` value of the asset is patched
       //    and we should use this if it exists. Will happen on every refresh if the user has ever selected a question
@@ -453,11 +471,12 @@ export default function FormMap(props: FormMapProps) {
       selectedQuestion = null
     }
 
-    setState({ ...state, foundSelectedQuestion: selectedQuestion })
+    //setState({ ...state, foundSelectedQuestion: selectedQuestion })
+    vars.foundSelectedQuestion = selectedQuestion
 
     let queryLimit = QUERY_LIMIT_DEFAULT
-    if (state.overridenStyles?.querylimit) {
-      queryLimit = Number.parseInt(state.overridenStyles.querylimit)
+    if (vars.overridenStyles?.querylimit) {
+      queryLimit = Number.parseInt(vars.overridenStyles.querylimit)
     } else if (props.asset.map_styles.querylimit) {
       queryLimit = Number.parseInt(props.asset.map_styles.querylimit)
     }
@@ -474,20 +493,24 @@ export default function FormMap(props: FormMapProps) {
       .getSubmissions(props.asset.uid, queryLimit, 0, sort, fq)
       .done((data: PaginatedResponse<SubmissionResponse>) => {
         const results = data.results
-        setState({ ...state, submissions: results })
-        buildMarkers(map)
-        buildHeatMap(map)
+        //setState({ ...state, submissions: results })
+        vars.submissions = results
+        buildMarkers(map, results)
+        buildHeatMap(map, results)
       })
       .fail((error: FailResponse) => {
         if (error.responseText) {
-          setState({ ...state, error: error.responseText })
+          //setState({ ...state, error: error.responseText })
+          vars.error = error.responseText
         } else if (error.statusText) {
-          setState({ ...state, error: error.statusText })
+          //setState({ ...state, error: error.statusText })
+          vars.error = error.statusText
         } else {
-          setState({
-            ...state,
-            error: t('Error: could not load data.'),
-          })
+          //setState({
+          //  ...state,
+          //  error: t('Error: could not load data.'),
+          //})
+          vars.error = t('Error: could not load data.')
         }
       })
   }
@@ -501,8 +524,8 @@ export default function FormMap(props: FormMapProps) {
 
   const calcColorSet = () => {
     let colorSet
-    if (state.overridenStyles?.colorSet) {
-      colorSet = state.overridenStyles.colorSet
+    if (vars.overridenStyles?.colorSet) {
+      colorSet = vars.overridenStyles.colorSet
     } else {
       const ms = props.asset.map_styles
       colorSet = ms.colorSet ? ms.colorSet : undefined
@@ -511,17 +534,16 @@ export default function FormMap(props: FormMapProps) {
     return colorSet
   }
 
-  const buildMarkers = (map: L.Map) => {
+  const buildMarkers = (map: L.Map, submissions: SubmissionResponse[]) => {
     const prepPoints: L.Marker[] = []
     const viewby = props.viewby || undefined
     const colorSet = calcColorSet()
     let currentQuestionChoices: SurveyChoice[] = []
     let mapMarkers: MapValueCounts = {}
     let mM: MarkerMap = []
-    debugger
 
     if (viewby) {
-      mapMarkers = prepFilteredMarkers(state.submissions, props.viewby)
+      mapMarkers = prepFilteredMarkers(vars.submissions, props.viewby)
       const choices = props.asset.content?.choices || []
       const survey = props.asset.content?.survey || []
 
@@ -563,16 +585,17 @@ export default function FormMap(props: FormMapProps) {
         mM = mM.filter((m) => m !== emptyEl)
         mM.push(emptyEl)
       }
-      setState({...state, markerMap: mM })
+      //setState({...state, markerMap: mM })
+      vars.markerMap = mM
     } else {
-      setState({...state, markerMap: undefined })
+      //setState({...state, markerMap: undefined })
+      vars.markerMap = undefined
     }
 
-    console.log('-----------', state)
-    state.submissions.forEach((item) => {
+    submissions.forEach((item) => {
       let markerProps = {}
 
-      const parsedCoordinates: number[] = parseLatLng(item, state.foundSelectedQuestion)
+      const parsedCoordinates: number[] = parseLatLng(item, vars.foundSelectedQuestion)
 
       if (!!parsedCoordinates.length) {
         if (viewby && mM) {
@@ -643,19 +666,22 @@ export default function FormMap(props: FormMapProps) {
 
       markers.on('click', launchSubmissionModal).addTo(map)
 
-      if (prepPoints.length > 0 && (!viewby || !state.componentRefreshed)) {
+      if (prepPoints.length > 0 && (!viewby || !vars.componentRefreshed)) {
         map.fitBounds(markers.getBounds())
       }
       if (prepPoints.length === 0) {
         map.fitBounds([[42.373, -71.124]])
-        setState({...state, noData: true })
+        //setState({...state, noData: true })
+        vars.noData = true
       }
-      setState({
-        ...state,
-        markers: markers as FeatureGroupExtended,
-      })
+      //setState({
+      //  ...state,
+      //  markers: markers as FeatureGroupExtended,
+      //})
+      vars.markers = markers as FeatureGroupExtended
     } else {
-      setState({...state, error: t('Error: could not load data.') })
+      //setState({...state, error: t('Error: could not load data.') })
+      vars.error = t('Error: could not load data.')
     }
   }
 
@@ -714,10 +740,10 @@ export default function FormMap(props: FormMapProps) {
     return markerMap
   }
 
-  const buildHeatMap = (map: L.Map) => {
+  const buildHeatMap = (map: L.Map, submissions: SubmissionResponse[]) => {
     const heatmapPoints: Array<[number, number, number]> = []
-    state.submissions.forEach((item) => {
-      const parsedCoordinates: number[] = parseLatLng(item, state.foundSelectedQuestion)
+    submissions.forEach((item) => {
+      const parsedCoordinates: number[] = parseLatLng(item, vars.foundSelectedQuestion)
       if (!!parsedCoordinates.length) {
         heatmapPoints.push([parsedCoordinates[0], parsedCoordinates[1], 1])
       }
@@ -728,23 +754,25 @@ export default function FormMap(props: FormMapProps) {
       blur: 8,
     })
 
-    if (!state.markersVisible) {
+    if (!vars.markersVisible) {
       map.addLayer(heatmap)
     }
-    setState({ ...state, heatmap: heatmap })
+    //setState({ ...state, heatmap: heatmap })
+    vars.heatmap = heatmap
   }
 
   const showMarkers = () => {
-    if (state.map && state.markers) {
-      state.map.addLayer(state.markers)
+    if (vars.map && vars.markers) {
+      vars.map.addLayer(vars.markers)
     }
-    if (state.map && state.heatmap) {
-      state.map.removeLayer(state.heatmap)
+    if (vars.map && vars.heatmap) {
+      vars.map.removeLayer(vars.heatmap)
     }
-    setState({
-      ...state,
-      markersVisible: true,
-    })
+    //setState({
+    //  ...state,
+    //  markersVisible: true,
+    //})
+    vars.markersVisible = true
   }
 
   const showLayerControls = () => {
@@ -752,18 +780,19 @@ export default function FormMap(props: FormMapProps) {
   }
 
   const showHeatmap = () => {
-    const map = state.map
+    const map = vars.map
 
-    if (map && state.heatmap) {
-      map.addLayer(state.heatmap)
+    if (map && vars.heatmap) {
+      map.addLayer(vars.heatmap)
     }
-    if (map && state.markers) {
-      map.removeLayer(state.markers)
+    if (map && vars.markers) {
+      map.removeLayer(vars.markers)
     }
-    setState({
-      ...state,
-      markersVisible: false,
-    })
+    //setState({
+    //  ...state,
+    //  markersVisible: false,
+    //})
+    vars.markersVisible = false
   }
 
   const filterMap = (evt: React.TouchEvent<HTMLAnchorElement>) => {
@@ -772,10 +801,12 @@ export default function FormMap(props: FormMapProps) {
     // when blurEventDisabled prop is set, no blur event takes place in PopoverMenu
     // hence, dropdown stays visible when invoking other click events (like filterLanguage below)
     // but when changing question, dropdown needs to be removed, clearDisaggregatedPopover does this via props
-    setState({...state, clearDisaggregatedPopover: true })
+    //setState({...state, clearDisaggregatedPopover: true })
+    vars.clearDisaggregatedPopover = true
     // reset clearDisaggregatedPopover in order to maintain same behaviour on subsequent clicks
     window.setTimeout(() => {
-      setState({ ...state, clearDisaggregatedPopover: false })
+      //setState({ ...state, clearDisaggregatedPopover: false })
+      vars.clearDisaggregatedPopover = false
     }, 1000)
 
     const name = evt.currentTarget.getAttribute('data-name') || undefined
@@ -789,39 +820,40 @@ export default function FormMap(props: FormMapProps) {
   const filterLanguage = (evt: React.TouchEvent<HTMLAnchorElement>) => {
     const dataIndexAttr = evt.currentTarget.getAttribute('data-index')
     if (dataIndexAttr !== null) {
-      setState({ ...state, langIndex: Number.parseInt(dataIndexAttr) })
+      //setState({ ...state, langIndex: Number.parseInt(dataIndexAttr) })
+      vars.langIndex = Number.parseInt(dataIndexAttr)
     }
   }
 
   // FIXME: what does this do?
-  const getDerivedStateFromProps = (props: FormMapProps, state: FormMapState) => {
-  //static getDerivedStateFromProps = (props: FormMapProps, state: FormMapState) => {
-    const newState: Partial<FormMapState> = {
-      previousViewby: props.viewby,
-    }
-    if (props.viewby !== undefined) {
-      newState.markersVisible = true
-    }
-    if (state.previousViewby !== props.viewby) {
-      newState.filteredByMarker = undefined
-      newState.componentRefreshed = true
-    }
-    return newState
-  }
+  //const getDerivedStateFromProps = (props: FormMapProps, state: FormMapState) => {
+  ////static getDerivedStateFromProps = (props: FormMapProps, state: FormMapState) => {
+  //  const newState: Partial<FormMapState> = {
+  //    previousViewby: props.viewby,
+  //  }
+  //  if (props.viewby !== undefined) {
+  //    newState.markersVisible = true
+  //  }
+  //  if (vars.previousViewby !== props.viewby) {
+  //    newState.filteredByMarker = undefined
+  //    newState.componentRefreshed = true
+  //  }
+  //  return newState
+  //}
 
   const refreshMap = () => {
-    const map = state.map
-    if (map && state.markers) {
-      map.removeLayer(state.markers)
+    const map = vars.map
+    if (map && vars.markers) {
+      map.removeLayer(vars.markers)
     }
-    if (map && state.heatmap) {
-      map.removeLayer(state.heatmap)
+    if (map && vars.heatmap) {
+      map.removeLayer(vars.heatmap)
     }
     return map
   }
 
   const launchSubmissionModal = (evt: L.LeafletMouseEvent) => {
-    const td = state.submissions
+    const td = vars.submissions
     const ids: number[] = []
     td.forEach((r) => {
       ids.push(r._id)
@@ -836,45 +868,53 @@ export default function FormMap(props: FormMapProps) {
   }
 
   const toggleMapSettings = () => {
-    setState({
-      ...state,
-      showMapSettings: !state.showMapSettings,
-    })
+    //setState({
+    //  ...state,
+    //  showMapSettings: !state.showMapSettings,
+    //})
+    vars.showMapSettings = !vars.showMapSettings
   }
 
   /** Note: selected questions are considered a "map style" and is updated in the state here */
   const overrideStyles = (mapStyles: AssetMapStyles) => {
-    setState(
-      {
-        ...state,
-        filteredByMarker: undefined,
-        componentRefreshed: true,
-        overridenStyles: mapStyles,
-      })
-        const map = refreshMap()
+    //setState(
+    //  {
+    //    ...state,
+    //    filteredByMarker: undefined,
+    //    componentRefreshed: true,
+    //    overridenStyles: mapStyles,
+    //  })
+    vars.filteredByMarker = undefined
+    vars.componentRefreshed = true
+    vars.overridenStyles = mapStyles
+    const map = refreshMap()
 
-        if (map) {
-          requestData(map, props.viewby)
-        }
+    if (map) {
+      requestData(map, props.viewby)
+    }
   }
 
   const toggleFullscreen = () => {
-    setState({ ...state, isFullscreen: !state.isFullscreen })
+    //setState({ ...state, isFullscreen: !state.isFullscreen })
+    console.log('a', vars.isFullscreen)
+    vars.isFullscreen = !vars.isFullscreen
+    console.log('b', vars.isFullscreen)
 
-    state.map?.invalidateSize()
+    vars.map?.invalidateSize()
   }
 
   const toggleLegend = () => {
-    setState({
-      ...state,
-      showExpandedLegend: !state.showExpandedLegend,
-    })
+    //setState({
+    //  ...state,
+    //  showExpandedLegend: !state.showExpandedLegend,
+    //})
+    vars.showExpandedLegend = vars.showExpandedLegend
   }
 
   const filterByMarker = (markerId: number) => {
     const id = String(markerId)
-    const markers = state.markers
-    let filteredByMarker = state.filteredByMarker
+    const markers = vars.markers
+    let filteredByMarker = vars.filteredByMarker
     const unselectedClass = 'unselected'
 
     if (!filteredByMarker) {
@@ -885,7 +925,8 @@ export default function FormMap(props: FormMapProps) {
       filteredByMarker.push(id)
     }
 
-    setState({ ...state, filteredByMarker: filteredByMarker })
+    //setState({ ...state, filteredByMarker: filteredByMarker })
+    vars.filteredByMarker = filteredByMarker
     markers?.eachLayer((layer) => {
       if (filteredByMarker.includes(layer.options.typeId.toString())) {
         layer._icon.classList.remove(unselectedClass)
@@ -896,8 +937,9 @@ export default function FormMap(props: FormMapProps) {
   }
 
   const resetFilterByMarker = () => {
-    const markers = state.markers
-    setState({ ...state, filteredByMarker: undefined })
+    const markers = vars.markers
+    //setState({ ...state, filteredByMarker: undefined })
+    vars.filteredByMarker = undefined
     markers?.eachLayer((layer) => {
       layer._icon.classList.remove('unselected')
     })
@@ -912,16 +954,16 @@ export default function FormMap(props: FormMapProps) {
     return fieldName
   }
 
-  if (state.error) {
+  if (vars.error) {
     return (
       <bem.FormView m='ui-panel'>
-        <CenteredMessage message={state.error} />
+        <CenteredMessage message={vars.error} />
       </bem.FormView>
     )
   }
 
-  const fields = state.fields
-  const langIndex = state.langIndex
+  const fields = vars.fields
+  const langIndex = vars.langIndex
   let langs: Array<string | null> = []
   if (props.asset.content?.translations && props.asset.content?.translations.length > 1) {
     langs = props.asset.content.translations
@@ -937,14 +979,14 @@ export default function FormMap(props: FormMapProps) {
         label = `${t('Disaggregated using:')} ${f.label?.[langIndex]}`
       }
     })
-  } else if (state.noData && state.hasGeoPoint) {
+  } else if (vars.noData && vars.hasGeoPoint) {
     label = `${t('No "geopoint" responses have been received')}`
-  } else if (!state.hasGeoPoint) {
+  } else if (!vars.hasGeoPoint) {
     label = `${t('The map does not show data because this form does not have a "geopoint" field.')}`
   }
 
   const formViewModifiers = ['map']
-  if (state.isFullscreen) {
+  if (vars.isFullscreen) {
     formViewModifiers.push('fullscreen')
   }
   return (
@@ -953,7 +995,7 @@ export default function FormMap(props: FormMapProps) {
         m={'expand'}
         onClick={toggleFullscreen}
         data-tip={t('Toggle Fullscreen')}
-        className={state.isFullscreen ? 'active' : ''}
+        className={vars.isFullscreen ? 'active' : ''}
       >
         <i className='k-icon k-icon-expand' />
       </bem.FormView__mapButton>
@@ -961,7 +1003,7 @@ export default function FormMap(props: FormMapProps) {
         m={'markers'}
         onClick={showMarkers}
         data-tip={t('Show as points')}
-        className={state.markersVisible ? 'active' : ''}
+        className={vars.markersVisible ? 'active' : ''}
       >
         <i className='k-icon k-icon-pins' />
       </bem.FormView__mapButton>
@@ -980,24 +1022,24 @@ export default function FormMap(props: FormMapProps) {
           m={'heatmap'}
           onClick={showHeatmap}
           data-tip={t('Show as heatmap')}
-          className={state.markersVisible ? '' : 'active'}
+          className={vars.markersVisible ? '' : 'active'}
         >
           <i className='k-icon k-icon-heatmap' />
         </bem.FormView__mapButton>
       )}
 
-      {state.hasGeoPoint && !state.noData && (
+      {vars.hasGeoPoint && !vars.noData && (
         <PopoverMenu
           type='viewby-menu'
           triggerLabel={label}
-          clearPopover={state.clearDisaggregatedPopover}
+          clearPopover={vars.clearDisaggregatedPopover}
           blurEventDisabled
         >
           {langs.length > 1 && <bem.PopoverMenu__heading>{t('Language')}</bem.PopoverMenu__heading>}
           {langs.map((l, i) => (
             <bem.PopoverMenu__link
               data-index={i}
-              className={state.langIndex === i ? 'active' : ''}
+              className={vars.langIndex === i ? 'active' : ''}
               key={`l-${i}`}
               onClick={filterLanguage}
             >
@@ -1036,7 +1078,7 @@ export default function FormMap(props: FormMapProps) {
         </PopoverMenu>
       )}
 
-      {state.noData && !state.hasGeoPoint && (
+      {vars.noData && !vars.hasGeoPoint && (
         <div className='map-transparent-background'>
           <div className='map-no-geopoint-wrapper'>
             <p className='map-no-geopoint'>
@@ -1046,7 +1088,7 @@ export default function FormMap(props: FormMapProps) {
         </div>
       )}
 
-      {state.noData && state.hasGeoPoint && (
+      {vars.noData && vars.hasGeoPoint && (
         <div className='map-transparent-background'>
           <div className='map-no-geopoint-wrapper'>
             <p className='map-no-geopoint'>{t('No "geopoint" responses have been received')}</p>
@@ -1054,10 +1096,10 @@ export default function FormMap(props: FormMapProps) {
         </div>
       )}
 
-      {state.markerMap && state.markersVisible && (
-        <bem.FormView__mapList className={state.showExpandedLegend ? 'expanded' : 'collapsed'}>
+      {vars.markerMap && vars.markersVisible && (
+        <bem.FormView__mapList className={vars.showExpandedLegend ? 'expanded' : 'collapsed'}>
           <div className='maplist-contents'>
-            {state.filteredByMarker && (
+            {vars.filteredByMarker && (
               <div
                 key='m-reset'
                 className='map-marker-item map-marker-reset'
@@ -1066,18 +1108,18 @@ export default function FormMap(props: FormMapProps) {
                 {t('Reset')}
               </div>
             )}
-            {state.markerMap.map((m, i) => {
+            {vars.markerMap.map((m, i) => {
               let markerItemClass = 'map-marker-item '
-              if (state.filteredByMarker) {
-                markerItemClass += state.filteredByMarker.includes(m.id.toString()) ? 'selected' : 'unselected'
+              if (vars.filteredByMarker) {
+                markerItemClass += vars.filteredByMarker.includes(m.id.toString()) ? 'selected' : 'unselected'
               }
               let markerLabel = m.labels ? m.labels[langIndex] : m.value
               if (!markerLabel) {
                 markerLabel = t('not set')
               }
               let index: number | IconNoValue = i
-              if (colorSet !== undefined && colorSet !== 'a' && state.markerMap) {
-                index = calculateIconIndex(index, state.markerMap)
+              if (colorSet !== undefined && colorSet !== 'a' && vars.markerMap) {
+                index = calculateIconIndex(index, vars.markerMap)
               }
 
               let markerItemSpanClass = ''
@@ -1103,23 +1145,22 @@ export default function FormMap(props: FormMapProps) {
             })}
           </div>
           <div className='maplist-legend' onClick={toggleLegend}>
-            <i className={cx('k-icon', state.showExpandedLegend ? 'k-icon-angle-down' : 'k-icon-angle-up')} />{' '}
+            <i className={cx('k-icon', vars.showExpandedLegend ? 'k-icon-angle-down' : 'k-icon-angle-up')} />{' '}
             {t('Legend')}
           </div>
         </bem.FormView__mapList>
       )}
-      {!state.markers && !state.heatmap && <LoadingSpinner message={false} />}
-      {state.showMapSettings && (
+      {!vars.markers && !vars.heatmap && <LoadingSpinner message={false} />}
+      {vars.showMapSettings && (
         <Modal open onClose={toggleMapSettings} title={t('Map Settings')}>
           <MapSettings
             asset={props.asset}
             toggleMapSettings={toggleMapSettings}
             overrideStyles={overrideStyles}
-            overridenStyles={state.overridenStyles}
+            overridenStyles={vars.overridenStyles}
           />
         </Modal>
       )}
-
       <div id='data-map' />
     </bem.FormView>
   )
