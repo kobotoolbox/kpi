@@ -114,28 +114,27 @@ class SurveyScope {
       })
   }
 
-  async addExternalItemAtPosition(position: number, uid: string, groupId?: string): Promise<void> {
-    const response = await assetsRetrieve(uid)
-    if (response && 'content' in response) {
-      // `loadDict()` mutates its first argument, so pass a copied object
-      const newSurvey = dkobo_xlform.model.Survey.loadDict(clonedeep(response.content), this.survey)
-      this.survey.insertSurvey(newSurvey, position, groupId)
-    } else {
-      throw new Error(`Asset ${uid} not found`)
-    }
+  addExternalItemAtPosition(position: number, uid: string, groupId?: string): void {
+    assetsRetrieve(uid)
+      .then((response) => {
+        const data = response?.data
+
+        if ('content' in data === false) {
+          throw new Error(`Asset ${uid} not found or missing content`)
+        }
+
+        // `loadDict()` mutates its first argument, so pass a copied object
+        const newSurvey = dkobo_xlform.model.Survey.loadDict(clonedeep(data.content), this.survey)
+        this.survey.insertSurvey(newSurvey, position, groupId)
+      })
+      .catch((error) => {
+        console.error('Failed to insert external item into survey:', error)
+        notify(t('Failed to insert item from library'), 'error')
+      })
   }
 
-  async handleItem(data: { position: number; itemUid: string; groupId?: string }) {
-    if (!data.itemUid) {
-      throw new Error('itemUid not provided!')
-    }
-
-    try {
-      await this.addExternalItemAtPosition(data.position, data.itemUid, data.groupId)
-    } catch (error) {
-      console.error('Failed to insert external item into survey:', error)
-      notify(t('Failed to insert item from library'), 'error')
-    }
+  handleItem(data: { position: number; itemUid: string; groupId?: string }): void {
+    this.addExternalItemAtPosition(data.position, data.itemUid, data.groupId)
   }
 }
 
