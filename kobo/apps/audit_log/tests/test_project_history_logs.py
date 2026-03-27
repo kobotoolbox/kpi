@@ -30,7 +30,7 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     remove_uuid_prefix,
 )
 from kobo.apps.openrosa.libs.utils.logger_tools import dict2xform
-from kobo.apps.subsequences.actions.automatic_bedrock_qual import OSS120, ClaudeSonnet
+from kobo.apps.subsequences.actions.automatic_bedrock_qual import OSS120
 from kobo.apps.subsequences.constants import Action
 from kobo.apps.subsequences.models import QuestionAdvancedFeature, SubmissionSupplement
 from kobo.apps.subsequences.tests.constants import (
@@ -2148,9 +2148,8 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                 log_metadata, 'adminuser', instance.root_uuid
             )
             llm_info = log_metadata['llm']
-            self.assertEqual(llm_info['model'], OSS120.model_id)
-            self.assertEqual(llm_info['input_tokens'], 10)
-            self.assertEqual(llm_info['output_tokens'], 20)
+            self.assertEqual(llm_info['model'], 'oss')
+            self.assertEqual(llm_info['request_id'], '12345')
 
     def test_request_automatic_qa_data_bad_response(self):
         class MockErrorClient:
@@ -2213,13 +2212,10 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                     return {'something': 'bad'}
                 else:
                     return {
+                        'ResponseMetadata': {'RequestId': '12345'},
                         'body': io.StringIO(
-                            json.dumps(
-                                get_mock_claude_response(
-                                    text='5', input_tokens=10, output_tokens=20
-                                )
-                            )
-                        )
+                            json.dumps(get_mock_claude_response(text='5'))
+                        ),
                     }
 
         instance, submission = self._add_submission('adminuser')
@@ -2267,9 +2263,8 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                 log_metadata, 'adminuser', instance.root_uuid
             )
             llm_info = log_metadata['llm']
-            self.assertEqual(llm_info['model'], ClaudeSonnet.model_id)
-            self.assertEqual(llm_info['input_tokens'], 10)
-            self.assertEqual(llm_info['output_tokens'], 20)
+            self.assertEqual(llm_info['model'], 'claude')
+            self.assertEqual(llm_info['request_id'], '12345')
 
     @data(
         # verify? , automatic?, expected action

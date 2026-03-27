@@ -52,8 +52,6 @@ from kpi.utils.log import logging
 class LLModel:
     model_id: str
     path_to_response: str
-    path_to_input_tokens: str
-    path_to_output_tokens: str
     supports_reasoning: bool
 
     def __repr__(self):
@@ -70,12 +68,6 @@ class LLModel:
                 current_level = current_level[path_component]
         return current_level
 
-    def get_input_tokens(self, response_dict):
-        return self.traverse_path(self.path_to_input_tokens, response_dict)
-
-    def get_output_tokens(self, response_dict):
-        return self.traverse_path(self.path_to_output_tokens, response_dict)
-
     def get_response_text(self, response_dict):
         return self.traverse_path(self.path_to_response, response_dict)
 
@@ -84,15 +76,11 @@ ClaudeSonnet = LLModel(
     model_id=settings.AUTOQA_CLAUDESONNET_MODEL_AIP_ARN,
     path_to_response='content.0.text',
     supports_reasoning=False,
-    path_to_input_tokens='usage.input_tokens',
-    path_to_output_tokens='usage.output_tokens',
 )
 OSS120 = LLModel(
     model_id=settings.AUTOQA_OSS120_MODEL_AIP_ARN,
     path_to_response='choices.0.message.content',
     supports_reasoning=True,
-    path_to_input_tokens='usage.prompt_tokens',
-    path_to_output_tokens='usage.completion_tokens',
 )
 
 
@@ -323,8 +311,8 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
             response_body = json.loads(response['body'].read())
             if request := get_current_request():
                 request.llm_response = {
-                    'body': response_body,
-                    'model': model,
+                    'request_id': response['ResponseMetadata']['RequestId'],
+                    'model': response_body['model'],
                 }
             return model.get_response_text(response_body)
         except (JSONDecodeError, IndexError, KeyError) as e:
@@ -445,9 +433,6 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         for index, model in enumerate([OSS120, ClaudeSonnet]):
             try:
                 full_response_text = self.get_response_from_llm(prompt, model)
-                logging.info(
-                    f'LLM prompt: \n{prompt}\nLLM response:\n{full_response_text}'
-                )
                 # edge case: sometimes the LLM returns None
                 if full_response_text is None:
                     raise InvalidResponseFromLLMException('LLM returned empty response')
