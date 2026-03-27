@@ -1,5 +1,6 @@
 import { Radio, Stack, Text } from '@mantine/core'
 import React, { type ChangeEvent } from 'react'
+import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 
 export interface RadioGroupOption {
   uuid: string
@@ -16,6 +17,8 @@ interface RadioGroupProps {
 }
 
 export default function RadioGroup({ options, value, onChange, disabled }: RadioGroupProps) {
+  const autoQAEnabled = useFeatureFlag(FeatureFlag.autoQAEnabled)
+
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     onChange(event.currentTarget.value)
   }
@@ -23,23 +26,29 @@ export default function RadioGroup({ options, value, onChange, disabled }: Radio
   return (
     <Radio.Group value={value} onChange={onChange}>
       <Stack gap={'xs'}>
-        {options.map((option) => (
-          <Stack gap='0' key={option.uuid}>
-            <Radio
-              value={option.uuid}
-              // When there's a hint displayed, the label needs to be more prominent
-              label={option.hint ? <strong>{option.label}</strong> : option.label}
-              onChange={handleChange}
-              checked={value === option.uuid}
-              disabled={disabled || option.disabled}
-            />
-            {option.hint && (
-              <Text pl='26px' fz='xs' m='0' ta='left' c='var(--mantine-color-gray-2)'>
-                {option.hint}
-              </Text>
-            )}
-          </Stack>
-        ))}
+        {options.map((option) => {
+          if (autoQAEnabled) {
+            delete option.hint
+          }
+
+          return (
+            <Stack gap='0' key={option.uuid}>
+              <Radio
+                value={option.uuid}
+                // When there's a hint displayed, the label needs to be more prominent
+                label={option.hint ? <strong>{option.label}</strong> : option.label}
+                onChange={handleChange}
+                checked={value === option.uuid}
+                disabled={disabled || option.disabled}
+              />
+              {option.hint && (
+                <Text pl='26px' fz='xs' m='0' ta='left' c='var(--mantine-color-gray-2)'>
+                  {option.hint}
+                </Text>
+              )}
+            </Stack>
+          )
+        })}
       </Stack>
     </Radio.Group>
   )

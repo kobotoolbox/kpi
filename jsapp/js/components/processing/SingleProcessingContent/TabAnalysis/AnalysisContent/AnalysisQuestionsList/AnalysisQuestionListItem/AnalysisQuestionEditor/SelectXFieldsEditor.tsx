@@ -5,6 +5,7 @@ import type { ResponseQualSelectQuestionParams } from '#/api/models/responseQual
 import type { ResponseQualSelectQuestionParamsChoicesItem } from '#/api/models/responseQualSelectQuestionParamsChoicesItem'
 import Button from '#/components/common/button'
 import TextBox from '#/components/common/textBox'
+import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 import { generateUuid } from '#/utils'
 import styles from './SelectXFieldsEditor.module.scss'
 
@@ -19,6 +20,8 @@ interface Props {
  * expose editing the choice label to users - the choice uuid is pregenerated.
  */
 export default function SelectXFieldsEditor({ qaQuestion, onChange, disabled }: Props) {
+  const autoQAEnabled = useFeatureFlag(FeatureFlag.autoQAEnabled)
+
   function handleChangeLabel(uuid: string, newLabel: string) {
     onChange(
       qaQuestion.choices.map((choice) => ({
@@ -87,17 +90,20 @@ export default function SelectXFieldsEditor({ qaQuestion, onChange, disabled }: 
                   isDisabled={disabled}
                 />
               </Group>
-              <Box>
-                <Input
-                  value={hintValue}
-                  onChange={(evt: React.ChangeEvent<HTMLInputElement>) => {
-                    handleChangeHint(choice.uuid, evt.target.value)
-                  }}
-                  placeholder={t('Add a hint (optional)')}
-                  variant='transparent'
-                  size='s'
-                />
-              </Box>
+
+              {autoQAEnabled && (
+                <Box>
+                  <Input
+                    value={hintValue}
+                    onChange={(evt: React.ChangeEvent<HTMLInputElement>) => {
+                      handleChangeHint(choice.uuid, evt.target.value)
+                    }}
+                    placeholder={t('Add a hint (optional)')}
+                    variant='transparent'
+                    size='s'
+                  />
+                </Box>
+              )}
             </Stack>
           )
         })}

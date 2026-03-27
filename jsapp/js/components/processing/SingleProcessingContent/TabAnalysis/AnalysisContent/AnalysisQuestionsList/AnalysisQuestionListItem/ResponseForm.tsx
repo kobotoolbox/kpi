@@ -53,6 +53,7 @@ export default function ResponseForm({
   const [opened, { open, close }] = useDisclosure(false)
   const [verificationStatus, setVerificationStatus] = useState<boolean | undefined>(undefined)
   const [isGenerating, setIsGenerating] = useState(false)
+  const autoQAEnabled = useFeatureFlag(FeatureFlag.autoQAEnabled)
 
   useEffect(() => {
     setVerificationStatus(undefined)
@@ -199,7 +200,7 @@ export default function ResponseForm({
         )}
       </Group>
 
-      {hintValue && (
+      {autoQAEnabled && hintValue && (
         <Text pl='40px' m='0' ta='left' c='var(--mantine-color-gray-2)' mt='calc(-1 * var(--stack-gap))'>
           {hintValue}
         </Text>
