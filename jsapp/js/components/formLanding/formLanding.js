@@ -447,7 +447,7 @@ class FormLanding extends React.Component {
           tooltip={t('Preview')}
           tooltipPosition='right'
           onClick={this.enketoPreviewModal.bind(this)}
-          disabled={!this.state.url}
+          isDisabled={!this.state.url}
         />
 
         {userCanEdit && (
