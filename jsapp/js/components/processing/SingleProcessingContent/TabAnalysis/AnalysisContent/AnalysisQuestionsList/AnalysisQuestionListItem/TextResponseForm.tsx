@@ -1,6 +1,7 @@
 import { Textarea } from '@mantine/core'
 import React, { useEffect, useState } from 'react'
 import type { QualVersionItem } from '#/components/processing/common/types'
+import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 import { AUTO_SAVE_TYPING_DELAY } from '../../../common/constants'
 import styles from '../../../common/styles.module.scss'
 
@@ -14,6 +15,7 @@ interface Props {
 export default function TextResponseForm({ qaAnswer, onSave, disabled, isAnswerAIGenerated }: Props) {
   const [value, setValue] = useState<string>(((qaAnswer?._data as any)?.value as string) ?? '')
   const [typingTimer, setTypingTimer] = useState<NodeJS.Timeout>()
+  const autoQAEnabled = useFeatureFlag(FeatureFlag.autoQAEnabled)
   // Sync local state when a new version is set (e.g. after AI generation)
   useEffect(() => {
     if (!isAnswerAIGenerated) return
@@ -39,7 +41,7 @@ export default function TextResponseForm({ qaAnswer, onSave, disabled, isAnswerA
       minRows={2}
       value={value}
       onChange={handleChange}
-      placeholder={t('Type your response or use AI')}
+      placeholder={autoQAEnabled ? t('Type your response or use AI') : t('Type your response')}
       onBlur={handleBlur}
       disabled={disabled}
     />

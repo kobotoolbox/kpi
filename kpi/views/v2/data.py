@@ -27,6 +27,7 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
 )
 from kobo.apps.openrosa.libs.utils.logger_tools import http_open_rosa_error_handler
 from kobo.apps.subsequences.exceptions import (
+    AnalysisQuestionIncorrectlyConfigured,
     AnalysisQuestionNotFound,
     InvalidAction,
     InvalidXPath,
@@ -39,7 +40,7 @@ from kobo.apps.subsequences.exceptions import (
 from kobo.apps.subsequences.models import SubmissionSupplement
 from kobo.apps.subsequences.throttling import (
     check_automatic_qa_throttle,
-    is_automatic_qa_request
+    is_automatic_qa_request,
 )
 from kpi.authentication import EnketoSessionAuthentication
 from kpi.constants import (
@@ -606,6 +607,10 @@ class DataViewSet(
         except AnalysisQuestionNotFound:
             raise serializers.ValidationError(
                 {'detail': 'Invalid qualitative analysis question uuid'}
+            )
+        except AnalysisQuestionIncorrectlyConfigured:
+            raise serializers.ValidationError(
+                {'detail': 'Invalid qualitative analysis question configuration'}
             )
 
         return Response(supplemental_data)

@@ -1,12 +1,13 @@
-from django.conf import settings
+import time
+
 from django.db.models.query import QuerySet
 
 from kpi.models import AssetVersion
 from kpi.utils.log import logging
 
-# Use small batch because each version_content can be several MB; loading too
-# many at once would spike RSS significantly.
-CHUNK_SIZE = settings.LONG_RUNNING_MIGRATION_SMALL_BATCH_SIZE
+# Keep chunk size small to avoid loading large version_content JSON blobs into
+# memory all at once — trading speed for a lower memory footprint.
+CHUNK_SIZE = 5
 
 
 def run():
@@ -18,7 +19,7 @@ def run():
 
     while asset_versions := get_queryset():
         updates = []
-        for asset_version in asset_versions.iterator():
+        for asset_version in asset_versions.iterator(chunk_size=CHUNK_SIZE):
             logging.info(
                 f'[LRM 0020] - AssetVersion #{asset_version.uid} - In Progress'
             )
@@ -26,6 +27,8 @@ def run():
             updates.append(asset_version)
 
         AssetVersion.objects.bulk_update(updates, fields=['_content_hash'])
+        # Do not flood the DB.
+        time.sleep(2)
 
 
 def get_queryset() -> QuerySet:

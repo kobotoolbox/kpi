@@ -25,6 +25,7 @@ from kobo.apps.subsequences.constants import (
 from kobo.apps.subsequences.exceptions import (
     AnalysisQuestionNotFound,
     ManualQualNotFound,
+    AnalysisQuestionIncorrectlyConfigured,
 )
 from kobo.apps.subsequences.prompts import (
     MAX_TOKENS,
@@ -127,11 +128,14 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         return qa_question[0]
 
     def _get_visible_choices(self, question: dict) -> list[dict]:
-        return [
+        choices = [
             choice
             for choice in question['choices']
             if not choice.get('options', {}).get('deleted')
         ]
+        if len(choices) == 0:
+            raise AnalysisQuestionIncorrectlyConfigured
+        return choices
 
     def create_bedrock_client(self):
         return boto3.client(
@@ -466,6 +470,9 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
                     selected_indexes = parse_choices_response(
                         full_response_text, len(visible_choices), False
                     )
+                    if len(selected_indexes) == 0:
+                        # empty string is the correct empty value for select one
+                        return {'value': '', 'status': 'complete'}
                     index = selected_indexes[0]
                     selected_uuid = visible_choices[index]['uuid']
                     return {'value': selected_uuid, 'status': 'complete'}
