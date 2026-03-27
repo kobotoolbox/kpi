@@ -81,20 +81,14 @@ class LLModel:
 
 
 ClaudeSonnet = LLModel(
-    model_id=getattr(
-        settings,
-        'AUTOQA_CLAUDESONNET_MODEL_AIP_ARN',
-        'us.anthropic.claude-sonnet-4-5-20250929-v1:0',
-    ),
+    model_id=settings.AUTOQA_CLAUDESONNET_MODEL_AIP_ARN,
     path_to_response='content.0.text',
     supports_reasoning=False,
     path_to_input_tokens='usage.input_tokens',
     path_to_output_tokens='usage.output_tokens',
 )
 OSS120 = LLModel(
-    model_id=getattr(
-        settings, 'AUTOQA_OSS120_MODEL_AIP_ARN', 'openai.gpt-oss-safeguard-120b'
-    ),
+    model_id=settings.AUTOQA_OSS120_MODEL_AIP_ARN,
     path_to_response='choices.0.message.content',
     supports_reasoning=True,
     path_to_input_tokens='usage.prompt_tokens',

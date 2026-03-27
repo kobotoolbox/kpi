@@ -2220,5 +2220,10 @@ SECURE_REFERRER_POLICY = env(
     default='strict-origin-when-cross-origin',
 )
 
-AUTOQA_CLAUDESONNET_MODEL_AIP_ARN = env('AUTOQA_CLAUDESONNET_MODEL_AIP_ARN', None)
-AUTOQA_OSS120_MODEL_AIP_ARN = env('AUTOQA_OSS120_MODEL_AIP_ARN', None)
+AUTOQA_CLAUDESONNET_MODEL_AIP_ARN = env.str(
+    'AUTOQA_CLAUDESONNET_MODEL_AIP_ARN',
+    default='us.anthropic.claude-sonnet-4-5-20250929-v1:0',
+)
+AUTOQA_OSS120_MODEL_AIP_ARN = env.str(
+    'AUTOQA_OSS120_MODEL_AIP_ARN', default='openai.gpt-oss-safeguard-120b'
+)
