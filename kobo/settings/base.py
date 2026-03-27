@@ -1040,6 +1040,7 @@ SPECTACULAR_SETTINGS = {
     'AUTHENTICATION_WHITELIST': [
         'kpi.authentication.BasicAuthentication',
         'kpi.authentication.TokenAuthentication',
+        'kobo.apps.kobo_scim.authentication.ScimAuthentication',
     ],
     'ENUM_NAME_OVERRIDES': {
         'InviteStatusChoicesEnum': 'kobo.apps.organizations.models.OrganizationInviteStatusChoices.choices',  # noqa
@@ -1987,6 +1988,9 @@ OPENROSA_DEFAULT_CONTENT_LENGTH = 10000000
 
 # Expiration time in sec. after which paired data xml file must be regenerated
 PAIRED_DATA_EXPIRATION = 300  # seconds
+# Lock TTL for the async regeneration task; covers the worst-case generation
+# time and ensures the lock expires even if a K8s pod is killed mid-task.
+PAIRED_DATA_REGEN_LOCK_TIMEOUT = 600  # seconds
 
 CALCULATED_HASH_CACHE_EXPIRATION = 300  # seconds
 
@@ -2206,3 +2210,12 @@ HOOK_STALLED_RETRY_TIMEOUT = 1440
 
 # Cache time-to-live (in seconds) for attachment XPaths
 ATTACHMENT_XPATHS_CACHE_TTL = 86400
+
+# Configure the Referrer-Policy response header so OpenStreetMap tile servers
+# receive an acceptable referrer. See:
+# https://wiki.openstreetmap.org/wiki/Blocked_tiles#Referer_is_required
+# Can be overridden per environment via the SECURE_REFERRER_POLICY environment variable.
+SECURE_REFERRER_POLICY = env(
+    'SECURE_REFERRER_POLICY',
+    default='strict-origin-when-cross-origin',
+)

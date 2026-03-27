@@ -5,6 +5,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from typing import Optional
 
+from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.db import transaction
 from django.urls import Resolver404
@@ -14,6 +15,8 @@ from rest_framework.reverse import reverse
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kpi.constants import (
+    ASSET_TYPES_WITH_CHILDREN,
+    PERM_ADD_SUBMISSIONS,
     PERM_PARTIAL_SUBMISSIONS,
     PREFIX_PARTIAL_PERMS,
     SUFFIX_SUBMISSIONS_PERMS,
@@ -21,7 +24,14 @@ from kpi.constants import (
 from kpi.fields import RelativePrefixHyperlinkedRelatedField
 from kpi.models.asset import Asset, AssetUserPartialPermission
 from kpi.models.object_permission import ObjectPermission
-from kpi.utils.object_permission import get_user_permission_assignments_queryset
+from kpi.utils.object_permission import (
+    get_user_permission_assignments_queryset,
+    post_assign_partial_perm,
+    post_assign_perm,
+    post_remove_partial_perms,
+    post_remove_perm,
+)
+from kpi.utils.permissions import is_user_anonymous
 from kpi.utils.urls import absolute_resolve
 
 ASSIGN_OWNER_ERROR_MESSAGE = "Owner's permissions cannot be assigned explicitly"
@@ -417,28 +427,49 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
             asset, user_pk_to_obj_cache
         )
 
-        # Perform the removals
-        for removal in existing_assignments.difference(incoming_assignments):
-            asset.remove_perm(
-                user_pk_to_obj_cache[removal.user_pk],
-                removal.permission_codename,
+        removals = existing_assignments.difference(incoming_assignments)
+        additions = incoming_assignments.difference(existing_assignments)
+
+        if removals:
+            self._bulk_revoke(
+                asset, removals, incoming_assignments, user_pk_to_obj_cache
             )
 
-        # Perform the new assignments
-        for addition in incoming_assignments.difference(existing_assignments):
-            if asset.owner_id == addition.user_pk:
-                raise serializers.ValidationError(
-                    {'user': t(ASSIGN_OWNER_ERROR_MESSAGE)}
+        if additions:
+            self._bulk_assign(asset, additions, user_pk_to_obj_cache)
+
+        # Propagate permissions to child assets (collections only).
+        # For other asset types, `_bulk_assign()` already wrote the
+        # ObjectPermissions directly, so `recalculate_descendants_perms()`
+        # would be a no-op and is skipped.
+        #
+        # `asset.recalculate_descendants_perms()` cannot be used here because
+        # it reads permissions through `__get_all_object_permissions()`, which
+        # is decorated with `@cache_for_request`. That cache was populated
+        # during `get_set_of_existing_assignments()` — before `_bulk_assign()`
+        # inserted the new records — so it does not reflect the current DB
+        # state. Calling it would propagate an incomplete permission set to
+        # children, causing them to miss the newly assigned permissions.
+        # Instead, we query the DB directly and call each child's
+        # `_recalculate_inherited_perms()` with the fresh result.
+        if (removals or additions) and asset.asset_type in ASSET_TYPES_WITH_CHILDREN:
+            grant_perms = set(
+                ObjectPermission.objects.filter(asset=asset, deny=False).values_list(
+                    'user_id', 'permission_id'
                 )
-            if addition.partial_permissions_json:
-                partial_perms = json.loads(addition.partial_permissions_json)
-            else:
-                partial_perms = None
-            asset.assign_perm(
-                user_obj=user_pk_to_obj_cache[addition.user_pk],
-                perm=addition.permission_codename,
-                partial_perms=partial_perms,
             )
+            deny_perms = set(
+                ObjectPermission.objects.filter(asset=asset, deny=True).values_list(
+                    'user_id', 'permission_id'
+                )
+            )
+            effective_perms = grant_perms - deny_perms
+            children = list(asset.children.only('pk', 'owner', 'parent'))
+            for child in children:
+                child._recalculate_inherited_perms(
+                    parent_effective_perms=effective_perms
+                )
+                child.recalculate_descendants_perms()
 
         # Return nothing, in a nice way, because the view is responsible for
         # calling `list()` to return the assignments as they actually exist in
@@ -650,6 +681,247 @@ class AssetBulkInsertPermissionSerializer(serializers.Serializer):
 
         attrs['assignments'] = assignments_with_objects
         return attrs
+
+    @staticmethod
+    def _bulk_assign(asset, additions, user_pk_to_obj_cache):
+        """
+        Assign permissions in bulk, replacing N assign_perm() calls with a
+        single bulk_create() for ObjectPermission records plus one
+        update_or_create() per user for partial permissions.
+
+        Owner validation is performed before any DB writes.
+        Signals (post_assign_perm, post_assign_partial_perm) are fired per
+        (user, codename) after the bulk write, preserving audit-log behaviour.
+        """
+        for addition in additions:
+            if asset.owner_id == addition.user_pk:
+                raise serializers.ValidationError(
+                    {'user': t(ASSIGN_OWNER_ERROR_MESSAGE)}
+                )
+            user_obj = user_pk_to_obj_cache[addition.user_pk]
+            if is_user_anonymous(user_obj):
+                fq_permission = f'kpi.{addition.permission_codename}'
+                if fq_permission not in settings.ALLOWED_ANONYMOUS_PERMISSIONS:
+                    raise serializers.ValidationError(
+                        {
+                            'permission': (
+                                f'Anonymous users cannot be granted the'
+                                f' permission {addition.permission_codename}.'
+                            )
+                        }
+                    )
+
+        addition_user_pks = {a.user_pk for a in additions}
+        codenames = {a.permission_codename for a in additions}
+
+        # Ensure PERM_ADD_SUBMISSIONS is fetched: it may be needed when
+        # partial perms contain change_submissions (which implies it).
+        codenames.add(PERM_ADD_SUBMISSIONS)
+
+        perm_map = {
+            p.codename: p
+            for p in Permission.objects.filter(
+                content_type__app_label='kpi',
+                codename__in=codenames,
+            )
+        }
+
+        # Existing direct non-denied permissions for all affected users (1 query)
+        existing_set = set(
+            ObjectPermission.objects.filter(
+                asset=asset,
+                user_id__in=addition_user_pks,
+                inherited=False,
+                deny=False,
+            ).values_list('user_id', 'permission__codename')
+        )
+
+        # Bulk-delete contradictory perms for users receiving partial_submissions
+        partial_sub_user_pks = {
+            a.user_pk
+            for a in additions
+            if a.permission_codename == PERM_PARTIAL_SUBMISSIONS
+        }
+        if partial_sub_user_pks:
+            contradictory = asset.CONTRADICTORY_PERMISSIONS.get(
+                PERM_PARTIAL_SUBMISSIONS, ()
+            )
+            ObjectPermission.objects.filter(
+                asset=asset,
+                user_id__in=partial_sub_user_pks,
+                permission__codename__in=contradictory,
+                inherited=False,
+            ).delete()
+
+        # Build ObjectPermission records to bulk-create.
+        # uid must be set explicitly: bulk_create() bypasses pre_save(), so
+        # KpiUidField would not auto-generate the uid, causing a silent
+        # ignore_conflicts failure on the unique constraint.
+        uid_field = ObjectPermission._meta.get_field('uid')
+        new_ops = []
+        for addition in additions:
+            if (addition.user_pk, addition.permission_codename) not in existing_set:
+                perm_obj = perm_map.get(addition.permission_codename)
+                if perm_obj:
+                    op = ObjectPermission(
+                        asset=asset,
+                        user_id=addition.user_pk,
+                        permission=perm_obj,
+                        deny=False,
+                        inherited=False,
+                    )
+                    op.uid = uid_field.generate_uid()
+                    new_ops.append(op)
+
+        if new_ops:
+            ObjectPermission.objects.bulk_create(new_ops, ignore_conflicts=True)
+
+        # Handle partial permissions (one update_or_create per user)
+        # Also creates PERM_ADD_SUBMISSIONS ObjectPermission when implied by
+        # partial perms (e.g. change_submissions implies add_submissions).
+        extra_add_sub_ops = []
+        for addition in additions:
+            if addition.permission_codename != PERM_PARTIAL_SUBMISSIONS:
+                continue
+            user_obj = user_pk_to_obj_cache[addition.user_pk]
+            raw_partial = (
+                json.loads(addition.partial_permissions_json)
+                if addition.partial_permissions_json
+                else {}
+            )
+            new_partial = (
+                AssetUserPartialPermission.update_partial_perms_to_include_implied(
+                    asset, raw_partial
+                )
+            )
+            AssetUserPartialPermission.objects.update_or_create(
+                asset_id=asset.pk,
+                user_id=addition.user_pk,
+                defaults={'permissions': new_partial},
+            )
+            post_assign_partial_perm.send(
+                sender=asset.__class__,
+                perms=new_partial,
+                instance=asset,
+                user=user_obj,
+            )
+            # add_submissions has no meaningful partial filter but must exist
+            # as an ObjectPermission when change_submissions is in partial perms
+            if PERM_ADD_SUBMISSIONS in new_partial:
+                key = (addition.user_pk, PERM_ADD_SUBMISSIONS)
+                if key not in existing_set:
+                    add_sub_perm = perm_map.get(PERM_ADD_SUBMISSIONS)
+                    if add_sub_perm:
+                        op = ObjectPermission(
+                            asset=asset,
+                            user_id=addition.user_pk,
+                            permission=add_sub_perm,
+                            deny=False,
+                            inherited=False,
+                        )
+                        op.uid = uid_field.generate_uid()
+                        extra_add_sub_ops.append(op)
+
+        if extra_add_sub_ops:
+            ObjectPermission.objects.bulk_create(
+                extra_add_sub_ops, ignore_conflicts=True
+            )
+            for op in extra_add_sub_ops:
+                post_assign_perm.send(
+                    sender=asset.__class__,
+                    instance=asset,
+                    user=user_pk_to_obj_cache[op.user_id],
+                    codename=PERM_ADD_SUBMISSIONS,
+                    deny=False,
+                )
+
+        # Fire post_assign_perm signals (audit log + enketo for anon user)
+        for addition in additions:
+            post_assign_perm.send(
+                sender=asset.__class__,
+                instance=asset,
+                user=user_pk_to_obj_cache[addition.user_pk],
+                codename=addition.permission_codename,
+                deny=False,
+            )
+
+    @staticmethod
+    def _bulk_revoke(asset, removals, incoming_assignments, user_pk_to_obj_cache):
+        """
+        Remove permissions in bulk, avoiding one remove_perm() call per user.
+
+        Users being fully removed (no incoming assignments) use a fast path:
+        their direct ObjectPermissions and AssetUserPartialPermissions are
+        deleted in two bulk queries.  Users with inherited permissions or users
+        whose permissions are only partially modified fall back to the
+        individual remove_perm(defer_recalc=True) path so that inherited-perm
+        deny records are created correctly.
+        """
+        incoming_user_pks = {a.user_pk for a in incoming_assignments}
+
+        codenames_per_user = defaultdict(set)
+        for removal in removals:
+            codenames_per_user[removal.user_pk].add(removal.permission_codename)
+
+        fully_removed_pks = {
+            pk for pk in codenames_per_user if pk not in incoming_user_pks
+        }
+        modified_pks = {pk for pk in codenames_per_user if pk in incoming_user_pks}
+
+        # Fast path ─ users being fully removed with no inherited perms
+        if fully_removed_pks:
+            inherited_perm_pks = set(
+                ObjectPermission.objects.filter(
+                    asset=asset,
+                    user_id__in=fully_removed_pks,
+                    inherited=True,
+                    deny=False,
+                )
+                .values_list('user_id', flat=True)
+                .distinct()
+            )
+            fast_pks = fully_removed_pks - inherited_perm_pks
+            slow_pks = inherited_perm_pks
+
+            if fast_pks:
+                had_partial_perm_pks = set(
+                    asset.asset_partial_permissions.filter(
+                        user_id__in=fast_pks
+                    ).values_list('user_id', flat=True)
+                )
+                ObjectPermission.objects.filter(
+                    asset=asset,
+                    user_id__in=fast_pks,
+                    inherited=False,
+                ).delete()
+                asset.asset_partial_permissions.filter(user_id__in=fast_pks).delete()
+                for user_pk in fast_pks:
+                    user_obj = user_pk_to_obj_cache[user_pk]
+                    for codename in codenames_per_user[user_pk]:
+                        post_remove_perm.send(
+                            sender=asset.__class__,
+                            instance=asset,
+                            user=user_obj,
+                            codename=codename,
+                        )
+                    if user_pk in had_partial_perm_pks:
+                        post_remove_partial_perms.send(
+                            sender=asset.__class__,
+                            instance=asset,
+                            user=user_obj,
+                        )
+
+            # Slow path ─ users with inherited perms need deny records
+            for user_pk in slow_pks:
+                user_obj = user_pk_to_obj_cache[user_pk]
+                for codename in codenames_per_user[user_pk]:
+                    asset.remove_perm(user_obj, codename, defer_recalc=True)
+
+        # Slow path ─ partially modified users
+        for user_pk in modified_pks:
+            user_obj = user_pk_to_obj_cache[user_pk]
+            for codename in codenames_per_user[user_pk]:
+                asset.remove_perm(user_obj, codename, defer_recalc=True)
 
     @staticmethod
     def _get_arg_from_url(arg_name: str, url: str) -> str:

@@ -6,6 +6,14 @@ class AnalysisQuestionNotFound(Exception):
     pass
 
 
+class AnalysisQuestionIncorrectlyConfigured(Exception):
+    """
+    Raised when the question corresponding to the uuid for automatic qual analysis
+    is incorrectly configured in the manual params
+    """
+    pass
+
+
 class AudioTooLongError(Exception):
     """
     Audio file is too long for the specified speech service

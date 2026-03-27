@@ -8,8 +8,8 @@ import pytest
 from botocore.exceptions import ClientError
 from constance.test import override_config
 from ddt import data, ddt, unpack
-from django.core.cache import cache
 from django.conf import settings
+from django.core.cache import cache
 from django.utils import timezone
 from freezegun import freeze_time
 from rest_framework import status
@@ -32,6 +32,7 @@ from kobo.apps.subsequences.constants import (
 from kobo.apps.subsequences.exceptions import (
     AnalysisQuestionNotFound,
     ManualQualNotFound,
+    AnalysisQuestionIncorrectlyConfigured,
 )
 from kobo.apps.subsequences.models import QuestionAdvancedFeature
 from kobo.apps.subsequences.prompts import (
@@ -471,6 +472,47 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
         with pytest.raises(AnalysisQuestionNotFound):
             self.action.generate_llm_prompt(action_data)
 
+    def test_generate_prompt_fails_if_no_visible_choices(self):
+        # regression test. this really shouldn't happen if we're validating schemas
+        # properly
+        queryset = QuestionAdvancedFeature.objects.filter(
+            asset=self.asset, question_xpath='q1', action=Action.MANUAL_QUAL
+        )
+        # use update to bypass schema validation
+        queryset.update(
+            params=[
+                {
+                    'type': 'qualSelectMultiple',
+                    'uuid': 'b1f8c6a9-2d4e-4a73-8c5f-9e0b6d1a2374',
+                    'labels': {'_default': 'What themes were present in the story?'},
+                    'choices': [
+                        {
+                            'uuid': 'c4a9e2d1-7b6f-4a83-9d5e-1f8c3b2a0647',
+                            'labels': {'_default': 'Empathy'},
+                            'options': {'deleted': True},
+                        },
+                        {
+                            'uuid': 'c4a9e2d1-7b6f-4a83-9d5e-1f8c3b2a0647',
+                            'labels': {'_default': 'Apathy'},
+                            'options': {'deleted': True},
+                        },
+                    ],
+                }
+            ]
+        )
+        # need to reload the action to pick up the new params for _dependencies
+        action = QuestionAdvancedFeature.objects.get(
+            asset=self.asset,
+            action=Action.AUTOMATIC_BEDROCK_QUAL,
+            question_xpath='q1',
+        ).to_action()
+        action_data = {
+            'uuid': 'b1f8c6a9-2d4e-4a73-8c5f-9e0b6d1a2374',
+            '_dependency': self._dependency_dict_from_transcript_dict(),
+        }
+        with pytest.raises(AnalysisQuestionIncorrectlyConfigured):
+            action.generate_llm_prompt(action_data)
+
     @data(
         # question uuid, parsing method name
         (BEDROCK_QUAL_TEXT_UUID, 'parse_text_response'),
@@ -619,7 +661,7 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
 class TestAutomaticQAThrottling(BaseAutomaticBedrockQualTestCase):
     def setUp(self):
         super().setUp()
-        cache.clear()
+        cache.delete(f'throttle_automatic_qa_{self.asset.owner.id}')
         self.submission_uuid = self._add_submission()
         self.transcript_dict = self._add_manual_transcription(self.submission_uuid)
         self.supplement_details_url = reverse(
@@ -637,21 +679,20 @@ class TestAutomaticQAThrottling(BaseAutomaticBedrockQualTestCase):
 
     @override_config(AUTOMATIC_QA_REQUESTS_PER_SECOND=5)
     @freeze_time('2026-03-16 12:00:00')
-    def test_automatic_qa_throttles_after_limit(self):
+    @patch('kobo.apps.subsequences.actions.automatic_bedrock_qual.boto3.client')
+    def test_automatic_qa_throttles_after_limit(self, mock_boto):
         """
         Test that after a certain number of requests to trigger automatic QA,
         the user is throttled and receives a 429 response
         """
-        with patch(
-            'kobo.apps.subsequences.actions.automatic_bedrock_qual.boto3.client',
-            return_value=MockLLMClient('LLM text'),
-        ):
-            # Simulate 5 successful requests
-            for i in range(5):
-                response = self.client.patch(
-                    self.supplement_details_url, data=self.qa_payload, format='json'
-                )
-                assert response.status_code == status.HTTP_200_OK
+        mock_boto.return_value = MockLLMClient('LLM text')
+
+        # Simulate 5 successful requests
+        for i in range(5):
+            response = self.client.patch(
+                self.supplement_details_url, data=self.qa_payload, format='json'
+            )
+            assert response.status_code == status.HTTP_200_OK
 
         # The 6th request should be throttled
         response = self.client.patch(
@@ -686,20 +727,19 @@ class TestAutomaticQAThrottling(BaseAutomaticBedrockQualTestCase):
 
     @override_config(AUTOMATIC_QA_REQUESTS_PER_SECOND=5)
     @freeze_time('2026-03-16 12:00:00')
-    def test_throttling_is_per_user(self):
+    @patch('kobo.apps.subsequences.actions.automatic_bedrock_qual.boto3.client')
+    def test_throttling_is_per_user(self, mock_boto):
         """
         Test that if one user hits the automatic QA throttle, it does not affect
         other users
         """
+        mock_boto.return_value = MockLLMClient('LLM text')
+
         # Exhaust the limit for UserA
-        with patch(
-            'kobo.apps.subsequences.actions.automatic_bedrock_qual.boto3.client',
-            return_value=MockLLMClient('LLM text'),
-        ):
-            for _ in range(5):
-                self.client.patch(
-                    self.supplement_details_url, data=self.qa_payload, format='json'
-                )
+        for _ in range(5):
+            self.client.patch(
+                self.supplement_details_url, data=self.qa_payload, format='json'
+            )
 
         # Verify UserA is throttled
         response = self.client.patch(
@@ -714,11 +754,7 @@ class TestAutomaticQAThrottling(BaseAutomaticBedrockQualTestCase):
         self.client.force_login(user_b)
 
         # UserB should not be throttled even though UserA is throttled
-        with patch(
-            'kobo.apps.subsequences.actions.automatic_bedrock_qual.boto3.client',
-            return_value=MockLLMClient('LLM text'),
-        ):
-            response = self.client.patch(
-                self.supplement_details_url, data=self.qa_payload, format='json'
-            )
+        response = self.client.patch(
+            self.supplement_details_url, data=self.qa_payload, format='json'
+        )
         assert response.status_code == status.HTTP_200_OK
