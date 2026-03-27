@@ -96,6 +96,21 @@ class BaseQualAction(BaseAction):
             'additionalProperties': False,
             'patternProperties': {'.+': {'type': 'string'}},
         },
+        'qualAllDeletedChoices': {
+            'type': 'array',
+            'items': {
+                'type': 'object',
+                'additionalProperties': True,
+                'properties': {
+                    'options': {
+                        'type': 'object',
+                        'properties': {'deleted': {'const': True}},
+                        'required': ['deleted'],
+                    }
+                },
+                'required': ['options'],
+            },
+        },
         'qualQuestion': {
             'type': 'object',
             'additionalProperties': False,
@@ -105,8 +120,10 @@ class BaseQualAction(BaseAction):
                 'labels': {'$ref': '#/$defs/qualLabels'},
                 'hint': {'$ref': '#/$defs/qualHint'},
                 'choices': {
-                    'type': 'array',
-                    'items': {'$ref': '#/$defs/qualChoice'},
+                    'allOf': [
+                        {'type': 'array', 'items': {'$ref': '#/$defs/qualChoice'}},
+                        {'not': {'$ref': '#/$defs/qualAllDeletedChoices'}},
+                    ],
                 },
                 'options': {'type': 'object'},
             },
