@@ -101,6 +101,7 @@ export default function SelectXFieldsEditor({ qaQuestion, onChange, disabled }: 
                     placeholder={t('Add a hint (optional)')}
                     variant='transparent'
                     size='s'
+                    disabled={disabled}
                   />
                 </Box>
               )}
