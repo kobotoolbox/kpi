@@ -56,14 +56,16 @@ export default function AnalysisQuestionEditor({
   }, [])
 
   const handleChangeHint = useCallback((newHint: string) => {
-    setNewQaQuestion((prev) => ({
-      ...clonedeep(prev),
-      hint: {
-        labels: {
-          _default: newHint,
-        },
-      },
-    }))
+    setNewQaQuestion((prev) => {
+      const updated = clonedeep(prev)
+      // If user deletes hint it becomes an empty string, and we want to remove it rather than store empty string
+      if (newHint.trim()) {
+        updated.hint = { labels: { _default: newHint } }
+      } else {
+        delete updated.hint
+      }
+      return updated
+    })
   }, [])
 
   function handleChangeChoices(choices: ResponseQualSelectQuestionParamsChoicesItem[]) {
