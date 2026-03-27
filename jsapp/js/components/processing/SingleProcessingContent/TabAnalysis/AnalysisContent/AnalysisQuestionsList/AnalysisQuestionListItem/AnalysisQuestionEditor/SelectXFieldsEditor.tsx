@@ -19,7 +19,7 @@ interface Props {
  * expose editing the choice label to users - the choice uuid is pregenerated.
  */
 export default function SelectXFieldsEditor({ qaQuestion, onChange, disabled }: Props) {
-  function handleEditLabel(uuid: string, newLabel: string) {
+  function handleChangeLabel(uuid: string, newLabel: string) {
     onChange(
       qaQuestion.choices.map((choice) => ({
         ...choice,
@@ -28,7 +28,7 @@ export default function SelectXFieldsEditor({ qaQuestion, onChange, disabled }: 
     )
   }
 
-  function handleEditHint(uuid: string, newHint: string) {
+  function handleChangeHint(uuid: string, newHint: string) {
     onChange(
       qaQuestion.choices.map((choice) => {
         if (choice.uuid === uuid) {
@@ -70,7 +70,7 @@ export default function SelectXFieldsEditor({ qaQuestion, onChange, disabled }: 
               <Group>
                 <TextBox
                   value={choice.labels._default}
-                  onChange={(newLabel: string) => handleEditLabel(choice.uuid, newLabel)}
+                  onChange={(newLabel: string) => handleChangeLabel(choice.uuid, newLabel)}
                   placeholder={t('Type option name')}
                   className={styles.labelInput}
                   size='m'
@@ -89,7 +89,7 @@ export default function SelectXFieldsEditor({ qaQuestion, onChange, disabled }: 
                 <Input
                   value={hintValue}
                   onChange={(evt: React.ChangeEvent<HTMLInputElement>) => {
-                    handleEditHint(choice.uuid, evt.target.value)
+                    handleChangeHint(choice.uuid, evt.target.value)
                   }}
                   placeholder={t('Add a hint (optional)')}
                   variant='transparent'
