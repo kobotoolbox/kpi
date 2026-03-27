@@ -49,11 +49,6 @@ export default function MultiCheckbox(props: MultiCheckboxProps) {
   return (
     <bem.MultiCheckbox m={`type-${props.type}`} className={props.className} dir='auto'>
       {props.items.map((item, itemIndex) => {
-        // Hide hint behind feature flag
-        if (!autoQAEnabled) {
-          delete item.hint
-        }
-
         return (
           <bem.MultiCheckbox__item key={itemIndex}>
             <Stack gap='0'>
@@ -64,10 +59,10 @@ export default function MultiCheckbox(props: MultiCheckboxProps) {
                   onChange(itemIndex, isChecked)
                 }}
                 // When there's a hint displayed, the label needs to be more prominent
-                label={item.hint ? <strong>{item.label}</strong> : item.label}
+                label={autoQAEnabled && item.hint ? <strong>{item.label}</strong> : item.label}
               />
 
-              {item.hint && (
+              {autoQAEnabled && item.hint && (
                 <Text pl='26px' fz='xs' m='0' ta='left' c='var(--mantine-color-gray-2)'>
                   {item.hint}
                 </Text>
