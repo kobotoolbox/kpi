@@ -7,7 +7,7 @@ from rest_framework.exceptions import ParseError
 from rest_framework.filters import BaseFilterBackend
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.apps.logger.models import Instance, XForm
+from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.openrosa.libs.permissions import (
     XFORM_MODELS_NAMES,
     get_xform_ids_for_user,
