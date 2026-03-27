@@ -6,7 +6,6 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.urlpatterns import format_suffix_patterns
 
-from kobo.apps.openrosa.apps.api.viewsets.briefcase_api import BriefcaseApi
 from kpi.models.asset import Asset
 from .utils.rest_framework.views import OpenRosaAPIView
 
@@ -259,7 +258,5 @@ class MultiLookupRouterWithPatchList(MultiLookupRouter):
 
 
 router = MultiLookupRouter(trailing_slash=False)
-
-router.register(r'briefcase', BriefcaseApi, basename='briefcase')
 
 router_with_patch_list = MultiLookupRouterWithPatchList(trailing_slash=False)
