@@ -1,22 +1,17 @@
 # coding: utf-8
 import json
-import logging
 import os
-import re
-from urllib.parse import quote as urlquote
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
 from django.http import (
     HttpResponse,
     HttpResponseBadRequest,
     HttpResponseForbidden,
-    HttpResponseNotFound,
     HttpResponseRedirect,
 )
 from django.shortcuts import get_object_or_404, render
-from django.urls import reverse
+from django.urls import resolve, reverse
 from django.utils.translation import gettext as t
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.decorators.http import require_POST
@@ -26,7 +21,6 @@ from kobo.apps.openrosa.apps.logger.models import Attachment, XForm
 from kobo.apps.openrosa.apps.viewer.models.export import Export
 from kobo.apps.openrosa.apps.viewer.tasks import create_async_export
 from kobo.apps.openrosa.libs.authentication import digest_authentication
-from kobo.apps.openrosa.libs.utils.image_tools import image_url
 from kobo.apps.openrosa.libs.utils.logger_tools import response_with_mimetype_and_name
 from kobo.apps.openrosa.libs.utils.user_auth import has_permission, helper_auth_helper
 from kobo.apps.openrosa.libs.utils.viewer_tools import export_def_from_filename
@@ -34,8 +28,7 @@ from kpi.deployment_backends.kc_access.storage import (
     default_kobocat_storage as default_storage,
 )
 from kpi.utils.storage import is_filesystem_storage
-
-media_file_logger = logging.getLogger('media_files')
+from kpi.views.v2.attachment import AttachmentViewSet
 
 
 @login_required
@@ -206,102 +199,33 @@ def delete_export(request, username, id_string, export_type):
     )
 
 
-def attachment_url(request, size='medium'):
-    media_file = request.GET.get('media_file')
+def briefcase_attachment_url(request, att_uid):
+    """
+    Serves attachment files for ODK Briefcase clients.
 
-    # this assumes duplicates are the same file.
-    #
-    # Django seems to already handle that. It appends datetime to the filename.
-    # It means duplicated would be only for the same user who uploaded two files
-    # with same name at the same second.
-    if media_file:
-        # Strip out garbage (cache buster?) added by Galleria.js
-        media_file = media_file.split('?')[0]
-        mtch = re.search(r'^([^/]+)/attachments/([^/]+)$', media_file)
-        if mtch:
-            # in cases where the media_file url created by instance.html's
-            # _attachment_url function is in the wrong format, this will
-            # match attachments with the correct owner and the same file name
-            (username, filename) = mtch.groups()
-            result = Attachment.objects.filter(
-                    instance__xform__user__username=username,
-                ).filter(
-                    Q(media_file_basename=filename) | Q(
-                        media_file_basename=None,
-                        media_file__endswith='/' + filename
-                    )
-                )[0:1]
-        else:
-            # search for media_file with exact matching name
-            result = Attachment.objects.filter(media_file=media_file)[0:1]
+    Handles Digest authentication and delegates file serving to the KPI v2
+    AttachmentViewSet. Lookup by UID is stable after project transfers,
+    unlike the legacy path-based lookup.
+    """
+    attachment = get_object_or_404(Attachment, uid=att_uid)
+    xform = attachment.xform
 
-        try:
-            attachment = result[0]
-        except IndexError:
-            media_file_logger.info('attachment not found')
-            return HttpResponseNotFound(t('Attachment not found'))
+    helper_auth_helper(request)
 
-        # Attachment has a deleted date, it should not be shown anymore
-        if attachment.delete_status:
-            return HttpResponseNotFound(t('Attachment not found'))
+    if not request.user.is_superuser and not has_permission(xform, xform.user, request):
+        if request.user.is_anonymous:
+            if digest_response := digest_authentication(request):
+                return digest_response
+        return HttpResponseForbidden(t('Not shared.'))
 
-        # Checks whether users are allowed to see the media file before giving them
-        # the url
-        xform = attachment.xform
-
-        helper_auth_helper(request)
-
-        if (
-            not request.user.is_superuser
-            and not has_permission(xform, xform.user, request)
-        ):
-            # New versions of ODK Briefcase (1.16+) do not sent Digest
-            # authentication headers anymore directly. So, if user does not
-            # pass `has_permission` and user is anonymous, we need to notify them
-            # that access is unauthorized (i.e.: send a HTTP 401) and give them
-            # a chance to authenticate.
-            if request.user.is_anonymous:
-                if digest_response := digest_authentication(request):
-                    return digest_response
-
-            # Otherwise, return a HTTP 403 (access forbidden)
-            return HttpResponseForbidden(t('Not shared.'))
-
-        media_url = None
-
-        if not attachment.mimetype.startswith('image'):
-            media_url = attachment.media_file.url
-        else:
-            try:
-                media_url = image_url(attachment, size)
-            except:
-                media_file_logger.error(
-                    'could not get thumbnail for image', exc_info=True
-                )
-
-        if media_url:
-            # We want nginx to serve the media (instead of redirecting the media itself)
-            # PROS:
-            # - It avoids revealing the real location of the media.
-            # - Full control on permission
-            # CONS:
-            # - When using S3 Storage, traffic is multiplied by 2.
-            #    S3 -> Nginx -> User
-            response = HttpResponse()
-            if not is_filesystem_storage(default_storage):
-                # Double-encode the S3 URL to take advantage of NGINX's
-                # otherwise troublesome automatic decoding
-                protected_url = '/protected-s3/{}'.format(urlquote(media_url))
-            else:
-                protected_url = media_url.replace(settings.MEDIA_URL, '/protected/')
-
-            # Let nginx determine the correct content type
-            response['Content-Type'] = ''
-            response['Content-Disposition'] = (
-                f'{attachment.content_disposition}; '
-                f'filename={attachment.media_file_basename}'
-            )
-            response['X-Accel-Redirect'] = protected_url
-            return response
-
-    return HttpResponseNotFound(t('Error: Attachment not found'))
+    internal_url = reverse(
+        'api_v2:attachment-detail',
+        kwargs={
+            'uid_asset': xform.kpi_asset_uid,
+            'uid_data': str(attachment.instance.pk),
+            'pk': attachment.uid,
+        },
+    )
+    resolver_match = resolve(internal_url)
+    view = AttachmentViewSet.as_view({'get': 'retrieve'})
+    return view(request=request, **resolver_match.kwargs)
