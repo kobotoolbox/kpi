@@ -7,7 +7,7 @@ from rest_framework.exceptions import ParseError
 from rest_framework.filters import BaseFilterBackend
 
 from kobo.apps.kobo_auth.shortcuts import User
-from kobo.apps.openrosa.apps.logger.models import Instance, XForm
+from kobo.apps.openrosa.apps.logger.models import XForm
 from kobo.apps.openrosa.libs.permissions import (
     XFORM_MODELS_NAMES,
     get_xform_ids_for_user,
@@ -205,20 +205,3 @@ class XFormPermissionFilterMixin:
 
         kwargs = {'{keyword}__in'.format(keyword=keyword): xforms}
         return queryset.filter(**kwargs)
-
-
-class AttachmentFilter(XFormPermissionFilterMixin, ObjectPermissionsFilter):
-    def filter_queryset(self, request, queryset, view):
-        queryset = self._xform_filter_queryset(
-            request, queryset, view, 'instance__xform'
-        )
-        instance_id = request.query_params.get('instance')
-        if instance_id:
-            try:
-                int(instance_id)
-            except ValueError:
-                raise ParseError('Invalid value for instance %s.' % instance_id)
-            instance = get_object_or_404(Instance, pk=instance_id)
-            queryset = queryset.filter(instance=instance)
-
-        return queryset
