@@ -1,3 +1,4 @@
+from ipaddress import ip_address
 from unittest.mock import MagicMock, patch
 
 import constance
@@ -25,6 +26,7 @@ class HookLogStatusTransitionsTestCase(BaseHookTestCase):
         super().setUp()
         self._setup_hook_and_submission()
 
+    @patch('ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address', new=MagicMock(return_value=ip_address('1.2.3.4')))
     @patch('kobo.apps.hook.models.service_definition_interface.requests.post')
     def test_status_transition_pending_to_processing_to_success(self, mock_post):
         """
@@ -65,6 +67,7 @@ class HookLogStatusTransitionsTestCase(BaseHookTestCase):
         assert log.status_code == 200
         assert log.message == 'Submission received successfully'
 
+    @patch('ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address', new=MagicMock(return_value=ip_address('1.2.3.4')))
     @patch('kobo.apps.hook.models.service_definition_interface.requests.post')
     def test_status_transition_pending_to_processing_to_failed(self, mock_post):
         """
@@ -138,6 +141,7 @@ class HookLogStatusTransitionsTestCase(BaseHookTestCase):
         assert log.message == ''
         assert log.tries == 0
 
+    @patch('ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address', new=MagicMock(return_value=ip_address('1.2.3.4')))
     @patch('kobo.apps.hook.models.service_definition_interface.requests.post')
     def test_process_terminated(self, mock_post):
         """
@@ -239,6 +243,7 @@ class HookLogStatusTransitionsTestCase(BaseHookTestCase):
         assert log.status_code == KOBO_INTERNAL_ERROR_STATUS_CODE
         assert log.message == 'Submission is being queued for processing'
 
+    @patch('ssrf_protect.ssrf_protect.SSRFProtect._get_ip_address', new=MagicMock(return_value=ip_address('1.2.3.4')))
     @patch('kobo.apps.hook.models.service_definition_interface.requests.post')
     @override_config(HOOK_MAX_RETRIES=3)
     def test_retry_logic_respects_max_retries(self, mock_post):
