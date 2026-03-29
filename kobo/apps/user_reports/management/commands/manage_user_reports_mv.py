@@ -22,6 +22,15 @@ class Command(BaseCommand):
         parser.add_argument(
             '--create', action='store_true', help='Create the view and indexes'
         )
+        parser.add_argument(
+            '--force',
+            action='store_true',
+            default=False,
+            help=(
+                'Bypass SKIP_HEAVY_MIGRATIONS and run immediately. '
+                'Use this when calling from a background job.'
+            ),
+        )
 
     def handle(self, *args, **options):
         with connection.cursor() as cursor:
@@ -42,7 +51,7 @@ class Command(BaseCommand):
                     )
                     return
 
-                if settings.SKIP_HEAVY_MIGRATIONS:
+                if settings.SKIP_HEAVY_MIGRATIONS and not options['force']:
                     now = datetime.datetime.now()
                     next_quarter = now.replace(
                         second=0, microsecond=0

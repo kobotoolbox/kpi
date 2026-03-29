@@ -1,7 +1,6 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
-import { Group, Modal, Stack, Text } from '@mantine/core'
-import { Box, ThemeIcon } from '@mantine/core'
+import { Box, Checkbox, Group, Modal, Stack, Text, ThemeIcon } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import ActionIcon from '#/components/common/ActionIcon'
 import ButtonNew from '#/components/common/ButtonNew'
@@ -17,9 +16,11 @@ interface Props {
   qaQuestion: ResponseManualQualActionParams
   // It is both optional (not all types have answers) and can be `undefined` as value
   answer?: QualVersionItem
-  disabled: boolean
+  disabledAnswer: boolean
+  disabledQuestion: boolean
   // This is optional because some types are not clearable
   onClear?: () => Promise<void>
+  onUpdateAnswerVerification?: (isAnswerAIGenerated: boolean, verified: boolean) => Promise<void>
   onEdit: (qaQuestion: ResponseManualQualActionParams) => unknown
   onDelete: (qaQuestion: ResponseManualQualActionParams) => Promise<unknown>
   /**
@@ -39,8 +40,10 @@ export default function ResponseForm({
   children,
   qaQuestion,
   answer,
-  disabled,
+  disabledAnswer,
+  disabledQuestion,
   onClear,
+  onUpdateAnswerVerification,
   onEdit,
   onDelete,
   onGenerateWithAI,
@@ -48,7 +51,12 @@ export default function ResponseForm({
   hasTranscript,
 }: Props) {
   const [opened, { open, close }] = useDisclosure(false)
+  const [verificationStatus, setVerificationStatus] = useState<boolean | undefined>(undefined)
   const [isGenerating, setIsGenerating] = useState(false)
+
+  useEffect(() => {
+    setVerificationStatus(undefined)
+  }, [answer?._uuid])
 
   const ffAutoQAEnabled = useFeatureFlag(FeatureFlag.autoQAEnabled)
 
@@ -63,7 +71,8 @@ export default function ResponseForm({
    * example the "Generate with AI" might return empty response for `qual_select_one`, because none of the choices are
    * to be selected.
    */
-  const hasAnswer = answer !== undefined
+  const hasAnswer = answer !== undefined && (!('status' in answer._data) || answer._data.status === 'complete')
+
   const hasEmptyValueAnswerVal = hasEmptyValueAnswer(qaQuestion.type, answer)
 
   /**
@@ -71,28 +80,22 @@ export default function ResponseForm({
    *
    * We also hide it if there is no transcript or if `onGenerateWithAI` callback is not provided.
    */
-  const shouldDisplayGenerateWithAIButton = () => {
-    return (
-      hasTranscript &&
-      onGenerateWithAI !== undefined &&
-      (!hasAnswer || (hasEmptyValueAnswerVal && !isAnswerAIGenerated))
-    )
-  }
+  const shouldDisplayGenerateWithAIButton =
+    hasTranscript && onGenerateWithAI !== undefined && (!hasAnswer || (hasEmptyValueAnswerVal && !isAnswerAIGenerated))
 
-  /**
-   * "Clear" button will be displayed if there is non-empty answer, or if answer is AI generated
-   */
-  const shouldDisplayClearButton = () => {
-    return onClear !== undefined && ((hasAnswer && !hasEmptyValueAnswerVal) || (hasAnswer && isAnswerAIGenerated))
-  }
+  /** "Clear" button will be displayed if there is non-empty answer, or if answer is AI generated */
+  const shouldDisplayClearButton =
+    onClear !== undefined && ((hasAnswer && !hasEmptyValueAnswerVal) || (hasAnswer && isAnswerAIGenerated))
 
-  const shouldDisplayAIGeneratedBadge = () => {
-    return isAnswerAIGenerated
-  }
+  const shouldDisplayVerificationCheckbox = (hasAnswer && !hasEmptyValueAnswerVal) || (hasAnswer && isAnswerAIGenerated)
 
-  const shouldDisplayAnyButtonOrBadge = () => {
-    return shouldDisplayGenerateWithAIButton() || shouldDisplayClearButton() || shouldDisplayAIGeneratedBadge()
-  }
+  const shouldDisplayAIGeneratedBadge = hasAnswer && isAnswerAIGenerated
+
+  const shouldDisplayAnyButtonOrBadge =
+    shouldDisplayGenerateWithAIButton ||
+    shouldDisplayClearButton ||
+    shouldDisplayAIGeneratedBadge ||
+    shouldDisplayVerificationCheckbox
 
   const handleClear = async () => {
     if (!onClear) return
@@ -118,25 +121,42 @@ export default function ResponseForm({
     }
   }
 
+  const hintValue = (qaQuestion.hint?.labels as { [key: string]: string | undefined })?._default
+
+  // Prioritize user's currently selected status
+  const displayedVerificationStatus =
+    verificationStatus !== undefined ? verificationStatus : (answer?.verified ?? false)
+
+  const handleVerificationChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = event.currentTarget.checked
+    const previousValue = answer?.verified ?? false
+    setVerificationStatus(newValue)
+    if (onUpdateAnswerVerification) {
+      try {
+        await onUpdateAnswerVerification(isAnswerAIGenerated ?? false, newValue)
+      } catch {
+        setVerificationStatus(previousValue)
+      }
+    }
+  }
+
   return (
     <Stack gap='10px'>
       <Group align={'flex-start'} gap={'xs'}>
-        {!disabled && (
-          <Modal opened={opened} onClose={close} title={t('Delete this question?')} size={'md'}>
-            <Stack gap='24px'>
-              <Text>{t('Are you sure you want to delete this question? This action cannot be undone.')}</Text>
-              <Group align='left'>
-                <ButtonNew size='md' onClick={close} variant='light'>
-                  {t('Cancel')}
-                </ButtonNew>
+        <Modal opened={opened} onClose={close} title={t('Delete this question?')} size={'md'}>
+          <Stack gap='24px'>
+            <Text>{t('Are you sure you want to delete this question? This action cannot be undone.')}</Text>
+            <Group align='left'>
+              <ButtonNew size='md' onClick={close} variant='light'>
+                {t('Cancel')}
+              </ButtonNew>
 
-                <ButtonNew size='md' onClick={handleDelete} variant='danger'>
-                  {t('Delete')}
-                </ButtonNew>
-              </Group>
-            </Stack>
-          </Modal>
-        )}
+              <ButtonNew size='md' onClick={handleDelete} variant='danger'>
+                {t('Delete')}
+              </ButtonNew>
+            </Group>
+          </Stack>
+        </Modal>
 
         <ThemeIcon ta={'center'} variant='light-teal'>
           <Icon name={qaQuestionDef.icon} size='xl' />
@@ -156,7 +176,7 @@ export default function ResponseForm({
         >
           {qaQuestion.labels._default}
         </Text>
-        {!disabled && (
+        {!disabledQuestion && (
           <>
             <ActionIcon
               variant='light'
@@ -165,26 +185,39 @@ export default function ResponseForm({
               onClick={handleEdit}
               // We only allow editing one question at a time, so adding new is not
               // possible until user stops editing
-              disabled={disabled}
+              disabled={disabledQuestion}
             />
 
-            <ActionIcon variant='danger-secondary' size='sm' iconName='trash' onClick={open} disabled={disabled} />
+            <ActionIcon
+              variant='danger-secondary'
+              size='sm'
+              iconName='trash'
+              onClick={open}
+              disabled={disabledQuestion}
+            />
           </>
         )}
       </Group>
 
+      {ffAutoQAEnabled && hintValue && (
+        <Text pl='40px' m='0' ta='left' c='var(--mantine-color-gray-2)' mt='calc(-1 * var(--stack-gap))'>
+          {hintValue}
+        </Text>
+      )}
+
       {/* Hard coded left padding to account for the 32px icon size + 8px gap */}
       {children && <Box pl='40px'>{children}</Box>}
 
-      {shouldDisplayAnyButtonOrBadge() && ffAutoQAEnabled && (
-        <Group pl='40px' w='100%' style={{ justifyContent: 'space-between' }}>
-          {shouldDisplayGenerateWithAIButton() && (
+      {shouldDisplayAnyButtonOrBadge && ffAutoQAEnabled && (
+        <Group pl='40px' w='100%' align='center'>
+          {shouldDisplayGenerateWithAIButton && (
             <ButtonNew
               variant='transparent'
               h='fit-content'
+              lh='var(--mantine-line-height)'
               size='md'
               p={0}
-              disabled={disabled}
+              disabled={disabledAnswer}
               c='var(--mantine-color-blue-5)'
               leftIcon='sparkles'
               onClick={handleGenerateWithAI}
@@ -195,13 +228,14 @@ export default function ResponseForm({
             </ButtonNew>
           )}
 
-          {shouldDisplayClearButton() && (
+          {shouldDisplayClearButton && (
             <ButtonNew
               variant='transparent'
               h='fit-content'
+              lh='var(--mantine-line-height)'
               size='md'
               p={0}
-              disabled={disabled}
+              disabled={disabledAnswer}
               c='var(--mantine-color-red-5)'
               leftIcon='close'
               onClick={handleClear}
@@ -211,12 +245,30 @@ export default function ResponseForm({
             </ButtonNew>
           )}
 
-          {shouldDisplayAIGeneratedBadge() && (
-            <Group pl='40px' c='var(--mantine-color-blue-5)' gap='xs'>
-              <Icon name='sparkles' size='m' />
-              <Text>{t('AI generated')}</Text>
-            </Group>
-          )}
+          <Group ml='auto' gap='xs'>
+            {shouldDisplayAIGeneratedBadge && (
+              <Group c='var(--mantine-color-blue-5)' gap='xs'>
+                <Icon name='sparkles' size='m' />
+                <Text>{t('AI generated')}</Text>
+              </Group>
+            )}
+            {shouldDisplayVerificationCheckbox && (
+              <Group gap='xs'>
+                {!displayedVerificationStatus && (
+                  <Text fz='md' m={0}>
+                    {t('Please verify if correct')}
+                  </Text>
+                )}
+                <Checkbox
+                  label={t('Verified')}
+                  checked={displayedVerificationStatus}
+                  onChange={handleVerificationChange}
+                  disabled={disabledAnswer}
+                  size='sm'
+                />
+              </Group>
+            )}
+          </Group>
         </Group>
       )}
     </Stack>

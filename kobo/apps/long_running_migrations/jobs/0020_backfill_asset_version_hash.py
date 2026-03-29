@@ -1,14 +1,13 @@
 import time
 
-from django.conf import settings
 from django.db.models.query import QuerySet
 
 from kpi.models import AssetVersion
 from kpi.utils.log import logging
 
-# Use small batch because each version_content can be several MB; loading too
-# many at once would spike RSS significantly.
-CHUNK_SIZE = min(settings.LONG_RUNNING_MIGRATION_SMALL_BATCH_SIZE, 50)
+# Keep chunk size small to avoid loading large version_content JSON blobs into
+# memory all at once — trading speed for a lower memory footprint.
+CHUNK_SIZE = 5
 
 
 def run():

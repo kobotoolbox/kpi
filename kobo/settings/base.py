@@ -1040,6 +1040,7 @@ SPECTACULAR_SETTINGS = {
     'AUTHENTICATION_WHITELIST': [
         'kpi.authentication.BasicAuthentication',
         'kpi.authentication.TokenAuthentication',
+        'kobo.apps.kobo_scim.authentication.ScimAuthentication',
     ],
     'ENUM_NAME_OVERRIDES': {
         'InviteStatusChoicesEnum': 'kobo.apps.organizations.models.OrganizationInviteStatusChoices.choices',  # noqa
@@ -2209,3 +2210,12 @@ HOOK_STALLED_RETRY_TIMEOUT = 1440
 
 # Cache time-to-live (in seconds) for attachment XPaths
 ATTACHMENT_XPATHS_CACHE_TTL = 86400
+
+# Configure the Referrer-Policy response header so OpenStreetMap tile servers
+# receive an acceptable referrer. See:
+# https://wiki.openstreetmap.org/wiki/Blocked_tiles#Referer_is_required
+# Can be overridden per environment via the SECURE_REFERRER_POLICY environment variable.
+SECURE_REFERRER_POLICY = env(
+    'SECURE_REFERRER_POLICY',
+    default='strict-origin-when-cross-origin',
+)

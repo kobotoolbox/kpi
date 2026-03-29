@@ -1,4 +1,5 @@
 import re
+import json
 
 from allauth.socialaccount.models import SocialAccount
 from django.conf import settings
@@ -19,7 +20,46 @@ from kobo.apps.kobo_scim.authentication import IsAuthenticatedIdP, ScimAuthentic
 from kobo.apps.kobo_scim.models import ScimGroup
 from kobo.apps.kobo_scim.pagination import ScimPagination
 from kobo.apps.kobo_scim.renderers import SCIMParser, SCIMRenderer
+from kobo.apps.kobo_scim.schema_extensions.v2.generic.serializers import (
+    ScimErrorSerializer,
+)
 from kobo.apps.kobo_scim.serializers import ScimGroupSerializer, ScimUserSerializer
+
+
+def normalize_scim_patch_operations(operations):
+    """
+    Normalizes SCIM PATCH operations. scim-for-keycloak sends the `value` payload as an
+    escaped stringified JSON block instead of a native dictionary when `path` is
+    omitted.
+    """
+    if not isinstance(operations, list):
+        return []
+
+    normalized = []
+    for op in operations:
+        new_op = dict(op)
+        value = new_op.get('value')
+
+        if isinstance(value, str):
+            try:
+                # If it's a stringified JSON blob, attempt to parse it
+                new_op['value'] = json.loads(value)
+            except json.JSONDecodeError:
+                pass
+
+        normalized.append(new_op)
+
+    return normalized
+
+
+def scim_responses(success_map):
+    responses = {
+        401: ScimErrorSerializer,
+        403: ScimErrorSerializer,
+    }
+    if success_map:
+        responses.update(success_map)
+    return responses
 
 
 def scim_extend_schema(**kwargs):
@@ -40,21 +80,21 @@ def scim_extend_schema(**kwargs):
 @extend_schema_view(
     list=extend_schema(
         description='Returns a list of SCIM users matching the optional query',
-        responses={200: ScimUserSerializer(many=True)},
+        responses=scim_responses({200: ScimUserSerializer(many=True)}),
     ),
     retrieve=extend_schema(
         description='Returns a specific SCIM user.',
-        responses={200: ScimUserSerializer},
+        responses=scim_responses({200: ScimUserSerializer}),
     ),
     destroy=extend_schema(
         description="Deactivates all Kobo accounts linked to the user's "
         + 'email address.',
-        responses={204: None},
+        responses=scim_responses({204: None}),
     ),
     partial_update=extend_schema(
         description='Updates a SCIM user. Currently only supports '
         'deactivation via the `active` attribute.',
-        responses={200: ScimUserSerializer},
+        responses=scim_responses({200: ScimUserSerializer}),
     ),
 )
 class ScimUserViewSet(
@@ -79,11 +119,13 @@ class ScimUserViewSet(
     renderer_classes = [SCIMRenderer]
 
     @extend_schema(
-        responses={
-            201: ScimUserSerializer,
-            409: OpenApiTypes.OBJECT,
-            400: OpenApiTypes.OBJECT,
-        }
+        responses=scim_responses(
+            {
+                201: ScimUserSerializer,
+                409: OpenApiTypes.OBJECT,
+                400: OpenApiTypes.OBJECT,
+            }
+        )
     )
     def create(self, request, *args, **kwargs):
         """
@@ -189,10 +231,12 @@ class ScimUserViewSet(
             )
 
     @extend_schema(
-        responses={
-            200: ScimUserSerializer,
-            409: OpenApiTypes.OBJECT,
-        }
+        responses=scim_responses(
+            {
+                200: ScimUserSerializer,
+                409: OpenApiTypes.OBJECT,
+            }
+        )
     )
     def update(self, request, *args, **kwargs):
         """
@@ -300,24 +344,41 @@ class ScimUserViewSet(
 
     def partial_update(self, request, *args, **kwargs):
         instance = self.get_object()
-        operations = request.data.get('Operations', [])
+        operations = normalize_scim_patch_operations(request.data.get('Operations', []))
 
-        deactivate = False
+        active_status = None
         for op in operations:
-            if op.get('op', '').lower() == 'replace' and op.get('path') == 'active':
-                if op.get('value') is False:
-                    deactivate = True
+            if op.get('op', '').lower() == 'replace':
+                path = op.get('path')
+                value = op.get('value')
 
-        if deactivate:
-            # Reuse the destroy logic which deactivates the user(s)
-            self.perform_destroy(instance)
+                # Case 1: path is 'active', value is directly provided
+                if path == 'active' and value is not None:
+                    active_status = str(value).lower() == 'true'
+
+                # Case 2: path is omitted, value is an object (or stringified object)
+                elif not path and isinstance(value, dict) and 'active' in value:
+                    active_status = str(value['active']).lower() == 'true'
+
+        if active_status is not None:
+            if active_status is False:
+                # Disabling the user
+                self.perform_destroy(instance)
+            else:
+                # Re-enabling the user
+                instance.is_active = True
+                instance.save(update_fields=['is_active'])
+
             # SCIM expects the updated resource returned on successful PATCH
             instance.refresh_from_db()
             serializer = self.get_serializer(instance)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         return Response(
-            {'detail': 'Operation not supported or invalid'},
+            {
+                'detail': 'Operation not supported or invalid',
+                'received_operations': operations,
+            },
             status=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -337,7 +398,7 @@ class ScimServiceProviderConfigView(APIView):
     parser_classes = [SCIMParser, JSONParser]
     renderer_classes = [SCIMRenderer]
 
-    @extend_schema(responses={200: OpenApiTypes.OBJECT})
+    @extend_schema(responses=scim_responses({200: OpenApiTypes.OBJECT}))
     def get(self, request, *args, **kwargs):
         # We only support patch and basic filtering
         payload = {
@@ -348,6 +409,299 @@ class ScimServiceProviderConfigView(APIView):
             'changePassword': {'supported': False},
             'sort': {'supported': False},
             'etag': {'supported': False},
+            'authenticationSchemes': [
+                {
+                    'name': 'Bearer Token',
+                    'description': (
+                        'Authentication via SCIM API Key provided in the Authorization '
+                        'header as a Bearer token.'
+                    ),
+                    'specUri': 'https://tools.ietf.org/html/rfc6750',
+                    'type': 'oauthbearertoken',
+                    'primary': True,
+                }
+            ],
+            'meta': {
+                'resourceType': 'ServiceProviderConfig',
+                'location': request.build_absolute_uri(),
+            },
+        }
+        return Response(payload, status=status.HTTP_200_OK)
+
+
+@scim_extend_schema()
+@extend_schema_view(
+    get=extend_schema(description='Returns the SCIM supported Schemas.'),
+)
+class ScimSchemasView(APIView):
+    """
+    SCIM 2.0 compliant Schemas endpoint.
+    NOTE: The schemas returned by this view are limited to the fields we handle in
+    our current implementation.
+    - GET /Schemas
+    """
+
+    authentication_classes = [ScimAuthentication]
+    permission_classes = [IsAuthenticatedIdP]
+    parser_classes = [SCIMParser, JSONParser]
+    renderer_classes = [SCIMRenderer]
+
+    @extend_schema(responses=scim_responses({200: OpenApiTypes.OBJECT}))
+    def get(self, request, *args, **kwargs):
+        location = request.build_absolute_uri().rstrip('/')
+        payload = {
+            'schemas': ['urn:ietf:params:scim:api:messages:2.0:ListResponse'],
+            'totalResults': 2,
+            'itemsPerPage': 2,
+            'startIndex': 1,
+            'Resources': [
+                {
+                    'schemas': ['urn:ietf:params:scim:schemas:core:2.0:Schema'],
+                    'id': 'urn:ietf:params:scim:schemas:core:2.0:User',
+                    'name': 'User',
+                    'description': 'User Account',
+                    'meta': {
+                        'resourceType': 'Schema',
+                        'location': (
+                            f'{location}/urn:ietf:params:scim:schemas:core:2.0:User'
+                        ),
+                    },
+                    'attributes': [
+                        {
+                            'name': 'userName',
+                            'type': 'string',
+                            'description': 'Unique identifier for the User',
+                            'multiValued': False,
+                            'required': True,
+                            'caseExact': False,
+                            'mutability': 'readWrite',
+                            'returned': 'default',
+                            'uniqueness': 'server',
+                        },
+                        {
+                            'name': 'name',
+                            'type': 'complex',
+                            'description': "The components of the user's real name.",
+                            'multiValued': False,
+                            'required': False,
+                            'mutability': 'readWrite',
+                            'returned': 'default',
+                            'subAttributes': [
+                                {
+                                    'name': 'familyName',
+                                    'type': 'string',
+                                    'description': 'The family name of the User.',
+                                    'multiValued': False,
+                                    'required': False,
+                                    'caseExact': False,
+                                    'mutability': 'readWrite',
+                                    'returned': 'default',
+                                    'uniqueness': 'none',
+                                },
+                                {
+                                    'name': 'givenName',
+                                    'type': 'string',
+                                    'description': 'The given name of the User.',
+                                    'multiValued': False,
+                                    'required': False,
+                                    'caseExact': False,
+                                    'mutability': 'readWrite',
+                                    'returned': 'default',
+                                    'uniqueness': 'none',
+                                },
+                            ],
+                        },
+                        {
+                            'name': 'emails',
+                            'type': 'complex',
+                            'description': 'Email addresses for the user.',
+                            'multiValued': True,
+                            'required': False,
+                            'mutability': 'readWrite',
+                            'returned': 'default',
+                            'subAttributes': [
+                                {
+                                    'name': 'value',
+                                    'type': 'string',
+                                    'description': 'Email address.',
+                                    'multiValued': False,
+                                    'required': False,
+                                    'caseExact': False,
+                                    'mutability': 'readWrite',
+                                    'returned': 'default',
+                                    'uniqueness': 'none',
+                                },
+                                {
+                                    'name': 'primary',
+                                    'type': 'boolean',
+                                    'description': (
+                                        "A boolean value indicating the 'primary' or "
+                                        'preferred attribute value for this attribute.'
+                                    ),
+                                    'multiValued': False,
+                                    'required': False,
+                                    'mutability': 'readWrite',
+                                    'returned': 'default',
+                                },
+                            ],
+                        },
+                        {
+                            'name': 'active',
+                            'type': 'boolean',
+                            'description': 'A Boolean value indicating the '
+                            "User's administrative status.",
+                            'multiValued': False,
+                            'required': False,
+                            'mutability': 'readWrite',
+                            'returned': 'default',
+                        },
+                        {
+                            'name': 'externalId',
+                            'type': 'string',
+                            'description': 'A String that is an identifier for the '
+                            'resource as defined by the provisioning client.',
+                            'multiValued': False,
+                            'required': False,
+                            'caseExact': False,
+                            'mutability': 'readWrite',
+                            'returned': 'default',
+                            'uniqueness': 'none',
+                        },
+                    ],
+                },
+                {
+                    'schemas': ['urn:ietf:params:scim:schemas:core:2.0:Schema'],
+                    'id': 'urn:ietf:params:scim:schemas:core:2.0:Group',
+                    'name': 'Group',
+                    'description': 'Group',
+                    'meta': {
+                        'resourceType': 'Schema',
+                        'location': (
+                            f'{location}/urn:ietf:params:scim:schemas:core:2.0:Group'
+                        ),
+                    },
+                    'attributes': [
+                        {
+                            'name': 'displayName',
+                            'type': 'string',
+                            'description': 'A human-readable name for the Group.',
+                            'multiValued': False,
+                            'required': True,
+                            'caseExact': False,
+                            'mutability': 'readWrite',
+                            'returned': 'default',
+                            'uniqueness': 'none',
+                        },
+                        {
+                            'name': 'members',
+                            'type': 'complex',
+                            'description': 'A list of members of the Group.',
+                            'multiValued': True,
+                            'required': False,
+                            'mutability': 'readWrite',
+                            'returned': 'default',
+                            'subAttributes': [
+                                {
+                                    'name': 'value',
+                                    'type': 'string',
+                                    'description': (
+                                        'Identifier of the member of this Group.'
+                                    ),
+                                    'multiValued': False,
+                                    'required': False,
+                                    'caseExact': False,
+                                    'mutability': 'immutable',
+                                    'returned': 'default',
+                                    'uniqueness': 'none',
+                                },
+                                {
+                                    'name': 'display',
+                                    'type': 'string',
+                                    'description': (
+                                        'A human-readable name, primarily used for '
+                                        'display purposes.'
+                                    ),
+                                    'multiValued': False,
+                                    'required': False,
+                                    'caseExact': False,
+                                    'mutability': 'immutable',
+                                    'returned': 'default',
+                                    'uniqueness': 'none',
+                                },
+                            ],
+                        },
+                        {
+                            'name': 'externalId',
+                            'type': 'string',
+                            'description': (
+                                'A String that is an identifier for the resource as '
+                                'defined by the provisioning client.'
+                            ),
+                            'multiValued': False,
+                            'required': False,
+                            'caseExact': False,
+                            'mutability': 'readWrite',
+                            'returned': 'default',
+                            'uniqueness': 'none',
+                        },
+                    ],
+                },
+            ],
+        }
+        return Response(payload, status=status.HTTP_200_OK)
+
+
+@scim_extend_schema()
+@extend_schema_view(
+    get=extend_schema(description='Returns the SCIM supported ResourceTypes.'),
+)
+class ScimResourceTypesView(APIView):
+    """
+    SCIM 2.0 compliant ResourceTypes endpoint.
+    - GET /ResourceTypes
+    """
+
+    authentication_classes = [ScimAuthentication]
+    permission_classes = [IsAuthenticatedIdP]
+    parser_classes = [SCIMParser, JSONParser]
+    renderer_classes = [SCIMRenderer]
+
+    @extend_schema(responses=scim_responses({200: OpenApiTypes.OBJECT}))
+    def get(self, request, *args, **kwargs):
+        location = request.build_absolute_uri().rstrip('/')
+        payload = {
+            'schemas': ['urn:ietf:params:scim:api:messages:2.0:ListResponse'],
+            'totalResults': 2,
+            'itemsPerPage': 2,
+            'startIndex': 1,
+            'Resources': [
+                {
+                    'schemas': ['urn:ietf:params:scim:schemas:core:2.0:ResourceType'],
+                    'id': 'User',
+                    'name': 'User',
+                    'endpoint': '/Users',
+                    'description': 'User Account',
+                    'schema': 'urn:ietf:params:scim:schemas:core:2.0:User',
+                    'schemaExtensions': [],
+                    'meta': {
+                        'resourceType': 'ResourceType',
+                        'location': f'{location}/User',
+                    },
+                },
+                {
+                    'schemas': ['urn:ietf:params:scim:schemas:core:2.0:ResourceType'],
+                    'id': 'Group',
+                    'name': 'Group',
+                    'endpoint': '/Groups',
+                    'description': 'Group',
+                    'schema': 'urn:ietf:params:scim:schemas:core:2.0:Group',
+                    'schemaExtensions': [],
+                    'meta': {
+                        'resourceType': 'ResourceType',
+                        'location': f'{location}/Group',
+                    },
+                },
+            ],
         }
         return Response(payload, status=status.HTTP_200_OK)
 
@@ -356,25 +710,27 @@ class ScimServiceProviderConfigView(APIView):
 @extend_schema_view(
     list=extend_schema(
         description='Returns a list of SCIM groups.',
-        responses={200: ScimGroupSerializer(many=True)},
+        responses=scim_responses({200: ScimGroupSerializer(many=True)}),
     ),
     retrieve=extend_schema(
         description='Returns a specific SCIM group.',
-        responses={200: ScimGroupSerializer},
+        responses=scim_responses({200: ScimGroupSerializer}),
     ),
     create=extend_schema(
         description='Creates a new SCIM group.',
-        responses={201: ScimGroupSerializer},
+        responses=scim_responses({201: ScimGroupSerializer}),
     ),
-    destroy=extend_schema(description='Deletes a SCIM group.', responses={204: None}),
+    destroy=extend_schema(
+        description='Deletes a SCIM group.', responses=scim_responses({204: None})
+    ),
     partial_update=extend_schema(
         description='Updates a SCIM group. Supports adding/removing members via '
         'patch operations.',
-        responses={200: ScimGroupSerializer},
+        responses=scim_responses({200: ScimGroupSerializer}),
     ),
     update=extend_schema(
         description='Replaces a SCIM group entirely.',
-        responses={200: ScimGroupSerializer},
+        responses=scim_responses({200: ScimGroupSerializer}),
     ),
 )
 class ScimGroupViewSet(viewsets.ModelViewSet):
@@ -465,7 +821,7 @@ class ScimGroupViewSet(viewsets.ModelViewSet):
 
     def partial_update(self, request, *args, **kwargs):
         instance = self.get_object()
-        operations = request.data.get('Operations', [])
+        operations = normalize_scim_patch_operations(request.data.get('Operations', []))
 
         for op in operations:
             op_type = op.get('op', '').lower()
