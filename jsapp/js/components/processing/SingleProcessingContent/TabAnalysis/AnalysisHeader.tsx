@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { Badge } from '@mantine/core'
+import { Badge, Group } from '@mantine/core'
 import { useIsMutating } from '@tanstack/react-query'
 import classNames from 'classnames'
 import cloneDeep from 'lodash.clonedeep'
@@ -11,11 +11,14 @@ import type { ResponseManualQualActionParams } from '#/api/models/responseManual
 import Button from '#/components/common/button'
 import Icon from '#/components/common/icon'
 import KoboDropdown from '#/components/common/koboDropdown'
+import ToggleSwitch from '#/components/common/toggleSwitch'
 import { userCan } from '#/components/permissions/utils'
 import type { AssetResponse } from '#/dataInterface'
+import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 import { getAllTranslationsFromSupplementData, getLatestTranscriptVersionItem } from '../../common/utils'
 import styles from './AnalysisHeader.module.scss'
 import { ANALYSIS_QUESTION_TYPES } from './common/constants'
+import { useShowHints } from './common/utils'
 
 interface Props {
   asset: AssetResponse
@@ -35,6 +38,9 @@ export default function AnalysisHeader({ asset, questionXpath, supplement, qaQue
   const transcriptVersion = getLatestTranscriptVersionItem(supplement, questionXpath)
   const translationVersions = getAllTranslationsFromSupplementData(supplement, questionXpath)
 
+  const autoQAEnabled = useFeatureFlag(FeatureFlag.autoQAEnabled)
+  const [showHints, setShowHints] = useShowHints()
+
   // Note: Technically correct would be to filter for the 3 specific mutations we are interested in,
   //       but practically what else user would mutate in the meantime and no filter effectively is the same.
   const activeMutationCount = useIsMutating()
@@ -49,45 +55,55 @@ export default function AnalysisHeader({ asset, questionXpath, supplement, qaQue
     // ...automatedQuestionDefs,
   ]
 
+  function onShowHintsToggleChange(isChecked: boolean) {
+    setShowHints(isChecked)
+  }
+
   return (
     <header className={styles.root}>
-      <KoboDropdown
-        placement={'down-left'}
-        hideOnMenuClick
-        triggerContent={<Button type='primary' size='m' startIcon='plus' label={t('Add question')} />}
-        menuContent={
-          <menu className={styles.addQuestionMenu}>
-            {questionDefs.map((questionDef) => {
-              return typeof questionDef === 'string' ? (
-                <li key={'title'}>
-                  <h2>{t('Automated analysis')}</h2>
-                </li>
-              ) : (
-                <li
-                  className={classNames({
-                    [styles.addQuestionMenuButton]: true,
-                    // We want to disable the Keyword Search question type when there is no transcript or translation.
-                    [styles.addQuestionMenuButtonDisabled]:
-                      questionDef.type === 'qualAutoKeywordCount' &&
-                      transcriptVersion &&
-                      translationVersions.length === 0,
-                  })}
-                  key={questionDef.type}
-                  onClick={() => setQaQuestion(cloneDeep(questionDef.placeholder))}
-                  tabIndex={0}
-                >
-                  <Icon name={questionDef.icon} />
-                  <label>{questionDef.label}</label>
-                </li>
-              )
-            })}
-          </menu>
-        }
-        name='qualitative_analysis_add_question'
-        // We only allow editing one question at a time, so adding new is not
-        // possible until user stops editing
-        isDisabled={!userCan('manage_asset', asset) || !!qaQuestion}
-      />
+      <Group>
+        <KoboDropdown
+          placement={'down-left'}
+          hideOnMenuClick
+          triggerContent={<Button type='primary' size='m' startIcon='plus' label={t('Add question')} />}
+          menuContent={
+            <menu className={styles.addQuestionMenu}>
+              {questionDefs.map((questionDef) => {
+                return typeof questionDef === 'string' ? (
+                  <li key={'title'}>
+                    <h2>{t('Automated analysis')}</h2>
+                  </li>
+                ) : (
+                  <li
+                    className={classNames({
+                      [styles.addQuestionMenuButton]: true,
+                      // We want to disable the Keyword Search question type when there is no transcript or translation.
+                      [styles.addQuestionMenuButtonDisabled]:
+                        questionDef.type === 'qualAutoKeywordCount' &&
+                        transcriptVersion &&
+                        translationVersions.length === 0,
+                    })}
+                    key={questionDef.type}
+                    onClick={() => setQaQuestion(cloneDeep(questionDef.placeholder))}
+                    tabIndex={0}
+                  >
+                    <Icon name={questionDef.icon} />
+                    <label>{questionDef.label}</label>
+                  </li>
+                )
+              })}
+            </menu>
+          }
+          name='qualitative_analysis_add_question'
+          // We only allow editing one question at a time, so adding new is not
+          // possible until user stops editing
+          isDisabled={!userCan('manage_asset', asset) || !!qaQuestion}
+        />
+
+        {autoQAEnabled && (
+          <ToggleSwitch label={t('Show hints')} checked={showHints} onChange={onShowHintsToggleChange} />
+        )}
+      </Group>
 
       <span>
         {activeMutationCount === 1 && (
