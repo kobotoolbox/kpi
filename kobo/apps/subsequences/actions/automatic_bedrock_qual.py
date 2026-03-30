@@ -143,8 +143,6 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         return boto3.client(
             service_name='bedrock-runtime',
             region_name=settings.AWS_BEDROCK_REGION_NAME,
-            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
             config=Config(
                 read_timeout=settings.AWS_BEDROCK_READ_TIMEOUT,
                 connect_timeout=settings.AWS_BEDROCK_CONNECT_TIMEOUT
