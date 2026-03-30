@@ -4,7 +4,6 @@ import { keepPreviousData, useInfiniteQuery } from '@tanstack/react-query'
 import alertify from 'alertifyjs'
 import React, { useState, useMemo, useEffect } from 'react'
 import { assetsList, getAssetsListQueryKey } from '#/api/react-query/manage-projects-and-library-content'
-import assetStore, { type AssetStoreData } from '#/assetStore'
 import InfiniteScrollTrigger from '#/components/common/InfiniteScrollTrigger'
 import { COMMON_QUERIES } from '#/constants'
 import type { AssetResponse } from '#/dataInterface'
@@ -38,18 +37,14 @@ export default function CopyTeamPermissions({ asset }: CopyTeamPermissionsProps)
   }, [isFormOpened])
 
   useEffect(() => {
-    const handleAssetChange = (data: AssetStoreData) => {
-      if (data[asset.uid] && isAwaitingAssetChange) {
+    const unlisteners = [
+      actions.permissions.copyPermissionsFrom.completed.listen((completedSourceUid, targetUid) => {
+        if (!isAwaitingAssetChange || targetUid !== asset.uid || completedSourceUid !== sourceUid) {
+          return
+        }
+        notify(t('permissions were copied successfully'))
         setIsAwaitingAssetChange(false)
         closeForm()
-      }
-    }
-
-    const unlisteners = [
-      // We operate here on `assetStore`, because parent component `SharingForm` is operating on it.
-      assetStore.listen(handleAssetChange, undefined),
-      actions.permissions.copyPermissionsFrom.completed.listen(() => {
-        notify(t('permissions were copied successfully'))
       }),
       actions.permissions.copyPermissionsFrom.failed.listen(() => {
         notify(t('Failed to copy permissions'), 'error')
@@ -59,7 +54,7 @@ export default function CopyTeamPermissions({ asset }: CopyTeamPermissionsProps)
     return () => {
       unlisteners.forEach((clb) => clb())
     }
-  }, [asset.uid, isAwaitingAssetChange, closeForm])
+  }, [asset.uid, sourceUid, isAwaitingAssetChange, closeForm])
 
   function getAssetsListQuery() {
     const queryParts: string[] = []
