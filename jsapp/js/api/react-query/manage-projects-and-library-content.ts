@@ -27,6 +27,8 @@ import type { AssetBulkResponse } from '../models/assetBulkResponse'
 
 import type { AssetCreateRequest } from '../models/assetCreateRequest'
 
+import type { AssetListCount } from '../models/assetListCount'
+
 import type { AssetMetadataResponse } from '../models/assetMetadataResponse'
 
 import type { AssetsCountsListParams } from '../models/assetsCountsListParams'
@@ -575,7 +577,7 @@ export const useAssetsDestroy = <TError = ErrorDetail, TContext = unknown>(optio
   return useMutation(mutationOptions)
 }
 /**
- * ## Count the daily amount of submission
+ * ## Count the daily amount of submissions
 
 Returns up to the last 31 days of daily counts and total counts of submissions to a survey.
 
@@ -1328,6 +1330,76 @@ export const useAssetsBulkCreate = <TError = ErrorDetail, TContext = unknown>(op
 
   return useMutation(mutationOptions)
 }
+/**
+ * ## Return counts of deployed, archived, and draft assets
+
+ */
+export type assetsCountsRetrieveResponse200 = {
+  data: AssetListCount
+  status: 200
+}
+
+export type assetsCountsRetrieveResponseComposite = assetsCountsRetrieveResponse200
+
+export type assetsCountsRetrieveResponse = assetsCountsRetrieveResponseComposite & {
+  headers: Headers
+}
+
+export const getAssetsCountsRetrieveUrl = () => {
+  return `/api/v2/assets/counts/`
+}
+
+export const assetsCountsRetrieve = async (options?: RequestInit): Promise<assetsCountsRetrieveResponse> => {
+  return fetchWithAuth<assetsCountsRetrieveResponse>(getAssetsCountsRetrieveUrl(), {
+    ...options,
+    method: 'GET',
+  })
+}
+
+export const getAssetsCountsRetrieveQueryKey = () => {
+  return ['api', 'v2', 'assets', 'counts'] as const
+}
+
+export const getAssetsCountsRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof assetsCountsRetrieve>>,
+  TError = unknown,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof assetsCountsRetrieve>>, TError, TData>
+  request?: SecondParameter<typeof fetchWithAuth>
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getAssetsCountsRetrieveQueryKey()
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof assetsCountsRetrieve>>> = ({ signal }) =>
+    assetsCountsRetrieve({ signal, ...requestOptions })
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof assetsCountsRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type AssetsCountsRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof assetsCountsRetrieve>>>
+export type AssetsCountsRetrieveQueryError = unknown
+
+export function useAssetsCountsRetrieve<
+  TData = Awaited<ReturnType<typeof assetsCountsRetrieve>>,
+  TError = unknown,
+>(options?: {
+  query?: UseQueryOptions<Awaited<ReturnType<typeof assetsCountsRetrieve>>, TError, TData>
+  request?: SecondParameter<typeof fetchWithAuth>
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getAssetsCountsRetrieveQueryOptions(options)
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
 /**
  * ## Get a hash of all `version_id`s of all accessible assets by the current user.
 
