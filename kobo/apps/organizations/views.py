@@ -259,6 +259,8 @@ class OrganizationViewSet(viewsets.ModelViewSet):
 
         asset_view = OrganizationAssetViewSet.as_view({'get': 'list'})
         django_http_request = request._request
+        # OrganizationAssetViewSet relies on permissions_checked rather than its own
+        # permission classes, so set that here
         django_http_request.permissions_checked = True
         django_http_request.organization = organization
         return asset_view(request=django_http_request)
