@@ -60,6 +60,7 @@ ANONYMOUS_USER_PERMISSION_ACTIONS = {
 
 class AuditType(models.TextChoices):
     ACCESS = 'access'
+    ADMIN_INTERFACE = 'admin-interface'
     PROJECT_HISTORY = 'project-history'
     DATA_EDITING = 'data-editing'
     USER_MANAGEMENT = 'user-management'
@@ -78,7 +79,7 @@ class AuditLog(models.Model):
     # Shadow models do not have content types related to this db.
     app_label = models.CharField(max_length=100)
     model_name = models.CharField(max_length=100)
-    object_id = models.BigIntegerField()
+    object_id = models.CharField(max_length=255)
     date_created = models.DateTimeField(default=timezone.now, db_index=True)
     metadata = models.JSONField(default=dict)
     action = models.CharField(

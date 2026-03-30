@@ -15,7 +15,7 @@
 #########################################
 
 # If you update a base image, make sure to update the
-# runners in .github/workflows/ to the corresponding 
+# runners in .github/workflows/ to the corresponding
 # Ubuntu version.
 
 
@@ -132,6 +132,8 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 COPY ./dependencies/pip/requirements.txt "${TMP_DIR}/pip_dependencies.txt"
 RUN uv pip sync "${TMP_DIR}/pip_dependencies.txt" 1>/dev/null
 
+RUN rm -rf ${VIRTUAL_ENV}/lib/python*/site-packages/rest_framework/static/rest_framework
+
 #####################################
 #                                   #
 # 🧰 KPI production image 'kpi-app' #
@@ -235,14 +237,12 @@ COPY --from=webpack-build-prod --parents \
 ###########################
 # Organize static assets. #
 ###########################
-RUN python manage.py collectstatic --noinput
+RUN python manage.py collectstatic --noinput --ignore rest_framework
 
-######################################
-# Retrieve and compile translations. #
-######################################
-RUN git submodule init && \
-    git submodule update --remote && \
-    python manage.py compilemessages
+#########################
+# Compile translations. #
+#########################
+RUN python manage.py compilemessages
 
 ##########################################
 # Persist the log and email directories. #

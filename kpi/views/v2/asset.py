@@ -673,20 +673,25 @@ class AssetViewSet(
                         metadata['languages'].add(language)
 
             try:
-                country = record['settings']['country']
-                value = country['value']
-                label = country['label']
-            except (KeyError, TypeError):
+                # "country" is actually a list of countries
+                countries = record['settings'].get('country') or []
+            except (KeyError, TypeError, AttributeError):
                 pass
             else:
-                if value and value not in metadata['countries']:
-                    metadata['countries'][value] = label
+                for country_record in countries:
+                    try:
+                        value = country_record['value']
+                        label = country_record['label']
+                    except (KeyError, TypeError):
+                        continue
+                    if value and value not in metadata['countries']:
+                        metadata['countries'][value] = label
 
             try:
-                sector = record['settings']['sector']
+                sector = record['settings'].get('sector') or {}
                 value = sector['value']
                 label = sector['label']
-            except (KeyError, TypeError):
+            except (KeyError, TypeError, AttributeError):
                 pass
             else:
                 if value and value not in metadata['sectors']:

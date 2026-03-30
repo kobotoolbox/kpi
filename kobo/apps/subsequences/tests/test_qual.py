@@ -5,11 +5,17 @@ from unittest import TestCase, mock
 import dateutil
 import jsonschema
 import pytest
+from ddt import data, ddt, unpack
 from django.utils import timezone
 from freezegun import freeze_time
 from rest_framework.exceptions import ValidationError
 
 from ..actions.manual_qual import ManualQualAction
+from ..constants import (
+    QUESTION_TYPE_SOURCE,
+    QUESTION_TYPE_VERIFICATION,
+    SOURCE_TYPE_MANUAL,
+)
 from ..exceptions import SubsequenceVerificationError
 from .constants import (
     EMPTY_SUBMISSION,
@@ -564,175 +570,254 @@ class Fix:
     }
 
 
-_action = ManualQualAction(
-    source_question_xpath=Fix.fake_question_xpath, params=Fix.action_params
-)
+@ddt
+class TestManualQualActionSchemas(TestCase):
 
+    @classmethod
+    def setUpClass(cls):
+        cls._action = ManualQualAction(
+            source_question_xpath=Fix.fake_question_xpath, params=Fix.action_params
+        )
 
-def test_param_validation():
-    invalid_params = [
-        {
+    def test_param_validation(self):
+        invalid_params = [
+            {
+                'type': 'qualSelectMultiple',
+                'uuid': FIX_QUAL_SELECT_MULTIPLE_UUID,
+                'labels': {'_default': 'What themes were present in the story?'},
+                # Oops, no choices!
+            }
+        ]
+        with pytest.raises(jsonschema.exceptions.ValidationError):
+            # Instantiation must validate params
+            ManualQualAction(
+                source_question_xpath=Fix.fake_question_xpath, params=invalid_params
+            )
+
+        invalid_params = [
+            {
+                'type': 'qualText',
+                'uuid': 'not-an-uuid',
+                'labels': {'_default': 'What themes were present in the story?'},
+                # Oops, no uuid is not a real uuid!
+            }
+        ]
+        with pytest.raises(jsonschema.exceptions.ValidationError):
+            # Instantiation must validate params
+            ManualQualAction(
+                source_question_xpath=Fix.fake_question_xpath, params=invalid_params
+            )
+
+    def test_do_not_allow_all_deleted_choices(self):
+        params = [
+            {
+                'type': 'qualSelectOne',
+                'uuid': FIX_QUAL_SELECT_ONE_UUID,
+                'labels': {'_default': 'Was this a first-hand account?'},
+                'choices': [
+                    {
+                        'uuid': FIX_CHOICE_YES_UUID,
+                        'labels': {'_default': 'Yes'},
+                        'options': {'deleted': True},
+                    },
+                    {
+                        'uuid': FIX_CHOICE_NO_UUID,
+                        'labels': {'_default': 'No'},
+                        'options': {'deleted': True},
+                    },
+                ],
+            }
+        ]
+        with pytest.raises(jsonschema.exceptions.ValidationError):
+            ManualQualAction(
+                source_question_xpath=Fix.fake_question_xpath, params=params
+            )
+
+    @data(
+        # question hint, choice hint, question hint correct, choice hint correct, valid?
+        (True, True, True, True, True),
+        (True, False, True, False, True),
+        (False, True, False, True, True),
+        (False, False, False, False, True),
+        # bad question hint, correct choice hint
+        (True, True, False, True, False),
+        # correct question hint, bad choice hint
+        (True, True, True, False, False),
+    )
+    @unpack
+    def test_hints_are_valid_params(
+        self,
+        add_question_hint,
+        add_choice_hint,
+        question_hint_correctly_formatted,
+        choice_hint_correctly_formatted,
+        valid,
+    ):
+        base_question = {
             'type': 'qualSelectMultiple',
             'uuid': FIX_QUAL_SELECT_MULTIPLE_UUID,
             'labels': {'_default': 'What themes were present in the story?'},
-            # Oops, no choices!
+            'choices': [
+                {'uuid': FIX_CHOICE_EMPATHY_UUID, 'labels': {'_default': 'Empathy'}}
+            ],
         }
-    ]
-    with pytest.raises(jsonschema.exceptions.ValidationError):
-        # Instantiation must validate params
-        ManualQualAction(
-            source_question_xpath=Fix.fake_question_xpath, params=invalid_params
+        question_hint = (
+            {'labels': {'_default': 'question hint'}}
+            if question_hint_correctly_formatted
+            else 'bad hint'
         )
-
-    invalid_params = [
-        {
-            'type': 'qualText',
-            'uuid': 'not-an-uuid',
-            'labels': {'_default': 'What themes were present in the story?'},
-            # Oops, no uuid is not a real uuid!
-        }
-    ]
-    with pytest.raises(jsonschema.exceptions.ValidationError):
-        # Instantiation must validate params
-        ManualQualAction(
-            source_question_xpath=Fix.fake_question_xpath, params=invalid_params
+        choice_hint = (
+            {'labels': {'_default': 'choice hint'}}
+            if choice_hint_correctly_formatted
+            else 'bad hint'
         )
-
-
-def test_data_schema_generation():
-    generated_schema = _action.data_schema
-    assert generated_schema == Fix.expected_data_schema
-
-
-def test_valid_filled_responses_pass_data_validation():
-    for response in Fix.valid_filled_responses:
-        _action.validate_data(response)
-
-
-def test_verified_responses_pass_data_validation():
-    _action.validate_data({'uuid': FIX_QUAL_INTEGER_UUID, 'verified': True})
-    _action.validate_data({'uuid': FIX_QUAL_INTEGER_UUID, 'verified': False})
-
-
-def test_valid_empty_responses_pass_data_validation():
-    for response in Fix.valid_empty_responses:
-        _action.validate_data(response)
-
-
-def test_can_revise_with_valid_empty_responses():
-    for response in Fix.valid_empty_responses:
-        _action.revise_data(EMPTY_SUBMISSION, {}, response)
-
-
-def test_cannot_verify_empty_responses():
-    with pytest.raises(SubsequenceVerificationError):
-        _action.revise_data(
-            EMPTY_SUBMISSION, {}, {'uuid': FIX_QUAL_INTEGER_UUID, 'verified': True}
-        )
-
-
-def test_invalid_reponses_fail_data_validation():
-    for response in Fix.invalid_responses:
-        with pytest.raises(jsonschema.exceptions.ValidationError):
-            _action.validate_data(response)
-
-
-def test_result_schema_generation():
-    generated_schema = _action.result_schema
-    assert generated_schema == Fix.expected_result_schema
-
-
-def test_valid_result_passes_validation():
-    _action.validate_result(Fix.expected_result_after_filled_and_empty_responses)
-
-
-def test_invalid_result_fails_validation():
-    working_result = deepcopy(Fix.expected_result_after_filled_and_empty_responses)
-
-    # erroneously add '_dateModified' onto a version
-    first_version = working_result[FIX_QUAL_INTEGER_UUID]['_versions'][0]
-    first_version['_dateModified'] = first_version['_dateCreated']
-
-    with pytest.raises(jsonschema.exceptions.ValidationError):
-        _action.validate_result(working_result)
-
-
-def test_result_content():
-    """
-    For each question specified in `Fix.action_params`, record two responses:
-    1. First, the corresponding response from `Fix.valid_filled_responses`
-    2. Then, the empty response from `Fix.valid_empty_responses`
-
-    Afterwards, verify the result against
-    `Fix.expected_result_after_filled_and_empty_responses`
-    """
-
-    # Sanity check the fixture data, since this test requires both the filled
-    # and empty response lists each to have one response per question
-    # (identified by its UUID) in the same order
-    filled_uuids = [x['uuid'] for x in Fix.valid_filled_responses]
-    empty_uuids = [x['uuid'] for x in Fix.valid_empty_responses]
-    assert filled_uuids == empty_uuids
-
-    datetime_iter = iter(
-        dateutil.parser.parse(dt) for dt in Fix.result_mock_timestamp_sequence
-    )
-    uuid_list = [uuid.UUID(u) for u in Fix.result_mock_uuid_sequence]
-
-    accumulated_result = {}
-
-    with mock.patch('uuid.uuid4', side_effect=uuid_list):
-        for filled_response, empty_response in zip(
-            Fix.valid_filled_responses, Fix.valid_empty_responses
-        ):
-            for response in filled_response, empty_response:
-                with freeze_time(next(datetime_iter)):
-                    accumulated_result = _action.revise_data(
-                        EMPTY_SUBMISSION, accumulated_result, response
-                    )
-
-    assert accumulated_result == Fix.expected_result_after_filled_and_empty_responses
-
-
-def test_result_content_with_verification():
-    uuid_list = [uuid.UUID(u) for u in Fix.result_mock_uuid_sequence]
-    accumulated_result = {}
-    with mock.patch('uuid.uuid4', side_effect=uuid_list):
-        for filled_response in Fix.valid_filled_responses:
-            accumulated_result = _action.revise_data(
-                EMPTY_SUBMISSION, accumulated_result, filled_response
+        if add_question_hint:
+            base_question['hint'] = question_hint
+        if add_choice_hint:
+            base_question['choices'][0]['hint'] = choice_hint
+        if not valid:
+            with pytest.raises(jsonschema.exceptions.ValidationError):
+                ManualQualAction(
+                    source_question_xpath=Fix.fake_question_xpath,
+                    params=[base_question],
+                )
+        else:
+            ManualQualAction(
+                source_question_xpath=Fix.fake_question_xpath, params=[base_question]
             )
-    now = timezone.now()
 
-    # verify everything
-    with freeze_time(now):
+    def test_data_schema_generation(self):
+        generated_schema = self._action.data_schema
+        assert generated_schema == Fix.expected_data_schema
+
+    def test_valid_filled_responses_pass_data_validation(self):
+        for response in Fix.valid_filled_responses:
+            self._action.validate_data(response)
+
+    def test_verified_responses_pass_data_validation(self):
+        self._action.validate_data({'uuid': FIX_QUAL_INTEGER_UUID, 'verified': True})
+        self._action.validate_data({'uuid': FIX_QUAL_INTEGER_UUID, 'verified': False})
+
+    def test_valid_empty_responses_pass_data_validation(self):
+        for response in Fix.valid_empty_responses:
+            self._action.validate_data(response)
+
+    def test_can_revise_with_valid_empty_responses(self):
+        for response in Fix.valid_empty_responses:
+            self._action.revise_data(EMPTY_SUBMISSION, {}, response)
+
+    def test_cannot_verify_empty_responses(self):
+        with pytest.raises(SubsequenceVerificationError):
+            self._action.revise_data(
+                EMPTY_SUBMISSION, {}, {'uuid': FIX_QUAL_INTEGER_UUID, 'verified': True}
+            )
+
+    def test_invalid_reponses_fail_data_validation(self):
+        for response in Fix.invalid_responses:
+            with pytest.raises(jsonschema.exceptions.ValidationError):
+                self._action.validate_data(response)
+
+    def test_result_schema_generation(self):
+        generated_schema = self._action.result_schema
+        assert generated_schema == Fix.expected_result_schema
+
+    def test_valid_result_passes_validation(self):
+        self._action.validate_result(
+            Fix.expected_result_after_filled_and_empty_responses
+        )
+
+    def test_invalid_result_fails_validation(self):
+        working_result = deepcopy(Fix.expected_result_after_filled_and_empty_responses)
+
+        # erroneously add '_dateModified' onto a version
+        first_version = working_result[FIX_QUAL_INTEGER_UUID]['_versions'][0]
+        first_version['_dateModified'] = first_version['_dateCreated']
+
+        with pytest.raises(jsonschema.exceptions.ValidationError):
+            self._action.validate_result(working_result)
+
+    def test_result_content(self):
+        """
+        For each question specified in `Fix.action_params`, record two responses:
+        1. First, the corresponding response from `Fix.valid_filled_responses`
+        2. Then, the empty response from `Fix.valid_empty_responses`
+
+        Afterwards, verify the result against
+        `Fix.expected_result_after_filled_and_empty_responses`
+        """
+
+        # Sanity check the fixture data, since this test requires both the filled
+        # and empty response lists each to have one response per question
+        # (identified by its UUID) in the same order
+        filled_uuids = [x['uuid'] for x in Fix.valid_filled_responses]
+        empty_uuids = [x['uuid'] for x in Fix.valid_empty_responses]
+        assert filled_uuids == empty_uuids
+
+        datetime_iter = iter(
+            dateutil.parser.parse(dt) for dt in Fix.result_mock_timestamp_sequence
+        )
+        uuid_list = [uuid.UUID(u) for u in Fix.result_mock_uuid_sequence]
+
+        accumulated_result = {}
+
+        with mock.patch('uuid.uuid4', side_effect=uuid_list):
+            for filled_response, empty_response in zip(
+                Fix.valid_filled_responses, Fix.valid_empty_responses
+            ):
+                for response in filled_response, empty_response:
+                    with freeze_time(next(datetime_iter)):
+                        accumulated_result = self._action.revise_data(
+                            EMPTY_SUBMISSION, accumulated_result, response
+                        )
+
+        assert (
+            accumulated_result == Fix.expected_result_after_filled_and_empty_responses
+        )
+
+    def test_result_content_with_verification(self):
+        uuid_list = [uuid.UUID(u) for u in Fix.result_mock_uuid_sequence]
+        accumulated_result = {}
+        with mock.patch('uuid.uuid4', side_effect=uuid_list):
+            for filled_response in Fix.valid_filled_responses:
+                accumulated_result = self._action.revise_data(
+                    EMPTY_SUBMISSION, accumulated_result, filled_response
+                )
+        now = timezone.now()
+
+        # verify everything
+        with freeze_time(now):
+            for filled_response in Fix.valid_filled_responses:
+                q_uuid = filled_response['uuid']
+                accumulated_result = self._action.revise_data(
+                    EMPTY_SUBMISSION,
+                    accumulated_result,
+                    {'uuid': q_uuid, 'verified': True},
+                )
+        for question_id, question_data in accumulated_result.items():
+            versions = question_data['_versions']
+            assert len(versions) == 1
+            version = versions[0]
+            assert version['verified']
+            assert version['_dateVerified'] == now.isoformat().replace('+00:00', 'Z')
+
+        # unverify everything
         for filled_response in Fix.valid_filled_responses:
             q_uuid = filled_response['uuid']
-            accumulated_result = _action.revise_data(
-                EMPTY_SUBMISSION, accumulated_result, {'uuid': q_uuid, 'verified': True}
+            accumulated_result = self._action.revise_data(
+                EMPTY_SUBMISSION,
+                accumulated_result,
+                {'uuid': q_uuid, 'verified': False},
             )
-    for question_id, question_data in accumulated_result.items():
-        versions = question_data['_versions']
-        assert len(versions) == 1
-        version = versions[0]
-        assert version['verified']
-        assert version['_dateVerified'] == now.isoformat().replace('+00:00', 'Z')
 
-    # unverify everything
-    for filled_response in Fix.valid_filled_responses:
-        q_uuid = filled_response['uuid']
-        accumulated_result = _action.revise_data(
-            EMPTY_SUBMISSION, accumulated_result, {'uuid': q_uuid, 'verified': False}
-        )
-
-    for question_id, question_data in accumulated_result.items():
-        versions = question_data['_versions']
-        assert len(versions) == 1
-        version = versions[0]
-        assert 'verified' in version
-        assert not version['verified']
+        for question_id, question_data in accumulated_result.items():
+            versions = question_data['_versions']
+            assert len(versions) == 1
+            version = versions[0]
+            assert 'verified' in version
+            assert not version['verified']
 
 
+@ddt
 class TestQualActionMethods(TestCase):
     source_xpath = 'group_name/question_name'
     action_params = [
@@ -786,7 +871,60 @@ class TestQualActionMethods(TestCase):
         },
     ]
 
-    def test_get_output_fields(self):
+    @data(
+        ('qualInteger', METHOD_QUAL_INTEGER_UUID),
+        ('qualText', METHOD_QUAL_INTEGER_UUID),
+    )
+    @unpack
+    def test_get_output_fields_simple(self, question_type, question_uuid):
+        action = ManualQualAction(
+            self.source_xpath,
+            [
+                {
+                    'type': question_type,
+                    'uuid': question_uuid,
+                    'labels': {
+                        '_default': 'Simple question',
+                        'es': 'Pregunta fácil',
+                    },
+                }
+            ],
+        )
+        output_fields = action.get_output_fields()
+        assert len(output_fields) == 3
+        qa_question_field = output_fields[0]
+        assert qa_question_field['label'] == 'Simple question'
+        assert qa_question_field['source'] == self.source_xpath
+        assert qa_question_field['name'] == f'{self.source_xpath}/{question_uuid}'
+        assert qa_question_field['type'] == question_type
+        assert 'choices' not in qa_question_field
+
+        qa_verification_field = output_fields[1]
+        assert qa_verification_field['label'] == 'source'
+        assert qa_verification_field['source'] == f'{self.source_xpath}/{question_uuid}'
+        assert (
+            qa_verification_field['name']
+            == f'{self.source_xpath}/{question_uuid}/source'
+        )
+        assert qa_verification_field['type'] == QUESTION_TYPE_SOURCE
+        assert 'choices' not in qa_verification_field
+
+        qa_verification_field = output_fields[2]
+        assert qa_verification_field['label'] == 'verified'
+        assert qa_verification_field['source'] == f'{self.source_xpath}/{question_uuid}'
+        assert (
+            qa_verification_field['name']
+            == f'{self.source_xpath}/{question_uuid}/verified'
+        )
+        assert qa_verification_field['type'] == QUESTION_TYPE_VERIFICATION
+        assert 'choices' not in qa_verification_field
+
+    @data(
+        ('qualSelectOne', METHOD_QUAL_SELECT_ONE_UUID),
+        ('qualSelectMultiple', METHOD_QUAL_SELECT_MULTIPLE_UUID),
+    )
+    @unpack
+    def test_get_output_fields_with_choices(self, question_type, question_uuid):
         """
         Test for `get_output_fields()` covering:
         - Correct structure and required fields
@@ -794,72 +932,83 @@ class TestQualActionMethods(TestCase):
         - Select one with choices
         - Select multiple with choices
         - Field naming convention
+        - verification field
         """
-        action = ManualQualAction(self.source_xpath, self.action_params)
+        action = ManualQualAction(
+            self.source_xpath,
+            [
+                {
+                    'type': question_type,
+                    'uuid': question_uuid,
+                    'labels': {
+                        '_default': 'Choice question',
+                        'es': 'Pregunta con elección',
+                    },
+                    'choices': [
+                        {
+                            'uuid': METHOD_CHOICE_HIGH_UUID,
+                            'labels': {'_default': 'High', 'fr': 'Élevé', 'es': 'Alto'},
+                        },
+                        {
+                            'uuid': METHOD_CHOICE_MEDIUM_UUID,
+                            'labels': {
+                                '_default': 'Medium',
+                                'fr': 'Moyen',
+                                'es': 'Medio',
+                            },
+                        },
+                        {
+                            'uuid': METHOD_CHOICE_LOW_UUID,
+                            'labels': {'_default': 'Low', 'fr': 'Bas', 'es': 'Bajo'},
+                        },
+                    ],
+                }
+            ],
+        )
         output_fields = action.get_output_fields()
 
-        # Should return one field per qual question
-        assert len(output_fields) == 4
+        assert len(output_fields) == 3
 
-        # All fields should have required keys
-        for field in output_fields:
-            assert 'label' in field
-            assert 'source' in field
-            assert 'name' in field
-            assert 'type' in field
-            assert field['source'] == self.source_xpath
-            # Name should follow pattern: source_xpath/qual_uuid
-            assert field['name'].startswith(f'{self.source_xpath}/')
+        qa_question_field = output_fields[0]
+        assert qa_question_field['label'] == 'Choice question'
+        assert qa_question_field['source'] == self.source_xpath
+        assert qa_question_field['name'] == f'{self.source_xpath}/{question_uuid}'
+        assert qa_question_field['type'] == question_type
+        assert 'choices' in qa_question_field
+        choices = qa_question_field['choices']
+        assert len(choices) == 3
+        choice_labels = [choice['labels'] for choice in choices]
+        choice_uuids = [choice['uuid'] for choice in choices]
+        assert choice_labels == [
+            {'_default': 'High', 'fr': 'Élevé', 'es': 'Alto'},
+            {'_default': 'Medium', 'fr': 'Moyen', 'es': 'Medio'},
+            {'_default': 'Low', 'fr': 'Bas', 'es': 'Bajo'},
+        ]
+        assert choice_uuids == [
+            METHOD_CHOICE_HIGH_UUID,
+            METHOD_CHOICE_MEDIUM_UUID,
+            METHOD_CHOICE_LOW_UUID,
+        ]
 
-        # Test integer question (no choices)
-        integer_field = next(f for f in output_fields if f['type'] == 'qualInteger')
-        assert integer_field['label'] == 'Number of themes'
+        qa_verification_field = output_fields[1]
+        assert qa_verification_field['label'] == 'source'
+        assert qa_verification_field['source'] == f'{self.source_xpath}/{question_uuid}'
         assert (
-            integer_field['name'] == f'{self.source_xpath}/{METHOD_QUAL_INTEGER_UUID}'
+            qa_verification_field['name']
+            == f'{self.source_xpath}/{question_uuid}/source'
         )
-        assert 'choices' not in integer_field
+        assert qa_verification_field['type'] == QUESTION_TYPE_SOURCE
+        assert 'choices' not in qa_verification_field
 
-        # Test text question (no choices)
-        text_field = next(f for f in output_fields if f['type'] == 'qualText')
-        assert text_field['label'] == 'Summary Notes'
-        assert text_field['name'] == f'{self.source_xpath}/{METHOD_QUAL_TEXT_UUID}'
-        assert 'choices' not in text_field
-
-        # Test select one (with choices)
-        select_one_field = next(
-            f for f in output_fields if f['type'] == 'qualSelectOne'
-        )
-        assert select_one_field['label'] == 'Urgency Level'
+        qa_verification_field = output_fields[2]
+        assert qa_verification_field['label'] == 'verified'
+        assert qa_verification_field['source'] == f'{self.source_xpath}/{question_uuid}'
         assert (
-            select_one_field['name']
-            == f'{self.source_xpath}/{METHOD_QUAL_SELECT_ONE_UUID}'
+            qa_verification_field['name']
+            == f'{self.source_xpath}/{question_uuid}/verified'
         )
-        assert 'choices' in select_one_field
-        assert len(select_one_field['choices']) == 3
-
-        # Verify choice structure
-        high_choice = select_one_field['choices'][0]
-        assert high_choice['uuid'] == METHOD_CHOICE_HIGH_UUID
-        assert high_choice['labels'] == {
-            '_default': 'High',
-            'fr': 'Élevé',
-            'es': 'Alto',
-        }
-
-        # Test select multiple (with choices)
-        select_multi_field = next(
-            f for f in output_fields if f['type'] == 'qualSelectMultiple'
-        )
-        assert 'choices' in select_multi_field
-        assert len(select_multi_field['choices']) == 3
-
-        # Verify multilingual choice labels
-        shelter_choice = next(
-            c
-            for c in select_multi_field['choices']
-            if c['uuid'] == METHOD_CHOICE_SHELTER_UUID
-        )
-        assert shelter_choice['labels'] == {'_default': 'Shelter', 'ar': 'مأوى'}
+        assert qa_verification_field['type'] == QUESTION_TYPE_VERIFICATION
+        assert 'choices' not in qa_verification_field
 
     def test_transform_data_for_output_all_question_types(self):
         """
@@ -884,6 +1033,7 @@ class TestQualActionMethods(TestCase):
                         },
                         '_dateCreated': '2025-11-24T10:00:00Z',
                         '_uuid': 'v1',
+                        'verified': True,
                     }
                 ],
                 '_dateCreated': '2025-11-24T10:00:00Z',
@@ -899,6 +1049,7 @@ class TestQualActionMethods(TestCase):
                         },
                         '_dateCreated': '2025-11-24T10:05:00Z',
                         '_uuid': 'v2',
+                        'verified': False,
                     }
                 ],
                 '_dateCreated': '2025-11-24T10:05:00Z',
@@ -914,6 +1065,7 @@ class TestQualActionMethods(TestCase):
                         },
                         '_dateCreated': '2025-11-24T10:10:00Z',
                         '_uuid': 'v3',
+                        'verified': True,
                     }
                 ],
                 '_dateCreated': '2025-11-24T10:10:00Z',
@@ -933,6 +1085,7 @@ class TestQualActionMethods(TestCase):
                         '_dateCreated': '2025-11-24T10:15:00Z',
                         '_dateAccepted': '2025-11-24T10:15:00Z',
                         '_uuid': 'v4',
+                        'verified': False,
                     }
                 ],
                 '_dateCreated': '2025-11-24T10:15:00Z',
@@ -951,12 +1104,16 @@ class TestQualActionMethods(TestCase):
         assert int_item['value'] == 5
         assert int_item['type'] == 'qualInteger'
         assert int_item['xpath'] == self.source_xpath
+        assert int_item['source'] == SOURCE_TYPE_MANUAL
+        assert int_item['verified']
 
         # Test text question
         text_item = output.get(('qual', METHOD_QUAL_TEXT_UUID))
         assert text_item is not None
         assert text_item['value'] == 'Family needs immediate shelter and medical care'
         assert text_item['type'] == 'qualText'
+        assert text_item['source'] == SOURCE_TYPE_MANUAL
+        assert not text_item['verified']
 
         # Test select one - UUID transformed to object with labels
         select_one_item = output.get(('qual', METHOD_QUAL_SELECT_ONE_UUID))
@@ -969,10 +1126,14 @@ class TestQualActionMethods(TestCase):
             'fr': 'Élevé',
             'es': 'Alto',
         }
+        assert select_one_item['source'] == SOURCE_TYPE_MANUAL
+        assert select_one_item['verified']
 
         # Test select multiple - array of UUIDs transformed to array of objects
         select_multi_item = output.get(('qual', METHOD_QUAL_SELECT_MULTIPLE_UUID))
         assert select_multi_item is not None
+        assert select_multi_item['source'] == SOURCE_TYPE_MANUAL
+        assert not select_multi_item['verified']
         select_multi_value = select_multi_item['value']
         assert isinstance(select_multi_value, list)
         assert len(select_multi_value) == 2
@@ -1006,6 +1167,7 @@ class TestQualActionMethods(TestCase):
                         },
                         '_dateCreated': '2025-11-24T09:00:00Z',
                         '_uuid': 'v1',
+                        'verified': True,
                     },
                     {
                         '_data': {
@@ -1014,6 +1176,7 @@ class TestQualActionMethods(TestCase):
                         },
                         '_dateCreated': '2025-11-24T10:00:00Z',
                         '_uuid': 'v2',
+                        'verified': False,
                     },
                     {
                         '_data': {
@@ -1022,6 +1185,7 @@ class TestQualActionMethods(TestCase):
                         },
                         '_dateCreated': '2025-11-24T11:00:00Z',
                         '_uuid': 'v3',
+                        'verified': True,
                     },
                 ],
                 '_dateCreated': '2025-11-24T09:00:00Z',

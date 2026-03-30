@@ -374,6 +374,10 @@ CONSTANCE_CONFIG = {
         'IAM & Admin console.\nLeave blank to use a different Google '
         'authentication mechanism.'
     ),
+    'AUTOMATIC_QA_REQUESTS_PER_SECOND': (
+        5,
+        'Number of allowed automatic Qualitative Analysis requests per user per second.'
+    ),
     'USER_METADATA_FIELDS': (
         LazyJSONSerializable([
             {'name': 'name', 'required': True},
@@ -743,6 +747,7 @@ CONSTANCE_CONFIG_FIELDSETS = {
         'ASR_MT_GOOGLE_TRANSLATION_LOCATION',
         'ASR_MT_GOOGLE_CREDENTIALS',
         'ASR_MT_GOOGLE_REQUEST_TIMEOUT',
+        'AUTOMATIC_QA_REQUESTS_PER_SECOND'
     ),
     'Security': (
         'SSRF_ALLOWED_IP_ADDRESS',
@@ -1035,6 +1040,7 @@ SPECTACULAR_SETTINGS = {
     'AUTHENTICATION_WHITELIST': [
         'kpi.authentication.BasicAuthentication',
         'kpi.authentication.TokenAuthentication',
+        'kobo.apps.kobo_scim.authentication.ScimAuthentication',
     ],
     'ENUM_NAME_OVERRIDES': {
         'InviteStatusChoicesEnum': 'kobo.apps.organizations.models.OrganizationInviteStatusChoices.choices',  # noqa
@@ -1603,6 +1609,9 @@ ACCOUNT_USERNAME_VALIDATORS = 'kobo.apps.accounts.validators.username_validators
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
 ACCOUNT_EMAIL_UNKNOWN_ACCOUNTS = False
 ACCOUNT_EMAIL_VERIFICATION = env.str('ACCOUNT_EMAIL_VERIFICATION', 'mandatory')
+ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = env.int(
+    'ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS', 1
+)
 ACCOUNT_FORMS = {
     'login': 'kobo.apps.accounts.forms.LoginForm',
     'signup': 'kobo.apps.accounts.forms.SignupForm',
@@ -1799,12 +1808,12 @@ LOGGING = {
         'console_logger': {
             'handlers': ['console'],
             'level': 'DEBUG',
-            'propagate': True
+            'propagate': False,
         },
         'django.db.backends': {
             'level': 'ERROR',
             'handlers': ['console'],
-            'propagate': True
+            'propagate': False
         },
     }
 }
@@ -1979,6 +1988,9 @@ OPENROSA_DEFAULT_CONTENT_LENGTH = 10000000
 
 # Expiration time in sec. after which paired data xml file must be regenerated
 PAIRED_DATA_EXPIRATION = 300  # seconds
+# Lock TTL for the async regeneration task; covers the worst-case generation
+# time and ensures the lock expires even if a K8s pod is killed mid-task.
+PAIRED_DATA_REGEN_LOCK_TIMEOUT = 600  # seconds
 
 CALCULATED_HASH_CACHE_EXPIRATION = 300  # seconds
 
@@ -2198,3 +2210,12 @@ HOOK_STALLED_RETRY_TIMEOUT = 1440
 
 # Cache time-to-live (in seconds) for attachment XPaths
 ATTACHMENT_XPATHS_CACHE_TTL = 86400
+
+# Configure the Referrer-Policy response header so OpenStreetMap tile servers
+# receive an acceptable referrer. See:
+# https://wiki.openstreetmap.org/wiki/Blocked_tiles#Referer_is_required
+# Can be overridden per environment via the SECURE_REFERRER_POLICY environment variable.
+SECURE_REFERRER_POLICY = env(
+    'SECURE_REFERRER_POLICY',
+    default='strict-origin-when-cross-origin',
+)

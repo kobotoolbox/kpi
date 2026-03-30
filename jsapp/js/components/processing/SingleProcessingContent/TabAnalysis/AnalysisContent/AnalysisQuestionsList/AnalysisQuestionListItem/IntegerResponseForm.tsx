@@ -1,6 +1,7 @@
 import { NumberInput } from '@mantine/core'
 import React, { useEffect, useState } from 'react'
 import type { QualVersionItem } from '#/components/processing/common/types'
+import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 import { AUTO_SAVE_TYPING_DELAY } from '../../../common/constants'
 import styles from '../../../common/styles.module.scss'
 
@@ -15,21 +16,26 @@ export default function IntegerResponseForm({ qaAnswer, onSave, disabled, isAnsw
   // `value` can be a (empty) string when you remove it
   const [value, setValue] = useState<number | string | undefined>(((qaAnswer?._data as any)?.value as number) ?? '')
   const [typingTimer, setTypingTimer] = useState<NodeJS.Timeout>()
+  const autoQAEnabled = useFeatureFlag(FeatureFlag.autoQAEnabled)
 
   // Sync local state when a new version is set (e.g. after AI generation)
   useEffect(() => {
-    setValue(((qaAnswer?._data as any)?.value as number) ?? '')
-  }, [qaAnswer?._uuid])
+    const newValue = ((qaAnswer?._data as any)?.value as number | undefined) ?? ''
+    if (isAnswerAIGenerated || newValue === '') {
+      clearTimeout(typingTimer)
+      setValue(newValue)
+    }
+  }, [qaAnswer?._uuid, isAnswerAIGenerated])
 
   const handleSave = async () => {
     clearTimeout(typingTimer)
     await onSave(typeof value === 'number' ? value : null)
   }
 
-  const handleChange = (value: string | number) => {
-    setValue(value)
+  const handleChange = (newValue: string | number) => {
+    setValue(newValue)
     clearTimeout(typingTimer)
-    setTypingTimer(setTimeout(handleSave, AUTO_SAVE_TYPING_DELAY)) // After some seconds we auto save
+    setTypingTimer(setTimeout(() => onSave(typeof newValue === 'number' ? newValue : null), AUTO_SAVE_TYPING_DELAY))
   }
 
   return (
@@ -39,7 +45,7 @@ export default function IntegerResponseForm({ qaAnswer, onSave, disabled, isAnsw
       }}
       value={value}
       onChange={handleChange}
-      placeholder={t('Type your response or use AI')}
+      placeholder={autoQAEnabled ? t('Type your response or use AI') : t('Type your response')}
       onBlur={handleSave}
       disabled={disabled}
     />

@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 
+import { useDisclosure } from '@mantine/hooks'
 import classnames from 'classnames'
 import type { Identifier, XYCoord } from 'dnd-core'
 import { useDrag, useDrop } from 'react-dnd'
@@ -27,6 +28,7 @@ import type { AssetResponse } from '#/dataInterface'
 import { removeDefaultUuidPrefix } from '#/utils'
 import { type AdvancedFeatureResponseManualQual, getEmptyAnswer, isAnswerAIGenerated } from '../../../common/utils'
 import AnalysisQuestionEditor from './AnalysisQuestionEditor'
+import ConfirmEditModal from './ConfirmEditModal'
 import IntegerResponseForm from './IntegerResponseForm'
 import KeywordSearchResponseForm from './KeywordSearchResponseForm'
 import SelectMultipleResponseForm from './MultipleResponseForm'
@@ -95,6 +97,8 @@ export default function AnalysisQuestionListItem({
     },
   })
 
+  const [confirmEditModalOpened, confirmEditModalHandlers] = useDisclosure(false)
+
   // Local state for optimistic UI of SelectOne radio button value
   // this is needed so that the "clear" button works immediately without waiting for server response
   const [localRadioValue, setLocalRadioValue] = useState<string | undefined>()
@@ -104,12 +108,12 @@ export default function AnalysisQuestionListItem({
     setLocalRadioValue(undefined)
   }, [queryAnswer.data?._uuid])
 
-  const mutationSaveAnswer = useAssetsDataSupplementPartialUpdate({ mutation: { scope: { id: 'qa-answer' } } })
+  const mutationPatchAnswer = useAssetsDataSupplementPartialUpdate({ mutation: { scope: { id: 'qa-answer' } } })
   const mutationCreateQuestion = useAssetsAdvancedFeaturesCreate({ mutation: { scope: { id: 'qa-question' } } })
   const mutationPatchQuestion = useAssetsAdvancedFeaturesPartialUpdate({ mutation: { scope: { id: 'qa-question' } } })
 
   const handleSaveAnswer = async (value: ManualQualValue) => {
-    await mutationSaveAnswer.mutateAsync({
+    await mutationPatchAnswer.mutateAsync({
       uidAsset: asset.uid,
       rootUuid: rootUuid,
       data: {
@@ -118,6 +122,22 @@ export default function AnalysisQuestionListItem({
           [ActionEnum.manual_qual]: {
             uuid: qaQuestion.uuid,
             value,
+          },
+        },
+      },
+    })
+  }
+
+  const handleUpdateAnswerVerification = async (isAIGenerated: boolean, verified: boolean) => {
+    await mutationPatchAnswer.mutateAsync({
+      uidAsset: asset.uid,
+      rootUuid: rootUuid,
+      data: {
+        _version: SUBSEQUENCES_SCHEMA_VERSION,
+        [questionXpath]: {
+          [isAIGenerated ? ActionEnum.automatic_bedrock_qual : ActionEnum.manual_qual]: {
+            uuid: qaQuestion.uuid,
+            verified,
           },
         },
       },
@@ -146,6 +166,11 @@ export default function AnalysisQuestionListItem({
       })
     }
     setQaQuestion(undefined)
+  }
+
+  const handleConfirmEdit = () => {
+    confirmEditModalHandlers.close()
+    setQaQuestion(qaQuestion)
   }
 
   const handleCancelEdit = () => {
@@ -295,12 +320,14 @@ export default function AnalysisQuestionListItem({
         return (
           <ResponseForm
             qaQuestion={qaQuestion}
-            disabled={disabledQuestion}
+            disabledAnswer={disabledAnswer}
+            disabledQuestion={disabledQuestion}
             onEdit={setQaQuestion}
             onDelete={handleDeleteQuestion}
             hasTranscript={hasTranscript}
             // This question type doesn't have any response, so we display just
-            // the header, and thus no `answer` or `children`
+            // the header, and thus no `answer` or `children`. We run setQaQuestion
+            // immediately without a modal, since the modal is irrelevant here
           />
         )
       }
@@ -308,8 +335,12 @@ export default function AnalysisQuestionListItem({
         return (
           <ResponseForm
             qaQuestion={qaQuestion}
-            disabled={disabledQuestion}
-            onEdit={setQaQuestion}
+            disabledAnswer={disabledAnswer}
+            disabledQuestion={disabledQuestion}
+            onEdit={confirmEditModalHandlers.open}
+            onUpdateAnswerVerification={(isAIGenerated, verified) =>
+              handleUpdateAnswerVerification(isAIGenerated, verified)
+            }
             onDelete={handleDeleteQuestion}
             onClear={() => handleSaveAnswer(getEmptyAnswer(qaQuestion.type))}
             onGenerateWithAI={() => onGenerateWithAI(qaQuestion)}
@@ -331,15 +362,11 @@ export default function AnalysisQuestionListItem({
         // Use local state if available, otherwise fall back to server data
         const currentValue =
           localRadioValue !== undefined ? localRadioValue : ((queryAnswer.data?._data as any)?.value as string)
-        const hasValue = !!currentValue
-
-        // select one requires a custom clear function
-        const handleClearSelection = hasValue
-          ? async () => {
-              setLocalRadioValue(getEmptyAnswer(qaQuestion.type) as string)
-              await handleSaveAnswer(getEmptyAnswer(qaQuestion.type))
-            }
-          : undefined
+        // select one requires a custom clear function to also reset local radio state
+        const handleClearSelection = async () => {
+          setLocalRadioValue(getEmptyAnswer(qaQuestion.type) as string)
+          await handleSaveAnswer(getEmptyAnswer(qaQuestion.type))
+        }
 
         const handleRadioSave = async (value: string) => {
           setLocalRadioValue(value)
@@ -349,8 +376,12 @@ export default function AnalysisQuestionListItem({
         return (
           <ResponseForm
             qaQuestion={qaQuestion}
-            disabled={disabledQuestion}
-            onEdit={setQaQuestion}
+            disabledAnswer={disabledAnswer}
+            disabledQuestion={disabledQuestion}
+            onEdit={confirmEditModalHandlers.open}
+            onUpdateAnswerVerification={(isAIGenerated, verified) =>
+              handleUpdateAnswerVerification(isAIGenerated, verified)
+            }
             onDelete={handleDeleteQuestion}
             onClear={handleClearSelection}
             onGenerateWithAI={() => onGenerateWithAI(qaQuestion)}
@@ -372,8 +403,12 @@ export default function AnalysisQuestionListItem({
         return (
           <ResponseForm
             qaQuestion={qaQuestion}
-            disabled={disabledQuestion}
-            onEdit={setQaQuestion}
+            disabledAnswer={disabledAnswer}
+            disabledQuestion={disabledQuestion}
+            onEdit={confirmEditModalHandlers.open}
+            onUpdateAnswerVerification={(isAIGenerated, verified) =>
+              handleUpdateAnswerVerification(isAIGenerated, verified)
+            }
             onDelete={handleDeleteQuestion}
             onClear={() => handleSaveAnswer(getEmptyAnswer(qaQuestion.type))}
             answer={queryAnswer.data}
@@ -388,8 +423,12 @@ export default function AnalysisQuestionListItem({
         return (
           <ResponseForm
             qaQuestion={qaQuestion}
-            disabled={disabledQuestion}
-            onEdit={setQaQuestion}
+            disabledAnswer={disabledAnswer}
+            disabledQuestion={disabledQuestion}
+            onEdit={confirmEditModalHandlers.open}
+            onUpdateAnswerVerification={(isAIGenerated, verified) =>
+              handleUpdateAnswerVerification(isAIGenerated, verified)
+            }
             onDelete={handleDeleteQuestion}
             onClear={() => handleSaveAnswer(getEmptyAnswer(qaQuestion.type))}
             onGenerateWithAI={() => onGenerateWithAI(qaQuestion)}
@@ -410,8 +449,12 @@ export default function AnalysisQuestionListItem({
         return (
           <ResponseForm
             qaQuestion={qaQuestion}
-            disabled={disabledQuestion}
-            onEdit={setQaQuestion}
+            disabledAnswer={disabledAnswer}
+            disabledQuestion={disabledQuestion}
+            onEdit={confirmEditModalHandlers.open}
+            onUpdateAnswerVerification={(isAIGenerated, verified) =>
+              handleUpdateAnswerVerification(isAIGenerated, verified)
+            }
             onDelete={handleDeleteQuestion}
             onClear={() => handleSaveAnswer(getEmptyAnswer(qaQuestion.type))}
             onGenerateWithAI={() => onGenerateWithAI(qaQuestion)}
@@ -441,26 +484,33 @@ export default function AnalysisQuestionListItem({
   }
 
   return (
-    <li
-      className={classnames({
-        [styles.root]: true,
-        [styles.isBeingDragged]: isDragging,
-        [styles.isDragDisabled]: disabledQuestion,
-      })}
-      ref={previewRef}
-      data-handler-id={handlerId}
-    >
-      <div
+    <>
+      <li
         className={classnames({
-          [styles.dragHandle]: true,
-          [styles.dragHandleDisabled]: isAnyQuestionBeingEdited,
+          [styles.root]: true,
+          [styles.isBeingDragged]: isDragging,
+          [styles.isDragDisabled]: disabledQuestion,
         })}
-        ref={dragRef}
+        ref={previewRef}
+        data-handler-id={handlerId}
       >
-        <Icon name='drag-handle' size='xs' />
-      </div>
+        <div
+          className={classnames({
+            [styles.dragHandle]: true,
+            [styles.dragHandleDisabled]: isAnyQuestionBeingEdited,
+          })}
+          ref={dragRef}
+        >
+          <Icon name='drag-handle' size='xs' />
+        </div>
 
-      <div className={styles.content}>{renderItem()}</div>
-    </li>
+        <div className={styles.content}>{renderItem()}</div>
+      </li>
+      <ConfirmEditModal
+        opened={confirmEditModalOpened}
+        onClose={confirmEditModalHandlers.close}
+        onConfirmEdit={handleConfirmEdit}
+      />
+    </>
   )
 }
