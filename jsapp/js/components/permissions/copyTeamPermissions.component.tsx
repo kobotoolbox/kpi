@@ -47,6 +47,9 @@ export default function CopyTeamPermissions({ asset }: CopyTeamPermissionsProps)
         closeForm()
       }),
       actions.permissions.copyPermissionsFrom.failed.listen(() => {
+        if (!isAwaitingAssetChange) {
+          return
+        }
         notify(t('Failed to copy permissions'), 'error')
         setIsAwaitingAssetChange(false)
       }),
