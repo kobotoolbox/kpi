@@ -184,7 +184,7 @@ export default function CopyTeamPermissions({ asset }: CopyTeamPermissionsProps)
         <Stack gap='md'>
           <Text>{t('This will overwrite any existing sharing settings defined in this project.')}</Text>
 
-          <Group p='md' bg='var(--mantine-color-gray-7)'>
+          <Group p='md' bg='gray.7'>
             <Select
               size='md'
               searchable
