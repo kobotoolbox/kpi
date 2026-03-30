@@ -89,7 +89,6 @@ import enketoHandler from '#/enketoHandler'
 import envStore from '#/envStore'
 import pageState from '#/pageState.store'
 import type { PageStateStoreState } from '#/pageState.store'
-import { stores } from '#/stores'
 import { formatTimeDateShort, recordKeys } from '#/utils'
 import ActionIcon from '../common/ActionIcon'
 import LimitNotifications from '../usageLimits/limitNotifications.component'
@@ -154,7 +153,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   constructor(props: DataTableProps) {
     super(props)
     this.state = {
-      isInitialized: false, // for having asset with content
+      isInitialized: Boolean(props.asset), // DataTable can render once asset prop is present
       loading: true, // for fetching submissions data
       submissions: [],
       columns: [],
@@ -199,9 +198,6 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       actions.submissions.bulkPatchValues.completed.listen(this.onBulkChangeCompleted.bind(this)),
       actions.submissions.bulkDelete.completed.listen(this.onBulkChangeCompleted.bind(this)),
     )
-
-    // TODO: why this line is needed? Why not use `assetStore`?
-    stores.allAssets.whenLoaded(this.props.asset.uid, this.whenLoaded.bind(this))
   }
 
   componentWillUnmount() {
@@ -210,14 +206,11 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
     })
   }
 
-  /**
-   * This triggers only when asset with `content` was loaded.
-   */
-  whenLoaded() {
-    this.setState({ isInitialized: true })
-  }
-
   componentDidUpdate(prevProps: DataTableProps) {
+    if (!prevProps.asset?.content && this.props.asset?.content && !this.state.isInitialized) {
+      this.setState({ isInitialized: true })
+    }
+
     let prevSettings = prevProps.asset.settings[DATA_TABLE_SETTING]
     if (!prevSettings) {
       prevSettings = {}
