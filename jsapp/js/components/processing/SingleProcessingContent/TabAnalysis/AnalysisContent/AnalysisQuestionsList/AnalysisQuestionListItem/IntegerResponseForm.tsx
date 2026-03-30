@@ -20,18 +20,22 @@ export default function IntegerResponseForm({ qaAnswer, onSave, disabled, isAnsw
 
   // Sync local state when a new version is set (e.g. after AI generation)
   useEffect(() => {
-    setValue(((qaAnswer?._data as any)?.value as number) ?? '')
-  }, [qaAnswer?._uuid])
+    const newValue = ((qaAnswer?._data as any)?.value as number | undefined) ?? ''
+    if (isAnswerAIGenerated || newValue === '') {
+      clearTimeout(typingTimer)
+      setValue(newValue)
+    }
+  }, [qaAnswer?._uuid, isAnswerAIGenerated])
 
   const handleSave = async () => {
     clearTimeout(typingTimer)
     await onSave(typeof value === 'number' ? value : null)
   }
 
-  const handleChange = (value: string | number) => {
-    setValue(value)
+  const handleChange = (newValue: string | number) => {
+    setValue(newValue)
     clearTimeout(typingTimer)
-    setTypingTimer(setTimeout(handleSave, AUTO_SAVE_TYPING_DELAY)) // After some seconds we auto save
+    setTypingTimer(setTimeout(() => onSave(typeof newValue === 'number' ? newValue : null), AUTO_SAVE_TYPING_DELAY))
   }
 
   return (

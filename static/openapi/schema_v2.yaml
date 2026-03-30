@@ -2104,7 +2104,7 @@ paths:
     get:
       operationId: api_v2_assets_counts_list
       description: |
-        ## Count the daily amount of submission
+        ## Count the daily amount of submissions
 
         Returns up to the last 31 days of daily counts and total counts of submissions to a survey.
 
@@ -7357,6 +7357,23 @@ paths:
                     detail: Not found.
                   summary: Not Found
           description: ''
+  /api/v2/assets/counts/:
+    get:
+      operationId: api_v2_assets_counts_retrieve
+      description: |
+        ## Return counts of deployed, archived, and draft assets
+      tags:
+      - Manage projects and library content
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetListCount'
+          description: null
   /api/v2/assets/hash/:
     get:
       operationId: api_v2_assets_hash_retrieve
@@ -8005,6 +8022,41 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaginatedAssetList'
+          description: null
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
+          description: ''
+  /api/v2/organizations/{uid_organization}/assets/counts/:
+    get:
+      operationId: api_v2_organizations_assets_counts_retrieve
+      description: |
+        ## Return counts of deployed, archived, and draft assets owned by the organization
+      parameters:
+      - in: path
+        name: uid_organization
+        schema:
+          type: string
+        description: A unique value identifying this organization.
+        required: true
+      tags:
+      - User / team / organization / usage
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetListCount'
           description: null
         '404':
           content:
@@ -9613,6 +9665,40 @@ paths:
                       field_name:
                       - Error message
                   summary: Bad request
+          description: ''
+  /api/v2/project-views/{uid_project_view}/assets/counts/:
+    get:
+      operationId: api_v2_project_views_assets_counts_retrieve
+      description: |
+        ## Return counts of deployed, archived, and draft assets in the project view
+      parameters:
+      - in: path
+        name: uid_project_view
+        schema:
+          type: string
+        required: true
+      tags:
+      - User / team / organization / usage
+      security:
+      - BasicAuth: []
+      - TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetListCount'
+          description: null
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetail'
+              examples:
+                NotFound:
+                  value:
+                    detail: Not found.
+                  summary: Not Found
           description: ''
   /api/v2/project-views/{uid_project_view}/users/:
     get:
@@ -12362,6 +12448,22 @@ components:
       - name
       - uid
       - url
+    AssetListCount:
+      type: object
+      properties:
+        deployed_count:
+          type: integer
+          readOnly: true
+        archived_count:
+          type: integer
+          readOnly: true
+        draft_count:
+          type: integer
+          readOnly: true
+      required:
+      - archived_count
+      - deployed_count
+      - draft_count
     AssetMetadataResponse:
       type: object
       properties:

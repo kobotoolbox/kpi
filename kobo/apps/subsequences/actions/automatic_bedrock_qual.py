@@ -3,9 +3,11 @@ from copy import deepcopy
 from dataclasses import dataclass
 from json import JSONDecodeError
 from typing import Optional
+from xml.sax.saxutils import escape
 
 import boto3
-from botocore.exceptions import ClientError
+from botocore.config import Config
+from botocore.exceptions import ClientError, ConnectTimeoutError, ReadTimeoutError
 from django.conf import settings
 from django.utils.functional import classproperty
 from django_userforeignkey.request import get_current_request
@@ -141,6 +143,10 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         return boto3.client(
             service_name='bedrock-runtime',
             region_name=settings.AWS_BEDROCK_REGION_NAME,
+            config=Config(
+                read_timeout=settings.AWS_BEDROCK_READ_TIMEOUT,
+                connect_timeout=settings.AWS_BEDROCK_CONNECT_TIMEOUT
+            ),
         )
 
     @property
@@ -252,12 +258,13 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         """
         # always need transcript, QA question text, and QA question value
         # to fill out the LLM prompt
-        transcript_text = action_data['_dependency']['value']
+        transcript_text = escape(action_data['_dependency']['value'])
         question_uuid = action_data['uuid']
         qa_question = self._get_question(question_uuid)
-        question_text = qa_question['labels']['_default']
+        question_text = escape(qa_question['labels']['_default'])
         question_type = qa_question['type']
-        hint = qa_question.get('hint', {}).get('labels', {}).get('_default')
+        raw_hint = qa_question.get('hint', {}).get('labels', {}).get('_default')
+        hint = raw_hint and escape(raw_hint)
         hint = f' {format_hint(hint)}' if hint else ''
 
         # get the correct template based on question type
@@ -280,7 +287,9 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
                 choice_hint = (
                     choice.get('hint', {}).get('labels', {}).get('_default', '')
                 )
-                visible_choice_labels.append({'label': label, 'hint': choice_hint})
+                visible_choice_labels.append(
+                    {'label': escape(label), 'hint': escape(choice_hint)}
+                )
             choices_text = format_choices(visible_choice_labels)
             choices_count = len(visible_choices)
             example_format = get_example_format(question_type, choices_count)
@@ -484,10 +493,15 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
                         'value': [visible_choices[i]['uuid'] for i in selected_indexes],
                         'status': 'complete',
                     }
-            except (InvalidResponseFromLLMException, ClientError) as e:
+            except (
+                InvalidResponseFromLLMException,
+                ClientError,
+                ReadTimeoutError,
+                ConnectTimeoutError,
+            ) as e:
                 if index == 0:
                     logging.warning(
-                        f'Invalid response from primary llm {model}: {e}.'
+                        f'Invalid response or timeout from primary llm {model}: {e}.'
                         ' Defaulting to backup.'
                     )
                 error = e
