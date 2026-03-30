@@ -197,15 +197,14 @@ def log_constance_update(key, old_value, new_value, **kwargs):
         )
         return
 
-    user = getattr(request, 'user', None)
-    if not isinstance(user, User) or not user.is_authenticated or not user.is_superuser:
+    user = request.user
+    if not user.is_superuser:
         logging.debug(
             f'Config key "{key}" updated but no authenticated superuser found to'
             f' log it with.'
         )
         return
 
-    message = f"{user} updated config key '{key}' from '{old_value}' to '{new_value}'"
     AuditLog.objects.create(
         user=user,
         app_label='constance',
@@ -214,7 +213,6 @@ def log_constance_update(key, old_value, new_value, **kwargs):
         action=AuditAction.UPDATE_CONSTANCE,
         log_type=AuditType.ADMIN_INTERFACE,
         metadata={
-            'message': message,
             'key': key,
             'old_value': _sanitize_for_json(old_value),
             'new_value': _sanitize_for_json(new_value),

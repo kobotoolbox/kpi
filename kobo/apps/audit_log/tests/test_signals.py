@@ -441,13 +441,6 @@ class TestConstanceAuditLogSignal(BaseTestCase):
         self.assertEqual(latest_log.app_label, 'constance')
         self.assertEqual(latest_log.model_name, 'constance')
         self.assertEqual(latest_log.object_id, 'SUPPORT_EMAIL')
-
-        # Verify Metadata parsing
-        expected_message = (
-            f"{self.admin.username} updated config key 'SUPPORT_EMAIL' from "
-            f"'old@example.com' to 'new@example.com'"
-        )
-        self.assertEqual(latest_log.metadata['message'], expected_message)
         self.assertEqual(latest_log.metadata['old_value'], 'old@example.com')
         self.assertEqual(latest_log.metadata['new_value'], 'new@example.com')
 
