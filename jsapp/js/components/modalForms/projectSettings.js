@@ -123,17 +123,17 @@ class ProjectSettings extends React.Component {
     })
   }
 
+  getAllMetadataFields() {
+    return [...(envStore.data.project_metadata_fields || []), ...(envStore.data.extra_project_metadata_fields || [])]
+  }
+
   getInitialFieldsFromAsset(asset) {
-    const fields = {}
-
-    fields.name = asset ? asset.name : ''
-    fields.description = asset?.settings ? asset.settings.description : ''
-
-    fields.sector = asset?.settings?.sector?.value ? asset.settings.sector : null
-    fields.country = asset?.settings ? asset.settings.country : null
-    fields.operational_purpose = asset?.settings ? asset.settings.operational_purpose : null
-    fields.collects_pii = asset?.settings ? asset.settings.collects_pii : null
-
+    const fields = { name: asset ? asset.name : '' }
+    this.getAllMetadataFields().forEach((f) => {
+      // Default to empty array for country (multi-select), null for others
+      const defaultValue = f.name === 'country' ? [] : null
+      fields[f.name] = asset?.settings ? asset.settings[f.name] : defaultValue
+    })
     return fields
   }
 
@@ -484,13 +484,11 @@ class ProjectSettings extends React.Component {
   }
 
   getSettingsForEndpoint() {
-    return JSON.stringify({
-      description: this.state.fields.description,
-      sector: this.state.fields.sector,
-      country: this.state.fields.country,
-      operational_purpose: this.state.fields.operational_purpose,
-      collects_pii: this.state.fields.collects_pii,
+    const settings = {}
+    this.getAllMetadataFields().forEach((f) => {
+      settings[f.name] = this.state.fields[f.name]
     })
+    return JSON.stringify(settings)
   }
 
   createAssetAndOpenInBuilder() {
@@ -666,25 +664,12 @@ class ProjectSettings extends React.Component {
       fieldsWithErrors.push('name')
     }
 
-    // superuser-configured metadata
-    if (envStore.data.getProjectMetadataField('description').required && !this.state.fields.description.trim()) {
-      fieldsWithErrors.push('description')
-    }
-    if (envStore.data.getProjectMetadataField('sector').required && !this.state.fields.sector) {
-      fieldsWithErrors.push('sector')
-    }
-    if (envStore.data.getProjectMetadataField('country').required && !this.state.fields.country?.length) {
-      fieldsWithErrors.push('country')
-    }
-    if (
-      envStore.data.getProjectMetadataField('operational_purpose').required &&
-      !this.state.fields.operational_purpose
-    ) {
-      fieldsWithErrors.push('operational_purpose')
-    }
-    if (envStore.data.getProjectMetadataField('collects_pii').required && !this.state.fields.collects_pii) {
-      fieldsWithErrors.push('collects_pii')
-    }
+    this.getAllMetadataFields().forEach((f) => {
+      const val = this.state.fields[f.name]
+      const isInvalid =
+        f.required && (!val || (Array.isArray(val) && val.length === 0) || (typeof val === 'string' && !val.trim()))
+      if (isInvalid) fieldsWithErrors.push(f.name)
+    })
 
     // Will set either an empty array (no errors) or a list of fieldNames.
     this.setState({ fieldsWithErrors: fieldsWithErrors })
@@ -855,15 +840,8 @@ class ProjectSettings extends React.Component {
   }
 
   renderStepProjectDetails() {
-    const sectorField = envStore.data.getProjectMetadataField('sector')
-    const sectors = envStore.data.sector_choices
-    const countryField = envStore.data.getProjectMetadataField('country')
-    const countries = envStore.data.country_choices
-    const bothCountryAndSector = sectorField && countryField
-    const operationalPurposeField = envStore.data.getProjectMetadataField('operational_purpose')
-    const operationalPurposes = envStore.data.operational_purpose_choices
-    const collectsPiiField = envStore.data.getProjectMetadataField('collects_pii')
-    const descriptionField = envStore.data.getProjectMetadataField('description')
+    const currentLang = sessionStore.user?.interface_language || 'en'
+    const metadataFields = this.getAllMetadataFields()
 
     return (
       <form
@@ -888,92 +866,38 @@ class ProjectSettings extends React.Component {
             />
           </div>
 
-          {/* Description */}
-          {descriptionField && (
-            <div className={styles.input}>
-              <TextBox
-                type='text-multiline'
-                value={this.state.fields.description}
-                onChange={this.onDescriptionChange.bind(this)}
-                errors={this.hasFieldError('description') ? t('Please enter a description for your project') : false}
-                label={addRequiredToLabel(descriptionField.label, descriptionField.required)}
-                placeholder={t('Enter short description here')}
-              />
-            </div>
-          )}
+          {metadataFields.map((field) => {
+            const options = envStore.data.getOptionsForField(field.name)
+            const label = envStore.data.getLocalizedLabel(field.label, currentLang)
+            const isSelect = options.length > 0 || ['select', 'multiselect', 'multi_select'].includes(field.type)
+            const hasError = this.hasFieldError(field.name)
 
-          {/* Sector */}
-          {sectorField && (
-            <div className={cx(styles.input, bothCountryAndSector ? styles.sector : null)}>
-              <WrappedSelect
-                label={addRequiredToLabel(sectorField.label, sectorField.required)}
-                value={this.state.fields.sector}
-                onChange={this.onAnyFieldChange.bind(this, 'sector')}
-                options={sectors}
-                isLimitedHeight
-                menuPlacement='top'
-                isClearable
-                error={this.hasFieldError('sector') ? t('Please choose a sector') : false}
-              />
-            </div>
-          )}
-
-          {/* Country */}
-          {countryField && (
-            <div className={cx(styles.input, bothCountryAndSector ? styles.country : null)}>
-              <WrappedSelect
-                label={addRequiredToLabel(countryField.label, countryField.required)}
-                isMulti
-                value={this.state.fields.country}
-                onChange={this.onAnyFieldChange.bind(this, 'country')}
-                options={countries}
-                isLimitedHeight
-                menuPlacement='top'
-                isClearable
-                error={this.hasFieldError('country') ? t('Please select at least one country') : false}
-              />
-            </div>
-          )}
-
-          {/* Operational Purpose of Data */}
-          {operationalPurposeField && (
-            <div className={styles.input}>
-              <WrappedSelect
-                label={addRequiredToLabel(operationalPurposeField.label, operationalPurposeField.required)}
-                value={this.state.fields.operational_purpose}
-                onChange={this.onAnyFieldChange.bind(this, 'operational_purpose')}
-                options={operationalPurposes}
-                isLimitedHeight
-                isClearable
-                error={
-                  this.hasFieldError('operational_purpose')
-                    ? t('Please specify the operational purpose of your project')
-                    : false
-                }
-              />
-            </div>
-          )}
-
-          {/* Does this project collect personally identifiable information? */}
-          {collectsPiiField && (
-            <div className={styles.input}>
-              <WrappedSelect
-                label={addRequiredToLabel(collectsPiiField.label, collectsPiiField.required)}
-                value={this.state.fields.collects_pii}
-                onChange={this.onAnyFieldChange.bind(this, 'collects_pii')}
-                options={[
-                  { value: 'Yes', label: t('Yes') },
-                  { value: 'No', label: t('No') },
-                ]}
-                isClearable
-                error={
-                  this.hasFieldError('collects_pii')
-                    ? t('Please indicate whether or not your project collects personally identifiable information')
-                    : false
-                }
-              />
-            </div>
-          )}
+            return (
+              <div key={field.name} className={styles.input}>
+                {isSelect ? (
+                  <WrappedSelect
+                    label={addRequiredToLabel(label, field.required)}
+                    isMulti={field.name === 'country' || field.type?.includes('multi')}
+                    value={this.state.fields[field.name]}
+                    onChange={(val) => this.onAnyFieldChange(field.name, val)}
+                    options={options}
+                    isLimitedHeight
+                    isClearable
+                    error={hasError ? t('Please select an option') : false}
+                  />
+                ) : (
+                  <TextBox
+                    type={field.name === 'description' ? 'text-multiline' : 'text'}
+                    label={addRequiredToLabel(label, field.required)}
+                    value={this.state.fields[field.name] || ''}
+                    onChange={(val) => this.onAnyFieldChange(field.name, val)}
+                    errors={hasError ? t('Field required') : false}
+                    placeholder={t('Enter details here')}
+                  />
+                )}
+              </div>
+            )
+          })}
 
           {(this.props.context === PROJECT_SETTINGS_CONTEXTS.NEW ||
             this.props.context === PROJECT_SETTINGS_CONTEXTS.REPLACE) && (

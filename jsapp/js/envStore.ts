@@ -13,6 +13,8 @@ export interface EnvironmentResponse {
   community_url: string
   academy_url: string
   project_metadata_fields: EnvStoreFieldItem[]
+  extra_project_metadata_fields: EnvStoreFieldItem[]
+  extra_project_metadata_choices: Record<string, string[][]>
   user_metadata_fields: UserMetadataField[]
   sector_choices: string[][]
   operational_purpose_choices: string[][]
@@ -63,6 +65,7 @@ export interface EnvStoreFieldItem {
   name: string
   required: boolean
   label: string
+  type?: 'select' | 'multiselect' | 'text' | 'text-multiline'
 }
 
 export interface SocialApp {
@@ -71,8 +74,6 @@ export interface SocialApp {
   provider_id: string
   client_id: string
 }
-
-type ProjectMetadataFieldKey = 'description' | 'sector' | 'country' | 'operational_purpose' | 'collects_pii'
 
 export class EnvStoreData {
   public terms_of_service_url = ''
@@ -85,6 +86,8 @@ export class EnvStoreData {
   public min_retry_time = 4 // seconds
   public max_retry_time: number = 4 * 60 // seconds
   public project_metadata_fields: EnvStoreFieldItem[] = []
+  public extra_project_metadata_fields: EnvStoreFieldItem[] = []
+  public extra_project_metadata_choices: Record<string, LabelValuePair[]> = {}
   public user_metadata_fields: UserMetadataField[] = []
   public sector_choices: LabelValuePair[] = []
   public operational_purpose_choices: LabelValuePair[] = []
@@ -109,24 +112,40 @@ export class EnvStoreData {
   public open_rosa_server = ''
   public allow_self_account_deletion = false
 
-  getProjectMetadataField(fieldName: ProjectMetadataFieldKey): EnvStoreFieldItem | boolean {
-    for (const f of this.project_metadata_fields) {
-      if (f.name === fieldName) {
-        return f
-      }
-    }
-    return false
-  }
-
   public getProjectMetadataFieldsAsSimpleDict() {
     // dict[name] => {name, required, label}
-    const dict: Partial<{
-      [fieldName in ProjectMetadataFieldKey]: EnvStoreFieldItem
-    }> = {}
-    for (const field of this.project_metadata_fields) {
-      dict[field.name as keyof typeof dict] = field
+    const dict: { [fieldName: string]: EnvStoreFieldItem } = {}
+    const all = [...this.project_metadata_fields, ...this.extra_project_metadata_fields]
+    for (const field of all) {
+      dict[field.name] = field
     }
     return dict
+  }
+
+  public getLocalizedLabel(label: string | Record<string, string>, lang: string): string {
+    if (typeof label === 'string') return label
+    console.error('this is the lang: ', lang)
+
+    if (label[lang]) return label[lang]
+    if (label['default']) return label['default']
+    if (label['en']) return label['en']
+
+    return Object.values(label)[0] || ''
+  }
+
+  public getOptionsForField(fieldName: string): LabelValuePair[] {
+    if (fieldName === 'sector') return this.sector_choices
+    if (fieldName === 'country') return this.country_choices
+    if (fieldName === 'operational_purpose') return this.operational_purpose_choices
+
+    if (fieldName === 'collects_pii') {
+      return [
+        { value: 'Yes', label: 'Yes' },
+        { value: 'No', label: 'No' },
+      ]
+    }
+
+    return this.extra_project_metadata_choices[fieldName] || []
   }
 
   public getUserMetadataFieldsAsSimpleDict() {
@@ -213,6 +232,27 @@ class EnvStore {
     }
 
     this.data.asr_mt_features_enabled = response.asr_mt_features_enabled
+
+    this.data.extra_project_metadata_fields = response.extra_project_metadata_fields || []
+
+    if (response.extra_project_metadata_choices) {
+      Object.keys(response.extra_project_metadata_choices).forEach((key) => {
+        this.data.extra_project_metadata_choices[key] = response.extra_project_metadata_choices[key].map(
+          this.nestedArrToChoiceObjs,
+        )
+      })
+    }
+
+    this.data.extra_project_metadata_fields.forEach((field: any) => {
+      if (field.options && Array.isArray(field.options)) {
+        this.data.extra_project_metadata_choices[field.name] = field.options.map((opt: any) => {
+          return {
+            value: opt.name,
+            label: opt.label,
+          }
+        })
+      }
+    })
 
     this.data.enable_custom_password_guidance_text = response.enable_custom_password_guidance_text
     this.data.custom_password_localized_help_text = response.custom_password_localized_help_text
