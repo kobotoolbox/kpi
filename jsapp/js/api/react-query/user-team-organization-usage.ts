@@ -19,6 +19,8 @@ import type {
   UseQueryResult,
 } from '@tanstack/react-query'
 
+import type { AssetListCount } from '../models/assetListCount'
+
 import type { AssetUsageListParams } from '../models/assetUsageListParams'
 
 import type { EmailAddress } from '../models/emailAddress'
@@ -694,6 +696,97 @@ export function useOrganizationsAssetsRetrieve<
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getOrganizationsAssetsRetrieveQueryOptions(uidOrganization, options)
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
+/**
+ * ## Return counts of deployed, archived, and draft assets owned by the organization
+
+ */
+export type organizationsAssetsCountsRetrieveResponse200 = {
+  data: AssetListCount
+  status: 200
+}
+
+export type organizationsAssetsCountsRetrieveResponse404 = {
+  data: ErrorDetail
+  status: 404
+}
+
+export type organizationsAssetsCountsRetrieveResponseComposite =
+  | organizationsAssetsCountsRetrieveResponse200
+  | organizationsAssetsCountsRetrieveResponse404
+
+export type organizationsAssetsCountsRetrieveResponse = organizationsAssetsCountsRetrieveResponseComposite & {
+  headers: Headers
+}
+
+export const getOrganizationsAssetsCountsRetrieveUrl = (uidOrganization: string) => {
+  return `/api/v2/organizations/${uidOrganization}/assets/counts/`
+}
+
+export const organizationsAssetsCountsRetrieve = async (
+  uidOrganization: string,
+  options?: RequestInit,
+): Promise<organizationsAssetsCountsRetrieveResponse> => {
+  return fetchWithAuth<organizationsAssetsCountsRetrieveResponse>(
+    getOrganizationsAssetsCountsRetrieveUrl(uidOrganization),
+    {
+      ...options,
+      method: 'GET',
+    },
+  )
+}
+
+export const getOrganizationsAssetsCountsRetrieveQueryKey = (uidOrganization: string) => {
+  return ['api', 'v2', 'organizations', uidOrganization, 'assets', 'counts'] as const
+}
+
+export const getOrganizationsAssetsCountsRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof organizationsAssetsCountsRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidOrganization: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof organizationsAssetsCountsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getOrganizationsAssetsCountsRetrieveQueryKey(uidOrganization)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof organizationsAssetsCountsRetrieve>>> = ({ signal }) =>
+    organizationsAssetsCountsRetrieve(uidOrganization, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: !!uidOrganization, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof organizationsAssetsCountsRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type OrganizationsAssetsCountsRetrieveQueryResult = NonNullable<
+  Awaited<ReturnType<typeof organizationsAssetsCountsRetrieve>>
+>
+export type OrganizationsAssetsCountsRetrieveQueryError = ErrorDetail
+
+export function useOrganizationsAssetsCountsRetrieve<
+  TData = Awaited<ReturnType<typeof organizationsAssetsCountsRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidOrganization: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof organizationsAssetsCountsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getOrganizationsAssetsCountsRetrieveQueryOptions(uidOrganization, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
@@ -2178,6 +2271,97 @@ export function useProjectViewsAssetsRetrieve<
   },
 ): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getProjectViewsAssetsRetrieveQueryOptions(uidProjectView, params, options)
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
+/**
+ * ## Return counts of deployed, archived, and draft assets in the project view
+
+ */
+export type projectViewsAssetsCountsRetrieveResponse200 = {
+  data: AssetListCount
+  status: 200
+}
+
+export type projectViewsAssetsCountsRetrieveResponse404 = {
+  data: ErrorDetail
+  status: 404
+}
+
+export type projectViewsAssetsCountsRetrieveResponseComposite =
+  | projectViewsAssetsCountsRetrieveResponse200
+  | projectViewsAssetsCountsRetrieveResponse404
+
+export type projectViewsAssetsCountsRetrieveResponse = projectViewsAssetsCountsRetrieveResponseComposite & {
+  headers: Headers
+}
+
+export const getProjectViewsAssetsCountsRetrieveUrl = (uidProjectView: string) => {
+  return `/api/v2/project-views/${uidProjectView}/assets/counts/`
+}
+
+export const projectViewsAssetsCountsRetrieve = async (
+  uidProjectView: string,
+  options?: RequestInit,
+): Promise<projectViewsAssetsCountsRetrieveResponse> => {
+  return fetchWithAuth<projectViewsAssetsCountsRetrieveResponse>(
+    getProjectViewsAssetsCountsRetrieveUrl(uidProjectView),
+    {
+      ...options,
+      method: 'GET',
+    },
+  )
+}
+
+export const getProjectViewsAssetsCountsRetrieveQueryKey = (uidProjectView: string) => {
+  return ['api', 'v2', 'project-views', uidProjectView, 'assets', 'counts'] as const
+}
+
+export const getProjectViewsAssetsCountsRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof projectViewsAssetsCountsRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidProjectView: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof projectViewsAssetsCountsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getProjectViewsAssetsCountsRetrieveQueryKey(uidProjectView)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof projectViewsAssetsCountsRetrieve>>> = ({ signal }) =>
+    projectViewsAssetsCountsRetrieve(uidProjectView, { signal, ...requestOptions })
+
+  return { queryKey, queryFn, enabled: !!uidProjectView, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof projectViewsAssetsCountsRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey }
+}
+
+export type ProjectViewsAssetsCountsRetrieveQueryResult = NonNullable<
+  Awaited<ReturnType<typeof projectViewsAssetsCountsRetrieve>>
+>
+export type ProjectViewsAssetsCountsRetrieveQueryError = ErrorDetail
+
+export function useProjectViewsAssetsCountsRetrieve<
+  TData = Awaited<ReturnType<typeof projectViewsAssetsCountsRetrieve>>,
+  TError = ErrorDetail,
+>(
+  uidProjectView: string,
+  options?: {
+    query?: UseQueryOptions<Awaited<ReturnType<typeof projectViewsAssetsCountsRetrieve>>, TError, TData>
+    request?: SecondParameter<typeof fetchWithAuth>
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getProjectViewsAssetsCountsRetrieveQueryOptions(uidProjectView, options)
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey }
 
