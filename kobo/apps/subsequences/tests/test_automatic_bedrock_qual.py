@@ -5,7 +5,7 @@ from unittest.mock import ANY, DEFAULT, MagicMock, call, patch
 
 import jsonschema
 import pytest
-from botocore.exceptions import ClientError
+from botocore.exceptions import ClientError, ReadTimeoutError
 from constance.test import override_config
 from ddt import data, ddt, unpack
 from django.core.cache import cache
@@ -614,6 +614,39 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
 
         assert result.get('status') == 'failed'
         assert result.get('error') == 'LLM returned empty response'
+
+    def test_timeout_primary_model_fallback_to_backup(self):
+        action_data = {
+            'uuid': BEDROCK_QUAL_TEXT_UUID,
+            '_dependency': self._dependency_dict_from_transcript_dict(),
+        }
+
+        # Simulate a timeout error from the primary model
+        timeout_error = ReadTimeoutError(
+            endpoint_url='https://bedrock-runtime.aws.amazon.com',
+            operation_name='invoke_model',
+            message='Read timeout on endpoint URL: (ReadTimeoutError)'
+        )
+
+        with patch.object(
+            self.action,
+            'get_response_from_llm',
+            side_effect=timeout_error,
+        ) as patched_get_response_from_llm:
+            result = self.action.run_external_process({}, {}, action_data=action_data)
+
+        # Verify that the backup model was called after the timeout
+        patched_get_response_from_llm.assert_has_calls(
+            [
+                call(ANY, OSS120),
+                call(ANY, ClaudeSonnet)
+            ],
+            any_order=False
+        )
+
+        # Verify it exited gracefully
+        assert result.get('status') == 'failed'
+        assert 'timeout' in result.get('error')
 
 
 class TestAutomaticQAThrottling(BaseAutomaticBedrockQualTestCase):
