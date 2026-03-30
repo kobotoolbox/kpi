@@ -198,7 +198,13 @@ export default function CopyTeamPermissions({ asset }: CopyTeamPermissionsProps)
               placeholder={t('Select source project…')}
               // Disables client-side filtering since we do it via API
               filter={({ options }) => options}
-              nothingFoundMessage={assetsInfiniteQuery.isFetching ? t('Loading…') : t('No projects found')}
+              nothingFoundMessage={
+                assetsInfiniteQuery.isFetching
+                  ? t('Loading…')
+                  : assetsInfiniteQuery.isError
+                    ? t('Failed to load projects')
+                    : t('No projects found')
+              }
               style={{ flex: 1 }}
               // When using portal I was getting "ResizeObserver loop completed with undelivered notifications" error
               comboboxProps={{ withinPortal: false, position: 'top' }}
