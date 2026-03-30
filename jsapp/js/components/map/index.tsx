@@ -46,10 +46,8 @@ import type {
 import './map.scss'
 import './map.marker-colors.scss'
 import { fetchGetUrl } from '../../../js/api'
-import {OrganizationResponse} from '#/api/models/organizationResponse'
-import {ErrorDetail} from '#/api/models/errorDetail'
-import {PaginatedDataResponseList} from '#/api/models/paginatedDataResponseList'
 import {DataResponse} from '#/api/models/dataResponse'
+import {UseInfiniteQueryResult} from '@tanstack/react-query'
 
 const STREETS_LAYER = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
@@ -133,6 +131,9 @@ interface FormMapProps extends WithRouterProps {
   viewby: string
   querySubmission?: any
   submissions?: DataResponse[]
+  qs: UseInfiniteQueryResult
+  fa: Function
+  all: DataResponse[]
 }
 
 interface FormMapState {
@@ -238,6 +239,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     }
 
     this.requestData(map, this.props.viewby)
+    this.props.fa()
     this.unlisteners.push(
       actions.map.setMapStyles.started.listen(this.onSetMapStylesStarted.bind(this)),
       actions.map.setMapStyles.completed.listen(this.onSetMapStylesCompleted.bind(this)),
@@ -1113,6 +1115,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
           </bem.FormView__mapList>
         )}
         {!this.state.markers && !this.state.heatmap && <LoadingSpinner message={false} />}
+        {this.props.qs.status === 'pending' && <LoadingSpinner message={false} /> }
         {this.state.showMapSettings && (
           <Modal open onClose={this.toggleMapSettings.bind(this)} title={t('Map Settings')}>
             <MapSettings
@@ -1125,7 +1128,8 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
         )}
 
         <p>ffjajdskfasdffffkfjajdskfasdffffkfjajdskfasdffffkfjajdskfasdffffkjajdskfasdffffk</p>
-        {this.props.submissions && <p>{this.props.submissions.length}</p> }
+        <p>{this.props.qs.status}</p>
+        {this.props.all.length > 0 && this.props.all.forEach((i) => <p>{i._geolocation}</p>)}
         <div id='data-map' />
       </bem.FormView>
     )

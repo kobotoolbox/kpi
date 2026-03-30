@@ -1,10 +1,10 @@
 import {DataResponse} from "#/api/models/dataResponse"
-import {useAssetsDataList, useAssetsDataRetrieve} from "#/api/react-query/survey-data"
-import {useOrganizationAssumed} from "#/api/useOrganizationAssumed"
+import {assetsDataList, getAssetsDataListQueryKey,} from "#/api/react-query/survey-data"
 import {AssetResponse} from "#/dataInterface"
 import {WithRouterProps} from "#/router/legacy"
-import {keepPreviousData, useInfiniteQuery, useQuery} from "@tanstack/react-query"
+import {useInfiniteQuery} from "@tanstack/react-query"
 import FormMap from '.'
+import {useEffect} from "react"
 
 interface FormMapProps extends WithRouterProps {
   asset: AssetResponse
@@ -13,29 +13,45 @@ interface FormMapProps extends WithRouterProps {
 }
 
 export default function FormMapWrapper(props: FormMapProps) {
-  const querySubmission = useAssetsDataList(props.asset.uid, {limit: 30000}, {})
 
-  let submissions: DataResponse[] = []
+  //useEffect(() => {
+  //  fetchAllPages()
+  //}, [])
 
-  if (querySubmission.data?.status === 200 && querySubmission.data.data.results.length > 0) {
-    submissions = querySubmission.data.data.results
+  const query = useInfiniteQuery({
+    queryKey: [...getAssetsDataListQueryKey(props.asset.uid), 'infinite'],
+    queryFn: ({ pageParam, signal }) =>
+      assetsDataList(props.asset.uid, { limit: 1000, start: pageParam}, { signal }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) => {
+      if (allPages.length >= 10) {
+        return undefined
+      }
+      if (lastPage.status === 200 && lastPage.data.next) {
+        return allPages.length * 1000
+      }
+      return undefined
+    },
+  })
+
+
+  const fetchAllPages = async () => {
+    console.log('called')
+    let hasMore = query.hasNextPage
+
+    while (hasMore) {
+      console.log('page', query.data?.pages.length)
+      const result = await query.fetchNextPage()
+      hasMore = result.hasNextPage ?? false
+      await new Promise(resolve => setTimeout(resolve, 100))
+    }
+
+    console.log('doine', allSubmissions)
   }
 
-  //const {
-  //  data,
-  //  error,
-  //  fetchNextPage,
-  //  hasNextPage,
-  //  isFetching,
-  //  isFetchingNextPage,
-  //  status,
-  //} = useInfiniteQuery({
-  //  queryKey: ['submissions'],
-  //  queryFn: useAssetsDataList(props.asset.uid, {limit: 30000}),
-  //  initialPageParam: 0,
-  //  getNextPageParam: (lastPage, pages) => lastPage.nextCursor,
-  //})
+  const allSubmissions: DataResponse[] = query.data?.pages.flatMap((page) => (page.status === 200 ? page.data.results : [])) || []
+
   return (
-    <FormMap asset={props.asset} querySubmission={querySubmission} submissions={submissions} />
+    <FormMap asset={props.asset} qs={query} fa={fetchAllPages} all={allSubmissions}/>
   )
 }
