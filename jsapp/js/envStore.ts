@@ -64,8 +64,12 @@ export interface UserMetadataField {
 export interface EnvStoreFieldItem {
   name: string
   required: boolean
-  label: string
-  type?: 'select' | 'multiselect' | 'text' | 'text-multiline'
+  label: string | Record<string, string>
+  type?: 'select' | 'multiselect' | 'multi_select' | 'text' | 'text-multiline'
+  options?: Array<{
+    name: string
+    label: string | Record<string, string>
+  }>
 }
 
 export interface SocialApp {
@@ -124,7 +128,6 @@ export class EnvStoreData {
 
   public getLocalizedLabel(label: string | Record<string, string>, lang: string): string {
     if (typeof label === 'string') return label
-    console.error('this is the lang: ', lang)
 
     if (label[lang]) return label[lang]
     if (label['default']) return label['default']
@@ -233,7 +236,12 @@ class EnvStore {
 
     this.data.asr_mt_features_enabled = response.asr_mt_features_enabled
 
-    this.data.extra_project_metadata_fields = response.extra_project_metadata_fields || []
+    this.data.extra_project_metadata_fields = (response.extra_project_metadata_fields || []).map((field) => {
+      return {
+        ...field,
+        type: field.type === 'multi_select' ? 'multiselect' : field.type,
+      }
+    })
 
     if (response.extra_project_metadata_choices) {
       Object.keys(response.extra_project_metadata_choices).forEach((key) => {
@@ -243,7 +251,7 @@ class EnvStore {
       })
     }
 
-    this.data.extra_project_metadata_fields.forEach((field: any) => {
+    this.data.extra_project_metadata_fields.forEach((field: EnvStoreFieldItem) => {
       if (field.options && Array.isArray(field.options)) {
         this.data.extra_project_metadata_choices[field.name] = field.options.map((opt: any) => {
           return {

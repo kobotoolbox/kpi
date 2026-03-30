@@ -869,7 +869,7 @@ class ProjectSettings extends React.Component {
           {metadataFields.map((field) => {
             const options = envStore.data.getOptionsForField(field.name)
             const label = envStore.data.getLocalizedLabel(field.label, currentLang)
-            const isSelect = options.length > 0 || ['select', 'multiselect', 'multi_select'].includes(field.type)
+            const isSelect = options.length > 0 || ['select', 'multiselect'].includes(field.type)
             const hasError = this.hasFieldError(field.name)
 
             return (
@@ -879,10 +879,18 @@ class ProjectSettings extends React.Component {
                     label={addRequiredToLabel(label, field.required)}
                     isMulti={field.name === 'country' || field.type?.includes('multi')}
                     value={this.state.fields[field.name]}
+                    options={
+                      field.name === 'collects_pii'
+                        ? [
+                            { value: 'Yes', label: t('Yes') },
+                            { value: 'No', label: t('No') },
+                          ]
+                        : options
+                    }
                     onChange={(val) => this.onAnyFieldChange(field.name, val)}
-                    options={options}
                     isLimitedHeight
                     isClearable
+                    menuPlacement='auto'
                     error={hasError ? t('Please select an option') : false}
                   />
                 ) : (
@@ -890,7 +898,10 @@ class ProjectSettings extends React.Component {
                     type={field.name === 'description' ? 'text-multiline' : 'text'}
                     label={addRequiredToLabel(label, field.required)}
                     value={this.state.fields[field.name] || ''}
-                    onChange={(val) => this.onAnyFieldChange(field.name, val)}
+                    onChange={(val) => {
+                      const sanitizedValue = field.name === 'description' ? assetUtils.removeInvalidChars(val) : val
+                      this.onAnyFieldChange(field.name, sanitizedValue)
+                    }}
                     errors={hasError ? t('Field required') : false}
                     placeholder={t('Enter details here')}
                   />
