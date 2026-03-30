@@ -119,13 +119,13 @@ class SurveyScope {
       .then((response) => {
         const data = response?.data
 
-        if ('content' in data === false) {
+        if ('content' in data && data.content !== undefined) {
+          // `loadDict()` mutates its first argument, so pass a copied object
+          const newSurvey = dkobo_xlform.model.Survey.loadDict(clonedeep(data.content), this.survey)
+          this.survey.insertSurvey(newSurvey, position, groupId)
+        } else {
           throw new Error(`Asset ${uid} not found or missing content`)
         }
-
-        // `loadDict()` mutates its first argument, so pass a copied object
-        const newSurvey = dkobo_xlform.model.Survey.loadDict(clonedeep(data.content), this.survey)
-        this.survey.insertSurvey(newSurvey, position, groupId)
       })
       .catch((error) => {
         console.error('Failed to insert external item into survey:', error)
@@ -134,6 +134,10 @@ class SurveyScope {
   }
 
   handleItem(data: { position: number; itemUid: string; groupId?: string }): void {
+    if (!data.itemUid) {
+      throw new Error('addExternalItemAtPosition: itemUid not provided!')
+    }
+
     this.addExternalItemAtPosition(data.position, data.itemUid, data.groupId)
   }
 }
