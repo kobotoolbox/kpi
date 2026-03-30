@@ -51,11 +51,15 @@ export default function CopyTeamPermissions({ asset }: CopyTeamPermissionsProps)
       actions.permissions.copyPermissionsFrom.completed.listen(() => {
         notify(t('permissions were copied successfully'))
       }),
+      actions.permissions.copyPermissionsFrom.failed.listen(() => {
+        notify(t('Failed to copy permissions'), 'error')
+        setIsAwaitingAssetChange(false)
+      }),
     ]
     return () => {
       unlisteners.forEach((clb) => clb())
     }
-  }, [asset.uid, isAwaitingAssetChange])
+  }, [asset.uid, isAwaitingAssetChange, closeForm])
 
   function getAssetsListQuery() {
     const queryParts: string[] = []
@@ -103,13 +107,14 @@ export default function CopyTeamPermissions({ asset }: CopyTeamPermissionsProps)
   }
 
   const safeCopyPermissionsFrom = () => {
-    if (sourceUid && sourceName && asset.name) {
+    if (sourceUid && sourceName) {
+      const assetName = asset.name || t('Untitled')
       const dialog = alertify.dialog('confirm')
       const finalMessage = t(
         'You are about to copy permissions from ##source to ##target. This action cannot be undone.',
       )
         .replace('##source', `<strong>${escapeHtml(sourceName)}</strong>`)
-        .replace('##target', `<strong>${escapeHtml(asset.name)}</strong>`)
+        .replace('##target', `<strong>${escapeHtml(assetName)}</strong>`)
 
       const dialogOptions = {
         title: t('Are you sure you want to copy permissions?'),
@@ -152,7 +157,7 @@ export default function CopyTeamPermissions({ asset }: CopyTeamPermissionsProps)
     if (isDropdownOpened && (assetsInfiniteQuery.hasNextPage || assetsInfiniteQuery.isFetchingNextPage)) {
       data.push({
         value: INFINITE_SCROLL_PLACEHOLDER,
-        label: 'Loading…',
+        label: t('Loading…'),
         disabled: true,
       })
     }
