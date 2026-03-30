@@ -7,7 +7,7 @@ from typing import Optional
 from constance import config
 from django.conf import settings as django_settings
 from django.db import transaction
-from django.db.models import F
+from django.db.models import Count, F, Q
 from django.utils.translation import gettext as t
 from django.utils.translation import ngettext as nt
 from drf_spectacular.types import OpenApiTypes
@@ -91,6 +91,7 @@ from ...schema_extensions.v2.assets.fields import (
     XFormLinkField,
     XLSLinkField,
 )
+from ...utils.permissions import is_user_anonymous
 from .asset_export_settings import AssetExportSettingsSerializer
 from .asset_file import AssetFileSerializer
 from .asset_permission_assignment import AssetPermissionAssignmentReadSerializer
@@ -1291,3 +1292,58 @@ class AssetMetadataListSerializer(AssetListSerializer):
     def _get_view(self) -> str:
         request = self.context['request']
         return request.parser_context['kwargs']['uid_project_view']
+
+
+class AssetListCountSerializer(serializers.Serializer):
+
+    deployed_count = serializers.SerializerMethodField()
+    archived_count = serializers.SerializerMethodField()
+    draft_count = serializers.SerializerMethodField()
+
+    def __init__(self, queryset=None, *args, **kwargs):
+        super().__init__(queryset, *args, **kwargs)
+        # this shouldn't happen, but otherwise drf-spectacular complains
+        if queryset is None:
+            return
+
+        # technically this causes a wasted query when the user is anonymous, but then
+        # the initial queryset is empty so it does not matter
+        self.aggregates = queryset.aggregate(
+            draft_count=Count(
+                'pk',
+                filter=Q(_deployment_status=AssetDeploymentStatus.DRAFT),
+                distinct=True,
+            ),
+            archived_count=Count(
+                'pk',
+                filter=Q(_deployment_status=AssetDeploymentStatus.ARCHIVED),
+                distinct=True,
+            ),
+            deployed_count=Count(
+                'pk',
+                filter=Q(_deployment_status=AssetDeploymentStatus.DEPLOYED),
+                distinct=True,
+            ),
+        )
+
+    def _request_is_anonymous(self):
+        request = self.context['request']
+        return is_user_anonymous(request.user)
+
+    @extend_schema_field(OpenApiTypes.INT)
+    def get_deployed_count(self, queryset):
+        if self._request_is_anonymous():
+            return 0
+        return self.aggregates['deployed_count']
+
+    @extend_schema_field(OpenApiTypes.INT)
+    def get_archived_count(self, queryset):
+        if self._request_is_anonymous():
+            return 0
+        return self.aggregates['archived_count']
+
+    @extend_schema_field(OpenApiTypes.INT)
+    def get_draft_count(self, queryset):
+        if self._request_is_anonymous():
+            return 0
+        return self.aggregates['draft_count']
