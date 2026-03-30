@@ -1,4 +1,4 @@
-## Count the daily amount of submission
+## Count the daily amount of submissions
 
 Returns up to the last 31 days of daily counts and total counts of submissions to a survey.
 

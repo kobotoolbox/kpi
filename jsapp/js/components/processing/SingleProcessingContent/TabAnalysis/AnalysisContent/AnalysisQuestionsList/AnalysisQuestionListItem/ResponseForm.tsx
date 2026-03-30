@@ -9,7 +9,7 @@ import Icon from '#/components/common/icon'
 import type { ResponseManualQualActionParams } from '#/api/models/responseManualQualActionParams'
 import type { QualVersionItem } from '#/components/processing/common/types'
 import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
-import { getQuestionTypeDefinition, hasEmptyValueAnswer } from '../../../common/utils'
+import { getQuestionTypeDefinition, hasEmptyValueAnswer, useShowHints } from '../../../common/utils'
 
 interface Props {
   children?: React.ReactNode
@@ -53,12 +53,12 @@ export default function ResponseForm({
   const [opened, { open, close }] = useDisclosure(false)
   const [verificationStatus, setVerificationStatus] = useState<boolean | undefined>(undefined)
   const [isGenerating, setIsGenerating] = useState(false)
+  const [showHints] = useShowHints()
+  const ffAutoQAEnabled = useFeatureFlag(FeatureFlag.autoQAEnabled)
 
   useEffect(() => {
     setVerificationStatus(undefined)
   }, [answer?._uuid])
-
-  const ffAutoQAEnabled = useFeatureFlag(FeatureFlag.autoQAEnabled)
 
   // Get the question definition (with safety check)
   const qaQuestionDef = getQuestionTypeDefinition(qaQuestion.type)
@@ -120,6 +120,8 @@ export default function ResponseForm({
       setIsGenerating(false)
     }
   }
+
+  const hintValue = (qaQuestion.hint?.labels as { [key: string]: string | undefined })?._default
 
   // Prioritize user's currently selected status
   const displayedVerificationStatus =
@@ -196,6 +198,12 @@ export default function ResponseForm({
           </>
         )}
       </Group>
+
+      {showHints && ffAutoQAEnabled && hintValue && (
+        <Text pl='40px' m='0' ta='left' c='var(--mantine-color-gray-2)' mt='calc(-1 * var(--stack-gap))'>
+          {hintValue}
+        </Text>
+      )}
 
       {/* Hard coded left padding to account for the 32px icon size + 8px gap */}
       {children && <Box pl='40px'>{children}</Box>}

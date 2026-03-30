@@ -483,6 +483,53 @@ class OrganizationAssetListApiTestCase(BaseOrganizationAssetApiTestCase):
         response = self.client.get(asset_list_url)
         assert response.data['count'] == 0
 
+    @data(
+        ('someuser', status.HTTP_200_OK),
+        ('anotheruser', status.HTTP_200_OK),
+        ('alice', status.HTTP_403_FORBIDDEN),
+        ('bob', status.HTTP_404_NOT_FOUND),
+    )
+    @unpack
+    def test_count_only_organization_assets(self, username, expected_response_code):
+        user = User.objects.get(username=username)
+        # clear out assets
+        Asset.objects.all().delete()
+        Asset.objects.create(
+            owner=self.someuser,
+            name='draft',
+            content={}
+        )
+        deployed = Asset.objects.create(
+            owner=self.someuser,
+            name='deployed',
+            content={}
+        )
+        deployed.deploy(backend='mock', active=True)
+        archived = Asset.objects.create(
+            owner=self.someuser,
+            name='archived',
+            content={}
+        )
+        archived.deploy(backend='mock', active=False)
+        # should not be counted
+        Asset.objects.create(
+            owner=self.bob,
+            name='external',
+            content={},
+        )
+        url = reverse(
+            self._get_endpoint('organizations-asset-counts'),
+            kwargs={'uid_organization': self.organization.id},
+        )
+        self.client.force_login(user)
+        res = self.client.get(url)
+        assert res.status_code == expected_response_code
+        if expected_response_code == 200:
+            response_data = res.data
+            assert response_data['deployed_count'] == 1
+            assert response_data['draft_count'] == 1
+            assert response_data['archived_count'] == 1
+
 
 @ddt
 class OrganizationAssetDetailApiTestCase(BaseOrganizationAssetApiTestCase):
