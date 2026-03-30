@@ -262,9 +262,12 @@ class XForm(AbstractTimeStampedModel):
         Retrieves the name of the XML tag representing the root node of the "survey"
         in the XForm XML structure.
 
-        It should always be present in `self.json`.
+        It should always be present in `self.json`. When `name_extracted` is
+        annotated by the viewset queryset, it is used directly to avoid loading
+        the full `json` field.
         """
-
+        if getattr(self, 'name_extracted', None) is not None:
+            return self.name_extracted
         form_json = json.loads(self.json)
         return form_json['name']
 

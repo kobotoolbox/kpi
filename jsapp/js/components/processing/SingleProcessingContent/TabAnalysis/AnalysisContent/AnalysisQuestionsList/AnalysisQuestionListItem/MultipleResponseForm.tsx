@@ -43,6 +43,7 @@ export default function SelectMultipleResponseForm({
           .map((choice) => ({
             name: choice.uuid,
             label: choice.labels._default,
+            hint: (choice.hint?.labels as { [key: string]: string | undefined })?._default,
             checked: (((qaAnswer?._data as any)?.value as string[]) ?? []).includes(choice.uuid),
           }))}
         onChange={handleChange}

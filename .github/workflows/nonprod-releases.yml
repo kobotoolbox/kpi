@@ -104,8 +104,7 @@ jobs:
   notify-success:
     needs:
       - deploy
-      - trigger-main-deploy
-    if: ${{ !cancelled() && !failure() }}
+    if: ${{ github.ref_name != 'main' }}
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
     with:
