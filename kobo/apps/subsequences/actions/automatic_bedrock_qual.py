@@ -6,7 +6,7 @@ from typing import Optional
 
 import boto3
 from botocore.config import Config
-from botocore.exceptions import ClientError, ReadTimeoutError
+from botocore.exceptions import ClientError, ConnectTimeoutError, ReadTimeoutError
 from django.conf import settings
 from django.utils.functional import classproperty
 from django_userforeignkey.request import get_current_request
@@ -140,7 +140,10 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
             region_name=settings.AWS_BEDROCK_REGION_NAME,
             aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
             aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-            config=Config(read_timeout=50, connect_timeout=5),
+            config=Config(
+                read_timeout=settings.AWS_BEDROCK_READ_TIMEOUT,
+                connect_timeout=settings.AWS_BEDROCK_CONNECT_TIMEOUT
+            ),
         )
 
     @property
@@ -487,7 +490,8 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
             except (
                 InvalidResponseFromLLMException,
                 ClientError,
-                ReadTimeoutError
+                ReadTimeoutError,
+                ConnectTimeoutError,
             ) as e:
                 if index == 0:
                     logging.warning(
