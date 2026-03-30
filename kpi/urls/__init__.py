@@ -4,6 +4,7 @@ from django.urls import include, path, re_path
 from django.views.i18n import JavaScriptCatalog
 
 from hub.models import ConfigurationFile
+from kpi.utils.log import logging
 from kpi.views import authorized_application_authenticate_user, home, modern_browsers
 from kpi.views.current_user import CurrentUserViewSet
 from kpi.views.environment import EnvironmentView
@@ -71,7 +72,11 @@ if settings.STRIPE_ENABLED:
 
 
 if settings.DEBUG and settings.ENV == 'dev':
-    import debug_toolbar
-    urlpatterns = [
-        path('__debug__/', include(debug_toolbar.urls)),
-    ] + urlpatterns
+    try:
+        import debug_toolbar
+    except ModuleNotFoundError:
+        logging.warning('Module "django-debug-toolbar" not found, skipping')
+    else:
+        urlpatterns = [
+            path('__debug__/', include(debug_toolbar.urls)),
+        ] + urlpatterns
