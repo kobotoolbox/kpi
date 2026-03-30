@@ -130,9 +130,10 @@ class ProjectSettings extends React.Component {
   getInitialFieldsFromAsset(asset) {
     const fields = { name: asset ? asset.name : '' }
     this.getAllMetadataFields().forEach((f) => {
-      // Default to empty array for country (multi-select), null for others
-      const defaultValue = f.name === 'country' ? [] : null
-      fields[f.name] = asset?.settings ? asset.settings[f.name] : defaultValue
+      const isMultiValue = f.name === 'country' || ['multiselect', 'multi_select'].includes(f.type)
+      const defaultValue = isMultiValue ? [] : null
+      const hasStoredValue = asset?.settings && Object.prototype.hasOwnProperty.call(asset.settings, f.name)
+      fields[f.name] = hasStoredValue ? asset.settings[f.name] : defaultValue
     })
     return fields
   }
@@ -867,9 +868,23 @@ class ProjectSettings extends React.Component {
           </div>
 
           {metadataFields.map((field) => {
-            const options = envStore.data.getOptionsForField(field.name)
+            const rawOptions = envStore.data.getOptionsForField(field.name)
+
+            const translatedOptions = (
+              field.name === 'collects_pii'
+                ? [
+                    { value: 'Yes', label: t('Yes') },
+                    { value: 'No', label: t('No') },
+                  ]
+                : rawOptions
+            ).map((opt) => {
+              return {
+                ...opt,
+                label: envStore.data.getLocalizedLabel(opt.label, currentLang),
+              }
+            })
             const label = envStore.data.getLocalizedLabel(field.label, currentLang)
-            const isSelect = options.length > 0 || ['select', 'multiselect'].includes(field.type)
+            const isSelect = translatedOptions.length > 0 || ['select', 'multiselect'].includes(field.type)
             const hasError = this.hasFieldError(field.name)
 
             return (
@@ -879,14 +894,7 @@ class ProjectSettings extends React.Component {
                     label={addRequiredToLabel(label, field.required)}
                     isMulti={field.name === 'country' || field.type?.includes('multi')}
                     value={this.state.fields[field.name]}
-                    options={
-                      field.name === 'collects_pii'
-                        ? [
-                            { value: 'Yes', label: t('Yes') },
-                            { value: 'No', label: t('No') },
-                          ]
-                        : options
-                    }
+                    options={translatedOptions}
                     onChange={(val) => this.onAnyFieldChange(field.name, val)}
                     isLimitedHeight
                     isClearable
