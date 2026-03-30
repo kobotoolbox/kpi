@@ -117,8 +117,10 @@ class AuditLog(models.Model):
     ):
         if not self.user_uid:
             if self.user_id:
-                extra_details = getattr(self.user, 'extra_details', None)
-                if extra_details is None:
+                # Try to get `extra_details` from memory to avoid an extra query
+                if not (extra_details := getattr(self.user, 'extra_details', None)):
+                    # In rare cases, a user may be missing their `extra_details`
+                    # profile so to avoid crashes, create it if it does not exist
                     extra_details, _ = ExtraUserDetail.objects.get_or_create(
                         user_id=self.user_id
                     )
