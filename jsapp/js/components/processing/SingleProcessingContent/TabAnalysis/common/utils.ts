@@ -5,13 +5,14 @@ import type { ResponseManualQualActionParams } from '#/api/models/responseManual
 import type { QualVersionItem } from '#/components/processing/common/types'
 import { ANALYSIS_QUESTION_TYPES } from './constants'
 
-const SHOW_HINTS_LOCAL_STORAGE_KEY = 'processing_tab_analysis_show_hints'
+const SHOW_HINTS_LOCAL_STORAGE_KEY = 'kpiQualitativeAnalysisShowHints'
 
 export function useShowHints(): [boolean, (value: boolean | ((prevState: boolean) => boolean)) => void, () => void] {
   return useLocalStorage<boolean>({
     key: SHOW_HINTS_LOCAL_STORAGE_KEY,
     defaultValue: true,
-    getInitialValueInEffect: true,
+    // We hide hints initially before local storage value is loaded
+    getInitialValueInEffect: false,
   })
 }
 

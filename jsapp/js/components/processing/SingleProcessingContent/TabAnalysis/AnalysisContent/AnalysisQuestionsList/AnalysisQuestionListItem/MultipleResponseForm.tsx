@@ -4,6 +4,7 @@ import React from 'react'
 import type { ResponseQualSelectQuestionParams } from '#/api/models/responseQualSelectQuestionParams'
 import MultiCheckbox, { type MultiCheckboxItem } from '#/components/common/multiCheckbox'
 import type { QualVersionItem } from '#/components/processing/common/types'
+import { FeatureFlag, useFeatureFlag } from '#/featureFlags'
 import styles from '../../../common/styles.module.scss'
 import { useShowHints } from '../../../common/utils'
 
@@ -23,6 +24,7 @@ export default function SelectMultipleResponseForm({
   isAnswerAIGenerated,
 }: Props) {
   const [showHints] = useShowHints()
+  const autoQAEnabled = useFeatureFlag(FeatureFlag.autoQAEnabled)
 
   const handleChange = (items: MultiCheckboxItem[]) => {
     // Use new variable/reference to ensure state is updated before saving
@@ -46,7 +48,10 @@ export default function SelectMultipleResponseForm({
           .map((choice) => ({
             name: choice.uuid,
             label: choice.labels._default,
-            hint: showHints ? (choice.hint?.labels as { [key: string]: string | undefined })?._default : undefined,
+            hint:
+              showHints && autoQAEnabled
+                ? (choice.hint?.labels as { [key: string]: string | undefined })?._default
+                : undefined,
             checked: (((qaAnswer?._data as any)?.value as string[]) ?? []).includes(choice.uuid),
           }))}
         onChange={handleChange}

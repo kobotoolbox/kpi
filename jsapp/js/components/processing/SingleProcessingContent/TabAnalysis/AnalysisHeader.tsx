@@ -55,10 +55,6 @@ export default function AnalysisHeader({ asset, questionXpath, supplement, qaQue
     // ...automatedQuestionDefs,
   ]
 
-  function onShowHintsToggleChange(isChecked: boolean) {
-    setShowHints(isChecked)
-  }
-
   return (
     <header className={styles.root}>
       <Group>
@@ -100,9 +96,7 @@ export default function AnalysisHeader({ asset, questionXpath, supplement, qaQue
           isDisabled={!userCan('manage_asset', asset) || !!qaQuestion}
         />
 
-        {autoQAEnabled && (
-          <ToggleSwitch label={t('Show hints')} checked={showHints} onChange={onShowHintsToggleChange} />
-        )}
+        {autoQAEnabled && <ToggleSwitch label={t('Show hints')} checked={showHints} onChange={setShowHints} />}
       </Group>
 
       <span>
