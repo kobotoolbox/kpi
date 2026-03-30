@@ -192,17 +192,20 @@ def log_constance_update(key, old_value, new_value, **kwargs):
     request = get_current_request()
 
     if request is None:
-        logging.warning('Config updated but no request found to log it with.')
+        logging.debug(
+            f'Config key "{key}" updated but no request found to log it with.'
+        )
         return
 
     user = getattr(request, 'user', None)
     if not isinstance(user, User) or not user.is_authenticated or not user.is_superuser:
-        logging.warning(
-            'Config updated but no authenticated superuser found to log it with.'
+        logging.debug(
+            f'Config key "{key}" updated but no authenticated superuser found to'
+            f' log it with.'
         )
         return
 
-    message = f'{user} updated config key "{key}" from "{old_value}" to "{new_value}"'
+    message = f"{user} updated config key '{key}' from '{old_value}' to '{new_value}'"
     AuditLog.objects.create(
         user=user,
         app_label='constance',
@@ -245,7 +248,6 @@ def _sanitize_for_json(value):
     Sanitizes a value for JSON serialization
     """
     try:
-        json.loads(json.dumps(value))
-        return value
+        return json.loads(json.dumps(value))
     except (TypeError, ValueError):
         return str(value)
