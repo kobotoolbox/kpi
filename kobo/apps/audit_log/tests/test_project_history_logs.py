@@ -30,7 +30,7 @@ from kobo.apps.openrosa.apps.logger.xform_instance_parser import (
     remove_uuid_prefix,
 )
 from kobo.apps.openrosa.libs.utils.logger_tools import dict2xform
-from kobo.apps.subsequences.actions.automatic_bedrock_qual import OSS120
+from kobo.apps.subsequences.actions.automatic_bedrock_qual import OSS120, ClaudeSonnet
 from kobo.apps.subsequences.constants import Action
 from kobo.apps.subsequences.models import QuestionAdvancedFeature, SubmissionSupplement
 from kobo.apps.subsequences.tests.constants import (
@@ -2148,7 +2148,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                 log_metadata, 'adminuser', instance.root_uuid
             )
             llm_info = log_metadata['llm']
-            self.assertEqual(llm_info['model'], 'oss')
+            self.assertEqual(llm_info['model'], OSS120.model_id)
             self.assertEqual(llm_info['request_id'], '12345')
 
     def test_request_automatic_qa_data_bad_response(self):
@@ -2208,7 +2208,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
     def test_request_automatic_qa_data_includes_backup_model_if_used(self):
         class MockErrorClient:
             def invoke_model(self, modelId, *args, **kwargs):
-                if modelId == OSS120.model_id:
+                if modelId == OSS120.model_arn:
                     return {'something': 'bad'}
                 else:
                     return {
@@ -2263,7 +2263,7 @@ class TestProjectHistoryLogs(BaseAuditLogTestCase):
                 log_metadata, 'adminuser', instance.root_uuid
             )
             llm_info = log_metadata['llm']
-            self.assertEqual(llm_info['model'], 'claude')
+            self.assertEqual(llm_info['model'], ClaudeSonnet.model_id)
             self.assertEqual(llm_info['request_id'], '12345')
 
     @data(
