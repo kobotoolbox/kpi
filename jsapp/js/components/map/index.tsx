@@ -137,8 +137,6 @@ interface FormMapState {
   error: string | undefined
   showExpandedLegend: boolean
   langIndex: number
-  filteredByMarker: string[] | undefined
-  overridenStyles?: AssetMapStyles
   clearDisaggregatedPopover: boolean
   noData: boolean
   previousViewby?: string
@@ -190,8 +188,6 @@ export default function FormMap(props: FormMapProps) {
     error: undefined,
     showExpandedLegend: true,
     langIndex: 0,
-    filteredByMarker: undefined,
-    overridenStyles: undefined,
     clearDisaggregatedPopover: false,
     noData: false,
     foundSelectedQuestion: null,
@@ -204,6 +200,8 @@ export default function FormMap(props: FormMapProps) {
   const [heatmapState, setHeatmap] = useState<L.HeatLayer | undefined>(undefined)
   const [componentRefreshed, setComponentRefreshed] = useState<boolean>(false)
   const [fieldsState, setFieldsState] = useState<SurveyRow[]>([])
+  const [filteredByMarkerState, setFilteredByMarker] = useState<string[] | undefined>(undefined)
+  const [overridenStyles, setOverridenStyles] = useState<AssetMapStyles | undefined>(undefined)
 
   useEffect(() => {
       const fields: SurveyRow[] = []
@@ -415,7 +413,7 @@ export default function FormMap(props: FormMapProps) {
   const onSetMapStylesCompleted = () => {
     // asset is updated, no need to store oberriden styles as they are identical
     //setState({ ...state, overridenStyles: undefined })
-    vars.overridenStyles = undefined
+    setOverridenStyles(undefined)
   }
 
   /**
@@ -441,10 +439,10 @@ export default function FormMap(props: FormMapProps) {
     // Map cannot actually show more than one question at a time, so we must always have a question specified.
     // The list below describes the priority to find the question:
     let selectedQuestion: string | null = null
-    if (vars.overridenStyles?.selectedQuestion) {
+    if (overridenStyles?.selectedQuestion) {
       // 1. If the user has selected a question themselves but has not refreshed, the state will hold the "overriden"
       //    selected question. We should use this first.
-      selectedQuestion = vars.overridenStyles.selectedQuestion
+      selectedQuestion = overridenStyles.selectedQuestion
     } else if (props.asset.map_styles.selectedQuestion) {
       // 2. If the user has selected a question before (at any point), the `map_styles` value of the asset is patched
       //    and we should use this if it exists. Will happen on every refresh if the user has ever selected a question
@@ -470,8 +468,8 @@ export default function FormMap(props: FormMapProps) {
     vars.foundSelectedQuestion = selectedQuestion
 
     let queryLimit = QUERY_LIMIT_DEFAULT
-    if (vars.overridenStyles?.querylimit) {
-      queryLimit = Number.parseInt(vars.overridenStyles.querylimit)
+    if (overridenStyles?.querylimit) {
+      queryLimit = Number.parseInt(overridenStyles.querylimit)
     } else if (props.asset.map_styles.querylimit) {
       queryLimit = Number.parseInt(props.asset.map_styles.querylimit)
     }
@@ -519,8 +517,8 @@ export default function FormMap(props: FormMapProps) {
 
   const calcColorSet = () => {
     let colorSet
-    if (vars.overridenStyles?.colorSet) {
-      colorSet = vars.overridenStyles.colorSet
+    if (overridenStyles?.colorSet) {
+      colorSet = overridenStyles.colorSet
     } else {
       const ms = props.asset.map_styles
       colorSet = ms.colorSet ? ms.colorSet : undefined
@@ -880,13 +878,14 @@ export default function FormMap(props: FormMapProps) {
     //    componentRefreshed: true,
     //    overridenStyles: mapStyles,
     //  })
-    vars.filteredByMarker = undefined
+    setFilteredByMarker(undefined)
     setComponentRefreshed(true)
-    vars.overridenStyles = mapStyles
+    setOverridenStyles(mapStyles)
     const map = refreshMap()
 
     if (map) {
       //TODO: We left off here, why is the map not reseting?
+      // maybe something to do with the update in the lines above not reaching the map somehow
       requestData(map, props.viewby)
     }
   }
@@ -909,7 +908,7 @@ export default function FormMap(props: FormMapProps) {
 
   const filterByMarker = (markerId: number) => {
     const id = String(markerId)
-    let filteredByMarker = vars.filteredByMarker
+    let filteredByMarker = filteredByMarkerState
     const unselectedClass = 'unselected'
 
     if (!filteredByMarker) {
@@ -921,7 +920,8 @@ export default function FormMap(props: FormMapProps) {
     }
 
     //setState({ ...state, filteredByMarker: filteredByMarker })
-    vars.filteredByMarker = filteredByMarker
+    //vars.filteredByMarker = filteredByMarker
+    setFilteredByMarker(filteredByMarker)
     markers?.eachLayer((layer) => {
       if (filteredByMarker.includes(layer.options.typeId.toString())) {
         layer._icon.classList.remove(unselectedClass)
@@ -933,7 +933,7 @@ export default function FormMap(props: FormMapProps) {
 
   const resetFilterByMarker = () => {
     //setState({ ...state, filteredByMarker: undefined })
-    vars.filteredByMarker = undefined
+    setFilteredByMarker(undefined)
     markers?.eachLayer((layer) => {
       layer._icon.classList.remove('unselected')
     })
@@ -1093,7 +1093,7 @@ export default function FormMap(props: FormMapProps) {
       {vars.markerMap && vars.markersVisible && (
         <bem.FormView__mapList className={vars.showExpandedLegend ? 'expanded' : 'collapsed'}>
           <div className='maplist-contents'>
-            {vars.filteredByMarker && (
+            {filteredByMarkerState && (
               <div
                 key='m-reset'
                 className='map-marker-item map-marker-reset'
@@ -1104,8 +1104,8 @@ export default function FormMap(props: FormMapProps) {
             )}
             {vars.markerMap.map((m, i) => {
               let markerItemClass = 'map-marker-item '
-              if (vars.filteredByMarker) {
-                markerItemClass += vars.filteredByMarker.includes(m.id.toString()) ? 'selected' : 'unselected'
+              if (filteredByMarkerState) {
+                markerItemClass += filteredByMarkerState.includes(m.id.toString()) ? 'selected' : 'unselected'
               }
               let markerLabel = m.labels ? m.labels[langIndex] : m.value
               if (!markerLabel) {
@@ -1151,7 +1151,7 @@ export default function FormMap(props: FormMapProps) {
             asset={props.asset}
             toggleMapSettings={toggleMapSettings}
             overrideStyles={overrideStyles}
-            overridenStyles={vars.overridenStyles}
+            overridenStyles={overridenStyles}
           />
         </Modal>
       )}
