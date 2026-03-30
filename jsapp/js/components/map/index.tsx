@@ -130,21 +130,14 @@ interface FormMapProps extends WithRouterProps {
 }
 
 interface FormMapState {
-  map: L.Map | undefined
-  markers: FeatureGroupExtended | undefined
-  heatmap: L.HeatLayer | undefined
   markersVisible: boolean
   markerMap?: MarkerMap
-  fields: SurveyRow[]
   hasGeoPoint: boolean
   submissions: SubmissionResponse[]
   error: string | undefined
-  isFullscreen: boolean
   showExpandedLegend: boolean
   langIndex: number
   filteredByMarker: string[] | undefined
-  componentRefreshed: boolean
-  showMapSettings: boolean
   overridenStyles?: AssetMapStyles
   clearDisaggregatedPopover: boolean
   noData: boolean
@@ -190,26 +183,27 @@ export default function FormMap(props: FormMapProps) {
   // in this kind of variable
   // toggleFullscreen doesn't work when it is updated in this variable and needs to be updated in a useState hook
   let vars: FormMapState = {
-    map: undefined,
-    markers: undefined,
-    heatmap: undefined,
     markersVisible: true,
     markerMap: undefined,
-    fields: [],
     hasGeoPoint: hasGeoPoint,
     submissions: [],
     error: undefined,
-    isFullscreen: false,
     showExpandedLegend: true,
     langIndex: 0,
     filteredByMarker: undefined,
-    componentRefreshed: false,
-    showMapSettings: false,
     overridenStyles: undefined,
     clearDisaggregatedPopover: false,
     noData: false,
     foundSelectedQuestion: null,
   }
+
+  const [mapState, setMapState] = useState<L.Map | undefined>(undefined)
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false)
+  const [showMapSettings, setShowMapSettings] = useState<boolean>(false)
+  const [markers, setMarkers] = useState<FeatureGroupExtended | undefined>(undefined)
+  const [heatmapState, setHeatmap] = useState<L.HeatLayer | undefined>(undefined)
+  const [componentRefreshed, setComponentRefreshed] = useState<boolean>(false)
+  const [fieldsState, setFieldsState] = useState<SurveyRow[]>([])
 
   useEffect(() => {
       const fields: SurveyRow[] = []
@@ -238,8 +232,9 @@ export default function FormMap(props: FormMapProps) {
       //  map: map,
       //  fields: fields,
       //})
-      vars.map = map
-      vars.fields = fields
+      //vars.map = map
+      setMapState(map)
+      setFieldsState(fields)
 
       if (props.asset.deployment__submission_count > QUERY_LIMIT_DEFAULT) {
         notify(
@@ -282,7 +277,7 @@ export default function FormMap(props: FormMapProps) {
         const layerMatch = files.filter((file) => file.description === controlLayer.name)
         if (!layerMatch.length) {
           controls.removeLayer(controlLayer.layer)
-          vars.map?.removeLayer(controlLayer.layer)
+          mapState?.removeLayer(controlLayer.layer)
         }
       }
     })
@@ -364,7 +359,7 @@ export default function FormMap(props: FormMapProps) {
             .then(JSZip.loadAsync)
             .then((zip) => zip.file('doc.kml')?.async('string'))
             .then((kmlContent) => {
-              if (kmlContent && vars.map) {
+              if (kmlContent && mapState) {
                 // We don't need to react to `.on('ready')` here, as KML file is already loaded and we just need to
                 // parse it (works synchronously)
                 const parsedOverlayLayer = omnivore.kml.parse(kmlContent)
@@ -399,9 +394,9 @@ export default function FormMap(props: FormMapProps) {
    * Handle map layer successfully loaded by omnivore.
    */
   const onOmnivoreLayerReady = (overlayLayer: LayerGroup | undefined, description: string) => {
-    if (overlayLayer && vars.map) {
+    if (overlayLayer && mapState) {
       controls.addOverlay(overlayLayer, description)
-      overlayLayer.addTo(vars.map)
+      overlayLayer.addTo(mapState)
 
       // Add popups to each layer feature (i.e. each point)
       overlayLayer.eachLayer((l) => {
@@ -666,7 +661,7 @@ export default function FormMap(props: FormMapProps) {
 
       markers.on('click', launchSubmissionModal).addTo(map)
 
-      if (prepPoints.length > 0 && (!viewby || !vars.componentRefreshed)) {
+      if (prepPoints.length > 0 && (!viewby || componentRefreshed)) {
         map.fitBounds(markers.getBounds())
       }
       if (prepPoints.length === 0) {
@@ -678,7 +673,8 @@ export default function FormMap(props: FormMapProps) {
       //  ...state,
       //  markers: markers as FeatureGroupExtended,
       //})
-      vars.markers = markers as FeatureGroupExtended
+      //vars.markers = markers as FeatureGroupExtended
+      setMarkers(markers as FeatureGroupExtended)
     } else {
       //setState({...state, error: t('Error: could not load data.') })
       vars.error = t('Error: could not load data.')
@@ -758,15 +754,15 @@ export default function FormMap(props: FormMapProps) {
       map.addLayer(heatmap)
     }
     //setState({ ...state, heatmap: heatmap })
-    vars.heatmap = heatmap
+    setHeatmap(heatmap)
   }
 
   const showMarkers = () => {
-    if (vars.map && vars.markers) {
-      vars.map.addLayer(vars.markers)
+    if (mapState && markers) {
+      mapState.addLayer(markers)
     }
-    if (vars.map && vars.heatmap) {
-      vars.map.removeLayer(vars.heatmap)
+    if (mapState && heatmapState) {
+      mapState.removeLayer(heatmapState)
     }
     //setState({
     //  ...state,
@@ -780,13 +776,13 @@ export default function FormMap(props: FormMapProps) {
   }
 
   const showHeatmap = () => {
-    const map = vars.map
+    const map = mapState
 
-    if (map && vars.heatmap) {
-      map.addLayer(vars.heatmap)
+    if (map && heatmapState) {
+      map.addLayer(heatmapState)
     }
-    if (map && vars.markers) {
-      map.removeLayer(vars.markers)
+    if (map && markers) {
+      map.removeLayer(markers)
     }
     //setState({
     //  ...state,
@@ -842,12 +838,12 @@ export default function FormMap(props: FormMapProps) {
   //}
 
   const refreshMap = () => {
-    const map = vars.map
-    if (map && vars.markers) {
-      map.removeLayer(vars.markers)
+    const map = mapState
+    if (map && markers) {
+      map.removeLayer(markers)
     }
-    if (map && vars.heatmap) {
-      map.removeLayer(vars.heatmap)
+    if (map && heatmapState) {
+      map.removeLayer(heatmapState)
     }
     return map
   }
@@ -872,7 +868,7 @@ export default function FormMap(props: FormMapProps) {
     //  ...state,
     //  showMapSettings: !state.showMapSettings,
     //})
-    vars.showMapSettings = !vars.showMapSettings
+    setShowMapSettings(!showMapSettings)
   }
 
   /** Note: selected questions are considered a "map style" and is updated in the state here */
@@ -885,22 +881,22 @@ export default function FormMap(props: FormMapProps) {
     //    overridenStyles: mapStyles,
     //  })
     vars.filteredByMarker = undefined
-    vars.componentRefreshed = true
+    setComponentRefreshed(true)
     vars.overridenStyles = mapStyles
     const map = refreshMap()
 
     if (map) {
+      //TODO: We left off here, why is the map not reseting?
       requestData(map, props.viewby)
     }
   }
 
   const toggleFullscreen = () => {
     //setState({ ...state, isFullscreen: !state.isFullscreen })
-    console.log('a', vars.isFullscreen)
-    vars.isFullscreen = !vars.isFullscreen
-    console.log('b', vars.isFullscreen)
+    setIsFullscreen(!isFullscreen)
+    //vars.isFullscreen = !vars.isFullscreen
 
-    vars.map?.invalidateSize()
+    mapState?.invalidateSize()
   }
 
   const toggleLegend = () => {
@@ -913,7 +909,6 @@ export default function FormMap(props: FormMapProps) {
 
   const filterByMarker = (markerId: number) => {
     const id = String(markerId)
-    const markers = vars.markers
     let filteredByMarker = vars.filteredByMarker
     const unselectedClass = 'unselected'
 
@@ -937,7 +932,6 @@ export default function FormMap(props: FormMapProps) {
   }
 
   const resetFilterByMarker = () => {
-    const markers = vars.markers
     //setState({ ...state, filteredByMarker: undefined })
     vars.filteredByMarker = undefined
     markers?.eachLayer((layer) => {
@@ -962,7 +956,7 @@ export default function FormMap(props: FormMapProps) {
     )
   }
 
-  const fields = vars.fields
+  const fields = fieldsState
   const langIndex = vars.langIndex
   let langs: Array<string | null> = []
   if (props.asset.content?.translations && props.asset.content?.translations.length > 1) {
@@ -986,7 +980,7 @@ export default function FormMap(props: FormMapProps) {
   }
 
   const formViewModifiers = ['map']
-  if (vars.isFullscreen) {
+  if (isFullscreen) {
     formViewModifiers.push('fullscreen')
   }
   return (
@@ -995,7 +989,7 @@ export default function FormMap(props: FormMapProps) {
         m={'expand'}
         onClick={toggleFullscreen}
         data-tip={t('Toggle Fullscreen')}
-        className={vars.isFullscreen ? 'active' : ''}
+        className={isFullscreen ? 'active' : ''}
       >
         <i className='k-icon k-icon-expand' />
       </bem.FormView__mapButton>
@@ -1150,8 +1144,8 @@ export default function FormMap(props: FormMapProps) {
           </div>
         </bem.FormView__mapList>
       )}
-      {!vars.markers && !vars.heatmap && <LoadingSpinner message={false} />}
-      {vars.showMapSettings && (
+      {!markers && !heatmapState && <LoadingSpinner message={false} />}
+      {showMapSettings && (
         <Modal open onClose={toggleMapSettings} title={t('Map Settings')}>
           <MapSettings
             asset={props.asset}
