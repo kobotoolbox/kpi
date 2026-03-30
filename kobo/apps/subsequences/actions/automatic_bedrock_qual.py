@@ -3,6 +3,7 @@ from copy import deepcopy
 from dataclasses import dataclass
 from json import JSONDecodeError
 from typing import Optional
+from xml.sax.saxutils import escape
 
 import boto3
 from botocore.exceptions import ClientError
@@ -25,6 +26,7 @@ from kobo.apps.subsequences.constants import (
 from kobo.apps.subsequences.exceptions import (
     AnalysisQuestionNotFound,
     ManualQualNotFound,
+    AnalysisQuestionIncorrectlyConfigured,
 )
 from kobo.apps.subsequences.prompts import (
     MAX_TOKENS,
@@ -127,11 +129,14 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         return qa_question[0]
 
     def _get_visible_choices(self, question: dict) -> list[dict]:
-        return [
+        choices = [
             choice
             for choice in question['choices']
             if not choice.get('options', {}).get('deleted')
         ]
+        if len(choices) == 0:
+            raise AnalysisQuestionIncorrectlyConfigured
+        return choices
 
     def create_bedrock_client(self):
         return boto3.client(
@@ -250,12 +255,13 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         """
         # always need transcript, QA question text, and QA question value
         # to fill out the LLM prompt
-        transcript_text = action_data['_dependency']['value']
+        transcript_text = escape(action_data['_dependency']['value'])
         question_uuid = action_data['uuid']
         qa_question = self._get_question(question_uuid)
-        question_text = qa_question['labels']['_default']
+        question_text = escape(qa_question['labels']['_default'])
         question_type = qa_question['type']
-        hint = qa_question.get('hint', {}).get('labels', {}).get('_default')
+        raw_hint = qa_question.get('hint', {}).get('labels', {}).get('_default')
+        hint = raw_hint and escape(raw_hint)
         hint = f' {format_hint(hint)}' if hint else ''
 
         # get the correct template based on question type
@@ -278,7 +284,9 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
                 choice_hint = (
                     choice.get('hint', {}).get('labels', {}).get('_default', '')
                 )
-                visible_choice_labels.append({'label': label, 'hint': choice_hint})
+                visible_choice_labels.append(
+                    {'label': escape(label), 'hint': escape(choice_hint)}
+                )
             choices_text = format_choices(visible_choice_labels)
             choices_count = len(visible_choices)
             example_format = get_example_format(question_type, choices_count)
@@ -466,6 +474,9 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
                     selected_indexes = parse_choices_response(
                         full_response_text, len(visible_choices), False
                     )
+                    if len(selected_indexes) == 0:
+                        # empty string is the correct empty value for select one
+                        return {'value': '', 'status': 'complete'}
                     index = selected_indexes[0]
                     selected_uuid = visible_choices[index]['uuid']
                     return {'value': selected_uuid, 'status': 'complete'}

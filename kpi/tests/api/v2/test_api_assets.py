@@ -1391,16 +1391,16 @@ class AssetDetailApiTests(PermissionsTestMixin, BaseAssetDetailTestCase):
         self.assertEqual(new_asset.content['translations'], [None])
 
     def test_deployed_version_pagination(self):
-        PAGE_LENGTH = 100
+        page_length = settings.DEFAULT_API_PAGE_SIZE
         version = self.asset.latest_version
         preexisting_count = self.asset.deployed_versions.count()
         version.deployed = True
-        for i in range(PAGE_LENGTH + 11):
+        for i in range(page_length + 11):
             version.uid = ''
             version.pk = None
             version.save()
         self.assertEqual(
-            preexisting_count + PAGE_LENGTH + 11,
+            preexisting_count + page_length + 11,
             self.asset.deployed_versions.count()
         )
         response = self.client.get(self.asset_url, format='json')
@@ -1410,7 +1410,7 @@ class AssetDetailApiTests(PermissionsTestMixin, BaseAssetDetailTestCase):
         )
         self.assertEqual(
             len(response.data['deployed_versions']['results']),
-            PAGE_LENGTH
+            page_length
         )
 
     def check_asset_writable_json_field(self, field_name, **kwargs):
@@ -2684,3 +2684,158 @@ class TestCreatedByAndLastModifiedByAsset(BaseAssetTestCase):
         asset.refresh_from_db()
         self.assertEqual(asset.created_by, self.some_user.username)
         self.assertEqual(asset.last_modified_by, another_user.username)
+
+
+class TestAssetMetadataViewSet(BaseAssetTestCase):
+    # don't use test_data fixture here because we need control over how many assets
+    # each user has and what they contain
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.user = User.objects.create_user(username='user')
+        cls.another_user = User.objects.create_user(username='anotheruser')
+
+    def test_asset_metadata_view(self):
+        self.client.force_login(self.user)
+        self.create_asset(
+            content={
+                'survey': [
+                    {'type': 'text', 'label': 'fixture q1', 'name': 'q1', 'kuid': 'abc'}
+                ],
+                'settings': {'default_language': 'Spanish (es)'},
+                'translated': ['label'],
+                'translations': ['Spanish (es)'],
+            },
+            settings={
+                'country': [{'value': 'SPA', 'label': 'Spain'}],
+                'sector': {'label': 'Arts', 'value': 'Arts'},
+                'organization': 'org1',
+            },
+        )
+        self.create_asset(
+            content={
+                'survey': [
+                    {'type': 'text', 'label': 'fixture q1', 'name': 'q1', 'kuid': 'abc'}
+                ],
+                'settings': {'default_language': 'Spanish (es)'},
+                'translated': ['label'],
+                'translations': ['Spanish (es)', 'English (en)'],
+            },
+            settings={
+                'country': [{'value': 'USA', 'label': 'United States'}],
+                'sector': {'label': 'Climate', 'value': 'Climate'},
+                'organization': 'org1',
+            },
+        )
+        # update content via the API to protect against drift in the
+        # schemas for summary and settings
+        response = self.client.get(reverse(self._get_endpoint('asset-metadata')))
+        languages = response.data['languages']
+        countries = response.data['countries']
+        sectors = response.data['sectors']
+        orgs = response.data['organizations']
+        # order doesn't matter
+        assert sorted(languages) == ['English (en)', 'Spanish (es)']
+        assert sorted(countries, key=lambda x: x[1]) == [
+            ('SPA', 'Spain'),
+            ('USA', 'United States'),
+        ]
+        assert sorted(sectors, key=lambda x: x[1]) == [
+            ('Arts', 'Arts'),
+            ('Climate', 'Climate'),
+        ]
+        assert orgs == ['org1']
+
+    def test_asset_metadata_does_not_include_public_assets_not_by_owner(self):
+        # regression test
+        self.client.force_login(self.user)
+        self.create_asset(
+            content={
+                'survey': [
+                    {'type': 'text', 'label': 'fixture q1', 'name': 'q1', 'kuid': 'abc'}
+                ],
+                'settings': {'default_language': 'Spanish (es)'},
+                'translated': ['label'],
+                'translations': ['Spanish (es)'],
+            },
+            settings={
+                'country': [{'value': 'SPA', 'label': 'Spain'}],
+                'sector': {'label': 'Arts', 'value': 'Arts'},
+                'organization': 'org1',
+            },
+        )
+        self.client.force_login(self.another_user)
+        public_asset_response = self.create_asset(
+            content={
+                'survey': [
+                    {'type': 'text', 'label': 'fixture q1', 'name': 'q1', 'kuid': 'abc'}
+                ],
+                'settings': {'default_language': 'Spanish (es)'},
+                'translated': ['label'],
+                'translations': ['Spanish (es)', 'English (en)'],
+            },
+            settings={
+                'country': [{'value': 'USA', 'label': 'United States'}],
+                'sector': {'label': 'Climate', 'value': 'Climate'},
+                'organization': 'org2',
+            },
+        )
+        public_asset = Asset.objects.get(uid=public_asset_response.data['uid'])
+        anonymous_user = get_anonymous_user()
+        public_asset.assign_perm(anonymous_user, PERM_VIEW_ASSET)
+        self.client.force_login(self.user)
+        response = self.client.get(reverse(self._get_endpoint('asset-metadata')))
+        languages = response.data['languages']
+        countries = response.data['countries']
+        sectors = response.data['sectors']
+        orgs = response.data['organizations']
+        assert languages == ['Spanish (es)']
+        assert countries == [('SPA', 'Spain')]
+        assert sectors == [
+            ('Arts', 'Arts'),
+        ]
+        assert orgs == ['org1']
+
+    def test_asset_metadata_does_not_include_public_assets_superuser(self):
+        # regression test
+        superuser = User.objects.create_user(username='super', is_superuser=True)
+        self.client.force_login(self.user)
+        self.create_asset(
+            content={
+                'survey': [
+                    {'type': 'text', 'label': 'fixture q1', 'name': 'q1', 'kuid': 'abc'}
+                ],
+                'settings': {'default_language': 'Spanish (es)'},
+                'translated': ['label'],
+                'translations': ['Spanish (es)'],
+            },
+            settings={
+                'country': [{'value': 'SPA', 'label': 'Spain'}],
+                'sector': {'label': 'Arts', 'value': 'Arts'},
+                'organization': 'org1',
+            },
+        )
+        # the superuser doesn't actually have any assets
+        self.client.force_login(superuser)
+        response = self.client.get(reverse(self._get_endpoint('asset-metadata')))
+        assert response.data['languages'] == []
+        assert response.data['countries'] == []
+        assert response.data['sectors'] == []
+        assert response.data['organizations'] == []
+
+    def test_asset_metadata_with_null_values_in_settings(self):
+        a = Asset.objects.create(owner=self.user)
+        # cheat to force bad settings into the db
+        Asset.objects.filter(uid=a.uid).update(
+            settings={
+                'country': None,
+                'sector': None,
+                'organization': None,
+            }
+        )
+        self.client.force_login(self.user)
+        response = self.client.get(reverse(self._get_endpoint('asset-metadata')))
+        assert response.data['languages'] == []
+        assert response.data['countries'] == []
+        assert response.data['sectors'] == []
+        assert response.data['organizations'] == []

@@ -608,6 +608,31 @@ class TestManualQualActionSchemas(TestCase):
                 source_question_xpath=Fix.fake_question_xpath, params=invalid_params
             )
 
+    def test_do_not_allow_all_deleted_choices(self):
+        params = [
+            {
+                'type': 'qualSelectOne',
+                'uuid': FIX_QUAL_SELECT_ONE_UUID,
+                'labels': {'_default': 'Was this a first-hand account?'},
+                'choices': [
+                    {
+                        'uuid': FIX_CHOICE_YES_UUID,
+                        'labels': {'_default': 'Yes'},
+                        'options': {'deleted': True},
+                    },
+                    {
+                        'uuid': FIX_CHOICE_NO_UUID,
+                        'labels': {'_default': 'No'},
+                        'options': {'deleted': True},
+                    },
+                ],
+            }
+        ]
+        with pytest.raises(jsonschema.exceptions.ValidationError):
+            ManualQualAction(
+                source_question_xpath=Fix.fake_question_xpath, params=params
+            )
+
     @data(
         # question hint, choice hint, question hint correct, choice hint correct, valid?
         (True, True, True, True, True),

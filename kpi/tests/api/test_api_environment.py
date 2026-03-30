@@ -38,6 +38,14 @@ class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
         self.url = reverse('environment')
         self.user = User.objects.get(username='someuser')
         self.password = 'someuser'
+
+        baker.make(
+            'ExtraProjectMetadataField',
+            name='test_field',
+            type='text',
+            is_required=True,
+        )
+
         self.dict_checks = {
             'terms_of_service_url': config.TERMS_OF_SERVICE_URL,
             'privacy_policy_url': config.PRIVACY_POLICY_URL,
@@ -53,6 +61,9 @@ class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
                 len(to_python_object(config.PROJECT_METADATA_FIELDS)),
             )
             and self.assertIn({'name': 'organization', 'required': False}, x),
+            'extra_project_metadata_fields': lambda x: self.assertEqual(len(x), 1)
+            and self.assertEqual(x[0]['name'], 'test_field')
+            and self.assertEqual(x[0]['required'], True),
             'user_metadata_fields': lambda x: self.assertEqual(
                 len(x),
                 len(to_python_object(config.USER_METADATA_FIELDS)),
@@ -274,3 +285,23 @@ class EnvironmentTests(BaseTestCase, RequiresStripeAPIKeyMixin):
         response = self.client.get(self.url, format='json')
         assert response.status_code == status.HTTP_200_OK
         assert response.data['stripe_public_key'] == 'fake_public_key'
+
+    def test_extra_project_metadata_select_fields_options(self):
+        baker.make(
+            'ExtraProjectMetadataField',
+            name='regions',
+            type='multi_select',
+            options=[
+                {"name": "africa", "label": {"default": "Africa"}},  # noqa Q000
+                {"name": "europe", "label": {"default": "Europe"}},  # noqa Q000
+            ],
+        )
+
+        response = self.client.get(self.url, format='json')
+
+        extra_fields = response.data['extra_project_metadata_fields']
+        regions_field = next(f for f in extra_fields if f['name'] == 'regions')
+
+        self.assertEqual(len(regions_field['options']), 2)
+        self.assertEqual(regions_field['options'][0]['name'], 'africa')
+        self.assertEqual(regions_field['options'][0]['label']['default'], 'Africa')
