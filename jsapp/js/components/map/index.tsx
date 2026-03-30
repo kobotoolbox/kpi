@@ -46,6 +46,10 @@ import type {
 import './map.scss'
 import './map.marker-colors.scss'
 import { fetchGetUrl } from '../../../js/api'
+import {OrganizationResponse} from '#/api/models/organizationResponse'
+import {ErrorDetail} from '#/api/models/errorDetail'
+import {PaginatedDataResponseList} from '#/api/models/paginatedDataResponseList'
+import {DataResponse} from '#/api/models/dataResponse'
 
 const STREETS_LAYER = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
@@ -127,6 +131,8 @@ interface FormMapProps extends WithRouterProps {
   asset: AssetResponse
   /** A question/row name for map to focus on given question data */
   viewby: string
+  querySubmission?: any
+  submissions?: DataResponse[]
 }
 
 interface FormMapState {
@@ -1118,6 +1124,8 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
           </Modal>
         )}
 
+        <p>ffjajdskfasdffffkfjajdskfasdffffkfjajdskfasdffffkfjajdskfasdffffkjajdskfasdffffk</p>
+        {this.props.submissions && <p>{this.props.submissions.length}</p> }
         <div id='data-map' />
       </bem.FormView>
     )
