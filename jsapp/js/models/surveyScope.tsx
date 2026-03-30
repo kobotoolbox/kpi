@@ -119,12 +119,15 @@ class SurveyScope {
       .then((response) => {
         const data = response?.data
 
-        if ('content' in data && data.content !== undefined) {
+        if (data && 'content' in data && data.content) {
           // `loadDict()` mutates its first argument, so pass a copied object
           const newSurvey = dkobo_xlform.model.Survey.loadDict(clonedeep(data.content), this.survey)
+          // TODO: Edge case warning - if the survey changes before the response arrives, `insertSurvey` can insert into
+          // the wrong place, because `newSurvey` is freshly fetched from API, and both position and groupId are carried
+          // over.
           this.survey.insertSurvey(newSurvey, position, groupId)
         } else {
-          throw new Error(`Asset ${uid} not found or missing content`)
+          throw new Error(`Asset ${uid} not found or response missing content`)
         }
       })
       .catch((error) => {
