@@ -60,7 +60,8 @@ export default function CopyTeamPermissions({ asset }: CopyTeamPermissionsProps)
     const queryParts: string[] = []
     // Include search phrase
     if (debouncedSearch) {
-      queryParts.push(`(${debouncedSearch})`)
+      // Wrap it in quotes
+      queryParts.push(`(${JSON.stringify(debouncedSearch)})`)
     }
     // Ensure we are only getting surveys
     queryParts.push(COMMON_QUERIES.s)
