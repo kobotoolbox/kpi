@@ -50,6 +50,7 @@ from kpi.utils.log import logging
 
 @dataclass
 class LLModel:
+    model_arn: str
     model_id: str
     path_to_response: str
     supports_reasoning: bool
@@ -73,12 +74,14 @@ class LLModel:
 
 
 ClaudeSonnet = LLModel(
-    model_id=settings.AUTOQA_CLAUDESONNET_MODEL_AIP_ARN,
+    model_arn=settings.AUTOQA_CLAUDESONNET_MODEL_AIP_ARN,
+    model_id='us.anthropic.claude-sonnet-4-5-20250929-v1:0',
     path_to_response='content.0.text',
     supports_reasoning=False,
 )
 OSS120 = LLModel(
-    model_id=settings.AUTOQA_OSS120_MODEL_AIP_ARN,
+    model_id='openai.gpt-oss-safeguard-120b',
+    model_arn=settings.AUTOQA_OSS120_MODEL_AIP_ARN,
     path_to_response='choices.0.message.content',
     supports_reasoning=True,
 )
@@ -304,7 +307,7 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
             request['include_reasoning'] = False
 
         response = self.client.invoke_model(
-            modelId=model.model_id,
+            modelId=model.model_arn,
             body=json.dumps(request),
         )
         try:
@@ -312,7 +315,7 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
             if request := get_current_request():
                 request.llm_response = {
                     'request_id': response['ResponseMetadata']['RequestId'],
-                    'model': response_body['model'],
+                    'model': model.model_id,
                 }
             return model.get_response_text(response_body)
         except (JSONDecodeError, IndexError, KeyError) as e:
