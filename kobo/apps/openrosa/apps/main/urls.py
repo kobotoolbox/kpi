@@ -6,10 +6,10 @@ from django.views.i18n import JavaScriptCatalog
 
 from kobo.apps.openrosa import koboform
 from kobo.apps.openrosa.apps.api.urls import (
-    BriefcaseApi,
     router,
     router_with_patch_list,
 )
+from kobo.apps.openrosa.apps.api.viewsets.briefcase_api import BriefcaseApi
 from kobo.apps.openrosa.apps.api.viewsets.xform_list_api import XFormListApi
 from kobo.apps.openrosa.apps.api.viewsets.xform_submission_api import XFormSubmissionApi
 from kobo.apps.openrosa.apps.logger.views import (
@@ -21,7 +21,7 @@ from kobo.apps.openrosa.apps.logger.views import (
 
 # exporting stuff
 from kobo.apps.openrosa.apps.viewer.views import (
-    attachment_url,
+    briefcase_attachment_url,
     create_export,
     delete_export,
     export_download,
@@ -36,18 +36,10 @@ urlpatterns = [
     re_path('^api/v1/', include(router_with_patch_list.urls)),
     # main website views
     re_path(r'^$', RedirectView.as_view(url=koboform.redirect_url('/')), name='home'),
-    # Bring back old url because it's still used by `kpi`
-    re_path(r'^attachment/$', attachment_url, name='attachment_url'),
-    re_path(r'^attachment/(?P<size>[^/]+)$', attachment_url, name='attachment_url'),
     re_path(
-        r'^{}$'.format(settings.MEDIA_URL.lstrip('/')),
-        attachment_url,
-        name='attachment_url',
-    ),
-    re_path(
-        r'^{}(?P<size>[^/]+)$'.format(settings.MEDIA_URL.lstrip('/')),
-        attachment_url,
-        name='attachment_url',
+        r'^attachment/briefcase/(?P<att_uid>[^/]+)$',
+        briefcase_attachment_url,
+        name='briefcase-attachment',
     ),
     re_path(
         r'^jsi18n/$',

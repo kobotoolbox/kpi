@@ -7,7 +7,7 @@ from kobo.apps.openrosa.apps.logger.models import Attachment
 from kobo.apps.openrosa.libs.utils.storage import rmdir
 
 
-class TestAttachmentUrl(TestBase):
+class TestBriefcaseAttachmentUrl(TestBase):
 
     def setUp(self):
         self.attachment_count = 0
@@ -15,36 +15,36 @@ class TestAttachmentUrl(TestBase):
         self._create_user_and_login()
         self._publish_transportation_form()
         self._submit_transport_instance_w_attachment()
-        self.url = reverse(
-            'attachment_url', kwargs={'size': 'original'})
+        self.attachment = Attachment.objects.last()
+
+    def _url(self):
+        return reverse(
+            'briefcase-attachment',
+            kwargs={'att_uid': self.attachment.uid},
+        )
 
     def test_attachment_url(self):
-        self.assertEqual(
-            Attachment.objects.count(), self.attachment_count + 1)
-        response = self.client.get(
-            self.url, {"media_file": self.attachment_media_file})
-        self.assertEqual(response.status_code, 200)  # nginx is used as proxy
+        assert Attachment.objects.count() == self.attachment_count + 1
+        response = self.client.get(self._url())
+        assert response.status_code == 200
 
     def test_attachment_url_with_digest_auth(self):
         self.client.logout()
-        response = self.client.get(
-            self.url, {'media_file': self.attachment_media_file}
-        )
-        self.assertEqual(response.status_code, 401)  # nginx is used as proxy
-        self.assertTrue('WWW-Authenticate' in response)
+        response = self.client.get(self._url())
+        assert response.status_code == 401
+        assert 'WWW-Authenticate' in response
         digest_client = DigestClient()
         digest_client.set_authorization(self.login_username, self.login_password)
-        response = digest_client.get(self.url, {'media_file': self.attachment_media_file})
-        self.assertEqual(response.status_code, 200)
+        response = digest_client.get(self._url())
+        assert response.status_code == 200
 
     def test_attachment_not_found(self):
-        response = self.client.get(
-            self.url, {"media_file": "non_existent_attachment.jpg"})
-        self.assertEqual(response.status_code, 404)
-
-    def test_attachment_has_mimetype(self):
-        attachment = Attachment.objects.all().reverse()[0]
-        self.assertEqual(attachment.mimetype, 'image/jpeg')
+        url = reverse(
+            'briefcase-attachment',
+            kwargs={'att_uid': 'att000000000000000000000000'},
+        )
+        response = self.client.get(url)
+        assert response.status_code == 404
 
     def tearDown(self):
         if self.user and self.user.username:

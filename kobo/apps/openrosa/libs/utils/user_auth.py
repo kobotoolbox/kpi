@@ -71,13 +71,8 @@ def has_permission(xform, owner, request, shared=False):
     return (
         shared
         or xform.shared_data
-        or (
-            hasattr(request, 'session')
-            and request.session.get('public_link') == xform.uuid
-        )
         or owner == user
         or user.has_perm(PERM_VIEW_ASSET, xform.asset)
-        or user.has_perm(PERM_CHANGE_ASSET, xform.asset)
     )
 
 
