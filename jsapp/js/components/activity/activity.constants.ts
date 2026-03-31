@@ -123,8 +123,8 @@ const _AUDIT_ACTION_TYPES: Array<Omit<AuditActionDefinition, 'order'>> = [
   },
   {
     name: AuditActions['unverify-automatic-qa-data'],
-    label: t('unverify automatic qualitative analysis data'),
-    message: t('##username## unverified automatic qualitative analysis data'),
+    label: t('remove automatic qualitative analysis data verification'),
+    message: t('##username## removed automatic qualitative analysis data verification'),
   },
   {
     name: AuditActions['verify-manual-qa-data'],
@@ -133,8 +133,8 @@ const _AUDIT_ACTION_TYPES: Array<Omit<AuditActionDefinition, 'order'>> = [
   },
   {
     name: AuditActions['unverify-manual-qa-data'],
-    label: t('unverify manual qualitative analysis data'),
-    message: t('##username## unverified manual qualitative analysis data'),
+    label: t('remove manual qualitative analysis data verification'),
+    message: t('##username## removed manual qualitative analysis data verification'),
   },
   {
     name: AuditActions['export'],
