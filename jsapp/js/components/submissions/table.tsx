@@ -216,7 +216,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       prevSettings = {}
     }
 
-    let newSettings = this.props.asset.settings[DATA_TABLE_SETTING]
+    let newSettings = this.props.asset.settings?.[DATA_TABLE_SETTING]
     if (!newSettings) {
       newSettings = {}
     }
