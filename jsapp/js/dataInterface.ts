@@ -182,9 +182,9 @@ export type GetProcessingSubmissionsResponse = PaginatedResponse<ProcessingRespo
  */
 export interface SubmissionAttachment {
   download_url: string
-  download_large_url: string
-  download_medium_url: string
-  download_small_url: string
+  download_large_url?: string
+  download_medium_url?: string
+  download_small_url?: string
   mimetype: string
   filename: string
   media_file_basename: string
@@ -196,9 +196,13 @@ export interface SubmissionAttachment {
 
 interface TransxObject {
   languageCode: LanguageCode
-  value: string
-  dateCreated: string
-  dateModified: string
+  value: string | null
+  /** transcripts only */
+  regionCode?: string | null
+
+  // TODO: see if these below should be removed
+  dateCreated?: string
+  dateModified?: string
   /** The source of the `value` text. */
   engine?: string
   /** The history of edits. */
@@ -219,13 +223,6 @@ export interface SubmissionSupplementalDetails {
     qual?: { [uuid: string]: SubmissionAnalysisResponse }
   }
 }
-
-/**
- * This is a completely empty object.
- *
- * We can't use `{}`, as it means "any non-nullish value". We are using `Record<string, never>` as the closes thing.
- */
-export type SubmissionSupplementalDetailsEmpty = Record<string, never>
 
 /**
  * Value of a property found in `SubmissionResponse`, it can be either a built
@@ -295,7 +292,7 @@ export interface SubmissionResponse extends SubmissionResponseValueObject {
    * be either empty object (i.e. given submission doesn't have any NLP features
    * applied to it) or a proper `SubmissionSupplementalDetails` object.
    */
-  _supplementalDetails?: SubmissionSupplementalDetails | SubmissionSupplementalDetailsEmpty
+  _supplementalDetails?: SubmissionSupplementalDetails
 }
 
 interface AssignablePermissionRegular {
@@ -575,6 +572,7 @@ interface AssetAdvancedFeatures {
   qual?: {
     qual_survey?: AnalysisQuestionSchema[]
   }
+  _version?: string
 }
 
 export interface TableSortBySetting {
@@ -646,24 +644,26 @@ export type AssetDownloads = Array<{
 }>
 
 export interface AnalysisFormJsonField {
-  label: string
+  /** Two letter language code or missing for qualitative analysis questions */
+  language?: string
+  // Path to form question
+  source: string
+  // TODO: improve orval to properly include `qualVerification` and 'qualSource'
+  type: ResponseManualQualActionParams['type'] | 'transcript' | 'translation' | 'qualVerification' | 'qualSource'
   name: string
   dtpath: string
-  type: ResponseManualQualActionParams['type'] | 'transcript' | 'translation'
-  /** Two letter language code or ?? for qualitative analysis questions */
-  language: string | '??'
-  source: string
-  xpath: string
-  settings:
-    | {
-        mode: string
-        engine: string
-      }
-    | '??'
-  path: string[]
+  /**
+   * Doesn't appear for transcript and translation, for qual questions this is the question label, for source or
+   * verified it is a stringified name
+   */
+  label?: string | 'source' | 'verified'
+  // This appears for single and multi choice qual questions
   choices?: Array<{
     uuid: string
-    labels: { [key: string]: string }
+    labels: {
+      _default: string
+      [key: string]: string
+    }
   }>
 }
 
@@ -689,9 +689,6 @@ export interface AssetResponse extends AssetRequestObject {
   has_deployment: boolean
   deployed_version_id: string | null
   analysis_form_json?: {
-    engines: {
-      [engingeName: string]: { details: string }
-    }
     additional_fields: AnalysisFormJsonField[]
   }
   deployed_versions?: {
@@ -727,7 +724,10 @@ export interface AssetResponse extends AssetRequestObject {
     xls: string
     zip_legacy: string
   }
+  deployment__uuid?: string
+  deployment__encrypted?: boolean
   deployment__submission_count: number
+  deployment__last_submission_time?: string
   deployment_status: 'archived' | 'deployed' | 'draft'
   downloads: AssetDownloads
   embeds?: Array<{

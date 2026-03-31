@@ -66,7 +66,7 @@ jobs:
     - name: Install Python dependencies
       run: uv pip sync --system dependencies/pip/dev_requirements.txt
     - name: Update translations
-      run: git submodule init && git submodule update --remote && python manage.py compilemessages
+      run: python manage.py compilemessages
     - name: Test back-end code (parallel)
       id: pytest_parallel
       continue-on-error: true

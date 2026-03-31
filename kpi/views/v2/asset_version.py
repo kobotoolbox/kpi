@@ -96,7 +96,8 @@ class AssetVersionViewSet(AssetNestedObjectViewsetMixin,
             # Save time by only retrieving fields from the DB that the
             # serializer will use
             _queryset = _queryset.only(
-                'uid', 'deployed', 'date_modified', 'asset_id')
+                'uid', 'deployed', 'date_modified', 'asset_id', '_content_hash'
+            )
         # `AssetVersionListSerializer.get_url()` asks for the asset UID
         _queryset = _queryset.select_related('asset')
         return _queryset

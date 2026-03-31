@@ -1,6 +1,7 @@
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
+from rest_framework.reverse import reverse
 
 from kobo.apps.kobo_auth.shortcuts import User
 from kobo.apps.kobo_scim.models import ScimGroup
@@ -17,10 +18,11 @@ class ScimUserSerializer(serializers.ModelSerializer):
     name = serializers.SerializerMethodField()
     emails = serializers.SerializerMethodField()
     active = serializers.BooleanField(source='is_active')
+    meta = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ['schemas', 'id', 'userName', 'name', 'emails', 'active']
+        fields = ['schemas', 'id', 'userName', 'name', 'emails', 'active', 'meta']
 
     @extend_schema_field(OpenApiTypes.ANY)
     def get_schemas(self, obj):
@@ -40,6 +42,31 @@ class ScimUserSerializer(serializers.ModelSerializer):
             return [{'value': obj.email, 'type': 'work', 'primary': True}]
         return []
 
+    @extend_schema_field(OpenApiTypes.OBJECT)
+    def get_meta(self, obj):
+        request = self.context.get('request')
+        location = ''
+        if request and 'idp_slug' in request.parser_context.get('kwargs', {}):
+            location = reverse(
+                'kobo_scim:scim-users-detail',
+                kwargs={
+                    'idp_slug': request.parser_context['kwargs']['idp_slug'],
+                    'pk': obj.id,
+                },
+                request=request,
+            )
+
+        # date_joined is a datetime object, convert to strict ISO SCIM Z format
+        created = (
+            obj.date_joined.strftime('%Y-%m-%dT%H:%M:%SZ') if obj.date_joined else ''
+        )
+        return {
+            'resourceType': 'User',
+            'created': created,
+            'lastModified': created,
+            'location': location,
+        }
+
 
 class ScimGroupSerializer(serializers.ModelSerializer):
     """
@@ -53,10 +80,11 @@ class ScimGroupSerializer(serializers.ModelSerializer):
         source='scim_external_id', required=False, allow_blank=True
     )
     members = serializers.SerializerMethodField()
+    meta = serializers.SerializerMethodField()
 
     class Meta:
         model = ScimGroup
-        fields = ['schemas', 'id', 'displayName', 'externalId', 'members']
+        fields = ['schemas', 'id', 'displayName', 'externalId', 'members', 'meta']
 
     @extend_schema_field(OpenApiTypes.ANY)
     def get_schemas(self, obj):
@@ -72,3 +100,33 @@ class ScimGroupSerializer(serializers.ModelSerializer):
             }
             for user in obj.members.all()
         ]
+
+    @extend_schema_field(OpenApiTypes.OBJECT)
+    def get_meta(self, obj):
+        request = self.context.get('request')
+        location = ''
+        if request and 'idp_slug' in request.parser_context.get('kwargs', {}):
+            location = reverse(
+                'kobo_scim:scim-groups-detail',
+                kwargs={
+                    'idp_slug': request.parser_context['kwargs']['idp_slug'],
+                    'pk': obj.id,
+                },
+                request=request,
+            )
+
+        created = (
+            obj.date_created.strftime('%Y-%m-%dT%H:%M:%SZ') if obj.date_created else ''
+        )
+        modified = (
+            obj.date_modified.strftime('%Y-%m-%dT%H:%M:%SZ')
+            if obj.date_modified
+            else created
+        )
+
+        return {
+            'resourceType': 'Group',
+            'created': created,
+            'lastModified': modified,
+            'location': location,
+        }

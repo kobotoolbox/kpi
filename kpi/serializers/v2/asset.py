@@ -5,9 +5,9 @@ import re
 from typing import Optional
 
 from constance import config
-from django.conf import settings
+from django.conf import settings as django_settings
 from django.db import transaction
-from django.db.models import F
+from django.db.models import Count, F, Q
 from django.utils.translation import gettext as t
 from django.utils.translation import ngettext as nt
 from drf_spectacular.types import OpenApiTypes
@@ -91,6 +91,7 @@ from ...schema_extensions.v2.assets.fields import (
     XFormLinkField,
     XLSLinkField,
 )
+from ...utils.permissions import is_user_anonymous
 from .asset_export_settings import AssetExportSettingsSerializer
 from .asset_file import AssetFileSerializer
 from .asset_permission_assignment import AssetPermissionAssignmentReadSerializer
@@ -381,7 +382,10 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         serializer_class=AssetVersionListSerializer,
         # Higher-than-normal limit since the client doesn't yet know how to
         # request more than the first page
-        default_limit=100
+        default_limit=django_settings.DEFAULT_API_PAGE_SIZE,
+        source_processor=lambda qs: qs.only(
+            'uid', 'deployed', 'date_modified', 'asset_id', '_content_hash'
+        ),
     )
     deployment__active = serializers.SerializerMethodField()
     deployment__links = serializers.SerializerMethodField()
@@ -889,7 +893,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
         # Check if the asset is public (anonymous has discover_asset).
         for op in asset_permission_assignments:
             if (
-                op['user_id'] == settings.ANONYMOUS_USER_ID
+                op['user_id'] == django_settings.ANONYMOUS_USER_ID
                 and op['permission__codename'] == PERM_DISCOVER_ASSET
             ):
                 access_types.append('public')
@@ -1046,10 +1050,10 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
 
         return parent
 
-    def validate_settings(self, settings: dict) -> dict:
-        if not self.instance or not settings:
-            return settings
-        return {**self.instance.settings, **settings}
+    def validate_settings(self, settings_: dict) -> dict:
+        if not self.instance or not settings_:
+            return settings_
+        return {**self.instance.settings, **settings_}
 
     def _content(self, obj):
         # FIXME: Is this dead code?
@@ -1079,7 +1083,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             return ASSET_STATUS_PRIVATE
 
         for perm_assignment in perm_assignments:
-            if perm_assignment.get('user_id') == settings.ANONYMOUS_USER_ID:
+            if perm_assignment.get('user_id') == django_settings.ANONYMOUS_USER_ID:
                 if perm_assignment.get('permission__codename') == PERM_DISCOVER_ASSET:
                     return ASSET_STATUS_DISCOVERABLE
 
@@ -1205,7 +1209,7 @@ class AssetListSerializer(AssetSerializer):
 
         # Mirror _get_status() logic using the cached anonymous permissions.
         for perm in asset_perm_assignments:
-            if perm['user_id'] == settings.ANONYMOUS_USER_ID:
+            if perm['user_id'] == django_settings.ANONYMOUS_USER_ID:
                 if perm['permission__codename'] == PERM_DISCOVER_ASSET:
                     return ASSET_STATUS_DISCOVERABLE
                 if perm['permission__codename'] == PERM_VIEW_ASSET:
@@ -1288,3 +1292,58 @@ class AssetMetadataListSerializer(AssetListSerializer):
     def _get_view(self) -> str:
         request = self.context['request']
         return request.parser_context['kwargs']['uid_project_view']
+
+
+class AssetListCountSerializer(serializers.Serializer):
+
+    deployed_count = serializers.SerializerMethodField()
+    archived_count = serializers.SerializerMethodField()
+    draft_count = serializers.SerializerMethodField()
+
+    def __init__(self, queryset=None, *args, **kwargs):
+        super().__init__(queryset, *args, **kwargs)
+        # this shouldn't happen, but otherwise drf-spectacular complains
+        if queryset is None:
+            return
+
+        # technically this causes a wasted query when the user is anonymous, but then
+        # the initial queryset is empty so it does not matter
+        self.aggregates = queryset.aggregate(
+            draft_count=Count(
+                'pk',
+                filter=Q(_deployment_status=AssetDeploymentStatus.DRAFT),
+                distinct=True,
+            ),
+            archived_count=Count(
+                'pk',
+                filter=Q(_deployment_status=AssetDeploymentStatus.ARCHIVED),
+                distinct=True,
+            ),
+            deployed_count=Count(
+                'pk',
+                filter=Q(_deployment_status=AssetDeploymentStatus.DEPLOYED),
+                distinct=True,
+            ),
+        )
+
+    def _request_is_anonymous(self):
+        request = self.context['request']
+        return is_user_anonymous(request.user)
+
+    @extend_schema_field(OpenApiTypes.INT)
+    def get_deployed_count(self, queryset):
+        if self._request_is_anonymous():
+            return 0
+        return self.aggregates['deployed_count']
+
+    @extend_schema_field(OpenApiTypes.INT)
+    def get_archived_count(self, queryset):
+        if self._request_is_anonymous():
+            return 0
+        return self.aggregates['archived_count']
+
+    @extend_schema_field(OpenApiTypes.INT)
+    def get_draft_count(self, queryset):
+        if self._request_is_anonymous():
+            return 0
+        return self.aggregates['draft_count']
