@@ -211,7 +211,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
       this.setState({ isInitialized: true })
     }
 
-    let prevSettings = prevProps.asset.settings[DATA_TABLE_SETTING]
+    let prevSettings = prevProps.asset?.settings?.[DATA_TABLE_SETTING]
     if (!prevSettings) {
       prevSettings = {}
     }
