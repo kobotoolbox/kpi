@@ -271,7 +271,7 @@ export class LibraryAssetFormComponent extends React.Component {
 
             return (
               <bem.FormModal__item key={field.name}>
-                {options.length > 0 ? (
+                {options.length > 0 || ['select', 'multiselect'].includes(field.type) ? (
                   <WrappedSelect
                     label={label}
                     value={value}
@@ -282,6 +282,7 @@ export class LibraryAssetFormComponent extends React.Component {
                         label: envStore.data.getLocalizedLabel(opt.label, currentLang),
                       }
                     })}
+                    isMulti={field.type?.includes('multi')}
                     isLimitedHeight
                     isClearable
                   />
@@ -291,6 +292,7 @@ export class LibraryAssetFormComponent extends React.Component {
                     value={value || ''}
                     onChange={(newVal) => this.onAnyFieldChange(field.name, newVal)}
                     placeholder={label}
+                    type={field.type === 'text-multiline' ? 'text-multiline' : undefined}
                   />
                 )}
               </bem.FormModal__item>
