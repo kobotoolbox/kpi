@@ -83,7 +83,7 @@ ClaudeSonnet = LLModel(
     supports_reasoning=False,
 )
 OSS120 = LLModel(
-    model_id='openai.gpt-oss-safeguard-120b',
+    model_id='openai.gpt-oss-120b-1:0',
     model_arn=settings.AUTOQA_OSS120_MODEL_AIP_ARN,
     path_to_response='choices.0.message.content',
     supports_reasoning=True,

@@ -2227,5 +2227,5 @@ AUTOQA_CLAUDESONNET_MODEL_AIP_ARN = env.str(
     default='us.anthropic.claude-sonnet-4-5-20250929-v1:0',
 )
 AUTOQA_OSS120_MODEL_AIP_ARN = env.str(
-    'AUTOQA_OSS120_MODEL_AIP_ARN', default='openai.gpt-oss-safeguard-120b'
+    'AUTOQA_OSS120_MODEL_AIP_ARN', default='openai.gpt-oss-120b-1:0'
 )
