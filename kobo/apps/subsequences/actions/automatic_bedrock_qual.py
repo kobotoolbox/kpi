@@ -3,9 +3,11 @@ from copy import deepcopy
 from dataclasses import dataclass
 from json import JSONDecodeError
 from typing import Optional
+from xml.sax.saxutils import escape
 
 import boto3
-from botocore.exceptions import ClientError
+from botocore.config import Config
+from botocore.exceptions import ClientError, ConnectTimeoutError, ReadTimeoutError
 from django.conf import settings
 from django.utils.functional import classproperty
 from django_userforeignkey.request import get_current_request
@@ -51,10 +53,9 @@ from kpi.utils.log import logging
 
 @dataclass
 class LLModel:
+    model_arn: str
     model_id: str
     path_to_response: str
-    path_to_input_tokens: str
-    path_to_output_tokens: str
     supports_reasoning: bool
 
     def __repr__(self):
@@ -71,29 +72,21 @@ class LLModel:
                 current_level = current_level[path_component]
         return current_level
 
-    def get_input_tokens(self, response_dict):
-        return self.traverse_path(self.path_to_input_tokens, response_dict)
-
-    def get_output_tokens(self, response_dict):
-        return self.traverse_path(self.path_to_output_tokens, response_dict)
-
     def get_response_text(self, response_dict):
         return self.traverse_path(self.path_to_response, response_dict)
 
 
 ClaudeSonnet = LLModel(
+    model_arn=settings.AUTOQA_CLAUDESONNET_MODEL_AIP_ARN,
     model_id='us.anthropic.claude-sonnet-4-5-20250929-v1:0',
     path_to_response='content.0.text',
     supports_reasoning=False,
-    path_to_input_tokens='usage.input_tokens',
-    path_to_output_tokens='usage.output_tokens',
 )
 OSS120 = LLModel(
     model_id='openai.gpt-oss-safeguard-120b',
+    model_arn=settings.AUTOQA_OSS120_MODEL_AIP_ARN,
     path_to_response='choices.0.message.content',
     supports_reasoning=True,
-    path_to_input_tokens='usage.prompt_tokens',
-    path_to_output_tokens='usage.completion_tokens',
 )
 
 
@@ -141,8 +134,10 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         return boto3.client(
             service_name='bedrock-runtime',
             region_name=settings.AWS_BEDROCK_REGION_NAME,
-            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+            config=Config(
+                read_timeout=settings.AWS_BEDROCK_READ_TIMEOUT,
+                connect_timeout=settings.AWS_BEDROCK_CONNECT_TIMEOUT
+            ),
         )
 
     @property
@@ -254,12 +249,13 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         """
         # always need transcript, QA question text, and QA question value
         # to fill out the LLM prompt
-        transcript_text = action_data['_dependency']['value']
+        transcript_text = escape(action_data['_dependency']['value'])
         question_uuid = action_data['uuid']
         qa_question = self._get_question(question_uuid)
-        question_text = qa_question['labels']['_default']
+        question_text = escape(qa_question['labels']['_default'])
         question_type = qa_question['type']
-        hint = qa_question.get('hint', {}).get('labels', {}).get('_default')
+        raw_hint = qa_question.get('hint', {}).get('labels', {}).get('_default')
+        hint = raw_hint and escape(raw_hint)
         hint = f' {format_hint(hint)}' if hint else ''
 
         # get the correct template based on question type
@@ -282,7 +278,9 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
                 choice_hint = (
                     choice.get('hint', {}).get('labels', {}).get('_default', '')
                 )
-                visible_choice_labels.append({'label': label, 'hint': choice_hint})
+                visible_choice_labels.append(
+                    {'label': escape(label), 'hint': escape(choice_hint)}
+                )
             choices_text = format_choices(visible_choice_labels)
             choices_count = len(visible_choices)
             example_format = get_example_format(question_type, choices_count)
@@ -320,15 +318,15 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
             request['include_reasoning'] = False
 
         response = self.client.invoke_model(
-            modelId=model.model_id,
+            modelId=model.model_arn,
             body=json.dumps(request),
         )
         try:
             response_body = json.loads(response['body'].read())
             if request := get_current_request():
                 request.llm_response = {
-                    'body': response_body,
-                    'model': model,
+                    'request_id': response['ResponseMetadata']['RequestId'],
+                    'model': model.model_id,
                 }
             return model.get_response_text(response_body)
         except (JSONDecodeError, IndexError, KeyError) as e:
@@ -449,9 +447,6 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
         for index, model in enumerate([OSS120, ClaudeSonnet]):
             try:
                 full_response_text = self.get_response_from_llm(prompt, model)
-                logging.info(
-                    f'LLM prompt: \n{prompt}\nLLM response:\n{full_response_text}'
-                )
                 # edge case: sometimes the LLM returns None
                 if full_response_text is None:
                     raise InvalidResponseFromLLMException('LLM returned empty response')
@@ -486,10 +481,15 @@ class AutomaticBedrockQual(RequiresTranscriptionMixin, BaseQualAction):
                         'value': [visible_choices[i]['uuid'] for i in selected_indexes],
                         'status': 'complete',
                     }
-            except (InvalidResponseFromLLMException, ClientError) as e:
+            except (
+                InvalidResponseFromLLMException,
+                ClientError,
+                ReadTimeoutError,
+                ConnectTimeoutError,
+            ) as e:
                 if index == 0:
                     logging.warning(
-                        f'Invalid response from primary llm {model}: {e}.'
+                        f'Invalid response or timeout from primary llm {model}: {e}.'
                         ' Defaulting to backup.'
                     )
                 error = e
