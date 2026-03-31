@@ -207,7 +207,7 @@ export class DataTable extends React.Component<DataTableProps, DataTableState> {
   }
 
   componentDidUpdate(prevProps: DataTableProps) {
-    if (!prevProps.asset?.content && this.props.asset?.content && !this.state.isInitialized) {
+    if (!prevProps.asset?.content && this.props.asset?.content) {
       this.setState({ isInitialized: true })
     }
 
