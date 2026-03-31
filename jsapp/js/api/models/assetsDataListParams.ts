@@ -29,4 +29,11 @@ export type AssetsDataListParams = {
    * The initial index from which to return the results. Use with `limit`.
    */
   start?: number
+  fields?: string
+  //sort?: Array<{
+  //  /** Column name */
+  //  id: string
+  //  /** Is `true` for descending and `false` for ascending */
+  //  desc: boolean
+  //}>
 }

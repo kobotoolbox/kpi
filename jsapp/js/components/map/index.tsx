@@ -35,7 +35,6 @@ import type {
   AssetFileResponse,
   AssetMapStyles,
   AssetResponse,
-  FailResponse,
   PaginatedResponse,
   SubmissionResponse,
   SurveyChoice,
@@ -45,9 +44,8 @@ import type {
 // Styles
 import './map.scss'
 import './map.marker-colors.scss'
+import type { DataResponse } from '#/api/models/dataResponse'
 import { fetchGetUrl } from '../../../js/api'
-import {DataResponse} from '#/api/models/dataResponse'
-import {UseInfiniteQueryResult} from '@tanstack/react-query'
 
 const STREETS_LAYER = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
@@ -129,11 +127,14 @@ interface FormMapProps extends WithRouterProps {
   asset: AssetResponse
   /** A question/row name for map to focus on given question data */
   viewby: string
-  querySubmission?: any
-  submissions?: DataResponse[]
-  qs: UseInfiniteQueryResult
-  fa: Function
-  all: DataResponse[]
+  pageCount: number
+  setPageCount: Function
+  isLoading: boolean
+  isError: boolean
+  allData: DataResponse[]
+  setFields: Function
+  foundSelectedQuestion: string | null
+  setFoundSelectedQuestion: Function
 }
 
 interface FormMapState {
@@ -238,8 +239,8 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       )
     }
 
-    this.requestData(map, this.props.viewby)
-    this.props.fa()
+    this.createDataQuery(this.props.viewby)
+    this.requestData(map)
     this.unlisteners.push(
       actions.map.setMapStyles.started.listen(this.onSetMapStylesStarted.bind(this)),
       actions.map.setMapStyles.completed.listen(this.onSetMapStylesCompleted.bind(this)),
@@ -247,6 +248,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     )
 
     actions.resources.getAssetFiles(this.props.asset.uid, ASSET_FILE_TYPES.map_layer.id)
+    this.setState({ submissions: this.props.allData as SubmissionResponse[] })
   }
 
   loadOverlayLayers() {
@@ -423,10 +425,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     this.overrideStyles(upcomingMapSettings)
   }
 
-  requestData(map: L.Map, nextViewBy = '') {
-    // TODO: support area / line geodata questions
-    // See: https://github.com/kobotoolbox/kpi/issues/3913
-
+  createDataQuery(nextViewBy = '') {
     // Map cannot actually show more than one question at a time, so we must always have a question specified.
     // The list below describes the priority to find the question:
     let selectedQuestion: string | null = null
@@ -456,6 +455,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     }
 
     this.setState({ foundSelectedQuestion: selectedQuestion })
+    this.props.setFoundSelectedQuestion(selectedQuestion)
 
     let queryLimit = QUERY_LIMIT_DEFAULT
     if (this.state.overridenStyles?.querylimit) {
@@ -464,6 +464,8 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       queryLimit = Number.parseInt(this.props.asset.map_styles.querylimit)
     }
 
+    const pageLimit = queryLimit / 1000
+
     const fq = ['_id']
     if (selectedQuestion) {
       fq.push(selectedQuestion)
@@ -471,27 +473,14 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     if (nextViewBy) {
       fq.push(this.nameOfFieldInGroup(nextViewBy))
     }
-    const sort = [{ id: '_id', desc: true }]
-    dataInterface
-      .getSubmissions(this.props.asset.uid, queryLimit, 0, sort, fq)
-      .done((data: PaginatedResponse<SubmissionResponse>) => {
-        const results = data.results
-        this.setState({ submissions: results }, () => {
-          this.buildMarkers(map)
-          this.buildHeatMap(map)
-        })
-      })
-      .fail((error: FailResponse) => {
-        if (error.responseText) {
-          this.setState({ error: error.responseText })
-        } else if (error.statusText) {
-          this.setState({ error: error.statusText })
-        } else {
-          this.setState({
-            error: t('Error: could not load data.'),
-          })
-        }
-      })
+    //const sort = [{ id: '_id', desc: true }]
+    this.props.setPageCount(pageLimit)
+    this.props.setFields(JSON.stringify(fq))
+  }
+
+  requestData(map: L.Map) {
+    this.buildMarkers(map)
+    this.buildHeatMap(map)
   }
 
   calculateClusterRadius(zoom: number) {
@@ -520,9 +509,10 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     let currentQuestionChoices: SurveyChoice[] = []
     let mapMarkers: MapValueCounts = {}
     let mM: MarkerMap = []
+    const submissions: SubmissionResponse[] = this.props.allData as SubmissionResponse[]
 
     if (viewby) {
-      mapMarkers = this.prepFilteredMarkers(this.state.submissions, this.props.viewby)
+      mapMarkers = this.prepFilteredMarkers(submissions, this.props.viewby)
       const choices = this.props.asset.content?.choices || []
       const survey = this.props.asset.content?.survey || []
 
@@ -569,10 +559,10 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       this.setState({ markerMap: undefined })
     }
 
-    this.state.submissions.forEach((item) => {
+    submissions.forEach((item) => {
       let markerProps = {}
 
-      const parsedCoordinates: number[] = parseLatLng(item, this.state.foundSelectedQuestion)
+      const parsedCoordinates: number[] = parseLatLng(item, this.props.foundSelectedQuestion)
 
       if (!!parsedCoordinates.length) {
         if (viewby && mM) {
@@ -715,8 +705,9 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
 
   buildHeatMap(map: L.Map) {
     const heatmapPoints: Array<[number, number, number]> = []
-    this.state.submissions.forEach((item) => {
-      const parsedCoordinates: number[] = parseLatLng(item, this.state.foundSelectedQuestion)
+    const submissions: SubmissionResponse[] = this.props.allData as SubmissionResponse[]
+    submissions.forEach((item) => {
+      const parsedCoordinates: number[] = parseLatLng(item, this.props.foundSelectedQuestion)
       if (!!parsedCoordinates.length) {
         heatmapPoints.push([parsedCoordinates[0], parsedCoordinates[1], 1])
       }
@@ -805,10 +796,18 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
   }
 
   componentDidUpdate(prevProps: FormMapProps) {
+    if (prevProps.allData !== this.props.allData && this.props.allData.length > 0) {
+      this.setState({ submissions: this.props.allData as SubmissionResponse[] }, () => {
+        if (this.state.map) {
+          this.buildMarkers(this.state.map)
+          this.buildHeatMap(this.state.map)
+        }
+      })
+    }
     if (prevProps.viewby !== this.props.viewby) {
       const map = this.refreshMap()
       if (map) {
-        this.requestData(map, this.props.viewby)
+        this.requestData(map)
       }
     }
   }
@@ -857,7 +856,8 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
         const map = this.refreshMap()
 
         if (map) {
-          this.requestData(map, this.props.viewby)
+          console.log('markers', this.props.allData.length)
+          this.requestData(map)
         }
       },
     )
@@ -1052,7 +1052,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
           </div>
         )}
 
-        {this.state.noData && this.state.hasGeoPoint && (
+        {!this.props.allData && (
           <div className='map-transparent-background'>
             <div className='map-no-geopoint-wrapper'>
               <p className='map-no-geopoint'>{t('No "geopoint" responses have been received')}</p>
@@ -1114,8 +1114,8 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
             </div>
           </bem.FormView__mapList>
         )}
-        {!this.state.markers && !this.state.heatmap && <LoadingSpinner message={false} />}
-        {this.props.qs.status === 'pending' && <LoadingSpinner message={false} /> }
+        {/*!this.state.markers && !this.state.heatmap && <LoadingSpinner message={false} />*/}
+        {this.props.isLoading && <LoadingSpinner message={false} />}
         {this.state.showMapSettings && (
           <Modal open onClose={this.toggleMapSettings.bind(this)} title={t('Map Settings')}>
             <MapSettings
@@ -1127,9 +1127,6 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
           </Modal>
         )}
 
-        <p>ffjajdskfasdffffkfjajdskfasdffffkfjajdskfasdffffkfjajdskfasdffffkjajdskfasdffffk</p>
-        <p>{this.props.qs.status}</p>
-        {this.props.all.length > 0 && this.props.all.forEach((i) => <p>{i._geolocation}</p>)}
         <div id='data-map' />
       </bem.FormView>
     )

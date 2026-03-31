@@ -1,10 +1,9 @@
-import {DataResponse} from "#/api/models/dataResponse"
-import {assetsDataList, getAssetsDataListQueryKey,} from "#/api/react-query/survey-data"
-import {AssetResponse} from "#/dataInterface"
-import {WithRouterProps} from "#/router/legacy"
-import {useInfiniteQuery} from "@tanstack/react-query"
+import { useQueries } from '@tanstack/react-query'
+import { useMemo, useState } from 'react'
+import { assetsDataList, getAssetsDataListQueryKey } from '#/api/react-query/survey-data'
+import type { AssetResponse } from '#/dataInterface'
+import type { WithRouterProps } from '#/router/legacy'
 import FormMap from '.'
-import {useEffect} from "react"
 
 interface FormMapProps extends WithRouterProps {
   asset: AssetResponse
@@ -13,45 +12,56 @@ interface FormMapProps extends WithRouterProps {
 }
 
 export default function FormMapWrapper(props: FormMapProps) {
+  const [pageCount, setPageCount] = useState(5)
+  const [fields, setFields] = useState<string | undefined>(undefined)
+  const [foundSelectedQuestion, setFoundSelectedQuestion] = useState<string | null>(null)
 
-  //useEffect(() => {
-  //  fetchAllPages()
-  //}, [])
+  const queryOptions = useMemo(
+    () =>
+      Array.from({ length: pageCount }).map((_, index) => {
+        if (fields) {
+          console.log('queryOptions current pageCount', pageCount)
+        }
+        return {
+          queryKey: [...getAssetsDataListQueryKey(props.asset.uid), fields, 'page', index],
+          queryFn: () =>
+            assetsDataList(props.asset.uid, {
+              fields: fields || undefined,
+              start: index * 1000,
+              limit: 1000,
+            }),
+          enabled: fields !== undefined,
+        }
+      }),
+    [pageCount],
+  )
 
-  const query = useInfiniteQuery({
-    queryKey: [...getAssetsDataListQueryKey(props.asset.uid), 'infinite'],
-    queryFn: ({ pageParam, signal }) =>
-      assetsDataList(props.asset.uid, { limit: 1000, start: pageParam}, { signal }),
-    initialPageParam: 0,
-    getNextPageParam: (lastPage, allPages) => {
-      if (allPages.length >= 10) {
-        return undefined
+  useMemo(() => {}, [pageCount])
+
+  const results = useQueries({ queries: queryOptions })
+  const isLoading = results.some((result) => result.isLoading)
+  const isError = results.some((result) => result.isError)
+
+  const allData = results
+    .filter((result) => result.isSuccess)
+    .flatMap((result) => {
+      if (result.data && result.data.status === 200) {
+        return result.data.data.results || []
       }
-      if (lastPage.status === 200 && lastPage.data.next) {
-        return allPages.length * 1000
-      }
-      return undefined
-    },
-  })
-
-
-  const fetchAllPages = async () => {
-    console.log('called')
-    let hasMore = query.hasNextPage
-
-    while (hasMore) {
-      console.log('page', query.data?.pages.length)
-      const result = await query.fetchNextPage()
-      hasMore = result.hasNextPage ?? false
-      await new Promise(resolve => setTimeout(resolve, 100))
-    }
-
-    console.log('doine', allSubmissions)
-  }
-
-  const allSubmissions: DataResponse[] = query.data?.pages.flatMap((page) => (page.status === 200 ? page.data.results : [])) || []
+      return []
+    })
 
   return (
-    <FormMap asset={props.asset} qs={query} fa={fetchAllPages} all={allSubmissions}/>
+    <FormMap
+      asset={props.asset}
+      pageCount={pageCount}
+      setPageCount={setPageCount}
+      isLoading={isLoading}
+      isError={isError}
+      allData={allData}
+      setFields={setFields}
+      foundSelectedQuestion={foundSelectedQuestion}
+      setFoundSelectedQuestion={setFoundSelectedQuestion}
+    />
   )
 }
