@@ -344,7 +344,7 @@ class Group extends $row.BaseRow
     if @_isRepeat() then return "repeat" else return "group"
 
   groupStart: ->
-    group = @
+    group := @
     return {
       export_relevant_values: (surv, shts)-> surv.push(@toJSON())
       toJSON: ->

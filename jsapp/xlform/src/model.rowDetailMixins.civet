@@ -14,7 +14,7 @@ import type { RowDetail } from ./model.base
 
 // To be extended ontop of a RowDetail when the key matches
 // the attribute in XLF.RowDetailMixin
-SkipLogicDetailMixin =
+SkipLogicDetailMixin :=
   getValue: ()->
     v = @serialize()
     if v is "undefined"
@@ -23,12 +23,15 @@ SkipLogicDetailMixin =
     return v
 
   postInitialize: ()->
-    survey = @getSurvey()
-    model_factory = new $modelRowDetailsSkipLogic.SkipLogicFactory survey
-    view_factory = new $viewRowDetailSkipLogic.SkipLogicViewFactory survey
-    helper_factory = new $skipLogicHelpers.SkipLogicHelperFactory model_factory, view_factory, survey, @_parent, @.get('value')
+    survey          := @getSurvey()
+    model_factory   := new $modelRowDetailsSkipLogic.SkipLogicFactory survey
+    view_factory    := new $viewRowDetailSkipLogic.SkipLogicViewFactory survey
+    helper_factory  := new $skipLogicHelpers.SkipLogicHelperFactory
+      model_factory, view_factory, survey, @_parent, @.get('value')
 
-    return @facade = new $skipLogicHelpers.SkipLogicPresentationFacade model_factory, helper_factory, view_factory
+    @facade = new $skipLogicHelpers.SkipLogicPresentationFacade
+      model_factory, helper_factory, view_factory
+    ;
 
   serialize: ()->
     // @hidden = false
@@ -40,7 +43,7 @@ SkipLogicDetailMixin =
   linkUp: (ctx)->
     return @facade.initialize()
 
-ValidationLogicMixin =
+ValidationLogicMixin :=
   getValue: () ->
     v = @serialize()
     if v is "undefined"
@@ -66,7 +69,7 @@ ValidationLogicMixin =
   linkUp: (ctx)->
     return @facade.initialize()
 
-rowDetailMixins =
+rowDetailMixins :=
   relevant: SkipLogicDetailMixin
   constraint: ValidationLogicMixin
   file:

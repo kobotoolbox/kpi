@@ -454,8 +454,7 @@ class Group extends $row.BaseRow {
   }
 
   groupStart() {
-    var group
-    group = this
+    const group = this
     return {
       export_relevant_values: function(surv, shts){ return surv.push(this.toJSON()) },
       toJSON: function() {

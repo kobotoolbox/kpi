@@ -1,7 +1,6 @@
 // 📘 generated from ./model.rowDetailMixins.civet 
 
 // FILE rowDetailMixins ==-----
-var SkipLogicDetailMixin, ValidationLogicMixin, rowDetailMixins
 import $skipLogicHelpers              from './mv.skipLogicHelpers'
 import $modelRowDetailsSkipLogic      from './model.rowDetails.skipLogic'
 import $viewRowDetailSkipLogic        from './view.rowDetail.SkipLogic'
@@ -15,7 +14,7 @@ import type { RowDetail } from './model.base'
 
 // To be extended ontop of a RowDetail when the key matches
 // the attribute in XLF.RowDetailMixin
-SkipLogicDetailMixin = {
+const SkipLogicDetailMixin = {
   getValue: function(){
     var v
     v = this.serialize()
@@ -27,13 +26,15 @@ SkipLogicDetailMixin = {
   },
 
   postInitialize: function(){
-    var survey, model_factory, view_factory, helper_factory
-    survey = this.getSurvey()
-    model_factory = new $modelRowDetailsSkipLogic.SkipLogicFactory(survey)
-    view_factory = new $viewRowDetailSkipLogic.SkipLogicViewFactory(survey)
-    helper_factory = new $skipLogicHelpers.SkipLogicHelperFactory(model_factory, view_factory, survey, this._parent, this.get('value'))
+    const survey          = this.getSurvey()
+    const model_factory   = new $modelRowDetailsSkipLogic.SkipLogicFactory(survey)
+    const view_factory    = new $viewRowDetailSkipLogic.SkipLogicViewFactory(survey)
+    const helper_factory  = new $skipLogicHelpers.SkipLogicHelperFactory(
+      model_factory, view_factory, survey, this._parent, this.get('value'))
 
-    return this.facade = new $skipLogicHelpers.SkipLogicPresentationFacade(model_factory, helper_factory, view_factory)
+    this.facade = new $skipLogicHelpers.SkipLogicPresentationFacade(
+      model_factory, helper_factory, view_factory)
+    
   },
 
   serialize: function(){
@@ -49,7 +50,7 @@ SkipLogicDetailMixin = {
   },
 }
 
-ValidationLogicMixin = {
+const ValidationLogicMixin = {
   getValue: function() {
     var v
     v = this.serialize()
@@ -83,7 +84,7 @@ ValidationLogicMixin = {
   },
 }
 
-rowDetailMixins = {
+const rowDetailMixins = {
   relevant: SkipLogicDetailMixin,
   constraint: ValidationLogicMixin,
   file: {
