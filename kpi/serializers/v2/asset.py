@@ -97,6 +97,10 @@ from .asset_file import AssetFileSerializer
 from .asset_permission_assignment import AssetPermissionAssignmentReadSerializer
 from .asset_version import AssetVersionListSerializer
 
+# Used by ENUM_NAME_OVERRIDES in SPECTACULAR_SETTINGS to give a stable name to
+# the deployment_status enum (which includes '-' for backward compatibility).
+DEPLOYMENT_STATUS_ENUM = [*AssetDeploymentStatus.choices, ('-', '-')]
+
 
 class AssetBulkActionsSerializer(serializers.Serializer):
     SUPPORTED_ACTIONS = ['archive', 'unarchive', 'delete', 'undelete']
@@ -571,6 +575,7 @@ class AssetSerializer(serializers.HyperlinkedModelSerializer):
             context=self.context,
         ).data
 
+    @extend_schema_field(serializers.ChoiceField(choices=DEPLOYMENT_STATUS_ENUM))
     def get_deployment_status(self, obj: Asset) -> str:
         if deployment_status := obj.deployment_status:
             return deployment_status
@@ -1294,7 +1299,7 @@ class AssetMetadataListSerializer(AssetListSerializer):
         return request.parser_context['kwargs']['uid_project_view']
 
 
-class AssetMinimalListSerializer(serializers.ModelSerializer):
+class AssetMinimalListSerializer(AssetSerializer):
     """
     Lightweight serializer returning only uid, name and deployment_status.
     Used by the /api/v2/assets/minimal-list/ endpoint and its org/project-view variants.

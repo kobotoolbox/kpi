@@ -17186,7 +17186,11 @@
                         "readOnly": true
                     },
                     "deployment_status": {
-                        "type": "string",
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/AssetDeploymentStatusEnum"
+                            }
+                        ],
                         "readOnly": true
                     },
                     "report_styles": {
@@ -17603,6 +17607,16 @@
                     }
                 ]
             },
+            "AssetDeploymentStatusEnum": {
+                "enum": [
+                    "archived",
+                    "deployed",
+                    "draft",
+                    "-"
+                ],
+                "type": "string",
+                "description": "* `archived` - Archived\n* `deployed` - Deployed\n* `draft` - Draft\n* `-` - -"
+            },
             "AssetExportSettings": {
                 "type": "object",
                 "properties": {
@@ -17721,7 +17735,11 @@
                         "maxLength": 255
                     },
                     "deployment_status": {
-                        "type": "string",
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/AssetDeploymentStatusEnum"
+                            }
+                        ],
                         "readOnly": true
                     }
                 },
@@ -18879,7 +18897,7 @@
                     "deployment_status": {
                         "allOf": [
                             {
-                                "$ref": "#/components/schemas/DeploymentStatusEnum"
+                                "$ref": "#/components/schemas/CustomAssetUsageDeploymentStatusEnum"
                             }
                         ],
                         "readOnly": true
@@ -18895,6 +18913,15 @@
                     "submission_count_all_time",
                     "submission_count_current_period"
                 ]
+            },
+            "CustomAssetUsageDeploymentStatusEnum": {
+                "enum": [
+                    "archived",
+                    "deployed",
+                    "draft"
+                ],
+                "type": "string",
+                "description": "* `archived` - archived\n* `deployed` - deployed\n* `draft` - draft"
             },
             "CustomerPortal": {
                 "type": "object",
@@ -19655,15 +19682,6 @@
                     "backend",
                     "version_id"
                 ]
-            },
-            "DeploymentStatusEnum": {
-                "enum": [
-                    "archived",
-                    "deployed",
-                    "draft"
-                ],
-                "type": "string",
-                "description": "* `archived` - archived\n* `deployed` - deployed\n* `draft` - draft"
             },
             "EmailAddress": {
                 "type": "object",

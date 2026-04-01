@@ -15,10 +15,11 @@ The endpoints are grouped by area of intended use. Each category contains relate
  * `deployed` - deployed
  * `draft` - draft
  */
-export type DeploymentStatusEnum = (typeof DeploymentStatusEnum)[keyof typeof DeploymentStatusEnum]
+export type CustomAssetUsageDeploymentStatusEnum =
+  (typeof CustomAssetUsageDeploymentStatusEnum)[keyof typeof CustomAssetUsageDeploymentStatusEnum]
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
-export const DeploymentStatusEnum = {
+export const CustomAssetUsageDeploymentStatusEnum = {
   archived: 'archived',
   deployed: 'deployed',
   draft: 'draft',

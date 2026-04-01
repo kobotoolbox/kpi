@@ -12272,7 +12272,8 @@ components:
           type: string
           readOnly: true
         deployment_status:
-          type: string
+          allOf:
+          - $ref: '#/components/schemas/AssetDeploymentStatusEnum'
           readOnly: true
         report_styles:
           type: object
@@ -12566,6 +12567,18 @@ components:
         - asset_type
         - name
         - settings
+    AssetDeploymentStatusEnum:
+      enum:
+      - archived
+      - deployed
+      - draft
+      - '-'
+      type: string
+      description: |-
+        * `archived` - Archived
+        * `deployed` - Deployed
+        * `draft` - Draft
+        * `-` - -
     AssetExportSettings:
       type: object
       properties:
@@ -12655,7 +12668,8 @@ components:
           type: string
           maxLength: 255
         deployment_status:
-          type: string
+          allOf:
+          - $ref: '#/components/schemas/AssetDeploymentStatusEnum'
           readOnly: true
       required:
       - deployment_status
@@ -13455,7 +13469,7 @@ components:
           readOnly: true
         deployment_status:
           allOf:
-          - $ref: '#/components/schemas/DeploymentStatusEnum'
+          - $ref: '#/components/schemas/CustomAssetUsageDeploymentStatusEnum'
           readOnly: true
       required:
       - asset
@@ -13466,6 +13480,16 @@ components:
       - storage_bytes
       - submission_count_all_time
       - submission_count_current_period
+    CustomAssetUsageDeploymentStatusEnum:
+      enum:
+      - archived
+      - deployed
+      - draft
+      type: string
+      description: |-
+        * `archived` - archived
+        * `deployed` - deployed
+        * `draft` - draft
     CustomerPortal:
       type: object
       properties:
@@ -13990,16 +14014,6 @@ components:
       - asset
       - backend
       - version_id
-    DeploymentStatusEnum:
-      enum:
-      - archived
-      - deployed
-      - draft
-      type: string
-      description: |-
-        * `archived` - archived
-        * `deployed` - deployed
-        * `draft` - draft
     EmailAddress:
       type: object
       properties:
