@@ -157,7 +157,7 @@ interface FormMapState {
   clearDisaggregatedPopover: boolean
   noData: boolean
   previousViewby?: string
-  // Note: In case 2 of requestData(), we have a situation where a selected question exists without updating
+  // Note: In case 2 of createDataQuery(), we have a situation where a selected question exists without updating
   // overridenStyles. It is much easier to pass the selected question like this than doing some hack with AssetMapStyles
   foundSelectedQuestion: string | null
 }
@@ -240,7 +240,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     }
 
     this.createDataQuery(this.props.viewby)
-    this.requestData(map)
+    this.rebuildMap(map)
     this.unlisteners.push(
       actions.map.setMapStyles.started.listen(this.onSetMapStylesStarted.bind(this)),
       actions.map.setMapStyles.completed.listen(this.onSetMapStylesCompleted.bind(this)),
@@ -478,7 +478,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     this.props.setFields(JSON.stringify(fq))
   }
 
-  requestData(map: L.Map) {
+  rebuildMap(map: L.Map) {
     this.buildMarkers(map)
     this.buildHeatMap(map)
   }
@@ -633,15 +633,18 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
 
       markers.on('click', this.launchSubmissionModal.bind(this)).addTo(map)
 
-      if (prepPoints.length > 0 && (!viewby || !this.state.componentRefreshed)) {
-        map.fitBounds(markers.getBounds())
-      }
-
-      if (prepPoints.length === 0) {
+      if (prepPoints.length === 0 && !this.props.isLoading) {
         map.fitBounds([[42.373, -71.124]])
         this.setState({ noData: true })
       } else {
-        // If the user changed questions, we need to reset the overlay
+        // Note: this is a bit confusing. For some reason (possibly performance related), we didn't want the map to
+        // reset the zoom when switching between disaggregated questions. This is the reason for the first two guards.
+        // The last condition is only possible if we are coming from having no points to having points in the same page,
+        // i.e., we are done waiting for the `allData` prop to populate. We can then reset the zoom once.
+        const shouldFitBounds = !viewby || !this.state.componentRefreshed || this.state.noData
+        if (shouldFitBounds) {
+          map.fitBounds(markers.getBounds())
+        }
         this.setState({ noData: false })
       }
 
@@ -801,19 +804,27 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
   }
 
   componentDidUpdate(prevProps: FormMapProps) {
+    console.log('componentDidUpdate:', {
+      allDataChanged: prevProps.allData !== this.props.allData,
+      pageCountChanged: prevProps.pageCount !== this.props.pageCount,
+      prevDataLength: prevProps.allData.length,
+      currentDataLength: this.props.allData.length,
+      prevPageCount: prevProps.pageCount,
+      currentPageCount: this.props.pageCount
+    })
     if ((prevProps.allData !== this.props.allData || prevProps.pageCount !== this.props.pageCount) && this.props.allData.length > 0) {
+      console.log('i am supposed to be here every time')
       this.setState({ submissions: this.props.allData as SubmissionResponse[] }, () => {
         const newMap = this.refreshMap()
         if (newMap) {
-          this.buildMarkers(newMap)
-          this.buildHeatMap(newMap)
+          this.rebuildMap(newMap)
         }
       })
     }
     if (prevProps.viewby !== this.props.viewby) {
-      const map = this.refreshMap()
-      if (map) {
-        this.requestData(map)
+      const newMap = this.refreshMap()
+      if (newMap) {
+        this.rebuildMap(newMap)
       }
     }
   }
@@ -852,6 +863,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
 
   /** Note: selected questions are considered a "map style" and is updated in the state here */
   overrideStyles(mapStyles: AssetMapStyles) {
+    // React query will use its cache to display the results for queries of different page sizes
     if (mapStyles.querylimit) {
       this.props.setPageCount((Number.parseInt(mapStyles.querylimit) / 1000))
     }
@@ -863,10 +875,11 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
         overridenStyles: mapStyles,
       },
       () => {
-        const map = this.refreshMap()
+        const newMap = this.refreshMap()
 
-        if (map) {
-          this.requestData(map)
+        if (newMap) {
+          this.createDataQuery(this.props.viewby)
+          this.rebuildMap(newMap)
         }
       },
     )
@@ -1058,7 +1071,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
           </PopoverMenu>
         )}
 
-        {this.state.noData && !this.state.hasGeoPoint && (
+        {this.state.noData && !this.state.hasGeoPoint && !this.props.isLoading && (
           <div className='map-transparent-background'>
             <div className='map-no-geopoint-wrapper'>
               <p className='map-no-geopoint'>{t('This project does not include geographical data.')}</p>
@@ -1067,7 +1080,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
           </div>
         )}
 
-        {this.state.noData && this.state.hasGeoPoint && (
+        {this.state.noData && this.state.hasGeoPoint && !this.props.isLoading && (
           <div className='map-transparent-background'>
             <div className='map-no-geopoint-wrapper'>
               <p className='map-no-geopoint'>
@@ -1131,8 +1144,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
             </div>
           </bem.FormView__mapList>
         )}
-        {/*!this.state.markers && !this.state.heatmap && <LoadingSpinner message={false} />*/}
-        {this.props.isLoading && <LoadingSpinner message={false} />}
+        {((!this.state.markers && !this.state.heatmap) || this.props.isLoading) && <LoadingSpinner message={false} />}
         {this.state.showMapSettings && (
           <Modal open onClose={this.toggleMapSettings.bind(this)} title={t('Map Settings')}>
             <MapSettings

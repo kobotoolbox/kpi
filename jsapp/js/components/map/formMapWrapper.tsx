@@ -51,6 +51,8 @@ export default function FormMapWrapper(props: FormMapProps) {
       return []
     })
 
+  console.log('allData length:', allData.length, 'pageCount:', pageCount, 'results:', results.length)
+
   return (
     <FormMap
       asset={props.asset}
@@ -62,6 +64,7 @@ export default function FormMapWrapper(props: FormMapProps) {
       setFields={setFields}
       foundSelectedQuestion={foundSelectedQuestion}
       setFoundSelectedQuestion={setFoundSelectedQuestion}
+      viewby={props.viewby}
     />
   )
 }

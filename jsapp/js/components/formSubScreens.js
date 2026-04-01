@@ -65,8 +65,8 @@ export class FormSubScreens extends React.Component {
         case ROUTES.FORM_MAP.replace(':uid', this.state.uid):
           return <FormMapWrapper asset={this.state} />
         //return <FormMap asset={this.state} />
-        //case ROUTES.FORM_MAP_BY.replace(':uid', this.state.uid).replace(':viewby', this.props.params.viewby):
-        //  return <FormMap asset={this.state} viewby={this.props.params.viewby} />
+        case ROUTES.FORM_MAP_BY.replace(':uid', this.state.uid).replace(':viewby', this.props.params.viewby):
+          return <FormMapWrapper asset={this.state} viewby={this.props.params.viewby} />
         case ROUTES.FORM_DOWNLOADS.replace(':uid', this.state.uid):
           return (
             <Suspense fallback={null}>
