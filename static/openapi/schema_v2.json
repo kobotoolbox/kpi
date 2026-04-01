@@ -3053,7 +3053,7 @@
         "/api/v2/assets/{uid_asset}/counts/": {
             "get": {
                 "operationId": "api_v2_assets_counts_list",
-                "description": "## Count the daily amount of submission\n\nReturns up to the last 31 days of daily counts and total counts of submissions to a survey.\n\n\nUse the `days` query to get the daily counts from the last x amount of days.\nDefault amount is 30 days\n\n\n```shell\ncurl -X GET https://kf.kobotoolbox.org/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/counts/?days=7\n```\n",
+                "description": "## Count the daily amount of submissions\n\nReturns up to the last 31 days of daily counts and total counts of submissions to a survey.\n\n\nUse the `days` query to get the daily counts from the last x amount of days.\nDefault amount is 30 days\n\n\n```shell\ncurl -X GET https://kf.kobotoolbox.org/api/v2/assets/aSAvYreNzVEkrWg5Gdcvg/counts/?days=7\n```\n",
                 "parameters": [
                     {
                         "name": "limit",
@@ -10142,6 +10142,35 @@
                 }
             }
         },
+        "/api/v2/assets/counts/": {
+            "get": {
+                "operationId": "api_v2_assets_counts_retrieve",
+                "description": "## Return counts of deployed, archived, and draft assets\n",
+                "tags": [
+                    "Manage projects and library content"
+                ],
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "TokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AssetListCount"
+                                }
+                            }
+                        },
+                        "description": null
+                    }
+                }
+            }
+        },
         "/api/v2/assets/hash/": {
             "get": {
                 "operationId": "api_v2_assets_hash_retrieve",
@@ -11054,6 +11083,64 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/PaginatedAssetList"
+                                }
+                            }
+                        },
+                        "description": null
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "NotFound": {
+                                        "value": {
+                                            "detail": "Not found."
+                                        },
+                                        "summary": "Not Found"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v2/organizations/{uid_organization}/assets/counts/": {
+            "get": {
+                "operationId": "api_v2_organizations_assets_counts_retrieve",
+                "description": "## Return counts of deployed, archived, and draft assets owned by the organization\n",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "uid_organization",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "A unique value identifying this organization.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "User / team / organization / usage"
+                ],
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "TokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AssetListCount"
                                 }
                             }
                         },
@@ -13269,6 +13356,63 @@
                 }
             }
         },
+        "/api/v2/project-views/{uid_project_view}/assets/counts/": {
+            "get": {
+                "operationId": "api_v2_project_views_assets_counts_retrieve",
+                "description": "## Return counts of deployed, archived, and draft assets in the project view\n",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "uid_project_view",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "User / team / organization / usage"
+                ],
+                "security": [
+                    {
+                        "BasicAuth": []
+                    },
+                    {
+                        "TokenAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AssetListCount"
+                                }
+                            }
+                        },
+                        "description": null
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorDetail"
+                                },
+                                "examples": {
+                                    "NotFound": {
+                                        "value": {
+                                            "detail": "Not found."
+                                        },
+                                        "summary": "Not Found"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/v2/project-views/{uid_project_view}/users/": {
             "get": {
                 "operationId": "api_v2_project_views_users_retrieve",
@@ -13404,7 +13548,42 @@
                 "tags": [
                     "SCIM"
                 ],
+                "security": [
+                    {
+                        "ScimAuth": []
+                    }
+                ],
                 "responses": {
+                    "401": {
+                        "content": {
+                            "application/scim+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ScimError"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ScimError"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "403": {
+                        "content": {
+                            "application/scim+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ScimError"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ScimError"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
                     "200": {
                         "content": {
                             "application/scim+json": {
@@ -13453,7 +13632,42 @@
                     },
                     "required": true
                 },
+                "security": [
+                    {
+                        "ScimAuth": []
+                    }
+                ],
                 "responses": {
+                    "401": {
+                        "content": {
+                            "application/scim+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ScimError"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ScimError"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "403": {
+                        "content": {
+                            "application/scim+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ScimError"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ScimError"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
                     "201": {
                         "content": {
                             "application/scim+json": {
@@ -13498,7 +13712,42 @@
                 "tags": [
                     "SCIM"
                 ],
+                "security": [
+                    {
+                        "ScimAuth": []
+                    }
+                ],
                 "responses": {
+                    "401": {
+                        "content": {
+                            "application/scim+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ScimError"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ScimError"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "403": {
+                        "content": {
+                            "application/scim+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ScimError"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ScimError"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
                     "200": {
                         "content": {
                             "application/scim+json": {
@@ -13556,7 +13805,42 @@
                     },
                     "required": true
                 },
+                "security": [
+                    {
+                        "ScimAuth": []
+                    }
+                ],
                 "responses": {
+                    "401": {
+                        "content": {
+                            "application/scim+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ScimError"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ScimError"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "403": {
+                        "content": {
+                            "application/scim+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ScimError"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ScimError"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
                     "200": {
                         "content": {
                             "application/scim+json": {
@@ -13613,7 +13897,42 @@
                         }
                     }
                 },
+                "security": [
+                    {
+                        "ScimAuth": []
+                    }
+                ],
                 "responses": {
+                    "401": {
+                        "content": {
+                            "application/scim+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ScimError"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ScimError"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "403": {
+                        "content": {
+                            "application/scim+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ScimError"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ScimError"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
                     "200": {
                         "content": {
                             "application/scim+json": {
@@ -13656,9 +13975,158 @@
                 "tags": [
                     "SCIM"
                 ],
+                "security": [
+                    {
+                        "ScimAuth": []
+                    }
+                ],
                 "responses": {
+                    "401": {
+                        "content": {
+                            "application/scim+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ScimError"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ScimError"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "403": {
+                        "content": {
+                            "application/scim+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ScimError"
+                                }
+                            },
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ScimError"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
                     "204": {
                         "description": "No response body"
+                    }
+                }
+            }
+        },
+        "/api/v2/scim/v2/{idp_slug}/ResourceTypes": {
+            "get": {
+                "operationId": "api_v2_scim_v2_ResourceTypes_retrieve",
+                "description": "Returns the SCIM supported ResourceTypes.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "idp_slug",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "SCIM"
+                ],
+                "security": [
+                    {
+                        "ScimAuth": []
+                    }
+                ],
+                "responses": {
+                    "401": {
+                        "content": {
+                            "application/scim+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ScimError"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "403": {
+                        "content": {
+                            "application/scim+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ScimError"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "200": {
+                        "content": {
+                            "application/scim+json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {}
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v2/scim/v2/{idp_slug}/Schemas": {
+            "get": {
+                "operationId": "api_v2_scim_v2_Schemas_retrieve",
+                "description": "Returns the SCIM supported Schemas.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "idp_slug",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "SCIM"
+                ],
+                "security": [
+                    {
+                        "ScimAuth": []
+                    }
+                ],
+                "responses": {
+                    "401": {
+                        "content": {
+                            "application/scim+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ScimError"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "403": {
+                        "content": {
+                            "application/scim+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ScimError"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "200": {
+                        "content": {
+                            "application/scim+json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {}
+                                }
+                            }
+                        },
+                        "description": ""
                     }
                 }
             }
@@ -13680,7 +14148,32 @@
                 "tags": [
                     "SCIM"
                 ],
+                "security": [
+                    {
+                        "ScimAuth": []
+                    }
+                ],
                 "responses": {
+                    "401": {
+                        "content": {
+                            "application/scim+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ScimError"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "403": {
+                        "content": {
+                            "application/scim+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ScimError"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
                     "200": {
                         "content": {
                             "application/scim+json": {
@@ -13739,7 +14232,32 @@
                 "tags": [
                     "SCIM"
                 ],
+                "security": [
+                    {
+                        "ScimAuth": []
+                    }
+                ],
                 "responses": {
+                    "401": {
+                        "content": {
+                            "application/scim+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ScimError"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "403": {
+                        "content": {
+                            "application/scim+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ScimError"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
                     "200": {
                         "content": {
                             "application/scim+json": {
@@ -13783,7 +14301,32 @@
                     },
                     "required": true
                 },
+                "security": [
+                    {
+                        "ScimAuth": []
+                    }
+                ],
                 "responses": {
+                    "401": {
+                        "content": {
+                            "application/scim+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ScimError"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "403": {
+                        "content": {
+                            "application/scim+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ScimError"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
                     "201": {
                         "content": {
                             "application/scim+json": {
@@ -13845,7 +14388,32 @@
                 "tags": [
                     "SCIM"
                 ],
+                "security": [
+                    {
+                        "ScimAuth": []
+                    }
+                ],
                 "responses": {
+                    "401": {
+                        "content": {
+                            "application/scim+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ScimError"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "403": {
+                        "content": {
+                            "application/scim+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ScimError"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
                     "200": {
                         "content": {
                             "application/scim+json": {
@@ -13898,7 +14466,32 @@
                     },
                     "required": true
                 },
+                "security": [
+                    {
+                        "ScimAuth": []
+                    }
+                ],
                 "responses": {
+                    "401": {
+                        "content": {
+                            "application/scim+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ScimError"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "403": {
+                        "content": {
+                            "application/scim+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ScimError"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
                     "200": {
                         "content": {
                             "application/scim+json": {
@@ -13961,7 +14554,32 @@
                         }
                     }
                 },
+                "security": [
+                    {
+                        "ScimAuth": []
+                    }
+                ],
                 "responses": {
+                    "401": {
+                        "content": {
+                            "application/scim+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ScimError"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "403": {
+                        "content": {
+                            "application/scim+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ScimError"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
                     "200": {
                         "content": {
                             "application/scim+json": {
@@ -13999,7 +14617,32 @@
                 "tags": [
                     "SCIM"
                 ],
+                "security": [
+                    {
+                        "ScimAuth": []
+                    }
+                ],
                 "responses": {
+                    "401": {
+                        "content": {
+                            "application/scim+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ScimError"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "403": {
+                        "content": {
+                            "application/scim+json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ScimError"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
                     "204": {
                         "description": "No response body"
                     }
@@ -16782,6 +17425,28 @@
                     "name",
                     "uid",
                     "url"
+                ]
+            },
+            "AssetListCount": {
+                "type": "object",
+                "properties": {
+                    "deployed_count": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "archived_count": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "draft_count": {
+                        "type": "integer",
+                        "readOnly": true
+                    }
+                },
+                "required": [
+                    "archived_count",
+                    "deployed_count",
+                    "draft_count"
                 ]
             },
             "AssetMetadataResponse": {
@@ -23231,6 +23896,11 @@
                     },
                     "members": {
                         "readOnly": true
+                    },
+                    "meta": {
+                        "type": "object",
+                        "additionalProperties": {},
+                        "readOnly": true
                     }
                 }
             },
@@ -23258,6 +23928,11 @@
                     },
                     "active": {
                         "type": "boolean"
+                    },
+                    "meta": {
+                        "type": "object",
+                        "additionalProperties": {},
+                        "readOnly": true
                     }
                 }
             },
@@ -24827,6 +25502,33 @@
                     "labels"
                 ]
             },
+            "ScimError": {
+                "type": "object",
+                "description": "Serializes SCIM 2.0 Error responses matching RFC7644",
+                "properties": {
+                    "schemas": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "default": [
+                            "urn:ietf:params:scim:api:messages:2.0:Error"
+                        ]
+                    },
+                    "detail": {
+                        "type": "string",
+                        "description": "A detailed, human-readable message."
+                    },
+                    "status": {
+                        "type": "string",
+                        "description": "The HTTP status code."
+                    }
+                },
+                "required": [
+                    "detail",
+                    "status"
+                ]
+            },
             "ScimGroup": {
                 "type": "object",
                 "description": "Serializes a Django ScimGroup to match the SCIM 2.0 Group schema.",
@@ -24846,12 +25548,18 @@
                     },
                     "members": {
                         "readOnly": true
+                    },
+                    "meta": {
+                        "type": "object",
+                        "additionalProperties": {},
+                        "readOnly": true
                     }
                 },
                 "required": [
                     "displayName",
                     "id",
                     "members",
+                    "meta",
                     "schemas"
                 ]
             },
@@ -24879,12 +25587,18 @@
                     },
                     "active": {
                         "type": "boolean"
+                    },
+                    "meta": {
+                        "type": "object",
+                        "additionalProperties": {},
+                        "readOnly": true
                     }
                 },
                 "required": [
                     "active",
                     "emails",
                     "id",
+                    "meta",
                     "name",
                     "schemas",
                     "userName"
@@ -27205,6 +27919,11 @@
             "BasicAuth": {
                 "type": "http",
                 "scheme": "basic"
+            },
+            "ScimAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "description": "Authentication via SCIM API Key provided in the Authorization header as a Bearer token."
             },
             "TokenAuth": {
                 "type": "apiKey",

@@ -175,11 +175,10 @@ class KpiObjectPermissionsFilter(filters.BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
 
         user = request.user
-        if user.is_superuser and view.action != 'list':
+        if user.is_superuser and view.detail:
             # For a list, we won't deluge the superuser with everyone else's
             # stuff. This isn't a list, though, so return it all
             return queryset
-
         queryset = self._get_queryset_for_collection_statuses(request, queryset)
         if self._return_queryset:
             return queryset.distinct()
@@ -199,7 +198,7 @@ class KpiObjectPermissionsFilter(filters.BaseFilterBackend):
 
         owned_and_explicit_shared = self._get_owned_and_explicitly_shared(user)
 
-        if view.action != 'list':
+        if view.detail:
             # Not a list, so discoverability doesn't matter
             assets = owned_and_explicit_shared.union(self._get_publics())
             return queryset.filter(pk__in=assets)
@@ -210,15 +209,15 @@ class KpiObjectPermissionsFilter(filters.BaseFilterBackend):
         # the query to be processed right now. Otherwise, because queryset is
         # a lazy query, Django creates (left) joins on tables when queryset is
         # interpreted and it is way slower than running this extra query.
+
         asset_ids = list(
             (
-                owned_and_explicit_shared
-                    .union(subscribed)
-                    # Since user would be subscribed to a collection and not
-                    # the assets themselves, we append children of subscribed
-                    # collections to the queryset in order for `?q=parent__uid`
-                    # queries to return the collection's children
-                    .union(queryset.filter(parent__in=subscribed).values('pk'))
+                owned_and_explicit_shared.union(subscribed)
+                # Since user would be subscribed to a collection and not
+                # the assets themselves, we append children of subscribed
+                # collections to the queryset in order for `?q=parent__uid`
+                # queries to return the collection's children
+                .union(queryset.filter(parent__in=subscribed).values('pk'))
             ).values_list('id', flat=True)
         )
         return queryset.filter(pk__in=asset_ids)
