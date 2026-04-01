@@ -15,6 +15,8 @@ export default function FormMapWrapper(props: FormMapProps) {
   const [pageCount, setPageCount] = useState(5)
   const [fields, setFields] = useState<string | undefined>(undefined)
   const [foundSelectedQuestion, setFoundSelectedQuestion] = useState<string | null>(null)
+  console.log('current fields', fields)
+  console.log('current selected', foundSelectedQuestion)
 
   const queryOptions = useMemo(
     () =>
@@ -23,7 +25,7 @@ export default function FormMapWrapper(props: FormMapProps) {
           console.log('queryOptions current pageCount', pageCount)
         }
         return {
-          queryKey: [...getAssetsDataListQueryKey(props.asset.uid), fields, 'page', index],
+          queryKey: [...getAssetsDataListQueryKey(props.asset.uid), fields, 'pageCount', pageCount, 'page', index],
           queryFn: () =>
             assetsDataList(props.asset.uid, {
               fields: fields || undefined,
@@ -33,10 +35,8 @@ export default function FormMapWrapper(props: FormMapProps) {
           enabled: fields !== undefined,
         }
       }),
-    [pageCount],
+    [pageCount, fields],
   )
-
-  useMemo(() => {}, [pageCount])
 
   const results = useQueries({ queries: queryOptions })
   const isLoading = results.some((result) => result.isLoading)

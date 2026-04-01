@@ -143,6 +143,7 @@ export default class MapSettings extends React.Component<MapSettingsProps, MapSe
   }
 
   saveMapSettings(newSettings: AssetMapStyles) {
+      console.log('new map settings', newSettings)
     const assetUid = this.props.asset.uid
     if (userCan('change_asset', this.props.asset)) {
       actions.map.setMapStyles(assetUid, newSettings)

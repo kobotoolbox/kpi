@@ -796,11 +796,12 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
   }
 
   componentDidUpdate(prevProps: FormMapProps) {
-    if (prevProps.allData !== this.props.allData && this.props.allData.length > 0) {
+    if ((prevProps.allData !== this.props.allData || prevProps.pageCount !== this.props.pageCount) && this.props.allData.length > 0) {
       this.setState({ submissions: this.props.allData as SubmissionResponse[] }, () => {
-        if (this.state.map) {
-          this.buildMarkers(this.state.map)
-          this.buildHeatMap(this.state.map)
+        const newMap = this.refreshMap()
+        if (newMap) {
+          this.buildMarkers(newMap)
+          this.buildHeatMap(newMap)
         }
       })
     }
@@ -824,7 +825,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
   }
 
   launchSubmissionModal(evt: L.LeafletMouseEvent) {
-    const td = this.state.submissions
+    const td = this.props.allData as SubmissionResponse[]
     const ids: number[] = []
     td.forEach((r) => {
       ids.push(r._id)
@@ -846,6 +847,10 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
 
   /** Note: selected questions are considered a "map style" and is updated in the state here */
   overrideStyles(mapStyles: AssetMapStyles) {
+    if (mapStyles.querylimit) {
+      this.props.setPageCount((Number.parseInt(mapStyles.querylimit) / 1000))
+    }
+
     this.setState(
       {
         filteredByMarker: undefined,
@@ -856,7 +861,6 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
         const map = this.refreshMap()
 
         if (map) {
-          console.log('markers', this.props.allData.length)
           this.requestData(map)
         }
       },
@@ -942,7 +946,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
           label = `${t('Disaggregated using:')} ${f.label?.[langIndex]}`
         }
       })
-    } else if (this.state.noData && this.state.hasGeoPoint) {
+    } else if (!this.props.allData && this.state.hasGeoPoint) {
       label = `${t('No "geopoint" responses have been received')}`
     } else if (!this.state.hasGeoPoint) {
       label = `${t('The map does not show data because this form does not have a "geopoint" field.')}`
@@ -992,7 +996,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
           </bem.FormView__mapButton>
         )}
 
-        {this.state.hasGeoPoint && !this.state.noData && (
+        {this.props.allData && (
           <PopoverMenu
             type='viewby-menu'
             triggerLabel={label}
@@ -1042,7 +1046,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
           </PopoverMenu>
         )}
 
-        {this.state.noData && !this.state.hasGeoPoint && (
+        {!this.state.hasGeoPoint && (
           <div className='map-transparent-background'>
             <div className='map-no-geopoint-wrapper'>
               <p className='map-no-geopoint'>
@@ -1052,7 +1056,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
           </div>
         )}
 
-        {!this.props.allData && (
+        {this.state.noData && this.state.hasGeoPoint && (
           <div className='map-transparent-background'>
             <div className='map-no-geopoint-wrapper'>
               <p className='map-no-geopoint'>{t('No "geopoint" responses have been received')}</p>
