@@ -51,7 +51,7 @@ export default function AttachmentActionsDropdown(props: AttachmentActionsDropdo
     try {
       await removeAttachmentMutation.mutateAsync({ uidAsset: props.asset.uid, id: attachment.uid as any }) // TODO: number or string?
       setIsDeleteModalOpen(false)
-      notify(t('##Attachment_type## deleted').replace('##Attachment_type##', attachmentTypeName))
+      notify(t('##Attachment_type## deleted').replace('##Attachment_type##', attachmentTypeName.charAt(0).toUpperCase() + attachmentTypeName.slice(1)))
       props.onDeleted?.()
     } finally {
       setIsDeletePending(false)
