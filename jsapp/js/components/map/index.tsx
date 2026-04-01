@@ -602,9 +602,6 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
     })
 
     if (prepPoints.length >= 0) {
-      // If the user changed questions, we need to reset the overlay
-      this.setState({ noData: false })
-
       let markers
       if (viewby) {
         markers = L.featureGroup(prepPoints)
@@ -641,10 +638,15 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
       if (prepPoints.length > 0 && (!viewby || !this.state.componentRefreshed)) {
         map.fitBounds(markers.getBounds())
       }
+
       if (prepPoints.length === 0) {
         map.fitBounds([[42.373, -71.124]])
         this.setState({ noData: true })
+      } else {
+        // If the user changed questions, we need to reset the overlay
+        this.setState({ noData: false })
       }
+
       this.setState({
         markers: markers as FeatureGroupExtended,
       })
