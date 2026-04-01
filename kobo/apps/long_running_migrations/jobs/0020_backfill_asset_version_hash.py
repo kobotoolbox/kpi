@@ -67,7 +67,7 @@ def _flush(updates: list):
 
 def _get_queryset(last_pk: int) -> QuerySet:
     return (
-        AssetVersion.objects.only('pk', 'uid', 'version_content')
+        AssetVersion.objects.only('pk', 'uid', 'version_content', '_content_hash')
         .filter(_content_hash__isnull=True, pk__gt=last_pk)
         .order_by('pk')[:FETCH_SIZE]
     )
