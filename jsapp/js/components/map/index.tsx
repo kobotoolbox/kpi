@@ -946,7 +946,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
           label = `${t('Disaggregated using:')} ${f.label?.[langIndex]}`
         }
       })
-    } else if (!this.props.allData && this.state.hasGeoPoint) {
+    } else if (this.state.noData && this.state.hasGeoPoint) {
       label = `${t('No "geopoint" responses have been received')}`
     } else if (!this.state.hasGeoPoint) {
       label = `${t('The map does not show data because this form does not have a "geopoint" field.')}`
@@ -996,7 +996,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
           </bem.FormView__mapButton>
         )}
 
-        {this.props.allData && (
+        {this.state.hasGeoPoint && !this.state.noData && (
           <PopoverMenu
             type='viewby-menu'
             triggerLabel={label}
@@ -1046,7 +1046,7 @@ class FormMap extends React.Component<FormMapProps, FormMapState> {
           </PopoverMenu>
         )}
 
-        {!this.state.hasGeoPoint && (
+        {this.state.noData && !this.state.hasGeoPoint && (
           <div className='map-transparent-background'>
             <div className='map-no-geopoint-wrapper'>
               <p className='map-no-geopoint'>
