@@ -32,7 +32,6 @@ def run():
         qs = _get_queryset(last_pk)
         batch_seen = False
 
-        logging.info(f'[LRM 0020] - Processing next batch (last_pk={last_pk})')
         for asset_version in qs.iterator(chunk_size=FETCH_SIZE):
             batch_seen = True
             _ = asset_version.content_hash
@@ -46,12 +45,21 @@ def run():
             break
 
     _flush(updates)
-    logging.info(f'[LRM 0020] - Done!')
+    logging.info('[LRM 0020] - Done')
 
 
 def _flush(updates: list):
+    """
+    Write accumulated updates to DB and clear the list in-place. Mutating the
+    caller's list is intentional: the same list object is reused across batches.
+    """
     if not updates:
         return
+
+    logging.info(
+        f'[LRM 0020] - Flushing {len(updates)} records'
+        f' (pk {updates[0].pk} → {updates[-1].pk})'
+    )
     AssetVersion.objects.bulk_update(updates, fields=['_content_hash'])
     updates.clear()
     time.sleep(SLEEP_BETWEEN_FLUSHES)
