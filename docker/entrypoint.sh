@@ -89,13 +89,6 @@ fi
 echo "Copying static files to nginx volume…"
 rsync -aq --delete --delete-excluded --exclude="rest_framework" --chown=www-data "${KPI_SRC_DIR}/staticfiles/" "${NGINX_STATIC_DIR}/"
 
-if [[ ! -d "${KPI_SRC_DIR}/locale" ]] || [[ -z "$(ls -A ${KPI_SRC_DIR}/locale)" ]]; then
-    echo "Fetching translations…"
-    git submodule init && \
-    git submodule update --remote && \
-    python manage.py compilemessages
-fi
-
 echo 'KPI initialization completed.'
 
 cd "${KPI_SRC_DIR}"

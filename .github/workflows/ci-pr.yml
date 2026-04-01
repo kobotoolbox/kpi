@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - id:   filter
-        uses: dorny/paths-filter@v3
+        uses: dorny/paths-filter@v4
         name: Detect changed files
         with: { filters: .github/filters.yml }
     outputs:
