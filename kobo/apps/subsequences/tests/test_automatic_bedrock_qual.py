@@ -5,11 +5,12 @@ from unittest.mock import ANY, DEFAULT, MagicMock, call, patch
 
 import jsonschema
 import pytest
-from botocore.exceptions import ClientError
+from botocore.exceptions import ClientError, ConnectTimeoutError, ReadTimeoutError
 from constance.test import override_config
 from ddt import data, ddt, unpack
-from django.core.cache import cache
 from django.conf import settings
+from django.core.cache import cache
+from django.test import override_settings
 from django.utils import timezone
 from freezegun import freeze_time
 from rest_framework import status
@@ -32,6 +33,7 @@ from kobo.apps.subsequences.constants import (
 from kobo.apps.subsequences.exceptions import (
     AnalysisQuestionNotFound,
     ManualQualNotFound,
+    AnalysisQuestionIncorrectlyConfigured,
 )
 from kobo.apps.subsequences.models import QuestionAdvancedFeature
 from kobo.apps.subsequences.prompts import (
@@ -62,6 +64,16 @@ from kpi.models import Asset
 from kpi.tests.base_test_case import BaseTestCase
 
 valid_external_data = []
+
+
+def easy_choice_format(choices):
+    formatted_choices = []
+    for choice in choices:
+        formatted = choice['label']
+        if hint := choice.get('hint'):
+            formatted = f'{formatted} ({hint})'
+        formatted_choices.append(formatted)
+    return ','.join(formatted_choices)
 
 
 @ddt
@@ -324,6 +336,10 @@ class TestBedrockAutomaticBedrockQual(BaseAutomaticBedrockQualTestCase):
 
 
 @ddt
+@patch(
+    'kobo.apps.subsequences.actions.automatic_bedrock_qual.format_choices',
+    easy_choice_format,
+)
 class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
 
     def setUp(self):
@@ -399,14 +415,10 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
         choice_count = len(qa_choices)
         with patch.dict(PROMPTS_BY_QUESTION_TYPE, mock_templates_by_type):
             with patch(
-                'kobo.apps.subsequences.actions.automatic_bedrock_qual.format_choices',
-                lambda choices: ','.join([choice['label'] for choice in choices]),
+                'kobo.apps.subsequences.actions.automatic_bedrock_qual.get_example_format',  # noqa
+                return_value='example format string',
             ):
-                with patch(
-                    'kobo.apps.subsequences.actions.automatic_bedrock_qual.get_example_format',  # noqa
-                    return_value='example format string',
-                ):
-                    prompt = self.action.generate_llm_prompt(action_data)
+                prompt = self.action.generate_llm_prompt(action_data)
         expected_choices_string = ','.join(choices_labels)
         assert prompt == (
             f'{qa_question_uuid} transcript: {transcript_text},'
@@ -426,6 +438,8 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
             'labels': {'_default': 'choice hint'}
         }
         choice_text = select_one_question['choices'][0]['labels']['_default']
+        # just take the first choice (which now has a hint)
+        select_one_question['choices'] = select_one_question['choices'][:-1]
         question_text = self._get_question_text_by_uuid(BEDROCK_QUAL_SELECT_ONE_UUID)
 
         manual.params = [select_one_question]
@@ -434,12 +448,6 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
             'uuid': BEDROCK_QUAL_SELECT_ONE_UUID,
             '_dependency': self._dependency_dict_from_transcript_dict(),
         }
-
-        def format_choices(choices):
-            first_choice = choices[0]
-            label = first_choice['label']
-            hint = first_choice['hint']
-            return f'{label} ({hint})'
 
         template = (
             f'question: {analysis_question_placeholder}{hint_placeholder},'
@@ -450,15 +458,56 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
                 'kobo.apps.subsequences.actions.automatic_bedrock_qual.format_hint',
                 lambda hint: f'({hint})',
             ):
-                with patch(
-                    'kobo.apps.subsequences.actions.automatic_bedrock_qual.format_choices',  # noqa
-                    format_choices,
-                ):
-                    prompt = self.action.generate_llm_prompt(action_data)
+                prompt = self.action.generate_llm_prompt(action_data)
 
         assert prompt == (
             f'question: {question_text} (question hint), '
             f'choices: {choice_text} (choice hint)'
+        )
+
+    def test_generate_llm_prompt_escapes_xml(self):
+        manual_qual = QuestionAdvancedFeature.objects.get(
+            asset=self.asset, question_xpath='q1', action=Action.MANUAL_QUAL
+        )
+        manual_qual.params = [
+            {
+                'uuid': BEDROCK_QUAL_SELECT_ONE_UUID,
+                'labels': {'_default': '<xml>question</xml>'},
+                'hint': {'labels': {'_default': '<xml>hint</xml>'}},
+                'type': 'qualSelectOne',
+                'choices': [
+                    {
+                        'labels': {'_default': '<xml>choice</xml>'},
+                        'uuid': BEDROCK_CHOICE_NO_UUID,
+                        'hint': {'labels': {'_default': '<xml>choice hint</xml>'}},
+                    }
+                ],
+            }
+        ]
+        manual_qual.save(update_fields=['params'])
+        action = self.feature.to_action()
+        template = (
+            f'transcript: {response_placeholder}'
+            f'question: {analysis_question_placeholder}{hint_placeholder},'
+            f' choices: {choices_list_placeholder}'
+        )
+        action_data = {
+            'uuid': BEDROCK_QUAL_SELECT_ONE_UUID,
+            '_dependency': self._dependency_dict_from_transcript_dict(),
+        }
+        action_data['_dependency']['value'] = '<xml>transcript</xml>'
+
+        with patch.dict(PROMPTS_BY_QUESTION_TYPE, {QUESTION_TYPE_SELECT_ONE: template}):
+            with patch(
+                'kobo.apps.subsequences.actions.automatic_bedrock_qual.format_hint',
+                lambda hint: f'({hint})',
+            ):
+                prompt = action.generate_llm_prompt(action_data)
+        assert prompt == (
+            'transcript: &lt;xml&gt;transcript&lt;/xml&gt;'
+            'question: &lt;xml&gt;question&lt;/xml&gt; (&lt;xml&gt;hint&lt;/xml&gt;), '
+            'choices: &lt;xml&gt;choice&lt;/xml&gt;'
+            ' (&lt;xml&gt;choice hint&lt;/xml&gt;)'
         )
 
     def test_generate_prompt_fails_if_no_manual_question(self):
@@ -470,6 +519,47 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
         }
         with pytest.raises(AnalysisQuestionNotFound):
             self.action.generate_llm_prompt(action_data)
+
+    def test_generate_prompt_fails_if_no_visible_choices(self):
+        # regression test. this really shouldn't happen if we're validating schemas
+        # properly
+        queryset = QuestionAdvancedFeature.objects.filter(
+            asset=self.asset, question_xpath='q1', action=Action.MANUAL_QUAL
+        )
+        # use update to bypass schema validation
+        queryset.update(
+            params=[
+                {
+                    'type': 'qualSelectMultiple',
+                    'uuid': 'b1f8c6a9-2d4e-4a73-8c5f-9e0b6d1a2374',
+                    'labels': {'_default': 'What themes were present in the story?'},
+                    'choices': [
+                        {
+                            'uuid': 'c4a9e2d1-7b6f-4a83-9d5e-1f8c3b2a0647',
+                            'labels': {'_default': 'Empathy'},
+                            'options': {'deleted': True},
+                        },
+                        {
+                            'uuid': 'c4a9e2d1-7b6f-4a83-9d5e-1f8c3b2a0647',
+                            'labels': {'_default': 'Apathy'},
+                            'options': {'deleted': True},
+                        },
+                    ],
+                }
+            ]
+        )
+        # need to reload the action to pick up the new params for _dependencies
+        action = QuestionAdvancedFeature.objects.get(
+            asset=self.asset,
+            action=Action.AUTOMATIC_BEDROCK_QUAL,
+            question_xpath='q1',
+        ).to_action()
+        action_data = {
+            'uuid': 'b1f8c6a9-2d4e-4a73-8c5f-9e0b6d1a2374',
+            '_dependency': self._dependency_dict_from_transcript_dict(),
+        }
+        with pytest.raises(AnalysisQuestionIncorrectlyConfigured):
+            action.generate_llm_prompt(action_data)
 
     @data(
         # question uuid, parsing method name
@@ -615,7 +705,77 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
         assert result.get('status') == 'failed'
         assert result.get('error') == 'LLM returned empty response'
 
+    def test_timeout_primary_model_fallback_to_backup(self):
+        action_data = {
+            'uuid': BEDROCK_QUAL_TEXT_UUID,
+            '_dependency': self._dependency_dict_from_transcript_dict(),
+        }
 
+        # Simulate a timeout error from the primary model
+        timeout_error = ReadTimeoutError(
+            endpoint_url='https://bedrock-runtime.aws.amazon.com',
+            operation_name='invoke_model',
+            message='Read timeout on endpoint URL: (ReadTimeoutError)'
+        )
+
+        with patch.object(
+            self.action,
+            'get_response_from_llm',
+            side_effect=timeout_error,
+        ) as patched_get_response_from_llm:
+            result = self.action.run_external_process({}, {}, action_data=action_data)
+
+        # Verify that the backup model was called after the timeout
+        patched_get_response_from_llm.assert_has_calls(
+            [
+                call(ANY, OSS120),
+                call(ANY, ClaudeSonnet)
+            ],
+            any_order=False
+        )
+
+        # Verify it exited gracefully
+        assert result.get('status') == 'failed'
+        assert 'timeout' in result.get('error')
+
+    def test_connect_timeout_primary_model_fallback_to_backup(self):
+        action_data = {
+            'uuid': BEDROCK_QUAL_TEXT_UUID,
+            '_dependency': self._dependency_dict_from_transcript_dict(),
+        }
+
+        # Simulate a connect timeout error from the primary model
+        timeout_error = ConnectTimeoutError(
+            endpoint_url='https://bedrock-runtime.aws.amazon.com',
+            error='Connect timeout on endpoint URL'
+        )
+
+        with patch.object(
+            self.action,
+            'get_response_from_llm',
+            side_effect=timeout_error,
+        ) as patched_get_response_from_llm:
+            result = self.action.run_external_process({}, {}, action_data=action_data)
+
+        # Verify that the backup model was called after the primary connection failed
+        patched_get_response_from_llm.assert_has_calls(
+            [
+                call(ANY, OSS120),
+                call(ANY, ClaudeSonnet)
+            ],
+            any_order=False
+        )
+
+        #  Verify it exited gracefully
+        assert result.get('status') == 'failed'
+        assert 'Connect timeout' in result.get('error')
+
+
+@override_settings(CACHES={
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    }
+})
 class TestAutomaticQAThrottling(BaseAutomaticBedrockQualTestCase):
     def setUp(self):
         super().setUp()
@@ -637,21 +797,20 @@ class TestAutomaticQAThrottling(BaseAutomaticBedrockQualTestCase):
 
     @override_config(AUTOMATIC_QA_REQUESTS_PER_SECOND=5)
     @freeze_time('2026-03-16 12:00:00')
-    def test_automatic_qa_throttles_after_limit(self):
+    @patch('kobo.apps.subsequences.actions.automatic_bedrock_qual.boto3.client')
+    def test_automatic_qa_throttles_after_limit(self, mock_boto):
         """
         Test that after a certain number of requests to trigger automatic QA,
         the user is throttled and receives a 429 response
         """
-        with patch(
-            'kobo.apps.subsequences.actions.automatic_bedrock_qual.boto3.client',
-            return_value=MockLLMClient('LLM text'),
-        ):
-            # Simulate 5 successful requests
-            for i in range(5):
-                response = self.client.patch(
-                    self.supplement_details_url, data=self.qa_payload, format='json'
-                )
-                assert response.status_code == status.HTTP_200_OK
+        mock_boto.return_value = MockLLMClient('LLM text')
+
+        # Simulate 5 successful requests
+        for i in range(5):
+            response = self.client.patch(
+                self.supplement_details_url, data=self.qa_payload, format='json'
+            )
+            assert response.status_code == status.HTTP_200_OK
 
         # The 6th request should be throttled
         response = self.client.patch(
@@ -686,20 +845,19 @@ class TestAutomaticQAThrottling(BaseAutomaticBedrockQualTestCase):
 
     @override_config(AUTOMATIC_QA_REQUESTS_PER_SECOND=5)
     @freeze_time('2026-03-16 12:00:00')
-    def test_throttling_is_per_user(self):
+    @patch('kobo.apps.subsequences.actions.automatic_bedrock_qual.boto3.client')
+    def test_throttling_is_per_user(self, mock_boto):
         """
         Test that if one user hits the automatic QA throttle, it does not affect
         other users
         """
+        mock_boto.return_value = MockLLMClient('LLM text')
+
         # Exhaust the limit for UserA
-        with patch(
-            'kobo.apps.subsequences.actions.automatic_bedrock_qual.boto3.client',
-            return_value=MockLLMClient('LLM text'),
-        ):
-            for _ in range(5):
-                self.client.patch(
-                    self.supplement_details_url, data=self.qa_payload, format='json'
-                )
+        for _ in range(5):
+            self.client.patch(
+                self.supplement_details_url, data=self.qa_payload, format='json'
+            )
 
         # Verify UserA is throttled
         response = self.client.patch(
@@ -714,11 +872,7 @@ class TestAutomaticQAThrottling(BaseAutomaticBedrockQualTestCase):
         self.client.force_login(user_b)
 
         # UserB should not be throttled even though UserA is throttled
-        with patch(
-            'kobo.apps.subsequences.actions.automatic_bedrock_qual.boto3.client',
-            return_value=MockLLMClient('LLM text'),
-        ):
-            response = self.client.patch(
-                self.supplement_details_url, data=self.qa_payload, format='json'
-            )
+        response = self.client.patch(
+            self.supplement_details_url, data=self.qa_payload, format='json'
+        )
         assert response.status_code == status.HTTP_200_OK

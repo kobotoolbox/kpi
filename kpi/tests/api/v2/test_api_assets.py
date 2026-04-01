@@ -4,6 +4,7 @@ import os
 from datetime import datetime
 
 import dateutil.parser
+from ddt import data, ddt
 from django.conf import settings
 from django.urls import reverse
 from django.utils import timezone
@@ -713,6 +714,106 @@ class AssetListApiTests(PermissionsTestMixin, BaseAssetTestCase):
         return None
 
 
+@ddt
+class AssetListCountsApiTests(BaseAssetTestCase):
+
+    URL_NAMESPACE = ROUTER_URL_NAMESPACE
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.user = User.objects.create_user(username='user')
+        cls.another_user = User.objects.create_user(username='another_user')
+
+    def _create_one_asset_per_status(self, owner, asset_settings=None):
+        common_creation_kwargs = {'owner': owner, 'asset_type': ASSET_TYPE_SURVEY}
+        if asset_settings:
+            common_creation_kwargs['settings'] = asset_settings
+        draft = Asset.objects.create(
+            name='draft',
+            **common_creation_kwargs,
+        )
+        deployed = Asset.objects.create(
+            name='deployed',
+            **common_creation_kwargs,
+        )
+        deployed.deploy(backend='mock', active=True)
+        archived = Asset.objects.create(
+            name='archived',
+            **common_creation_kwargs,
+        )
+        archived.deploy(backend='mock', active=False)
+        return draft, deployed, archived
+
+    @data(True, False)
+    def test_asset_counts_endpoint(self, as_owner):
+        draft, deployed, archived = self._create_one_asset_per_status(owner=self.user)
+
+        # will only be counted when owner is viewing
+        Asset.objects.create(
+            owner=self.user,
+            name='unshared',
+            asset_type=ASSET_TYPE_SURVEY,
+        )
+        if not as_owner:
+            draft.assign_perm(self.another_user, PERM_VIEW_ASSET)
+            deployed.assign_perm(self.another_user, PERM_VIEW_ASSET)
+            archived.assign_perm(self.another_user, PERM_VIEW_ASSET)
+        user_to_login = self.user if as_owner else self.another_user
+        self.client.force_login(user_to_login)
+        deployed.deploy(backend='mock', active=True)
+        archived.deploy(backend='mock', active=False)
+        url = reverse(self._get_endpoint('asset-counts'))
+        response = self.client.get(url)
+        counts = response.data
+        assert counts['deployed_count'] == 1
+        assert counts['draft_count'] == (2 if as_owner else 1)
+        assert counts['archived_count'] == 1
+
+    def test_project_view_asset_counts(self):
+        owner = self.another_user
+        project_view = ProjectView.objects.create(
+            name='Test', countries='MOZ', permissions=[PERM_VIEW_ASSET]
+        )
+        project_view.users.add(self.user)
+        project_view.save()
+        self._create_one_asset_per_status(
+            owner,
+            asset_settings={'country': [{'value': 'MOZ', 'label': 'Mozambique'}]},
+        )
+
+        # different country, shouldn't be counted
+        Asset.objects.create(
+            owner=owner,
+            name='draft',
+            asset_type=ASSET_TYPE_SURVEY,
+            settings={'country': [{'value': 'ZAF', 'label': 'South Africa'}]},
+        )
+        self.client.force_login(self.user)
+        url = reverse(
+            self._get_endpoint('projectview-asset-counts'),
+            kwargs={'uid_project_view': project_view.uid},
+        )
+        result = self.client.get(url)
+        counts = result.data
+        assert counts['deployed_count'] == 1
+        assert counts['draft_count'] == 1
+        assert counts['archived_count'] == 1
+
+    def test_asset_counts_are_zero_for_anonymous_user(self):
+        self.client.logout()
+        for asset in self._create_one_asset_per_status(self.user):
+            asset.assign_perm(get_anonymous_user(), PERM_VIEW_ASSET)
+        url = reverse(self._get_endpoint('asset-counts'))
+
+        response = self.client.get(url)
+        counts = response.data
+        # counts should be zero even anonymous view access is enabled
+        assert counts['deployed_count'] == 0
+        assert counts['draft_count'] == 0
+        assert counts['archived_count'] == 0
+
+
 class AssetProjectViewListApiTests(BaseAssetTestCase):
     fixtures = ['test_data']
 
@@ -1391,16 +1492,16 @@ class AssetDetailApiTests(PermissionsTestMixin, BaseAssetDetailTestCase):
         self.assertEqual(new_asset.content['translations'], [None])
 
     def test_deployed_version_pagination(self):
-        PAGE_LENGTH = 100
+        page_length = settings.DEFAULT_API_PAGE_SIZE
         version = self.asset.latest_version
         preexisting_count = self.asset.deployed_versions.count()
         version.deployed = True
-        for i in range(PAGE_LENGTH + 11):
+        for i in range(page_length + 11):
             version.uid = ''
             version.pk = None
             version.save()
         self.assertEqual(
-            preexisting_count + PAGE_LENGTH + 11,
+            preexisting_count + page_length + 11,
             self.asset.deployed_versions.count()
         )
         response = self.client.get(self.asset_url, format='json')
@@ -1410,7 +1511,7 @@ class AssetDetailApiTests(PermissionsTestMixin, BaseAssetDetailTestCase):
         )
         self.assertEqual(
             len(response.data['deployed_versions']['results']),
-            PAGE_LENGTH
+            page_length
         )
 
     def check_asset_writable_json_field(self, field_name, **kwargs):
@@ -1915,6 +2016,27 @@ class AssetDetailApiTests(PermissionsTestMixin, BaseAssetDetailTestCase):
             self.assertIn('someuser', usernames)
             self.assertIn('anotheruser', usernames)
             self.assertIn(self.thirduser.username, usernames)
+
+    def test_detail_permissions_visibility_org_admin(self):
+        """
+        An org admin (no explicit ObjectPermission) always sees all users'
+        permissions on the detail endpoint, because manage_asset is implied
+        by their org admin role.
+        """
+        anotheruser = User.objects.get(username='anotheruser')
+        self.asset.assign_perm(self.thirduser, PERM_VIEW_ASSET)
+
+        organization = self.asset.owner.organization
+        organization.mmo_override = True
+        organization.save(update_fields=['mmo_override'])
+        organization.add_user(anotheruser, is_admin=True)
+
+        self.client.force_login(anotheruser)
+        response = self.client.get(self.asset_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        usernames = self._get_perm_usernames(response.data['permissions'])
+        self.assertIn('someuser', usernames)
+        self.assertIn(self.thirduser.username, usernames)
 
 
 class AssetsXmlExportApiTests(KpiTestCase):
@@ -2663,3 +2785,158 @@ class TestCreatedByAndLastModifiedByAsset(BaseAssetTestCase):
         asset.refresh_from_db()
         self.assertEqual(asset.created_by, self.some_user.username)
         self.assertEqual(asset.last_modified_by, another_user.username)
+
+
+class TestAssetMetadataViewSet(BaseAssetTestCase):
+    # don't use test_data fixture here because we need control over how many assets
+    # each user has and what they contain
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.user = User.objects.create_user(username='user')
+        cls.another_user = User.objects.create_user(username='anotheruser')
+
+    def test_asset_metadata_view(self):
+        self.client.force_login(self.user)
+        self.create_asset(
+            content={
+                'survey': [
+                    {'type': 'text', 'label': 'fixture q1', 'name': 'q1', 'kuid': 'abc'}
+                ],
+                'settings': {'default_language': 'Spanish (es)'},
+                'translated': ['label'],
+                'translations': ['Spanish (es)'],
+            },
+            settings={
+                'country': [{'value': 'SPA', 'label': 'Spain'}],
+                'sector': {'label': 'Arts', 'value': 'Arts'},
+                'organization': 'org1',
+            },
+        )
+        self.create_asset(
+            content={
+                'survey': [
+                    {'type': 'text', 'label': 'fixture q1', 'name': 'q1', 'kuid': 'abc'}
+                ],
+                'settings': {'default_language': 'Spanish (es)'},
+                'translated': ['label'],
+                'translations': ['Spanish (es)', 'English (en)'],
+            },
+            settings={
+                'country': [{'value': 'USA', 'label': 'United States'}],
+                'sector': {'label': 'Climate', 'value': 'Climate'},
+                'organization': 'org1',
+            },
+        )
+        # update content via the API to protect against drift in the
+        # schemas for summary and settings
+        response = self.client.get(reverse(self._get_endpoint('asset-metadata')))
+        languages = response.data['languages']
+        countries = response.data['countries']
+        sectors = response.data['sectors']
+        orgs = response.data['organizations']
+        # order doesn't matter
+        assert sorted(languages) == ['English (en)', 'Spanish (es)']
+        assert sorted(countries, key=lambda x: x[1]) == [
+            ('SPA', 'Spain'),
+            ('USA', 'United States'),
+        ]
+        assert sorted(sectors, key=lambda x: x[1]) == [
+            ('Arts', 'Arts'),
+            ('Climate', 'Climate'),
+        ]
+        assert orgs == ['org1']
+
+    def test_asset_metadata_does_not_include_public_assets_not_by_owner(self):
+        # regression test
+        self.client.force_login(self.user)
+        self.create_asset(
+            content={
+                'survey': [
+                    {'type': 'text', 'label': 'fixture q1', 'name': 'q1', 'kuid': 'abc'}
+                ],
+                'settings': {'default_language': 'Spanish (es)'},
+                'translated': ['label'],
+                'translations': ['Spanish (es)'],
+            },
+            settings={
+                'country': [{'value': 'SPA', 'label': 'Spain'}],
+                'sector': {'label': 'Arts', 'value': 'Arts'},
+                'organization': 'org1',
+            },
+        )
+        self.client.force_login(self.another_user)
+        public_asset_response = self.create_asset(
+            content={
+                'survey': [
+                    {'type': 'text', 'label': 'fixture q1', 'name': 'q1', 'kuid': 'abc'}
+                ],
+                'settings': {'default_language': 'Spanish (es)'},
+                'translated': ['label'],
+                'translations': ['Spanish (es)', 'English (en)'],
+            },
+            settings={
+                'country': [{'value': 'USA', 'label': 'United States'}],
+                'sector': {'label': 'Climate', 'value': 'Climate'},
+                'organization': 'org2',
+            },
+        )
+        public_asset = Asset.objects.get(uid=public_asset_response.data['uid'])
+        anonymous_user = get_anonymous_user()
+        public_asset.assign_perm(anonymous_user, PERM_VIEW_ASSET)
+        self.client.force_login(self.user)
+        response = self.client.get(reverse(self._get_endpoint('asset-metadata')))
+        languages = response.data['languages']
+        countries = response.data['countries']
+        sectors = response.data['sectors']
+        orgs = response.data['organizations']
+        assert languages == ['Spanish (es)']
+        assert countries == [('SPA', 'Spain')]
+        assert sectors == [
+            ('Arts', 'Arts'),
+        ]
+        assert orgs == ['org1']
+
+    def test_asset_metadata_does_not_include_public_assets_superuser(self):
+        # regression test
+        superuser = User.objects.create_user(username='super', is_superuser=True)
+        self.client.force_login(self.user)
+        self.create_asset(
+            content={
+                'survey': [
+                    {'type': 'text', 'label': 'fixture q1', 'name': 'q1', 'kuid': 'abc'}
+                ],
+                'settings': {'default_language': 'Spanish (es)'},
+                'translated': ['label'],
+                'translations': ['Spanish (es)'],
+            },
+            settings={
+                'country': [{'value': 'SPA', 'label': 'Spain'}],
+                'sector': {'label': 'Arts', 'value': 'Arts'},
+                'organization': 'org1',
+            },
+        )
+        # the superuser doesn't actually have any assets
+        self.client.force_login(superuser)
+        response = self.client.get(reverse(self._get_endpoint('asset-metadata')))
+        assert response.data['languages'] == []
+        assert response.data['countries'] == []
+        assert response.data['sectors'] == []
+        assert response.data['organizations'] == []
+
+    def test_asset_metadata_with_null_values_in_settings(self):
+        a = Asset.objects.create(owner=self.user)
+        # cheat to force bad settings into the db
+        Asset.objects.filter(uid=a.uid).update(
+            settings={
+                'country': None,
+                'sector': None,
+                'organization': None,
+            }
+        )
+        self.client.force_login(self.user)
+        response = self.client.get(reverse(self._get_endpoint('asset-metadata')))
+        assert response.data['languages'] == []
+        assert response.data['countries'] == []
+        assert response.data['sectors'] == []
+        assert response.data['organizations'] == []

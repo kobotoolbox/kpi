@@ -1,0 +1,6848 @@
+# 
+# Translators:
+# Jackie <jackie@kobotoolbox.org>, 2024
+# Saguna thapa, 2023
+# Saguna thapa, 2023
+msgid ""
+msgstr ""
+"Project-Id-Version: KoboToolbox\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-11-24 17:53+0200\n"
+"PO-Revision-Date: 2016-03-14 19:56+0000\n"
+"Last-Translator: Jackie <jackie@kobotoolbox.org>, 2024\n"
+"Language-Team: Nepali (http://app.transifex.com/kobotoolbox/kobotoolbox/language/ne/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: ne\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Translate Toolkit 3.13.5\n"
+
+#: .Failed+to+update+permissions
+msgid "Failed to update permissions"
+msgstr "अनुमतिहरू अद्यावधिक गर्न असफल भयो"
+
+#: .Failed+to+remove+permissions
+msgid "Failed to remove permissions"
+msgstr "अनुमतिहरू हटाउन असफल भयो"
+
+#: .successfully+updated
+msgid "successfully updated"
+msgstr "सफलतापूर्वक अद्यावधिक गरियो"
+
+#: .please+check+your+connection+and+try+again.
+msgid "please check your connection and try again."
+msgstr "कृपया आफ्नो जडान जाँच गर्नुहोस् र पुन: प्रयास गर्नुहोस्।"
+
+#: .if+this+problem+persists,+contact+help@kobotoolbox.org
+msgid "if this problem persists, contact help@kobotoolbox.org"
+msgstr "यदि यो समस्या रहिरह्यो भने, help@kobotoolbox.org लाई सम्पर्क गर्नुहोस्"
+
+#: .your+form+id+was+not+valid
+msgid "your form id was not valid:"
+msgstr "तपाईको फारम आईडी मान्य थिएन:"
+
+#: .your+form+cannot+be+deployed+because+it+contains+errors
+msgid "your form cannot be deployed because it contains errors:"
+msgstr "तपाईंको फारम प्रयोग गर्न सकिँदैन किनभने यसमा त्रुटिहरू छन्:"
+
+#: .unable+to+deploy
+msgid "unable to deploy"
+msgstr "परिचालन गर्न असमर्थ"
+
+#: .Project+unarchived+successfully
+msgid "Project unarchived successfully"
+msgstr "परियोजना सफलतापूर्वक हटाइयो"
+
+#: .Project+archived+successfully
+msgid "Project archived successfully"
+msgstr "परियोजना सफलतापूर्वक अभिलेख गरियो"
+
+#: .Unable+to+delete+asset%21
+msgid "Unable to delete asset!"
+msgstr "सम्पत्ति मेटाउन असमर्थ!"
+
+#: .Error+details
+msgid "Error details:"
+msgstr "त्रुटि"
+
+#: .Could+not+create+project%21
+msgid "Could not create project!"
+msgstr "परियोजना बनाउन सकिएन!"
+
+#: .changed+password+successfully
+msgid "changed password successfully"
+msgstr "पासवर्ड सफलतापूर्वक परिवर्तन गरियो"
+
+#: .failed+to+change+password
+msgid "failed to change password"
+msgstr "पासवर्ड परिवर्तन गर्न असफल"
+
+#: .failed+to+load+API+token
+msgid "failed to load API token"
+msgstr "API टोकन लोड गर्न असफल भयो"
+
+#: .submission+deleted
+msgid "submission deleted"
+msgstr "पेश गरिएका मेटाइयो"
+
+#: .failed+to+delete+submission
+msgid "failed to delete submission"
+msgstr "पेश गरिएका मेटाउन असफल भयो"
+
+#: .Successfully+duplicated+submission
+msgid "Successfully duplicated submission"
+msgstr "पेश गरिएका सफलतापूर्वक नक्कल गरियो"
+
+#: .Failed+to+duplicate+submission
+msgid "Failed to duplicate submission"
+msgstr "पेश गरिएका नक्कल गर्न असफल"
+
+#: .REST+Service+added+successfully
+msgid "REST Service added successfully"
+msgstr "REST सेवा सफलतापूर्वक थपियो"
+
+#: .Failed+adding+REST+Service
+msgid "Failed adding REST Service"
+msgstr "REST सेवा थप्न असफल"
+
+#: .REST+Service+updated+successfully
+msgid "REST Service updated successfully"
+msgstr "REST सेवा सफलतापूर्वक अपडेट भयो"
+
+#: .Failed+saving+REST+Service
+msgid "Failed saving REST Service"
+msgstr "REST सेवा सेभ गर्न असफल"
+
+#: .REST+Service+deleted+permanently
+msgid "REST Service deleted permanently"
+msgstr "REST सेवा स्थायी रूपमा मेटाइयो"
+
+#: .Could+not+delete+REST+Service
+msgid "Could not delete REST Service"
+msgstr "REST सेवा मेटाउन सकिएन"
+
+#: .Submission+retry+requested+successfully
+msgid "Submission retry requested successfully"
+msgstr "पुन: पेश गरिएका प्रयासको अनुरोध सफलतापूर्वक गरियो"
+
+#: .Submission+retry+request+failed
+msgid "Submission retry request failed"
+msgstr "पुन: पेश गरिएका प्रयास अनुरोध असफल भयो"
+
+#: .Retrying+all+submissions+failed
+msgid "Retrying all submissions failed"
+msgstr "सबै पेश गरिएकाहरू पुन: प्रयास गर्न असफल भयो"
+
+#: .Use+a+few+words,+avoid+common+phrases
+msgid "Use a few words, avoid common phrases"
+msgstr "थोरै शब्दहरू प्रयोग गर्नुहोस्, सामान्य वाक्यांशहरूको प्रयोग नगर्नुहोस्"
+
+#: .No+need+for+symbols,+digits,+or+uppercase+letters
+msgid "No need for symbols, digits, or uppercase letters"
+msgstr "चिन्हरुह, अंकहरू, वा ठूला अक्षरहरूको लागि कुनै आवश्यकता छैन"
+
+#: .Add+another+word+or+two.+Uncommon+words+are+better.
+msgid "Add another word or two. Uncommon words are better."
+msgstr "अर्को एक वा दुई शब्द थप्नुहोस्। असामान्य शब्दहरू राम्रा छन्।"
+
+#: .Straight+rows+of+keys+are+easy+to+guess
+msgid "Straight rows of keys are easy to guess"
+msgstr "सीधा पङ्क्तिहरूमा भएको किबोर्डको कीजहरू अनुमान गर्न सजिलो छ"
+
+#: .Short+keyboard+patterns+are+easy+to+guess
+msgid "Short keyboard patterns are easy to guess"
+msgstr "छोटो किबोर्ड ढाँचाहरू अनुमान गर्न सजिलो छ"
+
+#: .Use+a+longer+keyboard+pattern+with+more+turns
+msgid "Use a longer keyboard pattern with more turns"
+msgstr "थप घुम्ती भएको लामो किबोर्ड ढाँचा प्रयोग गर्नुहोस्"
+
+#: .Repeats+like+%22aaa%22+are+easy+to+guess
+msgid "Repeats like \"aaa\" are easy to guess"
+msgstr "\"ककक\" जस्तै दोहरिने ढाँचाहरू अनुमान गर्न सजिलो छ"
+
+#: .Repeats+like+%22abcabcabc%22+are+only+slightly+harder+to+guess+than+%22abc%22
+msgid "Repeats like \"abcabcabc\" are only slightly harder to guess than \"abc\""
+msgstr "\"कखगकखगकखग\" जस्तै ढाँचाहरू \"कखग\" भन्दा अनुमान गर्न त्यति साह्रो गाह्रो हुँदैन।"
+
+#: .Avoid+repeated+words+and+characters
+msgid "Avoid repeated words and characters"
+msgstr "दोहर्याइएको शब्द र वर्णहरूको प्रयोग नगर्नुहोस्"
+
+#: .Sequences+like+abc+or+6543+are+easy+to+guess
+msgid "Sequences like abc or 6543 are easy to guess"
+msgstr "कखग वा ६५४३ जस्ता अनुक्रमहरू अनुमान गर्न सजिलो छ"
+
+#: .Avoid+sequences
+msgid "Avoid sequences"
+msgstr "अनुक्रमहरू बेवास्ता प्रयोग नगर्नुहोस्"
+
+#: .Recent+years+are+easy+to+guess
+msgid "Recent years are easy to guess"
+msgstr "भर्खरको वर्षहरू अनुमान गर्न सजिलो छ"
+
+#: .Avoid+recent+years
+msgid "Avoid recent years"
+msgstr "भर्खरको वर्षहरूबाट बच्नुहोस्"
+
+#: .Avoid+years+that+are+associated+with+you
+msgid "Avoid years that are associated with you"
+msgstr "तपाईंसँग सम्बन्धित वर्षहरूबाट बच्नुहोस्"
+
+#: .Dates+are+often+easy+to+guess
+msgid "Dates are often easy to guess"
+msgstr "मितिहरू अक्सर अनुमान गर्न सजिलो हुन्छ"
+
+#: .Avoid+dates+and+years+that+are+associated+with+you
+msgid "Avoid dates and years that are associated with you"
+msgstr "तपाईंसँग सम्बन्धित मिति र वर्षहरू नदिनुहोस्"
+
+#: .This+is+a+top-10+common+password
+msgid "This is a top-10 common password"
+msgstr "यो प्रमुख-10 साझा पासवर्ड हो"
+
+#: .This+is+a+top-100+common+password
+msgid "This is a top-100 common password"
+msgstr "यो प्रमुख शीर्ष-100 साझा पासवर्ड हो"
+
+#: .This+is+a+very+common+password
+msgid "This is a very common password"
+msgstr "यो धेरै सामान्य पासवर्ड हो"
+
+#: .This+is+similar+to+a+commonly+used+password
+msgid "This is similar to a commonly used password"
+msgstr "यो सामान्यतया प्रयोग हुने पासवर्ड जस्तै हो"
+
+#: .A+word+by+itself+is+easy+to+guess
+msgid "A word by itself is easy to guess"
+msgstr "एक शब्द मात्र अनुमान गर्न सजिलो छ"
+
+#: .Names+and+surnames+by+themselves+are+easy+to+guess
+msgid "Names and surnames by themselves are easy to guess"
+msgstr "नाम र उपनाम मात्र अनुमान गर्न सजिलो छ"
+
+#: .Common+names+and+surnames+are+easy+to+guess
+msgid "Common names and surnames are easy to guess"
+msgstr "सामान्य नाम र थर अनुमान गर्न सजिलो छ"
+
+#: .Capitalization+doesn%27t+help+very+much
+msgid "Capitalization doesn't help very much"
+msgstr "पुँजीकरणले खासै सहयोग गर्दैन"
+
+#: .All-uppercase+is+almost+as+easy+to+guess+as+all-lowercase
+msgid "All-uppercase is almost as easy to guess as all-lowercase"
+msgstr "सबै-ठूला अक्षरहरू लगभग सबै-लोअरकेस जस्तै अनुमान गर्न सजिलो छ"
+
+#: .Reversed+words+aren%27t+much+harder+to+guess
+msgid "Reversed words aren't much harder to guess"
+msgstr "उल्टो शब्दहरू अनुमान गर्न धेरै गाह्रो छैन"
+
+#: .Predictable+substitutions+like+%27@%27+instead+of+%27a%27+don%27t+help+very+much
+msgid "Predictable substitutions like '@' instead of 'a' don't help very much"
+msgstr "'a' को सट्टा '@' जस्ता अनुमानित प्रतिस्थापनहरूले धेरै मद्दत गर्दैन"
+
+#: .Password+strength
+msgid "Password strength"
+msgstr "पासवर्ड शक्ती"
+
+#: .loading%E2%80%A6
+msgid "loading…"
+msgstr "लोड हुँदै…"
+
+#: .Failed+to+create+export
+msgid "Failed to create export"
+msgstr "निर्यात सिर्जना गर्न असफल"
+
+#: .Failed+to+delete+export
+msgid "Failed to delete export"
+msgstr "निर्यात मेटाउन असफल"
+
+#: .Failed+to+update+export+setting
+msgid "Failed to update export setting"
+msgstr "निर्यात सेटिङ अद्यावधिक गर्न असफल"
+
+#: .Failed+to+create+export+setting
+msgid "Failed to create export setting"
+msgstr "निर्यात सेटिङ सिर्जना गर्न असफल"
+
+#: .Failed+to+delete+export+setting
+msgid "Failed to delete export setting"
+msgstr "निर्यात सेटिङ मेटाउन असफल"
+
+#: .Failed+to+attach+to+source
+msgid "Failed to attach to source"
+msgstr "स्रोतमा संलग्न गर्न असफल"
+
+#: .Failed+to+detach+from+source
+msgid "Failed to detach from source"
+msgstr "स्रोतबाट अलग गर्न असफल"
+
+#: .Failed+to+patch+source
+msgid "Failed to patch source"
+msgstr "स्रोत प्याच गर्न असफल"
+
+#: .Failed+to+retrieve+sharing+enabled+assets
+msgid "Failed to retrieve sharing enabled assets"
+msgstr "साझेदारी क्रियाशील गरिएका सम्पत्तिहरू पुन: प्राप्त गर्न असफल"
+
+#: .Failed+to+toggle+sharing
+msgid "Failed to toggle sharing"
+msgstr "साझेदारी टगल गर्न असफल"
+
+#: .Failed+to+update+column+filters
+msgid "Failed to update column filters"
+msgstr "स्तम्भ फिल्टरहरू अद्यावधिक गर्न असफल"
+
+#: .Successfully+removed+from+collection
+msgid "Successfully removed from collection"
+msgstr "सङ्कलनबाट सफलतापूर्वक हटाइयो"
+
+#: .Successfully+moved+to+collection
+msgid "Successfully moved to collection"
+msgstr "सङ्कलनमा सफलतापूर्वक सारियो"
+
+#: .Move+to+collection+failed
+msgid "Move to collection failed"
+msgstr "सङ्कलनमा सार्न असफल"
+
+#: .Failed+to+get+the+results
+msgid "Failed to get the results"
+msgstr "परिणाम प्राप्त गर्न असफल"
+
+#: .Could+not+upload+your+media
+msgid "Could not upload your media"
+msgstr "तपाईंको मिडिया अपलोड गर्न सकिएन"
+
+#: .Something+went+wrong+with+getting+your+media
+msgid "Something went wrong with getting your media"
+msgstr "तपाईंको मिडिया प्राप्त गर्दा केही गडबड भयो"
+
+#: .Successfully+deleted+media
+msgid "Successfully deleted media"
+msgstr "मिडिया सफलतापूर्वक मेटाइयो"
+
+#: .Failed+to+delete+media%21
+msgid "Failed to delete media!"
+msgstr "मिडिया मेटाउन असफल!"
+
+#: .Failed+to+get+submissions+uuids.
+msgid "Failed to get submissions uuids."
+msgstr "पेश गरिएका uuids प्राप्त गर्न असफल।"
+
+#: .Failed+to+get+submission.
+msgid "Failed to get submission."
+msgstr "पेश गरिएका प्राप्त गर्न असफल।"
+
+#: .Failed+to+update+submissions.
+msgid "Failed to update submissions."
+msgstr "पेश गरिएकाहरू अद्यावधिक गर्न असफल।"
+
+#: .Failed+to+update+some+submissions+values.
+msgid "Failed to update some submissions values."
+msgstr "केही पेश गरिएका मानहरू अद्यावधिक गर्न असफल।"
+
+#: .Failed+to+update+submissions+values.
+msgid "Failed to update submissions values."
+msgstr "पेश गरिएका मानहरू अद्यावधिक गर्न असफल।"
+
+#: .submissions+deleted
+msgid "submissions deleted"
+msgstr ""
+
+#: .failed+to+delete+submissions
+msgid "failed to delete submissions"
+msgstr ""
+
+#: .Failed+to+delete+submissions.
+msgid "Failed to delete submissions."
+msgstr "पेश गरिएका हरू मेटाउन असफल।"
+
+#: .path+not+found+/+recognized
+msgid "path not found / recognized"
+msgstr "बाटो फेला परेन / पहिचान भएन"
+
+#: .Section+not+found
+msgid "Section not found"
+msgstr "सेक्शन फेला परेन"
+
+#: .XForm+is+loading
+msgid "XForm is loading"
+msgstr "XForm लोड हुँदैछ"
+
+#: .View+form
+msgid "View form"
+msgstr " फारम हेर्नुहोस्"
+
+#: .Edit+form
+msgid "Edit form"
+msgstr "फारम सम्पादन गर्नुहोस्"
+
+#: .Manage+project
+msgid "Manage project"
+msgstr "परियोजना व्यवस्थापन गर्नुहोस्"
+
+#: .Add+submissions
+msgid "Add submissions"
+msgstr "सबमिशनहरू थप्नुहोस्"
+
+#: .View+submissions
+msgid "View submissions"
+msgstr "सबमिशनहरू हेर्नुहोस्"
+
+#: .View+submissions+only+from+specific+users
+msgid "View submissions only from specific users"
+msgstr "केवल विशिष्ट प्रयोगकर्ताहरूको सबमिशनहरू हेर्नुहोस्"
+
+#: .View+submissions+based+on+a+condition
+msgid "View submissions based on a condition"
+msgstr "सर्तमा आधारित सबमिशनहरू हेर्नुहोस्"
+
+#: .Edit+submissions
+msgid "Edit submissions"
+msgstr "सबमिशनहरू सम्पादन गर्नुहोस्"
+
+#: .Edit+submissions+only+from+specific+users
+msgid "Edit submissions only from specific users"
+msgstr "केवल विशिष्ट प्रयोगकर्ताहरूको सबमिशनहरू सम्पादन गर्नुहोस्"
+
+#: .Edit+submissions+based+on+a+condition
+msgid "Edit submissions based on a condition"
+msgstr "सर्तमा आधारित सबमिशनहरू सम्पादन गर्नुहोस्"
+
+#: .Validate+submissions
+msgid "Validate submissions"
+msgstr "सबमिशनहरू मान्य गर्नुहोस्"
+
+#: .Validate+submissions+only+from+specific+users
+msgid "Validate submissions only from specific users"
+msgstr "विशिष्ट प्रयोगकर्ताहरूको मात्र सबमिशनहरू मान्य गर्नुहोस्"
+
+#: .Validate+submissions+based+on+a+condition
+msgid "Validate submissions based on a condition"
+msgstr "सर्तमा आधारित सबमिशनहरू मान्य गर्नुहोस्"
+
+#: .Delete+submissions
+msgid "Delete submissions"
+msgstr "सबमिशनहरू मेटाउनुहोस्"
+
+#: .Delete+submissions+only+from+specific+users
+msgid "Delete submissions only from specific users"
+msgstr "केवल विशिष्ट प्रयोगकर्ताहरूको सबमिशनहरू मेटाउनुहोस्"
+
+#: .Delete+submissions+based+on+a+condition
+msgid "Delete submissions based on a condition"
+msgstr "सर्तमा आधारित सबमिशनहरू मेटाउनुहोस्"
+
+#: .View+block
+msgid "View block"
+msgstr ""
+
+#: .Edit+block
+msgid "Edit block"
+msgstr ""
+
+#: .Manage+block
+msgid "Manage block"
+msgstr ""
+
+#: .View+question
+msgid "View question"
+msgstr ""
+
+#: .Edit+question
+msgid "Edit question"
+msgstr ""
+
+#: .Manage+question
+msgid "Manage question"
+msgstr ""
+
+#: .View+template
+msgid "View template"
+msgstr ""
+
+#: .Edit+template
+msgid "Edit template"
+msgstr ""
+
+#: .Manage+template
+msgid "Manage template"
+msgstr ""
+
+#: .View+collection
+msgid "View collection"
+msgstr ""
+
+#: .Edit+collection
+msgid "Edit collection"
+msgstr ""
+
+#: .Manage+collection
+msgid "Manage collection"
+msgstr ""
+
+#: .Act+on+submissions+only+from+specific+users
+msgid "Act on submissions only from specific users"
+msgstr "केवल विशिष्ट प्रयोगकर्ताहरूको सबमिशनमा कार्य गर्नुहोस्"
+
+#: .Act+on+submissions+based+on+a+condition
+msgid "Act on submissions based on a condition"
+msgstr "सर्तमा आधारित सबमिशनहरूमा कार्य गर्नुहोस्"
+
+#: .Act+on+submissions+based+on+multiple+conditions
+msgid "Act on submissions based on multiple conditions"
+msgstr "धेरै सर्तहरूमा आधारित सबमिशनहरूमा कार्य गर्नुहोस्"
+
+#: .Untitled
+msgid "Untitled"
+msgstr "शीर्षकविहीन"
+
+#: .Collect+data
+msgid "Collect data"
+msgstr "तथ्याङ्क सङ्कलन गर्नुहोस्"
+
+#: .Share+project
+msgid "Share project"
+msgstr "परियोजना बाड्नुहोस्"
+
+#: .Preview+form
+msgid "Preview form"
+msgstr "पूर्वावलोकन फारम"
+
+#: .Data
+msgid "Data"
+msgstr "तथ्याङ्क"
+
+#: .Team+members
+msgid "Team members"
+msgstr "समुह सदस्यहरू"
+
+#: .Submissions
+msgid "Submissions"
+msgstr "पेश गरिएका"
+
+#: .Quick+Links
+msgid "Quick Links"
+msgstr "तीव्र लिङ्कहरू"
+
+#: .An+error+occurred
+msgid "An error occurred"
+msgstr "एउटा त्रुटि भयो"
+
+#: .Your+connection+is+offline
+msgid "Your connection is offline"
+msgstr "तपाईंको जडान अफलाइन छ"
+
+#: .%23%23field_label%23%23+(required)
+msgid "##field_label## (required)"
+msgstr "##field_label## (आवश्यक)"
+
+#: .undeployed
+msgid "undeployed"
+msgstr "काम नगरिएको"
+
+#: .Last+Modified
+msgid "Last Modified"
+msgstr "पछिल्लो पटक परिमार्जित"
+
+#: .questions
+msgid "questions"
+msgstr "प्रश्नहरू"
+
+#: .redeploy
+msgid "redeploy"
+msgstr "पुन: विस्तार गर्नु"
+
+#: .deploy
+msgid "deploy"
+msgstr "विस्तार गर्नु"
+
+#: .unarchive
+msgid "unarchive"
+msgstr "सङ्ग्रह रद्द गर्नुहोस्"
+
+#: .Form+history
+msgid "Form history"
+msgstr "फारम इतिहास"
+
+#: .Version
+msgid "Version"
+msgstr "संस्करण"
+
+#: .Clone
+msgid "Clone"
+msgstr "उस्तै अर्को बनाउनु"
+
+#: .Clone+this+version+as+a+new+project
+msgid "Clone this version as a new project"
+msgstr "यो संस्करणलाई नयाँ परियोजनाको रूपमा उस्तै अर्को बनाउनुहोस्"
+
+#: .Hide+full+history
+msgid "Hide full history"
+msgstr "पुरा इतिहास लुकाउनुहोस्"
+
+#: .Show+full+history
+msgid "Show full history"
+msgstr "पुरा इतिहास देखाउनुहोस्"
+
+#: .Load+more
+msgid "Load more"
+msgstr "थप लोड गर्नुहोस्"
+
+#: .Install
+msgid "Install"
+msgstr "स्थापना गर्नुहोस्"
+
+#: .on+your+Android+device.
+msgid "on your Android device."
+msgstr "आफ्नो एन्ड्रोइड साधन।"
+
+#: .Select+the+option+%22Manually+enter+project+details%22
+msgid "Select the option \"Manually enter project details\""
+msgstr ""
+
+#: .Enter+the+server+URL
+msgid "Enter the server URL"
+msgstr "सर्भर URL (यु आर एल) लेख्नुहोस्"
+
+#: .and+your+username+and+password
+msgid "and your username and password"
+msgstr "र तपाईंको युज़रनेम र पासवर्ड"
+
+#: .Select+%22Download+form%22+and+select+this+project
+msgid "Select \"Download form\" and select this project"
+msgstr ""
+
+#: .Select+%22Start+New+Form%22
+msgid "Select \"Start New Form\""
+msgstr ""
+
+#: .Select+this+project+from+the+list+of+downloaded+projects
+msgid "Select this project from the list of downloaded projects"
+msgstr ""
+
+#: .You+can+now+control+whether+to+allow+anonymous+submissions+for+each+project.+Previously,+this+was+an+account-wide+setting.
+msgid ""
+"You can now control whether to allow anonymous submissions for each project."
+" Previously, this was an account-wide setting."
+msgstr "तपाइँ अब प्रत्येक परियोजनाको लागि बेनामी सबमिशनहरू अनुमति दिने कि नियन्त्रण गर्न सक्नुहुन्छ। पहिले, यो खाता-व्यापी सेटिङ थियो।"
+
+#: .Download+KoboCollect
+msgid "Download KoboCollect"
+msgstr "KoboCollect डाउनलोड गर्नुहोस्"
+
+#: .Try+reloading+the+page,+if+problem+doesn%27t+go+away,+contact+support.
+msgid "Try reloading the page, if problem doesn't go away, contact support."
+msgstr "पृष्ठ पुन: लोड गर्ने प्रयास गर्नुहोस्, यदि समस्या हट्दैन भने, समर्थनलाई सम्पर्क गर्नुहोस्।"
+
+#: .Link+missing
+msgid "Link missing"
+msgstr "लिङ्क छुटेको छ"
+
+#: .Copied+to+clipboard
+msgid "Copied to clipboard"
+msgstr "क्लिपबोर्डमा प्रतिलिपि गरियो"
+
+#: .Copy
+msgid "Copy"
+msgstr "प्रतिलिपि"
+
+#: .Open
+msgid "Open"
+msgstr "खोल्नुहोस्"
+
+#: .Edit+in+Form+Builder
+msgid "Edit in Form Builder"
+msgstr "फारम बिल्डरमा सम्पादन गर्नुहोस्"
+
+#: .Editing+capabilities+not+granted,+you+can+only+view+this+form
+msgid "Editing capabilities not granted, you can only view this form"
+msgstr "सम्पादन क्षमताहरू प्रदान गरिएको छैन, तपाईंले यो फारम हेर्न मात्र सक्नुहुन्छ"
+
+#: .Preview
+msgid "Preview"
+msgstr "पूर्वावलोकन"
+
+#: .Replace+form
+msgid "Replace form"
+msgstr "फारम बदल्नुहोस्"
+
+#: .More+actions
+msgid "More actions"
+msgstr "थप कार्यहरू"
+
+#: .Download
+msgid "Download"
+msgstr "डाउनलोड गर्नुहोस्"
+
+#: .Share+this+project
+msgid "Share this project"
+msgstr "यो परियोजना बाड्नुहोस्"
+
+#: .Remove+shared+project
+msgid "Remove shared project"
+msgstr "बाडिएको परियोजना हटाउनुहोस्"
+
+#: .Clone+this+project
+msgid "Clone this project"
+msgstr "उस्तै अर्को यो परियोजना बनाउनुहोस्"
+
+#: .Create+template
+msgid "Create template"
+msgstr "टेम्प्लेट सिर्जना गर्नुहोस्"
+
+#: .Manage+translations
+msgid "Manage translations"
+msgstr "अनुवादहरू प्रबन्ध गर्नुहोस्"
+
+#: .Languages
+msgid "Languages:"
+msgstr "भाषाहरु:"
+
+#: .This+project+has+no+languages+defined+yet
+msgid "This project has no languages defined yet"
+msgstr "यो परियोजनामा ​​अझै कुनै भाषा परिभाषित गरिएको छैन"
+
+#: .Unnamed+language
+msgid "Unnamed language"
+msgstr "अज्ञात भाषा"
+
+#: .Current+version
+msgid "Current version"
+msgstr "हालको संस्करण"
+
+#: .Archived+version
+msgid "Archived version"
+msgstr "संग्रहित संस्करण"
+
+#: .Draft+version
+msgid "Draft version"
+msgstr "मस्यौदा संस्करण"
+
+#: .If+you+want+to+make+these+changes+public,+you+must+deploy+this+form.
+msgid "If you want to make these changes public, you must deploy this form."
+msgstr "यदि तपाईं यी परिवर्तनहरू सार्वजनिक गर्न चाहनुहुन्छ भने, तपाईंले यो फारम प्रयोग गर्नुपर्छ।"
+
+#: .Public+Collections
+msgid "Public Collections"
+msgstr "सार्वजनिक संग्रहहरू"
+
+#: .Subscribed
+msgid "Subscribed"
+msgstr "सदस्यता लिइयो"
+
+#: .Quick+look
+msgid "Quick look"
+msgstr "तीव्र हेराई"
+
+#: .Your+search+returned+no+results.
+msgid "Your search returned no results."
+msgstr "तपाईको खोजले कुनै नतिजा फिर्ता गरेन।"
+
+#: .Let%27s+get+started+by+creating+your+first+library+question,+block,+template+or+collection.+Click+the+New+button+to+create+it.
+msgid ""
+"Let's get started by creating your first library question, block, template "
+"or collection. Click the New button to create it."
+msgstr "तपाईंको पहिलो पुस्तकालय प्रश्न, ब्लक, टेम्प्लेट वा संग्रह सिर्जना गरेर सुरु गरौं। यसलाई सिर्जना गर्न नयाँ बटन क्लिक गर्नुहोस्।"
+
+#: .Advanced+users+You+can+also+drag+and+drop+XLSForms+here+and+they+will+be+uploaded+and+converted+to+library+items.
+msgid ""
+"Advanced users: You can also drag and drop XLSForms here and they will be "
+"uploaded and converted to library items."
+msgstr "उन्नत प्रयोगकर्ताहरू: तपाईं यहाँ XLSForms लाई तान्न र छोड्न सक्नुहुन्छ र तिनीहरूलाई अपलोड गरी पुस्तकालय वस्तुहरूमा रूपान्तरण गरिनेछ।"
+
+#: .My+Library
+msgid "My Library"
+msgstr "मेरो पुस्तकालय"
+
+#: .Drop+files+to+upload
+msgid "Drop files to upload"
+msgstr "अपलोड गर्न फाइलहरू ड्रप गर्नुहोस्"
+
+#: .Could+not+load+grouped+results+via+%22%23%23%22.+Will+attempt+to+load+the+ungrouped+report.
+msgid ""
+"Could not load grouped results via \"##\". Will attempt to load the "
+"ungrouped report."
+msgstr "\"##\" मार्फत समूहबद्ध परिणामहरू लोड गर्न सकिएन। समूह नगरिएको रिपोर्ट लोड गर्ने प्रयास गर्नेछ।"
+
+#: .Could+not+refresh+report.
+msgid "Could not refresh report."
+msgstr "रिपोर्ट रिफ्रेस गर्न सकिएन।"
+
+#: .Untitled+report
+msgid "Untitled report"
+msgstr "शीर्षकविहीन रिपोर्ट"
+
+#: .Default+Report
+msgid "Default Report"
+msgstr "पूर्वनिर्धारित रिपोर्ट"
+
+#: .Create+New+Report
+msgid "Create New Report"
+msgstr "नयाँ रिपोर्ट सिर्जना गर्नुहोस्"
+
+#: .Edit+Report+Questions
+msgid "Edit Report Questions"
+msgstr "रिपोर्ट प्रश्नहरू सम्पादन गर्नुहोस्"
+
+#: .Configure+Report+Style
+msgid "Configure Report Style"
+msgstr "रिपोर्ट शैली कन्फिगर गर्नुहोस्"
+
+#: .Print
+msgid "Print"
+msgstr "छाप्नुहोस्"
+
+#: .Toggle+fullscreen
+msgid "Toggle fullscreen"
+msgstr "फुलस्क्रिन टगल गर्नुहोस्"
+
+#: .This+report+cannot+be+loaded.
+msgid "This report cannot be loaded."
+msgstr "यो रिपोर्ट लोड गर्न सकिँदैन।"
+
+#: .This+report+has+no+data.
+msgid "This report has no data."
+msgstr "यो रिपोर्टमा कुनै तथ्याङ्क छैन।"
+
+#: .Try+changing+Report+Style+to+%22No+grouping%22.
+msgid "Try changing Report Style to \"No grouping\"."
+msgstr "रिपोर्ट शैली \"कुनै समूह छैन\" मा परिवर्तन गर्ने प्रयास गर्नुहोस्।"
+
+#: .Reports
+msgid "Reports"
+msgstr "रिपोर्टहरु"
+
+#: .For+performance+reasons,+this+report+only+includes+the+first+%23%23+questions.
+msgid ""
+"For performance reasons, this report only includes the first ## questions."
+msgstr "कार्यसम्पादन कारणहरूका लागि, यो रिपोर्टले पहिलो ## प्रश्नहरू मात्र समावेश गर्दछ।"
+
+#: .Show+all+(%23%23)
+msgid "Show all (##)"
+msgstr "सबै देखाऊहोस् (##)"
+
+#: .This+is+an+automated+report+based+on+raw+data+submitted+to+this+project.+Please+conduct+proper+data+cleaning+prior+to+using+the+graphs+and+figures+used+on+this+page.
+msgid ""
+"This is an automated report based on raw data submitted to this project. "
+"Please conduct proper data cleaning prior to using the graphs and figures "
+"used on this page."
+msgstr "यो यस परियोजनामा ​​पेश गरिएको कच्चा डाटामा आधारित स्वचालित रिपोर्ट हो। कृपया यस पृष्ठमा प्रयोग गरिएका ग्राफहरू र आंकडाहरू प्रयोग गर्नु अघि उचित तथ्याङ्क सफाई सञ्चालन गर्नुहोस्।"
+
+#: .Edit+Report+Style
+msgid "Edit Report Style"
+msgstr "रिपोर्ट शैली सम्पादन गर्नुहोस्"
+
+#: .Custom+Report
+msgid "Custom Report"
+msgstr "कस्टम रिपोर्ट"
+
+#: .Question+Style
+msgid "Question Style"
+msgstr "प्रश्न शैली"
+
+#: .Default+-+single+page
+msgid "Default - single page"
+msgstr "प्रारम्भिक - एकल पृष्ठ"
+
+#: .Grid+theme
+msgid "Grid theme"
+msgstr "ग्रिड विषयवस्तु"
+
+#: .Grid+theme+with+headings+in+ALL+CAPS
+msgid "Grid theme with headings in ALL CAPS"
+msgstr "ALL CAPS मा शीर्षकहरू सहित ग्रिड विषयवस्तु"
+
+#: .Multiple+pages
+msgid "Multiple pages"
+msgstr "धेरै पृष्ठहरू"
+
+#: .Grid+theme+%2B+Multiple+pages
+msgid "Grid theme + Multiple pages"
+msgstr "ग्रिड विषयवस्तु + बहु पृष्ठहरू"
+
+#: .Grid+theme+%2B+Multiple+pages+%2B+headings+in+ALL+CAPS
+msgid "Grid theme + Multiple pages + headings in ALL CAPS"
+msgstr "ग्रिड विषयवस्तु + धेरै पृष्ठहरू + ALL CAPS मा शीर्षकहरू"
+
+#: .question
+msgid "question"
+msgstr "प्रश्न"
+
+#: .block
+msgid "block"
+msgstr "ब्लक"
+
+#: .template
+msgid "template"
+msgstr "टेम्प्लेट"
+
+#: .project
+msgid "project"
+msgstr "परियोजना"
+
+#: .collection
+msgid "collection"
+msgstr "सङ्कलन"
+
+#: .map+layer
+msgid "map layer"
+msgstr "नक्सा तह"
+
+#: .form+media
+msgid "form media"
+msgstr "फाराम मिडिया"
+
+#: .Acknowledge
+msgid "Acknowledge"
+msgstr "स्वीकार गर्नुहोस्"
+
+#: .Audio
+msgid "Audio"
+msgstr "अडियो"
+
+#: .Background+Audio
+msgid "Background Audio"
+msgstr ""
+
+#: .Background+Geopoint
+msgid "Background Geopoint"
+msgstr ""
+
+#: .Barcode+/+QR+Code
+msgid "Barcode / QR Code"
+msgstr "बारकोड / QR कोड"
+
+#: .Calculate
+msgid "Calculate"
+msgstr "गणना गर्नुहोस्"
+
+#: .Date
+msgid "Date"
+msgstr "मिति"
+
+#: .Date+%26+time
+msgid "Date & time"
+msgstr "मिति समय"
+
+#: .Decimal
+msgid "Decimal"
+msgstr "दशमलव"
+
+#: .External+XML
+msgid "External XML"
+msgstr "बाह्य XML"
+
+#: .File
+msgid "File"
+msgstr "फाइल"
+
+#: .Point
+msgid "Point"
+msgstr "बिन्दु"
+
+#: .Area
+msgid "Area"
+msgstr "क्षेत्र"
+
+#: .Line
+msgid "Line"
+msgstr "रेखा"
+
+#: .Hidden
+msgid "Hidden"
+msgstr "लुकेको"
+
+#: .Photo
+msgid "Photo"
+msgstr "फोटो"
+
+#: .Number
+msgid "Number"
+msgstr "नम्बर"
+
+#: .Question+Matrix
+msgid "Question Matrix"
+msgstr "प्रश्न म्याट्रिक्स"
+
+#: .Note
+msgid "Note"
+msgstr "नोट"
+
+#: .Range
+msgid "Range"
+msgstr "दायरा"
+
+#: .Ranking
+msgid "Ranking"
+msgstr "रैंकिंग"
+
+#: .Rating
+msgid "Rating"
+msgstr "मूल्याङ्कन"
+
+#: .Select+Many
+msgid "Select Many"
+msgstr "धेरै छान्नुहोस्"
+
+#: .Select+Many+from+File
+msgid "Select Many from File"
+msgstr "फाइलबाट धेरैवटा चयन गर्नुहोस्"
+
+#: .Select+One
+msgid "Select One"
+msgstr "एउटा छान्नुहोस्"
+
+#: .Select+One+from+File
+msgid "Select One from File"
+msgstr "फाइलबाट एउटा चयन गर्नुहोस्"
+
+#: .Text
+msgid "Text"
+msgstr "पाठ"
+
+#: .Time
+msgid "Time"
+msgstr "समय"
+
+#: .Video
+msgid "Video"
+msgstr "भिडियो"
+
+#: .Deployed
+msgid "Deployed"
+msgstr "विस्तार गरियो"
+
+#: .Draft
+msgid "Draft"
+msgstr "मस्यौदा"
+
+#: .Archived
+msgid "Archived"
+msgstr "अभिलेख राखिएको"
+
+#: .Online-Offline+(multiple+submission)
+msgid "Online-Offline (multiple submission)"
+msgstr "अनलाइन-अफलाइन (बहु पेश गरिएका)"
+
+#: .This+allows+online+and+offline+submissions+and+is+the+best+option+for+collecting+data+in+the+field.
+msgid ""
+"This allows online and offline submissions and is the best option for "
+"collecting data in the field."
+msgstr "यसले अनलाइन र अफलाइन पेश गरिएकाहरूलाई अनुमति दिन्छ र फिल्डमा डाटा सङ्कलन गर्नका लागि उत्तम विकल्प हो।"
+
+#: .Online-Only+(multiple+submissions)
+msgid "Online-Only (multiple submissions)"
+msgstr "अनलाइन मात्र (बहु पेश गरिएका हरू)"
+
+#: .This+is+the+best+option+when+entering+many+records+at+once+on+a+computer,+e.g.+for+transcribing+paper+records.
+msgid ""
+"This is the best option when entering many records at once on a computer, "
+"e.g. for transcribing paper records."
+msgstr "कम्प्युटरमा एकै पटक धेरै रेकर्डहरू प्रविष्ट गर्दा यो उत्तम विकल्प हो, उदाहरणका लागि। कागज अभिलेख ट्रान्सक्राइब गर्नका लागि।"
+
+#: .Online-Only+(single+submission)
+msgid "Online-Only (single submission)"
+msgstr "अनलाइन-मात्र (एकल पेश गरिएका)"
+
+#: .This+allows+a+single+submission,+and+can+be+paired+with+the+%22return_url%22+parameter+to+redirect+the+user+to+a+URL+of+your+choice+after+the+form+has+been+submitted.
+msgid ""
+"This allows a single submission, and can be paired with the \"return_url\" "
+"parameter to redirect the user to a URL of your choice after the form has "
+"been submitted."
+msgstr "यसले एउटा पेस गर्न अनुमति दिन्छ, र फाराम पेश गरिसकेपछि प्रयोगकर्तालाई तपाइँको रोजाइको URL मा पुनःलैजानका लागि \"return_url\" प्यारामिटरसँग जोड्न सकिन्छ।"
+
+#: .Online-only+(once+per+respondent)
+msgid "Online-only (once per respondent)"
+msgstr "अनलाइन मात्र (प्रति उत्तरदाता एक पटक)"
+
+#: .This+allows+your+web+form+to+only+be+submitted+once+per+user,+using+basic+protection+to+prevent+the+same+user+(on+the+same+browser+%26+device)+from+submitting+more+than+once.
+msgid ""
+"This allows your web form to only be submitted once per user, using basic "
+"protection to prevent the same user (on the same browser & device) from "
+"submitting more than once."
+msgstr "उही प्रयोगकर्तालाई (एउटै ब्राउजर र उपकरणमा) एक पटक भन्दा बढी पेश गर्नबाट रोक्नका लागि यसले आधारभूत सुरक्षा प्रयोग गरेर तपाइँको वेब फारमलाई प्रति प्रयोगकर्ता एक पटक मात्र पेश गर्ने अनुमति दिन्छ।"
+
+#: .Embeddable+web+form+code
+msgid "Embeddable web form code"
+msgstr "भित्रै राख्न मिल्ने वेब फाराम कोड"
+
+#: .Use+this+html5+code+snippet+to+integrate+your+form+on+your+own+website+using+smaller+margins.
+msgid ""
+"Use this html5 code snippet to integrate your form on your own website using"
+" smaller margins."
+msgstr "साना साना मार्जिन प्रयोग गरेर आफ्नै वेबसाइटमा आफ्नो फाराम एकीकृत गर्न यो html5 कोडको अंश प्रयोग गर्नुहोस्।"
+
+#: .View+only
+msgid "View only"
+msgstr "केवल हेर्नुहोस्"
+
+#: .Use+this+version+for+testing,+getting+feedback.+Does+not+allow+submitting+data.
+msgid ""
+"Use this version for testing, getting feedback. Does not allow submitting "
+"data."
+msgstr "परीक्षणका लागि, प्रतिक्रिया प्राप्त गर्न यो संस्करण प्रयोग गर्नुहोस्। डाटा पेश गर्ने अनुमति दिँदैन।"
+
+#: .Android+application
+msgid "Android application"
+msgstr "एन्ड्रोइड एप"
+
+#: .Use+this+option+to+collect+data+in+the+field+with+your+Android+device.
+msgid "Use this option to collect data in the field with your Android device."
+msgstr "तपाईंको एन्ड्रोइड उपकरणले फिल्डमा डाटा सङ्कलन गर्न यो विकल्प प्रयोग गर्नुहोस्।"
+
+#: .You+have+unsaved+changes.+Leave+form+without+saving%3F
+msgid "You have unsaved changes. Leave form without saving?"
+msgstr "तपाईंसँग बचत नगरिएका परिवर्तनहरू छन्। बचत नगरी फारम छोड्ने हो?"
+
+#: .Unknown+Enketo+preview+error
+msgid "Unknown Enketo preview error"
+msgstr "अज्ञात Enketo पूर्वावलोकन त्रुटि"
+
+#: .Your+changes+could+not+be+saved,+likely+because+of+a+lost+internet+connection.
+msgid ""
+"Your changes could not be saved, likely because of a lost internet "
+"connection."
+msgstr "तपाइँका परिवर्तनहरू बचत गर्न सकिएन, सम्भवतः इन्टरनेट जडान हराएको कारणले।"
+
+#: .Keep+this+window+open+and+try+saving+again+while+using+a+better+connection.
+msgid ""
+"Keep this window open and try saving again while using a better connection."
+msgstr "यो विन्डो खुला राख्नुहोस् र राम्रो इन्टरनेट जडान प्रयोग गर्दा फेरि बचत गर्ने प्रयास गर्नुहोस्।"
+
+#: .Error+saving+form
+msgid "Error saving form"
+msgstr "फारम बचत गर्न त्रुटि भयो"
+
+#: .Dismiss
+msgid "Dismiss"
+msgstr "खारेज गर्नुहोस्"
+
+#: .create
+msgid "create"
+msgstr "सिर्जना गर्नुहोस्"
+
+#: .save
+msgid "save"
+msgstr "बचत गर्नुहोस्"
+
+#: .retry
+msgid "retry"
+msgstr "पुन: प्रयास गर्नुहोस्"
+
+#: .Return+to+list
+msgid "Return to list"
+msgstr "सूचीमा फर्कनुहोस्"
+
+#: .Expand+/+collapse+questions
+msgid "Expand / collapse questions"
+msgstr "प्रश्नहरू विस्तार / संक्षिप्त गर्नुहोस्"
+
+#: .Create+group+with+selected+questions
+msgid "Create group with selected questions"
+msgstr "चयन गरिएका प्रश्नहरूको साथ समूह सिर्जना गर्नुहोस्"
+
+#: .Grouping+disabled.+Please+select+at+least+one+question.
+msgid "Grouping disabled. Please select at least one question."
+msgstr "समूहीकरण असमर्थ पारियो। कृपया कम्तिमा एउटा प्रश्न चयन गर्नुहोस्।"
+
+#: .Insert+cascading+select
+msgid "Insert cascading select"
+msgstr "क्यास्केडिङ चयन घुसाउनुहोस्"
+
+#: .Add+from+Library
+msgid "Add from Library"
+msgstr "पुस्तकालयबाट थप्नुहोस्"
+
+#: .Layout+%26+Settings
+msgid "Layout & Settings"
+msgstr "लेआउट र सेटिङहरू"
+
+#: .Layout
+msgid "Layout"
+msgstr "लेआउट"
+
+#: .This+form+will+automatically+[record+audio+in+the+background](%23%23SUPPORT_LINK%23%23).+Consider+adding+with+a+meaningful+consent+question+to+inform+respondents+or+data+collectors+that+they+will+be+recorded+while+completing+this+survey.
+msgid ""
+"This form will automatically [record audio in the "
+"background](##SUPPORT_LINK##). Consider adding with a meaningful consent "
+"question to inform respondents or data collectors that they will be recorded"
+" while completing this survey."
+msgstr ""
+
+#: .Form+style
+msgid "Form style"
+msgstr "फारम शैली"
+
+#: .Read+more+about+form+styles
+msgid "Read more about form styles"
+msgstr "फारम शैलीहरूको बारेमा थप पढ्नुहोस्"
+
+#: .Select+the+form+style+that+you+would+like+to+use.+This+will+only+affect+web+forms.
+msgid ""
+"Select the form style that you would like to use. This will only affect web "
+"forms."
+msgstr "तपाईंले प्रयोग गर्न चाहनुभएको फारम शैली चयन गर्नुहोस्। यसले वेब फारमहरूलाई मात्र असर गर्नेछ।"
+
+#: .Select+the+form+style.+This+will+only+affect+the+Enketo+preview,+and+it+will+not+be+saved+with+the+question+or+block.
+msgid ""
+"Select the form style. This will only affect the Enketo preview, and it will"
+" not be saved with the question or block."
+msgstr "फारम शैली चयन गर्नुहोस्। यसले Enketo पूर्वावलोकनलाई मात्र प्रभाव पार्छ, र यो प्रश्न वा ब्लकसँग बचत गरिने छैन।"
+
+#: .Metadata
+msgid "Metadata"
+msgstr "मेटाडेटा"
+
+#: .Search+Library
+msgid "Search Library"
+msgstr "पुस्तकालय खोज्नुहोस्"
+
+#: .Error+loading+survey
+msgid "Error loading survey:"
+msgstr "सर्वेक्षण लोड गर्दा त्रुटि:"
+
+#: .Partially+locked+%23%23type%23%23
+msgid "Partially locked ##type##"
+msgstr "आंशिक रूपमा बन्द ##type##"
+
+#: .Fully+locked+%23%23type%23%23
+msgid "Fully locked ##type##"
+msgstr "पूर्ण रूपमा बन्द ##type##"
+
+#: .Read+more+about+Locking
+msgid "Read more about Locking"
+msgstr "लकको बारेमा थप पढ्नुहोस्"
+
+#: .Form+Preview
+msgid "Form Preview"
+msgstr "फारम पूर्वावलोकन"
+
+#: .Error+generating+preview
+msgid "Error generating preview"
+msgstr "पूर्वावलोकन उत्पन्न गर्दा त्रुटि"
+
+#: .Import+Cascading+Select+Questions
+msgid "Import Cascading Select Questions"
+msgstr "क्यास्केडिङ चयन प्रश्नहरू सार्नुहोस्"
+
+#: .Table
+msgid "Table"
+msgstr "टेबल"
+
+#: .Gallery
+msgid "Gallery"
+msgstr "ग्यालरी"
+
+#: .Downloads
+msgid "Downloads"
+msgstr "डाउनलोड गरिएका बस्तुहरु"
+
+#: .Map
+msgid "Map"
+msgstr "नक्शा"
+
+#: .General
+msgid "General"
+msgstr "साधारण"
+
+#: .Media
+msgid "Media"
+msgstr "मिडिया"
+
+#: .Sharing
+msgid "Sharing"
+msgstr "बाड्दै"
+
+#: .Connect+Projects
+msgid "Connect Projects"
+msgstr "परियोजनाहरु जोड्नुहोस्"
+
+#: .REST+Services
+msgid "REST Services"
+msgstr "REST सेवाहरु"
+
+#: .Activity
+msgid "Activity"
+msgstr ""
+
+#: .The+stored+permissions+are+invalid.+Please+assign+them+again.+If+this+problem+persists,+contact+help@kobotoolbox.org
+msgid ""
+"The stored permissions are invalid. Please assign them again. If this "
+"problem persists, contact help@kobotoolbox.org"
+msgstr "भण्डारण गरिएका अनुमतिहरू अमान्य छन्। कृपया तिनीहरूलाई फेरि निर्धारित गर्नुहोस्। यदि यो समस्या रहिरह्यो भने, help@kobotoolbox.org लाई सम्पर्क गर्नुहोस्"
+
+#: .new
+msgid "new"
+msgstr "नयाँ"
+
+#: .Projects
+msgid "Projects"
+msgstr "परियोजनाहरु"
+
+#: .Library
+msgid "Library"
+msgstr "पुस्तकालय"
+
+#: .Source
+msgid "Source"
+msgstr "स्रोत"
+
+#: .copied+to+clipboard
+msgid "copied to clipboard"
+msgstr "क्लिपबोर्डमा प्रतिलिपि गरियो"
+
+#: .Clone+of
+msgid "Clone of"
+msgstr "उस्तै अर्को को"
+
+#: .Enter+the+name+of+the+cloned+%23%23ASSET_TYPE%23%23.+Leave+empty+to+keep+the+original+name.
+msgid ""
+"Enter the name of the cloned ##ASSET_TYPE##. Leave empty to keep the "
+"original name."
+msgstr "उस्तै अर्को बनाएको नाम प्रविष्ट गर्नुहोस्##ASSET_TYPE##। सुरुकै नाम राख्न खाली छोड्नुहोस्।"
+
+#: .Ok
+msgid "Ok"
+msgstr "ठिक छ"
+
+#: .Cancel
+msgid "Cancel"
+msgstr "रद्द गर्नुहोस्"
+
+#: .%23%23+files
+msgid "## files"
+msgstr "## फाइलहरु"
+
+#: .XLS+Import+completed
+msgid "XLS Import completed"
+msgstr "XLSForm (एक्स एल एस फारम) सर्यो"
+
+#: .XLSForm+Import+failed.+Check+that+the+XLSForm+and/or+the+URL+are+valid,+and+try+again+using+the+%22Replace+form%22+icon.
+msgid ""
+"XLSForm Import failed. Check that the XLSForm and/or the URL are valid, and "
+"try again using the \"Replace form\" icon."
+msgstr "XLSForm (एक्स एल एस फारम) सार्ने काम सफल भएन। XLSForm (एक्स एल एस फारम) र/वा URL (यु आर एल) जायज छ भनी जाँच गर्नुहोस्, र \"फारम बदल्नुहोस्\" आइकन प्रयोग गरेर फेरि प्रयास गर्नुहोस्।"
+
+#: .Your+upload+is+being+processed.+This+may+take+a+few+moments.
+msgid "Your upload is being processed. This may take a few moments."
+msgstr "तपाईंको अपलोडको प्रकृया चल्दैछ। यसका लागि केही समय लाग्न सक्छ।"
+
+#: .Your+upload+is+queued+for+processing.+This+may+take+a+few+moments.
+msgid "Your upload is queued for processing. This may take a few moments."
+msgstr "तपाईंको अपलोडको प्रकृया लाइनमा छ। यसका लागि केही समय लाग्न सक्छ।"
+
+#: .Import+Failed%21
+msgid "Import Failed!"
+msgstr "सरेन !"
+
+#: .Failed+to+create+import.
+msgid "Failed to create import."
+msgstr "सार्ने काम असफल।"
+
+#: .Upload+error+could+not+recognize+Excel+file.
+msgid "Upload error: could not recognize Excel file."
+msgstr "अपलोड त्रुटि: एक्सेल फाइल चिन्न सकेन।"
+
+#: .Uploaded+file+name+
+msgid "Uploaded file name: "
+msgstr "अपलोड गरिएको फाइलको नाम: "
+
+#: .Could+not+recognize+the+dropped+item(s).
+msgid "Could not recognize the dropped item(s)."
+msgstr "छोडिएका वस्तु(हरू) चिन्न सकिएन।"
+
+#: .Anyone+can+see+this+blank+form+and+add+submissions+to+it+because+you+have+not+set+[your+account]+to+require+authentication.
+msgid ""
+"Anyone can see this blank form and add submissions to it because you have "
+"not set [your account] to require authentication."
+msgstr "जो कोहीले पनि यो खाली फारम हेर्न सक्छन् र त्यसमा सबमिसन थप्न सक्छ किनकि तपाईंले [तपाईंको खाता] प्रमाणिकरण आवश्यक गर्नुभएको छैन।"
+
+#: .Who+has+access
+msgid "Who has access"
+msgstr "कसको पहुँच छ"
+
+#: .Add+user
+msgid "Add user"
+msgstr "प्रयोगकर्ता थप्नुहोस्"
+
+#: .Waiting+for+all+projects+to+load%E2%80%A6
+msgid "Waiting for all projects to load…"
+msgstr "सबै परियोजनाहरू लोड हुने इन्तजार..."
+
+#: .Temporary+Access+Restriction+Password+Update+Required
+msgid "Temporary Access Restriction: Password Update Required"
+msgstr "अस्थायी पहुँच प्रतिबन्ध: पासवर्डको अपडेट आवश्यक छ।"
+
+#: .You+must+update+your+password+before+proceeding.+Please+do+so+promptly+to+ensure+the+security+of+your+data.
+msgid ""
+"You must update your password before proceeding. Please do so promptly to "
+"ensure the security of your data."
+msgstr "तपाईंले अगाडि बढ्नु अघि आफ्नो पासवर्ड अपडेट गर्नुपर्छ। कृपया आफैंले तपाईंको डाटाको सुरक्षा सुनिश्चित गर्न शीघ्रै गर्नुहोस्।"
+
+#: .Update+password
+msgid "Update password"
+msgstr "पासवर्ड अपडेट गर्नुहोस्"
+
+#: .URL+is+empty%21
+msgid "URL is empty!"
+msgstr "URL (यु आर एल) खाली छ !"
+
+#: .You+must+redeploy+this+form+to+see+media+changes.
+msgid "You must redeploy this form to see media changes."
+msgstr "मिडिया परिवर्तनहरू हेर्नका लागि तपाईंले यो फारम पुन: विस्तार गर्नुपर्छ।"
+
+#: .Attach+files
+msgid "Attach files"
+msgstr "फाइलहरू संलग्न गर्नुहोस्"
+
+#: .Learn+more+about+form+media
+msgid "Learn more about form media"
+msgstr "फारम मिडिया बारे थप जान्नुहोस्"
+
+#: .Drag+and+drop+files+here
+msgid "Drag and drop files here"
+msgstr "फाइल यहाँ तान्नुहोस् र छोडिदिनुहोस्"
+
+#: .or
+msgid "or"
+msgstr "वा"
+
+#: .click+here+to+browse
+msgid "click here to browse"
+msgstr "ब्राउज गर्न यहाँ क्लिक गर्नुहोस्"
+
+#: .Uploading+file%E2%80%A6
+msgid "Uploading file…"
+msgstr "फाइल अपलोड गर्दै..."
+
+#: .You+can+also+add+files+using+a+URL
+msgid "You can also add files using a URL"
+msgstr "एउटा URL (यु आर एल) प्रयोग गरेर पनि फाइल थप्न सक्नुहुन्छ"
+
+#: .Paste+URL+here
+msgid "Paste URL here"
+msgstr "URL (यु आर एल) यहाँ पेस्ट गर्नुहोस्"
+
+#: .Add
+msgid "Add"
+msgstr "थप्नुहोस्"
+
+#: .Attached+files
+msgid "Attached files"
+msgstr "संग्लग्न फाइलहरु"
+
+#: .loading+media
+msgid "loading media"
+msgstr "मिडिया लोड गर्दै"
+
+#: .No+files+uploaded+yet
+msgid "No files uploaded yet"
+msgstr "अहिलेसम्म कुनै फाइल अपलोड भएको छैन"
+
+#: .Import
+msgid "Import"
+msgstr "आयात गर्नुहोस्"
+
+#: .Next
+msgid "Next"
+msgstr "अर्को"
+
+#: .Create+project
+msgid "Create project"
+msgstr "परियोजना सिर्जना गर्नुहोस्"
+
+#: .Project+settings
+msgid "Project settings"
+msgstr "परियोजना सेटिङहरू"
+
+#: .Choose+a+source
+msgid "Choose a source"
+msgstr "स्रोत छनौट गर्नुहोस्"
+
+#: .Choose+template
+msgid "Choose template"
+msgstr "टेम्प्लेट छनौट गर्नुहोस्"
+
+#: .Upload+XLSForm
+msgid "Upload XLSForm"
+msgstr "XLSForm (एक्स एल एस फारम) अपलोड गर्नुहोस्"
+
+#: .Import+XLSForm
+msgid "Import XLSForm"
+msgstr "XLSForm (एक्स एल एस फारम) सार्नुहोस्"
+
+#: .Project+details
+msgid "Project details"
+msgstr "परियोजना विवरण"
+
+#: .Choose
+msgid "Choose"
+msgstr "छनौट गर्नुहोस्"
+
+#: .Error+asset+could+not+be+created.
+msgid "Error: asset could not be created."
+msgstr "त्रुटि: सम्पत्ति सिर्जना गर्न सकिएन।"
+
+#: .Error+new+project+could+not+be+created.
+msgid "Error: new project could not be created."
+msgstr "त्रुटि: नयाँ परियोजना सिर्जना गर्न सकिएन।"
+
+#: .Please+wait%E2%80%A6
+msgid "Please wait…"
+msgstr "कृपया पर्खनुहोस्..."
+
+#: .Retrieving+form,+please+wait...
+msgid "Retrieving form, please wait..."
+msgstr "फारम पुन: प्राप्त गर्दै, कृपया कुर्नुहोस्..."
+
+#: .Failed+to+reload+project+after+import%21
+msgid "Failed to reload project after import!"
+msgstr "फाइल आयात गरेपछि परियोजना पुन: लोड गर्न असफल!"
+
+#: .Could+not+initialize+XLSForm+import%21
+msgid "Could not initialize XLSForm import!"
+msgstr "XLSForm (एक्स एल एस फारम)को सार्ने काम सुरु गर्न सकिएन!"
+
+#: .Failed+to+reload+project+after+upload%21
+msgid "Failed to reload project after upload!"
+msgstr "अपलोड पछि परियोजना पुन: लोड गर्न असफल भयो!"
+
+#: .Could+not+import+XLSForm%21
+msgid "Could not import XLSForm!"
+msgstr "XLSForm (एक्स एल एस फारम)को सरेन !"
+
+#: .Some+fields+contain+errors%21
+msgid "Some fields contain errors!"
+msgstr "केही क्षेत्रमा त्रुटिहरू छन्!"
+
+#: .Project+Name
+msgid "Project Name"
+msgstr "परियोजनाको नाम"
+
+#: .%23%23count%23%23+characters+left
+msgid "##count## characters left"
+msgstr "##count## क्यारेक्टरहरू छोडियो"
+
+#: .Use+a+template
+msgid "Use a template"
+msgstr "टेम्प्लेट प्रयोग गर्नुहोस्"
+
+#: .Choose+one+of+the+options+below+to+continue.+You+will+be+prompted+to+enter+name+and+other+details+in+further+steps.
+msgid ""
+"Choose one of the options below to continue. You will be prompted to enter "
+"name and other details in further steps."
+msgstr "अगाडि बढ्न तलका विकल्पहरू मध्ये एउटा छान्नुहोस्। तपाईंलाई अघिल्ला चरणहरूमा नाम र अन्य विवरणहरू प्रविष्ट गर्न प्रेरित गरिनेछ।"
+
+#: .Build+from+scratch
+msgid "Build from scratch"
+msgstr "फेरि निर्माण गर्नुहोस्"
+
+#: .Upload+an+XLSForm
+msgid "Upload an XLSForm"
+msgstr "XLSForm (एक्स एल एस फारम) अपलोड गर्नुहोस्"
+
+#: .Import+an+XLSForm+via+URL
+msgid "Import an XLSForm via URL"
+msgstr "URL (यु आर एल) मार्फत XLSForm (एक्स एल एस फारम) सार्नुहोस्"
+
+#: .Import+an+XLSForm+from+your+computer.
+msgid "Import an XLSForm from your computer."
+msgstr "तपाईंको कम्प्युटरबाट XLSForm (एक्स एल एस फारम) सार्नुहोस्।"
+
+#: .+Drag+and+drop+the+XLSForm+file+here+or+click+to+browse
+msgid " Drag and drop the XLSForm file here or click to browse"
+msgstr " XLSForm (एक्स एल एस फारम) फाइल यहाँ तान्नुहोस् र छोड्नुहोस् वा ब्राउज गर्न क्लिक गर्नुहोस्"
+
+#: .Enter+a+valid+XLSForm+URL+in+the+field+below.
+msgid "Enter a valid XLSForm URL in the field below."
+msgstr "तलको स्थानमा वैधानिक XLSForm (एक्स एल एस फारम) URL (यु आर एल) प्रविष्ट गर्नुहोस्।"
+
+#: .Having+issues%3F+See+this+help+article.
+msgid "Having issues? See this help article."
+msgstr "समस्या आएको हो? यो मद्दत लेख हेर्नुहोस्।"
+
+#: .URL
+msgid "URL"
+msgstr "URL (यु आर एल)"
+
+#: .Save+Changes
+msgid "Save Changes"
+msgstr "परिवर्तन गरिएका कुराहरु बचत गर्नुहोस्"
+
+#: .Please+enter+a+title+for+your+project%21
+msgid "Please enter a title for your project!"
+msgstr "कृपया तपाईंको परियोजनाका लागि शीर्षक प्रविष्ट गर्नुहोस् !"
+
+#: .Enter+title+of+project+here
+msgid "Enter title of project here"
+msgstr "परियोजनाको शीर्षक यहाँ प्रविष्ट गर्नुहोस्"
+
+#: .Please+enter+a+description+for+your+project
+msgid "Please enter a description for your project"
+msgstr "कृपया आफ्नो परियोजनाको लागि विवरण प्रविष्ट गर्नुहोस्"
+
+#: .Enter+short+description+here
+msgid "Enter short description here"
+msgstr "यहाँ छोटो विवरण प्रविष्ट गर्नुहोस्"
+
+#: .Please+choose+a+sector
+msgid "Please choose a sector"
+msgstr "कृपया एउटा क्षेत्र छान्नुहोस्"
+
+#: .Please+select+at+least+one+country
+msgid "Please select at least one country"
+msgstr "कृपया कम्तिमा एउटा राष्ट्र छान्नुहोस्"
+
+#: .Please+specify+the+operational+purpose+of+your+project
+msgid "Please specify the operational purpose of your project"
+msgstr "कृपया आफ्नो परियोजनाको परिचालन उद्देश्य निर्दिष्ट गर्नुहोस्"
+
+#: .Yes
+msgid "Yes"
+msgstr "हो"
+
+#: .No
+msgid "No"
+msgstr "होइन"
+
+#: .Please+indicate+whether+or+not+your+project+collects+personally+identifiable+information
+msgid ""
+"Please indicate whether or not your project collects personally identifiable"
+" information"
+msgstr "कृपया तपाईंको परियोजनाले व्यक्तिगत रूपमा पहिचान योग्य जानकारी सङ्कलन गर्छ वा गर्दैन भनेर संकेत गर्नुहोस्।"
+
+#: .Save
+msgid "Save"
+msgstr "बचत गर्नुहोस्"
+
+#: .Unarchive+Project
+msgid "Unarchive Project"
+msgstr "परियोजनाको अभिलेखन नगर्नुहोस्।"
+
+#: .Archive+Project
+msgid "Archive Project"
+msgstr "परियोजना अभिलेखन गर्नुहोस्"
+
+#: .Archive+project+to+stop+accepting+submissions.
+msgid "Archive project to stop accepting submissions."
+msgstr "पेश गरिएका कुराहरू स्वीकार गर्नबाट रोक्नका लागि परियोजनालाई अभिलेखन गर्नुहोस्।"
+
+#: .Unarchive+project+to+resume+accepting+submissions.
+msgid "Unarchive project to resume accepting submissions."
+msgstr "पेश गरिएका कुराहरू पुन:स्वीकार गर्न परियोजना अनअभिलेखन गर्नुहोस्।"
+
+#: .Delete+Project+and+Data
+msgid "Delete Project and Data"
+msgstr "परियोजना तथा तथ्याङ्क मेटाउनुहोस्"
+
+#: .Delete+Project
+msgid "Delete Project"
+msgstr ""
+
+#: .Back
+msgid "Back"
+msgstr "पछाडी"
+
+#: .Form+replacing+is+not+available+due+to+form%27s+Locking+Profile+restrictions.
+msgid ""
+"Form replacing is not available due to form's Locking Profile restrictions."
+msgstr "फारम लक गर्ने प्रोफाइल प्रतिबन्धका कारण फारम प्रतिस्थापन उपलब्ध छैन।"
+
+#: .Success%21
+msgid "Success!"
+msgstr "सफल!"
+
+#: .Submission+Record
+msgid "Submission Record"
+msgstr "पेश गरिएका विवरण"
+
+#: .of
+msgid "of"
+msgstr "को"
+
+#: .Sharing+Permissions
+msgid "Sharing Permissions"
+msgstr "अनुमति बाड्दै"
+
+#: .Uploading+XLS+file
+msgid "Uploading XLS file"
+msgstr "XLS फाइल अपलोड गर्दै"
+
+#: .Uploading+
+msgid "Uploading: "
+msgstr "अपलोड गर्दै: "
+
+#: .Create+Library+Item
+msgid "Create Library Item"
+msgstr "पुस्तकालय वस्तु बनाउनुहोस्"
+
+#: .Template+details
+msgid "Template details"
+msgstr "टेम्प्लेट विवरण"
+
+#: .Collection+details
+msgid "Collection details"
+msgstr "सङ्कलन विवरण"
+
+#: .Edit+tags
+msgid "Edit tags"
+msgstr "ट्याग सम्पादन गर्नुहोस्"
+
+#: .Upload+file
+msgid "Upload file"
+msgstr "फाइल अपलोड गर्नुहोस्"
+
+#: .Edit+REST+Service
+msgid "Edit REST Service"
+msgstr "REST सेवा सम्पादन गर्नुहोस्"
+
+#: .New+REST+Service
+msgid "New REST Service"
+msgstr "नयाँ REST सेवा"
+
+#: .Table+display+options
+msgid "Table display options"
+msgstr "तालिका प्रदर्शन विकल्प"
+
+#: .Manage+Languages
+msgid "Manage Languages"
+msgstr "भाषा व्यवस्थापन गर्नुहोस्"
+
+#: .Translations+Table
+msgid "Translations Table"
+msgstr "अनुवाद टेबल"
+
+#: .Manage+Form+Encryption
+msgid "Manage Form Encryption"
+msgstr "फारम इन्क्रिप्सन व्यवस्थापन गर्नुहोस्"
+
+#: .Close
+msgid "Close"
+msgstr "बन्द गर्नुहोस्"
+
+#: .Close+Translations+Table%3F
+msgid "Close Translations Table?"
+msgstr "अनुवाद टेबल बन्द गर्ने हो ?"
+
+#: .You+will+lose+all+unsaved+changes.
+msgid "You will lose all unsaved changes."
+msgstr "तपाईंले बचत नभएका परिवर्तनहरु गुमाउनहुनेछ।"
+
+#: .Project+information
+msgid "Project information"
+msgstr "परियोजना जानकारी"
+
+#: .Description
+msgid "Description"
+msgstr "विवरण"
+
+#: .Status
+msgid "Status"
+msgstr "स्थिति"
+
+#: .Questions
+msgid "Questions"
+msgstr "प्रश्नहरू"
+
+#: .Owner
+msgid "Owner"
+msgstr "मालिक"
+
+#: .me
+msgid "me"
+msgstr "म"
+
+#: .Last+edited
+msgid "Last edited"
+msgstr ""
+
+#: .Last+modified
+msgid "Last modified"
+msgstr "पछिल्लो पटक परिमार्जन गरिएको"
+
+#: .Last+deployed
+msgid "Last deployed"
+msgstr "अन्तिममा ल्याएको"
+
+#: .Latest+submission
+msgid "Latest submission"
+msgstr "पछिल्लो पेश गरिएका"
+
+#: .Sector
+msgid "Sector"
+msgstr "क्षेत्र"
+
+#: .Countries
+msgid "Countries"
+msgstr "देशहरू"
+
+#: .Languages
+msgid "Languages"
+msgstr "भाषाहरु"
+
+#: .Operational+purpose+of+data
+msgid "Operational purpose of data"
+msgstr "तथ्याङ्कको परिचालन उद्देश्य"
+
+#: .Collects+personally+identifiable+information
+msgid "Collects personally identifiable information"
+msgstr "व्यक्तिगत रूपमा पहिचान योग्य जानकारी सङ्कलन गर्दछ"
+
+#: .Event+description
+msgid "Event description"
+msgstr ""
+
+#: .See+details
+msgid "See details"
+msgstr ""
+
+#: .Recent+project+activity
+msgid "Recent project activity"
+msgstr ""
+
+#: .Filter+by
+msgid "Filter by"
+msgstr "...द्वारा फिल्टर गर्नुहोस्"
+
+#: .Export+all+data
+msgid "Export all data"
+msgstr "सबै डाटा (तथ्या‍ङ्क) निर्यात गर्नुहोस्"
+
+#: .All+questions
+msgid "All questions"
+msgstr "सबै प्रश्नहरु"
+
+#: .Image+Gallery
+msgid "Image Gallery"
+msgstr "इमेज ग्यालरी"
+
+#: .From
+msgid "From"
+msgstr "बाट"
+
+#: .Between
+msgid "Between"
+msgstr "बीचमा"
+
+#: .and
+msgid "and"
+msgstr "तथा"
+
+#: .Log+In
+msgid "Log In"
+msgstr "लग इन गर्नुहोस्"
+
+#: .Search+My+Library
+msgid "Search My Library"
+msgstr "मेरो पुस्तकालयमा खोज्नुहोस्"
+
+#: .Search+Public+Collections
+msgid "Search Public Collections"
+msgstr "सार्वजनिक संकलन खोज्नुहोस्"
+
+#: .Search%E2%80%A6
+msgid "Search…"
+msgstr "खोज्नुहोस्..."
+
+#: .Summary
+msgid "Summary"
+msgstr "सारांश"
+
+#: .Form
+msgid "Form"
+msgstr "फारम"
+
+#: .Settings
+msgid "Settings"
+msgstr "सेटिंङहरू"
+
+#: .%23%23permission_label%23%23+(%23%23username_list%23%23)
+msgid "##permission_label## (##username_list##)"
+msgstr "##permission_label## (##username_list##)"
+
+#: .%23%23permission_label%23%23+(%23%23username_list%23%23+and+1+other)
+msgid "##permission_label## (##username_list## and 1 other)"
+msgstr "##permission_label## (##username_list##र १ अन्य)"
+
+#: .%23%23permission_label%23%23+(%23%23username_list%23%23+and+%23%23hidden_username_count%23%23+others)
+msgid ""
+"##permission_label## (##username_list## and ##hidden_username_count## "
+"others)"
+msgstr "##permission_label## (##username_list## र ##hidden_username_count## अन्य)"
+
+#: .Please+[contact+the+support+team]+if+you+think+it%27s+an+error.
+msgid "Please [contact the support team] if you think it's an error."
+msgstr "कृपया यदि तपाईंलाई यो त्रुटि हो जस्तो लाग्छ भने [सहायता टोलीसँग सम्पर्क गर्नुहोस्]।"
+
+#: .Please+try+logging+in+using+the+header+button+or+[contact+the+support+team]+if+you+think+it%27s+an+error.
+msgid ""
+"Please try logging in using the header button or [contact the support team] "
+"if you think it's an error."
+msgstr "कृपया हेडर बटन प्रयोग गरेर लग इन गर्ने प्रयास गर्नुहोस् वा यदि तपाईंलाई यो त्रुटि हो जस्तो लागेमा [सहायता टोलीसँग सम्पर्क गर्नुहोस्]।"
+
+#: .Access+Denied
+msgid "Access Denied"
+msgstr "पहुँच निषेधित"
+
+#: .You+don%27t+have+access+to+this+page.
+msgid "You don't have access to this page."
+msgstr "तपाईंसँग यो पृष्ठको पहुँच छैन।"
+
+#: .Either+you+don%27t+have+access+to+this+page+or+this+page+simply+doesn%27t+exist.
+msgid ""
+"Either you don't have access to this page or this page simply doesn't exist."
+msgstr "या त यो पृष्ठमा तपाईंको पहुँच छैन वा यो पृष्ठ नै छदै छैन।"
+
+#: .Something+went+wrong
+msgid "Something went wrong"
+msgstr "केहि गलत भयो"
+
+#: .We%27re+sorry,+but+there+was+an+unexpected+error+while+trying+to+serve+this+page.
+msgid ""
+"We're sorry, but there was an unexpected error while trying to serve this "
+"page."
+msgstr "माफ़ गर्नुहोला, तर यस पृष्ठलाई सेवा गर्ने क्रममा एक अप्रत्याशित त्रुटि देखा परेको छ।"
+
+#: .Please+try+again+later,+or+[contact+the+support+team]+if+this+happens+repeatedly.
+msgid ""
+"Please try again later, or [contact the support team] if this happens "
+"repeatedly."
+msgstr "कृपया पछि प्रयास गर्नुहोस्, वा यदि यो बारम्बार हुन्छ भने [सहायता टोलीसँग सम्पर्क गर्नुहोस्]।"
+
+#: .Additional+details
+msgid "Additional details:"
+msgstr "थप विवरण"
+
+#: .Today
+msgid "Today"
+msgstr "आज"
+
+#: .Past+7+days
+msgid "Past 7 days"
+msgstr "विगत सात दिन"
+
+#: .Past+31+days
+msgid "Past 31 days"
+msgstr "विगत ३१ दिन"
+
+#: .Past+3+months
+msgid "Past 3 months"
+msgstr "विगत ३ महिना"
+
+#: .Past+12+months
+msgid "Past 12 months"
+msgstr "विगत १२ महिना"
+
+#: .No+chart+data+available+for+current+period.
+msgid "No chart data available for current period."
+msgstr "हालको अवधिको लागि कुनै चार्ट तथ्याङ्क उपलब्ध छैन।"
+
+#: .Total
+msgid "Total"
+msgstr "कुल"
+
+#: .Please+check+file+name
+msgid "Please check file name"
+msgstr "कृपया फाइल नाम जाँच गर्नुहोस्"
+
+#: .No+project+selected
+msgid "No project selected"
+msgstr "कुनै परियोजना चयन गरिएको छैन"
+
+#: .Field+is+empty
+msgid "Field is empty"
+msgstr "फिल्ड खाली छ"
+
+#: .Privacy+Notice
+msgid "Privacy Notice"
+msgstr "गोपनीयता सूचना"
+
+#: .This+will+attach+the+full+dataset+from+%22%23%23ASSET_NAME%23%23%22+as+a+background+XML+file+to+this+form.+While+not+easily+visible,+it+is+technically+possible+for+anyone+entering+data+to+your+form+to+retrieve+and+view+this+dataset.+Do+not+use+this+feature+if+%22%23%23ASSET_NAME%23%23%22+includes+sensitive+data.
+msgid ""
+"This will attach the full dataset from \"##ASSET_NAME##\" as a background "
+"XML file to this form. While not easily visible, it is technically possible "
+"for anyone entering data to your form to retrieve and view this dataset. Do "
+"not use this feature if \"##ASSET_NAME##\" includes sensitive data."
+msgstr "यसले यस फारममा पृष्ठभूमि XML फाइलको रूपमा \"##ASSET_NAME##\" बाट पूर्ण डेटासेट संलग्न गर्नेछ। सजिलै देखिने नहुँदा, यो डेटासेट पुन: प्राप्त गर्न र हेर्नको लागि तपाइँको फारममा डाटा प्रविष्ट गर्ने जो कोहीको लागि प्राविधिक रूपमा सम्भव छ। यदि \"##ASSET_NAME##\" संवेदनशील डाटा समावेश छ भने यो सुविधा प्रयोग नगर्नुहोस्।"
+
+#: .Acknowledge+and+continue
+msgid "Acknowledge and continue"
+msgstr "स्वीकार गर्नुहोस् र जारी राख्नुहोस्"
+
+#: .Select+a+different+project+to+import+data+from
+msgid "Select a different project to import data from"
+msgstr "बाट तथ्या‍ङ्क आयात गर्न फरक परियोजना चयन गर्नुहोस्"
+
+#: .No+projects+to+connect
+msgid "No projects to connect"
+msgstr "जडान गर्न कुनै परियोजनाहरू छैनन्"
+
+#: .Data+sharing+enabled
+msgid "Data sharing enabled"
+msgstr "डाटा साझेदारी सक्षम गरियो"
+
+#: .Select+specific+questions+to+share
+msgid "Select specific questions to share"
+msgstr "साझेदारी गर्न विशेष प्रश्नहरू चयन गर्नुहोस्"
+
+#: .Select+any+questions+you+want+to+share+in+the+right+side+table
+msgid "Select any questions you want to share in the right side table"
+msgstr "दायाँ छेउको तालिकामा तपाईंले साझेदारी गर्न चाहनुभएको कुनै पनि प्रश्नहरू चयन गर्नुहोस्"
+
+#: .Updating+shared+questions
+msgid "Updating shared questions"
+msgstr "साझा प्रश्नहरू अद्यावधिक गर्दै"
+
+#: .Data+sharing+disabled
+msgid "Data sharing disabled"
+msgstr "डाटा साझेदारी असक्षम पारियो"
+
+#: .Give+a+unique+name+to+the+import
+msgid "Give a unique name to the import"
+msgstr "आयात गर्न एक विशेष नाम दिनुहोस्"
+
+#: .Imported
+msgid "Imported"
+msgstr "आयात गरिएको"
+
+#: .Loading+imported+projects
+msgid "Loading imported projects"
+msgstr "आयातित परियोजनाहरू लोड गर्दै"
+
+#: .No+data+imported
+msgid "No data imported"
+msgstr "कुनै डाटा आयात गरिएको छैन"
+
+#: .Share+data+with+other+project+forms
+msgid "Share data with other project forms"
+msgstr "अन्य परियोजना फारमहरूसँग डाटा साझेदारी गर्नुहोस्"
+
+#: .Enable+data+sharing+to+allow+other+forms+to+import+and+use+dynamic+data+from+this+project.+Learn+more+about+dynamic+data+attachments
+msgid ""
+"Enable data sharing to allow other forms to import and use dynamic data from"
+" this project. Learn more about dynamic data attachments"
+msgstr "अन्य फारमहरूलाई यस परियोजनाबाट गतिशील डेटा आयात र प्रयोग गर्न अनुमति दिन डेटा साझेदारी सक्षम गर्नुहोस्। डायनामिक डाटा एट्याचमेन्ट बारे थप जान्नुहोस्"
+
+#: .here
+msgid "here"
+msgstr "यहाँ"
+
+#: .Import+other+project+data
+msgid "Import other project data"
+msgstr "अन्य परियोजना डेटा आयात गर्नुहोस्"
+
+#: .Connect+with+other+project(s)+to+import+dynamic+data+from+them+into+this+project.+Learn+more+about+dynamic+data+attachments
+msgid ""
+"Connect with other project(s) to import dynamic data from them into this "
+"project. Learn more about dynamic data attachments"
+msgstr "यस परियोजनामा ​ अन्य परियोजना(हरू) बाट गतिशील डेटा आयात गर्न तिनीहरुसँग जडान गर्नुहोस्। डायनामिक डाटा एट्याचमेन्ट बारे थप जान्नुहोस्"
+
+#: .Error+loading+overlay+layer+%22%23%23name%23%23%22
+msgid "Error loading overlay layer \"##name##\""
+msgstr ""
+
+#: .Error+loading+overlay+layer+%22%23%23name%23%23%22+(invalid+GeoJSON)
+msgid "Error loading overlay layer \"##name##\" (invalid GeoJSON)"
+msgstr ""
+
+#: .Error+loading+overlay+layer+%22%23%23name%23%23%22+(omnivore+error)
+msgid "Error loading overlay layer \"##name##\" (omnivore error)"
+msgstr ""
+
+#: .By+default+map+is+limited+to+the+%23%23number%23%23++most+recent+submissions+for+performance+reasons.+Go+to+map+settings+to+increase+this+limit.
+msgid ""
+"By default map is limited to the ##number##  most recent submissions for "
+"performance reasons. Go to map settings to increase this limit."
+msgstr "पूर्वनिर्धारित रूपमा नक्सा प्रदर्शन कारणहरूको लागि भर्खरैको हालको पेश गरिएका ##number## मा सीमित छ। यो सीमा बढाउन नक्सा सेटिङहरूमा जानुहोस्।"
+
+#: .Error+could+not+load+data.
+msgid "Error: could not load data."
+msgstr "त्रुटि: तथ्याङ्क लोड गर्न सकिएन।"
+
+#: .Disaggregate+by+survey+responses
+msgid "Disaggregate by survey responses"
+msgstr "सर्वेक्षण प्रतिक्रियाहरू द्वारा विभाजित"
+
+#: .Disaggregated+using
+msgid "Disaggregated using:"
+msgstr "प्रयोग गरी विभाजित:"
+
+#: .No+%22geopoint%22+responses+have+been+received
+msgid "No \"geopoint\" responses have been received"
+msgstr "कुनै \"जियोपोइन्ट\" प्रतिक्रियाहरू प्राप्त भएका छैनन्"
+
+#: .The+map+does+not+show+data+because+this+form+does+not+have+a+%22geopoint%22+field.
+msgid ""
+"The map does not show data because this form does not have a \"geopoint\" "
+"field."
+msgstr "नक्साले तथ्याङ्क देखाउँदैन किनभने यो फारममा \"जियोपोइन्ट\" फिल्ड छैन।"
+
+#: .Toggle+Fullscreen
+msgid "Toggle Fullscreen"
+msgstr "फुलस्क्रिन टगल गर्नुहोस्"
+
+#: .Show+as+points
+msgid "Show as points"
+msgstr "अंकको रूपमा देखाउनुहोस्"
+
+#: .Toggle+layers
+msgid "Toggle layers"
+msgstr "तहहरू टगल गर्नुहोस्"
+
+#: .Map+display+settings
+msgid "Map display settings"
+msgstr "नक्सा प्रदर्शन सेटिङहरू"
+
+#: .Show+as+heatmap
+msgid "Show as heatmap"
+msgstr "तातो नक्शाको रूपमा देखाउनुहोस्"
+
+#: .Language
+msgid "Language"
+msgstr "भाषा"
+
+#: .Default
+msgid "Default"
+msgstr "पूर्वनिर्धारित (डिफल्ट)"
+
+#: .--+See+all+data+--
+msgid "-- See all data --"
+msgstr "--सबै तथ्याङ्क हेर्नुहोस् --"
+
+#: .untranslated+
+msgid "untranslated: "
+msgstr "अनुबाद नगरिएको: "
+
+#: .Question+label+not+set
+msgid "Question label not set"
+msgstr "प्रश्नको लेबल निर्धारित गरिएको छैन"
+
+#: .Reset
+msgid "Reset"
+msgstr "फेरि निर्धारित गर्नुहोस्"
+
+#: .not+set
+msgid "not set"
+msgstr "निर्धारित नगरिएको"
+
+#: .Legend
+msgid "Legend"
+msgstr "किंवदन्ती"
+
+#: .Map+Settings
+msgid "Map Settings"
+msgstr "नक्शा सेटिङहरू"
+
+#: .Cannot+transfer+a+project+to+the+same+account.
+msgid "Cannot transfer a project to the same account."
+msgstr "एउटै खातामा परियोजना हस्तान्तरण गर्न सकिदैन।"
+
+#: .User+not+found.+Please+try+again.
+msgid "User not found. Please try again."
+msgstr "प्रयोगकर्ता फेला परेन। कृपया फेरि प्रयास गर्नुहोस्।"
+
+#: .Please+enter+a+user+name.
+msgid "Please enter a user name."
+msgstr "कृपया प्रयोगकर्ता नाम प्रवेश गर्नुहोस्।"
+
+#: .Transfer+project+ownership
+msgid "Transfer project ownership"
+msgstr "परियोजना स्वामित्व हस्तान्तरण गर्नुहोस्।"
+
+#: .Your+transfer+request+is+pending+until+%23%23username%23%23+has+accepted+or+declined+it.
+msgid ""
+"Your transfer request is pending until ##username## has accepted or declined"
+" it."
+msgstr "तपाईको हस्तान्तरण अनुरोध ##username## ले स्वीकार वा अस्वीकार नगरेसम्म विचाराधीन रहनेछ।"
+
+#: .Transfer+ownership+of+this+project+to+another+user.+All+submissions,+data+storage,+and+transcription+and+translation+usage+for+this+project+will+be+transferred+to+the+new+project+owner.
+msgid ""
+"Transfer ownership of this project to another user. All submissions, data "
+"storage, and transcription and translation usage for this project will be "
+"transferred to the new project owner."
+msgstr "यो परियोजनाको स्वामित्व अर्को प्रयोगकर्तामा स्थानान्तरण गर्नुहोस्। यस परियोजनाका सबै सबमिशनहरू, डाटा भण्डारण, र प्रतिलिपि तथा अनुवादको प्रयोग नयाँ परियोजना मालिकमा स्थानान्तरण गरिनेछ।"
+
+#: .Learn+more+%E2%86%92
+msgid "Learn more →"
+msgstr "थप जान्नुहोस्।→"
+
+#: .Cancel+transfer
+msgid "Cancel transfer"
+msgstr "हस्तान्तरण रद्द गर्नुहोस्।"
+
+#: .Transfer
+msgid "Transfer"
+msgstr "हस्तान्तरण"
+
+#: .Transfer+is+not+allowed+when+current+owner+is+over+their+usage+limit.
+msgid "Transfer is not allowed when current owner is over their usage limit."
+msgstr ""
+
+#: .Transfer+ownership
+msgid "Transfer ownership"
+msgstr "स्वामित्व हस्तान्तरण गर्नुहोस्।"
+
+#: .This+action+will+transfer+ownership+of+%23%23username%23%23+to+another+user
+msgid "This action will transfer ownership of ##username## to another user"
+msgstr "यो कार्यले ##username## को स्वामित्व अर्को प्रयोगकर्तालाई हस्तान्तरण गर्नेछ।"
+
+#: .When+you+transfer+ownership+of+the+project+to+another+user,+all+of+the+submissions,+data+storage,+and+transcription+and+translation+usage+for+the+project+will+be+transferred+to+the+new+project+owner.
+msgid ""
+"When you transfer ownership of the project to another user, all of the "
+"submissions, data storage, and transcription and translation usage for the "
+"project will be transferred to the new project owner."
+msgstr "जब तपाईं परियोजनाको स्वामित्व अर्को प्रयोगकर्तामा स्थानान्तरण गर्नुहुन्छ, परियोजनाका सबै सबमिशनहरू, डाटा भण्डारण, र प्रतिलिपि तथा अनुवादको प्रयोग नयाँ परियोजना मालिकमा स्थानान्तरण गरिनेछ।"
+
+#: .The+new+project+owner+will+receive+an+email+request+to+accept+the+transfer.+You+will+be+notified+when+the+transfer+is+accepted+or+declined.
+msgid ""
+"The new project owner will receive an email request to accept the transfer. "
+"You will be notified when the transfer is accepted or declined."
+msgstr "नयाँ परियोजना मालिकले स्थानान्तरण स्वीकार गर्नको लागि इमेल अनुरोध प्राप्त गर्नेछन्। स्थानान्तरण स्वीकार गरिएको वा अस्वीकार गरिएको बेला तपाईंलाई जानकारी गराइनेछ।"
+
+#: .You+will+be+the+owner+of+the+project+until+the+transfer+is+accepted.
+msgid "You will be the owner of the project until the transfer is accepted."
+msgstr "यो परियोजना हस्तान्तरण स्वीकृत नहुँदासम्म तपाईं यसको मालिक बन्नुहुनेछ।"
+
+#: .Once+the+transfer+is+accepted,+you+will+not+be+able+to+undo+this+action.
+msgid ""
+"Once the transfer is accepted, you will not be able to undo this action."
+msgstr "हस्तान्तरण स्वीकृत भएपछि, तपाईं यस कार्यलाई पूर्ववत गर्न सक्षम हुनुहुनेछैन।"
+
+#: .Learn+more
+msgid "Learn more"
+msgstr "थप जान्नुहोस्"
+
+#: .To+complete+the+transfer,+enter+the+username+of+the+new+project+owner
+msgid "To complete the transfer, enter the username of the new project owner"
+msgstr "हस्तान्तरण पूरा गर्न, नयाँ परियोजना मालिकको प्रयोगकर्ता नाम प्रवेश गर्नुहोस्।"
+
+#: .Enter+username+here
+msgid "Enter username here"
+msgstr "यहाँ प्रयोगकर्ता नाम प्रवेश गर्नुहोस्"
+
+#: .Transfer+project
+msgid "Transfer project"
+msgstr "परियोजना स्थानान्तरण"
+
+#: .Allow+submissions+to+this+form+without+a+username+and+password
+msgid "Allow submissions to this form without a username and password"
+msgstr "प्रयोगकर्ता नाम र पासवर्ड बिना यो फारम पेश गर्न अनुमति दिनुहोस्"
+
+#: .Allow+anonymous+submissions+for+this+project.+Previously,+this+was+an+account-wide+setting.+Click+the+icon+to+learn+more.
+msgid ""
+"Allow anonymous submissions for this project. Previously, this was an "
+"account-wide setting. Click the icon to learn more."
+msgstr "यस परियोजनाको लागि बेनामी सबमिशनहरूलाई अनुमति दिनुहोस्। पहिले, यो खाता-व्यापी सेटिङ थियो। थप जान्नको लागि आइकनमा क्लिक गर्नुहोस्।"
+
+#: .This+project+has+no+submitted+data.+Please+collect+some+and+try+again.
+msgid "This project has no submitted data. Please collect some and try again."
+msgstr "यस परियोजनामा ​पेश गरिएको ​कुनै तथ्याङ्क छैन। कृपया केही तथ्याङ्क सङ्कलन गर्नुहोस् र पुन: प्रयास गर्नुहोस्।"
+
+#: .results
+msgid "results"
+msgstr "परिणाम"
+
+#: .View
+msgid "View"
+msgstr "हेर्नुहोस्"
+
+#: .Edit
+msgid "Edit"
+msgstr "सम्पादन गर्नुहोस्"
+
+#: .Validation
+msgid "Validation"
+msgstr "प्रमाणीकरण"
+
+#: .Show+All
+msgid "Show All"
+msgstr "सबै देखाउनुहोस्"
+
+#: .Search
+msgid "Search"
+msgstr "खोज्नुहोस्"
+
+#: .Please+try+again+later,+or+[contact+the+support+team](%23%23SUPPORT_URL%23%23)+if+this+happens+repeatedly.
+msgid ""
+"Please try again later, or [contact the support team](##SUPPORT_URL##) if "
+"this happens repeatedly."
+msgstr ""
+
+#: .Oops%21+Something+went+wrong+on+our+end.
+msgid "Oops! Something went wrong on our end."
+msgstr ""
+
+#: .Response+details
+msgid "Response details:"
+msgstr ""
+
+#: .Display+options
+msgid "Display options"
+msgstr "प्रदर्शन विकल्पहरू"
+
+#: .Prev
+msgid "Prev"
+msgstr "अघिल्लो"
+
+#: .Your+filters+returned+no+submissions.
+msgid "Your filters returned no submissions."
+msgstr "तपाईंका फिल्टरहरूले कुनै पेश गरिएका फिर्ता गरेनन्।"
+
+#: .Page
+msgid "Page"
+msgstr "पृष्ठ"
+
+#: .rows
+msgid "rows"
+msgstr "पङ्क्तिहरू"
+
+#: .New+feature
+msgid "New feature"
+msgstr "नयाँ सुविधा"
+
+#: .archived
+msgid "archived"
+msgstr "संग्रहित"
+
+#: .deployed
+msgid "deployed"
+msgstr "तैनाथ"
+
+#: .draft
+msgid "draft"
+msgstr "मस्यौदा"
+
+#: .Parent+Collection
+msgid "Parent Collection"
+msgstr "अभिभावक संग्रह"
+
+#: .This+%23%23asset_type%23%23+is+empty.
+msgid "This ##asset_type## is empty."
+msgstr "यो ##asset_type##खाली छ।"
+
+#: .Show+less
+msgid "Show less"
+msgstr "कम देखाउनुहोस्"
+
+#: .Show+more
+msgid "Show more"
+msgstr "बढी देखाउनुहोस्"
+
+#: .Failed+to+change+asset+public+status.
+msgid "Failed to change asset public status."
+msgstr "सम्पत्तिको सार्वजनिक स्थिति परिवर्तन गर्न असफल।"
+
+#: .Make+private
+msgid "Make private"
+msgstr "निजी बनाउनुहोस्"
+
+#: .Make+public
+msgid "Make public"
+msgstr "सार्वजनिक गर्नुहोस्"
+
+#: .Failed+to+get+owner+data.
+msgid "Failed to get owner data."
+msgstr "मालिक तथ्याङ्क प्राप्त गर्न असफल।"
+
+#: .Date+Created
+msgid "Date Created"
+msgstr "सिर्जना गरिएको मिति"
+
+#: .Tags
+msgid "Tags"
+msgstr "ट्यागहरु"
+
+#: .Items
+msgid "Items"
+msgstr "वस्तुहरु"
+
+#: .Organization
+msgid "Organization"
+msgstr "संस्था"
+
+#: .Country
+msgid "Country"
+msgstr "देश"
+
+#: .Hide+full+details
+msgid "Hide full details"
+msgstr "पूर्ण विवरण लुकाउनुहोस्"
+
+#: .Show+full+details
+msgid "Show full details"
+msgstr "पूर्ण विवरण देखाउनुहोस्"
+
+#: .untitled
+msgid "untitled"
+msgstr "शीर्षकविहीन"
+
+#: .Unlabelled
+msgid "Unlabelled"
+msgstr "लेबल नगरिएको"
+
+#: .Background+audio
+msgid "Background audio"
+msgstr "पृष्ठभूमि अडियो"
+
+#: .Name,+organization+and+sector+are+required+to+make+collection+public.
+msgid "Name, organization and sector are required to make collection public."
+msgstr "सङ्कलन सार्वजनिक गर्न नाम, संस्था र क्षेत्र आवश्यक छ।"
+
+#: .Empty+collection+is+not+allowed+to+be+made+public.
+msgid "Empty collection is not allowed to be made public."
+msgstr "खाली संग्रह सार्वजनिक गर्ने अनुमति छैन।"
+
+#: .Only+collections+are+allowed+to+be+made+public%21
+msgid "Only collections are allowed to be made public!"
+msgstr "संग्रह मात्र सार्वजनिक गर्ने अनुमति छ!"
+
+#: .Your+query+is+too+short
+msgid "Your query is too short"
+msgstr "तपाईको क्वेरी धेरै छोटो छ"
+
+#: .failed+to+list+assets
+msgid "failed to list assets"
+msgstr "सम्पत्ति सूचीबद्ध गर्न असफल"
+
+#: .Type
+msgid "Type"
+msgstr "प्रकार"
+
+#: .Name
+msgid "Name"
+msgstr "नाम"
+
+#: .Subscribers
+msgid "Subscribers"
+msgstr "सदस्यहरू"
+
+#: .Primary+Sector
+msgid "Primary Sector"
+msgstr "प्राथमिक क्षेत्र"
+
+#: .Previous
+msgid "Previous"
+msgstr "अघल्लो"
+
+#: .%23%23count%23%23+items
+msgid "##count## items"
+msgstr "##count## वस्तुहरू"
+
+#: .There+are+no+assets+to+display.
+msgid "There are no assets to display."
+msgstr "प्रदर्शन गर्न कुनै पनि सम्पत्तिहरू छैनन्।"
+
+#: .Unlabeled
+msgid "Unlabeled"
+msgstr "लेबल नभएको"
+
+#: .Paste+your+formatted+table+from+excel+in+the+box+below.
+msgid "Paste your formatted table from excel in the box below."
+msgstr "तलको बक्समा एक्सेलबाट आफ्नो ढाँचा गरिएको तालिका टाँस्नुहोस्।"
+
+#: .add+cascade+with+%23+questions
+msgid "add cascade with # questions"
+msgstr "# प्रश्न सहित क्यास्केड थप्नुहोस्"
+
+#: .OK
+msgid "OK"
+msgstr "ठिक छ"
+
+#: .Learn+more+about+importing+cascading+lists+from+Excel
+msgid "Learn more about importing cascading lists from Excel"
+msgstr "एक्सेलबाट क्यास्केडिङ सूचीहरू आयात गर्ने बारे थप जान्नुहोस्"
+
+#: .DONE
+msgid "DONE"
+msgstr "भयो"
+
+#: .Untitled+Report
+msgid "Untitled Report"
+msgstr "शीर्षकहीन प्रतिवेदन"
+
+#: .Include+the+following+questions
+msgid "Include the following questions:"
+msgstr "निम्न प्रश्नहरू समावेश गर्नुहोस्:"
+
+#: .Delete
+msgid "Delete"
+msgstr "मेट्नुहोस्"
+
+#: .loading
+msgid "loading"
+msgstr "लोड गर्दै"
+
+#: .no+search+results+found
+msgid "no search results found"
+msgstr "कुनै खोज परिणाम फेला परेन"
+
+#: .block+of+___+questions
+msgid "block of ___ questions"
+msgstr "___ प्रश्नहरूको ब्लक"
+
+#: .search+library
+msgid "search library"
+msgstr "संग्राहलयभित्र खोज"
+
+#: .Vertical
+msgid "Vertical"
+msgstr "ठाडो"
+
+#: .Horizontal
+msgid "Horizontal"
+msgstr "तेर्सो"
+
+#: .Pie
+msgid "Pie"
+msgstr "पाई चार्ट"
+
+#: .Donut
+msgid "Donut"
+msgstr "डोनट"
+
+#: .Polar+area
+msgid "Polar area"
+msgstr "ध्रुवीय क्षेत्र"
+
+#: .Radar
+msgid "Radar"
+msgstr "रडार"
+
+#: .No+grouping
+msgid "No grouping"
+msgstr "कुनै समूह छैन"
+
+#: .Deploy
+msgid "Deploy"
+msgstr "कार्यान्वयन गर्नुहोस्।"
+
+#: .Remove+from+collection
+msgid "Remove from collection"
+msgstr "सङ्कलनबाट हटाउनुहोस्"
+
+#: .Move+to
+msgid "Move to"
+msgstr "मा सार्नुहोस्"
+
+#: .Unarchive
+msgid "Unarchive"
+msgstr "अभिलेखन नगर्नुहोस्"
+
+#: .Archive
+msgid "Archive"
+msgstr "अभिलेख राख्नुहोस्"
+
+#: .Subscribe
+msgid "Subscribe"
+msgstr "सदस्यता लिनुहोस्"
+
+#: .Unsubscribe
+msgid "Unsubscribe"
+msgstr "सदस्यता रद्द गर्नुहोस्"
+
+#: .Modify+details
+msgid "Modify details"
+msgstr "विवरण परिमार्जन गर्नुहोस्"
+
+#: .Edit+Tags
+msgid "Edit Tags"
+msgstr "ट्यागहरू सम्पादन गर्नुहोस्"
+
+#: .Share
+msgid "Share"
+msgstr "सेयर गर्नुहोस्"
+
+#: .View+containing+Collection
+msgid "View containing Collection"
+msgstr "सङ्ग्रह मा फर्कनुहोस्"
+
+#: .question+has+been+added+to+the+library
+msgid "question has been added to the library"
+msgstr "पुस्तकालयमा प्रश्न थपिएको छ"
+
+#: .group+has+been+added+to+the+library+as+a+block
+msgid "group has been added to the library as a block"
+msgstr "समूहलाई संग्रहमा ब्लकको रूपमा थपिएको छ"
+
+#: .There+is+no+data+for+this+question+for+the+current+submission
+msgid "There is no data for this question for the current submission"
+msgstr "हालको पेश गरिएका लागि यस प्रश्नको लागि कुनै तथ्याङ्क छैन"
+
+#: .Audit+settings
+msgid "Audit settings"
+msgstr "अडिट सेटिङहरू"
+
+#: .Enter+audit+settings+here
+msgid "Enter audit settings here"
+msgstr "यहाँ लेखापरीक्षण सेटिङहरू प्रविष्ट गर्नुहोस्"
+
+#: .This+survey+will+be+recorded
+msgid "This survey will be recorded"
+msgstr "यो सर्वेक्षण रेकर्ड गरिनेछ"
+
+#: .Enable+audio+recording+in+the+background
+msgid "Enable audio recording in the background"
+msgstr "पृष्ठभूमिमा अडियो रेकर्डिङलाई क्रियाशील बनाउनुहोस्"
+
+#: .Audio+quality
+msgid "Audio quality"
+msgstr "अडियो गुणस्तर"
+
+#: .Select%E2%80%A6
+msgid "Select…"
+msgstr "छान्नुहोस्..."
+
+#: .No+options+found
+msgid "No options found"
+msgstr "कुनै विकल्प भेटिएन"
+
+#: .This+is+a+fully+locked+template.+Go+to+question+settings+to+see+specific+restrictions.
+msgid ""
+"This is a fully locked template. Go to question settings to see specific "
+"restrictions."
+msgstr "यो पूर्ण रूपमा लक गरिएको टेम्प्लेट हो। विशेष प्रतिबन्धहरू हेर्न प्रश्न सेटिङहरूमा जानुहोस्।"
+
+#: .This+is+a+partially+locked+template.+Go+to+question+settings+to+see+specific+restrictions.+Expand+this+notification+to+see+form+level+restrictions.
+msgid ""
+"This is a partially locked template. Go to question settings to see specific"
+" restrictions. Expand this notification to see form level restrictions."
+msgstr "यो आंशिक रूपमा लक गरिएको टेम्प्लेट हो। विशेष प्रतिबन्धहरू हेर्न प्रश्न सेटिङहरूमा जानुहोस्। फारम स्तर प्रतिबन्धहरू हेर्न यो सूचनालाई विस्तार गर्नुहोस्।"
+
+#: .This+form+was+created+using+a+fully+locked+template.+This+means+no+edits+were+permitted+by+the+template+creator.
+msgid ""
+"This form was created using a fully locked template. This means no edits "
+"were permitted by the template creator."
+msgstr "यो फारम पूर्ण रूपमा लक गरिएको टेम्प्लेट प्रयोग गरेर सिर्जना गरिएको थियो। यसको मतलब टेम्प्लेट निर्माताद्वारा कुनै पनि सम्पादनहरूलाई अनुमति दिइएको थिएन।"
+
+#: .This+form+was+created+using+a+partially+locked+template.+Go+to+question+settings+to+see+specific+restrictions.+Expand+this+notification+to+see+form+level+restrictions.
+msgid ""
+"This form was created using a partially locked template. Go to question "
+"settings to see specific restrictions. Expand this notification to see form "
+"level restrictions."
+msgstr "यो फारम आंशिक रूपमा लक गरिएको टेम्प्लेट प्रयोग गरेर सिर्जना गरिएको थियो। विशेष प्रतिबन्धहरू हेर्न प्रश्न सेटिङहरूमा जानुहोस्। फारम स्तर प्रतिबन्धहरू हेर्न यो सूचनालाई विस्तार गर्नुहोस्।"
+
+#: .see+more
+msgid "see more"
+msgstr "थप हेर्नुहोस्"
+
+#: .Locked+functionalities
+msgid "Locked functionalities"
+msgstr "लक गरिएका कार्यशीलताहरू"
+
+#: .Unlocked+functionalities
+msgid "Unlocked functionalities"
+msgstr "लक नगरिएका कार्यशीलताहरू"
+
+#: .Add+choice+to+question
+msgid "Add choice to question"
+msgstr "प्रश्नमा विकल्प थप्नुहोस्"
+
+#: .Remove+choice+from+question
+msgid "Remove choice from question"
+msgstr "प्रश्नबाट विकल्प हटाउनुहोस्"
+
+#: .Edit+choice+labels
+msgid "Edit choice labels"
+msgstr "छनौट लेबलहरू सम्पादन गर्नुहोस्"
+
+#: .Change+choice+order
+msgid "Change choice order"
+msgstr "विकल्प क्रम परिवर्तन गर्नुहोस्"
+
+#: .Edit+choice+values
+msgid "Edit choice values"
+msgstr "छनौट मानहरू सम्पादन गर्नुहोस्"
+
+#: .Delete+question
+msgid "Delete question"
+msgstr "प्रश्न मेट्नुहोस्"
+
+#: .Edit+question+labels
+msgid "Edit question labels"
+msgstr "प्रश्न मेट्नुहोस्"
+
+#: .Edit+question+settings
+msgid "Edit question settings"
+msgstr "प्रश्न सेटिङहरू सम्पादन गर्नुहोस्"
+
+#: .Edit+skip+logic
+msgid "Edit skip logic"
+msgstr "स्किप तर्क सम्पादन गर्नुहोस्"
+
+#: .Edit+validation
+msgid "Edit validation"
+msgstr "प्रमाणीकरण सम्पादन गर्नुहोस्"
+
+#: .Delete+entire+group
+msgid "Delete entire group"
+msgstr "सम्पूर्ण समूह मेटाउनुहोस्"
+
+#: .Edit+group+labels
+msgid "Edit group labels"
+msgstr "समूह लेबलहरू सम्पादन गर्नुहोस्"
+
+#: .Add+question+to+group
+msgid "Add question to group"
+msgstr "समूहमा प्रश्न थप्नुहोस्"
+
+#: .Remove+question+from+group
+msgid "Remove question from group"
+msgstr "समूहबाट प्रश्न हटाउनुहोस्"
+
+#: .Change+question+order+within+group
+msgid "Change question order within group"
+msgstr "समूह भित्र प्रश्न क्रम परिवर्तन गर्नुहोस्"
+
+#: .Edit+group+settings
+msgid "Edit group settings"
+msgstr "समूह सेटिङहरू सम्पादन गर्नुहोस्"
+
+#: .Split+group
+msgid "Split group"
+msgstr "समुह विभाजन गर्नुहोस्"
+
+#: .Change+form+appearance
+msgid "Change form appearance"
+msgstr "रूप परिवर्तन गर्नुहोस्"
+
+#: .Change+form+meta+questions
+msgid "Change form meta questions"
+msgstr "फारम मेटा प्रश्नहरू परिवर्तन गर्नुहोस्"
+
+#: .Replace+whole+form
+msgid "Replace whole form"
+msgstr "सम्पूर्ण फारम बदल्नुहोस्"
+
+#: .Add+group
+msgid "Add group"
+msgstr "समूह थप्नुहोस्"
+
+#: .Add+question
+msgid "Add question"
+msgstr "प्रश्न थप्नुहोस्"
+
+#: .Change+question+order
+msgid "Change question order"
+msgstr "प्रश्नको क्रम परिवर्तन गर्नुहोस्"
+
+#: .Change+languages
+msgid "Change languages"
+msgstr "भाषाहरू परिवर्तन गर्नुहोस्"
+
+#: .permissions+were+copied+successfully
+msgid "permissions were copied successfully"
+msgstr "अनुमतिहरू सफलतापूर्वक प्रतिलिपि गरियो"
+
+#: .You+are+about+to+copy+permissions+from+%23%23source+to+%23%23target.+This+action+cannot+be+undone.
+msgid ""
+"You are about to copy permissions from ##source to ##target. This action "
+"cannot be undone."
+msgstr "तपाईं ##source to ##target अनुमतिहरू प्रतिलिपि गर्न लाग्दै हुनुहुन्छ। यो कार्य अन्डू गर्न सकिँदैन।"
+
+#: .Are+you+sure+you+want+to+copy+permissions%3F
+msgid "Are you sure you want to copy permissions?"
+msgstr "के तपाइँ निश्चित रूपमा अनुमतिहरू प्रतिलिपि गर्न चाहनुहुन्छ?"
+
+#: .Proceed
+msgid "Proceed"
+msgstr "अगाडि बढ्नुहोस्"
+
+#: .Copy+team+from+another+project
+msgid "Copy team from another project"
+msgstr "अर्को परियोजनाबाट टोली प्रतिलिपि गर्नुहोस्"
+
+#: .This+will+overwrite+any+existing+sharing+settings+defined+in+this+project.
+msgid ""
+"This will overwrite any existing sharing settings defined in this project."
+msgstr "यसले यस परियोजनामा ​​परिभाषित कुनै पनि विद्यमान साझेदारी सेटिङहरूलाई प्रतिस्थापन गर्नेछ।"
+
+#: .Select+source+project%E2%80%A6
+msgid "Select source project…"
+msgstr "स्रोत परियोजना चयन गर्नुहोस्..."
+
+#: .copy
+msgid "copy"
+msgstr "प्रतिलिपि"
+
+#: .Remove+permissions%3F
+msgid "Remove permissions?"
+msgstr "अनुमतिहरू हटाउने हो?"
+
+#: .This+action+will+remove+all+permissions+for+user+%23%23username%23%23
+msgid "This action will remove all permissions for user ##username##"
+msgstr "यस कार्यले प्रयोगकर्ताका लागि सबै अनुमतिहरू हटाउनेछ##username##"
+
+#: .Remove
+msgid "Remove"
+msgstr "हटाउनुहोस्"
+
+#: .is+owner
+msgid "is owner"
+msgstr "मालिक छ"
+
+#: .Pending+owner
+msgid "Pending owner"
+msgstr "विचाराधीन मालिक"
+
+#: .Enter+usernames+separated+by+comma
+msgid "Enter usernames separated by comma"
+msgstr "अल्पविरामद्वारा छुट्याएका प्रयोगकर्तानामहरू प्रविष्ट गर्नुहोस्"
+
+#: .User+not+found
+msgid "User not found:"
+msgstr "प्रयोगकर्ता फेला परेन:"
+
+#: .equals
+msgid "equals"
+msgstr "बराबर"
+
+#: .Reset+changes
+msgid "Reset changes"
+msgstr "परिवर्तनहरू रिसेट गर्नुहोस्"
+
+#: .username
+msgid "username"
+msgstr "प्रयोगकर्ता नाम"
+
+#: .Grant+permissions
+msgid "Grant permissions"
+msgstr "अनुमति दिनुहोस्"
+
+#: .Update+permissions
+msgid "Update permissions"
+msgstr "अनुमतिहरू अद्यावधिक गर्नुहोस्"
+
+#: .Share+publicly+by+link
+msgid "Share publicly by link"
+msgstr "लिङ्कद्वारा सार्वजनिक रूपमा बाड्नुहोस्"
+
+#: .Anyone+can+view+this+form
+msgid "Anyone can view this form"
+msgstr "जो कोहीले यो फारम हेर्न सक्छन्"
+
+#: .Anyone+can+view+submissions+made+to+this+form
+msgid "Anyone can view submissions made to this form"
+msgstr "जो कोहीले यो फारममा पेश गरिएका हरू हेर्न सक्छन्"
+
+#: .Shareable+link
+msgid "Shareable link"
+msgstr "साझेदारी योग्य लिङ्क"
+
+#: .Incorrect+token
+msgid "Incorrect token"
+msgstr "गलत टोकन"
+
+#: .Could+not+generate+secret+key
+msgid "Could not generate secret key"
+msgstr "गोप्य कुञ्जी बनाउन सकिएन"
+
+#: .Two-factor+authentication+(2FA)+verifies+your+identity+using+an+authenticator+application+in+addition+to+your+usual+password.+We+recommend+enabling+two-factor+authentication+for+an+additional+layer+of+protection.
+msgid ""
+"Two-factor authentication (2FA) verifies your identity using an "
+"authenticator application in addition to your usual password. We recommend "
+"enabling two-factor authentication for an additional layer of protection."
+msgstr "दुई-कारक प्रमाणीकरण (२FA) ले तपाईको सामान्य पासवर्डको अतिरिक्त एक प्रमाणक अनुप्रयोग प्रयोग गरेर तपाईको पहिचान प्रमाणित गर्दछ। हामी तपाईलाई सुरक्षाको अतिरिक्त तह जोड्नको लागि दुई-कारक प्रमाणीकरण सक्षम गर्न सिफारिस गर्छौं।"
+
+#: .Scan+QR+code+and+enter+the+%23%23number%23%23-digit+token+from+the+application
+msgid "Scan QR code and enter the ##number##-digit token from the application"
+msgstr "QR कोड स्क्यान गर्नुहोस् र एप्लिकेसनबाट ##number##-अंकको टोकन प्रविष्ट गर्नुहोस्"
+
+#: .After+scanning+the+QR+code+image,+the+authenticator+app+will+display+a+%23%23number%23%23-digit+code+that+you+can+enter+below.
+msgid ""
+"After scanning the QR code image, the authenticator app will display a "
+"##number##-digit code that you can enter below."
+msgstr "QR कोड इमेज स्क्यान गरेपछि, प्रमाणिकरण गर्ने एपले एउटा ##number##-अङ्कको कोड देखाउनेछ जुन तपाईंले तल प्रविष्ट गर्न सक्नुहुन्छ।"
+
+#: .No+QR+code%3F
+msgid "No QR code?"
+msgstr "QR कोड छैन ?"
+
+#: .Enter+key+manually
+msgid "Enter key manually"
+msgstr "आफैं कुञ्जी प्रविष्ट गर्नुहोस्"
+
+#: .The+following+recovery+codes+will+help+you+access+your+account+in+case+your+authenticator+app+fails.+These+codes+are+unique+and+will+not+be+stored+in+your+Kobo+account.+This+is+your+only+opportunity+to+save+them.+Please+download+the+file+and+keep+it+somewhere+safe.
+msgid ""
+"The following recovery codes will help you access your account in case your "
+"authenticator app fails. These codes are unique and will not be stored in "
+"your Kobo account. This is your only opportunity to save them. Please "
+"download the file and keep it somewhere safe."
+msgstr "निम्न रिकभरी कोडहरूले तपाईँको प्रमाणक एप असफल भएमा तपाईँको खाता पहुँच गर्न मद्दत गर्नेछ। यी कोडहरू अद्वितीय छन् र तपाईंको KOBO खातामा भण्डारण गरिने छैन। तिनीहरूलाई बचाउने यो मात्र एक मौका हो। कृपया फाइल डाउनलोड गर्नुहोस् र यसलाई कतै सुरक्षित राख्नुहोस्।"
+
+#: .Download+codes
+msgid "Download codes"
+msgstr "कोड डाउनलोड गर्नुहोस्"
+
+#: .I+saved+my+codes
+msgid "I saved my codes"
+msgstr "मैले मेरा कोडहरु सेभ गरें"
+
+#: .Enter+this+key+into+your+authenticator+app+to+generate+a+%23%23number%23%23-digit+token
+msgid ""
+"Enter this key into your authenticator app to generate a ##number##-digit "
+"token"
+msgstr "##number##-अंकको टोकन उत्पन्न गर्नका लागि आफ्नो प्रमाणक एपमा यो कुञ्जी प्रविष्ट गर्नुहोस्"
+
+#: .Once+your+authenticator+app+is+set+up,+generate+a+%23%23number%23%23-digit+token+and+enter+it+in+the+field+below.
+msgid ""
+"Once your authenticator app is set up, generate a ##number##-digit token and"
+" enter it in the field below."
+msgstr "एक पटक तपाईंको प्रमाणक एप सेटअप भएपछि, एउटा ##number##-अङ्कको टोकन उत्पन्न गर्नुहोस् र तलको स्थानमा प्रविष्ट गर्नुहोस्।"
+
+#: .Take+me+back+to+QR+code
+msgid "Take me back to QR code"
+msgstr "मलाई QR कोडमा फिर्ता लैजानुहोस्"
+
+#: .Please+enter+your+%23%23number%23%23-digit+authenticator+token+to+regenerate+your+backup+codes.
+msgid ""
+"Please enter your ##number##-digit authenticator token to regenerate your "
+"backup codes."
+msgstr "तपाईंको ब्याकअप कोडहरू पुन: उत्पन्न गर्नको लागि कृपया तपाईंको ##number##-अंकको प्रमाणक टोकन प्रविष्ट गर्नुहोस्।"
+
+#: .Please+enter+your+%23%23number%23%23-digit+authenticator+token+to+deactivate+two-factor+authentication.
+msgid ""
+"Please enter your ##number##-digit authenticator token to deactivate two-"
+"factor authentication."
+msgstr "दुई-कारक प्रमाणीकरण निष्क्रिय गर्नका लागि कृपया आफ्नो ##number##-अङ्क प्रमाणिकरणकर्ता टोकन प्रविष्ट गर्नुहोस्।"
+
+#: .Problems+with+your+token%3F
+msgid "Problems with your token?"
+msgstr "तपाईंको टोकनमा समस्या छ?"
+
+#: .Please+note+that+generating+new+recovery+codes+will+invalidate+any+previously+generated+codes.
+msgid ""
+"Please note that generating new recovery codes will invalidate any "
+"previously generated codes."
+msgstr "कृपया याद गर्नुहोस् नयाँ रिकभरी कोडहरू उत्पन्न गर्दा पहिले उत्पन्न कुनै पनि कोडहरू अमान्य हुनेछन्।"
+
+#: .Please+note+that+in+order+to+reconfigure+two-factor+authentication+(2FA),+the+previous+set+up+will+first+be+deleted.+Tokens+or+recovery+codes+from+the+previous+set+up+will+not+be+valid+anymore.
+msgid ""
+"Please note that in order to reconfigure two-factor authentication (2FA), "
+"the previous set up will first be deleted. Tokens or recovery codes from the"
+" previous set up will not be valid anymore."
+msgstr "कृपया ध्यान दिनुहोस् दुई-चरणको प्रमाणीकरण (2FA) पुन: कन्फिगर गर्नका लागि, अघिल्लो व्यवस्था पहिले मेटाइनेछ। अघिल्लो सेटअपबाट टोकन वा रिकभरी कोडहरू अब मान्य हुने छैनन्।"
+
+#: .Once+your+current+2FA+has+been+deactivated,+you%27ll+be+prompted+to+configure+it+again.+If+you+cannot+complete+the+process,+2FA+will+remain+disabled+for+your+account.+In+this+case,+you+can+enable+it+again+at+any+time+through+the+usual+process.
+msgid ""
+"Once your current 2FA has been deactivated, you'll be prompted to configure "
+"it again. If you cannot complete the process, 2FA will remain disabled for "
+"your account. In this case, you can enable it again at any time through the "
+"usual process."
+msgstr "तपाईंको हालको २FA निष्क्रिय भएपछि, तपाईंलाई यसलाई फेरि कन्फिगर गर्न प्रेरित गरिनेछ। यदि तपाइँ प्रक्रिया पूरा गर्न सक्नुहुन्न भने, 2FA तपाइँको खाताको लागि असक्षम रहनेछ। यस अवस्थामा, तपाइँ यसलाई सामान्य प्रक्रिया मार्फत कुनै पनि समयमा पुन: सक्षम गर्न सक्नुहुन्छ।"
+
+#: .Issues+with+the+token
+msgid "Issues with the token"
+msgstr "टोकन सम्बन्धी समस्याहरु"
+
+#: .You+have+no+templates.+Go+to+Library+and+create+some.
+msgid "You have no templates. Go to Library and create some."
+msgstr "तपाईंसँग टेम्प्लेटहरू छैनन्। सङ्ग्रह गरिएको स्थानमा जानुहोस् र केही मात्रामा सिर्जना गर्नुहोस्।"
+
+#: .Template+name
+msgid "Template name"
+msgstr "टेम्प्लेटको नाम"
+
+#: .%23%23ASSET_TYPE%23%23+deleted+permanently
+msgid "##ASSET_TYPE## deleted permanently"
+msgstr "##ASSET_TYPE## स्थायी रूपमा मेटाइयो"
+
+#: .You+are+about+to+permanently+delete+this+form.
+msgid "You are about to permanently delete this form."
+msgstr "तपाईं स्थायी रूपमा यो फारम मेटाउन लाग्दै हुनुहुन्छ।"
+
+#: .All+data+gathered+for+this+form+will+be+deleted.
+msgid "All data gathered for this form will be deleted."
+msgstr "यस फारमको लागि जम्मा गरिएका सबै तथ्याङ्क मेटिने छन्।"
+
+#: .The+form+associated+with+this+project+will+be+deleted.
+msgid "The form associated with this project will be deleted."
+msgstr "यस परियोजनासँग सम्बन्धित फारम मेटिनेछ।"
+
+#: .I+understand+that+if+I+delete+this+project+I+will+not+be+able+to+recover+it.
+msgid ""
+"I understand that if I delete this project I will not be able to recover it."
+msgstr "मलाई थाहा छ यदि मैले यो परियोजना मेटाएँ भने म यसलाई पुन: प्राप्त गर्न सक्ने छुइन।"
+
+#: .You+are+about+to+permanently+delete+this+item+from+your+library.
+msgid "You are about to permanently delete this item from your library."
+msgstr "तपाईं आफ्नो सङ्ग्रहबाट यो वस्तु स्थायी रूपमा मेटाउन लाग्दै हुनुहुन्छ।"
+
+#: .You+are+about+to+permanently+delete+this+draft.
+msgid "You are about to permanently delete this draft."
+msgstr "तपाईं स्थायी रूपमा यो मस्यौदा मेटाउन लाग्दै हुनुहुन्छ।"
+
+#: .Are+you+sure+you+want+to+archive+this+project%3F
+msgid "Are you sure you want to archive this project?"
+msgstr "तपाईं यो परियोजना अभिलेख गर्ने कुरामा निश्चित हुनुहुन्छ?"
+
+#: .Your+form+will+not+accept+submissions+while+it+is+archived.
+msgid "Your form will not accept submissions while it is archived."
+msgstr "यस फारमलाई अभिलेखन गरिसकेपछि यसले फेरि अरु पेश गरिएका स्वीकार गर्दैन।"
+
+#: .Are+you+sure+you+want+to+unarchive+this+project%3F
+msgid "Are you sure you want to unarchive this project?"
+msgstr "के तपाईं यो परियोजनालाई अभिलेखन नगर्ने कुरामा निश्चित हुनुहुन्छ?"
+
+#: .Cloning...
+msgid "Cloning..."
+msgstr "उस्तै अर्को बनाउदै..."
+
+#: .cloned+%23%23ASSET_TYPE%23%23+created
+msgid "cloned ##ASSET_TYPE## created"
+msgstr "उस्तै अर्को ##ASSET_TYPE## बनाइयो"
+
+#: .Create
+msgid "Create"
+msgstr "सृजना गर्नुहोस्"
+
+#: .Failed+to+create+new+asset%21
+msgid "Failed to create new asset!"
+msgstr "नयाँ सम्पत्ति सिर्जना गर्न असफल भयो!"
+
+#: .Create+new+template+from+this+project
+msgid "Create new template from this project"
+msgstr "यो परियोजनाबाट नयाँ टेम्प्लेट बनाउनुहोस्"
+
+#: .Enter+the+name+of+the+new+template.
+msgid "Enter the name of the new template."
+msgstr "नयाँ टेम्प्लेटको नाम प्रविष्ट गर्नुहोस्।"
+
+#: .Create+new+project+from+this+template
+msgid "Create new project from this template"
+msgstr "यस टेम्प्लेटबाट नयाँ परियोजना बनाउनुहोस्"
+
+#: .Enter+the+name+of+the+new+project.
+msgid "Enter the name of the new project."
+msgstr "नयाँ परियोजनाको नाम प्रविष्ट गर्नुहोस्।"
+
+#: .Remove+shared+form
+msgid "Remove shared form"
+msgstr "बाडिएको फारम हटाउनुहोस्"
+
+#: .Are+you+sure+you+want+to+remove+this+shared+form%3F
+msgid "Are you sure you want to remove this shared form?"
+msgstr "यो बाडिएको फारम हटाउने कुरामा निश्चित हुनुहुन्छ ?"
+
+#: .deploying+to+kobocat...
+msgid "deploying to kobocat..."
+msgstr "कोबोक्याटमा परिचालन गरिँदै....."
+
+#: .deployed+form
+msgid "deployed form"
+msgstr "परिचालित फारम"
+
+#: .Overwrite+existing+deployment
+msgid "Overwrite existing deployment"
+msgstr "वर्तमान परिचालन अभिलेखन गर्नुहोस्"
+
+#: .This+form+has+already+been+deployed.+Are+you+sure+you+want+overwrite+the+existing+deployment%3F
+msgid ""
+"This form has already been deployed. Are you sure you want overwrite the "
+"existing deployment?"
+msgstr "यो फारम पहिले नै प्रयोग गरिएको छ। के तपाइँ निश्चित रूपमा अवस्थित डिप्लोइमेन्ट अधिलेखन गर्न चाहनुहुन्छ?"
+
+#: .This+action+cannot+be+undone.
+msgid "This action cannot be undone."
+msgstr "यो कार्यलाई अनडु गर्न सकिँदैन।"
+
+#: .Deploying...
+msgid "Deploying..."
+msgstr "परिचालन गरिँदै....."
+
+#: .redeployed+form
+msgid "redeployed form"
+msgstr "पुनर्परिचालित फारम"
+
+#: .Profile
+msgid "Profile"
+msgstr "प्रोफाइल"
+
+#: .Security
+msgid "Security"
+msgstr "सुरक्षा"
+
+#: .Usage
+msgid "Usage"
+msgstr "प्रयोग"
+
+#: .Plans
+msgid "Plans"
+msgstr "योजनाहरू"
+
+#: .Add-ons
+msgid "Add-ons"
+msgstr "एड-अनस्"
+
+#: .ACCOUNT
+msgid "ACCOUNT"
+msgstr ""
+
+#: .Members
+msgid "Members"
+msgstr ""
+
+#: .and+one+other+question
+msgid "and one other question"
+msgstr "र अर्को प्रश्न"
+
+#: .and+%23%23+other+questions
+msgid "and ## other questions"
+msgstr "र ## अन्य प्रश्नहरू"
+
+#: .Failed+to+update+tags
+msgid "Failed to update tags"
+msgstr "ट्यागहरू अद्यावधिक गर्न असफल भयो"
+
+#: .Update
+msgid "Update"
+msgstr "अपडेट"
+
+#: .Import+data+from+%23%23SOURCE_NAME%23%23
+msgid "Import data from ##SOURCE_NAME##"
+msgstr "##SOURCE_NAME## बाट डाटा आयात गर्नुहोस्"
+
+#: .You+are+about+to+import+%23%23SOURCE_NAME%23%23.+Select+or+deselect+in+the+list+below+to+narrow+down+the+number+of+questions+to+import.
+msgid ""
+"You are about to import ##SOURCE_NAME##. Select or deselect in the list "
+"below to narrow down the number of questions to import."
+msgstr "तपाईं ##SOURCE_NAME## आयात गर्न लाग्दै हुनुहुन्छ। आयात गर्नका लागि प्रश्नहरूको संख्या कम गर्न तलको सूचीमा चयन गर्नुहोस् वा अचयन गर्नुहोस्।"
+
+#: .Select+below+the+questions+you+want+to+import
+msgid "Select below the questions you want to import"
+msgstr "तपाईले आयात गर्न चाहनुभएको प्रश्नहरू तल चयन गर्नुहोस्"
+
+#: .Select+all
+msgid "Select all"
+msgstr "सबै चयन गर्नुहोस्"
+
+#: .%7C
+msgid "|"
+msgstr "|"
+
+#: .Deselect+all
+msgid "Deselect all"
+msgstr "रोजिएका सबै विकल्प हटाउनुहोस्"
+
+#: .Loading+imported+questions
+msgid "Loading imported questions"
+msgstr "सारिएका प्रश्नहरू लोड गर्दै"
+
+#: .Updating+imported+questions
+msgid "Updating imported questions"
+msgstr "आयत गरिएकाप्रश्नहरु अपडेट गर्दै"
+
+#: .Accept
+msgid "Accept"
+msgstr "स्वीकार गर्नुहोस्"
+
+#: .Failed+to+cancel+transfer.+The+transfer+may+be+declined+or+accepted+already.+Please+check+your+email.
+msgid ""
+"Failed to cancel transfer. The transfer may be declined or accepted already."
+" Please check your email."
+msgstr ""
+
+#: .Failed+to+accept+invite.
+msgid "Failed to accept invite."
+msgstr "आमन्त्रण स्वीकृत गर्न असफल भयो।"
+
+#: .Failed+to+decline+invite
+msgid "Failed to decline invite"
+msgstr "आमन्त्रण अस्वीकार गर्न असफल भयो।"
+
+#: .Invite+has+been+cancelled+or+expired
+msgid "Invite has been cancelled or expired"
+msgstr "आमन्त्रण रद्द गरिएको वा समाप्त भएको छ।"
+
+#: .Invite+is+invaild.
+msgid "Invite is invaild."
+msgstr "आमन्त्रण अमान्य छ।"
+
+#: .Submission+URL
+msgid "Submission URL"
+msgstr "URL पेश गर्ने"
+
+#: .Public+key
+msgid "Public key"
+msgstr "सार्वजनिक कुन्जि"
+
+#: .Set+encryption
+msgid "Set encryption"
+msgstr "इन्क्रिप्सन सेट गर्नुहोस्"
+
+#: .Learn+more+about+encrypting+forms
+msgid "Learn more about encrypting forms"
+msgstr "इन्क्रिप्टिङ फारमहरू बारे थप जान्नुहोस्"
+
+#: .Remove+encryption
+msgid "Remove encryption"
+msgstr "इन्क्रिप्सन हटाउनुहोस्"
+
+#: .Upload+as+template
+msgid "Upload as template"
+msgstr "ढाँचाको रूपमा अपलोड गर्नुहोस्"
+
+#: .Note+that+this+will+be+ignored+when+uploading+a+collection+file.
+msgid "Note that this will be ignored when uploading a collection file."
+msgstr "ध्यान दिनुहोस् कि यो संग्रह फाइल अपलोड गर्दा बेवास्ता गरिनेछ।"
+
+#: .Upload
+msgid "Upload"
+msgstr "अपलोड गर्नुहोस्"
+
+#: .Question+Block
+msgid "Question Block"
+msgstr "प्रश्न ब्लक"
+
+#: .Template
+msgid "Template"
+msgstr "टेम्प्लेट"
+
+#: .Collection
+msgid "Collection"
+msgstr "सङ्ग्रह"
+
+#: .n/d
+msgid "n/d"
+msgstr "डाटा छैन"
+
+#: .Multiple+responses
+msgid "Multiple responses"
+msgstr "धेरै जवाफहरू"
+
+#: .Displaying+multiple+submissions+(%23%23count%23%23+selected+of+%23%23total%23%23)
+msgid "Displaying multiple submissions (##count## selected of ##total##)"
+msgstr "धेरै पेश गरिएका देखाउँदै (छनौट गरिएका ##total##मध्ये ##count##)"
+
+#: .Editing+%22%23%23question%23%23%22+for+%23%23count%23%23+submissions
+msgid "Editing \"##question##\" for ##count## submissions"
+msgstr "पेश गरिएकाहरू ##count## का लागि \"##question##\" सम्पादन गर्दै"
+
+#: .in+the+help+article
+msgid "in the help article"
+msgstr "सहायता लेखमा"
+
+#: .Type+to+filter
+msgid "Type to filter"
+msgstr "फिल्टर गर्न टाइप गर्नुहोस्"
+
+#: .Required
+msgid "Required"
+msgstr "आवश्यक"
+
+#: .Editing+responses+from+repeat+group+questions+is+not+possible+yet.
+msgid "Editing responses from repeat group questions is not possible yet."
+msgstr "दोहोर्याइएको समूह प्रश्नहरूबाट जवाफहरू सम्पादन गर्न अझै सम्भव छैन।"
+
+#: .You+are+currently+seeing+multiple+submissions+at+once.+You+can+select+specific+questions+to+edit+or+remove+responses+in+bulk.+If+you+want+to+edit+only+one+submission,+click+on+the+desired+submission+on+the+navigation+menu+on+the+top-left+corner+of+this+table,+or+go+back+to+the+general+table+view.+You+can+learn+more+about+bulk+actions
+msgid ""
+"You are currently seeing multiple submissions at once. You can select "
+"specific questions to edit or remove responses in bulk. If you want to edit "
+"only one submission, click on the desired submission on the navigation menu "
+"on the top-left corner of this table, or go back to the general table view. "
+"You can learn more about bulk actions"
+msgstr "तपाईं हाल एकै पटक धेरै पेश गरिएकाहरू देख्दै हुनुहुन्छ। तपाईंले विशेष प्रश्नहरू सम्पादन गर्न वा बल्कमा प्रतिक्रियाहरू हटाउन सक्नुहुन्छ। यदि तपाइँ केवल एउटा पेश गरिएको सम्पादन गर्न चाहनुहुन्छ भने, यो तालिकाको शीर्ष-बायाँ कुनामा रहेको नेभिगेसन मेनुमा इच्छित पेश गरिएकामा क्लिक गर्नुहोस्, वा सामान्य तालिका दृश्यमा फर्कनुहोस्। तपाईं बल्क कार्यहरू बारे थप जान्न सक्नुहुन्छ"
+
+#: .Updated+responses
+msgid "Updated responses"
+msgstr "अपडेट गरिएका जबाफहरु"
+
+#: .Question
+msgid "Question"
+msgstr "प्रश्न"
+
+#: .Response
+msgid "Response"
+msgstr "जबाफ"
+
+#: .Action
+msgid "Action"
+msgstr "कार्य"
+
+#: .Discard+Changes
+msgid "Discard Changes"
+msgstr "परिवर्तनहरु खारेज गर्नुहोस्"
+
+#: .Confirm+%26+close
+msgid "Confirm & close"
+msgstr "पुष्टि गर्नुहोस् र बन्द गर्नुहोस्"
+
+#: .You+are+about+to+edit+responses+for+one+or+multiple+submissions+at+once.+Use+the+XML+syntax+in+the+text+box+below.+You+can+also+select+one+of+the+existing+responses+from+the+table+of+responses.+Learn+more+about+how+to+edit+specific+responses+for+one+or+multiple+submissions
+msgid ""
+"You are about to edit responses for one or multiple submissions at once. Use"
+" the XML syntax in the text box below. You can also select one of the "
+"existing responses from the table of responses. Learn more about how to edit"
+" specific responses for one or multiple submissions"
+msgstr "तपाईं एक पटकमा एक वा धेरै पेश गरिएको हरूको लागि प्रतिक्रियाहरू सम्पादन गर्न लाग्दै हुनुहुन्छ। तलको टेक्स्ट बाकसमा XML सिन्ट्याक्स प्रयोग गर्नुहोस्। तपाईंले प्रतिक्रियाहरूको तालिकाबाट अवस्थित प्रतिक्रियाहरू मध्ये एउटा पनि चयन गर्न सक्नुहुन्छ। एक वा धेरै पेश गरिएको हरूको लागि विशिष्ट प्रतिक्रियाहरू कसरी सम्पादन गर्ने बारे थप जान्नुहोस्।"
+
+#: .Type+new+response+for+selected+submissions
+msgid "Type new response for selected submissions"
+msgstr "चयन गरिएका पेश गरिएको हरूको लागि नयाँ प्रतिक्रिया टाइप गर्नुहोस्"
+
+#: .Select
+msgid "Select"
+msgstr "चयन गर्नुहोस्"
+
+#: .Response+value
+msgid "Response value"
+msgstr "प्रतिक्रिया मूल्य"
+
+#: .Frequency
+msgid "Frequency"
+msgstr "आवृत्ति"
+
+#: .Percentage
+msgid "Percentage"
+msgstr "प्रतिशत"
+
+#: .Unsupported+media+type+%23%23QUESTION_TYPE%23%23
+msgid "Unsupported media type: ##QUESTION_TYPE##"
+msgstr "असमर्थित मिडिया प्रकार: ##QUESTION_TYPE##"
+
+#: .%23%23type%23%23+%23%23name%23%23+created
+msgid "##type## ##name## created"
+msgstr "##type## ##name##सिर्जना गरियो"
+
+#: .Failed+to+create+%23%23type%23%23
+msgid "Failed to create ##type##"
+msgstr "सिर्जना गर्न असफल##type##"
+
+#: .Failed+to+update+%23%23type%23%23
+msgid "Failed to update ##type##"
+msgstr "अपडेट गर्न असफल ##type##"
+
+#: .Saving%E2%80%A6
+msgid "Saving…"
+msgstr "सेभ गर्दै..."
+
+#: .Creating%E2%80%A6
+msgid "Creating…"
+msgstr "सिर्जना गर्दै..."
+
+#: .Enter+title+of+%23%23type%23%23+here
+msgid "Enter title of ##type## here"
+msgstr "यहाँ शीर्षक ##type## प्रविष्ट गर्नुहोस्"
+
+#: .%2A+Save+Changes
+msgid "* Save Changes"
+msgstr "* परिवर्तनहरू सुरक्षित गर्नुहोस्"
+
+#: .updated+text
+msgid "updated text"
+msgstr "अद्यावधिक गरिएको पाठ"
+
+#: .translation
+msgid "translation"
+msgstr "अनुवाद"
+
+#: .Original+string
+msgid "Original string"
+msgstr "सुरुको स्ट्रिङ"
+
+#: .Go+back%3F
+msgid "Go back?"
+msgstr "पछाडी जाने?"
+
+#: .Confirm
+msgid "Confirm"
+msgstr "पुष्टि गर्नुहोस्"
+
+#: .Delete+language%3F
+msgid "Delete language?"
+msgstr "भाषा मेटाउने हो?"
+
+#: .Are+you+sure+you+want+to+delete+this+language%3F+This+action+is+not+reversible.
+msgid ""
+"Are you sure you want to delete this language? This action is not "
+"reversible."
+msgstr "के तपाईं यो भाषा मेटाउने कुरामा निश्चित हुनुहुन्छ? यो कार्य उल्टाउन मिल्दैन।"
+
+#: .Translation+index+mismatch.+Cannot+delete+language.
+msgid "Translation index mismatch. Cannot delete language."
+msgstr "अनुवाद अनुक्रमणिका बेमेल। भाषा मेटाउन सकिँदैन।"
+
+#: .Change+default+language%3F
+msgid "Change default language?"
+msgstr "पूर्वनिर्धारित भाषा परिवर्तन गर्ने हो?"
+
+#: .Are+you+sure+you+would+like+to+set+%23%23lang%23%23+as+the+default+language+for+this+form%3F
+msgid ""
+"Are you sure you would like to set ##lang## as the default language for this"
+" form?"
+msgstr "के तपाइँ यो फारमको लागि पूर्वनिर्धारित भाषाको रूपमा ##lang## सेट गर्न निश्चित हुनुहुन्छ?"
+
+#: .There+is+nothing+to+translate+in+this+form.
+msgid "There is nothing to translate in this form."
+msgstr "यस फारममा अनुवाद गर्ने कुनै कुरा छैन।"
+
+#: .Here+you+can+add+more+languages+to+your+project,+and+translate+the+strings+in+each+of+them.
+msgid ""
+"Here you can add more languages to your project, and translate the strings "
+"in each of them."
+msgstr "यहाँ तपाईंले आफ्नो परियोजनामा ​अरु भाषाहरू थप्न सक्नुहुन्छ, र ती प्रत्येकमा स्ट्रिङहरू अनुवाद गर्न सक्नुहुन्छ।"
+
+#: .For+the+language+code+field,+we+suggest+using+the
+msgid "For the language code field, we suggest using the"
+msgstr "भाषा कोड फिल्डको लागि, हामी ...को प्रयोग गर्ने सल्लाह दिन्छौं"
+
+#: .official+language+code
+msgid "official language code"
+msgstr "आधिकारिक भाषा कोड"
+
+#: .(e.g.+%22English+(en)%22+or+%22Rohingya+(rhg)%22).
+msgid "(e.g. \"English (en)\" or \"Rohingya (rhg)\")."
+msgstr "(जस्तै \"अंग्रेजी (en)\" वा \"Rohingya (rhg)\")।"
+
+#: .Read+more.
+msgid "Read more."
+msgstr "थप पढ्नुहोस्"
+
+#: .Please+name+your+default+language+before+adding+languages+and+translations.
+msgid ""
+"Please name your default language before adding languages and translations."
+msgstr "कृपया भाषाहरू र अनुवादहरू थप्नु अघि आफ्नो पूर्वनिर्धारित भाषालाई नाम दिनुहोस्।"
+
+#: .Current+languages
+msgid "Current languages"
+msgstr "वर्तमान भाषाहरू"
+
+#: .You+have+named+translations+in+your+form+but+the+default+translation+is+unnamed.+Please+specifiy+a+default+translation+or+make+an+existing+one+default.
+msgid ""
+"You have named translations in your form but the default translation is "
+"unnamed. Please specifiy a default translation or make an existing one "
+"default."
+msgstr "तपाईंले आफ्नो फारममा अनुवादलाई नाम दिनुभएको छ तर पूर्वनिर्धारित अनुवाद शिर्षकवहिन छ। कृपया पूर्वनिर्धारित अनुवाद निर्दिष्ट गर्नुहोस् वा अहिले भरहेका मध्येबाट कुनैलाई डिफल्ट बनाउनुहोस्।"
+
+#: .default
+msgid "default"
+msgstr "पूर्वनिर्धारित (प्रारम्भिक)"
+
+#: .Make+default
+msgid "Make default"
+msgstr "सुरुवातको जस्तै बनाउनुहोस्"
+
+#: .Edit+language
+msgid "Edit language"
+msgstr "भाषा सम्पादन गर्नुहोस्"
+
+#: .Update+translations
+msgid "Update translations"
+msgstr "अनुवादहरू अद्यावधिक गर्नुहोस्"
+
+#: .Delete+language
+msgid "Delete language"
+msgstr "भाषा मेटाउनुहोस्"
+
+#: .Add+language
+msgid "Add language"
+msgstr "भाषा थप्नुहोस्"
+
+#: .Add+a+new+language
+msgid "Add a new language"
+msgstr "एउटा नयाँ भाषा थप्नुहोस्"
+
+#: .There+was+an+error,+table+settings+could+not+be+saved.
+msgid "There was an error, table settings could not be saved."
+msgstr "त्रुटि भयो, तालिकाका सेटिङहरू बचत गर्न सकिएन।"
+
+#: .XML+Values
+msgid "XML Values"
+msgstr "XML मानहरू"
+
+#: .Labels
+msgid "Labels"
+msgstr "लेबलहरू"
+
+#: .Display+labels+or+XML+values%3F
+msgid "Display labels or XML values?"
+msgstr "लेबल वा XML मानहरू देखाउनुहोस्?"
+
+#: .Show+group+names+in+table+headers
+msgid "Show group names in table headers"
+msgstr "तालिका हेडरमा समूह नामहरू देखाउनुहोस्"
+
+#: .Show+HXL+tags
+msgid "Show HXL tags"
+msgstr "HXL ट्यागहरू देखाउनुहोस्"
+
+#: .There+was+an+error+getting+activity+logs.
+msgid "There was an error getting activity logs."
+msgstr ""
+
+#: .There+was+an+error+getting+the+filter+options.
+msgid "There was an error getting the filter options."
+msgstr ""
+
+#: .An+error+occurred+while+exporting+the+logs
+msgid "An error occurred while exporting the logs"
+msgstr ""
+
+#: .JSON
+msgid "JSON"
+msgstr "जेएसओएन JSON"
+
+#: .XML
+msgid "XML"
+msgstr "एक्सएमएल XML"
+
+#: .No+Authorization
+msgid "No Authorization"
+msgstr "कुनै आधिकारिकता छैन"
+
+#: .Basic+Authorization
+msgid "Basic Authorization"
+msgstr "आधारभूत आधिकारिकता"
+
+#: .Could+not+load+REST+Service
+msgid "Could not load REST Service"
+msgstr "REST सेवा लोड गर्न सकिएन"
+
+#: .Name+required
+msgid "Name required"
+msgstr "नाम आवश्यक छ"
+
+#: .URL+required
+msgid "URL required"
+msgstr "URL आवश्यक छ"
+
+#: .Please+enter+both+name+and+url+of+your+service.
+msgid "Please enter both name and url of your service."
+msgstr "कृपया आफ्नो सेवाको नाम र url दुवै प्रविष्ट गर्नुहोस्।"
+
+#: .Custom+HTTP+Headers
+msgid "Custom HTTP Headers"
+msgstr "HTTP हेडरहरू आफू अनुकुल परिवर्तन गर्नुहोस्"
+
+#: .Value
+msgid "Value"
+msgstr "मूल्य"
+
+#: .Add+header
+msgid "Add header"
+msgstr "हेडर थप्नुहोस्"
+
+#: .Add+field(s)
+msgid "Add field(s)"
+msgstr "क्षेत्र(हरू) थप्नुहोस्"
+
+#: .Select+fields+subset
+msgid "Select fields subset"
+msgstr "क्षेत्रका सहायक क्षेत्र चयन गर्नुहोस्"
+
+#: .Service+Name
+msgid "Service Name"
+msgstr "सेवाको नाम"
+
+#: .Endpoint+URL
+msgid "Endpoint URL"
+msgstr "अन्तिम बिन्दु URL"
+
+#: .https//
+msgid "https://"
+msgstr "https://"
+
+#: .Enabled
+msgid "Enabled"
+msgstr "सक्रिय बनाइयो"
+
+#: .Receive+emails+notifications
+msgid "Receive emails notifications"
+msgstr "इमेल सूचनाहरू प्राप्त गर्नुहोस्"
+
+#: .Username
+msgid "Username"
+msgstr "प्रयोगकर्ता नाम"
+
+#: .Password
+msgid "Password"
+msgstr "पासवर्ड"
+
+#: .Add+custom+wrapper+around+JSON+submission+(%25SUBMISSION%25+will+be+replaced+by+JSON)
+msgid ""
+"Add custom wrapper around JSON submission (%SUBMISSION% will be replaced by "
+"JSON)"
+msgstr "JSON पेश गरिएको वरिपरि आफू अनुकूल र्यापर थप्नुहोस् (%SUBMISSION% JSON द्वारा प्रतिस्थापन हुनेछ)"
+
+#: .Add+Custom+Wrapper
+msgid "Add Custom Wrapper"
+msgstr "आफु अनुकुल र्यापर थप्नुहोस्"
+
+#: .The+submission+could+not+be+found.+It+may+have+been+deleted.+Submission+ID+%23%23id%23%23
+msgid ""
+"The submission could not be found. It may have been deleted. Submission ID: "
+"##id##"
+msgstr "पेश गरिएका फेला पार्न सकिएन। यो मेटिएको हुन सक्छ। पेश गरिएका आईडी: ##id##"
+
+#: .Delete+submission%3F
+msgid "Delete submission?"
+msgstr "पेश गरिएका मेट्ने हो?"
+
+#: .Are+you+sure+you+want+to+delete+this+submission%3F
+msgid "Are you sure you want to delete this submission?"
+msgstr "के तपाइँ यो पेश गरिएका मेटाउन कुरामा निश्चित हुनुहुन्छ?"
+
+#: .This+action+cannot+be+undone
+msgid "This action cannot be undone"
+msgstr "यो कार्य गरिसकेपछि फिर्ता जान सकिँदैन"
+
+#: .Validation+status
+msgid "Validation status:"
+msgstr "प्रमाणीकरण स्थिति:"
+
+#: .Duplicate+created
+msgid "Duplicate created"
+msgstr "नक्कल बनाईयो"
+
+#: .A+duplicate+of+the+submission+record+was+successfully+created.+You+can+view+the+new+instance+below+and+make+changes+using+the+action+buttons+below.
+msgid ""
+"A duplicate of the submission record was successfully created. You can view "
+"the new instance below and make changes using the action buttons below."
+msgstr "पेश गरिएका रेकर्डको नक्कल सफलतापूर्वक सिर्जना गरियो। तपाईं तलको नयाँ उदाहरण हेर्न सक्नुहुन्छ र तलका कार्य बटनहरू प्रयोग गरेर परिवर्तनहरू गर्न सक्नुहुन्छ।"
+
+#: .Source+submission+uuid+
+msgid "Source submission uuid: "
+msgstr "स्रोत सबमिशन uuid: "
+
+#: .Discard
+msgid "Discard"
+msgstr "खारेज गर्नुहोस्"
+
+#: .Discard+duplicated+submission
+msgid "Discard duplicated submission"
+msgstr "डुप्लिकेट पेश गरिएका खारेज गर्नुहोस्"
+
+#: .Click+on+the+button+below+to+load+the+most+recent+data+for+this+submission.+
+msgid ""
+"Click on the button below to load the most recent data for this submission. "
+msgstr "यो पेश गरिएका लागि सबैभन्दा पछिल्लो डाटा लोड गर्न तलको बटनमा क्लिक गर्नुहोस्। "
+
+#: .Refresh+submission
+msgid "Refresh submission"
+msgstr "पेश गरिएका रिफ्रेस गर्नुहोस्"
+
+#: .Display+XML+names
+msgid "Display XML names"
+msgstr "XML नामहरू देखाउनुहोस्"
+
+#: .Duplicate
+msgid "Duplicate"
+msgstr "प्रतिलिपी बनाउनुहोस्"
+
+#: .Delete+submission
+msgid "Delete submission"
+msgstr "पेश गरिएका मेटाउनुहोस्"
+
+#: .Unknown+error
+msgid "Unknown error"
+msgstr ""
+
+#: .Help+Resources
+msgid "Help Resources"
+msgstr "सहायता स्रोतहरू"
+
+#: .Help+Center
+msgid "Help Center"
+msgstr ""
+
+#: .Find+answers+in+our+extensive+library+of+user+support+articles+and+tutorials.
+msgid ""
+"Find answers in our extensive library of user support articles and "
+"tutorials."
+msgstr ""
+
+#: .Community+Forum
+msgid "Community Forum"
+msgstr ""
+
+#: .Connect+with+thousands+of+KoboToolbox+users,+ask+questions,+and+share+ideas.
+msgid ""
+"Connect with thousands of KoboToolbox users, ask questions, and share ideas."
+msgstr ""
+
+#: .KoboToolbox+Academy
+msgid "KoboToolbox Academy"
+msgstr ""
+
+#: .Enroll+in+an+online+self-paced+course+designed+by+Kobo+staff+experts.
+msgid "Enroll in an online self-paced course designed by Kobo staff experts."
+msgstr ""
+
+#: .Notifications
+msgid "Notifications"
+msgstr "सूचनाहरू"
+
+#: .Help
+msgid "Help"
+msgstr "सहायता"
+
+#: .Please+refresh+the+page
+msgid "Please refresh the page"
+msgstr "कृपया पृष्ठ रिफ्रेश गर्नुहोस्"
+
+#: .Account+Settings
+msgid "Account Settings"
+msgstr "अकाउन्ट (विवरण) सेटिङहरु"
+
+#: .Terms+of+Service
+msgid "Terms of Service"
+msgstr "सेवा सर्तहरु"
+
+#: .Privacy+Policy
+msgid "Privacy Policy"
+msgstr "गोपनीयता नीति"
+
+#: .Logout
+msgid "Logout"
+msgstr "लग आउट गर्नुहोस्"
+
+#: .Export+is+being+generated,+you+will+recieve+an+email+once+it%27s+done
+msgid "Export is being generated, you will recieve an email once it's done"
+msgstr ""
+
+#: .This+field+is+required.
+msgid "This field is required."
+msgstr "यो फिल्ड जरुरी छ।"
+
+#: .Passwords+don%27t+match
+msgid "Passwords don't match"
+msgstr "पासवर्डहरू मेल खाँदैनन्"
+
+#: .Current+Password
+msgid "Current Password"
+msgstr "हालको पासवर्ड"
+
+#: .Forgot+Password%3F
+msgid "Forgot Password?"
+msgstr "पासवर्ड बिर्सिनुभयो ?"
+
+#: .New+Password
+msgid "New Password"
+msgstr "नयाँ पासवर्ड"
+
+#: .Verify+Password
+msgid "Verify Password"
+msgstr "पासवर्ड प्रमाणीकरण गर्नुहोस्"
+
+#: .Save+Password
+msgid "Save Password"
+msgstr "पासवर्ड बचत गर्नुहोस्"
+
+#: .Could+not+load+REST+Services
+msgid "Could not load REST Services"
+msgstr "REST सेवाहरू लोड गर्न सकिएन"
+
+#: .Are+you+sure+you+want+to+delete+%23%23target%3F
+msgid "Are you sure you want to delete ##target?"
+msgstr "के तपाई निश्चित ##target मेटाउन चाहनुहुन्छ?"
+
+#: .You+are+about+to+delete+%23%23target.+This+action+cannot+be+undone.
+msgid "You are about to delete ##target. This action cannot be undone."
+msgstr "तपाईं ##target मेटाउन लाग्दै हुनुहुन्छ। यो कार्य उल्टाउन सकिँदैन।"
+
+#: .Register+a+New+Service
+msgid "Register a New Service"
+msgstr "नयाँ सेवा दर्ता गर्नुहोस्"
+
+#: .This+project+doesn%27t+have+any+REST+Services+yet%21
+msgid "This project doesn't have any REST Services yet!"
+msgstr "यो परियोजनामा ​​अहिलेसम्म कुनै पनि REST सेवाहरू छैनन्!"
+
+#: .You+can+use+REST+Services+to+automatically+post+submissions+to+a+third-party+application.
+msgid ""
+"You can use REST Services to automatically post submissions to a third-party"
+" application."
+msgstr "तपाईंले तेस्रो-पक्ष अनुप्रयोगमा पेश गरिएका हरू स्वचालित रूपमा पोस्ट गर्न REST सेवाहरू प्रयोग गर्न सक्नुहुन्छ।"
+
+#: .REST+Services+%23%23number%23%23
+msgid "REST Services: ##number##"
+msgstr "REST सेवाहरू:##number##"
+
+#: .Need+help%3F
+msgid "Need help?"
+msgstr "सहयोग चाहियो?"
+
+#: .Success
+msgid "Success"
+msgstr "सफलता"
+
+#: .Pending
+msgid "Pending"
+msgstr "विचाराधीन"
+
+#: .Failed
+msgid "Failed"
+msgstr "असफल"
+
+#: .Could+not+load+REST+Service+logs
+msgid "Could not load REST Service logs"
+msgstr "REST सेवा लगहरू लोड गर्न सकिएन"
+
+#: .Submission+Failure+Detail+(%23%23id%23%23)
+msgid "Submission Failure Detail (##id##)"
+msgstr "पेश गरिएका विफलता विवरण (##id##)"
+
+#: .Back+to+REST+Services
+msgid "Back to REST Services"
+msgstr "REST सेवाहरूमा फर्कनुहोस्"
+
+#: .There+are+no+logs+yet
+msgid "There are no logs yet"
+msgstr "अहिलेसम्म कुनै लगहरू छैनन्"
+
+#: .Submission
+msgid "Submission"
+msgstr "पेश गरिएका"
+
+#: .Retry+all+submissions
+msgid "Retry all submissions"
+msgstr "सबै पेश गरिएकाहरू पुन: प्रयास गर्नुहोस्"
+
+#: .Pending+(%23%23count%23%23%C3%97)
+msgid "Pending (##count##×)"
+msgstr "विचाराधीन (##count##×)"
+
+#: .Retry+submission
+msgid "Retry submission"
+msgstr "पेश गरिएका पुन: प्रयास गर्नुहोस्"
+
+#: .More+info
+msgid "More info"
+msgstr "थप जानकारी"
+
+#: .TOS+Update+Message+not+found
+msgid "TOS Update Message not found"
+msgstr "सेवाका सर्तहरू अद्यावधिक सन्देश फेला परेन"
+
+#: .Please+make+sure+the+following+details+are+filled+out+correctly
+msgid "Please make sure the following details are filled out correctly:"
+msgstr "कृपया निश्चित गर्नुहोस् कि निम्न विवरणहरू सही रूपमा भरिएको छ:"
+
+#: .I+agree,+let%27s+go
+msgid "I agree, let's go"
+msgstr "म सहमत छु, जानुहोस्"
+
+#: .I+don%27t+agree,+log+me+out
+msgid "I don't agree, log me out"
+msgstr "म सहमत छैन, मलाई लग आउट गर्नुहोस्"
+
+#: .Your+team+has+reached+the+%23%23LIMITS_LIST%23%23+%23%23LIMIT_PLURALIZED%23%23+included+with+its+current+plan.
+msgid ""
+"Your team has reached the ##LIMITS_LIST## ##LIMIT_PLURALIZED## included with"
+" its current plan."
+msgstr ""
+
+#: .Your+organization+has+reached+the+%23%23LIMITS_LIST%23%23+%23%23LIMIT_PLURALIZED%23%23+included+with+its+current+plan.
+msgid ""
+"Your organization has reached the ##LIMITS_LIST## ##LIMIT_PLURALIZED## "
+"included with its current plan."
+msgstr ""
+
+#: .You+have+reached+the+%23%23LIMITS_LIST%23%23+%23%23LIMIT_PLURALIZED%23%23+included+with+your+current+plan.
+msgid ""
+"You have reached the ##LIMITS_LIST## ##LIMIT_PLURALIZED## included with your"
+" current plan."
+msgstr ""
+
+#: .Please+[upgrade+your+plan](%23%23PLAN_LINK%23%23)+or+purchase+an+add-on+as+soon+as+possible+or+[contact+us](%23%23CONTACT_LINK%23%23)+to+speak+with+our+team.
+msgid ""
+"Please [upgrade your plan](##PLAN_LINK##) or purchase an add-on as soon as "
+"possible or [contact us](##CONTACT_LINK##) to speak with our team."
+msgstr ""
+
+#: .You+can+[review+your+usage+in+account+settings](%23%23USAGE_LINK%23%23).
+msgid "You can [review your usage in account settings](##USAGE_LINK##)."
+msgstr ""
+
+#: .Dear+%23%23ACCOUNT_NAME%23%23,
+msgid "Dear ##ACCOUNT_NAME##,"
+msgstr ""
+
+#: .You+have+reached+your+plan+limit
+msgid "You have reached your plan limit"
+msgstr "तपाईं आफ्नो योजनाको सीमामा पुग्नुभएको छ"
+
+#: .remind+me+later
+msgid "remind me later"
+msgstr "मलाई पछि सम्झाउनु"
+
+#: .upgrade+now
+msgid "upgrade now"
+msgstr "स्तरोन्नति गर्नुहोस"
+
+#: .Marker+Colors
+msgid "Marker Colors"
+msgstr "मार्कर रङहरू"
+
+#: .Query+Limit
+msgid "Query Limit"
+msgstr "क्वेरी सीमा"
+
+#: .Geopoint+question
+msgid "Geopoint question"
+msgstr "जियोपोइन्ट प्रश्न"
+
+#: .Overlays
+msgid "Overlays"
+msgstr "ओभरले"
+
+#: .Please+add+a+name+for+your+layer+file.
+msgid "Please add a name for your layer file."
+msgstr "कृपया आफ्नो तह फाइलको लागि नाम थप्नुहोस्।"
+
+#: .Upload+error+%23%23error_message%23%23.
+msgid "Upload error: ##error_message##."
+msgstr "अपलोड गर्दाको त्रुटी: ##error_message##"
+
+#: .Upload+error+not+a+valid+map+overlay+format.
+msgid "Upload error: not a valid map overlay format."
+msgstr "अपलोड त्रुटि: मान्य नक्सा ओभरले ढाँचा होइन।"
+
+#: .Are+you+sure+you+want+to+delete+this+file%3F
+msgid "Are you sure you want to delete this file?"
+msgstr ""
+
+#: .Delete+File
+msgid "Delete File"
+msgstr "फाइल मेटाउनुहोस्"
+
+#: .Choose+the+Geopoint+question+you+would+like+to+display+on+the+map
+msgid "Choose the Geopoint question you would like to display on the map:"
+msgstr "तपाईंले नक्सामा देखाउन चाहनुभएको जियोपोइन्ट प्रश्न छान्नुहोस्:"
+
+#: .Uploaded+layers
+msgid "Uploaded layers"
+msgstr "अपलोड गरिएका तहहरू"
+
+#: .Delete+layer
+msgid "Delete layer"
+msgstr "तह मेटाउनुहोस्"
+
+#: .Use+the+form+below+to+upload+files+with+map+data+in+one+of+these+formats+CSV,+KML,+KMZ,+WKT+or+GEOJSON.+The+data+will+be+made+available+as+layers+for+display+on+the+map.
+msgid ""
+"Use the form below to upload files with map data in one of these formats: "
+"CSV, KML, KMZ, WKT or GEOJSON. The data will be made available as layers for"
+" display on the map."
+msgstr "CSV, KML, KMZ, WKT वा GEOJSON यी ढाँचाहरू मध्ये एकमा नक्सा डेटाका साथ फाइलहरू अपलोड गर्न तलको फारम प्रयोग गर्नुहोस्। डाटा नक्सामा प्रदर्शनको लागि तहको रूपमा उपलब्ध गराइनेछ।"
+
+#: .Layer+name
+msgid "Layer name"
+msgstr "तहको नाम"
+
+#: .Choose+the+color+set+for+the+disaggregated+map+markers.
+msgid "Choose the color set for the disaggregated map markers."
+msgstr "अलग गरिएको नक्सा मार्करहरूको लागि रङ सेट छान्नुहोस्।"
+
+#: .By+default+the+map+is+limited+to+the+%23%23QUERY_LIMIT_DEFAULT%23%23+most+recent+submissions.+You+can+temporarily+increase+this+limit+to+a+different+value.+Note+that+this+is+reset+whenever+you+reopen+the+map.
+msgid ""
+"By default the map is limited to the ##QUERY_LIMIT_DEFAULT## most recent "
+"submissions. You can temporarily increase this limit to a different value. "
+"Note that this is reset whenever you reopen the map."
+msgstr "पूर्वनिर्धारित रूपमा नक्सा सबैभन्दा भर्खरको पेश गरिएका ##QUERY_LIMIT_DEFAULT## मा सीमित छ। तपाईंले यो सीमालाई अस्थायी रूपमा फरक मानमा बढाउन सक्नुहुन्छ। तपाईंले नक्सा पुन: खोल्दा यो रिसेट हुन्छ भनेर ध्यान दिनुहोस्।"
+
+#: .Your+team+is+approaching+its+%23%23LIMITS_LIST%23%23+%23%23LIMIT_PLURALIZED%23%23.
+msgid "Your team is approaching its ##LIMITS_LIST## ##LIMIT_PLURALIZED##."
+msgstr ""
+
+#: .Your+organization+is+approaching+its+%23%23LIMITS_LIST%23%23+%23%23LIMIT_PLURALIZED%23%23.
+msgid ""
+"Your organization is approaching its ##LIMITS_LIST## ##LIMIT_PLURALIZED##."
+msgstr ""
+
+#: .You+are+approaching+your+%23%23LIMITS_LIST%23%23+%23%23LIMIT_PLURALIZED%23%23.
+msgid "You are approaching your ##LIMITS_LIST## ##LIMIT_PLURALIZED##."
+msgstr ""
+
+#: .Please+review+your+usage+and+[upgrade+your+plan](%23%23PLAN_LINK%23%23)+or+purchase+an+add-on+if+needed.
+msgid ""
+"Please review your usage and [upgrade your plan](##PLAN_LINK##) or purchase "
+"an add-on if needed."
+msgstr ""
+
+#: .Please+[review+your+usage](%23%23USAGE_LINK%23%23)+and+[upgrade+your+plan](%23%23PLAN_LINK%23%23)+or+purchase+an+add-on+if+needed.
+msgid ""
+"Please [review your usage](##USAGE_LINK##) and [upgrade your "
+"plan](##PLAN_LINK##) or purchase an add-on if needed."
+msgstr ""
+
+#: .Contact+your+team+owner+about+upgrading+your+plan+or+purchasing+an+add-on.
+msgid ""
+"Contact your team owner about upgrading your plan or purchasing an add-on."
+msgstr ""
+
+#: .Contact+your+organization+owner+about+upgrading+your+plan+or+purchasing+an+add-on.
+msgid ""
+"Contact your organization owner about upgrading your plan or purchasing an "
+"add-on."
+msgstr ""
+
+#: .Your+team+has+reached+its+%23%23LIMITS%23%23+%23%23LIMIT_PLURALIZED%23%23.
+msgid "Your team has reached its ##LIMITS## ##LIMIT_PLURALIZED##."
+msgstr ""
+
+#: .Your+organization+has+reached+its+%23%23LIMITS%23%23+%23%23LIMIT_PLURALIZED%23%23.
+msgid "Your organization has reached its ##LIMITS## ##LIMIT_PLURALIZED##."
+msgstr ""
+
+#: .You+have+reached+your+%23%23LIMITS%23%23+%23%23LIMIT_PLURALIZED%23%23.
+msgid "You have reached your ##LIMITS## ##LIMIT_PLURALIZED##."
+msgstr ""
+
+#: .Please+upgrade+your+plan+or+purchase+an+add-on+to+increase+your+usage+limits.
+msgid ""
+"Please upgrade your plan or purchase an add-on to increase your usage "
+"limits."
+msgstr "कृपया आफ्नो योजना अपग्रेड गर्नुहोस् वा आफ्नो प्रयोग सीमा बढाउनको लागि एड-अन खरीद गर्नुहोस्।"
+
+#: .[Review+your+usage](%23%23USAGE_LINK%23%23).
+msgid "[Review your usage](##USAGE_LINK##)."
+msgstr ""
+
+#: .Contact+your+team+owner+about+upgrading+your+plan+if+needed.
+msgid "Contact your team owner about upgrading your plan if needed."
+msgstr ""
+
+#: .Contact+organization+team+owner+about+upgrading+your+plan+if+needed.
+msgid "Contact organization team owner about upgrading your plan if needed."
+msgstr ""
+
+#: .Monitor+usage
+msgid "Monitor usage"
+msgstr "प्रयोग निगरानी गर्नुहोस्"
+
+#: .monitor+usage
+msgid "monitor usage"
+msgstr "प्रयोग अनुगमन गर्नुहोस"
+
+#: .Upgrade+now
+msgid "Upgrade now"
+msgstr "स्तरोन्नति गर्नुहोस"
+
+#: .Please+enter+a+title+for+your+%23%23type%23%23
+msgid "Please enter a title for your ##type##"
+msgstr "तपाईंको ##type## लागि कुनै शीर्षक प्रविष्ट गर्नुहोस्"
+
+#: .untitled+%23%23type%23%23
+msgid "untitled ##type##"
+msgstr "शीर्षकविहीन ##type##"
+
+#: .untitled+collection
+msgid "untitled collection"
+msgstr "शीर्षकविहीन संग्रह"
+
+#: .project+title
+msgid "project title"
+msgstr "परियोजना शीर्षक"
+
+#: .Submission+%23%23submissionIndex%23%23+of+%23%23submissionTotal%23%23
+msgid "Submission ##submissionIndex## of ##submissionTotal##"
+msgstr "पेश गरिएका ##submissionIndex## को ##submissionTotal##"
+
+#: .Export
+msgid "Export"
+msgstr "निर्यात गर्नुहोस्"
+
+#: .Delete+export%3F
+msgid "Delete export?"
+msgstr "निर्यात मेट्ने हो?"
+
+#: .Are+you+sure+you+want+to+delete+this+export%3F+This+action+is+not+reversible.
+msgid ""
+"Are you sure you want to delete this export? This action is not reversible."
+msgstr "के तपाइँ यो निर्यात मेटाउन निश्चित हुनुहुन्छ? यो कार्य उल्टाउन मिल्दैन।"
+
+#: .Unknown
+msgid "Unknown"
+msgstr "अज्ञात"
+
+#: .Export+Failed
+msgid "Export Failed"
+msgstr "निर्यात असफल भयो"
+
+#: .Processing%E2%80%A6
+msgid "Processing…"
+msgstr "प्रक्रियामा छ ..."
+
+#: .Exports
+msgid "Exports"
+msgstr "निर्यात"
+
+#: .Created
+msgid "Created"
+msgstr "सिर्जित"
+
+#: .Include+Groups
+msgid "Include Groups"
+msgstr "समूहहरू समावेश गर्नुहोस्"
+
+#: .Multiple+Versions
+msgid "Multiple Versions"
+msgstr "बहु संस्करणहरू"
+
+#: .This+export+format+will+not+be+supported+in+the+future.+Please+consider+using+one+of+the+other+export+types+available.
+msgid ""
+"This export format will not be supported in the future. Please consider "
+"using one of the other export types available."
+msgstr "यो निर्यात ढाँचाले भविष्यमा राम्रोसँग काम गर्ने छैन। कृपया उपलब्ध अन्य निर्यात प्रकारहरू मध्ये कुनै एकको प्रयोगबारे विचार गर्नुहोस्।"
+
+#: .Latest+unsaved+settings
+msgid "Latest unsaved settings"
+msgstr "सेभ नगरिएका नवीनतम सेटिङहरू"
+
+#: .Delete+export+settings%3F
+msgid "Delete export settings?"
+msgstr "निर्यात सेटिङहरू मेट्ने हो?"
+
+#: .Are+you+sure+you+want+to+delete+this+settings%3F+This+action+is+not+reversible.
+msgid ""
+"Are you sure you want to delete this settings? This action is not "
+"reversible."
+msgstr "के तपाइँ यो सेटिङहरू मेटाउन निश्चित हुनुहुन्छ? यो कार्य उल्टाउन मिल्दैन।"
+
+#: .None
+msgid "None"
+msgstr "कुनै पनि होइन"
+
+#: .Include+fields+from+all+%23%23count%23%23+versions
+msgid "Include fields from all ##count## versions"
+msgstr "सबै ##count## संस्करणहरूबाट क्षेत्रहरू समावेश गर्नुहोस्"
+
+#: .Export+%23%23SELECT_MANY%23%23+questions+as%E2%80%A6
+msgid "Export ##SELECT_MANY## questions as…"
+msgstr "##SELECT_MANY## प्रश्नहरू यस रूपमा निर्यात गर्नुहोस्..."
+
+#: .Include+groups+in+headers
+msgid "Include groups in headers"
+msgstr "हेडरहरूमा समूहहरू समावेश गर्नुहोस्"
+
+#: .Group+separator
+msgid "Group separator"
+msgstr "समूह विभाजक"
+
+#: .Flatten+GeoJSON
+msgid "Flatten GeoJSON"
+msgstr "समतल GeoJSON"
+
+#: .Store+date+and+number+responses+as+text
+msgid "Store date and number responses as text"
+msgstr "मिति र नम्बर प्रतिक्रियाहरू पाठको रूपमा भण्डारण गर्नुहोस्"
+
+#: .Include+media+URLs
+msgid "Include media URLs"
+msgstr "मिडिया URL हरू समावेश गर्नुहोस्"
+
+#: .Save+selection+as%E2%80%A6
+msgid "Save selection as…"
+msgstr "यस रूपमा छनौट सेभ गर्नुहोस्..."
+
+#: .Name+your+export+settings
+msgid "Name your export settings"
+msgstr "आफ्नो निर्यात सेटिङहरूलाई नाम दिनुहोस्"
+
+#: .Date+range
+msgid "Date range"
+msgstr ""
+
+#: .Select+questions+to+be+exported
+msgid "Select questions to be exported"
+msgstr "निर्यात गर्न प्रश्नहरू छनौट गर्नुहोस्"
+
+#: .Value+and+header+format
+msgid "Value and header format"
+msgstr "मान र हेडर ढाँचा"
+
+#: .Advanced+options
+msgid "Advanced options"
+msgstr "उन्नत विकल्पहरू"
+
+#: .Apply+saved+export+settings
+msgid "Apply saved export settings"
+msgstr "सेभ गरिएका निर्यात सेटिङहरू लागू गर्नुहोस्"
+
+#: .No+export+settings+selected
+msgid "No export settings selected"
+msgstr "कुनै निर्यात सेटिङहरू छनौट गरिएको छैन"
+
+#: .There+was+an+error+fetching+usage+data.
+msgid "There was an error fetching usage data."
+msgstr "उपयोग डेटा ल्याउन त्रुटि भयो।"
+
+#: .Deleted
+msgid "Deleted"
+msgstr ""
+
+#: .transcript
+msgid "transcript"
+msgstr "ट्रान्सक्रिप्ट"
+
+#: .Multi-select+checkboxes+column
+msgid "Multi-select checkboxes column"
+msgstr "बहु-चयन चेकबक्स स्तम्भ"
+
+#: .hide+fields
+msgid "hide fields"
+msgstr "क्षेत्रहरू लुकाउनुहोस्"
+
+#: .Select+all+results+(%23%23count%23%23)
+msgid "Select all results (##count##)"
+msgstr "सबै परिणामहरू छनौट गर्नुहोस् ( ##count##)"
+
+#: .Select+visible+results+(%23%23count%23%23)
+msgid "Select visible results (##count##)"
+msgstr "दृश्य परिणामहरू छनौट गर्नुहोस् (##count##)"
+
+#: .Could+not+find+%23%23fileName%23%23
+msgid "Could not find ##fileName##"
+msgstr "फेला पार्न सकिएन##fileName##"
+
+#: .image
+msgid "image"
+msgstr ""
+
+#: .images
+msgid "images"
+msgstr ""
+
+#: .video
+msgid "video"
+msgstr ""
+
+#: .videos
+msgid "videos"
+msgstr ""
+
+#: .audio
+msgid "audio"
+msgstr ""
+
+#: .audios
+msgid "audios"
+msgstr ""
+
+#: .file
+msgid "file"
+msgstr ""
+
+#: .files
+msgid "files"
+msgstr ""
+
+#: .Update+status+of+selected+submissions
+msgid "Update status of selected submissions"
+msgstr "छनौट गरिएका पेश गरिएकोहरूको स्थिति अद्यावधिक गर्नुहोस्"
+
+#: .You+have+selected+%23%23+submissions.+Are+you+sure+you+would+like+to+update+their+status%3F+This+action+is+irreversible.
+msgid ""
+"You have selected ## submissions. Are you sure you would like to update "
+"their status? This action is irreversible."
+msgstr "तपाईंले ## पेश गरिएकोहरू छनौट गर्नुभएको छ। के तपाइँ तिनीहरूको स्थिति अपडेट गर्ने कुरामा निश्चित हुनुहुन्छ? यो कार्य अपरिवर्तनीय छ।"
+
+#: .Update+Validation+Status
+msgid "Update Validation Status"
+msgstr "प्रमाणीकरण स्थिति अपडेट गर्नुहोस्"
+
+#: .You+are+about+to+permanently+delete+%23%23count%23%23+submissions.+It+is+not+possible+to+recover+deleted+submissions.
+msgid ""
+"You are about to permanently delete ##count## submissions. It is not "
+"possible to recover deleted submissions."
+msgstr "तपाईं स्थायी रूपमा पेश गरिएको हरू मेटाउन ##count## लाग्दै हुनुहुन्छ। मेटाइएका पेश गरिएको हरू पुन: प्राप्त गर्न सम्भव छैन।"
+
+#: .Delete+selected+submissions
+msgid "Delete selected submissions"
+msgstr "छनौट गरिएका पेश गरिएको हरू मेटाउनुहोस्"
+
+#: .Delete+selected
+msgid "Delete selected"
+msgstr "छनौट गरिएको मेटाउनुहोस्"
+
+#: .%23%23count%23%23+selected
+msgid "##count## selected"
+msgstr "##count##छनौट गरियो"
+
+#: .Change+status
+msgid "Change status"
+msgstr "स्थिति परिवर्तन गर्नुहोस्"
+
+#: .Set+status+%23%23status%23%23
+msgid "Set status: ##status##"
+msgstr "स्थिति सेट गर्नुहोस्:##status##"
+
+#: .Sort+A%E2%86%92Z
+msgid "Sort A→Z"
+msgstr "A→Z क्रमबद्ध गर्नुहोस्"
+
+#: .Sort+Z%E2%86%92A
+msgid "Sort Z→A"
+msgstr "Z→A क्रमबद्ध गर्नुहोस्"
+
+#: .Hide+field
+msgid "Hide field"
+msgstr "क्षेत्र लुकाउनुहोस्"
+
+#: .Unfreeze+field
+msgid "Unfreeze field"
+msgstr "फिल्ड अनफ्रिज गर्नुहोस्"
+
+#: .Freeze+field
+msgid "Freeze field"
+msgstr "फिल्ड फ्रिज गर्नुहोस्"
+
+#: .Could+not+open+window+for+%22%23%23url%23%23%22
+msgid "Could not open window for \"##url##\""
+msgstr ""
+
+#: .There+was+an+error+loading+Enketo.
+msgid "There was an error loading Enketo."
+msgstr "Enketo लोड गर्दा त्रुटि भयो।"
+
+#: .N/A
+msgid "N/A"
+msgstr "अनुपलब्ध"
+
+#: .Not+approved
+msgid "Not approved"
+msgstr "स्वीकृत छैन"
+
+#: .Approved
+msgid "Approved"
+msgstr "स्वीकृत"
+
+#: .On+hold
+msgid "On hold"
+msgstr "होल्डमा"
+
+#: .You+have+unsaved+changes.+Leave+settings+without+saving%3F
+msgid "You have unsaved changes. Leave settings without saving?"
+msgstr "तपाईंले सेटि‍ङ्गमा गरेको परिवर्तनहरु सुरक्षित (सेभ) गरिएका छैनन्। सेभ नगरी सेटिङहरू छोड्ने हो?"
+
+#: .Updated+profile+successfully
+msgid "Updated profile successfully"
+msgstr "प्रोफाइल सफलतापूर्वक अद्यावधीक (अपडेट) गरियो।"
+
+#: .You+can+now+control+whether+to+allow+anonymous+submissions+in+web+forms+for+each+project.+Previously,+this+was+an+account-wide+setting.
+msgid ""
+"You can now control whether to allow anonymous submissions in web forms for "
+"each project. Previously, this was an account-wide setting."
+msgstr "तपाईंले अब प्रत्येक परियोजनाको लागि वेब फारमहरूमा बेनामी सबमिशनहरूलाई अनुमति दिने कि नदिने भनेर नियन्त्रण गर्न सक्नुहुन्छ। पहिले, यो खाता-व्यापी सेटिङ थियो।"
+
+#: .This+privacy+feature+is+now+a+per-project+setting.+New+projects+will+require+authentication+by+default.
+msgid ""
+"This privacy feature is now a per-project setting. New projects will require"
+" authentication by default."
+msgstr "यो गोपनीयता सुविधा अब प्रति-प्रोजेक्ट सेटिङ हो। नयाँ परियोजनाहरू पूर्वनिर्धारित रूपमा प्रमाणीकरण आवश्यक हुनेछ।"
+
+#: .Learn+more+about+these+changes+here.
+msgid "Learn more about these changes here."
+msgstr "यहाँ यी परिवर्तनहरू बारे थप जान्नुहोस्।"
+
+#: .Invited
+msgid "Invited"
+msgstr ""
+
+#: .Active
+msgid "Active"
+msgstr ""
+
+#: .Date+added
+msgid "Date added"
+msgstr ""
+
+#: .Role
+msgid "Role"
+msgstr ""
+
+#: .Admin
+msgid "Admin"
+msgstr ""
+
+#: .Member
+msgid "Member"
+msgstr ""
+
+#: .2FA
+msgid "2FA"
+msgstr ""
+
+#: .Invite+members
+msgid "Invite members"
+msgstr ""
+
+#: .Invite+more+people+to+join+your+%23%23TEAM_OR_ORGANIZATION%23%23+or+change+their+role+permissions+below.
+msgid ""
+"Invite more people to join your ##TEAM_OR_ORGANIZATION## or change their "
+"role permissions below."
+msgstr ""
+
+#: .Your+plan
+msgid "Your plan"
+msgstr "तपाईंको योजना"
+
+#: .Export+is+being+generated,+you+will+receive+an+email+when+it%27s+done
+msgid "Export is being generated, you will receive an email when it's done"
+msgstr "निर्यात गरिने सामग्री तयार भइरहेको छ, यो सकिएपछि तपाईंले एउटा इमेल प्राप्त गर्नुहुनेछ"
+
+#: .We+couldn%27t+create+the+export,+please+try+again+later+or+contact+support
+msgid ""
+"We couldn't create the export, please try again later or contact support"
+msgstr "हामीले निर्यात गरिने सामग्री सिर्जना गर्न सकेनौं, कृपया पछि पुन: प्रयास गर्नुहोस् वा सहयोगकालागि सम्पर्क गर्नुहोस्"
+
+#: .Type+
+msgid "Type: "
+msgstr "प्रकार: "
+
+#: ..+
+msgid ". "
+msgstr ". "
+
+#: .%231+out+of+%232+respondents+answered+this+question.+
+msgid "#1 out of #2 respondents answered this question. "
+msgstr "#2 मध्ये #1 उत्तरदाताहरूले यो प्रश्नको जवाफ दिए। "
+
+#: .(%23+were+without+data.)
+msgid "(# were without data.)"
+msgstr "(# डाटा बिना थिए।)"
+
+#: .Override+Graph+Style
+msgid "Override Graph Style"
+msgstr "ग्राफ शैली निस्क्रिय बनाउनुहोस्"
+
+#: .Non-profit+organization
+msgid "Non-profit organization"
+msgstr "गैर-नाफा संस्था"
+
+#: .Government+institution
+msgid "Government institution"
+msgstr "सरकारी संस्था"
+
+#: .Educational+organization
+msgid "Educational organization"
+msgstr "शैक्षिक संस्था"
+
+#: .A+commercial/for-profit+company
+msgid "A commercial/for-profit company"
+msgstr "एक व्यावसायिक/लाभको लागि कम्पनी"
+
+#: .I+am+not+associated+with+any+organization
+msgid "I am not associated with any organization"
+msgstr "म कुनै पनि संस्थासँग आबद्ध छैन"
+
+#: .To+delete+this+%23%23TEAM_OR_ORGANIZATION%23%23,+please+contact+the+server+administrator.
+msgid ""
+"To delete this ##TEAM_OR_ORGANIZATION##, please contact the server "
+"administrator."
+msgstr ""
+
+#: .To+delete+this+%23%23TEAM_OR_ORGANIZATION%23%23,+you+need+to+cancel+your+current+%23%23plan+name%23%23+plan.+At+the+end+of+the+plan+period+your+%23%23TEAM_OR_ORGANIZATION%23%23%27s+projects+will+be+converted+to+projects+owned+by+your+personal+account.
+msgid ""
+"To delete this ##TEAM_OR_ORGANIZATION##, you need to cancel your current "
+"##plan name## plan. At the end of the plan period your "
+"##TEAM_OR_ORGANIZATION##'s projects will be converted to projects owned by "
+"your personal account."
+msgstr ""
+
+#: .%23%23TEAM_OR_ORGANIZATION%23%23+details
+msgid "##TEAM_OR_ORGANIZATION## details"
+msgstr ""
+
+#: .%23%23TEAM_OR_ORGANIZATION%23%23+name
+msgid "##TEAM_OR_ORGANIZATION## name"
+msgstr ""
+
+#: .%23%23TEAM_OR_ORGANIZATION%23%23+website
+msgid "##TEAM_OR_ORGANIZATION## website"
+msgstr ""
+
+#: .%23%23TEAM_OR_ORGANIZATION%23%23+type
+msgid "##TEAM_OR_ORGANIZATION## type"
+msgstr ""
+
+#: .Search...
+msgid "Search..."
+msgstr "खोज..."
+
+#: .Tags+are+loading...
+msgid "Tags are loading..."
+msgstr "ट्यागहरू लोड हुँदैछन्..."
+
+#: .Search+Tags
+msgid "Search Tags"
+msgstr "ट्यागहरू खोज्नुहोस्"
+
+#: .No+results+found
+msgid "No results found"
+msgstr "कुनै परिणाम फेला परेन"
+
+#: .Select+Collection+Name
+msgid "Select Collection Name"
+msgstr "संग्रहको नाम चयन गर्नुहोस्"
+
+#: .Collections+are+loading...
+msgid "Collections are loading..."
+msgstr "सङ्ग्रहहरू लोड हुँदैछन्..."
+
+#: .assets+found
+msgid "assets found"
+msgstr "सम्पत्ति भेटियो"
+
+#: .expand+details
+msgid "expand details"
+msgstr "विवरण विस्तार गर्नुहोस्"
+
+#: .My+Projects
+msgid "My Projects"
+msgstr "मेरो परियोजनाहरू"
+
+#: .%23%23organization+name%23%23+Projects
+msgid "##organization name## Projects"
+msgstr ""
+
+#: .Is
+msgid "Is"
+msgstr "छ"
+
+#: .Is+not
+msgid "Is not"
+msgstr "छैन"
+
+#: .Contains
+msgid "Contains"
+msgstr "समावेश गर्दछ"
+
+#: .Does+not+contain
+msgid "Does not contain"
+msgstr "समावेश गर्दैन"
+
+#: .Starts+with
+msgid "Starts with"
+msgstr "बाट सुरु हुन्छ"
+
+#: .Ends+with
+msgid "Ends with"
+msgstr "संग समाप्त हुन्छ"
+
+#: .Is+empty
+msgid "Is empty"
+msgstr "खाली छ"
+
+#: .Is+not+empty
+msgid "Is not empty"
+msgstr "खाली छैन"
+
+#: .Project+name
+msgid "Project name"
+msgstr "परियोजनाको नाम"
+
+#: .Owner+name
+msgid "Owner name"
+msgstr "मालिकको नाम"
+
+#: .Owner+email
+msgid "Owner email"
+msgstr "मालिकको इमेल"
+
+#: .Owner+organization
+msgid "Owner organization"
+msgstr "मालिक संगठन"
+
+#: .Date+modified
+msgid "Date modified"
+msgstr "मिति परिमार्जन गरियो"
+
+#: .Date+deployed
+msgid "Date deployed"
+msgstr "डिप्लोय गरिएको मिति"
+
+#: .Thanks+for+your+upgrade%21+We+appreciate+your+continued+support.+Reach+out+to+billing@kobotoolbox.org+if+you+have+any+questions+about+your+plan.
+msgid ""
+"Thanks for your upgrade! We appreciate your continued support. Reach out to "
+"billing@kobotoolbox.org if you have any questions about your plan."
+msgstr "अपग्रेड गर्नुभएकोमा धन्यवाद! हामी तपाईंको निरन्तर सहयोगको कदर गर्छौं। यदि तपाइँसँग तपाइँको योजना बारे कुनै प्रश्न छ भने billing@kobotoolbox.org मा सम्पर्क गर्नुहोस्।"
+
+#: .Thanks+for+your+upgrade%21+We+appreciate+your+continued+support.+If+your+account+is+not+immediately+updated,+wait+a+few+minutes+and+refresh+the+page.
+msgid ""
+"Thanks for your upgrade! We appreciate your continued support. If your "
+"account is not immediately updated, wait a few minutes and refresh the page."
+msgstr "अपग्रेड गर्नुभएकोमा धन्यवाद! हामी तपाईंको निरन्तर सहयोगको कदर गर्छौं। यदि तपाईंको खाता तुरुन्तै अद्यावधिक भएको छैन भने, केहि मिनेट पर्खनुहोस् र पृष्ठ रिफ्रेस गर्नुहोस्।"
+
+#: .Collapse+full+comparison
+msgid "Collapse full comparison"
+msgstr "पूर्ण तुलना संक्षिप्त गर्नुहोस्"
+
+#: .Display+full+comparison
+msgid "Display full comparison"
+msgstr "पूर्ण तुलना प्रदर्शन गर्नुहोस्"
+
+#: .show+monthly+plans
+msgid "show monthly plans"
+msgstr "मासिक योजनाहरू देखाउनुहोस्"
+
+#: .Monthly
+msgid "Monthly"
+msgstr "मासिक"
+
+#: .show+annual+plans
+msgid "show annual plans"
+msgstr "वार्षिक योजना देखाउनुहोस्"
+
+#: .Annual
+msgid "Annual"
+msgstr "वार्षिक"
+
+#: .Enterprise
+msgid "Enterprise"
+msgstr ""
+
+#: .If+your+organization+needs+more+data+capacity+and+advanced+features,+let%27s+chat+about+our+Enterprise+Plan%21+We+also+offer+custom+solutions+and+private+servers+for+larger+teams.+Get+in+touch+to+learn+more.
+msgid ""
+"If your organization needs more data capacity and advanced features, let's "
+"chat about our Enterprise Plan! We also offer custom solutions and private "
+"servers for larger teams. Get in touch to learn more."
+msgstr ""
+
+#: .Contact+us
+msgid "Contact us"
+msgstr "हामीलाई सम्पर्क गर्नुहोस"
+
+#: .Chart+Type
+msgid "Chart Type"
+msgstr "चार्ट प्रकार"
+
+#: .Colors
+msgid "Colors"
+msgstr "रंगहरू"
+
+#: .Group+By
+msgid "Group By"
+msgstr "समूह द्वारा"
+
+#: .Translation
+msgid "Translation"
+msgstr "अनुवाद"
+
+#: .Single+choice
+msgid "Single choice"
+msgstr "एकल छनौट"
+
+#: .Multiple+choice
+msgid "Multiple choice"
+msgstr "बहु छनौट"
+
+#: .Item
+msgid "Item"
+msgstr "वस्तु"
+
+#: .of+%23%23total_count%23%23
+msgid "of ##total_count##"
+msgstr "को ##total_count##"
+
+#: .Discard+unsaved+changes%3F
+msgid "Discard unsaved changes?"
+msgstr "सेभ नगरिएका परिवर्तनहरू खारेज गर्ने हो?"
+
+#: .source+file
+msgid "source file"
+msgstr "स्रोत फाइल"
+
+#: .XML+values
+msgid "XML values"
+msgstr ""
+
+#: .Transcript
+msgid "Transcript"
+msgstr "ट्रान्सक्रिप्ट"
+
+#: .Translations
+msgid "Translations"
+msgstr "अनुवादहरू"
+
+#: .Analysis
+msgid "Analysis"
+msgstr "विश्लेषण"
+
+#: .Use+the+button+above+to+select+the+information+to+be+displayed+in+this+area
+msgid ""
+"Use the button above to select the information to be displayed in this area"
+msgstr "यस क्षेत्रमा देखाइने जानकारी चयन गर्न माथिको बटन प्रयोग गर्नुहोस्"
+
+#: .Do+you+want+to+leave+without+saving%3F
+msgid "Do you want to leave without saving?"
+msgstr "तपाईं बचत नगरी छोड्न चाहनुहुन्छ?"
+
+#: .Add+a+condition
+msgid "Add a condition"
+msgstr "शर्त थप्नुहोस्"
+
+#: .Manually+enter+your+skip+logic+in+XLSForm+code
+msgid "Manually enter your skip logic in XLSForm code"
+msgstr "XLSForm कोडमा आफैँले आफ्नो स्किप तर्क प्रविष्ट गर्नुहोस्"
+
+#: .Was+Answered
+msgid "Was Answered"
+msgstr "जवाफ दिइयो"
+
+#: .Was+not+Answered
+msgid "Was not Answered"
+msgstr "जवाफ दिइएन"
+
+#: .not
+msgid "not"
+msgstr "होइन"
+
+#: .Greater+Than
+msgid "Greater Than"
+msgstr "भन्दा ठुलो"
+
+#: .Less+Than
+msgid "Less Than"
+msgstr "भन्दा कम"
+
+#: .Greater+Than+or+Equal+to
+msgid "Greater Than or Equal to"
+msgstr "भन्दा ठूलो वा बराबर"
+
+#: .Less+Than+or+Equal+to
+msgid "Less Than or Equal to"
+msgstr "भन्दा कम वा बराबर"
+
+#: .Delete%3F
+msgid "Delete?"
+msgstr "मेटाउने?"
+
+#: .This+action+is+not+reversible
+msgid "This action is not reversible"
+msgstr "यो कार्य उल्टाउन मिल्दैन"
+
+#: .Teams
+msgid "Teams"
+msgstr ""
+
+#: .teams
+msgid "teams"
+msgstr ""
+
+#: .Team
+msgid "Team"
+msgstr ""
+
+#: .team
+msgid "team"
+msgstr ""
+
+#: .Organizations
+msgid "Organizations"
+msgstr ""
+
+#: .organizations
+msgid "organizations"
+msgstr ""
+
+#: .organization
+msgid "organization"
+msgstr ""
+
+#: .change+name
+msgid "change name"
+msgstr ""
+
+#: .%23%23username%23%23+changed+project+name
+msgid "##username## changed project name"
+msgstr ""
+
+#: .update+settings
+msgid "update settings"
+msgstr ""
+
+#: .%23%23username%23%23+updated+project+settings
+msgid "##username## updated project settings"
+msgstr ""
+
+#: .deploy+project
+msgid "deploy project"
+msgstr ""
+
+#: .%23%23username%23%23+deployed+project
+msgid "##username## deployed project"
+msgstr ""
+
+#: .redeploy+project
+msgid "redeploy project"
+msgstr ""
+
+#: .%23%23username%23%23+redeployed+project
+msgid "##username## redeployed project"
+msgstr ""
+
+#: .archive+project
+msgid "archive project"
+msgstr ""
+
+#: .%23%23username%23%23+archived+project
+msgid "##username## archived project"
+msgstr ""
+
+#: .unarchive+project
+msgid "unarchive project"
+msgstr ""
+
+#: .%23%23username%23%23+unarchived+project
+msgid "##username## unarchived project"
+msgstr ""
+
+#: .upload+new+form
+msgid "upload new form"
+msgstr ""
+
+#: .%23%23username%23%23+uploaded+a+new+form
+msgid "##username## uploaded a new form"
+msgstr ""
+
+#: .edit+form
+msgid "edit form"
+msgstr ""
+
+#: .%23%23username%23%23+edited+the+form+in+the+form+builder
+msgid "##username## edited the form in the form builder"
+msgstr ""
+
+#: .modify+qualitative+analysis+questions
+msgid "modify qualitative analysis questions"
+msgstr ""
+
+#: .%23%23username%23%23+modified+qualitative+analysis+questions
+msgid "##username## modified qualitative analysis questions"
+msgstr ""
+
+#: .edit+qualitative+analysis+data
+msgid "edit qualitative analysis data"
+msgstr ""
+
+#: .%23%23username%23%23+edited+qualitative+analysis+data
+msgid "##username## edited qualitative analysis data"
+msgstr ""
+
+#: .export+data
+msgid "export data"
+msgstr ""
+
+#: .%23%23username%23%23+exported+data
+msgid "##username## exported data"
+msgstr ""
+
+#: .add+media+attachment
+msgid "add media attachment"
+msgstr ""
+
+#: .%23%23username%23%23+added+a+media+attachment
+msgid "##username## added a media attachment"
+msgstr ""
+
+#: .remove+media+attachment
+msgid "remove media attachment"
+msgstr ""
+
+#: .%23%23username%23%23+removed+a+media+attachment
+msgid "##username## removed a media attachment"
+msgstr ""
+
+#: .remove+attachment
+msgid "remove attachment"
+msgstr ""
+
+#: .%23%23username%23%23+removed+an+attachment
+msgid "##username## removed an attachment"
+msgstr ""
+
+#: .update+permissions
+msgid "update permissions"
+msgstr ""
+
+#: .%23%23username%23%23+updated+permissions+of+%23%23username2%23%23
+msgid "##username## updated permissions of ##username2##"
+msgstr ""
+
+#: .clone+permissions
+msgid "clone permissions"
+msgstr ""
+
+#: .%23%23username%23%23+cloned+permissions+from+another+project
+msgid "##username## cloned permissions from another project"
+msgstr ""
+
+#: .make+project+public
+msgid "make project public"
+msgstr ""
+
+#: .%23%23username%23%23+made+the+project+publicly+accessible
+msgid "##username## made the project publicly accessible"
+msgstr ""
+
+#: .share+data+publicly
+msgid "share data publicly"
+msgstr ""
+
+#: .%23%23username%23%23+shared+data+publicly
+msgid "##username## shared data publicly"
+msgstr ""
+
+#: .enable+anonymous+submissions
+msgid "enable anonymous submissions"
+msgstr ""
+
+#: .%23%23username%23%23+enabled+anonymous+submissions
+msgid "##username## enabled anonymous submissions"
+msgstr ""
+
+#: .disable+making+project+public
+msgid "disable making project public"
+msgstr ""
+
+#: .%23%23username%23%23+disabled+making+project+publicly+accessible
+msgid "##username## disabled making project publicly accessible"
+msgstr ""
+
+#: .disable+sharing+data+publicly
+msgid "disable sharing data publicly"
+msgstr ""
+
+#: .%23%23username%23%23+disabled+sharing+data+publicly
+msgid "##username## disabled sharing data publicly"
+msgstr ""
+
+#: .disable+anonymous+submissions
+msgid "disable anonymous submissions"
+msgstr ""
+
+#: .%23%23username%23%23+disallowed+anonymous+submissions
+msgid "##username## disallowed anonymous submissions"
+msgstr ""
+
+#: .transfer+project+ownership
+msgid "transfer project ownership"
+msgstr ""
+
+#: .%23%23username%23%23+transferred+project+ownership+to+%23%23username2%23%23
+msgid "##username## transferred project ownership to ##username2##"
+msgstr ""
+
+#: .enable+data+sharing
+msgid "enable data sharing"
+msgstr ""
+
+#: .%23%23username%23%23+enabled+data+sharing
+msgid "##username## enabled data sharing"
+msgstr ""
+
+#: .modify+data+sharing
+msgid "modify data sharing"
+msgstr ""
+
+#: .%23%23username%23%23+modified+data+sharing
+msgid "##username## modified data sharing"
+msgstr ""
+
+#: .disable+data+sharing
+msgid "disable data sharing"
+msgstr ""
+
+#: .%23%23username%23%23+disabled+data+sharing
+msgid "##username## disabled data sharing"
+msgstr ""
+
+#: .connect+project+data
+msgid "connect project data"
+msgstr ""
+
+#: .%23%23username%23%23+connected+project+data+with+another+project
+msgid "##username## connected project data with another project"
+msgstr ""
+
+#: .change+imported+fields
+msgid "change imported fields"
+msgstr ""
+
+#: .%23%23username%23%23+changed+imported+fields+from+another+project
+msgid "##username## changed imported fields from another project"
+msgstr ""
+
+#: .disconnect+project
+msgid "disconnect project"
+msgstr ""
+
+#: .%23%23username%23%23+disconnected+project+from+another+project
+msgid "##username## disconnected project from another project"
+msgstr ""
+
+#: .register+a+new+REST+service
+msgid "register a new REST service"
+msgstr ""
+
+#: .%23%23username%23%23+registered+a+new+REST+service
+msgid "##username## registered a new REST service"
+msgstr ""
+
+#: .modify+a+REST+service
+msgid "modify a REST service"
+msgstr ""
+
+#: .%23%23username%23%23+modified+a+REST+service
+msgid "##username## modified a REST service"
+msgstr ""
+
+#: .delete+a+REST+service
+msgid "delete a REST service"
+msgstr ""
+
+#: .%23%23username%23%23+deleted+a+REST+service
+msgid "##username## deleted a REST service"
+msgstr ""
+
+#: .add+submission
+msgid "add submission"
+msgstr ""
+
+#: .%23%23username%23%23+added+a+submission
+msgid "##username## added a submission"
+msgstr ""
+
+#: .edit+submission
+msgid "edit submission"
+msgstr ""
+
+#: .%23%23username%23%23+edited+a+submission
+msgid "##username## edited a submission"
+msgstr ""
+
+#: .delete+a+submission
+msgid "delete a submission"
+msgstr ""
+
+#: .%23%23username%23%23+deleted+a+submission
+msgid "##username## deleted a submission"
+msgstr ""
+
+#: .Background+audio+recording
+msgid "Background audio recording"
+msgstr "पृष्ठभूमि अडियो रेकर्डिङ"
+
+#: .Name+must+be+unique%21
+msgid "Name must be unique!"
+msgstr "नाम अद्वितीय हुनुपर्छ!"
+
+#: .Code+must+be+unique%21
+msgid "Code must be unique!"
+msgstr "कोड अद्वितीय हुनुपर्छ!"
+
+#: .Default+language+name
+msgid "Default language name"
+msgstr "सुरुवातको भाषाको नाम"
+
+#: .Language+name
+msgid "Language name"
+msgstr "भाषाको नाम"
+
+#: .Default+language+code
+msgid "Default language code"
+msgstr "सुरुवातको भाषा कोड"
+
+#: .Language+code
+msgid "Language code"
+msgstr "भाषा कोड"
+
+#: .Set
+msgid "Set"
+msgstr "सेट"
+
+#: .There+was+an+issue+fetching+your+plan+information.
+msgid "There was an issue fetching your plan information."
+msgstr "तपाईंको योजना जानकारी ल्याउनमा समस्या भयो।"
+
+#: .An+error+occured
+msgid "An error occured"
+msgstr "एउटा त्रुटि भयो"
+
+#: .An+error+occurred+while+checking+subscription+status
+msgid "An error occurred while checking subscription status"
+msgstr "सदस्यता स्थिति जाँच गर्दा त्रुटि भयो"
+
+#: .Incorrect+token+or+something+went+wrong
+msgid "Incorrect token or something went wrong"
+msgstr "गलत टोकन अथवा केही गलत भयो"
+
+#: .Type+and+confirm+with+ENTER
+msgid "Type and confirm with ENTER"
+msgstr "टाइप गर्नुहोस् र इन्टर गरेर सदर गर्नुहोस्"
+
+#: .Could+not+load+media+file
+msgid "Could not load media file"
+msgstr "मिडिया फाइल लोड गर्न सकिएन"
+
+#: .latitude+(x.y+%C2%B0)
+msgid "latitude (x.y °):"
+msgstr "अक्षांश (x.y °):"
+
+#: .longitude+(x.y+%C2%B0)
+msgid "longitude (x.y °):"
+msgstr "देशान्तर (x.y °):"
+
+#: .altitude+(m)
+msgid "altitude (m):"
+msgstr "उचाई (m):"
+
+#: .accuracy+(m)
+msgid "accuracy (m):"
+msgstr "शुद्धता (m):"
+
+#: .start
+msgid "start"
+msgstr "सुरु"
+
+#: .end
+msgid "end"
+msgstr "अन्त्य"
+
+#: .today
+msgid "today"
+msgstr "आज"
+
+#: .device+ID
+msgid "device ID"
+msgstr "उपकरण आईडी"
+
+#: .phone+number
+msgid "phone number"
+msgstr "फोन नम्बर"
+
+#: .audit
+msgid "audit"
+msgstr "लेखापरीक्षण"
+
+#: .__version__
+msgid "__version__"
+msgstr "__संस्करण__"
+
+#: ._id
+msgid "_id"
+msgstr "_id"
+
+#: .instanceID
+msgid "instanceID"
+msgstr "उदाहरणआइडी"
+
+#: .Submitted+by
+msgid "Submitted by"
+msgstr "बुझाउने"
+
+#: .limits
+msgid "limits"
+msgstr "सीमाहरू"
+
+#: .limit
+msgid "limit"
+msgstr "सीमा"
+
+#: .Best+for+qualitative+data
+msgid "Best for qualitative data"
+msgstr "गुणात्मक डेटाको लागि उत्तम"
+
+#: .Best+for+sequential+data
+msgid "Best for sequential data"
+msgstr "क्रमिक डेटाको लागि उत्तम"
+
+#: .Best+for+diverging+data
+msgid "Best for diverging data"
+msgstr "डाटा डाइभर्जिङका लागि उत्तम"
+
+#: .CSV+(legacy)
+msgid "CSV (legacy)"
+msgstr "CSV (विरासत)"
+
+#: .CSV
+msgid "CSV"
+msgstr "CSV"
+
+#: .GeoJSON
+msgid "GeoJSON"
+msgstr "GeoJSON"
+
+#: .GPS+coordinates+(KML)
+msgid "GPS coordinates (KML)"
+msgstr "GPS निर्देशांक (KML)"
+
+#: .SPSS+Labels
+msgid "SPSS Labels"
+msgstr "SPSS लेबलहरू"
+
+#: .XLS+(legacy)
+msgid "XLS (legacy)"
+msgstr "XLS (विरासत)"
+
+#: .XLS
+msgid "XLS"
+msgstr "XLS"
+
+#: .Media+Attachments+(ZIP)
+msgid "Media Attachments (ZIP)"
+msgstr "मिडिया संलग्न गरिएका कुराहरू (ZIP)"
+
+#: .XML+values+and+headers
+msgid "XML values and headers"
+msgstr "XML मान र हेडरहरू"
+
+#: .Separate+columns
+msgid "Separate columns"
+msgstr "स्तम्भहरू अलग गर्नुहोस्"
+
+#: .Single+column
+msgid "Single column"
+msgstr "एकल स्तम्भ"
+
+#: .Single+and+separate+columns
+msgid "Single and separate columns"
+msgstr "एकल र अलग स्तम्भहरू"
+
+#: .Page+%23%23current_page%23%23+of+%23%23total_pages%23%23
+msgid "Page ##current_page## of ##total_pages##"
+msgstr ""
+
+#: .%23%23number%23%23+rows
+msgid "##number## rows"
+msgstr ""
+
+#: .Male
+msgid "Male"
+msgstr "पुरुष"
+
+#: .Female
+msgid "Female"
+msgstr "महिला"
+
+#: .Other
+msgid "Other"
+msgstr "अन्य"
+
+#: .Use+this+to+display+your+real+name+to+other+users
+msgid "Use this to display your real name to other users"
+msgstr "अन्य प्रयोगकर्ताहरूलाई आफ्नो वास्तविक नाम देखाउन यो प्रयोग गर्नुहोस्"
+
+#: .Social
+msgid "Social"
+msgstr "सामाजिक"
+
+#: .Newsletter
+msgid "Newsletter"
+msgstr "समाचारपत्र"
+
+#: .%23%23Attachment_type%23%23+deleted
+msgid "##Attachment_type## deleted"
+msgstr ""
+
+#: .An+error+occurred+while+removing+the+attachment
+msgid "An error occurred while removing the attachment"
+msgstr ""
+
+#: .attachment
+msgid "attachment"
+msgstr ""
+
+#: .audio+recording
+msgid "audio recording"
+msgstr ""
+
+#: .video+recording
+msgid "video recording"
+msgstr ""
+
+#: .background+audio+recording
+msgid "background audio recording"
+msgstr ""
+
+#: .Delete+%23%23attachment_type%23%23
+msgid "Delete ##attachment_type##"
+msgstr ""
+
+#: .Are+you+sure+you+want+to+delete+this+%23%23attachment_type%23%23%3F
+msgid "Are you sure you want to delete this ##attachment_type##?"
+msgstr ""
+
+#: .You+need+to+transfer+ownership+of+your+organization+before+you+can+delete+your+account.+Please+contact+the+server+administrator.
+msgid ""
+"You need to transfer ownership of your organization before you can delete "
+"your account. Please contact the server administrator."
+msgstr ""
+
+#: .Delete+your+account+and+all+your+account+data.
+msgid "Delete your account and all your account data."
+msgstr ""
+
+#: .You+need+to+delete+or+transfer+ownership+of+all+projects+owned+by+your+user+before+you+can+delete+your+account.
+msgid ""
+"You need to delete or transfer ownership of all projects owned by your user "
+"before you can delete your account."
+msgstr ""
+
+#: .Go+to+project+list
+msgid "Go to project list"
+msgstr ""
+
+#: .Delete+account
+msgid "Delete account"
+msgstr ""
+
+#: .Select+export+type
+msgid "Select export type"
+msgstr "निर्यात प्रकार चयन गर्नुहोस्"
+
+#: .%23%23start_date%23%23+to+%23%23end_date%23%23
+msgid "##start_date## to ##end_date##"
+msgstr "##start_date## देखी ##end_date##"
+
+#: .Your+usage
+msgid "Your usage"
+msgstr "तपाईंको प्रयोग"
+
+#: .Last+update+%23%23LAST_UPDATE_TIME%23%23
+msgid "Last update: ##LAST_UPDATE_TIME##"
+msgstr "अन्तिम अपडेट: ##LAST_UPDATE_TIME##"
+
+#: .Storage
+msgid "Storage"
+msgstr "भण्डारण"
+
+#: .per+account
+msgid "per account"
+msgstr "प्रति खाता"
+
+#: .Transcription+minutes
+msgid "Transcription minutes"
+msgstr "ट्रान्सक्रिप्शन मिनेट"
+
+#: .Translation+characters
+msgid "Translation characters"
+msgstr "अनुवाद वर्णहरू"
+
+#: .%23%23count%23%23+Projects
+msgid "##count## Projects"
+msgstr "##count## परियोजनाहरु"
+
+#: .Submissions,+transcription+minutes,+and+translation+characters+reflect+usage+for+the+current+%23%23INTERVAL%23%23+based+on+your+plan+settings.
+msgid ""
+"Submissions, transcription minutes, and translation characters reflect usage"
+" for the current ##INTERVAL## based on your plan settings."
+msgstr ""
+
+#: .year
+msgid "year"
+msgstr ""
+
+#: .month
+msgid "month"
+msgstr ""
+
+#: .Submissions+(Total)
+msgid "Submissions (Total)"
+msgstr "सबमिशनहरू (कुल)"
+
+#: .Data+storage
+msgid "Data storage"
+msgstr "डाटा भण्डारण"
+
+#: .Transcript+minutes
+msgid "Transcript minutes"
+msgstr "प्रतिलेखन मिनेटहरू"
+
+#: .There+are+no+projects+to+display.
+msgid "There are no projects to display."
+msgstr "देखाउनका लागि कुनै परियोजनाहरू छैनन्।"
+
+#: .Forgot+password
+msgid "Forgot password"
+msgstr ""
+
+#: .The+invitation+was+resent
+msgid "The invitation was resent"
+msgstr ""
+
+#: .Invitation+resent+too+quickly,+wait+for+%23%23MINUTES%23%23+minutes+before+retrying
+msgid ""
+"Invitation resent too quickly, wait for ##MINUTES## minutes before retrying"
+msgstr ""
+
+#: .Invitation+removed
+msgid "Invitation removed"
+msgstr ""
+
+#: .An+error+occurred+while+removing+the+invitation
+msgid "An error occurred while removing the invitation"
+msgstr ""
+
+#: .Remove+invitation%3F
+msgid "Remove invitation?"
+msgstr ""
+
+#: .Are+you+sure+you+want+to+remove+this+user%27s+invitation+to+join+the+team%3F
+msgid ""
+"Are you sure you want to remove this user's invitation to join the team?"
+msgstr ""
+
+#: .Remove+invitation
+msgid "Remove invitation"
+msgstr ""
+
+#: .Resend+invitation
+msgid "Resend invitation"
+msgstr ""
+
+#: .Leave+%23%23TEAM_OR_ORGANIZATION%23%23
+msgid "Leave ##TEAM_OR_ORGANIZATION##"
+msgstr ""
+
+#: .There+was+an+error+getting+the+list.
+msgid "There was an error getting the list."
+msgstr ""
+
+#: .fields
+msgid "fields"
+msgstr "क्षेत्रहरू"
+
+#: .Apply
+msgid "Apply"
+msgstr "प्रयोग गर्नुहोस्"
+
+#: .filter
+msgid "filter"
+msgstr "फिल्टर"
+
+#: .There+are+no+filters,+you+can+add+one+below
+msgid "There are no filters, you can add one below"
+msgstr "त्यहाँ कुनै फिल्टरहरू छैनन्, तपाईं तल थप्न सक्नुहुन्छ"
+
+#: .Add+filter
+msgid "Add filter"
+msgstr "फिल्टर थप्नुहोस्"
+
+#: .Recent+account+activity
+msgid "Recent account activity"
+msgstr ""
+
+#: .Log+out+of+all+devices
+msgid "Log out of all devices"
+msgstr ""
+
+#: .Export+log+data
+msgid "Export log data"
+msgstr ""
+
+#: .Data+Submissions+(%23%23count%23%23)
+msgid "Data Submissions (##count##)"
+msgstr ""
+
+#: .Last+activity
+msgid "Last activity"
+msgstr ""
+
+#: .IP+Address
+msgid "IP Address"
+msgstr ""
+
+#: .Mean
+msgid "Mean"
+msgstr "औसत"
+
+#: .Median
+msgid "Median"
+msgstr "मध्यक"
+
+#: .Mode
+msgid "Mode"
+msgstr "मोड"
+
+#: .Standard+deviation
+msgid "Standard deviation"
+msgstr "मानक विचलन"
+
+#: .There+was+an+error+getting+the+list+of+plans.
+msgid "There was an error getting the list of plans."
+msgstr "योजनाहरूको सूची प्राप्त गर्दा त्रुटि भयो।"
+
+#: .There+was+an+error+getting+one-time+add-ons.
+msgid "There was an error getting one-time add-ons."
+msgstr ""
+
+#: .We+couldn%27t+make+the+requested+change+to+your+plan.%0AYour+current+plan+has+not+been+changed.
+msgid ""
+"We couldn't make the requested change to your plan.\n"
+"Your current plan has not been changed."
+msgstr "हामीले तपाईंको योजनामा ​​अनुरोध गरिएको परिवर्तन गर्न सकेनौं।\nतपाईंको हालको योजना परिवर्तन गरिएको छैन।"
+
+#: .Failed+to+get+API+token
+msgid "Failed to get API token"
+msgstr "API टोकन प्राप्त गर्न असफल भयो"
+
+#: .API+Key
+msgid "API Key"
+msgstr "एपिआइ कुञ्जी"
+
+#: .Email+address
+msgid "Email address"
+msgstr "इ - मेल ठेगाना"
+
+#: .Type+new+email+address
+msgid "Type new email address"
+msgstr "नयाँ इमेल ठेगाना टाइप गर्नुहोस्"
+
+#: .Check+your+email+%23%23UNVERIFIED_EMAIL%23%23.+
+msgid "Check your email ##UNVERIFIED_EMAIL##. "
+msgstr "आफ्नो इमेल जाँच गर्नुहोस् ##UNVERIFIED_EMAIL##। "
+
+#: .A+verification+link+has+been+sent+to+confirm+your+ownership.+Once+confirmed,+this+address+will+replace+%23%23UNVERIFIED_EMAIL%23%23
+msgid ""
+"A verification link has been sent to confirm your ownership. Once confirmed,"
+" this address will replace ##UNVERIFIED_EMAIL##"
+msgstr "तपाईंको स्वामित्व पुष्टि गर्न प्रमाणीकरण लिङ्क पठाइएको छ। एक पटक पुष्टि भएपछि, यो ठेगाना प्रतिस्थापन हुनेछ ##UNVERIFIED_EMAIL##"
+
+#: .Email+was+sent+again+%23%23TIMESTAMP%23%23
+msgid "Email was sent again: ##TIMESTAMP##"
+msgstr "इमेल फेरि पठाइयो: ##TIMESTAMP##"
+
+#: .Single-Sign+On
+msgid "Single-Sign On"
+msgstr "एकल-साइन अन"
+
+#: .Connect+your+KoboToolbox+account+with+your+organization%27s+identity+provider+for+single-sign+on+(SSO).+Afterwards,+you+will+only+be+able+to+sign+in+via+SSO+unless+you+disable+this+setting+here.+This+will+also+update+your+email+address+in+case+your+current+address+is+different.
+msgid ""
+"Connect your KoboToolbox account with your organization's identity provider "
+"for single-sign on (SSO). Afterwards, you will only be able to sign in via "
+"SSO unless you disable this setting here. This will also update your email "
+"address in case your current address is different."
+msgstr "एकल-साइन अन (SSO) गर्नको लागि आफ्नो संगठनको पहिचान प्रदायकसँग आफ्नो KoboToolbox खाता जडान गर्नुहोस्। पछि, तपाईंले यहाँ यो सेटिङ असक्षम नगरेसम्म SSO मार्फत मात्र साइन इन गर्न सक्षम हुनुहुनेछ। तपाईंको हालको ठेगाना फरक भएमा यसले तपाईंको इमेल ठेगाना पनि अद्यावधिक गर्नेछ।"
+
+#: .Already+connected
+msgid "Already connected"
+msgstr "पहिले नै जोडिएको छ"
+
+#: .Disable
+msgid "Disable"
+msgstr "असक्षम गर्नुहोस्"
+
+#: .Two-factor+authentication
+msgid "Two-factor authentication"
+msgstr "दुई-चरण प्रमाणीकरण"
+
+#: .Authenticator+app
+msgid "Authenticator app"
+msgstr "प्रमाणक एप"
+
+#: .Reconfigure
+msgid "Reconfigure"
+msgstr "पुन: कन्फिगर गर्नुहोस्"
+
+#: .Recovery+codes
+msgid "Recovery codes"
+msgstr "रिकभरी कोडहरू"
+
+#: .Generate+new
+msgid "Generate new"
+msgstr "नयाँ उत्पन्न गर्नुहोस्"
+
+#: .Two-factor+authentication+was+deactivated+for+your+account+on+%23%23date%23%23
+msgid "Two-factor authentication was deactivated for your account on ##date##"
+msgstr "तपाईंको खाताको लागि दुई-चरण प्रमाणीकरण निष्क्रिय गरिएको थियो##date##"
+
+#: .This+feature+is+not+available+on+your+current+plan.+Please+visit+the+
+msgid "This feature is not available on your current plan. Please visit the "
+msgstr "यो सुविधा तपाईंको हालको योजनामा उपलब्ध छैन। कृपया भ्रमण गर्नुहोस् "
+
+#: .Plans+page
+msgid "Plans page"
+msgstr "योजना पृष्ठ"
+
+#: .+to+upgrade+your+account.
+msgid " to upgrade your account."
+msgstr " आफ्नो खाता अपग्रेड गर्न।"
+
+#: .Disabled
+msgid "Disabled"
+msgstr "निस्क्रिय पारियो"
+
+#: .Delete+projects
+msgid "Delete projects"
+msgstr "परियोजनाहरु मेट्नुहोस्"
+
+#: .Delete+%23%23count%23%23+projects
+msgid "Delete ##count## projects"
+msgstr "##count## परियोजनाहरू मेटाउनुहोस्"
+
+#: .Archive/Unarchive
+msgid "Archive/Unarchive"
+msgstr "अभिलेख राख्नुहोस्/अभिलेखन नराख्नुहोस्"
+
+#: .Share+projects
+msgid "Share projects"
+msgstr "परियोजनाहरू साझेदारी गर्नुहोस्"
+
+#: .Archive+project
+msgid "Archive project"
+msgstr "परियोजना अभिलेखन गर्नुहोस्"
+
+#: .Unarchive+project
+msgid "Unarchive project"
+msgstr "परियोजना अभिलेखन नगर्नुहोस्"
+
+#: .Draft+project+selected
+msgid "Draft project selected"
+msgstr "मस्यौदा परियोजना चयन गरियो"
+
+#: .Delete+1+project
+msgid "Delete 1 project"
+msgstr "१ परियोजना मेटाउनुहोस्"
+
+#: .Delete+project
+msgid "Delete project"
+msgstr "पूर्वनिर्धारित क्रम"
+
+#: .Media+files+from+%23%23number_of_selected_submissions%23%23+submission(s)+have+been+deleted
+msgid ""
+"Media files from ##number_of_selected_submissions## submission(s) have been "
+"deleted"
+msgstr ""
+
+#: .Delete+media+files+only
+msgid "Delete media files only"
+msgstr ""
+
+#: .Delete+media+files
+msgid "Delete media files"
+msgstr ""
+
+#: .You+do+not+have+sufficient+permissions+to+delete+attachments+from+the+selected+submissions.
+msgid ""
+"You do not have sufficient permissions to delete attachments from the "
+"selected submissions."
+msgstr ""
+
+#: .You+are+about+to+permanently+remove+the+following+media+files+from+the+selected+submissions
+msgid ""
+"You are about to permanently remove the following media files from the "
+"selected submissions:"
+msgstr ""
+
+#: .Careful+-+it+is+not+possible+to+recover+deleted+media+files
+msgid "Careful - it is not possible to recover deleted media files"
+msgstr ""
+
+#: .These+settings+affects+the+experience+for+all+project+users.
+msgid "These settings affects the experience for all project users."
+msgstr "यी सेटिङहरूले सबै परियोजना प्रयोगकर्ताहरूको अनुभवलाई असर गर्छन्।"
+
+#: .Find+a+field
+msgid "Find a field"
+msgstr "एउटा क्षेत्र खोज्नुहोस्"
+
+#: .No+results
+msgid "No results"
+msgstr "कुनै परिणाम छैन"
+
+#: .This+username+does+not+exist.+Please+try+again.
+msgid "This username does not exist. Please try again."
+msgstr ""
+
+#: .Failed+to+send+invite
+msgid "Failed to send invite"
+msgstr ""
+
+#: .Invite+a+member+to+your+team
+msgid "Invite a member to your team"
+msgstr ""
+
+#: .Enter+the+username+or+email+address+of+the+person+you+wish+to+invite+to+your+%23%23TEAM_OR_ORGANIZATION%23%23.+They+will+receive+an+invitation+in+their+inbox.
+msgid ""
+"Enter the username or email address of the person you wish to invite to your"
+" ##TEAM_OR_ORGANIZATION##. They will receive an invitation in their inbox."
+msgstr ""
+
+#: .Enter+username+or+email+address
+msgid "Enter username or email address"
+msgstr ""
+
+#: .Send+invite
+msgid "Send invite"
+msgstr ""
+
+#: .Import+failed
+msgid "Import failed"
+msgstr "आयात असफल भयो"
+
+#: .Your+upload+is+taking+longer+than+usual.+Please+get+back+in+few+minutes.
+msgid ""
+"Your upload is taking longer than usual. Please get back in few minutes."
+msgstr "तपाईंको अपलोडले सामान्य भन्दा बढी समय लिइरहेको छ। कृपया केही मिनेटमा फर्कनुहोस्"
+
+#: .Your+uploads+are+being+processed.+This+may+take+a+few+moments.+You+will+need+to+refresh+the+page+to+see+them+on+the+list.
+msgid ""
+"Your uploads are being processed. This may take a few moments. You will need"
+" to refresh the page to see them on the list."
+msgstr "तपाईंका अपलोडहरू प्रशोधन भइरहेका छन्। यसले केही क्षण लिन सक्छ। तपाईंले तिनीहरूलाई सूचीमा हेर्नको लागि पृष्ठ रिफ्रेस गर्न आवश्यक हुनेछ।"
+
+#: .%23%23plan_name%23%23+Plan
+msgid "##plan_name## Plan"
+msgstr "##plan_name## योजना"
+
+#: .Started+on+%23%23start_date%23%23
+msgid "Started on ##start_date##"
+msgstr "शुरुवात हुने ##start_date##"
+
+#: .Renews+on+%23%23renewal_date%23%23
+msgid "Renews on ##renewal_date##"
+msgstr "नवीकरण हुने ##renewal_date##"
+
+#: .Ends+on+%23%23end_date%23%23
+msgid "Ends on ##end_date##"
+msgstr "##end_date## मा समाप्त हुन्छ"
+
+#: .Switching+to+monthly+on+%23%23change_date%23%23
+msgid "Switching to monthly on ##change_date##"
+msgstr "##change_date## मा मासिकमा स्विच गर्दै।"
+
+#: .Your+%23%23current_plan%23%23+plan+has+been+canceled+but+will+remain+active+until+the+end+of+the+billing+period.
+msgid ""
+"Your ##current_plan## plan has been canceled but will remain active until "
+"the end of the billing period."
+msgstr "तपाईको ##current_plan## योजना रद्द गरिएको छ, तर बिलिङ अवधि समाप्त नभएसम्म सक्रिय रहनेछ।"
+
+#: .Your+%23%23current_plan%23%23+plan+will+change+to+the+%23%23next_plan%23%23+plan+on
+msgid "Your ##current_plan## plan will change to the ##next_plan## plan on"
+msgstr "तपाईको ##current_plan## योजना ##next_plan## योजनामा परिवर्तन हुनेछ"
+
+#: ..+You+can+continue+using+%23%23current_plan%23%23+plan+features+until+the+end+of+the+billing+period.
+msgid ""
+". You can continue using ##current_plan## plan features until the end of the"
+" billing period."
+msgstr "तपाईंले बिलिङ अवधिको अन्त्यसम्म ##current_plan## योजनाको सुविधाहरू प्रयोग गर्न जारी राख्न सक्नुहुन्छ।"
+
+#: .Your+%23%23current_plan%23%23+plan+will+change+from+annual+to+monthly+starting+from
+msgid ""
+"Your ##current_plan## plan will change from annual to monthly starting from"
+msgstr "तपाईको ##current_plan## योजना वार्षिकदेखि मासिकमा परिवर्तन हुनेछ"
+
+#: .There+has+been+an+issue,+please+try+again+later.
+msgid "There has been an issue, please try again later."
+msgstr "त्यहाँ एउटा समस्या भएको छ, कृपया पछि पुन: प्रयास गर्नुहोस्।"
+
+#: .Success%21+Your+subscription+will+change+at+the+end+of+the+current+billing+period.
+msgid ""
+"Success! Your subscription will change at the end of the current billing "
+"period."
+msgstr "सफलता! हालको बिलिङ अवधिको अन्त्यमा तपाईंको सदस्यता परिवर्तन हुनेछ।"
+
+#: .Unlimited
+msgid "Unlimited"
+msgstr "असीमित"
+
+#: .%23%23minutes%23%23+mins
+msgid "##minutes## mins"
+msgstr "##minutes## मिनेटहरु"
+
+#: .%23%23add_on_name%23%23+add-on
+msgid "##add_on_name## add-on"
+msgstr "##add_on_name## एड-अन"
+
+#: .monthly+%23%23plan_name%23%23+plan
+msgid "monthly ##plan_name## plan"
+msgstr "मासिक ##plan_name## योजना"
+
+#: .yearly+%23%23plan_name%23%23+plan
+msgid "yearly ##plan_name## plan"
+msgstr "बार्षिक ##plan_name## योजना"
+
+#: .plan
+msgid "plan"
+msgstr "योजना"
+
+#: .add-on
+msgid "add-on"
+msgstr "एड‍-अन"
+
+#: .There+was+an+error+processing+your+plan+change.+Your+previous+plan+has+not+been+changed.+Please+try+again+later.
+msgid ""
+"There was an error processing your plan change. Your previous plan has not "
+"been changed. Please try again later."
+msgstr "तपाईंको योजना परिवर्तन प्रक्रियामा त्रुटि भयो। तपाईंको अघिल्लो योजना परिवर्तन गरिएको छैन। फेरी प्रयास गर्नु होला।"
+
+#: .Changes+to+your+Plan
+msgid "Changes to your Plan"
+msgstr "तपाईंको योजनामा ​​परिवर्तनहरू"
+
+#: .Processing+your+transaction%E2%80%A6
+msgid "Processing your transaction…"
+msgstr "तपाईंको लेनदेन प्रशोधन गर्दै..."
+
+#: .You+are+switching+to+the+%23%23new_product_type%23%23.
+msgid "You are switching to the ##new_product_type##."
+msgstr "तपाईं ##new_product_type## मा स्विच गर्दै हुनुहुन्छ।"
+
+#: .Because+this+plan+includes+unlimited+storage,+your+storage+add-on+will+be+canceled.
+msgid ""
+"Because this plan includes unlimited storage, your storage add-on will be "
+"canceled."
+msgstr "यस योजनामा ​​असीमित भण्डारण समावेश भएको हुनाले, तपाईंको भण्डारण एड-अन रद्द गरिनेछ।"
+
+#: .Your+current+%23%23product_type%23%23+will+remain+in+effect+until+%23%23billing_end_date%23%23.%0A++++++++++++++++++++Starting+on+%23%23billing_end_date%23%23+and+until+you+cancel,+we+will+bill+you+%23%23new_price%23%23.
+msgid ""
+"Your current ##product_type## will remain in effect until ##billing_end_date##.\n"
+"                    Starting on ##billing_end_date## and until you cancel, we will bill you ##new_price##."
+msgstr "तपाईंको वर्तमान ##product_type## ##billing_end_date##सम्म प्रभावमा रहनेछ। ##billing_end_date## देखि, तपाईंले रद्द नगरेसम्म ,हामी तपाईंलाई ##new_price## को बिल पठाउनेछौं।"
+
+#: .Submit
+msgid "Submit"
+msgstr "पेश गर्नुहोस्"
+
+#: .Added+on+%23%23date%23%23
+msgid "Added on ##date##"
+msgstr ""
+
+#: .%23%23name%23%23
+msgid "##name##"
+msgstr ""
+
+#: .available+add-ons
+msgid "available add-ons"
+msgstr "उपलब्ध एड-अनहरु"
+
+#: .You+can+add+add-ons+to+increase+your+usage+caps+as+needed+when+you+are+close+to+or+over+your+plan%27s+limits.
+msgid ""
+"You can add add-ons to increase your usage caps as needed when you are close"
+" to or over your plan's limits."
+msgstr ""
+
+#: .your+active+add-ons
+msgid "your active add-ons"
+msgstr ""
+
+#: .previous+add-ons
+msgid "previous add-ons"
+msgstr ""
+
+#: .Inactive
+msgid "Inactive"
+msgstr ""
+
+#: .This+account+is+now+managed+by+%23%23TEAM_OR_ORGANIZATION_NAME%23%23.+All+projects+previously+owned+by+your+account+are+currently+being+transfered+and+will+be+owned+by+%23%23TEAM_OR_ORGANIZATION_NAME%23%23.+This+process+can+take+up+to+a+few+minutes+to+complete.
+msgid ""
+"This account is now managed by ##TEAM_OR_ORGANIZATION_NAME##. All projects "
+"previously owned by your account are currently being transfered and will be "
+"owned by ##TEAM_OR_ORGANIZATION_NAME##. This process can take up to a few "
+"minutes to complete."
+msgstr ""
+
+#: .Asset+seems+to+not+have+the+processing+feature+enabled%21
+msgid "Asset seems to not have the processing feature enabled!"
+msgstr "सम्पत्तिमा प्रशोधन सुविधा क्रियाशील नगरिएको जस्तो देखिन्छ!"
+
+#: .Failed+to+get+processing+data.
+msgid "Failed to get processing data."
+msgstr "प्रशोधन डाटा प्राप्त गर्न असफल।"
+
+#: .Failed+to+set+transcript.
+msgid "Failed to set transcript."
+msgstr "ट्रान्सक्रिप्ट सेट गर्न असफल।"
+
+#: .Failed+to+delete+transcript.
+msgid "Failed to delete transcript."
+msgstr "ट्रान्सक्रिप्ट मेटाउन सकिएन।"
+
+#: .Failed+to+delete+translation.
+msgid "Failed to delete translation."
+msgstr "अनुवाद मेटाउन असफल।"
+
+#: .Original+transcript
+msgid "Original transcript"
+msgstr "मूल ट्रान्सक्रिप्ट"
+
+#: .Submission+data
+msgid "Submission data"
+msgstr "सबमिशन डाटा"
+
+#: .Original+file+(Audio)
+msgid "Original file (Audio)"
+msgstr "मूल फाइल (अडियो)"
+
+#: .Display+settings
+msgid "Display settings"
+msgstr "प्रदर्शन सेटिङहरू"
+
+#: .Customize+display+settings
+msgid "Customize display settings"
+msgstr "प्रदर्शन सेटिङहरू अनुकूलित गर्नुहोस्"
+
+#: .Select+the+information+you+want+to+display+in+the+side+menu+to+support+your+analysis.
+msgid ""
+"Select the information you want to display in the side menu to support your "
+"analysis."
+msgstr "तपाइँको विश्लेषणलाई समर्थन गर्न साइड मेनुमा तपाइँ प्रदर्शन गर्न चाहानु भएको जानकारी चयन गर्नुहोस्।"
+
+#: .Select+the+submission+data+to+display.
+msgid "Select the submission data to display."
+msgstr "प्रदर्शित गर्नको लागि बुझाइएको डाटा चयन गर्नुहोस्।"
+
+#: .Apply+selection
+msgid "Apply selection"
+msgstr "चयन लागू गर्नुहोस्"
+
+#: .Failed+to+load+analysis+questions
+msgid "Failed to load analysis questions"
+msgstr "विश्लेषण प्रश्नहरू लोड गर्न असफल भयो"
+
+#: .Items+cannot+be+selected+more+than+once
+msgid "Items cannot be selected more than once"
+msgstr "वस्तुहरू एक पटक भन्दा बढी चयन गर्न सकिँदैन"
+
+#: .This+question+will+only+be+displayed+if+the+following+conditions+apply
+msgid "This question will only be displayed if the following conditions apply"
+msgstr "निम्न सर्तहरू लागू भएमा मात्र यो प्रश्न प्रदर्शित हुनेछ"
+
+#: .Add+another+condition
+msgid "Add another condition"
+msgstr "अर्को शर्त थप्नुहोस्"
+
+#: .All+of+these+conditions+must+be+met
+msgid "All of these conditions must be met"
+msgstr ""
+
+#: .At+least+one+of+these+conditions+must+be+met
+msgid "At least one of these conditions must be met"
+msgstr ""
+
+#: .response+value
+msgid "response value"
+msgstr "प्रतिक्रिया मूल्य"
+
+#: .Select+question+from+list
+msgid "Select question from list"
+msgstr "सूचीबाट प्रश्न चयन गर्नुहोस्"
+
+#: .Are+you+sure+you+want+to+delete+this+question%3F
+msgid "Are you sure you want to delete this question?"
+msgstr "के तपाइँ यो प्रश्न मेटाउने कुरामा निश्चित हुनुहुन्छ?"
+
+#: .Delete+Question
+msgid "Delete Question"
+msgstr "प्रश्न मेटाउनुहोस्"
+
+#: .Duplicate+Question
+msgid "Duplicate Question"
+msgstr "डुप्लिकेट प्रश्न"
+
+#: .Add+Question+to+Library
+msgid "Add Question to Library"
+msgstr "संग्रहालयमा प्रश्न थप्नुहोस्"
+
+#: .Please+fill+in+your+username+to+continue
+msgid "Please fill in your username to continue"
+msgstr ""
+
+#: .Cannot+delete+account
+msgid "Cannot delete account"
+msgstr ""
+
+#: .Delete+your+account
+msgid "Delete your account"
+msgstr ""
+
+#: .Are+you+sure+you+want+to+delete+your+account%3F
+msgid "Are you sure you want to delete your account?"
+msgstr ""
+
+#: .This+action+cannot+be+undone+once+completed.
+msgid "This action cannot be undone once completed."
+msgstr ""
+
+#: .To+complete+this+action,+please+enter+your+username+below
+msgid "To complete this action, please enter your username below"
+msgstr ""
+
+#: .There+was+an+error+getting+this+invitation.
+msgid "There was an error getting this invitation."
+msgstr ""
+
+#: .There+was+an+error+updating+this+invitation.
+msgid "There was an error updating this invitation."
+msgstr ""
+
+#: .Remove+%23%23username%23%23+from+this+%23%23TEAM_OR_ORGANIZATION%23%23
+msgid "Remove ##username## from this ##TEAM_OR_ORGANIZATION##"
+msgstr ""
+
+#: .Are+you+sure+you+want+to+remove+%23%23username%23%23+from+this+%23%23TEAM_OR_ORGANIZATION%23%23%3F
+msgid ""
+"Are you sure you want to remove ##username## from this "
+"##TEAM_OR_ORGANIZATION##?"
+msgstr ""
+
+#: .Removing+them+from+this+%23%23TEAM_OR_ORGANIZATION%23%23+also+means+they+will+immediately+lose+access+to+any+projects+owned+by+your+%23%23TEAM_OR_ORGANIZATION%23%23.+This+action+cannot+be+undone.
+msgid ""
+"Removing them from this ##TEAM_OR_ORGANIZATION## also means they will "
+"immediately lose access to any projects owned by your "
+"##TEAM_OR_ORGANIZATION##. This action cannot be undone."
+msgstr ""
+
+#: .Remove+member
+msgid "Remove member"
+msgstr ""
+
+#: .Leave+this+%23%23TEAM_OR_ORGANIZATION%23%23
+msgid "Leave this ##TEAM_OR_ORGANIZATION##"
+msgstr ""
+
+#: .Are+you+sure+you+want+to+leave+this+%23%23TEAM_OR_ORGANIZATION%23%23%3F
+msgid "Are you sure you want to leave this ##TEAM_OR_ORGANIZATION##?"
+msgstr ""
+
+#: .You+will+immediately+lose+access+to+any+projects+owned+by+this+%23%23TEAM_OR_ORGANIZATION%23%23.+This+action+cannot+be+undone.
+msgid ""
+"You will immediately lose access to any projects owned by this "
+"##TEAM_OR_ORGANIZATION##. This action cannot be undone."
+msgstr ""
+
+#: .Select+field
+msgid "Select field"
+msgstr "क्षेत्र चयन गर्नुहोस्"
+
+#: .Condition
+msgid "Condition"
+msgstr "अवस्था"
+
+#: .Select+condition
+msgid "Select condition"
+msgstr "सर्त चयन गर्नुहोस्"
+
+#: .Enter+value
+msgid "Enter value"
+msgstr "मान प्रविष्ट गर्नुहोस्"
+
+#: .There+was+an+error+fetching+asset+usage+data.
+msgid "There was an error fetching asset usage data."
+msgstr "स्रोत उपयोग डाटा ल्याउन त्रुटि भयो।"
+
+#: .Available
+msgid "Available"
+msgstr "उपलब्ध"
+
+#: .Used+this+month
+msgid "Used this month"
+msgstr "यो महिना प्रयोग भएका"
+
+#: .Used+this+year
+msgid "Used this year"
+msgstr "यो बर्ष प्रयोग भएका"
+
+#: .Balance
+msgid "Balance"
+msgstr "बाँकि"
+
+#: .Default+sort
+msgid "Default sort"
+msgstr "पूर्वनिर्धारित क्रम"
+
+#: .You+are+about+to+permanently+delete+%23%23count%23%23+projects
+msgid "You are about to permanently delete ##count## projects"
+msgstr "तपाईंले ##count## परियोजनाहरू स्थायी रूपमा मेटाउन लाग्दै हुनुहुन्छ"
+
+#: .All+data+gathered+for+these+projects+will+be+deleted
+msgid "All data gathered for these projects will be deleted"
+msgstr "यी परियोजनाहरूका लागि सङ्कलन गरिएका सबै डाटा मेटिने छन्"
+
+#: .Forms+associated+with+these+projects+will+be+deleted
+msgid "Forms associated with these projects will be deleted"
+msgstr "यी परियोजनाहरूसँग सम्बन्धित फारमहरू मेटिने छन्"
+
+#: .I+understand+that+if+I+delete+these+projects+I+will+not+be+able+to+recover+them
+msgid ""
+"I understand that if I delete these projects I will not be able to recover "
+"them"
+msgstr "मलाई थाहा छ यदि मैले यो परियोजना मेटाएँ भने म यसलाई पुन: प्राप्त गर्न सक्षम हुने छैन।"
+
+#: .Project+transfer+declined
+msgid "Project transfer declined"
+msgstr "परियोजना हस्तान्तरण अस्वीकार गरियो।"
+
+#: .You+have+declined+the+request+of+transfer+ownership+for+%23%23PROJECT_NAME%23%23.
+msgid ""
+"You have declined the request of transfer ownership for ##PROJECT_NAME##."
+msgstr "तपाईंले ##PROJECT_NAME## को स्वामित्व हस्तान्तरणको अनुरोध अस्वीकार गर्नुभएको छ।"
+
+#: .When+you+accept+the+ownership+transfer+of+project+%23%23PROJECT_NAME%23%23,+all+of+the+submissions,+data+storage,+and+transcription+and+translation+usage+for+the+project+will+be+transferred+to+you+and+count+against+your+plan+limits.
+msgid ""
+"When you accept the ownership transfer of project ##PROJECT_NAME##, all of "
+"the submissions, data storage, and transcription and translation usage for "
+"the project will be transferred to you and count against your plan limits."
+msgstr "जब तपाईं परियोजना ##PROJECT_NAME## को स्वामित्व स्थानान्तरण स्वीकार गर्नुहुन्छ, परियोजनाका सबै बुझाइहरू, डाटा भण्डारण, र प्रतिलिपि तथा अनुवादको प्रयोग तपाईंलाई स्थानान्तरण गरिनेछ र तपाईंको योजनाका सीमाहरूमा गणना गरिनेछ।"
+
+#: .Once+you+accept,+the+transfer+might+take+a+few+minutes+to+complete.
+msgid "Once you accept, the transfer might take a few minutes to complete."
+msgstr "स्वीकृत गरेपछि, हस्तान्तरण पूरा हुन केही मिनेट लाग्न सक्छ।"
+
+#: .Current+owner
+msgid "Current owner"
+msgstr "वर्तमान मालिक"
+
+#: .Note+The+previous+owner+has+permissions+to+manage+the+project.+You+can+change+user+permissions+in+the+project+sharing+settings.
+msgid ""
+"Note: The previous owner has permissions to manage the project. You can "
+"change user permissions in the project sharing settings."
+msgstr "नोट: अघिल्लो मालिकसँग परियोजना व्यवस्थापन गर्न अनुमति छ। तपाईंले परियोजना साझेदारी सेटिङमा प्रयोगकर्ता अनुमतिहरू परिवर्तन गर्न सक्नुहुन्छ।"
+
+#: .Decline
+msgid "Decline"
+msgstr "अस्वीकृत गर्नुहोस्।"
+
+#: .You+have+declined+the+request+of+transfer+ownership+for+%23%23PROJECT_NAME%23%23.+%23%23CURRENT_OWNER_NAME%23%23+will+receive+a+notification+that+the+transfer+was+incomplete.
+msgid ""
+"You have declined the request of transfer ownership for ##PROJECT_NAME##. "
+"##CURRENT_OWNER_NAME## will receive a notification that the transfer was "
+"incomplete."
+msgstr "तपाईंले ##PROJECT_NAME## को स्वामित्व स्थानान्तरणको अनुरोध अस्वीकार गर्नुभयो। ##CURRENT_OWNER_NAME## लाई स्थानान्तरण अपूर्ण भएको सूचना प्राप्त हुनेछ"
+
+#: .%23%23CURRENT_OWNER_NAME%23%23+will+remain+the+project+owner.
+msgid "##CURRENT_OWNER_NAME## will remain the project owner."
+msgstr "##CURRENT_OWNER_NAME## परियोजनाको मालिक रहनेछ।"
+
+#: .You+have+accepted+project+ownership+from+%23%23CURRENT_OWNER_NAME%23%23+for+%23%23PROJECT_NAME%23%23.+This+process+can+take+up+to+a+few+minutes+to+complete.
+msgid ""
+"You have accepted project ownership from ##CURRENT_OWNER_NAME## for "
+"##PROJECT_NAME##. This process can take up to a few minutes to complete."
+msgstr "तपाईले ##CURRENT_OWNER_NAME## बाट ##PROJECT_NAME## को लागि परियोजनाको स्वामित्व स्वीकार गर्नुभएको छ। यो प्रक्रिया पूरा हुन केही मिनेट लाग्न सक्छ।"
+
+#: .Invitation+successfully+declined
+msgid "Invitation successfully declined"
+msgstr ""
+
+#: .Unknown+error+while+trying+to+update+an+invitation
+msgid "Unknown error while trying to update an invitation"
+msgstr ""
+
+#: .Invitation+successfully+accepted
+msgid "Invitation successfully accepted"
+msgstr ""
+
+#: .Invitation+not+found
+msgid "Invitation not found"
+msgstr ""
+
+#: .Could+not+find+invitation+%23%23invite_id%23%23+from+organization+%23%23org_id%23%23
+msgid "Could not find invitation ##invite_id## from organization ##org_id##"
+msgstr ""
+
+#: .Unable+to+join+%23%23TEAM_OR_ORGANIZATION_NAME%23%23
+msgid "Unable to join ##TEAM_OR_ORGANIZATION_NAME##"
+msgstr ""
+
+#: .Failed+to+respond+to+invitation
+msgid "Failed to respond to invitation"
+msgstr ""
+
+#: .Sign+out
+msgid "Sign out"
+msgstr ""
+
+#: .Accept+invitation+to+join+%23%23TEAM_OR_ORGANIZATION_NAME%23%23
+msgid "Accept invitation to join ##TEAM_OR_ORGANIZATION_NAME##"
+msgstr ""
+
+#: .When+you+accept+this+invitation,+all+of+the+submissions,+data+storage,+and+transcription+and+translation+usage+for+all+projects+will+be+transferred+to+the+%23%23TEAM_OR_ORGANIZATION%23%23.
+msgid ""
+"When you accept this invitation, all of the submissions, data storage, and "
+"transcription and translation usage for all projects will be transferred to "
+"the ##TEAM_OR_ORGANIZATION##."
+msgstr ""
+
+#: .Note+Once+you+accept,+transfer+might+take+a+few+minutes+to+complete.
+msgid "Note: Once you accept, transfer might take a few minutes to complete."
+msgstr ""
+
+#: .This+invitation+is+no+longer+available+for+a+response
+msgid "This invitation is no longer available for a response"
+msgstr ""
+
+#: .Automated+analysis
+msgid "Automated analysis"
+msgstr "स्वचालित विश्लेषण"
+
+#: .Unsaved+changes
+msgid "Unsaved changes"
+msgstr "सेभ नगरिएका परिवर्तनहरू"
+
+#: .Saved
+msgid "Saved"
+msgstr "सुरक्षित गरियो"
+
+#: .Free
+msgid "Free"
+msgstr "नि:शुल्क"
+
+#: .%24%23%23price%23%23
+msgid "$##price##"
+msgstr ""
+
+#: .%24%23%23price%23%23+USD/month
+msgid "$##price## USD/month"
+msgstr "$ ##price##USD/महिना"
+
+#: .Upgrade
+msgid "Upgrade"
+msgstr "अपग्रेड गर्नुहोस्"
+
+#: .Manage
+msgid "Manage"
+msgstr "व्यवस्थापन गर्नुहोस्"
+
+#: .Change+plan
+msgid "Change plan"
+msgstr "योजना परिवर्तन गर्नुहोस्"
+
+#: .last+modified+%23%23date%23%23
+msgid "last modified ##date##"
+msgstr "पछिल्लो परिमार्जन ##date##"
+
+#: .created+%23%23date%23%23
+msgid "created ##date##"
+msgstr "सिर्जना गरियो ##date##"
+
+#: .less+than+a+minute
+msgid "less than a minute"
+msgstr "एक मिनेट भन्दा कम"
+
+#: .about+1+minute
+msgid "about 1 minute"
+msgstr "लगभग १ मिनेट"
+
+#: .about+2+minutes
+msgid "about 2 minutes"
+msgstr "लगभग २ मिनेट"
+
+#: .about+%23%23number%23%23+minutes
+msgid "about ##number## minutes"
+msgstr "लगभग ##number## मिनेट"
+
+#: .NLP+Package
+msgid "NLP Package"
+msgstr ""
+
+#: .Increase+your+transcription+minutes+and+translations+characters.
+msgid "Increase your transcription minutes and translations characters."
+msgstr ""
+
+#: .File+Storage
+msgid "File Storage"
+msgstr ""
+
+#: .Get+up+to+50GB+of+media+storage+on+a+KoboToolbox+public+server.
+msgid "Get up to 50GB of media storage on a KoboToolbox public server."
+msgstr ""
+
+#: .Buy+now
+msgid "Buy now"
+msgstr "खरीद गर्नुहोस"
+
+#: .This+transcript+does+not+have+any+translations+yet
+msgid "This transcript does not have any translations yet"
+msgstr "यो ट्रान्सक्रिप्टको अझै कुनै अनुवाद छैन"
+
+#: .begin
+msgid "begin"
+msgstr "सुरु गर्नुहोस्"
+
+#: .Please+select+the+language+you+want+to+translate+to
+msgid "Please select the language you want to translate to"
+msgstr "कृपया तपाईंले अनुवाद गर्न चाहनुभएको भाषा चयन गर्नुहोस्"
+
+#: .back
+msgid "back"
+msgstr "फिर्ता"
+
+#: .manual
+msgid "manual"
+msgstr "म्यानुअल"
+
+#: .translate
+msgid "translate"
+msgstr "अनुवाद गर्नुहोस्"
+
+#: .Delete+translation%3F
+msgid "Delete translation?"
+msgstr "अनुवाद मेट्ने हो?"
+
+#: .new+translation
+msgid "new translation"
+msgstr "नयाँ अनुवाद"
+
+#: .Automatic+translation+in+progress
+msgid "Automatic translation in progress"
+msgstr ""
+
+#: .Estimated+time+for+completion+%23%23estimate%23%23
+msgid "Estimated time for completion: ##estimate##"
+msgstr "काम पूरा हुने अनुमानित समय:##estimate##"
+
+#: .Automatic+translation+of+transcript+to
+msgid "Automatic translation of transcript to"
+msgstr "ट्रान्सक्रिप्टको स्वचालित अनुवाद.....मा"
+
+#: .Translation+provider
+msgid "Translation provider"
+msgstr "अनुवाद प्रदायक"
+
+#: .Automated+translation+is+provided+by+Google+Cloud+Platform.+By+using+this+service+you+agree+that+your+transcript+text+will+be+sent+to+Google%27s+servers+for+the+purpose+of+translation.+However,+it+will+not+be+stored+on+Google%27s+servers+beyond+the+very+short+period+needed+for+completing+the+translation.
+msgid ""
+"Automated translation is provided by Google Cloud Platform. By using this "
+"service you agree that your transcript text will be sent to Google's servers"
+" for the purpose of translation. However, it will not be stored on Google's "
+"servers beyond the very short period needed for completing the translation."
+msgstr "स्वचालित अनुलेखन Google Cloud Platform द्वारा प्रदान गरिएको छ। यस सेवा प्रयोग गर्दा तपाईंले सहमति दिनुहुन्छ कि तपाईंको आडियो फाइललाई अनुलेखनको उद्देश्यले Google का सर्भरहरूमा पठाइनेछ। अनुलेखन पूरा गर्नका लागि आवश्यक छोटो अवधिभन्दा बढी समय आडियो फाइललाई Google का सर्भरहरूमा संचित हुन दिइनेछैन र हामीले Googleलाई आडियोलाई उनीहरुको अनुलेखन सेवा सुधार गर्नका लागि प्रयोग गर्ने अनुमति दिने छैनौ।"
+
+#: .cancel
+msgid "cancel"
+msgstr "रद्द गर्नुहोस्"
+
+#: .create+translation
+msgid "create translation"
+msgstr "अनुवाद सिर्जना गर्नुहोस्"
+
+#: .This+%23%23type%23%23+does+not+have+a+transcript+yet
+msgid "This ##type## does not have a transcript yet"
+msgstr "योसँग ##type##अझै ट्रान्सक्रिप्ट छैन"
+
+#: .Delete+transcript%3F
+msgid "Delete transcript?"
+msgstr "ट्रान्सक्रिप्ट मेट्ने हो?"
+
+#: .Please+select+the+original+language+of+the+%23%23type%23%23
+msgid "Please select the original language of the ##type##"
+msgstr "कृपया को मूल भाषा चयन गर्नुहोस्##type##"
+
+#: .transcribe
+msgid "transcribe"
+msgstr "ट्रान्सक्राइब गर्नुहोस्"
+
+#: .Automatic+transcription+in+progress
+msgid "Automatic transcription in progress"
+msgstr "स्वचालित ट्रान्सक्रिप्शनको  काम चलिरहेको छ"
+
+#: .Automatic+transcription+of+audio+file+from
+msgid "Automatic transcription of audio file from"
+msgstr "बाट अडियो फाइलको स्वचालित ट्रान्सक्रिप्शन"
+
+#: .Transcription+provider
+msgid "Transcription provider"
+msgstr "ट्रान्सक्रिप्शन प्रदायक"
+
+#: .Automated+transcription+is+provided+by+Google+Cloud+Platform.+By+using+this+service+you+agree+that+your+audio+file+will+be+sent+to+Google%27s+servers+for+the+purpose+of+transcribing.+However,+it+will+not+be+stored+on+Google%27s+servers+beyond+the+short+period+needed+for+completing+the+transcription,+and+we+do+not+allow+Google+to+use+the+audio+for+improving+its+transcription+service.
+msgid ""
+"Automated transcription is provided by Google Cloud Platform. By using this "
+"service you agree that your audio file will be sent to Google's servers for "
+"the purpose of transcribing. However, it will not be stored on Google's "
+"servers beyond the short period needed for completing the transcription, and"
+" we do not allow Google to use the audio for improving its transcription "
+"service."
+msgstr "स्वचालित अनुलेखन Google Cloud Platform द्वारा प्रदान गरिएको छ। यस सेवा प्रयोग गर्दा तपाईंले सहमति दिनुहुन्छ कि तपाईंको आडियो फाइललाई अनुलेखनको उद्देश्यले Google का सर्भरहरूमा पठाइनेछ। अनुलेखन पूरा गर्नका लागि आवश्यक छोटो अवधिभन्दा बढी समय आडियो फाइललाई Google का सर्भरहरूमा संचित हुन दिइनेछैन र हामीले Googleलाई आडियोलाई उनीहरुको अनुलेखन सेवा सुधार गर्नका लागि प्रयोग गर्ने अनुमति दिने छैनौ।"
+
+#: .create+transcript
+msgid "create transcript"
+msgstr "ट्रान्सक्रिप्ट सिर्जना गर्नुहोस्"
+
+#: .Delete+group
+msgid "Delete group"
+msgstr "समूह मेटाउनुहोस्"
+
+#: .Do+you+want+to+split+the+group+apart+(and+leave+questions+intact)+or+delete+everything+entirely%3F
+msgid ""
+"Do you want to split the group apart (and leave questions intact) or delete "
+"everything entirely?"
+msgstr "के तपाइँ समूहलाई अलग गर्न चाहनुहुन्छ (र प्रश्नहरू अक्षुण्ण छोड्न) वा सम्पूर्ण रूपमा मेटाउन चाहनुहुन्छ?"
+
+#: .Ungroup+questions
+msgid "Ungroup questions"
+msgstr "प्रश्नहरूको समूह रद्द गर्नुहोस्"
+
+#: .Delete+everything
+msgid "Delete everything"
+msgstr "सबै मेटाउनुहोस्"
+
+#: .Locked
+msgid "Locked"
+msgstr "ताला लगाइएको"
+
+#: .fully+locked+group
+msgid "fully locked group"
+msgstr "पूर्ण रूपमा बन्द समूह"
+
+#: .partially+locked+group
+msgid "partially locked group"
+msgstr "आंशिक रूपमा बन्द समूह"
+
+#: .You+can%27t+display+nested+groups+on+the+same+screen+-+the+setting+has+been+removed+from+the+parent+group
+msgid ""
+"You can't display nested groups on the same screen - the setting has been "
+"removed from the parent group"
+msgstr "तपाईंले एउटै स्क्रिनमा क्रमबद्ध समूहहरू प्रदर्शन गर्न सक्नुहुन्न - सेटिङ मूल समूहबाट हटाइएको छ"
+
+#: .fully+locked+question
+msgid "fully locked question"
+msgstr "पूर्ण रूपमा बन्द प्रश्न"
+
+#: .partially+locked+question
+msgid "partially locked question"
+msgstr "आंशिक रूपमा बन्द प्रश्न"
+
+#: .Enter+your+question
+msgid "Enter your question"
+msgstr "आफ्नो प्रश्न प्रविष्ट गर्नुहोस्"
+
+#: .View+add-on+details
+msgid "View add-on details"
+msgstr ""
+
+#: .Add-on+details
+msgid "Add-on details"
+msgstr ""
+
+#: .%23%23TYPE%23%23
+msgid "##TYPE##"
+msgstr ""
+
+#: .Included+with+%23%23PERIOD%23%23+plan
+msgid "Included with ##PERIOD## plan"
+msgstr ""
+
+#: .From+add-ons
+msgid "From add-ons"
+msgstr ""
+
+#: .Used+this+%23%23PERIOD%23%23
+msgid "Used this ##PERIOD##"
+msgstr ""
+
+#: .Total+available
+msgid "Total available"
+msgstr ""
+
+#: .Purchased+add-ons
+msgid "Purchased add-ons"
+msgstr ""
+
+#: .Please+note+that+any+qualitative+question+created+for+this+record+will+generate+a+new+column+in+the+data+table,+making+the+question+available+for+all+other+records.
+msgid ""
+"Please note that any qualitative question created for this record will "
+"generate a new column in the data table, making the question available for "
+"all other records."
+msgstr "कृपया ध्यान दिनुहोस् कि यस रेकर्डको लागि सिर्जना गरिएको कुनै पनि गुणात्मक प्रश्नले डेटा तालिकामा नयाँ स्तम्भ उत्पन्न गर्नेछ, प्रश्नलाई अन्य सबै रेकर्डहरूको लागि उपलब्ध गराउँछ।"
+
+#: .There+are+no+qualitative+analysis+questions+yet.
+msgid "There are no qualitative analysis questions yet."
+msgstr "त्यहाँ अझै गुणात्मक विश्लेषण प्रश्नहरू छैनन्।"
+
+#: .Click+the+%22Add+question%22+button+to+get+started
+msgid "Click the \"Add question\" button to get started"
+msgstr "सुरु गर्न \"प्रश्न थप्नुहोस्\" बटन क्लिक गर्नुहोस्"
+
+#: .Only+those+with+full+editing+rights+can+create+questions
+msgid "Only those with full editing rights can create questions"
+msgstr "पूर्ण सम्पादन अधिकार भएकाहरूले मात्र प्रश्नहरू सिर्जना गर्न सक्छन्"
+
+#: .Contact+the+project+owner+for+more+information
+msgid "Contact the project owner for more information"
+msgstr "थप जानकारीको लागि परियोजना मालिकलाई सम्पर्क गर्नुहोस्"
+
+#: .click+to+add+another+response...
+msgid "click to add another response..."
+msgstr ""
+
+#: .Accepted+files
+msgid "Accepted files"
+msgstr "स्वीकृत फाइलहरू"
+
+#: .All+group+settings
+msgid "All group settings"
+msgstr "सबै समूह सेटिङहरू"
+
+#: .Skip+Logic
+msgid "Skip Logic"
+msgstr "तर्क छोड्नुहोस्"
+
+#: .Locked+Features
+msgid "Locked Features"
+msgstr "लक गरिएका सुविधाहरू"
+
+#: .Question+Options
+msgid "Question Options"
+msgstr "प्रश्न विकल्प"
+
+#: .Validation+Criteria
+msgid "Validation Criteria"
+msgstr "प्रमाणीकरण मापदण्ड"
+
+#: .Question+label+is+required
+msgid "Question label is required"
+msgstr "प्रश्न लेबल आवश्यक छ"
+
+#: .Question+hint
+msgid "Question hint"
+msgstr "प्रश्न संकेत"
+
+#: .Note+The+Matrix+question+type+only+works+in+Enketo+web+forms+using+the+%27grid%27+style.
+msgid ""
+"Note: The Matrix question type only works in Enketo web forms using the "
+"'grid' style."
+msgstr "नोट: म्याट्रिक्स खालको प्रश्नले 'ग्रिड' शैली प्रयोग गरेर Enketo वेब फारमहरूमा मात्र काम गर्छ।"
+
+#: .Row+name
+msgid "Row name"
+msgstr "पङ्क्तिको नाम"
+
+#: .A+constraint+message+to+be+read+in+case+of+error
+msgid "A constraint message to be read in case of error:"
+msgstr "त्रुटि भएमा पढ्नका लागि एक नियन्त्रण सन्देश:"
+
+#: .Mandatory+response
+msgid "Mandatory response"
+msgstr "अनिवार्य प्रतिक्रिया"
+
+#: .Custom+logic
+msgid "Custom logic"
+msgstr "अनुकूलन तर्क"
+
+#: .Mandatory+when+this+formula+is+true
+msgid "Mandatory when this formula is true"
+msgstr "यो सूत्र सत्य हुँदाको अनिवार्यता"
+
+#: .Parameters
+msgid "Parameters"
+msgstr "प्यारामिटरहरू"
+
+#: .Row+could+not+be+displayed
+msgid "Row could not be displayed:"
+msgstr "पङ्क्ति प्रदर्शन गर्न सकिएन:"
+
+#: .This+question+could+not+be+imported.+Please+re-create+it+manually.+Please+contact+us+at+help@kobotoolbox.org+so+we+can+fix+this+bug%21
+msgid ""
+"This question could not be imported. Please re-create it manually. Please "
+"contact us at help@kobotoolbox.org so we can fix this bug!"
+msgstr "यो प्रश्न आयात गर्न सकिएन। कृपया यसलाई आफैँले पुन: सिर्जना गर्नुहोस्। कृपया हामीलाई help@kobotoolbox.org मा सम्पर्क गर्नुहोस् ताकि हामी यो बग समाधान गर्न सकौँ!"
+
+#: .Add+Question
+msgid "Add Question"
+msgstr "प्रश्न थप्नुहोस्"
+
+#: .This+form+is+currently+empty.
+msgid "This form is currently empty."
+msgstr "यो फारम हाल खाली छ।"
+
+#: .You+can+add+questions,+notes,+prompts,+or+other+fields+by+clicking+on+the+%27%2B%27+sign+below.
+msgid ""
+"You can add questions, notes, prompts, or other fields by clicking on the "
+"'+' sign below."
+msgstr "तपाईंले तलको '+' चिन्हमा क्लिक गरेर प्रश्नहरू, टिप्पणीहरू, प्रम्प्टहरू, वा अन्य क्षेत्रहरू थप्न सक्नुहुन्छ।"
+
+#: .e.g.+%22.pdf,.doc,.odt%22
+msgid "e.g. \".pdf,.doc,.odt\""
+msgstr "e.g. \".pdf,.doc,.odt\""
+
+#: .Choices+File
+msgid "Choices File"
+msgstr "विकल्प फाइल"
+
+#: .Guidance+hint
+msgid "Guidance hint"
+msgstr "मार्गदर्शन संकेत"
+
+#: .Error+Message
+msgid "Error Message"
+msgstr "त्रुटि सन्देश"
+
+#: .Data+column+name
+msgid "Data column name"
+msgstr "डाटा स्तम्भ नाम"
+
+#: .HXL
+msgid "HXL"
+msgstr "HXL"
+
+#: .%23tag
+msgid "#tag"
+msgstr "#ट्याग"
+
+#: .Only+one+HXL+tag+allowed+per+question.+
+msgid "Only one HXL tag allowed per question. "
+msgstr "प्रति प्रश्न मात्र एउटा HXL ट्यागको अनुमति छ। "
+
+#: .Type+attributes+for+this+tag
+msgid "Type attributes for this tag"
+msgstr "यस ट्यागका लागि विशेषताहरू टाइप गर्नुहोस्"
+
+#: .Attributes
+msgid "Attributes"
+msgstr "विशेषताहरू"
+
+#: .Default+response
+msgid "Default response"
+msgstr "सुरुको अवस्थाको प्रतिक्रिया"
+
+#: .Repeat
+msgid "Repeat"
+msgstr "दोहोर्याउनुहोस्"
+
+#: .Repeat+this+group+if+necessary
+msgid "Repeat this group if necessary"
+msgstr "आवश्यक भएमा यो समूह दोहोर्याउनुहोस्"
+
+#: .Appearance+(advanced)
+msgid "Appearance (advanced)"
+msgstr "उपस्थिति (उन्नत)"
+
+#: .No+value
+msgid "No value"
+msgstr "कुनै मूल्य छैन"
+
+#: .Upgrade+to+continue+using+this+feature
+msgid "Upgrade to continue using this feature"
+msgstr ""
+
+#: .You+have+reached+the+%23%23LIMIT%23%23+limit+for+this+%23%23PERIOD%23%23.
+msgid "You have reached the ##LIMIT## limit for this ##PERIOD##."
+msgstr ""
+
+#: .Please+consider+our+plans+or+add-ons+to+continue+using+this+feature.
+msgid "Please consider our plans or add-ons to continue using this feature."
+msgstr ""
+
+#: .You+can+monitor+your+usage
+msgid "You can monitor your usage"
+msgstr ""
+
+#: .Go+back
+msgid "Go back"
+msgstr ""
+
+#: .automatic
+msgid "automatic"
+msgstr "स्वचालित"
+
+#: .Selected+language
+msgid "Selected language"
+msgstr ""
+
+#: .Clear+selected+language
+msgid "Clear selected language"
+msgstr ""
+
+#: .original
+msgid "original"
+msgstr "मौलिक"
+
+#: .Search+for+a+language
+msgid "Search for a language"
+msgstr "भाषा खोज्नुहोस्"
+
+#: .Clear+search
+msgid "Clear search"
+msgstr ""
+
+#: .Sorry,+didn%27t+find+any+language%E2%80%A6
+msgid "Sorry, didn't find any language…"
+msgstr "माफ गर्नुहोस्, कुनै भाषा फेला परेन..."
+
+#: .I+cannot+find+my+language
+msgid "I cannot find my language"
+msgstr "म मेरो भाषा भेट्टाउन सक्दिन"
+
+#: .Please+select+the+language
+msgid "Please select the language"
+msgstr "कृपया भाषा चयन गर्नुहोस्"
+
+#: .%23%23REMAINING%23%23+remaining
+msgid "##REMAINING## remaining"
+msgstr ""
+
+#: .Manually+enter+your+validation+logic+in+XLSForm+code
+msgid "Manually enter your validation logic in XLSForm code"
+msgstr "XLSForm कोडमा आफैँले आफ्नो प्रमाणीकरण तर्क प्रविष्ट गर्नुहोस्"
+
+#: .Validation+Code
+msgid "Validation Code:"
+msgstr "प्रमाणीकरण कोड:"
+
+#: .Unknown+question+type+%23%23type_name%23%23
+msgid "Unknown question type ##type_name##"
+msgstr "अज्ञात प्रश्न प्रकार##type_name##"
+
+#: .Change+column+type%3F
+msgid "Change column type?"
+msgstr "स्तम्भको प्रकार परिवर्तन गर्ने हो?"
+
+#: .Are+you+sure+you+want+to+change+the+type%3F+This+action+is+irreversible,+your+existing+option+choices+will+be+erased.
+msgid ""
+"Are you sure you want to change the type? This action is irreversible, your "
+"existing option choices will be erased."
+msgstr "के तपाइँ निश्चित रूपमा प्रकार परिवर्तन गर्न चाहनुहुन्छ? यो कार्य अपरिवर्तनीय छ, तपाईंका वर्तमान छनोट विकल्पहरू मेटिने छन्।"
+
+#: .Change+type
+msgid "Change type"
+msgstr "किसिम परिवर्तन गर्नुहोस्"
+
+#: .Option+1
+msgid "Option 1"
+msgstr "विकल्प १"
+
+#: .Option+2
+msgid "Option 2"
+msgstr "विकल्प २"
+
+#: .Row
+msgid "Row"
+msgstr "पङ्क्ति"
+
+#: .Option
+msgid "Option"
+msgstr ""
+
+#: .Column
+msgid "Column"
+msgstr "स्तम्भ"
+
+#: .Delete+row%3F
+msgid "Delete row?"
+msgstr "पङ्क्ति मेट्ने हो?"
+
+#: .Are+you+sure+you+want+to+delete+this+row%3F+This+action+cannot+be+undone.
+msgid ""
+"Are you sure you want to delete this row? This action cannot be undone."
+msgstr "के तपाइँ यो पङ्क्ति मेटाउने कुरामा निश्चित हुनुहुन्छ? यो कार्य अनडु गर्न सकिँदैन।"
+
+#: .Delete+column%3F
+msgid "Delete column?"
+msgstr "स्तम्भ मेट्ने हो?"
+
+#: .Are+you+sure+you+want+to+delete+this+column%3F+This+action+cannot+be+undone.
+msgid ""
+"Are you sure you want to delete this column? This action cannot be undone."
+msgstr "के तपाइँ यो स्तम्भ मेटाउने कुरामा निश्चित हुनुहुन्छ? यो कार्य अनडु गर्न सकिँदैन।"
+
+#: .Response+Type
+msgid "Response Type"
+msgstr "प्रतिक्रियाको किसिम"
+
+#: .Label
+msgid "Label"
+msgstr "लेबल"
+
+#: .Data+Column+Suffix
+msgid "Data Column Suffix"
+msgstr "डेटा स्तम्भ प्रत्यय"
+
+#: .Data+Column+Name
+msgid "Data Column Name"
+msgstr "डाटा स्तम्भ नाम"
+
+#: .Add+new+option
+msgid "Add new option"
+msgstr "नँया विकल्प थप्नुहोस"
+
+#: .Delete+column
+msgid "Delete column"
+msgstr "स्तम्भ मेटाउनुहोस्"
+
+#: .Data+Column+Prefix
+msgid "Data Column Prefix"
+msgstr "डाटा स्तम्भ उपसर्ग"
+
+#: .Delete+row
+msgid "Delete row"
+msgstr "पङ्क्ति मेटाउनुहोस्"
+
+#: .Add+new+row
+msgid "Add new row"
+msgstr ""
+
+#: .Add+new+column
+msgid "Add new column"
+msgstr ""
+
+#: .Type+your+answer
+msgid "Type your answer"
+msgstr "आफ्नो जवाफ टाइप गर्नुहोस्"
+
+#: .Delete+this+question%3F
+msgid "Delete this question?"
+msgstr "यो प्रश्न मेट्ने हो?"
+
+#: .Are+you+sure+you+want+to+delete+this+question%3F+This+action+cannot+be+undone.
+msgid ""
+"Are you sure you want to delete this question? This action cannot be undone."
+msgstr "के तपाइँ यो प्रश्न मेटाउने कुरामा निश्चित हुनुहुन्छ? यो कार्य अनडु गर्न सकिँदैन।"
+
+#: .%E2%80%A6keyword+search+in+progress
+msgid "…keyword search in progress"
+msgstr "... कुञ्जी शब्द खोज प्रगतिमा छ"
+
+#: .Apply+search
+msgid "Apply search"
+msgstr "खोज लागू गर्नुहोस्"
+
+#: .%23%23number%23%23+instances
+msgid "##number## instances"
+msgstr "##number## उदाहरणहरू"
+
+#: .of+the+keywords
+msgid "of the keywords"
+msgstr "कुञ्जी शब्दहरूको"
+
+#: .from
+msgid "from"
+msgstr "बाट"
+
+#: .Question+label+cannot+be+empty
+msgid "Question label cannot be empty"
+msgstr "प्रशनको लेबल रिक्त हुन सक्दैन"
+
+#: .Some+required+fields+are+missing
+msgid "Some required fields are missing"
+msgstr "केहि आवश्यक फिल्डहरु खाली छन्"
+
+#: .Type+question
+msgid "Type question"
+msgstr "प्रश्न टाईप गर्नुहोस"
+
+#: .Type+option+name
+msgid "Type option name"
+msgstr "विकल्प नाम टाईप गर्नुहोस"
+
+#: .Look+for
+msgid "Look for"
+msgstr "... लागि हेर्नुहोस"
+
+#: .help
+msgid "help"
+msgstr "मद्दत"
+
+#: .Type+keywords
+msgid "Type keywords"
+msgstr "किवर्डहरु टाईप गर्नुहोस"
+
+#: .Search+this+transcript/translation
+msgid "Search this transcript/translation:"
+msgstr "यो ट्रान्सक्रिप्ट/अनुवाद खोज्नुहोस:"
+
+#: .Failed+to+remove+member
+msgid "Failed to remove member"
+msgstr ""
+
+#: .Leave+empty+for+no+limit.
+msgid "Leave empty for no limit."
+msgstr ""
+
+#: .Default+%23%23
+msgid "Default: ##"
+msgstr ""
+
+#: .No+limit
+msgid "No limit"
+msgstr ""

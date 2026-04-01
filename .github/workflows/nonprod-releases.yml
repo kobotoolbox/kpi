@@ -32,7 +32,7 @@ jobs:
         run: echo "sha=${GITHUB_SHA}" >> $GITHUB_OUTPUT
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v5.1.1
+        uses: aws-actions/configure-aws-credentials@v6.0.0
         with:
           aws-region: us-east-1
           role-to-assume: "arn:aws:iam::917503078660:role/gha_all_repos"
@@ -49,7 +49,7 @@ jobs:
          aws eks --region us-east-1 update-kubeconfig --name kobo
 
       - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -82,7 +82,7 @@ jobs:
     steps:
       - name: Generate GitHub App Token
         id: app-token
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@v3
         with:
           app-id: ${{ secrets.KOBO_BOT_APP_ID }}
           private-key: ${{ secrets.KOBO_BOT_PRIVATE_KEY }}
@@ -104,8 +104,7 @@ jobs:
   notify-success:
     needs:
       - deploy
-      - trigger-main-deploy
-    if: ${{ !cancelled() && !failure() }}
+    if: ${{ github.ref_name != 'main' }}
     uses: './.github/workflows/zulip.yml'
     secrets: inherit
     with:
