@@ -10,11 +10,13 @@ $z-form-builder-wrapper: 1052;
 $z-fullscreen: 1051;
 $z-kobo-drawer: 1050; // must be over leaflet
 
-$z-map-overlay: 1001; // leaflet interface elements
+$z-map-settings: 1002; // default for the buttons over overlay
+$z-map-settings-overlay: 1001; // needs to be over the leaflet zoom button which is 1000
+$z-map-settings-disabled: 999; // for the some buttons to be under overlay
 $z-map-list: 689;
-$z-map-settings: 699;
-$z-map-settings-2: 700;
-$z-map-settings-3: 701;
+$z-map-settings: 1002; // default for the buttons over overlay
+$z-map-settings-overlay: 1001; // needs to be over the leaflet zoom button which is 1000
+$z-map-settings-disabled: 999; // for the some buttons to be under overlay
 
 $z-dropzone: 200;
 $z-form-builder-add-row: 101;
