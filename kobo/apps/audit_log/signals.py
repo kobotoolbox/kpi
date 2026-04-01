@@ -1,11 +1,14 @@
 from collections import defaultdict
 
 from celery.signals import task_success
+from django.contrib.admin.models import LogEntry, ADDITION, CHANGE, DELETION
 from django.contrib.auth.signals import user_logged_in
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 from django_userforeignkey.request import get_current_request
 
+from kobo.apps.audit_log.audit_actions import AuditAction
+from kobo.apps.audit_log.models import AuditLog, AuditType
 from kobo.apps.openrosa.libs.utils.common_tags import SUBMITTED_BY
 from kpi.constants import ASSET_TYPE_SURVEY, PERM_PARTIAL_SUBMISSIONS
 from kpi.models import Asset, ImportTask
@@ -135,3 +138,65 @@ def remove_partial_perms(sender, instance, user, **kwargs):
     # we can't have one without the other
     request.permissions_added[user.username].discard(PERM_PARTIAL_SUBMISSIONS)
     request.permissions_removed[user.username].add(PERM_PARTIAL_SUBMISSIONS)
+
+
+@receiver(post_save, sender=LogEntry)
+def save_log_entry_to_audit_log(instance, created, **kwargs):
+    """
+    Listens for actions performed in the Django Admin (LogEntry) and replicates
+    them into the AuditLog table
+    """
+    if not created:
+        return
+
+    action_map = {
+        ADDITION: AuditAction.ADMIN_CREATE,
+        CHANGE: AuditAction.ADMIN_UPDATE,
+        DELETION: AuditAction.ADMIN_DELETE,
+    }
+    audit_action = action_map.get(instance.action_flag)
+    if not audit_action:
+        return
+
+    app_label = 'unknown'
+    model_name = 'unknown'
+    if instance.content_type:
+        app_label = instance.content_type.app_label
+        model_name = instance.content_type.model
+
+    message = _build_human_readable_log_message(instance, model_name)
+    metadata = {
+        'message': message,
+        'object_repr': instance.object_repr,
+    }
+
+    AuditLog.objects.create(
+        user=instance.user,
+        app_label=app_label,
+        model_name=model_name,
+        object_id=instance.object_id,
+        action=audit_action,
+        log_type=AuditType.ADMIN_INTERFACE,
+        metadata=metadata
+    )
+
+
+def _build_human_readable_log_message(log_entry, model_name):
+    """
+    Constructs a human-readable message from a Django LogEntry
+    """
+    user = log_entry.user
+    obj_repr = log_entry.object_repr
+    obj_id = log_entry.object_id
+
+    if log_entry.action_flag == ADDITION:
+        return f"{user} created {model_name} '{obj_repr}' (pk: {obj_id})"
+
+    elif log_entry.action_flag == CHANGE:
+        changes = log_entry.get_change_message()
+        return f"{user} updated {model_name} '{obj_repr}' (pk: {obj_id}): {changes}"
+
+    elif log_entry.action_flag == DELETION:
+        return f"{user} deleted {model_name} '{obj_repr}' (pk: {obj_id})"
+
+    return log_entry.get_change_message()

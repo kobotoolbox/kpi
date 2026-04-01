@@ -5,11 +5,12 @@ from unittest.mock import ANY, DEFAULT, MagicMock, call, patch
 
 import jsonschema
 import pytest
-from botocore.exceptions import ClientError
+from botocore.exceptions import ClientError, ConnectTimeoutError, ReadTimeoutError
 from constance.test import override_config
 from ddt import data, ddt, unpack
 from django.conf import settings
 from django.core.cache import cache
+from django.test import override_settings
 from django.utils import timezone
 from freezegun import freeze_time
 from rest_framework import status
@@ -704,11 +705,81 @@ class TestAutomaticBedrockQualExternalProcess(BaseAutomaticBedrockQualTestCase):
         assert result.get('status') == 'failed'
         assert result.get('error') == 'LLM returned empty response'
 
+    def test_timeout_primary_model_fallback_to_backup(self):
+        action_data = {
+            'uuid': BEDROCK_QUAL_TEXT_UUID,
+            '_dependency': self._dependency_dict_from_transcript_dict(),
+        }
 
+        # Simulate a timeout error from the primary model
+        timeout_error = ReadTimeoutError(
+            endpoint_url='https://bedrock-runtime.aws.amazon.com',
+            operation_name='invoke_model',
+            message='Read timeout on endpoint URL: (ReadTimeoutError)'
+        )
+
+        with patch.object(
+            self.action,
+            'get_response_from_llm',
+            side_effect=timeout_error,
+        ) as patched_get_response_from_llm:
+            result = self.action.run_external_process({}, {}, action_data=action_data)
+
+        # Verify that the backup model was called after the timeout
+        patched_get_response_from_llm.assert_has_calls(
+            [
+                call(ANY, OSS120),
+                call(ANY, ClaudeSonnet)
+            ],
+            any_order=False
+        )
+
+        # Verify it exited gracefully
+        assert result.get('status') == 'failed'
+        assert 'timeout' in result.get('error')
+
+    def test_connect_timeout_primary_model_fallback_to_backup(self):
+        action_data = {
+            'uuid': BEDROCK_QUAL_TEXT_UUID,
+            '_dependency': self._dependency_dict_from_transcript_dict(),
+        }
+
+        # Simulate a connect timeout error from the primary model
+        timeout_error = ConnectTimeoutError(
+            endpoint_url='https://bedrock-runtime.aws.amazon.com',
+            error='Connect timeout on endpoint URL'
+        )
+
+        with patch.object(
+            self.action,
+            'get_response_from_llm',
+            side_effect=timeout_error,
+        ) as patched_get_response_from_llm:
+            result = self.action.run_external_process({}, {}, action_data=action_data)
+
+        # Verify that the backup model was called after the primary connection failed
+        patched_get_response_from_llm.assert_has_calls(
+            [
+                call(ANY, OSS120),
+                call(ANY, ClaudeSonnet)
+            ],
+            any_order=False
+        )
+
+        #  Verify it exited gracefully
+        assert result.get('status') == 'failed'
+        assert 'Connect timeout' in result.get('error')
+
+
+@override_settings(CACHES={
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    }
+})
 class TestAutomaticQAThrottling(BaseAutomaticBedrockQualTestCase):
     def setUp(self):
         super().setUp()
-        cache.delete(f'throttle_automatic_qa_{self.asset.owner.id}')
+        cache.clear()
         self.submission_uuid = self._add_submission()
         self.transcript_dict = self._add_manual_transcription(self.submission_uuid)
         self.supplement_details_url = reverse(
